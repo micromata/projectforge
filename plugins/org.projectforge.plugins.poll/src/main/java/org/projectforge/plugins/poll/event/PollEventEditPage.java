@@ -36,7 +36,7 @@ import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.joda.time.DateTime;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.poll.NewPollFrontendModel;
 import org.projectforge.plugins.poll.NewPollPage;
 import org.projectforge.plugins.poll.PollDO;
@@ -161,7 +161,7 @@ public class PollEventEditPage extends AbstractSecuredPage
     if (!model.getAllEvents().isEmpty()) {
       for (final PollEventDO event : model.getAllEvents()) {
         eventProvider.addEvent(
-            new SelectedRange(new DateTime(event.getStartDate()), new DateTime(event.getEndDate()), false), null);
+            new SelectedRange(PFDateTime.from(event.getStartDate()), PFDateTime.from(event.getEndDate()), false), null);
       }
     }
     config = new MyFullCalendarConfig(this);

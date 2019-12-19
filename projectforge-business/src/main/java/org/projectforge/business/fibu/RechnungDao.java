@@ -129,10 +129,9 @@ public class RechnungDao extends BaseDao<RechnungDO> {
     if (rechnung.getDatum() == null) {
       return null;
     }
-    final Calendar cal = DateHelper.getCalendar();
-    cal.setTime(rechnung.getDatum());
-    cal.add(Calendar.DAY_OF_YEAR, days);
-    return cal.getTime();
+    PFDateTime dateTime = PFDateTime.from(rechnung.getDatum());
+    dateTime = dateTime.plusDays(days);
+    return dateTime.getUtilDate();
   }
 
   /**

@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.ZonedDateTime;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -64,11 +63,10 @@ public class Holidays
   {
     log.info("Compute holidays for year: " + year);
     final Map<Integer, Holiday> holidays = new HashMap<>();
-    final Calendar cal = Calendar.getInstance();
-    cal.set(Calendar.YEAR, year);
+    PFDateTime dateTime = PFDateTime.now().withYear(year);
     for (final HolidayDefinition holiday : HolidayDefinition.values()) {
       if (holiday.getEasterOffset() == null) {
-        putHoliday(holidays, cal, holiday);
+        putHoliday(holidays, dateTime, holiday);
       }
     }
 
@@ -88,13 +86,10 @@ public class Holidays
     int m = 3 + (l + 40) / 44; // 1-based month in which Easter falls
     int d = l + 28 - 31 * (m / 4); // Date of Easter within that month
 
-    cal.set(Calendar.YEAR, year);
-    cal.set(Calendar.MONTH, m - 1); // 0-based
-    cal.set(Calendar.DATE, d);
-    cal.getTime(); // JDK 1.1.2 bug workaround
+    dateTime = dateTime.withYear(year).withMonth(m-1).withDayOfMonth(d);
     for (final HolidayDefinition holiday : HolidayDefinition.values()) {
       if (holiday.getEasterOffset() != null) {
-        putEasterHoliday(holidays, cal, holiday);
+        putEasterHoliday(holidays, dateTime, holiday);
       }
     }
     if (xmlConfiguration.getHolidays() != null) {
@@ -109,10 +104,9 @@ public class Holidays
             // Holiday affects not the current year.
             continue;
           }
-          cal.set(Calendar.MONTH, cfgHoliday.getMonth());
-          cal.set(Calendar.DAY_OF_MONTH, cfgHoliday.getDayOfMonth());
+          dateTime = dateTime.withMonth(cfgHoliday.getMonth()).withDayOfMonth(cfgHoliday.getDayOfMonth());
           final Holiday holiday = new Holiday(null, cfgHoliday.getLabel(), cfgHoliday.isWorkingDay(), cfgHoliday.getWorkFraction());
-          putHoliday(holidays, cal.get(Calendar.DAY_OF_YEAR), holiday);
+          putHoliday(holidays, dateTime.getDayOfYear(), holiday);
           log.info("Configured holiday added: " + holiday);
         }
       }
@@ -120,25 +114,24 @@ public class Holidays
     return holidays;
   }
 
-  private void putHoliday(final Map<Integer, Holiday> holidays, final Calendar cal, final HolidayDefinition def)
+  private void putHoliday(final Map<Integer, Holiday> holidays, PFDateTime dateTime, final HolidayDefinition def)
   {
     if (def.getEasterOffset() != null) {
       return;
     }
-    cal.set(Calendar.MONTH, def.getMonth());
-    cal.set(Calendar.DAY_OF_MONTH, def.getDayOfMonth());
+    dateTime = dateTime.withMonth(def.getMonth()).withDayOfMonth(def.getDayOfMonth());
     final Holiday holiday = createHoliday(def);
     if (holiday != null) {
-      putHoliday(holidays, cal.get(Calendar.DAY_OF_YEAR), holiday);
+      putHoliday(holidays, dateTime.getDayOfYear(), holiday);
     }
   }
 
-  private void putEasterHoliday(final Map<Integer, Holiday> holidays, final Calendar cal, final HolidayDefinition def)
+  private void putEasterHoliday(final Map<Integer, Holiday> holidays, final PFDateTime dateTime, final HolidayDefinition def)
   {
     if (def.getEasterOffset() != null) {
       final Holiday holiday = createHoliday(def);
       if (holiday != null) {
-        putHoliday(holidays, cal.get(Calendar.DAY_OF_YEAR) + def.getEasterOffset(), holiday);
+        putHoliday(holidays, dateTime.getDayOfYear() + def.getEasterOffset(), holiday);
       }
     }
   }

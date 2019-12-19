@@ -35,6 +35,7 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.RecurrenceFrequency;
 
 import java.text.DateFormat;
@@ -98,10 +99,9 @@ public class ICal4JUtils
       final Date startUtc = CalendarUtils.getUTCMidnightDate(startDate);
       final Date endUtc = CalendarUtils.getUTCMidnightDate(endDate);
       final net.fortuna.ical4j.model.Date fortunaStartDate = new net.fortuna.ical4j.model.Date(startUtc);
-      final org.joda.time.DateTime jodaTime = new org.joda.time.DateTime(endUtc);
+      final PFDateTime dateTime = PFDateTime.from(endUtc);
       // requires plus 1 because one day will be omitted by dateTime.
-      final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(
-          jodaTime.plusDays(1).toDate());
+      final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(dateTime.plusDays(1).getUtilDate());
       vEvent = new VEvent(fortunaStartDate, fortunaEndDate, summary);
     } else {
       final net.fortuna.ical4j.model.DateTime fortunaStartDate = new net.fortuna.ical4j.model.DateTime(startDate);

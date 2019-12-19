@@ -29,6 +29,7 @@ import org.projectforge.export.SVGColor;
 import org.projectforge.export.SVGHelper;
 import org.projectforge.export.SVGHelper.ArrowDirection;
 import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.xstream.XmlObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -188,10 +189,10 @@ public class GanttChart
       toDate = settings.getToDate();
     }
     if (fromDate == null) {
-      fromDate = new DateHolder().setBeginOfDay().setHourOfDay(8).getDate();
+      fromDate = PFDateTime.now().getBeginOfDay().withHour(8).getUtilDate();
     }
     if (toDate == null) {
-      toDate = new DateHolder().setBeginOfDay().setHourOfDay(8).add(Calendar.DAY_OF_MONTH, 30).getDate();
+      toDate = PFDateTime.now().getBeginOfDay().withHour(8).plusDays(30).getUtilDate();
     }
     for (final GanttTask node : allVisibleGanttObjects) {
       final ObjectInfo taskInfo = new ObjectInfo(node, row++);

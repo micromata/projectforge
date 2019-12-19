@@ -32,6 +32,7 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -226,9 +227,9 @@ public class ICalGenerator
       final Date endUtc = CalendarUtils.getUTCMidnightDate(endDate);
       fortunaStartDate = new net.fortuna.ical4j.model.Date(startUtc);
       // TODO should not be done
-      final org.joda.time.DateTime jodaTime = new org.joda.time.DateTime(endUtc);
+      final PFDateTime dateTime = PFDateTime.from(endUtc);
       // requires plus 1 because one day will be omitted by dateTime.
-      fortunaEndDate = new net.fortuna.ical4j.model.Date(jodaTime.plusDays(1).toDate());
+      fortunaEndDate = new net.fortuna.ical4j.model.Date(dateTime.plusDays(1).getUtilDate());
     } else {
       fortunaStartDate = new net.fortuna.ical4j.model.DateTime(startDate);
       ((net.fortuna.ical4j.model.DateTime) fortunaStartDate).setTimeZone(timezone);

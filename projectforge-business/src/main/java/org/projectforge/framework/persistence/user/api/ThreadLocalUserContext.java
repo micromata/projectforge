@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.user.api;
 
-import org.joda.time.DateTimeZone;
 import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.Configuration;
@@ -169,12 +168,6 @@ public class ThreadLocalUserContext
       return Configuration.getInstance().getDefaultTimeZone();
     }
     return TimeZone.getDefault();
-  }
-
-  public static DateTimeZone getDateTimeZone()
-  {
-    final TimeZone timeZone = getTimeZone();
-    return DateTimeZone.forTimeZone(timeZone);
   }
 
   /**

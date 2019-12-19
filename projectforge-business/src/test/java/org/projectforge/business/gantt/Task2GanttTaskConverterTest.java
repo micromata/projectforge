@@ -27,11 +27,12 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
-import java.util.Calendar;
+import java.time.Month;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,11 +63,10 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
     initTestDB.addTask(prefix + "2.1", prefix + "2");
     initTestDB.addTask(prefix + "2.2", prefix + "2");
     initTestDB.addTask(prefix + "2.3", prefix + "2");
-    final DayHolder day = new DayHolder();
-    day.setDate(2010, Calendar.AUGUST, 16);
+    final PFDateTime day = PFDateTime.now().withYear(2010).withMonth(Month.AUGUST.getValue()).withDayOfMonth(16);
 
     TaskDO task = getTask(prefix + "2.1");
-    task.setStartDate(day.getDate());
+    task.setStartDate(day.getUtilDate());
     task.setDuration(BigDecimal.TEN);
     taskDao.update(task);
 
@@ -148,14 +148,14 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
   private void assertExternalTasks(final GanttChartData ganttChartData, final String prefix) {
     GanttTask externalGanttTask = ganttChartData.getExternalObject(getTaskId(prefix + "2.1"));
     assertNull(externalGanttTask.getPredecessor(), "Predecessor should be null.");
-    assertDate("Start date unmodified.", 2010, Calendar.AUGUST, 16, externalGanttTask.getStartDate());
-    assertDate("End date should have been calculated and set.", 2010, Calendar.AUGUST, 30,
+    assertDate("Start date unmodified.", 2010, Month.AUGUST.getValue(), 16, externalGanttTask.getStartDate());
+    assertDate("End date should have been calculated and set.", 2010, Month.AUGUST.getValue(), 30,
             externalGanttTask.getEndDate());
     externalGanttTask = ganttChartData.getExternalObject(getTaskId(prefix + "2.2"));
     assertNull(externalGanttTask.getPredecessor(), "Predecessor should be null.");
-    assertDate("Start date should have been calculated and set.", 2010, Calendar.AUGUST, 30,
+    assertDate("Start date should have been calculated and set.", 2010, Month.AUGUST.getValue(), 30,
             externalGanttTask.getStartDate());
-    assertDate("End date should have been calculated and set.", 2010, Calendar.SEPTEMBER, 13,
+    assertDate("End date should have been calculated and set.", 2010, Month.SEPTEMBER.getValue(), 13,
             externalGanttTask.getEndDate());
   }
 

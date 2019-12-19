@@ -23,7 +23,6 @@
 
 package org.projectforge.common;
 
-import org.joda.time.DateTimeConstants;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
@@ -34,7 +33,6 @@ import org.projectforge.test.AbstractTestBase;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.DayOfWeek;
 import java.time.Month;
 import java.time.ZoneId;
 import java.util.Date;
@@ -157,18 +155,6 @@ public class DateHelperTest extends AbstractTestBase
 
     assertFalse(DateHelper.dateOfYearBetween(3, 21, 10, 3, 2, 20)); // 3/21 isn't between 10/3 and 2/20
     assertFalse(DateHelper.dateOfYearBetween(9, 21, 10, 3, 2, 20)); // 9/21 isn't between 10/3 and 2/20
-  }
-
-  @Test
-  public void convertCalendarDayOfWeekToJoda()
-  {
-    assertEquals(DateTimeConstants.MONDAY, DateHelper.convertCalendarDayOfWeekToJoda(DayOfWeek.MONDAY.getValue()));
-    assertEquals(DateTimeConstants.TUESDAY, DateHelper.convertCalendarDayOfWeekToJoda(DayOfWeek.TUESDAY.getValue()));
-    assertEquals(DateTimeConstants.WEDNESDAY, DateHelper.convertCalendarDayOfWeekToJoda(DayOfWeek.WEDNESDAY.getValue()));
-    assertEquals(DateTimeConstants.THURSDAY, DateHelper.convertCalendarDayOfWeekToJoda(DayOfWeek.THURSDAY.getValue()));
-    assertEquals(DateTimeConstants.FRIDAY, DateHelper.convertCalendarDayOfWeekToJoda(DayOfWeek.FRIDAY.getValue()));
-    assertEquals(DateTimeConstants.SATURDAY, DateHelper.convertCalendarDayOfWeekToJoda(DayOfWeek.SATURDAY.getValue()));
-    assertEquals(DateTimeConstants.SUNDAY, DateHelper.convertCalendarDayOfWeekToJoda(DayOfWeek.SUNDAY.getValue()));
   }
 
   @Test

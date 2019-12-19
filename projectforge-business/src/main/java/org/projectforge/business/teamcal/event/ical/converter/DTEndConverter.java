@@ -30,6 +30,7 @@ import net.fortuna.ical4j.model.property.DtEnd;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.calendar.ICal4JUtils;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -45,10 +46,10 @@ public class DTEndConverter extends PropertyConverter
 
     if (event.getAllDay()) {
       final Date endUtc = CalendarUtils.getUTCMidnightDate(event.getEndDate());
-      final org.joda.time.DateTime jodaTime = new org.joda.time.DateTime(endUtc);
+      final PFDateTime dateTime = PFDateTime.from(endUtc);
       // TODO sn should not be done
       // requires plus 1 because one day will be omitted by dateTime.
-      final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(jodaTime.plusDays(1).toDate());
+      final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(dateTime.plusDays(1).getUtilDate());
       date = new net.fortuna.ical4j.model.Date(fortunaEndDate.getTime());
     } else {
       date = new DateTime(event.getEndDate());
@@ -69,8 +70,8 @@ public class DTEndConverter extends PropertyConverter
 
     if (isAllDay) {
       // TODO sn change behaviour to iCal standard
-      final org.joda.time.DateTime jodaTime = new org.joda.time.DateTime(vEvent.getEndDate().getDate());
-      final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(jodaTime.plusDays(-1).toDate());
+      final PFDateTime dateTime = PFDateTime.from(vEvent.getEndDate().getDate());
+      final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(dateTime.plusDays(-1).getUtilDate());
       event.setEndDate(new Timestamp(fortunaEndDate.getTime()));
     } else {
       event.setEndDate(ICal4JUtils.getSqlTimestamp(vEvent.getEndDate().getDate()));

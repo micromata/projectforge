@@ -23,8 +23,6 @@
 
 package org.projectforge.framework.time;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
 import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.Configuration;
@@ -36,10 +34,7 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.util.*;
 
 /**
@@ -47,8 +42,8 @@ import java.util.*;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class DateHelper implements Serializable
-{
+@Deprecated
+public class DateHelper implements Serializable {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DateHelper.class);
 
   private static final long serialVersionUID = -94010735614402146L;
@@ -103,8 +98,7 @@ public class DateHelper implements Serializable
    * @param d2
    * @see Date#getTime()
    */
-  public static boolean equals(final Date d1, final Date d2)
-  {
+  public static boolean equals(final Date d1, final Date d2) {
     if (d1 == null) {
       return d2 == null;
     }
@@ -119,8 +113,7 @@ public class DateHelper implements Serializable
    *
    * @param timezone
    */
-  public static DateFormat getIsoDateFormat(final TimeZone timezone)
-  {
+  public static DateFormat getIsoDateFormat(final TimeZone timezone) {
     final DateFormat df = (DateFormat) FORMAT_ISO_DATE.clone();
     if (timezone != null) {
       df.setTimeZone(timezone);
@@ -133,8 +126,7 @@ public class DateHelper implements Serializable
    *
    * @param timezone If null then time zone is ignored.
    */
-  public static DateFormat getIsoTimestampFormat(final TimeZone timezone)
-  {
+  public static DateFormat getIsoTimestampFormat(final TimeZone timezone) {
     final DateFormat df = (DateFormat) FORMAT_ISO_TIMESTAMP.clone();
     if (timezone != null) {
       df.setTimeZone(timezone);
@@ -147,8 +139,7 @@ public class DateHelper implements Serializable
    *
    * @param timezone
    */
-  public static DateFormat getFilenameFormatTimestamp(final TimeZone timezone)
-  {
+  public static DateFormat getFilenameFormatTimestamp(final TimeZone timezone) {
     final DateFormat df = (DateFormat) FILENAME_FORMAT_TIMESTAMP.clone();
     if (timezone != null) {
       df.setTimeZone(timezone);
@@ -161,8 +152,7 @@ public class DateHelper implements Serializable
    *
    * @param timezone
    */
-  public static DateFormat getFilenameFormatDate(final TimeZone timezone)
-  {
+  public static DateFormat getFilenameFormatDate(final TimeZone timezone) {
     final DateFormat df = (DateFormat) FILENAME_FORMAT_DATE.clone();
     if (timezone != null) {
       df.setTimeZone(timezone);
@@ -173,11 +163,9 @@ public class DateHelper implements Serializable
   /**
    * yyyy-MM-dd HH:mm:ss.S in UTC. Thread safe usage: FOR_TESTCASE_OUTPUT_FORMATTER.get().format(date)
    */
-  public static final ThreadLocal<DateFormat> FOR_TESTCASE_OUTPUT_FORMATTER = new ThreadLocal<DateFormat>()
-  {
+  public static final ThreadLocal<DateFormat> FOR_TESTCASE_OUTPUT_FORMATTER = new ThreadLocal<DateFormat>() {
     @Override
-    protected DateFormat initialValue()
-    {
+    protected DateFormat initialValue() {
       final DateFormat df = new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MILLIS);
       df.setTimeZone(UTC);
       return df;
@@ -187,11 +175,9 @@ public class DateHelper implements Serializable
   /**
    * Thread safe usage: FOR_TESTCASE_OUTPUT_FORMATTER.get().format(date)
    */
-  public static final ThreadLocal<DateFormat> TECHNICAL_ISO_UTC = new ThreadLocal<DateFormat>()
-  {
+  public static final ThreadLocal<DateFormat> TECHNICAL_ISO_UTC = new ThreadLocal<DateFormat>() {
     @Override
-    protected DateFormat initialValue()
-    {
+    protected DateFormat initialValue() {
       final DateFormat dateFormat = new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MILLIS + " z");
       dateFormat.setTimeZone(UTC);
       return dateFormat;
@@ -201,8 +187,7 @@ public class DateHelper implements Serializable
   /**
    * @return Short name of day represented by the giving day. The context user's locale and time zone is considered.
    */
-  public static final String formatShortNameOfDay(final Date date)
-  {
+  public static final String formatShortNameOfDay(final Date date) {
     final DateFormat df = new SimpleDateFormat("EE", ThreadLocalUserContext.getLocale());
     df.setTimeZone(ThreadLocalUserContext.getTimeZone());
     return df.format(date);
@@ -214,8 +199,7 @@ public class DateHelper implements Serializable
    * @param date
    * @return
    */
-  public static final String formatAsUTC(final Date date)
-  {
+  public static final String formatAsUTC(final Date date) {
     if (date == null) {
       return "";
     }
@@ -225,11 +209,9 @@ public class DateHelper implements Serializable
   /**
    * Thread safe usage: UTC_ISO_DATE.get().format(date)
    */
-  public static final ThreadLocal<DateFormat> UTC_ISO_DATE = new ThreadLocal<DateFormat>()
-  {
+  public static final ThreadLocal<DateFormat> UTC_ISO_DATE = new ThreadLocal<DateFormat>() {
     @Override
-    protected DateFormat initialValue()
-    {
+    protected DateFormat initialValue() {
       final DateFormat df = new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MILLIS + " Z");
       df.setTimeZone(UTC);
       return df;
@@ -241,8 +223,7 @@ public class DateHelper implements Serializable
    *
    * @param date
    */
-  public static String formatIsoDate(final Date date)
-  {
+  public static String formatIsoDate(final Date date) {
     return getIsoDateFormat(ThreadLocalUserContext.getTimeZone()).format(date);
   }
 
@@ -251,8 +232,7 @@ public class DateHelper implements Serializable
    *
    * @param date
    */
-  public static String formatIsoDate(final Date date, final TimeZone timeZone)
-  {
+  public static String formatIsoDate(final Date date, final TimeZone timeZone) {
     return getIsoDateFormat(timeZone).format(date);
   }
 
@@ -263,8 +243,7 @@ public class DateHelper implements Serializable
    * @return
    * @see #parseMillis(String, boolean)
    */
-  public static Date parseMillis(final String str)
-  {
+  public static Date parseMillis(final String str) {
     return parseMillis(str, true);
   }
 
@@ -273,8 +252,7 @@ public class DateHelper implements Serializable
    * @param logError If true, any ParseException error will be logged if occured.
    * @return The parsed date or null, if not parseable.
    */
-  public static Date parseMillis(final String str, final boolean logError)
-  {
+  public static Date parseMillis(final String str, final boolean logError) {
     Date date = null;
     try {
       final long millis = Long.parseLong(str);
@@ -287,13 +265,11 @@ public class DateHelper implements Serializable
     return date;
   }
 
-  public static String formatIsoTimestamp(final Date date)
-  {
+  public static String formatIsoTimestamp(final Date date) {
     return formatIsoTimestamp(date, ThreadLocalUserContext.getTimeZone());
   }
 
-  public static String formatIsoTimestamp(final Date date, final TimeZone timeZone)
-  {
+  public static String formatIsoTimestamp(final Date date, final TimeZone timeZone) {
     return getIsoTimestampFormat(timeZone).format(date);
   }
 
@@ -303,8 +279,7 @@ public class DateHelper implements Serializable
    * @param isoDateString
    * @return Parsed date or null if a parse error occurs.
    */
-  public static Date parseIsoDate(final String isoDateString, final TimeZone timeZone)
-  {
+  public static Date parseIsoDate(final String isoDateString, final TimeZone timeZone) {
     final DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
     df.setTimeZone(timeZone);
     Date date;
@@ -322,8 +297,7 @@ public class DateHelper implements Serializable
    * @param isoDateString
    * @return Parsed date or null if a parse error occurs.
    */
-  public static Date parseIsoTimestamp(final String isoDateString, final TimeZone timeZone)
-  {
+  public static Date parseIsoTimestamp(final String isoDateString, final TimeZone timeZone) {
     final DateFormat df = new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MILLIS);
     df.setTimeZone(timeZone);
     Date date;
@@ -335,8 +309,7 @@ public class DateHelper implements Serializable
     return date;
   }
 
-  public static String formatIsoTimePeriod(final Date fromDate, final Date toDate)
-  {
+  public static String formatIsoTimePeriod(final Date fromDate, final Date toDate) {
     return formatIsoDate(fromDate) + ":" + formatIsoDate(toDate);
   }
 
@@ -346,8 +319,7 @@ public class DateHelper implements Serializable
    * @param isoTimePeriodString
    * @return Parsed time period or null if a parse error occurs.
    */
-  public static TimePeriod parseIsoTimePeriod(final String isoTimePeriodString, final TimeZone timeZone)
-  {
+  public static TimePeriod parseIsoTimePeriod(final String isoTimePeriodString, final TimeZone timeZone) {
     final DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
     df.setTimeZone(timeZone);
     final String[] sa = isoTimePeriodString.split(":");
@@ -368,32 +340,28 @@ public class DateHelper implements Serializable
    * @param dateHolder
    * @return
    */
-  public static final String getForTestCase(final DateHolder dateHolder)
-  {
+  public static final String getForTestCase(final DateHolder dateHolder) {
     return FOR_TESTCASE_OUTPUT_FORMATTER.get().format(dateHolder.getDate());
   }
 
   /**
    * Output via FOR_TESTCASE_OUTPUT_FORMATTER for test cases.
    *
-   * @param dateHolder
+   * @param date
    * @return
    */
-  public static final String getForTestCase(final Date date)
-  {
+  public static final String getForTestCase(final Date date) {
     return FOR_TESTCASE_OUTPUT_FORMATTER.get().format(date);
   }
 
-  public static final String getTimestampAsFilenameSuffix(final Date date)
-  {
+  public static final String getTimestampAsFilenameSuffix(final Date date) {
     if (date == null) {
       return "--";
     }
     return getFilenameFormatTimestamp(ThreadLocalUserContext.getTimeZone()).format(date);
   }
 
-  public static final String getDateAsFilenameSuffix(final Date date)
-  {
+  public static final String getDateAsFilenameSuffix(final Date date) {
     if (date == null) {
       return "--";
     }
@@ -403,8 +371,7 @@ public class DateHelper implements Serializable
   /**
    * Returns a dateTime instance. If a context user is given then the user's time zone and locale will be used if given.
    */
-  public static Calendar getCalendar()
-  {
+  public static Calendar getCalendar() {
     return getCalendar(null, null);
   }
 
@@ -413,13 +380,11 @@ public class DateHelper implements Serializable
    *
    * @param locale if given this locale will overwrite any the context user's locale.
    */
-  public static Calendar getCalendar(final Locale locale)
-  {
+  public static Calendar getCalendar(final Locale locale) {
     return getCalendar(null, locale);
   }
 
-  public static Calendar getCalendar(TimeZone timeZone, Locale locale)
-  {
+  public static Calendar getCalendar(TimeZone timeZone, Locale locale) {
     if (locale == null) {
       locale = ThreadLocalUserContext.getLocale();
     }
@@ -429,8 +394,7 @@ public class DateHelper implements Serializable
     return Calendar.getInstance(timeZone, locale);
   }
 
-  public static Calendar getUTCCalendar()
-  {
+  public static Calendar getUTCCalendar() {
     return getCalendar(UTC, null);
   }
 
@@ -442,8 +406,7 @@ public class DateHelper implements Serializable
    * @return Duration in minutes or 0, if not computable (if start or stop time is null or stopTime is before
    * startTime).
    */
-  public static long getDuration(final Date startTime, final Date stopTime)
-  {
+  public static long getDuration(final Date startTime, final Date stopTime) {
     if (startTime == null || stopTime == null || stopTime.before(startTime)) {
       return 0;
     }
@@ -452,11 +415,10 @@ public class DateHelper implements Serializable
   }
 
   /**
-   * @param time in millis
+   * @param milliSeconds time in millis
    * @return Formatted string without seconds, such as 5:45.
    */
-  public static String formatDuration(final long milliSeconds)
-  {
+  public static String formatDuration(final long milliSeconds) {
     final long duration = milliSeconds / 60000;
     final long durationHours = duration / 60;
     final long durationMinutes = (duration % 60);
@@ -473,8 +435,7 @@ public class DateHelper implements Serializable
   /**
    * Initializes a new ArrayList with -1 ("--") and all 12 month with labels "01", ..., "12".
    */
-  public static List<LabelValueBean<String, Integer>> getMonthList()
-  {
+  public static List<LabelValueBean<String, Integer>> getMonthList() {
     final List<LabelValueBean<String, Integer>> list = new ArrayList<>();
     list.add(new LabelValueBean<>("--", -1));
     for (int month = 0; month < 12; month++) {
@@ -488,8 +449,7 @@ public class DateHelper implements Serializable
    * @param month 0-11
    * @return "yyyy-mm"
    */
-  public static String formatMonth(final int year, final int month)
-  {
+  public static String formatMonth(final int year, final int month) {
     final StringBuilder buf = new StringBuilder();
     buf.append(year);
     if (month >= 0) {
@@ -514,13 +474,12 @@ public class DateHelper implements Serializable
    * @see java.util.Calendar#getMinimalDaysInFirstWeek()
    * @see Configuration#getDefaultLocale()
    */
-  public static int getWeekOfYear(final Date date)
-  {
+  public static int getWeekOfYear(final Date date) {
     if (date == null) {
       return -1;
     }
     final Calendar cal = Calendar.getInstance(ThreadLocalUserContext.getTimeZone(),
-            ConfigurationServiceAccessor.get().getDefaultLocale());
+        ConfigurationServiceAccessor.get().getDefaultLocale());
     cal.setTime(date);
     return cal.get(Calendar.WEEK_OF_YEAR);
   }
@@ -535,8 +494,7 @@ public class DateHelper implements Serializable
    * the new year.
    * @see java.util.Calendar#getMinimalDaysInFirstWeek()
    */
-  public static int getWeekOfYear(final Calendar calendar)
-  {
+  public static int getWeekOfYear(final Calendar calendar) {
     if (calendar == null) {
       return -1;
     }
@@ -557,12 +515,22 @@ public class DateHelper implements Serializable
    * the new year.
    * @see java.util.Calendar#getMinimalDaysInFirstWeek()
    */
-  public static int getWeekOfYear(final DateTime date)
-  {
+  public static int getWeekOfYear(final PFDateTime date) {
     if (date == null) {
       return -1;
     }
-    return getWeekOfYear(date.toDate());
+    return getWeekOfYear(date.getUtilDate());
+  }
+
+  /**
+   * @param d1
+   * @param d2
+   * @return True if the dates are both null or both represents the same day (year, month, day) independent of the
+   * hours, minutes etc.
+   */
+
+  public static boolean isSameDay(final Date d1, final Date d2) {
+    return isSameDay(PFDateTime.from(d1, true), PFDateTime.from(d2, true));
   }
 
   /**
@@ -572,36 +540,9 @@ public class DateHelper implements Serializable
    * hours, minutes etc.
    * @see DateHolder#isSameDay(Date)
    */
-  public static boolean isSameDay(final Date d1, final Date d2)
-  {
+  public static boolean isSameDay(final PFDateTime d1, final PFDateTime d2) {
     if (d1 == null) {
-      if (d2 == null) {
-        return true;
-      } else {
-        return false;
-      }
-    } else if (d2 == null) {
-      return false;
-    }
-    final DateHolder dh = new DateHolder(d1);
-    return dh.isSameDay(d2);
-  }
-
-  /**
-   * @param d1
-   * @param d2
-   * @return True if the dates are both null or both represents the same day (year, month, day) independent of the
-   * hours, minutes etc.
-   * @see DateHolder#isSameDay(Date)
-   */
-  public static boolean isSameDay(final DateTime d1, final DateTime d2)
-  {
-    if (d1 == null) {
-      if (d2 == null) {
-        return true;
-      } else {
-        return false;
-      }
+      return d2 == null;
     } else if (d2 == null) {
       return false;
     }
@@ -609,16 +550,13 @@ public class DateHelper implements Serializable
   }
 
   public static boolean dateOfYearBetween(final int month, final int dayOfMonth, final int fromMonth,
-      final int fromDayOfMonth,
-      final int toMonth, final int toDayOfMonth)
-  {
+                                          final int fromDayOfMonth,
+                                          final int toMonth, final int toDayOfMonth) {
     if (fromMonth == toMonth) {
       if (month != fromMonth) {
         return false;
       }
-      if (dayOfMonth < fromDayOfMonth || dayOfMonth > toDayOfMonth) {
-        return false;
-      }
+      return dayOfMonth >= fromDayOfMonth && dayOfMonth <= toDayOfMonth;
     } else if (fromMonth < toMonth) {
       // e. g. APR - JUN
       if (month < fromMonth || month > toMonth) {
@@ -626,21 +564,16 @@ public class DateHelper implements Serializable
         return false;
       } else if (month == fromMonth && dayOfMonth < fromDayOfMonth) {
         return false;
-      } else if (month == toMonth && dayOfMonth > toDayOfMonth) {
-        return false;
-      }
-    } else if (fromMonth > toMonth) {
+      } else return month != toMonth || dayOfMonth <= toDayOfMonth;
+    } else {
       // e. g. NOV - FEB
       if (month > toMonth && month < fromMonth) {
         // e. g. MAR
         return false;
       } else if (month == fromMonth && dayOfMonth < fromDayOfMonth) {
         return false;
-      } else if (month == toMonth && dayOfMonth > toDayOfMonth) {
-        return false;
-      }
+      } else return month != toMonth || dayOfMonth <= toDayOfMonth;
     }
-    return true;
   }
 
   /**
@@ -651,35 +584,30 @@ public class DateHelper implements Serializable
    * @see DateTime#toString(String)
    * @see DateHelper#parseIsoDate(String, TimeZone)
    */
-  public static long getDateTimeAsMillis(final DateTime dateTime)
-  {
-    final String isDateString = dateTime.toString(DateFormats.ISO_TIMESTAMP_MILLIS);
-    final Date date = DateHelper.parseIsoTimestamp(isDateString, ThreadLocalUserContext.getTimeZone());
+  public static long getDateTimeAsMillis(final PFDateTime dateTime) {
+    final String isoDateString = dateTime.getJavaScriptString();
+    final Date date = DateHelper.parseIsoTimestamp(isoDateString, ThreadLocalUserContext.getTimeZone());
     return date.getTime();
   }
 
-  public final static int convertCalendarDayOfWeekToJoda(final int calendarDayOfWeek)
-  {
+  public static int convertCalendarDayOfWeekToJoda(final int calendarDayOfWeek) {
     if (calendarDayOfWeek == Calendar.SUNDAY) {
-      return DateTimeConstants.SUNDAY;
+      return DayOfWeek.SUNDAY.getValue();
     }
     return calendarDayOfWeek - 1;
   }
 
-  public static LocalDateTime convertDateToLocalDateTimeInUTC(final Date date)
-  {
+  public static LocalDateTime convertDateToLocalDateTimeInUTC(final Date date) {
     final Instant instant = date.toInstant();
     return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
   }
 
-  public static Date convertLocalDateTimeToDateInUTC(final LocalDateTime ldt)
-  {
+  public static Date convertLocalDateTimeToDateInUTC(final LocalDateTime ldt) {
     final Instant instant = ldt.toInstant(ZoneOffset.UTC);
     return Date.from(instant);
   }
 
-  public static Date convertMidnightDateToUTC(final Date date)
-  {
+  public static Date convertMidnightDateToUTC(final Date date) {
     LocalDateTime ldt = DateHelper.convertDateToLocalDateTimeInUTC(date);
     /*
      * In UTC+x the UTC hour value of 00:00:00 is 24-x hours and minus 1 day if x > 0 examples: 00:00:00 in UTC+1 is
@@ -692,29 +620,25 @@ public class DateHelper implements Serializable
     return DateHelper.convertLocalDateTimeToDateInUTC(ldt);
   }
 
-  public static Date todayAtMidnight()
-  {
+  public static Date todayAtMidnight() {
     final LocalDateTime todayAtMidnight = LocalDate.now().atStartOfDay();
     return convertLocalDateTimeToDateInUTC(todayAtMidnight);
   }
 
-  public static Date resetTimePartOfDate(final Date date)
-  {
+  public static Date resetTimePartOfDate(final Date date) {
     final LocalDateTime ldt = convertDateToLocalDateTimeInUTC(date);
     final LocalDateTime dateAtStartOfDay = ldt.toLocalDate().atStartOfDay();
     return convertLocalDateTimeToDateInUTC(dateAtStartOfDay);
   }
 
-  public static Date convertDateIntoOtherTimezone(final Date date, final TimeZone from, final TimeZone to)
-  {
+  public static Date convertDateIntoOtherTimezone(final Date date, final TimeZone from, final TimeZone to) {
     final Instant instant = date.toInstant();
     final LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, to.toZoneId());
     final Instant instant2 = localDateTime.toInstant(from.toZoneId().getRules().getOffset(instant));
     return Date.from(instant2);
   }
 
-  public static java.sql.Date convertDateToSqlDateInTheUsersTimeZone(final Date date)
-  {
+  public static java.sql.Date convertDateToSqlDateInTheUsersTimeZone(final Date date) {
     if (date == null) {
       return null;
     }
