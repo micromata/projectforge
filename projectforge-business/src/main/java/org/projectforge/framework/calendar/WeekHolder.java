@@ -27,7 +27,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.framework.time.*;
 
 import java.io.Serializable;
-import java.util.Calendar;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -42,9 +42,7 @@ public class WeekHolder implements Serializable
 {
   private static final long serialVersionUID = -3895513078248004222L;
 
-  private DayHolder[] days;
-
-  private PFDateTime[] dayDates;
+  private PFDateTime[] days;
 
   private int weekOfYear;
 
@@ -53,40 +51,7 @@ public class WeekHolder implements Serializable
   /** Initializes month containing all days of actual month. */
   public WeekHolder(Locale locale)
   {
-    this(Calendar.getInstance(locale));
-  }
-
-  /**
-   *
-   * @param cal
-   */
-  public WeekHolder(Calendar cal)
-  {
-    this(cal, -1);
-  }
-
-  /**
-   * Builds the week for the given date. Every day will be marked, if it is not part of the given month.
-   * @param cal
-   * @param month
-   */
-  public WeekHolder(Calendar cal, int month)
-  {
-    DateHolder dateHolder = new DateHolder(cal, DatePrecision.DAY);
-    weekOfYear = DateHelper.getWeekOfYear(cal);
-    dateHolder.setBeginOfWeek();
-    dateHolder.computeTime();
-    days = new DayHolder[7];
-    // Process week
-    for (int i = 0; i < 7; i++) {
-      DayHolder day = new DayHolder(dateHolder);
-      if (day.getMonth() != month) {
-        // Mark this day as day from the previous or next month:
-        day.setMarker(true);
-      }
-      days[i] = day;
-      dateHolder.add(Calendar.DAY_OF_YEAR, 1);
-    }
+    this(PFDateTime.from(LocalDateTime.now(), true, null, locale));
   }
 
   public WeekHolder(PFDateTime dateTime){
@@ -101,7 +66,7 @@ public class WeekHolder implements Serializable
   public WeekHolder(PFDateTime dateTime, int month)
   {
     weekOfYear = dateTime.getWeekOfYear();
-    dayDates = new PFDateTime[7];
+    days = new PFDateTime[7];
     PFDateTime day = dateTime.getBeginOfWeek();
     // Process week
     for (int i = 0; i < 7; i++) {
@@ -109,7 +74,7 @@ public class WeekHolder implements Serializable
         // TODO: Mark this day as day from the previous or next month:
         //day.setMarker(true);
       }
-      dayDates[i] = day;
+      days[i] = day;
       day.plusDays(1);
     }
   }
@@ -120,34 +85,19 @@ public class WeekHolder implements Serializable
     return weekOfYear;
   }
 
-  public DayHolder[] getDays()
+  public PFDateTime[] getDays()
   {
     return days;
-  }
-  
-  public DayHolder getFirstDay()
-  {
-    return days[0];
-  }
-
-  public DayHolder getLastDay()
-  {
-    return days[days.length - 1];
-  }
-
-  public PFDateTime[] getDayDates()
-  {
-    return dayDates;
   }
 
   public PFDateTime getFirstDayDate()
   {
-    return dayDates[0];
+    return days[0];
   }
 
   public PFDateTime getLastDayDate()
   {
-    return dayDates[days.length - 1];
+    return days[days.length - 1];
   }
 
   /**

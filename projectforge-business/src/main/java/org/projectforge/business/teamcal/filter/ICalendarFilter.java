@@ -23,7 +23,7 @@
 
 package org.projectforge.business.teamcal.filter;
 
-import org.joda.time.DateMidnight;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.io.Serializable;
 
@@ -37,13 +37,13 @@ public interface ICalendarFilter extends Serializable
   /**
    * @return the startDate
    */
-  DateMidnight getStartDate();
+  PFDateTime getStartDate();
 
   /**
    * @param startDate the startDate to set
    * @return this for chaining.
    */
-  ICalendarFilter setStartDate(final DateMidnight startDate);
+  ICalendarFilter setStartDate(final PFDateTime startDate);
 
   /**
    * If true then the slot is 30 minutes otherwise 15 minutes.

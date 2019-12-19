@@ -43,8 +43,6 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.GZIPHelper;
 import org.projectforge.framework.xstream.XStreamHelper;
-import org.projectforge.framework.xstream.converter.JodaDateMidnightConverter;
-import org.projectforge.framework.xstream.converter.JodaDateTimeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
@@ -85,8 +83,6 @@ public class UserXmlPreferencesDao {
     registerConverter(UserDao.class, PFUserDO.class, 20);
     registerConverter(GroupDao.class, GroupDO.class, 19);
     registerConverter(TaskDao.class, TaskDO.class, 18);
-    xstream.registerConverter(new JodaDateTimeConverter());
-    xstream.registerConverter(new JodaDateMidnightConverter());
   }
 
   /**

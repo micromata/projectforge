@@ -25,9 +25,6 @@ package org.projectforge.plugins.ihkexport;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
-import org.joda.time.DateTimeZone;
 import org.projectforge.business.timesheet.OrderDirection;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
@@ -39,8 +36,11 @@ import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.DownloadUtils;
 
+import java.time.DayOfWeek;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 public class IhkExportPage extends AbstractStandardFormPage implements ISelectCallerPage
 {
@@ -117,22 +117,22 @@ public class IhkExportPage extends AbstractStandardFormPage implements ISelectCa
 
   private List<TimesheetDO> findTimesheets()
   {
-    final DateTimeZone usersTimeZone = ThreadLocalUserContext.getDateTimeZone();
+    final TimeZone usersTimeZone = ThreadLocalUserContext.getTimeZone();
     final Date fromDate = form.getTimePeriod().getFromDate();
-    final DateTime startDate = new DateTime(fromDate, usersTimeZone).withDayOfWeek(DateTimeConstants.MONDAY);
+    final PFDateTime startDate = PFDateTime.from(fromDate, true, usersTimeZone).withDayOfWeek(DayOfWeek.MONDAY.getValue());
     final TimesheetFilter tf = new TimesheetFilter();
     //ASC = Montag bis Sonntag
     tf.setOrderType(OrderDirection.ASC);
-    tf.setStartTime(startDate.toDate());
+    tf.setStartTime(startDate.getUtilDate());
     tf.setUserId(this.getUserId());
 
     //stopDate auf Sonntag 23:59:59.999 setzten um alle Eintragungen aus der Woche zu bekommen
-    DateTime stopDate = startDate.withDayOfWeek(DateTimeConstants.SUNDAY);
-    stopDate = stopDate.plusHours(23);
-    stopDate = stopDate.plusMinutes(59);
-    stopDate = stopDate.plusSeconds(59);
-    stopDate = stopDate.plusMillis(999);
-    tf.setStopTime(stopDate.toDate());
+    PFDateTime stopDate = startDate.withDayOfWeek(DayOfWeek.SUNDAY.getValue());
+    stopDate = stopDate.plus(23, ChronoUnit.HOURS);
+    stopDate = stopDate.plus(59, ChronoUnit.MINUTES);
+    stopDate = stopDate.plus(59, ChronoUnit.SECONDS);
+    stopDate = stopDate.plus(999, ChronoUnit.MILLIS);
+    tf.setStopTime(stopDate.getUtilDate());
     tf.setRecursive(true);
 
     return timesheetDao.getList(tf);

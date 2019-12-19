@@ -38,8 +38,6 @@ import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.web.wicket.CellItemListener;
 
-import java.util.GregorianCalendar;
-
 /**
  * Supports CellItemListener.
  * 
@@ -107,8 +105,7 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
   public void populateItem(final Item<ICellPopulator<T>> item, final String componentId, final IModel<T> rowModel)
   {
     final EmployeeDO employee = (EmployeeDO) rowModel.getObject();
-    PFDateTime dt = PFDateTime.from(new GregorianCalendar(selectedYear, selectedMonth - 1, 1, 0, 0).getTime());
-
+    PFDateTime dt = PFDateTime.now().withYear(selectedYear).withMonth(selectedMonth).withDayOfMonth(1).withHour(0).withMinute(0);
     EmployeeTimedDO row = timeableService.getAttrRowForSameMonth(employee, getPropertyExpression(), dt.getUtilDate());
     if (row == null) {
       row = employeeService.addNewTimeAttributeRow(employee, getPropertyExpression());

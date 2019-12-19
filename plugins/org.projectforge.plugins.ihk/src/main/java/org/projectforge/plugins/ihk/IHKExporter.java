@@ -33,16 +33,16 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
 import org.projectforge.business.excel.ExportRow;
 import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.business.timesheet.TimesheetDO;
+import org.projectforge.framework.time.PFDateTime;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
 import java.util.List;
 
 import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
@@ -63,8 +63,8 @@ class IHKExporter
     }
     ExportWorkbook workbook;
 
-    DateTime mondayDate = new DateTime(timesheets.get(0).getStartTime()).withDayOfWeek(DateTimeConstants.MONDAY);
-    DateTime sundayDate = mondayDate.withDayOfWeek(DateTimeConstants.SUNDAY);
+    PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).withDayOfWeek(DayOfWeek.MONDAY);
+    PFDateTime sundayDate = mondayDate.withDayOfWeek(DayOfWeek.SUNDAY);
 
     ClassPathResource classPathResource = new ClassPathResource("IHK-Template-2019.xls");
 
@@ -81,8 +81,8 @@ class IHKExporter
 
     String string = header.getStringCellValue();
     string = string.replace("%fullName%", getUser().getFullname());
-    string = string.replace("%startDate%", sdf.format(mondayDate.toDate()));
-    string = string.replace("%endDate%", sdf.format(sundayDate.toDate()));
+    string = string.replace("%startDate%", sdf.format(mondayDate.getUtilDate()));
+    string = string.replace("%endDate%", sdf.format(sundayDate.getUtilDate()));
     header.setCellValue(string);
 
     // first data row
@@ -118,7 +118,7 @@ class IHKExporter
     System.out.println(timesheet.getDescription());
 
     if (!(timesheet.getDescription() == null)) {
-      if(timesheet.getDescription().indexOf("|") != -1) { // If no | in String then IndexOf will be -1
+      if(timesheet.getDescription().contains("|")) { // If no | in String then IndexOf will be -1
         lernfeld = StringUtils.substringBefore(timesheet.getDescription(), "|").trim();
         description = StringUtils.substringAfter(timesheet.getDescription(), "|").trim();
       } else {
@@ -196,7 +196,7 @@ class IHKExporter
           newCell.setCellValue(oldCell.getBooleanCellValue());
           break;
         case ERROR:
-          newCell.setCellErrorValue(oldCell.getErrorCellValue());
+          newCell.setCellValue(oldCell.getErrorCellValue());
           break;
         case FORMULA:
           newCell.setCellFormula(oldCell.getCellFormula());

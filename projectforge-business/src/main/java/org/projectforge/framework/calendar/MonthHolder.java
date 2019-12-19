@@ -66,7 +66,7 @@ public class MonthHolder
   public PFDateTime getDay(final int month, final int dayOfMonth)
   {
     for (final WeekHolder week : weeks) {
-      for (final PFDateTime day : week.getDayDates()) {
+      for (final PFDateTime day : week.getDays()) {
         if (day.getMonthValue() == month && day.getDayOfMonth() == dayOfMonth) {
           return day;
         }
