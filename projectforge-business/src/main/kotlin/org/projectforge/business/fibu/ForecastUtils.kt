@@ -136,24 +136,24 @@ object ForecastUtils { // open needed by Wicket.
     }
 
     @JvmStatic
-    fun getStartLeistungszeitraumNextMonthEnd(order: AuftragDO, pos: AuftragsPositionDO): PFDate {
-        return getNextMonth(pos, order.periodOfPerformanceBegin, pos.periodOfPerformanceBegin)
+    fun getStartLeistungszeitraum(order: AuftragDO, pos: AuftragsPositionDO): PFDate {
+        return getLeistungszeitraumDate(pos, order.periodOfPerformanceBegin, pos.periodOfPerformanceBegin)
     }
 
     @JvmStatic
-    fun getEndLeistungszeitraumNextMonthEnd(order: AuftragDO, pos: AuftragsPositionDO): PFDate {
-        return getNextMonth(pos, order.periodOfPerformanceEnd, pos.periodOfPerformanceEnd)
+    fun getEndLeistungszeitraum(order: AuftragDO, pos: AuftragsPositionDO): PFDate {
+        return getLeistungszeitraumDate(pos, order.periodOfPerformanceEnd, pos.periodOfPerformanceEnd)
     }
 
-    private fun getNextMonth(pos: AuftragsPositionDO, orderDate: Date?, posDate: Date?): PFDate {
+    private fun getLeistungszeitraumDate(pos: AuftragsPositionDO, orderDate: Date?, posDate: Date?): PFDate {
         var result = PFDate.now()
         if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) {
             if (posDate != null) {
-                result = PFDate.from(posDate)!!.plusMonths(1).endOfMonth
+                result = PFDate.from(posDate)!!
             }
         } else {
             if (orderDate != null) {
-                result = PFDate.from(orderDate)!!.plusMonths(1).endOfMonth
+                result = PFDate.from(orderDate)!!
             }
         }
         return result

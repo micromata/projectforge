@@ -170,14 +170,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
      */
     val formattedNumber: String
         @Transient
-        get() {
-            val buf = StringBuffer()
-            if (this.auftrag != null) {
-                buf.append(this.auftrag!!.nummer)
-            }
-            buf.append(".").append(this.number.toInt())
-            return buf.toString()
-        }
+        get() = "${auftrag?.nummer}.$number"
 
     /**
      * Throws UserException if vollstaendigFakturiert is true and status is not ABGESCHLOSSEN.

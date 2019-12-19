@@ -26,8 +26,8 @@ package org.projectforge.rest.calendar
 import org.projectforge.business.calendar.*
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.timesheet.TimesheetDao
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserPrefService
-import org.projectforge.business.user.service.UserService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
@@ -35,12 +35,10 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.util.*
 
@@ -61,6 +59,8 @@ class CalendarFilterServicesRest {
                        var filter: CalendarFilter? = null,
                        var timesheetUser: User? = null,
                        var activeCalendars: MutableList<StyledTeamCalendar>? = null,
+                       var vacationGroups: List<Group>? = null,
+                       var vacationUsers: List<User>? = null,
                        /**
                         * This is the list of possible default calendars (with full access). The user may choose one which is
                         * used as default if creating a new event. The pseudo dateTime -1 for own time sheets is
@@ -100,9 +100,6 @@ class CalendarFilterServicesRest {
     }
 
     @Autowired
-    private lateinit var userService: UserService
-
-    @Autowired
     private lateinit var userPrefService: UserPrefService
 
     @Autowired
@@ -113,16 +110,17 @@ class CalendarFilterServicesRest {
 
     @GetMapping("initial")
     fun getInitialCalendar(): CalendarInit {
+        val userGroupCache = UserGroupCache.getTenantInstance()
         val initial = CalendarInit()
         val calendars = getCalendars()
         val currentFilter = getCurrentFilter()
         initial.filter = currentFilter
 
         currentFilter.otherTimesheetUsersEnabled = timesheetDao.showTimesheetsOfOtherUsers()
-        val user = userService.getUser(currentFilter.timesheetUserId)
-        if (user != null) {
+        val timesheetUser = userGroupCache.getUser(currentFilter.timesheetUserId)
+        if (timesheetUser != null) {
             initial.timesheetUser = User()
-            initial.timesheetUser!!.copyFromMinimal(user)
+            initial.timesheetUser!!.copyFromMinimal(timesheetUser)
         }
 
         val styleMap = getStyleMap()
@@ -135,6 +133,22 @@ class CalendarFilterServicesRest {
         initial.view = state.view
 
         initial.activeCalendars = getActiveCalendars(currentFilter, calendars, styleMap)
+        initial.vacationGroups = currentFilter.vacationGroupIds?.map {
+            val group = Group()
+            val dbGroup = userGroupCache.getGroup(it)
+            if (dbGroup != null) {
+                group.copyFromMinimal(dbGroup)
+            }
+            group
+        }?.filter { it.id != null }
+        initial.vacationUsers = currentFilter.vacationUserIds?.map {
+            val user = User()
+            val dbUser = userGroupCache.getUser(it)
+            if (dbUser != null) {
+                user.copyFromMinimal(dbUser)
+            }
+            user
+        }?.filter { it.id != null }
 
         val favorites = getFilterFavorites()
         initial.filterFavorites = favorites.idTitleList
@@ -157,19 +171,23 @@ class CalendarFilterServicesRest {
 
         val translations = addTranslations(
                 "select.placeholder",
-                "dateTime.filter.dialog.title",
-                "dateTime.filter.visible",
-                "dateTime.defaultCalendar",
-                "dateTime.defaultCalendar.tooltip",
-                "dateTime.navigation.today",
-                "dateTime.option.gridSize",
-                "dateTime.option.timesheeets",
-                "dateTime.title",
-                "dateTime.view.agenda",
-                "dateTime.view.day",
-                "dateTime.view.month",
-                "dateTime.view.week",
-                "dateTime.view.workWeek",
+                "calendar.filter.dialog.title",
+                "calendar.filter.vacation.groups",
+                "calendar.filter.vacation.groups.tooltip",
+                "calendar.filter.vacation.users",
+                "calendar.filter.vacation.users.tooltip",
+                "calendar.filter.visible",
+                "calendar.defaultCalendar",
+                "calendar.defaultCalendar.tooltip",
+                "calendar.navigation.today",
+                "calendar.option.gridSize",
+                "calendar.option.timesheeets",
+                "calendar.title",
+                "calendar.view.agenda",
+                "calendar.view.day",
+                "calendar.view.month",
+                "calendar.view.week",
+                "calendar.view.workWeek",
                 "settings",
                 "tooltip.selectMe")
         Favorites.addTranslations(translations)
@@ -273,6 +291,20 @@ class CalendarFilterServicesRest {
                 null
             }
         }
+        return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+    }
+
+    @PostMapping("changeVacationGroups")
+    fun changeVacationGroups(@RequestBody groupIds: Set<Int>?): Map<String, Any> {
+        val currentFilter = getCurrentFilter()
+        currentFilter.vacationGroupIds = groupIds
+        return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+    }
+
+    @PostMapping("changeVacationUsers")
+    fun changeVacationUsers(@RequestBody userIds: Set<Int>?): Map<String, Any> {
+        val currentFilter = getCurrentFilter()
+        currentFilter.vacationUserIds = userIds
         return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
     }
 
@@ -413,7 +445,7 @@ class CalendarFilterServicesRest {
         }
         //currentFilter.showVacations = restFilter.showVacations
         currentFilter.vacationGroupIds = restFilter.vacationGroupIds
-        currentFilter.vacationUserIds = restFilter.vacationGroupIds
+        currentFilter.vacationUserIds = restFilter.vacationUserIds
     }
 }
 

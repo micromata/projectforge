@@ -48,6 +48,7 @@ import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -455,22 +456,20 @@ public class TeamEventServiceImpl implements TeamEventService
     formatter.setTimeZone(timezone);
 
     final Map<String, Object> dataMap = new HashMap<>();
-    Calendar startDate = Calendar.getInstance(timezone);
-    startDate.setTime(event.getStartDate());
-    Calendar endDate = Calendar.getInstance(timezone);
-    endDate.setTime(event.getEndDate());
+    PFDateTime startDate = PFDateTime.from(event.getStartDate(), true, timezone);
+    PFDateTime endDate = PFDateTime.from(event.getEndDate(), true, timezone);
 
     String location = event.getLocation() != null ? event.getLocation() : "";
     String note = event.getNote() != null ? event.getNote() : "";
     formatter = new SimpleDateFormat("EEEE", locale);
     formatter.setTimeZone(timezone);
-    String startDay = formatter.format(startDate.getTime());
-    String endDay = formatter.format(endDate.getTime());
+    String startDay = formatter.format(startDate.getUtilDate());
+    String endDay = formatter.format(endDate.getUtilDate());
 
     formatter = new SimpleDateFormat("dd. MMMMM YYYY HH:mm", locale);
     formatter.setTimeZone(timezone);
-    String beginDateTime = formatter.format(startDate.getTime());
-    String endDateTime = formatter.format(endDate.getTime());
+    String beginDateTime = formatter.format(startDate.getUtilDate());
+    String endDateTime = formatter.format(endDate.getUtilDate());
     String invitationText = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content." + mailType.name().toLowerCase(),
         sender.getFullname(), event.getSubject());
     String beginText = startDay + ", " + beginDateTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
@@ -478,11 +477,11 @@ public class TeamEventServiceImpl implements TeamEventService
     String dayOfWeek = startDay;
 
     String fromToHeader;
-    if (startDate.get(Calendar.DATE) == endDate.get(Calendar.DATE)) //Einen Tag
+    if (startDate.getDayOfMonth() == endDate.getDayOfMonth()) //Einen Tag
     {
       formatter = new SimpleDateFormat("HH:mm", locale);
       formatter.setTimeZone(timezone);
-      String endTime = formatter.format(endDate.getTime());
+      String endTime = formatter.format(endDate.getUtilDate());
       fromToHeader =
           beginDateTime + " - " + endTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
     } else    //Mehrere Tage
@@ -492,12 +491,12 @@ public class TeamEventServiceImpl implements TeamEventService
     if (event.getAllDay()) {
       formatter = new SimpleDateFormat("dd. MMMMM YYYY", locale);
       formatter.setTimeZone(timezone);
-      fromToHeader = formatter.format(startDate.getTime());
+      fromToHeader = formatter.format(startDate.getUtilDate());
       formatter = new SimpleDateFormat("EEEE, dd. MMMMM YYYY", locale);
       formatter.setTimeZone(timezone);
       beginText =
-          I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(startDate.getTime());
-      endText = I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(endDate.getTime());
+          I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(startDate.getUtilDate());
+      endText = I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(endDate.getUtilDate());
     }
     List<String> attendeeList = new ArrayList<>();
     for (TeamEventAttendeeDO attendees : event.getAttendees()) {

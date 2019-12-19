@@ -25,6 +25,7 @@ package org.projectforge.plugins.liquidityplanning;
 
 import org.projectforge.business.fibu.*;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.statistics.IntAggregatedValues;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -350,9 +351,8 @@ public class LiquidityForecast implements Serializable
 
   private Date getDate(final Date date, final int timeOfPayment)
   {
-    final DayHolder day = new DayHolder(date);
-    day.add(Calendar.DAY_OF_YEAR, timeOfPayment);
-    return day.getSQLDate();
+    final PFDateTime day = PFDateTime.from(date).plusDays(timeOfPayment);
+    return day.getSqlDate();
   }
 
   /**
