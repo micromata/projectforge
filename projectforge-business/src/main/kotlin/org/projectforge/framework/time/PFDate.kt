@@ -30,13 +30,14 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
+import java.time.temporal.TemporalUnit
 
 /**
  * All date time acrobatics of ProjectForge should be done by PFDateTime or PFDate.
  * Immutable holder of [LocalDate] for transforming to [java.sql.Date] (once) if used several times.
  * If you don't need to use [java.sql.Date] you may use [LocalDate] directly.
  */
-class PFDate(val date: LocalDate) {
+class PFDate(val date: LocalDate): Comparable<PFDate> {
 
     private constructor(instant: Instant) : this(LocalDate.from(instant))
 
@@ -49,7 +50,7 @@ class PFDate(val date: LocalDate) {
     val dayOfMonth: Int
         get() = date.dayOfMonth
 
-    val beginOYear: PFDate
+    val beginOfYear: PFDate
         get() = PFDate(date.withMonth(1)).beginOfMonth
 
     /**
@@ -63,6 +64,25 @@ class PFDate(val date: LocalDate) {
 
     val endOfMonth: PFDate
         get() = PFDate(date.with(TemporalAdjusters.lastDayOfMonth()))
+
+    fun withYear(year: Int): PFDate {
+        return PFDate(date.withYear(year))
+    }
+
+    /**
+     * 1 (January) to 12 (December)
+     */
+    fun withMonth(month: Int): PFDate {
+        return PFDate(date.withMonth(month))
+    }
+
+    fun withDayOfYear(dayOfYear: Int): PFDate {
+        return PFDate(date.withDayOfYear(dayOfYear))
+    }
+
+    fun withDayOfMonth(dayOfMonth: Int): PFDate {
+        return PFDate(date.withDayOfMonth(dayOfMonth))
+    }
 
     fun isBefore(other: PFDate): Boolean {
         return date.isBefore(other.date)
@@ -88,16 +108,41 @@ class PFDate(val date: LocalDate) {
         return PFDate(date.plusMonths(months))
     }
 
+    fun plusYears(years: Long): PFDate {
+        return PFDate(date.plusYears(years))
+    }
+
+    fun plus(amountToAdd: Long, temporalUnit: TemporalUnit): PFDate {
+        return PFDate(date.plus(amountToAdd, temporalUnit))
+    }
+
     fun format(formatter: DateTimeFormatter): String {
         return date.format(formatter)
     }
 
+    override fun compareTo(other: PFDate): Int {
+        return date.compareTo(other.date)
+    }
+
     /**
-     * Date part as ISO string: "yyyy-MM-dd HH:mm" in UTC.
+     * Date part as ISO string: "yyyy-MM-dd" in UTC.
      */
     val isoString: String
         get() = isoDateFormatter.format(date)
 
+
+    private var _utilDate: java.util.Date? = null
+    /**
+     * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
+     * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
+     */
+    val utilDate: java.util.Date
+        get() {
+            if (_utilDate == null) {
+                _utilDate = PFDateTime.from(date)!!.utilDate
+            }
+            return _utilDate!!
+        }
 
     private var _sqlDate: java.sql.Date? = null
     /**
@@ -142,12 +187,13 @@ class PFDate(val date: LocalDate) {
         }
 
         /**
-         * @param date Date of type java.util.Date or java.sql.Date.
+         * @param dateTime Date of type java.util.Date or java.sql.Date.
+         * @param nowIfNull If true, then now will be returned as default date instead of null if dateTime is null.
          * Creates mindnight [ZonedDateTime] from given [date].
          */
         @JvmStatic
         @JvmOverloads
-        fun from(dateTime: PFDateTime, nowIfNull: Boolean = false): PFDate? {
+        fun from(dateTime: PFDateTime?, nowIfNull: Boolean = false): PFDate? {
             if (dateTime == null)
                 return if (nowIfNull) now() else null
             val localDate = LocalDate.of(dateTime.year, dateTime.month, dateTime.dayOfMonth)

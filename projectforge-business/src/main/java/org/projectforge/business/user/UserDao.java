@@ -100,7 +100,7 @@ public class UserDao extends BaseDao<PFUserDO> {
    * @see org.projectforge.framework.persistence.api.BaseDao#createQueryFilter(org.projectforge.framework.persistence.api.BaseSearchFilter)
    */
   @Override
-  protected QueryFilter createQueryFilter(final BaseSearchFilter filter) {
+  public QueryFilter createQueryFilter(final BaseSearchFilter filter) {
     final boolean superAdmin = TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser());
     if (!superAdmin) {
       return super.createQueryFilter(filter);

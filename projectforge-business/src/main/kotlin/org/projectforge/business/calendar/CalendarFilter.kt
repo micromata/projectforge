@@ -184,7 +184,7 @@ class CalendarFilter(name: String? = null,
 
     private fun isModified(col1: Collection<Int>?, col2: Collection<Int>?): Boolean {
         if (col1 == null || col2 == null) {
-            return col1 == col2
+            return col1 != col2
         }
         col1.forEach {
             if (!col2.contains(it)) {

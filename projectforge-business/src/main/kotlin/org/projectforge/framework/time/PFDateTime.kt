@@ -166,6 +166,18 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
         return PFDateTime(dateTime.withDayOfMonth(dayOfMonth), locale)
     }
 
+    /**
+     * 1 - first day of week (locale dependent, e. g. Monday or Sunday).
+     * 7 - last day of week.
+     */
+    fun withDayOfWeek(dayOfWeek: Int): PFDateTime {
+        if (dayOfWeek in 1..7) {
+            return if (dayOfWeek == 1) beginOfWeek else beginOfWeek.plusDays((dayOfWeek - 1).toLong())
+        } else {
+            throw IllegalArgumentException("withDayOfWeek accepts only day of weeks from 1 (first day of week) to 7 (last day of week).")
+        }
+    }
+
     fun withHour(hour: Int): PFDateTime {
         return PFDateTime(dateTime.withHour(hour), locale)
     }
@@ -242,6 +254,10 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
 
     fun plus(amountToAdd: Long, temporalUnit: TemporalUnit): PFDateTime {
         return PFDateTime(dateTime.plus(amountToAdd, temporalUnit), locale)
+    }
+
+    fun minus(amountToSubtract: Long, temporalUnit: TemporalUnit): PFDateTime {
+        return PFDateTime(dateTime.minus(amountToSubtract, temporalUnit), locale)
     }
 
     fun plusDays(days: Long): PFDateTime {

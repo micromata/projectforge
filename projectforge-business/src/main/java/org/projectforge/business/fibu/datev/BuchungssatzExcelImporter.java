@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.utils.ImportedElement;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.ActionLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -165,24 +166,24 @@ public class BuchungssatzExcelImporter
         continue;
       }
       final BuchungssatzDO satz = element.getValue();
-      final DateHolder date = new DateHolder(satz.getDatum(), DatePrecision.DAY, Locale.GERMAN);
+      final PFDateTime dateTime = PFDateTime.from(satz.getDatum(), false, null, Locale.GERMAN).withPrecision(DatePrecision.DAY);
       if (year == 0) {
-        year = date.getYear();
-      } else if (year != date.getYear()) {
+        year = dateTime.getYear();
+      } else if (year != dateTime.getYear()) {
         final String msg =
             "Not supported: Buchungssätze innerhalb eines Excel-Sheets liegen in verschiedenen Jahren: Im Blatt '" + sheet.getSheetName() + "', in Zeile " + (i
                 + 2);
         actionLog.logError(msg);
         throw new UserException(msg);
       }
-      if (date.getMonth() > month) {
+      if (dateTime.getMonthValue() > month) {
         final String msg = "Buchungssätze können nicht in die Zukunft für den aktuellen Monat '"
-            + KostFormatter.formatBuchungsmonat(year, date.getMonth())
+            + KostFormatter.formatBuchungsmonat(year, dateTime.getMonthValue())
             + " gebucht werden! "
             + satz;
         actionLog.logError(msg);
         throw new RuntimeException(msg);
-      } else if (date.getMonth() < month) {
+      } else if (dateTime.getMonthValue() < month) {
         final String msg = "Buchungssatz liegt vor Monat '" + KostFormatter.formatBuchungsmonat(year, month) + "' (OK): " + satz;
         actionLog.logInfo(msg);
       }

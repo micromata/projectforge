@@ -69,7 +69,7 @@ abstract class AbstractBaseRest<
      * If [getAutoCompletionObjects] is called without a special property to search for, all properties will be searched for,
      * given by this attribute. If null, an exception is thrown, if [getAutoCompletionObjects] is called without a property.
      */
-    protected open val autoCompleteSearchFields: Array<String>? = null
+    open val autoCompleteSearchFields: Array<String>? = null
 
     @PostConstruct
     private fun postConstruct() {
