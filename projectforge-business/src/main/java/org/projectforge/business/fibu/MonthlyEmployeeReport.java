@@ -247,7 +247,7 @@ public class MonthlyEmployeeReport implements Serializable {
     // Create the weeks:
     this.weeks = new ArrayList<>();
 
-    final PFDateTime dh = PFDateTime.now().withDate(year, month, 1, 0, 0, 0);
+    final PFDateTime dh = PFDateTime.withDate(year, month, 1);
     PFDateTime dt = PFDateTime.from(dh.getUtilDate());
     PFDateTime dt2 = PFDateTime.from(fromDate).getEndOfMonth();
     toDate = dt2.getUtilDate();

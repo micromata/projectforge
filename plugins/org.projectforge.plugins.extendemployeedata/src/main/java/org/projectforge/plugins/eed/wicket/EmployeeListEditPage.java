@@ -139,7 +139,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
     }
     final String[] fieldsToExport = { "id", "user" };
     final List<AttrColumnDescription> attrFieldsToExport = selectedOption.getAttrColumnDescriptions();
-    final Date dateToSelectAttrRow = PFDateTime.now().withDate(form.selectedYear, form.selectedMonth -1, 1, 0, 0).getUtilDate();
+    final Date dateToSelectAttrRow = PFDateTime.withDate(form.selectedYear, form.selectedMonth -1, 1).getUtilDate();
     return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport, attrFieldsToExport,
         dateToSelectAttrRow);
   }
