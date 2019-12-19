@@ -29,11 +29,12 @@ import org.dom4j.Element;
 import org.junit.jupiter.api.Test;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.xstream.converter.ISODateConverter;
 import org.projectforge.test.AbstractTestBase;
 
 import java.lang.reflect.Field;
+import java.time.Month;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -127,12 +128,11 @@ public class XmlStreamTest extends AbstractTestBase {
     String xml = XmlObjectWriter.writeAsXml(obj);
     obj = (TestObject) reader.read(xml);
     assertNull(obj.date, "date should be null.");
-    final DateHolder dh = new DateHolder();
-    dh.setDate(2010, Calendar.AUGUST, 3, 0, 0, 0, 0);
-    obj.date = dh.getDate();
+    final PFDateTime dateTime = PFDateTime.now().withDate(2010, Calendar.AUGUST, 3, 0, 0, 0, 0);
+    obj.date = dateTime.getUtilDate();
     xml = XmlObjectWriter.writeAsXml(obj);
     obj = (TestObject) reader.read(xml);
-    assertEquals(dh.getTimeInMillis(), obj.date.getTime(), "date");
+    assertEquals(dateTime.getEpochMilli(), obj.date.getTime(), "date");
   }
 
   @Test
@@ -402,9 +402,8 @@ public class XmlStreamTest extends AbstractTestBase {
     obj.s1 = "hurzel";
     MyRootElement root = new MyRootElement();
     root.testObject = obj;
-    final DateHolder dh = new DateHolder();
-    dh.setDate(2010, Calendar.AUGUST, 30, 9, 18, 57);
-    root.setCreated(dh.getDate());
+    final PFDateTime dateTime = PFDateTime.now().withDate(2010, Month.AUGUST.getValue(), 30, 9, 18, 57);
+    root.setCreated(dateTime.getUtilDate());
     final XmlObjectWriter writer = new XmlObjectWriter();
     final XmlRegistry xmlRegistry = new XmlRegistry();
     xmlRegistry.registerConverter(Date.class, new ISODateConverter());
@@ -427,7 +426,7 @@ public class XmlStreamTest extends AbstractTestBase {
     reader.initialize(MyRootElement.class);
     root = (MyRootElement) reader.read(xml);
     assertEquals(DateHelper.EUROPE_BERLIN.getID(), root.getTimeZone().getID());
-    assertEquals(dh.getDate(), root.getCreated());
+    assertEquals(dateTime.getUtilDate(), root.getCreated());
     assertEquals("hurzel", (root.testObject).s1);
   }
 
@@ -488,25 +487,25 @@ public class XmlStreamTest extends AbstractTestBase {
 
   private void containsAttrs(final Element el, final String... attrNames) {
     for (final String attr : attrNames) {
-      assertTrue(el.attribute(attr) != null, "Element should contain attribute '" + attr + "': " + el);
+      assertNotNull(el.attribute(attr), "Element should contain attribute '" + attr + "': " + el);
     }
   }
 
   private void containsNotAttrs(final Element el, final String... attrNames) {
     for (final String attr : attrNames) {
-      assertTrue(el.attribute(attr) == null, "Element shouldn't contain attribute '" + attr + "': " + el);
+      assertNull(el.attribute(attr), "Element shouldn't contain attribute '" + attr + "': " + el);
     }
   }
 
   private void containsElements(final Element el, final String... elementNames) {
     for (final String name : elementNames) {
-      assertTrue(el.element(name) != null, "Element should contain element '" + name + "': " + el);
+      assertNotNull(el.element(name), "Element should contain element '" + name + "': " + el);
     }
   }
 
   private void containsNotElements(final Element el, final String... elementNames) {
     for (final String name : elementNames) {
-      assertTrue(el.element(name) == null, "Element shouldn't contain element '" + name + "': " + el);
+      assertNull(el.element(name), "Element shouldn't contain element '" + name + "': " + el);
     }
   }
 }

@@ -24,7 +24,7 @@
 package org.projectforge.framework.calendar;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.projectforge.framework.time.*;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

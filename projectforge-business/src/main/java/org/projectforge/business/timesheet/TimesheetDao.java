@@ -52,7 +52,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 import org.slf4j.Logger;
@@ -219,9 +218,8 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
       myFilter = new TimesheetFilter(filter);
     }
     if (myFilter.getStopTime() != null) {
-      final DateHolder date = new DateHolder(myFilter.getStopTime());
-      date.setEndOfDay();
-      myFilter.setStopTime(date.getDate());
+      PFDateTime dateTime = PFDateTime.from(myFilter.getStopTime()).getEndOfDay();
+      myFilter.setStopTime(dateTime.getUtilDate());
     }
     final QueryFilter queryFilter = buildQueryFilter(myFilter);
     List<TimesheetDO> result;
@@ -640,15 +638,14 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
       if (date == null) {
         continue;
       }
-      final DateHolder dh = new DateHolder(date);
-      dh.setEndOfDay();
+      PFDateTime dateTime = PFDateTime.from(date).getEndOfDay();
       //New and existing startdate have to be checked for protection
-      if ((oldTimesheet != null && oldTimesheet.getStartTime().before(dh.getDate())) || timesheet.getStartTime().before(dh.getDate())) {
+      if ((oldTimesheet != null && oldTimesheet.getStartTime().before(dateTime.getUtilDate())) || timesheet.getStartTime().before(dateTime.getUtilDate())) {
         if (throwException) {
           throw new AccessException("timesheet.error.timesheetProtectionVioloation", node.getTask().getTitle()
                   + " (#"
                   + node.getTaskId()
-                  + ")", DateHelper.formatIsoDate(dh.getDate()));
+                  + ")", DateHelper.formatIsoDate(dateTime.getUtilDate()));
         }
         return false;
       }

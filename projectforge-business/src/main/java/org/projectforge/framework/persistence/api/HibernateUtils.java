@@ -27,7 +27,6 @@ import de.micromata.genome.jpa.metainf.ColumnMetadata;
 import de.micromata.genome.jpa.metainf.EntityMetadata;
 import org.hibernate.Hibernate;
 import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.HSQLDialect;
 import org.hibernate.engine.jdbc.spi.JdbcServices;

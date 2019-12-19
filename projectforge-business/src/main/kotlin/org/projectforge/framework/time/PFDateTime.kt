@@ -26,7 +26,6 @@ package org.projectforge.framework.time
 import org.apache.commons.lang3.ObjectUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
-import org.jfree.data.time.FixedMillisecond
 import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -205,6 +204,10 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
 
     fun withSecond(second: Int): PFDateTime {
         return PFDateTime(dateTime.withSecond(second), locale)
+    }
+
+    fun getMilliSecond(): Int {
+        return this.nano / 1000
     }
 
     fun withMilliSecond(millisOfSecond: Int): PFDateTime {

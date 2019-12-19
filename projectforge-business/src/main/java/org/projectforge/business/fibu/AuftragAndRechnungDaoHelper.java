@@ -28,7 +28,6 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.impl.DBPredicate;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.time.PFDateTime;
 
 import java.math.BigDecimal;

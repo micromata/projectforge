@@ -33,7 +33,6 @@ import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ModificationStatus
-import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import java.io.Serializable

@@ -24,7 +24,7 @@
 package org.projectforge.common;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.test.AbstractTestBase;
 
@@ -46,13 +46,13 @@ public class FileHelperTest extends AbstractTestBase
     assertEquals("AeOe", FileHelper.createSafeFilename("ÄÖÜäöüß", 4));
     assertEquals("Ha", FileHelper.createSafeFilename("Hä", 2));
 
-    final DateHolder dh = new DateHolder();
+    final PFDateTime dateTime = PFDateTime.now();
     assertEquals("basename_"
-        + dh.getYear()
+        + dateTime.getYear()
         + "-"
-        + StringHelper.format2DigitNumber(dh.getMonth() + 1)
+        + StringHelper.format2DigitNumber(dateTime.getMonthValue() + 1)
         + "-"
-        + StringHelper.format2DigitNumber(dh.getDayOfMonth())
+        + StringHelper.format2DigitNumber(dateTime.getDayOfMonth())
         + ".pdf", FileHelper.createSafeFilename("basename", ".pdf", 8, true));
   }
 }

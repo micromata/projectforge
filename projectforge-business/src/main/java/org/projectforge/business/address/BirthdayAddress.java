@@ -25,7 +25,7 @@ package org.projectforge.business.address;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -55,8 +55,8 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
     if (address.getBirthday() == null) {
       throw new UnsupportedOperationException("Birthday not given!");
     }
-    final DateHolder day = new DateHolder(address.getBirthday());
-    month = day.getMonth();
+    final PFDateTime day = PFDateTime.from(address.getBirthday());
+    month = day.getMonthValue();
     dayOfMonth = day.getDayOfMonth();
     dateOfYear = getDateOfYear(month, dayOfMonth);
     compareString = dateOfYear + " " + address.getName() + ", " + address.getFirstName();
@@ -94,9 +94,9 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
   /** Sets and gets the age of the person at the given date. */
   public int setAge(final Date date)
   {
-    final DateHolder dh = new DateHolder(date);
-    final DateHolder birthday = new DateHolder(address.getBirthday());
-    age = dh.getYear() - birthday.getYear();
+    final PFDateTime dt = PFDateTime.from(date);
+    final PFDateTime birthday = PFDateTime.from(address.getBirthday());
+    age = dt.getYear() - birthday.getYear();
     return age;
   }
 
@@ -168,8 +168,8 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
     if (date == null) {
       throw new UnsupportedOperationException("Date not given!");
     }
-    final DateHolder dh = new DateHolder(date);
-    return getDateOfYear(dh.getMonth(), dh.getDayOfMonth());
+    final PFDateTime dt = PFDateTime.from(date);
+    return getDateOfYear(dt.getMonthValue(), dt.getDayOfMonth());
   }
 
   public static String getDateOfYear(final int month, final int dayOfMonth)

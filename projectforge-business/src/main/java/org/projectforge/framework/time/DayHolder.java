@@ -24,7 +24,6 @@
 package org.projectforge.framework.time;
 
 import org.apache.commons.lang3.Validate;
-import org.projectforge.framework.calendar.Holiday;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.i18n.UserException;
 

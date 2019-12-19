@@ -35,7 +35,7 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class WeekHolderTest {
   //private final static Logger log = Logger.getLogger(WeekHolderTest.class);

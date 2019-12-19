@@ -27,7 +27,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.export.SVGHelper;
 import org.projectforge.framework.renderer.BatikImageRenderer;
-import org.projectforge.framework.renderer.ImageFormat
+import org.projectforge.framework.renderer.ImageFormat;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.TestSetup;
 import org.projectforge.test.WorkFileHelper;

@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.export.SVGColor;
 import org.projectforge.export.SVGHelper;
 import org.projectforge.export.SVGHelper.ArrowDirection;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.xstream.XmlObject;
 import org.w3c.dom.Document;
@@ -266,10 +265,9 @@ public class GanttChart
 
     // Show today line, if configured.
     if (style.isShowToday()) {
-      final DateHolder today = new DateHolder();
+      final PFDateTime today = PFDateTime.now();
       if (today.isBetween(fromDate, toDate)) {
-        diagram.appendChild(SVGHelper.createLine(doc, getXValue(today.getDate()), 0, getXValue(today.getDate()), getDiagramHeight(),
-            SVGColor.RED, "stroke-width", "2"));
+        diagram.appendChild(SVGHelper.createLine(doc, getXValue(today.getUtilDate()), 0, getXValue(today.getUtilDate()), getDiagramHeight(), SVGColor.RED, "stroke-width", "2"));
       }
     }
 
@@ -616,21 +614,21 @@ public class GanttChart
     if (date == null) {
       return 0.0;
     }
-    final DateHolder dh = new DateHolder(fromDate);
-    final int days = dh.daysBetween(date);
+    final PFDateTime dt = PFDateTime.from(fromDate);
+    final int days = (int) dt.daysBetween(date);
     final int fromToDays = getFromToDays();
     if (fromToDays == 0) {
       return 0;
     }
-    final int hourOfDay = new DateHolder(date).getHourOfDay();
+    final int hourOfDay = PFDateTime.from(date).getHour();
     return this.getDiagramWidth() * (days * 24 + hourOfDay) / (fromToDays * 24);
   }
 
   private int getFromToDays()
   {
     if (fromToDays < 0) {
-      final DateHolder dh = new DateHolder(fromDate);
-      fromToDays = dh.daysBetween(toDate);
+      final PFDateTime dt = PFDateTime.from(fromDate);
+      fromToDays = (int) dt.daysBetween(toDate);
     }
     return fromToDays;
   }

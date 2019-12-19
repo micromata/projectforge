@@ -23,8 +23,8 @@
 
 package org.projectforge.framework.xstream;
 
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.util.Date;
 import java.util.TimeZone;
@@ -56,8 +56,8 @@ public abstract class ProjectForgeRootElement
    */
   public ProjectForgeRootElement setCreated()
   {
-    final DateHolder dh = new DateHolder(DatePrecision.SECOND);
-    created = dh.getDate();
+    final PFDateTime dateTime = PFDateTime.now().withPrecision(DatePrecision.SECOND);
+    created = dateTime.getUtilDate();
     return this;
   }
 
