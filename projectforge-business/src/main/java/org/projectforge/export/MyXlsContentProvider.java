@@ -32,10 +32,7 @@ import org.projectforge.common.DateFormatType;
 import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateFormats;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.*;
 
 public class MyXlsContentProvider extends XlsContentProvider
 {
@@ -57,7 +54,7 @@ public class MyXlsContentProvider extends XlsContentProvider
   public MyXlsContentProvider(final ExportWorkbook workbook)
   {
     super(new MyXlsExportContext(), workbook);
-    defaultFormatMap.put(DateHolder.class, new CellFormat("YYYY-MM-DD").setAutoDatePrecision(true)); // format unused.
+    defaultFormatMap.put(PFDateTime.class, new CellFormat("YYYY-MM-DD").setAutoDatePrecision(true)); // format unused.
     defaultFormatMap.put(DayHolder.class, new CellFormat(DateFormats.getExcelFormatString(DateFormatType.DATE)));
   }
 
@@ -67,8 +64,8 @@ public class MyXlsContentProvider extends XlsContentProvider
   @Override
   public Object getCustomizedValue(final Object value)
   {
-    if (value instanceof DateHolder) {
-      return ((DateHolder) value).getDateTime();
+    if (value instanceof PFDateTime) {
+      return ((PFDateTime) value).getDateTime();
     } else if (value instanceof PFUserDO) {
       return ((PFUserDO) value).getFullname();
     } else if (value instanceof I18nEnum) {
@@ -98,14 +95,14 @@ public class MyXlsContentProvider extends XlsContentProvider
   @Override
   protected CellFormat getCustomizedCellFormat(final CellFormat format, final Object value)
   {
-    if (value == null || !DateHolder.class.isAssignableFrom(value.getClass())) {
+    if (value == null || !PFDateTime.class.isAssignableFrom(value.getClass())) {
       return null;
     }
     if (format != null && !BooleanUtils.isTrue(format.getAutoDatePrecision())) {
       return null;
     }
     // Find a format dependent on the precision:
-    final DatePrecision precision = ((DateHolder) value).getPrecision();
+    final DatePrecision precision = ((PFDateTime) value).;
     if (precision == DatePrecision.DAY) {
       return new CellFormat(DateFormats.getExcelFormatString(DateFormatType.DATE));
     } else if (precision == DatePrecision.SECOND) {
