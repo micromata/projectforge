@@ -23,7 +23,6 @@
 
 package org.projectforge.calendar;
 
-import org.jfree.data.time.Month;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -34,6 +33,8 @@ import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.TestSetup;
 
+import java.time.DayOfWeek;
+import java.time.Month;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -50,44 +51,44 @@ public class MonthHolderTest {
   @Test
   public void testMonthHolder() {
     final PFDateTime dateTime = PFDateTime.from(new Date(), true, null, Locale.GERMAN)
-        .withPrecision(DatePrecision.DAY).withYear(1970).withMonth(Month.NOVEMBER).withDayOfMonth(21).withHour(0).withMinute(0).withSecond(0);
+        .withPrecision(DatePrecision.DAY).withDate(1970, Month.NOVEMBER.getValue(), 21, 0, 0, 0);
     final MonthHolder month = new MonthHolder(dateTime.getUtilDate());
     assertEquals(6, month.getWeeks().size());
     WeekHolder week = month.getFirstWeek();
-    assertEquals("monday", week.getDays()[0].getDayKey());
+    assertEquals(DayOfWeek.MONDAY, week.getDays()[0].getDayOfWeek());
     assertEquals(26, week.getDays()[0].getDayOfMonth());
     assertEquals(Month.OCTOBER, week.getDays()[0].getMonth());
-    assertTrue(week.getDays()[0].isMarker(), "Day is marked, because it is not part of the month.");
+    //assertTrue(week.getDays()[0].isMarker(), "Day is marked, because it is not part of the month.");
     week = month.getWeeks().get(5);
-    assertEquals("monday", week.getDays()[0].getDayKey());
+    assertEquals(DayOfWeek.MONDAY, week.getDays()[0].getDayOfWeek());
     assertEquals(30, week.getDays()[0].getDayOfMonth());
-    assertFalse(week.getDays()[0].isMarker(), "Day is not marked, because it is part of the month.");
+    //assertFalse(week.getDays()[0].isMarker(), "Day is not marked, because it is part of the month.");
     assertEquals(6, week.getDays()[6].getDayOfMonth());
-    assertTrue(week.getDays()[6].isMarker(), "Day is marked, because it is not part of the month.");
+    //assertTrue(week.getDays()[6].isMarker(), "Day is marked, because it is not part of the month.");
     assertEquals(Month.DECEMBER, week.getDays()[6].getMonth());
   }
 
   @Test
   public void testNumberOfWorkingDays() {
     final PFDateTime dateTime = PFDateTime.from(new Date(), true, null, Locale.GERMAN)
-        .withPrecision(DatePrecision.DAY).withYear(2009).withMonth(Month.JANUARY).withDayOfMonth(16).withHour(0).withMinute(0).withSecond(0);
+        .withPrecision(DatePrecision.DAY).withDate(2009, Month.JANUARY.getValue(), 16, 0, 0, 0);
     MonthHolder month = new MonthHolder(dateTime.getUtilDate());
     AbstractTestBase.assertBigDecimal(21, month.getNumberOfWorkingDays());
-    month = new MonthHolder(dateTime.withMonth(Month.FEBRUARY).getUtilDate());
+    month = new MonthHolder(dateTime.withMonth(Month.FEBRUARY.getValue()).getUtilDate());
     AbstractTestBase.assertBigDecimal(20, month.getNumberOfWorkingDays());
-    month = new MonthHolder(dateTime.withMonth(Month.NOVEMBER).getUtilDate());
+    month = new MonthHolder(dateTime.withMonth(Month.NOVEMBER.getValue()).getUtilDate());
     AbstractTestBase.assertBigDecimal(21, month.getNumberOfWorkingDays());
-    month = new MonthHolder(dateTime.withMonth(Month.DECEMBER).getUtilDate());
+    month = new MonthHolder(dateTime.withMonth(Month.DECEMBER.getValue()).getUtilDate());
     AbstractTestBase.assertBigDecimal(21, month.getNumberOfWorkingDays());
   }
 
   @Test
   public void testDays() {
-    final MonthHolder mh = new MonthHolder(2013, Month.MAY);
+    final MonthHolder mh = new MonthHolder(2013, Month.MAY.getValue());
     final List<PFDateTime> list = mh.getDays();
     Assertions.assertEquals(31, list.size());
     for (final PFDateTime dt : list) {
-      Assertions.assertEquals(Month.MAY, dt.getMonthValue());
+      Assertions.assertEquals(Month.MAY, dt.getMonth());
     }
     Assertions.assertEquals(1, list.get(0).getDayOfMonth());
     Assertions.assertEquals(31, list.get(30).getDayOfMonth());

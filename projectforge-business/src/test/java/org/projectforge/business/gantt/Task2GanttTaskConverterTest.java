@@ -26,7 +26,6 @@ package org.projectforge.business.gantt;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
-import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +62,7 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
     initTestDB.addTask(prefix + "2.1", prefix + "2");
     initTestDB.addTask(prefix + "2.2", prefix + "2");
     initTestDB.addTask(prefix + "2.3", prefix + "2");
-    final PFDateTime day = PFDateTime.now().withYear(2010).withMonth(Month.AUGUST.getValue()).withDayOfMonth(16);
+    final PFDateTime day = PFDateTime.now().withDate(2010, Month.AUGUST.getValue(), 16);
 
     TaskDO task = getTask(prefix + "2.1");
     task.setStartDate(day.getUtilDate());
@@ -160,10 +159,10 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
   }
 
   private void assertDate(final String message, final int year, final int month, final int dayOfMonth, final Date date) {
-    final DayHolder dh = new DayHolder(date);
-    assertEquals(year, dh.getYear(), message);
-    assertEquals(month, dh.getMonth(), message);
-    assertEquals(dayOfMonth, dh.getDayOfMonth(), message);
+    final PFDateTime dt = PFDateTime.from(date);
+    assertEquals(year, dt.getYear(), message);
+    assertEquals(month, dt.getMonthValue(), message);
+    assertEquals(dayOfMonth, dt.getDayOfMonth(), message);
   }
 
   private Integer getTaskId(final String taskName) {

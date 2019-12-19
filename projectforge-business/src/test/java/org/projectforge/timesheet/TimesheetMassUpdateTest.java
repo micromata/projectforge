@@ -39,6 +39,8 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDate;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -68,11 +70,11 @@ public class TimesheetMassUpdateTest extends AbstractTestBase {
   @Autowired
   private ProjektDao projektDao;
 
-  private DateHolder date;
+  private PFDateTime date;
 
   @BeforeEach
   public void setUp() {
-    date = new DateHolder(new Date(), DatePrecision.MINUTE_15, Locale.GERMAN);
+    date = PFDateTime.from(new Date(), false, null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE_15);
   }
 
   @Test
@@ -364,21 +366,14 @@ public class TimesheetMassUpdateTest extends AbstractTestBase {
   }
 
   private TimesheetDO createTimesheet(final String prefix, final String taskName, final String userName, final int year,
-                                      final int month,
-                                      final int day, final int fromHour, final int fromMinute, final int toHour, final int toMinute,
-                                      final String location,
-                                      final String description) {
+                                      final int month, final int day, final int fromHour, final int fromMinute, final int toHour, final int toMinute, final String location, final String description) {
     return createTimesheet(prefix, taskName, userName, year, month, day, fromHour, fromMinute, toHour, toMinute,
             location, description, 0,
             0, 0, 0);
   }
 
   private TimesheetDO createTimesheet(final String prefix, final String taskName, final String userName, final int year,
-                                      final int month,
-                                      final int day, final int fromHour, final int fromMinute, final int toHour, final int toMinute,
-                                      final String location,
-                                      final String description, final int kost2Nummernkreis, final int kost2Bereich, final int kost2Teilbereich,
-                                      final int kost2Art) {
+                                      final int month, final int day, final int fromHour, final int fromMinute, final int toHour, final int toMinute, final String location, final String description, final int kost2Nummernkreis, final int kost2Bereich, final int kost2Teilbereich, final int kost2Art) {
     final TimesheetDO ts = new TimesheetDO();
     setTimeperiod(ts, year, month, day, fromHour, fromMinute, day, toHour, toMinute);
     ts.setTask(initTestDB.getTask(prefix + taskName));
@@ -395,11 +390,10 @@ public class TimesheetMassUpdateTest extends AbstractTestBase {
   }
 
   private void setTimeperiod(TimesheetDO timesheet, int year, int month, int fromDay, int fromHour, int fromMinute,
-                             int toDay, int toHour,
-                             int toMinute) {
-    date.setDate(year, month, fromDay, fromHour, fromMinute, 0);
-    timesheet.setStartTime(date.getTimestamp());
-    date.setDate(year, month, toDay, toHour, toMinute, 0);
-    timesheet.setStopTime(date.getTimestamp());
+                             int toDay, int toHour, int toMinute) {
+    date = date.withDate(year, month, fromDay, fromHour, fromMinute, 0);
+    timesheet.setStartTime(date.getSqlTimestamp());
+    date = date.withDate(year, month, toDay, toHour, toMinute, 0);
+    timesheet.setStopTime(date.getSqlTimestamp());
   }
 }

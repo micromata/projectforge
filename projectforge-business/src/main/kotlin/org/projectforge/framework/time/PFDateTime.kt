@@ -26,6 +26,7 @@ package org.projectforge.framework.time
 import org.apache.commons.lang3.ObjectUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
+import org.jfree.data.time.FixedMillisecond
 import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -146,6 +147,22 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
 
     val isFirstDayOfWeek: Boolean
         get() = dayOfWeek == PFDateTimeUtils.getFirstDayOfWeek()
+
+    fun withDate(year: Int, month: Int, day: Int): PFDateTime{
+        return this.withYear(year).withMonth(month).withDayOfMonth(day)
+    }
+
+    fun withDate(year: Int, month: Int, day: Int, hour: Int, minute: Int): PFDateTime{
+        return this.withYear(year).withMonth(month).withDayOfMonth(day).withHour(hour).withMinute(minute)
+    }
+
+    fun withDate(year: Int, month: Int, day: Int, hour: Int, minute: Int, second: Int): PFDateTime{
+        return this.withYear(year).withMonth(month).withDayOfMonth(day).withHour(hour).withMinute(minute).withSecond(second)
+    }
+
+    fun withDate(year: Int, month: Int, day: Int, hour: Int, minute: Int, second: Int, millisecond: Int): PFDateTime{
+        return this.withYear(year).withMonth(month).withDayOfMonth(day).withHour(hour).withMinute(minute).withSecond(second).withMilliSecond(millisecond)
+    }
 
     fun withYear(year: Int): PFDateTime {
         return PFDateTime(dateTime.withYear(year), locale)

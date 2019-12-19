@@ -23,13 +23,13 @@
 
 package org.projectforge.framework.xstream;
 
-import org.jfree.data.time.Month;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.xstream.converter.ISODateConverter;
 import org.projectforge.test.TestSetup;
 
+import java.time.Month;
 import java.time.ZoneId;
 import java.util.Date;
 
@@ -50,8 +50,7 @@ public class XmlRegistryTest
   {
     final XmlObjectWriter writer = new XmlObjectWriter();
     TestObject obj = new TestObject();
-    PFDateTime dt = PFDateTime.now(ZoneId.of("UTC")).withYear(2010).withMonth(Month.AUGUST).withDayOfMonth(29).withHour(23).withMinute(8)
-        .withSecond(17).withMilliSecond(123);
+    PFDateTime dt = PFDateTime.now(ZoneId.of("UTC")).withDate(2010, Month.AUGUST.getValue(), 29, 23, 8, 17, 123);
     obj.date = dt.getUtilDate();
     assertEquals("<test d1=\"0.0\" i1=\"0\" date=\"1283116097123\"/>", writer.writeToXml(obj));
     final XmlRegistry reg = new XmlRegistry();

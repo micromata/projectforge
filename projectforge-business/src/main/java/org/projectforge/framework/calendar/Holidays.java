@@ -86,7 +86,7 @@ public class Holidays
     int m = 3 + (l + 40) / 44; // 1-based month in which Easter falls
     int d = l + 28 - 31 * (m / 4); // Date of Easter within that month
 
-    dateTime = dateTime.withYear(year).withMonth(m-1).withDayOfMonth(d);
+    dateTime = dateTime.withDate(year, m-1, d);
     for (final HolidayDefinition holiday : HolidayDefinition.values()) {
       if (holiday.getEasterOffset() != null) {
         putEasterHoliday(holidays, dateTime, holiday);

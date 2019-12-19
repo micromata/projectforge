@@ -23,7 +23,6 @@
 
 package org.projectforge.web.teamcal.event;
 
-import org.jfree.data.time.Month;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -35,6 +34,7 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Month;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -50,14 +50,12 @@ public class TeamRecurrenceEventTest
     final TeamEventDO master = new TeamEventDO();
     master.setStartDate(getTimestamp("2013-01-01 08:00", timeZone));
     master.setEndDate(getTimestamp("2013-01-01 10:30", timeZone));
-    TeamRecurrenceEvent recurEvent = new TeamRecurrenceEvent(master, PFDateTime.now(timeZone.toZoneId()).withYear(2013).withMonth(Month.JANUARY)
-        .withDayOfMonth(5).withHour(8).withMinute(0));
+    TeamRecurrenceEvent recurEvent = new TeamRecurrenceEvent(master, PFDateTime.now(timeZone.toZoneId()).withDate(2013, Month.JANUARY.getValue(),5, 8, 0));
     assertDateTime("2013-01-05 08:00", recurEvent.getStartDate(), timeZone);
     assertDateTime("2013-01-05 10:30", recurEvent.getEndDate(), timeZone);
 
     master.setEndDate(getTimestamp("2013-01-02 10:30", timeZone));
-    recurEvent = new TeamRecurrenceEvent(master, PFDateTime.now(timeZone.toZoneId()).withYear(2013).withMonth(Month.JANUARY).withDayOfMonth(5)
-        .withHour(8).withMinute(0));
+    recurEvent = new TeamRecurrenceEvent(master, PFDateTime.now(timeZone.toZoneId()).withDate(2013, Month.JANUARY.getValue(), 5, 8, 0));
     assertDateTime("2013-01-05 08:00", recurEvent.getStartDate(), timeZone);
     assertDateTime("2013-01-06 10:30", recurEvent.getEndDate(), timeZone);
   }
@@ -77,8 +75,7 @@ public class TeamRecurrenceEventTest
   private PFDateTime getDateTime(final int year, final int month, final int dayOfMonth, final int hourOfDay, final int minutes,
                                  final TimeZone timeZone)
   {
-    return PFDateTime.now(timeZone.toZoneId()).withYear(year).withMonth(month).withDayOfMonth(dayOfMonth)
-        .withHour(hourOfDay).withMinute(minutes);
+    return PFDateTime.now(timeZone.toZoneId()).withDate(year, month, dayOfMonth, hourOfDay, minutes);
   }
 
   private void assertDateTime(final String expectedDateTime, final Date date, final TimeZone timeZone)

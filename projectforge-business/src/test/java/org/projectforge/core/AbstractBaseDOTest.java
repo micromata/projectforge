@@ -23,7 +23,6 @@
 
 package org.projectforge.core;
 
-import org.jfree.data.time.Month;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookStatus;
@@ -32,6 +31,7 @@ import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 
+import java.time.Month;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -75,7 +75,7 @@ public class AbstractBaseDOTest extends AbstractTestBase {
     BookDO obj = new BookDO();
     PFDateTime dateTime = PFDateTime.now(ZoneId.of("UTC"), Locale.GERMAN).withPrecision(DatePrecision.SECOND);
     obj.setId(42);
-    dateTime = dateTime.withYear(1970).withMonth(Month.NOVEMBER).withDayOfMonth(createdDayOfMonth).withHour(4).withMinute(50).withSecond(0);
+    dateTime = dateTime.withDate(1970, Month.NOVEMBER.getValue(), createdDayOfMonth, 4, 50, 0);
     obj.setCreated(dateTime.getUtilDate());
     dateTime = dateTime.withDayOfMonth(lastUpdateDateOfMonth);
     obj.setLastUpdate(dateTime.getUtilDate());

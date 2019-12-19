@@ -23,7 +23,6 @@
 
 package org.projectforge.business.task;
 
-import org.jfree.data.time.Month;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
@@ -40,12 +39,12 @@ import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
+import java.time.Month;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
@@ -455,7 +454,7 @@ public class TaskTest extends AbstractTestBase {
     final TaskDO subTask2 = initTestDB.addTask("totalDurationTask.subtask2", "totalDurationTask");
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     assertEquals(0, taskDao.readTotalDuration(task.getId()));
-    final PFDateTime dt = PFDateTime.now().withYear(2010).withMonth(Month.APRIL).withDayOfMonth(20).withHour(8).withMinute(0);
+    final PFDateTime dt = PFDateTime.now().withDate(2010, Month.APRIL.getValue(), 20, 8, 0);
     TimesheetDO ts = new TimesheetDO();
     ts.setUser(getUser(AbstractTestBase.TEST_USER));
     ts.setStartDate(dt.getUtilDate()).setStopTime(dt.plus(4, ChronoUnit.HOURS).getSqlTimestamp());
