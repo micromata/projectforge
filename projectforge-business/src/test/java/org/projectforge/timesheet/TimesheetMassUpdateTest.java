@@ -280,7 +280,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase {
     final TaskDO t2 = initTestDB.addTask(prefix + "2", "root");
     projektDao.setTask(projekt2, t2.getId());
     projektDao.update(projekt2);
-    final PFDateTime dateTime = PFDateTime.now().withDate(2009, 11, 31);
+    final PFDateTime dateTime = PFDateTime.withDate(2009, 11, 31);
     t2.setProtectTimesheetsUntil(dateTime.getUtilDate());
     taskDao.update(t2);
     initTestDB.addTask(prefix + "2.1", prefix + "2");
@@ -388,9 +388,9 @@ public class TimesheetMassUpdateTest extends AbstractTestBase {
 
   private void setTimeperiod(TimesheetDO timesheet, int year, int month, int fromDay, int fromHour, int fromMinute,
                              int toDay, int toHour, int toMinute) {
-    date = date.withDate(year, month, fromDay, fromHour, fromMinute, 0);
+    date = PFDateTime.withDate(year, month, fromDay, fromHour, fromMinute, 0);
     timesheet.setStartTime(date.getSqlTimestamp());
-    date = date.withDate(year, month, toDay, toHour, toMinute, 0);
+    date = PFDateTime.withDate(year, month, toDay, toHour, toMinute, 0);
     timesheet.setStopTime(date.getSqlTimestamp());
   }
 }

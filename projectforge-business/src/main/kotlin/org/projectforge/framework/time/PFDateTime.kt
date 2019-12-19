@@ -147,22 +147,6 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
     val isFirstDayOfWeek: Boolean
         get() = dayOfWeek == PFDateTimeUtils.getFirstDayOfWeek()
 
-    fun withDate(year: Int, month: Int, day: Int): PFDateTime{
-        return this.withYear(year).withMonth(month).withDayOfMonth(day)
-    }
-
-    fun withDate(year: Int, month: Int, day: Int, hour: Int, minute: Int): PFDateTime{
-        return this.withYear(year).withMonth(month).withDayOfMonth(day).withHour(hour).withMinute(minute)
-    }
-
-    fun withDate(year: Int, month: Int, day: Int, hour: Int, minute: Int, second: Int): PFDateTime{
-        return this.withYear(year).withMonth(month).withDayOfMonth(day).withHour(hour).withMinute(minute).withSecond(second)
-    }
-
-    fun withDate(year: Int, month: Int, day: Int, hour: Int, minute: Int, second: Int, millisecond: Int): PFDateTime{
-        return this.withYear(year).withMonth(month).withDayOfMonth(day).withHour(hour).withMinute(minute).withSecond(second).withMilliSecond(millisecond)
-    }
-
     fun withYear(year: Int): PFDateTime {
         return PFDateTime(dateTime.withYear(year), locale)
     }
@@ -469,6 +453,12 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
 
         private fun getUsersLocale(): Locale {
             return ThreadLocalUserContext.getLocale()
+        }
+
+        @JvmStatic
+        @JvmOverloads
+        fun withDate(year: Int, month: Int, day: Int, hour: Int = 0, minute: Int = 0, second: Int = 0, millisecond: Int = 0): PFDateTime{
+            return now().withYear(year).withMonth(month).withDayOfMonth(day).withHour(hour).withMinute(minute).withSecond(second).withMilliSecond(millisecond)
         }
 
         /**

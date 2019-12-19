@@ -85,7 +85,7 @@ public class EmployeeTest extends AbstractTestBase
     log.info("Employee history entry size: " + historyEntries.size());
 
     //Update employee
-    PFDateTime birthday = PFDateTime.now().withDate(1985, Month.DECEMBER.getValue(), 17);
+    PFDateTime birthday = PFDateTime.withDate(1985, Month.DECEMBER.getValue(), 17);
     e.setBirthday(birthday.getUtilDate());
     employeeDao.update(e);
 

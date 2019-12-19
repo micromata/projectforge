@@ -105,7 +105,7 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
   public void populateItem(final Item<ICellPopulator<T>> item, final String componentId, final IModel<T> rowModel)
   {
     final EmployeeDO employee = (EmployeeDO) rowModel.getObject();
-    PFDateTime dt = PFDateTime.now().withDate(selectedYear, selectedMonth, 1, 0, 0);
+    PFDateTime dt = PFDateTime.withDate(selectedYear, selectedMonth, 1);
     EmployeeTimedDO row = timeableService.getAttrRowForSameMonth(employee, getPropertyExpression(), dt.getUtilDate());
     if (row == null) {
       row = employeeService.addNewTimeAttributeRow(employee, getPropertyExpression());
