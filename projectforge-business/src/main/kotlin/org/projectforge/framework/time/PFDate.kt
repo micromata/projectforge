@@ -107,6 +107,10 @@ class PFDate(val date: LocalDate) : Comparable<PFDate> {
         return PFDate(date.plusMonths(months))
     }
 
+    fun monthsBetween(other: PFDate): Long {
+        return ChronoUnit.MONTHS.between(date, other.date)
+    }
+
     fun plusYears(years: Long): PFDate {
         return PFDate(date.plusYears(years))
     }
