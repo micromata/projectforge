@@ -26,7 +26,6 @@ package org.projectforge.framework.time
 import java.time.Instant
 import java.time.LocalDate
 import java.time.Month
-import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
@@ -37,7 +36,7 @@ import java.time.temporal.TemporalUnit
  * Immutable holder of [LocalDate] for transforming to [java.sql.Date] (once) if used several times.
  * If you don't need to use [java.sql.Date] you may use [LocalDate] directly.
  */
-class PFDate(val date: LocalDate): Comparable<PFDate> {
+class PFDate(val date: LocalDate) : Comparable<PFDate> {
 
     private constructor(instant: Instant) : this(LocalDate.from(instant))
 
@@ -130,6 +129,9 @@ class PFDate(val date: LocalDate): Comparable<PFDate> {
     val isoString: String
         get() = isoDateFormatter.format(date)
 
+    override fun toString(): String {
+        return isoString
+    }
 
     private var _utilDate: java.util.Date? = null
     /**
@@ -159,7 +161,7 @@ class PFDate(val date: LocalDate): Comparable<PFDate> {
 
     companion object {
         /**
-         * Creates mindnight [ZonedDateTime] from given [LocalDate].
+         * Creates mindnight [LocalDate] from given [LocalDate].
          */
         @JvmStatic
         @JvmOverloads
@@ -171,7 +173,7 @@ class PFDate(val date: LocalDate): Comparable<PFDate> {
 
         /**
          * @param date Date of type java.util.Date or java.sql.Date.
-         * Creates mindnight [ZonedDateTime] from given [date].
+         * Creates mindnight [LocalDate] from given [date].
          */
         @JvmStatic
         @JvmOverloads
@@ -189,7 +191,7 @@ class PFDate(val date: LocalDate): Comparable<PFDate> {
         /**
          * @param dateTime Date of type java.util.Date or java.sql.Date.
          * @param nowIfNull If true, then now will be returned as default date instead of null if dateTime is null.
-         * Creates mindnight [ZonedDateTime] from given [date].
+         * Creates mindnight [LocalDate] from given [date].
          */
         @JvmStatic
         @JvmOverloads
@@ -198,6 +200,15 @@ class PFDate(val date: LocalDate): Comparable<PFDate> {
                 return if (nowIfNull) now() else null
             val localDate = LocalDate.of(dateTime.year, dateTime.month, dateTime.dayOfMonth)
             return PFDate(localDate)
+        }
+
+        /**
+         * Creates mindnight [LocalDate] from given [date].
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun from(year: Int, month: Month, dayOfMonth: Int): PFDate? {
+            return PFDate(LocalDate.of(year, month, dayOfMonth))
         }
 
         @JvmStatic
