@@ -67,6 +67,12 @@ open class ForecastExport { // open needed by Wicket.
     @Autowired
     private lateinit var applicationContext: ApplicationContext
 
+    enum class Sheet(val title: String) {
+        FORECAST("Forecast_Data"),
+        INVOICES("Rechnungen"),
+        INVOICES_PREV_YEAR("Rechnungen Vorjahr")
+    }
+
     enum class ForecastCol(val header: String) {
         ORDER_NR("Nr."), POS_NR("Pos."), DATE_OF_OFFER("Angebotsdatum"), DATE("Erfassungsdatum"),
         DATE_OF_DECISION("Entscheidungsdatum"), HEAD("HOB"), CUSTOMER("Kunde"), PROJECT("Projekt"),
@@ -139,15 +145,15 @@ open class ForecastExport { // open needed by Wicket.
         val forecastTemplate = applicationContext.getResource("classpath:officeTemplates/ForecastTemplate.xlsx")
 
         val workbook = ExcelWorkbook(forecastTemplate.inputStream, "ForecastTemplate.xlsx")
-        val forecastSheet = workbook.getSheet("Forecast_Data")
+        val forecastSheet = workbook.getSheet(Sheet.FORECAST.title)
         ForecastCol.values().forEach { forecastSheet.registerColumn(it.header) }
         MonthCol.values().forEach { forecastSheet.registerColumn(it.header) }
 
-        val invoicesSheet = workbook.getSheet("Rechnungen")
+        val invoicesSheet = workbook.getSheet(Sheet.INVOICES.title)
         InvoicesCol.values().forEach { invoicesSheet.registerColumn(it.header) }
         MonthCol.values().forEach { invoicesSheet.registerColumn(it.header) }
 
-        val invoicesPriorYearSheet = workbook.getSheet("Rechnungen Vorjahr")
+        val invoicesPriorYearSheet = workbook.getSheet(Sheet.INVOICES_PREV_YEAR.title)
         InvoicesCol.values().forEach { invoicesPriorYearSheet.registerColumn(it.header) }
         MonthCol.values().forEach { invoicesPriorYearSheet.registerColumn(it.header) }
 
@@ -242,11 +248,10 @@ open class ForecastExport { // open needed by Wicket.
     }
 
     private fun replaceMonthDatesInHeaderRow(sheet: ExcelSheet, baseDate: PFDate) { // Adding month columns
-        val formatter = DateTimeFormatter.ofPattern("MMM yyyy")
         var currentMonth = baseDate
         MonthCol.values().forEach {
             val cell = sheet.headRow.getCell(sheet.getColumnDef(it.header))
-            cell.setCellValue(currentMonth.format(formatter))
+            cell.setCellValue(formatMonthHeader(currentMonth))
             currentMonth = currentMonth.plusMonths(1)
         }
     }
@@ -337,23 +342,21 @@ open class ForecastExport { // open needed by Wicket.
             beginDistribute = ForecastUtils.getStartLeistungszeitraum(order, pos)
         }
         // compute diff, return if diff is empty
-        val diff = probabilityNetSum.subtract(sumPaymentSchedule)
+        val diff = probabilityNetSum - sumPaymentSchedule
         if (diff.compareTo(BigDecimal.ZERO) == 0) {
             return
         }
         // handle diff
-        if (pos.paymentType != null) {
-            when (pos.paymentType) {
-                AuftragsPositionsPaymentType.FESTPREISPAKET -> { // fill reset at end of project time
-                    val indexEnd = getMonthIndex(ctx, ForecastUtils.getEndLeistungszeitraum(order, pos))
-                    if (indexEnd in 0..11) {
-                        val firstMonthCol = ctx.forecastSheet.getColumnDef(MonthCol.MONTH1.header).columnNumber
-                        ctx.forecastSheet.setBigDecimalValue(row, firstMonthCol + indexEnd, diff).cellStyle = ctx.currencyCellStyle
-                    }
+        when (pos.paymentType) {
+            AuftragsPositionsPaymentType.FESTPREISPAKET -> { // fill reset at end of project time
+                val indexEnd = getMonthIndex(ctx, ForecastUtils.getEndLeistungszeitraum(order, pos)) + 1 // Will be invoiced 1 month later (+1)
+                if (indexEnd in 0..11) {
+                    val firstMonthCol = ctx.forecastSheet.getColumnDef(MonthCol.MONTH1.header).columnNumber
+                    ctx.forecastSheet.setBigDecimalValue(row, firstMonthCol + indexEnd, diff).cellStyle = ctx.currencyCellStyle
                 }
-                else -> {
-                    fillMonthColumnsDistributed(diff, ctx, row, order, pos, beginDistribute, toBeInvoicedSum)
-                }
+            }
+            else -> {
+                fillMonthColumnsDistributed(diff, ctx, row, order, pos, beginDistribute, toBeInvoicedSum)
             }
         }
     }
@@ -415,8 +418,8 @@ open class ForecastExport { // open needed by Wicket.
     private fun fillMonthColumnsDistributed(value: BigDecimal, ctx: Context, row: Int, order: AuftragDO, pos: AuftragsPositionDO,
                                             beginDistribute: PFDate, toBeInvoicedSum: BigDecimal) {
         val currentMonth = getMonthIndex(ctx, ctx.thisMonth)
-        val indexBegin = getMonthIndex(ctx, beginDistribute)
-        val indexEnd = getMonthIndex(ctx, ForecastUtils.getEndLeistungszeitraum(order, pos))
+        val indexBegin = getMonthIndex(ctx, beginDistribute) + 1 // Will be invoiced one month later (+1).
+        val indexEnd = getMonthIndex(ctx, ForecastUtils.getEndLeistungszeitraum(order, pos)) + 1 // Will be invoiced one month later (+1).
         if (indexEnd < indexBegin) { // should not happen
             return
         }
@@ -446,5 +449,10 @@ open class ForecastExport { // open needed by Wicket.
     companion object {
         private val log = LoggerFactory.getLogger(ForecastExport::class.java)
         private const val FORECAST_IST_SUM_ROW = 7
+        private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM yyyy")
+
+        fun formatMonthHeader(date: PFDate): String {
+            return date.format(formatter)
+        }
     }
 }
