@@ -73,11 +73,10 @@ open class ForecastExport { // open needed by Wicket.
         TITEL("Titel"), POS_TITLE("Pos.-Titel"), ART("Art"), ABRECHNUNGSART("Abrechnungsart"),
         AUFTRAG_STATUS("Auftrag Status"), POSITION_STATUS("Position Status"),
         PT("PT"), NETTOSUMME("Nettosumme"), FAKTURIERT("fakturiert"),
-        NOCH_ZU_FAKTURIEREN("Noch zu fakturieren"), VOLLSTAENDIG_FAKTURIERT("vollständig fakturiert"),
+        TO_BE_INVOICED("gewichtet offen"), VOLLSTAENDIG_FAKTURIERT("vollständig fakturiert"),
         DEBITOREN_RECHNUNGEN("Debitorenrechnungen"), LEISTUNGSZEITRAUM("Leistungszeitraum"),
         EINTRITTSWAHRSCHEINLICHKEIT("Eintrittswahrsch. in %"), ANSPRECHPARTNER("Ansprechpartner"),
-        STRUKTUR_ELEMENT("Strukturelement"), BEMERKUNG("Bemerkung"), WAHRSCHEINLICHKEITSWERT("Wahrscheinlichkeitswert"),
-        MONATSENDE_START_DATUM("Monatsende Startdatum"), MONATSENDE_ENDE_DATUM("Monatsende Enddatum"),
+        STRUKTUR_ELEMENT("Strukturelement"), BEMERKUNG("Bemerkung"), PROBABILITY_NETSUM("gewichtete Nettosumme"),
         ANZAHL_MONATE("Anzahl Monate"), PAYMENT_SCHEDULE("Zahlplan"),
         DIFFERENCE("Differenz")
     }
@@ -122,8 +121,8 @@ open class ForecastExport { // open needed by Wicket.
 
         val filter = AuftragFilter()
         filter.searchString = origFilter.searchString
-        filter.auftragFakturiertFilterStatus = origFilter.auftragFakturiertFilterStatus
-        filter.auftragsPositionsPaymentType = origFilter.auftragsPositionsPaymentType
+        //filter.auftragFakturiertFilterStatus = origFilter.auftragFakturiertFilterStatus
+        //filter.auftragsPositionsPaymentType = origFilter.auftragsPositionsPaymentType
         filter.periodOfPerformanceStartDate = baseDate.plusYears(-2).utilDate // Go 2 years back for getting all orders referred by invoices of prior year.
         filter.user = origFilter.user
         val orderList = orderBookDao.getList(filter)
@@ -273,14 +272,18 @@ open class ForecastExport { // open needed by Wicket.
         sheet.setBigDecimalValue(row, ForecastCol.NETTOSUMME.header, pos.nettoSumme
                 ?: BigDecimal.ZERO).cellStyle = ctx.currencyCellStyle
 
-        val accurenceValue = ForecastUtils.computeAccurenceValue(order, pos)
         val netSum = pos.nettoSumme ?: BigDecimal.ZERO
         val invoicedSum = pos.fakturiertSum ?: BigDecimal.ZERO
-        val toBeInvoicedSum = if (netSum > invoicedSum) accurenceValue.subtract(invoicedSum) else BigDecimal.ZERO
+        val probabilityNetSum = ForecastUtils.computeProbabilityNetSum(order, pos)
+        val toBeInvoicedSum = if (probabilityNetSum > invoicedSum) probabilityNetSum - invoicedSum else BigDecimal.ZERO
 
         sheet.setBigDecimalValue(row, ForecastCol.NETTOSUMME.header, netSum).cellStyle = ctx.currencyCellStyle
-        sheet.setBigDecimalValue(row, ForecastCol.FAKTURIERT.header, invoicedSum).cellStyle = ctx.currencyCellStyle
-        sheet.setBigDecimalValue(row, ForecastCol.NOCH_ZU_FAKTURIEREN.header, toBeInvoicedSum).cellStyle = ctx.currencyCellStyle
+        if (invoicedSum.compareTo(BigDecimal.ZERO) != 0) {
+            sheet.setBigDecimalValue(row, ForecastCol.FAKTURIERT.header, invoicedSum).cellStyle = ctx.currencyCellStyle
+        }
+        if (toBeInvoicedSum.compareTo(BigDecimal.ZERO) != 0) {
+            sheet.setBigDecimalValue(row, ForecastCol.TO_BE_INVOICED.header, toBeInvoicedSum).cellStyle = ctx.currencyCellStyle
+        }
         sheet.setStringValue(row, ForecastCol.VOLLSTAENDIG_FAKTURIERT.header, if (pos.vollstaendigFakturiert == true) "x" else "")
 
         val invoicePositions = rechnungCache.getRechnungsPositionVOSetByAuftragsPositionId(pos.id)
@@ -296,15 +299,12 @@ open class ForecastExport { // open needed by Wicket.
         val probability = ForecastUtils.getProbabilityOfAccurence(order, pos)
         sheet.setBigDecimalValue(row, ForecastCol.EINTRITTSWAHRSCHEINLICHKEIT.header, probability).cellStyle = ctx.percentageCellStyle
 
-        sheet.setBigDecimalValue(row, ForecastCol.WAHRSCHEINLICHKEITSWERT.header, accurenceValue).cellStyle = ctx.currencyCellStyle
+        sheet.setBigDecimalValue(row, ForecastCol.PROBABILITY_NETSUM.header, probabilityNetSum).cellStyle = ctx.currencyCellStyle
 
         sheet.setStringValue(row, ForecastCol.ANSPRECHPARTNER.header, order.contactPerson?.getFullname())
         val node = TenantRegistryMap.getInstance().tenantRegistry.taskTree.getTaskNodeById(pos.taskId)
         sheet.setStringValue(row, ForecastCol.STRUKTUR_ELEMENT.header, node?.task?.title ?: "")
         sheet.setStringValue(row, ForecastCol.BEMERKUNG.header, pos.bemerkung)
-
-        sheet.setDateValue(row, ForecastCol.MONATSENDE_START_DATUM.header, ForecastUtils.getStartLeistungszeitraum(order, pos).sqlDate, ctx.excelDateFormat)
-        sheet.setDateValue(row, ForecastCol.MONATSENDE_ENDE_DATUM.header, ForecastUtils.getEndLeistungszeitraum(order, pos).sqlDate, ctx.excelDateFormat)
 
         sheet.setBigDecimalValue(row, ForecastCol.ANZAHL_MONATE.header, ForecastUtils.getMonthCountForOrderPosition(order, pos))
 
@@ -322,7 +322,7 @@ open class ForecastExport { // open needed by Wicket.
                 if (schedule.vollstaendigFakturiert) // Ignore payments already invoiced.
                     continue
                 val amount = schedule.amount!!.multiply(probability)
-                sum = sum.add(amount)
+                sum += amount
                 if (beginDistribute.isBefore(schedule.scheduleDate!!)) {
                     beginDistribute = PFDate.from(schedule.scheduleDate)!!
                 }
@@ -337,28 +337,22 @@ open class ForecastExport { // open needed by Wicket.
             beginDistribute = ForecastUtils.getStartLeistungszeitraum(order, pos)
         }
         // compute diff, return if diff is empty
-        val diff = accurenceValue.subtract(sumPaymentSchedule)
+        val diff = probabilityNetSum.subtract(sumPaymentSchedule)
         if (diff.compareTo(BigDecimal.ZERO) == 0) {
             return
         }
         // handle diff
         if (pos.paymentType != null) {
             when (pos.paymentType) {
-                AuftragsPositionsPaymentType.TIME_AND_MATERIALS -> {
-                    fillMonthColumnsDistributed(diff, ctx, row, order, pos, beginDistribute, toBeInvoicedSum)
-                }
-                AuftragsPositionsPaymentType.PAUSCHALE -> if (order.probabilityOfOccurrence != null) {
-                    if (beginDistribute < ctx.today) {
-                        beginDistribute = ctx.today // Start with distribution today or in the future.
-                    }
-                    fillMonthColumnsDistributed(diff, ctx, row, order, pos, beginDistribute, toBeInvoicedSum)
-                }
                 AuftragsPositionsPaymentType.FESTPREISPAKET -> { // fill reset at end of project time
                     val indexEnd = getMonthIndex(ctx, ForecastUtils.getEndLeistungszeitraum(order, pos))
                     if (indexEnd in 0..11) {
                         val firstMonthCol = ctx.forecastSheet.getColumnDef(MonthCol.MONTH1.header).columnNumber
                         ctx.forecastSheet.setBigDecimalValue(row, firstMonthCol + indexEnd, diff).cellStyle = ctx.currencyCellStyle
                     }
+                }
+                else -> {
+                    fillMonthColumnsDistributed(diff, ctx, row, order, pos, beginDistribute, toBeInvoicedSum)
                 }
             }
         }
@@ -378,7 +372,7 @@ open class ForecastExport { // open needed by Wicket.
                     }
                     val date = PFDate.from(schedule.scheduleDate)!!.endOfMonth
                     if (date.year == currentMonth.year && date.month == currentMonth.month) {
-                        sum = sum.add(schedule.amount!!.multiply(probability))
+                        sum += schedule.amount!!.multiply(probability).setScale(2, RoundingMode.HALF_UP)
                     }
                 }
                 if (sum != BigDecimal.ZERO) {
