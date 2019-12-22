@@ -25,6 +25,7 @@ package org.projectforge.business.fibu
 
 import de.micromata.merlin.excel.ExcelWorkbook
 import org.apache.commons.io.FileUtils
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.time.PFDate
 import org.projectforge.test.AbstractTestBase
@@ -32,6 +33,7 @@ import org.projectforge.test.WorkFileHelper
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.ByteArrayInputStream
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 class ForecastExportTest : AbstractTestBase() {
     @Autowired
@@ -47,37 +49,61 @@ class ForecastExportTest : AbstractTestBase() {
     fun exportTest() {
         logon(TEST_FINANCE_USER)
         val today = PFDate.now()
-        var order1 = createOrder(today.plusMonths(-3), AuftragsStatus.BEAUFTRAGT,
-                today.plusMonths(-2), today.plusMonths(1))
+        val baseDate = today.plusMonths(-4)
+        var order1 = createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsPositionsStatus.BEAUFTRAGT,
+                1000.0, baseDate,
+                baseDate.plusMonths(1), baseDate.plusMonths(4),
+                baseDate.plusMonths(2), baseDate.plusMonths(3), baseDate.plusMonths(4))
         //order1.addPaymentSchedule()
-        addPosition(order1, 1, AuftragsPositionsStatus.BEAUFTRAGT, 4000.00)
-        val id = auftragDao.save(order1)
-        order1 = auftragDao.getById(id)
-        val pos1_1 = order1.getPosition(1)!!
 
-        val invoice1 = createInvoice(today.plusMonths(-1))
-        addPosition(invoice1, 1000.00, pos1_1)
-        rechnungDao.save(invoice1)
+        var order2 = createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsPositionsStatus.BEAUFTRAGT,
+                1000.0, baseDate,
+                baseDate.plusMonths(1), baseDate.plusMonths(4),
+                baseDate.plusMonths(2), baseDate.plusMonths(3))
 
-        val invoice2 = createInvoice(today)
-        addPosition(invoice2, 1000.00, pos1_1)
-        rechnungDao.save(invoice2)
-
-        val order2 = createOrder(today, AuftragsStatus.IN_ERSTELLUNG,
+        val order3 = createOrder(today, AuftragsStatus.IN_ERSTELLUNG,
                 today.plusMonths(1), today.plusMonths(5))
         //order1.addPaymentSchedule()
-        val pos2_1 = addPosition(order2, 1, AuftragsPositionsStatus.IN_ERSTELLUNG, 4000.00)
-        auftragDao.save(order2)
+        val pos3_1 = addPosition(order3, 1, AuftragsPositionsStatus.IN_ERSTELLUNG, 4000.00, AuftragsPositionsPaymentType.FESTPREISPAKET)
+        auftragDao.save(order3)
 
         val filter = AuftragFilter()
-        filter.periodOfPerformanceStartDate = today.plusMonths(-4).sqlDate
+        filter.periodOfPerformanceStartDate = baseDate.sqlDate
         val ba = forecastExport.export(filter)
         val excelFile = WorkFileHelper.getWorkFile("forecast.xlsx")
         log.info("Writing forecast Excel file to work directory: " + excelFile.absolutePath)
         FileUtils.writeByteArrayToFile(excelFile, ba)
 
         val workbook = ExcelWorkbook(ByteArrayInputStream(ba), excelFile.name)
+        val forecastSheet = workbook.getSheet(ForecastExport.Sheet.FORECAST.title)
+        val monthCols = Array(12) {
+            forecastSheet.registerColumn(ForecastExport.formatMonthHeader(baseDate.plusMonths(it.toLong())))
+        }
+        val firstRow = 9
+        forecastSheet.headRow // Enforce analyzing the column definitions.
+
+        // order 1
+        Assertions.assertTrue(forecastSheet.getCell(firstRow + 1, monthCols[3]).stringCellValue.isNullOrBlank())
+        val amount = forecastSheet.getCell(firstRow + 1, monthCols[4]).numericCellValue
+        assertAmount(order1.getPosition(1)!!.nettoSumme!!.divide(BigDecimal(4)), amount)
         workbook.close()
+    }
+
+    private fun createTimeAndMaterials(orderStatus: AuftragsStatus, posStatus: AuftragsPositionsStatus,
+                                       monthlyAmount: Double, date: PFDate, periodStart: PFDate, periodEnd: PFDate, vararg invoiceMonth: PFDate)
+            : AuftragDO {
+        var order = createOrder(date, orderStatus, periodStart, periodEnd)
+        //order1.addPaymentSchedule()
+        addPosition(order, 1, posStatus, monthlyAmount * (1 + periodStart.monthsBetween(periodEnd)), AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
+        val id = auftragDao.save(order)
+        order = auftragDao.getById(id)
+        val pos1_1 = order.getPosition(1)!!
+        invoiceMonth.forEach {
+            val invoice1 = createInvoice(it)
+            addPosition(invoice1, monthlyAmount, pos1_1)
+            rechnungDao.save(invoice1)
+        }
+        return order
     }
 
     private fun createOrder(date: PFDate,
@@ -99,12 +125,14 @@ class ForecastExportTest : AbstractTestBase() {
                             number: Short,
                             status: AuftragsPositionsStatus,
                             netSum: Double,
+                            paymentType: AuftragsPositionsPaymentType,
                             periodOfPerformanceBegin: PFDate? = null,
                             periodOfPerformanceEnd: PFDate? = null,
                             periodOfPerformanceType: PeriodOfPerformanceType? = null): AuftragsPositionDO {
         val pos = AuftragsPositionDO()
         pos.number = number
         pos.status = status
+        pos.paymentType = paymentType
         pos.nettoSumme = BigDecimal(netSum)
         pos.periodOfPerformanceBegin = periodOfPerformanceBegin?.sqlDate
         pos.periodOfPerformanceEnd = periodOfPerformanceEnd?.sqlDate
@@ -130,5 +158,9 @@ class ForecastExportTest : AbstractTestBase() {
         pos.einzelNetto = BigDecimal(netSum)
         invoice.addPosition(pos)
         return pos
+    }
+
+    private fun assertAmount(v1: BigDecimal, v2: Double) {
+        Assertions.assertEquals(v1.setScale(2, RoundingMode.HALF_UP), BigDecimal(v2).setScale(2, RoundingMode.HALF_UP))
     }
 }
