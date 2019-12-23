@@ -62,7 +62,7 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
     initTestDB.addTask(prefix + "2.1", prefix + "2");
     initTestDB.addTask(prefix + "2.2", prefix + "2");
     initTestDB.addTask(prefix + "2.3", prefix + "2");
-    final PFDateTime day = PFDateTime.withDate(2010, Month.AUGUST.getValue(), 16);
+    final PFDateTime day = PFDateTime.withDate(2010, Month.AUGUST, 16);
 
     TaskDO task = getTask(prefix + "2.1");
     task.setStartDate(day.getUtilDate());

@@ -53,7 +53,7 @@ public class GanttChartTest extends AbstractTestBase {
     final String prefix = "GantChartTest";
     final TaskTree taskTree = taskDao.getTaskTree();
     final TaskDO rootTask = initTestDB.addTask(prefix, "root");
-    final PFDateTime dt = PFDateTime.withDate(2010, Month.AUGUST.getValue(), 3);
+    final PFDateTime dt = PFDateTime.withDate(2010, Month.AUGUST, 3);
 
     TaskDO task = initTestDB.addTask(prefix + "1", prefix);
     task.setStartDate(dt.getUtilDate());

@@ -454,7 +454,7 @@ public class TaskTest extends AbstractTestBase {
     final TaskDO subTask2 = initTestDB.addTask("totalDurationTask.subtask2", "totalDurationTask");
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     assertEquals(0, taskDao.readTotalDuration(task.getId()));
-    final PFDateTime dt = PFDateTime.withDate(2010, Month.APRIL.getValue(), 20, 8, 0);
+    final PFDateTime dt = PFDateTime.withDate(2010, Month.APRIL, 20, 8, 0);
     TimesheetDO ts = new TimesheetDO();
     ts.setUser(getUser(AbstractTestBase.TEST_USER));
     ts.setStartDate(dt.getUtilDate()).setStopTime(dt.plus(4, ChronoUnit.HOURS).getSqlTimestamp());

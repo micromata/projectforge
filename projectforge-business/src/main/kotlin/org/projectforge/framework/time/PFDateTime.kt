@@ -158,6 +158,10 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
         return PFDateTime(dateTime.withMonth(month), locale)
     }
 
+    fun withMonth(month: Month): PFDateTime {
+        return PFDateTime(dateTime.withMonth(month.value), locale)
+    }
+
     fun withDayOfYear(dayOfYear: Int): PFDateTime {
         return PFDateTime(dateTime.withDayOfYear(dayOfYear), locale)
     }
@@ -455,9 +459,18 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
             return ThreadLocalUserContext.getLocale()
         }
 
+        /**
+         * Month: 1 (January) to 12 (December)
+         */
         @JvmStatic
         @JvmOverloads
         fun withDate(year: Int, month: Int, day: Int, hour: Int = 0, minute: Int = 0, second: Int = 0, millisecond: Int = 0): PFDateTime{
+            return now().withYear(year).withMonth(month).withDayOfMonth(day).withHour(hour).withMinute(minute).withSecond(second).withMilliSecond(millisecond)
+        }
+
+        @JvmStatic
+        @JvmOverloads
+        fun withDate(year: Int, month: Month, day: Int, hour: Int = 0, minute: Int = 0, second: Int = 0, millisecond: Int = 0): PFDateTime{
             return now().withYear(year).withMonth(month).withDayOfMonth(day).withHour(hour).withMinute(minute).withSecond(second).withMilliSecond(millisecond)
         }
 

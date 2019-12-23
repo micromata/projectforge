@@ -75,7 +75,7 @@ public class AbstractBaseDOTest extends AbstractTestBase {
     BookDO obj = new BookDO();
     PFDateTime dateTime = PFDateTime.now(ZoneId.of("UTC"), Locale.GERMAN).withPrecision(DatePrecision.SECOND);
     obj.setId(42);
-    dateTime = dateTime.withDate(1970, Month.NOVEMBER.getValue(), createdDayOfMonth, 4, 50, 0);
+    dateTime = dateTime.withDate(1970, Month.NOVEMBER, createdDayOfMonth, 4, 50, 0);
     obj.setCreated(dateTime.getUtilDate());
     dateTime = dateTime.withDayOfMonth(lastUpdateDateOfMonth);
     obj.setLastUpdate(dateTime.getUtilDate());

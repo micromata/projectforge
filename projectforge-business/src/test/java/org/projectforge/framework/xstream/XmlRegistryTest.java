@@ -50,7 +50,7 @@ public class XmlRegistryTest
   {
     final XmlObjectWriter writer = new XmlObjectWriter();
     TestObject obj = new TestObject();
-    PFDateTime dt = PFDateTime.now(ZoneId.of("UTC")).withDate(2010, Month.AUGUST.getValue(), 29, 23, 8, 17, 123);
+    PFDateTime dt = PFDateTime.now(ZoneId.of("UTC")).withDate(2010, Month.AUGUST, 29, 23, 8, 17, 123);
     obj.date = dt.getUtilDate();
     assertEquals("<test d1=\"0.0\" i1=\"0\" date=\"1283116097123\"/>", writer.writeToXml(obj));
     final XmlRegistry reg = new XmlRegistry();
