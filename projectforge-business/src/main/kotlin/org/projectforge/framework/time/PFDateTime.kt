@@ -328,6 +328,10 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         return ObjectUtils.compare(dateTime, other.dateTime)
     }
 
+    override fun toString(): String {
+        return isoString
+    }
+
     private var _utilDate: Date? = null
     /**
      * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
