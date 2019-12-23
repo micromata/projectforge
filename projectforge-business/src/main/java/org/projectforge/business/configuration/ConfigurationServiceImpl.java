@@ -32,8 +32,8 @@ import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.*;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
-import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.mail.SendMailConfig;
@@ -46,7 +46,6 @@ import javax.net.ssl.*;
 import java.io.*;
 import java.net.URL;
 import java.security.KeyStore;
-import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -544,13 +543,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     return sqlConsoleAvailable;
   }
 
-  public Locale getDefaultLocale()
-  {
+  public Locale getDefaultLocale() {
     return defaultLocale;
   }
 
-  public TimeNotation getDefaultTimeNotation()
-  {
+  public TimeNotation getDefaultTimeNotation() {
     return defaultTimeNotation;
   }
 
@@ -580,7 +577,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @Override
-  public PFDateTime getEndDateVacationFromLastYear() {
+  public Calendar getEndDateVacationFromLastYear() {
     int day = 31;
     int month = 2;
     ConfigurationDO configDO = configDao.getEntry(ConfigurationParam.END_DATE_VACATION_LASTR_YEAR);
@@ -596,10 +593,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         month = 2;
       }
     }
-
-    PFDateTime result = PFDateTime.now();
-    LocalDate date = LocalDate.of(result.getYear(), month, day);
-    result = PFDateTime.from(date);
+    Calendar result = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+    result.set(result.get(Calendar.YEAR), month, day, 23, 59, 59);
     return result;
   }
 
