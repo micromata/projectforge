@@ -41,25 +41,21 @@ import java.util.Map;
 
 /**
  * Uses the implementation of http://mpxj.sourceforge.net/, which is distributed under the terms of the GNU LGPL.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class ExportMSProject
-{
+public class ExportMSProject {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportMSProject.class);
 
-  public static byte[] exportXml(final GanttChart ganttChart)
-  {
+  public static byte[] exportXml(final GanttChart ganttChart) {
     return export(new MSPDIWriter(), ganttChart);
   }
 
-  public static byte[] exportMpx(final GanttChart ganttChart)
-  {
+  public static byte[] exportMpx(final GanttChart ganttChart) {
     return export(new MPXWriter(), ganttChart);
   }
 
-  private static byte[] export(final ProjectWriter result, final GanttChart ganttChart)
-  {
+  private static byte[] export(final ProjectWriter result, final GanttChart ganttChart) {
     final ProjectFile file = new ProjectFile();
 
     //
@@ -112,7 +108,7 @@ public class ExportMSProject
     PFDateTime dt = PFDateTime.from(ganttChart.getCalculatedStartDate());
     for (int i = 0; i < 3000; i++) { // Endless loop protection (paranoia)
       dt = dt.plusDays(1);
-      Holidays holidays = new Holidays();
+      Holidays holidays = Holidays.getInstance();
       if (!holidays.isWorkingDay(dt.getDateTime()) && holidays.isHoliday(dt) && !dt.isWeekend()) {
         // Add this holiday to the dateTime:
         final Date date = dt.getSqlDate();
@@ -151,8 +147,7 @@ public class ExportMSProject
   }
 
   private static void addTask(final ProjectFile file, final Map<Serializable, Task> taskMap, final Task parentTask,
-      final GanttTask ganttTask)
-  {
+                              final GanttTask ganttTask) {
     final Task task;
     if (parentTask == null) {
       task = file.addTask();
@@ -190,8 +185,7 @@ public class ExportMSProject
     }
   }
 
-  private static void setPredecessors(final Map<Serializable, Task> taskMap, final GanttTask ganttTask)
-  {
+  private static void setPredecessors(final Map<Serializable, Task> taskMap, final GanttTask ganttTask) {
     if (ganttTask.getPredecessor() != null) {
       final Task task = taskMap.get(ganttTask.getId());
       final Task predecessor = taskMap.get(ganttTask.getPredecessorId());
@@ -219,8 +213,7 @@ public class ExportMSProject
     }
   }
 
-  private static RelationType getRelationType(final GanttRelationType type)
-  {
+  private static RelationType getRelationType(final GanttRelationType type) {
     if (type == null || type == GanttRelationType.FINISH_START) {
       return RelationType.FINISH_START;
     } else if (type == GanttRelationType.FINISH_FINISH) {
