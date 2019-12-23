@@ -23,7 +23,7 @@
 
 package org.projectforge.business.teamcal.filter;
 
-import org.projectforge.framework.time.PFDateTime;
+import org.joda.time.DateMidnight;
 
 import java.io.Serializable;
 
@@ -37,17 +37,17 @@ public interface ICalendarFilter extends Serializable
   /**
    * @return the startDate
    */
-  PFDateTime getStartDate();
+  DateMidnight getStartDate(); // Don't migrate to PFDateTime. Must be DateMidnight for deserialization of deprecated filters. The whole class will be removed after removing Wicket.
 
   /**
    * @param startDate the startDate to set
    * @return this for chaining.
    */
-  ICalendarFilter setStartDate(final PFDateTime startDate);
+  ICalendarFilter setStartDate(final DateMidnight startDate);
 
   /**
    * If true then the slot is 30 minutes otherwise 15 minutes.
-   * 
+   *
    * @return the slot30
    */
   boolean isSlot30();
@@ -108,7 +108,7 @@ public interface ICalendarFilter extends Serializable
 
   /**
    * The user id of the user for showing his time sheets.
-   * 
+   *
    * @return this for chaining.
    */
   Integer getTimesheetUserId();
@@ -117,14 +117,14 @@ public interface ICalendarFilter extends Serializable
 
   /**
    * Show timesheets?
-   * 
+   *
    * @return true if the time-sheet user id is given.
    */
   boolean isShowTimesheets();
 
   /**
    * If true then the current logged-in user is set as time-sheet user.
-   * 
+   *
    * @param showTimesheets
    * @return this for chaining.
    */
@@ -133,7 +133,7 @@ public interface ICalendarFilter extends Serializable
   /**
    * If the time sheets of an user are displayed and this option is set, then also all breaks between time-sheets of
    * ones day will be displayed.
-   * 
+   *
    * @return the showBreaks
    */
   boolean isShowBreaks();

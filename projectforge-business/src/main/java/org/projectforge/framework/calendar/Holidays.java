@@ -26,6 +26,7 @@ package org.projectforge.framework.calendar;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDate;
 import org.projectforge.framework.time.PFDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +52,8 @@ public class Holidays
   {
     return instance;
   }
+
+  private Holidays() {}
 
   /** Contains all holidays of a year. Key is the year. Value is a map of all holidays in the year with the day of the year as key. */
   private Map<Integer, Map<Integer, Holiday>> holidaysByYear = new HashMap<>();
@@ -217,6 +220,26 @@ public class Holidays
       return false;
     }
     final Holiday day = getHolidays(dateTime.getYear()).get(dateTime.getDayOfYear());
+    return day == null || day.isWorkingDay();
+  }
+
+  public boolean isWorkingDay(final PFDateTime dateTime)
+  {
+    if (dateTime.getDayOfWeek() == DayOfWeek.SATURDAY || dateTime.getDayOfWeek() == DayOfWeek.SUNDAY) {
+      // Weeekend
+      return false;
+    }
+    final Holiday day = getHolidays(dateTime.getYear()).get(dateTime.getDayOfYear());
+    return day == null || day.isWorkingDay();
+  }
+
+  public boolean isWorkingDay(final PFDate date)
+  {
+    if (date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY) {
+      // Weeekend
+      return false;
+    }
+    final Holiday day = getHolidays(date.getYear()).get(date.getDayOfYear());
     return day == null || day.isWorkingDay();
   }
 

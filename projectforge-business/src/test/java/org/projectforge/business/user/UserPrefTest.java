@@ -34,6 +34,7 @@ import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDateTimeUtils;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -60,7 +61,7 @@ public class UserPrefTest extends AbstractTestBase {
       user.firstname = "Kai";
       user.locale = Locale.GERMAN;
       user.timeZone = DateHelper.EUROPE_BERLIN;
-      PFDateTime date = PFDateTime.parseUTCDate("2019-06-26 08:33");
+      PFDateTime date = PFDateTimeUtils.parseUTCDate("2019-06-26 08:33");
       user.lastPasswordChange = date.getUtilDate();
       user.lastLogin = date.getSqlTimestamp();
       return user;

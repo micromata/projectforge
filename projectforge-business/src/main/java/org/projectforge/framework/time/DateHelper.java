@@ -531,7 +531,7 @@ public class DateHelper implements Serializable {
    */
 
   public static boolean isSameDay(final Date d1, final Date d2) {
-    return isSameDay(PFDateTime.from(d1, true), PFDateTime.from(d2, true));
+    return isSameDay(PFDateTime.fromOrNow(d1), PFDateTime.fromOrNow(d2));
   }
 
   /**

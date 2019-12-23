@@ -343,8 +343,8 @@ public class CalendarAboServlet extends HttpServlet
       }
       final Date date = day.getUtilDate();
       final TimeZone timeZone = day.getTimeZone();
-      final PFDateTime dt = PFDateTime.from(date, false, timeZone);
-      Holidays holidays = new Holidays();
+      final PFDateTime dt = PFDateTime.from(date, timeZone);
+      Holidays holidays = Holidays.getInstance();
       if (!holidays.isHoliday(dt)) {
         day = day.plusDays(1);
         continue;

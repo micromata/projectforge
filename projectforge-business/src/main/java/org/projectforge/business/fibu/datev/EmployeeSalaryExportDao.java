@@ -39,7 +39,7 @@ import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDate;
 import org.projectforge.framework.utils.CurrencyHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,11 +102,10 @@ public class EmployeeSalaryExportDao {
     final EmployeeSalaryDO first = list.get(0);
     final int year = first.getYear();
     final int month = first.getMonth();
-    final DayHolder buchungsdatum = new DayHolder();
-    buchungsdatum.setDate(year, month, 1);
-    final MonthHolder monthHolder = new MonthHolder(buchungsdatum.getDate());
+    PFDate buchungsdatum = PFDate.withDate(year, month + 1, 1);
+    final MonthHolder monthHolder = new MonthHolder(buchungsdatum.getUtilDate());
     final BigDecimal numberOfWorkingDays = monthHolder.getNumberOfWorkingDays();
-    buchungsdatum.setEndOfMonth();
+    buchungsdatum = buchungsdatum.getEndOfMonth();
 
     final String sheetTitle = DateHelper.formatMonth(year, month);
     final ExportSheet sheet = xls.addSheet(sheetTitle);
@@ -216,7 +215,7 @@ public class EmployeeSalaryExportDao {
           mapping.add(ExcelColumn.KORREKTUR, "");
           mapping.add(ExcelColumn.SUMME, "");
         }
-        mapping.add(ExcelColumn.DATUM, buchungsdatum.getDateTime()); // Last day of month
+        mapping.add(ExcelColumn.DATUM, buchungsdatum); // Last day of month
         mapping.add(ExcelColumn.KONTO, KONTO); // constant.
         mapping.add(ExcelColumn.GEGENKONTO, GEGENKONTO); // constant.
         sheet.addRow(mapping.getMapping(), 0);
