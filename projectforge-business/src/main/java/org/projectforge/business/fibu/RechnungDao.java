@@ -167,14 +167,13 @@ public class RechnungDao extends BaseDao<RechnungDO> {
         rechnung.setNummer(getNextNumber(rechnung));
 
         final PFDateTime day = PFDateTime.now();
-        rechnung.setDatum(day);
+        rechnung.setDatum(day.getSqlDate());
 
         Integer zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
-        PFDateTime faelligkeitDay;
         if (zahlungsZielInTagen != null) {
-          faelligkeitDay = day.plusDays(zahlungsZielInTagen);
+          PFDateTime faelligkeitDay = day.plusDays(zahlungsZielInTagen);
+          rechnung.setFaelligkeit(faelligkeitDay.getSqlDate());
         }
-        rechnung.setFaelligkeit(faelligkeitDay);
       }
     }
 

@@ -183,16 +183,17 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
         get() = kostZuweisungenNetSum.subtract(netSum)
 
     override fun recalculate() {
+        val date = PFDateTime.from(this.datum)
         // recalculate the transient fields
-        if (this.datum == null) {
+        if (date == null) {
             this.zahlungsZielInTagen = null
             this.discountZahlungsZielInTagen = null
             return
         }
-
-        val date = PFDateTime.from(this.datum)
-        this.zahlungsZielInTagen = if (this.faelligkeit == null) null else date.daysBetween(this.faelligkeit)
-        this.discountZahlungsZielInTagen = if (this.discountMaturity == null) null else date.daysBetween(this.discountMaturity)
+        val dueDate = this.faelligkeit
+        this.zahlungsZielInTagen = if (dueDate == null) null else date.daysBetween(dueDate).toInt()
+        val discount = this.discountMaturity
+        this.discountZahlungsZielInTagen = if (discount == null) null else date.daysBetween(discount).toInt()
     }
 
     /**

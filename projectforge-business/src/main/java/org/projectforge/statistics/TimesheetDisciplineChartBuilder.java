@@ -50,9 +50,9 @@ import java.util.List;
  * <li>Ein Diagramm, welches über die letzten n Tage die Tage visualisiert, die zwischen Zeitberichtsdatum und Zeitpunkt der tatsächlichen
  * Buchung liegen.</li>
  * </ol>
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TimesheetDisciplineChartBuilder
 {
@@ -135,7 +135,7 @@ public class TimesheetDisciplineChartBuilder
           break;
         }
       }
-      Holidays holidays = new Holidays();
+      Holidays holidays = Holidays.getInstance();
       if (holidays.isWorkingDay(dt.getDateTime())) {
         final BigDecimal workFraction = holidays.getWorkFraction(dt);
         if (workFraction != null) {

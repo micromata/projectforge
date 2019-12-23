@@ -23,11 +23,18 @@
 
 package org.projectforge.framework.time
 
+import org.apache.commons.lang3.StringUtils
+import org.apache.commons.lang3.Validate
+import org.projectforge.framework.calendar.Holidays
+import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import java.time.DayOfWeek
-import java.time.ZonedDateTime
+import java.math.BigDecimal
+import java.time.*
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.time.temporal.WeekFields
+import java.util.*
 
 class PFDateTimeUtils {
     companion object {
@@ -82,5 +89,127 @@ class PFDateTimeUtils {
             }
         }
 
+        /**
+         * Including limits.
+         */
+        @JvmStatic
+        fun isBetween(date: PFDateTime, from: PFDateTime?, to: PFDateTime?): Boolean {
+            if (from == null) {
+                return if (to == null) {
+                    false
+                } else !date.isAfter(to)
+            }
+            return if (to == null) {
+                !date.isBefore(from)
+            } else !(date.isAfter(to) || date.isBefore(from))
+        }
+
+        @JvmStatic
+        fun getNumberOfWorkingDays(from: PFDateTime, to: PFDateTime): BigDecimal {
+            Validate.notNull(from)
+            Validate.notNull(to)
+            val holidays = Holidays.getInstance()
+            if (to.isBefore(from)) {
+                return BigDecimal.ZERO
+            }
+            if (from.isSameDay(to)) {
+                if (holidays.isWorkingDay(from.dateTime)) {
+                    val workFraction = holidays.getWorkFraction(from)
+                    return workFraction ?: BigDecimal.ONE
+                } else {
+                    return BigDecimal.ZERO
+                }
+            }
+            var numberOfWorkingDays = BigDecimal.ZERO
+            var numberOfFullWorkingDays = 0
+            var dayCounter = 1
+            do {
+                if (dayCounter++ > 740) { // Endless loop protection, time period greater 2 years.
+                    throw UserException(
+                            "getNumberOfWorkingDays does not support calculation of working days for a time period greater than two years!")
+                }
+                if (holidays.isWorkingDay(from.dateTime)) {
+                    val workFraction = holidays.getWorkFraction(from)
+                    if (workFraction != null) {
+                        numberOfWorkingDays = numberOfWorkingDays.add(workFraction)
+                    } else {
+                        numberOfFullWorkingDays++
+                    }
+                }
+                from.plusDays(1)
+            } while (!from.isSameDay(to))
+            numberOfWorkingDays = numberOfWorkingDays.add(BigDecimal(numberOfFullWorkingDays))
+            return numberOfWorkingDays
+        }
+
+        @JvmStatic
+        fun addWorkingDays(date: PFDateTime, days: Int): PFDateTime {
+            Validate.isTrue(days <= 10000)
+            var currentDate = date
+            val plus = days > 0
+            for (counter in 0..9999) {
+                if (counter == days) {
+                    break
+                }
+                for (paranoia in 0..100) {
+                    currentDate = if (plus) currentDate.plusDays(1) else currentDate.minusDays(1)
+                    if (isWorkingDay(currentDate)) {
+                        break
+                    }
+                }
+            }
+            return date
+        }
+
+        fun isWorkingDay(date: PFDateTime): Boolean {
+            return Holidays.getInstance().isWorkingDay(date)
+        }
+
+        /**
+         * Parses the given date as UTC and converts it to the user's zoned date time.
+         * @throws DateTimeParseException if the text cannot be parsed
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun parseUTCDate(str: String?, dateTimeFormatter: DateTimeFormatter, zoneId: ZoneId = PFDateTime.getUsersZoneId(), locale: Locale = PFDateTime.getUsersLocale()): PFDateTime? {
+            if (str.isNullOrBlank())
+                return null
+            val local = LocalDateTime.parse(str, dateTimeFormatter) // Parses UTC as local date.
+            val utcZoned = ZonedDateTime.of(local, ZoneId.of("UTC"))
+            val userZoned = utcZoned.withZoneSameInstant(zoneId)
+            return PFDateTime(userZoned, locale)
+        }
+
+        /**
+         * Parses the given date as UTC and converts it to the user's zoned date time.
+         * Tries the following formatters:
+         *
+         * number (epoch in seconds), "yyyy-MM-dd HH:mm", "yyyy-MM-dd'T'HH:mm:ss.SSS.'Z'"
+         * @throws DateTimeException if the text cannot be parsed
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun parseUTCDate(str: String?, zoneId: ZoneId = PFDateTime.getUsersZoneId(), locale: Locale = PFDateTime.getUsersLocale()): PFDateTime? {
+            if (str.isNullOrBlank())
+                return null
+            if (StringUtils.isNumeric(str)) {
+                return PFDateTime.from(str.toLong())
+            }
+            if (str.contains("T")) { // yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
+                return parseUTCDate(str, PFDateTime.jsDateTimeFormatter)
+            }
+            val colonPos = str.indexOf(':')
+            return when {
+                colonPos < 0 -> {
+                    throw DateTimeException("Can't parse date string '$str'. Supported formats are 'yyyy-MM-dd HH:mm', 'yyyy-MM-dd HH:mm:ss', 'yyyy-MM-dd'T'HH:mm:ss.SSS'Z'' and numbers as epoch seconds.")
+                }
+                str.indexOf(':', colonPos + 1) < 0 -> { // yyyy-MM-dd HH:mm
+                    parseUTCDate(str, PFDateTime.isoDateTimeFormatterMinutes, zoneId, locale)
+                }
+                else -> { // yyyy-MM-dd HH:mm:ss
+                    parseUTCDate(str, PFDateTime.isoDateTimeFormatterSeconds, zoneId, locale)
+                }
+            }
+        }
     }
 }

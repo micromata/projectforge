@@ -225,7 +225,7 @@ public class GanttChartXLabelBarRenderer
     while (day.isBefore(toDay)) {
       if (dayCounter > 0) {
         if (showNonWorkingDays && xGridHeight > 0) {
-          if (new Holidays().isWorkingDay(day.getDateTime())) {
+          if (Holidays.getInstance().isWorkingDay(day.getDateTime())) {
             nonWorkingDayDisplayed = false;
           } else if (!nonWorkingDayDisplayed) {
             // Non-working day:
@@ -331,7 +331,7 @@ public class GanttChartXLabelBarRenderer
     final double x1 = getXValue(day);
     for (int i = 0; i < 100; i++) { // End-less loop protection.
       dt = dt.plusDays(1);
-      if (new Holidays().isWorkingDay(dt.getDateTime()) || !dt.isBefore(dtTo)) {
+      if (Holidays.getInstance().isWorkingDay(dt.getDateTime()) || !dt.isBefore(dtTo)) {
         break;
       }
     }

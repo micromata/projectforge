@@ -23,10 +23,7 @@
 
 package org.projectforge.framework.time
 
-import java.time.Instant
-import java.time.LocalDate
-import java.time.Month
-import java.time.ZonedDateTime
+import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
@@ -49,6 +46,12 @@ class PFDate(val date: LocalDate): Comparable<PFDate> {
 
     val dayOfMonth: Int
         get() = date.dayOfMonth
+
+    val dayOfWeek: DayOfWeek
+        get() = date.dayOfWeek
+
+    val dayOfYear: Int
+        get() = date.dayOfYear
 
     val beginOfYear: PFDate
         get() = PFDate(date.withMonth(1)).beginOfMonth
@@ -204,6 +207,22 @@ class PFDate(val date: LocalDate): Comparable<PFDate> {
         fun now(): PFDate {
             return PFDate(LocalDate.now())
         }
+
+        /**
+         *  1-based Month: 1 (January) to 12 (December)
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun withDate(year: Int, month: Int, day: Int): PFDate {
+            return PFDate(LocalDate.of(year, month, day))
+        }
+
+        @JvmStatic
+        @JvmOverloads
+        fun withDate(year: Int, month: Month, day: Int): PFDate {
+            return PFDate(LocalDate.of(year, month, day))
+        }
+
 
         private val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     }

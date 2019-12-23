@@ -134,7 +134,7 @@ public class CalendarUtils
 
   public static Date getEndOfDay(final Date date, final TimeZone timeZone)
   {
-    return PFDateTime.from(date, true, timeZone).withHour(23).withMinute(59).withSecond(59).withMilliSecond(999).getUtilDate();
+    return PFDateTime.fromOrNow(date, timeZone).withHour(23).withMinute(59).withSecond(59).withMilliSecond(999).getUtilDate();
   }
 
   public static int daysBetween(final Calendar cal1, final Calendar cal2)

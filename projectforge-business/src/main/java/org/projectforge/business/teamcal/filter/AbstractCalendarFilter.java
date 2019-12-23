@@ -24,7 +24,7 @@
 package org.projectforge.business.teamcal.filter;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-import org.projectforge.framework.time.PFDateTime;
+import org.joda.time.DateMidnight;
 
 /**
  * Will be removed when Wicket filter is replaced by React filter in ProjectForge version 7.
@@ -35,7 +35,7 @@ public abstract class AbstractCalendarFilter implements ICalendarFilter
   private static final long serialVersionUID = -2054541010143924205L;
 
   @XStreamAsAttribute
-  private PFDateTime startDate;
+  private DateMidnight startDate; // Don't migrate to PFDateTime. Must be DateMidnight for deserialization of deprecated filters. The whole class will be removed after removing Wicket.
 
   @XStreamAsAttribute
   private Integer firstHour = 8;
@@ -48,13 +48,13 @@ public abstract class AbstractCalendarFilter implements ICalendarFilter
 
   public AbstractCalendarFilter()
   {
-    startDate = PFDateTime.now();
+    startDate = new DateMidnight();
   }
 
   /**
    * @return the startDate
    */
-  public PFDateTime getStartDate()
+  public DateMidnight getStartDate()
   {
     return startDate;
   }
@@ -63,19 +63,19 @@ public abstract class AbstractCalendarFilter implements ICalendarFilter
    * @param startDate the startDate to set
    * @return this for chaining.
    */
-  public AbstractCalendarFilter setStartDate(final PFDateTime startDate)
+  public AbstractCalendarFilter setStartDate(final DateMidnight startDate)
   {
     if (startDate != null) {
       this.startDate = startDate;
     } else {
-      this.startDate = PFDateTime.now();
+      this.startDate = new DateMidnight();
     }
     return this;
   }
 
   /**
    * If true then the slot is 30 minutes otherwise 15 minutes.
-   * 
+   *
    * @return the slot30
    */
   public boolean isSlot30()

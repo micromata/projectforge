@@ -26,19 +26,19 @@ package org.projectforge.framework.calendar;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDateTimeUtils;
 
 import java.math.BigDecimal;
 import java.util.*;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class MonthHolder
-{
-  /** Keys of the month names (e. g. needed for I18n). */
-  public static final String MONTH_KEYS[] = new String[] { "january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"};
+public class MonthHolder {
+  /**
+   * Keys of the month names (e. g. needed for I18n).
+   */
+  public static final String MONTH_KEYS[] = new String[]{"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"};
 
   private List<WeekHolder> weeks;
 
@@ -54,19 +54,16 @@ public class MonthHolder
 
   private Date end;
 
-  public MonthHolder()
-  {
+  public MonthHolder() {
 
   }
 
   /**
-   * 
-   * @param month Can also be one month before or after if the day of the weeks of this month have an overlap to the nearby months.
+   * @param month      Can also be one month before or after if the day of the weeks of this month have an overlap to the nearby months.
    * @param dayOfMonth
    * @return null, if the demanded day is not member of the weeks of the MonthHolder.
    */
-  public PFDateTime getDay(final int month, final int dayOfMonth)
-  {
+  public PFDateTime getDay(final int month, final int dayOfMonth) {
     for (final WeekHolder week : weeks) {
       for (final PFDateTime day : week.getDays()) {
         if (day.getMonthValue() == month && day.getDayOfMonth() == dayOfMonth) {
@@ -77,35 +74,32 @@ public class MonthHolder
     return null;
   }
 
-  /** Initializes month containing all days of actual month. */
-  public MonthHolder(final TimeZone timeZone, final Locale locale)
-  {
+  /**
+   * Initializes month containing all days of actual month.
+   */
+  public MonthHolder(final TimeZone timeZone, final Locale locale) {
     cal = Calendar.getInstance(timeZone, locale);
     calculate();
   }
 
-  public MonthHolder(final Date date, final TimeZone timeZone)
-  {
-    this.date = PFDateTime.from(date, false, timeZone);
+  public MonthHolder(final Date date, final TimeZone timeZone) {
+    this.date = PFDateTime.from(date, timeZone);
     calculate();
   }
 
-  public MonthHolder(final Date date)
-  {
+  public MonthHolder(final Date date) {
     this.date = PFDateTime.from(date);
     calculate();
   }
 
-  public MonthHolder(final int year, final int month)
-  {
+  public MonthHolder(final int year, final int month) {
     cal = DateHelper.getCalendar();
     cal.clear();
     cal.set(year, month, 1);
     calculate();
   }
 
-  private void calculate()
-  {
+  private void calculate() {
     PFDateTime dateTime = PFDateTime.from(date.getUtilDate());
     year = dateTime.getYear();
     month = dateTime.getMonthValue();
@@ -121,18 +115,15 @@ public class MonthHolder
     } while (dateTime.getMonthValue() == month);
   }
 
-  public int getYear()
-  {
+  public int getYear() {
     return year;
   }
 
-  public int getMonth()
-  {
+  public int getMonth() {
     return month;
   }
 
-  public List<PFDateTime> getDays()
-  {
+  public List<PFDateTime> getDays() {
     final List<PFDateTime> list = new LinkedList<>();
     PFDateTime dtBegin = PFDateTime.from(begin);
     PFDateTime dtEnd = PFDateTime.from(end);
@@ -145,8 +136,7 @@ public class MonthHolder
     return list;
   }
 
-  public String getMonthKey()
-  {
+  public String getMonthKey() {
     if (month < 0 || month >= MONTH_KEYS.length) {
       return "unknown";
     }
@@ -156,50 +146,43 @@ public class MonthHolder
   /**
    * @return i18n key of the month name.
    */
-  public String getI18nKey()
-  {
+  public String getI18nKey() {
     return "dateTime.month." + getMonthKey();
   }
 
-  public WeekHolder getFirstWeek()
-  {
+  public WeekHolder getFirstWeek() {
     return getWeeks().get(0);
   }
 
-  public WeekHolder getLastWeek()
-  {
+  public WeekHolder getLastWeek() {
     return weeks.get(weeks.size() - 1);
   }
 
-  public List<WeekHolder> getWeeks()
-  {
+  public List<WeekHolder> getWeeks() {
     return weeks;
   }
 
-  public Date getBegin()
-  {
+  public Date getBegin() {
     return begin;
   }
 
-  public Date getEnd()
-  {
+  public Date getEnd() {
     return end;
   }
 
   /**
    * Is the given day member of the current month?
+   *
    * @param day
    * @return
    */
-  public boolean containsDay(final DayHolder day)
-  {
+  public boolean containsDay(final DayHolder day) {
     return (!day.getDate().before(begin) && !day.getDate().after(end));
   }
 
-  public BigDecimal getNumberOfWorkingDays()
-  {
+  public BigDecimal getNumberOfWorkingDays() {
     final PFDateTime from = PFDateTime.from(this.begin);
     final PFDateTime to = PFDateTime.from(this.end);
-    return PFDateTime.getNumberOfWorkingDays(from, to);
+    return PFDateTimeUtils.getNumberOfWorkingDays(from, to);
   }
 }

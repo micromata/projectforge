@@ -165,7 +165,7 @@ public class BuchungssatzExcelImporter
         continue;
       }
       final BuchungssatzDO satz = element.getValue();
-      final PFDateTime dateTime = PFDateTime.from(satz.getDatum(), false, null, Locale.GERMAN).withPrecision(DatePrecision.DAY);
+      final PFDateTime dateTime = PFDateTime.fromOrNow(satz.getDatum(), null, Locale.GERMAN).withPrecision(DatePrecision.DAY);
       if (year == 0) {
         year = dateTime.getYear();
       } else if (year != dateTime.getYear()) {

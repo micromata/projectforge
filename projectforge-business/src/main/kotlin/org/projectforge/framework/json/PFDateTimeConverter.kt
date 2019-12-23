@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDateTimeUtils
 import java.io.IOException
 import java.text.ParseException
 
@@ -65,7 +66,7 @@ class PFDateTimeDeserializer : StdDeserializer<PFDateTime>(PFDateTime::class.jav
             return null
         }
         try {
-            return PFDateTime.parseUTCDate(dateString)
+            return PFDateTimeUtils.parseUTCDate(dateString)
         } catch (e: ParseException) {
             throw JsonParseException(p, dateString, e)
         }

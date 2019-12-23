@@ -24,15 +24,9 @@
 package org.projectforge.framework.time
 
 import org.apache.commons.lang3.ObjectUtils
-import org.apache.commons.lang3.StringUtils
-import org.apache.commons.lang3.Validate
-import org.projectforge.framework.calendar.Holidays
-import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import java.math.BigDecimal
 import java.time.*
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalUnit
 import java.time.temporal.WeekFields
@@ -44,8 +38,8 @@ import java.util.*
  * Immutable holder of [ZonedDateTime] for transforming to [java.util.Date] (once) if used several times.
  * Zone date times will be generated automatically with the context user's time zone.
  */
-class PFDateTime private constructor(val dateTime: ZonedDateTime,
-                                     val locale: Locale)
+class PFDateTime internal constructor(val dateTime: ZonedDateTime,
+                                      val locale: Locale)
     : Comparable<PFDateTime> {
 
     val year: Int
@@ -126,6 +120,9 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
             return PFDateTime(startOfWeek, locale)
         }
 
+    val isBeginOfWeek: Boolean
+        get() = dateTime.dayOfWeek == PFDateTimeUtils.getFirstDayOfWeek() && dateTime.hour == 0 && dateTime.minute == 0 && dateTime.second == 0 && dateTime.nano == 0
+
     val endOfWeek: PFDateTime
         get() {
             val startOfWeek = PFDateTimeUtils.getBeginOfWeek(this.dateTime).plusDays(7)
@@ -156,6 +153,13 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
      */
     fun withMonth(month: Int): PFDateTime {
         return PFDateTime(dateTime.withMonth(month), locale)
+    }
+
+    /**
+     * 0-based: 0 (January) to 11 (December) for backward compability with [java.util.Calendar.MONTH]
+     */
+    fun withCompabilityMonth(month: Int): PFDateTime {
+        return PFDateTime(dateTime.withMonth(month + 1), locale)
     }
 
     fun withMonth(month: Month): PFDateTime {
@@ -414,12 +418,23 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
 
         /**
          * @param timeZone: TimeZone to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @return now if date is null.
          */
         @JvmStatic
         @JvmOverloads
-        fun from(date: Date?, nowIfNull: Boolean = false, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
+        fun fromOrNow(date: Date?, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime {
+            return from(date, timeZone, locale) ?: now()
+        }
+
+        /**
+         * @param timeZone: TimeZone to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @return null if date is null.
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun from(date: Date?, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
             if (date == null)
-                return if (nowIfNull) now() else null
+                return null
             val zoneId = timeZone?.toZoneId() ?: getUsersZoneId()
             return if (date is java.sql.Date) { // Yes, this occurs!
                 from(date.toLocalDate(), false, zoneId, locale ?: getUsersLocale())
@@ -430,12 +445,23 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
 
         /**
          * Creates midnight [ZonedDateTime] from given [LocalDate].
+         * @return now if date is null.
          */
         @JvmStatic
         @JvmOverloads
-        fun from(date: java.sql.Date?, nowIfNull: Boolean = false, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
+        fun fromOrNow(date: java.sql.Date?, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime {
+            return from(date, timeZone, locale) ?: now()
+        }
+
+        /**
+         * Creates midnight [ZonedDateTime] from given [LocalDate].
+         * @return null if date is null.
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun from(date: java.sql.Date?, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
             if (date == null)
-                return if (nowIfNull) now() else null
+                return null
             val zoneId = timeZone?.toZoneId() ?: getUsersZoneId()
             val dateTime = date.toInstant().atZone(zoneId)
             return PFDateTime(dateTime, locale ?: getUsersLocale())
@@ -447,15 +473,15 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
             return PFDateTime(ZonedDateTime.now(zoneId), locale)
         }
 
-        private fun getUsersZoneId(): ZoneId {
+        internal fun getUsersZoneId(): ZoneId {
             return ThreadLocalUserContext.getTimeZone().toZoneId()
         }
 
-        private fun getUsersTimeZone(): TimeZone {
+        internal fun getUsersTimeZone(): TimeZone {
             return ThreadLocalUserContext.getTimeZone()
         }
 
-        private fun getUsersLocale(): Locale {
+        internal fun getUsersLocale(): Locale {
             return ThreadLocalUserContext.getLocale()
         }
 
@@ -477,97 +503,12 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
             return withDate(year, month.value, day, hour, minute, second, millisecond, zoneId, locale)
         }
 
-        /**
-         * Parses the given date as UTC and converts it to the user's zoned date time.
-         * @throws DateTimeParseException if the text cannot be parsed
-         */
-        @JvmStatic
-        @JvmOverloads
-        fun parseUTCDate(str: String?, dateTimeFormatter: DateTimeFormatter, zoneId: ZoneId = getUsersZoneId(), locale: Locale = getUsersLocale()): PFDateTime? {
-            if (str.isNullOrBlank())
-                return null
-            val local = LocalDateTime.parse(str, dateTimeFormatter) // Parses UTC as local date.
-            val utcZoned = ZonedDateTime.of(local, ZoneId.of("UTC"))
-            val userZoned = utcZoned.withZoneSameInstant(zoneId)
-            return PFDateTime(userZoned, locale)
-        }
-
-        /**
-         * Parses the given date as UTC and converts it to the user's zoned date time.
-         * Tries the following formatters:
-         *
-         * number (epoch in seconds), "yyyy-MM-dd HH:mm", "yyyy-MM-dd'T'HH:mm:ss.SSS.'Z'"
-         * @throws DateTimeException if the text cannot be parsed
-         */
-        @JvmStatic
-        @JvmOverloads
-        fun parseUTCDate(str: String?, zoneId: ZoneId = getUsersZoneId(), locale: Locale = getUsersLocale()): PFDateTime? {
-            if (str.isNullOrBlank())
-                return null
-            if (StringUtils.isNumeric(str)) {
-                return from(str.toLong())
-            }
-            if (str.contains("T")) { // yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
-                return parseUTCDate(str, jsDateTimeFormatter)
-            }
-            val colonPos = str.indexOf(':')
-            return when {
-                colonPos < 0 -> {
-                    throw DateTimeException("Can't parse date string '$str'. Supported formats are 'yyyy-MM-dd HH:mm', 'yyyy-MM-dd HH:mm:ss', 'yyyy-MM-dd'T'HH:mm:ss.SSS'Z'' and numbers as epoch seconds.")
-                }
-                str.indexOf(':', colonPos + 1) < 0 -> { // yyyy-MM-dd HH:mm
-                    parseUTCDate(str, isoDateTimeFormatterMinutes, zoneId, locale)
-                }
-                else -> { // yyyy-MM-dd HH:mm:ss
-                    parseUTCDate(str, isoDateTimeFormatterSeconds, zoneId, locale)
-                }
-            }
-        }
-
-        @JvmStatic
-        fun getNumberOfWorkingDays(from: PFDateTime, to: PFDateTime): BigDecimal {
-            Validate.notNull(from)
-            Validate.notNull(to)
-            val holidays = Holidays()
-            if (to.isBefore(from)) {
-                return BigDecimal.ZERO
-            }
-            if (from.isSameDay(to)) {
-                if (holidays.isWorkingDay(from.dateTime)) {
-                    val workFraction = holidays.getWorkFraction(from)
-                    return workFraction ?: BigDecimal.ONE
-                } else {
-                    return BigDecimal.ZERO
-                }
-            }
-            var numberOfWorkingDays = BigDecimal.ZERO
-            var numberOfFullWorkingDays = 0
-            var dayCounter = 1
-            do {
-                if (dayCounter++ > 740) { // Endless loop protection, time period greater 2 years.
-                    throw UserException(
-                            "getNumberOfWorkingDays does not support calculation of working days for a time period greater than two years!")
-                }
-                if (holidays.isWorkingDay(from.dateTime)) {
-                    val workFraction = holidays.getWorkFraction(from)
-                    if (workFraction != null) {
-                        numberOfWorkingDays = numberOfWorkingDays.add(workFraction)
-                    } else {
-                        numberOfFullWorkingDays++
-                    }
-                }
-                from.plusDays(1)
-            } while (!from.isSameDay(to))
-            numberOfWorkingDays = numberOfWorkingDays.add(BigDecimal(numberOfFullWorkingDays))
-            return numberOfWorkingDays
-        }
-
         private val log = org.slf4j.LoggerFactory.getLogger(PFDateTime::class.java)
 
-        private val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC)
-        private val isoDateTimeFormatterMinutes = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneOffset.UTC)
-        private val isoDateTimeFormatterSeconds = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC)
-        private val jsDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC)
+        internal val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC)
+        internal val isoDateTimeFormatterMinutes = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneOffset.UTC)
+        internal val isoDateTimeFormatterSeconds = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC)
+        internal val jsDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC)
         // private val jsonDateTimeFormatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern)
     }
 }

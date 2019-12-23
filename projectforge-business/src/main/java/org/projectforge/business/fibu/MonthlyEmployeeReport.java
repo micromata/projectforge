@@ -335,7 +335,7 @@ public class MonthlyEmployeeReport implements Serializable {
     for (final WeekHolder week : monthHolder.getWeeks()) {
 
       for (final PFDateTime day : week.getDays()) {
-        if (day.getMonthValue() == this.month && new Holidays().isWorkingDay(day.getDateTime())
+        if (day.getMonthValue() == this.month && Holidays.getInstance().isWorkingDay(day.getDateTime())
                 && !bookedDays.contains(day.getDayOfMonth())) {
           unbookedDays.add(day.getDayOfMonth());
         }

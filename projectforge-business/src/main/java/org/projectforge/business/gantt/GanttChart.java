@@ -167,7 +167,7 @@ public class GanttChart
 
   /**
    * Usage:
-   * 
+   *
    * <pre>
    * final BatikImage ganttImage = new BatikImage(&quot;ganttTest&quot;, ganttDiagram.create(), 800);
    * body.add(ganttImage);
@@ -265,7 +265,7 @@ public class GanttChart
 
     // Show today line, if configured.
     if (style.isShowToday()) {
-      final PFDateTime today = PFDateTime.now();
+      final PFDateTime today = PFDateTime.now(); // @jan: am einfachsten wieder in DayHolder ändern.
       if (today.isBetween(fromDate, toDate)) {
         diagram.appendChild(SVGHelper.createLine(doc, getXValue(today.getUtilDate()), 0, getXValue(today.getUtilDate()), getDiagramHeight(), SVGColor.RED, "stroke-width", "2"));
       }

@@ -456,8 +456,8 @@ public class TeamEventServiceImpl implements TeamEventService
     formatter.setTimeZone(timezone);
 
     final Map<String, Object> dataMap = new HashMap<>();
-    PFDateTime startDate = PFDateTime.from(event.getStartDate(), true, timezone);
-    PFDateTime endDate = PFDateTime.from(event.getEndDate(), true, timezone);
+    PFDateTime startDate = PFDateTime.fromOrNow(event.getStartDate(), timezone);
+    PFDateTime endDate = PFDateTime.fromOrNow(event.getEndDate(), timezone);
 
     String location = event.getLocation() != null ? event.getLocation() : "";
     String note = event.getNote() != null ? event.getNote() : "";
