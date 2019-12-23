@@ -460,18 +460,21 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
         }
 
         /**
-         * Month: 1 (January) to 12 (December)
+         *  1-based Month: 1 (January) to 12 (December)
          */
         @JvmStatic
         @JvmOverloads
-        fun withDate(year: Int, month: Int, day: Int, hour: Int = 0, minute: Int = 0, second: Int = 0, millisecond: Int = 0): PFDateTime{
-            return now().withYear(year).withMonth(month).withDayOfMonth(day).withHour(hour).withMinute(minute).withSecond(second).withMilliSecond(millisecond)
+        fun withDate(year: Int, month: Int, day: Int, hour: Int = 0, minute: Int = 0, second: Int = 0, millisecond: Int = 0,
+                     zoneId: ZoneId = getUsersZoneId(), locale: Locale = getUsersLocale()): PFDateTime {
+            val dateTime = ZonedDateTime.of(year, month, day, hour, minute, second, millisecond * 1000, zoneId)
+            return PFDateTime(dateTime, locale)
         }
 
         @JvmStatic
         @JvmOverloads
-        fun withDate(year: Int, month: Month, day: Int, hour: Int = 0, minute: Int = 0, second: Int = 0, millisecond: Int = 0): PFDateTime{
-            return now().withYear(year).withMonth(month).withDayOfMonth(day).withHour(hour).withMinute(minute).withSecond(second).withMilliSecond(millisecond)
+        fun withDate(year: Int, month: Month, day: Int, hour: Int = 0, minute: Int = 0, second: Int = 0, millisecond: Int = 0,
+                     zoneId: ZoneId = getUsersZoneId(), locale: Locale = getUsersLocale()): PFDateTime {
+            return withDate(year, month.value, day, hour, minute, second, millisecond, zoneId, locale)
         }
 
         /**
@@ -532,7 +535,7 @@ class PFDateTime private constructor(val dateTime: ZonedDateTime,
             if (from.isSameDay(to)) {
                 if (holidays.isWorkingDay(from.dateTime)) {
                     val workFraction = holidays.getWorkFraction(from)
-                    return workFraction?: BigDecimal.ONE
+                    return workFraction ?: BigDecimal.ONE
                 } else {
                     return BigDecimal.ZERO
                 }
