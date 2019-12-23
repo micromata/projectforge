@@ -24,53 +24,34 @@
 package org.projectforge.framework.calendar;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDate;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
-public class WeekHolder implements Serializable
-{
+public class WeekHolder implements Serializable {
   private static final long serialVersionUID = -3895513078248004222L;
 
-  private PFDateTime[] days;
+  private PFDate[] days;
 
   private int weekOfYear;
 
   private Map<String, Object> objects;
 
-  /** Initializes month containing all days of actual month. */
-  public WeekHolder(Locale locale)
-  {
-    this(PFDateTime.from(LocalDateTime.now(), true, null, locale));
-  }
-
-  public WeekHolder(PFDateTime dateTime){
-    this(dateTime, -1);
-  }
-
-  /**
-   * Builds the week for the given date. Every day will be marked, if it is not part of the given month.
-   * @param dateTime
-   * @param month
-   */
-  public WeekHolder(PFDateTime dateTime, int month)
-  {
-    weekOfYear = dateTime.getWeekOfYear();
-    days = new PFDateTime[7];
-    PFDateTime day = dateTime.getBeginOfWeek();
+  public WeekHolder(PFDate date) {
+    final Month month = date.getMonth();
+    weekOfYear = date.getWeekOfYear();
+    days = new PFDate[7];
+    PFDate day = date.getBeginOfWeek();
     // Process week
     for (int i = 0; i < 7; i++) {
-      if (day.getMonthValue() != month) {
+      if (day.getMonth() != month) {
         // TODO: Mark this day as day from the previous or next month:
         //day.setMarker(true);
       }
@@ -80,29 +61,24 @@ public class WeekHolder implements Serializable
   }
 
 
-  public int getWeekOfYear()
-  {
+  public int getWeekOfYear() {
     return weekOfYear;
   }
 
-  public PFDateTime[] getDays()
-  {
+  public PFDate[] getDays() {
     return days;
   }
 
-  public PFDateTime getFirstDayDate()
-  {
+  public PFDate getFirstDayDate() {
     return days[0];
   }
 
-  public PFDateTime getLastDayDate()
-  {
+  public PFDate getLastDayDate() {
     return days[days.length - 1];
   }
 
   /**
    * For storing additional objects to a week. This is used by the date selector for showing the user's total working time.
-   * @param obj
    */
   public void addObject(String key, Object value) {
     if (this.objects == null) {
@@ -110,9 +86,10 @@ public class WeekHolder implements Serializable
     }
     this.objects.put(key, value);
   }
-  
+
   /**
    * Used for getting e. g. the user total working time at this week.
+   *
    * @return the stored objects to this day or null, if not exist.
    */
   public Object getObject(String key) {
@@ -121,13 +98,12 @@ public class WeekHolder implements Serializable
     }
     return this.objects.get(key);
   }
-  
+
   public Map<String, Object> getObjects() {
     return this.objects;
   }
-  
-  public String toString()
-  {
+
+  public String toString() {
     ToStringBuilder tos = new ToStringBuilder(this);
     tos.append("days", getDays());
     return tos.toString();

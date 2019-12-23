@@ -68,6 +68,13 @@ public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<E
 
   String getStudentVacationCountPerDay(EmployeeDO currentEmployee);
 
+  /**
+   *
+   * @param year
+   * @param month 1-based: 1 - January, ..., 12 - December
+   * @param user
+   * @return
+   */
   MonthlyEmployeeReport getReportOfMonth(int year, int month, PFUserDO user);
 
   /**

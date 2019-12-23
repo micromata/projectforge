@@ -23,26 +23,39 @@
 
 package org.projectforge.framework.time
 
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.TemporalUnit
+import java.time.temporal.WeekFields
+import java.util.*
 
 /**
  * All date time acrobatics of ProjectForge should be done by PFDateTime or PFDate.
  * Immutable holder of [LocalDate] for transforming to [java.sql.Date] (once) if used several times.
  * If you don't need to use [java.sql.Date] you may use [LocalDate] directly.
  */
-class PFDate(val date: LocalDate): Comparable<PFDate> {
+class PFDate(val date: LocalDate,
+             /**
+              * Needed for getting localized week of year.
+              */
+             val locale: Locale): Comparable<PFDate> {
 
-    private constructor(instant: Instant) : this(LocalDate.from(instant))
+    private constructor(instant: Instant, locale: Locale) : this(LocalDate.from(instant), locale)
 
     val year: Int
         get() = date.year
 
     val month: Month
         get() = date.month
+
+    val weekOfYear: Int
+        get() {
+            val weekFields = WeekFields.of(locale)
+            return date.get(weekFields.weekOfWeekBasedYear())
+        }
 
     val dayOfMonth: Int
         get() = date.dayOfMonth
@@ -54,7 +67,7 @@ class PFDate(val date: LocalDate): Comparable<PFDate> {
         get() = date.dayOfYear
 
     val beginOfYear: PFDate
-        get() = PFDate(date.withMonth(1)).beginOfMonth
+        get() = PFDate(date.withMonth(1), locale).beginOfMonth
 
     /**
      * 1 - January, ..., 12 - December.
@@ -63,28 +76,34 @@ class PFDate(val date: LocalDate): Comparable<PFDate> {
         get() = month.value
 
     val beginOfMonth: PFDate
-        get() = PFDate(date.withDayOfMonth(1))
+        get() = PFDate(date.withDayOfMonth(1), locale)
 
     val endOfMonth: PFDate
-        get() = PFDate(date.with(TemporalAdjusters.lastDayOfMonth()))
+        get() = PFDate(date.with(TemporalAdjusters.lastDayOfMonth()), locale)
+
+    val beginOfWeek: PFDate
+        get() {
+            val startOfWeek = PFDateTimeUtils.getBeginOfWeek(this.date)
+            return PFDate(startOfWeek, locale)
+        }
 
     fun withYear(year: Int): PFDate {
-        return PFDate(date.withYear(year))
+        return PFDate(date.withYear(year), locale)
     }
 
     /**
      * 1 (January) to 12 (December)
      */
     fun withMonth(month: Int): PFDate {
-        return PFDate(date.withMonth(month))
+        return PFDate(date.withMonth(month), locale)
     }
 
     fun withDayOfYear(dayOfYear: Int): PFDate {
-        return PFDate(date.withDayOfYear(dayOfYear))
+        return PFDate(date.withDayOfYear(dayOfYear), locale)
     }
 
     fun withDayOfMonth(dayOfMonth: Int): PFDate {
-        return PFDate(date.withDayOfMonth(dayOfMonth))
+        return PFDate(date.withDayOfMonth(dayOfMonth), locale)
     }
 
     fun isBefore(other: PFDate): Boolean {
@@ -104,19 +123,31 @@ class PFDate(val date: LocalDate): Comparable<PFDate> {
     }
 
     fun plusDays(days: Long): PFDate {
-        return PFDate(date.plusDays(days))
+        return PFDate(date.plusDays(days), locale)
+    }
+
+    fun plusWeeks(weeks: Long): PFDate {
+        return PFDate(date.plusWeeks(weeks), locale)
     }
 
     fun plusMonths(months: Long): PFDate {
-        return PFDate(date.plusMonths(months))
+        return PFDate(date.plusMonths(months), locale)
     }
 
     fun plusYears(years: Long): PFDate {
-        return PFDate(date.plusYears(years))
+        return PFDate(date.plusYears(years), locale)
     }
 
     fun plus(amountToAdd: Long, temporalUnit: TemporalUnit): PFDate {
-        return PFDate(date.plus(amountToAdd, temporalUnit))
+        return PFDate(date.plus(amountToAdd, temporalUnit), locale)
+    }
+
+    fun isSameDay(other: PFDate): Boolean {
+        return year == other.year && dayOfYear == other.dayOfYear
+    }
+
+    fun isWeekend(): Boolean {
+        return DayOfWeek.SUNDAY == dayOfWeek || DayOfWeek.SATURDAY == dayOfWeek
     }
 
     fun format(formatter: DateTimeFormatter): String {
@@ -166,10 +197,10 @@ class PFDate(val date: LocalDate): Comparable<PFDate> {
          */
         @JvmStatic
         @JvmOverloads
-        fun from(localDate: LocalDate?, nowIfNull: Boolean = false): PFDate? {
+        fun from(localDate: LocalDate?, nowIfNull: Boolean = false, locale: Locale = PFDateTime.getUsersLocale()): PFDate? {
             if (localDate == null)
                 return if (nowIfNull) now() else null
-            return PFDate(localDate)
+            return PFDate(localDate, locale)
         }
 
         /**
@@ -178,15 +209,15 @@ class PFDate(val date: LocalDate): Comparable<PFDate> {
          */
         @JvmStatic
         @JvmOverloads
-        fun from(date: java.util.Date?, nowIfNull: Boolean = false): PFDate? {
+        fun from(date: java.util.Date?, nowIfNull: Boolean = false, locale: Locale = PFDateTime.getUsersLocale()): PFDate? {
             if (date == null)
                 return if (nowIfNull) now() else null
             if (date is java.sql.Date) {
-                return PFDate(date.toLocalDate())
+                return PFDate(date.toLocalDate(), locale)
             }
             val dateTime = PFDateTime.from(date)!!
             val localDate = LocalDate.of(dateTime.year, dateTime.month, dateTime.dayOfMonth)
-            return PFDate(localDate)
+            return PFDate(localDate, locale)
         }
 
         /**
@@ -196,16 +227,17 @@ class PFDate(val date: LocalDate): Comparable<PFDate> {
          */
         @JvmStatic
         @JvmOverloads
-        fun from(dateTime: PFDateTime?, nowIfNull: Boolean = false): PFDate? {
+        fun from(dateTime: PFDateTime?, nowIfNull: Boolean = false, locale: Locale = PFDateTime.getUsersLocale()): PFDate? {
             if (dateTime == null)
                 return if (nowIfNull) now() else null
             val localDate = LocalDate.of(dateTime.year, dateTime.month, dateTime.dayOfMonth)
-            return PFDate(localDate)
+            return PFDate(localDate, locale)
         }
 
         @JvmStatic
-        fun now(): PFDate {
-            return PFDate(LocalDate.now())
+        @JvmOverloads
+        fun now(locale: Locale = PFDateTime.getUsersLocale()): PFDate {
+            return PFDate(LocalDate.now(), locale)
         }
 
         /**
@@ -213,16 +245,19 @@ class PFDate(val date: LocalDate): Comparable<PFDate> {
          */
         @JvmStatic
         @JvmOverloads
-        fun withDate(year: Int, month: Int, day: Int): PFDate {
-            return PFDate(LocalDate.of(year, month, day))
+        fun withDate(year: Int, month: Int, day: Int, locale: Locale = PFDateTime.getUsersLocale()): PFDate {
+            return PFDate(LocalDate.of(year, month, day), locale)
         }
 
         @JvmStatic
         @JvmOverloads
-        fun withDate(year: Int, month: Month, day: Int): PFDate {
-            return PFDate(LocalDate.of(year, month, day))
+        fun withDate(year: Int, month: Month, day: Int, locale: Locale = PFDateTime.getUsersLocale()): PFDate {
+            return PFDate(LocalDate.of(year, month, day), locale)
         }
 
+        internal fun getUsersLocale(): Locale {
+            return ThreadLocalUserContext.getLocale()
+        }
 
         private val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     }

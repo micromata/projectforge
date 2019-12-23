@@ -50,6 +50,12 @@ public class MonthlyEmployeeReportDao {
   @Autowired
   private VacationService vacationService;
 
+  /**
+   * @param year
+   * @param month 1-based: 1 - January, ..., 12 - December
+   * @param user
+   * @return
+   */
   public MonthlyEmployeeReport getReport(int year, int month, PFUserDO user) {
     if (user == null || year <= 0) {
       return null;

@@ -50,6 +50,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.PFDate;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 import org.slf4j.MDC;
@@ -68,7 +69,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 
 /**
  * Feed Servlet, which generates a 'text/dateTime' output of the last four mounts. Currently relevant information is
@@ -329,10 +329,10 @@ public class CalendarAboServlet extends HttpServlet
       return;
     }
 
-    PFDateTime holidaysFrom = PFDateTime.now().getBeginOfMonth();
-    holidaysFrom = holidaysFrom.getBeginOfYear().minusYears(2);
-    PFDateTime holidayTo = holidaysFrom.plusYears(6);
-    PFDateTime day = holidaysFrom.getBeginOfDay();
+    PFDate holidaysFrom = PFDate.now().getBeginOfYear().plusYears(-2);
+    PFDate holidayTo = holidaysFrom.plusYears(6);
+    PFDate day = holidaysFrom;
+    Holidays holidays = Holidays.getInstance();
     int idCounter = 0;
     int paranoiaCounter = 0;
 
@@ -341,17 +341,13 @@ public class CalendarAboServlet extends HttpServlet
         log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of buildEvents.");
         break;
       }
-      final Date date = day.getUtilDate();
-      final TimeZone timeZone = day.getTimeZone();
-      final PFDateTime dt = PFDateTime.from(date, timeZone);
-      Holidays holidays = Holidays.getInstance();
-      if (!holidays.isHoliday(dt)) {
+      if (!holidays.isHoliday(day)) {
         day = day.plusDays(1);
         continue;
       }
 
       final String title;
-      final String holidayInfo = holidays.getHolidayInfo(dt);
+      final String holidayInfo = holidays.getHolidayInfo(day);
       if (holidayInfo != null && holidayInfo.startsWith("dateTime.holiday.")) {
         title = ThreadLocalUserContext.getLocalizedString(holidayInfo);
       } else {

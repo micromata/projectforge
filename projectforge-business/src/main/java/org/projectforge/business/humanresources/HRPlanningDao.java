@@ -150,7 +150,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
   }
 
   public HRPlanningDO getEntry(final Integer userId, final Date week) {
-    PFDateTime dateTime = PFDateTime.fromOrNow(week, DateHelper.UTC, Locale.GERMANY);
+    PFDateTime dateTime = PFDateTime.from(week, true, DateHelper.UTC, Locale.GERMANY);
     if (!dateTime.isBeginOfWeek()) {
       log.error("Date is not begin of week, try to change date: " + DateHelper.formatAsUTC(dateTime.getUtilDate()));
       dateTime = dateTime.getBeginOfWeek();
@@ -230,7 +230,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
    */
   @Override
   protected void onSaveOrModify(final HRPlanningDO obj) {
-    final PFDateTime dateTime = PFDateTime.from(obj.getWeek(), DateHelper.UTC, Locale.GERMANY);
+    final PFDateTime dateTime = PFDateTime.from(obj.getWeek(), false, DateHelper.UTC, Locale.GERMANY);
     if (dateTime.getDayOfWeek() != DayOfWeek.MONDAY || dateTime.getMilliSecond() != 0 || dateTime.getMinute() != 0
             || dateTime.getHour() != 0) {
       log.error("Date is not begin of week, try to change date: " + DateHelper.formatAsUTC(dateTime.getUtilDate()));

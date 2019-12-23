@@ -199,6 +199,11 @@ public class Holidays
     return isHoliday(dateTime.getYear(), dateTime.getDayOfYear());
   }
 
+  public boolean isHoliday(PFDate date)
+  {
+    return isHoliday(date.getYear(), date.getDayOfYear());
+  }
+
   public boolean isHoliday(int year, int dayOfYear)
   {
     return (getHolidays(year).containsKey(dayOfYear));
@@ -257,6 +262,11 @@ public class Holidays
 
   public BigDecimal getWorkFraction(final PFDateTime date)
   {
+    return getWorkFraction(PFDate.from(date));
+  }
+
+  public BigDecimal getWorkFraction(final PFDate date)
+  {
     if (date.isWeekend()) {
       return null;
     }
@@ -271,6 +281,12 @@ public class Holidays
   {
     return getHolidayInfo(dateTime.getYear(), dateTime.getDayOfYear());
   }
+
+  public String getHolidayInfo(PFDate date)
+  {
+    return getHolidayInfo(date.getYear(), date.getDayOfYear());
+  }
+
 
   public String getHolidayInfo(int year, int dayOfYear)
   {

@@ -174,7 +174,7 @@ public class EmployeeSalaryExportDao {
       final PFUserDO user = getUserGroupCache().getUser(salary.getEmployee().getUserId());
       Validate.isTrue(year == salary.getYear());
       Validate.isTrue(month == salary.getMonth());
-      final MonthlyEmployeeReport report = monthlyEmployeeReportDao.getReport(year, month, user);
+      final MonthlyEmployeeReport report = monthlyEmployeeReportDao.getReport(year, month + 1, user);
       mapping.add(ExcelColumn.MITARBEITER, user.getFullname());
       final Kost1DO kost1 = salary.getEmployee().getKost1();
       final BigDecimal bruttoMitAGAnteil = salary.getBruttoMitAgAnteil();
@@ -229,7 +229,7 @@ public class EmployeeSalaryExportDao {
       mapping.add(ExcelColumn.SUMME, "***");
       mapping.add(ExcelColumn.BEZEICHNUNG, "*** FEHLT! ***");
       sheet.addRow(mapping.getMapping(), 0);
-      final MonthlyEmployeeReport report = monthlyEmployeeReportDao.getReport(year, month, user);
+      final MonthlyEmployeeReport report = monthlyEmployeeReportDao.getReport(year, month + 1, user);
       final BigDecimal netDuration = new BigDecimal(report.getTotalNetDuration());
       addEmployeeRow(employeeSheet, employee, numberOfWorkingDays, netDuration, report);
     }

@@ -275,7 +275,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
       body.remove(table);
     }
     body.add(table = new WebMarkupContainer("table"));
-    report = monthlyEmployeeReportDao.getReport(form.filter.getYear(), form.filter.getMonth(), form.filter.getUser());
+    report = monthlyEmployeeReportDao.getReport(form.filter.getYear(), form.filter.getMonth() + 1, form.filter.getUser());
     if (report == null) {
       table.setVisible(false);
     } else {
@@ -484,7 +484,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     final String styleSheet = "fo-styles/monthlyEmployeeReport-template-fo.xsl";
     final String xmlData = "fo-styles/monthlyEmployeeReport2pdf.xml";
 
-    report = monthlyEmployeeReportDao.getReport(form.filter.getYear(), form.filter.getMonth(), employee);
+    report = monthlyEmployeeReportDao.getReport(form.filter.getYear(), form.filter.getMonth() + 1, employee);
     final Map<String, Object> data = new HashMap<String, Object>();
     data.put("systemDate", dateTimeFormatter.getFormattedDateTime(new Date()));
     data.put("title", getString("menu.monthlyEmployeeReport"));

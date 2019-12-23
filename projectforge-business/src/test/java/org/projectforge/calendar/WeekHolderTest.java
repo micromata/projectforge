@@ -26,13 +26,11 @@ package org.projectforge.calendar;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.calendar.WeekHolder;
-import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDate;
 import org.projectforge.test.TestSetup;
 
 import java.time.DayOfWeek;
 import java.time.Month;
-import java.time.ZoneId;
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,14 +46,13 @@ public class WeekHolderTest {
 
   @Test
   public void testWeekHolder() {
-    final PFDateTime dt = PFDateTime.now(ZoneId.of("UTC"), Locale.GERMAN);
+    final PFDate dt = PFDate.now(Locale.GERMAN);
     WeekHolder week = new WeekHolder(dt);
     assertEquals(7, week.getDays().length);
     assertEquals(2, week.getDays()[0].getDayOfWeek().getValue());
     assertEquals(DayOfWeek.MONDAY, week.getDays()[0].getDayOfWeek());
-    PFDateTime dateTime = PFDateTime.now(ZoneId.of("UTC"), Locale.GERMAN).withPrecision(DatePrecision.DAY)
-        .withDate(1970, Month.NOVEMBER, 21, 4, 50, 23);
-    week = new WeekHolder(dateTime);
+    PFDate date = PFDate.now(Locale.GERMAN).withDate(1970, Month.NOVEMBER, 21);
+    week = new WeekHolder(date);
     assertEquals(7, week.getDays().length);
     assertEquals(2, week.getDays()[0].getDayOfWeek().getValue());
     assertEquals(DayOfWeek.MONDAY, week.getDays()[0].getDayOfWeek());
@@ -63,9 +60,9 @@ public class WeekHolderTest {
     assertEquals(16, week.getDays()[0].getDayOfMonth());
     assertEquals(DayOfWeek.SATURDAY, week.getDays()[5].getDayOfWeek());
     assertEquals(21, week.getDays()[5].getDayOfMonth());
-    dateTime = dateTime.withDate(2007, Month.MARCH, 1);
-    assertEquals(Month.MARCH, dateTime.getMonth());
-    week = new WeekHolder(dateTime, dateTime.getMonthValue());
+    date = date.withDate(2007, Month.MARCH, 1);
+    assertEquals(Month.MARCH, date.getMonth());
+    week = new WeekHolder(date);
     assertEquals(DayOfWeek.MONDAY, week.getDays()[0].getDayOfWeek());
     assertEquals(26, week.getDays()[0].getDayOfMonth());
     //assertTrue(week.getDays()[0].isMarker()); // February, 26
