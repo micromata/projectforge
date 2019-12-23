@@ -205,17 +205,17 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
     }
 
     /**
-     * @return Milli seconds inside second (0..9999).
+     * @return Milli seconds inside second (0..999).
      */
     fun getMilliSecond(): Int {
-        return this.nano / 1000
+        return this.nano / 1000000
     }
 
     /**
-     * @param millisOfSecond from 0 to 9999
+     * @param millisOfSecond from 0 to 999
      */
     fun withMilliSecond(millisOfSecond: Int): PFDateTime {
-        return PFDateTime(dateTime.withNano(millisOfSecond * 1000), locale, precision)
+        return withNano(millisOfSecond * 1000000)
     }
 
     fun withNano(nanoOfSecond: Int): PFDateTime {
@@ -484,7 +484,7 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         @JvmOverloads
         fun withDate(year: Int, month: Int, day: Int, hour: Int = 0, minute: Int = 0, second: Int = 0, millisecond: Int = 0,
                      zoneId: ZoneId = getUsersZoneId(), locale: Locale = getUsersLocale()): PFDateTime {
-            val dateTime = ZonedDateTime.of(year, month, day, hour, minute, second, millisecond * 1000, zoneId)
+            val dateTime = ZonedDateTime.of(year, month, day, hour, minute, second, millisecond * 1000000, zoneId)
             return PFDateTime(dateTime, locale, null)
         }
 

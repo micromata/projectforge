@@ -26,7 +26,6 @@ package org.projectforge.common;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 
@@ -41,14 +40,12 @@ import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DateHelperTest extends AbstractTestBase
-{
+public class DateHelperTest extends AbstractTestBase {
   private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
-      .getLogger(KeyValuePairWriterTest.class);
+          .getLogger(KeyValuePairWriterTest.class);
 
   @Test
-  public void testTimeZone() throws ParseException
-  {
+  public void testTimeZone() throws ParseException {
     final DateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm");
     df.setTimeZone(DateHelper.EUROPE_BERLIN);
     final Date mezDate = df.parse("2008-03-14 17:25");
@@ -60,39 +57,29 @@ public class DateHelperTest extends AbstractTestBase
   }
 
   @Test
-  public void formatIsoDate()
-  {
+  public void formatIsoDate() {
     assertEquals("1970-11-21", DateHelper
-        .formatIsoDate(createDate(1970, Month.NOVEMBER.getValue(), 21, 16, 0, 0, 0, ThreadLocalUserContext.getTimeZone())));
+            .formatIsoDate(createDate(1970, Month.NOVEMBER, 21, 16, 0, 0, 0, ThreadLocalUserContext.getTimeZone())));
     assertEquals("1970-11-21", DateHelper
-        .formatIsoDate(createDate(1970, Month.NOVEMBER.getValue(), 21, 16, 35, 27, 968, ThreadLocalUserContext.getTimeZone())));
+            .formatIsoDate(createDate(1970, Month.NOVEMBER, 21, 16, 35, 27, 968, ThreadLocalUserContext.getTimeZone())));
   }
 
   @Test
-  public void formatIsoTimestamp()
-  {
+  public void formatIsoTimestamp() {
     assertEquals("1970-11-21 17:00:00.000",
-        DateHelper.formatIsoTimestamp(
-            createDate(1970, Month.NOVEMBER.getValue(), 21, 17, 0, 0, 0, ThreadLocalUserContext.getTimeZone())));
+            DateHelper.formatIsoTimestamp(
+                    createDate(1970, Month.NOVEMBER, 21, 17, 0, 0, 0, ThreadLocalUserContext.getTimeZone())));
     assertEquals("1970-11-21 17:05:07.123",
-        DateHelper.formatIsoTimestamp(
-            createDate(1970, Month.NOVEMBER.getValue(), 21, 17, 5, 7, 123, ThreadLocalUserContext.getTimeZone())));
+            DateHelper.formatIsoTimestamp(
+                    createDate(1970, Month.NOVEMBER, 21, 17, 5, 7, 123, ThreadLocalUserContext.getTimeZone())));
   }
 
   @Test
-  public void getDuration()
-  {
-    final PFDateTime dateTime = PFDateTime.now(ZoneId.of("UTC"), Locale.GERMAN)
-        .withPrecision(DatePrecision.MINUTE)
-        .withYear(1970)
-        .withMonth(Month.NOVEMBER.getValue())
-        .withDayOfMonth(21)
-        .withHour(6)
-        .withMinute(50)
-        .withSecond(0);
+  public void getDuration() {
+    final PFDateTime dateTime = PFDateTime.withDate(1970, Month.NOVEMBER, 21, 6, 50, 0, 0, ZoneId.of("UTC"), Locale.GERMAN);
     final Date startTime = dateTime.getUtilDate();
     final Date stopTime = dateTime.withMinute(59).getUtilDate();
-    assertEquals(129, DateHelper.getDuration(startTime, stopTime));
+    assertEquals(9, DateHelper.getDuration(startTime, stopTime));
     assertEquals(0, DateHelper.getDuration(stopTime, startTime));
     assertEquals(0, DateHelper.getDuration(null, stopTime));
     assertEquals(0, DateHelper.getDuration(startTime, null));
@@ -101,8 +88,7 @@ public class DateHelperTest extends AbstractTestBase
   }
 
   @Test
-  public void formatMonth()
-  {
+  public void formatMonth() {
     assertEquals("2009-01", DateHelper.formatMonth(2009, Month.JANUARY));
     assertEquals("2009-03", DateHelper.formatMonth(2009, Month.MARCH));
     assertEquals("2009-09", DateHelper.formatMonth(2009, Month.SEPTEMBER));
@@ -111,8 +97,7 @@ public class DateHelperTest extends AbstractTestBase
   }
 
   @Test
-  public void dateOfYearBetween()
-  {
+  public void dateOfYearBetween() {
     assertTrue(DateHelper.dateOfYearBetween(1, 3, 1, 3, 1, 3)); // 1/3 is between 1/3 and 1/3
     // 1/3 - 1/20
     assertTrue(DateHelper.dateOfYearBetween(1, 3, 1, 3, 1, 20)); // 1/3 is between 1/3 and 1/20
@@ -157,29 +142,25 @@ public class DateHelperTest extends AbstractTestBase
   }
 
   @Test
-  public void convertDateIntoOtherTimezone()
-  {
-    final Date d1 = createDate(2016, 8, 22, 1, 2, 3, 4, TimeZone.getTimeZone("GMT+2:00"));
+  public void convertDateIntoOtherTimezone() {
+    final Date d1 = createDate(2016, Month.SEPTEMBER, 22, 1, 2, 3, 4, TimeZone.getTimeZone("GMT+2:00"));
     assertEquals(d1, DateHelper.convertDateIntoOtherTimezone(d1, TimeZone.getTimeZone("GMT+5:00"), TimeZone.getTimeZone("GMT+5:00")));
     assertEquals(d1, DateHelper.convertDateIntoOtherTimezone(d1, TimeZone.getTimeZone("GMT-5:00"), TimeZone.getTimeZone("GMT-5:00")));
     assertEquals(d1, DateHelper.convertDateIntoOtherTimezone(d1, TimeZone.getTimeZone("GMT"), TimeZone.getTimeZone("GMT")));
 
-    final Date d2 = createDate(2016, 8, 21, 23, 2, 3, 4, TimeZone.getTimeZone("GMT+2:00"));
-    final Date d3 = createDate(2016, 8, 22, 6, 2, 3, 4, TimeZone.getTimeZone("GMT+2:00"));
+    final Date d2 = createDate(2016, Month.SEPTEMBER, 21, 23, 2, 3, 4, TimeZone.getTimeZone("GMT+2:00"));
+    final Date d3 = createDate(2016, Month.SEPTEMBER, 22, 6, 2, 3, 4, TimeZone.getTimeZone("GMT+2:00"));
     assertEquals(d2, DateHelper.convertDateIntoOtherTimezone(d1, TimeZone.getTimeZone("GMT+2:00"), TimeZone.getTimeZone("GMT")));
     assertEquals(d3, DateHelper.convertDateIntoOtherTimezone(d1, TimeZone.getTimeZone("GMT"), TimeZone.getTimeZone("GMT+5:00")));
   }
 
-  public static Date createDate(final int year, final int month, final int day, final int hour, final int minute,
-      final int second, final int millisecond, TimeZone timeZone)
-  {
-    return PFDateTime.from(null, true, timeZone, Locale.GERMAN).withYear(year).withMonth(month)
-        .withDayOfMonth(day).withHour(hour).withMinute(minute).withSecond(second).withMilliSecond(millisecond).getUtilDate();
+  public static Date createDate(final int year, final Month month, final int day, final int hour, final int minute,
+                                final int second, final int millisecond, TimeZone timeZone) {
+    return PFDateTime.withDate(year, month, day, hour, minute, second, millisecond, timeZone.toZoneId()).getUtilDate();
   }
 
-  public static Date createDate(final int year, final int month, final int day, final int hour, final int minute,
-      final int second, final int millisecond)
-  {
+  public static Date createDate(final int year, final Month month, final int day, final int hour, final int minute,
+                                final int second, final int millisecond) {
     return createDate(year, month, day, hour, minute, second, millisecond, TimeZone.getDefault());
   }
 }

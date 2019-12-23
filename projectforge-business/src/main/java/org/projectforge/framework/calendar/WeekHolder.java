@@ -56,7 +56,7 @@ public class WeekHolder implements Serializable {
         //day.setMarker(true);
       }
       days[i] = day;
-      day.plusDays(1);
+      day = day.plusDays(1);
     }
   }
 

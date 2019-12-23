@@ -49,12 +49,12 @@ public class WeekHolderTest {
     final PFDate dt = PFDate.now(Locale.GERMAN);
     WeekHolder week = new WeekHolder(dt);
     assertEquals(7, week.getDays().length);
-    assertEquals(2, week.getDays()[0].getDayOfWeek().getValue());
+    assertEquals(1, week.getDays()[0].getDayOfWeek().getValue());
     assertEquals(DayOfWeek.MONDAY, week.getDays()[0].getDayOfWeek());
     PFDate date = PFDate.now(Locale.GERMAN).withDate(1970, Month.NOVEMBER, 21);
     week = new WeekHolder(date);
     assertEquals(7, week.getDays().length);
-    assertEquals(2, week.getDays()[0].getDayOfWeek().getValue());
+    assertEquals(1, week.getDays()[0].getDayOfWeek().getValue());
     assertEquals(DayOfWeek.MONDAY, week.getDays()[0].getDayOfWeek());
     assertEquals(DayOfWeek.SUNDAY, week.getDays()[6].getDayOfWeek());
     assertEquals(16, week.getDays()[0].getDayOfMonth());

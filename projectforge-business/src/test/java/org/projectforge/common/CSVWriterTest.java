@@ -38,7 +38,7 @@ public class CSVWriterTest
 {
   @Test
   public void testWriteCSV() {
-    Date date = createDate(1970, Month.NOVEMBER.getValue(), 21, 13, 17, 57, 742);
+    Date date = createDate(1970, Month.NOVEMBER, 21, 13, 17, 57, 742);
     StringWriter writer = new StringWriter();
     CSVWriter csv = new CSVWriter(writer);
     csv.write("Hallo");
@@ -56,7 +56,7 @@ public class CSVWriterTest
     assertEquals("\"Hallo\";\"Hal\"\"lo\";;;\"1970-11-21 13:17:57.742\";42\n\"\"\"\"\n", writer.getBuffer().toString());
   }
 
-  private Date createDate(int year, int month, int day, int hour, int minute, int second, int millisecond)
+  private Date createDate(int year, Month month, int day, int hour, int minute, int second, int millisecond)
   {
     return PFDateTime.now(ZoneId.of("UTC"), Locale.GERMAN).withYear(year).withMonth(month)
         .withDayOfMonth(day).withHour(hour).withMinute(minute).withSecond(second).withMilliSecond(millisecond).getUtilDate();
