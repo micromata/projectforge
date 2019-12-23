@@ -33,6 +33,7 @@ import org.projectforge.business.fibu.kost.BusinessAssessmentTable;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 import java.io.Serializable;
+import java.time.Month;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -65,11 +66,11 @@ public class Report implements Serializable
 
   private int fromYear;
 
-  private int fromMonth;
+  private Month fromMonth;
 
   private int toYear;
 
-  private int toMonth;
+  private Month toMonth;
 
   private transient Report parent;
 
@@ -84,7 +85,7 @@ public class Report implements Serializable
     this.parent = parent;
   }
 
-  public Report(final ReportObjective reportObjective, final int fromYear, final int fromMonth, final int toYear, final int toMonth)
+  public Report(final ReportObjective reportObjective, final int fromYear, final Month fromMonth, final int toYear, final Month toMonth)
   {
     this(reportObjective);
     this.fromYear = fromYear;
@@ -93,13 +94,13 @@ public class Report implements Serializable
     this.toMonth = toMonth;
   }
 
-  public void setFrom(final int year, final int month)
+  public void setFrom(final int year, final Month month)
   {
     this.fromYear = year;
     this.fromMonth = month;
   }
 
-  public void setTo(final int year, final int month)
+  public void setTo(final int year, final Month month)
   {
     this.toYear = year;
     this.toMonth = month;
@@ -110,7 +111,7 @@ public class Report implements Serializable
     return fromYear;
   }
 
-  public int getFromMonth()
+  public Month getFromMonth()
   {
     return fromMonth;
   }
@@ -120,7 +121,7 @@ public class Report implements Serializable
     return toYear;
   }
 
-  public int getToMonth()
+  public Month getToMonth()
   {
     return toMonth;
   }

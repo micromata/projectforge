@@ -45,6 +45,7 @@ import org.projectforge.framework.utils.NumberHelper;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.Month;
 import java.util.*;
 
 /**
@@ -140,7 +141,7 @@ public class MonthlyEmployeeReport implements Serializable {
 
   private final int year;
 
-  private final int month;
+  private final Month month;
 
   private Date fromDate;
 
@@ -211,7 +212,7 @@ public class MonthlyEmployeeReport implements Serializable {
    * @param year
    * @param month 1-based: 1 - January, ..., 12 - December
    */
-  public MonthlyEmployeeReport(final EmployeeService employeeService, final VacationService vacationService, final PFUserDO user, final int year, final int month) {
+  public MonthlyEmployeeReport(final EmployeeService employeeService, final VacationService vacationService, final PFUserDO user, final int year, final Month month) {
     this.year = year;
     this.month = month;
     this.user = user;
@@ -275,7 +276,7 @@ public class MonthlyEmployeeReport implements Serializable {
     log.info("Ignoring time sheet which isn't inside current month: "
             + year
             + "-"
-            + StringHelper.format2DigitNumber(month + 1)
+            + StringHelper.format2DigitNumber(month.getValue())
             + ": "
             + sheet);
 
@@ -337,7 +338,7 @@ public class MonthlyEmployeeReport implements Serializable {
     for (final WeekHolder week : monthHolder.getWeeks()) {
 
       for (final PFDate day : week.getDays()) {
-        if (day.getMonthValue() == this.month && holidays.isWorkingDay(day)
+        if (day.getMonth() == this.month && holidays.isWorkingDay(day)
                 && !bookedDays.contains(day.getDayOfMonth())) {
           unbookedDays.add(day.getDayOfMonth());
         }
@@ -371,7 +372,7 @@ public class MonthlyEmployeeReport implements Serializable {
         buf.append(", ");
       }
       buf.append(StringHelper.format2DigitNumber(dayOfMonth)).append(".")
-              .append(StringHelper.format2DigitNumber(month + 1)).append(".");
+              .append(StringHelper.format2DigitNumber(month.getValue())).append(".");
     }
     if (first) {
       return null;
@@ -412,10 +413,7 @@ public class MonthlyEmployeeReport implements Serializable {
     return year;
   }
 
-  /**
-   * @return 1-based: 1 - January, ..., 12 - December
-   */
-  public int getMonth() {
+  public Month getMonth() {
     return month;
   }
 
@@ -424,7 +422,7 @@ public class MonthlyEmployeeReport implements Serializable {
   }
 
   public String getFormmattedMonth() {
-    return StringHelper.format2DigitNumber(month + 1);
+    return StringHelper.format2DigitNumber(month.getValue());
   }
 
   public Date getFromDate() {

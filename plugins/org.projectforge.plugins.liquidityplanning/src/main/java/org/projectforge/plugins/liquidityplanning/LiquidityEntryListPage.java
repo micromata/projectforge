@@ -39,7 +39,7 @@ import org.projectforge.business.fibu.*;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDate;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
@@ -95,7 +95,7 @@ public class LiquidityEntryListPage
   public List<IColumn<LiquidityEntryDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
     final List<IColumn<LiquidityEntryDO, String>> columns = new ArrayList<>();
-    final Date today = new DayHolder().getDate();
+    final Date today = PFDate.now().getUtilDate();
     final CellItemListener<LiquidityEntryDO> cellItemListener = new CellItemListener<LiquidityEntryDO>()
     {
       @Override

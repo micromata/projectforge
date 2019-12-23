@@ -73,10 +73,10 @@ public class DateHelper implements Serializable {
   public static final BigDecimal HOURS_PER_WORKING_DAY = new BigDecimal(DateTimeFormatter.DEFAULT_HOURS_OF_DAY);
 
   public static final BigDecimal MILLIS_PER_WORKING_DAY = new BigDecimal(
-      MILLIS_HOUR * DateTimeFormatter.DEFAULT_HOURS_OF_DAY);
+          MILLIS_HOUR * DateTimeFormatter.DEFAULT_HOURS_OF_DAY);
 
   public static final BigDecimal SECONDS_PER_WORKING_DAY = new BigDecimal(
-      60 * 60 * DateTimeFormatter.DEFAULT_HOURS_OF_DAY);
+          60 * 60 * DateTimeFormatter.DEFAULT_HOURS_OF_DAY);
 
   /**
    * UTC
@@ -450,12 +450,12 @@ public class DateHelper implements Serializable {
    * @param month 0-11
    * @return "yyyy-mm"
    */
-  public static String formatMonth(final int year, final int month) {
+  public static String formatMonth(final int year, final Month month) {
     final StringBuilder buf = new StringBuilder();
     buf.append(year);
-    if (month >= 0) {
+    if (month != null) {
       buf.append('-');
-      final int m = month + 1;
+      final int m = month.getValue();
       if (m <= 9) {
         buf.append('0');
       }
@@ -479,7 +479,7 @@ public class DateHelper implements Serializable {
       return -1;
     }
     final Calendar cal = Calendar.getInstance(ThreadLocalUserContext.getTimeZone(),
-        ConfigurationServiceAccessor.get().getDefaultLocale());
+            ConfigurationServiceAccessor.get().getDefaultLocale());
     cal.setTime(date);
     return cal.get(Calendar.WEEK_OF_YEAR);
   }
@@ -609,11 +609,12 @@ public class DateHelper implements Serializable {
     return date.getTime();
   }
 
-  public static int convertCalendarDayOfWeekToJoda(final int calendarDayOfWeek) {
-    if (calendarDayOfWeek == Calendar.SUNDAY) {
-      return DayOfWeek.SUNDAY.getValue();
-    }
-    return calendarDayOfWeek - 1;
+  /**
+   * @param dayOfWeek
+   * @return 1 - Monday, ..., 7 - Sunday
+   */
+  public static int convertCalendarDayOfWeekToJoda(final DayOfWeek dayOfWeek) {
+    return dayOfWeek.getValue();
   }
 
   public static LocalDateTime convertDateToLocalDateTimeInUTC(final Date date) {

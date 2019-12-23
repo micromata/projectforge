@@ -94,7 +94,6 @@ public class ReportDao {
    * des ReportObjectives die zu verwendenden Buchungssätze.
    *
    * @param report
-   * @see BuchungssatzDao#getList(org.projectforge.core.BaseSearchFilter)
    * @see Report#select(List)
    */
   public void loadReport(Report report) {

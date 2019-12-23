@@ -30,9 +30,11 @@ import org.projectforge.business.fibu.KontoDO
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.time.PFDateTimeCompabilityUtils
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Month
 import java.util.*
 import javax.persistence.*
 
@@ -46,7 +48,7 @@ import javax.persistence.*
 @WithHistory
 @NamedQueries(
         NamedQuery(name = BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
-                query = "from BuchungssatzDO where year=:year and month=:month and satznr=:satznr"))
+                query = "from BuchungssatzDO where year=:year and compabilityMonth=:month and satznr=:satznr"))
 open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
 
     private val log = LoggerFactory.getLogger(BuchungssatzDO::class.java)
@@ -61,13 +63,23 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     open var year: Int? = null
 
     /**
+     * 0-based: 0 - January, ..., 11 - December
      * Monat zu der die Buchung gehört.
      *
      * @return
      */
     @Field(analyze = Analyze.NO)
     @get:Column(nullable = false)
-    open var month: Int? = null
+    open var compabilityMonth: Int? = null
+
+    open var month: Month?
+        get() = PFDateTimeCompabilityUtils.getCompabilityMonth(compabilityMonth)
+        set(value) {
+            compabilityMonth = PFDateTimeCompabilityUtils.getCompabilityMonthValue(value)
+        }
+
+    open val monthValue: Int?
+        get() = month?.value
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.satznr")
     @Field(analyze = Analyze.NO)
@@ -146,7 +158,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
      */
     val formattedSatzNummer: String
         @Transient
-        get() = year.toString() + '-'.toString() + StringHelper.format2DigitNumber(month!! + 1) + '-'.toString() + formatSatzNr()
+        get() = year.toString() + '-'.toString() + StringHelper.format2DigitNumber(compabilityMonth!! + 1) + '-'.toString() + formatSatzNr()
 
     val kontoId: Int?
         @Transient
@@ -219,7 +231,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
         if (r != 0) {
             return r
         }
-        r = this.month!!.compareTo(other.month!!)
+        r = this.compabilityMonth!!.compareTo(other.compabilityMonth!!)
         return if (r != 0) {
             r
         } else this.satznr!!.compareTo(other.satznr!!)

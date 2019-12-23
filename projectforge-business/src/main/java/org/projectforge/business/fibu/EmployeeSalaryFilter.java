@@ -26,11 +26,12 @@ package org.projectforge.business.fibu;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 import java.io.Serializable;
+import java.time.Month;
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class EmployeeSalaryFilter extends BaseSearchFilter implements Serializable
 {
@@ -38,7 +39,7 @@ public class EmployeeSalaryFilter extends BaseSearchFilter implements Serializab
 
   protected int year;
 
-  protected int month;
+  protected Month month;
 
   public EmployeeSalaryFilter()
   {
@@ -65,12 +66,12 @@ public class EmployeeSalaryFilter extends BaseSearchFilter implements Serializab
   /**
    * Month of salaries to filter. "<=0" (for month or year) means showing all months.
    */
-  public int getMonth()
+  public Month getMonth()
   {
     return month;
   }
 
-  public void setMonth(int month)
+  public void setMonth(Month month)
   {
     this.month = month;
   }

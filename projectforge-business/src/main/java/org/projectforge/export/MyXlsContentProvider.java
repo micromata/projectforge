@@ -88,10 +88,6 @@ public class MyXlsContentProvider extends XlsContentProvider
     return null;
   }
 
-  /**
-   * @see XlsContentProvider#getCellFormat(ExportCell, java.lang.Object, java.lang.String,
-   * java.util.Map)
-   */
   @Override
   protected CellFormat getCustomizedCellFormat(final CellFormat format, final Object value)
   {
@@ -102,7 +98,7 @@ public class MyXlsContentProvider extends XlsContentProvider
       return null;
     }
     // Find a format dependent on the precision:
-    final DatePrecision precision = ((PFDateTime) value).;
+    final DatePrecision precision = ((PFDateTime) value).getPrecision();
     if (precision == DatePrecision.DAY) {
       return new CellFormat(DateFormats.getExcelFormatString(DateFormatType.DATE));
     } else if (precision == DatePrecision.SECOND) {

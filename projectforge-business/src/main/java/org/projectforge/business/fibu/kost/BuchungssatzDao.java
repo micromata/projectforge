@@ -33,8 +33,10 @@ import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDateTimeCompabilityUtils;
 import org.springframework.stereotype.Repository;
 
+import java.time.Month;
 import java.util.List;
 
 @Repository
@@ -80,24 +82,30 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
     return res;
   }
 
-  public BuchungssatzDO getBuchungssatz(final int year, final int month, final int satznr) {
+  /**
+   * @param year
+   * @param month
+   * @param satznr
+   * @return
+   */
+  public BuchungssatzDO getBuchungssatz(final int year, final Month month, final int satznr) {
     return SQLHelper.ensureUniqueResult(
             em.createNamedQuery(BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR, BuchungssatzDO.class)
                     .setParameter("year", year)
-                    .setParameter("month", month)
+                    .setParameter("month", PFDateTimeCompabilityUtils.getCompabilityMonthValue(month))
                     .setParameter("satznr", satznr));
   }
 
   private boolean validateTimeperiod(final BuchungssatzFilter myFilter) {
-    final int toMonth = myFilter.getToMonth();
+    final Month toMonth = myFilter.getToMonth();
     final int toYear = myFilter.getToYear();
-    if (toMonth >= 0 && toYear < 0 || toMonth < 0 && toYear > 0) {
+    if (toMonth != null && toYear < 0 || toMonth == null && toYear > 0) {
       // toMonth given, but not toYear or vice versa.
       return false;
     }
-    if (myFilter.getFromMonth() < 0) {
+    if (myFilter.getFromMonth() == null) {
       // Kein Von-Monat gesetzt.
-      if (toMonth >= 0 || toYear > 0) {
+      if (toMonth != null || toYear > 0) {
         return false;
       }
     } else if (toYear > 0) {
@@ -106,7 +114,7 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
         return false;
       }
       if (myFilter.getFromYear() == myFilter.getToYear()) {
-        if (myFilter.getFromMonth() > myFilter.getToMonth()) {
+        if (myFilter.getFromMonth().getValue() > myFilter.getToMonth().getValue()) {
           return false;
         }
       }
@@ -129,7 +137,7 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
       throw new UserException("fibu.buchungssatz.error.invalidTimeperiod");
     }
     queryFilter.setMaxRows(QUERY_FILTER_MAX_ROWS);
-    if (myFilter.getFromMonth() < 0) {
+    if (myFilter.getFromMonth() == null) {
       // Kein Von-Monat gesetzt.
       queryFilter.add(QueryFilter.eq("year", myFilter.getFromYear()));
       queryFilter.add(QueryFilter.between("month", 0, 11));

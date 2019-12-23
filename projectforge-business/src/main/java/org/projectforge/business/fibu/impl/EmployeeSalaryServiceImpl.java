@@ -31,7 +31,6 @@ import org.projectforge.framework.time.PFDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.GregorianCalendar;
 import java.util.List;
 
 @Service
@@ -48,8 +47,8 @@ public class EmployeeSalaryServiceImpl implements EmployeeSalaryService
     return findByEmployee
         .stream()
         .sorted((sal1, sal2) -> {
-          PFDateTime c1 = PFDateTime.from(new GregorianCalendar(sal1.getYear(), sal1.getMonth(), 1).getTime());
-          PFDateTime c2 = PFDateTime.from(new GregorianCalendar(sal2.getYear(), sal2.getMonth(), 1).getTime());
+          PFDateTime c1 = PFDateTime.withDate(sal1.getYear(), sal1.getMonth(), 1);
+          PFDateTime c2 = PFDateTime.withDate(sal2.getYear(), sal2.getMonth(), 1);
           return c2.getCalendar().compareTo(c1.getCalendar());
         })
         .findFirst()

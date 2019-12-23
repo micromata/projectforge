@@ -29,13 +29,16 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.Calendar;
+import java.time.DayOfWeek;
+import java.time.Month;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
 /**
- * Parse and formats dates.
+ * Parse and formats dates. Please use PFDateTime instead.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -43,7 +46,7 @@ import java.util.TimeZone;
 public class DateHolder implements Serializable, Cloneable, Comparable<DateHolder> {
   private static final long serialVersionUID = -5373883617915418698L;
 
-  protected Calendar calendar;
+  protected PFDateTime dateTime;
 
   private DatePrecision precision;
 
@@ -53,7 +56,15 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see DateHelper#getCalendar()
    */
   public DateHolder() {
-    this.calendar = DateHelper.getCalendar();
+    this.dateTime = PFDateTime.now();
+  }
+
+  /**
+   * Ensures the precision.
+   */
+  public DateHolder(final DateHolder dateHolder) {
+    this.dateTime = dateHolder.dateTime;
+    setPrecision(dateHolder.precision);
   }
 
   /**
@@ -64,7 +75,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @param locale
    */
   public DateHolder(final DatePrecision precision, final TimeZone timeZone, final Locale locale) {
-    calendar = Calendar.getInstance(timeZone, locale);
+    this.dateTime = PFDateTime.now(asZone(timeZone), locale);
     setPrecision(precision);
   }
 
@@ -76,7 +87,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see DateHelper#getCalendar(Locale)
    */
   public DateHolder(final DatePrecision precision, final Locale locale) {
-    calendar = DateHelper.getCalendar(locale);
+    this.dateTime = PFDateTime.now(null, locale);
     setPrecision(precision);
   }
 
@@ -86,7 +97,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see DateHelper#getCalendar()
    */
   public DateHolder(final DatePrecision precision) {
-    this.calendar = DateHelper.getCalendar();
+    this.dateTime = PFDateTime.now();
     setPrecision(precision);
   }
 
@@ -98,10 +109,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see DateHelper#getCalendar()
    */
   public DateHolder(final Date date, final DatePrecision precision) {
-    this.calendar = DateHelper.getCalendar();
-    if (date != null) {
-      this.calendar.setTime(date);
-    }
+    this.dateTime = PFDateTime.from(date, true);
     setPrecision(precision);
   }
 
@@ -112,8 +120,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see DateHelper#getCalendar(Locale)
    */
   public DateHolder(final Date date, final DatePrecision precision, final Locale locale) {
-    this.calendar = DateHelper.getCalendar(locale);
-    this.calendar.setTime(date);
+    this.dateTime = PFDateTime.from(date, true, null, locale);
     setPrecision(precision);
   }
 
@@ -124,8 +131,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see DateHelper#getCalendar(TimeZone, Locale)
    */
   public DateHolder(final Date date, final DatePrecision precision, final TimeZone timeZone, final Locale locale) {
-    this.calendar = DateHelper.getCalendar(timeZone, locale);
-    this.calendar.setTime(date);
+    this.dateTime = PFDateTime.from(date, true, timeZone, locale);
     setPrecision(precision);
   }
 
@@ -136,10 +142,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see DateHelper#getCalendar()
    */
   public DateHolder(final Date date) {
-    this.calendar = DateHelper.getCalendar();
-    if (date != null) {
-      calendar.setTime(date);
-    }
+    this.dateTime = PFDateTime.from(date, true);
     ensurePrecision();
   }
 
@@ -147,24 +150,24 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Initializes calendar with given date and uses the given time zone and the locale of the ContextUser if exists.
    */
   public DateHolder(final Date date, final TimeZone timeZone) {
-    this(date);
-    this.calendar.setTimeZone(timeZone);
+    this.dateTime = PFDateTime.from(date, true, timeZone);
+    ensurePrecision();
   }
 
   /**
    * @see DateHelper#getCalendar(TimeZone, Locale)
    */
   public DateHolder(final Date date, final TimeZone timeZone, final Locale locale) {
-    this.calendar = DateHelper.getCalendar(timeZone, locale);
-    this.calendar.setTime(date);
+    this.dateTime = PFDateTime.from(date, true, timeZone, locale);
+    ensurePrecision();
   }
 
   /**
    * Initializes calendar with current date and uses the given time zone and the locale of the ContextUser if exists.
    */
   public DateHolder(final TimeZone timeZone) {
-    this();
-    this.calendar.setTimeZone(timeZone);
+    this.dateTime = PFDateTime.now(asZone(timeZone));
+    ensurePrecision();
   }
 
   /**
@@ -175,24 +178,8 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see DateHelper#getCalendar(Locale)
    */
   public DateHolder(final Date date, final Locale locale) {
-    this.calendar = DateHelper.getCalendar(locale);
-    calendar.setTime(date);
+    this.dateTime = PFDateTime.from(date, true, null, locale);
     ensurePrecision();
-  }
-
-  /**
-   * Clones calendar.
-   */
-  public DateHolder(final Calendar cal, final DatePrecision precision) {
-    this(cal);
-    setPrecision(precision);
-  }
-
-  /**
-   * Clones calendar.
-   */
-  public DateHolder(final Calendar cal) {
-    this.calendar = (Calendar) cal.clone();
   }
 
   public boolean before(final DateHolder date) {
@@ -232,22 +219,13 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
   }
 
   /**
-   * Clones the calendar.
-   */
-  public DateHolder setCalendar(final Calendar cal) {
-    this.calendar = (Calendar) cal.clone();
-    ensurePrecision();
-    return this;
-  }
-
-  /**
    * Date will be set. Dependent on precision, also seconds etc. will be set to zero. Ensures the precision.
    */
   public DateHolder setDate(final Date date) {
     if (date == null) {
       return this;
     }
-    this.calendar.setTime(date);
+    this.dateTime = PFDateTime.from(date, false, dateTime.getTimeZone(), dateTime.getLocale());
     ensurePrecision();
     return this;
   }
@@ -258,7 +236,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @param millis UTC millis
    */
   public DateHolder setDate(final long millis) {
-    this.calendar.setTimeInMillis(millis);
+    this.dateTime = PFDateTime.from(millis, false, dateTime.getZone(), dateTime.getLocale());
     ensurePrecision();
     return this;
   }
@@ -284,42 +262,43 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
     }
     switch (this.precision) {
       case DAY:
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        this.dateTime = this.dateTime.getBeginOfDay();
+        break;
       case HOUR_OF_DAY:
-        calendar.set(Calendar.MINUTE, 0);
+        this.dateTime = this.dateTime.withMinute(0);
       case MINUTE_15:
       case MINUTE_5:
       case MINUTE:
-        calendar.set(Calendar.SECOND, 0);
+        this.dateTime = this.dateTime.withSecond(0);
       case SECOND:
-        calendar.set(Calendar.MILLISECOND, 0);
+        this.dateTime = this.dateTime.withMilliSecond(0);
       default:
     }
     if (this.precision == DatePrecision.MINUTE_15) {
-      final int minute = calendar.get(Calendar.MINUTE);
+      final int minute = dateTime.getMinute();
       if (minute < 8) {
-        calendar.set(Calendar.MINUTE, 0);
+        this.dateTime = this.dateTime.withMinute(0);
       } else if (minute < 23) {
-        calendar.set(Calendar.MINUTE, 15);
+        this.dateTime = this.dateTime.withMinute(15);
       } else if (minute < 38) {
-        calendar.set(Calendar.MINUTE, 30);
+        this.dateTime = this.dateTime.withMinute(30);
       } else if (minute < 53) {
-        calendar.set(Calendar.MINUTE, 45);
+        this.dateTime = this.dateTime.withMinute(45);
       } else {
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.add(Calendar.HOUR, 1);
+        this.dateTime = this.dateTime.withMinute(0);
+        this.dateTime = this.dateTime.plus(1, ChronoUnit.HOURS);
       }
     } else if (this.precision == DatePrecision.MINUTE_5) {
-      final int minute = calendar.get(Calendar.MINUTE);
+      final int minute = dateTime.getMinute();
       for (int i = 3; i < 60; i += 5) {
         if (minute < i) {
-          calendar.set(Calendar.MINUTE, i - 3);
+          this.dateTime = this.dateTime.withMinute(i - 3);
           break;
         }
       }
       if (minute > 57) {
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.add(Calendar.HOUR, 1);
+        this.dateTime = this.dateTime.withMinute(0);
+        this.dateTime = this.dateTime.plus(1, ChronoUnit.HOURS);
       }
     }
     return this;
@@ -336,15 +315,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    */
 
   public java.sql.Date getSQLDate() {
-    final Calendar cal = Calendar.getInstance(DateHelper.UTC);
-    cal.set(Calendar.YEAR, calendar.get(Calendar.YEAR));
-    cal.set(Calendar.DAY_OF_YEAR, calendar.get(Calendar.DAY_OF_YEAR));
-    cal.set(Calendar.HOUR_OF_DAY, 0);
-    cal.set(Calendar.MINUTE, 0);
-    cal.set(Calendar.SECOND, 0);
-    cal.set(Calendar.MILLISECOND, 0);
-    final java.sql.Date date = new java.sql.Date(cal.getTimeInMillis());
-    return date;
+    return this.dateTime.getSqlDate();
   }
 
   /**
@@ -354,9 +325,8 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @return
    */
   public boolean isSameDay(final Date date) {
-    final DateHolder other = new DateHolder(this.calendar);
-    other.setDate(date);
-    return isSameDay(other);
+    final PFDateTime other = PFDateTime.from(date, false, this.dateTime.getTimeZone(), this.dateTime.getLocale());
+    return this.dateTime.isSameDay(other);
   }
 
   /**
@@ -366,7 +336,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @return
    */
   public boolean isSameDay(final DateHolder date) {
-    return getYear() == date.getYear() && getDayOfYear() == date.getDayOfYear();
+    return this.dateTime.isSameDay(date.dateTime);
   }
 
   /**
@@ -375,8 +345,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see #setBeginOfDay()
    */
   public DateHolder setBeginOfYear() {
-    calendar.set(Calendar.MONTH, Calendar.JANUARY);
-    setBeginOfMonth();
+    this.dateTime = this.dateTime.getBeginOfYear();
     return this;
   }
 
@@ -386,8 +355,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see #setBeginOfDay()
    */
   public DateHolder setEndOfYear() {
-    calendar.set(Calendar.MONTH, Calendar.DECEMBER);
-    setEndOfMonth();
+    this.dateTime = this.dateTime.getEndOfYear();
     return this;
   }
 
@@ -397,15 +365,12 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see #setBeginOfDay()
    */
   public DateHolder setBeginOfMonth() {
-    calendar.set(Calendar.DAY_OF_MONTH, 1);
-    setBeginOfDay();
+    this.dateTime = this.dateTime.getBeginOfMonth();
     return this;
   }
 
   public DateHolder setEndOfMonth() {
-    final int day = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-    calendar.set(Calendar.DAY_OF_MONTH, day);
-    setEndOfDay();
+    this.dateTime = this.dateTime.getEndOfMonth();
     return this;
   }
 
@@ -415,29 +380,19 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see #setBeginOfDay()
    */
   public DateHolder setBeginOfWeek() {
-    int firstDayOfWeek = getFirstDayOfWeek();
-    short paranoiaCounter = 10;
-    while (calendar.get(Calendar.DAY_OF_WEEK) != firstDayOfWeek) {
-      if (--paranoiaCounter <= 0) {
-        System.err.println("************ DateHolder:setBeginOfWeek() Paranoia test violation: firstDayOfWeek " + firstDayOfWeek + " not reachable!!!!");
-        break;
-      }
-      calendar.add(Calendar.DATE, -1); // Substract 1 day until first day of week.
-    }
-    setBeginOfDay();
+    this.dateTime = this.dateTime.getBeginOfWeek();
     return this;
   }
 
-  private static int getFirstDayOfWeek() {
-    return ThreadLocalUserContext.getCalendarFirstDayOfWeek();
+  private static DayOfWeek getFirstDayOfWeek() {
+    return ThreadLocalUserContext.getFirstDayOfWeek();
   }
 
   /**
    * Checks on day equals first day of week and hour, minute, second and millisecond equals zero.
    */
   public boolean isBeginOfWeek() {
-    return getDayOfWeek() == getFirstDayOfWeek() && getMilliSecond() == 0 && getSecond() == 0 && getMinute() == 0 && getHourOfDay() == 0;
-
+    return this.dateTime.isBeginOfWeek();
   }
 
   /**
@@ -446,16 +401,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see #setEndOfDay()
    */
   public DateHolder setEndOfWeek() {
-    final int firstDayOfWeek = getFirstDayOfWeek();
-    short endlessLoopDetection = 0;
-    do {
-      calendar.add(Calendar.DAY_OF_YEAR, 1);
-      if (++endlessLoopDetection > 10) {
-        throw new RuntimeException("Endless loop protection. Please contact developer!");
-      }
-    } while (calendar.get(Calendar.DAY_OF_WEEK) != firstDayOfWeek);
-    calendar.add(Calendar.DAY_OF_YEAR, -1); // Get one day before first day of next week.
-    setEndOfDay();
+    this.dateTime = this.dateTime.getEndOfWeek();
     return this;
   }
 
@@ -463,10 +409,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Sets the hour, minutes and seconds to 0;
    */
   public DateHolder setBeginOfDay() {
-    calendar.set(Calendar.HOUR_OF_DAY, 0);
-    calendar.set(Calendar.MINUTE, 0);
-    calendar.set(Calendar.SECOND, 0);
-    calendar.set(Calendar.MILLISECOND, 0);
+    this.dateTime = this.dateTime.getBeginOfDay();
     return this;
   }
 
@@ -474,10 +417,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Sets hour=23, minute=59, second=59
    */
   public DateHolder setEndOfDay() {
-    calendar.set(Calendar.HOUR_OF_DAY, 23);
-    calendar.set(Calendar.MINUTE, 59);
-    calendar.set(Calendar.SECOND, 59);
-    calendar.set(Calendar.MILLISECOND, 999);
+    this.dateTime = this.dateTime.getEndOfDay();
     return this;
   }
 
@@ -487,16 +427,13 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @param src The calendar from which to copy the values.
    * @see #ensurePrecision()
    */
-  public DateHolder setDay(final Calendar src) {
-    calendar.set(Calendar.YEAR, src.get(Calendar.YEAR));
-    calendar.set(Calendar.MONTH, src.get(Calendar.MONTH));
-    calendar.set(Calendar.DAY_OF_MONTH, src.get(Calendar.DAY_OF_MONTH));
-    computeTime();
+  public DateHolder setDay(final DateHolder src) {
+    this.dateTime = this.dateTime.withYear(src.getYear()).withMonth(src.getMonth()).withDayOfMonth(src.getDayOfMonth());
     return this;
   }
 
   public Date getDate() {
-    return calendar.getTime();
+    return this.dateTime.getUtilDate();
   }
 
   /**
@@ -512,30 +449,15 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
     return new Timestamp(getDate().getTime());
   }
 
-  public Calendar getCalendar() {
-    return this.calendar;
-  }
-
-  /**
-   * Compute time of all fields by calling by calling calendar.getTimeInMillis. Don't forget to call ensurePrecision if needed.
-   *
-   * @see #ensurePrecision()
-   * @see Calendar#getTimeInMillis()
-   */
-  public DateHolder computeTime() {
-    calendar.getTimeInMillis();
-    return this;
-  }
-
   public int getYear() {
-    return calendar.get(Calendar.YEAR);
+    return this.dateTime.getYear();
   }
 
   /**
    * @return 0 - January, 11 - December (0-based)
    */
-  public int getMonth() {
-    return calendar.get(Calendar.MONTH);
+  public Month getMonth() {
+    return this.dateTime.getMonth();
   }
 
   /**
@@ -543,44 +465,40 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see DateHelper#getWeekOfYear(Date)
    */
   public int getWeekOfYear() {
-    return DateHelper.getWeekOfYear(calendar);
+    return this.dateTime.getWeekOfYear();
   }
 
   public int getDayOfYear() {
-    return calendar.get(Calendar.DAY_OF_YEAR);
+    return this.dateTime.getDayOfYear();
   }
 
   public int getDayOfMonth() {
-    return calendar.get(Calendar.DAY_OF_MONTH);
+    return this.dateTime.getDayOfMonth();
   }
 
-  public int getDayOfWeek() {
-    return calendar.get(Calendar.DAY_OF_WEEK);
+  public DayOfWeek getDayOfWeek() {
+    return this.dateTime.getDayOfWeek();
   }
 
   /**
    * Gets the hour of day (0-23).
    */
   public int getHourOfDay() {
-    return calendar.get(Calendar.HOUR_OF_DAY);
+    return this.dateTime.getHour();
   }
 
-  /**
-   * @param month 0 - January, 11 - December (0-based)
-   * @return
-   */
-  public DateHolder setMonth(final int month) {
-    calendar.set(Calendar.MONTH, month);
+  public DateHolder setMonth(final Month month) {
+    this.dateTime = this.dateTime.withMonth(month);
     return this;
   }
 
   public DateHolder setDayOfMonth(final int day) {
-    calendar.set(Calendar.DAY_OF_MONTH, day);
+    this.dateTime = this.dateTime.withDayOfMonth(day);
     return this;
   }
 
   public DateHolder setHourOfDay(final int hour) {
-    calendar.set(Calendar.HOUR_OF_DAY, hour);
+    this.dateTime = this.dateTime.withHour(hour);
     return this;
   }
 
@@ -588,7 +506,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Gets the minute (0-59)
    */
   public int getMinute() {
-    return calendar.get(Calendar.MINUTE);
+    return this.dateTime.getMinute();
   }
 
   /**
@@ -597,13 +515,13 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @param minute
    */
   public DateHolder setMinute(final int minute) {
-    calendar.set(Calendar.MINUTE, minute);
+    this.dateTime = this.dateTime.withMinute(minute);
     ensurePrecision();
     return this;
   }
 
   public int getSecond() {
-    return calendar.get(Calendar.SECOND);
+    return this.dateTime.getSecond();
   }
 
   /**
@@ -612,13 +530,16 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @param second
    */
   public DateHolder setSecond(final int second) {
-    calendar.set(Calendar.SECOND, second);
+    this.dateTime = this.dateTime.withSecond(second);
     ensurePrecision();
     return this;
   }
 
+  /**
+   * @return Milli seconds inside second (0..9999).
+   */
   public int getMilliSecond() {
-    return calendar.get(Calendar.MILLISECOND);
+    return this.dateTime.getMilliSecond();
   }
 
   /**
@@ -627,72 +548,40 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @param milliSecond
    */
   public DateHolder setMilliSecond(final int milliSecond) {
-    calendar.set(Calendar.MILLISECOND, milliSecond);
+    this.dateTime = this.dateTime.withMilliSecond(milliSecond);
     ensurePrecision();
     return this;
   }
 
   public long getTimeInMillis() {
-    return calendar.getTimeInMillis();
+    return this.dateTime.getEpochMilli();
   }
 
   /**
-   * Stops calculation for more than 500 years.
-   *
    * @param other
    * @return other.days - this.days.
    */
-  public int daysBetween(final Date other) {
-    final DateHolder o = new DateHolder(calendar);
-    o.setDate(other);
-    return daysBetween(o);
+  public long daysBetween(final Date other) {
+    PFDateTime otherDay = PFDateTime.from(other, false, this.dateTime.getTimeZone(), this.dateTime.getLocale());
+    return this.dateTime.daysBetween(otherDay);
   }
 
   /**
    * @param other
    * @return days between this and given date (other - this).
    */
-  public int daysBetween(final DateHolder other) {
-    final DateHolder from, to;
-    if (this.getTimeInMillis() < other.getTimeInMillis()) {
-      from = this;
-      to = other;
-    } else {
-      from = other;
-      to = this;
-    }
-    int result = 0;
-    final int toYear = to.getYear();
-    final DateHolder dh = new DateHolder(from.getDate());
-
-    int endlessLoopProtection = 0;
-    while (dh.getYear() < toYear) {
-      final int fromDay = dh.getDayOfYear();
-      dh.setMonth(Calendar.DECEMBER);
-      dh.setDayOfMonth(31);
-      result += dh.getDayOfYear() - fromDay + 1;
-      dh.add(Calendar.DAY_OF_MONTH, 1);
-      if (++endlessLoopProtection > 5000) {
-        throw new IllegalArgumentException("Days between doesn's support more than 5000 years");
-      }
-    }
-    result += to.getDayOfYear() - dh.getDayOfYear();
-    if (this.getTimeInMillis() < other.getTimeInMillis()) {
-      return result;
-    } else {
-      return -result;
-    }
+  public long daysBetween(final DateHolder other) {
+    return this.dateTime.daysBetween(other.dateTime);
   }
 
   /**
-   * Adds the given number of days.
+   * Adds the given number of units.
    *
    * @param field
    * @param amount
-   * @see Calendar#add(int, int)
    */
   public DateHolder add(final int field, final int amount) {
-    calendar.add(field, amount);
+    this.dateTime = this.dateTime.plus(amount, PFDateTimeCompabilityUtils.getCompabilityFields(field));
     return this;
   }
 
@@ -703,46 +592,28 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    */
   public DateHolder addWorkingDays(final int days) {
     Validate.isTrue(days <= 10000);
-    short sign = 1;
-    if (days < 0) {
-      sign = -1;
-    }
-    int counter = 0;
-    for (int i = 0; i < 10000; i++) {
-      if (counter == days) {
-        break;
-      }
-      do {
-        calendar.add(Calendar.DAY_OF_MONTH, sign);
-      } while (!new DayHolder(this).isWorkingDay());
-      counter += sign;
-    }
+    this.dateTime = PFDateTimeUtils.addWorkingDays(this.dateTime, days);
     return this;
   }
 
   @Override
   public String toString() {
-    return DateHelper.formatAsUTC(getDate()) + ", time zone=" + calendar.getTimeZone().getID() + ", date=" + getDate().toString();
+    return DateHelper.formatAsUTC(getDate()) + ", time zone=" + dateTime.getZone() + ", date=" + this.dateTime;
   }
 
   @Override
   public DateHolder clone() {
-    final DateHolder res = new DateHolder();
-    res.calendar = (Calendar) this.calendar.clone();
-    // res.calendar.setTime(this.calendar.getTime());
-    res.precision = this.precision;
-    return res;
+    return new DateHolder(this);
   }
 
   /**
    * Sets hour, minute, second and millisecond to zero.
    *
    * @param year
-   * @param month 0 - January, 11 - December (0-based)
+   * @param month
    * @param day
-   * @see #setDate(int, int, int, int, int, int, int)
    */
-  public DateHolder setDate(final int year, final int month, final int day) {
+  public DateHolder setDate(final int year, final Month month, final int day) {
     setDate(year, month, day, 0, 0, 0, 0);
     return this;
   }
@@ -751,13 +622,12 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Sets second and millisecond to zero.
    *
    * @param year
-   * @param month 0 - January, 11 - December (0-based)
+   * @param month
    * @param day
    * @param hourOfDay
    * @param minute
-   * @see #setDate(int, int, int, int, int, int, int)
    */
-  public DateHolder setDate(final int year, final int month, final int day, final int hourOfDay, final int minute) {
+  public DateHolder setDate(final int year, final Month month, final int day, final int hourOfDay, final int minute) {
     setDate(year, month, day, hourOfDay, minute, 0, 0);
     return this;
   }
@@ -766,14 +636,13 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Sets the date by giving all datefields and compute all fields. Set millisecond to zero.
    *
    * @param year
-   * @param month 0 - January, 11 - December (0-based)
+   * @param month
    * @param date
    * @param hourOfDay
    * @param minute
    * @param second
-   * @see #setDate(int, int, int, int, int, int, int)
    */
-  public DateHolder setDate(final int year, final int month, final int date, final int hourOfDay, final int minute, final int second) {
+  public DateHolder setDate(final int year, final Month month, final int date, final int hourOfDay, final int minute, final int second) {
     setDate(year, month, date, hourOfDay, minute, second, 0);
     return this;
   }
@@ -782,18 +651,15 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Sets the date by giving all datefields and compute all fields.
    *
    * @param year
-   * @param month 0 - January, 11 - December (0-based)
+   * @param month
    * @param minute
    * @param second
    * @param millisecond
-   * @see #computeTime()
    * @see #ensurePrecision()
    */
-  public DateHolder setDate(final int year, final int month, final int date, final int hourOfDay, final int minute, final int second,
+  public DateHolder setDate(final int year, final Month month, final int date, final int hourOfDay, final int minute, final int second,
                             final int millisecond) {
-    calendar.set(year, month, date, hourOfDay, minute, second);
-    calendar.set(Calendar.MILLISECOND, millisecond);
-    computeTime();
+    PFDateTime.withDate(year, month, date, hourOfDay, minute, second, millisecond, this.dateTime.getZone(), this.dateTime.getLocale());
     ensurePrecision();
     return this;
   }
@@ -821,6 +687,16 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    */
   @Override
   public int compareTo(final DateHolder o) {
-    return calendar.compareTo(o.calendar);
+    return this.dateTime.compareTo(o.dateTime);
+  }
+
+  /**
+   * @param timeZone might be null.
+   * @return Given timeZone as {@link ZoneId} or null, if timeZone is null.
+   */
+  public static ZoneId asZone(TimeZone timeZone) {
+    if (timeZone != null)
+      return timeZone.toZoneId();
+    return null;
   }
 }

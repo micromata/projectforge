@@ -26,11 +26,12 @@ package org.projectforge.business.fibu.kost;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 import java.io.Serializable;
+import java.time.Month;
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class BuchungssatzFilter extends BaseSearchFilter implements Serializable
 {
@@ -40,9 +41,9 @@ public class BuchungssatzFilter extends BaseSearchFilter implements Serializable
 
   private int toYear;
 
-  private int fromMonth;
+  private Month fromMonth;
 
-  private int toMonth;
+  private Month toMonth;
 
   public BuchungssatzFilter()
   {
@@ -62,21 +63,13 @@ public class BuchungssatzFilter extends BaseSearchFilter implements Serializable
     return this;
   }
 
-  /**
-   * @param year
-   * @param month 0-11
-   */
-  public void setFrom(final int year, final int month)
+  public void setFrom(final int year, final  Month month)
   {
     this.fromYear = year;
     this.fromMonth = month;
   }
 
-  /**
-   * @param year
-   * @param month 0-11
-   */
-  public void setTo(final int year, final int month)
+  public void setTo(final int year, final Month month)
   {
     this.toYear = year;
     this.toMonth = month;
@@ -95,12 +88,12 @@ public class BuchungssatzFilter extends BaseSearchFilter implements Serializable
   /**
    * @return month (0-11)
    */
-  public int getFromMonth()
+  public Month getFromMonth()
   {
     return fromMonth;
   }
 
-  public void setFromMonth(final int fromMonth)
+  public void setFromMonth(final Month fromMonth)
   {
     this.fromMonth = fromMonth;
   }
@@ -115,15 +108,12 @@ public class BuchungssatzFilter extends BaseSearchFilter implements Serializable
     this.toYear = toYear;
   }
 
-  /**
-   * @return month (0-11)
-   */
-  public int getToMonth()
+  public Month getToMonth()
   {
     return toMonth;
   }
 
-  public void setToMonth(final int toMonth)
+  public void setToMonth(final Month toMonth)
   {
     this.toMonth = toMonth;
   }

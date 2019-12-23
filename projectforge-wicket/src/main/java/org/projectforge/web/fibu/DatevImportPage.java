@@ -24,6 +24,7 @@
 package org.projectforge.web.fibu;
 
 import java.io.InputStream;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -138,7 +139,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm>
     }
     final BusinessAssessment businessAssessment = new BusinessAssessment(
         AccountingConfig.getInstance().getBusinessAssessmentConfig(),
-        (Integer) sheet.getProperty("year"), (Integer) sheet.getProperty("month"));
+        (Integer) sheet.getProperty("year"), (Month) sheet.getProperty("month"));
     form.setBusinessAssessment(businessAssessment);
     businessAssessment.setAccountRecords(list);
   }

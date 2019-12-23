@@ -49,7 +49,7 @@ public class PostausgangEditPage extends AbstractEditPage<PostausgangDO, Postaus
     super(parameters, "orga.postausgang");
     init();
     if (isNew() == true) {
-      getData().setDatum(new DayHolder().getSQLDate());
+      getData().setDatum(new DayHolder().getSqlDate());
       getData().setType(PostType.BRIEF);
     }
   }

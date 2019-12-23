@@ -286,7 +286,7 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   }
 
   @Override
-  public MonthlyEmployeeReport getReportOfMonth(final int year, final int month, final PFUserDO user) {
+  public MonthlyEmployeeReport getReportOfMonth(final int year, final Month month, final PFUserDO user) {
     MonthlyEmployeeReport monthlyEmployeeReport = new MonthlyEmployeeReport(this, vacationService, user, year, month);
     monthlyEmployeeReport.init();
     TimesheetFilter filter = new TimesheetFilter();

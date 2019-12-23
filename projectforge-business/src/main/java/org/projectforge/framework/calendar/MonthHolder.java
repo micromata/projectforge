@@ -52,6 +52,15 @@ public class MonthHolder {
 
   }
 
+  public MonthHolder(final PFDate date) {
+    calculate(date);
+  }
+
+  public MonthHolder(final PFDateTime dateTime) {
+    calculate(PFDate.from(dateTime));
+  }
+
+
   /**
    * @param month      Can also be one month before or after if the day of the weeks of this month have an overlap to the nearby months.
    * @param dayOfMonth
@@ -85,7 +94,7 @@ public class MonthHolder {
 
     weeks = new ArrayList<>();
     do {
-      final WeekHolder week = new WeekHolder(date);
+      final WeekHolder week = new WeekHolder(day);
       weeks.add(week);
       day = day.plusWeeks(1);
     } while (day.getMonth() == month);

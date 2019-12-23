@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.export.SVGColor;
 import org.projectforge.export.SVGHelper;
 import org.projectforge.export.SVGHelper.ArrowDirection;
+import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.xstream.XmlObject;
 import org.w3c.dom.Document;
@@ -36,8 +37,7 @@ import org.w3c.dom.Element;
 import java.util.*;
 
 @XmlObject(alias = "ganttChart")
-public class GanttChart
-{
+public class GanttChart {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttChart.class);
 
   @SuppressWarnings("unused")
@@ -65,8 +65,7 @@ public class GanttChart
 
   private transient Map<GanttTask, ObjectInfo> objectMap = new HashMap<>();
 
-  private class ObjectInfo
-  {
+  private class ObjectInfo {
     final Date fromDate;
 
     final Date toDate;
@@ -79,8 +78,7 @@ public class GanttChart
 
     final double y;
 
-    ObjectInfo(final GanttTask node, final int row)
-    {
+    ObjectInfo(final GanttTask node, final int row) {
       this.fromDate = GanttUtils.getCalculatedStartDate(node);
       this.toDate = GanttUtils.getCalculatedEndDate(node);
       if (fromDate != null) {
@@ -97,39 +95,33 @@ public class GanttChart
       this.y = style.getYScale() * row;
     }
 
-    boolean isNaN()
-    {
+    boolean isNaN() {
       return fromDate == null || toDate == null;
     }
 
-    boolean isVisible()
-    {
+    boolean isVisible() {
       return this.row >= 0;
     }
   }
 
-  public GanttChart()
-  {
+  public GanttChart() {
     this.style = new GanttChartStyle();
     this.settings = new GanttChartSettings();
   }
 
-  public GanttChart(final GanttTask rootNode, final GanttChartStyle style, final GanttChartSettings settings, final String name)
-  {
+  public GanttChart(final GanttTask rootNode, final GanttChartStyle style, final GanttChartSettings settings, final String name) {
     this.rootNode = rootNode;
     this.style = style;
     this.settings = settings;
     this.name = name;
   }
 
-  public GanttChart setFontFamily(String fontFamily)
-  {
+  public GanttChart setFontFamily(String fontFamily) {
     this.fontFamily = fontFamily;
     return this;
   }
 
-  private ObjectInfo getObjectInfo(final GanttTask node)
-  {
+  private ObjectInfo getObjectInfo(final GanttTask node) {
     ObjectInfo taskInfo = objectMap.get(node);
     if (taskInfo != null) {
       return taskInfo;
@@ -139,29 +131,25 @@ public class GanttChart
     return taskInfo;
   }
 
-  public int getWidth()
-  {
+  public int getWidth() {
     return style.getWidth();
   }
 
   /**
    * The earliest date of all contained tasks.
    */
-  public Date getCalculatedStartDate()
-  {
+  public Date getCalculatedStartDate() {
     return calculatedStartDate;
   }
 
   /**
    * The latest date of all contained tasks.
    */
-  public Date getCalculatedEndDate()
-  {
+  public Date getCalculatedEndDate() {
     return calculatedEndDate;
   }
 
-  public GanttTask getRootNode()
-  {
+  public GanttTask getRootNode() {
     return rootNode;
   }
 
@@ -172,10 +160,10 @@ public class GanttChart
    * final BatikImage ganttImage = new BatikImage(&quot;ganttTest&quot;, ganttDiagram.create(), 800);
    * body.add(ganttImage);
    * </pre>
+   *
    * @return The SVG DOM model for this Gantt diagram.
    */
-  public Document create()
-  {
+  public Document create() {
     if (rootNode == null || rootNode.getChildren() == null) {
       return null;
     }
@@ -212,17 +200,17 @@ public class GanttChart
     e = SVGHelper.createElement(doc, "defs");
     root.appendChild(e);
     e.appendChild(SVGHelper.createElement(doc, "path", SVGColor.DARK_RED, "d", "M 0 0 L "
-        + GanttChartStyle.SUMMARY_ARROW_SIZE
-        + " 0 L 0 "
-        + GanttChartStyle.SUMMARY_ARROW_SIZE
-        + " z", "id", "redLeftArrow"));
+            + GanttChartStyle.SUMMARY_ARROW_SIZE
+            + " 0 L 0 "
+            + GanttChartStyle.SUMMARY_ARROW_SIZE
+            + " z", "id", "redLeftArrow"));
     e.appendChild(SVGHelper.createElement(doc, "path", SVGColor.DARK_RED, "d", "M 0 0 L "
-        + GanttChartStyle.SUMMARY_ARROW_SIZE
-        + " 0 L "
-        + GanttChartStyle.SUMMARY_ARROW_SIZE
-        + " "
-        + GanttChartStyle.SUMMARY_ARROW_SIZE
-        + " z", "id", "redRightArrow"));
+            + GanttChartStyle.SUMMARY_ARROW_SIZE
+            + " 0 L "
+            + GanttChartStyle.SUMMARY_ARROW_SIZE
+            + " "
+            + GanttChartStyle.SUMMARY_ARROW_SIZE
+            + " z", "id", "redRightArrow"));
     e.appendChild(SVGHelper.createElement(doc, "path", SVGColor.BLACK, "d", "M -5 0 L 0 5 L 5 0 L 0 -5 z", "id", "diamond"));
     e = SVGHelper.createElement(doc, "defs");
     root.appendChild(e);
@@ -246,17 +234,17 @@ public class GanttChart
     // labelbar
     if (fontFamily != null) {
       g1 = SVGHelper.createElement(doc, "g", "transform", "translate(" + style.getTotalLabelWidth() + ",20)", "text-anchor", "middle",
-          "font-family", fontFamily, "font-size", "9pt");
+              "font-family", fontFamily, "font-size", "9pt");
     } else {
       g1 = SVGHelper.createElement(doc, "g", "transform", "translate(" + style.getTotalLabelWidth() + ",20)", "text-anchor", "middle",
-          "font-size", "9pt");
+              "font-size", "9pt");
     }
     root.appendChild(g1);
     final Element diagram = SVGHelper.createElement(doc, "g", "transform", "translate("
-        + style.getTotalLabelWidth()
-        + ","
-        + GanttChartStyle.HEAD_HEIGHT
-        + ")");
+            + style.getTotalLabelWidth()
+            + ","
+            + GanttChartStyle.HEAD_HEIGHT
+            + ")");
     root.appendChild(diagram);
     final Element grid = SVGHelper.createElement(doc, "g", "stroke", "gray", "stroke-width", "1");// , "stroke-dasharray", "5,5");
     diagram.appendChild(grid);
@@ -265,7 +253,7 @@ public class GanttChart
 
     // Show today line, if configured.
     if (style.isShowToday()) {
-      final PFDateTime today = PFDateTime.now(); // @jan: am einfachsten wieder in DayHolder ändern.
+      final DayHolder today = new DayHolder();
       if (today.isBetween(fromDate, toDate)) {
         diagram.appendChild(SVGHelper.createLine(doc, getXValue(today.getUtilDate()), 0, getXValue(today.getUtilDate()), getDiagramHeight(), SVGColor.RED, "stroke-width", "2"));
       }
@@ -310,10 +298,10 @@ public class GanttChart
 
   /**
    * Recalculates all start and end dates of all nodes and the earliest calculated start date and latest calculated end date.
+   *
    * @return All visible nodes.
    */
-  public Collection<GanttTask> recalculate()
-  {
+  public Collection<GanttTask> recalculate() {
     rootNode.recalculate();
     fromDate = toDate = null;
     final Collection<GanttTask> allVisibleGanttObjects = getAllVisibleGanttObjects(new ArrayList<>(), rootNode);
@@ -342,8 +330,7 @@ public class GanttChart
   }
 
   private void drawGanttObjects(final Document doc, final Element g, final Element diagram, final Element grid,
-      final Collection<GanttTask> allVisibleGanttObjects)
-  {
+                                final Collection<GanttTask> allVisibleGanttObjects) {
     if (CollectionUtils.isEmpty(rootNode.getChildren())) {
       return;
     }
@@ -393,8 +380,7 @@ public class GanttChart
     }
   }
 
-  private Collection<GanttTask> getAllVisibleGanttObjects(final Collection<GanttTask> col, final GanttTask node)
-  {
+  private Collection<GanttTask> getAllVisibleGanttObjects(final Collection<GanttTask> col, final GanttTask node) {
     if (node != rootNode) {
       if (node.isVisible()) {
         col.add(node);
@@ -409,8 +395,7 @@ public class GanttChart
     return col;
   }
 
-  private void drawLabel(final GanttTask node, final Document doc, final Element labels)
-  {
+  private void drawLabel(final GanttTask node, final Document doc, final Element labels) {
     int indent = 0;
     GanttTask n = node;
     while (true) {
@@ -431,8 +416,7 @@ public class GanttChart
     }
   }
 
-  private void drawSummary(final GanttTask node, final Document doc, final Element diagram)
-  {
+  private void drawSummary(final GanttTask node, final Document doc, final Element diagram) {
     final ObjectInfo taskInfo = getObjectInfo(node);
     if (log.isDebugEnabled()) {
       log.debug("Task added: fromDate=" + taskInfo.fromDate + " (x=" + taskInfo.x1 + "), toDate=" + taskInfo.toDate + " (x=" + taskInfo.x2);
@@ -458,19 +442,18 @@ public class GanttChart
       return;
     }
     diagram.appendChild(SVGHelper.createRect(doc, x1, taskInfo.y + 0.2 * style.getActivityHeight(), width, 0.8 * style.getActivityHeight(),
-        SVGColor.DARK_RED, "stroke", "none"));
+            SVGColor.DARK_RED, "stroke", "none"));
     if (drawLeftArrow) {
       diagram.appendChild(SVGHelper.createUse(doc, "#redLeftArrow", taskInfo.x1, taskInfo.y + style.getActivityHeight()));
     }
     if (drawRightArrow) {
       diagram.appendChild(SVGHelper.createUse(doc, "#redRightArrow", (taskInfo.x2 - GanttChartStyle.SUMMARY_ARROW_SIZE), taskInfo.y
-          + style.getActivityHeight()));
+              + style.getActivityHeight()));
     }
     drawDependency(node, GanttObjectType.SUMMARY, doc, diagram);
   }
 
-  private void drawActivity(final GanttTask node, final Document doc, final Element diagram)
-  {
+  private void drawActivity(final GanttTask node, final Document doc, final Element diagram) {
     final ObjectInfo taskInfo = getObjectInfo(node);
     if (taskInfo.isNaN()) {
       // No start and end date given, do nothing:
@@ -478,14 +461,14 @@ public class GanttChart
     }
     if (log.isDebugEnabled()) {
       log.debug("Activity added: fromDate="
-          + taskInfo.fromDate
-          + " (x="
-          + taskInfo.x1
-          + "), toDate="
-          + taskInfo.toDate
-          + " (x="
-          + taskInfo.x2
-          + ")");
+              + taskInfo.fromDate
+              + " (x="
+              + taskInfo.x1
+              + "), toDate="
+              + taskInfo.toDate
+              + " (x="
+              + taskInfo.x2
+              + ")");
     }
     if (taskInfo.x2 < taskInfo.x1) {
       log.error("Oups, x2 < x1?: " + node);
@@ -530,8 +513,7 @@ public class GanttChart
     drawDependency(node, GanttObjectType.ACTIVITY, doc, diagram);
   }
 
-  private void drawMilestone(final GanttTask node, final Document doc, final Element diagram)
-  {
+  private void drawMilestone(final GanttTask node, final Document doc, final Element diagram) {
     final ObjectInfo taskInfo = getObjectInfo(node);
     final Date date = taskInfo.fromDate != null ? taskInfo.fromDate : taskInfo.toDate;
     if (date == null) {
@@ -549,8 +531,7 @@ public class GanttChart
     drawDependency(node, GanttObjectType.MILESTONE, doc, diagram);
   }
 
-  private void drawDependency(final GanttTask node, final GanttObjectType objectType, final Document doc, final Element diagram)
-  {
+  private void drawDependency(final GanttTask node, final GanttObjectType objectType, final Document doc, final Element diagram) {
     final ObjectInfo taskInfo = getObjectInfo(node);
     if (node.getPredecessor() != null) {
       final double dist;
@@ -582,14 +563,14 @@ public class GanttChart
         double diagramWidth = getDiagramWidth();
         if (depX1 > 0 && depX1 < diagramWidth && depX2 > 0 && depX2 < diagramWidth) {
           diagram.appendChild(SVGHelper.createPath(doc, SVGColor.NONE, 1, SVGColor.BLACK, SVGHelper.drawHorizontalConnectionLine(type,
-              depX1, depY1, depX2, depY2, style.getArrowMinXDist() + dist)));
+                  depX1, depY1, depX2, depY2, style.getArrowMinXDist() + dist)));
           if (type.isIn(GanttRelationType.FINISH_START, GanttRelationType.START_START)) {
             diagram.appendChild(SVGHelper.createPath(doc, SVGColor.BLACK, 1, SVGColor.BLACK, SVGHelper.drawArrow(ArrowDirection.RIGHT,
-                depX2 - dist, depY2, style.getArrowSize())));
+                    depX2 - dist, depY2, style.getArrowSize())));
           } else {
             diagram.appendChild(SVGHelper.createPath(doc, SVGColor.BLACK, 1, SVGColor.BLACK, SVGHelper.drawArrow(ArrowDirection.LEFT, depX2
-                + dist
-                / 2, depY2, style.getArrowSize())));
+                    + dist
+                    / 2, depY2, style.getArrowSize())));
           }
         }
       } else if (log.isDebugEnabled()) {
@@ -599,18 +580,15 @@ public class GanttChart
 
   }
 
-  private double getDiagramWidth()
-  {
+  private double getDiagramWidth() {
     return style.getWidth() - style.getTotalLabelWidth();
   }
 
-  private double getDiagramHeight()
-  {
+  private double getDiagramHeight() {
     return height - GanttChartStyle.HEAD_HEIGHT;
   }
 
-  private double getXValue(final Date date)
-  {
+  private double getXValue(final Date date) {
     if (date == null) {
       return 0.0;
     }
@@ -624,8 +602,7 @@ public class GanttChart
     return this.getDiagramWidth() * (days * 24 + hourOfDay) / (fromToDays * 24);
   }
 
-  private int getFromToDays()
-  {
+  private int getFromToDays() {
     if (fromToDays < 0) {
       final PFDateTime dt = PFDateTime.from(fromDate);
       fromToDays = (int) dt.daysBetween(toDate);

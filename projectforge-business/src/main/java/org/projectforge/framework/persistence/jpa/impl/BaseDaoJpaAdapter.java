@@ -373,7 +373,7 @@ public class BaseDaoJpaAdapter {
             final DayHolder srcDay = new DayHolder((Date) srcFieldValue);
             final DayHolder destDay = new DayHolder((Date) destFieldValue);
             if (!srcDay.isSameDay(destDay)) {
-              field.set(dest, srcDay.getSQLDate());
+              field.set(dest, srcDay.getSqlDate());
               modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
             }
           }

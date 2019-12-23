@@ -24,6 +24,7 @@
 package org.projectforge.plugins.liquidityplanning;
 
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 
 import java.io.Serializable;
@@ -46,7 +47,7 @@ public class LiquidityEntriesStatistics implements Serializable
   {
     paid = open = total = BigDecimal.ZERO;
     counter = counterPaid = 0;
-    today = new DayHolder().getDate();
+    today = PFDateTime.now().getUtilDate();
   }
 
   public void add(final LiquidityEntryDO entry)

@@ -87,6 +87,12 @@ class PFDate(val date: LocalDate,
             return PFDate(startOfWeek, locale)
         }
 
+    val endOfWeek: PFDate
+        get() {
+            val startOfWeek = PFDateTimeUtils.getBeginOfWeek(this.date).plusDays(7)
+            return PFDate(startOfWeek, locale)
+        }
+
     fun withYear(year: Int): PFDate {
         return PFDate(date.withYear(year), locale)
     }
@@ -209,13 +215,13 @@ class PFDate(val date: LocalDate,
          */
         @JvmStatic
         @JvmOverloads
-        fun from(date: java.util.Date?, nowIfNull: Boolean = false, locale: Locale = PFDateTime.getUsersLocale()): PFDate? {
+        fun from(date: java.util.Date?, nowIfNull: Boolean = false, timeZone: TimeZone? = PFDateTime.getUsersTimeZone(), locale: Locale = PFDateTime.getUsersLocale()): PFDate? {
             if (date == null)
                 return if (nowIfNull) now() else null
             if (date is java.sql.Date) {
                 return PFDate(date.toLocalDate(), locale)
             }
-            val dateTime = PFDateTime.from(date)!!
+            val dateTime = PFDateTime.from(date, false, timeZone, locale)!!
             val localDate = LocalDate.of(dateTime.year, dateTime.month, dateTime.dayOfMonth)
             return PFDate(localDate, locale)
         }

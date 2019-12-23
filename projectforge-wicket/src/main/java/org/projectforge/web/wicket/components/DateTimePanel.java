@@ -206,7 +206,7 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
 
   public void setDay(final DateHolder dateHolder)
   {
-    this.dateHolder.setDay(dateHolder.getCalendar());
+    this.dateHolder.setDay(dateHolder);
   }
 
   public Date getDate()
