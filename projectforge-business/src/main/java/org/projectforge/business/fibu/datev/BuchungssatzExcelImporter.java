@@ -48,8 +48,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-public class BuchungssatzExcelImporter
-{
+public class BuchungssatzExcelImporter {
   private static final Logger log = LoggerFactory.getLogger(BuchungssatzExcelImporter.class);
 
   /**
@@ -74,8 +73,7 @@ public class BuchungssatzExcelImporter
   private final ActionLog actionLog;
 
   public BuchungssatzExcelImporter(final ImportStorage<BuchungssatzDO> storage, final KontoDao kontoDao, final Kost1Dao kost1Dao,
-      final Kost2Dao kost2Dao, final ActionLog actionLog)
-  {
+                                   final Kost2Dao kost2Dao, final ActionLog actionLog) {
     this.storage = storage;
     this.kontoDao = kontoDao;
     this.kost1Dao = kost1Dao;
@@ -83,8 +81,7 @@ public class BuchungssatzExcelImporter
     this.actionLog = actionLog;
   }
 
-  public void doImport(final InputStream is) throws Exception
-  {
+  public void doImport(final InputStream is) throws Exception {
     final ExcelImport<BuchungssatzImportRow> imp = new ExcelImport<>(is);
     for (short idx = 0; idx < imp.getWorkbook().getNumberOfSheets(); idx++) {
       final ImportedSheet<BuchungssatzDO> sheet = importBuchungssaetze(imp, idx);
@@ -94,8 +91,7 @@ public class BuchungssatzExcelImporter
     }
   }
 
-  private ImportedSheet<BuchungssatzDO> importBuchungssaetze(final ExcelImport<BuchungssatzImportRow> imp, final int idx) throws Exception
-  {
+  private ImportedSheet<BuchungssatzDO> importBuchungssaetze(final ExcelImport<BuchungssatzImportRow> imp, final int idx) throws Exception {
     ImportedSheet<BuchungssatzDO> importedSheet = null;
     imp.setActiveSheet(idx);
     final String name = imp.getWorkbook().getSheetName(idx);
@@ -116,8 +112,7 @@ public class BuchungssatzExcelImporter
   }
 
   private ImportedSheet<BuchungssatzDO> importBuchungssaetze(final ExcelImport<BuchungssatzImportRow> imp, final HSSFSheet sheet,
-      final int month) throws Exception
-  {
+                                                             final int month) throws Exception {
     final ImportedSheet<BuchungssatzDO> importedSheet = new ImportedSheet<>();
     imp.setNameRowIndex(ROW_COLUMNNAMES);
     imp.setStartingRowIndex(ROW_COLUMNNAMES + 1);
@@ -165,21 +160,21 @@ public class BuchungssatzExcelImporter
         continue;
       }
       final BuchungssatzDO satz = element.getValue();
-      final PFDateTime dateTime = PFDateTime.fromOrNow(satz.getDatum(), null, Locale.GERMAN).withPrecision(DatePrecision.DAY);
+      final PFDateTime dateTime = PFDateTime.from(satz.getDatum(), true, null, Locale.GERMAN).withPrecision(DatePrecision.DAY);
       if (year == 0) {
         year = dateTime.getYear();
       } else if (year != dateTime.getYear()) {
         final String msg =
-            "Not supported: Buchungssätze innerhalb eines Excel-Sheets liegen in verschiedenen Jahren: Im Blatt '" + sheet.getSheetName() + "', in Zeile " + (i
-                + 2);
+                "Not supported: Buchungssätze innerhalb eines Excel-Sheets liegen in verschiedenen Jahren: Im Blatt '" + sheet.getSheetName() + "', in Zeile " + (i
+                        + 2);
         actionLog.logError(msg);
         throw new UserException(msg);
       }
       if (dateTime.getMonthValue() > month) {
         final String msg = "Buchungssätze können nicht in die Zukunft für den aktuellen Monat '"
-            + KostFormatter.formatBuchungsmonat(year, dateTime.getMonthValue())
-            + " gebucht werden! "
-            + satz;
+                + KostFormatter.formatBuchungsmonat(year, dateTime.getMonthValue())
+                + " gebucht werden! "
+                + satz;
         actionLog.logError(msg);
         throw new RuntimeException(msg);
       } else if (dateTime.getMonthValue() < month) {
@@ -203,8 +198,7 @@ public class BuchungssatzExcelImporter
    *
    * @param sheet
    */
-  private void rename2ndSH(final HSSFSheet sheet)
-  {
+  private void rename2ndSH(final HSSFSheet sheet) {
     try {
       final HSSFRow row = sheet.getRow(ROW_COLUMNNAMES);
       if (row == null) {
@@ -232,13 +226,12 @@ public class BuchungssatzExcelImporter
     }
   }
 
-  private ImportedElement<BuchungssatzDO> convertBuchungssatz(final BuchungssatzImportRow row) throws Exception
-  {
+  private ImportedElement<BuchungssatzDO> convertBuchungssatz(final BuchungssatzImportRow row) throws Exception {
     if (row.isEmpty()) {
       return null;
     }
     final ImportedElement<BuchungssatzDO> element = new ImportedElement<>(storage.nextVal(), BuchungssatzDO.class,
-        DatevImportDao.BUCHUNGSSATZ_DIFF_PROPERTIES);
+            DatevImportDao.BUCHUNGSSATZ_DIFF_PROPERTIES);
     final BuchungssatzDO satz = new BuchungssatzDO();
     element.setValue(satz);
     satz.setBeleg(row.beleg);

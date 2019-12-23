@@ -23,9 +23,9 @@
 
 package org.projectforge.framework.time;
 
+import org.joda.time.DateTime;
 import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.LabelValueBean;
 
@@ -473,7 +473,6 @@ public class DateHelper implements Serializable {
    * 4 days in the new year. For "en" the first week of the year is the first week with a minimum of 1 days in
    * the new year.
    * @see java.util.Calendar#getMinimalDaysInFirstWeek()
-   * @see Configuration#getDefaultLocale()
    */
   public static int getWeekOfYear(final Date date) {
     if (date == null) {
@@ -516,11 +515,12 @@ public class DateHelper implements Serializable {
    * the new year.
    * @see java.util.Calendar#getMinimalDaysInFirstWeek()
    */
-  public static int getWeekOfYear(final PFDateTime date) {
+  @Deprecated
+  public static int getWeekOfYear(final DateTime date) {
     if (date == null) {
       return -1;
     }
-    return getWeekOfYear(date.getUtilDate());
+    return getWeekOfYear(date.toDate());
   }
 
   /**
@@ -531,7 +531,7 @@ public class DateHelper implements Serializable {
    */
 
   public static boolean isSameDay(final Date d1, final Date d2) {
-    return isSameDay(PFDateTime.fromOrNow(d1), PFDateTime.fromOrNow(d2));
+    return isSameDay(PFDateTime.from(d1, true), PFDateTime.from(d2, true));
   }
 
   /**
@@ -542,6 +542,23 @@ public class DateHelper implements Serializable {
    * @see DateHolder#isSameDay(Date)
    */
   public static boolean isSameDay(final PFDateTime d1, final PFDateTime d2) {
+    if (d1 == null) {
+      return d2 == null;
+    } else if (d2 == null) {
+      return false;
+    }
+    return d1.getYear() == d2.getYear() && d1.getDayOfYear() == d2.getDayOfYear();
+  }
+
+  /**
+   * @param d1
+   * @param d2
+   * @return True if the dates are both null or both represents the same day (year, month, day) independent of the
+   * hours, minutes etc.
+   * @see DateHolder#isSameDay(Date)
+   */
+  @Deprecated
+  public static boolean isSameDay(final DateTime d1, final DateTime d2) {
     if (d1 == null) {
       return d2 == null;
     } else if (d2 == null) {
@@ -585,8 +602,9 @@ public class DateHelper implements Serializable {
    * @see DateTime#toString(String)
    * @see DateHelper#parseIsoDate(String, TimeZone)
    */
-  public static long getDateTimeAsMillis(final PFDateTime dateTime) {
-    final String isoDateString = dateTime.getJavaScriptString();
+  @Deprecated
+  public static long getDateTimeAsMillis(final DateTime dateTime) {
+    final String isoDateString = dateTime.toString(DateFormats.ISO_TIMESTAMP_MILLIS);
     final Date date = DateHelper.parseIsoTimestamp(isoDateString, ThreadLocalUserContext.getTimeZone());
     return date.getTime();
   }

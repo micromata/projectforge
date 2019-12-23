@@ -42,7 +42,6 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.time.DayOfWeek;
 import java.util.List;
 
 import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
@@ -63,8 +62,8 @@ class IHKExporter
     }
     ExportWorkbook workbook;
 
-    PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).withDayOfWeek(DayOfWeek.MONDAY);
-    PFDateTime sundayDate = mondayDate.withDayOfWeek(DayOfWeek.SUNDAY);
+    PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).getBeginOfWeek();
+    PFDateTime sundayDate = mondayDate.getEndOfWeek().getBeginOfDay();
 
     ClassPathResource classPathResource = new ClassPathResource("IHK-Template-2019.xls");
 

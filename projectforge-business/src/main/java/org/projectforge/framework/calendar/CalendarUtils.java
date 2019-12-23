@@ -35,48 +35,47 @@ import java.util.TimeZone;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class CalendarUtils
-{
+public class CalendarUtils {
   /**
    * Converts a given date (in user's timeZone) to midnight of UTC timeZone.
+   *
    * @param date
    * @return
    */
-  public static Date getUTCMidnightDate(final Date date)
-  {
+  public static Date getUTCMidnightDate(final Date date) {
     final Calendar utcCal = getUTCMidnightCalendar(date);
     return utcCal.getTime();
   }
 
   /**
    * Converts a given date (in user's timeZone) to midnight of UTC timeZone.
+   *
    * @param date
    * @return
    */
-  public static Timestamp getUTCMidnightTimestamp(final Date date)
-  {
+  public static Timestamp getUTCMidnightTimestamp(final Date date) {
     final Calendar cal = getUTCMidnightCalendar(date);
     return new Timestamp(cal.getTimeInMillis());
   }
 
   /**
    * Converts a given date (in user's timeZone) to midnight of UTC timeZone.
+   *
    * @param date
    * @return
    */
-  public static Calendar getUTCMidnightCalendar(final Date date)
-  {
+  public static Calendar getUTCMidnightCalendar(final Date date) {
     return getUTCMidnightCalendar(date, ThreadLocalUserContext.getTimeZone());
   }
 
   /**
    * Converts a given date (in user's timeZone) to midnight of UTC timeZone.
+   *
    * @param date
    * @param timeZone
    * @return
    */
-  public static Calendar getUTCMidnightCalendar(final Date date, final TimeZone timeZone)
-  {
+  public static Calendar getUTCMidnightCalendar(final Date date, final TimeZone timeZone) {
     final Calendar usersCal = Calendar.getInstance(timeZone);
     usersCal.setTime(date);
     final Calendar utcCal = DateHelper.getUTCCalendar();
@@ -86,45 +85,45 @@ public class CalendarUtils
 
   /**
    * Converts a given date (in UTC) to midnight of user's timeZone.
+   *
    * @param date
    * @return
    */
-  public static Timestamp getMidnightTimestampFromUTC(final Date date)
-  {
+  public static Timestamp getMidnightTimestampFromUTC(final Date date) {
     final Calendar cal = getMidnightCalendarFromUTC(date);
     return new Timestamp(cal.getTimeInMillis());
   }
 
   /**
    * Converts a given date (in UTC) to midnight of user's timeZone.
+   *
    * @param date
    * @param timeZone
    * @return
    */
-  public static Timestamp getMidnightTimestampFromUTC(final Date date, final TimeZone timeZone)
-  {
+  public static Timestamp getMidnightTimestampFromUTC(final Date date, final TimeZone timeZone) {
     final Calendar cal = getMidnightCalendarFromUTC(date, timeZone);
     return new Timestamp(cal.getTimeInMillis());
   }
 
   /**
    * Converts a given date (in user's timeZone) to midnight of UTC timeZone.
+   *
    * @param date
    * @return
    */
-  public static Calendar getMidnightCalendarFromUTC(final Date date)
-  {
+  public static Calendar getMidnightCalendarFromUTC(final Date date) {
     return getMidnightCalendarFromUTC(date, ThreadLocalUserContext.getTimeZone());
   }
 
   /**
    * Converts a given date (in user's timeZone) to midnight of UTC timeZone.
+   *
    * @param date
    * @param timeZone
    * @return
    */
-  public static Calendar getMidnightCalendarFromUTC(final Date date, final TimeZone timeZone)
-  {
+  public static Calendar getMidnightCalendarFromUTC(final Date date, final TimeZone timeZone) {
     final Calendar utcCal = DateHelper.getUTCCalendar();
     utcCal.setTime(date);
     final Calendar usersCal = Calendar.getInstance(timeZone);
@@ -132,13 +131,11 @@ public class CalendarUtils
     return usersCal;
   }
 
-  public static Date getEndOfDay(final Date date, final TimeZone timeZone)
-  {
-    return PFDateTime.fromOrNow(date, timeZone).withHour(23).withMinute(59).withSecond(59).withMilliSecond(999).getUtilDate();
+  public static Date getEndOfDay(final Date date, final TimeZone timeZone) {
+    return PFDateTime.from(date, true, timeZone).withHour(23).withMinute(59).withSecond(59).withMilliSecond(999).getUtilDate();
   }
 
-  public static int daysBetween(final Calendar cal1, final Calendar cal2)
-  {
+  public static int daysBetween(final Calendar cal1, final Calendar cal2) {
     final Calendar from, to;
     boolean positive = true;
     if (cal1.getTimeInMillis() < cal2.getTimeInMillis()) {
@@ -172,13 +169,11 @@ public class CalendarUtils
     }
   }
 
-  public static boolean isSameDay(final Calendar cal1, final Calendar cal2)
-  {
+  public static boolean isSameDay(final Calendar cal1, final Calendar cal2) {
     return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) && cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
   }
 
-  private static void copyCalendarDay(final Calendar src, final Calendar dest)
-  {
+  private static void copyCalendarDay(final Calendar src, final Calendar dest) {
     copyCalField(src, dest, Calendar.YEAR);
     copyCalField(src, dest, Calendar.MONTH);
     copyCalField(src, dest, Calendar.DAY_OF_MONTH);
@@ -188,8 +183,7 @@ public class CalendarUtils
     dest.set(Calendar.MILLISECOND, 0);
   }
 
-  private static void copyCalField(final Calendar src, final Calendar dest, final int field)
-  {
+  private static void copyCalField(final Calendar src, final Calendar dest, final int field) {
     dest.set(field, src.get(field));
   }
 }

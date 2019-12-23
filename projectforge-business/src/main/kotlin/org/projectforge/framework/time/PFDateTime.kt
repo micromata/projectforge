@@ -418,23 +418,13 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
 
         /**
          * @param timeZone: TimeZone to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
-         * @return now if date is null.
-         */
-        @JvmStatic
-        @JvmOverloads
-        fun fromOrNow(date: Date?, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime {
-            return from(date, timeZone, locale) ?: now()
-        }
-
-        /**
-         * @param timeZone: TimeZone to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
          * @return null if date is null.
          */
         @JvmStatic
         @JvmOverloads
-        fun from(date: Date?, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
+        fun from(date: Date?, nowIfNull: Boolean = false, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
             if (date == null)
-                return null
+                return if (nowIfNull) now() else null
             val zoneId = timeZone?.toZoneId() ?: getUsersZoneId()
             return if (date is java.sql.Date) { // Yes, this occurs!
                 from(date.toLocalDate(), false, zoneId, locale ?: getUsersLocale())
@@ -445,23 +435,13 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
 
         /**
          * Creates midnight [ZonedDateTime] from given [LocalDate].
-         * @return now if date is null.
-         */
-        @JvmStatic
-        @JvmOverloads
-        fun fromOrNow(date: java.sql.Date?, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime {
-            return from(date, timeZone, locale) ?: now()
-        }
-
-        /**
-         * Creates midnight [ZonedDateTime] from given [LocalDate].
          * @return null if date is null.
          */
         @JvmStatic
         @JvmOverloads
-        fun from(date: java.sql.Date?, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
+        fun from(date: java.sql.Date?, nowIfNull: Boolean = false, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
             if (date == null)
-                return null
+                return if (nowIfNull) now() else null
             val zoneId = timeZone?.toZoneId() ?: getUsersZoneId()
             val dateTime = date.toInstant().atZone(zoneId)
             return PFDateTime(dateTime, locale ?: getUsersLocale())

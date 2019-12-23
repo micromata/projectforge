@@ -50,6 +50,12 @@ class PFDateTimeUtils {
         }
 
         @JvmStatic
+        fun getBeginOfWeek(date: LocalDate): LocalDate {
+            val field = WeekFields.of(getFirstDayOfWeek(), 1).dayOfWeek()
+            return return date.with(field, 1)
+        }
+
+        @JvmStatic
         fun getFirstDayOfWeek(): DayOfWeek {
             val firstDayOfWeek = ThreadLocalUserContext.getJodaFirstDayOfWeek()
             return getDayOfWeek(firstDayOfWeek)!!
@@ -108,12 +114,19 @@ class PFDateTimeUtils {
         fun getNumberOfWorkingDays(from: PFDateTime, to: PFDateTime): BigDecimal {
             Validate.notNull(from)
             Validate.notNull(to)
+            return getNumberOfWorkingDays(PFDate.from(from)!!, PFDate.from(to)!!)
+        }
+
+        @JvmStatic
+        fun getNumberOfWorkingDays(from: PFDate, to: PFDate): BigDecimal {
+            Validate.notNull(from)
+            Validate.notNull(to)
             val holidays = Holidays.getInstance()
             if (to.isBefore(from)) {
                 return BigDecimal.ZERO
             }
             if (from.isSameDay(to)) {
-                if (holidays.isWorkingDay(from.dateTime)) {
+                if (holidays.isWorkingDay(from)) {
                     val workFraction = holidays.getWorkFraction(from)
                     return workFraction ?: BigDecimal.ONE
                 } else {
@@ -128,7 +141,7 @@ class PFDateTimeUtils {
                     throw UserException(
                             "getNumberOfWorkingDays does not support calculation of working days for a time period greater than two years!")
                 }
-                if (holidays.isWorkingDay(from.dateTime)) {
+                if (holidays.isWorkingDay(from)) {
                     val workFraction = holidays.getWorkFraction(from)
                     if (workFraction != null) {
                         numberOfWorkingDays = numberOfWorkingDays.add(workFraction)

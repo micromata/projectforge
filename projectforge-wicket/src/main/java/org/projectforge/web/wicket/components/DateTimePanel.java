@@ -23,9 +23,6 @@
 
 package org.projectforge.web.wicket.components;
 
-import java.sql.Timestamp;
-import java.util.Date;
-
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
@@ -41,6 +38,9 @@ import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
+
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * Model for date and time of day components.
@@ -134,10 +134,8 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
 
   /**
    * @param id
-   * @param label             Only for displaying the field's name on validation messages.
    * @param model
    * @param precision
-   * @param settings.tabIndex Use tabIndex as html tab index of date field, hours and minutes.
    */
   public DateTimePanel(final String id, final IModel<Date> model, final DateTimePanelSettings settings, final DatePrecision precision)
   {
@@ -208,7 +206,7 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
 
   public void setDay(final DateHolder dateHolder)
   {
-    this.dateHolder.setDay(dateHolder.getDateTime());
+    this.dateHolder.setDay(dateHolder.getCalendar());
   }
 
   public Date getDate()

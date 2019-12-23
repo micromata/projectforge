@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.calendar.WeekHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDate;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.TestSetup;
@@ -51,7 +52,7 @@ public class MonthHolderTest {
   @Test
   public void testMonthHolder() {
     final PFDateTime dateTime = PFDateTime.from(new Date(), true, null, Locale.GERMAN)
-        .withPrecision(DatePrecision.DAY).withDate(1970, Month.NOVEMBER, 21, 0, 0, 0);
+            .withPrecision(DatePrecision.DAY).withDate(1970, Month.NOVEMBER, 21, 0, 0, 0);
     final MonthHolder month = new MonthHolder(dateTime.getUtilDate());
     assertEquals(6, month.getWeeks().size());
     WeekHolder week = month.getFirstWeek();
@@ -71,7 +72,7 @@ public class MonthHolderTest {
   @Test
   public void testNumberOfWorkingDays() {
     final PFDateTime dateTime = PFDateTime.from(new Date(), true, null, Locale.GERMAN)
-        .withPrecision(DatePrecision.DAY).withDate(2009, Month.JANUARY, 16, 0, 0, 0);
+            .withPrecision(DatePrecision.DAY).withDate(2009, Month.JANUARY, 16, 0, 0, 0);
     MonthHolder month = new MonthHolder(dateTime.getUtilDate());
     AbstractTestBase.assertBigDecimal(21, month.getNumberOfWorkingDays());
     month = new MonthHolder(dateTime.withMonth(Month.FEBRUARY).getUtilDate());
@@ -85,9 +86,9 @@ public class MonthHolderTest {
   @Test
   public void testDays() {
     final MonthHolder mh = new MonthHolder(2013, Month.MAY);
-    final List<PFDateTime> list = mh.getDays();
+    final List<PFDate> list = mh.getDays();
     Assertions.assertEquals(31, list.size());
-    for (final PFDateTime dt : list) {
+    for (final PFDate dt : list) {
       Assertions.assertEquals(Month.MAY, dt.getMonth());
     }
     Assertions.assertEquals(1, list.get(0).getDayOfMonth());

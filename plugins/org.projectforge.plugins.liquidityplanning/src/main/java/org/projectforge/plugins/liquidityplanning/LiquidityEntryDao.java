@@ -99,7 +99,7 @@ public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO>
       if (myFilter.getNextDays() > 0) {
         Date dateOfPayment = entry.getDateOfPayment();
         if (dateOfPayment == null) {
-          dateOfPayment = today.getSQLDate();
+          dateOfPayment = today.getSqlDate();
         }
         if (dateOfPayment.before(today.getUtilDate())) {
           // Entry is before today:

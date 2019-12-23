@@ -39,6 +39,7 @@ import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.calendar.WeekHolder;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.PFDate;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 
@@ -208,7 +209,7 @@ public class MonthlyEmployeeReport implements Serializable {
    * Dont't forget to initialize: setFormatter and setUser or setEmployee.
    *
    * @param year
-   * @param month
+   * @param month 1-based: 1 - January, ..., 12 - December
    */
   public MonthlyEmployeeReport(final EmployeeService employeeService, final VacationService vacationService, final PFUserDO user, final int year, final int month) {
     this.year = year;
@@ -332,10 +333,11 @@ public class MonthlyEmployeeReport implements Serializable {
     }
     final MonthHolder monthHolder = new MonthHolder(this.fromDate);
     this.numberOfWorkingDays = monthHolder.getNumberOfWorkingDays();
+    final Holidays holidays = Holidays.getInstance();
     for (final WeekHolder week : monthHolder.getWeeks()) {
 
-      for (final PFDateTime day : week.getDays()) {
-        if (day.getMonthValue() == this.month && Holidays.getInstance().isWorkingDay(day.getDateTime())
+      for (final PFDate day : week.getDays()) {
+        if (day.getMonthValue() == this.month && holidays.isWorkingDay(day)
                 && !bookedDays.contains(day.getDayOfMonth())) {
           unbookedDays.add(day.getDayOfMonth());
         }
@@ -410,6 +412,9 @@ public class MonthlyEmployeeReport implements Serializable {
     return year;
   }
 
+  /**
+   * @return 1-based: 1 - January, ..., 12 - December
+   */
   public int getMonth() {
     return month;
   }
