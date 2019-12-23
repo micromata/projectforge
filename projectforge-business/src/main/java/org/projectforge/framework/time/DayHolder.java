@@ -25,23 +25,26 @@ package org.projectforge.framework.time;
 
 import org.apache.commons.lang3.Validate;
 import org.projectforge.framework.calendar.Holidays;
-import org.projectforge.framework.i18n.UserException;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.Month;
 import java.util.*;
 
 /**
+ * Please use PFDate instead.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Deprecated
-public class DayHolder extends DateHolder
-{
+public class DayHolder {
   private static final long serialVersionUID = 2646871164508930568L;
+
+  private PFDate date;
 
   /**
    * I18n keys of the day names (e. g. needed for I18n).
    */
-  public static final String DAY_KEYS[] = new String[] { "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday" };
+  public static final String DAY_KEYS[] = new String[]{"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"};
 
   private transient Holidays holidays = Holidays.getInstance();
 
@@ -54,13 +57,11 @@ public class DayHolder extends DateHolder
 
   private boolean marker = false;
 
-  public static String getDayKey(final int dayOfWeek)
-  {
-    return DAY_KEYS[dayOfWeek - 1];
+  public static String getDayKey(final DayOfWeek dayOfWeek) {
+    return DAY_KEYS[dayOfWeek.ordinal()];
   }
 
-  public static BigDecimal getNumberOfWorkingDays(final Date from, final Date to)
-  {
+  public static BigDecimal getNumberOfWorkingDays(final Date from, final Date to) {
     Validate.notNull(from);
     Validate.notNull(to);
     final DayHolder fromDay = new DayHolder(from);
@@ -68,74 +69,85 @@ public class DayHolder extends DateHolder
     return getNumberOfWorkingDays(fromDay, toDay);
   }
 
-  public static BigDecimal getNumberOfWorkingDays(final DateHolder from, final DateHolder to)
-  {
-    Validate.notNull(from);
-    Validate.notNull(to);
-    if (to.before(from)) {
-      return BigDecimal.ZERO;
-    }
-    if (from.isSameDay(to)) {
-      final DayHolder day = new DayHolder(from);
-      if (day.isWorkingDay()) {
-        final BigDecimal workFraction = day.getWorkFraction();
-        if (workFraction != null) {
-          return workFraction;
-        } else {
-          return BigDecimal.ONE;
-        }
-      } else {
-        return BigDecimal.ZERO;
-      }
-    }
-    final DayHolder day = new DayHolder(from);
-    BigDecimal numberOfWorkingDays = BigDecimal.ZERO;
-    int numberOfFullWorkingDays = 0;
-    int dayCounter = 1;
-    do {
-      if (dayCounter++ > 740) { // Endless loop protection, time period greater 2 years.
-        throw new UserException(
-            "getNumberOfWorkingDays does not support calculation of working days for a time period greater than two years!");
-      }
-      if (day.isWorkingDay()) {
-        final BigDecimal workFraction = day.getWorkFraction();
-        if (workFraction != null) {
-          numberOfWorkingDays = numberOfWorkingDays.add(day.getWorkFraction());
-        } else {
-          numberOfFullWorkingDays++;
-        }
-      }
-      day.add(Calendar.DAY_OF_MONTH, 1);
-    } while (!day.isSameDay(to));
-    numberOfWorkingDays = numberOfWorkingDays.add(new BigDecimal(numberOfFullWorkingDays));
-    return numberOfWorkingDays;
+  public static BigDecimal getNumberOfWorkingDays(final DayHolder from, final DayHolder to) {
+    return PFDateTimeUtils.getNumberOfWorkingDays(from.date, to.date);
   }
 
   /**
    * Initializes with current day (with time zone UTC!).
    */
-  public DayHolder()
-  {
-    super(DatePrecision.DAY);
+  public DayHolder() {
+    this.date = PFDate.now();
   }
 
   /**
    * @param date
    */
-  public DayHolder(final Date date)
-  {
-    super(date, DatePrecision.DAY);
+  public DayHolder(final Date date) {
+    this.date = PFDate.from(date);
   }
 
-  public DayHolder(final Date date, final TimeZone timeZone, final Locale locale)
-  {
-    super(date, DatePrecision.DAY, timeZone, locale);
+  public DayHolder(final Date date, final TimeZone timeZone, final Locale locale) {
+    this.date = PFDate.from(date, true, timeZone, locale);
   }
 
-  public DayHolder(final DateHolder dateHolder)
-  {
-    this.calendar = (Calendar) dateHolder.getCalendar().clone();
-    setPrecision(DatePrecision.DAY);
+  public DayHolder(final DayHolder dateHolder) {
+    this.date = dateHolder.date;
+  }
+
+  public int getYear() {
+    return this.date.getYear();
+  }
+
+  public Month getMonth() {
+    return this.date.getMonth();
+  }
+
+  public int getDayOfYear() {
+    return this.date.getDayOfYear();
+  }
+
+  public int getDayOfMonth() {
+    return this.date.getDayOfMonth();
+  }
+
+  public boolean before(final DayHolder date) {
+    return this.date.isBefore(date.date);
+  }
+
+  public boolean after(final DayHolder date) {
+    return this.date.isAfter(date.date);
+  }
+
+  public boolean isBetween(final Date from, final Date to) {
+    final Date utilDate = date.getUtilDate();
+    if (from == null) {
+      if (to == null) {
+        return false;
+      }
+      return !utilDate.after(to);
+    }
+    if (to == null) {
+      return !utilDate.before(from);
+    }
+    return !(utilDate.after(to) || utilDate.before(from));
+  }
+
+  /**
+   * @param other
+   * @return other.days - this.days.
+   */
+  public long daysBetween(final Date other) {
+    PFDate otherDay = PFDate.from(other);
+    return this.date.daysBetween(otherDay);
+  }
+
+  /**
+   * @param other
+   * @return other.days - this.days.
+   */
+  public long daysBetween(final DayHolder other) {
+    return this.date.daysBetween(other.date);
   }
 
   /**
@@ -143,118 +155,123 @@ public class DayHolder extends DateHolder
    *
    * @return
    */
-  public boolean isMarker()
-  {
+  public boolean isMarker() {
     return marker;
   }
 
-  public DayHolder setMarker(final boolean marker)
-  {
+  public DayHolder setMarker(final boolean marker) {
     this.marker = marker;
     return this;
   }
 
-  public String getDayKey()
-  {
+  public String getDayKey() {
     return getDayKey(getDayOfWeek());
   }
 
-  public boolean isToday()
-  {
-    return isSameDay(new Date());
+  public boolean isToday() {
+    return date.isSameDay(PFDate.now());
   }
 
-  public boolean isSunday()
-  {
-    return Calendar.SUNDAY == getDayOfWeek();
+  public boolean isSameDay(Date other) {
+    return date.isSameDay(PFDate.from(other));
   }
 
-  public boolean isWeekend()
-  {
-    final int dayOfWeek = getDayOfWeek();
-    return Calendar.SUNDAY == dayOfWeek || Calendar.SATURDAY == dayOfWeek;
+  public boolean isSameDay(DayHolder other) {
+    return date.isSameDay(other.date);
   }
 
-  public boolean isHoliday()
-  {
-    return holidays.isHoliday(getYear(), getDayOfYear());
+  public boolean isSunday() {
+    return DayOfWeek.SUNDAY == getDayOfWeek();
   }
 
-  public boolean isSunOrHoliday()
-  {
+  public boolean isWeekend() {
+    final DayOfWeek dayOfWeek = getDayOfWeek();
+    return DayOfWeek.SUNDAY == dayOfWeek || DayOfWeek.SATURDAY == dayOfWeek;
+  }
+
+  public boolean isHoliday() {
+    return holidays.isHoliday(date);
+  }
+
+  public boolean isSunOrHoliday() {
     return isSunday() || isHoliday();
   }
 
-  public boolean isWorkingDay()
-  {
+  public boolean isWorkingDay() {
     return holidays.isWorkingDay(this);
   }
 
   /**
    * Weekend days have always no work fraction!
    */
-  public BigDecimal getWorkFraction()
-  {
+  public BigDecimal getWorkFraction() {
     return holidays.getWorkFraction(this);
   }
 
-  public String getHolidayInfo()
-  {
+  public String getHolidayInfo() {
     if (holidayInfo == null) {
-      holidayInfo = holidays.getHolidayInfo(getYear(), getDayOfYear());
+      holidayInfo = holidays.getHolidayInfo(date);
     }
     return holidayInfo;
   }
 
-  public DayHolder setHolidays(final Holidays holidays)
-  {
+  public DayHolder setHolidays(final Holidays holidays) {
     this.holidays = holidays;
     return this;
   }
 
-  /**
-   * Does not set end of day as DateHolder.
-   */
-  @Override
-  public DayHolder setEndOfWeek()
-  {
-    calendar.set(Calendar.DAY_OF_WEEK, calendar.getFirstDayOfWeek() + 6);
+  public DayHolder setBeginOfWeek() {
+    this.date = this.date.getBeginOfWeek();
+    return this;
+  }
+
+  public DayHolder setEndOfWeek() {
+    this.date = this.date.getEndOfWeek();
     return this;
   }
 
   /**
    * Does not set end of day as DateHolder.
    */
-  @Override
-  public DayHolder setEndOfMonth()
-  {
-    final int day = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-    calendar.set(Calendar.DAY_OF_MONTH, day);
+  public DayHolder setEndOfMonth() {
+    this.date = this.date.getEndOfMonth();
+    return this;
+  }
+
+  public DayHolder setDate(int year, Month month, int dayOfMonth) {
+    this.date = PFDate.withDate(year, month, dayOfMonth);
     return this;
   }
 
   /**
-   * @return The time in millis for the day represented by this object but with current time of day (now).
-   * @see DateHelper#getCalendar()
+   * Adds the given number of units.
+   *
+   * @param field
+   * @param amount
    */
-  public long getMillisForCurrentTimeOfDay()
-  {
-    final Calendar cal = (Calendar) calendar.clone();
-    cal.set(Calendar.YEAR, this.getYear());
-    cal.set(Calendar.MONTH, this.getMonth());
-    cal.set(Calendar.DAY_OF_MONTH, this.getDayOfMonth());
-    return cal.getTimeInMillis();
+  public DayHolder add(final int field, final int amount) {
+    this.date = this.date.plus(amount, PFDateTimeCompabilityUtils.getCompabilityFields(field));
+    return this;
+  }
+
+  /**
+   * Adds the given number of days (non-working days will be skipped). Maximum allowed value is 10.000 (for avoiding end-less loops).
+   *
+   * @param days Value can be positive or negative.
+   */
+  public DayHolder addWorkingDays(final int days) {
+    Validate.isTrue(days <= 10000);
+    this.date = PFDateTimeUtils.addWorkingDays(this.date, days);
+    return this;
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     return isoFormat();
   }
 
-  public String isoFormat()
-  {
-    return DateHelper.formatIsoDate(getDate());
+  public String isoFormat() {
+    return date.getIsoString();
   }
 
   /**
@@ -263,8 +280,7 @@ public class DayHolder extends DateHolder
    * @param key
    * @param value
    */
-  public DayHolder addObject(final String key, final Object value)
-  {
+  public DayHolder addObject(final String key, final Object value) {
     if (this.objects == null) {
       this.objects = new HashMap<>();
     }
@@ -277,24 +293,31 @@ public class DayHolder extends DateHolder
    *
    * @return the stored objects to this day or null, if not exist.
    */
-  public Object getObject(final String key)
-  {
+  public Object getObject(final String key) {
     if (this.objects == null) {
       return null;
     }
     return this.objects.get(key);
   }
 
-  public Map<String, Object> getObjects()
-  {
+  public Map<String, Object> getObjects() {
     return this.objects;
   }
 
+  public DayOfWeek getDayOfWeek() {
+    return this.date.getDayOfWeek();
+  }
+
+  public java.util.Date getUtilDate() {
+    return date.getUtilDate();
+  }
+
+  public java.sql.Date getSqlDate() {
+    return date.getSqlDate();
+  }
+
   @Override
-  public DayHolder clone()
-  {
-    final DayHolder res = new DayHolder();
-    res.calendar = (Calendar) this.calendar.clone();
-    return res;
+  public DayHolder clone() {
+    return new DayHolder(this);
   }
 }

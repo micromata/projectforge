@@ -26,6 +26,7 @@ package org.projectforge.reporting;
 import org.projectforge.business.fibu.kost.SHType;
 
 import java.math.BigDecimal;
+import java.time.Month;
 import java.util.Date;
 
 
@@ -38,13 +39,13 @@ public interface Buchungssatz
 {
   /** Synthetischer, eindeutiger Datenbankschlüssel. */
   public Integer getId();
-  
+
   /** @return Jahr des Buchungsmonats. */
   public Integer getYear();
 
-  /** @return Zugehöriger Buchungsmonat 0-11: 0-Januar, 1-Februar bis 11-Dezember. */
-  public Integer getMonth();
-  
+  /** @return Zugehöriger Buchungsmonat. */
+  public Month getMonth();
+
   /** @return Zugehöriger Buchungsmonat zweistellig formatiert 01-12: 01-Januar, 02-Februar bis 12-Dezember. */
   public String getFormattedMonth();
 

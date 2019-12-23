@@ -30,6 +30,8 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
 
+import java.time.Month;
+
 public class KostFormatter {
   public static final int MAX_VALUE = 99999999;
 
@@ -351,7 +353,7 @@ public class KostFormatter {
    * @param month 0 (January) - 11 (December)
    * @return
    */
-  public static String formatBuchungsmonat(final int year, final int month) {
+  public static String formatBuchungsmonat(final int year, final Month month) {
     return DateHelper.formatMonth(year, month);
   }
 
@@ -396,7 +398,7 @@ public class KostFormatter {
     return StringUtils.leftPad(String.valueOf(konto.getNummer()), 5);
   }
 
-  public static String formatZeitraum(final int fromYear, final int fromMonth, final int toYear, final int toMonth) {
+  public static String formatZeitraum(final int fromYear, final Month fromMonth, final int toYear, final Month toMonth) {
     final StringBuilder buf = new StringBuilder();
     if (fromYear > 0) {
       buf.append(formatBuchungsmonat(fromYear, fromMonth));

@@ -40,6 +40,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDate;
+import org.projectforge.framework.time.PFDateTimeCompabilityUtils;
 import org.projectforge.framework.utils.CurrencyHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Month;
 import java.util.*;
 
 /**
@@ -101,13 +103,13 @@ public class EmployeeSalaryExportDao {
 
     final EmployeeSalaryDO first = list.get(0);
     final int year = first.getYear();
-    final int month = first.getMonth();
-    PFDate buchungsdatum = PFDate.withDate(year, month + 1, 1);
+    final Month month = first.getMonth();
+    PFDate buchungsdatum = PFDate.withDate(year, month, 1);
     final MonthHolder monthHolder = new MonthHolder(buchungsdatum.getUtilDate());
     final BigDecimal numberOfWorkingDays = monthHolder.getNumberOfWorkingDays();
     buchungsdatum = buchungsdatum.getEndOfMonth();
 
-    final String sheetTitle = DateHelper.formatMonth(year, month);
+    final String sheetTitle = DateHelper.formatMonth(year,month);
     final ExportSheet sheet = xls.addSheet(sheetTitle);
     sheet.createFreezePane(0, 1);
 
@@ -174,7 +176,7 @@ public class EmployeeSalaryExportDao {
       final PFUserDO user = getUserGroupCache().getUser(salary.getEmployee().getUserId());
       Validate.isTrue(year == salary.getYear());
       Validate.isTrue(month == salary.getMonth());
-      final MonthlyEmployeeReport report = monthlyEmployeeReportDao.getReport(year, month + 1, user);
+      final MonthlyEmployeeReport report = monthlyEmployeeReportDao.getReport(year, month, user);
       mapping.add(ExcelColumn.MITARBEITER, user.getFullname());
       final Kost1DO kost1 = salary.getEmployee().getKost1();
       final BigDecimal bruttoMitAGAnteil = salary.getBruttoMitAgAnteil();
@@ -229,7 +231,7 @@ public class EmployeeSalaryExportDao {
       mapping.add(ExcelColumn.SUMME, "***");
       mapping.add(ExcelColumn.BEZEICHNUNG, "*** FEHLT! ***");
       sheet.addRow(mapping.getMapping(), 0);
-      final MonthlyEmployeeReport report = monthlyEmployeeReportDao.getReport(year, month + 1, user);
+      final MonthlyEmployeeReport report = monthlyEmployeeReportDao.getReport(year, month, user);
       final BigDecimal netDuration = new BigDecimal(report.getTotalNetDuration());
       addEmployeeRow(employeeSheet, employee, numberOfWorkingDays, netDuration, report);
     }

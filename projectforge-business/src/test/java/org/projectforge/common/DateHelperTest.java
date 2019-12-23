@@ -103,12 +103,11 @@ public class DateHelperTest extends AbstractTestBase
   @Test
   public void formatMonth()
   {
-    assertEquals("2009-01", DateHelper.formatMonth(2009, 0));
-    assertEquals("2009-01", DateHelper.formatMonth(2009, Month.JANUARY.getValue()));
-    assertEquals("2009-03", DateHelper.formatMonth(2009, Month.MARCH.getValue()));
-    assertEquals("2009-09", DateHelper.formatMonth(2009, Month.SEPTEMBER.getValue()));
-    assertEquals("2009-10", DateHelper.formatMonth(2009, Month.OCTOBER.getValue()));
-    assertEquals("2009-12", DateHelper.formatMonth(2009, Month.DECEMBER.getValue()));
+    assertEquals("2009-01", DateHelper.formatMonth(2009, Month.JANUARY));
+    assertEquals("2009-03", DateHelper.formatMonth(2009, Month.MARCH));
+    assertEquals("2009-09", DateHelper.formatMonth(2009, Month.SEPTEMBER));
+    assertEquals("2009-10", DateHelper.formatMonth(2009, Month.OCTOBER));
+    assertEquals("2009-12", DateHelper.formatMonth(2009, Month.DECEMBER));
   }
 
   @Test

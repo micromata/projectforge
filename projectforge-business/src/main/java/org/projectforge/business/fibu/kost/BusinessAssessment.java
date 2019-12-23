@@ -27,7 +27,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KostFormatter;
-import org.projectforge.business.fibu.kost.reporting.Report;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -38,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -45,9 +45,9 @@ import java.util.Map;
 /**
  * Used in config.xml for the definition of the used business assessment schema. The business assessment is displayed in
  * different accounting areas, such as for DATEV accounting records.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class BusinessAssessment implements Serializable
 {
@@ -67,7 +67,7 @@ public class BusinessAssessment implements Serializable
 
   private int year;
 
-  private int month;
+  private Month month;
 
   private Object reference;
 
@@ -76,7 +76,7 @@ public class BusinessAssessment implements Serializable
   /**
    * Fügt alle namentlichen BwaZeilen der Bwa in die übergebene Map. Nützlich für JasperReport, einmal unter der
    * Bezeichnung und einmal unter der Zeilennummer als key.
-   * 
+   *
    * @param map Key ist die Zeilen
    */
   public static void putBusinessAssessmentRows(final Map<String, Object> map,
@@ -116,7 +116,7 @@ public class BusinessAssessment implements Serializable
     setAccountRecords(records);
   }
 
-  public BusinessAssessment(final BusinessAssessmentConfig config, final int year, final int month)
+  public BusinessAssessment(final BusinessAssessmentConfig config, final int year, final Month month)
   {
     this(config);
     this.year = year;
@@ -358,8 +358,6 @@ public class BusinessAssessment implements Serializable
   /**
    * Dieses Objekt kann von der benutzenden Klasse als freies Feld genutzt werden. Z. B. wird dieses Feld benutzt, um
    * den Report zu erhalten, der diese BWA enthält
-   * 
-   * @see Report#getChildBwaArray(boolean)
    */
   public Object getReference()
   {

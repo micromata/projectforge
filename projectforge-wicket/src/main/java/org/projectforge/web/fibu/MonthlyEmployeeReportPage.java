@@ -23,10 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -41,14 +37,8 @@ import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.common.OutputType;
-import org.projectforge.business.fibu.KostFormatter;
-import org.projectforge.business.fibu.KundeDO;
-import org.projectforge.business.fibu.MonthlyEmployeeReport;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.MonthlyEmployeeReport.Kost2Row;
-import org.projectforge.business.fibu.MonthlyEmployeeReportDao;
-import org.projectforge.business.fibu.MonthlyEmployeeReportEntry;
-import org.projectforge.business.fibu.MonthlyEmployeeReportWeek;
-import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost1Dao;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
@@ -73,6 +63,10 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.TextStyle;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implements ISelectCallerPage
 {
@@ -275,7 +269,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
       body.remove(table);
     }
     body.add(table = new WebMarkupContainer("table"));
-    report = monthlyEmployeeReportDao.getReport(form.filter.getYear(), form.filter.getMonth() + 1, form.filter.getUser());
+    report = monthlyEmployeeReportDao.getReport(form.filter.getYear(), form.filter.getMonth(), form.filter.getUser());
     if (report == null) {
       table.setVisible(false);
     } else {
@@ -484,7 +478,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     final String styleSheet = "fo-styles/monthlyEmployeeReport-template-fo.xsl";
     final String xmlData = "fo-styles/monthlyEmployeeReport2pdf.xml";
 
-    report = monthlyEmployeeReportDao.getReport(form.filter.getYear(), form.filter.getMonth() + 1, employee);
+    report = monthlyEmployeeReportDao.getReport(form.filter.getYear(), form.filter.getMonth(), employee);
     final Map<String, Object> data = new HashMap<String, Object>();
     data.put("systemDate", dateTimeFormatter.getFormattedDateTime(new Date()));
     data.put("title", getString("menu.monthlyEmployeeReport"));

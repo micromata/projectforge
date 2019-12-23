@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.time.Month;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -95,16 +96,17 @@ public class BuchungssatzExcelImporter {
     ImportedSheet<BuchungssatzDO> importedSheet = null;
     imp.setActiveSheet(idx);
     final String name = imp.getWorkbook().getSheetName(idx);
-    int m = -1;
+    Month month = null;
     try {
-      m = new Integer(name) - 1; // Achtung: month beginnt bei 01 - Januar, während Java mit 0 - Januar rechnet (also - 1).
+      int m = new Integer(name); // Achtung: month beginnt bei 01 - Januar.
+      month = Month.of(m);
     } catch (final NumberFormatException ex) {
       // ignore
     }
-    if (m >= 0 && m <= 11) {
+    if (month != null) {
       actionLog.logInfo("Importing sheet '" + name + "'.");
       final HSSFSheet sheet = imp.getWorkbook().getSheetAt(idx);
-      importedSheet = importBuchungssaetze(imp, sheet, m);
+      importedSheet = importBuchungssaetze(imp, sheet, month);
     } else {
       log.info("Ignoring sheet '" + name + "' for importing Buchungssätze.");
     }
@@ -112,7 +114,7 @@ public class BuchungssatzExcelImporter {
   }
 
   private ImportedSheet<BuchungssatzDO> importBuchungssaetze(final ExcelImport<BuchungssatzImportRow> imp, final HSSFSheet sheet,
-                                                             final int month) throws Exception {
+                                                             final Month month) throws Exception {
     final ImportedSheet<BuchungssatzDO> importedSheet = new ImportedSheet<>();
     imp.setNameRowIndex(ROW_COLUMNNAMES);
     imp.setStartingRowIndex(ROW_COLUMNNAMES + 1);
@@ -170,14 +172,14 @@ public class BuchungssatzExcelImporter {
         actionLog.logError(msg);
         throw new UserException(msg);
       }
-      if (dateTime.getMonthValue() > month) {
+      if (dateTime.getMonthValue() > month.getValue()) {
         final String msg = "Buchungssätze können nicht in die Zukunft für den aktuellen Monat '"
-                + KostFormatter.formatBuchungsmonat(year, dateTime.getMonthValue())
+                + KostFormatter.formatBuchungsmonat(year, dateTime.getMonth())
                 + " gebucht werden! "
                 + satz;
         actionLog.logError(msg);
         throw new RuntimeException(msg);
-      } else if (dateTime.getMonthValue() < month) {
+      } else if (dateTime.getMonthValue() < month.getValue()) {
         final String msg = "Buchungssatz liegt vor Monat '" + KostFormatter.formatBuchungsmonat(year, month) + "' (OK): " + satz;
         actionLog.logInfo(msg);
       }

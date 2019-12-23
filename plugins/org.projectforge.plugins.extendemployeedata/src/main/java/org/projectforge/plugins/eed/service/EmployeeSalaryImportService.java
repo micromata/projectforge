@@ -121,7 +121,7 @@ public class EmployeeSalaryImportService
 
     employeeSalariesToUpdate.forEach(sal -> {
       //Correct view to db
-      sal.setMonth(sal.getMonth() - 1);
+      sal.setMonth(sal.getMonth());
       employeeSalaryService.saveOrUpdate(sal);
     });
 

@@ -53,7 +53,7 @@ public class MonthHolderTest {
   public void testMonthHolder() {
     final PFDateTime dateTime = PFDateTime.from(new Date(), true, null, Locale.GERMAN)
             .withPrecision(DatePrecision.DAY).withDate(1970, Month.NOVEMBER, 21, 0, 0, 0);
-    final MonthHolder month = new MonthHolder(dateTime.getUtilDate());
+    final MonthHolder month = new MonthHolder(dateTime);
     assertEquals(6, month.getWeeks().size());
     WeekHolder week = month.getFirstWeek();
     assertEquals(DayOfWeek.MONDAY, week.getDays()[0].getDayOfWeek());

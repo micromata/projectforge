@@ -49,7 +49,7 @@ public class TestSetup {
     user.setExcelDateFormat("YYYY-MM-DD");
     user.setDateFormat("dd.MM.yyyy");
     user.setLocale(new Locale("de", "DE"));
-    user.setFirstDayOfWeek(DayOfWeek.MONDAY.getValue());
+    user.setFirstDayOfWeek(DayOfWeek.MONDAY);
     ThreadLocalUserContext.setUserContext(new UserContext(user, null));
     ConfigXmlTest.createTestConfiguration();
     ConfigurationServiceAccessor.internalInitJunitTestMode();

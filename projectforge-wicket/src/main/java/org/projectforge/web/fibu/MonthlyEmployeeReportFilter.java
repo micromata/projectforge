@@ -23,12 +23,13 @@
 
 package org.projectforge.web.fibu;
 
-import java.io.Serializable;
-
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
+
+import java.io.Serializable;
+import java.time.Month;
 
 public class MonthlyEmployeeReportFilter implements Serializable
 {
@@ -36,13 +37,13 @@ public class MonthlyEmployeeReportFilter implements Serializable
 
   private int year;
 
-  private int month;
+  private Month month;
 
   private PFUserDO user;
 
   public void reset()
   {
-    if (year <= 0 || month < 0) {
+    if (year <= 0 || month == null) {
       DateHolder date = new DateHolder();
       year = date.getYear();
       month = date.getMonth();
@@ -77,18 +78,18 @@ public class MonthlyEmployeeReportFilter implements Serializable
     this.year = year;
   }
 
-  public int getMonth()
+  public Month getMonth()
   {
     return month;
   }
 
-  public void setMonth(int month)
+  public void setMonth(Month month)
   {
     this.month = month;
   }
 
   public String getFormattedMonth()
   {
-    return month >= 0 ? StringHelper.format2DigitNumber(month + 1) : "";
+    return month != null ? StringHelper.format2DigitNumber(month.getValue()) : "";
   }
 }

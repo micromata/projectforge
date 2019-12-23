@@ -406,7 +406,7 @@ public abstract class AbstractTestBase {
   }
 
   public static void assertBigDecimal(final BigDecimal v1, final BigDecimal v2) {
-    assertTrue(v1.compareTo(v2) == 0, "BigDecimal values are not equal.");
+    assertTrue(v1.compareTo(v2) == 0, "BigDecimal values are not equal: " + v1 + " != " + v2);
   }
 
   protected void assertUTCDate(final Date date, final int year, final int month, final int day, final int hour,

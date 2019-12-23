@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDateTimeCompabilityUtils
 import org.projectforge.test.TestSetup
 import java.time.DayOfWeek
 
@@ -34,8 +35,9 @@ class ThreadLocalUserContextTest {
 
     @Test
     fun firstDayOfWeekTest() {
-        Assertions.assertEquals(2, ThreadLocalUserContext.getCalendarFirstDayOfWeek())
+        Assertions.assertEquals(1, ThreadLocalUserContext.getJodaFirstDayOfWeek())
         Assertions.assertEquals(DayOfWeek.MONDAY, ThreadLocalUserContext.getFirstDayOfWeek())
+        Assertions.assertEquals(2, PFDateTimeCompabilityUtils.getCompabilityDayOfWeekValue(ThreadLocalUserContext.getFirstDayOfWeek()))
     }
 
     companion object {

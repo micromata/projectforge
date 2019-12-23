@@ -34,6 +34,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
 
 import java.math.BigDecimal;
+import java.time.Month;
 import java.util.Collection;
 import java.util.List;
 
@@ -71,11 +72,11 @@ public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<E
   /**
    *
    * @param year
-   * @param month 1-based: 1 - January, ..., 12 - December
+   * @param month
    * @param user
    * @return
    */
-  MonthlyEmployeeReport getReportOfMonth(int year, int month, PFUserDO user);
+  MonthlyEmployeeReport getReportOfMonth(int year, Month month, PFUserDO user);
 
   /**
    * Checks if the employee was full time some day at the beginning of the month or within the month.

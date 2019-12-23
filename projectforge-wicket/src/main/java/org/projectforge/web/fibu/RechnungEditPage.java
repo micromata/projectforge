@@ -66,7 +66,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
     init();
     if (isNew() == true) {
       final DayHolder day = new DayHolder();
-      getData().setDatum(day.getSQLDate());
+      getData().setDatum(day.getSqlDate());
       getData().setStatus(RechnungStatus.GESTELLT);
       getData().setTyp(RechnungTyp.RECHNUNG);
     } else {
@@ -138,18 +138,18 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
 
     final Integer zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
     final DayHolder dayZahlungsziel = new DayHolder();
-    rechnung.setDatum(dayZahlungsziel.getSQLDate());
+    rechnung.setDatum(dayZahlungsziel.getSqlDate());
     if (zahlungsZielInTagen != null) {
       dayZahlungsziel.add(Calendar.DAY_OF_MONTH, zahlungsZielInTagen);
     }
-    rechnung.setFaelligkeit(dayZahlungsziel.getSQLDate());
+    rechnung.setFaelligkeit(dayZahlungsziel.getSqlDate());
 
     final Integer skontoInTagen = rechnung.getDiscountZahlungsZielInTagen();
     final DayHolder daySkonto = new DayHolder();
     if (skontoInTagen != null) {
       daySkonto.add(Calendar.DAY_OF_MONTH, skontoInTagen);
     }
-    rechnung.setDiscountMaturity(daySkonto.getSQLDate());
+    rechnung.setDiscountMaturity(daySkonto.getSqlDate());
 
     rechnung.setZahlBetrag(null);
     rechnung.setBezahlDatum(null);

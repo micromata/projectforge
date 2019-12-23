@@ -35,6 +35,8 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.slf4j.Logger;
 
+import java.time.Month;
+
 public class EmployeeSalaryListForm extends AbstractListForm<EmployeeSalaryFilter, EmployeeSalaryListPage>
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeSalaryListForm.class);
@@ -82,18 +84,14 @@ public class EmployeeSalaryListForm extends AbstractListForm<EmployeeSalaryFilte
     }
   }
 
-  public Integer getMonth()
+  public Month getMonth()
   {
     return getSearchFilter().getMonth();
   }
 
-  public void setMonth(final Integer month)
+  public void setMonth(final Month month)
   {
-    if (month == null) {
-      getSearchFilter().setMonth(-1);
-    } else {
-      getSearchFilter().setMonth(month);
-    }
+    getSearchFilter().setMonth(month);
   }
 
   @Override
