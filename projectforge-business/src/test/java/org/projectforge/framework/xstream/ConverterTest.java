@@ -59,7 +59,7 @@ public class ConverterTest
     final PFUserDO cetUser = new PFUserDO();
     cetUser.setTimeZone(DateHelper.EUROPE_BERLIN);
     ThreadLocalUserContext.setUser(null, cetUser); // login CET user.
-    PFDateTime dt = PFDateTime.now(ZoneId.of("UTC")).withDate(2010, Month.AUGUST.getValue(), 29, 23, 8, 17, 123);
+    PFDateTime dt = PFDateTime.now(ZoneId.of("UTC")).withDate(2010, Month.AUGUST, 29, 23, 8, 17, 123);
     assertEquals("1283116097123", dateConverter.toString(dt.getUtilDate()));
     assertEquals("2010-08-29 23:08:17.123", isoDateConverter.toString(dt.getUtilDate()));
     assertEquals("2010-08-29 23:08:17", isoDateConverter.toString(dt.withMilliSecond(0).getUtilDate()));

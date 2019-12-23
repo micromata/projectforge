@@ -54,7 +54,7 @@ public class WeekHolderTest {
     assertEquals(2, week.getDays()[0].getDayOfWeek().getValue());
     assertEquals(DayOfWeek.MONDAY, week.getDays()[0].getDayOfWeek());
     PFDateTime dateTime = PFDateTime.now(ZoneId.of("UTC"), Locale.GERMAN).withPrecision(DatePrecision.DAY)
-        .withDate(1970, Month.NOVEMBER.getValue(), 21, 4, 50, 23);
+        .withDate(1970, Month.NOVEMBER, 21, 4, 50, 23);
     week = new WeekHolder(dateTime);
     assertEquals(7, week.getDays().length);
     assertEquals(2, week.getDays()[0].getDayOfWeek().getValue());
@@ -63,7 +63,7 @@ public class WeekHolderTest {
     assertEquals(16, week.getDays()[0].getDayOfMonth());
     assertEquals(DayOfWeek.SATURDAY, week.getDays()[5].getDayOfWeek());
     assertEquals(21, week.getDays()[5].getDayOfMonth());
-    dateTime = dateTime.withDate(2007, Month.MARCH.getValue(), 1);
+    dateTime = dateTime.withDate(2007, Month.MARCH, 1);
     assertEquals(Month.MARCH, dateTime.getMonth());
     week = new WeekHolder(dateTime, dateTime.getMonthValue());
     assertEquals(DayOfWeek.MONDAY, week.getDays()[0].getDayOfWeek());

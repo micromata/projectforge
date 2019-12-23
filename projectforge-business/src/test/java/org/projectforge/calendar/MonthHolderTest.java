@@ -51,7 +51,7 @@ public class MonthHolderTest {
   @Test
   public void testMonthHolder() {
     final PFDateTime dateTime = PFDateTime.from(new Date(), true, null, Locale.GERMAN)
-        .withPrecision(DatePrecision.DAY).withDate(1970, Month.NOVEMBER.getValue(), 21, 0, 0, 0);
+        .withPrecision(DatePrecision.DAY).withDate(1970, Month.NOVEMBER, 21, 0, 0, 0);
     final MonthHolder month = new MonthHolder(dateTime.getUtilDate());
     assertEquals(6, month.getWeeks().size());
     WeekHolder week = month.getFirstWeek();
@@ -71,20 +71,20 @@ public class MonthHolderTest {
   @Test
   public void testNumberOfWorkingDays() {
     final PFDateTime dateTime = PFDateTime.from(new Date(), true, null, Locale.GERMAN)
-        .withPrecision(DatePrecision.DAY).withDate(2009, Month.JANUARY.getValue(), 16, 0, 0, 0);
+        .withPrecision(DatePrecision.DAY).withDate(2009, Month.JANUARY, 16, 0, 0, 0);
     MonthHolder month = new MonthHolder(dateTime.getUtilDate());
     AbstractTestBase.assertBigDecimal(21, month.getNumberOfWorkingDays());
-    month = new MonthHolder(dateTime.withMonth(Month.FEBRUARY.getValue()).getUtilDate());
+    month = new MonthHolder(dateTime.withMonth(Month.FEBRUARY).getUtilDate());
     AbstractTestBase.assertBigDecimal(20, month.getNumberOfWorkingDays());
-    month = new MonthHolder(dateTime.withMonth(Month.NOVEMBER.getValue()).getUtilDate());
+    month = new MonthHolder(dateTime.withMonth(Month.NOVEMBER).getUtilDate());
     AbstractTestBase.assertBigDecimal(21, month.getNumberOfWorkingDays());
-    month = new MonthHolder(dateTime.withMonth(Month.DECEMBER.getValue()).getUtilDate());
+    month = new MonthHolder(dateTime.withMonth(Month.DECEMBER).getUtilDate());
     AbstractTestBase.assertBigDecimal(21, month.getNumberOfWorkingDays());
   }
 
   @Test
   public void testDays() {
-    final MonthHolder mh = new MonthHolder(2013, Month.MAY.getValue());
+    final MonthHolder mh = new MonthHolder(2013, Month.MAY);
     final List<PFDateTime> list = mh.getDays();
     Assertions.assertEquals(31, list.size());
     for (final PFDateTime dt : list) {

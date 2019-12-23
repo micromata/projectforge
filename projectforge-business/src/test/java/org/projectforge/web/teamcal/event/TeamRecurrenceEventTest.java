@@ -50,12 +50,12 @@ public class TeamRecurrenceEventTest
     final TeamEventDO master = new TeamEventDO();
     master.setStartDate(getTimestamp("2013-01-01 08:00", timeZone));
     master.setEndDate(getTimestamp("2013-01-01 10:30", timeZone));
-    TeamRecurrenceEvent recurEvent = new TeamRecurrenceEvent(master, PFDateTime.now(timeZone.toZoneId()).withDate(2013, Month.JANUARY.getValue(),5, 8, 0));
+    TeamRecurrenceEvent recurEvent = new TeamRecurrenceEvent(master, PFDateTime.now(timeZone.toZoneId()).withDate(2013, Month.JANUARY,5, 8, 0));
     assertDateTime("2013-01-05 08:00", recurEvent.getStartDate(), timeZone);
     assertDateTime("2013-01-05 10:30", recurEvent.getEndDate(), timeZone);
 
     master.setEndDate(getTimestamp("2013-01-02 10:30", timeZone));
-    recurEvent = new TeamRecurrenceEvent(master, PFDateTime.now(timeZone.toZoneId()).withDate(2013, Month.JANUARY.getValue(), 5, 8, 0));
+    recurEvent = new TeamRecurrenceEvent(master, PFDateTime.now(timeZone.toZoneId()).withDate(2013, Month.JANUARY, 5, 8, 0));
     assertDateTime("2013-01-05 08:00", recurEvent.getStartDate(), timeZone);
     assertDateTime("2013-01-06 10:30", recurEvent.getEndDate(), timeZone);
   }

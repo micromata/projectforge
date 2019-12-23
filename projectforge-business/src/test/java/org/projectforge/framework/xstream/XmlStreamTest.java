@@ -128,7 +128,7 @@ public class XmlStreamTest extends AbstractTestBase {
     String xml = XmlObjectWriter.writeAsXml(obj);
     obj = (TestObject) reader.read(xml);
     assertNull(obj.date, "date should be null.");
-    final PFDateTime dateTime = PFDateTime.withDate(2010, Calendar.AUGUST, 3);
+    final PFDateTime dateTime = PFDateTime.withDate(2010, Month.AUGUST, 3);
     obj.date = dateTime.getUtilDate();
     xml = XmlObjectWriter.writeAsXml(obj);
     obj = (TestObject) reader.read(xml);
@@ -402,7 +402,7 @@ public class XmlStreamTest extends AbstractTestBase {
     obj.s1 = "hurzel";
     MyRootElement root = new MyRootElement();
     root.testObject = obj;
-    final PFDateTime dateTime = PFDateTime.withDate(2010, Month.AUGUST.getValue(), 30, 9, 18, 57);
+    final PFDateTime dateTime = PFDateTime.withDate(2010, Month.AUGUST, 30, 9, 18, 57);
     root.setCreated(dateTime.getUtilDate());
     final XmlObjectWriter writer = new XmlObjectWriter();
     final XmlRegistry xmlRegistry = new XmlRegistry();
