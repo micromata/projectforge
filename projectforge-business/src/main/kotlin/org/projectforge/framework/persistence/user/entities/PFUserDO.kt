@@ -295,6 +295,7 @@ open class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     open var firstDayOfWeekCompabilityValue: Int? = null
 
     open var firstDayOfWeek: DayOfWeek?
+        @Transient
         get() = PFDateTimeCompabilityUtils.getCompabilityDayOfWeek(firstDayOfWeekCompabilityValue)
         set(value) {
             firstDayOfWeekCompabilityValue = PFDateTimeCompabilityUtils.getCompabilityDayOfWeekValue(value)

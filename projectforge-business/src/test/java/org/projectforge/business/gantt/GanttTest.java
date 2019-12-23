@@ -76,11 +76,11 @@ public class GanttTest
   public void testTestDiagram()
   {
     final GanttTask root = createTestChart();
-    assertDate(2010, Calendar.JUNE, 1, root.getCalculatedStartDate());
-    assertDate(2010, Calendar.JUNE, 1, root.findByWorkpackageCode("001").getCalculatedStartDate());
+    assertDate(2010, Month.JUNE, 1, root.getCalculatedStartDate());
+    assertDate(2010, Month.JUNE, 1, root.findByWorkpackageCode("001").getCalculatedStartDate());
     // 2010-06-03 is an holiday.
-    assertDate(2010, Calendar.JUNE, 16, root.findByWorkpackageCode("001").getCalculatedEndDate()); // Duration of 10 working days
-    assertDate(2010, Calendar.JUNE, 30, root.findByWorkpackageCode("002").getCalculatedStartDate()); // 10 days after EB.
+    assertDate(2010, Month.JUNE, 16, root.findByWorkpackageCode("001").getCalculatedEndDate()); // Duration of 10 working days
+    assertDate(2010, Month.JUNE, 30, root.findByWorkpackageCode("002").getCalculatedStartDate()); // 10 days after EB.
   }
 
   private GanttTask createTestChart()
@@ -147,7 +147,7 @@ public class GanttTest
     return node;
   }
 
-  private void assertDate(final int year, final int month, final int day, final Date date)
+  private void assertDate(final int year, final Month month, final int day, final Date date)
   {
     final DayHolder dh = new DayHolder(date);
     assertEquals(year, dh.getYear());

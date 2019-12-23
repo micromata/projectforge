@@ -86,7 +86,7 @@ public class DayHolderTest {
     day.setDate(2008, Month.JANUARY, 1);
     day.add(Calendar.DAY_OF_YEAR, -1);
     assertEquals(day.getYear(), 2007);
-    assertEquals(day.getMonth(), Calendar.DECEMBER);
+    assertEquals(day.getMonth(), Month.DECEMBER);
     assertEquals(day.getDayOfMonth(), 31);
   }
 

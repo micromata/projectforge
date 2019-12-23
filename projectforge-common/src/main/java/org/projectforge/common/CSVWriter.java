@@ -28,6 +28,7 @@ import java.io.Writer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * Helper class for writing comma separated values.
@@ -57,6 +58,7 @@ public class CSVWriter
   public CSVWriter(Writer writer)
   {
     out = new PrintWriter(writer);
+    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 
   public void flush()
@@ -82,7 +84,7 @@ public class CSVWriter
 
   /**
    * Appends the given value to the buffer.
-   * 
+   *
    * @param value The value to append.
    */
   public CSVWriter write(long value)
@@ -94,7 +96,7 @@ public class CSVWriter
 
   /**
    * Appends the given value in the format "yyyy-MM-dd HH:mm:ss.SSS".
-   * 
+   *
    * @param value The value to append.
    */
   public CSVWriter write(Date value)
@@ -111,8 +113,8 @@ public class CSVWriter
   /**
    * Appends the given value. The string will be encapsulated in quotation marks: " Any occurance of the quotation mark will be quoted by
    * duplication. Example: hallo -> "hallo", hal"lo -> "hal""lo"
-   * 
-   * @param value The value to append.
+   *
+   * @param s The value to append.
    */
   public CSVWriter write(String s)
   {
@@ -135,7 +137,7 @@ public class CSVWriter
 
   /**
    * Appends the given value to the buffer in the format "yyyy-MM-dd HH:mm:ss.SSS".
-   * 
+   *
    * @param value The value to append.
    */
   public CSVWriter write(Object value)

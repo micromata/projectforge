@@ -69,16 +69,18 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
      * @return
      */
     @Field(analyze = Analyze.NO)
-    @get:Column(nullable = false)
+    @get:Column(name = "month", nullable = false)
     open var compabilityMonth: Int? = null
 
     open var month: Month?
+        @Transient
         get() = PFDateTimeCompabilityUtils.getCompabilityMonth(compabilityMonth)
         set(value) {
             compabilityMonth = PFDateTimeCompabilityUtils.getCompabilityMonthValue(value)
         }
 
     open val monthValue: Int?
+        @Transient
         get() = month?.value
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.satznr")

@@ -75,16 +75,18 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
      */
     @PropertyInfo(i18nKey = "dateTime.month")
     @Field(analyze = Analyze.NO)
-    @get:Column
+    @get:Column(name = "month")
     open var compabilityMonth: Int? = null
 
     open var month: Month?
+        @Transient
         get() = PFDateTimeCompabilityUtils.getCompabilityMonth(compabilityMonth)
         set(value) {
             compabilityMonth = PFDateTimeCompabilityUtils.getCompabilityMonthValue(value)
         }
 
     open val monthValue: Int?
+        @Transient
         get() = month?.value
 
     /**
