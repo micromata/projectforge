@@ -24,7 +24,10 @@
 package org.projectforge.framework.time
 
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import java.time.*
+import java.time.DayOfWeek
+import java.time.Instant
+import java.time.LocalDate
+import java.time.Month
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
@@ -140,6 +143,10 @@ class PFDate(val date: LocalDate,
         return PFDate(date.plusMonths(months), locale)
     }
 
+    fun monthsBetween(other: PFDate): Long {
+        return ChronoUnit.MONTHS.between(date, other.date)
+    }
+
     fun plusYears(years: Long): PFDate {
         return PFDate(date.plusYears(years), locale)
     }
@@ -170,6 +177,9 @@ class PFDate(val date: LocalDate,
     val isoString: String
         get() = isoDateFormatter.format(date)
 
+    override fun toString(): String {
+        return isoString
+    }
 
     private var _utilDate: java.util.Date? = null
     /**
@@ -199,7 +209,7 @@ class PFDate(val date: LocalDate,
 
     companion object {
         /**
-         * Creates mindnight [ZonedDateTime] from given [LocalDate].
+         * Creates mindnight [LocalDate] from given [LocalDate].
          */
         @JvmStatic
         @JvmOverloads
@@ -211,7 +221,7 @@ class PFDate(val date: LocalDate,
 
         /**
          * @param date Date of type java.util.Date or java.sql.Date.
-         * Creates mindnight [ZonedDateTime] from given [date].
+         * Creates mindnight [LocalDate] from given [date].
          */
         @JvmStatic
         @JvmOverloads
@@ -229,7 +239,7 @@ class PFDate(val date: LocalDate,
         /**
          * @param dateTime Date of type java.util.Date or java.sql.Date.
          * @param nowIfNull If true, then now will be returned as default date instead of null if dateTime is null.
-         * Creates mindnight [ZonedDateTime] from given [date].
+         * Creates mindnight [LocalDate] from given [date].
          */
         @JvmStatic
         @JvmOverloads

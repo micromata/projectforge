@@ -71,16 +71,13 @@ object ForecastUtils { // open needed by Wicket.
     }
 
     /**
-     * Multiplies the probybility with the sum to be invoiced and returns the value if greater 0, otherwise 0. No
-     * negative values will be returned.
+     * Multiplies the probability with the net sum.
      */
     @JvmStatic
-    fun computeAccurenceValue(order: AuftragDO, pos: AuftragsPositionDO): BigDecimal {
-        val netSum = if (pos.nettoSumme != null) pos.nettoSumme else BigDecimal.ZERO
-        val invoicedSum = if (pos.fakturiertSum != null) pos.fakturiertSum else BigDecimal.ZERO
-        val toBeInvoicedSum = netSum!!.subtract(invoicedSum)
+    fun computeProbabilityNetSum(order: AuftragDO, pos: AuftragsPositionDO): BigDecimal {
+        val netSum = if (pos.nettoSumme != null) pos.nettoSumme!! else BigDecimal.ZERO
         val probability = getProbabilityOfAccurence(order, pos)
-        return if (toBeInvoicedSum > BigDecimal.ZERO) toBeInvoicedSum.multiply(probability) else BigDecimal.ZERO
+        return netSum.multiply(probability)
     }
 
     /**
