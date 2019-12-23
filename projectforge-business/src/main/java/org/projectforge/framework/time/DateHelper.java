@@ -433,6 +433,7 @@ public class DateHelper implements Serializable {
   }
 
   /**
+   * Key is 0 - January, 11 - December (0-based)!
    * Initializes a new ArrayList with -1 ("--") and all 12 month with labels "01", ..., "12".
    */
   public static List<LabelValueBean<String, Integer>> getMonthList() {

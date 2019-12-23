@@ -38,7 +38,7 @@ import java.util.TimeZone;
  * Parse and formats dates.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- */´
+ */
 @Deprecated
 public class DateHolder implements Serializable, Cloneable, Comparable<DateHolder> {
   private static final long serialVersionUID = -5373883617915418698L;
@@ -161,8 +161,6 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
 
   /**
    * Initializes calendar with current date and uses the given time zone and the locale of the ContextUser if exists.
-   *
-   * @see DateHelper#getCalendar(TimeZone)
    */
   public DateHolder(final TimeZone timeZone) {
     this();
@@ -533,6 +531,9 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
     return calendar.get(Calendar.YEAR);
   }
 
+  /**
+   * @return 0 - January, 11 - December (0-based)
+   */
   public int getMonth() {
     return calendar.get(Calendar.MONTH);
   }
@@ -549,9 +550,6 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
     return calendar.get(Calendar.DAY_OF_YEAR);
   }
 
-  /**
-   * Gets the month-of-year field from 1 to 12.
-   */
   public int getDayOfMonth() {
     return calendar.get(Calendar.DAY_OF_MONTH);
   }
@@ -567,6 +565,10 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
     return calendar.get(Calendar.HOUR_OF_DAY);
   }
 
+  /**
+   * @param month 0 - January, 11 - December (0-based)
+   * @return
+   */
   public DateHolder setMonth(final int month) {
     calendar.set(Calendar.MONTH, month);
     return this;
@@ -736,7 +738,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Sets hour, minute, second and millisecond to zero.
    *
    * @param year
-   * @param month
+   * @param month 0 - January, 11 - December (0-based)
    * @param day
    * @see #setDate(int, int, int, int, int, int, int)
    */
@@ -749,7 +751,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Sets second and millisecond to zero.
    *
    * @param year
-   * @param month
+   * @param month 0 - January, 11 - December (0-based)
    * @param day
    * @param hourOfDay
    * @param minute
@@ -764,7 +766,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Sets the date by giving all datefields and compute all fields. Set millisecond to zero.
    *
    * @param year
-   * @param month
+   * @param month 0 - January, 11 - December (0-based)
    * @param date
    * @param hourOfDay
    * @param minute
@@ -780,7 +782,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Sets the date by giving all datefields and compute all fields.
    *
    * @param year
-   * @param month
+   * @param month 0 - January, 11 - December (0-based)
    * @param minute
    * @param second
    * @param millisecond
