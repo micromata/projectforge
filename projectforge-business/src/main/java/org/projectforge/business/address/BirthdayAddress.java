@@ -28,6 +28,7 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.time.PFDateTime;
 
 import java.io.Serializable;
+import java.time.Month;
 import java.util.Date;
 
 
@@ -39,7 +40,7 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
 
   private final String compareString;
 
-  private final int month;
+  private final Month month;
 
   private final int dayOfMonth;
 
@@ -56,7 +57,7 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
       throw new UnsupportedOperationException("Birthday not given!");
     }
     final PFDateTime day = PFDateTime.from(address.getBirthday());
-    month = day.getMonthValue();
+    month = day.getMonth();
     dayOfMonth = day.getDayOfMonth();
     dateOfYear = getDateOfYear(month, dayOfMonth);
     compareString = dateOfYear + " " + address.getName() + ", " + address.getFirstName();
@@ -137,10 +138,7 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
     this.isFavorite = isFavorite;
   }
 
-  /**
-   * 0 - January, 1 - February... (Calendar.MONTH)
-   */
-  public int getMonth()
+  public Month getMonth()
   {
     return month;
   }
@@ -169,11 +167,11 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
       throw new UnsupportedOperationException("Date not given!");
     }
     final PFDateTime dt = PFDateTime.from(date);
-    return getDateOfYear(dt.getMonthValue(), dt.getDayOfMonth());
+    return getDateOfYear(dt.getMonth(), dt.getDayOfMonth());
   }
 
-  public static String getDateOfYear(final int month, final int dayOfMonth)
+  public static String getDateOfYear(final Month month, final int dayOfMonth)
   {
-    return StringHelper.format2DigitNumber(month) + StringHelper.format2DigitNumber(dayOfMonth);
+    return StringHelper.format2DigitNumber(month.getValue()) + StringHelper.format2DigitNumber(dayOfMonth);
   }
 }
