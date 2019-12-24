@@ -50,7 +50,7 @@ public class FileHelperTest extends AbstractTestBase
     assertEquals("basename_"
         + dateTime.getYear()
         + "-"
-        + StringHelper.format2DigitNumber(dateTime.getMonthValue() + 1)
+        + StringHelper.format2DigitNumber(dateTime.getMonthValue())
         + "-"
         + StringHelper.format2DigitNumber(dateTime.getDayOfMonth())
         + ".pdf", FileHelper.createSafeFilename("basename", ".pdf", 8, true));

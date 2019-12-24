@@ -24,6 +24,7 @@
 package org.projectforge.framework.configuration;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.common.JiraUtilsTest;
@@ -31,7 +32,9 @@ import org.projectforge.framework.calendar.ConfigureHoliday;
 import org.projectforge.framework.calendar.HolidayDefinition;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDateTimeCompabilityUtils;
 import org.projectforge.framework.xstream.XmlHelper;
+import org.projectforge.test.TestSetup;
 
 import java.time.Month;
 
@@ -90,7 +93,7 @@ public class ConfigXmlTest {
     final ConfigXml config = ConfigXml.getInstance();
     assertEquals(5, config.getHolidays().size());
     ConfigureHoliday holiday = config.getHolidays().get(0);
-    assertEquals(Month.MAY.getValue(), (int) holiday.getMonth());
+    assertEquals(PFDateTimeCompabilityUtils.getCompabilityMonthValue(Month.MAY).intValue(), (int) holiday.getMonth());
     holiday = config.getHolidays().get(2);
     assertEquals(HolidayDefinition.XMAS_EVE, holiday.getId());
     holiday = config.getHolidays().get(3);
@@ -100,7 +103,7 @@ public class ConfigXmlTest {
     final Holidays holidays = Holidays.getInstance();
     PFDateTime dateTime = PFDateTime.withDate(2009, Month.MAY, 1);
     assertTrue(holidays.isHoliday(2009, dateTime.getDayOfYear()), "Should be there.");
-    dateTime = dateTime.withMonth(Month.FEBRUARY.getValue()).withDayOfMonth(23);
+    dateTime = dateTime.withMonth(Month.FEBRUARY).withDayOfMonth(23);
     assertTrue(holidays.isHoliday(2009, dateTime.getDayOfYear()), "Should be there.");
     dateTime = dateTime.withDayOfMonth(24);
     assertFalse(holidays.isHoliday(2009, dateTime.getDayOfYear()), "Should be ignored.");
@@ -125,5 +128,10 @@ public class ConfigXmlTest {
     assertEquals("org.projectforge.plugins.todo.ToDoPlugin", sa[0]);
     assertEquals("org.projectforge.plugins.software.SoftwarePlugin", sa[1]);
     assertEquals("org.projectforge.plugins.ical.ICalPlugin", sa[2]);
+  }
+
+  @BeforeAll
+  static void setup() {
+    TestSetup.init();
   }
 }

@@ -56,14 +56,19 @@ public class XmlRegistryTest
     final XmlRegistry reg = new XmlRegistry();
     reg.registerConverter(Date.class, new ISODateConverter());
     writer.setXmlRegistry(reg);
+    obj.date = dt.getUtilDate();
     assertEquals("<test d1=\"0.0\" i1=\"0\" date=\"2010-08-29 23:08:17.123\"/>", writer.writeToXml(obj));
-    obj.date = dt.withMilliSecond(0).getUtilDate();
+    dt = dt.withMilliSecond(0);
+    obj.date = dt.getUtilDate();
     assertEquals("<test d1=\"0.0\" i1=\"0\" date=\"2010-08-29 23:08:17\"/>", writer.writeToXml(obj));
-    obj.date = dt.withSecond(0).getUtilDate();
+    dt = dt.withSecond(0);
+    obj.date = dt.getUtilDate();
     assertEquals("<test d1=\"0.0\" i1=\"0\" date=\"2010-08-29 23:08\"/>", writer.writeToXml(obj));
-    obj.date = dt.withMinute(0).getUtilDate();
+    dt = dt.withMinute(0);
+    obj.date = dt.getUtilDate();
     assertEquals("<test d1=\"0.0\" i1=\"0\" date=\"2010-08-29 23:00\"/>", writer.writeToXml(obj));
-    obj.date = dt.withHour(0).getUtilDate();
+    dt = dt.withHour(0);
+    obj.date = dt.getUtilDate();
     assertEquals("<test d1=\"0.0\" i1=\"0\" date=\"2010-08-29\"/>", writer.writeToXml(obj));
   }
 }
