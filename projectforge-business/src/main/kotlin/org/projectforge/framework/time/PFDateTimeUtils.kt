@@ -38,6 +38,19 @@ import java.util.*
 class PFDateTimeUtils {
     companion object {
         @JvmStatic
+        val ZONE_UTC = ZoneId.of("UTC")
+
+        @JvmStatic
+        val ZONE_EUROPE_BERLIN = ZoneId.of("Europe/Berlin")
+
+        @JvmStatic
+        val TIMEZONE_UTC = TimeZone.getTimeZone("UTC")
+
+        @JvmStatic
+        val TIMEZONE_EUROPE_BERLIN = TimeZone.getTimeZone("Europe/Berlin")
+
+
+        @JvmStatic
         fun getBeginOfYear(dateTime: ZonedDateTime): ZonedDateTime {
             return getBeginOfDay(dateTime.with(TemporalAdjusters.firstDayOfYear()))
         }
@@ -103,7 +116,7 @@ class PFDateTimeUtils {
             if (str.isNullOrBlank())
                 return null
             val local = LocalDateTime.parse(str, dateTimeFormatter) // Parses UTC as local date.
-            val utcZoned = ZonedDateTime.of(local, ZoneId.of("UTC"))
+            val utcZoned = ZonedDateTime.of(local, ZONE_UTC)
             val userZoned = utcZoned.withZoneSameInstant(zoneId)
             return PFDateTime(userZoned, locale, null)
         }
@@ -137,6 +150,17 @@ class PFDateTimeUtils {
                 else -> { // yyyy-MM-dd HH:mm:ss
                     parseUTCDate(str, PFDateTime.isoDateTimeFormatterSeconds, zoneId, locale)
                 }
+            }
+        }
+
+        @JvmStatic
+        @JvmOverloads
+        fun formatUTCDate(date: Date): String {
+            return if (date is java.sql.Date) {
+                PFDateTime.isoDateFormatter.format(date.toLocalDate())
+            } else {
+                val ldt = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+                PFDateTime.isoDateTimeFormatterMilli.format(ldt)
             }
         }
 

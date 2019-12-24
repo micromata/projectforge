@@ -67,7 +67,7 @@ class PFDayUtils {
 
         @JvmStatic
         fun getEndOfWeek(date: LocalDate): LocalDate {
-            return getBeginOfWeek(date).plusDays(7)
+            return getBeginOfWeek(date).plusDays(6)
         }
 
         @JvmStatic
@@ -84,7 +84,7 @@ class PFDayUtils {
             if (dayOfWeek in 1..7) {
                 return if (dayOfWeek == 1) date.beginOfWeek else date.beginOfWeek.plusDays((dayOfWeek - 1).toLong())
             } else {
-                throw IllegalArgumentException("withDayOfWeek accepts only day of weeks from 1 (first day of week) to 7 (last day of week).")
+                throw IllegalArgumentException("withDayOfWeek accepts only day of weeks from 1 (first day of week) to 7 (last day of week), but $dayOfWeek was given.")
             }
         }
 
@@ -93,15 +93,19 @@ class PFDayUtils {
          */
         @JvmStatic
         fun getDayOfWeek(dayNumber: Int): DayOfWeek? {
-            return when (dayNumber) {
-                1 -> DayOfWeek.MONDAY
-                2 -> DayOfWeek.TUESDAY
-                3 -> DayOfWeek.WEDNESDAY
-                4 -> DayOfWeek.THURSDAY
-                5 -> DayOfWeek.FRIDAY
-                6 -> DayOfWeek.SATURDAY
-                7 -> DayOfWeek.SUNDAY
-                else -> null
+            if (dayNumber in 1..7) {
+                return when (dayNumber) {
+                    1 -> DayOfWeek.MONDAY
+                    2 -> DayOfWeek.TUESDAY
+                    3 -> DayOfWeek.WEDNESDAY
+                    4 -> DayOfWeek.THURSDAY
+                    5 -> DayOfWeek.FRIDAY
+                    6 -> DayOfWeek.SATURDAY
+                    7 -> DayOfWeek.SUNDAY
+                    else -> null
+                }
+            } else {
+                throw IllegalArgumentException("getDayOfWeek accepts only day of weeks from 1 (first day of week) to 7 (last day of week), but $dayNumber was given.")
             }
         }
 
