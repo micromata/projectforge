@@ -96,6 +96,9 @@ class PFDate(val date: LocalDate,
             return PFDate(startOfWeek, locale)
         }
 
+    val isBeginOfWeek: Boolean
+        get() = date.dayOfWeek == PFDateTimeUtils.getFirstDayOfWeek()
+
     fun withYear(year: Int): PFDate {
         return PFDate(date.withYear(year), locale)
     }
