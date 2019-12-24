@@ -29,7 +29,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 
 /**
  * Persist the settings of one named filter entry. The user may configure a list of filters and my switch the active
- * dateTime filter.
+ * calendar filter.
  *
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author K. Reinhard (k.reinhard@micromata.de)
@@ -37,13 +37,13 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 class CalendarFilter(name: String? = null,
                      id: Int? = null,
                      /**
-                      * New items created in the dateTime will be assumed as entries of this dateTime. If null, then the creation
+                      * New items created in the calendar will be assumed as entries of this calendar. If null, then the creation
                       * page for new time sheets is instantiated.
                       */
                      var defaultCalendarId: Int? = null,
 
                      /**
-                      * Grid size of the dateTime to display in minutes (60 should be dividable by step).
+                      * Grid size of the calendar to display in minutes (60 should be dividable by step).
                       */
                      var gridSize: Int = 15,
 
@@ -131,7 +131,7 @@ class CalendarFilter(name: String? = null,
 
     /**
      * This method tidies up the list of invisible calendars by
-     * removing invisible calendars not contained in the main dateTime set.
+     * removing invisible calendars not contained in the main calendar set.
      */
     @Suppress("SENSELESS_COMPARISON")
     fun tidyUp() {

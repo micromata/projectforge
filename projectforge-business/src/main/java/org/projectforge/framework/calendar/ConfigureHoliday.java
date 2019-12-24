@@ -31,9 +31,9 @@ import java.math.BigDecimal;
 
 /**
  * Used in config.xml for (re-)definition of holidays.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @XmlObject(alias = "holiday")
 public class ConfigureHoliday
@@ -60,7 +60,7 @@ public class ConfigureHoliday
   }
 
   /**
-   * @return Label to display in dateTime.
+   * @return Label to display in calendar.
    */
   public String getLabel()
   {

@@ -23,8 +23,11 @@
 
 package org.projectforge.web.calendar;
 
-import java.sql.Timestamp;
-
+import net.ftlines.wicket.fullcalendar.CalendarResponse;
+import net.ftlines.wicket.fullcalendar.Event;
+import net.ftlines.wicket.fullcalendar.EventProvider;
+import net.ftlines.wicket.fullcalendar.EventSource;
+import net.ftlines.wicket.fullcalendar.callback.*;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.cycle.RequestCycle;
@@ -54,16 +57,7 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.components.DatePickerUtils;
 import org.projectforge.web.wicket.components.JodaDatePanel;
 
-import net.ftlines.wicket.fullcalendar.CalendarResponse;
-import net.ftlines.wicket.fullcalendar.Event;
-import net.ftlines.wicket.fullcalendar.EventProvider;
-import net.ftlines.wicket.fullcalendar.EventSource;
-import net.ftlines.wicket.fullcalendar.callback.CalendarDropMode;
-import net.ftlines.wicket.fullcalendar.callback.ClickedEvent;
-import net.ftlines.wicket.fullcalendar.callback.DroppedEvent;
-import net.ftlines.wicket.fullcalendar.callback.ResizedEvent;
-import net.ftlines.wicket.fullcalendar.callback.SelectedRange;
-import net.ftlines.wicket.fullcalendar.callback.View;
+import java.sql.Timestamp;
 
 public class CalendarPanel extends Panel
 {
@@ -181,7 +175,7 @@ public class CalendarPanel extends Panel
           try {
             dropMode = CalendarDropMode.fromAjaxTarget(parameterValue.toString());
           } catch (final Exception ex) {
-            log.warn("Unable to get dateTime drop mode for given value, using default mode. Given mode: "
+            log.warn("Unable to get calendar drop mode for given value, using default mode. Given mode: "
                 + parameterValue.toString());
           }
         }
@@ -297,7 +291,7 @@ public class CalendarPanel extends Panel
         response.getTarget().add(((CalendarPage) getPage()).getForm().getDurationLabel());
       }
     };
-    calendar.setMarkupId("dateTime");
+    calendar.setMarkupId("calendar");
     add(calendar);
     setConfig();
 
@@ -399,7 +393,7 @@ public class CalendarPanel extends Panel
   }
 
   /**
-   * Hook method for overwriting children, which is called, when something in the dateTime was clicked
+   * Hook method for overwriting children, which is called, when something in the calendar was clicked
    *
    * @param clickedEvent
    * @param response

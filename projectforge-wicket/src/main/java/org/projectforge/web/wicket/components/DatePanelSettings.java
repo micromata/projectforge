@@ -23,12 +23,12 @@
 
 package org.projectforge.web.wicket.components;
 
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.web.calendar.CalendarPage;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.TimeZone;
-
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.web.calendar.CalendarPage;
 
 /**
  * Fluent design pattern.
@@ -111,7 +111,7 @@ public class DatePanelSettings implements Serializable
   }
 
   /**
-   * Customized tool tip to show for the dateTime view select icon.
+   * Customized tool tip to show for the calendar view select icon.
    *
    * @param i18nKey
    * @return this

@@ -48,7 +48,7 @@ public class DTEndConverter extends PropertyConverter
       final Date endUtc = CalendarUtils.getUTCMidnightDate(event.getEndDate());
       final PFDateTime dateTime = PFDateTime.from(endUtc);
       // TODO sn should not be done
-      // requires plus 1 because one day will be omitted by dateTime.
+      // requires plus 1 because one day will be omitted by calendar.
       final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(dateTime.plusDays(1).getUtilDate());
       date = new net.fortuna.ical4j.model.Date(fortunaEndDate.getTime());
     } else {

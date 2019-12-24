@@ -75,7 +75,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
         }
     }
 
-    @Value("\${dateTime.useNewCalendarEvents}")
+    @Value("\${calendar.useNewCalendarEvents}")
     private var useNewCalendarEvents: Boolean = false
 
     private val dateTimeFormatter = DateTimeFormatter.instance()
@@ -165,7 +165,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
     }
 
     override fun afterEdit(obj: TimesheetDO, dto: TimesheetDO): ResponseAction {
-        return ResponseAction("/${Const.REACT_APP_PATH}dateTime")
+        return ResponseAction("/${Const.REACT_APP_PATH}calendar")
                 .addVariable("date", obj.startTime)
                 .addVariable("id", obj.id ?: -1)
     }
@@ -208,8 +208,8 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
                         .add(UITableColumn("timesheet.kost2.project", "fibu.projekt", formatter = Formatter.PROJECT))
                         .add(lc, "task")
                         .add(UITableColumn("timesheet.kost2", "fibu.kost2", formatter = Formatter.COST2))
-                        .add(UITableColumn("weekOfYear", "dateTime.weekOfYearShortLabel"))
-                        .add(UITableColumn("dayName", "dateTime.dayOfWeekShortLabel"))
+                        .add(UITableColumn("weekOfYear", "calendar.weekOfYearShortLabel"))
+                        .add(UITableColumn("dayName", "calendar.dayOfWeekShortLabel"))
                         .add(UITableColumn("timePeriod", "timePeriod"))
                         .add(UITableColumn("duration", "timesheet.duration"))
                         .add(lc, "location", "description"))
@@ -305,7 +305,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
     }
 
     override fun getRestEditPath(): String {
-        return "dateTime/${super.getRestEditPath()}"
+        return "calendar/${super.getRestEditPath()}"
     }
 
     @Deprecated("Will be replaced by cloneFromCalendarEvent(request, calendarEvent).")
@@ -327,7 +327,7 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
         if (!calendarEvent.subject.isNullOrBlank() || !calendarEvent.note.isNullOrBlank())
             timesheet.description = "${calendarEvent.subject ?: ""} ${calendarEvent.note ?: ""}"
         val editLayoutData = getItemAndLayout(request, timesheet, UILayout.UserAccess(false, true))
-        return ResponseAction(url = "/${Const.REACT_APP_PATH}dateTime/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
+        return ResponseAction(url = "/${Const.REACT_APP_PATH}calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)
                 .addVariable("variables", editLayoutData.variables)

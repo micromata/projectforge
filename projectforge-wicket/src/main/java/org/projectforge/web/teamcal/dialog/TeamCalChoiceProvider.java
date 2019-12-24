@@ -116,7 +116,7 @@ public class TeamCalChoiceProvider extends ChoiceProvider<TeamCalDO>
       try {
         teamCal = getTeamCalDao().getById(teamCalId);
       } catch (final AccessException ex) {
-        log.warn("User has no access to the selected dateTime '" + id + "'.");
+        log.warn("User has no access to the selected calendar '" + id + "'.");
       }
       if (teamCal != null) {
         list.add(teamCal);

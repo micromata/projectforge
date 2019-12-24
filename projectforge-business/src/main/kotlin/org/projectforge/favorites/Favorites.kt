@@ -87,7 +87,7 @@ open class Favorites<T : AbstractFavorite>() {
             entry.name = newName
             fixNamesAndIds()
         } else {
-            log.warn("Could not rename the user's filter. Filter with id '$id' not found for dateTime.")
+            log.warn("Could not rename the user's filter. Filter with id '$id' not found for calendar.")
         }
 
     }

@@ -150,7 +150,7 @@ public class TeamEventDaoRest
         }
       }
     } else {
-      log.warn("No dateTime ids are given, so can't find any events.");
+      log.warn("No calendar ids are given, so can't find any events.");
     }
     final String json = JsonUtils.toJson(result);
     log.info("Call rest interface TeamEventDaoRest.getReminderListFuture - END");
@@ -198,7 +198,7 @@ public class TeamEventDaoRest
       handler.persist(true);
 
       final CalendarEventObject result = this.getEventObject(handler.getFirstResult());
-      log.info("Team event: " + result.getSubject() + " for dateTime #" + teamCalDO.getId() + " successfully created.");
+      log.info("Team event: " + result.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
 
       final String json = JsonUtils.toJson(result);
       return Response.ok(json).build();

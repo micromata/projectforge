@@ -106,7 +106,7 @@ public class ICalParser
     final CalendarBuilder builder = new CalendarBuilder();
 
     try {
-      // parse dateTime
+      // parse calendar
       this.calendar = builder.build(iCalReader);
     } catch (IOException | ParserException e) {
       log.error("An unknown error occurred while parsing an ICS file", e);

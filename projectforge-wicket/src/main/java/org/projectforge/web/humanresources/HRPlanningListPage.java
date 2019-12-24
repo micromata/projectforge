@@ -57,10 +57,10 @@ import org.projectforge.web.wicket.NumberPropertyColumn;
 import org.projectforge.web.wicket.WebConstants;
 
 /**
- * 
+ *
  * @author Mario Groß (m.gross@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @ListPage(editPage = HRPlanningEditPage.class)
 public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRPlanningEntryDao, HRPlanningEntryDO>
@@ -211,7 +211,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
     // final AbstractICSExportDialog icsExportDialog = new AbstractICSExportDialog(newModalDialogId(), new
     // ResourceModel("timesheet.iCalSubscription")) {
     // /**
-    // * @see org.projectforge.web.dateTime.AbstractICSExportDialog#getUrl()
+    // * @see org.projectforge.web.calendar.AbstractICSExportDialog#getUrl()
     // */
     // @Override
     // protected String getUrl()
@@ -246,7 +246,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
 
   /**
    * Get the current date (start date) and preset this date for the edit page.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractListPage#onNewEntryClick(org.apache.wicket.PageParameters)
    */
   @Override

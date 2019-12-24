@@ -80,7 +80,7 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
     open var externalSubscription: Boolean = false
 
     /**
-     * This hash value is used for detecting changes of an subscribed dateTime.
+     * This hash value is used for detecting changes of an subscribed calendar.
      */
     @JsonIgnore
     @field:NoHistory
@@ -88,8 +88,8 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
     open var externalSubscriptionHash: String? = null
 
     /**
-     * This dateTime is a subscription of an external dateTime. This URL shouldn't be visible for users without
-     * full access, because this field may contain personal user settings of a cloud dateTime.
+     * This calendar is a subscription of an external calendar. This URL shouldn't be visible for users without
+     * full access, because this field may contain personal user settings of a cloud calendar.
      *
      * @return The subscription url.
      */
@@ -98,7 +98,7 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
     open var externalSubscriptionUrl: String? = null
 
     /**
-     * This dateTime is a subscription of an external dateTime. This is the time in seconds after which this dateTime
+     * This calendar is a subscription of an external calendar. This is the time in seconds after which this calendar
      * should be refreshed.
      *
      * @return externalSubscriptionUpdateInterval
@@ -108,7 +108,7 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
     open var externalSubscriptionUpdateInterval: Int? = null
 
     /**
-     * This binary contains all the events of a subscribed dateTime and might be large. Don't export this field to
+     * This binary contains all the events of a subscribed calendar and might be large. Don't export this field to
      * any client because it may contain private data.
      */
     @JsonIgnore

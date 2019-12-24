@@ -49,24 +49,24 @@ open class TeamCalendar(val id: Int?,
 
     companion object {
         /**
-         * Calendar id of pseudo dateTime (birthdays of favorite peoples).
+         * Calendar id of pseudo calendar (birthdays of favorite peoples).
          */
         const val BIRTHDAYS_FAVS_CAL_ID = -2
 
         /**
-         * Calendar id of pseudo dateTime (birthdays of non-favorite peoples).
+         * Calendar id of pseudo calendar (birthdays of non-favorite peoples).
          */
         const val BIRTHDAYS_ALL_CAL_ID = -3
 
         fun createFavoritesBirthdaysPseudoCalendar() : TeamCalendar {
             return TeamCalendar(TeamCalendar.BIRTHDAYS_FAVS_CAL_ID,
-                    translate("dateTime.birthdays.favorites"),
+                    translate("calendar.birthdays.favorites"),
                     ACCESS.READ)
         }
 
         fun createAllBirthdaysPseudoCalendar() : TeamCalendar {
             return TeamCalendar(TeamCalendar.BIRTHDAYS_ALL_CAL_ID,
-                    translate("dateTime.birthdays.all"),
+                    translate("calendar.birthdays.all"),
                     ACCESS.READ)
         }
     }

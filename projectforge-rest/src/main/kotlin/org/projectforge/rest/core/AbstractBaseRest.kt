@@ -651,7 +651,7 @@ abstract class AbstractBaseRest<
     }
 
     /**
-     * Might be modified e. g. for edit pages handled in modals (timesheets and dateTime events).
+     * Might be modified e. g. for edit pages handled in modals (timesheets and calendar events).
      */
     open protected fun getRestEditPath(): String {
         return getRestRootPath(RestPaths.EDIT)

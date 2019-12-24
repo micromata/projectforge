@@ -196,7 +196,7 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
       }));
     }
     {
-      // Team dateTime
+      // Team calendar
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.teamcal.calendar"));// .setLabelSide(false);
       final TeamCalsProvider calendarProvider = new TeamCalsProvider(teamCalCache);
       calendarsListHelper = new MultiChoiceListHelper<TeamCalDO>().setComparator(new TeamCalsComparator()).setFullList(

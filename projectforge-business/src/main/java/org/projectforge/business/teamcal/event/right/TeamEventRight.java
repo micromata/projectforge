@@ -38,9 +38,9 @@ import java.util.Objects;
 /**
  * Every user has access to own to-do's or to-do's he's assigned to. All other users have access if the to-do is
  * assigned to a task and the user has the task access.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@me.de)
- * 
+ *
  */
 public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
 {
@@ -57,7 +57,7 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
 
   /**
    * General select access.
-   * 
+   *
    * @return true
    * @see org.projectforge.business.user.UserRightAccessCheck#hasSelectAccess(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
@@ -97,7 +97,7 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
 
   /**
    * General insert access.
-   * 
+   *
    * @return true
    * @see org.projectforge.business.user.UserRightAccessCheck#hasInsertAccess(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
@@ -109,7 +109,7 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
 
   /**
    * Same as {@link #hasUpdateAccess(PFUserDO, TeamEventDO, TeamEventDO)}
-   * 
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasInsertAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
    *      java.lang.Object)
    */
@@ -121,7 +121,7 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
 
   /**
    * Same as {@link #hasUpdateAccess(PFUserDO, TeamEventDO, TeamEventDO)}
-   * 
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasDeleteAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
    *      java.lang.Object, java.lang.Object)
    */
@@ -132,8 +132,8 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
   }
 
   /**
-   * Owners of the given dateTime and users with full access hav update access to the given dateTime: obj.getDateTime().
-   * 
+   * Owners of the given calendar and users with full access hav update access to the given calendar: obj.getCalendar().
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasUpdateAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
    *      java.lang.Object, java.lang.Object)
    */
@@ -167,9 +167,9 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
   }
 
   /**
-   * Owners of the given dateTime and users with full and read-only access have update access to the given dateTime:
-   * obj.getDateTime().
-   * 
+   * Owners of the given calendar and users with full and read-only access have update access to the given calendar:
+   * obj.getCalendar().
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasHistoryAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
    *      java.lang.Object)
    */

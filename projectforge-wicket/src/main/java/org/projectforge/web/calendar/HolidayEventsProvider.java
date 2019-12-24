@@ -36,7 +36,7 @@ import net.ftlines.wicket.fullcalendar.Event;
 /**
  * Creates holiday events for FullCalendar.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class HolidayEventsProvider extends MyFullCalendarEventsProvider
 {
@@ -90,7 +90,7 @@ public class HolidayEventsProvider extends MyFullCalendarEventsProvider
       event.setStart(day.toDateTime());
       String title;
       final String holidayInfo = dh.getHolidayInfo();
-      if (holidayInfo != null && holidayInfo.startsWith("dateTime.holiday.") == true) {
+      if (holidayInfo != null && holidayInfo.startsWith("calendar.holiday.") == true) {
         title = ThreadLocalUserContext.getLocalizedString(holidayInfo);
       } else {
         title = holidayInfo;

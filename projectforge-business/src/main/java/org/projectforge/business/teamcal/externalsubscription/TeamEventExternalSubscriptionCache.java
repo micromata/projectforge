@@ -99,7 +99,7 @@ public class TeamEventExternalSubscriptionCache {
 
     final List<Integer> idsToRemove = new ArrayList<>();
     for (final Integer calendarId : subscriptions.keySet()) {
-      // if dateTime is not subscribed anymore, remove them
+      // if calendar is not subscribed anymore, remove them
       if (!calendarListContainsId(subscribedCalendars, calendarId)) {
         idsToRemove.add(calendarId);
       }
@@ -142,7 +142,7 @@ public class TeamEventExternalSubscriptionCache {
             : 1000L * calendar
             .getExternalSubscriptionUpdateInterval();
     if (teamEventSubscription == null || !teamEventSubscription.isInitialized()) {
-      // First update of subscribed dateTime:
+      // First update of subscribed calendar:
       if (teamEventSubscription == null) {
         teamEventSubscription = new TeamEventSubscription();
         subscriptions.put(calendar.getId(), teamEventSubscription);
@@ -159,7 +159,7 @@ public class TeamEventExternalSubscriptionCache {
         if (lastRun == null || lastRun + teamEventSubscription.getNumberOfFailedUpdates() * addedTime <= now) {
           teamEventSubscription.update(teamCalDao, calendar);
         } else if (lastRun + MAX_WAIT_MS_AFTER_FAILED_UPDATE > now) {
-          log.info("Try to update subscribed dateTime after "
+          log.info("Try to update subscribed calendar after "
                   + (MAX_WAIT_MS_AFTER_FAILED_UPDATE / 1000 / 60 / 60)
                   + " hours. Number of failed updates: "
                   + teamEventSubscription.getNumberOfFailedUpdates()
@@ -170,7 +170,7 @@ public class TeamEventExternalSubscriptionCache {
           teamEventSubscription.update(teamCalDao, calendar);
         }
       } else {
-        // update the dateTime
+        // update the calendar
         teamEventSubscription.update(teamCalDao, calendar);
       }
     }

@@ -23,10 +23,7 @@
 
 package org.projectforge.web.teamcal.integration;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import net.fortuna.ical4j.model.component.VEvent;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.model.IModel;
@@ -58,13 +55,11 @@ import org.projectforge.web.teamcal.event.TeamEventListPage;
 import org.projectforge.web.teamcal.event.importics.DropIcsPanel;
 import org.projectforge.web.teamcal.event.importics.TeamCalImportPage;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.flowlayout.AjaxIconButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivType;
-import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
-import org.projectforge.web.wicket.flowlayout.IconButtonPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
+import org.projectforge.web.wicket.flowlayout.*;
 
-import net.fortuna.ical4j.model.component.VEvent;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)
@@ -260,7 +255,7 @@ public class TeamCalCalendarForm extends CalendarForm
         // Here we have just one event.
         final TeamEventDO event = parser.getExtractedEvents().get(0);
         final TemplateEntry activeTemplateEntry = ((TeamCalCalendarFilter) filter).getActiveTemplateEntry();
-        // check id/external id. If not yet given, create new entry and ask for dateTime to add: Redirect to TeamEventEditPage.
+        // check id/external id. If not yet given, create new entry and ask for calendar to add: Redirect to TeamEventEditPage.
 
         if (event.getUid() != null && activeTemplateEntry != null) {
           final TeamEventDO dbEvent = teamEventDao.getByUid(activeTemplateEntry.getDefaultCalendarId(), event.getUid(), false);
@@ -273,14 +268,14 @@ public class TeamCalCalendarForm extends CalendarForm
               event.setCreator(dbEvent.getCreator());
               event.setDeleted(dbEvent.isDeleted());
             } else {
-              // Can't import event with existing uid in selected dateTime, redirect to import page:
+              // Can't import event with existing uid in selected calendar, redirect to import page:
               redirectToImportPage(parser.getVEvents(), activeModel.getObject());
               return;
             }
           }
         }
 
-        // set dateTime
+        // set calendar
         if (activeTemplateEntry != null && activeTemplateEntry.getDefaultCalendarId() != null) {
           teamEventDao.setCalendar(event, activeTemplateEntry.getDefaultCalendarId());
         }

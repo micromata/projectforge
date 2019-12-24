@@ -33,7 +33,7 @@ public enum IconType
   ACCEPT("ok-sign"), //
   ALERT("warning-sign"), //
   BUILDING("building"), //
-  CALENDAR("dateTime"), //
+  CALENDAR("calendar"), //
   COG("cog"), //
   DENY("minus-sign"), //
   DOCUMENT("file"), //
