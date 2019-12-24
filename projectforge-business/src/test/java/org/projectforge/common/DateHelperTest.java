@@ -33,9 +33,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Month;
-import java.time.ZoneId;
 import java.util.Date;
-import java.util.Locale;
 import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -144,10 +142,5 @@ public class DateHelperTest extends AbstractTestBase {
   public static Date createDate(final int year, final Month month, final int day, final int hour, final int minute,
                                 final int second, final int millisecond, TimeZone timeZone) {
     return PFDateTime.withDate(year, month, day, hour, minute, second, millisecond, timeZone.toZoneId()).getUtilDate();
-  }
-
-  public static Date createDate(final int year, final Month month, final int day, final int hour, final int minute,
-                                final int second, final int millisecond) {
-    return createDate(year, month, day, hour, minute, second, millisecond, TimeZone.getDefault());
   }
 }
