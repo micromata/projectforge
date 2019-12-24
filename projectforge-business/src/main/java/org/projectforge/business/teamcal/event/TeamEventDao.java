@@ -774,8 +774,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
           col.add(event);
         } else {
           // Now we need this event as date with the user's time-zone.
-          final PFDateTime userCal = PFDateTime.from(dateTime.getTime(), false, timeZone.toZoneId());
-          final TeamRecurrenceEvent recurEvent = new TeamRecurrenceEvent(event, userCal);
+          final PFDateTime date = PFDateTime.fromMilli(dateTime.getTime(), false, timeZone.toZoneId());
+          final TeamRecurrenceEvent recurEvent = new TeamRecurrenceEvent(event, date);
           col.add(recurEvent);
         }
       }
