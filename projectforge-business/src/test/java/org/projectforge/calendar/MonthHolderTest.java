@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.calendar.WeekHolder;
 import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.framework.time.PFDate;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.TestSetup;
@@ -86,9 +86,9 @@ public class MonthHolderTest {
   @Test
   public void testDays() {
     final MonthHolder mh = new MonthHolder(2013, Month.MAY);
-    final List<PFDate> list = mh.getDays();
+    final List<PFDay> list = mh.getDays();
     Assertions.assertEquals(31, list.size());
-    for (final PFDate dt : list) {
+    for (final PFDay dt : list) {
       Assertions.assertEquals(Month.MAY, dt.getMonth());
     }
     Assertions.assertEquals(1, list.get(0).getDayOfMonth());

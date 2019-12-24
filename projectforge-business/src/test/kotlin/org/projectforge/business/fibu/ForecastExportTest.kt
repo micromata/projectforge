@@ -27,7 +27,7 @@ import de.micromata.merlin.excel.ExcelWorkbook
 import org.apache.commons.io.FileUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.framework.time.PFDate
+import org.projectforge.framework.time.PFDay
 import org.projectforge.test.AbstractTestBase
 import org.projectforge.test.WorkFileHelper
 import org.springframework.beans.factory.annotation.Autowired
@@ -48,7 +48,7 @@ class ForecastExportTest : AbstractTestBase() {
     @Test
     fun exportTest() {
         logon(TEST_FINANCE_USER)
-        val today = PFDate.now()
+        val today = PFDay.now()
         val baseDate = today.plusMonths(-4)
         var order1 = createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsPositionsStatus.BEAUFTRAGT,
                 1000.0, baseDate,
@@ -90,7 +90,7 @@ class ForecastExportTest : AbstractTestBase() {
     }
 
     private fun createTimeAndMaterials(orderStatus: AuftragsStatus, posStatus: AuftragsPositionsStatus,
-                                       monthlyAmount: Double, date: PFDate, periodStart: PFDate, periodEnd: PFDate, vararg invoiceMonth: PFDate)
+                                       monthlyAmount: Double, date: PFDay, periodStart: PFDay, periodEnd: PFDay, vararg invoiceMonth: PFDay)
             : AuftragDO {
         var order = createOrder(date, orderStatus, periodStart, periodEnd)
         //order1.addPaymentSchedule()
@@ -106,10 +106,10 @@ class ForecastExportTest : AbstractTestBase() {
         return order
     }
 
-    private fun createOrder(date: PFDate,
+    private fun createOrder(date: PFDay,
                             status: AuftragsStatus,
-                            periodOfPerformanceBegin: PFDate? = null,
-                            periodOfPerformanceEnd: PFDate? = null,
+                            periodOfPerformanceBegin: PFDay? = null,
+                            periodOfPerformanceEnd: PFDay? = null,
                             probability: Int? = null): AuftragDO {
         val order = AuftragDO()
         order.nummer = auftragDao.nextNumber
@@ -126,8 +126,8 @@ class ForecastExportTest : AbstractTestBase() {
                             status: AuftragsPositionsStatus,
                             netSum: Double,
                             paymentType: AuftragsPositionsPaymentType,
-                            periodOfPerformanceBegin: PFDate? = null,
-                            periodOfPerformanceEnd: PFDate? = null,
+                            periodOfPerformanceBegin: PFDay? = null,
+                            periodOfPerformanceEnd: PFDay? = null,
                             periodOfPerformanceType: PeriodOfPerformanceType? = null): AuftragsPositionDO {
         val pos = AuftragsPositionDO()
         pos.number = number
@@ -141,7 +141,7 @@ class ForecastExportTest : AbstractTestBase() {
         return pos
     }
 
-    private fun createInvoice(date: PFDate): RechnungDO {
+    private fun createInvoice(date: PFDay): RechnungDO {
         val invoice = RechnungDO()
         invoice.nummer = rechnungDao.nextNumber
         invoice.datum = date.sqlDate

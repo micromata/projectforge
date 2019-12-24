@@ -39,7 +39,7 @@ import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.calendar.WeekHolder;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.PFDate;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 
@@ -337,7 +337,7 @@ public class MonthlyEmployeeReport implements Serializable {
     final Holidays holidays = Holidays.getInstance();
     for (final WeekHolder week : monthHolder.getWeeks()) {
 
-      for (final PFDate day : week.getDays()) {
+      for (final PFDay day : week.getDays()) {
         if (day.getMonth() == this.month && holidays.isWorkingDay(day)
                 && !bookedDays.contains(day.getDayOfMonth())) {
           unbookedDays.add(day.getDayOfMonth());

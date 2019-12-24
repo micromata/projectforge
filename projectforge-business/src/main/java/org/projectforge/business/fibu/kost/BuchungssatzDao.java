@@ -33,7 +33,7 @@ import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.framework.time.PFDateTimeCompabilityUtils;
+import org.projectforge.framework.time.PFDateCompabilityUtils;
 import org.springframework.stereotype.Repository;
 
 import java.time.Month;
@@ -92,7 +92,7 @@ public class BuchungssatzDao extends BaseDao<BuchungssatzDO> {
     return SQLHelper.ensureUniqueResult(
             em.createNamedQuery(BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR, BuchungssatzDO.class)
                     .setParameter("year", year)
-                    .setParameter("month", PFDateTimeCompabilityUtils.getCompabilityMonthValue(month))
+                    .setParameter("month", PFDateCompabilityUtils.getCompabilityMonthValue(month))
                     .setParameter("satznr", satznr));
   }
 

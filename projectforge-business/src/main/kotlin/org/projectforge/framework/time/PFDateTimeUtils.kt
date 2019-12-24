@@ -24,44 +24,42 @@
 package org.projectforge.framework.time
 
 import org.apache.commons.lang3.StringUtils
-import org.apache.commons.lang3.Validate
-import org.projectforge.framework.calendar.Holidays
-import org.projectforge.framework.i18n.UserException
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import java.math.BigDecimal
-import java.time.*
+import java.time.DateTimeException
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
 import java.util.*
-import kotlin.math.absoluteValue
 
 class PFDateTimeUtils {
     companion object {
         @JvmStatic
         fun getBeginOfYear(dateTime: ZonedDateTime): ZonedDateTime {
-            return getBeginOfDay(dateTime.withDayOfYear(1))
+            return getBeginOfDay(dateTime.with(TemporalAdjusters.firstDayOfYear()))
         }
 
         @JvmStatic
         fun getEndfYear(dateTime: ZonedDateTime): ZonedDateTime {
-            return getEndOfPreviousDay(getBeginOfYear(dateTime.plusYears(1)))
+            return getEndOfDay(dateTime.with(TemporalAdjusters.lastDayOfYear()))
         }
 
         @JvmStatic
         fun getBeginOfMonth(dateTime: ZonedDateTime): ZonedDateTime {
-            return getBeginOfDay(dateTime.withDayOfMonth(1))
+            return getBeginOfDay(dateTime.with(TemporalAdjusters.firstDayOfMonth()))
         }
 
         @JvmStatic
         fun getEndOfMonth(dateTime: ZonedDateTime): ZonedDateTime {
-            return getEndOfPreviousDay(getBeginOfMonth(dateTime.plusMonths(1)))
+            return getEndOfDay(dateTime.with(TemporalAdjusters.lastDayOfMonth()))
         }
 
         @JvmStatic
         fun getBeginOfWeek(date: ZonedDateTime): ZonedDateTime {
-            val field = WeekFields.of(getFirstDayOfWeek(), 1).dayOfWeek()
+            val field = WeekFields.of(PFDayUtils.getFirstDayOfWeek(), 1).dayOfWeek()
             return getBeginOfDay(date.with(field, 1))
         }
 
@@ -71,70 +69,13 @@ class PFDateTimeUtils {
         }
 
         @JvmStatic
-        fun getBeginOfWeek(date: LocalDate): LocalDate {
-            val field = WeekFields.of(getFirstDayOfWeek(), 1).dayOfWeek()
-            return return date.with(field, 1)
-        }
-
-        @JvmStatic
-        fun getFirstDayOfWeek(): DayOfWeek {
-            return ThreadLocalUserContext.getFirstDayOfWeek()
-        }
-
-        @JvmStatic
         fun getBeginOfDay(dateTime: ZonedDateTime): ZonedDateTime {
             return dateTime.toLocalDate().atStartOfDay(dateTime.getZone())
         }
 
         @JvmStatic
         fun getEndOfDay(dateTime: ZonedDateTime): ZonedDateTime {
-            return dateTime.truncatedTo(ChronoUnit.DAYS).plusDays(1)
-        }
-
-        /**
-         * dayNumber 1 - Monday, 2 - Tuesday, ..., 7 - Sunday
-         */
-        @JvmStatic
-        fun getDayOfWeek(dayNumber: Int): DayOfWeek? {
-            return when (dayNumber) {
-                1 -> DayOfWeek.MONDAY
-                2 -> DayOfWeek.TUESDAY
-                3 -> DayOfWeek.WEDNESDAY
-                4 -> DayOfWeek.THURSDAY
-                5 -> DayOfWeek.FRIDAY
-                6 -> DayOfWeek.SATURDAY
-                7 -> DayOfWeek.SUNDAY
-                else -> null
-            }
-        }
-
-        /**
-         * @return 1 - Monday, 2 - Tuesday, ..., 7 - Sunday
-         */
-        @JvmStatic
-        fun getDayOfWeekValue(dayOfWeek: DayOfWeek?): Int? {
-            return when (dayOfWeek) {
-                DayOfWeek.MONDAY -> 1
-                DayOfWeek.TUESDAY -> 2
-                DayOfWeek.WEDNESDAY -> 3
-                DayOfWeek.THURSDAY -> 4
-                DayOfWeek.FRIDAY -> 5
-                DayOfWeek.SATURDAY -> 6
-                DayOfWeek.SUNDAY -> 7
-                else -> null
-            }
-        }
-
-        /**
-         * monthNumber 1-based: 1 - January, ..., 12 - December
-         */
-        @JvmStatic
-        fun getMonth(monthNumber: Int?): Month? {
-            return if (monthNumber != null) {
-                Month.of(monthNumber)
-            } else {
-                null
-            }
+            return getEndOfPreviousDay(dateTime.truncatedTo(ChronoUnit.DAYS).plusDays(1))
         }
 
         /**
@@ -150,91 +91,6 @@ class PFDateTimeUtils {
             return if (to == null) {
                 !date.isBefore(from)
             } else !(date.isAfter(to) || date.isBefore(from))
-        }
-
-        @JvmStatic
-        fun getNumberOfWorkingDays(from: PFDateTime, to: PFDateTime): BigDecimal {
-            Validate.notNull(from)
-            Validate.notNull(to)
-            return getNumberOfWorkingDays(PFDate.from(from)!!, PFDate.from(to)!!)
-        }
-
-        @JvmStatic
-        fun getNumberOfWorkingDays(from: PFDate, to: PFDate): BigDecimal {
-            Validate.notNull(from)
-            Validate.notNull(to)
-            val holidays = Holidays.getInstance()
-            if (to.isBefore(from)) {
-                return BigDecimal.ZERO
-            }
-            var numberOfWorkingDays = BigDecimal.ZERO
-            var numberOfFullWorkingDays = 0
-            var dayCounter = 1
-            var day = from
-            do {
-                if (dayCounter++ > 740) { // Endless loop protection, time period greater 2 years.
-                    throw UserException(
-                            "getNumberOfWorkingDays does not support calculation of working days for a time period greater than two years!")
-                }
-                if (holidays.isWorkingDay(day)) {
-                    val workFraction = holidays.getWorkFraction(day)
-                    if (workFraction != null) {
-                        numberOfWorkingDays = numberOfWorkingDays.add(workFraction)
-                    } else {
-                        numberOfFullWorkingDays++
-                    }
-                }
-                day = day.plusDays(1)
-            } while (!day.isAfter(to))
-            numberOfWorkingDays = numberOfWorkingDays.add(BigDecimal(numberOfFullWorkingDays))
-            return numberOfWorkingDays
-        }
-
-        @JvmStatic
-        fun addWorkingDays(date: PFDateTime, days: Int): PFDateTime {
-            Validate.isTrue(days <= 10000)
-            var currentDate = date
-            val plus = days > 0
-            val absDays = days.absoluteValue
-            for (counter in 0..9999) {
-                if (counter == absDays) {
-                    break
-                }
-                for (paranoia in 0..100) {
-                    currentDate = if (plus) currentDate.plusDays(1) else currentDate.minusDays(1)
-                    if (isWorkingDay(currentDate)) {
-                        break
-                    }
-                }
-            }
-            return currentDate
-        }
-
-        @JvmStatic
-        fun addWorkingDays(date: PFDate, days: Int): PFDate {
-            Validate.isTrue(days <= 10000)
-            var currentDate = date
-            val plus = days > 0
-            for (counter in 0..9999) {
-                if (counter == days) {
-                    break
-                }
-                for (paranoia in 0..100) {
-                    currentDate = if (plus) currentDate.plusDays(1) else currentDate.plusDays(-1)
-                    if (isWorkingDay(currentDate)) {
-                        break
-                    }
-                }
-            }
-            return currentDate
-        }
-
-        fun isWorkingDay(date: PFDateTime): Boolean {
-            return Holidays.getInstance().isWorkingDay(date)
-        }
-
-        fun isWorkingDay(date: PFDate): Boolean {
-            return Holidays.getInstance().isWorkingDay(date)
         }
 
         /**

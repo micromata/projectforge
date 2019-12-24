@@ -36,7 +36,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
-import org.projectforge.framework.time.PFDate
+import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -99,7 +99,7 @@ open class ForecastExport { // open needed by Wicket.
     }
 
     private class Context(workbook: ExcelWorkbook, val forecastSheet: ExcelSheet, val invoicesSheet: ExcelSheet, val invoicesPriorYearSheet: ExcelSheet,
-                          val baseDate: PFDate, val invoices: List<RechnungDO>) {
+                          val baseDate: PFDay, val invoices: List<RechnungDO>) {
         val excelDateFormat = ThreadLocalUserContext.getUser()?.excelDateFormat ?: ExcelDateFormats.EXCEL_DEFAULT_DATE
         val dateFormat = DateTimeFormatter.ofPattern(DateFormats.getFormatString(DateFormatType.DATE_SHORT))!!
         val currencyFormat = NumberHelper.getCurrencyFormat(ThreadLocalUserContext.getLocale())!!
@@ -108,7 +108,7 @@ open class ForecastExport { // open needed by Wicket.
         val writerContext = ExcelWriterContext(I18n(Const.RESOURCE_BUNDLE_NAME, ThreadLocalUserContext.getLocale()), workbook)
         val orderMap = mutableMapOf<Int, AuftragDO>()
         val orderPositionMap = mutableMapOf<Int, AuftragsPositionDO>()
-        val today = PFDate.now()
+        val today = PFDay.now()
         val thisMonth = today.beginOfMonth
 
         init {
@@ -122,7 +122,7 @@ open class ForecastExport { // open needed by Wicket.
     @Throws(IOException::class)
     open fun export(origFilter: AuftragFilter): ByteArray? {
         val baseDateParam = origFilter.periodOfPerformanceStartDate
-        val baseDate = if (baseDateParam != null) PFDate.from(baseDateParam)!!.beginOfMonth else PFDate.now().beginOfYear
+        val baseDate = if (baseDateParam != null) PFDay.from(baseDateParam)!!.beginOfMonth else PFDay.now().beginOfYear
         val prioYearBaseDate = baseDate.plusYears(-1) // One day back for getting all invoices.
 
         val filter = AuftragFilter()
@@ -220,7 +220,7 @@ open class ForecastExport { // open needed by Wicket.
                     log.error("Shouldn't occur: order position is registered but referred order itself not.")
                     continue
                 }
-                var monthIndex = getMonthIndex(ctx, PFDate.from(invoice.datum)!!)
+                var monthIndex = getMonthIndex(ctx, PFDay.from(invoice.datum)!!)
                 if (monthIndex !in -12..11) {
                     continue
                 }
@@ -247,7 +247,7 @@ open class ForecastExport { // open needed by Wicket.
         }
     }
 
-    private fun replaceMonthDatesInHeaderRow(sheet: ExcelSheet, baseDate: PFDate) { // Adding month columns
+    private fun replaceMonthDatesInHeaderRow(sheet: ExcelSheet, baseDate: PFDay) { // Adding month columns
         var currentMonth = baseDate
         MonthCol.values().forEach {
             val cell = sheet.headRow.getCell(sheet.getColumnDef(it.header))
@@ -316,11 +316,11 @@ open class ForecastExport { // open needed by Wicket.
         // get payment schedule for order position
         val paymentSchedules = ForecastUtils.getPaymentSchedule(order, pos)
         val sumPaymentSchedule: BigDecimal
-        var beginDistribute: PFDate
+        var beginDistribute: PFDay
         // handle payment schedule
         if (paymentSchedules.isNotEmpty()) {
             var sum = BigDecimal.ZERO
-            beginDistribute = PFDate.from(paymentSchedules[0].scheduleDate)!!
+            beginDistribute = PFDay.from(paymentSchedules[0].scheduleDate)!!
             val sb = StringBuilder()
             var first = true
             for (schedule in paymentSchedules) {
@@ -329,7 +329,7 @@ open class ForecastExport { // open needed by Wicket.
                 val amount = schedule.amount!!.multiply(probability)
                 sum += amount
                 if (beginDistribute.isBefore(schedule.scheduleDate!!)) {
-                    beginDistribute = PFDate.from(schedule.scheduleDate)!!
+                    beginDistribute = PFDay.from(schedule.scheduleDate)!!
                 }
                 if (first) first = false else sb.append(", ")
                 sb.append("${beginDistribute.format(ctx.dateFormat)}: ${ctx.currencyFormat.format(amount)}")
@@ -373,7 +373,7 @@ open class ForecastExport { // open needed by Wicket.
                     if (schedule.vollstaendigFakturiert) {
                         continue
                     }
-                    val date = PFDate.from(schedule.scheduleDate)!!.endOfMonth
+                    val date = PFDay.from(schedule.scheduleDate)!!.endOfMonth
                     if (date.year == currentMonth.year && date.month == currentMonth.month) {
                         sum += schedule.amount!!.multiply(probability).setScale(2, RoundingMode.HALF_UP)
                     }
@@ -398,7 +398,7 @@ open class ForecastExport { // open needed by Wicket.
             ctx.writerContext.cellHighlighter.setCellComment(excelCell, comment)
     }
 
-    private fun getMonthIndex(ctx: Context, date: PFDate): Int {
+    private fun getMonthIndex(ctx: Context, date: PFDay): Int {
         val monthDate = date.year * 12 + date.monthValue
         val monthBaseDate = ctx.baseDate.year * 12 + ctx.baseDate.monthValue
         return monthDate - monthBaseDate // index from 0 to 11
@@ -410,13 +410,13 @@ open class ForecastExport { // open needed by Wicket.
      * @param toCheck
      * @return
      */
-    private fun checkAfterMonthBefore(toCheck: PFDate): Boolean {
-        val oneMonthBeforeNow = PFDate.now().plusMonths(-1)
+    private fun checkAfterMonthBefore(toCheck: PFDay): Boolean {
+        val oneMonthBeforeNow = PFDay.now().plusMonths(-1)
         return toCheck.isAfter(oneMonthBeforeNow)
     }
 
     private fun fillMonthColumnsDistributed(value: BigDecimal, ctx: Context, row: Int, order: AuftragDO, pos: AuftragsPositionDO,
-                                            beginDistribute: PFDate, toBeInvoicedSum: BigDecimal) {
+                                            beginDistribute: PFDay, toBeInvoicedSum: BigDecimal) {
         val currentMonth = getMonthIndex(ctx, ctx.thisMonth)
         val indexBegin = getMonthIndex(ctx, beginDistribute) + 1 // Will be invoiced one month later (+1).
         val indexEnd = getMonthIndex(ctx, ForecastUtils.getEndLeistungszeitraum(order, pos)) + 1 // Will be invoiced one month later (+1).
@@ -451,7 +451,7 @@ open class ForecastExport { // open needed by Wicket.
         private const val FORECAST_IST_SUM_ROW = 7
         private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM yyyy")
 
-        fun formatMonthHeader(date: PFDate): String {
+        fun formatMonthHeader(date: PFDay): String {
             return date.format(formatter)
         }
     }

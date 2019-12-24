@@ -23,11 +23,16 @@
 
 package org.projectforge.framework.calendar;
 
-import org.projectforge.framework.time.*;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
+import org.projectforge.framework.time.PFDayUtils;
 
 import java.math.BigDecimal;
 import java.time.Month;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -44,20 +49,20 @@ public class MonthHolder {
 
   private Month month = Month.JANUARY;
 
-  private PFDate begin;
+  private PFDay begin;
 
-  private PFDate end;
+  private PFDay end;
 
   public MonthHolder() {
 
   }
 
-  public MonthHolder(final PFDate date) {
+  public MonthHolder(final PFDay date) {
     calculate(date);
   }
 
   public MonthHolder(final PFDateTime dateTime) {
-    calculate(PFDate.from(dateTime));
+    calculate(PFDay.from(dateTime));
   }
 
 
@@ -66,9 +71,9 @@ public class MonthHolder {
    * @param dayOfMonth
    * @return null, if the demanded day is not member of the weeks of the MonthHolder.
    */
-  public PFDate getDay(final Month month, final int dayOfMonth) {
+  public PFDay getDay(final Month month, final int dayOfMonth) {
     for (final WeekHolder week : weeks) {
-      for (final PFDate day : week.getDays()) {
+      for (final PFDay day : week.getDays()) {
         if (day.getMonth() == month && day.getDayOfMonth() == dayOfMonth) {
           return day;
         }
@@ -78,19 +83,19 @@ public class MonthHolder {
   }
 
   public MonthHolder(final Date date) {
-    calculate(PFDate.from(date));
+    calculate(PFDay.from(date));
   }
 
   public MonthHolder(final int year, final Month month) {
-    calculate(PFDate.withDate(year, month, 1));
+    calculate(PFDay.withDate(year, month, 1));
   }
 
-  private void calculate(PFDate date) {
+  private void calculate(PFDay date) {
     year = date.getYear();
     month = date.getMonth();
     begin = date.getBeginOfMonth(); // Storing begin of month.
     end = date.getEndOfMonth(); // Storing end of month.
-    PFDate day = date.getBeginOfMonth().getBeginOfWeek(); // get first week (with days of previous month)
+    PFDay day = date.getBeginOfMonth().getBeginOfWeek(); // get first week (with days of previous month)
 
     weeks = new ArrayList<>();
     do {
@@ -108,9 +113,9 @@ public class MonthHolder {
     return month;
   }
 
-  public List<PFDate> getDays() {
-    final List<PFDate> list = new LinkedList<>();
-    PFDate day = begin;
+  public List<PFDay> getDays() {
+    final List<PFDay> list = new LinkedList<>();
+    PFDay day = begin;
     int paranoiaCounter = 40;
     while (!day.isAfter(end) && --paranoiaCounter > 0) {
       list.add(day);
@@ -159,11 +164,11 @@ public class MonthHolder {
    * @param day
    * @return
    */
-  public boolean containsDay(final PFDate day) {
+  public boolean containsDay(final PFDay day) {
     return (!day.isBefore(begin) && !day.isAfter(end));
   }
 
   public BigDecimal getNumberOfWorkingDays() {
-    return PFDateTimeUtils.getNumberOfWorkingDays(this.begin, this.end);
+    return PFDayUtils.getNumberOfWorkingDays(this.begin, this.end);
   }
 }

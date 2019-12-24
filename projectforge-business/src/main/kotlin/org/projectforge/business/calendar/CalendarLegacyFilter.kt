@@ -29,7 +29,7 @@ import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
 import org.projectforge.business.teamcal.filter.ViewType
 import org.projectforge.business.user.service.UserXmlPreferencesService
 import org.projectforge.favorites.Favorites
-import org.projectforge.framework.time.PFDateTimeCompabilityUtils
+import org.projectforge.framework.time.PFDateCompabilityUtils
 
 /**
  * For re-using legacy filters (from ProjectForge version up to 6, Wicket-Calendar).
@@ -64,7 +64,7 @@ class CalendarLegacyFilter(val state: CalendarFilterState,
             val currentFilter = CalendarFilter.copyFrom(oldFilter.activeTemplateEntry)
             //firstHour = oldFilter.firstHour
             //slot30 = oldFilter.isSlot30
-            state.startDate = PFDateTimeCompabilityUtils.convertToLocalDate(oldFilter.startDate)
+            state.startDate = PFDateCompabilityUtils.convertToLocalDate(oldFilter.startDate)
             state.view = convert(oldFilter.viewType)
             oldFilter.templateEntries?.forEach { templateEntry ->
                 val filter = CalendarFilter.copyFrom(templateEntry)

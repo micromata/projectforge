@@ -28,7 +28,7 @@ import java.time.Month
 import java.time.temporal.ChronoUnit
 import java.util.*
 
-class PFDateTimeCompabilityUtils {
+class PFDateCompabilityUtils {
     companion object {
         @JvmStatic
         fun convertToLocalDate(dateMidnight: org.joda.time.DateMidnight?): java.time.LocalDate? {

@@ -49,7 +49,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.DayHolder;
-import org.projectforge.framework.time.PFDateTimeCompabilityUtils;
+import org.projectforge.framework.time.PFDateCompabilityUtils;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
@@ -705,20 +705,20 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     BigDecimal days = BigDecimal.ZERO;
     if (fromYear == toYear) {
       for (int i = fromMonth; i <= toMonth; i++) {
-        Month month = PFDateTimeCompabilityUtils.getCompabilityMonth(i);
+        Month month = PFDateCompabilityUtils.getCompabilityMonth(i);
         MonthlyEmployeeReport reportOfMonth = employeeService.getReportOfMonth(fromYear, month, user);
         hours += reportOfMonth.getTotalNetDuration();
         days = days.add(reportOfMonth.getNumberOfWorkingDays());
       }
     } else {
       for (int i = fromMonth; i <= 11; i++) {
-        Month month = PFDateTimeCompabilityUtils.getCompabilityMonth(i);
+        Month month = PFDateCompabilityUtils.getCompabilityMonth(i);
         MonthlyEmployeeReport reportOfMonth = employeeService.getReportOfMonth(fromYear, month, user);
         hours += reportOfMonth.getTotalNetDuration();
         days = days.add(reportOfMonth.getNumberOfWorkingDays());
       }
       for (int i = 0; i <= toMonth; i++) {
-        Month month = PFDateTimeCompabilityUtils.getCompabilityMonth(i);
+        Month month = PFDateCompabilityUtils.getCompabilityMonth(i);
         MonthlyEmployeeReport reportOfMonth = employeeService.getReportOfMonth(toYear, month, user);
         hours += reportOfMonth.getTotalNetDuration();
         days = days.add(reportOfMonth.getNumberOfWorkingDays());

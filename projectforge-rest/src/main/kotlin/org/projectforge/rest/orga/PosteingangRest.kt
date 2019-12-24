@@ -28,7 +28,7 @@ import org.projectforge.business.orga.PostType
 import org.projectforge.business.orga.PosteingangDO
 import org.projectforge.business.orga.PosteingangDao
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.time.PFDate
+import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.ui.*
@@ -42,14 +42,14 @@ class PosteingangRest() : AbstractDORest<PosteingangDO, PosteingangDao>(Posteing
 
     override fun newBaseDO(request: HttpServletRequest?): PosteingangDO {
         val inbox = super.newBaseDO(request)
-        inbox.datum = PFDate.now().sqlDate
+        inbox.datum = PFDay.now().sqlDate
         inbox.type = PostType.E_MAIL
         return inbox
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: PosteingangDO) {
-        val date = PFDate.from(dto.datum)
-        if (date != null && PFDate.now().isBefore(date)) { // No dates in the future accepted.
+        val date = PFDay.from(dto.datum)
+        if (date != null && PFDay.now().isBefore(date)) { // No dates in the future accepted.
             validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "datum"))
         }
     }

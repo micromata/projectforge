@@ -25,10 +25,7 @@ package org.projectforge.framework.calendar;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.time.DayHolder;
-import org.projectforge.framework.time.PFDate;
-import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.framework.time.PFDateTimeCompabilityUtils;
+import org.projectforge.framework.time.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +87,7 @@ public class Holidays
     int m = 3 + (l + 40) / 44; // 1-based month in which Easter falls
     int d = l + 28 - 31 * (m / 4); // Date of Easter within that month
 
-    PFDate day = PFDate.withDate(year, m, d);
+    PFDay day = PFDay.withDate(year, m, d);
     for (final HolidayDefinition holiday : HolidayDefinition.values()) {
       if (holiday.getEasterOffset() != null) {
         putEasterHoliday(holidays, day, holiday);
@@ -99,7 +96,7 @@ public class Holidays
     if (xmlConfiguration.getHolidays() != null) {
       for (final ConfigureHoliday cfgHoliday : xmlConfiguration.getHolidays()) {
         if (cfgHoliday.getId() == null && !cfgHoliday.isIgnore()) {
-          final Month month = PFDateTimeCompabilityUtils.getCompabilityMonth(cfgHoliday.getMonth());
+          final Month month = PFDateCompabilityUtils.getCompabilityMonth(cfgHoliday.getMonth());
           // New Holiday.
           if (month == null || cfgHoliday.getDayOfMonth() == null || StringUtils.isBlank(cfgHoliday.getLabel())) {
             log.error("Holiday not full configured (month, dayOfMonth, label, ...) missed: " + cfgHoliday.toString());
@@ -124,14 +121,14 @@ public class Holidays
     if (def.getEasterOffset() != null) {
       return;
     }
-    PFDate day = PFDate.withDate(year, def.getMonth(), def.getDayOfMonth());
+    PFDay day = PFDay.withDate(year, def.getMonth(), def.getDayOfMonth());
     final Holiday holiday = createHoliday(def);
     if (holiday != null) {
       putHoliday(holidays, day.getDayOfYear(), holiday);
     }
   }
 
-  private void putEasterHoliday(final Map<Integer, Holiday> holidays, final PFDate day, final HolidayDefinition def)
+  private void putEasterHoliday(final Map<Integer, Holiday> holidays, final PFDay day, final HolidayDefinition def)
   {
     if (def.getEasterOffset() != null) {
       final Holiday holiday = createHoliday(def);
@@ -196,14 +193,9 @@ public class Holidays
     return holidays;
   }
 
-  public boolean isHoliday(PFDateTime dateTime)
+  public boolean isHoliday(IPFDate date)
   {
-    return isHoliday(dateTime.getYear(), dateTime.getDayOfYear());
-  }
-
-  public boolean isHoliday(PFDate day)
-  {
-    return isHoliday(day.getYear(), day.getDayOfYear());
+    return isHoliday(date.getYear(), date.getDayOfYear());
   }
 
   public boolean isHoliday(int year, int dayOfYear)
@@ -230,17 +222,7 @@ public class Holidays
     return day == null || day.isWorkingDay();
   }
 
-  public boolean isWorkingDay(final PFDateTime dateTime)
-  {
-    if (dateTime.getDayOfWeek() == DayOfWeek.SATURDAY || dateTime.getDayOfWeek() == DayOfWeek.SUNDAY) {
-      // Weeekend
-      return false;
-    }
-    final Holiday day = getHolidays(dateTime.getYear()).get(dateTime.getDayOfYear());
-    return day == null || day.isWorkingDay();
-  }
-
-  public boolean isWorkingDay(final PFDate date)
+  public boolean isWorkingDay(final IPFDate date)
   {
     if (date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY) {
       // Weeekend
@@ -262,12 +244,7 @@ public class Holidays
     return day.getWorkFraction();
   }
 
-  public BigDecimal getWorkFraction(final PFDateTime date)
-  {
-    return getWorkFraction(PFDate.from(date));
-  }
-
-  public BigDecimal getWorkFraction(final PFDate date)
+  public BigDecimal getWorkFraction(final IPFDate date)
   {
     if (date.isWeekend()) {
       return null;
@@ -279,12 +256,7 @@ public class Holidays
     return day.getWorkFraction();
   }
 
-  public String getHolidayInfo(PFDateTime dateTime)
-  {
-    return getHolidayInfo(dateTime.getYear(), dateTime.getDayOfYear());
-  }
-
-  public String getHolidayInfo(PFDate date)
+  public String getHolidayInfo(IPFDate date)
   {
     return getHolidayInfo(date.getYear(), date.getDayOfYear());
   }

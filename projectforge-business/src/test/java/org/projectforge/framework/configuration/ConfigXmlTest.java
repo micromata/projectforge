@@ -32,7 +32,7 @@ import org.projectforge.framework.calendar.ConfigureHoliday;
 import org.projectforge.framework.calendar.HolidayDefinition;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.framework.time.PFDateTimeCompabilityUtils;
+import org.projectforge.framework.time.PFDateCompabilityUtils;
 import org.projectforge.framework.xstream.XmlHelper;
 import org.projectforge.test.TestSetup;
 
@@ -93,7 +93,7 @@ public class ConfigXmlTest {
     final ConfigXml config = ConfigXml.getInstance();
     assertEquals(5, config.getHolidays().size());
     ConfigureHoliday holiday = config.getHolidays().get(0);
-    assertEquals(PFDateTimeCompabilityUtils.getCompabilityMonthValue(Month.MAY).intValue(), (int) holiday.getMonth());
+    assertEquals(PFDateCompabilityUtils.getCompabilityMonthValue(Month.MAY).intValue(), (int) holiday.getMonth());
     holiday = config.getHolidays().get(2);
     assertEquals(HolidayDefinition.XMAS_EVE, holiday.getId());
     holiday = config.getHolidays().get(3);

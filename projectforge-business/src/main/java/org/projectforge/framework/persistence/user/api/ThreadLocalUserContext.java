@@ -30,7 +30,7 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.PFDateTimeCompabilityUtils;
+import org.projectforge.framework.time.PFDateCompabilityUtils;
 
 import java.text.Collator;
 import java.time.DayOfWeek;
@@ -180,7 +180,7 @@ public class ThreadLocalUserContext {
         return firstDayOfWeek;
       }
     }
-    return PFDateTimeCompabilityUtils.getCompabilityDayOfWeek(ConfigurationServiceAccessor.get().getDefaultFirstDayOfWeek());
+    return PFDateCompabilityUtils.getCompabilityDayOfWeek(ConfigurationServiceAccessor.get().getDefaultFirstDayOfWeek());
   }
 
   /**
