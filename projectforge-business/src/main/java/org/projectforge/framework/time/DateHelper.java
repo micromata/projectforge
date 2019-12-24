@@ -25,9 +25,7 @@ package org.projectforge.framework.time;
 
 import org.joda.time.DateTime;
 import org.projectforge.business.configuration.ConfigurationServiceAccessor;
-import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.utils.LabelValueBean;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -35,7 +33,10 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * Parse and formats dates.
@@ -90,23 +91,6 @@ public class DateHelper implements Serializable {
   private static final DateFormat FILENAME_FORMAT_TIMESTAMP = new SimpleDateFormat(DateFormats.ISO_DATE + "_HH-mm");
 
   private static final DateFormat FILENAME_FORMAT_DATE = new SimpleDateFormat(DateFormats.ISO_DATE);
-
-  /**
-   * Compares millis. If both dates are null then they're equal.
-   *
-   * @param d1
-   * @param d2
-   * @see Date#getTime()
-   */
-  public static boolean equals(final Date d1, final Date d2) {
-    if (d1 == null) {
-      return d2 == null;
-    }
-    if (d2 == null) {
-      return false;
-    }
-    return d1.getTime() == d2.getTime();
-  }
 
   /**
    * thread safe
@@ -309,41 +293,6 @@ public class DateHelper implements Serializable {
     return date;
   }
 
-  public static String formatIsoTimePeriod(final Date fromDate, final Date toDate) {
-    return formatIsoDate(fromDate) + ":" + formatIsoDate(toDate);
-  }
-
-  /**
-   * Format yyyy-mm-dd:yyyy-mm-dd
-   *
-   * @param isoTimePeriodString
-   * @return Parsed time period or null if a parse error occurs.
-   */
-  public static TimePeriod parseIsoTimePeriod(final String isoTimePeriodString, final TimeZone timeZone) {
-    final DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-    df.setTimeZone(timeZone);
-    final String[] sa = isoTimePeriodString.split(":");
-    if (sa.length != 2) {
-      return null;
-    }
-    final Date fromDate = DateHelper.parseIsoDate(sa[0], DateHelper.UTC);
-    final Date toDate = DateHelper.parseIsoDate(sa[1], DateHelper.UTC);
-    if (fromDate == null || toDate == null) {
-      return null;
-    }
-    return new TimePeriod(fromDate, toDate);
-  }
-
-  /**
-   * Output via FOR_TESTCASE_OUTPUT_FORMATTER for test cases.<br/>
-   *
-   * @param dateHolder
-   * @return
-   */
-  public static final String getForTestCase(final DateHolder dateHolder) {
-    return FOR_TESTCASE_OUTPUT_FORMATTER.get().format(dateHolder.getDate());
-  }
-
   /**
    * Output via FOR_TESTCASE_OUTPUT_FORMATTER for test cases.
    *
@@ -375,15 +324,6 @@ public class DateHelper implements Serializable {
     return getCalendar(null, null);
   }
 
-  /**
-   * Returns a dateTime instance. If a context user is given then the user's time zone and locale will be used if given.
-   *
-   * @param locale if given this locale will overwrite any the context user's locale.
-   */
-  public static Calendar getCalendar(final Locale locale) {
-    return getCalendar(null, locale);
-  }
-
   public static Calendar getCalendar(TimeZone timeZone, Locale locale) {
     if (locale == null) {
       locale = ThreadLocalUserContext.getLocale();
@@ -396,53 +336,6 @@ public class DateHelper implements Serializable {
 
   public static Calendar getUTCCalendar() {
     return getCalendar(UTC, null);
-  }
-
-  /**
-   * If stopTime is before startTime a negative value will be returned.
-   *
-   * @param startTime
-   * @param stopTime
-   * @return Duration in minutes or 0, if not computable (if start or stop time is null or stopTime is before
-   * startTime).
-   */
-  public static long getDuration(final Date startTime, final Date stopTime) {
-    if (startTime == null || stopTime == null || stopTime.before(startTime)) {
-      return 0;
-    }
-    final long millis = stopTime.getTime() - startTime.getTime();
-    return millis / 60000;
-  }
-
-  /**
-   * @param milliSeconds time in millis
-   * @return Formatted string without seconds, such as 5:45.
-   */
-  public static String formatDuration(final long milliSeconds) {
-    final long duration = milliSeconds / 60000;
-    final long durationHours = duration / 60;
-    final long durationMinutes = (duration % 60);
-    final StringBuilder buf = new StringBuilder(10);
-    buf.append(durationHours);
-    if (durationMinutes < 10)
-      buf.append(":0");
-    else
-      buf.append(':');
-    buf.append(durationMinutes);
-    return buf.toString();
-  }
-
-  /**
-   * Key is 0 - January, 11 - December (0-based)!
-   * Initializes a new ArrayList with -1 ("--") and all 12 month with labels "01", ..., "12".
-   */
-  public static List<LabelValueBean<String, Integer>> getMonthList() {
-    final List<LabelValueBean<String, Integer>> list = new ArrayList<>();
-    list.add(new LabelValueBean<>("--", -1));
-    for (int month = 0; month < 12; month++) {
-      list.add(new LabelValueBean<>(StringHelper.format2DigitNumber(month + 1), month));
-    }
-    return list;
   }
 
   /**
@@ -481,27 +374,6 @@ public class DateHelper implements Serializable {
     final Calendar cal = Calendar.getInstance(ThreadLocalUserContext.getTimeZone(),
             ConfigurationServiceAccessor.get().getDefaultLocale());
     cal.setTime(date);
-    return cal.get(Calendar.WEEK_OF_YEAR);
-  }
-
-  /**
-   * Should be used application wide for getting and/or displaying the week of year!
-   *
-   * @param calendar (this methods uses the year, month and day of the given Calendar)
-   * @return Return the week of year. The week of year depends on the Locale set in the Configuration (config.xml). If
-   * given date is null then -1 is returned. For "de" the first week of year is the first week with a minimum of
-   * 4 days in the new year. For "en" the first week of the year is the first week with a minimum of 1 days in
-   * the new year.
-   * @see java.util.Calendar#getMinimalDaysInFirstWeek()
-   */
-  public static int getWeekOfYear(final Calendar calendar) {
-    if (calendar == null) {
-      return -1;
-    }
-    final Calendar cal = Calendar.getInstance(ConfigurationServiceAccessor.get().getDefaultLocale());
-    cal.set(Calendar.YEAR, calendar.get(Calendar.YEAR));
-    cal.set(Calendar.MONTH, calendar.get(Calendar.MONDAY));
-    cal.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH));
     return cal.get(Calendar.WEEK_OF_YEAR);
   }
 
