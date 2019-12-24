@@ -65,12 +65,10 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         get() = dateTime.dayOfYear
 
     val beginOfYear: PFDateTime
-        get() = PFDateTime(PFDateTimeUtils.getBeginOfYear(dateTime.withDayOfMonth(1)), locale, precision)
+        get() = PFDateTime(PFDateTimeUtils.getBeginOfYear(dateTime), locale, precision)
 
     val endOfYear: PFDateTime
-        get() {
-            return plusYears(1).beginOfYear.minus(1, ChronoUnit.HOURS).endOfDay
-        }
+        get() = PFDateTime(PFDateTimeUtils.getEndfYear(dateTime), locale, precision)
 
     val dayOfMonth: Int
         get() = dateTime.dayOfMonth
@@ -88,13 +86,10 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         get() = dateTime.nano
 
     val beginOfMonth: PFDateTime
-        get() = PFDateTime(PFDateTimeUtils.getBeginOfDay(dateTime.withDayOfMonth(1)), locale, precision)
+        get() = PFDateTime(PFDateTimeUtils.getBeginOfMonth(dateTime), locale, precision)
 
     val endOfMonth: PFDateTime
-        get() {
-            val nextMonth = dateTime.plusMonths(1).withDayOfMonth(1)
-            return PFDateTime(PFDateTimeUtils.getBeginOfDay(nextMonth.withDayOfMonth(1)), locale, precision)
-        }
+        get() = PFDateTime(PFDateTimeUtils.getEndOfMonth(dateTime), locale, precision)
 
     val dayOfWeek: DayOfWeek
         get() = dateTime.dayOfWeek
@@ -121,31 +116,19 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         get() = Year.from(dateTime).length()
 
     val beginOfWeek: PFDateTime
-        get() {
-            val startOfWeek = PFDateTimeUtils.getBeginOfWeek(this.dateTime)
-            return PFDateTime(startOfWeek, locale, precision)
-        }
+        get() = PFDateTime(PFDateTimeUtils.getBeginOfWeek(dateTime), locale, precision)
 
     val isBeginOfWeek: Boolean
         get() = dateTime.dayOfWeek == PFDateTimeUtils.getFirstDayOfWeek() && dateTime.hour == 0 && dateTime.minute == 0 && dateTime.second == 0 && dateTime.nano == 0
 
     val endOfWeek: PFDateTime
-        get() {
-            val startOfWeek = PFDateTimeUtils.getBeginOfWeek(this.dateTime).plusDays(7)
-            return PFDateTime(startOfWeek, locale, precision)
-        }
+        get() = PFDateTime(PFDateTimeUtils.getEndOfWeek(dateTime), locale, precision)
 
     val beginOfDay: PFDateTime
-        get() {
-            val startOfDay = PFDateTimeUtils.getBeginOfDay(dateTime)
-            return PFDateTime(startOfDay, locale, precision)
-        }
+        get() = PFDateTime(PFDateTimeUtils.getBeginOfDay(dateTime), locale, precision)
 
     val endOfDay: PFDateTime
-        get() {
-            val endOfDay = PFDateTimeUtils.getEndOfDay(dateTime)
-            return PFDateTime(endOfDay, locale, precision)
-        }
+        get() = PFDateTime(PFDateTimeUtils.getEndOfDay(dateTime), locale, precision)
 
     val isFirstDayOfWeek: Boolean
         get() = dayOfWeek == PFDateTimeUtils.getFirstDayOfWeek()
@@ -479,8 +462,7 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
             if (date == null)
                 return if (nowIfNull) now() else null
             val zoneId = timeZone?.toZoneId() ?: getUsersZoneId()
-            val dateTime = date.toInstant().atZone(zoneId)
-            return PFDateTime(dateTime, locale ?: getUsersLocale(), null)
+            return from(date.toLocalDate(), false, zoneId, locale ?: getUsersLocale())
         }
 
         @JvmStatic

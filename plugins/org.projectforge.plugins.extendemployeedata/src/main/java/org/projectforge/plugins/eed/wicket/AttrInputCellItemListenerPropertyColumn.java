@@ -40,9 +40,9 @@ import org.projectforge.web.wicket.CellItemListener;
 
 /**
  * Supports CellItemListener.
- * 
+ *
  * @author Florian Blumenstein
- * 
+ *
  */
 public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T, String>
 {
@@ -58,15 +58,18 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
 
   private String groupAttribute;
 
+  /**
+   * 1-based: 1 - January, ..., 12 - December
+   */
   private Integer selectedMonth;
 
   private Integer selectedYear;
 
   /**
-   * @param displayModelString For creation of new Model<String>.
    * @param sortProperty
    * @param propertyExpression
    * @param cellItemListener
+   * @param selectedMonth 1-based: 1 - January, ..., 12 - December
    */
   public AttrInputCellItemListenerPropertyColumn(final IModel<String> displayModel, final String sortProperty,
       final String propertyExpression, final String groupAttribute,
@@ -86,7 +89,7 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
 
   /**
    * Override this method if you want to have tool-tips.
-   * 
+   *
    * @return
    */
   public String getTooltip(final T object)
@@ -96,7 +99,7 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
 
   /**
    * Call CellItemListener. If a property model object is of type I18nEnum then the translation is automatically used.
-   * 
+   *
    * @see org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
    *      java.lang.String, org.apache.wicket.model.IModel)
    * @see CellItemListener#populateItem(Item, String, IModel)

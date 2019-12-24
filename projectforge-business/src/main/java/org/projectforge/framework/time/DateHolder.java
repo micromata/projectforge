@@ -87,7 +87,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see DateHelper#getCalendar(Locale)
    */
   public DateHolder(final DatePrecision precision, final Locale locale) {
-    this.dateTime = PFDateTime.now(null, locale);
+    this.dateTime = PFDateTime.now(ThreadLocalUserContext.getTimeZone().toZoneId(), locale);
     setPrecision(precision);
   }
 
@@ -120,7 +120,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see DateHelper#getCalendar(Locale)
    */
   public DateHolder(final Date date, final DatePrecision precision, final Locale locale) {
-    this.dateTime = PFDateTime.from(date, true, null, locale);
+    this.dateTime = PFDateTime.from(date, true, ThreadLocalUserContext.getTimeZone(), locale);
     setPrecision(precision);
   }
 
@@ -178,7 +178,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @see DateHelper#getCalendar(Locale)
    */
   public DateHolder(final Date date, final Locale locale) {
-    this.dateTime = PFDateTime.from(date, true, null, locale);
+    this.dateTime = PFDateTime.from(date, true, ThreadLocalUserContext.getTimeZone(), locale);
     ensurePrecision();
   }
 
@@ -659,7 +659,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    */
   public DateHolder setDate(final int year, final Month month, final int date, final int hourOfDay, final int minute, final int second,
                             final int millisecond) {
-    PFDateTime.withDate(year, month, date, hourOfDay, minute, second, millisecond, this.dateTime.getZone(), this.dateTime.getLocale());
+    dateTime = PFDateTime.withDate(year, month, date, hourOfDay, minute, second, millisecond, this.dateTime.getZone(), this.dateTime.getLocale());
     ensurePrecision();
     return this;
   }

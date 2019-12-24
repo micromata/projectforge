@@ -57,6 +57,9 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
   @SpringBean
   private EEDHelper eedHelper;
 
+  /**
+   * 1-based: 1 - January, ..., 12 - December.
+   */
   protected Integer selectedMonth;
 
   protected Integer selectedYear;
@@ -100,7 +103,7 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
         .newFieldset(
             I18nHelper.getLocalizedMessage("plugins.eed.listcare.yearmonth"));
     //Get actual Month as preselected
-    selectedMonth = PFDateTime.now().getMonthValue() + 1;
+    selectedMonth = PFDateTime.now().getMonthValue();
     //Month DropDown
     DropDownChoicePanel<Integer> ddcMonth = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedMonth"),

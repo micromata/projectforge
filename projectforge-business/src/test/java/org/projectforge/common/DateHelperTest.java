@@ -75,19 +75,6 @@ public class DateHelperTest extends AbstractTestBase {
   }
 
   @Test
-  public void getDuration() {
-    final PFDateTime dateTime = PFDateTime.withDate(1970, Month.NOVEMBER, 21, 6, 50, 0, 0, ZoneId.of("UTC"), Locale.GERMAN);
-    final Date startTime = dateTime.getUtilDate();
-    final Date stopTime = dateTime.withMinute(59).getUtilDate();
-    assertEquals(9, DateHelper.getDuration(startTime, stopTime));
-    assertEquals(0, DateHelper.getDuration(stopTime, startTime));
-    assertEquals(0, DateHelper.getDuration(null, stopTime));
-    assertEquals(0, DateHelper.getDuration(startTime, null));
-    assertEquals(0, DateHelper.getDuration(null, null));
-    assertEquals(0, DateHelper.getDuration(startTime, startTime));
-  }
-
-  @Test
   public void formatMonth() {
     assertEquals("2009-01", DateHelper.formatMonth(2009, Month.JANUARY));
     assertEquals("2009-03", DateHelper.formatMonth(2009, Month.MARCH));
