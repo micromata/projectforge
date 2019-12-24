@@ -88,7 +88,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
 
   private static final Class<?>[] ADDITIONAL_HISTORY_SEARCH_DOS = new Class[]{TeamEventAttendeeDO.class};
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"dateTime.id", "dateTime.title"};
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"calendar.id", "calendar.title"};
 
   private final static String META_SQL_WITH_SPECIAL = " AND e.deleted = :deleted AND e.tenant = :tenant";
 
@@ -177,7 +177,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
 
   /**
    * @param teamEvent
-   * @param teamCalendarId If null, then team dateTime will be set to null;
+   * @param teamCalendarId If null, then team calendar will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
   public void setCalendar(final TeamEventDO teamEvent, final Integer teamCalendarId) {
@@ -212,7 +212,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
 
     // workaround to still handle old requests
     if (calendarId != null) {
-      sqlQuery.append(" AND e.dateTime.id = :calendarId");
+      sqlQuery.append(" AND e.calendar.id = :calendarId");
       params.add("calendarId");
       params.add(calendarId);
     }
@@ -496,7 +496,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
   }
 
   /**
-   * Get all locations of the user's dateTime events (not deleted ones) with modification date within last year.
+   * Get all locations of the user's calendar events (not deleted ones) with modification date within last year.
    *
    * @param searchString
    */
@@ -573,9 +573,9 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     final QueryFilter queryFilter = new QueryFilter(filter);
     final Collection<Integer> cals = filter.getTeamCals();
     if (CollectionUtils.isNotEmpty(cals)) {
-      queryFilter.add(QueryFilter.isIn("dateTime.id", cals));
+      queryFilter.add(QueryFilter.isIn("calendar.id", cals));
     } else if (filter.getTeamCalId() != null) {
-      queryFilter.add(QueryFilter.eq("dateTime.id", filter.getTeamCalId()));
+      queryFilter.add(QueryFilter.eq("calendar.id", filter.getTeamCalId()));
     }
     // Following period extension is needed due to all day events which are stored in UTC. The additional events in the result list not
     // matching the time period have to be removed by caller!
@@ -606,7 +606,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
       if (!filter.isOnlyRecurrence()) {
         queryFilter.add(QueryFilter.ge("startDate", startDate));
       } else {
-        // This branch is reached for subscriptions and dateTime downloads.
+        // This branch is reached for subscriptions and calendar downloads.
         queryFilter.add(
                 // "recurrenceUntil" == null || "recurrenceUntil" > startDate
                 QueryFilter.or(QueryFilter.isNull("recurrenceUntil"), QueryFilter.gt("recurrenceUntil", startDate)));
