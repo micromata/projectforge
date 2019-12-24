@@ -72,12 +72,6 @@ public class TeamRecurrenceEventTest
     }
   }
 
-  private PFDateTime getDateTime(final int year, final int month, final int dayOfMonth, final int hourOfDay, final int minutes,
-                                 final TimeZone timeZone)
-  {
-    return PFDateTime.now(timeZone.toZoneId()).withDate(year, month, dayOfMonth, hourOfDay, minutes);
-  }
-
   private void assertDateTime(final String expectedDateTime, final Date date, final TimeZone timeZone)
   {
     final DateFormat df = new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES);

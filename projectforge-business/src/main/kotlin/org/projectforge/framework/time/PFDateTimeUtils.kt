@@ -35,6 +35,7 @@ import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.time.temporal.WeekFields
 import java.util.*
+import kotlin.math.absoluteValue
 
 class PFDateTimeUtils {
     companion object {
@@ -45,13 +46,28 @@ class PFDateTimeUtils {
 
         @JvmStatic
         fun getEndfYear(dateTime: ZonedDateTime): ZonedDateTime {
-            return getEndOfDay(dateTime.withDayOfYear(1))
+            return getEndOfPreviousDay(getBeginOfYear(dateTime.plusYears(1)))
+        }
+
+        @JvmStatic
+        fun getBeginOfMonth(dateTime: ZonedDateTime): ZonedDateTime {
+            return getBeginOfDay(dateTime.withDayOfMonth(1))
+        }
+
+        @JvmStatic
+        fun getEndOfMonth(dateTime: ZonedDateTime): ZonedDateTime {
+            return getEndOfPreviousDay(getBeginOfMonth(dateTime.plusMonths(1)))
         }
 
         @JvmStatic
         fun getBeginOfWeek(date: ZonedDateTime): ZonedDateTime {
             val field = WeekFields.of(getFirstDayOfWeek(), 1).dayOfWeek()
             return getBeginOfDay(date.with(field, 1))
+        }
+
+        @JvmStatic
+        fun getEndOfWeek(dateTime: ZonedDateTime): ZonedDateTime {
+            return getEndOfPreviousDay(getBeginOfWeek(dateTime.plusWeeks(1)))
         }
 
         @JvmStatic
@@ -179,8 +195,9 @@ class PFDateTimeUtils {
             Validate.isTrue(days <= 10000)
             var currentDate = date
             val plus = days > 0
+            val absDays = days.absoluteValue
             for (counter in 0..9999) {
-                if (counter == days) {
+                if (counter == absDays) {
                     break
                 }
                 for (paranoia in 0..100) {
@@ -190,7 +207,7 @@ class PFDateTimeUtils {
                     }
                 }
             }
-            return date
+            return currentDate
         }
 
         @JvmStatic
@@ -265,6 +282,13 @@ class PFDateTimeUtils {
                     parseUTCDate(str, PFDateTime.isoDateTimeFormatterSeconds, zoneId, locale)
                 }
             }
+        }
+
+        /**
+         * Substract 1 millisecond to get the end of last day.
+         */
+        private fun getEndOfPreviousDay(beginOfDay: ZonedDateTime): ZonedDateTime {
+            return beginOfDay.minusNanos(1)
         }
     }
 }

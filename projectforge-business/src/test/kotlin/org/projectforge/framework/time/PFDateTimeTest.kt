@@ -52,12 +52,12 @@ class PFDateTimeTest {
         val beginOfWeek = date.beginOfWeek.dateTime
         checkDate(beginOfWeek, 2019, Month.APRIL, 1, true)
         val endOfWeek = date.endOfWeek.dateTime
-        checkDate(endOfWeek, 2019, Month.APRIL, 8, true) // Midnight of first day of next week
+        checkDate(endOfWeek, 2019, Month.APRIL, 7, true) // Midnight of first day of next week
 
         val beginOfMonth = date.beginOfMonth.dateTime
         checkDate(beginOfMonth, 2019, Month.APRIL, 1, true)
         val endOfMonth = date.endOfMonth.dateTime
-        checkDate(endOfMonth, 2019, Month.MAY, 1, true) // Midnight of first day of next month
+        checkDate(endOfMonth, 2019, Month.APRIL, 30, true) // Midnight of first day of next month
     }
 
     @Test
@@ -208,14 +208,18 @@ class PFDateTimeTest {
     }
 
     private fun checkMidnight(date: ZonedDateTime) {
-        checkTime(date, 0, 0, 0)
+        if (date.second == 59) {
+            checkTime(date, 23, 59, 59, 999999999)
+        } else {
+            checkTime(date, 0, 0, 0, 0)
+        }
     }
 
-    private fun checkTime(date: ZonedDateTime, hour: Int, minute: Int, second: Int) {
+    private fun checkTime(date: ZonedDateTime, hour: Int, minute: Int, second: Int, nanos: Int) {
         assertEquals(hour, date.hour, "Hour check failed.")
         assertEquals(minute, date.minute)
         assertEquals(second, date.second)
-        assertEquals(0, date.nano)
+        assertEquals(nanos, date.nano )
     }
 
     companion object {

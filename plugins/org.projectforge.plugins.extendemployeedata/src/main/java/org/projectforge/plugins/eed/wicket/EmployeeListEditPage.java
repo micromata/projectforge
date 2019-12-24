@@ -44,6 +44,7 @@ import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDateTimeUtils;
 import org.projectforge.plugins.eed.ExtendEmployeeDataEnum;
 import org.projectforge.web.core.MenuBarPanel;
 import org.projectforge.web.wicket.AbstractListPage;
@@ -51,7 +52,10 @@ import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm, EmployeeService, EmployeeDO> implements
@@ -139,7 +143,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
     }
     final String[] fieldsToExport = { "id", "user" };
     final List<AttrColumnDescription> attrFieldsToExport = selectedOption.getAttrColumnDescriptions();
-    final Date dateToSelectAttrRow = PFDateTime.withDate(form.selectedYear, form.selectedMonth -1, 1).getUtilDate();
+    final Date dateToSelectAttrRow = PFDateTime.withDate(form.selectedYear, PFDateTimeUtils.getMonth(form.selectedMonth), 1).getUtilDate();
     return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport, attrFieldsToExport,
         dateToSelectAttrRow);
   }

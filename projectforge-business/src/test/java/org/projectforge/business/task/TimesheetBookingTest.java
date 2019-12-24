@@ -56,11 +56,11 @@ public class TimesheetBookingTest extends AbstractTestBase {
   @Autowired
   private AuftragDao auftragDao;
 
-  private static PFDateTime date;
+  private static PFDateTime dateTime;
 
   @Override
   protected void beforeAll() {
-    date = PFDateTime.now().withPrecision(DatePrecision.MINUTE_15);
+    dateTime = PFDateTime.now().withPrecision(DatePrecision.MINUTE_15);
     logon(getUser(AbstractTestBase.TEST_ADMIN_USER));
     TaskDO task;
     task = initTestDB.addTask("TimesheetBookingTest", "root");
@@ -201,8 +201,9 @@ public class TimesheetBookingTest extends AbstractTestBase {
   private TimesheetDO createNewSheet() {
     TimesheetDO sheet = new TimesheetDO();
     sheet.setUser(getUser(AbstractTestBase.TEST_USER));
-    sheet.setStartDate(date.getUtilDate());
-    sheet.setStopDate(date.plus(1, ChronoUnit.HOURS).getUtilDate());
+    sheet.setStartDate(dateTime.getUtilDate());
+    dateTime = dateTime.plus(1, ChronoUnit.HOURS);
+    sheet.setStopDate(dateTime.getUtilDate());
     return sheet;
   }
 
