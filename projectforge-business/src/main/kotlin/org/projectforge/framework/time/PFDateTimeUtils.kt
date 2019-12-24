@@ -226,7 +226,7 @@ class PFDateTimeUtils {
                     }
                 }
             }
-            return date
+            return currentDate
         }
 
         fun isWorkingDay(date: PFDateTime): Boolean {
