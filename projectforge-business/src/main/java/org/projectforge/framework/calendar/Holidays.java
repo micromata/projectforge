@@ -28,11 +28,13 @@ import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.time.PFDate;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDateTimeCompabilityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
+import java.time.Month;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,10 +68,9 @@ public class Holidays
   {
     log.info("Compute holidays for year: " + year);
     final Map<Integer, Holiday> holidays = new HashMap<>();
-    PFDateTime dateTime = PFDateTime.now().withYear(year);
     for (final HolidayDefinition holiday : HolidayDefinition.values()) {
       if (holiday.getEasterOffset() == null) {
-        putHoliday(holidays, dateTime, holiday);
+        putHoliday(holidays, year, holiday);
       }
     }
 
@@ -89,17 +90,18 @@ public class Holidays
     int m = 3 + (l + 40) / 44; // 1-based month in which Easter falls
     int d = l + 28 - 31 * (m / 4); // Date of Easter within that month
 
-    dateTime = dateTime.withDate(year, m, d);
+    PFDate day = PFDate.withDate(year, m, d);
     for (final HolidayDefinition holiday : HolidayDefinition.values()) {
       if (holiday.getEasterOffset() != null) {
-        putEasterHoliday(holidays, dateTime, holiday);
+        putEasterHoliday(holidays, day, holiday);
       }
     }
     if (xmlConfiguration.getHolidays() != null) {
       for (final ConfigureHoliday cfgHoliday : xmlConfiguration.getHolidays()) {
         if (cfgHoliday.getId() == null && !cfgHoliday.isIgnore()) {
+          final Month month = PFDateTimeCompabilityUtils.getCompabilityMonth(cfgHoliday.getMonth());
           // New Holiday.
-          if (cfgHoliday.getMonth() == null || cfgHoliday.getDayOfMonth() == null || StringUtils.isBlank(cfgHoliday.getLabel())) {
+          if (month == null || cfgHoliday.getDayOfMonth() == null || StringUtils.isBlank(cfgHoliday.getLabel())) {
             log.error("Holiday not full configured (month, dayOfMonth, label, ...) missed: " + cfgHoliday.toString());
             break;
           }
@@ -107,9 +109,9 @@ public class Holidays
             // Holiday affects not the current year.
             continue;
           }
-          dateTime = dateTime.withMonth(cfgHoliday.getMonth()).withDayOfMonth(cfgHoliday.getDayOfMonth());
+          day = day.withMonth(month).withDayOfMonth(cfgHoliday.getDayOfMonth());
           final Holiday holiday = new Holiday(null, cfgHoliday.getLabel(), cfgHoliday.isWorkingDay(), cfgHoliday.getWorkFraction());
-          putHoliday(holidays, dateTime.getDayOfYear(), holiday);
+          putHoliday(holidays, day.getDayOfYear(), holiday);
           log.info("Configured holiday added: " + holiday);
         }
       }
@@ -117,24 +119,24 @@ public class Holidays
     return holidays;
   }
 
-  private void putHoliday(final Map<Integer, Holiday> holidays, PFDateTime dateTime, final HolidayDefinition def)
+  private void putHoliday(final Map<Integer, Holiday> holidays, int year, final HolidayDefinition def)
   {
     if (def.getEasterOffset() != null) {
       return;
     }
-    dateTime = dateTime.withMonth(def.getMonth()).withDayOfMonth(def.getDayOfMonth());
+    PFDate day = PFDate.withDate(year, def.getMonth(), def.getDayOfMonth());
     final Holiday holiday = createHoliday(def);
     if (holiday != null) {
-      putHoliday(holidays, dateTime.getDayOfYear(), holiday);
+      putHoliday(holidays, day.getDayOfYear(), holiday);
     }
   }
 
-  private void putEasterHoliday(final Map<Integer, Holiday> holidays, final PFDateTime dateTime, final HolidayDefinition def)
+  private void putEasterHoliday(final Map<Integer, Holiday> holidays, final PFDate day, final HolidayDefinition def)
   {
     if (def.getEasterOffset() != null) {
       final Holiday holiday = createHoliday(def);
       if (holiday != null) {
-        putHoliday(holidays, dateTime.getDayOfYear() + def.getEasterOffset(), holiday);
+        putHoliday(holidays, day.getDayOfYear() + def.getEasterOffset(), holiday);
       }
     }
   }
@@ -199,14 +201,14 @@ public class Holidays
     return isHoliday(dateTime.getYear(), dateTime.getDayOfYear());
   }
 
-  public boolean isHoliday(PFDate date)
+  public boolean isHoliday(PFDate day)
   {
-    return isHoliday(date.getYear(), date.getDayOfYear());
+    return isHoliday(day.getYear(), day.getDayOfYear());
   }
 
   public boolean isHoliday(int year, int dayOfYear)
   {
-    return (getHolidays(year).containsKey(dayOfYear));
+    return getHolidays(year).containsKey(dayOfYear);
   }
 
   public boolean isWorkingDay(final DayHolder date)

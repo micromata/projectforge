@@ -34,16 +34,14 @@ import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class KeyValuePairWriterTest extends AbstractTestBase
-{
+public class KeyValuePairWriterTest extends AbstractTestBase {
 
   private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
-      .getLogger(KeyValuePairWriterTest.class);
+          .getLogger(KeyValuePairWriterTest.class);
 
   @Test
-  public void testWritekeyValuePairs() throws Exception
-  {
-    final Date date = createDate(1970, Month.NOVEMBER.getValue(), 21, 13, 17, 57, 742);
+  public void testWritekeyValuePairs() throws Exception {
+    final Date date = createDate(1970, Month.NOVEMBER, 21, 13, 17, 57, 742);
     log.info("Created date: " + date.toString());
     final StringWriter stringWriter = new StringWriter();
     final KeyValuePairWriter writer = new KeyValuePairWriter(stringWriter);
@@ -54,12 +52,10 @@ public class KeyValuePairWriterTest extends AbstractTestBase
     writer.write("a5", date);
     writer.write("a6", 42);
     writer.flush();
-    assertEquals("a1=\"Hallo\",a2=\"Hal\"\"lo\",a3=,a4=,a5=\"1970-11-21 13:17:57.742\",a6=42", stringWriter.toString());
+    assertEquals("a1=\"Hallo\",a2=\"Hal\"\"lo\",a3=,a4=,a5=\"1970-11-21 12:17:57.742\",a6=42", stringWriter.toString(), "Time zone Europe/Berlin expected. UTC-Date is 12:17.");
   }
 
-  private Date createDate(int year, int month, int day, int hour, int minute, int second, int millisecond)
-  {
-    return PFDateTime.now().withYear(year).withMonth(month)
-        .withDayOfMonth(day).withHour(hour).withMinute(minute).withSecond(second).withMilliSecond(millisecond).getUtilDate();
+  private Date createDate(int year, Month month, int day, int hour, int minute, int second, int millisecond) {
+    return PFDateTime.withDate(year, month, day, hour, minute, second, millisecond).getUtilDate();
   }
 }

@@ -100,6 +100,10 @@ class PFDate(val date: LocalDate,
         return PFDate(date.withYear(year), locale)
     }
 
+    fun withMonth(month: Month): PFDate {
+        return PFDate(date.withMonth(month.value), locale)
+    }
+
     /**
      * 1 (January) to 12 (December)
      */
