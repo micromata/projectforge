@@ -39,8 +39,7 @@ import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.PFDate;
-import org.projectforge.framework.time.PFDateTimeCompabilityUtils;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.CurrencyHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,7 +103,7 @@ public class EmployeeSalaryExportDao {
     final EmployeeSalaryDO first = list.get(0);
     final int year = first.getYear();
     final Month month = first.getMonth();
-    PFDate buchungsdatum = PFDate.withDate(year, month, 1);
+    PFDay buchungsdatum = PFDay.withDate(year, month, 1);
     final MonthHolder monthHolder = new MonthHolder(buchungsdatum.getUtilDate());
     final BigDecimal numberOfWorkingDays = monthHolder.getNumberOfWorkingDays();
     buchungsdatum = buchungsdatum.getEndOfMonth();

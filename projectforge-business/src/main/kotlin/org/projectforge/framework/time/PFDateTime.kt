@@ -41,18 +41,18 @@ import java.util.*
 class PFDateTime internal constructor(val dateTime: ZonedDateTime,
                                       val locale: Locale,
                                       val precision: DatePrecision?)
-    : Comparable<PFDateTime> {
+    : IPFDate<PFDateTime> {
 
-    val year: Int
+    override val year: Int
         get() = dateTime.year
 
-    val month: Month
+    override  val month: Month
         get() = dateTime.month
 
     /**
      * Gets the month-of-year field from 1 (January) to 12 (December).
      */
-    val monthValue: Int
+    override val monthValue: Int
         get() = dateTime.monthValue
 
     /**
@@ -61,16 +61,16 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
     val monthCompatibilityValue: Int
         get() = monthValue - 1
 
-    val dayOfYear: Int
+    override val dayOfYear: Int
         get() = dateTime.dayOfYear
 
-    val beginOfYear: PFDateTime
+    override val beginOfYear: PFDateTime
         get() = PFDateTime(PFDateTimeUtils.getBeginOfYear(dateTime), locale, precision)
 
-    val endOfYear: PFDateTime
+    override val endOfYear: PFDateTime
         get() = PFDateTime(PFDateTimeUtils.getEndfYear(dateTime), locale, precision)
 
-    val dayOfMonth: Int
+    override val dayOfMonth: Int
         get() = dateTime.dayOfMonth
 
     val hour: Int
@@ -85,13 +85,13 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
     val nano: Int
         get() = dateTime.nano
 
-    val beginOfMonth: PFDateTime
+    override val beginOfMonth: PFDateTime
         get() = PFDateTime(PFDateTimeUtils.getBeginOfMonth(dateTime), locale, precision)
 
-    val endOfMonth: PFDateTime
+    override val endOfMonth: PFDateTime
         get() = PFDateTime(PFDateTimeUtils.getEndOfMonth(dateTime), locale, precision)
 
-    val dayOfWeek: DayOfWeek
+    override val dayOfWeek: DayOfWeek
         get() = dateTime.dayOfWeek
 
     /**
@@ -106,22 +106,22 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
     val dayOfWeekCompatibilityNumber: Int
         get() = if (dayOfWeek == DayOfWeek.SUNDAY) 1 else dayOfWeekNumber + 1
 
-    val weekOfYear: Int
+    override val weekOfYear: Int
         get() {
             val weekFields = WeekFields.of(locale)
             return dateTime.get(weekFields.weekOfWeekBasedYear())
         }
 
-    val numberOfDaysInYear: Int
+    override val numberOfDaysInYear: Int
         get() = Year.from(dateTime).length()
 
-    val beginOfWeek: PFDateTime
+    override val beginOfWeek: PFDateTime
         get() = PFDateTime(PFDateTimeUtils.getBeginOfWeek(dateTime), locale, precision)
 
-    val isBeginOfWeek: Boolean
-        get() = dateTime.dayOfWeek == PFDateTimeUtils.getFirstDayOfWeek() && dateTime.hour == 0 && dateTime.minute == 0 && dateTime.second == 0 && dateTime.nano == 0
+    override val isBeginOfWeek: Boolean
+        get() = dateTime.dayOfWeek == PFDayUtils.getFirstDayOfWeek() && dateTime.hour == 0 && dateTime.minute == 0 && dateTime.second == 0 && dateTime.nano == 0
 
-    val endOfWeek: PFDateTime
+    override val endOfWeek: PFDateTime
         get() = PFDateTime(PFDateTimeUtils.getEndOfWeek(dateTime), locale, precision)
 
     val beginOfDay: PFDateTime
@@ -130,17 +130,17 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
     val endOfDay: PFDateTime
         get() = PFDateTime(PFDateTimeUtils.getEndOfDay(dateTime), locale, precision)
 
-    val isFirstDayOfWeek: Boolean
-        get() = dayOfWeek == PFDateTimeUtils.getFirstDayOfWeek()
+    override val isFirstDayOfWeek: Boolean
+        get() = dayOfWeek == PFDayUtils.getFirstDayOfWeek()
 
-    fun withYear(year: Int): PFDateTime {
+    override  fun withYear(year: Int): PFDateTime {
         return PFDateTime(dateTime.withYear(year), locale, precision)
     }
 
     /**
      * 1 (January) to 12 (December)
      */
-    fun withMonth(month: Int): PFDateTime {
+    override  fun withMonth(month: Int): PFDateTime {
         return PFDateTime(dateTime.withMonth(month), locale, precision)
     }
 
@@ -151,15 +151,15 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         return PFDateTime(dateTime.withMonth(month + 1), locale, precision)
     }
 
-    fun withMonth(month: Month): PFDateTime {
+    override  fun withMonth(month: Month): PFDateTime {
         return PFDateTime(dateTime.withMonth(month.value), locale, precision)
     }
 
-    fun withDayOfYear(dayOfYear: Int): PFDateTime {
+    override  fun withDayOfYear(dayOfYear: Int): PFDateTime {
         return PFDateTime(dateTime.withDayOfYear(dayOfYear), locale, precision)
     }
 
-    fun withDayOfMonth(dayOfMonth: Int): PFDateTime {
+    override  fun withDayOfMonth(dayOfMonth: Int): PFDateTime {
         return PFDateTime(dateTime.withDayOfMonth(dayOfMonth), locale, precision)
     }
 
@@ -167,12 +167,8 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
      * 1 - first day of week (locale dependent, e. g. Monday or Sunday).
      * 7 - last day of week.
      */
-    fun withDayOfWeek(dayOfWeek: Int): PFDateTime {
-        if (dayOfWeek in 1..7) {
-            return if (dayOfWeek == 1) beginOfWeek else beginOfWeek.plusDays((dayOfWeek - 1).toLong())
-        } else {
-            throw IllegalArgumentException("withDayOfWeek accepts only day of weeks from 1 (first day of week) to 7 (last day of week).")
-        }
+    override fun withDayOfWeek(dayOfWeek: Int): PFDateTime {
+        return PFDayUtils.withDayOfWeek(this, dayOfWeek)
     }
 
     fun withHour(hour: Int): PFDateTime {
@@ -211,29 +207,33 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
     val epochMilli: Long
         get() = dateTime.toInstant().toEpochMilli()
 
+    override fun format(formatter: DateTimeFormatter): String {
+        return dateTime.format(formatter)
+    }
+
     /**
      * Date part as ISO string: "yyyy-MM-dd HH:mm" in UTC.
      */
-    val isoString: String
-        get() = isoDateTimeFormatterMinutes.format(dateTime)
+    override  val isoString: String
+        get() = format(isoDateTimeFormatterMinutes)
 
     /**
      * Date part as ISO string: "yyyy-MM-dd HH:mm:ss" in UTC.
      */
     val isoStringSeconds: String
-        get() = isoDateTimeFormatterSeconds.format(dateTime)
+        get() = format(isoDateTimeFormatterSeconds)
 
     /**
      * Date part as ISO string: "yyyy-MM-dd HH:mm:ss.SSS" in UTC.
      */
     val isoStringMilli: String
-        get() = isoDateTimeFormatterMilli.format(dateTime)
+        get() = format(isoDateTimeFormatterMilli)
 
     /**
      * Date as JavaScript string: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" (UTC).
      */
     val javaScriptString: String
-        get() = jsDateTimeFormatter.format(dateTime)
+        get() = format(jsDateTimeFormatter)
 
     val zone: ZoneId
         get() = dateTime.zone
@@ -241,67 +241,71 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
     val timeZone: TimeZone
         get() = TimeZone.getTimeZone(dateTime.zone)
 
-    fun isBefore(other: PFDateTime): Boolean {
+    override fun isBefore(other: PFDateTime): Boolean {
         return dateTime.isBefore(other.dateTime)
     }
 
-    fun isAfter(other: PFDateTime): Boolean {
+    override fun isAfter(other: PFDateTime): Boolean {
         return dateTime.isAfter(other.dateTime)
     }
 
-    fun isSameDay(other: PFDateTime): Boolean {
+    override  fun isSameDay(other: PFDateTime): Boolean {
         return year == other.year && dayOfYear == other.dayOfYear
     }
 
-    fun isWeekend(): Boolean {
+    override fun isWeekend(): Boolean {
         return DayOfWeek.SUNDAY == dayOfWeek || DayOfWeek.SATURDAY == dayOfWeek
+    }
+
+    override fun monthsBetween(other: PFDateTime): Long {
+        return ChronoUnit.MONTHS.between(dateTime, other.dateTime)
     }
 
     fun daysBetween(date: Date): Long {
         return daysBetween(from(date)!!)
     }
 
-    fun daysBetween(other: PFDateTime): Long {
+    override fun daysBetween(other: PFDateTime): Long {
         return ChronoUnit.DAYS.between(dateTime, other.dateTime)
     }
 
-    fun plus(amountToAdd: Long, temporalUnit: TemporalUnit): PFDateTime {
+    override fun plus(amountToAdd: Long, temporalUnit: TemporalUnit): PFDateTime {
         return PFDateTime(dateTime.plus(amountToAdd, temporalUnit), locale, precision)
     }
 
-    fun minus(amountToSubtract: Long, temporalUnit: TemporalUnit): PFDateTime {
+    override fun minus(amountToSubtract: Long, temporalUnit: TemporalUnit): PFDateTime {
         return PFDateTime(dateTime.minus(amountToSubtract, temporalUnit), locale, precision)
     }
 
-    fun plusDays(days: Long): PFDateTime {
+    override fun plusDays(days: Long): PFDateTime {
         return PFDateTime(dateTime.plusDays(days), locale, precision)
     }
 
-    fun minusDays(days: Long): PFDateTime {
+    override fun minusDays(days: Long): PFDateTime {
         return PFDateTime(dateTime.minusDays(days), locale, precision)
     }
 
-    fun plusWeeks(weeks: Long): PFDateTime {
+    override fun plusWeeks(weeks: Long): PFDateTime {
         return PFDateTime(dateTime.plusWeeks(weeks), locale, precision)
     }
 
-    fun minusWeeks(weeks: Long): PFDateTime {
+    override fun minusWeeks(weeks: Long): PFDateTime {
         return PFDateTime(dateTime.minusWeeks(weeks), locale, precision)
     }
 
-    fun plusMonths(months: Long): PFDateTime {
+    override fun plusMonths(months: Long): PFDateTime {
         return PFDateTime(dateTime.plusMonths(months), locale, precision)
     }
 
-    fun minusMonths(months: Long): PFDateTime {
+    override fun minusMonths(months: Long): PFDateTime {
         return PFDateTime(dateTime.minusMonths(months), locale, precision)
     }
 
-    fun plusYears(years: Long): PFDateTime {
+    override fun plusYears(years: Long): PFDateTime {
         return PFDateTime(dateTime.plusYears(years), locale, precision)
     }
 
-    fun minusYears(years: Long): PFDateTime {
+    override fun minusYears(years: Long): PFDateTime {
         return PFDateTime(dateTime.minusYears(years), locale, precision)
     }
 
@@ -326,7 +330,7 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
      * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
      */
-    val utilDate: Date
+    override val utilDate: Date
         get() {
             if (_utilDate == null)
                 _utilDate = Date.from(dateTime.toInstant())
@@ -365,10 +369,10 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
      * @return The date as java.sql.Date. java.sql.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
      */
-    val sqlDate: java.sql.Date
+    override val sqlDate: java.sql.Date
         get() {
             if (_sqlDate == null) {
-                _sqlDate = PFDate.from(this)!!.sqlDate
+                _sqlDate = PFDay.from(this)!!.sqlDate
             }
             return _sqlDate!!
         }

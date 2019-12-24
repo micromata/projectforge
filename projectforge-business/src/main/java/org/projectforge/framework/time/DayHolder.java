@@ -39,7 +39,7 @@ import java.util.*;
 public class DayHolder {
   private static final long serialVersionUID = 2646871164508930568L;
 
-  private PFDate date;
+  private PFDay date;
 
   /**
    * I18n keys of the day names (e. g. needed for I18n).
@@ -70,25 +70,25 @@ public class DayHolder {
   }
 
   public static BigDecimal getNumberOfWorkingDays(final DayHolder from, final DayHolder to) {
-    return PFDateTimeUtils.getNumberOfWorkingDays(from.date, to.date);
+    return PFDayUtils.getNumberOfWorkingDays(from.date, to.date);
   }
 
   /**
    * Initializes with current day (with time zone UTC!).
    */
   public DayHolder() {
-    this.date = PFDate.now();
+    this.date = PFDay.now();
   }
 
   /**
    * @param date
    */
   public DayHolder(final Date date) {
-    this.date = PFDate.from(date);
+    this.date = PFDay.from(date);
   }
 
   public DayHolder(final Date date, final TimeZone timeZone, final Locale locale) {
-    this.date = PFDate.from(date, true, timeZone, locale);
+    this.date = PFDay.from(date, true, timeZone, locale);
   }
 
   public DayHolder(final DayHolder dateHolder) {
@@ -138,7 +138,7 @@ public class DayHolder {
    * @return other.days - this.days.
    */
   public long daysBetween(final Date other) {
-    PFDate otherDay = PFDate.from(other);
+    PFDay otherDay = PFDay.from(other);
     return this.date.daysBetween(otherDay);
   }
 
@@ -169,11 +169,11 @@ public class DayHolder {
   }
 
   public boolean isToday() {
-    return date.isSameDay(PFDate.now());
+    return date.isSameDay(PFDay.now());
   }
 
   public boolean isSameDay(Date other) {
-    return date.isSameDay(PFDate.from(other));
+    return date.isSameDay(PFDay.from(other));
   }
 
   public boolean isSameDay(DayHolder other) {
@@ -239,7 +239,7 @@ public class DayHolder {
   }
 
   public DayHolder setDate(int year, Month month, int dayOfMonth) {
-    this.date = PFDate.withDate(year, month, dayOfMonth);
+    this.date = PFDay.withDate(year, month, dayOfMonth);
     return this;
   }
 
@@ -250,7 +250,7 @@ public class DayHolder {
    * @param amount
    */
   public DayHolder add(final int field, final int amount) {
-    this.date = this.date.plus(amount, PFDateTimeCompabilityUtils.getCompabilityFields(field));
+    this.date = this.date.plus(amount, PFDateCompabilityUtils.getCompabilityFields(field));
     return this;
   }
 
@@ -261,7 +261,7 @@ public class DayHolder {
    */
   public DayHolder addWorkingDays(final int days) {
     Validate.isTrue(days <= 10000);
-    this.date = PFDateTimeUtils.addWorkingDays(this.date, days);
+    this.date = PFDayUtils.addWorkingDays(this.date, days);
     return this;
   }
 

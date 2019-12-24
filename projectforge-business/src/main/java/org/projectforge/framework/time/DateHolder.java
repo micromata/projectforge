@@ -581,7 +581,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @param amount
    */
   public DateHolder add(final int field, final int amount) {
-    this.dateTime = this.dateTime.plus(amount, PFDateTimeCompabilityUtils.getCompabilityFields(field));
+    this.dateTime = this.dateTime.plus(amount, PFDateCompabilityUtils.getCompabilityFields(field));
     return this;
   }
 
@@ -592,7 +592,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    */
   public DateHolder addWorkingDays(final int days) {
     Validate.isTrue(days <= 10000);
-    this.dateTime = PFDateTimeUtils.addWorkingDays(this.dateTime, days);
+    this.dateTime = PFDayUtils.addWorkingDays(this.dateTime, days);
     return this;
   }
 

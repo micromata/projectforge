@@ -47,7 +47,7 @@ class PFDateTimeTest {
         val beginOfDay = date.beginOfDay.dateTime
         checkDate(beginOfDay, 2019, Month.APRIL, 1, true)
         val endOfDay = date.endOfDay.dateTime
-        checkDate(endOfDay, 2019, Month.APRIL, 2, true)
+        checkDate(endOfDay, 2019, Month.APRIL, 1, true)
 
         val beginOfWeek = date.beginOfWeek.dateTime
         checkDate(beginOfWeek, 2019, Month.APRIL, 1, true)

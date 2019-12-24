@@ -26,7 +26,7 @@ package org.projectforge.calendar;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.calendar.WeekHolder;
-import org.projectforge.framework.time.PFDate;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.test.TestSetup;
 
 import java.time.DayOfWeek;
@@ -46,12 +46,12 @@ public class WeekHolderTest {
 
   @Test
   public void testWeekHolder() {
-    final PFDate dt = PFDate.now(Locale.GERMAN);
+    final PFDay dt = PFDay.now(Locale.GERMAN);
     WeekHolder week = new WeekHolder(dt);
     assertEquals(7, week.getDays().length);
     assertEquals(1, week.getDays()[0].getDayOfWeek().getValue());
     assertEquals(DayOfWeek.MONDAY, week.getDays()[0].getDayOfWeek());
-    PFDate date = PFDate.now(Locale.GERMAN).withDate(1970, Month.NOVEMBER, 21);
+    PFDay date = PFDay.now(Locale.GERMAN).withDate(1970, Month.NOVEMBER, 21);
     week = new WeekHolder(date);
     assertEquals(7, week.getDays().length);
     assertEquals(1, week.getDays()[0].getDayOfWeek().getValue());

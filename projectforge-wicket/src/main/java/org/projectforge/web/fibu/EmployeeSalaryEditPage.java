@@ -28,7 +28,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
 import org.projectforge.business.fibu.EmployeeSalaryDao;
 import org.projectforge.business.fibu.EmployeeSalaryType;
-import org.projectforge.framework.time.PFDate;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
@@ -70,7 +70,7 @@ public class EmployeeSalaryEditPage
     }
     if (recent == null) {
       recent = new EmployeeSalaryEditRecentEntry();
-      PFDate date = PFDate.now();
+      PFDay date = PFDay.now();
       recent.setYear(date.getYear());
       recent.setMonth(date.getMonth());
       recent.setType(EmployeeSalaryType.GEHALT);

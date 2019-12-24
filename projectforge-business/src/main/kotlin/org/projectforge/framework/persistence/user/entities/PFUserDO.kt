@@ -40,7 +40,7 @@ import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.time.PFDateTimeCompabilityUtils
+import org.projectforge.framework.time.PFDateCompabilityUtils
 import org.projectforge.framework.time.TimeNotation
 import java.io.Serializable
 import java.sql.Timestamp
@@ -296,9 +296,9 @@ open class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
 
     open var firstDayOfWeek: DayOfWeek?
         @Transient
-        get() = PFDateTimeCompabilityUtils.getCompabilityDayOfWeek(firstDayOfWeekCompabilityValue)
+        get() = PFDateCompabilityUtils.getCompabilityDayOfWeek(firstDayOfWeekCompabilityValue)
         set(value) {
-            firstDayOfWeekCompabilityValue = PFDateTimeCompabilityUtils.getCompabilityDayOfWeekValue(value)
+            firstDayOfWeekCompabilityValue = PFDateCompabilityUtils.getCompabilityDayOfWeekValue(value)
         }
 
     @PropertyInfo(i18nKey = "timeNotation")

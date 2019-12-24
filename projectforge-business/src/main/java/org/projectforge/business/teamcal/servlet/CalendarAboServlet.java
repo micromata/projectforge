@@ -50,7 +50,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.PFDate;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 import org.slf4j.MDC;
@@ -329,9 +329,9 @@ public class CalendarAboServlet extends HttpServlet
       return;
     }
 
-    PFDate holidaysFrom = PFDate.now().getBeginOfYear().plusYears(-2);
-    PFDate holidayTo = holidaysFrom.plusYears(6);
-    PFDate day = holidaysFrom;
+    PFDay holidaysFrom = PFDay.now().getBeginOfYear().plusYears(-2);
+    PFDay holidayTo = holidaysFrom.plusYears(6);
+    PFDay day = holidaysFrom;
     Holidays holidays = Holidays.getInstance();
     int idCounter = 0;
     int paranoiaCounter = 0;

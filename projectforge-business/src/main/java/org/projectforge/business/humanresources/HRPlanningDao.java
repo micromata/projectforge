@@ -45,7 +45,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.PFDate;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.PFDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -150,7 +150,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
   }
 
   public HRPlanningDO getEntry(final Integer userId, final Date week) {
-    PFDate day = PFDate.from(week, false, DateHelper.UTC, Locale.GERMANY);
+    PFDay day = PFDay.from(week, false, DateHelper.UTC, Locale.GERMANY);
     if (!day.isBeginOfWeek()) {
       log.error("Date is not begin of week, try to change date: " + day.getIsoString());
       day = day.getBeginOfWeek();
@@ -230,7 +230,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
    */
   @Override
   protected void onSaveOrModify(final HRPlanningDO obj) {
-    PFDate day = PFDate.from(obj.getWeek(), false, DateHelper.UTC, Locale.GERMANY);
+    PFDay day = PFDay.from(obj.getWeek(), false, DateHelper.UTC, Locale.GERMANY);
     if (!day.isBeginOfWeek()) {
       log.error("Date is not begin of week, try to change date: " + day.getIsoString());
       day = day.getBeginOfWeek();

@@ -24,7 +24,7 @@
 package org.projectforge.framework.calendar;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.projectforge.framework.time.PFDate;
+import org.projectforge.framework.time.PFDay;
 
 import java.io.Serializable;
 import java.time.Month;
@@ -38,17 +38,17 @@ import java.util.Map;
 public class WeekHolder implements Serializable {
   private static final long serialVersionUID = -3895513078248004222L;
 
-  private PFDate[] days;
+  private PFDay[] days;
 
   private int weekOfYear;
 
   private Map<String, Object> objects;
 
-  public WeekHolder(PFDate date) {
+  public WeekHolder(PFDay date) {
     final Month month = date.getMonth();
     weekOfYear = date.getWeekOfYear();
-    days = new PFDate[7];
-    PFDate day = date.getBeginOfWeek();
+    days = new PFDay[7];
+    PFDay day = date.getBeginOfWeek();
     // Process week
     for (int i = 0; i < 7; i++) {
       if (day.getMonth() != month) {
@@ -65,15 +65,15 @@ public class WeekHolder implements Serializable {
     return weekOfYear;
   }
 
-  public PFDate[] getDays() {
+  public PFDay[] getDays() {
     return days;
   }
 
-  public PFDate getFirstDayDate() {
+  public PFDay getFirstDayDate() {
     return days[0];
   }
 
-  public PFDate getLastDayDate() {
+  public PFDay getLastDayDate() {
     return days[days.length - 1];
   }
 

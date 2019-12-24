@@ -30,7 +30,7 @@ import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.time.PFDateTimeCompabilityUtils
+import org.projectforge.framework.time.PFDateCompabilityUtils
 import org.projectforge.framework.utils.Constants
 import java.math.BigDecimal
 import java.time.Month
@@ -80,9 +80,9 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
 
     open var month: Month?
         @Transient
-        get() = PFDateTimeCompabilityUtils.getCompabilityMonth(compabilityMonth)
+        get() = PFDateCompabilityUtils.getCompabilityMonth(compabilityMonth)
         set(value) {
-            compabilityMonth = PFDateTimeCompabilityUtils.getCompabilityMonthValue(value)
+            compabilityMonth = PFDateCompabilityUtils.getCompabilityMonthValue(value)
         }
 
     open val monthValue: Int?

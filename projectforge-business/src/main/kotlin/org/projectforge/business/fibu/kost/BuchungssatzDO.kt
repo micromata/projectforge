@@ -30,7 +30,7 @@ import org.projectforge.business.fibu.KontoDO
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.time.PFDateTimeCompabilityUtils
+import org.projectforge.framework.time.PFDateCompabilityUtils
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -74,9 +74,9 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
 
     open var month: Month?
         @Transient
-        get() = PFDateTimeCompabilityUtils.getCompabilityMonth(compabilityMonth)
+        get() = PFDateCompabilityUtils.getCompabilityMonth(compabilityMonth)
         set(value) {
-            compabilityMonth = PFDateTimeCompabilityUtils.getCompabilityMonthValue(value)
+            compabilityMonth = PFDateCompabilityUtils.getCompabilityMonthValue(value)
         }
 
     open val monthValue: Int?

@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu
 
 import org.projectforge.business.excel.PropertyMapping
-import org.projectforge.framework.time.PFDate
+import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -133,24 +133,24 @@ object ForecastUtils { // open needed by Wicket.
     }
 
     @JvmStatic
-    fun getStartLeistungszeitraum(order: AuftragDO, pos: AuftragsPositionDO): PFDate {
+    fun getStartLeistungszeitraum(order: AuftragDO, pos: AuftragsPositionDO): PFDay {
         return getLeistungszeitraumDate(pos, order.periodOfPerformanceBegin, pos.periodOfPerformanceBegin)
     }
 
     @JvmStatic
-    fun getEndLeistungszeitraum(order: AuftragDO, pos: AuftragsPositionDO): PFDate {
+    fun getEndLeistungszeitraum(order: AuftragDO, pos: AuftragsPositionDO): PFDay {
         return getLeistungszeitraumDate(pos, order.periodOfPerformanceEnd, pos.periodOfPerformanceEnd)
     }
 
-    private fun getLeistungszeitraumDate(pos: AuftragsPositionDO, orderDate: Date?, posDate: Date?): PFDate {
-        var result = PFDate.now()
+    private fun getLeistungszeitraumDate(pos: AuftragsPositionDO, orderDate: Date?, posDate: Date?): PFDay {
+        var result = PFDay.now()
         if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) {
             if (posDate != null) {
-                result = PFDate.from(posDate)!!
+                result = PFDay.from(posDate)!!
             }
         } else {
             if (orderDate != null) {
-                result = PFDate.from(orderDate)!!
+                result = PFDay.from(orderDate)!!
             }
         }
         return result
@@ -172,8 +172,8 @@ object ForecastUtils { // open needed by Wicket.
 
     @JvmStatic
     fun getMonthCount(start: Date, end: Date): BigDecimal {
-        val startDate = PFDate.from(start)!!
-        val endDate = PFDate.from(end)!!
+        val startDate = PFDay.from(start)!!
+        val endDate = PFDay.from(end)!!
         val diffYear = endDate.year - startDate.year
         val diffMonth = diffYear * 12 + endDate.monthValue - startDate.monthValue + 1
         return BigDecimal.valueOf(diffMonth.toLong())
@@ -201,7 +201,7 @@ object ForecastUtils { // open needed by Wicket.
             return order.created
         if (order.angebotsDatum != null)
             return order.angebotsDatum
-        return PFDate.now().sqlDate
+        return PFDay.now().sqlDate
     }
 
     private val POINT_FIVE = BigDecimal(".5")
