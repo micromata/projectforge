@@ -112,7 +112,7 @@ public abstract class AbstractCalendarFilter implements ICalendarFilter
   }
 
   /**
-   * @return the firstHour to display in week mode of dateTime.
+   * @return the firstHour to display in week mode of calendar.
    */
   public Integer getFirstHour()
   {

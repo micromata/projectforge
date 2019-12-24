@@ -318,7 +318,7 @@ public class DateHelper implements Serializable {
   }
 
   /**
-   * Returns a dateTime instance. If a context user is given then the user's time zone and locale will be used if given.
+   * Returns a calendar instance. If a context user is given then the user's time zone and locale will be used if given.
    */
   public static Calendar getCalendar() {
     return getCalendar(null, null);
@@ -467,7 +467,7 @@ public class DateHelper implements Serializable {
   }
 
   /**
-   * Sets given DateTime (UTC) as local time, meaning e. g. 08:00 UTC will be 08:00 local time.
+   * Sets given calendar (UTC) as local time, meaning e. g. 08:00 UTC will be 08:00 local time.
    *
    * @param dateTime
    * @return

@@ -76,7 +76,7 @@ public class TeamCalImportForm extends AbstractImportForm<ImportFilter, TeamCalI
         calChoiceRenderer.addValue(cal, cal.getTitle());
       }
       final DropDownChoice<TeamCalDO> calDropDownChoice = new DropDownChoice<TeamCalDO>(fs.getDropDownChoiceId(),
-          new PropertyModel<TeamCalDO>(this, "dateTime"), calChoiceRenderer.getValues(), calChoiceRenderer)
+          new PropertyModel<TeamCalDO>(this, "calendar"), calChoiceRenderer.getValues(), calChoiceRenderer)
       {
         /**
          * @see org.apache.wicket.markup.html.form.DropDownChoice#wantOnSelectionChangedNotifications()

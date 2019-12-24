@@ -162,7 +162,7 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
         }
         final Select2Choice<TeamCalDO> teamCalSelectSelect = new Select2Choice<>(
             Select2SingleChoicePanel.WICKET_ID,
-            new PropertyModel<TeamCalDO>(this, "dateTime"),
+            new PropertyModel<TeamCalDO>(this, "calendar"),
             new TeamCalsProvider(teamCalCache));
         fs.add(new Select2SingleChoicePanel<TeamCalDO>(fs.newChildId(), teamCalSelectSelect));
       } else {

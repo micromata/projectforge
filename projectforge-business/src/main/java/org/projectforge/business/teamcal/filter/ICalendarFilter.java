@@ -70,7 +70,7 @@ public interface ICalendarFilter extends Serializable
   ICalendarFilter setViewType(final ViewType viewType);
 
   /**
-   * @return the firstHour to display in week mode of dateTime.
+   * @return the firstHour to display in week mode of calendar.
    */
   Integer getFirstHour();
 

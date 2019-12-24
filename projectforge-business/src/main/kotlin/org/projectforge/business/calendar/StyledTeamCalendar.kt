@@ -24,7 +24,7 @@
 package org.projectforge.business.calendar
 
 /**
- * Team dateTime object extended by CalendarStyle and visibility.
+ * Team calendar object extended by CalendarStyle and visibility.
  */
 class StyledTeamCalendar(teamCalendar: TeamCalendar?,
                          var style: CalendarStyle? = null,
@@ -38,7 +38,7 @@ class StyledTeamCalendar(teamCalendar: TeamCalendar?,
         fun map(calendars : List<TeamCalendar>, styleMap : CalendarStyleMap) : List<StyledTeamCalendar> {
             return calendars.map { cal ->
                 StyledTeamCalendar(calendars.find { it.id == cal.id },
-                        style = styleMap.get(cal.id)) // Add the styles of the styleMap to the exported dateTime.
+                        style = styleMap.get(cal.id)) // Add the styles of the styleMap to the exported calendar.
             }
         }
     }

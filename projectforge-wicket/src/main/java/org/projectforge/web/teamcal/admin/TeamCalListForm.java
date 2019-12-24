@@ -37,7 +37,7 @@ import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
+ *
  */
 public class TeamCalListForm extends AbstractListForm<TeamCalFilter, TeamCalListPage>
 {
@@ -114,7 +114,7 @@ public class TeamCalListForm extends AbstractListForm<TeamCalFilter, TeamCalList
       public boolean isVisible()
       {
 
-        // Show check box panel only if user selects others dateTime.
+        // Show check box panel only if user selects others calendar.
         return getSearchFilter().isDeleted() == false && (getSearchFilter().isAll() == true || getSearchFilter().isOthers() == true);
       }
     };

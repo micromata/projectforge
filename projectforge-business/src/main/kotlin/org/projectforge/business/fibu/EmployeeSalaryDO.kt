@@ -64,7 +64,7 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
     /**
      * @return Abrechnungsjahr.
      */
-    @PropertyInfo(i18nKey = "dateTime.year")
+    @PropertyInfo(i18nKey = "calendar.year")
     @Field(analyze = Analyze.NO)
     @get:Column
     open var year: Int? = null
@@ -73,7 +73,7 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
      * 0-based: 0 - January, 11 - December
      * @return Abrechnungsmonat.
      */
-    @PropertyInfo(i18nKey = "dateTime.month")
+    @PropertyInfo(i18nKey = "calendar.month")
     @Field(analyze = Analyze.NO)
     @get:Column(name = "month")
     open var compabilityMonth: Int? = null

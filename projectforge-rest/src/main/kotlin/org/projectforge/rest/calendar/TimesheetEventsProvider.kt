@@ -159,7 +159,7 @@ class TimesheetEventsProvider() {
                         weekDuration += ctx.getDurationOfDayOfYear(d)
                     }
                     val buf = StringBuffer()
-                    buf.append(translate("dateTime.weekOfYearShortLabel")).append(day.weekOfYear)
+                    buf.append(translate("calendar.weekOfYearShortLabel")).append(day.weekOfYear)
                     if (ctx.days > 1 && weekDuration > 0) { // Show total sum of durations over all time sheets of current week (only in week and month view).
                         buf.append(": ").append(formatDuration(weekDuration, false))
                     }
@@ -203,12 +203,12 @@ class TimesheetEventsProvider() {
         val fields = TimePeriod.getDurationFields(millis, 8, 200)
         val buf = StringBuffer()
         if (fields[0] > 0) {
-            buf.append(fields[0]).append(ThreadLocalUserContext.getLocalizedString("dateTime.unit.day")).append(" ")
+            buf.append(fields[0]).append(ThreadLocalUserContext.getLocalizedString("calendar.unit.day")).append(" ")
         }
         buf.append(fields[1]).append(":").append(StringHelper.format2DigitNumber(fields[2]))
-                .append(ThreadLocalUserContext.getLocalizedString("dateTime.unit.hour"))
+                .append(ThreadLocalUserContext.getLocalizedString("calendar.unit.hour"))
         if (showTimePeriod == true) {
-            buf.append(" (").append(ThreadLocalUserContext.getLocalizedString("dateTime.month")).append(")")
+            buf.append(" (").append(ThreadLocalUserContext.getLocalizedString("calendar.month")).append(")")
         }
         return buf.toString()
     }

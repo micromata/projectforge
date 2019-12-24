@@ -112,7 +112,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     @get:Column(name = "dt_stamp")
     open var dtStamp: Timestamp? = null
 
-    @PropertyInfo(i18nKey = "plugins.teamcal.dateTime")
+    @PropertyInfo(i18nKey = "plugins.teamcal.calendar")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "calendar_fk", nullable = false)
@@ -160,7 +160,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
      * If not given the recurrence will never ends. Identifies the last possible event occurrence.
      *
      * Please note: Do not set this property manually! It's set automatically by the recurrence rule! Otherwise the
-     * display of dateTime events may be incorrect.
+     * display of calendar events may be incorrect.
      *
      * This field exist only for data-base query purposes.
      */

@@ -43,10 +43,10 @@ import java.time.LocalDate
 import java.util.*
 
 /**
- * Rest services for the user's settings of dateTime filters.
+ * Rest services for the user's settings of calendar filters.
  */
 @RestController
-@RequestMapping("${Rest.URL}/dateTime")
+@RequestMapping("${Rest.URL}/calendar")
 class CalendarFilterServicesRest {
     class CalendarInit(var date: PFDateTime? = null,
                        @Suppress("unused")
@@ -63,7 +63,7 @@ class CalendarFilterServicesRest {
                        var vacationUsers: List<User>? = null,
                        /**
                         * This is the list of possible default calendars (with full access). The user may choose one which is
-                        * used as default if creating a new event. The pseudo dateTime -1 for own time sheets is
+                        * used as default if creating a new event. The pseudo calendar -1 for own time sheets is
                         * prepended. If chosen, new time sheets will be created at default.
                         */
                        var listOfDefaultCalendars: List<TeamCalendar>? = null,
@@ -77,7 +77,7 @@ class CalendarFilterServicesRest {
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(CalendarFilterServicesRest::class.java)
 
-        private const val PREF_AREA = "dateTime"
+        private const val PREF_AREA = "calendar"
         private const val PREF_NAME_STATE = "state"
         private const val PREF_NAME_STYLES = "styles"
 
@@ -88,7 +88,7 @@ class CalendarFilterServicesRest {
 
         private fun migrateFromLegacyFilter(userPrefService: UserPrefService): CalendarLegacyFilter? {
             val legacyFilter = CalendarLegacyFilter.migrate(userPrefService.userXmlPreferencesService) ?: return null
-            log.info("User's legacy dateTime filter migrated.")
+            log.info("User's legacy calendar filter migrated.")
             userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_LIST, legacyFilter.list)
             userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_CURRENT, legacyFilter.current)
             // Filter state is now separately stored:
@@ -166,7 +166,7 @@ class CalendarFilterServicesRest {
         }
 
         listOfDefaultCalendars.sortBy { it.title?.toLowerCase() }
-        listOfDefaultCalendars.add(0, TeamCalendar(id = -1, title = translate("dateTime.option.timesheeets"))) // prepend time sheet pseudo dateTime
+        listOfDefaultCalendars.add(0, TeamCalendar(id = -1, title = translate("calendar.option.timesheeets"))) // prepend time sheet pseudo calendar
         initial.listOfDefaultCalendars = listOfDefaultCalendars
 
         val translations = addTranslations(
@@ -211,7 +211,7 @@ class CalendarFilterServicesRest {
     private fun getActiveCalendars(currentFilter: CalendarFilter, calendars: List<TeamCalendar>, styleMap: CalendarStyleMap): MutableList<StyledTeamCalendar> {
         val activeCalendars = currentFilter.calendarIds.map { id ->
             StyledTeamCalendar(calendars.find { it.id == id }, // Might be not accessible / null, see below.
-                    style = styleMap.get(id), // Add the styles of the styleMap to the exported dateTime.
+                    style = styleMap.get(id), // Add the styles of the styleMap to the exported calendar.
                     visible = currentFilter.isVisible(id)
             )
         }.toMutableList()

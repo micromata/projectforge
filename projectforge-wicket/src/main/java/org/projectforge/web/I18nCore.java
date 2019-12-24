@@ -23,13 +23,13 @@
 
 package org.projectforge.web;
 
-import java.util.Locale;
-
 import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.web.calendar.MyFullCalendarConfig;
+
+import java.util.Locale;
 
 /**
  * Main class for administration ProjectForge's localization. If you want to add new translations, this class should be referred first.
@@ -73,7 +73,7 @@ public class I18nCore
 
   /**
    * Sets the date and time formats of the FullCalendar (jquery plugin). It's easier to understand this method if you run ProjectForge and
-   * check the dateTime page during analyzing this method.
+   * check the calendar page during analyzing this method.
    *
    * @param config
    */

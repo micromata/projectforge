@@ -42,7 +42,7 @@ class LayoutUtils {
         private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
 
         fun addCommonTranslations(translations: MutableMap<String, String>) {
-            addTranslations("select.placeholder", "dateTime.today", "task.title.list.select", translations = translations)
+            addTranslations("select.placeholder", "calendar.today", "task.title.list.select", translations = translations)
         }
 
         /**

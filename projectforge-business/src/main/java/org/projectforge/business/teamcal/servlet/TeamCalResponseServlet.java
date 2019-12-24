@@ -50,7 +50,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Response servlet for team dateTime events.
+ * Response servlet for team calendar events.
  *
  * @author Florian Blumenstein
  */
@@ -114,19 +114,19 @@ public class TeamCalResponseServlet extends HttpServlet
     }
     final TeamEventAttendeeStatus statusFinal = status;
 
-    // Getting dateTime
-    final String calendarStr = decryptedParameters.get("dateTime");
+    // Getting calendar
+    final String calendarStr = decryptedParameters.get("calendar");
     final Integer calendarId;
     if (StringUtils.isBlank(calendarStr)) {
       calendarId = null;
       // compatibility, disable later
-      //      log.warn("Bad request, request parameter 'dateTime' not given.");
+      //      log.warn("Bad request, request parameter 'calendar' not given.");
       //      resp.sendError(HttpStatus.SC_BAD_REQUEST);
       //      return;
     } else {
       calendarId = Integer.valueOf(calendarStr);
       if (calendarId == null) {
-        log.warn("Bad request, request parameter 'dateTime' not valid: " + calendarStr);
+        log.warn("Bad request, request parameter 'calendar' not valid: " + calendarStr);
         sendNotValidData(resp);
         return;
       }

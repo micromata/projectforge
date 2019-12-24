@@ -34,7 +34,7 @@ import java.util.*
 
 
 /**
- * All date time acrobatics of ProjectForge should be done by PFDateTime or PFDate.
+ * All date time acrobatics of ProjectForge should be done by [PFDateTime] or [PFDay]>.
  * Immutable holder of [ZonedDateTime] for transforming to [java.util.Date] (once) if used several times.
  * Zone date times will be generated automatically with the context user's time zone.
  */

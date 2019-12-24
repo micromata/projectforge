@@ -37,10 +37,10 @@ import java.util.*;
 
 /**
  * Persist the settings of one named filter entry.
- * 
+ *
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author K. Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, Cloneable
 {
@@ -180,7 +180,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
       if (cal != null) {
         result.add(cal);
       } else {
-        log.error("Oups, dateTime with id " + props.getCalId() + " not found in TeamCalCache.");
+        log.error("Oups, calendar with id " + props.getCalId() + " not found in TeamCalCache.");
       }
     }
     return result;
@@ -281,7 +281,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
 
   /**
    * For avoiding reload of Calendar if no changes are detected. (Was für'n Aufwand für so'n kleines Feature...)
-   * 
+   *
    * @param filter
    * @return
    */
@@ -413,7 +413,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
 
   /**
    * Used for users with access to display own and other time-sheets.
-   * 
+   *
    * @param timesheetUserId the timesheetUserId to set
    * @return this for chaining.
    */

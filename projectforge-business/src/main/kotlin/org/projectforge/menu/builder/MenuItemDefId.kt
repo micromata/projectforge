@@ -42,7 +42,7 @@ enum class MenuItemDefId private constructor(private val i18nKey: String) {
     ADDRESS_LIST("addressList"), //
     BANK_ACCOUNT_LIST("finance.bankAccounts"), //
     BOOK_LIST("bookList"), //
-    CALENDAR("dateTime"), //
+    CALENDAR("calendar"), //
     TEAMCALENDAR("plugins.teamcal"), //
     CHANGE_PASSWORD("changePassword"), //
     CHANGE_WLAN_PASSWORD("changeWlanPassword"), //

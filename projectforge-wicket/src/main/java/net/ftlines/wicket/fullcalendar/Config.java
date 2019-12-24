@@ -25,7 +25,7 @@ import java.util.*;
 public class Config implements Serializable {
   private static final long serialVersionUID = 8461857788221899394L;
 
-  /** Use these to specify dateTime column formats */
+  /** Use these to specify calendar column formats */
   public enum ColumnFormat {
     day, week, month;
   }

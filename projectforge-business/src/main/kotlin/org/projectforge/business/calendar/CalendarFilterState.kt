@@ -29,7 +29,7 @@ import java.time.LocalDate
 import java.util.*
 
 /**
- * The user's current dateTime state to display. This state will be persisted per user. It contain the recent
+ * The user's current calendar state to display. This state will be persisted per user. It contain the recent
  * displayed date range viewed by the user.
  */
 class CalendarFilterState {
