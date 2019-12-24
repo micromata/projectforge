@@ -51,6 +51,8 @@ class IPFDateTest {
         testSameDay(date)
         testGetNumberOfWorkingDays(date)
         testJavaDates(date)
+        testDaysBetween(date)
+        testAddWorkingDays(date)
     }
 
     private fun <T : IPFDate<T>> baseTests(date: T) {
@@ -137,6 +139,41 @@ class IPFDateTest {
         // 24.12. is a half working day and the 28.12. is a full working day.
         assertTrue(BigDecimal(1.5).compareTo(days) == 0, "Unexpected number of days: $days")
     }
+
+    private fun <T : IPFDate<T>> testAddWorkingDays(date: T) {
+        var myDate = date.withYear(2010).withMonth( Month.MAY).withDayOfMonth( 21) // Friday
+        myDate = PFDayUtils.addWorkingDays(myDate, 0)
+        checkDate(myDate, 2010, Month.MAY, 21)
+
+        myDate = PFDayUtils.addWorkingDays(myDate, 1) // Skip saturday, sunday and whit monday and weekend.
+        checkDate(myDate, 2010, Month.MAY, 25)
+
+        myDate = PFDayUtils.addWorkingDays(myDate, -1) // Skip saturday, sunday and whit monday and weekend.
+        checkDate(myDate, 2010, Month.MAY, 21)
+
+        myDate = PFDayUtils.addWorkingDays(myDate, 1) // Skip saturday, sunday and whit monday and weekend.
+        myDate = PFDayUtils.addWorkingDays(myDate, -6) // Skip saturday, sunday and whit monday and weekends.
+        checkDate(myDate, 2010, Month.MAY, 14)
+    }
+
+    private fun <T : IPFDate<T>> testDaysBetween(date: T) {
+        var date1 = date.withYear(2008).withMonth(Month.MARCH).withDayOfMonth(23)
+        var date2 = date.withYear(2008).withMonth(Month.MARCH).withDayOfMonth(23)
+        assertEquals(0, date1.daysBetween(date2))
+        date2 = date2.withDayOfMonth(24)
+        assertEquals(1, date1.daysBetween(date2))
+
+        date2 = date2.withDayOfMonth(22)
+        assertEquals(-1, date1.daysBetween(date2))
+
+        date2 = date1.plusDays(364)
+        assertEquals(364, date1.daysBetween(date2))
+
+        date1 = date1.withYear(2010).withMonth(Month.JANUARY).withDayOfMonth(1)
+        date2 = date1.withMonth(Month.DECEMBER).withDayOfMonth(31)
+        assertEquals(364, date1.daysBetween(date2))
+    }
+
 
     private fun checkDate(date: IPFDate<*>, year: Int, month: Month, dayOfMonth: Int, checkMode: TimeCheck = TimeCheck.NONE) {
         assertEquals(year, date.year, "Year check failed.")

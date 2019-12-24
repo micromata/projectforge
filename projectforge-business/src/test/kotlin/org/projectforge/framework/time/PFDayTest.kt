@@ -32,7 +32,7 @@ import java.time.LocalDate
 import java.time.Month
 import java.util.*
 
-class PFDateTest {
+class PFDayTest {
 
     @Test
     fun convertTest() {
