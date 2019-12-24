@@ -62,8 +62,7 @@ class PFDateTimeUtils {
 
         @JvmStatic
         fun getFirstDayOfWeek(): DayOfWeek {
-            val firstDayOfWeek = ThreadLocalUserContext.getJodaFirstDayOfWeek()
-            return getDayOfWeek(firstDayOfWeek)!!
+            return ThreadLocalUserContext.getFirstDayOfWeek()
         }
 
         @JvmStatic

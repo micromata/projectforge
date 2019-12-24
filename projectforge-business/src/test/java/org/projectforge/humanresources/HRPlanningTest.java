@@ -129,7 +129,7 @@ public class HRPlanningTest extends AbstractTestBase {
 
   @Test
   public void getFirstDayOfWeek() {
-    final java.sql.Date date = createDate(2010, Month.JANUARY.getValue(), 9, 1, 10, 57, 456);
+    final java.sql.Date date = createDate(2010, Month.JANUARY, 9, 1, 10, 57, 456);
     assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(HRPlanningDO.Companion.getFirstDayOfWeek(date)));
   }
 
@@ -137,9 +137,8 @@ public class HRPlanningTest extends AbstractTestBase {
   public void testBeginOfWeek() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     HRPlanningDO planning = new HRPlanningDO();
-    final java.sql.Date date = createDate(2010, Month.JANUARY.getValue(), 9, 1, 10, 57, 456);
-    final PFDateTime firstDayOfWeek = PFDateTime.now(ZoneId.of("UTC")).withDate(2010,Month.JANUARY, 4)
-        .withHour(0).withMinute(0).withSecond(0).withMilliSecond(0);
+    final java.sql.Date date = createDate(2010, Month.JANUARY, 9, 1, 10, 57, 456);
+    final PFDateTime firstDayOfWeek = PFDateTime.withDate(2010, Month.JANUARY, 4, 0, 0, 0, 0, ZoneId.of("UTC"));
     final long millis = firstDayOfWeek.getEpochMilli();
     planning.setFirstDayOfWeek(date);
     assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(planning.getWeek()));
@@ -158,8 +157,8 @@ public class HRPlanningTest extends AbstractTestBase {
     // Create planning:
     HRPlanningDO planning = new HRPlanningDO();
     planning.setUser(getUser(AbstractTestBase.TEST_USER));
-    planning.setWeek(createDate(2010, Month.JANUARY.getValue() , 11, 0, 0, 0, 0));
-    assertUTCDate(planning.getWeek(), 2010, Month.JANUARY.getValue() , 11, 0, 0, 0);
+    planning.setWeek(createDate(2010, Month.JANUARY, 11, 0, 0, 0, 0));
+    assertUTCDate(planning.getWeek(), 2010, Month.JANUARY, 11, 0, 0, 0);
     HRPlanningEntryDO entry = new HRPlanningEntryDO();
     setHours(entry, 1, 2, 3, 4, 5, 6);
     entry.setProjekt(projekt1);
@@ -175,7 +174,7 @@ public class HRPlanningTest extends AbstractTestBase {
     final Serializable id = hrPlanningDao.save(planning);
     // Check saved planning
     planning = hrPlanningDao.getById(id);
-    assertUTCDate(planning.getWeek(), 2010, Month.JANUARY.getValue(), 11, 0, 0, 0);
+    assertUTCDate(planning.getWeek(), 2010, Month.JANUARY, 11, 0, 0, 0);
     assertEquals(3, planning.getEntries().size());
     assertHours(planning.getProjectEntry(projekt1), 1, 2, 3, 4, 5, 6);
     assertHours(planning.getProjectEntry(projekt2), 6, 5, 4, 3, 2, 1);
@@ -215,9 +214,8 @@ public class HRPlanningTest extends AbstractTestBase {
     assertBigDecimal(weekend, entry.getWeekendHours());
   }
 
-  private java.sql.Date createDate(final int year, final int month, final int day, final int hour, final int minute,
+  private java.sql.Date createDate(final int year, final Month month, final int day, final int hour, final int minute,
                                    final int second, final int millisecond) {
-    return PFDateTime.now(ZoneId.of("UTC"), Locale.GERMAN).withYear(year).withMonth(month)
-        .withDayOfMonth(day).withHour(hour).withMinute(minute).withSecond(second).withMilliSecond(millisecond).getSqlDate();
+    return PFDateTime.withDate(year, month, day, hour, minute, second, millisecond, ZoneId.of("UTC"), Locale.GERMAN).getSqlDate();
   }
 }

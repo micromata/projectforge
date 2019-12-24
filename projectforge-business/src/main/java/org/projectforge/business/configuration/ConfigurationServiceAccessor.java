@@ -23,6 +23,8 @@
 
 package org.projectforge.business.configuration;
 
+import org.projectforge.framework.time.PFDateTimeCompabilityUtils;
+
 import java.time.DayOfWeek;
 import java.util.Locale;
 
@@ -35,7 +37,7 @@ public class ConfigurationServiceAccessor {
   public static void internalInitJunitTestMode() {
     ConfigurationServiceImpl cfg = new ConfigurationServiceImpl();
     cfg.setDefaultLocale(Locale.ENGLISH);
-    cfg.setDefaultFirstDayOfWeek(DayOfWeek.MONDAY.getValue());
+    cfg.setDefaultFirstDayOfWeek(PFDateTimeCompabilityUtils.getCompabilityDayOfWeekValue(DayOfWeek.MONDAY));
     cfg.setCurrencySymbol("€");
     configurationService = cfg;
   }
