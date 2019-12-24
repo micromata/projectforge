@@ -411,7 +411,21 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         fun from(epochSeconds: Long?, nowIfNull: Boolean = false, zoneId: ZoneId = getUsersZoneId(), locale: Locale = getUsersLocale()): PFDateTime? {
             if (epochSeconds == null)
                 return if (nowIfNull) now() else null
-            val instant = Instant.ofEpochSecond(epochSeconds)
+            return from(Instant.ofEpochSecond(epochSeconds), zoneId, locale)
+        }
+
+        /**
+         * Sets the user's time zone.
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun fromMilli(epochMilli: Long?, nowIfNull: Boolean = false, zoneId: ZoneId = getUsersZoneId(), locale: Locale = getUsersLocale()): PFDateTime? {
+            if (epochMilli == null)
+                return if (nowIfNull) now() else null
+            return from(Instant.ofEpochMilli(epochMilli), zoneId, locale)
+        }
+
+        private fun from(instant: Instant, zoneId: ZoneId, locale: Locale): PFDateTime {
             return PFDateTime(ZonedDateTime.ofInstant(instant, zoneId), locale, null)
         }
 
