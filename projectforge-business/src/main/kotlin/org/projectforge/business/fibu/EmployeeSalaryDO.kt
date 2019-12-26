@@ -30,7 +30,7 @@ import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.time.PFDateCompabilityUtils
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.Constants
 import java.math.BigDecimal
 import java.time.Month
@@ -70,24 +70,20 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
     open var year: Int? = null
 
     /**
-     * 0-based: 0 - January, 11 - December
+     * 1-based: 1 - January, 12 - December
      * @return Abrechnungsmonat.
      */
     @PropertyInfo(i18nKey = "calendar.month")
     @Field(analyze = Analyze.NO)
     @get:Column(name = "month")
-    open var compabilityMonth: Int? = null
+    open var monthValue: Int? = null
 
     open var month: Month?
         @Transient
-        get() = PFDateCompabilityUtils.getCompabilityMonth(compabilityMonth)
+        get() = PFDayUtils.getMonth(monthValue)
         set(value) {
-            compabilityMonth = PFDateCompabilityUtils.getCompabilityMonthValue(value)
+            monthValue = value?.value
         }
-
-    open val monthValue: Int?
-        @Transient
-        get() = month?.value
 
     /**
      * Die Bruttoauszahlung an den Arbeitnehmer (inklusive AG-Anteil Sozialversicherungen).

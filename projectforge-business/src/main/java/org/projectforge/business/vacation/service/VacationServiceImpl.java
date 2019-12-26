@@ -699,6 +699,15 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     }
   }
 
+  /**
+   *
+   * @param fromYear
+   * @param fromMonth 0-based: 0 - January, ..., 11 - December
+   * @param toYear
+   * @param toMonth 0-based: 0 - January, ..., 11 - December
+   * @param user
+   * @return
+   */
   @Override
   public String getVacationCount(final int fromYear, final int fromMonth, final int toYear, final int toMonth, final PFUserDO user) {
     long hours = 0;
