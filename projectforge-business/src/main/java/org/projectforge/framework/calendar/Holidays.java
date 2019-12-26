@@ -96,7 +96,7 @@ public class Holidays
     if (xmlConfiguration.getHolidays() != null) {
       for (final ConfigureHoliday cfgHoliday : xmlConfiguration.getHolidays()) {
         if (cfgHoliday.getId() == null && !cfgHoliday.isIgnore()) {
-          final Month month = PFDateCompabilityUtils.getCompabilityMonth(cfgHoliday.getMonth());
+          final Month month = PFDayUtils.getMonth(cfgHoliday.getMonth());
           // New Holiday.
           if (month == null || cfgHoliday.getDayOfMonth() == null || StringUtils.isBlank(cfgHoliday.getLabel())) {
             log.error("Holiday not full configured (month, dayOfMonth, label, ...) missed: " + cfgHoliday.toString());
