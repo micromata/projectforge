@@ -32,7 +32,6 @@ import org.projectforge.framework.calendar.ConfigureHoliday;
 import org.projectforge.framework.calendar.HolidayDefinition;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.framework.time.PFDateCompabilityUtils;
 import org.projectforge.framework.xstream.XmlHelper;
 import org.projectforge.test.TestSetup;
 
@@ -48,8 +47,8 @@ public class ConfigXmlTest {
           + JiraUtilsTest.JIRA_BASE_URL
           + "</jiraBrowseBaseUrl>\n"
           + "  <holidays>\n"
-          + "    <holiday label='Erster Mai' month='4' dayOfMonth='1' workingDay='false' />\n"
-          + "    <holiday label='Dritter Oktober' month='9' dayOfMonth='3' workingDay='false' />\n"
+          + "    <holiday label='Erster Mai' month='5' dayOfMonth='1' workingDay='false' />\n"
+          + "    <holiday label='Dritter Oktober' month='10' dayOfMonth='3' workingDay='false' />\n"
           + "    <holiday id='XMAS_EVE' workingDay='true' workFraction='0.5' />\n"
           + "    <holiday id='SHROVE_TUESDAY' ignore='true' />\n"
           + "    <holiday id='SYLVESTER' workingDay='true' workFraction='0.5' />\n"
@@ -63,8 +62,8 @@ public class ConfigXmlTest {
           + JiraUtilsTest.JIRA_BASE_URL
           + "</jiraBrowseBaseUrl>\n"
           + "  <holidays>\n"
-          + "    <holiday label='Erster Mai' month='4' dayOfMonth='1'/>\n"
-          + "    <holiday label='Dritter Oktober' month='9' dayOfMonth='3'/>\n"
+          + "    <holiday label='Erster Mai' month='5' dayOfMonth='1'/>\n"
+          + "    <holiday label='Dritter Oktober' month='10' dayOfMonth='3'/>\n"
           + "    <holiday id='XMAS_EVE' workingDay='true' workFraction='0.5'/>\n"
           + "    <holiday id='SHROVE_TUESDAY' ignore='true'/>\n"
           + "    <holiday id='SYLVESTER' workingDay='true' workFraction='0.5'/>\n"
@@ -93,7 +92,7 @@ public class ConfigXmlTest {
     final ConfigXml config = ConfigXml.getInstance();
     assertEquals(5, config.getHolidays().size());
     ConfigureHoliday holiday = config.getHolidays().get(0);
-    assertEquals(PFDateCompabilityUtils.getCompabilityMonthValue(Month.MAY).intValue(), (int) holiday.getMonth());
+    assertEquals(Month.MAY.getValue(), (int) holiday.getMonth());
     holiday = config.getHolidays().get(2);
     assertEquals(HolidayDefinition.XMAS_EVE, holiday.getId());
     holiday = config.getHolidays().get(3);
