@@ -102,7 +102,7 @@ public class EmployeeSalaryExportDao {
 
     final EmployeeSalaryDO first = list.get(0);
     final int year = first.getYear();
-    final Month month = first.getMonth();
+    final Integer month = first.getMonth();
     PFDay buchungsdatum = PFDay.withDate(year, month, 1);
     final MonthHolder monthHolder = new MonthHolder(buchungsdatum.getUtilDate());
     final BigDecimal numberOfWorkingDays = monthHolder.getNumberOfWorkingDays();

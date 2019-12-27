@@ -30,6 +30,7 @@ import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.PFDayUtils;
 import org.projectforge.framework.utils.NumberHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
-import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +67,7 @@ public class BusinessAssessment implements Serializable
 
   private int year;
 
-  private Month month;
+  private Integer month;
 
   private Object reference;
 
@@ -116,11 +116,15 @@ public class BusinessAssessment implements Serializable
     setAccountRecords(records);
   }
 
-  public BusinessAssessment(final BusinessAssessmentConfig config, final int year, final Month month)
+  /**
+   *
+   * @param month 1-January, ..., 12-December.
+   */
+  public BusinessAssessment(final BusinessAssessmentConfig config, final int year, final Integer month)
   {
     this(config);
     this.year = year;
-    this.month = month;
+    this.month = PFDayUtils.validateMonthValue(month);
   }
 
   public void setAccountRecords(final List<BuchungssatzDO> records)

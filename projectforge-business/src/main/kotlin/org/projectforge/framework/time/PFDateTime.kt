@@ -46,7 +46,7 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
     override val year: Int
         get() = dateTime.year
 
-    override  val month: Month
+    override val month: Month
         get() = dateTime.month
 
     /**
@@ -133,14 +133,14 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
     override val isFirstDayOfWeek: Boolean
         get() = dayOfWeek == PFDayUtils.getFirstDayOfWeek()
 
-    override  fun withYear(year: Int): PFDateTime {
+    override fun withYear(year: Int): PFDateTime {
         return PFDateTime(dateTime.withYear(year), locale, precision)
     }
 
     /**
      * 1 (January) to 12 (December)
      */
-    override  fun withMonth(month: Int): PFDateTime {
+    override fun withMonth(month: Int): PFDateTime {
         return PFDateTime(dateTime.withMonth(month), locale, precision)
     }
 
@@ -151,15 +151,15 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         return PFDateTime(dateTime.withMonth(month + 1), locale, precision)
     }
 
-    override  fun withMonth(month: Month): PFDateTime {
+    override fun withMonth(month: Month): PFDateTime {
         return PFDateTime(dateTime.withMonth(month.value), locale, precision)
     }
 
-    override  fun withDayOfYear(dayOfYear: Int): PFDateTime {
+    override fun withDayOfYear(dayOfYear: Int): PFDateTime {
         return PFDateTime(dateTime.withDayOfYear(dayOfYear), locale, precision)
     }
 
-    override  fun withDayOfMonth(dayOfMonth: Int): PFDateTime {
+    override fun withDayOfMonth(dayOfMonth: Int): PFDateTime {
         return PFDateTime(dateTime.withDayOfMonth(dayOfMonth), locale, precision)
     }
 
@@ -214,7 +214,7 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
     /**
      * Date part as ISO string: "yyyy-MM-dd HH:mm" in UTC.
      */
-    override  val isoString: String
+    override val isoString: String
         get() = format(isoDateTimeFormatterMinutes)
 
     /**
@@ -249,7 +249,7 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         return dateTime.isAfter(other.dateTime)
     }
 
-    override  fun isSameDay(other: PFDateTime): Boolean {
+    override fun isSameDay(other: PFDateTime): Boolean {
         return year == other.year && dayOfYear == other.dayOfYear
     }
 

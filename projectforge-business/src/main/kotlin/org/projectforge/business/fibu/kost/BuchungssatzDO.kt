@@ -34,7 +34,6 @@ import org.projectforge.framework.time.PFDayUtils
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.Month
 import java.util.*
 import javax.persistence.*
 
@@ -48,7 +47,7 @@ import javax.persistence.*
 @WithHistory
 @NamedQueries(
         NamedQuery(name = BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
-                query = "from BuchungssatzDO where year=:year and monthValue=:month and satznr=:satznr"))
+                query = "from BuchungssatzDO where year=:year and month=:month and satznr=:satznr"))
 open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
 
     private val log = LoggerFactory.getLogger(BuchungssatzDO::class.java)
@@ -69,14 +68,10 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
      * @return
      */
     @Field(analyze = Analyze.NO)
-    @get:Column(name = "month", nullable = false)
-    open var monthValue: Int? = null
-
-    open var month: Month?
-        @Transient
-        get() = PFDayUtils.getMonth(monthValue)
+    @get:Column(nullable = false)
+    open var month: Int? = null
         set(value) {
-            monthValue = value?.value
+            field = PFDayUtils.validateMonthValue(value)
         }
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.satznr")
@@ -156,7 +151,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
      */
     val formattedSatzNummer: String
         @Transient
-        get() = year.toString() + '-'.toString() + StringHelper.format2DigitNumber(monthValue!!) + '-'.toString() + formatSatzNr()
+        get() = year.toString() + '-'.toString() + StringHelper.format2DigitNumber(month!!) + '-'.toString() + formatSatzNr()
 
     val kontoId: Int?
         @Transient
@@ -229,7 +224,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
         if (r != 0) {
             return r
         }
-        r = this.monthValue!!.compareTo(other.monthValue!!)
+        r = this.month!!.compareTo(other.month!!)
         return if (r != 0) {
             r
         } else this.satznr!!.compareTo(other.satznr!!)

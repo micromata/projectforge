@@ -44,7 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.time.Month;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -96,10 +95,9 @@ public class BuchungssatzExcelImporter {
     ImportedSheet<BuchungssatzDO> importedSheet = null;
     imp.setActiveSheet(idx);
     final String name = imp.getWorkbook().getSheetName(idx);
-    Month month = null;
+    Integer month = null;
     try {
-      int m = new Integer(name); // Achtung: month beginnt bei 01 - Januar.
-      month = Month.of(m);
+      month = Integer.parseInt(name); // month beginnt bei 01 - Januar.
     } catch (final NumberFormatException ex) {
       // ignore
     }
@@ -113,8 +111,13 @@ public class BuchungssatzExcelImporter {
     return importedSheet;
   }
 
+  /**
+   *
+   * @param month 1-January, ..., 12-December
+   * @throws Exception
+   */
   private ImportedSheet<BuchungssatzDO> importBuchungssaetze(final ExcelImport<BuchungssatzImportRow> imp, final HSSFSheet sheet,
-                                                             final Month month) throws Exception {
+                                                             final Integer month) throws Exception {
     final ImportedSheet<BuchungssatzDO> importedSheet = new ImportedSheet<>();
     imp.setNameRowIndex(ROW_COLUMNNAMES);
     imp.setStartingRowIndex(ROW_COLUMNNAMES + 1);
@@ -172,14 +175,14 @@ public class BuchungssatzExcelImporter {
         actionLog.logError(msg);
         throw new UserException(msg);
       }
-      if (dateTime.getMonthValue() > month.getValue()) {
+      if (dateTime.getMonthValue() > month) {
         final String msg = "Buchungssätze können nicht in die Zukunft für den aktuellen Monat '"
-                + KostFormatter.formatBuchungsmonat(year, dateTime.getMonth())
+                + KostFormatter.formatBuchungsmonat(year, dateTime.getMonthValue())
                 + " gebucht werden! "
                 + satz;
         actionLog.logError(msg);
         throw new RuntimeException(msg);
-      } else if (dateTime.getMonthValue() < month.getValue()) {
+      } else if (dateTime.getMonthValue() < month) {
         final String msg = "Buchungssatz liegt vor Monat '" + KostFormatter.formatBuchungsmonat(year, month) + "' (OK): " + satz;
         actionLog.logInfo(msg);
       }

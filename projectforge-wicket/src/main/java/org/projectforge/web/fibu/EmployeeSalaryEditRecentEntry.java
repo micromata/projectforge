@@ -27,7 +27,6 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.projectforge.business.fibu.EmployeeSalaryType;
 
 import java.io.Serializable;
-import java.time.Month;
 
 /**
  * Stores the last added salary entry. Year and month will be persisted for pre-filling on adding next entry.
@@ -39,7 +38,7 @@ public class EmployeeSalaryEditRecentEntry implements Serializable
 
   private int year;
 
-  private Month month;
+  private Integer month;
 
   private EmployeeSalaryType type;
 
@@ -53,12 +52,18 @@ public class EmployeeSalaryEditRecentEntry implements Serializable
     this.year = year;
   }
 
-  public Month getMonth()
+  /**
+   * 1-January, ..., 12-December.
+   */
+  public Integer getMonth()
   {
     return month;
   }
 
-  public void setMonth(Month month)
+  /**
+   * 1-January, ..., 12-December.
+   */
+  public void setMonth(Integer month)
   {
     this.month = month;
   }

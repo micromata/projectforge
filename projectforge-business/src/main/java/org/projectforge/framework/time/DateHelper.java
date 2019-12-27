@@ -339,19 +339,32 @@ public class DateHelper implements Serializable {
 
   /**
    * @param year
-   * @param month 0-11
+   * @param month
    * @return "yyyy-mm"
    */
   public static String formatMonth(final int year, final Month month) {
+    return formatMonth(year, PFDayUtils.getMonthValue(month));
+  }
+
+  /**
+   * @param year
+   * @param month 0-11
+   * @return "yyyy-mm"
+   */
+  public static String formatMonth(final int year, final Integer month) {
     final StringBuilder buf = new StringBuilder();
     buf.append(year);
     if (month != null) {
       buf.append('-');
-      final int m = month.getValue();
-      if (m <= 9) {
-        buf.append('0');
+      if (month == null) {
+        buf.append("??");
+      } else {
+        final int m = month.intValue();
+        if (m <= 9) {
+          buf.append('0');
+        }
+        buf.append(m);
       }
-      buf.append(m);
     }
     return buf.toString();
   }

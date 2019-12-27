@@ -20,59 +20,32 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+package org.projectforge.business.fibu
 
-package org.projectforge.business.fibu;
-
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-
-import java.io.Serializable;
-import java.time.Month;
+import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.time.PFDayUtils
+import java.io.Serializable
 
 /**
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
-public class EmployeeSalaryFilter extends BaseSearchFilter implements Serializable
-{
-  private static final long serialVersionUID = -5950749513241408479L;
+open class EmployeeSalaryFilter
+@JvmOverloads
+constructor(filter: BaseSearchFilter? = null)
+    : BaseSearchFilter(filter), Serializable {
 
-  protected int year;
+    /**
+     * Year of salaries to filter. null means showing all years.
+     */
+    var year: Int? = null
 
-  protected Month month;
-
-  public EmployeeSalaryFilter()
-  {
-  }
-
-  public EmployeeSalaryFilter(final BaseSearchFilter filter)
-  {
-    super(filter);
-  }
-
-  /**
-   * Year of salaries to filter. "<= 0" means showing all years.
-   */
-  public int getYear()
-  {
-    return year;
-  }
-
-  public void setYear(int year)
-  {
-    this.year = year;
-  }
-
-  /**
-   * Month of salaries to filter. "<=0" (for month or year) means showing all months.
-   */
-  public Month getMonth()
-  {
-    return month;
-  }
-
-  public void setMonth(Month month)
-  {
-    this.month = month;
-  }
+    /**
+     * Month of salaries to filter. null (for month or year) means showing all months.
+     * 1-January, ..., 12-December
+     */
+    var month: Int? = null
+        set(value) {
+            field = PFDayUtils.validateMonthValue(value)
+        }
 }

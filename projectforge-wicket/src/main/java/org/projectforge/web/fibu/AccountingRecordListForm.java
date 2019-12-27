@@ -37,8 +37,6 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.slf4j.Logger;
 
-import java.time.Month;
-
 public class AccountingRecordListForm extends AbstractListForm<AccountingRecordListFilter, AccountingRecordListPage> {
   private static final long serialVersionUID = -1669760774183582053L;
 
@@ -84,8 +82,8 @@ public class AccountingRecordListForm extends AbstractListForm<AccountingRecordL
     fromYearChoice.setNullValid(false).setRequired(true);
     optionsFieldsetPanel.add(fromYearChoice);
     final LabelValueChoiceRenderer<Integer> monthChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
-    for (int i = 0; i <= 11; i++) {
-      monthChoiceRenderer.addValue(i, StringHelper.format2DigitNumber(i + 1));
+    for (int i = 1; i <= 12; i++) {
+      monthChoiceRenderer.addValue(i, StringHelper.format2DigitNumber(i));
     }
     final DropDownChoice<Integer> fromMonthChoice = new DropDownChoice<Integer>(
             optionsFieldsetPanel.getDropDownChoiceId(),
@@ -126,11 +124,7 @@ public class AccountingRecordListForm extends AbstractListForm<AccountingRecordL
   }
 
   public void setFromYear(final Integer year) {
-    if (year == null) {
-      getSearchFilter().setFromYear(-1);
-    } else {
-      getSearchFilter().setFromYear(year);
-    }
+    getSearchFilter().setFromYear(year);
   }
 
   public Integer getToYear() {
@@ -138,26 +132,22 @@ public class AccountingRecordListForm extends AbstractListForm<AccountingRecordL
   }
 
   public void setToYear(final Integer year) {
-    if (year == null) {
-      getSearchFilter().setToYear(-1);
-    } else {
-      getSearchFilter().setToYear(year);
-    }
+    getSearchFilter().setToYear(null);
   }
 
-  public Month getFromMonth() {
+  public Integer getFromMonth() {
     return getSearchFilter().getFromMonth();
   }
 
-  public void setFromMonth(final Month month) {
+  public void setFromMonth(final Integer month) {
     getSearchFilter().setFromMonth(month);
   }
 
-  public Month getToMonth() {
+  public Integer getToMonth() {
     return getSearchFilter().getToMonth();
   }
 
-  public void setToMonth(final Month month) {
+  public void setToMonth(final Integer month) {
     getSearchFilter().setToMonth(month);
   }
 

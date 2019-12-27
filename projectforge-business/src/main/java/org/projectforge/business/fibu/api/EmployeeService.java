@@ -72,11 +72,11 @@ public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<E
   /**
    *
    * @param year
-   * @param month
+   * @param month 1-January, ..., 12-December
    * @param user
    * @return
    */
-  MonthlyEmployeeReport getReportOfMonth(int year, Month month, PFUserDO user);
+  MonthlyEmployeeReport getReportOfMonth(int year, Integer month, PFUserDO user);
 
   /**
    * Checks if the employee was full time some day at the beginning of the month or within the month.

@@ -72,7 +72,7 @@ public class EmployeeSalaryEditPage
       recent = new EmployeeSalaryEditRecentEntry();
       PFDay date = PFDay.now();
       recent.setYear(date.getYear());
-      recent.setMonth(date.getMonth());
+      recent.setMonth(date.getMonthValue());
       recent.setType(EmployeeSalaryType.GEHALT);
       putUserPrefEntry(EmployeeSalaryEditRecentEntry.class.getName(), recent, true);
     }
@@ -94,9 +94,6 @@ public class EmployeeSalaryEditPage
     return null;
   }
 
-  /**
-   * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
-   */
   @Override
   public void select(final String property, final Object selectedValue) {
     if ("userId".equals(property) == true) {

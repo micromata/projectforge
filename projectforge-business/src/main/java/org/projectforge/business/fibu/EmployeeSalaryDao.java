@@ -81,7 +81,7 @@ public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO> {
       myFilter = new EmployeeSalaryFilter(filter);
     }
     final QueryFilter queryFilter = new QueryFilter(myFilter);
-    if (myFilter.getYear() >= 0) {
+    if (myFilter.getYear() != null) {
       queryFilter.add(QueryFilter.eq("year", myFilter.getYear()));
       if (myFilter.getMonth() != null) {
         queryFilter.add(QueryFilter.eq("month", myFilter.getMonth()));
