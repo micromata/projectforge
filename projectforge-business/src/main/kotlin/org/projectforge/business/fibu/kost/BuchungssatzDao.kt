@@ -20,6 +20,7 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.business.fibu.kost
 
 import org.projectforge.business.fibu.kost.BuchungssatzDO
