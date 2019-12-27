@@ -57,7 +57,7 @@ public class MonthlyEmployeeReportDao {
    * @param user
    * @return
    */
-  public MonthlyEmployeeReport getReport(int year, Month month, PFUserDO user) {
+  public MonthlyEmployeeReport getReport(int year, Integer month, PFUserDO user) {
     if (user == null || year <= 0) {
       return null;
     }

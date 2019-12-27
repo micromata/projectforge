@@ -715,20 +715,20 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     if (fromYear == toYear) {
       for (int i = fromMonth; i <= toMonth; i++) {
         Month month = PFDateCompabilityUtils.getCompabilityMonth(i);
-        MonthlyEmployeeReport reportOfMonth = employeeService.getReportOfMonth(fromYear, month, user);
+        MonthlyEmployeeReport reportOfMonth = employeeService.getReportOfMonth(fromYear, month.getValue(), user);
         hours += reportOfMonth.getTotalNetDuration();
         days = days.add(reportOfMonth.getNumberOfWorkingDays());
       }
     } else {
       for (int i = fromMonth; i <= 11; i++) {
         Month month = PFDateCompabilityUtils.getCompabilityMonth(i);
-        MonthlyEmployeeReport reportOfMonth = employeeService.getReportOfMonth(fromYear, month, user);
+        MonthlyEmployeeReport reportOfMonth = employeeService.getReportOfMonth(fromYear, month.getValue(), user);
         hours += reportOfMonth.getTotalNetDuration();
         days = days.add(reportOfMonth.getNumberOfWorkingDays());
       }
       for (int i = 0; i <= toMonth; i++) {
         Month month = PFDateCompabilityUtils.getCompabilityMonth(i);
-        MonthlyEmployeeReport reportOfMonth = employeeService.getReportOfMonth(toYear, month, user);
+        MonthlyEmployeeReport reportOfMonth = employeeService.getReportOfMonth(toYear, month.getValue(), user);
         hours += reportOfMonth.getTotalNetDuration();
         days = days.add(reportOfMonth.getNumberOfWorkingDays());
       }

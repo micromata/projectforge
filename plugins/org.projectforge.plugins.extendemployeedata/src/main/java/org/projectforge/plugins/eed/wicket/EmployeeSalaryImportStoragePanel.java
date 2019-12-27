@@ -69,7 +69,7 @@ class EmployeeSalaryImportStoragePanel extends AbstractImportStoragePanel<Employ
     addCell(cellRepeater, employee != null ? employee.getStaffNumber() : "", styleRightAlign);
     addCell(cellRepeater, employee != null ? employee.getUser().getFullname() : "", styleRightAlign);
     addCell(cellRepeater, employeeSalary != null ? employeeSalary.getYear() : null, styleRightAlign);
-    addCell(cellRepeater, employeeSalary != null ? employeeSalary.getMonthValue() : null, styleRightAlign);
+    addCell(cellRepeater, employeeSalary != null ? employeeSalary.getMonth() : null, styleRightAlign);
     addCell(cellRepeater, employeeSalary != null && employeeSalary.getBruttoMitAgAnteil() != null ? employeeSalary.getBruttoMitAgAnteil().toString() : "",
         styleRightAlign);
     addCell(cellRepeater, employeeSalary != null ? employeeSalary.getComment() : "", styleRightAlign);

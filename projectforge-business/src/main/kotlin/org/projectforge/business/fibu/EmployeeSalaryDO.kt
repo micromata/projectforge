@@ -33,7 +33,6 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.Constants
 import java.math.BigDecimal
-import java.time.Month
 import javax.persistence.*
 
 /**
@@ -75,14 +74,10 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
      */
     @PropertyInfo(i18nKey = "calendar.month")
     @Field(analyze = Analyze.NO)
-    @get:Column(name = "month")
-    open var monthValue: Int? = null
-
-    open var month: Month?
-        @Transient
-        get() = PFDayUtils.getMonth(monthValue)
+    @get:Column
+    open var month: Int? = null
         set(value) {
-            monthValue = value?.value
+            field = PFDayUtils.validateMonthValue(value)
         }
 
     /**
@@ -108,11 +103,11 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
 
     val formattedMonth: String
         @Transient
-        get() = StringHelper.format2DigitNumber(monthValue!!)
+        get() = StringHelper.format2DigitNumber(month!!)
 
     val formattedYearAndMonth: String
         @Transient
-        get() = year.toString() + "-" + StringHelper.format2DigitNumber(monthValue!!)
+        get() = year.toString() + "-" + StringHelper.format2DigitNumber(month!!)
 
     companion object {
         internal const val SELECT_MIN_MAX_YEAR = "EmployeeSalaryDO_SelectMinMaxYear"

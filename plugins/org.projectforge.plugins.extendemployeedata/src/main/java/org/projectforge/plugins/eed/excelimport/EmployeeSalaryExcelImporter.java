@@ -151,11 +151,11 @@ public class EmployeeSalaryExcelImporter
           employeeSalary.setEmployee(employee);
           employeeSalary.setYear(selectedDateTime.getYear());
           //For view we have to add one to the month. Before save it will be subed.
-          employeeSalary.setMonth(selectedDateTime.getMonth());
+          employeeSalary.setMonth(selectedDateTime.getMonthValue());
           employeeSalary.setType(EmployeeSalaryType.GEHALT);
         } else {
           //For view we have to add one to the month. Before save it will be subed.
-          employeeSalary.setMonth(selectedDateTime.getMonth());
+          employeeSalary.setMonth(selectedDateTime.getMonthValue());
         }
         employeeSalary.setBruttoMitAgAnteil(row.getSalary());
         if (!StringUtils.isBlank(row.getRemark())) {

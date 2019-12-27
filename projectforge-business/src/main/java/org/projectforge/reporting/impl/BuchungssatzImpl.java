@@ -32,7 +32,6 @@ import org.projectforge.reporting.Kost1;
 import org.projectforge.reporting.Kost2;
 
 import java.math.BigDecimal;
-import java.time.Month;
 import java.util.Date;
 
 
@@ -112,14 +111,14 @@ public class BuchungssatzImpl implements Buchungssatz
     return buchungssatz.getMenge();
   }
 
-  public Month getMonth()
+  public Integer getMonth()
   {
     return buchungssatz.getMonth();
   }
 
   public String getFormattedMonth()
   {
-    return StringHelper.format2DigitNumber(buchungssatz.getMonthValue());
+    return StringHelper.format2DigitNumber(buchungssatz.getMonth());
   }
 
   public Integer getSatznr()

@@ -35,10 +35,7 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.slf4j.Logger;
 
-import java.time.Month;
-
-public class EmployeeSalaryListForm extends AbstractListForm<EmployeeSalaryFilter, EmployeeSalaryListPage>
-{
+public class EmployeeSalaryListForm extends AbstractListForm<EmployeeSalaryFilter, EmployeeSalaryListPage> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeSalaryListForm.class);
 
   private static final long serialVersionUID = -5969136444233092172L;
@@ -48,61 +45,52 @@ public class EmployeeSalaryListForm extends AbstractListForm<EmployeeSalaryFilte
 
   /**
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
-   *      org.projectforge.web.wicket.flowlayout.DivPanel)
+   * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @Override
-  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
-  {
+  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel) {
     final YearListCoiceRenderer yearListChoiceRenderer = new YearListCoiceRenderer(employeeSalaryDao.getYears(), true);
     optionsFieldsetPanel.addDropDownChoice(new PropertyModel<Integer>(this, "year"), yearListChoiceRenderer.getYears(),
-        yearListChoiceRenderer, true).setNullValid(false);
+            yearListChoiceRenderer, true).setNullValid(false);
     // DropDownChoice months
     final LabelValueChoiceRenderer<Integer> monthChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
     for (int i = 0; i <= 11; i++) {
       monthChoiceRenderer.addValue(i, StringHelper.format2DigitNumber(i + 1));
     }
     optionsFieldsetPanel.addDropDownChoice(new PropertyModel<Integer>(this, "month"), monthChoiceRenderer.getValues(), monthChoiceRenderer,
-        true).setNullValid(true);
+            true).setNullValid(true);
   }
 
-  public EmployeeSalaryListForm(final EmployeeSalaryListPage parentPage)
-  {
+  public EmployeeSalaryListForm(final EmployeeSalaryListPage parentPage) {
     super(parentPage);
   }
 
-  public Integer getYear()
-  {
+  public Integer getYear() {
     return getSearchFilter().getYear();
   }
 
-  public void setYear(final Integer year)
-  {
-    if (year == null) {
-      getSearchFilter().setYear(-1);
-    } else {
-      getSearchFilter().setYear(year);
-    }
+  public void setYear(final Integer year) {
+    getSearchFilter().setYear(year);
   }
 
-  public Month getMonth()
-  {
+  /**
+   * 1..12
+   */
+  public Integer getMonth() {
     return getSearchFilter().getMonth();
   }
 
-  public void setMonth(final Month month)
-  {
+  public void setMonth(final Integer month) {
     getSearchFilter().setMonth(month);
   }
 
   @Override
-  protected EmployeeSalaryFilter newSearchFilterInstance()
-  {
+  protected EmployeeSalaryFilter newSearchFilterInstance() {
     return new EmployeeSalaryFilter();
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 }

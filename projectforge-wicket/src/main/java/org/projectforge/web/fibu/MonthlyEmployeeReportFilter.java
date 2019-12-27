@@ -26,10 +26,10 @@ package org.projectforge.web.fibu;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDay;
+import org.projectforge.framework.time.PFDayUtils;
 
 import java.io.Serializable;
-import java.time.Month;
 
 public class MonthlyEmployeeReportFilter implements Serializable
 {
@@ -37,16 +37,19 @@ public class MonthlyEmployeeReportFilter implements Serializable
 
   private int year;
 
-  private Month month;
+  /**
+   * 1-January, ..., 12-December.
+   */
+  private Integer month;
 
   private PFUserDO user;
 
   public void reset()
   {
     if (year <= 0 || month == null) {
-      DateHolder date = new DateHolder();
-      year = date.getYear();
-      month = date.getMonth();
+      PFDay day = PFDay.now();
+      year = day.getYear();
+      month = day.getMonthValue();
     }
     if (user == null) {
       user = ThreadLocalUserContext.getUser();
@@ -78,18 +81,24 @@ public class MonthlyEmployeeReportFilter implements Serializable
     this.year = year;
   }
 
-  public Month getMonth()
+  /**
+   * 1-January, ..., 12-December.
+   */
+  public Integer getMonth()
   {
     return month;
   }
 
-  public void setMonth(Month month)
+  /**
+   * 1-January, ..., 12-December.
+   */
+  public void setMonth(Integer month)
   {
-    this.month = month;
+    this.month = PFDayUtils.validateMonthValue(month);
   }
 
   public String getFormattedMonth()
   {
-    return month != null ? StringHelper.format2DigitNumber(month.getValue()) : "";
+    return month != null ? StringHelper.format2DigitNumber(month) : "";
   }
 }

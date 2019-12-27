@@ -138,6 +138,26 @@ class PFDayUtils {
             }
         }
 
+        /**
+         * Convenient function for Java (is equivalent to Kotlin month?.value).
+         * @return monthNumber 1-based: 1 - January, ..., 12 - December or null if given month is null.
+         */
+        @JvmStatic
+        fun getMonthValue(month: Month?): Int? {
+            return month?.value
+        }
+
+        /**
+         * Validates if the given param is null or in 1..12. Otherwise an IllegalArgumentException will be thrown.
+         */
+        @Throws(IllegalArgumentException::class)
+        @JvmStatic
+        fun validateMonthValue(month: Int?): Int? {
+            if (month != null && month !in 1..12)
+                throw IllegalArgumentException("Month value out of range 1..12: $month")
+            return month
+        }
+
         @JvmStatic
         fun <T : IPFDate<T>> getNumberOfWorkingDays(from: T, to: T): BigDecimal {
             Validate.notNull(from)
