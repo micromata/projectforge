@@ -83,14 +83,14 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
 
     private fun validateTimeperiod(myFilter: BuchungssatzFilter): Boolean {
         val fromMonth = myFilter.fromMonth
-        val fromYear = myFilter.fromYear!!
+        val fromYear = myFilter.fromYear
         val toMonth = myFilter.toMonth
-        val toYear = myFilter.toYear!!
-        if (fromMonth != null && fromYear <= 0 || toMonth != null && toYear <= 0) {
+        val toYear = myFilter.toYear
+        if (fromMonth != null && fromYear == null || toMonth != null && toYear == null) {
             // No month should be given without year.
             return false
         }
-        return if (fromYear > 0 && toYear > 0) {
+        return if (fromYear != null && toYear != null) {
             if (fromYear == toYear) { // Same year, if both month given, fromMonth must be <= toMonth.
                 // Returns true, if no or only one month is given.
                 fromMonth == null || toMonth == null || fromMonth <= toMonth
@@ -116,26 +116,49 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
         val fromMonth = myFilter.fromMonth
         val fromYear = myFilter.fromYear
         val toMonth = myFilter.toMonth
-        val toYear = myFilter.fromYear
+        val toYear = myFilter.toYear
         // Same year:
         if (fromYear != null && toYear != null) {
             // Both years are given
             if (fromMonth != null || toMonth != null) {
+                val or = DBPredicate.Or();
+                queryFilter.add(or)
                 // At least one month is given, check same year:
-                val predicates = mutableListOf<DBPredicate>()
-                val and = mutableListOf<DBPredicate>()
-                and.add(eq("year", fromYear))
-                if (fromMonth != null)
+                if (fromMonth != null) {
+                    val and = DBPredicate.And()
+                    or.add(and)
+                    and.add(eq("year", fromYear))
                     and.add(ge("month", fromMonth))
-                if (toMonth != null)
-                    and.add(le("month", toMonth))
-                queryFilter.add(or(
-                        and(*predicates.toTypedArray()),
-                        gt("year", fromYear),
-                        lt("year", toYear)));
+                    if (toMonth != null) {
+                        if (fromYear == toYear) {
+                            // toYear is same year, so month mus be ge than formMonth and le than toMonth
+                            and.add(le("month", toMonth))
+                        } else {
+                            // toYear is another year:
+                            or.add(DBPredicate.And()
+                                    .add(eq("year", toYear))
+                                    .add(le("month", toMonth)))
+                        }
+                        or.add(and(gt("year", fromYear),
+                                lt("year", toYear)))
+
+                    } else {
+                        // fromMonth given but toMonth not:
+                        or.add(and(gt("year", fromYear),
+                                le("year", toYear)))
+                    }
+                } else if (toMonth != null) {
+                    // fromMonth isn't given:
+                    or.add(DBPredicate.And(
+                            eq("year", toYear),
+                            le("month", toMonth)))
+                    // fromMonth not given but toMonth is:
+                    or.add(and(ge("year", fromYear),
+                            lt("year", toYear)))
+                }
             } else {
                 // No month given:
-                queryFilter.add(or(
+                queryFilter.add(and(
                         ge("year", fromYear),
                         le("year", toYear)));
 

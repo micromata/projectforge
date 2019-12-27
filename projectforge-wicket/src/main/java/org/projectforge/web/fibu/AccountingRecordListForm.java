@@ -132,7 +132,7 @@ public class AccountingRecordListForm extends AbstractListForm<AccountingRecordL
   }
 
   public void setToYear(final Integer year) {
-    getSearchFilter().setToYear(null);
+    getSearchFilter().setToYear(year);
   }
 
   public Integer getFromMonth() {

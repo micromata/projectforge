@@ -26,7 +26,7 @@ package org.projectforge.web.wicket.converter;
 import java.util.Locale;
 
 /**
- * Format month, e. g. "01" instead of "0".
+ * Format month, e. g. "01" instead of "1".
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class MonthConverter extends IntegerConverter
@@ -44,13 +44,13 @@ public class MonthConverter extends IntegerConverter
     if (value == null) {
       return "";
     }
-    return super.convertToString(value + 1, locale);
+    return super.convertToString(value, locale);
   }
 
   @Override
   public Integer convertToObject(final String value, final Locale locale)
   {
     final Integer result = super.convertToObject(value, locale);
-    return result - 1;
+    return result;
   }
 }
