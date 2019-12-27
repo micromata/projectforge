@@ -24,6 +24,10 @@
 package org.projectforge.framework.time
 
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDateTime.Companion.from
+import org.projectforge.framework.time.PFDateTime.Companion.withDate
+import java.sql.Timestamp
 import java.time.DateTimeException
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -37,16 +41,16 @@ import java.util.*
 
 class PFDateTimeUtils {
     companion object {
-        @JvmStatic
+        @JvmField
         val ZONE_UTC = ZoneId.of("UTC")
 
-        @JvmStatic
+        @JvmField
         val ZONE_EUROPE_BERLIN = ZoneId.of("Europe/Berlin")
 
-        @JvmStatic
+        @JvmField
         val TIMEZONE_UTC = TimeZone.getTimeZone("UTC")
 
-        @JvmStatic
+        @JvmField
         val TIMEZONE_EUROPE_BERLIN = TimeZone.getTimeZone("Europe/Berlin")
 
 
@@ -90,6 +94,32 @@ class PFDateTimeUtils {
         fun getEndOfDay(dateTime: ZonedDateTime): ZonedDateTime {
             return getEndOfPreviousDay(dateTime.truncatedTo(ChronoUnit.DAYS).plusDays(1))
         }
+
+        /**
+         * Converts a given date (in user's timeZone) to midnight of UTC timeZone.
+         */
+        @JvmStatic
+        fun getUTCBeginOfDay(date: Date?): Date? {
+            return getUTCBeginOfDay(date, ThreadLocalUserContext.getTimeZone()).utilDate
+        }
+
+        /**
+         * Converts a given date (in user's timeZone) to midnight of UTC timeZone.
+         */
+        @JvmStatic
+        fun getUTCBeginOfDayTimestamp(date: Date?): Timestamp? {
+            return getUTCBeginOfDay(date, ThreadLocalUserContext.getTimeZone()).sqlTimestamp
+        }
+
+        /**
+         * Converts a given date (in user's timeZone) to midnight of UTC timeZone.
+         */
+        @JvmStatic
+        fun getUTCBeginOfDay(date: Date?, timeZone: TimeZone?): PFDateTime {
+            val ud = from(date, false, timeZone)
+            return withDate(ud!!.year, ud.month, ud.dayOfMonth, 0, 0, 0, 0, ZONE_UTC)
+        }
+
 
         /**
          * Including limits.

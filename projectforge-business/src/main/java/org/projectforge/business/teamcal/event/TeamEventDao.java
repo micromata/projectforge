@@ -42,7 +42,6 @@ import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache;
 import org.projectforge.business.user.UserRightId;
-import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.*;
@@ -51,6 +50,7 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDateTimeUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -343,8 +343,6 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
 
   /**
    * Sets midnight (UTC) of all day events.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
   protected void onSaveOrModify(final TeamEventDO event) {
@@ -364,11 +362,11 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     if (event.getAllDay()) {
       final Date startDate = event.getStartDate();
       if (startDate != null) {
-        event.setStartDate(CalendarUtils.getUTCMidnightTimestamp(startDate));
+        event.setStartDate(PFDateTimeUtils.getUTCBeginOfDayTimestamp(startDate));
       }
       final Date endDate = event.getEndDate();
       if (endDate != null) {
-        event.setEndDate(CalendarUtils.getUTCMidnightTimestamp(endDate));
+        event.setEndDate(PFDateTimeUtils.getUTCBeginOfDayTimestamp(endDate));
       }
     }
   }
@@ -538,19 +536,17 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     final Date endDate = teamEventFilter.getEndDate();
     if (allDay) {
       // Check date match:
-      final Calendar utcCal = Calendar.getInstance(DateHelper.UTC);
-      utcCal.setTime(eventStartDate);
       if (startDate != null && eventEndDate.before(startDate)) {
-        // Check same day (eventStartDate in UTC and startDate of filter in user's time zone):
-        final Calendar userCal = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-        userCal.setTime(startDate);
-        return CalendarUtils.isSameDay(utcCal, utcCal);
+        // Check same day (eventEndDate in UTC and startDate of filter in user's time zone):
+        final PFDateTime startDateUserTimeZone = PFDateTime.from(startDate);
+        final PFDateTime eventEndDateUTC = PFDateTime.from(eventEndDate, false, PFDateTimeUtils.TIMEZONE_UTC);
+        return startDateUserTimeZone.isSameDay(eventEndDateUTC);
       }
       if (endDate != null && eventStartDate.after(endDate)) {
-        // Check same day (eventEndDate in UTC and endDate of filter in user's time zone):
-        final Calendar userCal = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-        userCal.setTime(endDate);
-        return CalendarUtils.isSameDay(utcCal, utcCal);
+        // Check same day (eventStartDate in UTC and endDate of filter in user's time zone):
+        final PFDateTime endDateUserTimeZone = PFDateTime.from(endDate);
+        final PFDateTime eventStartDateUTC = PFDateTime.from(eventStartDate, false, PFDateTimeUtils.TIMEZONE_UTC);
+        return endDateUserTimeZone.isSameDay(eventStartDateUTC);
       }
       return true;
     } else {
@@ -623,8 +619,6 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
 
   /**
    * Gets history entries of super and adds all history entries of the TeamEventAttendeeDO children.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
   public List<DisplayHistoryEntry> getDisplayHistoryEntries(final TeamEventDO obj) {

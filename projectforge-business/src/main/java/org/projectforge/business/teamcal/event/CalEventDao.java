@@ -33,7 +33,6 @@ import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.event.model.CalEventDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.UserRightId;
-import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -41,6 +40,7 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.PFDateTimeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -282,11 +282,11 @@ public class CalEventDao extends BaseDao<CalEventDO> {
     if (event.getAllDay()) {
       final Date startDate = event.getStartDate();
       if (startDate != null) {
-        event.setStartDate(CalendarUtils.getUTCMidnightTimestamp(startDate));
+        event.setStartDate(PFDateTimeUtils.getUTCBeginOfDayTimestamp(startDate));
       }
       final Date endDate = event.getEndDate();
       if (endDate != null) {
-        event.setEndDate(CalendarUtils.getUTCMidnightTimestamp(endDate));
+        event.setEndDate(PFDateTimeUtils.getUTCBeginOfDayTimestamp(endDate));
       }
     }
   }
