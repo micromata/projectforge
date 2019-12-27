@@ -28,24 +28,22 @@ import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.DtEnd;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDateTimeUtils;
 
 import java.sql.Timestamp;
 import java.util.Date;
 
 import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.TIMEZONE_REGISTRY;
 
-public class DTEndConverter extends PropertyConverter
-{
+public class DTEndConverter extends PropertyConverter {
   @Override
-  public Property toVEvent(final TeamEventDO event)
-  {
+  public Property toVEvent(final TeamEventDO event) {
     net.fortuna.ical4j.model.Date date;
 
     if (event.getAllDay()) {
-      final Date endUtc = CalendarUtils.getUTCMidnightDate(event.getEndDate());
+      final Date endUtc = PFDateTimeUtils.getUTCBeginOfDay(event.getEndDate());
       final PFDateTime dateTime = PFDateTime.from(endUtc);
       // TODO sn should not be done
       // requires plus 1 because one day will be omitted by calendar.
@@ -60,8 +58,7 @@ public class DTEndConverter extends PropertyConverter
   }
 
   @Override
-  public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent)
-  {
+  public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent) {
     final boolean isAllDay = this.isAllDay(vEvent);
 
     if (vEvent.getProperties().getProperties(Property.DTEND).isEmpty()) {
