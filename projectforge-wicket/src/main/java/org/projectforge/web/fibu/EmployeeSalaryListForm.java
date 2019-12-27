@@ -54,8 +54,8 @@ public class EmployeeSalaryListForm extends AbstractListForm<EmployeeSalaryFilte
             yearListChoiceRenderer, true).setNullValid(false);
     // DropDownChoice months
     final LabelValueChoiceRenderer<Integer> monthChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
-    for (int i = 0; i <= 11; i++) {
-      monthChoiceRenderer.addValue(i, StringHelper.format2DigitNumber(i + 1));
+    for (int month = 1; month <= 12; month++) {
+      monthChoiceRenderer.addValue(month, StringHelper.format2DigitNumber(month));
     }
     optionsFieldsetPanel.addDropDownChoice(new PropertyModel<Integer>(this, "month"), monthChoiceRenderer.getValues(), monthChoiceRenderer,
             true).setNullValid(true);

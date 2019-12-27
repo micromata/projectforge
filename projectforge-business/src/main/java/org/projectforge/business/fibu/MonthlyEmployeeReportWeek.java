@@ -29,7 +29,6 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.time.PFDateTime;
 
 import java.io.Serializable;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,19 +38,12 @@ import java.util.Map;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class MonthlyEmployeeReportWeek implements Serializable
-{
+public class MonthlyEmployeeReportWeek implements Serializable {
   private static final long serialVersionUID = 6075755848054540114L;
 
-  private Date fromDate;
+  private PFDateTime fromDate;
 
-  private int fromDayOfMonth;
-
-  private Date toDate;
-
-  private int toDayOfMonth;
-
-  private int weekOfYear;
+  private PFDateTime toDate;
 
   private long totalDuration = 0;
 
@@ -66,27 +58,20 @@ public class MonthlyEmployeeReportWeek implements Serializable
   private Map<Integer, MonthlyEmployeeReportEntry> taskEntries = new HashMap<>();
 
   /**
+   * FromDate will be set to the begin of week but not before first day of month.
    * ToDate will be set to end of week but not after the last day of month.
    *
-   * @param fromDate
+   * @param date
    */
-  public MonthlyEmployeeReportWeek(Date fromDate)
-  {
-    Validate.notNull(fromDate);
-    this.fromDate = fromDate;
-
-    PFDateTime dt1 = PFDateTime.from(fromDate);
-    this.fromDayOfMonth = dt1.getDayOfMonth();
-    this.weekOfYear = dt1.getWeekOfYear();
-    dt1 = dt1.getEndOfMonth();
-    PFDateTime dt2 = PFDateTime.from(fromDate);
-    dt2 = dt2.getEndOfWeek();
-    if (dt1.getUtilDate().before(dt2.getUtilDate())) {
-      this.toDate = dt1.getUtilDate();
-      this.toDayOfMonth = dt1.getDayOfMonth();
-    } else {
-      this.toDate = dt2.getUtilDate();
-      this.toDayOfMonth = dt2.getDayOfMonth();
+  public MonthlyEmployeeReportWeek(PFDateTime date) {
+    Validate.notNull(date);
+    this.fromDate = date.getBeginOfWeek();
+    if (this.fromDate.getMonth() != date.getMonth()) {
+      this.fromDate = date.getBeginOfMonth();
+    }
+    this.toDate = fromDate.getEndOfWeek();
+    if (this.toDate.getMonth() != this.fromDate.getMonth()) {
+      this.toDate = this.fromDate.getEndOfMonth();
     }
   }
 
@@ -95,13 +80,11 @@ public class MonthlyEmployeeReportWeek implements Serializable
    *
    * @param sheet
    */
-  public boolean matchWeek(TimesheetDO sheet)
-  {
-    return !sheet.getStartTime().before(fromDate) && sheet.getStartTime().before(toDate);
+  public boolean matchWeek(TimesheetDO sheet) {
+    return !sheet.getStartTime().before(fromDate.getUtilDate()) && sheet.getStartTime().before(toDate.getUtilDate());
   }
 
-  void addEntry(TimesheetDO sheet, final boolean hasSelectAccess)
-  {
+  void addEntry(TimesheetDO sheet, final boolean hasSelectAccess) {
     if (!matchWeek(sheet)) {
       throw new RuntimeException("Oups, given time sheet is not inside the week represented by this week object.");
     }
@@ -130,57 +113,28 @@ public class MonthlyEmployeeReportWeek implements Serializable
     totalDuration += duration;
   }
 
-  public Date getFromDate()
-  {
-    return fromDate;
-  }
-
-  public Date getToDate()
-  {
-    return toDate;
-  }
-
-  public int getWeekOfYear()
-  {
-    return weekOfYear;
-  }
-
-  public int getFromDayOfMonth()
-  {
-    return fromDayOfMonth;
+  /**
+   * @see StringHelper#format2DigitNumber(int)
+   */
+  public String getFormattedFromDayOfMonth() {
+    return StringHelper.format2DigitNumber(fromDate.getDayOfMonth());
   }
 
   /**
    * @see StringHelper#format2DigitNumber(int)
    */
-  public String getFormattedFromDayOfMonth()
-  {
-    return StringHelper.format2DigitNumber(fromDayOfMonth);
-  }
-
-  public int getToDayOfMonth()
-  {
-    return toDayOfMonth;
-  }
-
-  /**
-   * @see StringHelper#format2DigitNumber(int)
-   */
-  public String getFormattedToDayOfMonth()
-  {
-    return StringHelper.format2DigitNumber(toDayOfMonth);
+  public String getFormattedToDayOfMonth() {
+    return StringHelper.format2DigitNumber(toDate.getDayOfMonth());
   }
 
   /**
    * Summe aller Stunden der Woche in Millis.
    */
-  public long getTotalDuration()
-  {
+  public long getTotalDuration() {
     return totalDuration;
   }
 
-  public String getFormattedTotalDuration()
-  {
+  public String getFormattedTotalDuration() {
     return MonthlyEmployeeReport.getFormattedDuration(totalDuration);
   }
 
@@ -189,8 +143,7 @@ public class MonthlyEmployeeReportWeek implements Serializable
    *
    * @return
    */
-  public Map<Integer, MonthlyEmployeeReportEntry> getKost2Entries()
-  {
+  public Map<Integer, MonthlyEmployeeReportEntry> getKost2Entries() {
     return kost2Entries;
   }
 
@@ -199,8 +152,7 @@ public class MonthlyEmployeeReportWeek implements Serializable
    *
    * @return
    */
-  public Map<Integer, MonthlyEmployeeReportEntry> getTaskEntries()
-  {
+  public Map<Integer, MonthlyEmployeeReportEntry> getTaskEntries() {
     return taskEntries;
   }
 }

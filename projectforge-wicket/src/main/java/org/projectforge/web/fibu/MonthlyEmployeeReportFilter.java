@@ -35,7 +35,7 @@ public class MonthlyEmployeeReportFilter implements Serializable
 {
   private static final long serialVersionUID = -3700442530651487472L;
 
-  private int year;
+  private Integer year;
 
   /**
    * 1-January, ..., 12-December.
@@ -71,14 +71,14 @@ public class MonthlyEmployeeReportFilter implements Serializable
     return user != null ? user.getId() : null;
   }
 
-  public int getYear()
+  public Integer getYear()
   {
     return year;
   }
 
-  public void setYear(int year)
+  public void setYear(Integer year)
   {
-    this.year = year;
+    this.year = year != null && year > 0 ? year : null;
   }
 
   /**

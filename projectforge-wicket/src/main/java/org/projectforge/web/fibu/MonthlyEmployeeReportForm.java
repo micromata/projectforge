@@ -106,8 +106,8 @@ public class MonthlyEmployeeReportForm
       fs.add(yearChoice);
       // DropDownChoice months
       final LabelValueChoiceRenderer<Integer> monthChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
-      for (int i = 0; i <= 11; i++) {
-        monthChoiceRenderer.addValue(i, StringHelper.format2DigitNumber(i + 1));
+      for (int month = 1; month <= 12; month++) {
+        monthChoiceRenderer.addValue(month, StringHelper.format2DigitNumber(month));
       }
       monthChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new PropertyModel<Integer>(filter, "month"),
           monthChoiceRenderer.getValues(), monthChoiceRenderer)
@@ -131,7 +131,14 @@ public class MonthlyEmployeeReportForm
         @Override
         public Date getObject()
         {
-          PFDateTime date = PFDateTime.withDate(filter.getYear(), filter.getMonth(), 1);
+          Integer year = filter.getYear();
+          Integer month = filter.getMonth();
+          PFDateTime date;
+          if (year == null || month == null) {
+            date = PFDateTime.now().getBeginOfMonth();
+          } else {
+            date = PFDateTime.withDate(filter.getYear(), filter.getMonth(), 1);
+          }
           return date.getUtilDate();
         }
 

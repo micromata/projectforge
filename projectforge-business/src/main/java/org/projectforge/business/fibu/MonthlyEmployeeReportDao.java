@@ -34,7 +34,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.time.Month;
 import java.util.List;
 
 /**
@@ -57,8 +56,8 @@ public class MonthlyEmployeeReportDao {
    * @param user
    * @return
    */
-  public MonthlyEmployeeReport getReport(int year, Integer month, PFUserDO user) {
-    if (user == null || year <= 0) {
+  public MonthlyEmployeeReport getReport(Integer year, Integer month, PFUserDO user) {
+    if (user == null || year == null || month == null) {
       return null;
     }
     MonthlyEmployeeReport report = new MonthlyEmployeeReport(employeeService, vacationService, user, year, month);
