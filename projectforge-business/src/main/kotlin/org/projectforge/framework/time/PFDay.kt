@@ -251,6 +251,9 @@ class PFDay(val date: LocalDate,
 
         /**
          * @param date Date of type java.util.Date or java.sql.Date.
+         * @param nowIfNull If date is null: If true now is returned, otherwise null.
+         * @param timeZone If not given, the context user's time zone will be used.
+         * @param locale If not given, the context user's locale will be used.
          * Creates mindnight [LocalDate] from given [date].
          */
         @JvmStatic

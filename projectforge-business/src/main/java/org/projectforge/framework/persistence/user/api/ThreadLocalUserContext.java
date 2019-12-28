@@ -29,7 +29,6 @@ import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateCompabilityUtils;
 
 import java.text.Collator;
@@ -186,8 +185,8 @@ public class ThreadLocalUserContext {
   /**
    * @return 1 - Monday, ..., 7 - Sunday
    */
-  public static int getJodaFirstDayOfWeek() {
-    return DateHelper.convertCalendarDayOfWeekToJoda(getFirstDayOfWeek());
+  public static int getFirstDayOfWeekValue() {
+    return getFirstDayOfWeek().getValue();
   }
 
   public static String getLocalizedMessage(final String messageKey, final Object... params) {

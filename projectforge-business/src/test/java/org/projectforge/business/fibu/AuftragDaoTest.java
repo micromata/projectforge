@@ -33,8 +33,8 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
-import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -596,8 +596,8 @@ public class AuftragDaoTest extends AbstractTestBase
   private void setPeriodOfPerformanceStartDateAndEndDate(final AuftragFilter auftragFilter, final int startYear, final int startMonth, final int startDay,
       final int endYear, final int endMonth, final int endDay)
   {
-    auftragFilter.setPeriodOfPerformanceStartDate(DateHelper.convertLocalDateTimeToDateInUTC(LocalDate.of(startYear, startMonth, startDay).atStartOfDay()));
-    auftragFilter.setPeriodOfPerformanceEndDate(DateHelper.convertLocalDateTimeToDateInUTC(LocalDate.of(endYear, endMonth, endDay).atStartOfDay()));
+    auftragFilter.setPeriodOfPerformanceStartDate(PFDay.withDate(startYear, startMonth, startDay).getSqlDate());
+    auftragFilter.setPeriodOfPerformanceEndDate(PFDay.withDate(endYear, endMonth, endDay).getSqlDate());
   }
 
   private AuftragDO createAuftragWithPeriodOfPerformance(final int beginYear, final int beginMonth, final int beginDay, final int endYear, final int endMonth,

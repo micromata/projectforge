@@ -23,25 +23,21 @@
 
 package org.projectforge.web.fibu;
 
-import java.time.LocalDate;
-
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.fibu.AuftragDO;
-import org.projectforge.business.fibu.AuftragDao;
-import org.projectforge.business.fibu.AuftragsPositionDO;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.ProjektDao;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.ModificationStatus;
-import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.WicketUtils;
 import org.slf4j.Logger;
+
+import java.time.LocalDate;
 
 @EditPage(defaultReturnPage = AuftragListPage.class)
 public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm, AuftragDao>
@@ -177,7 +173,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
       }
     } else if (auftrag.getErfassungsDatum() == null) {
       if (auftrag.getCreated() != null) {
-        auftrag.setErfassungsDatum(DateHelper.convertDateToSqlDateInTheUsersTimeZone(auftrag.getCreated()));
+        auftrag.setErfassungsDatum(PFDay.from(auftrag.getCreated()).getSqlDate());
       } else if (auftrag.getAngebotsDatum() != null) {
         auftrag.setErfassungsDatum((java.sql.Date) auftrag.getAngebotsDatum().clone());
       } else {
