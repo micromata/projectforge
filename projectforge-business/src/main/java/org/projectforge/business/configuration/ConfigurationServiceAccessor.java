@@ -42,9 +42,14 @@ public class ConfigurationServiceAccessor {
     configurationService = cfg;
   }
 
+  public static void internalSetLocaleForJunitTests(Locale defaultLocale) {
+    ((ConfigurationServiceImpl)get()).setDefaultLocale(defaultLocale);
+  }
+
   public static ConfigurationService get() {
     return configurationService;
   }
+
   static void setConfigurationService(ConfigurationService configurationService) {
     ConfigurationServiceAccessor.configurationService = configurationService;
   }

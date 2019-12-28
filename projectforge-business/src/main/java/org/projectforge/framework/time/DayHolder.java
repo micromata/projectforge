@@ -35,7 +35,6 @@ import java.util.*;
  * Please use PFDate instead.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Deprecated
 public class DayHolder {
   private static final long serialVersionUID = 2646871164508930568L;
 
@@ -87,8 +86,8 @@ public class DayHolder {
     this.date = PFDay.from(date);
   }
 
-  public DayHolder(final Date date, final TimeZone timeZone, final Locale locale) {
-    this.date = PFDay.from(date, true, timeZone, locale);
+  public DayHolder(final Date date, final TimeZone timeZone) {
+    this.date = PFDay.from(date, true, timeZone);
   }
 
   public DayHolder(final DayHolder dateHolder) {

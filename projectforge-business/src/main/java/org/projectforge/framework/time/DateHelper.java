@@ -355,16 +355,12 @@ public class DateHelper implements Serializable {
    * given date is null then -1 is returned. For "de" the first week of year is the first week with a minimum of
    * 4 days in the new year. For "en" the first week of the year is the first week with a minimum of 1 days in
    * the new year.
-   * @see java.util.Calendar#getMinimalDaysInFirstWeek()
    */
   public static int getWeekOfYear(final Date date) {
     if (date == null) {
       return -1;
     }
-    final Calendar cal = Calendar.getInstance(ThreadLocalUserContext.getTimeZone(),
-            ConfigurationServiceAccessor.get().getDefaultLocale());
-    cal.setTime(date);
-    return cal.get(Calendar.WEEK_OF_YEAR);
+    return PFDay.from(date).getWeekOfYear();
   }
 
   /**
@@ -375,7 +371,6 @@ public class DateHelper implements Serializable {
    * given date is null then -1 is returned. For "de" the first week of year is the first week with a minimum of
    * 4 days in the new year. For "en" the first week of the year is the first week with a minimum of 1 days in
    * the new year.
-   * @see java.util.Calendar#getMinimalDaysInFirstWeek()
    */
   @Deprecated
   public static int getWeekOfYear(final DateTime date) {
