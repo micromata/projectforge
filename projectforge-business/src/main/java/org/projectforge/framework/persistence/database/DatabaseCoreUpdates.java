@@ -65,6 +65,8 @@ import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDateTimeUtils;
 import org.springframework.context.ApplicationContext;
 
 import java.math.BigDecimal;
@@ -72,6 +74,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
 import java.util.*;
 import java.util.function.Predicate;
@@ -1208,12 +1213,18 @@ public class DatabaseCoreUpdates
             .runInTrans(emgr -> emgr.selectAllAttached(EmployeeTimedDO.class)
                 .stream()
                 .map(EmployeeTimedDO::getStartTime)
-                .map(DateHelper::convertDateToLocalDateTimeInUTC)
+                .map(this::convertDateToLocalDateTimeInUTC)
                 .map(localDateTime -> localDateTime.get(ChronoField.SECOND_OF_DAY))
                 .allMatch(seconds -> seconds == 0));
 
         return timeFieldsOfAllEmployeeTimedDOsStartTimeAreZero ? UpdatePreCheckStatus.ALREADY_UPDATED : UpdatePreCheckStatus.READY_FOR_UPDATE;
       }
+
+      private LocalDateTime convertDateToLocalDateTimeInUTC(final Date date) {
+        final Instant instant = date.toInstant();
+        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+      }
+
 
       @Override
       public UpdateRunningStatus runUpdate()
@@ -1236,7 +1247,7 @@ public class DatabaseCoreUpdates
       private void normalizeStartTime(final TimeableRow entity)
       {
         final Date oldStartTime = entity.getStartTime();
-        final Date newStartTime = DateHelper.convertMidnightDateToUTC(oldStartTime);
+        final Date newStartTime = PFDateTimeUtils.getUTCBeginOfDay(oldStartTime);
         entity.setStartTime(newStartTime);
       }
 
@@ -1908,18 +1919,25 @@ public class DatabaseCoreUpdates
       // convert date from UTC to current zone date
       final TimeZone utc = TimeZone.getTimeZone("UTC");
       final TimeZone currentTimeZone = Configuration.getInstance().getDefaultTimeZone();
-      final Date dateInCurrentTimezone = DateHelper.convertDateIntoOtherTimezone(lastChange.get(), utc, currentTimeZone);
-      return DateHelper.resetTimePartOfDate(dateInCurrentTimezone);
+      final Date dateInCurrentTimezone = convertDateIntoOtherTimezone(lastChange.get(), utc, currentTimeZone);
+      return PFDateTimeUtils.getUTCBeginOfDay(dateInCurrentTimezone);
     }
 
     // ... if there is nothing in the history, then use the entrittsdatum ...
     final Date eintrittsDatum = employee.getEintrittsDatum();
     if (eintrittsDatum != null) {
-      return DateHelper.convertMidnightDateToUTC(eintrittsDatum);
+      return PFDateTime.from(eintrittsDatum, false, PFDateTimeUtils.TIMEZONE_UTC).getBeginOfDay().getUtilDate();
     }
 
     // ... if there is no eintrittsdatum, use the current date.
-    return DateHelper.todayAtMidnight();
+    return PFDateTime.now().getBeginOfDay().getUtilDate();
+  }
+
+  private static Date convertDateIntoOtherTimezone(final Date date, final TimeZone from, final TimeZone to) {
+    final Instant instant = date.toInstant();
+    final LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, to.toZoneId());
+    final Instant instant2 = localDateTime.toInstant(from.toZoneId().getRules().getOffset(instant));
+    return Date.from(instant2);
   }
 
   private static Optional<Date> findLastChangeOfEmployeeStatusInHistory(final EmployeeDO employee)

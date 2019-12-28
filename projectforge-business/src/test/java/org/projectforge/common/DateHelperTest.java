@@ -126,19 +126,6 @@ public class DateHelperTest extends AbstractTestBase {
     assertFalse(DateHelper.dateOfYearBetween(9, 21, 10, 3, 2, 20)); // 9/21 isn't between 10/3 and 2/20
   }
 
-  @Test
-  public void convertDateIntoOtherTimezone() {
-    final Date d1 = createDate(2016, Month.SEPTEMBER, 22, 1, 2, 3, 4, TimeZone.getTimeZone("GMT+2:00"));
-    assertEquals(d1, DateHelper.convertDateIntoOtherTimezone(d1, TimeZone.getTimeZone("GMT+5:00"), TimeZone.getTimeZone("GMT+5:00")));
-    assertEquals(d1, DateHelper.convertDateIntoOtherTimezone(d1, TimeZone.getTimeZone("GMT-5:00"), TimeZone.getTimeZone("GMT-5:00")));
-    assertEquals(d1, DateHelper.convertDateIntoOtherTimezone(d1, TimeZone.getTimeZone("GMT"), TimeZone.getTimeZone("GMT")));
-
-    final Date d2 = createDate(2016, Month.SEPTEMBER, 21, 23, 2, 3, 4, TimeZone.getTimeZone("GMT+2:00"));
-    final Date d3 = createDate(2016, Month.SEPTEMBER, 22, 6, 2, 3, 4, TimeZone.getTimeZone("GMT+2:00"));
-    assertEquals(d2, DateHelper.convertDateIntoOtherTimezone(d1, TimeZone.getTimeZone("GMT+2:00"), TimeZone.getTimeZone("GMT")));
-    assertEquals(d3, DateHelper.convertDateIntoOtherTimezone(d1, TimeZone.getTimeZone("GMT"), TimeZone.getTimeZone("GMT+5:00")));
-  }
-
   public static Date createDate(final int year, final Month month, final int day, final int hour, final int minute,
                                 final int second, final int millisecond, TimeZone timeZone) {
     return PFDateTime.withDate(year, month, day, hour, minute, second, millisecond, timeZone.toZoneId()).getUtilDate();

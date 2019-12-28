@@ -122,7 +122,6 @@ public class RechnungDao extends BaseDao<RechnungDO> {
   /**
    * @param rechnung
    * @param days
-   * @see DateHelper#getCalendar()
    */
   public Date calculateFaelligkeit(final RechnungDO rechnung, final int days) {
     if (rechnung.getDatum() == null) {

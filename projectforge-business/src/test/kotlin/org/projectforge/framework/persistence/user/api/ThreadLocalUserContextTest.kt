@@ -35,7 +35,7 @@ class ThreadLocalUserContextTest {
 
     @Test
     fun firstDayOfWeekTest() {
-        Assertions.assertEquals(1, ThreadLocalUserContext.getJodaFirstDayOfWeek())
+        Assertions.assertEquals(1, ThreadLocalUserContext.getFirstDayOfWeekValue())
         Assertions.assertEquals(DayOfWeek.MONDAY, ThreadLocalUserContext.getFirstDayOfWeek())
         Assertions.assertEquals(2, PFDateCompabilityUtils.getCompabilityDayOfWeekValue(ThreadLocalUserContext.getFirstDayOfWeek()))
     }

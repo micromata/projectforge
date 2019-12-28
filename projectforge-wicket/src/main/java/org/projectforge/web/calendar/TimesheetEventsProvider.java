@@ -23,11 +23,7 @@
 
 package org.projectforge.web.calendar;
 
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import net.ftlines.wicket.fullcalendar.Event;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -46,10 +42,13 @@ import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.web.teamcal.event.MyWicketEvent;
 
-import net.ftlines.wicket.fullcalendar.Event;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Creates events for FullCalendar.
@@ -201,9 +200,7 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
     if (calFilter.isShowStatistics() == true) {
       // Show statistics: duration of every day is shown as all day event.
       DateTime day = start;
-      final Calendar cal = DateHelper.getCalendar();
-      cal.setTime(start.toDate());
-      final int numberOfDaysInYear = cal.getActualMaximum(Calendar.DAY_OF_YEAR);
+      final int numberOfDaysInYear = PFDay.from(start.toDate()).getNumberOfDaysInYear();
       int paranoiaCounter = 0;
       do {
         if (++paranoiaCounter > 1000) {
@@ -213,7 +210,7 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
         }
         final int dayOfYear = day.getDayOfYear();
         final long duration = durationsPerDayOfYear[dayOfYear];
-        final boolean firstDayOfWeek = day.getDayOfWeek() == ThreadLocalUserContext.getJodaFirstDayOfWeek();
+        final boolean firstDayOfWeek = day.getDayOfWeek() == ThreadLocalUserContext.getFirstDayOfWeekValue();
         if (firstDayOfWeek == false && duration == 0) {
           day = day.plusDays(1);
           continue;

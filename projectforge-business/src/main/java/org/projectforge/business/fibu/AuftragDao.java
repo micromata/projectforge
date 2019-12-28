@@ -40,7 +40,7 @@ import org.projectforge.framework.persistence.api.impl.DBPredicate;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
-import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.xstream.XmlObjectWriter;
 import org.projectforge.mail.Mail;
@@ -384,8 +384,10 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   }
 
   private Optional<DBPredicate> createCriterionForErfassungsDatum(final AuftragFilter myFilter) {
-    final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getStartDate());
-    final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getEndDate());
+    final PFDay startDay = PFDay.from(myFilter.getStartDate());
+    final PFDay endDay = PFDay.from(myFilter.getEndDate());
+    final java.sql.Date startDate = startDay != null ? startDay.getSqlDate() : null;
+    final java.sql.Date endDate = endDay != null ? endDay.getSqlDate() : null;
 
     if (startDate != null && endDate != null) {
       return Optional.of(

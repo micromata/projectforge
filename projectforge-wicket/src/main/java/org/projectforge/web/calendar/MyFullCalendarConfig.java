@@ -119,7 +119,7 @@ public class MyFullCalendarConfig extends Config
   @JsonProperty
   public int getFirstDay()
   {
-    return ThreadLocalUserContext.getJodaFirstDayOfWeek();
+    return ThreadLocalUserContext.getFirstDayOfWeekValue();
   }
 
   /**

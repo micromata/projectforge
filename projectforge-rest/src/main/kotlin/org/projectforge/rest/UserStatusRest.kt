@@ -86,7 +86,7 @@ open class UserStatusRest {
         if (user == null) {
             return ResponseEntity(HttpStatus.UNAUTHORIZED)
         }
-        val firstDayOfWeekNo = ThreadLocalUserContext.getJodaFirstDayOfWeek() // Mon - 1, Tue - 2, ..., Sun - 7
+        val firstDayOfWeekNo = ThreadLocalUserContext.getFirstDayOfWeekValue() // Mon - 1, Tue - 2, ..., Sun - 7
         val userData = UserData(username = user.username,
                 organization = user.organization,
                 fullname = user.getFullname(),

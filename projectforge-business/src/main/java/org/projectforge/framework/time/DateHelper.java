@@ -32,10 +32,9 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.*;
+import java.time.Month;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
 import java.util.TimeZone;
 
 /**
@@ -66,7 +65,7 @@ public class DateHelper implements Serializable {
   /**
    * Europe/Berlin
    */
-  public final static TimeZone EUROPE_BERLIN = TimeZone.getTimeZone("Europe/Berlin");
+  public final static TimeZone EUROPE_BERLIN = PFDateTimeUtils.TIMEZONE_EUROPE_BERLIN;
 
   public static final BigDecimal MILLIS_PER_HOUR = new BigDecimal(MILLIS_HOUR);
 
@@ -81,7 +80,7 @@ public class DateHelper implements Serializable {
   /**
    * UTC
    */
-  public final static TimeZone UTC = TimeZone.getTimeZone("UTC");
+  public final static TimeZone UTC = PFDateTimeUtils.TIMEZONE_UTC;
 
   private static final DateFormat FORMAT_ISO_DATE = new SimpleDateFormat(DateFormats.ISO_DATE);
 
@@ -317,27 +316,6 @@ public class DateHelper implements Serializable {
   }
 
   /**
-   * Returns a calendar instance. If a context user is given then the user's time zone and locale will be used if given.
-   */
-  public static Calendar getCalendar() {
-    return getCalendar(null, null);
-  }
-
-  public static Calendar getCalendar(TimeZone timeZone, Locale locale) {
-    if (locale == null) {
-      locale = ThreadLocalUserContext.getLocale();
-    }
-    if (timeZone == null) {
-      timeZone = ThreadLocalUserContext.getTimeZone();
-    }
-    return Calendar.getInstance(timeZone, locale);
-  }
-
-  public static Calendar getUTCCalendar() {
-    return getCalendar(UTC, null);
-  }
-
-  /**
    * @param year
    * @param month
    * @return "yyyy-mm"
@@ -413,7 +391,6 @@ public class DateHelper implements Serializable {
    * @return True if the dates are both null or both represents the same day (year, month, day) independent of the
    * hours, minutes etc.
    */
-
   public static boolean isSameDay(final Date d1, final Date d2) {
     return isSameDay(PFDateTime.from(d1, true), PFDateTime.from(d2, true));
   }
@@ -492,65 +469,4 @@ public class DateHelper implements Serializable {
     final Date date = DateHelper.parseIsoTimestamp(isoDateString, ThreadLocalUserContext.getTimeZone());
     return date.getTime();
   }
-
-  /**
-   * @param dayOfWeek
-   * @return 1 - Monday, ..., 7 - Sunday
-   */
-  public static int convertCalendarDayOfWeekToJoda(final DayOfWeek dayOfWeek) {
-    return dayOfWeek.getValue();
-  }
-
-  public static LocalDateTime convertDateToLocalDateTimeInUTC(final Date date) {
-    final Instant instant = date.toInstant();
-    return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
-  }
-
-  public static Date convertLocalDateTimeToDateInUTC(final LocalDateTime ldt) {
-    final Instant instant = ldt.toInstant(ZoneOffset.UTC);
-    return Date.from(instant);
-  }
-
-  public static Date convertMidnightDateToUTC(final Date date) {
-    LocalDateTime ldt = DateHelper.convertDateToLocalDateTimeInUTC(date);
-    /*
-     * In UTC+x the UTC hour value of 00:00:00 is 24-x hours and minus 1 day if x > 0 examples: 00:00:00 in UTC+1 is
-     * 23:00:00 minus 1 day in UTC 00:00:00 in UTC+12 is 12:00:00 minus 1 day in UTC 00:00:00 in UTC-1 is 01:00:00
-     * in UTC 00:00:00 in UTC-11 is 11:00:00 in UTC therefore, to calculate the zoned time back to local time, we
-     * have to add one day if hour >= 12
-     */
-    final int daysToAdd = (ldt.getHour() >= 12) ? 1 : 0;
-    ldt = ldt.toLocalDate().plusDays(daysToAdd).atStartOfDay();
-    return DateHelper.convertLocalDateTimeToDateInUTC(ldt);
-  }
-
-  public static Date todayAtMidnight() {
-    final LocalDateTime todayAtMidnight = LocalDate.now().atStartOfDay();
-    return convertLocalDateTimeToDateInUTC(todayAtMidnight);
-  }
-
-  public static Date resetTimePartOfDate(final Date date) {
-    final LocalDateTime ldt = convertDateToLocalDateTimeInUTC(date);
-    final LocalDateTime dateAtStartOfDay = ldt.toLocalDate().atStartOfDay();
-    return convertLocalDateTimeToDateInUTC(dateAtStartOfDay);
-  }
-
-  public static Date convertDateIntoOtherTimezone(final Date date, final TimeZone from, final TimeZone to) {
-    final Instant instant = date.toInstant();
-    final LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, to.toZoneId());
-    final Instant instant2 = localDateTime.toInstant(from.toZoneId().getRules().getOffset(instant));
-    return Date.from(instant2);
-  }
-
-  public static java.sql.Date convertDateToSqlDateInTheUsersTimeZone(final Date date) {
-    if (date == null) {
-      return null;
-    }
-
-    final TimeZone utc = TimeZone.getTimeZone("UTC");
-    final TimeZone usersTimeZone = ThreadLocalUserContext.getTimeZone();
-    final Date dateInUsersTimezone = convertDateIntoOtherTimezone(date, utc, usersTimeZone);
-    return new java.sql.Date(dateInUsersTimezone.getTime());
-  }
-
 }
