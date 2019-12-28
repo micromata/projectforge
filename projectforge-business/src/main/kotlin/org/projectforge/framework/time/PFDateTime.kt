@@ -24,6 +24,7 @@
 package org.projectforge.framework.time
 
 import org.apache.commons.lang3.ObjectUtils
+import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.time.*
 import java.time.format.DateTimeFormatter
@@ -106,9 +107,13 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
     val dayOfWeekCompatibilityNumber: Int
         get() = if (dayOfWeek == DayOfWeek.SUNDAY) 1 else dayOfWeekNumber + 1
 
+    /**
+     * Uses the locale configured in projectforge.properties. Ensures, that every user of ProjectForge uses same week-of-year-algorithm.
+     */
     override val weekOfYear: Int
         get() {
-            val weekFields = WeekFields.of(locale)
+            val systemLocale = ConfigurationServiceAccessor.get().defaultLocale
+            val weekFields = WeekFields.of(systemLocale)
             return dateTime.get(weekFields.weekOfWeekBasedYear())
         }
 

@@ -32,17 +32,15 @@ import java.sql.Timestamp;
 import java.time.DayOfWeek;
 import java.time.Month;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
 /**
- * Parse and formats dates. Please use PFDateTime instead.
+ * Parse and formats dates. Holds a PFDateTime object, which handles all operations. You may use PFDateTime directly.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Deprecated
 public class DateHolder implements Serializable, Cloneable, Comparable<DateHolder> {
   private static final long serialVersionUID = -5373883617915418698L;
 
@@ -52,8 +50,6 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
 
   /**
    * Initializes calendar with current date and uses the time zone and the locale of the ContextUser if exists.
-   *
-   * @see DateHelper#getCalendar()
    */
   public DateHolder() {
     this.dateTime = PFDateTime.now();
@@ -84,7 +80,6 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    *
    * @param precision
    * @param locale
-   * @see DateHelper#getCalendar(Locale)
    */
   public DateHolder(final DatePrecision precision, final Locale locale) {
     this.dateTime = PFDateTime.now(ThreadLocalUserContext.getTimeZone().toZoneId(), locale);
@@ -93,8 +88,6 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
 
   /**
    * Ensures the precision.
-   *
-   * @see DateHelper#getCalendar()
    */
   public DateHolder(final DatePrecision precision) {
     this.dateTime = PFDateTime.now();
@@ -106,7 +99,6 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    *
    * @param date      If null, the current date will be used.
    * @param precision
-   * @see DateHelper#getCalendar()
    */
   public DateHolder(final Date date, final DatePrecision precision) {
     this.dateTime = PFDateTime.from(date, true);
@@ -117,7 +109,6 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Ensures the precision.
    *
    * @param date
-   * @see DateHelper#getCalendar(Locale)
    */
   public DateHolder(final Date date, final DatePrecision precision, final Locale locale) {
     this.dateTime = PFDateTime.from(date, true, ThreadLocalUserContext.getTimeZone(), locale);
@@ -126,9 +117,6 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
 
   /**
    * Ensures the precision.
-   *
-   * @param date
-   * @see DateHelper#getCalendar(TimeZone, Locale)
    */
   public DateHolder(final Date date, final DatePrecision precision, final TimeZone timeZone, final Locale locale) {
     this.dateTime = PFDateTime.from(date, true, timeZone, locale);
@@ -137,9 +125,6 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
 
   /**
    * Ensures the precision.
-   *
-   * @param date
-   * @see DateHelper#getCalendar()
    */
   public DateHolder(final Date date) {
     this.dateTime = PFDateTime.from(date, true);
@@ -154,9 +139,6 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
     ensurePrecision();
   }
 
-  /**
-   * @see DateHelper#getCalendar(TimeZone, Locale)
-   */
   public DateHolder(final Date date, final TimeZone timeZone, final Locale locale) {
     this.dateTime = PFDateTime.from(date, true, timeZone, locale);
     ensurePrecision();
@@ -172,10 +154,6 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
 
   /**
    * Ensures the precision.
-   *
-   * @param date
-   * @param locale
-   * @see DateHelper#getCalendar(Locale)
    */
   public DateHolder(final Date date, final Locale locale) {
     this.dateTime = PFDateTime.from(date, true, ThreadLocalUserContext.getTimeZone(), locale);
@@ -260,47 +238,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
     if (this.precision == null) {
       return this;
     }
-    switch (this.precision) {
-      case DAY:
-        this.dateTime = this.dateTime.getBeginOfDay();
-        break;
-      case HOUR_OF_DAY:
-        this.dateTime = this.dateTime.withMinute(0);
-      case MINUTE_15:
-      case MINUTE_5:
-      case MINUTE:
-        this.dateTime = this.dateTime.withSecond(0);
-      case SECOND:
-        this.dateTime = this.dateTime.withMilliSecond(0);
-      default:
-    }
-    if (this.precision == DatePrecision.MINUTE_15) {
-      final int minute = dateTime.getMinute();
-      if (minute < 8) {
-        this.dateTime = this.dateTime.withMinute(0);
-      } else if (minute < 23) {
-        this.dateTime = this.dateTime.withMinute(15);
-      } else if (minute < 38) {
-        this.dateTime = this.dateTime.withMinute(30);
-      } else if (minute < 53) {
-        this.dateTime = this.dateTime.withMinute(45);
-      } else {
-        this.dateTime = this.dateTime.withMinute(0);
-        this.dateTime = this.dateTime.plus(1, ChronoUnit.HOURS);
-      }
-    } else if (this.precision == DatePrecision.MINUTE_5) {
-      final int minute = dateTime.getMinute();
-      for (int i = 3; i < 60; i += 5) {
-        if (minute < i) {
-          this.dateTime = this.dateTime.withMinute(i - 3);
-          break;
-        }
-      }
-      if (minute > 57) {
-        this.dateTime = this.dateTime.withMinute(0);
-        this.dateTime = this.dateTime.plus(1, ChronoUnit.HOURS);
-      }
-    }
+    dateTime = dateTime.withPrecision(this.precision);
     return this;
   }
 

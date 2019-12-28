@@ -353,7 +353,7 @@ open class HRPlanningDO : DefaultBaseDO() {
          * @see DayHolder.setBeginOfWeek
          */
         fun getFirstDayOfWeek(date: Date): Date {
-            val day = DayHolder(date, DateHelper.UTC, Locale.GERMAN)
+            val day = DayHolder(date, DateHelper.UTC)
             day.setBeginOfWeek()
             return day.sqlDate
         }
@@ -365,7 +365,7 @@ open class HRPlanningDO : DefaultBaseDO() {
          * @see DayHolder.setBeginOfWeek
          */
         fun getFirstDayOfWeek(date: java.util.Date): Date {
-            val day = DayHolder(date, DateHelper.UTC, Locale.GERMAN)
+            val day = DayHolder(date, DateHelper.UTC)
             day.setBeginOfWeek()
             return day.sqlDate
         }

@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.test.TestSetup
 import java.text.SimpleDateFormat
 import java.time.DateTimeException
@@ -124,6 +124,8 @@ class PFDateTimeTest {
 
     @Test
     fun weekOfYearTest() {
+        val storedDefaultLocale = ConfigurationServiceAccessor.get().defaultLocale
+        ConfigurationServiceAccessor.internalSetLocaleForJunitTests(Locale("de", "DE"))
         // German weeks:
         var dateTime = PFDateTimeUtils.parseUTCDate("2020-12-31 10:00")
         assertEquals(53, dateTime!!.weekOfYear)
@@ -137,10 +139,8 @@ class PFDateTimeTest {
         dateTime = PFDateTimeUtils.parseUTCDate("2020-01-02 10:00")
         assertEquals(1, dateTime!!.weekOfYear)
 
+        ConfigurationServiceAccessor.internalSetLocaleForJunitTests(Locale("en", "US"))
         // US weeks:
-        val contextUser = ThreadLocalUserContext.getUser();
-        val storedLocale = contextUser.locale
-        contextUser.locale = Locale.US
         dateTime = PFDateTimeUtils.parseUTCDate("2020-12-31 10:00")
         assertEquals(1, dateTime!!.weekOfYear)
         dateTime = PFDateTimeUtils.parseUTCDate("2021-01-02 10:00")
@@ -153,7 +153,7 @@ class PFDateTimeTest {
         dateTime = PFDateTimeUtils.parseUTCDate("2020-01-02 10:00")
         assertEquals(1, dateTime!!.weekOfYear)
 
-        contextUser.locale = storedLocale
+        ConfigurationServiceAccessor.internalSetLocaleForJunitTests(storedDefaultLocale)
     }
 
     @Test
@@ -219,7 +219,7 @@ class PFDateTimeTest {
         assertEquals(hour, date.hour, "Hour check failed.")
         assertEquals(minute, date.minute)
         assertEquals(second, date.second)
-        assertEquals(nanos, date.nano )
+        assertEquals(nanos, date.nano)
     }
 
     companion object {

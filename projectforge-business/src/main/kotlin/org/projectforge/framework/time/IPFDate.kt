@@ -34,6 +34,9 @@ interface IPFDate<T> : Comparable<T> {
 
     val month: Month
 
+    /**
+     * Uses the locale configured in projectforge.properties. Ensures, that every user of ProjectForge uses same week-of-year-algorithm.
+     */
     val weekOfYear: Int
 
     val dayOfMonth: Int
