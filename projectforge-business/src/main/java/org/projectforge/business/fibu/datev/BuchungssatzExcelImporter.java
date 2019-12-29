@@ -23,38 +23,28 @@
 
 package org.projectforge.business.fibu.datev;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.projectforge.business.excel.ExcelImport;
+import de.micromata.merlin.excel.*;
+import org.apache.poi.ss.usermodel.Row;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.*;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.utils.ImportStorage;
 import org.projectforge.framework.persistence.utils.ImportedElement;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
-import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.ActionLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Iterator;
 
 public class BuchungssatzExcelImporter {
   private static final Logger log = LoggerFactory.getLogger(BuchungssatzExcelImporter.class);
-
-  /**
-   * In dieser Zeile stehen die Überschriften der Spalten für die Buchungssätze.
-   */
-  public static final int ROW_COLUMNNAMES = 0;
 
   /**
    * Die Spalte SH ist zweimal vertreten und muss einmal umbenannt werden. Das Vorkommen der zweiten Spalte SH wird bis zu maximal
@@ -82,19 +72,20 @@ public class BuchungssatzExcelImporter {
   }
 
   public void doImport(final InputStream is) throws Exception {
-    final ExcelImport<BuchungssatzImportRow> imp = new ExcelImport<>(is);
-    for (short idx = 0; idx < imp.getWorkbook().getNumberOfSheets(); idx++) {
-      final ImportedSheet<BuchungssatzDO> sheet = importBuchungssaetze(imp, idx);
-      if (sheet != null) {
-        storage.addSheet(sheet);
+    final ExcelWorkbook workbook = new ExcelWorkbook(is, storage.getFilename());
+    for (short idx = 0; idx < workbook.getNumberOfSheets(); idx++) {
+      final ImportedSheet<BuchungssatzDO> importedSheet = importBuchungssaetze(workbook, idx);
+      if (importedSheet != null) {
+        storage.addSheet(importedSheet);
       }
     }
   }
 
-  private ImportedSheet<BuchungssatzDO> importBuchungssaetze(final ExcelImport<BuchungssatzImportRow> imp, final int idx) throws Exception {
+  private ImportedSheet<BuchungssatzDO> importBuchungssaetze(final ExcelWorkbook workbook, final int idx) throws Exception {
     ImportedSheet<BuchungssatzDO> importedSheet = null;
-    imp.setActiveSheet(idx);
-    final String name = imp.getWorkbook().getSheetName(idx);
+    ExcelSheet sheet = workbook.getSheet(idx);
+    sheet.setAutotrimCellValues(true);
+    final String name = sheet.getSheetName();
     Integer month = null;
     try {
       month = Integer.parseInt(name); // month beginnt bei 01 - Januar.
@@ -103,8 +94,7 @@ public class BuchungssatzExcelImporter {
     }
     if (month != null) {
       actionLog.logInfo("Importing sheet '" + name + "'.");
-      final HSSFSheet sheet = imp.getWorkbook().getSheetAt(idx);
-      importedSheet = importBuchungssaetze(imp, sheet, month);
+      importedSheet = importBuchungssaetze(sheet, month);
     } else {
       log.info("Ignoring sheet '" + name + "' for importing Buchungssätze.");
     }
@@ -112,82 +102,99 @@ public class BuchungssatzExcelImporter {
   }
 
   /**
-   *
    * @param month 1-January, ..., 12-December
    * @throws Exception
    */
-  private ImportedSheet<BuchungssatzDO> importBuchungssaetze(final ExcelImport<BuchungssatzImportRow> imp, final HSSFSheet sheet,
-                                                             final Integer month) throws Exception {
+  private ImportedSheet<BuchungssatzDO> importBuchungssaetze(final ExcelSheet sheet, final Integer month) throws Exception {
     final ImportedSheet<BuchungssatzDO> importedSheet = new ImportedSheet<>();
-    imp.setNameRowIndex(ROW_COLUMNNAMES);
-    imp.setStartingRowIndex(ROW_COLUMNNAMES + 1);
-    imp.setRowClass(BuchungssatzImportRow.class);
+    sheet.registerColumn("SatzNr.", "Satz-Nr.").addColumnListener(new ExcelColumnNumberValidator(1.0).setRequired().setUnique());
+    sheet.registerColumn("Betrag").addColumnListener(new ExcelColumnNumberValidator().setRequired());
+    sheet.registerColumn("SH").addColumnListener(new ExcelColumnOptionsValidator("S", "H").setRequired());
+    sheet.registerColumn("Konto").addColumnListener(new ExcelColumnNumberValidator().setRequired());
+    sheet.registerColumn("Kostenstelle/-träger", "Kost2").addColumnListener(new ExcelColumnValidator().setRequired());
+    sheet.registerColumn("Menge");
+    //sheet.registerColumn("SH"); // Second column not needed.
+    sheet.registerColumn("Beleg");
+    sheet.registerColumn("Datum").addColumnListener(new ExcelColumnDateValidator().setRequired());
+    sheet.registerColumn("Gegenkonto").addColumnListener(new ExcelColumnValidator().setRequired());
+    sheet.registerColumn("Text");
+    sheet.registerColumn("Alt.-Kst.", "Kost1").addColumnListener(new ExcelColumnValidator().setRequired());
+    //sheet.registerColumn("Beleg 2");
+    //sheet.registerColumn("KR-BSNr.");
+    //sheet.registerColumn("ZI");
+    sheet.registerColumn("Kommentar", "Bemerkung");
+    sheet.analyze(true);
 
-    final Map<String, String> map = new HashMap<>();
-    map.put("SatzNr.", "satzNr");
-    map.put("Satz-Nr.", "satzNr");
-    map.put("Betrag", "betrag");
-    map.put("SH", "sh"); // Nicht eindeutig!
-    map.put("Konto", "konto");
-    map.put("Kostenstelle/-träger", "kost2");
-    map.put("Kost2", "kost2");
-    map.put("Menge", "menge");
-    map.put("SH2", "sh2");
-    map.put("Beleg", "beleg");
-    map.put("Datum", "datum");
-    map.put("Gegenkonto", "gegenkonto");
-    map.put("Text", "text");
-    map.put("Alt.-Kst.", "kost1");
-    map.put("Kost1", "kost1");
-    map.put("Beleg 2", "beleg2");
-    map.put("KR-BSNr.", "kr_bsnr");
-    map.put("ZI", "zi");
-    map.put("Kommentar", "comment");
-    map.put("Bemerkung", "comment");
-    imp.setColumnMapping(map);
-
-    BuchungssatzImportRow[] rows = new BuchungssatzImportRow[0];
-    rename2ndSH(sheet);
-    rows = imp.convertToRows(BuchungssatzImportRow.class);
-    if (rows == null || rows.length == 0) {
-      return null;
-    }
+    Iterator<Row> it = sheet.getDataRowIterator();
     int year = 0;
-    for (int i = 0; i < rows.length; i++) {
-      ImportedElement<BuchungssatzDO> element;
-      try {
-        element = convertBuchungssatz(rows[i]);
-      } catch (final RuntimeException ex) {
-        throw new RuntimeException("Im Blatt '" + sheet.getSheetName() + "', in Zeile " + (i + 2) + ": " + ex.getMessage(), ex);
-      }
-      if (element == null) {
-        // Empty row:
-        continue;
-      }
-      final BuchungssatzDO satz = element.getValue();
-      final PFDateTime dateTime = PFDateTime.from(satz.getDatum(), true, null, Locale.GERMAN).withPrecision(DatePrecision.DAY);
+    while (it.hasNext()) {
+      Row row = it.next();
+      final ImportedElement<BuchungssatzDO> element = new ImportedElement<>(storage.nextVal(), BuchungssatzDO.class,
+              DatevImportDao.BUCHUNGSSATZ_DIFF_PROPERTIES);
+      final BuchungssatzDO satz = new BuchungssatzDO();
+      element.setValue(satz);
+      satz.setSatznr(sheet.getCellInt(row, "SatzNr."));
+      PFDay day = PFDay.from(sheet.getCellDate(row, "Datum"));
+      satz.setDatum(day.getSqlDate());
       if (year == 0) {
-        year = dateTime.getYear();
-      } else if (year != dateTime.getYear()) {
+        year = day.getYear();
+      } else if (year != day.getYear()) {
         final String msg =
-                "Not supported: Buchungssätze innerhalb eines Excel-Sheets liegen in verschiedenen Jahren: Im Blatt '" + sheet.getSheetName() + "', in Zeile " + (i
-                        + 2);
+                "Not supported: Buchungssätze innerhalb eines Excel-Sheets liegen in verschiedenen Jahren: Im Blatt '" + sheet.getSheetName() + "', in Zeile " + (row.getRowNum() + 1);
         actionLog.logError(msg);
         throw new UserException(msg);
       }
-      if (dateTime.getMonthValue() > month) {
+      if (day.getMonthValue() > month) {
         final String msg = "Buchungssätze können nicht in die Zukunft für den aktuellen Monat '"
-                + KostFormatter.formatBuchungsmonat(year, dateTime.getMonthValue())
+                + KostFormatter.formatBuchungsmonat(year, day.getMonthValue())
                 + " gebucht werden! "
                 + satz;
         actionLog.logError(msg);
         throw new RuntimeException(msg);
-      } else if (dateTime.getMonthValue() < month) {
+      } else if (day.getMonthValue() < month) {
         final String msg = "Buchungssatz liegt vor Monat '" + KostFormatter.formatBuchungsmonat(year, month) + "' (OK): " + satz;
         actionLog.logInfo(msg);
       }
       satz.setYear(year);
       satz.setMonth(month);
+      satz.setBetrag(new BigDecimal(sheet.getCellDouble(row, "Betrag")).setScale(2, RoundingMode.HALF_UP));
+      satz.setMenge(sheet.getCellString(row, "Menge"));
+      ExcelColumnDef commentColDef = sheet.getColumnDef("Kommentar");
+      if (commentColDef.found()) {
+        satz.setComment(sheet.getCellString(row, commentColDef.getColumnHeadname()));
+      }
+      satz.setSH(sheet.getCellString(row, "SH"));
+      satz.setBeleg(sheet.getCellString(row, "Beleg"));
+      satz.setText(sheet.getCellString(row, "Text"));
+      Integer kontoInt = sheet.getCellInt(row, "Konto");
+      KontoDO konto = kontoDao.getKonto(kontoInt);
+      if (konto != null) {
+        satz.setKonto(konto);
+      } else {
+        element.putErrorProperty("konto", kontoInt);
+      }
+      kontoInt = sheet.getCellInt(row, "Gegenkonto");
+      konto = kontoDao.getKonto(kontoInt);
+      if (konto != null) {
+        satz.setGegenKonto(konto);
+      } else {
+        element.putErrorProperty("gegenkonto", kontoInt);
+      }
+      String kostString = sheet.getCellString(row, "Kost1");
+      final Kost1DO kost1 = kost1Dao.getKost1(kostString);
+      if (kost1 != null) {
+        satz.setKost1(kost1);
+      } else {
+        element.putErrorProperty("kost1", kostString);
+      }
+      kostString = sheet.getCellString(row, "Kost2");
+      final Kost2DO kost2 = kost2Dao.getKost2(kostString);
+      if (kost2 != null) {
+        satz.setKost2(kost2);
+      } else {
+        element.putErrorProperty("kost2", kostString);
+      }
+      satz.calculate();
       importedSheet.addElement(element);
       log.debug(satz.toString());
     }
@@ -195,85 +202,5 @@ public class BuchungssatzExcelImporter {
     importedSheet.setProperty("year", year);
     importedSheet.setProperty("month", month);
     return importedSheet;
-  }
-
-  /**
-   * Dummerweise ist im DATEV-Export die Spalte SH zweimal vertreten. Da wir SH aber für Haben/Soll auswerten müssen, müssen die Spalten
-   * unterschiedlich heißen. Die zweite Spalte wird hier in SH2 umbenannt, sofern vorhanden.
-   *
-   * @param sheet
-   */
-  private void rename2ndSH(final HSSFSheet sheet) {
-    try {
-      final HSSFRow row = sheet.getRow(ROW_COLUMNNAMES);
-      if (row == null) {
-        return;
-      }
-      short numberOfSH = 0;
-      for (int col = 0; col < MAX_COLUMNS; col++) {
-        final HSSFCell cell = row.getCell(col);
-        if (cell == null) {
-          break;
-        }
-        final String name = cell.getStringCellValue();
-        log.debug("Processing column '" + name + "'");
-        if ("SH".equals(cell.getStringCellValue())) {
-          numberOfSH++;
-          if (numberOfSH == 2) {
-            log.debug("Renaming 2nd column 'SH' to 'SH2' (column no. " + col + ").");
-            cell.setCellValue("SH2");
-          }
-        }
-      }
-    } catch (final Exception ex) {
-      log.error(ex.getMessage(), ex);
-      throw new UserException(ThreadLocalUserContext.getLocalizedString("finance.datev.import.error.titleRowMissed"));
-    }
-  }
-
-  private ImportedElement<BuchungssatzDO> convertBuchungssatz(final BuchungssatzImportRow row) throws Exception {
-    if (row.isEmpty()) {
-      return null;
-    }
-    final ImportedElement<BuchungssatzDO> element = new ImportedElement<>(storage.nextVal(), BuchungssatzDO.class,
-            DatevImportDao.BUCHUNGSSATZ_DIFF_PROPERTIES);
-    final BuchungssatzDO satz = new BuchungssatzDO();
-    element.setValue(satz);
-    satz.setBeleg(row.beleg);
-    satz.setBetrag(row.betrag);
-    satz.setSH(row.sh);
-    satz.setDatum(row.datum);
-    satz.setSatznr(row.satzNr);
-    satz.setText(StringUtils.replace(row.text, "^", ""));
-    satz.setMenge(row.menge);
-    satz.setComment(row.comment);
-    KontoDO konto = kontoDao.getKonto(row.konto);
-    if (konto != null) {
-      satz.setKonto(konto);
-    } else {
-      element.putErrorProperty("konto", row.konto);
-    }
-    konto = kontoDao.getKonto(row.gegenkonto);
-    if (konto != null) {
-      satz.setGegenKonto(konto);
-    } else {
-      element.putErrorProperty("gegenkonto", row.gegenkonto);
-    }
-    int[] values = KostFormatter.splitKost(row.getKost1());
-    final Kost1DO kost1 = kost1Dao.getKost1(values[0], values[1], values[2], values[3]);
-    if (kost1 != null) {
-      satz.setKost1(kost1);
-    } else {
-      element.putErrorProperty("kost1", KostFormatter.formatKost(row.kost1));
-    }
-    values = KostFormatter.splitKost(row.getKost2());
-    final Kost2DO kost2 = kost2Dao.getKost2(values[0], values[1], values[2], values[3]);
-    if (kost2 != null) {
-      satz.setKost2(kost2);
-    } else {
-      element.putErrorProperty("kost2", KostFormatter.formatKost(row.kost2));
-    }
-    satz.calculate();
-    return element;
   }
 }
