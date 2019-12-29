@@ -75,7 +75,7 @@ class ForecastExportTest : AbstractTestBase() {
         FileUtils.writeByteArrayToFile(excelFile, ba)
 
         val workbook = ExcelWorkbook(ByteArrayInputStream(ba), excelFile.name)
-        val forecastSheet = workbook.getSheet(ForecastExport.Sheet.FORECAST.title)
+        val forecastSheet = workbook.getSheet(ForecastExport.Sheet.FORECAST.title)!!
         val monthCols = Array(12) {
             forecastSheet.registerColumn(ForecastExport.formatMonthHeader(baseDate.plusMonths(it.toLong())))
         }
