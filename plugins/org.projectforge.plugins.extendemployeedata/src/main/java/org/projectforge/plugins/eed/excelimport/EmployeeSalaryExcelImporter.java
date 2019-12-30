@@ -36,6 +36,7 @@ import org.projectforge.business.fibu.api.EmployeeSalaryService;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.UserException;
+import org.projectforge.framework.persistence.utils.MyImportedElement;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
 import org.projectforge.plugins.eed.service.EmployeeConfigurationService;
@@ -135,7 +136,7 @@ public class EmployeeSalaryExcelImporter
 
   private ImportedElement<EmployeeSalaryDO> convertRowToDo(final EmployeeSalaryExcelRow row)
   {
-    final ImportedElement<EmployeeSalaryDO> element = new ImportedElement<>(storage.nextVal(), EmployeeSalaryDO.class, DIFF_PROPERTIES);
+    final MyImportedElement<EmployeeSalaryDO> element = new MyImportedElement<>(storage.nextVal(), EmployeeSalaryDO.class, DIFF_PROPERTIES);
     PFDateTime selectedDateTime = PFDateTime.from(this.dateToSelectAttrRow);
     EmployeeDO employee;
     EmployeeSalaryDO employeeSalary = null;

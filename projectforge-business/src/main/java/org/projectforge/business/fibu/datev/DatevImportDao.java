@@ -220,7 +220,7 @@ public class DatevImportDao {
     log.info("Commit Kontenplan called");
     final Collection<KontoDO> col = new ArrayList<>();
     for (final ImportedElement<KontoDO> el : sheet.getElements()) {
-      if (!el.isSelected()) {
+      if (!el.getSelected()) {
         continue;
       }
       final KontoDO konto = el.getValue();
@@ -237,7 +237,7 @@ public class DatevImportDao {
     log.info("Commit Buchungsdaten called");
     final Collection<BuchungssatzDO> col = new ArrayList<>();
     for (final ImportedElement<BuchungssatzDO> el : sheet.getElements()) {
-      if (!el.isSelected()) {
+      if (!el.getSelected()) {
         continue;
       }
       final BuchungssatzDO satz = el.getValue();

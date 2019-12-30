@@ -36,6 +36,7 @@ import org.projectforge.business.teamcal.event.ical.ICalParser;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.utils.MyImportedElement;
 import org.projectforge.framework.utils.ActionLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -97,7 +98,7 @@ public class TeamCalImportDao {
 
     for (final TeamEventDO event : events) {
       actionLog.incrementCounterSuccess();
-      final ImportedElement<TeamEventDO> element = new ImportedElement<TeamEventDO>(storage.nextVal(),
+      final MyImportedElement<TeamEventDO> element = new MyImportedElement<>(storage.nextVal(),
               TeamEventDO.class, DIFF_PROPERTIES);
       element.setValue(event);
       importedSheet.addElement(element);
@@ -151,10 +152,10 @@ public class TeamCalImportDao {
       if (dbEvent != null) {
         event.setId(dbEvent.getId());
         event.setTenant(dbEvent.getTenant());
-        if (el.isSelected() == true) {
+        if (el.getSelected() == true) {
           col.add(event);
         }
-      } else if (el.isSelected() == true) {
+      } else if (el.getSelected() == true) {
         col.add(event);
       }
     }

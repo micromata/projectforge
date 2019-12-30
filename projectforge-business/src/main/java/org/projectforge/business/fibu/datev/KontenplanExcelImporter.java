@@ -27,11 +27,11 @@ import de.micromata.merlin.excel.ExcelColumnNumberValidator;
 import de.micromata.merlin.excel.ExcelSheet;
 import de.micromata.merlin.excel.ExcelWorkbook;
 import de.micromata.merlin.excel.importer.ImportStorage;
-import de.micromata.merlin.excel.importer.ImportedElement;
 import de.micromata.merlin.excel.importer.ImportedSheet;
 import org.apache.poi.ss.usermodel.Row;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.framework.i18n.UserException;
+import org.projectforge.framework.persistence.utils.MyImportedElement;
 import org.projectforge.framework.utils.ActionLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +79,7 @@ public class KontenplanExcelImporter {
     int year = 0;
     while (it.hasNext()) {
       Row row = it.next();
-      final ImportedElement<KontoDO> element = new ImportedElement<>(storage.nextVal(), KontoDO.class,
+      final MyImportedElement<KontoDO> element = new MyImportedElement<>(storage.nextVal(), KontoDO.class,
               DatevImportDao.KONTO_DIFF_PROPERTIES);
       final KontoDO konto = new KontoDO();
       element.setValue(konto);
