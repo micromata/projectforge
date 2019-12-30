@@ -23,6 +23,7 @@
 
 package org.projectforge.web.core.importstorage;
 
+import de.micromata.merlin.excel.ExcelWorkbook;
 import de.micromata.merlin.excel.importer.ImportStorage;
 import de.micromata.merlin.excel.importer.ImportedSheet;
 import org.apache.commons.lang3.Validate;
@@ -30,21 +31,17 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.common.SupplierWithException;
 import org.projectforge.business.excel.ExcelImportException;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.utils.ActionLog;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
+import org.projectforge.web.wicket.DownloadUtils;
 
-public abstract class AbstractImportPage<F extends AbstractImportForm<?, ?, ?>> extends AbstractStandardFormPage
-{
+public abstract class AbstractImportPage<F extends AbstractImportForm<?, ?, ?>> extends AbstractStandardFormPage {
   private static final long serialVersionUID = -7206460665473795739L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractImportPage.class);
 
   protected F form;
 
-  protected final ActionLog actionLog = new ActionLog();
-
-  public AbstractImportPage(final PageParameters parameters)
-  {
+  public AbstractImportPage(final PageParameters parameters) {
     super(parameters);
   }
 
@@ -53,15 +50,13 @@ public abstract class AbstractImportPage<F extends AbstractImportForm<?, ?, ?>> 
    *
    * @return
    */
-  protected void clear()
-  {
+  protected void clear() {
     log.info("clear called");
     form.setStorage(null);
     removeUserPrefEntry(getStorageKey());
   }
 
-  protected ImportedSheet<?> reconcile(final String sheetName)
-  {
+  protected ImportedSheet<?> reconcile(final String sheetName) {
     if (form.getStorage() == null) {
       log.error("Reconcile called without storage.");
       return null;
@@ -69,13 +64,12 @@ public abstract class AbstractImportPage<F extends AbstractImportForm<?, ?, ?>> 
     final ImportedSheet<?> sheet = form.getStorage().getNamedSheet(sheetName);
     if (sheet == null) {
       log.error("Reconcile called without finding sheet: '"
-          + sheetName + "'.");
+              + sheetName + "'.");
     }
     return sheet;
   }
 
-  protected ImportedSheet<?> commit(final String sheetName)
-  {
+  protected ImportedSheet<?> commit(final String sheetName) {
     if (form.getStorage() == null) {
       log.error("Commit called without storage.");
       return null;
@@ -83,63 +77,71 @@ public abstract class AbstractImportPage<F extends AbstractImportForm<?, ?, ?>> 
     final ImportedSheet<?> sheet = form.getStorage().getNamedSheet(sheetName);
     if (sheet == null) {
       log.error("Commit called without finding sheet: '"
-          + sheetName + "'.");
+              + sheetName + "'.");
     }
     return sheet;
   }
 
-  protected void selectAll(final String sheetName)
-  {
+  protected void selectAll(final String sheetName) {
     final ImportedSheet<?> sheet = form.getStorage().getNamedSheet(sheetName);
     Validate.notNull(sheet);
     sheet.selectAll(true, "modified".equals(form.importFilter.getListType()));
   }
 
-  protected void select(final String sheetName, final int number)
-  {
+  protected void select(final String sheetName, final int number) {
     final ImportedSheet<?> sheet = form.getStorage().getNamedSheet(sheetName);
     Validate.notNull(sheet);
     sheet.select(true, "modified".equals(form.importFilter.getListType()), number);
   }
 
-  protected void deselectAll(final String sheetName)
-  {
+  protected void deselectAll(final String sheetName) {
     final ImportedSheet<?> sheet = form.getStorage().getNamedSheet(sheetName);
     Validate.notNull(sheet);
     sheet.selectAll(false, false);
   }
 
-  protected void showErrorSummary(final String sheetName)
-  {
+  protected void showErrorSummary(final String sheetName) {
     final ImportedSheet<?> sheet = form.getStorage().getNamedSheet(sheetName);
     Validate.notNull(sheet);
     form.setErrorProperties(sheet.getErrorProperties());
   }
 
-  public String getStorageKey()
-  {
+  protected void downloadErrorLog() {
+    DownloadUtils.setUTF8CharacterEncoding(getResponse());
+    DownloadUtils.setDownloadTarget(getStorage().getLogger().getErrorEventsAsString().getBytes(), "Fehlerprotokolldatei-Excelimport.txt");
+  }
+
+  protected void downloadInfoLog() {
+    DownloadUtils.setUTF8CharacterEncoding(getResponse());
+    DownloadUtils.setDownloadTarget(getStorage().getLogger().getEventsAsString().getBytes(), "Protokolldatei-Excelimport.txt");
+  }
+
+  protected void downloadValidatedExcel(final String sheetName) {
+    final ExcelWorkbook workbook = form.getStorage().getWorkbook();
+    workbook.setActiveSheet(sheetName);
+    DownloadUtils.setUTF8CharacterEncoding(getResponse());
+    DownloadUtils.setDownloadTarget(workbook.getAsByteArrayOutputStream().toByteArray(), workbook.getFilename());
+  }
+
+  public String getStorageKey() {
     return this.getClass() + ".importStorage";
   }
 
-  protected void setStorage(final ImportStorage<?> storage)
-  {
+  protected void setStorage(final ImportStorage<?> storage) {
     form.storagePanel.storage = storage;
     putUserPrefEntry(getStorageKey(), form.getStorage(), false);
   }
 
-  protected ImportStorage<?> getStorage()
-  {
+  protected ImportStorage<?> getStorage() {
     return form.getStorage();
   }
 
-  protected String translateParams(ExcelImportException ex)
-  {
+  protected String translateParams(ExcelImportException ex) {
     return getString("common.import.excel.error1") + " " + ex.getRow() + " " +
-        getString("common.import.excel.error2") + " \"" + ex.getColumnname() + "\"";
+            getString("common.import.excel.error2") + " \"" + ex.getColumnname() + "\"";
   }
 
-  protected <T, E extends Exception> T doImportWithExcelExceptionHandling(final SupplierWithException<T, E> importFunction)
-  {
+  protected <T, E extends Exception> T doImportWithExcelExceptionHandling(final SupplierWithException<T, E> importFunction) {
     try {
       return importFunction.get();
     } catch (final Exception ex) {

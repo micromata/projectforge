@@ -40,7 +40,6 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.framework.utils.ActionLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -116,14 +115,14 @@ public class DatevImportDao {
    * @return ImportStorage mit den gelesenen Daten.
    * @throws Exception
    */
-  public ImportStorage<KontoDO> importKontenplan(final InputStream is, final String filename, final ActionLog actionLog)
+  public ImportStorage<KontoDO> importKontenplan(final InputStream is, final String filename)
           throws Exception {
     checkLoggeinUserRight(accessChecker);
     log.info("importKontenplan called");
     final ImportStorage<KontoDO> storage = new ImportStorage<>(Type.KONTENPLAN);
     storage.setFilename(filename);
     final KontenplanExcelImporter imp = new KontenplanExcelImporter();
-    imp.doImport(storage, is, actionLog);
+    imp.doImport(storage, is);
     return storage;
   }
 
@@ -136,15 +135,13 @@ public class DatevImportDao {
    * @return ImportStorage mit den gelesenen Daten.
    * @throws Exception
    */
-  public ImportStorage<BuchungssatzDO> importBuchungsdaten(final InputStream is, final String filename,
-                                                           final ActionLog actionLog)
+  public ImportStorage<BuchungssatzDO> importBuchungsdaten(final InputStream is, final String filename)
           throws Exception {
     checkLoggeinUserRight(accessChecker);
     log.info("importBuchungsdaten called");
     final ImportStorage<BuchungssatzDO> storage = new ImportStorage<>(Type.BUCHUNGSSAETZE);
     storage.setFilename(filename);
-    final BuchungssatzExcelImporter imp = new BuchungssatzExcelImporter(storage, kontoDao, kost1Dao, kost2Dao,
-            actionLog);
+    final BuchungssatzExcelImporter imp = new BuchungssatzExcelImporter(storage, kontoDao, kost1Dao, kost2Dao);
     imp.doImport(is);
     return storage;
   }

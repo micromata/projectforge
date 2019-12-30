@@ -68,7 +68,7 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
   public void setEventsToImport(final List<VEvent> events)
   {
     checkAccess();
-    final ImportStorage<TeamEventDO> storage = teamCalImportDao.importEvents(events, actionLog);
+    final ImportStorage<TeamEventDO> storage = teamCalImportDao.importEvents(events);
     setStorage(storage);
   }
 
@@ -79,11 +79,10 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
     if (fileUpload != null) {
       try {
         final InputStream is = fileUpload.getInputStream();
-        actionLog.reset();
         final String clientFilename = fileUpload.getClientFileName();
         final CalendarBuilder builder = new CalendarBuilder();
         final Calendar calendar = builder.build(is);
-        final ImportStorage<TeamEventDO> storage = teamCalImportDao.importEvents(calendar, clientFilename, actionLog);
+        final ImportStorage<TeamEventDO> storage = teamCalImportDao.importEvents(calendar, clientFilename);
         setStorage(storage);
       } catch (final Exception ex) {
         log.error(ex.getMessage(), ex);
@@ -103,7 +102,7 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
     }
     @SuppressWarnings("unchecked")
     final ImportedSheet<TeamEventDO> sheet = (ImportedSheet<TeamEventDO>) getStorage().getNamedSheet(name);
-    if (sheet == null || sheet.isReconciled() == false) {
+    if (sheet == null || !sheet.isReconciled()) {
       return;
     }
     reconcile(teamCalImportDao.getSheetName());
