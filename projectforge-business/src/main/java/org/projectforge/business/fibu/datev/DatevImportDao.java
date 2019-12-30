@@ -24,7 +24,6 @@
 package org.projectforge.business.fibu.datev;
 
 import org.apache.commons.lang3.Validate;
-import org.projectforge.business.excel.ExcelImportException;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
 import org.projectforge.business.fibu.KostFormatter;
@@ -146,11 +145,7 @@ public class DatevImportDao {
     storage.setFilename(filename);
     final BuchungssatzExcelImporter imp = new BuchungssatzExcelImporter(storage, kontoDao, kost1Dao, kost2Dao,
             actionLog);
-    try {
-      imp.doImport(is);
-    } catch (final ExcelImportException ex) {
-      throw new UserException("common.import.excel.error", ex.getMessage(), ex.getRow(), ex.getColumnname());
-    }
+    imp.doImport(is);
     return storage;
   }
 
@@ -160,7 +155,7 @@ public class DatevImportDao {
    * muss der FINANCE_GROUP angehören, um diese Funktionalität ausführen zu können.
    *
    * @param storage
-   * @param sheetName    of sheet to reconcile.
+   * @param sheetName of sheet to reconcile.
    */
   @SuppressWarnings("unchecked")
   public void reconcile(final ImportStorage<?> storage, final String sheetName) {

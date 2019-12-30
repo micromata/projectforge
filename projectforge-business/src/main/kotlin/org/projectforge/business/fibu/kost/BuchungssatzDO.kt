@@ -48,9 +48,6 @@ import javax.persistence.*
         NamedQuery(name = BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
                 query = "from BuchungssatzDO where year=:year and month=:month and satznr=:satznr"))
 open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
-
-    private val log = LoggerFactory.getLogger(BuchungssatzDO::class.java)
-
     /**
      * Jahr zu der die Buchung gehört.
      *
@@ -178,10 +175,12 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
      * Führt nach der Datev-/Steffi-Logik Betrachtungen durch, ob dieser Datensatz berücksichtigt werden muss bzw. ob die
      * Betrag im Haben oder im Soll anzuwenden ist.
      */
-    fun calculate() {
+    @JvmOverloads
+    fun calculate(suppressWarning: Boolean = false) {
         if (konto == null || kost2 == null) {
-            log.warn(
-                    "Can't calculate Buchungssatz, because konto or kost2 is not given (for import it will be detected, OK): $this")
+            if (!suppressWarning)
+                log.warn(
+                        "Can't calculate Buchungssatz, because konto or kost2 is not given (for import it will be detected, OK): $this")
             return
         }
         val kto = konto!!.nummer!!
@@ -230,6 +229,8 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     }
 
     companion object {
+        private val log = LoggerFactory.getLogger(BuchungssatzDO::class.java)
+
         internal const val FIND_BY_YEAR_MONTH_SATZNR = "BuchungssatzDO_FindByYearMonthSatznr"
     }
 }
