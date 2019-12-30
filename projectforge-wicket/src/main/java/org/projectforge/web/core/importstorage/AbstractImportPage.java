@@ -23,13 +23,13 @@
 
 package org.projectforge.web.core.importstorage;
 
+import de.micromata.merlin.excel.importer.ImportStorage;
+import de.micromata.merlin.excel.importer.ImportedSheet;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.common.SupplierWithException;
 import org.projectforge.business.excel.ExcelImportException;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.utils.ImportStorage;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.framework.utils.ActionLog;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 

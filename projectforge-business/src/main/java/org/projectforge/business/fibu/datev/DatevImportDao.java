@@ -23,6 +23,10 @@
 
 package org.projectforge.business.fibu.datev;
 
+import de.micromata.merlin.excel.importer.ImportStatus;
+import de.micromata.merlin.excel.importer.ImportStorage;
+import de.micromata.merlin.excel.importer.ImportedElement;
+import de.micromata.merlin.excel.importer.ImportedSheet;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
@@ -36,18 +40,12 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.framework.persistence.utils.ImportStatus;
-import org.projectforge.framework.persistence.utils.ImportStorage;
-import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.framework.utils.ActionLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -222,29 +220,17 @@ public class DatevImportDao {
     log.info("Commit Kontenplan called");
     final Collection<KontoDO> col = new ArrayList<>();
     for (final ImportedElement<KontoDO> el : sheet.getElements()) {
-      final KontoDO konto = el.getValue();
-      final KontoDO dbKonto = kontoDao.getKonto(konto.getNummer());
-      if (dbKonto != null) {
-        konto.setId(dbKonto.getId());
-        if (el.isSelected()) {
-          col.add(konto);
-        }
-      } else if (el.isSelected()) {
-        col.add(konto);
+      if (!el.isSelected()) {
+        continue;
       }
+      final KontoDO konto = el.getValue();
+      if (el.getOldValue() != null) {
+        konto.setId(el.getOldValue().getId());
+      }
+      col.add(konto);
     }
     kontoDao.internalSaveOrUpdate(col, KONTO_INSERT_BLOCK_SIZE);
     return col.size();
-  }
-
-  private Object get(final Class<?> clazz, final Integer id) {
-    if (id == null) {
-      return null;
-    }
-    return emgrFactory.runRoTrans(emgr -> {
-      EntityManager em = emgr.getEntityManager();
-      return em.find(clazz, id, LockModeType.READ);
-    });
   }
 
   private int commitBuchungsdaten(final ImportedSheet<BuchungssatzDO> sheet) {

@@ -23,6 +23,10 @@
 
 package org.projectforge.web.teamcal.event.importics;
 
+import de.micromata.merlin.excel.importer.ImportStatus;
+import de.micromata.merlin.excel.importer.ImportStorage;
+import de.micromata.merlin.excel.importer.ImportedElement;
+import de.micromata.merlin.excel.importer.ImportedSheet;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.component.VEvent;
 import org.apache.commons.lang3.Validate;
@@ -32,10 +36,6 @@ import org.projectforge.business.teamcal.event.ical.ICalParser;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.utils.ImportStatus;
-import org.projectforge.framework.persistence.utils.ImportStorage;
-import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.framework.utils.ActionLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;

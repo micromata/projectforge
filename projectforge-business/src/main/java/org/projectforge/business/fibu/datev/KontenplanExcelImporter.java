@@ -23,81 +23,70 @@
 
 package org.projectforge.business.fibu.datev;
 
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.projectforge.business.excel.ExcelImport;
+import de.micromata.merlin.excel.ExcelColumnNumberValidator;
+import de.micromata.merlin.excel.ExcelSheet;
+import de.micromata.merlin.excel.ExcelWorkbook;
+import de.micromata.merlin.excel.importer.ImportStorage;
+import de.micromata.merlin.excel.importer.ImportedElement;
+import de.micromata.merlin.excel.importer.ImportedSheet;
+import org.apache.poi.ss.usermodel.Row;
 import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.framework.persistence.utils.ImportStorage;
-import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
+import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.utils.ActionLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Iterator;
 
-public class KontenplanExcelImporter
-{
+public class KontenplanExcelImporter {
   public static final String NAME_OF_EXCEL_SHEET = "Kontenplan";
 
   private static final Logger log = LoggerFactory.getLogger(KontenplanExcelImporter.class);
 
-  /**
-   * In dieser Zeile stehen die Überschriften der Spalten für die Konten.
-   */
-  public static final int ROW_COLUMNNAMES = 1;
-
-  public void doImport(final ImportStorage<KontoDO> storage, final InputStream is, final ActionLog actionLog) throws Exception
-  {
-    final ExcelImport<KontenplanExcelRow> imp = new ExcelImport<>(is);
-    for (short idx = 0; idx < imp.getWorkbook().getNumberOfSheets(); idx++) {
-      imp.setActiveSheet(idx);
-      final String name = imp.getWorkbook().getSheetName(idx);
-      if (NAME_OF_EXCEL_SHEET.equals(name)) {
-        imp.setActiveSheet(idx);
-        final HSSFSheet sheet = imp.getWorkbook().getSheetAt(idx);
-        importKontenplan(storage, imp, sheet, actionLog);
-        return;
-      }
+  public void doImport(final ImportStorage<KontoDO> storage, final InputStream is, final ActionLog actionLog) {
+    final ExcelWorkbook workbook = new ExcelWorkbook(is, storage.getFilename());
+    final ExcelSheet sheet = workbook.getSheet(NAME_OF_EXCEL_SHEET);
+    if (sheet == null) {
+      log.error("Oups, no sheet named '" + NAME_OF_EXCEL_SHEET + "' found.");
+      String msg = "Konten können nicht importiert werden: Blatt '" + NAME_OF_EXCEL_SHEET + "' nicht gefunden.";
+      actionLog.logError(msg);
+      throw new UserException(msg);
     }
-    log.error("Oups, no sheet named 'Kontenplan' found.");
+    importKontenplan(storage, sheet, actionLog);
   }
 
-  private void importKontenplan(final ImportStorage<KontoDO> storage, final ExcelImport<KontenplanExcelRow> imp, final HSSFSheet sheet,
-      final ActionLog actionLog) throws Exception
-  {
+  private void importKontenplan(final ImportStorage<KontoDO> storage, final ExcelSheet sheet,
+                                final ActionLog actionLog) {
+    sheet.setAutotrimCellValues(true);
+    actionLog.logInfo("Importing sheet '" + NAME_OF_EXCEL_SHEET + "'.");
+    sheet.registerColumn("Konto", "Konto von").addColumnListener(new ExcelColumnNumberValidator(1.0).setRequired());
+    sheet.registerColumn("Bezeichnung", "Beschriftung").addColumnListener(new ExcelColumnNumberValidator(1.0).setRequired());
+
+    sheet.analyze(true);
+    if (sheet.getHeadRow() == null) {
+      String msg = "Ignoring sheet '" + NAME_OF_EXCEL_SHEET + "' for importing Buchungssätze, no valid head row found.";
+      log.info(msg);
+      actionLog.logInfo(msg);
+      return;
+    }
+
     final ImportedSheet<KontoDO> importedSheet = new ImportedSheet<>();
     storage.addSheet(importedSheet);
     importedSheet.setName(NAME_OF_EXCEL_SHEET);
-    imp.setNameRowIndex(ROW_COLUMNNAMES);
-    imp.setStartingRowIndex(ROW_COLUMNNAMES + 1);
-    imp.setRowClass(KontenplanExcelRow.class);
 
-    final Map<String, String> map = new HashMap<>();
-    map.put("Konto", "konto");
-    map.put("Bezeichnung", "bezeichnung");
-    map.put("Beschriftung", "bezeichnung");
-    imp.setColumnMapping(map);
-
-    KontenplanExcelRow[] rows = new KontenplanExcelRow[0];
-    rows = imp.convertToRows(KontenplanExcelRow.class);
-    for (KontenplanExcelRow row : rows) {
-      actionLog.incrementCounterSuccess();
-      final KontoDO konto = convertKonto(row);
+    Iterator<Row> it = sheet.getDataRowIterator();
+    int year = 0;
+    while (it.hasNext()) {
+      Row row = it.next();
       final ImportedElement<KontoDO> element = new ImportedElement<>(storage.nextVal(), KontoDO.class,
-          DatevImportDao.KONTO_DIFF_PROPERTIES);
+              DatevImportDao.KONTO_DIFF_PROPERTIES);
+      final KontoDO konto = new KontoDO();
       element.setValue(konto);
+      konto.setNummer(sheet.getCellInt(row, "Konto"));
+      konto.setBezeichnung(sheet.getCellString(row, "Bezeichnung"));
       importedSheet.addElement(element);
       log.debug(konto.toString());
     }
-  }
-
-  private KontoDO convertKonto(final KontenplanExcelRow row) throws Exception
-  {
-    final KontoDO konto = new KontoDO();
-    konto.setNummer(row.konto);
-    konto.setBezeichnung(row.bezeichnung);
-    return konto;
   }
 }

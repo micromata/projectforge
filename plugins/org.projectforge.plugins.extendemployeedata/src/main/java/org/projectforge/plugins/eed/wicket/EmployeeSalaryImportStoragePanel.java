@@ -24,12 +24,12 @@
 package org.projectforge.plugins.eed.wicket;
 
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import de.micromata.merlin.excel.importer.ImportedElement;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
-import org.projectforge.framework.persistence.utils.ImportedElement;
 import org.projectforge.web.core.importstorage.AbstractImportStoragePanel;
 import org.projectforge.web.core.importstorage.ImportFilter;
 

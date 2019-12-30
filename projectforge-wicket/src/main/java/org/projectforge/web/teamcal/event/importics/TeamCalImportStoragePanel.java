@@ -23,27 +23,24 @@
 
 package org.projectforge.web.teamcal.event.importics;
 
+import de.micromata.merlin.excel.importer.ImportedElement;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.framework.persistence.utils.ImportedElement;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.core.importstorage.AbstractImportStoragePanel;
 import org.projectforge.web.core.importstorage.ImportFilter;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
-public class TeamCalImportStoragePanel extends AbstractImportStoragePanel<TeamCalImportPage>
-{
+public class TeamCalImportStoragePanel extends AbstractImportStoragePanel<TeamCalImportPage> {
   private static final long serialVersionUID = -2102550089275871727L;
 
   /**
    * @param id
    */
-  public TeamCalImportStoragePanel(final String id, final TeamCalImportPage parentPage, final ImportFilter filter)
-  {
+  public TeamCalImportStoragePanel(final String id, final TeamCalImportPage parentPage, final ImportFilter filter) {
     super(id, parentPage, filter);
   }
 
@@ -51,8 +48,7 @@ public class TeamCalImportStoragePanel extends AbstractImportStoragePanel<TeamCa
    * @see org.projectforge.web.core.importstorage.AbstractImportStoragePanel#addHeadColumns(org.apache.wicket.markup.repeater.RepeatingView)
    */
   @Override
-  protected void addHeadColumns(final RepeatingView headColRepeater)
-  {
+  protected void addHeadColumns(final RepeatingView headColRepeater) {
     headColRepeater.add(new Label(headColRepeater.newChildId(), getString("plugins.teamcal.event.subject")));
     headColRepeater.add(new Label(headColRepeater.newChildId(), getString("plugins.teamcal.event.location")));
     headColRepeater.add(new Label(headColRepeater.newChildId(), getString("plugins.teamcal.event.allDay")));
@@ -65,11 +61,10 @@ public class TeamCalImportStoragePanel extends AbstractImportStoragePanel<TeamCa
 
   /**
    * @see org.projectforge.web.core.importstorage.AbstractImportStoragePanel#addColumns(org.apache.wicket.markup.repeater.RepeatingView,
-   *      org.projectforge.framework.persistence.utils.ImportedElement)
+   * ImportedElement)
    */
   @Override
-  protected void addColumns(final RepeatingView cellRepeater, final ImportedElement<?> element, final String style)
-  {
+  protected void addColumns(final RepeatingView cellRepeater, final ImportedElement<?> element, final String style) {
     final TeamEventDO event = (TeamEventDO) element.getValue();
     addCell(cellRepeater, event.getSubject(), style);
     addCell(cellRepeater, event.getLocation(), style);
