@@ -213,7 +213,7 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @param user
    * @return
    */
-  BigDecimal getOpenLeaveApplicationsForUser(PFUserDO user);
+  int getOpenLeaveApplicationsForUser(PFUserDO user);
 
   /**
    * Returns number of special vacations for an employee
