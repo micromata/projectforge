@@ -557,10 +557,10 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public BigDecimal getOpenLeaveApplicationsForUser(final PFUserDO user) {
+  public int getOpenLeaveApplicationsForUser(final PFUserDO user) {
     final EmployeeDO employee = employeeService.getEmployeeByUserId(user.getId());
     if (employee == null) {
-      return BigDecimal.ZERO;
+      return 0;
     }
     return vacationDao.getOpenLeaveApplicationsForEmployee(employee);
   }

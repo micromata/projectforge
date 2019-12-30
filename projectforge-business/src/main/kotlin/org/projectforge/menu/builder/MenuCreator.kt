@@ -38,6 +38,7 @@ import org.projectforge.business.orga.PosteingangDao
 import org.projectforge.business.orga.VisitorbookDao
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightValue
+import org.projectforge.business.vacation.service.VacationMenuCounterCache
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
@@ -79,6 +80,9 @@ class MenuCreator {
 
     @Autowired
     private lateinit var vacationService: VacationService
+
+    @Autowired
+    private lateinit var vacationMenuCounterCache: VacationMenuCounterCache
 
     @Autowired
     private lateinit var auftragDao: AuftragDao
@@ -184,7 +188,7 @@ class MenuCreator {
                 .add(MenuItemDef(MenuItemDefId.CALENDAR, "${REACT_PREFIX}calendar"))
                 .add(MenuItemDef(MenuItemDefId.TEAMCALENDAR, "wa/wicket/bookmarkable/org.projectforge.web.teamcal.admin.TeamCalListPage")) // teamCal
                 .add(MenuItemDef(MenuItemDefId.VACATION, "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationListPage",
-                        badgeCounter = { vacationService.getOpenLeaveApplicationsForUser(ThreadLocalUserContext.getUser()).toInt() }))
+                        badgeCounter = { vacationMenuCounterCache.getOpenLeaveApplicationsForUser(ThreadLocalUserContext.getUser()) }))
                 .add(MenuItemDef(MenuItemDefId.BOOK_LIST, "${REACT_PREFIX}book"))
                 .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST, "${REACT_PREFIX}addressBook"))
                 .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST, "${REACT_PREFIX}address"))
