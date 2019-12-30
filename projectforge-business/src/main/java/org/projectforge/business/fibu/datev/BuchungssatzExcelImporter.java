@@ -24,14 +24,14 @@
 package org.projectforge.business.fibu.datev;
 
 import de.micromata.merlin.excel.*;
+import de.micromata.merlin.excel.importer.ImportStorage;
+import de.micromata.merlin.excel.importer.ImportedElement;
+import de.micromata.merlin.excel.importer.ImportedSheet;
 import org.apache.poi.ss.usermodel.Row;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.*;
-import org.projectforge.framework.persistence.utils.ImportStorage;
-import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.ActionLog;
 import org.slf4j.Logger;
@@ -117,7 +117,9 @@ public class BuchungssatzExcelImporter {
     sheet.registerColumn("Kommentar", "Bemerkung");
     sheet.analyze(true);
     if (sheet.getHeadRow() == null) {
-      log.info("Ignoring sheet '" + name + "' for importing Buchungssätze, no valid head row found.");
+      String msg = "Ignoring sheet '" + name + "' for importing Buchungssätze, no valid head row found.";
+      log.info(msg);
+      actionLog.logInfo(msg);
       return null;
     }
     importedSheet = importBuchungssaetze(sheet, month);
@@ -126,7 +128,6 @@ public class BuchungssatzExcelImporter {
 
   /**
    * @param month 1-January, ..., 12-December
-   * @throws Exception
    */
   private ImportedSheet<BuchungssatzDO> importBuchungssaetze(final ExcelSheet sheet, final Integer month) {
     final ImportedSheet<BuchungssatzDO> importedSheet = new ImportedSheet<>();

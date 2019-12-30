@@ -23,11 +23,12 @@
 
 package org.projectforge.web.fibu;
 
+import de.micromata.merlin.excel.importer.ImportedElement;
+import de.micromata.merlin.excel.importer.ImportedSheet;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.datev.DatevImportDao;
@@ -36,18 +37,15 @@ import org.projectforge.business.fibu.kost.BusinessAssessment;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.utils.CurrencyFormatter;
-import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.core.importstorage.AbstractImportStoragePanel;
 import org.projectforge.web.core.importstorage.ImportFilter;
+import org.projectforge.web.wicket.WicketUtils;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class DatevImportStoragePanel extends AbstractImportStoragePanel<DatevImportPage>
-{
+public class DatevImportStoragePanel extends AbstractImportStoragePanel<DatevImportPage> {
   private static final long serialVersionUID = -5732520730823126042L;
 
   private Label businessAssessmentLabel;
@@ -57,14 +55,12 @@ public class DatevImportStoragePanel extends AbstractImportStoragePanel<DatevImp
   /**
    * @param id
    */
-  public DatevImportStoragePanel(final String id, final DatevImportPage parentPage, final ImportFilter filter)
-  {
+  public DatevImportStoragePanel(final String id, final DatevImportPage parentPage, final ImportFilter filter) {
     super(id, parentPage, filter);
   }
 
   @Override
-  public void refresh()
-  {
+  public void refresh() {
     super.refresh();
     if (businessAssessmentLabel != null) {
       remove(businessAssessmentLabel);
@@ -73,13 +69,11 @@ public class DatevImportStoragePanel extends AbstractImportStoragePanel<DatevImp
 
   @SuppressWarnings("serial")
   @Override
-  protected void appendSheetActionLinks(final ImportedSheet< ? > sheet, final RepeatingView actionLinkRepeater)
-  {
+  protected void appendSheetActionLinks(final ImportedSheet<?> sheet, final RepeatingView actionLinkRepeater) {
     if (getStorageType() == DatevImportDao.Type.BUCHUNGSSAETZE) {
       addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
         @Override
-        public void onSubmit()
-        {
+        public void onSubmit() {
           parentPage.showBusinessAssessment(sheet.getName());
         }
       }, "show business assessment");
@@ -90,8 +84,7 @@ public class DatevImportStoragePanel extends AbstractImportStoragePanel<DatevImp
    * @see org.projectforge.web.core.importstorage.AbstractImportStoragePanel#addHeadColumns(org.apache.wicket.markup.repeater.RepeatingView)
    */
   @Override
-  protected void addHeadColumns(final RepeatingView headColRepeater)
-  {
+  protected void addHeadColumns(final RepeatingView headColRepeater) {
     if (getStorageType() == DatevImportDao.Type.KONTENPLAN) {
       headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.konto.nummer")));
       headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.konto.bezeichnung")));
@@ -109,11 +102,10 @@ public class DatevImportStoragePanel extends AbstractImportStoragePanel<DatevImp
 
   /**
    * @see org.projectforge.web.core.importstorage.AbstractImportStoragePanel#addColumns(org.apache.wicket.markup.repeater.RepeatingView,
-   *      org.projectforge.framework.persistence.utils.ImportedElement)
+   * org.projectforge.framework.persistence.utils.ImportedElement)
    */
   @Override
-  protected void addColumns(final RepeatingView cellRepeater, final ImportedElement< ? > element, final String style)
-  {
+  protected void addColumns(final RepeatingView cellRepeater, final ImportedElement<?> element, final String style) {
     if (getStorageType() == DatevImportDao.Type.KONTENPLAN) {
       final KontoDO konto = (KontoDO) element.getValue();
       addCell(cellRepeater, konto.getNummer(), style + " white-space: nowrap; text-align: right;");
@@ -139,8 +131,7 @@ public class DatevImportStoragePanel extends AbstractImportStoragePanel<DatevImp
     }
   }
 
-  private DatevImportDao.Type getStorageType()
-  {
+  private DatevImportDao.Type getStorageType() {
     if (storage == null) {
       return null;
     } else {

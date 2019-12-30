@@ -26,12 +26,12 @@ package org.projectforge.web.core.importstorage;
 import java.util.Map;
 import java.util.Set;
 
+import de.micromata.merlin.excel.importer.ImportStorage;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.lang.Bytes;
-import org.projectforge.framework.persistence.utils.ImportStorage;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.components.SingleButtonPanel;

@@ -23,10 +23,11 @@
 
 package org.projectforge.web.core.importstorage;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import de.micromata.merlin.excel.importer.ImportStatus;
+import de.micromata.merlin.excel.importer.ImportStorage;
+import de.micromata.merlin.excel.importer.ImportedElement;
+import de.micromata.merlin.excel.importer.ImportedSheet;
+import de.micromata.merlin.importer.PropertyDelta;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -46,10 +47,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.persistence.utils.ImportStatus;
-import org.projectforge.framework.persistence.utils.ImportStorage;
-import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.web.dialog.ModalQuestionDialog;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.PlainLabel;
@@ -58,7 +55,9 @@ import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 import org.springframework.util.CollectionUtils;
 
-import de.micromata.hibernate.history.delta.PropertyDelta;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -376,8 +375,8 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
         boolean first = true;
         // TODO HISTORY
         for (final PropertyDelta delta : element.getPropertyChanges()) {
-          StringHelper.append(buf, first, delta.getPropertyName(), "; ");
-          first = StringHelper.append(oldValue, first, delta.getPropertyName(), "; ");
+          StringHelper.append(buf, first, delta.getProperty(), "; ");
+          first = StringHelper.append(oldValue, first, delta.getProperty(), "; ");
           buf.append("=").append(delta.getNewValue());
           oldValue.append("=").append(delta.getOldValue());
         }

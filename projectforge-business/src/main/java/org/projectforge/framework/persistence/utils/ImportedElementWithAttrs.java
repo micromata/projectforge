@@ -26,7 +26,8 @@ package org.projectforge.framework.persistence.utils;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
-import de.micromata.hibernate.history.delta.PropertyDelta;
+import de.micromata.merlin.excel.importer.ImportedElement;
+import de.micromata.merlin.importer.PropertyDelta;
 import org.projectforge.export.AttrColumnDescription;
 
 import java.io.Serializable;
