@@ -26,8 +26,10 @@ package org.projectforge.business.fibu.datev;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
-import org.projectforge.business.fibu.KostFormatter;
-import org.projectforge.business.fibu.kost.*;
+import org.projectforge.business.fibu.kost.BuchungssatzDO;
+import org.projectforge.business.fibu.kost.BuchungssatzDao;
+import org.projectforge.business.fibu.kost.Kost1Dao;
+import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
@@ -180,13 +182,12 @@ public class DatevImportDao {
     if (sheet.getStatus() != ImportStatus.RECONCILED) {
       throw new UserException("common.import.action.commit.error.notReconciled");
     }
-    int no = emgrFactory.runInTrans(emgr -> {
-      if (storage.getId() == Type.KONTENPLAN) {
-        return commitKontenplan((ImportedSheet<KontoDO>) sheet);
-      } else {
-        return commitBuchungsdaten((ImportedSheet<BuchungssatzDO>) sheet);
-      }
-    });
+    int no = 0;
+    if (storage.getId() == Type.KONTENPLAN) {
+      no = commitKontenplan((ImportedSheet<KontoDO>) sheet);
+    } else {
+      no = commitBuchungsdaten((ImportedSheet<BuchungssatzDO>) sheet);
+    }
     sheet.setNumberOfCommittedElements(no);
     sheet.setStatus(ImportStatus.IMPORTED);
   }
@@ -208,26 +209,6 @@ public class DatevImportDao {
     log.info("Reconcile Buchungsdaten called");
     for (final ImportedElement<BuchungssatzDO> el : sheet.getElements()) {
       final BuchungssatzDO satz = el.getValue();
-      if (el.isFaulty()) {
-        String kost = (String) el.getErrorProperty("kost1");
-        if (kost != null) {
-          final int[] vals = KostFormatter.splitKost(kost);
-          final Kost1DO kost1 = kost1Dao.getKost1(vals[0], vals[1], vals[2], vals[3]);
-          if (kost1 != null) {
-            satz.setKost1(kost1);
-            el.removeErrorProperty("kost1");
-          }
-        }
-        kost = (String) el.getErrorProperty("kost2");
-        if (kost != null) {
-          final int[] vals = KostFormatter.splitKost(kost);
-          final Kost2DO kost2 = kost2Dao.getKost2(vals[0], vals[1], vals[2], vals[3]);
-          if (kost2 != null) {
-            satz.setKost2(kost2);
-            el.removeErrorProperty("kost2");
-          }
-        }
-      }
       final BuchungssatzDO dbSatz = buchungssatzDao.getBuchungssatz(satz.getYear(), satz.getMonth(), satz.getSatznr());
       if (dbSatz != null) {
         el.setOldValue(dbSatz);
@@ -252,7 +233,7 @@ public class DatevImportDao {
         col.add(konto);
       }
     }
-    kontoDao.internalSaveOrUpdate(kontoDao, col, KONTO_INSERT_BLOCK_SIZE);
+    kontoDao.internalSaveOrUpdate(col, KONTO_INSERT_BLOCK_SIZE);
     return col.size();
   }
 
@@ -270,28 +251,16 @@ public class DatevImportDao {
     log.info("Commit Buchungsdaten called");
     final Collection<BuchungssatzDO> col = new ArrayList<>();
     for (final ImportedElement<BuchungssatzDO> el : sheet.getElements()) {
+      if (!el.isSelected()) {
+        continue;
+      }
       final BuchungssatzDO satz = el.getValue();
-      final BuchungssatzDO dbSatz = buchungssatzDao.getBuchungssatz(satz.getYear(), satz.getMonth(), satz.getSatznr());
-      boolean addSatz = false;
-      if (dbSatz != null) {
-        satz.setId(dbSatz.getId());
-        if (el.isSelected()) {
-          addSatz = true;
-        }
-      } else if (el.isSelected()) {
-        addSatz = true;
+      if (el.getOldValue() != null) {
+        satz.setId(el.getOldValue().getId());
       }
-      if (addSatz) {
-        final BuchungssatzDO newSatz = new BuchungssatzDO();
-        newSatz.copyValuesFrom(satz, "konto", "gegenKonto", "kost1", "kost2");
-        newSatz.setKonto((KontoDO) get(KontoDO.class, satz.getKontoId()));
-        newSatz.setGegenKonto((KontoDO) get(KontoDO.class, satz.getGegenKontoId()));
-        newSatz.setKost1((Kost1DO) get(Kost1DO.class, satz.getKost1Id()));
-        newSatz.setKost2((Kost2DO) get(Kost2DO.class, satz.getKost2Id()));
-        col.add(newSatz);
-      }
+      col.add(satz);
     }
-    buchungssatzDao.internalSaveOrUpdate(buchungssatzDao, col, BUCHUNGSSATZ_INSERT_BLOCK_SIZE);
+    buchungssatzDao.internalSaveOrUpdate(col, BUCHUNGSSATZ_INSERT_BLOCK_SIZE);
     return col.size();
   }
 

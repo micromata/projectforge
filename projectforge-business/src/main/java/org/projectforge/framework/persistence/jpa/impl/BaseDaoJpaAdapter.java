@@ -49,6 +49,7 @@ import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO;
 import org.projectforge.framework.persistence.hibernate.HibernateCompatUtils;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
+import org.projectforge.framework.persistence.jpa.PfEmgr;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DayHolder;
 import org.slf4j.Logger;
@@ -73,11 +74,14 @@ public class BaseDaoJpaAdapter {
   public static void prepareInsert(ExtendedBaseDO<?> dbObj) {
     PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
     emf.runInTrans((emgr) -> {
-      EmgrInitForInsertEvent nev = new EmgrInitForInsertEvent(emgr, dbObj);
-      new InitCreatedStdRecordFieldsEventHandler().onEvent(nev);
+      prepareInsert(emgr, dbObj);
       return null;
     });
+  }
 
+  public static void prepareInsert(PfEmgr emgr, ExtendedBaseDO<?> dbObj) {
+    EmgrInitForInsertEvent nev = new EmgrInitForInsertEvent(emgr, dbObj);
+    new InitCreatedStdRecordFieldsEventHandler().onEvent(nev);
   }
 
   public static void inserted(ExtendedBaseDO<?> dbObj) {
@@ -95,11 +99,14 @@ public class BaseDaoJpaAdapter {
   public static void prepareUpdate(ExtendedBaseDO<?> dbObj) {
     PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
     emf.runInTrans((emgr) -> {
-      EmgrInitForUpdateEvent nev = new EmgrInitForUpdateEvent(emgr, dbObj);
-      new InitUpdateStdRecordFieldsEventHandler().onEvent(nev);
-
+      prepareUpdate(emgr, dbObj);
       return null;
     });
+  }
+
+  public static void prepareUpdate(PfEmgr emgr, ExtendedBaseDO<?> dbObj) {
+    EmgrInitForUpdateEvent nev = new EmgrInitForUpdateEvent(emgr, dbObj);
+    new InitUpdateStdRecordFieldsEventHandler().onEvent(nev);
   }
 
   public static void updated(ExtendedBaseDO<?> dbObj, ExtendedBaseDO<?> obj) {

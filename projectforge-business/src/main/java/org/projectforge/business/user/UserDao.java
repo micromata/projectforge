@@ -488,7 +488,7 @@ public class UserDao extends BaseDao<PFUserDO> {
     final PFUserDO dbUser = em.getReference(clazz, user.getId());
     final String[] ignoreFields = {"deleted", "password", "lastLogin", "loginFailures", "username", "stayLoggedInKey",
             "authenticationToken", "rights"};
-    final ModificationStatus result = HistoryBaseDaoAdapter.wrappHistoryUpdate(dbUser,
+    final ModificationStatus result = HistoryBaseDaoAdapter.wrapHistoryUpdate(dbUser,
             () -> copyValues(user, dbUser, ignoreFields));
     if (result != ModificationStatus.NONE) {
       dbUser.setLastUpdate();

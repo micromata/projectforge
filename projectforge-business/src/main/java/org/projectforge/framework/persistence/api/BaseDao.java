@@ -639,42 +639,37 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public void saveOrUpdate(final BaseDao<O> currentProxy, final Collection<O> col, final int blockSize) {
+  public void saveOrUpdate(final Collection<O> col, final int blockSize) {
     final List<O> list = new ArrayList<>();
     int counter = 0;
-    // final BaseDao<O> currentProxy = (BaseDao<O>) AopContext.currentProxy();
     for (final O obj : col) {
       list.add(obj);
       if (++counter >= blockSize) {
         counter = 0;
-        currentProxy.saveOrUpdate(list);
+        saveOrUpdate(list);
         list.clear();
       }
     }
-    currentProxy.saveOrUpdate(list);
+    saveOrUpdate(list);
   }
 
+  /**
+   * Bulk update.
+   * @param col Entries to save or update without check access.
+   */
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void internalSaveOrUpdate(final Collection<O> col) {
-    for (final O obj : col) {
-      internalSaveOrUpdate(obj);
-    }
+    BaseDaoSupport.internalSaveOrUpdate(this, col);
   }
 
+  /**
+   * Bulk update.
+   * @param col Entries to save or update without check access.
+   * @param blockSize The block size of commit blocks.
+   */
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public void internalSaveOrUpdate(final BaseDao<O> currentProxy, final Collection<O> col, final int blockSize) {
-    final List<O> list = new ArrayList<>();
-    int counter = 0;
-    // final BaseDao<O> currentProxy = (BaseDao<O>) AopContext.currentProxy();
-    for (final O obj : col) {
-      list.add(obj);
-      if (++counter >= blockSize) {
-        counter = 0;
-        currentProxy.internalSaveOrUpdate(list);
-        list.clear();
-      }
-    }
-    currentProxy.internalSaveOrUpdate(list);
+  public void internalSaveOrUpdate(final Collection<O> col, final int blockSize) {
+    BaseDaoSupport.internalSaveOrUpdate(this, col, blockSize);
   }
 
   /**

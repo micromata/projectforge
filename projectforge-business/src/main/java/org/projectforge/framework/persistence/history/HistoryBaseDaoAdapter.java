@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
+import org.projectforge.framework.persistence.jpa.PfEmgr;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,14 +56,12 @@ import java.util.stream.Collectors;
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-public class HistoryBaseDaoAdapter
-{
+public class HistoryBaseDaoAdapter {
   private static final Logger log = LoggerFactory.getLogger(HistoryBaseDaoAdapter.class);
 
-  private static final HistoryEntry[] HISTORY_ARR_TEMPL = new HistoryEntry[] {};
+  private static final HistoryEntry[] HISTORY_ARR_TEMPL = new HistoryEntry[]{};
 
-  public static HistoryEntry[] getHistoryFor(BaseDO<?> obj)
-  {
+  public static HistoryEntry[] getHistoryFor(BaseDO<?> obj) {
     //long begin = System.currentTimeMillis();
     HistoryEntry[] result = getHistoryEntries(obj).toArray(HISTORY_ARR_TEMPL);
     //long end = System.currentTimeMillis();
@@ -70,33 +69,30 @@ public class HistoryBaseDaoAdapter
     return result;
   }
 
-  public static List<? extends HistoryEntry> getHistoryEntries(BaseDO<?> ob)
-  {
+  public static List<? extends HistoryEntry> getHistoryEntries(BaseDO<?> ob) {
     //long begin = System.currentTimeMillis();
     HistoryService histservice = HistoryServiceManager.get().getHistoryService();
     PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
-    List<? extends HistoryEntry> ret = emf.runInTrans((emgr) -> {
+    List<? extends HistoryEntry> ret = emf.runRoTrans((emgr) -> {
       return histservice.getHistoryEntries(emgr, ob);
     });
     List<? extends HistoryEntry> nret = ret.stream()
-        .sorted((e1, e2) -> e2.getModifiedAt().compareTo(e1.getModifiedAt())).collect(Collectors.toList());
+            .sorted((e1, e2) -> e2.getModifiedAt().compareTo(e1.getModifiedAt())).collect(Collectors.toList());
     //long end = System.currentTimeMillis();
     //log.info("HistoryBaseDaoAdapter.getHistoryEntries took: " + (end - begin) + " ms.");
     return nret;
   }
 
-  public static PropertyDelta diffEntryToPropertyDelta(DiffEntry de)
-  {
+  public static PropertyDelta diffEntryToPropertyDelta(DiffEntry de) {
     //long begin = System.currentTimeMillis();
     SimplePropertyDelta ret = new SimplePropertyDelta(de.getPropertyName(), String.class, de.getOldValue(),
-        de.getNewValue());
+            de.getNewValue());
     //long end = System.currentTimeMillis();
     //log.info("HistoryBaseDaoAdapter.diffEntryToPropertyDelta took: " + (end - begin) + " ms.");
     return ret;
   }
 
-  public static List<SimpleHistoryEntry> getSimpleHistoryEntries(final BaseDO<?> ob, UserGroupCache userGroupCache)
-  {
+  public static List<SimpleHistoryEntry> getSimpleHistoryEntries(final BaseDO<?> ob, UserGroupCache userGroupCache) {
     //long begin = System.currentTimeMillis();
     List<SimpleHistoryEntry> ret = new ArrayList<>();
     List<? extends HistoryEntry> hel = getHistoryEntries(ob);
@@ -119,21 +115,18 @@ public class HistoryBaseDaoAdapter
     return ret;
   }
 
-  public static boolean isHistorizable(Object bean)
-  {
+  public static boolean isHistorizable(Object bean) {
     if (bean == null) {
       return false;
     }
     return isHistorizable(bean.getClass());
   }
 
-  public static boolean isHistorizable(Class<?> clazz)
-  {
-     return HistoryServiceManager.get().getHistoryService().hasHistory(clazz);
+  public static boolean isHistorizable(Class<?> clazz) {
+    return HistoryServiceManager.get().getHistoryService().hasHistory(clazz);
   }
 
-  private static String histCollectionValueToString(Class<?> valueClass, Collection<?> value)
-  {
+  private static String histCollectionValueToString(Class<?> valueClass, Collection<?> value) {
     StringBuilder sb = new StringBuilder();
     for (Object ob : value) {
       if (sb.length() > 0) {
@@ -143,14 +136,13 @@ public class HistoryBaseDaoAdapter
         DbRecord rec = (DbRecord) ob;
         sb.append(rec.getPk());
       } else {
-        sb.append(Objects.toString(ob));
+        sb.append(ob);
       }
     }
     return sb.toString();
   }
 
-  private static String histValueToString(Class<?> valueClass, Object value)
-  {
+  private static String histValueToString(Class<?> valueClass, Object value) {
     if (value == null) {
       return null;
     }
@@ -161,8 +153,7 @@ public class HistoryBaseDaoAdapter
   }
 
   public static void createHistoryEntry(Object entity, Number id, String user, String property,
-      Class<?> valueClass, Object oldValue, Object newValue)
-  {
+                                        Class<?> valueClass, Object oldValue, Object newValue) {
     //long begin = System.currentTimeMillis();
     String oldVals = histValueToString(valueClass, oldValue);
     String newVals = histValueToString(valueClass, newValue);
@@ -170,70 +161,87 @@ public class HistoryBaseDaoAdapter
     PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
     emf.runInTrans((emgr) -> {
       HistoryServiceManager.get().getHistoryService().insertManualEntry(emgr, EntityOpType.Update,
-          entity.getClass().getName(),
-          id, user, property, valueClass.getName(), oldVals, newVals);
+              entity.getClass().getName(),
+              id, user, property, valueClass.getName(), oldVals, newVals);
       return null;
     });
     //long end = System.currentTimeMillis();
     //log.info("HistoryBaseDaoAdapter.createHistoryEntry took: " + (end - begin) + " ms.");
   }
 
-  public static void inserted(BaseDO<?> ob)
-  {
+  public static void inserted(BaseDO<?> ob) {
     //long begin = System.currentTimeMillis();
     PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
     emf.runInTrans((emgr) -> {
-      EmgrAfterInsertedEvent event = new EmgrAfterInsertedEvent(emgr, ob);
-      new HistoryEmgrAfterInsertedEventHandler().onEvent(event);
+      inserted(emgr, ob);
       return null;
     });
     //long end = System.currentTimeMillis();
     //log.info("HistoryBaseDaoAdapter.inserted took: " + (end - begin) + " ms.");
   }
 
-  public static ModificationStatus wrappHistoryUpdate(BaseDO<?> dbo, Supplier<ModificationStatus> callback)
-  {
-    //long begin = System.currentTimeMillis();
+  public static void inserted(PfEmgr emgr, BaseDO<?> ob) {
+    EmgrAfterInsertedEvent event = new EmgrAfterInsertedEvent(emgr, ob);
+    new HistoryEmgrAfterInsertedEventHandler().onEvent(event);
+  }
+
+  public static ModificationStatus wrapHistoryUpdate(BaseDO<?> dbo, Supplier<ModificationStatus> callback) {
     final HistoryService historyService = HistoryServiceManager.get().getHistoryService();
     final List<WithHistory> whanots = historyService.internalFindWithHistoryEntity(dbo);
     if (whanots.isEmpty()) {
       return callback.get();
     }
-
     final List<BaseDO<?>> entitiesToHistoricize = getSubEntitiesToHistoricizeDeep(dbo);
     final PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
     final ModificationStatus result = emf.runInTrans((emgr) -> {
-      final Map<Serializable, HistoryProperties> props = new HashMap<>();
-
-      // get the (old) history properties before the modification
-      entitiesToHistoricize.forEach(
-          entity -> {
-            final HistoryProperties p = getOrCreateHistoryProperties(props, entity);
-            p.oldProps = historyService.internalGetPropertiesForHistory(emgr, whanots, entity);
-          }
-      );
-
-      // do the modification
-      final ModificationStatus ret = callback.get();
-
-      // get the (new) history properties after the modification
-      entitiesToHistoricize.forEach(
-          entity -> {
-            final HistoryProperties p = getOrCreateHistoryProperties(props, entity);
-            p.newProps = historyService.internalGetPropertiesForHistory(emgr, whanots, entity);
-          }
-      );
-
-      // create history entries with the diff resulting from the old and new history properties
-      props.forEach(
-          (pk, p) -> {
-            if (p.oldProps != null && p.newProps != null) {
-              historyService.internalOnUpdate(emgr, p.entClassName, pk, p.oldProps, p.newProps);
-            }
-          }
-      );
-      return ret;
+      return wrapHistoryUpdate(emgr, historyService, whanots, dbo, callback);
     });
+
+    //long end = System.currentTimeMillis();
+    //log.info("HistoryBaseDaoAdapter.wrappHistoryUpdate took: " + (end - begin) + " ms.");
+    return result;
+  }
+
+  public static ModificationStatus wrapHistoryUpdate(PfEmgr emgr, BaseDO<?> dbo, Supplier<ModificationStatus> callback) {
+    final HistoryService historyService = HistoryServiceManager.get().getHistoryService();
+    final List<WithHistory> whanots = historyService.internalFindWithHistoryEntity(dbo);
+    if (whanots.isEmpty()) {
+      return callback.get();
+    }
+    return wrapHistoryUpdate(emgr, historyService, whanots, dbo, callback);
+  }
+
+  private static ModificationStatus wrapHistoryUpdate(PfEmgr emgr, HistoryService historyService, List<WithHistory> whanots, BaseDO<?> dbo, Supplier<ModificationStatus> callback) {
+    final List<BaseDO<?>> entitiesToHistoricize = getSubEntitiesToHistoricizeDeep(dbo);
+    final Map<Serializable, HistoryProperties> props = new HashMap<>();
+
+    // get the (old) history properties before the modification
+    entitiesToHistoricize.forEach(
+            entity -> {
+              final HistoryProperties p = getOrCreateHistoryProperties(props, entity);
+              p.oldProps = historyService.internalGetPropertiesForHistory(emgr, whanots, entity);
+            }
+    );
+
+    // do the modification
+    final ModificationStatus result = callback.get();
+
+    // get the (new) history properties after the modification
+    entitiesToHistoricize.forEach(
+            entity -> {
+              final HistoryProperties p = getOrCreateHistoryProperties(props, entity);
+              p.newProps = historyService.internalGetPropertiesForHistory(emgr, whanots, entity);
+            }
+    );
+
+    // create history entries with the diff resulting from the old and new history properties
+    props.forEach(
+            (pk, p) -> {
+              if (p.oldProps != null && p.newProps != null) {
+                historyService.internalOnUpdate(emgr, p.entClassName, pk, p.oldProps, p.newProps);
+              }
+            }
+    );
 
     //long end = System.currentTimeMillis();
     //log.info("HistoryBaseDaoAdapter.wrappHistoryUpdate took: " + (end - begin) + " ms.");
@@ -243,15 +251,13 @@ public class HistoryBaseDaoAdapter
   /**
    * Nested class just to hold some temporary history data.
    */
-  private static final class HistoryProperties
-  {
+  private static final class HistoryProperties {
     private String entClassName;
     private Map<String, HistProp> oldProps;
     private Map<String, HistProp> newProps;
   }
 
-  private static HistoryProperties getOrCreateHistoryProperties(final Map<Serializable, HistoryProperties> props, final DbRecord<?> entity)
-  {
+  private static HistoryProperties getOrCreateHistoryProperties(final Map<Serializable, HistoryProperties> props, final DbRecord<?> entity) {
     final Serializable pk = entity.getPk();
     if (props.containsKey(pk)) {
       return props.get(pk);
@@ -263,8 +269,7 @@ public class HistoryBaseDaoAdapter
     }
   }
 
-  private static List<BaseDO<?>> getSubEntitiesToHistoricizeDeep(final BaseDO<?> entity)
-  {
+  private static List<BaseDO<?>> getSubEntitiesToHistoricizeDeep(final BaseDO<?> entity) {
     final List<BaseDO<?>> result = new ArrayList<>();
     final Queue<BaseDO<?>> queue = new LinkedList<>();
     queue.add(entity);
@@ -287,36 +292,34 @@ public class HistoryBaseDaoAdapter
    * @param entity The DO.
    * @return The List of DOs.
    */
-  private static List<BaseDO<?>> getSubEntitiesToHistoricize(final BaseDO<?> entity)
-  {
+  private static List<BaseDO<?>> getSubEntitiesToHistoricize(final BaseDO<?> entity) {
     final Collection<Field> fields = ClassUtils.getAllFields(entity.getClass()).values();
     AccessibleObject.setAccessible(fields.toArray(new Field[0]), true);
 
     return fields
-        .stream()
-        .filter(field -> {
-          final PFPersistancyBehavior behavior = field.getAnnotation(PFPersistancyBehavior.class);
-          return behavior != null && behavior.autoUpdateCollectionEntries();
-        })
-        .map(field -> {
-          try {
-            return (Collection<BaseDO<?>>) field.get(entity);
-          } catch (IllegalAccessException | ClassCastException e) {
-            return (Collection<BaseDO<?>>) Collections.EMPTY_LIST;
-          }
-        })
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+            .stream()
+            .filter(field -> {
+              final PFPersistancyBehavior behavior = field.getAnnotation(PFPersistancyBehavior.class);
+              return behavior != null && behavior.autoUpdateCollectionEntries();
+            })
+            .map(field -> {
+              try {
+                return (Collection<BaseDO<?>>) field.get(entity);
+              } catch (IllegalAccessException | ClassCastException e) {
+                return (Collection<BaseDO<?>>) Collections.EMPTY_LIST;
+              }
+            })
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
   }
 
-  public static void updated(BaseDO<?> oldo, BaseDO<?> newo)
-  {
+  public static void updated(BaseDO<?> oldo, BaseDO<?> newo) {
     //long begin = System.currentTimeMillis();
     PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
     emf.runInTrans((emgr) -> {
       EmgrUpdateCopyFilterEvent event = new EmgrUpdateCopyFilterEvent(emgr, oldo.getClass(), oldo.getClass(), oldo,
-          newo,
-          true);
+              newo,
+              true);
       new HistoryUpdateCopyFilterEventListener().onEvent(event);
       return null;
     });
@@ -324,8 +327,7 @@ public class HistoryBaseDaoAdapter
     //log.info("HistoryBaseDaoAdapter.updated took: " + (end - begin) + " ms.");
   }
 
-  public static void markedAsDeleted(ExtendedBaseDO<?> oldo, ExtendedBaseDO<?> newoj)
-  {
+  public static void markedAsDeleted(ExtendedBaseDO<?> oldo, ExtendedBaseDO<?> newoj) {
     //long begin = System.currentTimeMillis();
     boolean prev = newoj.isDeleted();
     newoj.setDeleted(true);
@@ -335,8 +337,7 @@ public class HistoryBaseDaoAdapter
     //log.info("HistoryBaseDaoAdapter.markedAsDeleted took: " + (end - begin) + " ms.");
   }
 
-  public static void markedAsUnDeleted(ExtendedBaseDO<?> oldo, ExtendedBaseDO<?> newoj)
-  {
+  public static void markedAsUnDeleted(ExtendedBaseDO<?> oldo, ExtendedBaseDO<?> newoj) {
     //long begin = System.currentTimeMillis();
     boolean prev = newoj.isDeleted();
     newoj.setDeleted(false);
