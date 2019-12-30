@@ -25,13 +25,13 @@ package org.projectforge.business.fibu.datev;
 
 import de.micromata.merlin.excel.*;
 import de.micromata.merlin.excel.importer.ImportStorage;
-import de.micromata.merlin.excel.importer.ImportedElement;
 import de.micromata.merlin.excel.importer.ImportedSheet;
 import org.apache.poi.ss.usermodel.Row;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.*;
+import org.projectforge.framework.persistence.utils.MyImportedElement;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.ActionLog;
 import org.slf4j.Logger;
@@ -135,7 +135,7 @@ public class BuchungssatzExcelImporter {
     int year = 0;
     while (it.hasNext()) {
       Row row = it.next();
-      final ImportedElement<BuchungssatzDO> element = new ImportedElement<>(storage.nextVal(), BuchungssatzDO.class,
+      final MyImportedElement<BuchungssatzDO> element = new MyImportedElement<>(storage.nextVal(), BuchungssatzDO.class,
               DatevImportDao.BUCHUNGSSATZ_DIFF_PROPERTIES);
       final BuchungssatzDO satz = new BuchungssatzDO();
       element.setValue(satz);
