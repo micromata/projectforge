@@ -32,7 +32,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.utils.MyImportedElement;
-import org.projectforge.framework.utils.ActionLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,22 +43,20 @@ public class KontenplanExcelImporter {
 
   private static final Logger log = LoggerFactory.getLogger(KontenplanExcelImporter.class);
 
-  public void doImport(final ImportStorage<KontoDO> storage, final InputStream is, final ActionLog actionLog) {
+  public void doImport(final ImportStorage<KontoDO> storage, final InputStream is) {
     final ExcelWorkbook workbook = new ExcelWorkbook(is, storage.getFilename());
     final ExcelSheet sheet = workbook.getSheet(NAME_OF_EXCEL_SHEET);
     if (sheet == null) {
-      log.error("Oups, no sheet named '" + NAME_OF_EXCEL_SHEET + "' found.");
       String msg = "Konten können nicht importiert werden: Blatt '" + NAME_OF_EXCEL_SHEET + "' nicht gefunden.";
-      actionLog.logError(msg);
+      storage.getLogger().error(msg);
       throw new UserException(msg);
     }
-    importKontenplan(storage, sheet, actionLog);
+    importKontenplan(storage, sheet);
   }
 
-  private void importKontenplan(final ImportStorage<KontoDO> storage, final ExcelSheet sheet,
-                                final ActionLog actionLog) {
+  private void importKontenplan(final ImportStorage<KontoDO> storage, final ExcelSheet sheet) {
     sheet.setAutotrimCellValues(true);
-    actionLog.logInfo("Importing sheet '" + NAME_OF_EXCEL_SHEET + "'.");
+    storage.getLogger().info("Reading sheet '" + NAME_OF_EXCEL_SHEET + "'.");
     sheet.registerColumn("Konto", "Konto von").addColumnListener(new ExcelColumnNumberValidator(1.0).setRequired());
     sheet.registerColumn("Bezeichnung", "Beschriftung").addColumnListener(new ExcelColumnNumberValidator(1.0).setRequired());
 
@@ -67,7 +64,7 @@ public class KontenplanExcelImporter {
     if (sheet.getHeadRow() == null) {
       String msg = "Ignoring sheet '" + NAME_OF_EXCEL_SHEET + "' for importing Buchungssätze, no valid head row found.";
       log.info(msg);
-      actionLog.logInfo(msg);
+      storage.getLogger().info(msg);
       return;
     }
 

@@ -23,6 +23,8 @@
 
 package org.projectforge.web.core.importstorage;
 
+import de.micromata.merlin.excel.ExcelSheet;
+import de.micromata.merlin.excel.ExcelWorkbook;
 import de.micromata.merlin.excel.importer.ImportStatus;
 import de.micromata.merlin.excel.importer.ImportStorage;
 import de.micromata.merlin.excel.importer.ImportedElement;
@@ -267,6 +269,39 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
           parentPage.showErrorSummary(sheet.getName());
         }
       }, getString("common.import.action.showErrorSummary"));
+    }
+    if (storage.getLogger().getHasErrorEvents()) {
+      addActionLink(actionLinkRepeater, new SubmitLink("actionLink")
+      {
+        @Override
+        public void onSubmit()
+        {
+          parentPage.downloadErrorLog();
+        }
+      }, getString("common.import.action.showErrorLog"));
+    }
+    if (storage.getLogger().getHasEvents()) {
+      addActionLink(actionLinkRepeater, new SubmitLink("actionLink")
+      {
+        @Override
+        public void onSubmit()
+        {
+          parentPage.downloadInfoLog();
+        }
+      }, getString("common.import.action.showInfoLog"));
+    }
+    final ExcelWorkbook excelWorkbook = parentPage.getStorage().getWorkbook();
+    final ExcelSheet excelSheet = excelWorkbook != null ? excelWorkbook.getSheet(sheet.getOrigName()) : null;
+    if (excelSheet != null && excelSheet.hasValidationErrors()) {
+      addActionLink(actionLinkRepeater, new SubmitLink("actionLink")
+      {
+        @Override
+        public void onSubmit()
+        {
+          excelWorkbook.setActiveSheet(excelSheet.getSheetIndex());
+          parentPage.downloadValidatedExcel(sheet.getName());
+        }
+      }, getString("common.import.action.downloadValidatedExcel"));
     }
     appendSheetActionLinks(sheet, actionLinkRepeater);
     addSheetTable(sheet, cont);

@@ -37,7 +37,6 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.utils.MyImportedElement;
-import org.projectforge.framework.utils.ActionLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -65,16 +64,16 @@ public class TeamCalImportDao {
   @Autowired
   private TeamEventDao teamEventDao;
 
-  public ImportStorage<TeamEventDO> importEvents(final Calendar calendar, final String filename, final ActionLog actionLog) {
+  public ImportStorage<TeamEventDO> importEvents(final Calendar calendar, final String filename) {
     ICalParser parser = ICalParser.parseAllFields();
     parser.parse(calendar);
     final List<TeamEventDO> events = parser.getExtractedEvents();
     events.forEach(teamEventDO -> eventService.fixAttendees(teamEventDO));
 
-    return importEvents(events, filename, actionLog);
+    return importEvents(events, filename);
   }
 
-  public ImportStorage<TeamEventDO> importEvents(final List<VEvent> vEvents, final ActionLog actionLog) {
+  public ImportStorage<TeamEventDO> importEvents(final List<VEvent> vEvents) {
     final Calendar calendar = new Calendar();
     vEvents.forEach(event -> calendar.getComponents().add(event));
 
@@ -83,27 +82,26 @@ public class TeamCalImportDao {
     final List<TeamEventDO> events = parser.getExtractedEvents();
     events.forEach(teamEventDO -> eventService.fixAttendees(teamEventDO));
 
-    return importEvents(events, "none", actionLog);
+    return importEvents(events, "none");
   }
 
-  private ImportStorage<TeamEventDO> importEvents(final List<TeamEventDO> events, final String filename,
-                                                  final ActionLog actionLog) {
+  private ImportStorage<TeamEventDO> importEvents(final List<TeamEventDO> events, final String filename) {
     log.info("Uploading ics file: '" + filename + "'...");
-    final ImportStorage<TeamEventDO> storage = new ImportStorage<TeamEventDO>();
+    final ImportStorage<TeamEventDO> storage = new ImportStorage<>();
     storage.setFilename(filename);
 
-    final ImportedSheet<TeamEventDO> importedSheet = new ImportedSheet<TeamEventDO>();
+    final ImportedSheet<TeamEventDO> importedSheet = new ImportedSheet<>();
     importedSheet.setName(getSheetName());
     storage.addSheet(importedSheet);
 
     for (final TeamEventDO event : events) {
-      actionLog.incrementCounterSuccess();
+      importedSheet.getLogger().incrementSuccesscounter();
       final MyImportedElement<TeamEventDO> element = new MyImportedElement<>(storage.nextVal(),
               TeamEventDO.class, DIFF_PROPERTIES);
       element.setValue(event);
       importedSheet.addElement(element);
     }
-    log.info("Uploading of ics file '" + filename + "' done. " + actionLog.getCounterSuccess() + " events read.");
+    log.info("Uploading of ics file '" + filename + "' done. " + importedSheet.getLogger().getSuccessCounter() + " events read.");
     return storage;
   }
 
