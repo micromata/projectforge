@@ -23,10 +23,8 @@
 
 package org.projectforge.business.fibu.datev;
 
-import de.micromata.merlin.excel.importer.ImportStatus;
-import de.micromata.merlin.excel.importer.ImportStorage;
-import de.micromata.merlin.excel.importer.ImportedElement;
-import de.micromata.merlin.excel.importer.ImportedSheet;
+import de.micromata.merlin.excel.ExcelWorkbook;
+import de.micromata.merlin.excel.importer.*;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
@@ -110,19 +108,19 @@ public class DatevImportDao {
    * Liest den Kontenplan aus dem InputStream (Exceltabelle) und schreibt die gelesenen Werte des Kontenplans in
    * ImportStorge. Der User muss der FINANCE_GROUP angehören, um diese Funktionalität ausführen zu können.
    *
-   * @param is
+   * @param inputStream
    * @param filename
    * @return ImportStorage mit den gelesenen Daten.
    * @throws Exception
    */
-  public ImportStorage<KontoDO> importKontenplan(final InputStream is, final String filename)
+  public ImportStorage<KontoDO> importKontenplan(final InputStream inputStream, final String filename)
           throws Exception {
     checkLoggeinUserRight(accessChecker);
     log.info("importKontenplan called");
-    final ImportStorage<KontoDO> storage = new ImportStorage<>(Type.KONTENPLAN);
-    storage.setFilename(filename);
+    ExcelWorkbook workbook = new ExcelWorkbook(inputStream, filename);
+    final ImportStorage<KontoDO> storage = new ImportStorage<>(Type.KONTENPLAN, workbook, ImportLogger.Level.INFO, "'" + filename + "':", log);
     final KontenplanExcelImporter imp = new KontenplanExcelImporter();
-    imp.doImport(storage, is);
+    imp.doImport(storage, workbook);
     return storage;
   }
 
@@ -138,11 +136,11 @@ public class DatevImportDao {
   public ImportStorage<BuchungssatzDO> importBuchungsdaten(final InputStream is, final String filename)
           throws Exception {
     checkLoggeinUserRight(accessChecker);
-    log.info("importBuchungsdaten called");
-    final ImportStorage<BuchungssatzDO> storage = new ImportStorage<>(Type.BUCHUNGSSAETZE);
-    storage.setFilename(filename);
+    log.info("importBuchungsdaten called.");
+    ExcelWorkbook workbook = new ExcelWorkbook(is, filename);
+    final ImportStorage<BuchungssatzDO> storage = new ImportStorage<>(Type.BUCHUNGSSAETZE, workbook, ImportLogger.Level.INFO, "'" + filename + "':", log);
     final BuchungssatzExcelImporter imp = new BuchungssatzExcelImporter(storage, kontoDao, kost1Dao, kost2Dao);
-    imp.doImport(is);
+    imp.doImport(workbook);
     return storage;
   }
 

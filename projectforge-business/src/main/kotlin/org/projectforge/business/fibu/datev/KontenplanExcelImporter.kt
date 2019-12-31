@@ -26,13 +26,13 @@ import de.micromata.merlin.excel.ExcelColumnName
 import de.micromata.merlin.excel.ExcelColumnNumberValidator
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
+import de.micromata.merlin.excel.importer.ImportLogger
 import de.micromata.merlin.excel.importer.ImportStorage
 import de.micromata.merlin.excel.importer.ImportedSheet
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.persistence.utils.MyImportedElement
 import org.slf4j.LoggerFactory
-import java.io.InputStream
 
 class KontenplanExcelImporter {
     private enum class Cols(override val head: String, override vararg val aliases: String) : ExcelColumnName {
@@ -40,8 +40,7 @@ class KontenplanExcelImporter {
         BEZEICHNUNG("Bezeichnung", "Beschriftung")
     }
 
-    fun doImport(storage: ImportStorage<KontoDO>, inputStream: InputStream) {
-        val workbook = ExcelWorkbook(inputStream, storage.filename!!)
+    fun doImport(storage: ImportStorage<KontoDO>, workbook: ExcelWorkbook) {
         val sheet = workbook.getSheet(NAME_OF_EXCEL_SHEET)
         if (sheet == null) {
             val msg = "Konten können nicht importiert werden: Blatt '$NAME_OF_EXCEL_SHEET' nicht gefunden."
@@ -58,12 +57,10 @@ class KontenplanExcelImporter {
         sheet.registerColumn(Cols.BEZEICHNUNG,ExcelColumnNumberValidator(1.0).setRequired())
         sheet.analyze(true)
         if (sheet.headRow == null) {
-            val msg = "Ignoring sheet '$NAME_OF_EXCEL_SHEET' for importing Buchungssätze, no valid head row found."
-            log.info(msg)
-            storage.logger.info(msg)
+            storage.logger.info("Ignoring sheet '$NAME_OF_EXCEL_SHEET' for importing Buchungssätze, no valid head row found.")
             return
         }
-        val importedSheet = ImportedSheet<KontoDO>(sheet)
+        val importedSheet = ImportedSheet<KontoDO>(sheet, ImportLogger.Level.WARN, "'${sheet.excelWorkbook.filename}':", log)
         storage.addSheet(importedSheet)
         importedSheet.name = NAME_OF_EXCEL_SHEET
         importedSheet.logger.addValidationErrors(sheet)
