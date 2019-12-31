@@ -184,7 +184,6 @@ class PFDateTimeUtils {
         }
 
         @JvmStatic
-        @JvmOverloads
         fun formatUTCDate(date: Date): String {
             return if (date is java.sql.Date) {
                 PFDateTime.isoDateFormatter.format(date.toLocalDate())
