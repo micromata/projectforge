@@ -62,7 +62,7 @@ class PFDayUtils {
         @JvmStatic
         fun getBeginOfWeek(date: LocalDate): LocalDate {
             val field = WeekFields.of(getFirstDayOfWeek(), 1).dayOfWeek()
-            return return date.with(field, 1)
+            return date.with(field, 1)
         }
 
         @JvmStatic
