@@ -23,9 +23,14 @@
 
 package org.projectforge.web.core.importstorage;
 
+import de.micromata.merlin.excel.ExcelColumnDef;
+import de.micromata.merlin.excel.ExcelRow;
+import de.micromata.merlin.excel.ExcelSheet;
 import de.micromata.merlin.excel.ExcelWorkbook;
+import de.micromata.merlin.excel.importer.ImportLogger;
 import de.micromata.merlin.excel.importer.ImportStorage;
 import de.micromata.merlin.excel.importer.ImportedSheet;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.common.SupplierWithException;
@@ -33,6 +38,8 @@ import org.projectforge.business.excel.ExcelImportException;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.DownloadUtils;
+
+import java.nio.charset.StandardCharsets;
 
 public abstract class AbstractImportPage<F extends AbstractImportForm<?, ?, ?>> extends AbstractStandardFormPage {
   private static final long serialVersionUID = -7206460665473795739L;
@@ -106,14 +113,69 @@ public abstract class AbstractImportPage<F extends AbstractImportForm<?, ?, ?>> 
     form.setErrorProperties(sheet.getErrorProperties());
   }
 
-  protected void downloadErrorLog() {
+  protected void downloadErrorLog(ImportedSheet sheet) {
+    StringBuilder sb = new StringBuilder();
+    ImportLogger logger = getStorage().getLogger();
+    ExcelWorkbook workbook = logger.getExcelWorkbook();
+    if (logger.getHasEvents()) {
+      String filename = workbook != null ? workbook.getFilename() : "file.xls";
+      appendSectionTitle(sb, getLocalizedMessage("common.import.logger.error.workbookSection", filename));
+      sb.append(logger.getErrorEventsAsString());
+      sb.append("\n\n");
+    }
+    logger = sheet.getLogger();
+    if (logger.getHasEvents()) {
+      appendSectionTitle(sb, getLocalizedMessage("common.import.logger.error.sheetSection", sheet.getOrigName()));
+      sb.append(logger.getErrorEventsAsString());
+    }
+    appendSheetInformation(sheet, sb);
     DownloadUtils.setUTF8CharacterEncoding(getResponse());
-    DownloadUtils.setDownloadTarget(getStorage().getLogger().getErrorEventsAsString().getBytes(), "Fehlerprotokolldatei-Excelimport.txt");
+    DownloadUtils.setDownloadTarget(sb.toString().getBytes(StandardCharsets.UTF_8), "Fehlerprotokolldatei-Excelimport.txt");
   }
 
-  protected void downloadInfoLog() {
+  protected void downloadInfoLog(ImportedSheet sheet) {
+    StringBuilder sb = new StringBuilder();
+    ImportLogger logger = getStorage().getLogger();
+    ExcelWorkbook workbook = logger.getExcelWorkbook();
+    if (logger.getHasEvents()) {
+      String filename = workbook != null ? workbook.getFilename() : "file.xls";
+      appendSectionTitle(sb, getLocalizedMessage("common.import.logger.info.workbookSection", filename));
+      sb.append(logger.getEventsAsString());
+      sb.append("\n\n");
+    }
+    logger = sheet.getLogger();
+    if (logger.getHasEvents()) {
+      appendSectionTitle(sb, getLocalizedMessage("common.import.logger.info.sheetSection", sheet.getOrigName()));
+      sb.append(logger.getEventsAsString());
+    }
+    appendSheetInformation(sheet, sb);
     DownloadUtils.setUTF8CharacterEncoding(getResponse());
-    DownloadUtils.setDownloadTarget(getStorage().getLogger().getEventsAsString().getBytes(), "Protokolldatei-Excelimport.txt");
+    DownloadUtils.setDownloadTarget(sb.toString().getBytes(StandardCharsets.UTF_8), "Protokolldatei-Excelimport.txt");
+  }
+
+  private void appendSheetInformation(ImportedSheet sheet, StringBuilder sb) {
+    sb.append("\n\n");
+    appendSectionTitle(sb, getLocalizedMessage("common.import.excel.info"));
+    ImportLogger logger = sheet.getLogger();
+    ExcelSheet excelSheet = logger.getExcelSheet();
+    if (excelSheet != null) {
+      ExcelRow headRow = excelSheet.getHeadRow();
+      if (headRow != null) {
+        sb.append("Head row found in row #" ).append(headRow.getRowNum() + 1).append("\n");
+      } else {
+        sb.append("No head row found.\n");
+      }
+      for (ExcelColumnDef colDef: excelSheet.getColumnDefinitions()) {
+        sb.append("Column: ").append(colDef).append("\n");
+      }
+    } else {
+      sb.append("No information about required Excel sheet format available.\n");
+    }
+  }
+
+  private void appendSectionTitle(StringBuilder sb, String title) {
+    sb.append(title).append("\n");
+    sb.append(StringUtils.repeat('-', title.length())).append("\n");
   }
 
   protected void downloadValidatedExcel(final String sheetName) {
