@@ -204,9 +204,11 @@ public class DatevImportDao {
     log.info("Reconcile Buchungsdaten called");
     for (final ImportedElement<BuchungssatzDO> el : sheet.getElements()) {
       final BuchungssatzDO satz = el.getValue();
-      final BuchungssatzDO dbSatz = buchungssatzDao.getBuchungssatz(satz.getYear(), satz.getMonth(), satz.getSatznr());
-      if (dbSatz != null) {
-        el.setOldValue(dbSatz);
+      if (satz.getYear() != null && satz.getMonth() != null && satz.getSatznr() != null) {
+        final BuchungssatzDO dbSatz = buchungssatzDao.getBuchungssatz(satz.getYear(), satz.getMonth(), satz.getSatznr());
+        if (dbSatz != null) {
+          el.setOldValue(dbSatz);
+        }
       }
     }
     sheet.setStatus(ImportStatus.RECONCILED);

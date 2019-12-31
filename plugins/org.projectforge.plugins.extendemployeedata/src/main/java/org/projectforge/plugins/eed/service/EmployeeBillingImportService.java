@@ -117,7 +117,7 @@ public class EmployeeBillingImportService
     final List<EmployeeDO> employeesToUpdate = sheet
         .getElements()
         .stream()
-        .filter(ImportedElement::isSelected)
+        .filter(ImportedElement::getSelected)
         .map(ImportedElement::getValue)
         .collect(Collectors.toList());
 
