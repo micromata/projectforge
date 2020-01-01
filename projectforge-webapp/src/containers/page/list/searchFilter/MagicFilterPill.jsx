@@ -23,7 +23,7 @@ function MagicFilterPill(
                 setIsOpen={setIsOpen}
                 isOpen={isOpen}
                 basic={name}
-                contentClassName={classNames(styles.pill, { [styles.isOpen]: isOpen || value })}
+                contentClassName={classNames(styles.pill, { [styles.marked]: isOpen || value })}
                 actions={(
                     <React.Fragment>
                         <AdvancedPopperAction type="delete" disabled>
