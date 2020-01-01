@@ -42,7 +42,7 @@ import java.math.RoundingMode
 
 class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzDO>, private val kontoDao: KontoDao, private val kost1Dao: Kost1Dao,
                                 private val kost2Dao: Kost2Dao) {
-    private val dateValidator = ExcelColumnDateValidator("dd.MM.yyyy", "dd.MM.yy", "yyyy-MM-dd")
+    private val dateValidator = ExcelColumnDateValidator("d.M.y", "yyyy-MM-dd")
 
     private enum class Cols(override val head: String, override vararg val aliases: String) : ExcelColumnName {
         SATZNR("SatzNr.", "Satz-Nr."),
@@ -126,7 +126,7 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
                 importedSheet.logger.error("Satznr. nicht gültig.", row, Cols.SATZNR, true)
                 continue
             }
-            val day = from(dateValidator.convert(excelSheet.getCell(row, Cols.DATUM)))
+            val day = from(dateValidator.getLocalDate(excelSheet.getCell(row, Cols.DATUM)))
             if (day == null) {
                 importedSheet.logger.error("Invalid date.", row, Cols.DATUM, true)
                 continue
