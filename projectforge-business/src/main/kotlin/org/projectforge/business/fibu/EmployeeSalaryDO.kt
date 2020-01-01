@@ -30,6 +30,7 @@ import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.Constants
 import java.math.BigDecimal
 import javax.persistence.*
@@ -68,12 +69,16 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
     open var year: Int? = null
 
     /**
+     * 1-based: 1 - January, 12 - December
      * @return Abrechnungsmonat.
      */
     @PropertyInfo(i18nKey = "calendar.month")
     @Field(analyze = Analyze.NO)
     @get:Column
     open var month: Int? = null
+        set(value) {
+            field = PFDayUtils.validateMonthValue(value)
+        }
 
     /**
      * Die Bruttoauszahlung an den Arbeitnehmer (inklusive AG-Anteil Sozialversicherungen).
@@ -98,11 +103,11 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
 
     val formattedMonth: String
         @Transient
-        get() = StringHelper.format2DigitNumber(month!! + 1)
+        get() = StringHelper.format2DigitNumber(month!!)
 
     val formattedYearAndMonth: String
         @Transient
-        get() = year.toString() + "-" + StringHelper.format2DigitNumber(month!! + 1)
+        get() = year.toString() + "-" + StringHelper.format2DigitNumber(month!!)
 
     companion object {
         internal const val SELECT_MIN_MAX_YEAR = "EmployeeSalaryDO_SelectMinMaxYear"

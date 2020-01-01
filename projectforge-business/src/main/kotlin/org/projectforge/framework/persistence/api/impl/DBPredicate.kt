@@ -362,7 +362,7 @@ abstract class DBPredicate(
         }
 
         fun multiFieldFulltextQueryRequired(): Boolean {
-            if (expectedValue.contains('*')
+            if (queryString.contains('*')
                     || expectedValue.matches("""[A-Za-z][A-Za-z0-9_\.]*:.+""".toRegex()) // If a field is specified, e. g. street:max-planck ) {
                     || expectedValue.split(' ', '\t', '\n').size > 1) { // Multi tokens require multiField query.
                 return true // Hibernate Search doesn't support wildcard() on multiple fields :-(
@@ -406,7 +406,21 @@ abstract class DBPredicate(
         }
     }
 
-    class And(private vararg val predicates: DBPredicate) : DBPredicate(null, false) {
+    class And(vararg predicates: DBPredicate) : DBPredicate(null, false) {
+        private val predicates = mutableListOf<DBPredicate>()
+
+        init {
+            this.predicates.addAll(predicates)
+        }
+
+        /**
+         * @return this for chaining.
+         */
+        fun add(predicate: DBPredicate): And {
+            predicates.add(predicate)
+            return this
+        }
+
         override val fullTextSupport: Boolean
             get() {
                 for (predicate in predicates) {
@@ -437,11 +451,24 @@ abstract class DBPredicate(
         }
 
         override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.and(*predicates)
+            qb.and(*predicates.toTypedArray())
         }
     }
 
-    class Or(private vararg val predicates: DBPredicate) : DBPredicate(null, false) {
+    class Or(vararg predicates: DBPredicate) : DBPredicate(null, false) {
+        private val predicates = mutableListOf<DBPredicate>()
+
+        init {
+            this.predicates.addAll(predicates)
+        }
+
+        /**
+         * @return this for chaining.
+         */
+        fun add(predicate: DBPredicate): Or {
+            predicates.add(predicate)
+            return this
+        }
 
         override fun match(obj: Any): Boolean {
             if (predicates.isNullOrEmpty()) {

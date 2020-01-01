@@ -37,8 +37,7 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.slf4j.Logger;
 
-public class AccountingRecordListForm extends AbstractListForm<AccountingRecordListFilter, AccountingRecordListPage>
-{
+public class AccountingRecordListForm extends AbstractListForm<AccountingRecordListFilter, AccountingRecordListPage> {
   private static final long serialVersionUID = -1669760774183582053L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccountingRecordListForm.class);
@@ -48,8 +47,7 @@ public class AccountingRecordListForm extends AbstractListForm<AccountingRecordL
 
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     searchFilter.setMaxRows(1000);
     super.init();
     if (isFilterVisible() == false) {
@@ -58,14 +56,12 @@ public class AccountingRecordListForm extends AbstractListForm<AccountingRecordL
     {
       // Statistics
       gridBuilder.newGridPanel();
-      new BusinessAssessment4Fieldset(gridBuilder)
-      {
+      new BusinessAssessment4Fieldset(gridBuilder) {
         /**
          * @see org.projectforge.web.fibu.BusinessAssessment4Fieldset#getBusinessAssessment()
          */
         @Override
-        protected BusinessAssessment getBusinessAssessment()
-        {
+        protected BusinessAssessment getBusinessAssessment() {
           return parentPage.getBusinessAssessment();
         }
       };
@@ -74,25 +70,24 @@ public class AccountingRecordListForm extends AbstractListForm<AccountingRecordL
 
   /**
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
-   *      org.projectforge.web.wicket.flowlayout.DivPanel)
+   * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @Override
-  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
-  {
+  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel) {
     // DropDownChoices from
     final YearListCoiceRenderer yearListChoiceRenderer = new YearListCoiceRenderer(buchungssatzDao.getYears(), false);
     final DropDownChoice<Integer> fromYearChoice = new DropDownChoice<Integer>(
-        optionsFieldsetPanel.getDropDownChoiceId(),
-        new PropertyModel<Integer>(this, "fromYear"), yearListChoiceRenderer.getYears(), yearListChoiceRenderer);
+            optionsFieldsetPanel.getDropDownChoiceId(),
+            new PropertyModel<Integer>(this, "fromYear"), yearListChoiceRenderer.getYears(), yearListChoiceRenderer);
     fromYearChoice.setNullValid(false).setRequired(true);
     optionsFieldsetPanel.add(fromYearChoice);
     final LabelValueChoiceRenderer<Integer> monthChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
-    for (int i = 0; i <= 11; i++) {
-      monthChoiceRenderer.addValue(i, StringHelper.format2DigitNumber(i + 1));
+    for (int i = 1; i <= 12; i++) {
+      monthChoiceRenderer.addValue(i, StringHelper.format2DigitNumber(i));
     }
     final DropDownChoice<Integer> fromMonthChoice = new DropDownChoice<Integer>(
-        optionsFieldsetPanel.getDropDownChoiceId(),
-        new PropertyModel<Integer>(this, "fromMonth"), monthChoiceRenderer.getValues(), monthChoiceRenderer);
+            optionsFieldsetPanel.getDropDownChoiceId(),
+            new PropertyModel<Integer>(this, "fromMonth"), monthChoiceRenderer.getValues(), monthChoiceRenderer);
     fromMonthChoice.setNullValid(true);
     optionsFieldsetPanel.add(fromMonthChoice);
 
@@ -100,102 +95,73 @@ public class AccountingRecordListForm extends AbstractListForm<AccountingRecordL
 
     // DropDownChoices to
     final DropDownChoice<Integer> toYearChoice = new DropDownChoice<Integer>(optionsFieldsetPanel.getDropDownChoiceId(),
-        new PropertyModel<Integer>(this, "toYear"), yearListChoiceRenderer.getYears(), yearListChoiceRenderer);
+            new PropertyModel<Integer>(this, "toYear"), yearListChoiceRenderer.getYears(), yearListChoiceRenderer);
     toYearChoice.setNullValid(false).setRequired(true);
     optionsFieldsetPanel.add(toYearChoice);
 
     final DropDownChoice<Integer> toMonthChoice = new DropDownChoice<Integer>(
-        optionsFieldsetPanel.getDropDownChoiceId(),
-        new PropertyModel<Integer>(this, "toMonth"), monthChoiceRenderer.getValues(), monthChoiceRenderer);
+            optionsFieldsetPanel.getDropDownChoiceId(),
+            new PropertyModel<Integer>(this, "toMonth"), monthChoiceRenderer.getValues(), monthChoiceRenderer);
     toMonthChoice.setNullValid(true);
     optionsFieldsetPanel.add(toMonthChoice);
   }
 
   /**
    * The filter is not visible if only a fixed list of accounting records of a record is displayed.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractListForm#isFilterVisible()
    */
   @Override
-  protected boolean isFilterVisible()
-  {
+  protected boolean isFilterVisible() {
     return (parentPage.reportId == null);
   }
 
-  protected void refresh()
-  {
+  protected void refresh() {
   }
 
-  public Integer getFromYear()
-  {
+  public Integer getFromYear() {
     return getSearchFilter().getFromYear();
   }
 
-  public void setFromYear(final Integer year)
-  {
-    if (year == null) {
-      getSearchFilter().setFromYear(-1);
-    } else {
-      getSearchFilter().setFromYear(year);
-    }
+  public void setFromYear(final Integer year) {
+    getSearchFilter().setFromYear(year);
   }
 
-  public Integer getToYear()
-  {
+  public Integer getToYear() {
     return getSearchFilter().getToYear();
   }
 
-  public void setToYear(final Integer year)
-  {
-    if (year == null) {
-      getSearchFilter().setToYear(-1);
-    } else {
-      getSearchFilter().setToYear(year);
-    }
+  public void setToYear(final Integer year) {
+    getSearchFilter().setToYear(year);
   }
 
-  public Integer getFromMonth()
-  {
+  public Integer getFromMonth() {
     return getSearchFilter().getFromMonth();
   }
 
-  public void setFromMonth(final Integer month)
-  {
-    if (month == null) {
-      getSearchFilter().setFromMonth(-1);
-    } else {
-      getSearchFilter().setFromMonth(month);
-    }
+  public void setFromMonth(final Integer month) {
+    getSearchFilter().setFromMonth(month);
   }
 
-  public Integer getToMonth()
-  {
+  public Integer getToMonth() {
     return getSearchFilter().getToMonth();
   }
 
-  public void setToMonth(final Integer month)
-  {
-    if (month == null) {
-      getSearchFilter().setToMonth(-1);
-    } else {
-      getSearchFilter().setToMonth(month);
-    }
+  public void setToMonth(final Integer month) {
+    getSearchFilter().setToMonth(month);
   }
 
-  public AccountingRecordListForm(final AccountingRecordListPage parentPage)
-  {
+  public AccountingRecordListForm(final AccountingRecordListPage parentPage) {
     super(parentPage);
   }
 
   @Override
-  protected AccountingRecordListFilter newSearchFilterInstance()
-  {
+  protected AccountingRecordListFilter newSearchFilterInstance() {
     return new AccountingRecordListFilter();
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 }

@@ -39,9 +39,7 @@ import org.projectforge.business.teamcal.event.ical.ICalHandler;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.model.rest.CalendarEventObject;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.JsonUtils;
@@ -54,6 +52,7 @@ import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.sql.Timestamp;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
@@ -84,15 +83,13 @@ public class TeamEventDaoRest
       @QueryParam("daysInFuture") final Integer daysInFuture)
   {
     log.info("Call rest interface TeamEventDaoRest.getReminderListPastAndFuture - BEGIN");
-    Calendar start = null;
+    PFDateTime start = null;
     if (daysInPast != null && daysInPast > 0) {
-      start = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-      start.add(Calendar.DAY_OF_MONTH, -daysInPast);
+      start = PFDateTime.now().minusDays(daysInPast);
     }
-    Calendar end = null;
+    PFDateTime end = null;
     if (daysInFuture != null && daysInFuture > 0) {
-      end = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-      end.add(Calendar.DAY_OF_MONTH, daysInFuture);
+      end = PFDateTime.now().plusDays(daysInFuture);
     }
 
     final Collection<Integer> cals = getCalendarIds(calendarIds);
@@ -100,17 +97,17 @@ public class TeamEventDaoRest
     if (cals.size() > 0) {
       final TeamEventFilter filter = new TeamEventFilter().setTeamCals(cals);
       if (start != null) {
-        filter.setStartDate(start.getTime());
+        filter.setStartDate(start.getUtilDate());
       }
       if (end != null) {
-        filter.setEndDate(end.getTime());
+        filter.setEndDate(end.getUtilDate());
       }
       final List<TeamEventDO> list = teamEventService.getTeamEventDOList(filter);
       if (list != null && list.size() > 0) {
         list.forEach(event -> result.add(this.getEventObject(event)));
       }
     } else {
-      log.warn("No calendar ids are given, so can't find any events.");
+      log.warn("No dateTime ids are given, so can't find any events.");
     }
     final String json = JsonUtils.toJson(result);
     log.info("Call rest interface TeamEventDaoRest.getReminderList - END");
@@ -131,17 +128,17 @@ public class TeamEventDaoRest
       @QueryParam("modifiedSince") final Integer daysInFuture)
   {
     log.info("Call rest interface TeamEventDaoRest.getReminderListFuture - BEGIN");
-    final DayHolder day = new DayHolder();
+    PFDateTime day = PFDateTime.now();
     int days = daysInFuture != null ? daysInFuture : 30;
     if (days <= 0 || days > 90) {
       days = 90;
     }
-    day.add(Calendar.DAY_OF_YEAR, days);
+    day = day.plusDays(days);
     final Collection<Integer> cals = getCalendarIds(calendarIds);
     final List<CalendarEventObject> result = new LinkedList<>();
     if (cals.size() > 0) {
       final Date now = new Date();
-      final TeamEventFilter filter = new TeamEventFilter().setStartDate(now).setEndDate(day.getDate()).setTeamCals(cals);
+      final TeamEventFilter filter = new TeamEventFilter().setStartDate(now).setEndDate(day.getUtilDate()).setTeamCals(cals);
       final List<ICalendarEvent> list = teamEventService.getEventList(filter, true);
       if (list != null && list.size() > 0) {
         for (final ICalendarEvent event : list) {
@@ -298,16 +295,16 @@ public class TeamEventDaoRest
       event.setReminderDuration(src.getReminderDuration());
       final ReminderDurationUnit unit = src.getReminderDurationUnit();
       event.setReminderUnit(unit.toString());
-      final DateHolder date = new DateHolder(src.getStartDate());
+      PFDateTime dateTime = PFDateTime.from(src.getStartDate());
       if (unit == ReminderDurationUnit.MINUTES) {
-        date.add(Calendar.MINUTE, -src.getReminderDuration());
-        event.setReminder(date.getDate());
+        dateTime.minus(src.getReminderDuration(), ChronoUnit.MINUTES);
+        event.setReminder(dateTime.getUtilDate());
       } else if (unit == ReminderDurationUnit.HOURS) {
-        date.add(Calendar.HOUR, -src.getReminderDuration());
-        event.setReminder(date.getDate());
+        dateTime.minus(src.getReminderDuration(), ChronoUnit.HOURS);
+        event.setReminder(dateTime.getUtilDate());
       } else if (unit == ReminderDurationUnit.DAYS) {
-        date.add(Calendar.DAY_OF_YEAR, -src.getReminderDuration());
-        event.setReminder(date.getDate());
+        dateTime.minusDays(src.getReminderDuration());
+        event.setReminder(dateTime.getUtilDate());
       } else {
         log.warn("ReminderDurationUnit '" + src.getReminderDurationUnit() + "' not yet implemented.");
       }

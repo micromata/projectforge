@@ -63,8 +63,8 @@ public class PostausgangListForm extends AbstractListForm<PostausgangListFilter,
     // DropDownChoice months
     final LabelValueChoiceRenderer<Integer> monthChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
     monthChoiceRenderer.addValue(-1, StringHelper.format2DigitNumber(1) + "-" + 12);
-    for (int i = 0; i <= 11; i++) {
-      monthChoiceRenderer.addValue(i, StringHelper.format2DigitNumber(i + 1));
+    for (int month = 1; month <= 12; month++) {
+      monthChoiceRenderer.addValue(month, StringHelper.format2DigitNumber(month));
     }
     optionsFieldsetPanel
     .addDropDownChoice(new PropertyModel<Integer>(this, "month"), monthChoiceRenderer.getValues(), monthChoiceRenderer, true)

@@ -23,12 +23,12 @@
 
 package org.projectforge.web.wicket.components;
 
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.web.calendar.CalendarPage;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.TimeZone;
-
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.web.calendar.CalendarPage;
 
 /**
  * Fluent design pattern.

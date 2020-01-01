@@ -28,12 +28,10 @@ import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.util.Calendar;
 
 /**
  * Job should be scheduled hourly.
@@ -64,9 +62,8 @@ public class CronReindexingHourlyJob {
     log.info("Hourly job started.");
     try {
       log.info("Starting (re-)indexing of history entries of the last 24 hours.");
-      final Calendar cal = Calendar.getInstance(DateHelper.UTC);
-      cal.add(Calendar.DAY_OF_YEAR, -1);
-      final ReindexSettings settings = new ReindexSettings(cal.getTime(), null);
+      final PFDateTime dt = PFDateTime.now().minusDays(1);
+      final ReindexSettings settings = new ReindexSettings(dt.getUtilDate(), null);
       hibernateSearchReindexer.rebuildDatabaseSearchIndices(settings, PfHistoryMasterDO.class);
     } catch (final Throwable ex) {
       log.error("While executing fix job for data base history entries: " + ex.getMessage(), ex);

@@ -30,7 +30,7 @@ import java.util.*;
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
+ *
  */
 public class TeamCalCalendarFilter extends AbstractCalendarFilter
 {
@@ -57,7 +57,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
   /**
    * Try to find a previous used color for the given calendar in any entry of this filter. If found multiple ones, the
    * newest one is used.
-   * 
+   *
    * @param calId Id of the calendar to search for.
    * @return Previous used color for the given calendar or DEFAULT_COLOR if not found.
    */
@@ -101,7 +101,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
 
   /**
    * Adds new entry and sets the new entry as active entry.
-   * 
+   *
    * @param entry
    */
   public void add(final TemplateEntry entry)
@@ -206,7 +206,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
   /**
    * Copies all template entries (active template and list) of the given source to this. This method is used to make a
    * backup copy for undoing changes in TeamCalDialog.
-   * 
+   *
    * @param src
    */
   public TeamCalCalendarFilter copyValuesFrom(final TeamCalCalendarFilter src)
@@ -226,7 +226,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
 
   /**
    * For avoiding reload of Calendar if no changes are detected. (Was für'n Aufwand für so'n kleines Feature...)
-   * 
+   *
    * @param other
    * @return
    */

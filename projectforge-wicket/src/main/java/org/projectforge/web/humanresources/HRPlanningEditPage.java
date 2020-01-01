@@ -63,7 +63,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
     final Long millis = WicketUtils.getAsLong(parameters, WebConstants.PARAMETER_DATE);
     final java.sql.Date week;
     if (millis != null) {
-      week = new DayHolder(new Date(millis)).getSQLDate();
+      week = new DayHolder(new Date(millis)).getSqlDate();
     } else {
       week = null;
     }

@@ -32,7 +32,7 @@ import org.projectforge.web.wicket.WicketApplication;
 
 /**
  * Example of a web config inside the config.xml file:
- * 
+ *
  * <pre>
  * &lt;config&gt;
  *   ...
@@ -40,12 +40,12 @@ import org.projectforge.web.wicket.WicketApplication;
  *   ...
  * &lt;/config&gt;
  * </pre>
- * 
+ *
  * <br/>
  * See all the predefined id's here: {@link MenuItemDef} <br/>
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @XmlObject(alias = "web")
 public class WebConfig

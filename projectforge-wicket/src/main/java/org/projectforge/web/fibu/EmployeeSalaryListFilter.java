@@ -37,8 +37,8 @@ public class EmployeeSalaryListFilter extends EmployeeSalaryFilter
   public EmployeeSalaryListFilter reset()
   {
     super.reset();
-    year = -1;
-    month = -1;
+    setYear(null);
+    setMonth(null);
     searchString = "";
     return this;
   }

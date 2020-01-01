@@ -26,7 +26,6 @@ package org.projectforge.business.calendar
 import org.projectforge.business.teamcal.filter.TemplateEntry
 import org.projectforge.favorites.AbstractFavorite
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import java.util.*
 
 /**
  * Persist the settings of one named filter entry. The user may configure a list of filters and my switch the active
@@ -48,18 +47,27 @@ class CalendarFilter(name: String? = null,
                       */
                      var gridSize: Int = 15,
 
-                     var showBirthdays: Boolean? = null,
-
-                     /**
-                      * Not yet supported: Statistics will always be displayed, if time sheets will be displayed.
-                      */
-                     var showStatistics: Boolean? = true,
-
                      var otherTimesheetUsersEnabled: Boolean = false,
                      /**
                       * Display the time sheets of the user with this id. If null, no time sheets are displayed.
                       */
                      var timesheetUserId: Int? = null,
+
+        /**
+         * Check box for enabling and disabling vacation entries.
+         */
+        // var showVacations: Boolean = false,
+
+                     /**
+                      * All vacations of any employee assigned to at least one of this
+                      * vacationGroups (group ids) will be displayed.
+                      */
+                     var vacationGroupIds: Set<Int>? = null,
+
+                     /**
+                      * All vacations of the given employees (by id) will be displayed.
+                      */
+                     var vacationUserIds: Set<Int>? = null,
 
                      /**
                       * Not yet supported.
@@ -84,9 +92,10 @@ class CalendarFilter(name: String? = null,
         this.name = src.name
         this.id = src.id
         this.defaultCalendarId = src.defaultCalendarId
-        this.showBirthdays = src.showBirthdays
-        this.showStatistics = src.showStatistics
         this.timesheetUserId = src.timesheetUserId
+        //this.showVacations = src.showVacations
+        this.vacationGroupIds = copySet(src.vacationGroupIds)
+        this.vacationUserIds = copySet(src.vacationUserIds)
         this.gridSize = src.gridSize
         this.showBreaks = src.showBreaks
         this.showPlanning = src.showPlanning
@@ -150,28 +159,42 @@ class CalendarFilter(name: String? = null,
     }
 
     fun isModified(other: CalendarFilter): Boolean {
-        if (!Objects.equals(this.name, other.name)) return true
-        if (this.id != other.id) return true
-        if (this.defaultCalendarId != other.defaultCalendarId) return true
-        if (this.showBirthdays != other.showBirthdays) return true
-        if (this.showStatistics != other.showStatistics) return true
-        if (this.timesheetUserId != other.timesheetUserId) return true
-        if (this.gridSize != other.gridSize) return true
-        if (this.showBreaks != other.showBreaks) return true
-        if (this.showPlanning != other.showPlanning) return true
-        if (isModified(this.calendarIds, other.calendarIds)) return true
-        if (isModified(this.invisibleCalendars, other.invisibleCalendars)) return true
-        return false
+        return this.name != other.name ||
+                this.id != other.id ||
+                this.defaultCalendarId != other.defaultCalendarId ||
+                this.timesheetUserId != other.timesheetUserId ||
+                // this.showVacations != other.showVacations ||
+                isModified(this.vacationGroupIds, other.vacationGroupIds) ||
+                isModified(this.vacationUserIds, other.vacationUserIds) ||
+                this.gridSize != other.gridSize ||
+                this.showBreaks != other.showBreaks ||
+                this.showPlanning != other.showPlanning ||
+                isModified(this.calendarIds, other.calendarIds) ||
+                isModified(this.invisibleCalendars, other.invisibleCalendars)
     }
 
-    private fun isModified(set1: Set<Int>, set2: Set<Int>): Boolean {
-        set1.forEach {
-            if (!set2.contains(it))
-                return true
+    private fun copySet(srcSet: Set<Int>?): Set<Int>? {
+        if (srcSet == null) {
+            return null
         }
-        set2.forEach {
-            if (!set1.contains(it))
+        val list = mutableSetOf<Int>()
+        list.addAll(srcSet)
+        return list
+    }
+
+    private fun isModified(col1: Collection<Int>?, col2: Collection<Int>?): Boolean {
+        if (col1 == null || col2 == null) {
+            return col1 != col2
+        }
+        col1.forEach {
+            if (!col2.contains(it)) {
                 return true
+            }
+        }
+        col2.forEach {
+            if (!col1.contains(it)) {
+                return true
+            }
         }
         return false
     }
@@ -187,10 +210,8 @@ class CalendarFilter(name: String? = null,
             if (templateEntry != null) {
                 filter.defaultCalendarId = templateEntry.defaultCalendarId
                 filter.name = templateEntry.name
-                filter.showBirthdays = templateEntry.isShowBirthdays
                 filter.showBreaks = templateEntry.isShowBreaks
                 filter.showPlanning = templateEntry.isShowPlanning
-                filter.showStatistics = templateEntry.isShowStatistics
                 filter.timesheetUserId = templateEntry.timesheetUserId
                 if (templateEntry.isShowTimesheets)
                     filter.timesheetUserId = ThreadLocalUserContext.getUserId()

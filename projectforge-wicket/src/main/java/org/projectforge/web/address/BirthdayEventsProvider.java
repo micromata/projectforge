@@ -45,6 +45,7 @@ import java.util.Set;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+// TODO: Skip
 public class BirthdayEventsProvider extends MyFullCalendarEventsProvider
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BirthdayEventsProvider.class);
@@ -63,7 +64,6 @@ public class BirthdayEventsProvider extends MyFullCalendarEventsProvider
   public static final String EVENT_CLASS_NAME = "birth";
 
   /**
-   * @param parent         For i18n.
    * @param addressDao
    * @param dataProtection If true (default) then no ages will be shown, only the names.
    * @see Component#getString(String)
@@ -92,7 +92,7 @@ public class BirthdayEventsProvider extends MyFullCalendarEventsProvider
     final Set<BirthdayAddress> set = addressDao.getBirthdays(from.toDate(), end.toDate(), true);
     for (final BirthdayAddress birthdayAddress : set) {
       final AddressDO address = birthdayAddress.getAddress();
-      final int month = birthdayAddress.getMonth() + 1;
+      final int month = birthdayAddress.getMonth().getValue(); // 1 - January, ..., 12 - December
       final int dayOfMonth = birthdayAddress.getDayOfMonth();
       DateTime date = getDate(from, end, month, dayOfMonth);
       // February, 29th fix:
@@ -103,7 +103,7 @@ public class BirthdayEventsProvider extends MyFullCalendarEventsProvider
         log.info("Date "
             + birthdayAddress.getDayOfMonth()
             + "/"
-            + (birthdayAddress.getMonth() + 1)
+            + birthdayAddress.getMonth()
             + " not found between "
             + from
             + " and "

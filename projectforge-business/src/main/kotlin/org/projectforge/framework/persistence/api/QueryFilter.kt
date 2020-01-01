@@ -29,10 +29,10 @@ import org.projectforge.framework.persistence.api.impl.DBFilter
 import org.projectforge.framework.persistence.api.impl.DBHistorySearchParams
 import org.projectforge.framework.persistence.api.impl.DBJoin
 import org.projectforge.framework.persistence.api.impl.DBPredicate
-import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDay
 import org.slf4j.LoggerFactory
-import java.util.*
+import java.time.Month
 import javax.persistence.criteria.JoinType
 
 /**
@@ -178,27 +178,20 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
      *
      * @param dateField
      * @param year      if <= 0 do nothing.
-     * @param month     if < 0 choose whole year, otherwise given month. (Calendar.MONTH);
+     * @param month     if <= 0 choose whole year, otherwise given month (1-January, ..., 12-December);
      */
     fun setYearAndMonth(dateField: String, year: Int, month: Int) {
         if (year > 0) {
-            val cal = DateHelper.getUTCCalendar()
-            cal.set(Calendar.YEAR, year)
             val lo: java.sql.Date
             val hi: java.sql.Date
-            if (month >= 0) {
-                cal.set(Calendar.MONTH, month)
-                cal.set(Calendar.DAY_OF_MONTH, 1)
-                lo = java.sql.Date(cal.timeInMillis)
-                val lastDayOfMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
-                cal.set(Calendar.DAY_OF_MONTH, lastDayOfMonth)
-                hi = java.sql.Date(cal.timeInMillis)
+            if (month > 0) {
+                val date = PFDay.withDate(year, month, 1)
+                lo = date.beginOfMonth.sqlDate
+                hi = date.endOfMonth.sqlDate
             } else {
-                cal.set(Calendar.DAY_OF_YEAR, 1)
-                lo = java.sql.Date(cal.timeInMillis)
-                val lastDayOfYear = cal.getActualMaximum(Calendar.DAY_OF_YEAR)
-                cal.set(Calendar.DAY_OF_YEAR, lastDayOfYear)
-                hi = java.sql.Date(cal.timeInMillis)
+                val date = PFDay.withDate(year, Month.JANUARY, 1)
+                lo = date.beginOfYear.sqlDate
+                hi = date.endOfYear.sqlDate
             }
             add(between(dateField, lo, hi))
         }

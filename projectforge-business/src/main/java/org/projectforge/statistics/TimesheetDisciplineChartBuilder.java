@@ -33,11 +33,11 @@ import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.charting.XYChartBuilder;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.calendar.Holidays;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 
@@ -50,9 +50,9 @@ import java.util.List;
  * <li>Ein Diagramm, welches über die letzten n Tage die Tage visualisiert, die zwischen Zeitberichtsdatum und Zeitpunkt der tatsächlichen
  * Buchung liegen.</li>
  * </ol>
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TimesheetDisciplineChartBuilder
 {
@@ -101,19 +101,17 @@ public class TimesheetDisciplineChartBuilder
    * @param userId
    * @param workingHoursPerDay
    * @param forLastNDays
-   * @param shape e. g. new Ellipse2D.Float(-3, -3, 6, 6) or null, if no marker should be printed.
-   * @param stroke e. g. new BasicStroke(3.0f).
    * @param showAxisValues
    * @return
    */
   public JFreeChart create(final TimesheetDao timesheetDao, final Integer userId, final double workingHoursPerDay,
       final short forLastNDays, final boolean showAxisValues)
   {
-    final DayHolder dh = new DayHolder();
+    PFDateTime dt = PFDateTime.now();
     final TimesheetFilter filter = new TimesheetFilter();
-    filter.setStopTime(dh.getDate());
-    dh.add(Calendar.DATE, -forLastNDays);
-    filter.setStartTime(dh.getDate());
+    filter.setStopTime(dt.getUtilDate());
+    dt = dt.minusDays(forLastNDays);
+    filter.setStartTime(dt.getUtilDate());
     filter.setUserId(userId);
     filter.setOrderType(OrderDirection.ASC);
     final List<TimesheetDO> list = timesheetDao.getList(filter);
@@ -127,7 +125,8 @@ public class TimesheetDisciplineChartBuilder
       current = it.next();
     }
     for (int i = 0; i <= forLastNDays; i++) {
-      while (current != null && (dh.isSameDay(current.getStartTime()) || current.getStartTime().before(dh.getDate()))) {
+      PFDateTime dateTime = PFDateTime.from(current.getStartTime());
+      while (current != null && (dt.isSameDay(dateTime) || dateTime.isBefore(dt))) {
         actualWorkingHours += ((double) current.getWorkFractionDuration()) / 3600000;
         if (it.hasNext()) {
           current = it.next();
@@ -136,18 +135,19 @@ public class TimesheetDisciplineChartBuilder
           break;
         }
       }
-      if (dh.isWorkingDay()) {
-        final BigDecimal workFraction = dh.getWorkFraction();
+      Holidays holidays = Holidays.getInstance();
+      if (holidays.isWorkingDay(dt.getDateTime())) {
+        final BigDecimal workFraction = holidays.getWorkFraction(dt);
         if (workFraction != null) {
           planWorkingHours += workFraction.doubleValue() * workingHoursPerDay;
         } else {
           planWorkingHours += workingHoursPerDay;
         }
       }
-      final Day day = new Day(dh.getDayOfMonth(), dh.getMonth() + 1, dh.getYear());
+      final Day day = new Day(dt.getDayOfMonth(), dt.getMonthValue() + 1, dt.getYear());
       sollSeries.add(day, planWorkingHours);
       istSeries.add(day, actualWorkingHours);
-      dh.add(Calendar.DATE, 1);
+      dt = dt.plusDays(1);
     }
     final TimeSeriesCollection dataset = new TimeSeriesCollection();
     dataset.addSeries(sollSeries);
@@ -167,18 +167,16 @@ public class TimesheetDisciplineChartBuilder
    * @param timesheetDao
    * @param userId
    * @param forLastNDays
-   * @param shape e. g. new Ellipse2D.Float(-3, -3, 6, 6) or null, if no marker should be printed.
-   * @param stroke e. g. new BasicStroke(3.0f).
    * @param showAxisValues
    * @return
    */
   public JFreeChart create(final TimesheetDao timesheetDao, final Integer userId, final short forLastNDays, final boolean showAxisValues)
   {
-    final DayHolder dh = new DayHolder();
+    PFDateTime dt = PFDateTime.now();
     final TimesheetFilter filter = new TimesheetFilter();
-    filter.setStopTime(dh.getDate());
-    dh.add(Calendar.DATE, -forLastNDays);
-    filter.setStartTime(dh.getDate());
+    filter.setStopTime(dt.getUtilDate());
+    dt = dt.minusDays(forLastNDays);
+    filter.setStartTime(dt.getUtilDate());
     filter.setUserId(userId);
     filter.setOrderType(OrderDirection.ASC);
     final List<TimesheetDO> list = timesheetDao.getList(filter);
@@ -194,7 +192,8 @@ public class TimesheetDisciplineChartBuilder
     for (int i = 0; i <= forLastNDays; i++) {
       long difference = 0;
       long totalDuration = 0; // Weight for average.
-      while (current != null && (dh.isSameDay(current.getStartTime()) || current.getStartTime().before(dh.getDate()))) {
+      PFDateTime dateTime = PFDateTime.from(current.getStartTime());
+      while (current != null && (dt.isSameDay(dateTime) || dateTime.isBefore(dt))) {
         final long duration = current.getWorkFractionDuration();
         difference += (current.getCreated().getTime() - current.getStartTime().getTime()) * duration;
         totalDuration += duration;
@@ -206,7 +205,7 @@ public class TimesheetDisciplineChartBuilder
         }
       }
       final double averageDifference = difference > 0 ? ((double) difference) / totalDuration / 86400000 : 0; // In days.
-      final Day day = new Day(dh.getDayOfMonth(), dh.getMonth() + 1, dh.getYear());
+      final Day day = new Day(dt.getDayOfMonth(), dt.getMonthValue() + 1, dt.getYear());
       if (averageDifference > 0) {
         planSeries.add(day, PLANNED_AVERAGE_DIFFERENCE_BETWEEN_TIMESHEET_AND_BOOKING); // plan average
         // (PLANNED_AVERAGE_DIFFERENCE_BETWEEN_TIMESHEET_AND_BOOKING
@@ -215,7 +214,7 @@ public class TimesheetDisciplineChartBuilder
         totalDifference += averageDifference;
         numberOfBookedDays++;
       }
-      dh.add(Calendar.DATE, 1);
+      dt = dt.plusDays(1);
     }
     averageDifferenceBetweenTimesheetAndBooking = numberOfBookedDays > 0 ? new BigDecimal(totalDifference).divide(new BigDecimal(
         numberOfBookedDays), 1, RoundingMode.HALF_UP) : BigDecimal.ZERO;

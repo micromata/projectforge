@@ -31,7 +31,7 @@ import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.TestSetup;
 
 import java.math.BigDecimal;
-import java.util.Calendar;
+import java.time.Month;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -53,25 +53,25 @@ public class GanttUtilsTest extends AbstractTestBase {
   public void calculateFromDate() {
     final GanttTaskImpl activity1 = createActivity(10).setTitle("activity1");
     final DayHolder day = new DayHolder();
-    day.setDate(2010, Calendar.FEBRUARY, 5);
-    activity1.setStartDate(day.getDate());
+    day.setDate(2010, Month.FEBRUARY, 5);
+    activity1.setStartDate(day.getUtilDate());
     assertDates("2010-02-05", "2010-02-19", activity1);
     activity1.setStartDate(null);
     day.addWorkingDays(10);
-    activity1.setEndDate(day.getDate());
+    activity1.setEndDate(day.getUtilDate());
     assertDates("2010-02-05", "2010-02-19", activity1);
 
     final GanttTaskImpl activity2 = createActivity(5).setTitle("activity2");
     activity2.setPredecessor(activity1);
-    assertDate(2010, Calendar.FEBRUARY, 19, GanttUtils.getCalculatedStartDate(activity2));
+    assertDate(2010, Month.FEBRUARY, 19, GanttUtils.getCalculatedStartDate(activity2));
     activity2.setPredecessorOffset(2);
-    assertDate(2010, Calendar.FEBRUARY, 19, GanttUtils.getCalculatedStartDate(activity2));
+    assertDate(2010, Month.FEBRUARY, 19, GanttUtils.getCalculatedStartDate(activity2));
     activity2.recalculate();
-    assertDate(2010, Calendar.FEBRUARY, 23, GanttUtils.getCalculatedStartDate(activity2));
+    assertDate(2010, Month.FEBRUARY, 23, GanttUtils.getCalculatedStartDate(activity2));
 
     final GanttTaskImpl a1 = createActivity(1).setTitle("a1");
-    day.setDate(2010, Calendar.FEBRUARY, 1);
-    a1.setStartDate(day.getDate());
+    day.setDate(2010, Month.FEBRUARY, 1);
+    a1.setStartDate(day.getUtilDate());
     final GanttTaskImpl a2 = createActivity(10).setTitle("a2");
     a2.setPredecessor(a1);
     final GanttTaskImpl a2_1 = createActivity(10).setTitle("a2_1");
@@ -80,18 +80,18 @@ public class GanttUtilsTest extends AbstractTestBase {
     final GanttTaskImpl a2_2 = createActivity(2).setTitle("a2_2");
     a2_2.setPredecessor(a2).setRelationType(GanttRelationType.START_START);
     a2.addChild(a2_2);
-    assertDate(2010, Calendar.FEBRUARY, 1, GanttUtils.getCalculatedStartDate(a1));
-    assertDate(2010, Calendar.FEBRUARY, 2, GanttUtils.getCalculatedStartDate(a2));
-    assertDate(2010, Calendar.FEBRUARY, 2, GanttUtils.getCalculatedStartDate(a2_1));
-    assertDate(2010, Calendar.FEBRUARY, 2, GanttUtils.getCalculatedStartDate(a2_2));
+    assertDate(2010, Month.FEBRUARY, 1, GanttUtils.getCalculatedStartDate(a1));
+    assertDate(2010, Month.FEBRUARY, 2, GanttUtils.getCalculatedStartDate(a2));
+    assertDate(2010, Month.FEBRUARY, 2, GanttUtils.getCalculatedStartDate(a2_1));
+    assertDate(2010, Month.FEBRUARY, 2, GanttUtils.getCalculatedStartDate(a2_2));
   }
 
   @Test
   public void subActivities() {
     final DayHolder day = new DayHolder();
     final GanttTaskImpl a1 = createActivity(1).setTitle("a1");
-    day.setDate(2010, Calendar.SEPTEMBER, 1);
-    a1.setStartDate(day.getDate());
+    day.setDate(2010, Month.SEPTEMBER, 1);
+    a1.setStartDate(day.getUtilDate());
     final GanttTaskImpl a2 = createActivity(-1).setTitle("a2");
     final GanttTaskImpl a2_1 = createActivity(2).setTitle("a2_1");
     a2_1.setPredecessor(a1);
@@ -105,7 +105,7 @@ public class GanttUtilsTest extends AbstractTestBase {
     assertDates("2010-09-02", "2010-09-08", a2);
     a2.setDuration(TWO);
     assertDates("Start date calculated from children and duration is fixed", "2010-09-02", "2010-09-06", a2);
-    a2.setStartDate(day.getDate());
+    a2.setStartDate(day.getUtilDate());
     assertDates("Start date and duration are fixed", "2010-09-01", "2010-09-03", a2);
 
     a2.setStartDate(null).setDuration(null).setPredecessor(a1).setPredecessorOffset(1);
@@ -153,32 +153,32 @@ public class GanttUtilsTest extends AbstractTestBase {
             "Start date not given, use alphabetical order instead.");
 
     final DayHolder day = new DayHolder();
-    day.setDate(2010, Calendar.JUNE, 1);
-    a1.setStartDate(day.getDate());
+    day.setDate(2010, Month.JUNE, 1);
+    a1.setStartDate(day.getUtilDate());
     assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) < 0,
             "a1.startDate before a2.startDate = null (now).");
     assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) > 0,
             "a1.startDate before a2.startDate = null (now).");
     day.addWorkingDays(2);
-    a2.setStartDate(day.getDate());
+    a2.setStartDate(day.getUtilDate());
     assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) < 0,
             "a1.startDate before a2.startDate.");
     assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) > 0,
             "a1.startDate before a2.startDate.");
-    a1.setStartDate(day.getDate());
+    a1.setStartDate(day.getUtilDate());
     assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) > 0,
             "Same start date -> alphabetical order");
     assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) < 0,
             "Same start date -> alphabetical order");
     day.addWorkingDays(2);
-    a2.setEndDate(day.getDate());
+    a2.setEndDate(day.getUtilDate());
     final Date a1StartDate = a1.getStartDate();
     a1.setStartDate(null);
     assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) > 0,
             "a1.endDate = null after a2.endDate");
     assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) < 0,
             "a1.endDate = null before a2.endDate");
-    a1.setEndDate(day.getDate());
+    a1.setEndDate(day.getUtilDate());
     a1.setStartDate(a1StartDate);
     assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) > 0,
             "Same start and end date -> alphabetical order");
@@ -195,10 +195,10 @@ public class GanttUtilsTest extends AbstractTestBase {
     return activity;
   }
 
-  private void assertDate(final int year, final int month, final int day, final Date date) {
+  private void assertDate(final int year, final Month month, final int day, final Date date) {
     final DayHolder dh = new DayHolder();
     dh.setDate(year, month, day);
-    assertEquals(DateHelper.formatIsoDate(dh.getDate()), DateHelper.formatIsoDate(date));
+    assertEquals(DateHelper.formatIsoDate(dh.getUtilDate()), DateHelper.formatIsoDate(date));
   }
 
   private void assertDates(final String expectedCalculatedStartDate, final String expectedCalculatedEndDate,

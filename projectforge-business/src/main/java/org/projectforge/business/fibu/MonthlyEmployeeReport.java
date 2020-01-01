@@ -34,12 +34,13 @@ import org.projectforge.business.task.formatter.TaskFormatter;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.common.StringHelper;
+import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.calendar.WeekHolder;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 
 import java.io.Serializable;
@@ -63,7 +64,6 @@ public class MonthlyEmployeeReport implements Serializable {
 
   /**
    * Checks if the given taskId is the Pseudo task, see below.
-   * @param taskId
    * @return true, if the given task id matches the magic pseudo task id.
    */
   public static boolean isPseudoTask(Integer taskId) {
@@ -83,7 +83,7 @@ public class MonthlyEmployeeReport implements Serializable {
   }
 
 
-  public class Kost2Row implements Serializable {
+  public static class Kost2Row implements Serializable {
     private static final long serialVersionUID = -5379735557333691194L;
 
     public Kost2Row(final Kost2DO kost2) {
@@ -137,13 +137,9 @@ public class MonthlyEmployeeReport implements Serializable {
     private final Kost2DO kost2;
   }
 
-  private final int year;
+  private PFDateTime fromDate;
 
-  private final int month;
-
-  private Date fromDate;
-
-  private Date toDate;
+  private PFDateTime toDate;
 
   private BigDecimal numberOfWorkingDays;
 
@@ -195,7 +191,7 @@ public class MonthlyEmployeeReport implements Serializable {
 
   private EmployeeService employeeService;
 
-  public static final String getFormattedDuration(final long duration) {
+  public static String getFormattedDuration(final long duration) {
     if (duration == 0) {
       return "";
     }
@@ -208,12 +204,11 @@ public class MonthlyEmployeeReport implements Serializable {
    * Dont't forget to initialize: setFormatter and setUser or setEmployee.
    *
    * @param year
-   * @param month
+   * @param month 1-based: 1 - January, ..., 12 - December
    */
-  public MonthlyEmployeeReport(final EmployeeService employeeService, final VacationService vacationService, final PFUserDO user, final int year,
-                               final int month) {
-    this.year = year;
-    this.month = month;
+  public MonthlyEmployeeReport(final EmployeeService employeeService, final VacationService vacationService, final PFUserDO user, final int year, final Integer month) {
+    this.fromDate = PFDateTime.withDate(year, month, 1);
+    this.toDate = this.fromDate.getEndOfMonth();
     this.user = user;
     this.employeeService = employeeService;
     this.vacationService = vacationService;
@@ -247,27 +242,21 @@ public class MonthlyEmployeeReport implements Serializable {
     }
     // Create the weeks:
     this.weeks = new ArrayList<>();
-    final DateHolder dh = new DateHolder();
-    dh.setDate(year, month, 1, 0, 0, 0);
-    fromDate = dh.getDate();
-    final DateHolder dh2 = new DateHolder(dh.getDate());
-    dh2.setEndOfMonth();
-    toDate = dh2.getDate();
-    int i = 0;
+
+    int paranoiaCounter = 0;
+    PFDateTime date = fromDate;
     do {
-      final MonthlyEmployeeReportWeek week = new MonthlyEmployeeReportWeek(dh.getDate());
+      final MonthlyEmployeeReportWeek week = new MonthlyEmployeeReportWeek(date);
       weeks.add(week);
-      dh.setEndOfWeek();
-      dh.add(Calendar.DAY_OF_WEEK, +1);
-      dh.setBeginOfWeek();
-      if (i++ > 10) {
+      date = date.plusWeeks(1).getBeginOfWeek();
+      if (paranoiaCounter++ > 10) {
         throw new RuntimeException("Endless loop protection: Please contact developer!");
       }
-    } while (dh.getDate().before(toDate));
+    } while (date.isBefore(toDate));
   }
 
   public void addTimesheet(final TimesheetDO sheet, final boolean hasSelectAccess) {
-    final DayHolder day = new DayHolder(sheet.getStartTime());
+    final PFDateTime day = PFDateTime.from(sheet.getStartTime());
     bookedDays.add(day.getDayOfMonth());
     for (final MonthlyEmployeeReportWeek week : weeks) {
       if (week.matchWeek(sheet)) {
@@ -276,9 +265,9 @@ public class MonthlyEmployeeReport implements Serializable {
       }
     }
     log.info("Ignoring time sheet which isn't inside current month: "
-            + year
+            + getYear()
             + "-"
-            + StringHelper.format2DigitNumber(month + 1)
+            + StringHelper.format2DigitNumber(getMonth())
             + ": "
             + sheet);
 
@@ -336,9 +325,11 @@ public class MonthlyEmployeeReport implements Serializable {
     }
     final MonthHolder monthHolder = new MonthHolder(this.fromDate);
     this.numberOfWorkingDays = monthHolder.getNumberOfWorkingDays();
+    final Holidays holidays = Holidays.getInstance();
     for (final WeekHolder week : monthHolder.getWeeks()) {
-      for (final DayHolder day : week.getDays()) {
-        if (day.getMonth() == this.month && day.isWorkingDay()
+
+      for (final PFDay day : week.getDays()) {
+        if (day.getMonth() == this.fromDate.getMonth() && holidays.isWorkingDay(day)
                 && !bookedDays.contains(day.getDayOfMonth())) {
           unbookedDays.add(day.getDayOfMonth());
         }
@@ -346,8 +337,8 @@ public class MonthlyEmployeeReport implements Serializable {
     }
     if (vacationService != null && this.employee != null && this.employee.getUser() != null) {
       if (vacationService.couldUserUseVacationService(this.employee.getUser(), false)) {
-        this.vacationCount = vacationService.getAvailableVacationDaysForYearAtDate(this.employee, this.toDate);
-        this.vacationPlandCount = vacationService.getPlandVacationDaysForYearAtDate(this.employee, this.toDate);
+        this.vacationCount = vacationService.getAvailableVacationDaysForYearAtDate(this.employee, this.toDate.getUtilDate());
+        this.vacationPlandCount = vacationService.getPlandVacationDaysForYearAtDate(this.employee, this.toDate.getUtilDate());
       }
     }
   }
@@ -372,7 +363,7 @@ public class MonthlyEmployeeReport implements Serializable {
         buf.append(", ");
       }
       buf.append(StringHelper.format2DigitNumber(dayOfMonth)).append(".")
-              .append(StringHelper.format2DigitNumber(month + 1)).append(".");
+              .append(StringHelper.format2DigitNumber(getMonth())).append(".");
     }
     if (first) {
       return null;
@@ -410,11 +401,14 @@ public class MonthlyEmployeeReport implements Serializable {
   }
 
   public int getYear() {
-    return year;
+    return fromDate.getYear();
   }
 
-  public int getMonth() {
-    return month;
+  /**
+   * @return 1-January, ..., 12-December.
+   */
+  public Integer getMonth() {
+    return fromDate.getMonthValue();
   }
 
   public List<MonthlyEmployeeReportWeek> getWeeks() {
@@ -422,15 +416,15 @@ public class MonthlyEmployeeReport implements Serializable {
   }
 
   public String getFormmattedMonth() {
-    return StringHelper.format2DigitNumber(month + 1);
+    return StringHelper.format2DigitNumber(getMonth());
   }
 
   public Date getFromDate() {
-    return fromDate;
+    return fromDate.getUtilDate();
   }
 
   public Date getToDate() {
-    return toDate;
+    return toDate.getUtilDate();
   }
 
   /**

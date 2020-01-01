@@ -31,6 +31,7 @@ import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BusinessAssessment;
 import org.projectforge.business.fibu.kost.BusinessAssessmentTable;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.PFDayUtils;
 
 import java.io.Serializable;
 import java.util.*;
@@ -63,13 +64,13 @@ public class Report implements Serializable
 
   private transient BusinessAssessmentTable businessAssessmentTable;
 
-  private int fromYear;
+  private Integer fromYear;
 
-  private int fromMonth;
+  private Integer fromMonth;
 
-  private int toYear;
+  private Integer toYear;
 
-  private int toMonth;
+  private Integer toMonth;
 
   private transient Report parent;
 
@@ -84,25 +85,33 @@ public class Report implements Serializable
     this.parent = parent;
   }
 
-  public Report(final ReportObjective reportObjective, final int fromYear, final int fromMonth, final int toYear, final int toMonth)
+  /**
+   *
+   * @param reportObjective
+   * @param fromYear
+   * @param fromMonth 1-January, ..., 12-December
+   * @param toYear
+   * @param toMonth 1-January, ..., 12-December
+   */
+  public Report(final ReportObjective reportObjective, final Integer fromYear, final Integer fromMonth, final Integer toYear, final Integer toMonth)
   {
     this(reportObjective);
     this.fromYear = fromYear;
-    this.fromMonth = fromMonth;
+    this.fromMonth = PFDayUtils.validateMonthValue(fromMonth);
     this.toYear = toYear;
-    this.toMonth = toMonth;
+    this.toMonth = PFDayUtils.validateMonthValue(toMonth);
   }
 
-  public void setFrom(final int year, final int month)
+  public void setFrom(final Integer year, final Integer month)
   {
     this.fromYear = year;
-    this.fromMonth = month;
+    this.fromMonth = PFDayUtils.validateMonthValue(month);
   }
 
-  public void setTo(final int year, final int month)
+  public void setTo(final Integer year, final Integer month)
   {
     this.toYear = year;
-    this.toMonth = month;
+    this.toMonth = PFDayUtils.validateMonthValue(month);
   }
 
   public int getFromYear()
@@ -110,17 +119,17 @@ public class Report implements Serializable
     return fromYear;
   }
 
-  public int getFromMonth()
+  public Integer getFromMonth()
   {
     return fromMonth;
   }
 
-  public int getToYear()
+  public Integer getToYear()
   {
     return toYear;
   }
 
-  public int getToMonth()
+  public Integer getToMonth()
   {
     return toMonth;
   }

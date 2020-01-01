@@ -39,7 +39,7 @@ import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.CurrencyHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +49,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Month;
 import java.util.*;
 
 /**
@@ -73,12 +74,7 @@ public class EmployeeSalaryExportDao {
   public byte[] export(final List<EmployeeSalaryDO> list) {
     log.info("Exporting employee salary list.");
     Validate.notEmpty(list);
-    list.sort(new Comparator<EmployeeSalaryDO>() {
-      @Override
-      public int compare(final EmployeeSalaryDO o1, final EmployeeSalaryDO o2) {
-        return (o1.getEmployee().getUser().getFullname()).compareTo(o2.getEmployee().getUser().getFullname());
-      }
-    });
+    list.sort(Comparator.comparing(o2 -> (o2.getEmployee().getUser().getFullname())));
     final EmployeeFilter filter = new EmployeeFilter();
     filter.setShowOnlyActiveEntries(true);
     filter.setDeleted(false);
@@ -106,14 +102,13 @@ public class EmployeeSalaryExportDao {
 
     final EmployeeSalaryDO first = list.get(0);
     final int year = first.getYear();
-    final int month = first.getMonth();
-    final DayHolder buchungsdatum = new DayHolder();
-    buchungsdatum.setDate(year, month, 1);
-    final MonthHolder monthHolder = new MonthHolder(buchungsdatum.getDate());
+    final Integer month = first.getMonth();
+    PFDay buchungsdatum = PFDay.withDate(year, month, 1);
+    final MonthHolder monthHolder = new MonthHolder(buchungsdatum.getUtilDate());
     final BigDecimal numberOfWorkingDays = monthHolder.getNumberOfWorkingDays();
-    buchungsdatum.setEndOfMonth();
+    buchungsdatum = buchungsdatum.getEndOfMonth();
 
-    final String sheetTitle = DateHelper.formatMonth(year, month);
+    final String sheetTitle = DateHelper.formatMonth(year,month);
     final ExportSheet sheet = xls.addSheet(sheetTitle);
     sheet.createFreezePane(0, 1);
 
@@ -221,7 +216,7 @@ public class EmployeeSalaryExportDao {
           mapping.add(ExcelColumn.KORREKTUR, "");
           mapping.add(ExcelColumn.SUMME, "");
         }
-        mapping.add(ExcelColumn.DATUM, buchungsdatum.getCalendar()); // Last day of month
+        mapping.add(ExcelColumn.DATUM, buchungsdatum); // Last day of month
         mapping.add(ExcelColumn.KONTO, KONTO); // constant.
         mapping.add(ExcelColumn.GEGENKONTO, GEGENKONTO); // constant.
         sheet.addRow(mapping.getMapping(), 0);

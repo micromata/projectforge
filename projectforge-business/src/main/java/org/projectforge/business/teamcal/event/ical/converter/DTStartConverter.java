@@ -28,20 +28,18 @@ import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.DtStart;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.calendar.ICal4JUtils;
+import org.projectforge.framework.time.PFDateTimeUtils;
 
 import java.util.Date;
 
 import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.TIMEZONE_REGISTRY;
 
-public class DTStartConverter extends PropertyConverter
-{
+public class DTStartConverter extends PropertyConverter {
   @Override
-  public Property toVEvent(final TeamEventDO event)
-  {
+  public Property toVEvent(final TeamEventDO event) {
     if (event.getAllDay()) {
-      final Date startUtc = CalendarUtils.getUTCMidnightDate(event.getStartDate());
+      final Date startUtc = PFDateTimeUtils.getUTCBeginOfDay(event.getStartDate());
       net.fortuna.ical4j.model.Date date = new net.fortuna.ical4j.model.Date(startUtc);
       return new DtStart(date);
     } else {
@@ -52,8 +50,7 @@ public class DTStartConverter extends PropertyConverter
   }
 
   @Override
-  public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent)
-  {
+  public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent) {
     final DtStart dtStart = vEvent.getStartDate();
 
     if (dtStart == null) {

@@ -33,9 +33,7 @@ import org.projectforge.business.teamcal.event.RecurrenceFrequencyModeOne;
 import org.projectforge.business.teamcal.event.RecurrenceFrequencyModeTwo;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DateFormats;
-import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.RecurrenceFrequency;
+import org.projectforge.framework.time.*;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -47,8 +45,7 @@ import java.util.List;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class ICal4JUtils
-{
+public class ICal4JUtils {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ICal4JUtils.class);
 
   private static TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
@@ -57,8 +54,7 @@ public class ICal4JUtils
    * @return The timeZone (ical4j) built of the default java timeZone of the user.
    * @see ThreadLocalUserContext#getTimeZone()
    */
-  public static TimeZone getUserTimeZone()
-  {
+  public static TimeZone getUserTimeZone() {
     return registry.getTimeZone(ThreadLocalUserContext.getTimeZone().getID());
   }
 
@@ -66,42 +62,36 @@ public class ICal4JUtils
    * @return The timeZone (ical4j) built of the default java timeZone of the user.
    * @see ThreadLocalUserContext#getTimeZone()
    */
-  public static TimeZone getTimeZone(final java.util.TimeZone timeZone)
-  {
+  public static TimeZone getTimeZone(final java.util.TimeZone timeZone) {
     return registry.getTimeZone(timeZone.getID());
   }
 
-  public static TimeZone getUTCTimeZone()
-  {
+  public static TimeZone getUTCTimeZone() {
     return registry.getTimeZone("UTC");
   }
 
 
-  public static VEvent createVEvent(final Date startDate, final Date endDate, final String uid, final String summary)
-  {
+  public static VEvent createVEvent(final Date startDate, final Date endDate, final String uid, final String summary) {
     return createVEvent(startDate, endDate, uid, summary, false);
   }
 
   public static VEvent createVEvent(final Date startDate, final Date endDate, final String uid, final String summary,
-      final boolean allDay)
-  {
+                                    final boolean allDay) {
     final TimeZone timezone = getUserTimeZone();
     return createVEvent(startDate, endDate, uid, summary, allDay, timezone);
   }
 
   public static VEvent createVEvent(final Date startDate, final Date endDate, final String uid, final String summary,
-      final boolean allDay,
-      final TimeZone timezone)
-  {
+                                    final boolean allDay,
+                                    final TimeZone timezone) {
     VEvent vEvent;
     if (allDay) {
-      final Date startUtc = CalendarUtils.getUTCMidnightDate(startDate);
-      final Date endUtc = CalendarUtils.getUTCMidnightDate(endDate);
+      final Date startUtc = PFDateTimeUtils.getUTCBeginOfDay(startDate);
+      final Date endUtc = PFDateTimeUtils.getUTCBeginOfDay(endDate);
       final net.fortuna.ical4j.model.Date fortunaStartDate = new net.fortuna.ical4j.model.Date(startUtc);
-      final org.joda.time.DateTime jodaTime = new org.joda.time.DateTime(endUtc);
+      final PFDateTime dateTime = PFDateTime.from(endUtc);
       // requires plus 1 because one day will be omitted by calendar.
-      final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(
-          jodaTime.plusDays(1).toDate());
+      final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(dateTime.plusDays(1).getUtilDate());
       vEvent = new VEvent(fortunaStartDate, fortunaEndDate, summary);
     } else {
       final net.fortuna.ical4j.model.DateTime fortunaStartDate = new net.fortuna.ical4j.model.DateTime(startDate);
@@ -115,8 +105,7 @@ public class ICal4JUtils
     return vEvent;
   }
 
-  public static WeekDayList getDayListForRecurrenceFrequencyModeTwo(RecurrenceFrequencyModeTwo mode)
-  {
+  public static WeekDayList getDayListForRecurrenceFrequencyModeTwo(RecurrenceFrequencyModeTwo mode) {
     WeekDayList weekDays = new WeekDayList();
     if (mode == RecurrenceFrequencyModeTwo.MONDAY)
       weekDays.add(WeekDay.MO);
@@ -153,8 +142,7 @@ public class ICal4JUtils
     return weekDays;
   }
 
-  public static RecurrenceFrequencyModeTwo getRecurrenceFrequencyModeTwoForDay(WeekDayList dayList)
-  {
+  public static RecurrenceFrequencyModeTwo getRecurrenceFrequencyModeTwoForDay(WeekDayList dayList) {
     if (dayList.size() == 1) {
       for (WeekDay wd : dayList) {
         if (wd.getDay() == WeekDay.MO.getDay()) {
@@ -183,8 +171,7 @@ public class ICal4JUtils
     return null;
   }
 
-  public static RecurrenceFrequencyModeOne getRecurrenceFrequencyModeOneByOffset(int offset)
-  {
+  public static RecurrenceFrequencyModeOne getRecurrenceFrequencyModeOneByOffset(int offset) {
     if (offset == 1 || offset == 0) {
       return RecurrenceFrequencyModeOne.FIRST;
     } else if (offset == 2) {
@@ -201,8 +188,7 @@ public class ICal4JUtils
     return null;
   }
 
-  public static int getOffsetForRecurrenceFrequencyModeOne(RecurrenceFrequencyModeOne mode)
-  {
+  public static int getOffsetForRecurrenceFrequencyModeOne(RecurrenceFrequencyModeOne mode) {
     if (mode == RecurrenceFrequencyModeOne.FIRST)
       return 1;
     else if (mode == RecurrenceFrequencyModeOne.SECOND)
@@ -221,8 +207,7 @@ public class ICal4JUtils
    * @param rruleString
    * @return null if rruleString is empty, otherwise new RRule object.
    */
-  public static RRule calculateRRule(final String rruleString)
-  {
+  public static RRule calculateRRule(final String rruleString) {
     if (StringUtils.isBlank(rruleString)) {
       return null;
     }
@@ -238,8 +223,7 @@ public class ICal4JUtils
    * @param interval
    * @return
    */
-  public static String getCal4JFrequencyString(final RecurrenceFrequency interval)
-  {
+  public static String getCal4JFrequencyString(final RecurrenceFrequency interval) {
     if (interval == RecurrenceFrequency.DAILY) {
       return Recur.DAILY;
     } else if (interval == RecurrenceFrequency.WEEKLY) {
@@ -256,8 +240,7 @@ public class ICal4JUtils
    * @param recur
    * @return
    */
-  public static RecurrenceFrequency getFrequency(final Recur recur)
-  {
+  public static RecurrenceFrequency getFrequency(final Recur recur) {
     if (recur == null) {
       return null;
     }
@@ -274,16 +257,14 @@ public class ICal4JUtils
     return null;
   }
 
-  public static java.sql.Date getSqlDate(final net.fortuna.ical4j.model.Date ical4jDate)
-  {
+  public static java.sql.Date getSqlDate(final net.fortuna.ical4j.model.Date ical4jDate) {
     if (ical4jDate == null) {
       return null;
     }
     return new java.sql.Date(ical4jDate.getTime());
   }
 
-  public static java.sql.Timestamp getSqlTimestamp(final net.fortuna.ical4j.model.Date ical4jDate)
-  {
+  public static java.sql.Timestamp getSqlTimestamp(final net.fortuna.ical4j.model.Date ical4jDate) {
     if (ical4jDate == null) {
       return null;
     }
@@ -291,8 +272,7 @@ public class ICal4JUtils
   }
 
   public static net.fortuna.ical4j.model.DateTime getICal4jDateTime(final java.util.Date javaDate,
-      final java.util.TimeZone timeZone)
-  {
+                                                                    final java.util.TimeZone timeZone) {
     if (javaDate == null) {
       return null;
     }
@@ -300,7 +280,7 @@ public class ICal4JUtils
     final String pattern = DateFormats.ISO_TIMESTAMP_SECONDS;
     try {
       final net.fortuna.ical4j.model.DateTime dateTime = new net.fortuna.ical4j.model.DateTime(dateString, pattern,
-          getTimeZone(timeZone));
+              getTimeZone(timeZone));
       return dateTime;
     } catch (final ParseException ex) {
       log.error("Can't parse date '" + dateString + "' with pattern '" + pattern + "': " + ex.getMessage(), ex);
@@ -311,16 +291,14 @@ public class ICal4JUtils
   // TODO remove, date should not use timezone!
   @Deprecated
   public static net.fortuna.ical4j.model.Date getICal4jDate(final java.util.Date javaDate,
-      final java.util.TimeZone timeZone)
-  {
+                                                            final java.util.TimeZone timeZone) {
     if (javaDate == null) {
       return null;
     }
     return new MyIcal4JDate(javaDate, timeZone);
   }
 
-  public static net.fortuna.ical4j.model.Date parseICal4jDate(final String dateString)
-  {
+  public static net.fortuna.ical4j.model.Date parseICal4jDate(final String dateString) {
     if (dateString == null) {
       return null;
     }
@@ -341,8 +319,7 @@ public class ICal4JUtils
    * @param timeZone
    * @return
    */
-  public static Date parseICalDateString(final String dateString, final java.util.TimeZone timeZone)
-  {
+  public static Date parseICalDateString(final String dateString, final java.util.TimeZone timeZone) {
     if (StringUtils.isBlank(dateString)) {
       return null;
     }
@@ -364,8 +341,7 @@ public class ICal4JUtils
     }
   }
 
-  public static Date parseISODateString(final String isoDateString)
-  {
+  public static Date parseISODateString(final String isoDateString) {
     if (StringUtils.isBlank(isoDateString)) {
       return null;
     }
@@ -385,13 +361,11 @@ public class ICal4JUtils
     }
   }
 
-  public static String asISODateString(final Date date)
-  {
+  public static String asISODateString(final Date date) {
     return asISODateString(date, DateHelper.UTC);
   }
 
-  public static String asISODateString(final Date date, final java.util.TimeZone timeZone)
-  {
+  public static String asISODateString(final Date date, final java.util.TimeZone timeZone) {
     if (date == null) {
       return null;
     }
@@ -400,8 +374,7 @@ public class ICal4JUtils
     return df.format(date);
   }
 
-  public static String asISODateTimeString(final Date date)
-  {
+  public static String asISODateTimeString(final Date date) {
     if (date == null) {
       return null;
     }
@@ -410,8 +383,7 @@ public class ICal4JUtils
     return df.format(date);
   }
 
-  public static String asICalDateString(final Date date, final java.util.TimeZone timeZone, final boolean withoutTime)
-  {
+  public static String asICalDateString(final Date date, final java.util.TimeZone timeZone, final boolean withoutTime) {
     if (date == null) {
       return null;
     }
@@ -429,8 +401,7 @@ public class ICal4JUtils
     return df.format(date);
   }
 
-  public static String[] splitExDates(final String csv)
-  {
+  public static String[] splitExDates(final String csv) {
     if (StringUtils.isBlank(csv)) {
       return null;
     }
@@ -442,8 +413,7 @@ public class ICal4JUtils
   }
 
   public static List<net.fortuna.ical4j.model.Date> parseCSVDatesAsICal4jDates(final String csvDates, boolean dateTime,
-      final TimeZone timeZone)
-  {
+                                                                               final TimeZone timeZone) {
     final String[] sa = splitExDates(csvDates);
     if (sa == null) {
       return null;
@@ -471,8 +441,7 @@ public class ICal4JUtils
     return result;
   }
 
-  public static List<Date> parseCSVDatesAsJavaUtilDates(final String csvDates, final java.util.TimeZone timeZone)
-  {
+  public static List<Date> parseCSVDatesAsJavaUtilDates(final String csvDates, final java.util.TimeZone timeZone) {
     final String[] sa = splitExDates(csvDates);
     if (sa == null) {
       return null;
@@ -499,12 +468,10 @@ public class ICal4JUtils
     return result;
   }
 
-  private static class MyIcal4JDate extends net.fortuna.ical4j.model.Date
-  {
+  private static class MyIcal4JDate extends net.fortuna.ical4j.model.Date {
     private static final long serialVersionUID = 341788808291157447L;
 
-    MyIcal4JDate(final java.util.Date javaDate, final java.util.TimeZone timeZone)
-    {
+    MyIcal4JDate(final java.util.Date javaDate, final java.util.TimeZone timeZone) {
       super(javaDate.getTime(), Dates.PRECISION_DAY, timeZone);
     }
   }

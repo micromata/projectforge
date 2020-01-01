@@ -28,7 +28,7 @@ import org.projectforge.business.orga.PostType
 import org.projectforge.business.orga.PostausgangDO
 import org.projectforge.business.orga.PostausgangDao
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.time.PFDate
+import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.ui.*
@@ -44,14 +44,14 @@ class PostausgangRest() : AbstractDORest<PostausgangDO, PostausgangDao>(Postausg
      */
     override fun newBaseDO(request: HttpServletRequest?): PostausgangDO {
         val outbox = super.newBaseDO(request)
-        outbox.datum = PFDate.now().sqlDate
+        outbox.datum = PFDay.now().sqlDate
         outbox.type = PostType.BRIEF
         return outbox
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: PostausgangDO) {
-        val date = PFDate.from(dto.datum)
-        if (date != null && PFDate.now().isBefore(date)) { // No dates in the future accepted.
+        val date = PFDay.from(dto.datum)
+        if (date != null && PFDay.now().isBefore(date)) { // No dates in the future accepted.
             validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "datum"))
         }
     }

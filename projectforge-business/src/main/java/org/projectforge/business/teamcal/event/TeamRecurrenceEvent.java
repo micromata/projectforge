@@ -26,9 +26,10 @@ package org.projectforge.business.teamcal.event;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.utils.ReflectionToString;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.io.Serializable;
-import java.util.Calendar;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 /**
@@ -49,14 +50,13 @@ public class TeamRecurrenceEvent implements ICalendarEvent, Serializable
    * @param master
    * @param startDay day of event (startDate and endDate will be calculated based on this day and the master).
    */
-  public TeamRecurrenceEvent(final TeamEventDO master, final Calendar startDate)
+  public TeamRecurrenceEvent(final TeamEventDO master, final PFDateTime startDate)
   {
     this.master = master;
-    final Calendar cal = (Calendar) startDate.clone();
-    this.startDate = cal.getTime();
+    this.startDate = startDate.getUtilDate();
     final long duration = master.getEndDate().getTime() - master.getStartDate().getTime();
-    cal.add(Calendar.MINUTE, (int) (duration / 60000));
-    this.endDate = cal.getTime();
+    PFDateTime endDate = startDate.plus((int) (duration / 60000), ChronoUnit.MINUTES);
+    this.endDate = endDate.getUtilDate();
   }
 
   /**

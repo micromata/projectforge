@@ -49,7 +49,7 @@ public class PosteingangEditPage extends AbstractEditPage<PosteingangDO, Postein
     super(parameters, "orga.posteingang");
     init();
     if (isNew() == true) {
-      getData().setDatum(new DayHolder().getSQLDate());
+      getData().setDatum(new DayHolder().getSqlDate());
       getData().setType(PostType.E_MAIL);
     }
   }

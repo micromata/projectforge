@@ -40,8 +40,8 @@ import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateFormats;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.framework.time.PFDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -182,8 +182,8 @@ public class TimesheetExport
       mapping.add(Col.WEEK_OF_YEAR, timesheet.getFormattedWeekOfYear());
       mapping.add(Col.DAY_OF_WEEK, dateTimeFormatter.getFormattedDate(timesheet.getStartTime(), DateFormats
           .getFormatString(DateFormatType.DAY_OF_WEEK_SHORT)));
-      final DateHolder startTime = new DateHolder(timesheet.getStartTime());
-      final DateHolder stopTime = new DateHolder(timesheet.getStopTime());
+      PFDateTime startTime = PFDateTime.from(timesheet.getStartTime());
+      PFDateTime stopTime = PFDateTime.from(timesheet.getStopTime());
       mapping.add(Col.START_TIME, startTime);
       mapping.add(Col.STOP_TIME, stopTime);
       final BigDecimal seconds = new BigDecimal(timesheet.getDuration() / 1000); // Seconds

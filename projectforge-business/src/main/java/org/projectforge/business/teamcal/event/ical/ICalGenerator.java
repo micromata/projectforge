@@ -29,9 +29,10 @@ import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.*;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDateTimeUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -40,24 +41,21 @@ import java.util.*;
 
 import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.*;
 
-public class ICalGenerator
-{
+public class ICalGenerator {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ICalGenerator.class);
 
   //------------------------------------------------------------------------------------------------------------
   // Static part
   //------------------------------------------------------------------------------------------------------------
 
-  public static ICalGenerator exportAllFields()
-  {
+  public static ICalGenerator exportAllFields() {
     final ICalGenerator generator = new ICalGenerator();
     generator.exportsVEvent = new ArrayList<>(FULL_LIST);
 
     return generator;
   }
 
-  public static ICalGenerator forMethod(final Method method)
-  {
+  public static ICalGenerator forMethod(final Method method) {
     final ICalGenerator generator;
 
     if (Method.REQUEST.equals(method)) {
@@ -65,7 +63,7 @@ public class ICalGenerator
     } else if (Method.CANCEL.equals(method)) {
       generator = new ICalGenerator();
       generator.exportsVEvent = new ArrayList<>(Arrays.asList(VEVENT_UID, VEVENT_DTSTAMP, VEVENT_DTSTART, VEVENT_SEQUENCE, VEVENT_ORGANIZER,
-          VEVENT_ATTENDEES, VEVENT_RRULE, VEVENT_EX_DATE));
+              VEVENT_ATTENDEES, VEVENT_RRULE, VEVENT_EX_DATE));
     } else {
       throw new UnsupportedOperationException(String.format("No generator for method '%s'", method.getValue()));
     }
@@ -85,8 +83,7 @@ public class ICalGenerator
   private TimeZone timeZone;
   private Method method;
 
-  private ICalGenerator()
-  {
+  private ICalGenerator() {
     this.exportsVEvent = new ArrayList<>();
 
     // set user, timezone, locale
@@ -97,8 +94,7 @@ public class ICalGenerator
     this.reset();
   }
 
-  public ICalGenerator setContext(final PFUserDO user, final TimeZone timeZone, final Locale locale)
-  {
+  public ICalGenerator setContext(final PFUserDO user, final TimeZone timeZone, final Locale locale) {
     this.user = user;
     this.timeZone = timeZone;
     this.locale = locale;
@@ -106,8 +102,7 @@ public class ICalGenerator
     return this;
   }
 
-  public ICalGenerator reset()
-  {
+  public ICalGenerator reset() {
     // creating a new calendar
     this.calendar = new Calendar();
     calendar.getProperties().add(new ProdId("-//" + user.getShortDisplayName() + "//ProjectForge//" + locale.toString().toUpperCase()));
@@ -128,13 +123,11 @@ public class ICalGenerator
     return this;
   }
 
-  public Calendar getCalendar()
-  {
+  public Calendar getCalendar() {
     return this.calendar;
   }
 
-  public ByteArrayOutputStream getCalendarAsByteStream()
-  {
+  public ByteArrayOutputStream getCalendarAsByteStream() {
     try {
       ByteArrayOutputStream stream = new ByteArrayOutputStream();
       CalendarOutputter outputter = new CalendarOutputter();
@@ -148,8 +141,7 @@ public class ICalGenerator
     }
   }
 
-  public void writeCalendarToOutputStream(final OutputStream stream)
-  {
+  public void writeCalendarToOutputStream(final OutputStream stream) {
     try {
       CalendarOutputter outputter = new CalendarOutputter();
       outputter.output(this.calendar, stream);
@@ -158,13 +150,11 @@ public class ICalGenerator
     }
   }
 
-  public boolean isEmpty()
-  {
+  public boolean isEmpty() {
     return this.calendar.getComponents(Component.VEVENT).isEmpty();
   }
 
-  public ICalGenerator addEvent(final TeamEventDO event)
-  {
+  public ICalGenerator addEvent(final TeamEventDO event) {
     final VEvent vEvent = this.convertVEvent(event);
 
     if (vEvent != null) {
@@ -174,22 +164,19 @@ public class ICalGenerator
     return this;
   }
 
-  public ICalGenerator addEvent(final VEvent vEvent)
-  {
+  public ICalGenerator addEvent(final VEvent vEvent) {
     this.calendar.getComponents().add(vEvent);
 
     return this;
   }
 
-  public ICalGenerator addEvent(final Date startDate, final Date endDate, final boolean allDay, final String summary, final String uid)
-  {
+  public ICalGenerator addEvent(final Date startDate, final Date endDate, final boolean allDay, final String summary, final String uid) {
     this.calendar.getComponents().add(this.convertVEvent(startDate, endDate, allDay, summary, uid));
 
     return this;
   }
 
-  public VEvent convertVEvent(final TeamEventDO event)
-  {
+  public VEvent convertVEvent(final TeamEventDO event) {
     final ICalConverterStore store = ICalConverterStore.getInstance();
 
     // create vEvent
@@ -215,20 +202,19 @@ public class ICalGenerator
     return vEvent;
   }
 
-  public VEvent convertVEvent(final Date startDate, final Date endDate, final boolean allDay, final String summary, final String uid)
-  {
+  public VEvent convertVEvent(final Date startDate, final Date endDate, final boolean allDay, final String summary, final String uid) {
     VEvent vEvent = new VEvent(false);
     final net.fortuna.ical4j.model.TimeZone timezone = TIMEZONE_REGISTRY.getTimeZone(timeZone.getID());
     final net.fortuna.ical4j.model.Date fortunaStartDate, fortunaEndDate;
 
     if (allDay) {
-      final Date startUtc = CalendarUtils.getUTCMidnightDate(startDate);
-      final Date endUtc = CalendarUtils.getUTCMidnightDate(endDate);
+      final Date startUtc = PFDateTimeUtils.getUTCBeginOfDay(startDate);
+      final Date endUtc = PFDateTimeUtils.getUTCBeginOfDay(endDate);
       fortunaStartDate = new net.fortuna.ical4j.model.Date(startUtc);
       // TODO should not be done
-      final org.joda.time.DateTime jodaTime = new org.joda.time.DateTime(endUtc);
+      final PFDateTime dateTime = PFDateTime.from(endUtc);
       // requires plus 1 because one day will be omitted by calendar.
-      fortunaEndDate = new net.fortuna.ical4j.model.Date(jodaTime.plusDays(1).toDate());
+      fortunaEndDate = new net.fortuna.ical4j.model.Date(dateTime.plusDays(1).getUtilDate());
     } else {
       fortunaStartDate = new net.fortuna.ical4j.model.DateTime(startDate);
       ((net.fortuna.ical4j.model.DateTime) fortunaStartDate).setTimeZone(timezone);
@@ -246,35 +232,29 @@ public class ICalGenerator
     return vEvent;
   }
 
-  public ICalGenerator editableVEvent(boolean value)
-  {
+  public ICalGenerator editableVEvent(boolean value) {
     exportVEventProperty(VEVENT_ORGANIZER_EDITABLE, value);
     exportVEventProperty(VEVENT_ORGANIZER, !value);
     return this;
   }
 
-  public ICalGenerator exportVEventAlarm(boolean value)
-  {
+  public ICalGenerator exportVEventAlarm(boolean value) {
     return exportVEventProperty(VEVENT_ALARM, value);
   }
 
-  public ICalGenerator exportVEventAttendees(boolean value)
-  {
+  public ICalGenerator exportVEventAttendees(boolean value) {
     return exportVEventProperty(VEVENT_ATTENDEES, value);
   }
 
-  public ICalGenerator doExportVEventProperty(String value)
-  {
+  public ICalGenerator doExportVEventProperty(String value) {
     return exportVEventProperty(value, true);
   }
 
-  public ICalGenerator doNotExportVEventProperty(String value)
-  {
+  public ICalGenerator doNotExportVEventProperty(String value) {
     return exportVEventProperty(value, false);
   }
 
-  public ICalGenerator exportVEventProperty(String value, boolean export)
-  {
+  public ICalGenerator exportVEventProperty(String value, boolean export) {
     if (export) {
       if (!this.exportsVEvent.contains(value)) {
         this.exportsVEvent.add(value);
@@ -288,8 +268,7 @@ public class ICalGenerator
     return this;
   }
 
-  public List<String> getExportsVEvent()
-  {
+  public List<String> getExportsVEvent() {
     return this.exportsVEvent;
   }
 }

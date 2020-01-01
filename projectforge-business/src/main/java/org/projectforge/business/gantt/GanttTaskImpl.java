@@ -26,13 +26,12 @@ package org.projectforge.business.gantt;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -337,8 +336,8 @@ public class GanttTaskImpl implements GanttTask, Serializable
   public boolean hasDuration()
   {
     if (getCalculatedStartDate() != null && getCalculatedEndDate() != null) {
-      final DateHolder dh = new DateHolder(this.calculatedStartDate);
-      return !dh.isSameDay(getCalculatedEndDate());
+      final PFDateTime dt = PFDateTime.from(this.calculatedStartDate);
+      return !dt.isSameDay(PFDateTime.from(getCalculatedEndDate()));
     }
     return !NumberHelper.isZeroOrNull(this.duration);
   }

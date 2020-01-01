@@ -31,8 +31,7 @@ import org.projectforge.business.fibu.kost.Kost2ArtDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.time.DateHolder
-import org.projectforge.framework.time.DayHolder
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.xstream.XmlObjectReader
 import java.math.BigDecimal
 import java.sql.Date
@@ -164,8 +163,8 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
             if (isBezahlt) {
                 return false
             }
-            val today = DayHolder()
-            return this.faelligkeit?.before(today.date) ?: false
+            val today = PFDateTime.now()
+            return this.faelligkeit?.before(today.utilDate) ?: false
         }
 
     val kontoId: Int?
@@ -184,16 +183,17 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
         get() = kostZuweisungenNetSum.subtract(netSum)
 
     override fun recalculate() {
+        val date = PFDateTime.from(this.datum)
         // recalculate the transient fields
-        if (this.datum == null) {
+        if (date == null) {
             this.zahlungsZielInTagen = null
             this.discountZahlungsZielInTagen = null
             return
         }
-
-        val date = DateHolder(this.datum)
-        this.zahlungsZielInTagen = if (this.faelligkeit == null) null else date.daysBetween(this.faelligkeit)
-        this.discountZahlungsZielInTagen = if (this.discountMaturity == null) null else date.daysBetween(this.discountMaturity)
+        val dueDate = this.faelligkeit
+        this.zahlungsZielInTagen = if (dueDate == null) null else date.daysBetween(dueDate).toInt()
+        val discount = this.discountMaturity
+        this.discountZahlungsZielInTagen = if (discount == null) null else date.daysBetween(discount).toInt()
     }
 
     /**

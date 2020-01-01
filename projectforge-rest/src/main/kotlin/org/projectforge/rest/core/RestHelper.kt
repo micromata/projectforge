@@ -24,6 +24,7 @@
 package org.projectforge.rest.core
 
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.rest.converter.DateTimeFormat
 import java.net.URI
 import java.time.LocalDate
@@ -60,7 +61,7 @@ class RestHelper {
                             else -> jsonDateFormatter
                         }
                 if (formatter != jsonDateFormatter)
-                    return PFDateTime.parseUTCDate(jsString, formatter)
+                    return PFDateTimeUtils.parseUTCDate(jsString, formatter)
                 val local = LocalDate.parse(jsString, jsonDateFormatter) // Parses UTC as local date.
                 return PFDateTime.from(local)
             } catch (ex: DateTimeParseException) {

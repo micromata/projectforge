@@ -348,10 +348,10 @@ public class KostFormatter {
 
   /**
    * @param year
-   * @param month 0 (January) - 11 (December)
+   * @param month 1 (January) - 12 (December)
    * @return
    */
-  public static String formatBuchungsmonat(final int year, final int month) {
+  public static String formatBuchungsmonat(final int year, Integer month) {
     return DateHelper.formatMonth(year, month);
   }
 
@@ -396,7 +396,14 @@ public class KostFormatter {
     return StringUtils.leftPad(String.valueOf(konto.getNummer()), 5);
   }
 
-  public static String formatZeitraum(final int fromYear, final int fromMonth, final int toYear, final int toMonth) {
+  /**
+   * @param fromYear
+   * @param fromMonth 1-January, ..., 12-December
+   * @param toYear
+   * @param toMonth   1-January, ..., 12-December
+   * @return
+   */
+  public static String formatZeitraum(final int fromYear, final Integer fromMonth, final int toYear, final Integer toMonth) {
     final StringBuilder buf = new StringBuilder();
     if (fromYear > 0) {
       buf.append(formatBuchungsmonat(fromYear, fromMonth));

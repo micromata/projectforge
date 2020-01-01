@@ -51,6 +51,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.registry.Registry;
 import org.projectforge.web.WicketSupport;
 import org.springframework.beans.BeansException;
@@ -67,7 +68,7 @@ import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 import java.io.File;
 import java.math.BigDecimal;
-import java.util.Calendar;
+import java.time.Month;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -406,29 +407,18 @@ public abstract class AbstractTestBase {
   }
 
   public static void assertBigDecimal(final BigDecimal v1, final BigDecimal v2) {
-    assertTrue(v1.compareTo(v2) == 0, "BigDecimal values are not equal.");
+    assertTrue(v1.compareTo(v2) == 0, "BigDecimal values are not equal: " + v1 + " != " + v2);
   }
 
-  protected Calendar assertUTCDate(final Date date, final int year, final int month, final int day, final int hour,
-                                   final int minute,
-                                   final int second) {
-    final Calendar cal = Calendar.getInstance(DateHelper.UTC);
-    cal.setTime(date);
-    assertEquals(year, cal.get(Calendar.YEAR));
-    assertEquals(month, cal.get(Calendar.MONTH));
-    assertEquals(day, cal.get(Calendar.DAY_OF_MONTH));
-    assertEquals(hour, cal.get(Calendar.HOUR_OF_DAY));
-    assertEquals(minute, cal.get(Calendar.MINUTE));
-    assertEquals(second, cal.get(Calendar.SECOND));
-    return cal;
+  protected void assertUTCDate(final Date date, final int year, final Month month, final int day, final int hour,
+                               final int minute,
+                               final int second) {
+    PFDateTime dateTime = PFDateTime.from(date, false, DateHelper.UTC);
+    assertEquals(year, dateTime.getYear());
+    assertEquals(month, dateTime.getMonth());
+    assertEquals(day, dateTime.getDayOfMonth());
+    assertEquals(hour, dateTime.getHour());
+    assertEquals(minute, dateTime.getMinute());
+    assertEquals(second, dateTime.getSecond());
   }
-
-  protected Calendar assertUTCDate(final Date date, final int year, final int month, final int day, final int hour,
-                                   final int minute,
-                                   final int second, final int millis) {
-    final Calendar cal = assertUTCDate(date, year, month, day, hour, minute, second);
-    assertEquals(millis, cal.get(Calendar.MILLISECOND));
-    return cal;
-  }
-
 }

@@ -194,7 +194,7 @@ open class DatabaseDao {
             return if (onlyNewest) {
                 val day = DayHolder()
                 day.add(Calendar.DAY_OF_MONTH, -1) // Since yesterday:
-                ReindexSettings(day.date, 1000) // Maximum 1,000 newest entries.
+                ReindexSettings(day.utilDate, 1000) // Maximum 1,000 newest entries.
             } else {
                 ReindexSettings()
             }

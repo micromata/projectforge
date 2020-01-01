@@ -33,6 +33,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeFilter;
 import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.eed.ExtendEmployeeDataEnum;
 import org.projectforge.plugins.eed.service.EEDHelper;
 import org.projectforge.web.wicket.AbstractListForm;
@@ -45,7 +46,6 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.slf4j.Logger;
 
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.List;
 
 public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, EmployeeListEditPage>
@@ -57,6 +57,9 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
   @SpringBean
   private EEDHelper eedHelper;
 
+  /**
+   * 1-based: 1 - January, ..., 12 - December.
+   */
   protected Integer selectedMonth;
 
   protected Integer selectedYear;
@@ -100,14 +103,14 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
         .newFieldset(
             I18nHelper.getLocalizedMessage("plugins.eed.listcare.yearmonth"));
     //Get actual Month as preselected
-    selectedMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
+    selectedMonth = PFDateTime.now().getMonthValue();
     //Month DropDown
     DropDownChoicePanel<Integer> ddcMonth = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedMonth"),
             EEDHelper.MONTH_INTEGERS));
     fsMonthYear.add(ddcMonth);
     //Get actual year for pre select
-    selectedYear = Calendar.getInstance().get(Calendar.YEAR);
+    selectedYear = PFDateTime.now().getYear();
     //Year DropDown
     DropDownChoicePanel<Integer> ddcYear = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedYear"),

@@ -57,10 +57,10 @@ import org.projectforge.web.wicket.NumberPropertyColumn;
 import org.projectforge.web.wicket.WebConstants;
 
 /**
- * 
+ *
  * @author Mario Groß (m.gross@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @ListPage(editPage = HRPlanningEditPage.class)
 public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRPlanningEntryDao, HRPlanningEntryDO>
@@ -246,7 +246,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
 
   /**
    * Get the current date (start date) and preset this date for the edit page.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractListPage#onNewEntryClick(org.apache.wicket.PageParameters)
    */
   @Override

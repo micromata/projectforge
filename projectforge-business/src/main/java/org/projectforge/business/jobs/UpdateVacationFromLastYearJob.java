@@ -26,11 +26,11 @@ package org.projectforge.business.jobs;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.framework.time.PFDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.Calendar;
 import java.util.Collection;
 
 @Component
@@ -49,11 +49,11 @@ public class UpdateVacationFromLastYearJob
   public void updateNewVacationDaysFromLastYear()
   {
     log.info("Update vacation days from last year job started.");
-    Calendar now = Calendar.getInstance();
+    PFDateTime now = PFDateTime.now();
     Collection<EmployeeDO> activeEmployees = employeeService.findAllActive(false);
     activeEmployees.forEach(emp -> {
       try {
-        vacationService.updateVacationDaysFromLastYearForNewYear(emp, now.get(Calendar.YEAR));
+        vacationService.updateVacationDaysFromLastYearForNewYear(emp, now.getYear());
       } catch (Exception e) {
         log.error("Exception while updating vacation from last year for employee: " + emp.getUser().getFullname(), e);
       }

@@ -25,6 +25,7 @@ package org.projectforge.plugins.liquidityplanning;
 
 import org.projectforge.business.fibu.*;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.statistics.IntAggregatedValues;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ import java.util.*;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @Service
 public class LiquidityForecast implements Serializable
@@ -69,7 +70,7 @@ public class LiquidityForecast implements Serializable
 
   /**
    * Refresh forecast from stored liqui-entries, invoices and creditor invoices and sort the entries.
-   * 
+   *
    * @return this for chaining.
    * @see #sort()
    */
@@ -140,7 +141,7 @@ public class LiquidityForecast implements Serializable
   /**
    * For calculating the expected date of payment of future invoices. <br/>
    * Should be called before {@link #setInvoices(Collection)}!
-   * 
+   *
    * @param list
    */
   public LiquidityForecast calculateExpectedTimeOfPayments(final Collection<RechnungDO> list)
@@ -154,7 +155,7 @@ public class LiquidityForecast implements Serializable
       if (date == null || dateOfPayment == null) {
         continue;
       }
-      final int timeForPayment = date.daysBetween(dateOfPayment);
+      final int timeForPayment = (int)date.daysBetween(dateOfPayment);
       final int amount = invoice.getGrossSum().intValue();
       // Store values for different groups:
       final Integer projectId = invoice.getProjektId();
@@ -187,7 +188,7 @@ public class LiquidityForecast implements Serializable
   {
     Date dateOfInvoice = invoice.getDatum();
     if (dateOfInvoice == null) {
-      dateOfInvoice = new DayHolder().getSQLDate();
+      dateOfInvoice = new DayHolder().getSqlDate();
     }
     final ProjektDO project = invoice.getProjekt();
     if (project != null
@@ -255,7 +256,7 @@ public class LiquidityForecast implements Serializable
   /**
    * For calculating the expected date of payment of future invoices. <br/>
    * Should be called before {@link #setInvoices(Collection)}!
-   * 
+   *
    * @param list
    */
   public LiquidityForecast calculateExpectedTimeOfCreditorPayments(final Collection<EingangsrechnungDO> list)
@@ -269,7 +270,7 @@ public class LiquidityForecast implements Serializable
       if (date == null || dateOfPayment == null) {
         continue;
       }
-      final int timeForPayment = date.daysBetween(dateOfPayment);
+      final int timeForPayment = (int)date.daysBetween(dateOfPayment);
       final int amount = invoice.getGrossSum().intValue();
       final KontoDO account = invoice.getKonto();
       final Integer accountId = account != null ? account.getId() : null;
@@ -293,7 +294,7 @@ public class LiquidityForecast implements Serializable
   {
     Date dateOfInvoice = invoice.getDatum();
     if (dateOfInvoice == null) {
-      dateOfInvoice = new DayHolder().getSQLDate();
+      dateOfInvoice = new DayHolder().getSqlDate();
     }
     final KontoDO account = invoice.getKonto();
     if (account != null
@@ -350,14 +351,13 @@ public class LiquidityForecast implements Serializable
 
   private Date getDate(final Date date, final int timeOfPayment)
   {
-    final DayHolder day = new DayHolder(date);
-    day.add(Calendar.DAY_OF_YEAR, timeOfPayment);
-    return day.getSQLDate();
+    final PFDateTime day = PFDateTime.from(date).plusDays(timeOfPayment);
+    return day.getSqlDate();
   }
 
   /**
    * Should be called after {@link #calculateExpectedTimeOfPayments(Collection)}-
-   * 
+   *
    * @param list
    * @return
    */

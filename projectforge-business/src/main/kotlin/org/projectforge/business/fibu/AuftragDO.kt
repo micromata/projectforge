@@ -88,7 +88,7 @@ open class AuftragDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.common.customer.reference")
     @Fields(Field(name = "referenz_tokenized"), Field(analyze = Analyze.NO))
     @get:Column(length = 255)
-    open  var referenz: String? = null
+    open var referenz: String? = null
 
     @PropertyInfo(i18nKey = "label.position.short")
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
@@ -137,11 +137,11 @@ open class AuftragDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @IndexedEmbedded(depth = 2)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projekt_fk", nullable = true)
-    open  var projekt: ProjektDO? = null
+    open var projekt: ProjektDO? = null
 
     val projektId: Int?
         @Transient
-        get() =  projekt?.id
+        get() = projekt?.id
 
     @PropertyInfo(i18nKey = "fibu.auftrag.titel")
     @Field
@@ -151,7 +151,7 @@ open class AuftragDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = 4000)
-    open  var bemerkung: String? = null
+    open var bemerkung: String? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.statusBeschreibung")
     @Field
@@ -162,31 +162,31 @@ open class AuftragDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @Field
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "angebots_datum")
-    open  var angebotsDatum: Date? = null
+    open var angebotsDatum: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.erfassung.datum")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "erfassungs_datum")
-    open  var erfassungsDatum: Date? = null
+    open var erfassungsDatum: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.entscheidung.datum")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "entscheidungs_datum")
-    open  var entscheidungsDatum: Date? = null
+    open var entscheidungsDatum: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.bindungsFrist")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "bindungs_frist")
-    open  var bindungsFrist: Date? = null
+    open var bindungsFrist: Date? = null
 
     /**
      * Wer hat wann und wie beauftragt? Z. B. Beauftragung per E-Mail durch Herrn Müller.
      */
     @get:Column(name = "beauftragungs_beschreibung", length = 4000)
-    open  var beauftragungsBeschreibung: String? = null
+    open var beauftragungsBeschreibung: String? = null
 
     /**
      * Wann wurde beauftragt? Beachte: Alle Felder historisiert, so dass hier ein Datum z. B. mit dem LOI und später das
@@ -194,11 +194,11 @@ open class AuftragDO : DefaultBaseDO(), ShortDisplayNameCapable {
      */
     @PropertyInfo(i18nKey = "fibu.auftrag.beauftragungsdatum")
     @get:Column(name = "beauftragungs_datum")
-    open  var beauftragungsDatum: Date? = null
+    open var beauftragungsDatum: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.fakturiert")
     @get:Transient
-    open  var fakturiertSum: BigDecimal? = null
+    open var fakturiertSum: BigDecimal? = null
         /**
          * Sums all positions. Must be set in all positions before usage. The value is not calculated automatically!
          *
@@ -229,7 +229,7 @@ open class AuftragDO : DefaultBaseDO(), ShortDisplayNameCapable {
      */
     @field:NoHistory
     @get:Column(name = "ui_status_as_xml", length = 10000)
-    open  var uiStatusAsXml: String? = null
+    open var uiStatusAsXml: String? = null
 
     private var uiStatus: AuftragUIStatus? = null
 
@@ -241,41 +241,41 @@ open class AuftragDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "auftrag")
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
-    open  var paymentSchedules: MutableList<PaymentScheduleDO>? = null
+    open var paymentSchedules: MutableList<PaymentScheduleDO>? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_begin")
-    open   var periodOfPerformanceBegin: Date? = null
+    open var periodOfPerformanceBegin: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_end")
-    open  var periodOfPerformanceEnd: Date? = null
+    open var periodOfPerformanceEnd: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.probabilityOfOccurrence")
     @get:Column(name = "probability_of_occurrence")
-    open  var probabilityOfOccurrence: Int? = null
+    open var probabilityOfOccurrence: Int? = null
 
     @PropertyInfo(i18nKey = "fibu.projectManager")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projectmanager_fk")
-    open  var projectManager: PFUserDO? = null
+    open var projectManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.headOfBusinessManager")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "headofbusinessmanager_fk")
-    open  var headOfBusinessManager: PFUserDO? = null
+    open var headOfBusinessManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.salesManager")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "salesmanager_fk")
-    open   var salesManager: PFUserDO? = null
+    open var salesManager: PFUserDO? = null
 
     /**
      * Adds all net sums of the positions (without not ordered positions) and return the total sum.

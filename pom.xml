@@ -1,4 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.projectforge</groupId>
@@ -257,13 +257,15 @@
 
     <commons-httpclient.version>3.1</commons-httpclient.version>
     <commons-beanutils.version>1.9.2</commons-beanutils.version>
+    <commons-collections.version>4.4</commons-collections.version>
     <aspectjtools.version>1.8.14</aspectjtools.version>
     <flyway.version>6.0.8</flyway.version>
     <groovy.version>2.4.17</groovy.version>
     <kotlin.version>1.3.50</kotlin.version>
-    <poi.version>3.16</poi.version>
+    <poi.version>4.1.1</poi.version>
     <spring.version>5.2.1.RELEASE</spring.version> <!-- Should match spring boot's parent pom -->
     <wicket.version>7.15.0</wicket.version>
+    <micromata.merlin-core.version>1.1.2</micromata.merlin-core.version>
 
     <javax.jsp-api.version>2.3.3</javax.jsp-api.version>
     <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
@@ -289,7 +291,6 @@
     <hsqldb.version>2.5.0</hsqldb.version>
     <jackson.version>2.9.10</jackson.version>
     <powermock.version>2.0.4</powermock.version>
-    <joda-time.version>2.0</joda-time.version>
     <apacheds.version>1.5.7</apacheds.version>
   </properties>
 

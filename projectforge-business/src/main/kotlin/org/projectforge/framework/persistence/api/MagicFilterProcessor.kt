@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.api
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.impl.DBPredicate
-import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.utils.NumberHelper
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -62,8 +62,8 @@ object MagicFilterProcessor {
         val field = magicFilterEntry.field!!
         if (isHistoryEntry(field)) {
             if (isModifiedInterval(field)) {
-                queryFilter.modifiedFrom = PFDateTime.parseUTCDate(magicFilterEntry.value.fromValue)
-                queryFilter.modifiedTo = PFDateTime.parseUTCDate(magicFilterEntry.value.toValue)
+                queryFilter.modifiedFrom = PFDateTimeUtils.parseUTCDate(magicFilterEntry.value.fromValue)
+                queryFilter.modifiedTo = PFDateTimeUtils.parseUTCDate(magicFilterEntry.value.toValue)
             } else if (isModifiedByUserId(field)) {
                 queryFilter.modifiedByUserId = magicFilterEntry.value.value?.toIntOrNull()
             }
@@ -77,9 +77,9 @@ object MagicFilterProcessor {
             return
         }
         if (fieldType == Date::class.java) {
-            val valueDate = PFDateTime.parseUTCDate(magicFilterEntry.value.value)?.utilDate
-            val fromDate = PFDateTime.parseUTCDate(magicFilterEntry.value.fromValue)?.utilDate
-            val toDate = PFDateTime.parseUTCDate(magicFilterEntry.value.toValue)?.utilDate
+            val valueDate = PFDateTimeUtils.parseUTCDate(magicFilterEntry.value.value)?.utilDate
+            val fromDate = PFDateTimeUtils.parseUTCDate(magicFilterEntry.value.fromValue)?.utilDate
+            val toDate = PFDateTimeUtils.parseUTCDate(magicFilterEntry.value.toValue)?.utilDate
             if (fromDate != null || toDate != null) {
                 queryFilter.add(QueryFilter.interval(field, fromDate, toDate))
             } else if (valueDate != null) {

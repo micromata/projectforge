@@ -43,8 +43,7 @@ import java.util.List;
  *
  * @author Florian Blumenstein
  */
-public interface VacationService extends IPersistenceService<VacationDO>, IDao<VacationDO>
-{
+public interface VacationService extends IPersistenceService<VacationDO>, IDao<VacationDO> {
 
   /**
    * Getting all vacations for given employee and a time period.
