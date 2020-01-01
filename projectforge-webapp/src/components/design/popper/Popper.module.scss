@@ -7,12 +7,10 @@
 }
 
 .advancedPopperContainer {
+  $baseShadow: 0 2px 3px rgba(0, 0, 0, 0.1);
   $transitionTime: .3s;
 
   position: relative;
-  transition: width, border;
-  transition-duration: $transitionTime;
-  $baseShadow: 0 2px 3px rgba(0, 0, 0, 0.1);
 
   &.isOpen {
     .content {
