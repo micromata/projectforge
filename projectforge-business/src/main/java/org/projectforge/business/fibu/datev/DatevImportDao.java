@@ -187,11 +187,13 @@ public class DatevImportDao {
 
   private void reconcileKontenplan(final ImportedSheet<KontoDO> sheet) {
     log.info("Reconcile Kontenplan called");
-    for (final ImportedElement<KontoDO> el : sheet.getElements()) {
-      final KontoDO konto = el.getValue();
-      final KontoDO dbKonto = kontoDao.getKonto(konto.getNummer());
-      if (dbKonto != null) {
-        el.setOldValue(dbKonto);
+    if (sheet.getElements() != null) {
+      for (final ImportedElement<KontoDO> el : sheet.getElements()) {
+        final KontoDO konto = el.getValue();
+        final KontoDO dbKonto = kontoDao.getKonto(konto.getNummer());
+        if (dbKonto != null) {
+          el.setOldValue(dbKonto);
+        }
       }
     }
     sheet.setStatus(ImportStatus.RECONCILED);
@@ -200,12 +202,14 @@ public class DatevImportDao {
 
   private void reconcileBuchungsdaten(final ImportedSheet<BuchungssatzDO> sheet) {
     log.info("Reconcile Buchungsdaten called");
-    for (final ImportedElement<BuchungssatzDO> el : sheet.getElements()) {
-      final BuchungssatzDO satz = el.getValue();
-      if (satz.getYear() != null && satz.getMonth() != null && satz.getSatznr() != null) {
-        final BuchungssatzDO dbSatz = buchungssatzDao.getBuchungssatz(satz.getYear(), satz.getMonth(), satz.getSatznr());
-        if (dbSatz != null) {
-          el.setOldValue(dbSatz);
+    if (sheet.getElements() != null) {
+      for (final ImportedElement<BuchungssatzDO> el : sheet.getElements()) {
+        final BuchungssatzDO satz = el.getValue();
+        if (satz.getYear() != null && satz.getMonth() != null && satz.getSatznr() != null) {
+          final BuchungssatzDO dbSatz = buchungssatzDao.getBuchungssatz(satz.getYear(), satz.getMonth(), satz.getSatznr());
+          if (dbSatz != null) {
+            el.setOldValue(dbSatz);
+          }
         }
       }
     }
@@ -216,34 +220,38 @@ public class DatevImportDao {
   private int commitKontenplan(final ImportedSheet<KontoDO> sheet) {
     log.info("Commit Kontenplan called");
     final Collection<KontoDO> col = new ArrayList<>();
-    for (final ImportedElement<KontoDO> el : sheet.getElements()) {
-      if (!el.getSelected()) {
-        continue;
+    if (sheet.getElements() != null) {
+      for (final ImportedElement<KontoDO> el : sheet.getElements()) {
+        if (!el.getSelected()) {
+          continue;
+        }
+        final KontoDO konto = el.getValue();
+        if (el.getOldValue() != null) {
+          konto.setId(el.getOldValue().getId());
+        }
+        col.add(konto);
       }
-      final KontoDO konto = el.getValue();
-      if (el.getOldValue() != null) {
-        konto.setId(el.getOldValue().getId());
-      }
-      col.add(konto);
+      kontoDao.internalSaveOrUpdate(col, KONTO_INSERT_BLOCK_SIZE);
     }
-    kontoDao.internalSaveOrUpdate(col, KONTO_INSERT_BLOCK_SIZE);
     return col.size();
   }
 
   private int commitBuchungsdaten(final ImportedSheet<BuchungssatzDO> sheet) {
     log.info("Commit Buchungsdaten called");
     final Collection<BuchungssatzDO> col = new ArrayList<>();
-    for (final ImportedElement<BuchungssatzDO> el : sheet.getElements()) {
-      if (!el.getSelected()) {
-        continue;
+    if (sheet.getElements() != null) {
+      for (final ImportedElement<BuchungssatzDO> el : sheet.getElements()) {
+        if (!el.getSelected()) {
+          continue;
+        }
+        final BuchungssatzDO satz = el.getValue();
+        if (el.getOldValue() != null) {
+          satz.setId(el.getOldValue().getId());
+        }
+        col.add(satz);
       }
-      final BuchungssatzDO satz = el.getValue();
-      if (el.getOldValue() != null) {
-        satz.setId(el.getOldValue().getId());
-      }
-      col.add(satz);
+      buchungssatzDao.internalSaveOrUpdate(col, BUCHUNGSSATZ_INSERT_BLOCK_SIZE);
     }
-    buchungssatzDao.internalSaveOrUpdate(col, BUCHUNGSSATZ_INSERT_BLOCK_SIZE);
     return col.size();
   }
 
