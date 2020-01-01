@@ -550,7 +550,6 @@ public class CalendarPanel extends Panel
     // Restore current date (e. g. on reload or on coming back from callee page).
     final MyFullCalendarConfig config = calendar.getConfig();
     final DateMidnight startDate = filter.getStartDate();
-    System.out.println("startDate=" + startDate);
     if (startDate != null && startDate.getChronology() != null) {
       config.setYear(startDate.getYear());
       config.setMonth(startDate.getMonthOfYear() - 1);
