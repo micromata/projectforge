@@ -27,7 +27,6 @@ function AdvancedPopper(
     React.useLayoutEffect(
         () => {
             if (reference.current) {
-                setBasicWidth(basicReference.current.clientWidth);
                 setAdditionalHeight(
                     window.innerHeight
                     - reference.current.getBoundingClientRect().top
@@ -36,7 +35,8 @@ function AdvancedPopper(
                 );
             }
             if (basicReference.current) {
-                setBasicHeight(basicReference.current.clientHeight);
+                setBasicWidth(basicReference.current.clientWidth + 2);
+                setBasicHeight(basicReference.current.clientHeight + 10);
             }
         },
         [
@@ -70,8 +70,8 @@ function AdvancedPopper(
             <div
                 className={classNames(style.additional, additionalClassName)}
                 style={{
-                    top: basicHeight + 10,
-                    minWidth: basicWidth + 2,
+                    top: basicHeight,
+                    minWidth: basicWidth,
                     maxHeight: additionalVisible ? additionalHeight : 0,
                 }}
             >
