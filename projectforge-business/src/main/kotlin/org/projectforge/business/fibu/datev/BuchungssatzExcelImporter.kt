@@ -97,6 +97,8 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
             storage.logger.info("Ignoring sheet '$name' for importing AccountingRecords (Buchungssätze), no valid head row found.")
             return null
         }
+        sheet.setColumnsForRowEmptyCheck(Cols.DATUM, Cols.SATZNR, Cols.BETRAG, Cols.KONTO, Cols.GEGENKONTO, Cols.KOST1, Cols.KOST2)
+
         sheet.analyze(true)
         val test = sheet.allValidationErrors
         return importBuchungssaetze(sheet, month)
@@ -115,10 +117,6 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
         var year = 0
         while (it.hasNext()) {
             val row = it.next()
-            if (excelSheet.isRowEmpty(row, *Cols.values())) {
-                importedSheet.logger.info("Skipping empty row.", row)
-                continue
-            }
             val element = MyImportedElement(storage.nextVal(), BuchungssatzDO::class.java,
                     *DatevImportDao.BUCHUNGSSATZ_DIFF_PROPERTIES)
             val satz = BuchungssatzDO()
