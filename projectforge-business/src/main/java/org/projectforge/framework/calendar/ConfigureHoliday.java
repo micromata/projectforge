@@ -31,9 +31,9 @@ import java.math.BigDecimal;
 
 /**
  * Used in config.xml for (re-)definition of holidays.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @XmlObject(alias = "holiday")
 public class ConfigureHoliday
@@ -90,7 +90,8 @@ public class ConfigureHoliday
   }
 
   /**
-   * @return Month of year (January = 0, December = 11)
+   * Since 7.0 (X-mas), month values are 1 based (were 0-based before).
+   * @return Month of year (January = 1, December = 12)
    */
   public Integer getMonth()
   {

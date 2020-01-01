@@ -43,6 +43,7 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.PFDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -52,6 +53,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.time.Month;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -200,15 +202,14 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     if (employee.getAustrittsDatum() == null) {
       return true;
     }
-    final Calendar now = Calendar.getInstance();
-    final Calendar austrittsdatum = Calendar.getInstance();
-    austrittsdatum.setTime(employee.getAustrittsDatum());
-    return now.before(austrittsdatum);
+    final PFDateTime now = PFDateTime.now();
+    final PFDateTime austrittsdatum = PFDateTime.from(employee.getAustrittsDatum());
+    return now.isBefore(austrittsdatum);
   }
 
   @Override
-  public BigDecimal getMonthlySalary(EmployeeDO employee, Calendar selectedDate) {
-    final EmployeeTimedDO attribute = timeableService.getAttrRowValidAtDate(employee, "annuity", selectedDate.getTime());
+  public BigDecimal getMonthlySalary(EmployeeDO employee, PFDateTime selectedDate) {
+    final EmployeeTimedDO attribute = timeableService.getAttrRowValidAtDate(employee, "annuity", selectedDate.getUtilDate());
     final BigDecimal annualSalary = attribute != null ? attribute.getAttribute("annuity", BigDecimal.class) : null;
     final BigDecimal weeklyWorkingHours = employee.getWeeklyWorkingHours();
 
@@ -260,36 +261,32 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   @Override
   public String getStudentVacationCountPerDay(EmployeeDO currentEmployee) {
     String vacationCountPerDay = "";
-    Calendar now = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-    Calendar eintrittsDatum = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-    Calendar deadline = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+    PFDateTime now = PFDateTime.now();
+    PFDateTime eintrittsDatum = PFDateTime.from(currentEmployee.getEintrittsDatum());
+    PFDateTime deadLine = PFDateTime.now().minusMonths(7);
 
-    eintrittsDatum.setTime(currentEmployee.getEintrittsDatum());
-    deadline.add(Calendar.MONTH, -7);
-    now.add(Calendar.MONTH, -1);
+    now = now.minusMonths(1);
 
-    if (eintrittsDatum.before(now)) {
-      if (eintrittsDatum.before(deadline)) {
-        if (now.get(Calendar.MONTH) >= Calendar.JUNE) {
+    if (eintrittsDatum.isBefore(now)) {
+      if (eintrittsDatum.isBefore(deadLine)) {
+        if (now.getMonthValue() >= Month.JUNE.getValue()) {
           vacationCountPerDay = vacationService
-                  .getVacationCount(now.get(Calendar.YEAR), now.get(Calendar.MONTH) - 5, now.get(Calendar.YEAR), now.get(Calendar.MONTH),
-                          currentEmployee.getUser());
+              .getVacationCount(now.getYear(), now.getMonthValue() - 5, now.getYear(), now.getMonthValue(),
+                  currentEmployee.getUser());
         } else {
           vacationCountPerDay = vacationService
-                  .getVacationCount(now.get(Calendar.YEAR) - 1, 12 - (6 - now.get(Calendar.MONTH) + 1), now.get(Calendar.YEAR), now.get(Calendar.MONTH),
-                          currentEmployee.getUser());
+              .getVacationCount(now.getYear() - 1, 12 - (6 - now.getMonthValue() + 1), now.getYear(), now.getMonthValue(), currentEmployee.getUser());
         }
       } else {
         vacationCountPerDay = vacationService
-                .getVacationCount(eintrittsDatum.get(Calendar.YEAR), eintrittsDatum.get(Calendar.MONTH), now.get(Calendar.YEAR), now.get(Calendar.MONTH),
-                        currentEmployee.getUser());
+            .getVacationCount(eintrittsDatum.getYear(), eintrittsDatum.getMonthValue(), now.getYear(), now.getMonthValue(), currentEmployee.getUser());
       }
     }
     return vacationCountPerDay;
   }
 
   @Override
-  public MonthlyEmployeeReport getReportOfMonth(final int year, final int month, final PFUserDO user) {
+  public MonthlyEmployeeReport getReportOfMonth(final int year, final Integer month, final PFUserDO user) {
     MonthlyEmployeeReport monthlyEmployeeReport = new MonthlyEmployeeReport(this, vacationService, user, year, month);
     monthlyEmployeeReport.init();
     TimesheetFilter filter = new TimesheetFilter();
@@ -309,18 +306,16 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   }
 
   @Override
-  public boolean isFulltimeEmployee(final EmployeeDO employee, final Calendar selectedDate) {
-    final Calendar date = (Calendar) selectedDate.clone(); // create a clone to avoid changing the original object
-    final Date startOfMonth = date.getTime();
-    date.add(Calendar.MONTH, 1);
-    date.add(Calendar.DATE, -1);
-    final Date endOfMonth = date.getTime();
+  public boolean isFulltimeEmployee(final EmployeeDO employee, final PFDateTime selectedDate) {
+    final Date startOfMonth = selectedDate.getUtilDate();
+    final PFDateTime dt = selectedDate.plusMonths(1).minusDays(1);
+    final Date endOfMonth = dt.getUtilDate();
 
     final List<EmployeeTimedDO> attrRows = timeableService
             .getAttrRowsWithinDateRange(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, startOfMonth, endOfMonth);
 
     final EmployeeTimedDO rowValidAtBeginOfMonth = timeableService
-            .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, selectedDate.getTime());
+            .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, selectedDate.getUtilDate());
 
     if (rowValidAtBeginOfMonth != null) {
       attrRows.add(rowValidAtBeginOfMonth);

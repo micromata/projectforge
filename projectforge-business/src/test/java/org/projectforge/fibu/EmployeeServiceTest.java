@@ -33,15 +33,14 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.business.vacation.service.VacationServiceImpl;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.NoResultException;
+import java.time.Month;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -112,9 +111,8 @@ public class EmployeeServiceTest extends AbstractTestBase
   public void isEmployeeActiveWithAustrittsdatumTest()
   {
     EmployeeDO employee = new EmployeeDO();
-    Calendar cal = Calendar.getInstance();
-    cal.add(Calendar.MONTH, 1);
-    employee.setAustrittsDatum(cal.getTime());
+    PFDateTime dt = PFDateTime.now().plusMonths(1);
+    employee.setAustrittsDatum(dt.getUtilDate());
     boolean result = employeeService.isEmployeeActive(employee);
     assertTrue(result);
   }
@@ -123,9 +121,8 @@ public class EmployeeServiceTest extends AbstractTestBase
   public void isEmployeeActiveWithAustrittsdatumBeforeTest()
   {
     EmployeeDO employee = new EmployeeDO();
-    Calendar cal = Calendar.getInstance();
-    cal.add(Calendar.MONTH, -1);
-    employee.setAustrittsDatum(cal.getTime());
+    PFDateTime dt = PFDateTime.now().minusMonths(1);
+    employee.setAustrittsDatum(dt.getUtilDate());
     boolean result = employeeService.isEmployeeActive(employee);
     assertFalse(result);
   }
@@ -134,8 +131,8 @@ public class EmployeeServiceTest extends AbstractTestBase
   public void isEmployeeActiveWithAustrittsdatumNowTest()
   {
     EmployeeDO employee = new EmployeeDO();
-    Calendar cal = Calendar.getInstance();
-    employee.setAustrittsDatum(cal.getTime());
+    PFDateTime dt = PFDateTime.now();
+    employee.setAustrittsDatum(dt.getUtilDate());
     boolean result = employeeService.isEmployeeActive(employee);
     assertFalse(result);
   }
@@ -145,26 +142,20 @@ public class EmployeeServiceTest extends AbstractTestBase
   public void testGetStudentVacationCountPerDay()
   {
     MockitoAnnotations.initMocks(this);
-    when(vacationService.getVacationCount(2017, Calendar.MAY, 2017, Calendar.OCTOBER, new PFUserDO())).thenReturn("TestCase 1");
-    when(vacationService.getVacationCount(2016, Calendar.JULY, 2017, Calendar.OCTOBER, new PFUserDO())).thenReturn("TestCase 2");
-    when(vacationService.getVacationCount(2017, Calendar.JULY, 2017, Calendar.OCTOBER, new PFUserDO())).thenReturn("TestCase 3");
+    when(vacationService.getVacationCount(2017, Month.MAY.getValue(), 2017, Month.OCTOBER.getValue(), new PFUserDO())).thenReturn("TestCase 1");
+    when(vacationService.getVacationCount(2016, Month.JULY.getValue(), 2017, Month.OCTOBER.getValue(), new PFUserDO())).thenReturn("TestCase 2");
+    when(vacationService.getVacationCount(2017, Month.JULY.getValue(), 2017, Month.OCTOBER.getValue(), new PFUserDO())).thenReturn("TestCase 3");
 
-    GregorianCalendar testCase1 = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-    testCase1.set(Calendar.YEAR, 2017);
-    testCase1.set(Calendar.MONTH, Calendar.OCTOBER);
-    when(new GregorianCalendar(ThreadLocalUserContext.getTimeZone())).thenReturn(testCase1);
+    PFDateTime testCase1 = PFDateTime.now().withYear(2017).withMonth(Month.OCTOBER.getValue());
+    when(PFDateTime.now()).thenReturn(testCase1);
     Assertions.assertEquals("TestCase 1", employeeService.getStudentVacationCountPerDay(new EmployeeDO()));
 
-    GregorianCalendar testCase2 = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-    testCase2.set(Calendar.YEAR, 2017);
-    testCase2.set(Calendar.MONTH, Calendar.FEBRUARY);
-    when(new GregorianCalendar(ThreadLocalUserContext.getTimeZone())).thenReturn(testCase2);
+    PFDateTime testCase2 = PFDateTime.now().withYear(2017).withMonth(Month.FEBRUARY.getValue());
+    when(PFDateTime.now()).thenReturn(testCase2);
 
-    Calendar testCase3 = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-    testCase3.set(Calendar.MONTH, Calendar.AUGUST);
-    testCase3.set(Calendar.YEAR, 2017);
-    when(new GregorianCalendar(ThreadLocalUserContext.getTimeZone())).thenReturn(testCase1);
-    //when(new EmployeeDO().getEintrittsDatum()).thenReturn(testCase3);
+    PFDateTime testCase3 = PFDateTime.now().withYear(2017).withMonth(Month.AUGUST.getValue());
+    when(PFDateTime.now()).thenReturn(testCase3);
+    when(new EmployeeDO().getEintrittsDatum()).thenReturn(testCase3.getUtilDate());
   }
 
 }

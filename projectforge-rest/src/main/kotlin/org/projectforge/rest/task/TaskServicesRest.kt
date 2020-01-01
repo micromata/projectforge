@@ -39,7 +39,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.PFDate
+import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ListFilterService
 import org.springframework.beans.factory.annotation.Autowired
@@ -74,7 +74,7 @@ class TaskServicesRest {
                var treeStatus: TreeStatus? = null,
                val title: String? = null,
                val shortDescription: String? = null,
-               val protectTimesheetsUntil: PFDate? = null,
+               val protectTimesheetsUntil: PFDay? = null,
                val reference: String? = null,
                val priority: Priority? = null,
                val status: TaskStatus? = null,
@@ -84,7 +84,7 @@ class TaskServicesRest {
                var consumption: Consumption? = null,
                var orderList: MutableList<Order>? = null) {
         constructor(node: TaskNode) : this(id = node.task.id, title = node.task.title, shortDescription = node.task.shortDescription,
-                protectTimesheetsUntil = PFDate.from(node.task.protectTimesheetsUntil), reference = node.task.reference,
+                protectTimesheetsUntil = PFDay.from(node.task.protectTimesheetsUntil), reference = node.task.reference,
                 priority = node.task.priority, status = node.task.status, responsibleUser = node.task.responsibleUser)
     }
 

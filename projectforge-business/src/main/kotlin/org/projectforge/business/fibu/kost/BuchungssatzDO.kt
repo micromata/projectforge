@@ -30,6 +30,7 @@ import org.projectforge.business.fibu.KontoDO
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.time.PFDayUtils
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -61,6 +62,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     open var year: Int? = null
 
     /**
+     * 1-based: 1 - January, ..., 12 - December
      * Monat zu der die Buchung gehört.
      *
      * @return
@@ -68,6 +70,9 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     @Field(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var month: Int? = null
+        set(value) {
+            field = PFDayUtils.validateMonthValue(value)
+        }
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.satznr")
     @Field(analyze = Analyze.NO)
@@ -146,7 +151,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
      */
     val formattedSatzNummer: String
         @Transient
-        get() = year.toString() + '-'.toString() + StringHelper.format2DigitNumber(month!! + 1) + '-'.toString() + formatSatzNr()
+        get() = year.toString() + '-'.toString() + StringHelper.format2DigitNumber(month!!) + '-'.toString() + formatSatzNr()
 
     val kontoId: Int?
         @Transient

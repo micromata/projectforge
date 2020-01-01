@@ -27,7 +27,7 @@ import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractDao
 import org.projectforge.business.orga.ContractFilter
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.time.PFDate
+import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.ui.*
@@ -43,13 +43,13 @@ class ContractRest() : AbstractDORest<ContractDO, ContractDao>(ContractDao::clas
      */
     override fun newBaseDO(request: HttpServletRequest?): ContractDO {
         val contract = super.newBaseDO(request)
-        contract.date = PFDate.now().sqlDate
+        contract.date = PFDay.now().sqlDate
         return contract
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: ContractDO) {
-        val date = PFDate.from(dto.date)
-        if (date != null && PFDate.now().isBefore(date)) { // No dates in the future accepted.
+        val date = PFDay.from(dto.date)
+        if (date != null && PFDay.now().isBefore(date)) { // No dates in the future accepted.
             validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "date"))
         }
     }

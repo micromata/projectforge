@@ -26,7 +26,7 @@ package org.projectforge.business.address
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.time.DateHelper
-import org.projectforge.framework.time.DateHolder
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.registry.Registry
 import java.util.*
 
@@ -37,7 +37,7 @@ class BirthdayCache() : AbstractCache() {
 
     init {
         val registryEntry = Registry.instance.getEntry(AddressDao::class.java)
-        addressDao = registryEntry.dao as AddressDao;
+        addressDao = registryEntry.dao as AddressDao
     }
 
     /**
@@ -53,12 +53,12 @@ class BirthdayCache() : AbstractCache() {
         checkRefresh()
         // Uses not Collections.sort because every comparison needs Calendar.getDayOfYear().
         val set = TreeSet<BirthdayAddress>()
-        val from = DateHolder(fromDate)
-        val to = DateHolder(toDate)
-        var dh: DateHolder
-        val fromMonth = from.month
+        val from = PFDateTime.from(fromDate)
+        val to = PFDateTime.from(toDate)
+        var dh: PFDateTime
+        val fromMonth = from!!.month
         val fromDayOfMonth = from.dayOfMonth
-        val toMonth = to.month
+        val toMonth = to!!.month
         val toDayOfMonth = to.dayOfMonth
         for (birthdayAddress in cacheList) {
             val address = birthdayAddress.address
@@ -70,10 +70,10 @@ class BirthdayCache() : AbstractCache() {
                 // Address is not a favorite address, so ignore it.
                 continue
             }
-            dh = DateHolder(address.birthday)
+            dh = PFDateTime.from(address.birthday)!!
             val month = dh.month
             val dayOfMonth = dh.dayOfMonth
-            if (!DateHelper.dateOfYearBetween(month, dayOfMonth, fromMonth, fromDayOfMonth, toMonth, toDayOfMonth)) {
+            if (!DateHelper.dateOfYearBetween(month.value, dayOfMonth, fromMonth.value, fromDayOfMonth, toMonth.value, toDayOfMonth)) {
                 continue
             }
             val ba = BirthdayAddress(address)

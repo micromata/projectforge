@@ -83,7 +83,7 @@ public class AbstractRechnungsStatistik<T extends AbstractRechnungDO> implements
     zahlungsZielSum += datum.daysBetween(faelligDatum);
     if (rechnung.getBezahlDatum() != null) {
       final DayHolder bezahlDatum = new DayHolder(rechnung.getBezahlDatum());
-      tatsaechlichesZahlungsZiel.add(datum.daysBetween(bezahlDatum), brutto.intValue());
+      tatsaechlichesZahlungsZiel.add((int)datum.daysBetween(bezahlDatum), brutto.intValue());
       counterBezahlt++;
     }
     counter++;

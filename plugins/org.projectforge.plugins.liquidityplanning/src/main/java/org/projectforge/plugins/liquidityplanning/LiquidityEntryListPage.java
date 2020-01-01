@@ -39,7 +39,8 @@ import org.projectforge.business.fibu.*;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDay;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
@@ -47,7 +48,6 @@ import org.projectforge.web.wicket.flowlayout.IconType;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -95,7 +95,7 @@ public class LiquidityEntryListPage
   public List<IColumn<LiquidityEntryDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
     final List<IColumn<LiquidityEntryDO, String>> columns = new ArrayList<>();
-    final Date today = new DayHolder().getDate();
+    final Date today = PFDay.now().getUtilDate();
     final CellItemListener<LiquidityEntryDO> cellItemListener = new CellItemListener<LiquidityEntryDO>()
     {
       @Override
@@ -245,7 +245,7 @@ public class LiquidityEntryListPage
   private LiquidityForecast getForecast()
   {
     // Consider only invoices of the last year:
-    final java.sql.Date fromDate = new DayHolder().add(Calendar.DAY_OF_YEAR, -365).getSQLDate();
+    final java.sql.Date fromDate = PFDateTime.now().minusYears(1).getSqlDate();
     {
       final List<RechnungDO> paidInvoices = rechnungDao.getList(new RechnungFilter().setShowBezahlt().setFromDate(fromDate));
       forecast.calculateExpectedTimeOfPayments(paidInvoices);

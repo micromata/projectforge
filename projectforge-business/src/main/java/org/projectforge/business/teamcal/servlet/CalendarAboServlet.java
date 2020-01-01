@@ -28,8 +28,6 @@ import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.Location;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateMidnight;
-import org.joda.time.DateTime;
 import org.projectforge.SystemStatus;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.multitenancy.TenantRegistry;
@@ -49,9 +47,11 @@ import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDay;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +69,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 
 /**
  * Feed Servlet, which generates a 'text/calendar' output of the last four mounts. Currently relevant information is
@@ -262,8 +261,8 @@ public class CalendarAboServlet extends HttpServlet
     }
 
     final TeamEventFilter eventFilter = new TeamEventFilter();
-    final DateTime now = DateTime.now();
-    final Date eventDateLimit = now.minusYears(1).toDate();
+    final PFDateTime now = PFDateTime.now();
+    final Date eventDateLimit = now.minusYears(1).getUtilDate();
     eventFilter.setDeleted(false);
     eventFilter.setStartDate(eventDateLimit);
 
@@ -293,16 +292,16 @@ public class CalendarAboServlet extends HttpServlet
       return;
     }
 
-    final java.util.Calendar cal = java.util.Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+    final PFDateTime dt = PFDateTime.now();
 
     // initializes timesheet filter
     final TimesheetFilter filter = new TimesheetFilter();
     filter.setUserId(timesheetUser.getId());
     filter.setDeleted(false);
-    cal.add(java.util.Calendar.MONTH, CalendarFeedConst.PERIOD_IN_MONTHS);
-    filter.setStopTime(cal.getTime());
-    cal.add(java.util.Calendar.MONTH, -2 * CalendarFeedConst.PERIOD_IN_MONTHS);
-    filter.setStartTime(cal.getTime());
+    PFDateTime stopTime = dt.plusMonths(CalendarFeedConst.PERIOD_IN_MONTHS);
+    filter.setStopTime(stopTime.getUtilDate());
+    PFDateTime startTime = dt.minusMonths(2 * CalendarFeedConst.PERIOD_IN_MONTHS);
+    filter.setStartTime(startTime.getUtilDate());
 
     final List<TimesheetDO> timesheetList = timesheetDao.getList(filter);
 
@@ -330,10 +329,10 @@ public class CalendarAboServlet extends HttpServlet
       return;
     }
 
-    DateTime holidaysFrom = new DateTime(ThreadLocalUserContext.getDateTimeZone());
-    holidaysFrom = holidaysFrom.dayOfYear().withMinimumValue().millisOfDay().withMinimumValue().minusYears(2);
-    final DateTime holidayTo = holidaysFrom.plusYears(6);
-    DateMidnight day = new DateMidnight(holidaysFrom);
+    PFDay holidaysFrom = PFDay.now().getBeginOfYear().plusYears(-2);
+    PFDay holidayTo = holidaysFrom.plusYears(6);
+    PFDay day = holidaysFrom;
+    Holidays holidays = Holidays.getInstance();
     int idCounter = 0;
     int paranoiaCounter = 0;
 
@@ -342,23 +341,21 @@ public class CalendarAboServlet extends HttpServlet
         log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of buildEvents.");
         break;
       }
-      final Date date = day.toDate();
-      final TimeZone timeZone = day.getZone().toTimeZone();
-      final DayHolder dh = new DayHolder(date, timeZone, null);
-      if (!dh.isHoliday()) {
+      if (!holidays.isHoliday(day)) {
         day = day.plusDays(1);
         continue;
       }
 
       final String title;
-      final String holidayInfo = dh.getHolidayInfo();
+      final String holidayInfo = holidays.getHolidayInfo(day);
       if (holidayInfo != null && holidayInfo.startsWith("calendar.holiday.")) {
         title = ThreadLocalUserContext.getLocalizedString(holidayInfo);
       } else {
         title = holidayInfo;
       }
 
-      generator.addEvent(holidaysFrom.toDate(), holidayTo.toDate(), true, title, "pf-holiday" + (++idCounter));
+
+      generator.addEvent(holidaysFrom.getUtilDate(), holidayTo.getUtilDate(), true, title, "pf-holiday" + (++idCounter));
 
       day = day.plusDays(1);
     } while (!day.isAfter(holidayTo));
@@ -371,22 +368,24 @@ public class CalendarAboServlet extends HttpServlet
       return;
     }
 
-    final DayHolder from = new DayHolder();
-    from.setBeginOfYear().add(java.util.Calendar.YEAR, -2).setBeginOfWeek();
-    final DayHolder to = new DayHolder(from);
-    to.add(java.util.Calendar.YEAR, 6);
-    final DayHolder current = new DayHolder(from);
+    PFDateTime from = PFDateTime.now();
+    from = from.getBeginOfYear().minusYears(2).getBeginOfWeek();
+
+    PFDateTime to = from;
+
+    to.plusYears(6);
+    PFDateTime current = to;
     int paranoiaCounter = 0;
     do {
-      generator.addEvent(current.getDate(), current.getDate(), true,
+      generator.addEvent(current.getUtilDate(), current.getUtilDate(), true,
           ThreadLocalUserContext.getLocalizedString("calendar.weekOfYearShortLabel") + " " + current.getWeekOfYear(),
           "pf-weekOfYear" + current.getYear() + "-" + paranoiaCounter);
 
-      current.add(java.util.Calendar.WEEK_OF_YEAR, 1);
+      current.plusWeeks(1);
       if (++paranoiaCounter > 500) {
         log.warn("Dear developer, please have a look here, paranoiaCounter exceeded! Aborting calculation of weeks of year.");
       }
-    } while (current.before(to));
+    } while (current.isBefore(to));
   }
 
   private boolean isOtherUsersAllowed()

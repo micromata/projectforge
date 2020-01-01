@@ -23,24 +23,66 @@
 
 package org.projectforge.framework.time
 
+import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import java.time.DayOfWeek
+import org.projectforge.framework.time.PFDateTime.Companion.from
+import org.projectforge.framework.time.PFDateTime.Companion.withDate
+import java.sql.Timestamp
+import java.time.DateTimeException
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
+import java.util.*
 
 class PFDateTimeUtils {
     companion object {
+        @JvmField
+        val ZONE_UTC = ZoneId.of("UTC")
+
+        @JvmField
+        val ZONE_EUROPE_BERLIN = ZoneId.of("Europe/Berlin")
+
+        @JvmField
+        val TIMEZONE_UTC = TimeZone.getTimeZone("UTC")
+
+        @JvmField
+        val TIMEZONE_EUROPE_BERLIN = TimeZone.getTimeZone("Europe/Berlin")
+
+
+        @JvmStatic
+        fun getBeginOfYear(dateTime: ZonedDateTime): ZonedDateTime {
+            return getBeginOfDay(dateTime.with(TemporalAdjusters.firstDayOfYear()))
+        }
+
+        @JvmStatic
+        fun getEndfYear(dateTime: ZonedDateTime): ZonedDateTime {
+            return getEndOfDay(dateTime.with(TemporalAdjusters.lastDayOfYear()))
+        }
+
+        @JvmStatic
+        fun getBeginOfMonth(dateTime: ZonedDateTime): ZonedDateTime {
+            return getBeginOfDay(dateTime.with(TemporalAdjusters.firstDayOfMonth()))
+        }
+
+        @JvmStatic
+        fun getEndOfMonth(dateTime: ZonedDateTime): ZonedDateTime {
+            return getEndOfDay(dateTime.with(TemporalAdjusters.lastDayOfMonth()))
+        }
+
         @JvmStatic
         fun getBeginOfWeek(date: ZonedDateTime): ZonedDateTime {
-            val field = WeekFields.of(getFirstDayOfWeek(), 1).dayOfWeek()
+            val field = WeekFields.of(PFDayUtils.getFirstDayOfWeek(), 1).dayOfWeek()
             return getBeginOfDay(date.with(field, 1))
         }
 
         @JvmStatic
-        fun getFirstDayOfWeek(): DayOfWeek {
-            val firstDayOfWeek = ThreadLocalUserContext.getJodaFirstDayOfWeek()
-            return getDayOfWeek(firstDayOfWeek)!!
+        fun getEndOfWeek(dateTime: ZonedDateTime): ZonedDateTime {
+            return getEndOfPreviousDay(getBeginOfWeek(dateTime.plusWeeks(1)))
         }
 
         @JvmStatic
@@ -50,32 +92,113 @@ class PFDateTimeUtils {
 
         @JvmStatic
         fun getEndOfDay(dateTime: ZonedDateTime): ZonedDateTime {
-            return dateTime.truncatedTo(ChronoUnit.DAYS).plusDays(1)
-        }
-
-        @JvmStatic
-        fun convertToLocalDate(dateMidnight: org.joda.time.DateMidnight?): java.time.LocalDate? {
-            if (dateMidnight == null)
-                return null
-            return java.time.LocalDate.of(dateMidnight.year, dateMidnight.monthOfYear, dateMidnight.dayOfMonth)
+            return getEndOfPreviousDay(dateTime.truncatedTo(ChronoUnit.DAYS).plusDays(1))
         }
 
         /**
-         * dayNumber 1 - Monday, 2 - Tuesday, ..., 7 - Sunday
+         * Converts a given date (in user's timeZone) to midnight of UTC timeZone.
          */
         @JvmStatic
-        fun getDayOfWeek(dayNumber: Int): DayOfWeek? {
-            return when (dayNumber) {
-                1 -> DayOfWeek.MONDAY
-                2 -> DayOfWeek.TUESDAY
-                3 -> DayOfWeek.WEDNESDAY
-                4 -> DayOfWeek.THURSDAY
-                5 -> DayOfWeek.FRIDAY
-                6 -> DayOfWeek.SATURDAY
-                7 -> DayOfWeek.SUNDAY
-                else -> null
+        fun getUTCBeginOfDay(date: Date?): Date? {
+            return getUTCBeginOfDay(date, ThreadLocalUserContext.getTimeZone()).utilDate
+        }
+
+        /**
+         * Converts a given date (in user's timeZone) to midnight of UTC timeZone.
+         */
+        @JvmStatic
+        fun getUTCBeginOfDayTimestamp(date: Date?): Timestamp? {
+            return getUTCBeginOfDay(date, ThreadLocalUserContext.getTimeZone()).sqlTimestamp
+        }
+
+        /**
+         * Converts a given date (in user's timeZone) to midnight of UTC timeZone.
+         */
+        @JvmStatic
+        fun getUTCBeginOfDay(date: Date?, timeZone: TimeZone?): PFDateTime {
+            val ud = from(date, false, timeZone)
+            return withDate(ud!!.year, ud.month, ud.dayOfMonth, 0, 0, 0, 0, ZONE_UTC)
+        }
+
+
+        /**
+         * Including limits.
+         */
+        @JvmStatic
+        fun isBetween(date: PFDateTime, from: PFDateTime?, to: PFDateTime?): Boolean {
+            if (from == null) {
+                return if (to == null) {
+                    false
+                } else !date.isAfter(to)
+            }
+            return if (to == null) {
+                !date.isBefore(from)
+            } else !(date.isAfter(to) || date.isBefore(from))
+        }
+
+        /**
+         * Parses the given date as UTC and converts it to the user's zoned date time.
+         * @throws DateTimeParseException if the text cannot be parsed
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun parseUTCDate(str: String?, dateTimeFormatter: DateTimeFormatter, zoneId: ZoneId = PFDateTime.getUsersZoneId(), locale: Locale = PFDateTime.getUsersLocale()): PFDateTime? {
+            if (str.isNullOrBlank())
+                return null
+            val local = LocalDateTime.parse(str, dateTimeFormatter) // Parses UTC as local date.
+            val utcZoned = ZonedDateTime.of(local, ZONE_UTC)
+            val userZoned = utcZoned.withZoneSameInstant(zoneId)
+            return PFDateTime(userZoned, locale, null)
+        }
+
+        /**
+         * Parses the given date as UTC and converts it to the user's zoned date time.
+         * Tries the following formatters:
+         *
+         * number (epoch in seconds), "yyyy-MM-dd HH:mm", "yyyy-MM-dd'T'HH:mm:ss.SSS.'Z'"
+         * @throws DateTimeException if the text cannot be parsed
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun parseUTCDate(str: String?, zoneId: ZoneId = PFDateTime.getUsersZoneId(), locale: Locale = PFDateTime.getUsersLocale()): PFDateTime? {
+            if (str.isNullOrBlank())
+                return null
+            if (StringUtils.isNumeric(str)) {
+                return PFDateTime.from(str.toLong())
+            }
+            if (str.contains("T")) { // yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
+                return parseUTCDate(str, PFDateTime.jsDateTimeFormatter)
+            }
+            val colonPos = str.indexOf(':')
+            return when {
+                colonPos < 0 -> {
+                    throw DateTimeException("Can't parse date string '$str'. Supported formats are 'yyyy-MM-dd HH:mm', 'yyyy-MM-dd HH:mm:ss', 'yyyy-MM-dd'T'HH:mm:ss.SSS'Z'' and numbers as epoch seconds.")
+                }
+                str.indexOf(':', colonPos + 1) < 0 -> { // yyyy-MM-dd HH:mm
+                    parseUTCDate(str, PFDateTime.isoDateTimeFormatterMinutes, zoneId, locale)
+                }
+                else -> { // yyyy-MM-dd HH:mm:ss
+                    parseUTCDate(str, PFDateTime.isoDateTimeFormatterSeconds, zoneId, locale)
+                }
             }
         }
 
+        @JvmStatic
+        @JvmOverloads
+        fun formatUTCDate(date: Date): String {
+            return if (date is java.sql.Date) {
+                PFDateTime.isoDateFormatter.format(date.toLocalDate())
+            } else {
+                val ldt = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+                PFDateTime.isoDateTimeFormatterMilli.format(ldt)
+            }
+        }
+
+        /**
+         * Substract 1 millisecond to get the end of last day.
+         */
+        private fun getEndOfPreviousDay(beginOfDay: ZonedDateTime): ZonedDateTime {
+            return beginOfDay.minusNanos(1)
+        }
     }
 }

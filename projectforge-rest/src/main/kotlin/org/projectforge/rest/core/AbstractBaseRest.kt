@@ -69,7 +69,7 @@ abstract class AbstractBaseRest<
      * If [getAutoCompletionObjects] is called without a special property to search for, all properties will be searched for,
      * given by this attribute. If null, an exception is thrown, if [getAutoCompletionObjects] is called without a property.
      */
-    protected open val autoCompleteSearchFields: Array<String>? = null
+    open val autoCompleteSearchFields: Array<String>? = null
 
     @PostConstruct
     private fun postConstruct() {
@@ -588,7 +588,7 @@ abstract class AbstractBaseRest<
      * @return list of found objects.
      */
     @GetMapping("aco")
-    open fun getAutoCompletionObjects(@RequestParam("search") searchString: String?): MutableList<O> {
+    open fun getAutoCompletionObjects(@RequestParam("search") searchString: String?): MutableList<DTO> {
         if (autoCompleteSearchFields.isNullOrEmpty()) {
             throw RuntimeException("Can't call getAutoCompletion without property, because no autoCompleteSearchFields are configured by the developers for this entity.")
         }
@@ -597,7 +597,7 @@ abstract class AbstractBaseRest<
         filter.setSearchFields(*autoCompleteSearchFields!!)
         val resultSet = ResultSet(baseDao.getList(filter))
         @Suppress("UNCHECKED_CAST")
-        return processResultSetBeforeExport(resultSet).resultSet as MutableList<O>
+        return processResultSetBeforeExport(resultSet).resultSet as MutableList<DTO>
     }
 
     /**

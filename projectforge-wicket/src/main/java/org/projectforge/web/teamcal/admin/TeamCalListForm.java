@@ -37,7 +37,7 @@ import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
+ *
  */
 public class TeamCalListForm extends AbstractListForm<TeamCalFilter, TeamCalListPage>
 {

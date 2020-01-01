@@ -29,7 +29,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
-import java.util.Calendar;
+import java.time.DayOfWeek;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -49,7 +49,7 @@ public class TestSetup {
     user.setExcelDateFormat("YYYY-MM-DD");
     user.setDateFormat("dd.MM.yyyy");
     user.setLocale(new Locale("de", "DE"));
-    user.setFirstDayOfWeek(Calendar.MONDAY);
+    user.setFirstDayOfWeek(DayOfWeek.MONDAY);
     ThreadLocalUserContext.setUserContext(new UserContext(user, null));
     ConfigXmlTest.createTestConfiguration();
     ConfigurationServiceAccessor.internalInitJunitTestMode();

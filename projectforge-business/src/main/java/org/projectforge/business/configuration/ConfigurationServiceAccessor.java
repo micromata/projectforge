@@ -23,7 +23,9 @@
 
 package org.projectforge.business.configuration;
 
-import java.util.Calendar;
+import org.projectforge.framework.time.PFDateCompabilityUtils;
+
+import java.time.DayOfWeek;
 import java.util.Locale;
 
 /**
@@ -35,14 +37,19 @@ public class ConfigurationServiceAccessor {
   public static void internalInitJunitTestMode() {
     ConfigurationServiceImpl cfg = new ConfigurationServiceImpl();
     cfg.setDefaultLocale(Locale.ENGLISH);
-    cfg.setDefaultFirstDayOfWeek(Calendar.MONDAY);
+    cfg.setDefaultFirstDayOfWeek(PFDateCompabilityUtils.getCompabilityDayOfWeekValue(DayOfWeek.MONDAY));
     cfg.setCurrencySymbol("€");
     configurationService = cfg;
+  }
+
+  public static void internalSetLocaleForJunitTests(Locale defaultLocale) {
+    ((ConfigurationServiceImpl)get()).setDefaultLocale(defaultLocale);
   }
 
   public static ConfigurationService get() {
     return configurationService;
   }
+
   static void setConfigurationService(ConfigurationService configurationService) {
     ConfigurationServiceAccessor.configurationService = configurationService;
   }

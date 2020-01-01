@@ -25,10 +25,10 @@ package org.projectforge.business.jobs;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.projectforge.framework.time.PFDateTime;
 import org.springframework.scheduling.support.CronSequenceGenerator;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 
 public class UpdateVacationFromLastYearJobCronCheckTest
 {
@@ -40,12 +40,11 @@ public class UpdateVacationFromLastYearJobCronCheckTest
   public void testCronExpression()
   {
     CronSequenceGenerator cron1 = new CronSequenceGenerator("0 0 23 31 12 *");
-    Calendar cal = Calendar.getInstance();
-    cal.add(Calendar.DATE, 2); // add two days to current date
+    PFDateTime dt = PFDateTime.now().plusDays(2);
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy MMM dd HH:mm:ss");
 
-    log.error("current date " + sdf.format(cal.getTime()));
+    log.error("current date " + sdf.format(dt.getUtilDate()));
 
-    log.error("Next cron trigger date cron1 " + cron1.next(cal.getTime()));
+    log.error("Next cron trigger date cron1 " + cron1.next(dt.getUtilDate()));
   }
 }

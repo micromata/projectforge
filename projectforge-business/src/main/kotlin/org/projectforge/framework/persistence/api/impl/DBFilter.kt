@@ -56,21 +56,15 @@ class DBFilter(
 
     val sortProperties = mutableListOf<SortProperty>()
 
-
     fun createStatistics(baseDao: BaseDao<*>): Statistics {
         val stats = Statistics()
         var fullTextRequired = false
-        if (!searchFields.isNullOrEmpty()) {
-            fullTextRequired = true
-            stats.multiFieldFullTextQueryRequired = true
-        } else {
-            for (it in predicates) {
-                if (!it.criteriaSupport && !it.resultSetSupport) {
-                    fullTextRequired = true
-                }
-                if (it is DBPredicate.FullSearch && it.multiFieldFulltextQueryRequired()) {
-                    stats.multiFieldFullTextQueryRequired = true
-                }
+        for (it in predicates) {
+            if (!it.criteriaSupport && !it.resultSetSupport) {
+                fullTextRequired = true
+            }
+            if (it is DBPredicate.FullSearch && it.multiFieldFulltextQueryRequired()) {
+                stats.multiFieldFullTextQueryRequired = true
             }
         }
         stats.fullTextRequired = fullTextRequired

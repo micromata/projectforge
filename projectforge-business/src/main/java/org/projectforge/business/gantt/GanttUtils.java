@@ -25,21 +25,20 @@ package org.projectforge.business.gantt;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDayUtils;
 import org.projectforge.framework.utils.NumberHelper;
 
 import java.io.Serializable;
 import java.math.RoundingMode;
 import java.util.*;
 
-public class GanttUtils
-{
+public class GanttUtils {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttUtils.class);
 
   public static Comparator<GanttTask> GANTT_OBJECT_COMPARATOR = new Comparator<GanttTask>() {
     @Override
-    public int compare(final GanttTask o1, final GanttTask o2)
-    {
+    public int compare(final GanttTask o1, final GanttTask o2) {
       if (Objects.equals(o1.getId(), o2.getId())) {
         return 0;
       }
@@ -81,16 +80,15 @@ public class GanttUtils
   /**
    * Please note: If the start date is after the start date of the earliest task of any child then the start date of this child is returned.
    * Otherwise the set start date or if not set the calculated start date is returned.
+   *
    * @param node
    */
-  public static Date getCalculatedStartDate(final GanttTask node)
-  {
+  public static Date getCalculatedStartDate(final GanttTask node) {
     final Date start = getCalculatedStartDate(node, new HashSet<>(), new HashSet<>());
     return start;
   }
 
-  private static Date getCalculatedStartDate(final GanttTask node, final Set<Serializable> startDateSet, final Set<Serializable> endDateSet)
-  {
+  private static Date getCalculatedStartDate(final GanttTask node, final Set<Serializable> startDateSet, final Set<Serializable> endDateSet) {
     if (node == null) {
       return null;
     }
@@ -131,8 +129,8 @@ public class GanttUtils
       }
     }
     if ((predecessor == null || (node.getRelationType() != null && node.getRelationType().isIn(GanttRelationType.FINISH_FINISH,
-        GanttRelationType.START_FINISH)))
-        && node.getChildren() != null) {
+            GanttRelationType.START_FINISH)))
+            && node.getChildren() != null) {
       // Calculate start date from the earliest child.
       for (final GanttTask child : node.getChildren()) {
         final Date date = getCalculatedStartDate(child, startDateSet, endDateSet);
@@ -160,8 +158,7 @@ public class GanttUtils
   }
 
   private static Date getPredecessorRelDate(final GanttRelationType relationType, final GanttTask predecessor,
-      final Set<Serializable> startDateSet, final Set<Serializable> endDateSet)
-  {
+                                            final Set<Serializable> startDateSet, final Set<Serializable> endDateSet) {
     if (relationType == GanttRelationType.START_START || relationType == GanttRelationType.START_FINISH) {
       final Date calculatedStartDate = getCalculatedStartDate(predecessor, startDateSet, endDateSet);
       return calculatedStartDate;
@@ -176,8 +173,7 @@ public class GanttUtils
    * given, then the start date is taken and durationDays (only working days) will be added. If no start date is given, the start date will
    * be calculated from the node this node depends on.
    */
-  public static Date getCalculatedEndDate(final GanttTask node)
-  {
+  public static Date getCalculatedEndDate(final GanttTask node) {
     final Date end = getCalculatedEndDate(node, new HashSet<>(), new HashSet<>());
     return end;
   }
@@ -187,8 +183,7 @@ public class GanttUtils
    * @param depth For avoiding stack overflow errors
    * @return
    */
-  private static Date getCalculatedEndDate(final GanttTask node, final Set<Serializable> startDateSet, final Set<Serializable> endDateSet)
-  {
+  private static Date getCalculatedEndDate(final GanttTask node, final Set<Serializable> startDateSet, final Set<Serializable> endDateSet) {
     if (node == null) {
       return null;
     }
@@ -229,9 +224,9 @@ public class GanttUtils
       }
     }
     if ((predecessor == null || (node.getRelationType() == null || !node.getRelationType().isIn(GanttRelationType.FINISH_FINISH,
-        GanttRelationType.START_FINISH)))
-        && node.getChildren() != null
-        && node.getDuration() == null) {
+            GanttRelationType.START_FINISH)))
+            && node.getChildren() != null
+            && node.getDuration() == null) {
       // There are children and the end date is not fix defined by a predecessor.
       for (final GanttTask child : node.getChildren()) {
         final Date date = getCalculatedEndDate(child, startDateSet, endDateSet);
@@ -253,10 +248,9 @@ public class GanttUtils
     return endDate;
   }
 
-  private static Date calculateDate(final Date date, final int workingDayOffset)
-  {
-    final DateHolder dh = new DateHolder(date);
-    dh.addWorkingDays(workingDayOffset);
-    return dh.getDate();
+  private static Date calculateDate(final Date date, final int workingDayOffset) {
+    PFDateTime dt = PFDateTime.from(date);
+    dt = PFDayUtils.addWorkingDays(dt, workingDayOffset);
+    return dt.getUtilDate();
   }
 }

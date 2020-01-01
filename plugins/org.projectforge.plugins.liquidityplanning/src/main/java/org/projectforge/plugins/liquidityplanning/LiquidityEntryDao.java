@@ -28,7 +28,7 @@ import org.projectforge.business.fibu.PaymentStatus;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -80,7 +80,7 @@ public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO>
       return list;
     }
     final List<LiquidityEntryDO> result = new ArrayList<>();
-    final DayHolder today = new DayHolder();
+    final PFDateTime today = PFDateTime.now();
     for (final LiquidityEntryDO entry : list) {
       if (myFilter.getPaymentStatus() == PaymentStatus.PAID && !entry.getPaid()) {
         continue;
@@ -99,9 +99,9 @@ public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO>
       if (myFilter.getNextDays() > 0) {
         Date dateOfPayment = entry.getDateOfPayment();
         if (dateOfPayment == null) {
-          dateOfPayment = today.getSQLDate();
+          dateOfPayment = today.getSqlDate();
         }
-        if (dateOfPayment.before(today.getDate())) {
+        if (dateOfPayment.before(today.getUtilDate())) {
           // Entry is before today:
           if (myFilter.getPaymentStatus() == PaymentStatus.PAID || entry.getPaid()) {
             // Ignore entries of the past if they were paid. Also ignore unpaid entries of the past if the user wants to filter only paid

@@ -31,9 +31,10 @@ import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.IPersistenceService;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.math.BigDecimal;
-import java.util.Calendar;
+import java.time.Month;
 import java.util.Collection;
 import java.util.List;
 
@@ -56,7 +57,7 @@ public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<E
 
   boolean isEmployeeActive(EmployeeDO employee);
 
-  BigDecimal getMonthlySalary(EmployeeDO employee, Calendar selectedDate);
+  BigDecimal getMonthlySalary(EmployeeDO employee, PFDateTime selectedDate);
 
   Collection<EmployeeDO> findAllActive(boolean checkAccess);
 
@@ -68,7 +69,14 @@ public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<E
 
   String getStudentVacationCountPerDay(EmployeeDO currentEmployee);
 
-  MonthlyEmployeeReport getReportOfMonth(int year, int month, PFUserDO user);
+  /**
+   *
+   * @param year
+   * @param month 1-January, ..., 12-December
+   * @param user
+   * @return
+   */
+  MonthlyEmployeeReport getReportOfMonth(int year, Integer month, PFUserDO user);
 
   /**
    * Checks if the employee was full time some day at the beginning of the month or within the month.
@@ -77,5 +85,5 @@ public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<E
    * @param selectedDate The first day of the month to check.
    * @return The result.
    */
-  boolean isFulltimeEmployee(EmployeeDO employee, Calendar selectedDate);
+  boolean isFulltimeEmployee(EmployeeDO employee, PFDateTime selectedDate);
 }

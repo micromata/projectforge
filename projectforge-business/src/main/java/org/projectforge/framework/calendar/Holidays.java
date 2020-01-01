@@ -25,21 +25,21 @@ package org.projectforge.framework.calendar;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
+import java.time.Month;
 import java.time.ZonedDateTime;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class Holidays
 {
@@ -52,6 +52,8 @@ public class Holidays
     return instance;
   }
 
+  private Holidays() {}
+
   /** Contains all holidays of a year. Key is the year. Value is a map of all holidays in the year with the day of the year as key. */
   private Map<Integer, Map<Integer, Holiday>> holidaysByYear = new HashMap<>();
 
@@ -63,44 +65,40 @@ public class Holidays
   {
     log.info("Compute holidays for year: " + year);
     final Map<Integer, Holiday> holidays = new HashMap<>();
-    final Calendar cal = Calendar.getInstance();
-    cal.set(Calendar.YEAR, year);
     for (final HolidayDefinition holiday : HolidayDefinition.values()) {
       if (holiday.getEasterOffset() == null) {
-        putHoliday(holidays, cal, holiday);
+        putHoliday(holidays, year, holiday);
       }
     }
 
     int g = year % 19; // "Golden Number" of year - 1
-    int i = 0; // # of days from 3/21 to the Paschal full moon
-    int j = 0; // Weekday (0-based) of Paschal full moon
+    int i; // # of days from 3/21 to the Paschal full moon
+    int j; // Weekday (0-based) of Paschal full moon
 
     // We're past the Gregorian switchover, so use the Gregorian rules.
     int c = year / 100;
     int h = (c - c / 4 - (8 * c + 13) / 25 + 19 * g + 15) % 30;
     i = h - (h / 28) * (1 - (h / 28) * (29 / (h + 1)) * ((21 - g) / 11));
     j = (year + year / 4 + i + 2 - c + c / 4) % 7;
-    /**
-     * Use otherwise the old Julian rules (not really yet needed ;-) i = (19*g + 15) % 30; j = (year + year/4 + i) % 7; }
+    /*
+      Use otherwise the old Julian rules (not really yet needed ;-) i = (19*g + 15) % 30; j = (year + year/4 + i) % 7; }
      */
     int l = i - j;
     int m = 3 + (l + 40) / 44; // 1-based month in which Easter falls
     int d = l + 28 - 31 * (m / 4); // Date of Easter within that month
 
-    cal.set(Calendar.YEAR, year);
-    cal.set(Calendar.MONTH, m - 1); // 0-based
-    cal.set(Calendar.DATE, d);
-    cal.getTime(); // JDK 1.1.2 bug workaround
+    PFDay day = PFDay.withDate(year, m, d);
     for (final HolidayDefinition holiday : HolidayDefinition.values()) {
       if (holiday.getEasterOffset() != null) {
-        putEasterHoliday(holidays, cal, holiday);
+        putEasterHoliday(holidays, day, holiday);
       }
     }
     if (xmlConfiguration.getHolidays() != null) {
       for (final ConfigureHoliday cfgHoliday : xmlConfiguration.getHolidays()) {
         if (cfgHoliday.getId() == null && !cfgHoliday.isIgnore()) {
+          final Month month = PFDayUtils.getMonth(cfgHoliday.getMonth());
           // New Holiday.
-          if (cfgHoliday.getMonth() == null || cfgHoliday.getDayOfMonth() == null || StringUtils.isBlank(cfgHoliday.getLabel())) {
+          if (month == null || cfgHoliday.getDayOfMonth() == null || StringUtils.isBlank(cfgHoliday.getLabel())) {
             log.error("Holiday not full configured (month, dayOfMonth, label, ...) missed: " + cfgHoliday.toString());
             break;
           }
@@ -108,10 +106,9 @@ public class Holidays
             // Holiday affects not the current year.
             continue;
           }
-          cal.set(Calendar.MONTH, cfgHoliday.getMonth());
-          cal.set(Calendar.DAY_OF_MONTH, cfgHoliday.getDayOfMonth());
+          day = day.withMonth(month).withDayOfMonth(cfgHoliday.getDayOfMonth());
           final Holiday holiday = new Holiday(null, cfgHoliday.getLabel(), cfgHoliday.isWorkingDay(), cfgHoliday.getWorkFraction());
-          putHoliday(holidays, cal.get(Calendar.DAY_OF_YEAR), holiday);
+          putHoliday(holidays, day.getDayOfYear(), holiday);
           log.info("Configured holiday added: " + holiday);
         }
       }
@@ -119,25 +116,24 @@ public class Holidays
     return holidays;
   }
 
-  private void putHoliday(final Map<Integer, Holiday> holidays, final Calendar cal, final HolidayDefinition def)
+  private void putHoliday(final Map<Integer, Holiday> holidays, int year, final HolidayDefinition def)
   {
     if (def.getEasterOffset() != null) {
       return;
     }
-    cal.set(Calendar.MONTH, def.getMonth());
-    cal.set(Calendar.DAY_OF_MONTH, def.getDayOfMonth());
+    PFDay day = PFDay.withDate(year, def.getMonth(), def.getDayOfMonth());
     final Holiday holiday = createHoliday(def);
     if (holiday != null) {
-      putHoliday(holidays, cal.get(Calendar.DAY_OF_YEAR), holiday);
+      putHoliday(holidays, day.getDayOfYear(), holiday);
     }
   }
 
-  private void putEasterHoliday(final Map<Integer, Holiday> holidays, final Calendar cal, final HolidayDefinition def)
+  private void putEasterHoliday(final Map<Integer, Holiday> holidays, final PFDay day, final HolidayDefinition def)
   {
     if (def.getEasterOffset() != null) {
       final Holiday holiday = createHoliday(def);
       if (holiday != null) {
-        putHoliday(holidays, cal.get(Calendar.DAY_OF_YEAR) + def.getEasterOffset(), holiday);
+        putHoliday(holidays, day.getDayOfYear() + def.getEasterOffset(), holiday);
       }
     }
   }
@@ -197,9 +193,14 @@ public class Holidays
     return holidays;
   }
 
+  public boolean isHoliday(IPFDate date)
+  {
+    return isHoliday(date.getYear(), date.getDayOfYear());
+  }
+
   public boolean isHoliday(int year, int dayOfYear)
   {
-    return (getHolidays(year).containsKey(dayOfYear));
+    return getHolidays(year).containsKey(dayOfYear);
   }
 
   public boolean isWorkingDay(final DayHolder date)
@@ -208,10 +209,7 @@ public class Holidays
       return false;
     }
     final Holiday day = getHolidays(date.getYear()).get(date.getDayOfYear());
-    if (day != null && !day.isWorkingDay()) {
-      return false;
-    }
-    return true;
+    return day == null || day.isWorkingDay();
   }
 
   public boolean isWorkingDay(final ZonedDateTime dateTime)
@@ -221,10 +219,17 @@ public class Holidays
       return false;
     }
     final Holiday day = getHolidays(dateTime.getYear()).get(dateTime.getDayOfYear());
-    if (day != null && !day.isWorkingDay()) {
+    return day == null || day.isWorkingDay();
+  }
+
+  public boolean isWorkingDay(final IPFDate date)
+  {
+    if (date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY) {
+      // Weeekend
       return false;
     }
-    return true;
+    final Holiday day = getHolidays(date.getYear()).get(date.getDayOfYear());
+    return day == null || day.isWorkingDay();
   }
 
   public BigDecimal getWorkFraction(final DayHolder date)
@@ -238,6 +243,24 @@ public class Holidays
     }
     return day.getWorkFraction();
   }
+
+  public BigDecimal getWorkFraction(final IPFDate date)
+  {
+    if (date.isWeekend()) {
+      return null;
+    }
+    final Holiday day = getHolidays(date.getYear()).get(date.getDayOfYear());
+    if (day == null) {
+      return null;
+    }
+    return day.getWorkFraction();
+  }
+
+  public String getHolidayInfo(IPFDate date)
+  {
+    return getHolidayInfo(date.getYear(), date.getDayOfYear());
+  }
+
 
   public String getHolidayInfo(int year, int dayOfYear)
   {

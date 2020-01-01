@@ -40,7 +40,7 @@ import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.xstream.XmlObjectWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -122,16 +122,14 @@ public class RechnungDao extends BaseDao<RechnungDO> {
   /**
    * @param rechnung
    * @param days
-   * @see DateHelper#getCalendar()
    */
   public Date calculateFaelligkeit(final RechnungDO rechnung, final int days) {
     if (rechnung.getDatum() == null) {
       return null;
     }
-    final Calendar cal = DateHelper.getCalendar();
-    cal.setTime(rechnung.getDatum());
-    cal.add(Calendar.DAY_OF_YEAR, days);
-    return cal.getTime();
+    PFDateTime dateTime = PFDateTime.from(rechnung.getDatum());
+    dateTime = dateTime.plusDays(days);
+    return dateTime.getUtilDate();
   }
 
   /**
@@ -167,14 +165,14 @@ public class RechnungDao extends BaseDao<RechnungDO> {
       if (RechnungStatus.GEPLANT.equals(originValue.getStatus()) && !RechnungStatus.GEPLANT.equals(rechnung.getStatus())) {
         rechnung.setNummer(getNextNumber(rechnung));
 
-        final DayHolder day = new DayHolder();
-        rechnung.setDatum(day.getSQLDate());
+        final PFDateTime day = PFDateTime.now();
+        rechnung.setDatum(day.getSqlDate());
 
         Integer zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
         if (zahlungsZielInTagen != null) {
-          day.add(Calendar.DAY_OF_MONTH, zahlungsZielInTagen);
+          PFDateTime faelligkeitDay = day.plusDays(zahlungsZielInTagen);
+          rechnung.setFaelligkeit(faelligkeitDay.getSqlDate());
         }
-        rechnung.setFaelligkeit(day.getSQLDate());
       }
     }
 
@@ -399,12 +397,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
         }
       }
     }
-    list.sort(new Comparator<DisplayHistoryEntry>() {
-      @Override
-      public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2) {
-        return (o2.getTimestamp().compareTo(o1.getTimestamp()));
-      }
-    });
+    list.sort((o1, o2) -> (o2.getTimestamp().compareTo(o1.getTimestamp())));
     return list;
   }
 

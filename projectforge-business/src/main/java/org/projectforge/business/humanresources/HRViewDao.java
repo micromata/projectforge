@@ -38,8 +38,7 @@ import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -71,14 +70,12 @@ public class HRViewDao implements IDao<HRViewData> {
   public HRViewData getResources(final HRFilter filter) {
     final HRViewData data = new HRViewData(filter);
     if (filter.getStartTime() == null) {
-      final DayHolder day = new DayHolder();
-      day.setBeginOfWeek();
-      filter.setStartTime(day.getDate());
+      final PFDateTime day = PFDateTime.now().getBeginOfWeek();
+      filter.setStartTime(day.getUtilDate());
     }
     if (filter.getStopTime() == null) {
-      final DayHolder day = new DayHolder(filter.getStartTime());
-      day.setEndOfWeek();
-      filter.setStopTime(day.getDate());
+      final PFDateTime day = PFDateTime.now().getEndOfWeek();
+      filter.setStartTime(day.getUtilDate());
     }
     if (filter.isShowBookedTimesheets()) {
       final TimesheetFilter tsFilter = new TimesheetFilter();
@@ -109,10 +106,10 @@ public class HRViewDao implements IDao<HRViewData> {
     }
     if (filter.isShowPlanning()) {
       final HRPlanningFilter hrFilter = new HRPlanningFilter();
-      final DateHolder date = new DateHolder(filter.getStartTime());
-      hrFilter.setStartTime(date.getSQLDate()); // Considers the user's time zone.
-      date.setDate(filter.getStopTime());
-      hrFilter.setStopTime(date.getSQLDate()); // Considers the user's time zone.
+      PFDateTime dateTime = PFDateTime.from(filter.getStartTime());
+      hrFilter.setStartTime(dateTime.getSqlDate()); // Considers the user's time zone.
+      dateTime = PFDateTime.from(filter.getStopTime());
+      hrFilter.setStopTime(dateTime.getSqlDate()); // Considers the user's time zone.
       final List<HRPlanningDO> plannings = hrPlanningDao.getList(hrFilter);
       final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
       for (final HRPlanningDO planning : plannings) {

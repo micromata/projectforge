@@ -543,13 +543,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     return sqlConsoleAvailable;
   }
 
-  public Locale getDefaultLocale()
-  {
+  public Locale getDefaultLocale() {
     return defaultLocale;
   }
 
-  public TimeNotation getDefaultTimeNotation()
-  {
+  public TimeNotation getDefaultTimeNotation() {
     return defaultTimeNotation;
   }
 

@@ -29,10 +29,9 @@ import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.utils.HtmlHelper;
+import org.projectforge.framework.time.PFDateTime;
 
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 
 public class CalendarHelper
 {
@@ -62,9 +61,8 @@ public class CalendarHelper
   public static int getCalenderData(final Date date, int calendarData)
   {
     if(date != null) {
-      Calendar tmp_date = new GregorianCalendar();
-      tmp_date.setTime(date);
-      return tmp_date.get(calendarData);
+      PFDateTime tmp_date = PFDateTime.from(date);
+      return tmp_date.getCalendar().get(calendarData);
     } else {
       return -1;
     }

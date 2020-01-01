@@ -32,10 +32,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.DateHolder
-import org.projectforge.framework.time.DatePrecision
-import org.projectforge.framework.time.DateTimeFormatter
-import org.projectforge.framework.time.TimePeriod
+import org.projectforge.framework.time.*
 import java.sql.Timestamp
 import java.util.*
 import javax.persistence.*
@@ -197,8 +194,8 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     @Transient
     fun setStartDate(startDate: Date?): TimesheetDO {
         if (startDate != null) {
-            val date = DateHolder(startDate, DatePrecision.MINUTE_15)
-            this.startTime = date.timestamp
+            val date = PFDateTime.from(startDate)!!.withPrecision(DatePrecision.MINUTE_15)
+            this.startTime = date.sqlTimestamp
         } else {
             this.stopTime = null
         }
@@ -221,8 +218,8 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     @Transient
     fun setStopDate(stopDate: Date?): TimesheetDO {
         if (stopDate != null) {
-            val date = DateHolder(stopDate, DatePrecision.MINUTE_15)
-            this.stopTime = date.timestamp
+            val date = PFDateTime.from(stopDate)!!.withPrecision(DatePrecision.MINUTE_15)
+            this.stopTime = date.sqlTimestamp
         } else {
             this.stopTime = null
         }

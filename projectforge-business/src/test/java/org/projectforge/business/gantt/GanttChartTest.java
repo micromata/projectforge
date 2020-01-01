@@ -27,14 +27,14 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Calendar;
+import java.time.Month;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,11 +53,10 @@ public class GanttChartTest extends AbstractTestBase {
     final String prefix = "GantChartTest";
     final TaskTree taskTree = taskDao.getTaskTree();
     final TaskDO rootTask = initTestDB.addTask(prefix, "root");
-    final DateHolder dh = new DateHolder();
-    dh.setDate(2010, Calendar.AUGUST, 3);
+    final PFDateTime dt = PFDateTime.withDate(2010, Month.AUGUST, 3);
 
     TaskDO task = initTestDB.addTask(prefix + "1", prefix);
-    task.setStartDate(dh.getDate());
+    task.setStartDate(dt.getUtilDate());
     task.setDuration(BigDecimal.TEN);
 
     taskDao.update(task);
@@ -96,7 +95,7 @@ public class GanttChartTest extends AbstractTestBase {
     assertEquals(xml, ganttChartDO.getGanttObjectsAsXml());
     BigDecimal duration = findById(ganttObject, getTask(prefix + "1").getId()).getDuration();
     assertTrue(BigDecimal.TEN.compareTo(duration) == 0, "duration " + duration + "!=10!");
-    assertEquals(dh.getDate(), findById(ganttObject, getTask(prefix + "1").getId()).getStartDate(), "startDate");
+    assertEquals(dt.getUtilDate(), findById(ganttObject, getTask(prefix + "1").getId()).getStartDate(), "startDate");
 
     initTestDB.addTask(prefix + "II", "root");
 

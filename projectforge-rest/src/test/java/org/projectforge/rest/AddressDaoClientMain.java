@@ -23,6 +23,7 @@
 
 package org.projectforge.rest;
 
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.model.rest.AddressObject;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.UserObject;
@@ -33,7 +34,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.Calendar;
+import java.time.Month;
 import java.util.Collection;
 
 public class AddressDaoClientMain {
@@ -44,9 +45,8 @@ public class AddressDaoClientMain {
     final Client client = ClientBuilder.newClient();
     final UserObject user = RestClientMain.authenticate(client);
 
-    final Calendar cal = Calendar.getInstance();
-    cal.set(2013, Calendar.JUNE, 27);
-    final Long modifiedSince = cal.getTimeInMillis();
+    final PFDateTime dt = PFDateTime.now().withYear(2013).withMonth(Month.JUNE.getValue());
+    final Long modifiedSince = dt.getEpochMilli();
     //modifiedSince = null; // Uncomment this for testing modifiedSince paramter.
 
     // http://localhost:8080/ProjectForge/rest/task/tree // userId / token

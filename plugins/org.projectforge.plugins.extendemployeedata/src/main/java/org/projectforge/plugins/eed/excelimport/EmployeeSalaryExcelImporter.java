@@ -33,10 +33,10 @@ import org.projectforge.business.fibu.api.EmployeeSalaryService;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.utils.ImportStorage;
 import org.projectforge.framework.persistence.utils.ImportedElement;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
 import org.projectforge.plugins.eed.service.EmployeeConfigurationService;
 import org.slf4j.Logger;
@@ -136,9 +136,8 @@ public class EmployeeSalaryExcelImporter
   private ImportedElement<EmployeeSalaryDO> convertRowToDo(final EmployeeSalaryExcelRow row)
   {
     final ImportedElement<EmployeeSalaryDO> element = new ImportedElement<>(storage.nextVal(), EmployeeSalaryDO.class, DIFF_PROPERTIES);
-    Calendar selectedDateCalendar = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-    selectedDateCalendar.setTime(this.dateToSelectAttrRow);
-    EmployeeDO employee = null;
+    PFDateTime selectedDateTime = PFDateTime.from(this.dateToSelectAttrRow);
+    EmployeeDO employee;
     EmployeeSalaryDO employeeSalary = null;
     if (row.getStaffnumber() != null) {
       employee = employeeService.getEmployeeByStaffnumber(row.getStaffnumber());
@@ -146,17 +145,17 @@ public class EmployeeSalaryExcelImporter
       if (employee == null) {
         element.putErrorProperty(I18nHelper.getLocalizedMessage("fibu.employee.staffNumber"), row.getStaffnumber());
       } else {
-        employeeSalary = employeeSalaryService.getEmployeeSalaryByDate(employee, selectedDateCalendar);
+        employeeSalary = employeeSalaryService.getEmployeeSalaryByDate(employee, selectedDateTime);
         if (employeeSalary == null) {
           employeeSalary = new EmployeeSalaryDO();
           employeeSalary.setEmployee(employee);
-          employeeSalary.setYear(selectedDateCalendar.get(Calendar.YEAR));
+          employeeSalary.setYear(selectedDateTime.getYear());
           //For view we have to add one to the month. Before save it will be subed.
-          employeeSalary.setMonth(selectedDateCalendar.get(Calendar.MONTH) + 1);
+          employeeSalary.setMonth(selectedDateTime.getMonthValue());
           employeeSalary.setType(EmployeeSalaryType.GEHALT);
         } else {
           //For view we have to add one to the month. Before save it will be subed.
-          employeeSalary.setMonth(selectedDateCalendar.get(Calendar.MONTH) + 1);
+          employeeSalary.setMonth(selectedDateTime.getMonthValue());
         }
         employeeSalary.setBruttoMitAgAnteil(row.getSalary());
         if (!StringUtils.isBlank(row.getRemark())) {

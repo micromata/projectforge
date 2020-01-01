@@ -28,16 +28,16 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
 import org.projectforge.business.excel.ExportRow;
 import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.business.timesheet.TimesheetDO;
+import org.projectforge.framework.time.PFDateTime;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
@@ -62,8 +62,8 @@ class IHKExporter
     }
     ExportWorkbook workbook;
 
-    DateTime mondayDate = new DateTime(timesheets.get(0).getStartTime()).withDayOfWeek(DateTimeConstants.MONDAY);
-    DateTime sundayDate = mondayDate.withDayOfWeek(DateTimeConstants.SUNDAY);
+    PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).getBeginOfWeek();
+    PFDateTime sundayDate = mondayDate.getEndOfWeek().getBeginOfDay();
 
     ClassPathResource classPathResource = new ClassPathResource("IHK-Template-2019.xls");
 
@@ -80,8 +80,8 @@ class IHKExporter
 
     String string = header.getStringCellValue();
     string = string.replace("%fullName%", getUser().getFullname());
-    string = string.replace("%startDate%", sdf.format(mondayDate.toDate()));
-    string = string.replace("%endDate%", sdf.format(sundayDate.toDate()));
+    string = string.replace("%startDate%", sdf.format(mondayDate.getUtilDate()));
+    string = string.replace("%endDate%", sdf.format(sundayDate.getUtilDate()));
     header.setCellValue(string);
 
     // first data row
@@ -96,7 +96,7 @@ class IHKExporter
       hourCounter = fillRow(hourCounter, newRow, timesheet);
 
       CellStyle style = workbook.createCellStyle();
-      style.setBorderBottom((short) 1);
+      style.setBorderBottom(BorderStyle.HAIR);
       style.setShrinkToFit(true);
       style.setWrapText(true);
       newRow.setRowStyle(style);
@@ -117,7 +117,7 @@ class IHKExporter
     System.out.println(timesheet.getDescription());
 
     if (!(timesheet.getDescription() == null)) {
-      if(timesheet.getDescription().indexOf("|") != -1) { // If no | in String then IndexOf will be -1
+      if(timesheet.getDescription().contains("|")) { // If no | in String then IndexOf will be -1
         lernfeld = StringUtils.substringBefore(timesheet.getDescription(), "|").trim();
         description = StringUtils.substringAfter(timesheet.getDescription(), "|").trim();
       } else {
@@ -188,22 +188,22 @@ class IHKExporter
 
       // Set the cell data value
       switch (oldCell.getCellType()) {
-        case Cell.CELL_TYPE_BLANK:
+        case BLANK:
           newCell.setCellValue(oldCell.getStringCellValue());
           break;
-        case Cell.CELL_TYPE_BOOLEAN:
+        case BOOLEAN:
           newCell.setCellValue(oldCell.getBooleanCellValue());
           break;
-        case Cell.CELL_TYPE_ERROR:
-          newCell.setCellErrorValue(oldCell.getErrorCellValue());
+        case ERROR:
+          newCell.setCellValue(oldCell.getErrorCellValue());
           break;
-        case Cell.CELL_TYPE_FORMULA:
+        case FORMULA:
           newCell.setCellFormula(oldCell.getCellFormula());
           break;
-        case Cell.CELL_TYPE_NUMERIC:
+        case NUMERIC:
           newCell.setCellValue(oldCell.getNumericCellValue());
           break;
-        case Cell.CELL_TYPE_STRING:
+        case STRING:
           newCell.setCellValue(oldCell.getRichStringCellValue());
           break;
       }

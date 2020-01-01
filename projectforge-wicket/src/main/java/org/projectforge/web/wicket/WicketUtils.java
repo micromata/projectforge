@@ -768,8 +768,8 @@ public class WicketUtils
     for (int i = 0; i > -lastNDays; i--) {
       final DayHolder day = new DayHolder();
       day.add(Calendar.DAY_OF_YEAR, i);
-      datumChoiceRenderer.addValue(day.getSQLDate().getTime(),
-          DateTimeFormatter.instance().getFormattedDate(day.getSQLDate(),
+      datumChoiceRenderer.addValue(day.getSqlDate().getTime(),
+          DateTimeFormatter.instance().getFormattedDate(day.getSqlDate(),
               DateFormats.getFormatString(DateFormatType.DATE)));
     }
     return datumChoiceRenderer;

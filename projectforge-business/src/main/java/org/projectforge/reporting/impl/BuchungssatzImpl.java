@@ -60,7 +60,7 @@ public class BuchungssatzImpl implements Buchungssatz
     this.kost1 = new Kost1Impl(this.buchungssatz.getKost1());
     this.kost2 = new Kost2Impl(this.buchungssatz.getKost2());
   }
-  
+
   public Integer getId()
   {
     return buchungssatz.getId();
@@ -115,10 +115,10 @@ public class BuchungssatzImpl implements Buchungssatz
   {
     return buchungssatz.getMonth();
   }
-  
+
   public String getFormattedMonth()
   {
-    return StringHelper.format2DigitNumber(buchungssatz.getMonth() + 1);
+    return StringHelper.format2DigitNumber(buchungssatz.getMonth());
   }
 
   public Integer getSatznr()

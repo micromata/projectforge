@@ -35,7 +35,7 @@ public abstract class AbstractCalendarFilter implements ICalendarFilter
   private static final long serialVersionUID = -2054541010143924205L;
 
   @XStreamAsAttribute
-  private DateMidnight startDate;
+  private DateMidnight startDate; // Don't migrate to PFDateTime. Must be DateMidnight for deserialization of deprecated filters. The whole class will be removed after removing Wicket.
 
   @XStreamAsAttribute
   private Integer firstHour = 8;
@@ -75,7 +75,7 @@ public abstract class AbstractCalendarFilter implements ICalendarFilter
 
   /**
    * If true then the slot is 30 minutes otherwise 15 minutes.
-   * 
+   *
    * @return the slot30
    */
   public boolean isSlot30()

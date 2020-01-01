@@ -23,9 +23,8 @@
 
 package org.projectforge.business.timesheet;
 
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Objects;
@@ -46,9 +45,9 @@ public class TimesheetUtils
    */
   public static TimesheetStats getStats(final Collection<TimesheetDO> timesheets, final Date day, final Integer userId)
   {
-    final DateHolder dh = new DateHolder(day).setBeginOfDay();
-    final Date startDate = dh.getDate();
-    final Date stopDate = dh.add(Calendar.DAY_OF_MONTH, 1).getDate();
+    final PFDateTime dt = PFDateTime.from(day).getBeginOfDay();
+    final Date startDate = dt.getUtilDate();
+    final Date stopDate = dt.plusDays(1).getUtilDate();
     return getStats(timesheets, startDate, stopDate, userId);
   }
 
