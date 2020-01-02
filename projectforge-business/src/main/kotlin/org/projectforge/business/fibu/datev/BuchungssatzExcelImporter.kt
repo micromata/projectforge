@@ -123,37 +123,30 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
             val row = it.next()
             val element = MyImportedElement(importedSheet, row.rowNum, BuchungssatzDO::class.java,
                     *DatevImportDao.BUCHUNGSSATZ_DIFF_PROPERTIES)
-            val satz = BuchungssatzDO()
+            val satz = BudichungssatzDO()
             element.value = satz
             ImportHelper.fillBean(satz, excelSheet, row.rowNum)
-            if (satz.satznr == null) {
-                importedSheet.logger.error("Satznr. nicht gültig.", row, Cols.SATZNR, true)
-                continue
-            }
             val day = from(dateValidator.getDate(excelSheet.getCell(row, Cols.DATUM)))
-            if (day == null) {
-                importedSheet.logger.error("Invalid date.", row, Cols.DATUM, true)
-                continue
+            if (day != null) {
+                satz.datum = day.sqlDate
+                if (year == 0) {
+                    year = day.year
+                } else if (year != day.year) {
+                    val msg = "Not supported: Buchungssätze liegen in verschiedenen Jahren."
+                    importedSheet.logger.error(msg, row, Cols.DATUM)
+                    element.putErrorProperty("datum", "Buchungssatz liegt außerhalb des Buchungsmonats.")
+                }
+                if (day.monthValue > month) {
+                    val msg = "Buchungssätze können nicht in die Zukunft für den aktuellen Monat '${KostFormatter.formatBuchungsmonat(year, day.monthValue)}'' gebucht werden!"
+                    importedSheet.logger.error(msg, row, Cols.DATUM)
+                    element.putErrorProperty("datum", msg)
+                } else if (day.monthValue < month) {
+                    val msg = "Buchungssatz liegt vor Monat '${KostFormatter.formatBuchungsmonat(year, month)}' (OK)."
+                    importedSheet.logger.info(msg, row, Cols.DATUM)
+                }
+                satz.year = year
+                satz.month = month
             }
-            // Empty row? date not given.
-            satz.datum = day.sqlDate
-            if (year == 0) {
-                year = day.year
-            } else if (year != day.year) {
-                val msg = "Not supported: Buchungssätze liegen in verschiedenen Jahren."
-                importedSheet.logger.error(msg, row, Cols.DATUM)
-                element.putErrorProperty("datum", "Buchungssatz liegt außerhalb des Buchungsmonats.")
-            }
-            if (day.monthValue > month) {
-                val msg = "Buchungssätze können nicht in die Zukunft für den aktuellen Monat '${KostFormatter.formatBuchungsmonat(year, day.monthValue)}'' gebucht werden!"
-                importedSheet.logger.error(msg, row, Cols.DATUM)
-                element.putErrorProperty("datum", msg)
-            } else if (day.monthValue < month) {
-                val msg = "Buchungssatz liegt vor Monat '${KostFormatter.formatBuchungsmonat(year, month)}' (OK)."
-                importedSheet.logger.info(msg, row, Cols.DATUM)
-            }
-            satz.year = year
-            satz.month = month
             satz.betrag = satz.betrag?.setScale(2, RoundingMode.HALF_UP)
             satz.setSH(excelSheet.getCellString(row, Cols.SH)!!)
             var kontoInt = excelSheet.getCellInt(row, Cols.KONTO)
