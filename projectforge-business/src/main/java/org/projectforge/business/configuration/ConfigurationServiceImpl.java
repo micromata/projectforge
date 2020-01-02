@@ -32,7 +32,6 @@ import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.*;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.framework.utils.FileHelper;
@@ -46,6 +45,7 @@ import javax.net.ssl.*;
 import java.io.*;
 import java.net.URL;
 import java.security.KeyStore;
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -577,25 +577,29 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @Override
-  public Calendar getEndDateVacationFromLastYear() {
+  public LocalDate getEndDateVacationFromLastYear() {
     int day = 31;
-    int month = 2;
+    int month = 3; // March, 1 based, 1-January, ..., 12-December.
     ConfigurationDO configDO = configDao.getEntry(ConfigurationParam.END_DATE_VACATION_LASTR_YEAR);
     if (configDO != null) {
       String dayMonthString = configDO.getStringValue();
       String[] dayMonthParts = dayMonthString.split("\\.");
       try {
-        month = Integer.parseInt(dayMonthParts[1]) - 1;
+        month = Integer.parseInt(dayMonthParts[1]);
         day = Integer.parseInt(dayMonthParts[0]);
       } catch (NumberFormatException e) {
         log.error("Error while parsing ConfigurationParam.END_DATE_VACATION_LASTR_YEAR: " + dayMonthString);
         day = 31;
-        month = 2;
+        month = 3; // March
       }
     }
-    Calendar result = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-    result.set(result.get(Calendar.YEAR), month, day, 23, 59, 59);
-    return result;
+    LocalDate today = LocalDate.now();
+    LocalDate endOfVactionYear = LocalDate.now().withMonth(month).withDayOfMonth(day);
+    if (endOfVactionYear.isAfter(today)) {
+      // Now is between 01.01. and 31.03.:
+      endOfVactionYear = endOfVactionYear.minusYears(1);
+    }
+    return endOfVactionYear;
   }
 
   @Override

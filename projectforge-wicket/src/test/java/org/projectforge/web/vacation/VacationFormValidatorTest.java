@@ -1,16 +1,5 @@
 package org.projectforge.web.vacation;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
-
-import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -33,6 +22,19 @@ import org.projectforge.test.TestSetup;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.wicketstuff.select2.Select2Choice;
 import org.wicketstuff.select2.Select2MultiChoice;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.GregorianCalendar;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ DatePanel.class, Form.class })
@@ -89,12 +91,10 @@ public class VacationFormValidatorTest
     this.employeeSelect = mock(Select2Choice.class);
     this.calendars = mock(Select2MultiChoice.class);
     this.teamCalDO = mock(Collection.class);
-    Calendar vacationEndDate = new GregorianCalendar();
-    vacationEndDate.set(Calendar.MONTH, Calendar.MARCH);
-    vacationEndDate.set(Calendar.DAY_OF_MONTH, 31);
+    LocalDate vacationEndDate = LocalDate.now().with(Month.MARCH).withDayOfMonth(31);
     when(this.vacationService.getEndDateVacationFromLastYear()).thenReturn(vacationEndDate);
     when(this.configService.getVacationCalendar()).thenReturn(null);
-    when(this.vacationService.getVacationDays(any(Date.class), any(Date.class), any(Boolean.class))).thenCallRealMethod();
+    when(this.vacationService.getVacationDays(any(LocalDate.class), any(LocalDate.class), any(Boolean.class))).thenCallRealMethod();
   }
 
   @Test
@@ -272,11 +272,8 @@ public class VacationFormValidatorTest
 
   private VacationFormValidator createValidator()
   {
-    Calendar now = Calendar.getInstance();
-    now.set(Calendar.YEAR, 2017);
-    now.set(Calendar.MONTH, Calendar.JANUARY);
-    now.set(Calendar.DAY_OF_MONTH, 1);
-    final VacationFormValidator validator = new VacationFormValidator(vacationService, configService, new VacationDO(), now);
+    LocalDate date = LocalDate.of(2017, Month.JANUARY, 1);
+    final VacationFormValidator validator = new VacationFormValidator(vacationService, configService, new VacationDO(), date);
 
     validator.getDependentFormComponents()[0] = startDatePanel;
     validator.getDependentFormComponents()[1] = endDatePanel;
