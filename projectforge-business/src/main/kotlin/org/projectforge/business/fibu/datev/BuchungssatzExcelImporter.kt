@@ -123,7 +123,7 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
             val row = it.next()
             val element = MyImportedElement(importedSheet, row.rowNum, BuchungssatzDO::class.java,
                     *DatevImportDao.BUCHUNGSSATZ_DIFF_PROPERTIES)
-            val satz = BudichungssatzDO()
+            val satz = BuchungssatzDO()
             element.value = satz
             ImportHelper.fillBean(satz, excelSheet, row.rowNum)
             val day = from(dateValidator.getDate(excelSheet.getCell(row, Cols.DATUM)))
