@@ -22,10 +22,8 @@
 /////////////////////////////////////////////////////////////////////////////
 package org.projectforge.business.fibu.datev
 
-import de.micromata.merlin.excel.ExcelColumnName
-import de.micromata.merlin.excel.ExcelColumnNumberValidator
-import de.micromata.merlin.excel.ExcelSheet
-import de.micromata.merlin.excel.ExcelWorkbook
+import de.micromata.merlin.excel.*
+import de.micromata.merlin.excel.importer.ImportHelper
 import de.micromata.merlin.excel.importer.ImportLogger
 import de.micromata.merlin.excel.importer.ImportStorage
 import de.micromata.merlin.excel.importer.ImportedSheet
@@ -54,13 +52,13 @@ class KontenplanExcelImporter {
         sheet.autotrimCellValues = true
         storage.logger.info("Reading sheet '$NAME_OF_EXCEL_SHEET'.")
         sheet.registerColumn(Cols.KONTO, ExcelColumnNumberValidator(1.0).setRequired())
-        sheet.registerColumn(Cols.BEZEICHNUNG,ExcelColumnNumberValidator(1.0).setRequired())
+        sheet.registerColumn(Cols.BEZEICHNUNG,ExcelColumnValidator().setRequired()).setTargetProperty("bezeichnung")
         sheet.analyze(true)
         if (sheet.headRow == null) {
             storage.logger.info("Ignoring sheet '$NAME_OF_EXCEL_SHEET' for importing Buchungssätze, no valid head row found.")
             return
         }
-        val importedSheet = ImportedSheet<KontoDO>(sheet, ImportLogger.Level.WARN, "'${sheet.excelWorkbook.filename}':", log)
+        val importedSheet = ImportedSheet<KontoDO>(storage, sheet, ImportLogger.Level.WARN, "'${sheet.excelWorkbook.filename}':", log)
         storage.addSheet(importedSheet)
         importedSheet.name = NAME_OF_EXCEL_SHEET
         importedSheet.logger.addValidationErrors(sheet)
@@ -68,12 +66,12 @@ class KontenplanExcelImporter {
         val year = 0
         while (it.hasNext()) {
             val row = it.next()
-            val element = MyImportedElement(storage.nextVal(), KontoDO::class.java,
+            val element = MyImportedElement(importedSheet, row.rowNum, KontoDO::class.java,
                     *DatevImportDao.KONTO_DIFF_PROPERTIES)
             val konto = KontoDO()
             element.value = konto
+            ImportHelper.fillBean(konto, sheet, row.rowNum)
             konto.nummer = sheet.getCellInt(row, "Konto")
-            konto.bezeichnung = sheet.getCellString(row, "Bezeichnung")
             importedSheet.addElement(element)
             log.debug(konto.toString())
         }

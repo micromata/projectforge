@@ -26,18 +26,20 @@ package org.projectforge.framework.persistence.utils
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr
 import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService
+import de.micromata.merlin.excel.importer.ImportedSheet
 import de.micromata.merlin.importer.PropertyDelta
 import org.projectforge.export.AttrColumnDescription
 import java.io.Serializable
 import java.util.*
 
 class MyImportedElementWithAttrs<PK : Serializable?, T : TimeableAttrRow<PK>?, E : EntityWithTimeableAttr<PK, T>?>(
-        index: Int,
+        importedSheet: ImportedSheet<E>,
+        row: Int,
         clazz: Class<E>?,
         private val attrDiffProperties: List<AttrColumnDescription>?,
         private val dateToSelectAttrRow: Date,
         private val timeableService: TimeableService,
-        vararg diffProperties: String) : MyImportedElement<E>(index, clazz!!, *diffProperties) {
+        vararg diffProperties: String) : MyImportedElement<E>(importedSheet, row, clazz!!, *diffProperties) {
 
     override fun addAdditionalPropertyDeltas(): Collection<PropertyDelta> {
         @Suppress("UNCHECKED_CAST")

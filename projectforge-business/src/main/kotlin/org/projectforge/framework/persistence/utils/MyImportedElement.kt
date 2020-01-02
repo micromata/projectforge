@@ -25,18 +25,20 @@ package org.projectforge.framework.persistence.utils
 
 import de.micromata.genome.util.strings.ShortDisplayable
 import de.micromata.merlin.excel.importer.ImportedElement
+import de.micromata.merlin.excel.importer.ImportedSheet
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 
-open class MyImportedElement<T>(index: Int,
-                           clazz: Class<T>,
-                           vararg diffProperties: String)
-    : ImportedElement<T>(index, clazz, *diffProperties) {
+open class MyImportedElement<T>(importedSheet: ImportedSheet<T>,
+                                row: Int,
+                                clazz: Class<T>,
+                                vararg diffProperties: String)
+    : ImportedElement<T>(importedSheet, row, clazz, *diffProperties) {
 
     override fun valueAsString(value: Any?): String? {
         if (value == null)
             return null
         return when (value) {
-            is ShortDisplayable ->  value.toShortString()
+            is ShortDisplayable -> value.toShortString()
             is ShortDisplayNameCapable -> value.shortDisplayName
             else -> value.toString()
         }

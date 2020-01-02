@@ -25,6 +25,7 @@ package org.projectforge.business.fibu.datev
 
 import de.micromata.merlin.CoreI18n
 import de.micromata.merlin.excel.*
+import de.micromata.merlin.excel.importer.ImportHelper
 import de.micromata.merlin.excel.importer.ImportLogger
 import de.micromata.merlin.excel.importer.ImportStorage
 import de.micromata.merlin.excel.importer.ImportedSheet
@@ -37,12 +38,14 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.utils.MyImportedElement
 import org.projectforge.framework.time.PFDay.Companion.from
 import org.slf4j.LoggerFactory
-import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 
 class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzDO>, private val kontoDao: KontoDao, private val kost1Dao: Kost1Dao,
                                 private val kost2Dao: Kost2Dao) {
-    private val dateValidator = ExcelColumnDateValidator("d.M.y", "yyyy-MM-dd")
+    private val dateValidator = ExcelColumnDateValidator(ExcelColumnDateValidator.GERMAN_FORMATS,
+            minimum = LocalDate.of(1990, 1, 1),
+            maximum = LocalDate.of(2100, 12, 31))
 
     private enum class Cols(override val head: String, override vararg val aliases: String) : ExcelColumnName {
         SATZNR("SatzNr.", "Satz-Nr."),
@@ -83,24 +86,25 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
             return null
         }
         storage.logger.info("Reading sheet '$name'.")
-        sheet.registerColumn(Cols.DATUM, dateValidator)
-        sheet.registerColumn(Cols.SATZNR, ExcelColumnNumberValidator(1.0).setRequired().setUnique())
-        sheet.registerColumn(Cols.BETRAG, ExcelColumnNumberValidator().setRequired())
-        sheet.registerColumn(Cols.SH, ExcelColumnOptionsValidator("S", "H").setRequired())
+        sheet.registerColumn(Cols.DATUM, dateValidator).setTargetProperty("datum")
+        sheet.registerColumn(Cols.SATZNR, ExcelColumnNumberValidator(1.0).setRequired().setUnique()).setTargetProperty("satznr")
+        sheet.registerColumn(Cols.BETRAG, ExcelColumnNumberValidator().setRequired()).setTargetProperty("betrag")
+        sheet.registerColumn(Cols.SH, ExcelColumnOptionsValidator("S", "H").setRequired()).setTargetProperty("sh")
         //sheet.registerColumn("SH", "S/H"); // Second column not needed.
-        sheet.registerColumn(Cols.KONTO, ExcelColumnNumberValidator().setRequired())
-        sheet.registerColumn(Cols.GEGENKONTO, ExcelColumnValidator().setRequired())
-        sheet.registerColumn(Cols.KOST1, ExcelColumnValidator().setRequired())
-        sheet.registerColumn(Cols.KOST2, ExcelColumnValidator().setRequired())
-        sheet.registerColumns(Cols.MENGE, Cols.BELEG, Cols.TEXT, Cols.KOMMENTAR)
+        sheet.registerColumn(Cols.KONTO, ExcelColumnNumberValidator().setRequired()).setTargetProperty("konto")
+        sheet.registerColumn(Cols.GEGENKONTO, ExcelColumnValidator().setRequired()).setTargetProperty("gegenKonto")
+        sheet.registerColumn(Cols.KOST1, ExcelColumnValidator().setRequired()).setTargetProperty("kost1")
+        sheet.registerColumn(Cols.KOST2, ExcelColumnValidator().setRequired()).setTargetProperty("kost2")
+        sheet.registerColumn(Cols.MENGE).setTargetProperty("menge")
+        sheet.registerColumn(Cols.BELEG).setTargetProperty("beleg")
+        sheet.registerColumn(Cols.TEXT).setTargetProperty("text")
+        sheet.registerColumn(Cols.KOMMENTAR).setTargetProperty("comment")
         if (sheet.headRow == null) {
             storage.logger.info("Ignoring sheet '$name' for importing AccountingRecords (Buchungssätze), no valid head row found.")
             return null
         }
         sheet.setColumnsForRowEmptyCheck(Cols.DATUM, Cols.SATZNR, Cols.BETRAG, Cols.KONTO, Cols.GEGENKONTO, Cols.KOST1, Cols.KOST2)
-
         sheet.analyze(true)
-        val test = sheet.allValidationErrors
         return importBuchungssaetze(sheet, month)
     }
 
@@ -108,25 +112,25 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
      * @param month 1-January, ..., 12-December
      */
     private fun importBuchungssaetze(excelSheet: ExcelSheet, month: Int): ImportedSheet<BuchungssatzDO> {
-        val ctx = ExcelWriterContext(CoreI18n.setDefault(ThreadLocalUserContext.getLocale()), excelSheet!!.excelWorkbook).setAddErrorColumn(true)
+        val ctx = ExcelWriterContext(CoreI18n.setDefault(ThreadLocalUserContext.getLocale()), excelSheet.excelWorkbook).setAddErrorColumn(true)
         //excelSheet.markErrors(ctx)
-        val importedSheet = ImportedSheet<BuchungssatzDO>(excelSheet, ImportLogger.Level.WARN, "'${excelSheet.excelWorkbook.filename}':", log)
+        val importedSheet = ImportedSheet(storage, excelSheet, ImportLogger.Level.WARN, "'${excelSheet.excelWorkbook.filename}':", log)
         importedSheet.origName = excelSheet.sheetName
         importedSheet.logger.addValidationErrors(excelSheet)
         val it = excelSheet.dataRowIterator
         var year = 0
         while (it.hasNext()) {
             val row = it.next()
-            val element = MyImportedElement(storage.nextVal(), BuchungssatzDO::class.java,
+            val element = MyImportedElement(importedSheet, row.rowNum, BuchungssatzDO::class.java,
                     *DatevImportDao.BUCHUNGSSATZ_DIFF_PROPERTIES)
             val satz = BuchungssatzDO()
             element.value = satz
-            satz.satznr = excelSheet.getCellInt(row, Cols.SATZNR)
+            ImportHelper.fillBean(satz, excelSheet, row.rowNum)
             if (satz.satznr == null) {
                 importedSheet.logger.error("Satznr. nicht gültig.", row, Cols.SATZNR, true)
                 continue
             }
-            val day = from(dateValidator.getLocalDate(excelSheet.getCell(row, Cols.DATUM)))
+            val day = from(dateValidator.getDate(excelSheet.getCell(row, Cols.DATUM)))
             if (day == null) {
                 importedSheet.logger.error("Invalid date.", row, Cols.DATUM, true)
                 continue
@@ -150,15 +154,8 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
             }
             satz.year = year
             satz.month = month
-            satz.betrag = BigDecimal(excelSheet.getCellDouble(row, Cols.BETRAG)!!).setScale(2, RoundingMode.HALF_UP)
-            satz.menge = excelSheet.getCellString(row, Cols.MENGE)
-            val commentColDef = excelSheet.getColumnDef(Cols.KOMMENTAR)
-            if (commentColDef!!.found()) {
-                satz.comment = excelSheet.getCellString(row, commentColDef)
-            }
+            satz.betrag = satz.betrag?.setScale(2, RoundingMode.HALF_UP)
             satz.setSH(excelSheet.getCellString(row, Cols.SH)!!)
-            satz.beleg = excelSheet.getCellString(row, Cols.BELEG)
-            satz.text = excelSheet.getCellString(row, Cols.TEXT)
             var kontoInt = excelSheet.getCellInt(row, Cols.KONTO)
             var konto = kontoDao.getKonto(kontoInt)
             if (konto != null) {

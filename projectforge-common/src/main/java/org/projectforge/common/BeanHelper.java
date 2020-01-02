@@ -280,16 +280,8 @@ public class BeanHelper
   {
     try {
       return method.invoke(obj, args);
-    } catch (final IllegalArgumentException ex) {
-      log.error("Could not invoke '" + method.getName() + "': " + ex + " for object [" + obj + "] with args: " + args,
-          ex);
-      throw new RuntimeException(ex);
-    } catch (final IllegalAccessException ex) {
-      log.error("Could not invoke '" + method.getName() + "': " + ex + " for object [" + obj + "] with args: " + args,
-          ex);
-      throw new RuntimeException(ex);
-    } catch (final InvocationTargetException ex) {
-      log.error("Could not invoke '" + method.getName() + "': " + ex + " for object [" + obj + "] with args: " + args,
+    } catch (final IllegalArgumentException |IllegalAccessException | InvocationTargetException ex) {
+      log.error("Could not invoke '" + method.getName() + "': " + ex.getMessage() + " for object [" + obj + "] with args: " + args,
           ex);
       throw new RuntimeException(ex);
     }
