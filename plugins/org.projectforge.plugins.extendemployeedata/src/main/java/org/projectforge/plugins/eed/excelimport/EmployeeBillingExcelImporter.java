@@ -96,7 +96,7 @@ public class EmployeeBillingExcelImporter
 
   private List<AttrColumnDescription> importEmployeeBillings(final ExcelImport<EmployeeBillingExcelRow> importer)
   {
-    final ImportedSheet<EmployeeDO> importedSheet = new ImportedSheet<>();
+    final ImportedSheet<EmployeeDO> importedSheet = new ImportedSheet<>(new ImportStorage<>());
     storage.addSheet(importedSheet);
     importedSheet.setName(NAME_OF_EXCEL_SHEET);
     importer.setNameRowIndex(ROW_INDEX_OF_COLUMN_NAMES);
@@ -114,8 +114,9 @@ public class EmployeeBillingExcelImporter
     final List<AttrColumnDescription> attrColumnsInSheet = getAttrColumnsUsedInSheet(importer);
 
     final EmployeeBillingExcelRow[] rows = importer.convertToRows(EmployeeBillingExcelRow.class);
+    int rowNum = 0;
     for (final EmployeeBillingExcelRow row : rows) {
-      final MyImportedElement<EmployeeDO> element = convertRowToDo(attrColumnsInSheet, row);
+      final MyImportedElement<EmployeeDO> element = convertRowToDo(importedSheet, attrColumnsInSheet, row, rowNum);
       importedSheet.addElement(element);
     }
 
@@ -132,9 +133,12 @@ public class EmployeeBillingExcelImporter
         .collect(Collectors.toList());
   }
 
-  private MyImportedElement<EmployeeDO> convertRowToDo(final List<AttrColumnDescription> attrColumnsInSheet, final EmployeeBillingExcelRow row)
+  private MyImportedElement<EmployeeDO> convertRowToDo(final ImportedSheet<EmployeeDO> importedSheet,
+                                                       final List<AttrColumnDescription> attrColumnsInSheet,
+                                                       final EmployeeBillingExcelRow row,
+                                                       final int rowNum)
   {
-    final MyImportedElement<EmployeeDO> element = new MyImportedElementWithAttrs(storage.nextVal(), EmployeeDO.class, attrColumnsInSheet,
+    final MyImportedElement<EmployeeDO> element = new MyImportedElementWithAttrs(importedSheet, rowNum, EmployeeDO.class, attrColumnsInSheet,
         dateToSelectAttrRow, timeableService, DIFF_PROPERTIES);
     EmployeeDO employee;
     if (row.getId() != null) {

@@ -90,13 +90,14 @@ public class TeamCalImportDao {
     final ImportStorage<TeamEventDO> storage = new ImportStorage<>();
     storage.setFilename(filename);
 
-    final ImportedSheet<TeamEventDO> importedSheet = new ImportedSheet<>();
+    final ImportedSheet<TeamEventDO> importedSheet = new ImportedSheet<>(storage);
     importedSheet.setName(getSheetName());
     storage.addSheet(importedSheet);
 
+    int row = 0;
     for (final TeamEventDO event : events) {
       importedSheet.getLogger().incrementSuccesscounter();
-      final MyImportedElement<TeamEventDO> element = new MyImportedElement<>(storage.nextVal(),
+      final MyImportedElement<TeamEventDO> element = new MyImportedElement<>(importedSheet, row++,
               TeamEventDO.class, DIFF_PROPERTIES);
       element.setValue(event);
       importedSheet.addElement(element);

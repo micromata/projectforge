@@ -38,6 +38,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -117,7 +118,7 @@ public class DatevImportDao {
           throws Exception {
     checkLoggeinUserRight(accessChecker);
     log.info("importKontenplan called");
-    ExcelWorkbook workbook = new ExcelWorkbook(inputStream, filename);
+    ExcelWorkbook workbook = new ExcelWorkbook(inputStream, filename, ThreadLocalUserContext.getLocale());
     final ImportStorage<KontoDO> storage = new ImportStorage<>(Type.KONTENPLAN, workbook, ImportLogger.Level.INFO, "'" + filename + "':", log);
     final KontenplanExcelImporter imp = new KontenplanExcelImporter();
     imp.doImport(storage, workbook);
@@ -137,7 +138,7 @@ public class DatevImportDao {
           throws Exception {
     checkLoggeinUserRight(accessChecker);
     log.info("importBuchungsdaten called.");
-    ExcelWorkbook workbook = new ExcelWorkbook(is, filename);
+    ExcelWorkbook workbook = new ExcelWorkbook(is, filename, ThreadLocalUserContext.getLocale());
     final ImportStorage<BuchungssatzDO> storage = new ImportStorage<>(Type.BUCHUNGSSAETZE, workbook, ImportLogger.Level.INFO, "'" + filename + "':", log);
     final BuchungssatzExcelImporter imp = new BuchungssatzExcelImporter(storage, kontoDao, kost1Dao, kost2Dao);
     imp.doImport(workbook);
