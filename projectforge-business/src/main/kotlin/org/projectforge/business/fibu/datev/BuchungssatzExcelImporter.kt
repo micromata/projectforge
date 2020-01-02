@@ -23,7 +23,6 @@
 
 package org.projectforge.business.fibu.datev
 
-import de.micromata.merlin.CoreI18n
 import de.micromata.merlin.excel.*
 import de.micromata.merlin.excel.importer.ImportHelper
 import de.micromata.merlin.excel.importer.ImportLogger
@@ -34,7 +33,6 @@ import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.fibu.kost.Kost2Dao
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.utils.MyImportedElement
 import org.projectforge.framework.time.PFDay.Companion.from
 import org.slf4j.LoggerFactory
@@ -104,7 +102,9 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
             return null
         }
         sheet.setColumnsForRowEmptyCheck(Cols.DATUM, Cols.SATZNR, Cols.BETRAG, Cols.KONTO, Cols.GEGENKONTO, Cols.KOST1, Cols.KOST2)
+        val now = System.currentTimeMillis()
         sheet.analyze(true)
+        log.info("Analyzing sheet '${sheet.sheetName}' takes ${System.currentTimeMillis() - now}ms.")
         return importBuchungssaetze(sheet, month)
     }
 
@@ -112,7 +112,8 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
      * @param month 1-January, ..., 12-December
      */
     private fun importBuchungssaetze(excelSheet: ExcelSheet, month: Int): ImportedSheet<BuchungssatzDO> {
-        val ctx = ExcelWriterContext(CoreI18n.setDefault(ThreadLocalUserContext.getLocale()), excelSheet.excelWorkbook).setAddErrorColumn(true)
+        val now = System.currentTimeMillis()
+        //val ctx = ExcelWriterContext(CoreI18n.setDefault(ThreadLocalUserContext.getLocale()), excelSheet.excelWorkbook).setAddErrorColumn(true)
         //excelSheet.markErrors(ctx)
         val importedSheet = ImportedSheet(storage, excelSheet, ImportLogger.Level.WARN, "'${excelSheet.excelWorkbook.filename}':", log)
         importedSheet.origName = excelSheet.sheetName
@@ -161,21 +162,21 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
             if (konto != null) {
                 satz.gegenKonto = konto
             } else {
-                element.putErrorProperty("gegenkonto", kontoInt!!)
+                element.putErrorProperty("gegenkonto", kontoInt)
             }
             var kostString = excelSheet.getCellString(row, Cols.KOST1)
             val kost1 = kost1Dao.getKost1(kostString)
             if (kost1 != null) {
                 satz.kost1 = kost1
             } else {
-                element.putErrorProperty("kost1", kostString!!)
+                element.putErrorProperty("kost1", kostString)
             }
             kostString = excelSheet.getCellString(row, Cols.KOST2)
             val kost2 = kost2Dao.getKost2(kostString)
             if (kost2 != null) {
                 satz.kost2 = kost2
             } else {
-                element.putErrorProperty("kost2", kostString!!)
+                element.putErrorProperty("kost2", kostString)
             }
             satz.calculate(true)
             importedSheet.addElement(element)
@@ -184,6 +185,7 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
         importedSheet.name = KostFormatter.formatBuchungsmonat(year, month)
         importedSheet.setProperty("year", year)
         importedSheet.setProperty("month", month)
+        log.info("Importing sheet '${importedSheet.name}' takes ${System.currentTimeMillis() - now}ms.")
         return importedSheet
     }
 
