@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -57,7 +58,7 @@ public class VacationViewHelper
   public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee, boolean showAddButton, final WebPage returnToPage)
   {
     final Calendar now = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-    Calendar endDatePreviousYearVacation = configService.getEndDateVacationFromLastYear();
+    LocalDate endDatePreviousYearVacation = configService.getEndDateVacationFromLastYear();
 
     // leave account
     GridBuilder sectionLeftGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
@@ -88,7 +89,7 @@ public class VacationViewHelper
             currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) : BigDecimal.ZERO;
     BigDecimal vacationdaysPreviousYearUnused = vacationdaysPreviousYear.subtract(vacationdaysPreviousYearUsed);
     String endDatePreviousYearVacationString =
-        endDatePreviousYearVacation.get(Calendar.DAY_OF_MONTH) + "." + (endDatePreviousYearVacation.get(Calendar.MONTH) + 1) + ".";
+        endDatePreviousYearVacation.getDayOfMonth() + "." + endDatePreviousYearVacation.getMonthValue() + ".";
 
     //If previousyearleaveunused > 0, then extend left area and display new row
     if (vacationdaysPreviousYearUnused.compareTo(BigDecimal.ZERO) > 0 && now.after(endDatePreviousYearVacation)) {

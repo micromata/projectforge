@@ -266,6 +266,14 @@ class PFDayUtils {
         }
 
         /**
+         * return year of given LocalDate or -1 if LocalDate is null.
+         */
+        @JvmStatic
+        fun getYear(date: LocalDate?): Int {
+            return date?.year ?: -1
+        }
+
+        /**
          * Substract 1 millisecond to get the end of last day.
          */
         private fun getEndOfPreviousDay(beginOfDay: ZonedDateTime): ZonedDateTime {

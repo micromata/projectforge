@@ -53,14 +53,13 @@ object VacationProvider {
 
             events.add(BigCalendarEvent(
                     title = it.employee?.user?.getFullname(),
-                    start = it.startDate!!,
-                    end = it.endDate!!,
+                    start = PFDateTime.from(it.startDate)!!.utilDate,
+                    end = PFDateTime.from(it.endDate)!!.utilDate,
                     allDay = true,
                     category = "vacation",
                     bgColor = bgColor,
                     fgColor = fgColor,
                     dbId = it.id))
-
         }
     }
 }

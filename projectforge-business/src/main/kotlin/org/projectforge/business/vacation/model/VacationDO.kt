@@ -31,6 +31,7 @@ import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import java.time.LocalDate
 import java.util.*
 import javax.persistence.*
 
@@ -59,14 +60,12 @@ open class VacationDO : DefaultBaseDO() {
     open var employee: EmployeeDO? = null
 
     @PropertyInfo(i18nKey = "vacation.startdate")
-    @get:Temporal(TemporalType.DATE)
     @get:Column(name = "start_date", nullable = false)
-    open var startDate: Date? = null
+    open var startDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "vacation.enddate")
-    @get:Temporal(TemporalType.DATE)
     @get:Column(name = "end_date", nullable = false)
-    open var endDate: Date? = null
+    open var endDate: LocalDate? = null
 
     /**
      * The substitutions.
