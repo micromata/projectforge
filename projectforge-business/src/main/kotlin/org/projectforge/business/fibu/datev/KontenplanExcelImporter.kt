@@ -51,7 +51,7 @@ class KontenplanExcelImporter {
     private fun importKontenplan(storage: ImportStorage<KontoDO>, sheet: ExcelSheet) {
         sheet.autotrimCellValues = true
         storage.logger.info("Reading sheet '$NAME_OF_EXCEL_SHEET'.")
-        sheet.registerColumn(Cols.KONTO, ExcelColumnNumberValidator(1.0).setRequired())
+        sheet.registerColumn(Cols.KONTO, ExcelColumnNumberValidator(1.0).setRequired().setUnique())
         sheet.registerColumn(Cols.BEZEICHNUNG,ExcelColumnValidator().setRequired()).setTargetProperty("bezeichnung")
         sheet.analyze(true)
         if (sheet.headRow == null) {
