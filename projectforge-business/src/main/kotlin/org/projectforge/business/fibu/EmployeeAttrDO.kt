@@ -50,7 +50,7 @@ open class EmployeeAttrDO : JpaTabAttrBaseDO<EmployeeDO, Int> {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "parent", referencedColumnName = "pk")
-    override fun getParent(): EmployeeDO {
+    override fun getParent(): EmployeeDO? {
         return super.getParent()
     }
 }
