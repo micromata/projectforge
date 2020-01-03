@@ -100,6 +100,13 @@ public interface AccessChecker
 
   /**
    * Checks if the user of the ThreadLocalUserContext (logged in user) is member at least of one of the given groups.
+   * @param throwException default false.
+   * @param groups
+   */
+  boolean isLoggedInUserMemberOfGroup(boolean throwException, ProjectForgeGroup... groups);
+
+  /**
+   * Checks if the user of the ThreadLocalUserContext (logged in user) is member at least of one of the given groups.
    *
    * @param throwException default false.
    * @param groups
