@@ -253,7 +253,7 @@
 
     <hibernate.version>5.4.9.Final</hibernate.version>
     <hibernate-search.version>5.11.4.Final</hibernate-search.version>
-    <mgc.version>3.1.1</mgc.version>
+    <mgc.version>3.1.2</mgc.version>
 
     <commons-httpclient.version>3.1</commons-httpclient.version>
     <commons-beanutils.version>1.9.2</commons-beanutils.version>

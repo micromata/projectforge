@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -194,6 +194,10 @@ public class CalEventDao extends BaseDao<CalEventDO> {
    */
   @Override
   public void internalMarkAsDeleted(final CalEventDO obj) {
+    if (obj == null) {
+      log.info("CalEventDO must not be deleted, because it doesn't exist.");
+      return;
+    }
     ICalendarEvent selectedEvent = (ICalendarEvent) obj.removeTransientAttribute(ATTR_SELECTED_ELEMENT); // Must be removed, otherwise update below will handle this attrs again.
     SeriesModificationMode mode = (SeriesModificationMode) obj.removeTransientAttribute(ATTR_SERIES_MODIFICATION_MODE);
     if (selectedEvent == null || mode == null || mode == SeriesModificationMode.ALL) {
