@@ -18,17 +18,17 @@ import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.business.vacation.service.VacationServiceImpl;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.test.TestSetup;
 import org.projectforge.web.wicket.components.DatePanel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.wicketstuff.select2.Select2Choice;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.Calendar;
 import java.util.Collection;
-import java.util.GregorianCalendar;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
@@ -37,23 +37,22 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ DatePanel.class, Form.class })
-@PowerMockIgnore({ "javax.activation.*", "javax.management.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*", "com.sun.org.apache.xerces.*", "ch.qos.logback.*", "org.slf4j.*" })
-public class VacationFormValidatorTest
-{
+@PrepareForTest({DatePanel.class, Form.class})
+@PowerMockIgnore({"javax.activation.*", "javax.management.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*", "com.sun.org.apache.xerces.*", "ch.qos.logback.*", "org.slf4j.*"})
+public class VacationFormValidatorTest {
   private EmployeeDO employee;
 
   private VacationService vacationService;
 
   private ConfigurationService configService;
 
-  private Calendar startDate;
+  private LocalDate startDate;
 
-  private Calendar endDate;
+  private LocalDate endDate;
 
-  private DatePanel startDatePanel;
+  private LocalDatePanel startDatePanel;
 
-  private DatePanel endDatePanel;
+  private LocalDatePanel endDatePanel;
 
   private boolean halfDay;
 
@@ -72,17 +71,16 @@ public class VacationFormValidatorTest
   private Collection<TeamCalDO> teamCalDO;
 
   @Before
-  public void setUp()
-  {
+  public void setUp() {
     TestSetup.init();
     this.employee = mock(EmployeeDO.class);
     when(this.employee.getUrlaubstage()).thenReturn(30);
     this.vacationService = mock(VacationServiceImpl.class);
     this.configService = mock(ConfigurationServiceImpl.class);
-    this.startDate = new GregorianCalendar(2017, 0, 1);
-    this.endDate = new GregorianCalendar(2017, 0, 1);
-    this.startDatePanel = mock(DatePanel.class);
-    this.endDatePanel = mock(DatePanel.class);
+    this.startDate = LocalDate.of(2017, Month.JANUARY, 1);
+    this.endDate = LocalDate.of(2017, Month.JANUARY, 1);
+    this.startDatePanel = mock(LocalDatePanel.class);
+    this.endDatePanel = mock(LocalDatePanel.class);
     this.halfDay = false;
     this.halfDayCheckBox = mock(CheckBox.class);
     this.isSpecial = false;
@@ -98,13 +96,10 @@ public class VacationFormValidatorTest
   }
 
   @Test
-  public void afterMarchTest()
-  {
-    this.startDate.set(Calendar.MONTH, Calendar.APRIL);
-    this.startDate.set(Calendar.DAY_OF_MONTH, 3);
-    this.endDate.set(Calendar.MONTH, Calendar.APRIL);
-    this.endDate.set(Calendar.DAY_OF_MONTH, 13);
-    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.get(Calendar.YEAR))).thenReturn(new BigDecimal(10));
+  public void afterMarchTest() {
+    this.startDate = this.startDate.with(Month.APRIL).withDayOfMonth(3);
+    this.endDate = this.endDate.with(Month.APRIL).withDayOfMonth(13);
+    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.getYear())).thenReturn(new BigDecimal(10));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(5));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(5));
     VacationFormValidator validator = createValidator();
@@ -114,13 +109,10 @@ public class VacationFormValidatorTest
   }
 
   @Test
-  public void afterMarchNegativeTest()
-  {
-    this.startDate.set(Calendar.MONTH, Calendar.APRIL);
-    this.startDate.set(Calendar.DAY_OF_MONTH, 3);
-    this.endDate.set(Calendar.MONTH, Calendar.APRIL);
-    this.endDate.set(Calendar.DAY_OF_MONTH, 13);
-    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.get(Calendar.YEAR))).thenReturn(new BigDecimal(30));
+  public void afterMarchNegativeTest() {
+    this.startDate = this.startDate.with(Month.APRIL).withDayOfMonth(3);
+    this.endDate = this.endDate.with(Month.APRIL).withDayOfMonth(13);
+    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.getYear())).thenReturn(new BigDecimal(30));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(5));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(5));
     VacationFormValidator validator = createValidator();
@@ -130,17 +122,14 @@ public class VacationFormValidatorTest
   }
 
   @Test
-  public void beforeMarchTest()
-  {
-    this.startDate.set(Calendar.MONTH, Calendar.MARCH);
-    this.startDate.set(Calendar.DAY_OF_MONTH, 3);
-    this.endDate.set(Calendar.MONTH, Calendar.MARCH);
-    this.endDate.set(Calendar.DAY_OF_MONTH, 13);
-    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.get(Calendar.YEAR))).thenReturn(new BigDecimal(10));
+  public void beforeMarchTest() {
+    this.startDate = this.startDate.with(Month.MARCH).withDayOfMonth(3);
+    this.endDate = this.endDate.with(Month.MARCH).withDayOfMonth(13);
+    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.getYear())).thenReturn(new BigDecimal(10));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class))
-        .thenReturn(new BigDecimal(5));
+            .thenReturn(new BigDecimal(5));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class))
-        .thenReturn(new BigDecimal(3));
+            .thenReturn(new BigDecimal(3));
     VacationFormValidator validator = createValidator();
     Form<?> form = mock(Form.class);
     validator.validate(form);
@@ -148,17 +137,14 @@ public class VacationFormValidatorTest
   }
 
   @Test
-  public void beforeMarchNoPreviousYearVacationTest()
-  {
-    this.startDate.set(Calendar.MONTH, Calendar.MARCH);
-    this.startDate.set(Calendar.DAY_OF_MONTH, 3);
-    this.endDate.set(Calendar.MONTH, Calendar.MARCH);
-    this.endDate.set(Calendar.DAY_OF_MONTH, 13);
-    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.get(Calendar.YEAR))).thenReturn(new BigDecimal(10));
+  public void beforeMarchNoPreviousYearVacationTest() {
+    this.startDate = this.startDate.with(Month.MARCH).withDayOfMonth(3);
+    this.endDate = this.endDate.with(Month.MARCH).withDayOfMonth(13);
+    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.getYear())).thenReturn(new BigDecimal(10));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class))
-        .thenReturn(new BigDecimal(5));
+            .thenReturn(new BigDecimal(5));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class))
-        .thenReturn(new BigDecimal(5));
+            .thenReturn(new BigDecimal(5));
     VacationFormValidator validator = createValidator();
     Form<?> form = mock(Form.class);
     validator.validate(form);
@@ -166,17 +152,14 @@ public class VacationFormValidatorTest
   }
 
   @Test
-  public void beforeMarchWithPreviousYearVacationTest()
-  {
-    this.startDate.set(Calendar.MONTH, Calendar.MARCH);
-    this.startDate.set(Calendar.DAY_OF_MONTH, 3);
-    this.endDate.set(Calendar.MONTH, Calendar.MARCH);
-    this.endDate.set(Calendar.DAY_OF_MONTH, 13);
-    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.get(Calendar.YEAR))).thenReturn(new BigDecimal(10));
+  public void beforeMarchWithPreviousYearVacationTest() {
+    this.startDate = this.startDate.with(Month.MARCH).withDayOfMonth(3);
+    this.endDate = this.endDate.with(Month.MARCH).withDayOfMonth(13);
+    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.getYear())).thenReturn(new BigDecimal(10));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class))
-        .thenReturn(new BigDecimal(5));
+            .thenReturn(new BigDecimal(5));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class))
-        .thenReturn(new BigDecimal(3));
+            .thenReturn(new BigDecimal(3));
     VacationFormValidator validator = createValidator();
     Form<?> form = mock(Form.class);
     validator.validate(form);
@@ -184,17 +167,14 @@ public class VacationFormValidatorTest
   }
 
   @Test
-  public void beforeMarchNoPreviousYearNegativVacationTest()
-  {
-    this.startDate.set(Calendar.MONTH, Calendar.MARCH);
-    this.startDate.set(Calendar.DAY_OF_MONTH, 3);
-    this.endDate.set(Calendar.MONTH, Calendar.MARCH);
-    this.endDate.set(Calendar.DAY_OF_MONTH, 13);
-    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.get(Calendar.YEAR))).thenReturn(new BigDecimal(30));
+  public void beforeMarchNoPreviousYearNegativVacationTest() {
+    this.startDate = this.startDate.with(Month.MARCH).withDayOfMonth(3);
+    this.endDate = this.endDate.with(Month.MARCH).withDayOfMonth(13);
+    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.getYear())).thenReturn(new BigDecimal(30));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class))
-        .thenReturn(new BigDecimal(5));
+            .thenReturn(new BigDecimal(5));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class))
-        .thenReturn(new BigDecimal(3));
+            .thenReturn(new BigDecimal(3));
     VacationFormValidator validator = createValidator();
     Form<?> form = mock(Form.class);
     validator.validate(form);
@@ -202,17 +182,14 @@ public class VacationFormValidatorTest
   }
 
   @Test
-  public void overMarchWithPreviousYearVacationTest()
-  {
-    this.startDate.set(Calendar.MONTH, Calendar.MARCH);
-    this.startDate.set(Calendar.DAY_OF_MONTH, 30);
-    this.endDate.set(Calendar.MONTH, Calendar.APRIL);
-    this.endDate.set(Calendar.DAY_OF_MONTH, 10);
-    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.get(Calendar.YEAR))).thenReturn(new BigDecimal(10));
+  public void overMarchWithPreviousYearVacationTest() {
+    this.startDate = this.startDate.with(Month.MARCH).withDayOfMonth(30);
+    this.endDate = this.endDate.with(Month.APRIL).withDayOfMonth(10);
+    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.getYear())).thenReturn(new BigDecimal(10));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class))
-        .thenReturn(new BigDecimal(5));
+            .thenReturn(new BigDecimal(5));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class))
-        .thenReturn(new BigDecimal(3));
+            .thenReturn(new BigDecimal(3));
     VacationFormValidator validator = createValidator();
     Form<?> form = mock(Form.class);
     validator.validate(form);
@@ -220,14 +197,11 @@ public class VacationFormValidatorTest
   }
 
   @Test
-  public void oneDayAndHalfDaySelectedTest()
-  {
-    this.startDate.set(Calendar.MONTH, Calendar.APRIL);
-    this.startDate.set(Calendar.DAY_OF_MONTH, 3);
-    this.endDate.set(Calendar.MONTH, Calendar.APRIL);
-    this.endDate.set(Calendar.DAY_OF_MONTH, 3);
+  public void oneDayAndHalfDaySelectedTest() {
+    this.startDate = this.startDate.with(Month.APRIL).withDayOfMonth(3);
+    this.endDate = this.endDate.with(Month.APRIL).withDayOfMonth(3);
     this.halfDay = true;
-    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.get(Calendar.YEAR))).thenReturn(new BigDecimal(0));
+    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.getYear())).thenReturn(new BigDecimal(0));
 
     final VacationFormValidator validator = createValidator();
     final Form<?> form = mock(Form.class);
@@ -237,14 +211,11 @@ public class VacationFormValidatorTest
   }
 
   @Test
-  public void moreThanOneDayAndHalfDaySelectedTest()
-  {
-    this.startDate.set(Calendar.MONTH, Calendar.APRIL);
-    this.startDate.set(Calendar.DAY_OF_MONTH, 2);
-    this.endDate.set(Calendar.MONTH, Calendar.APRIL);
-    this.endDate.set(Calendar.DAY_OF_MONTH, 20);
+  public void moreThanOneDayAndHalfDaySelectedTest() {
+    this.startDate = this.startDate.with(Month.APRIL).withDayOfMonth(2);
+    this.endDate = this.endDate.with(Month.APRIL).withDayOfMonth(20);
     this.halfDay = true;
-    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.get(Calendar.YEAR))).thenReturn(new BigDecimal(0));
+    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.getYear())).thenReturn(new BigDecimal(0));
 
     final VacationFormValidator validator = createValidator();
     final Form<?> form = mock(Form.class);
@@ -254,14 +225,11 @@ public class VacationFormValidatorTest
   }
 
   @Test
-  public void zeroDaysOfVacation()
-  {
-    this.startDate.set(Calendar.MONTH, Calendar.APRIL);
-    this.startDate.set(Calendar.DAY_OF_MONTH, 2);
-    this.endDate.set(Calendar.MONTH, Calendar.APRIL);
-    this.endDate.set(Calendar.DAY_OF_MONTH, 2);
+  public void zeroDaysOfVacation() {
+    this.startDate = this.startDate.with(Month.APRIL).withDayOfMonth(2);
+    this.endDate = this.endDate.with(Month.APRIL).withDayOfMonth(2);
     this.halfDay = true;
-    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.get(Calendar.YEAR))).thenReturn(new BigDecimal(0));
+    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.getYear())).thenReturn(new BigDecimal(0));
 
     final VacationFormValidator validator = createValidator();
     final Form<?> form = mock(Form.class);
@@ -270,8 +238,7 @@ public class VacationFormValidatorTest
     verify(form, times(1)).error(any());
   }
 
-  private VacationFormValidator createValidator()
-  {
+  private VacationFormValidator createValidator() {
     LocalDate date = LocalDate.of(2017, Month.JANUARY, 1);
     final VacationFormValidator validator = new VacationFormValidator(vacationService, configService, new VacationDO(), date);
 
@@ -283,8 +250,8 @@ public class VacationFormValidatorTest
     validator.getDependentFormComponents()[5] = isSpecialCheckBox;
     validator.getDependentFormComponents()[6] = calendars;
 
-    when(startDatePanel.getConvertedInput()).thenReturn(startDate.getTime());
-    when(endDatePanel.getConvertedInput()).thenReturn(endDate.getTime());
+    when(startDatePanel.getConvertedInput()).thenReturn(PFDay.from(startDate).getSqlDate());
+    when(endDatePanel.getConvertedInput()).thenReturn(PFDay.from(endDate).getSqlDate());
     when(statusChoice.getConvertedInput()).thenReturn(VacationStatus.IN_PROGRESS);
     when(employeeSelect.getConvertedInput()).thenReturn(this.employee);
     when(halfDayCheckBox.getConvertedInput()).thenReturn(this.halfDay);
