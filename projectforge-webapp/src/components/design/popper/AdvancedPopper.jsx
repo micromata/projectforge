@@ -39,22 +39,15 @@ function AdvancedPopper(
     );
     React.useLayoutEffect(
         () => {
-            if (basicReference.current) {
-                setBasicWidth(basicReference.current.clientWidth + 2);
-                setBasicHeight(basicReference.current.clientHeight + 10);
-            }
-
             if (reference.current) {
                 const { top, left } = reference.current.getBoundingClientRect();
 
-                setAdditionalHeight(window.innerHeight - top - newBasicHeight - 64);
-                setAdditionalWidth(window.innerWidth - left - newBasicWidth - 16);
+                setAdditionalHeight(window.innerHeight - top - basicHeight - 64);
+                setAdditionalWidth(window.innerWidth - left - basicWidth - 16);
             }
         },
         [
-            basicReference.current && basicReference.current.clientHeight,
-            reference.current && reference.current.clientWidth,
-            reference.current && reference.current.getBoundingClientRect().top,
+            reference.current && reference.current.getBoundingClientRect(),
         ],
     );
 
