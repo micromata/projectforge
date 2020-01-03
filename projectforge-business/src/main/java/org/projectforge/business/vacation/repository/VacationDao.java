@@ -44,7 +44,11 @@ import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -94,7 +98,7 @@ public class VacationDao extends BaseDao<VacationDO> {
     return accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE);
   }
 
-  public List<VacationDO> getVacationForPeriod(EmployeeDO employee, Date startVacationDate, Date endVacationDate, boolean withSpecial) {
+  public List<VacationDO> getVacationForPeriod(EmployeeDO employee, LocalDate startVacationDate, LocalDate endVacationDate, boolean withSpecial) {
     List<VacationDO> result = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.endDate >= :startDate AND v.startDate <= :endDate";
       List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee,
@@ -137,12 +141,12 @@ public class VacationDao extends BaseDao<VacationDO> {
   }
 
   public List<VacationDO> getActiveVacationForYear(EmployeeDO employee, int year, boolean withSpecial) {
-    Calendar startYear = new GregorianCalendar(year, Calendar.JANUARY, 1);
-    Calendar endYear = new GregorianCalendar(year, Calendar.DECEMBER, 31);
+    final LocalDate startYear = LocalDate.of(year, Month.JANUARY, 1);
+    final LocalDate endYear = LocalDate.of(year, Month.DECEMBER, 31);
     final List<VacationDO> result = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate";
       List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee,
-              "startDate", startYear.getTime(), "endDate", endYear.getTime(),
+              "startDate", startYear, "endDate", endYear,
               "deleted", false, "tenant", getTenant());
       return dbResultList;
     });
@@ -181,13 +185,13 @@ public class VacationDao extends BaseDao<VacationDO> {
   }
 
   public List<VacationDO> getSpecialVacation(EmployeeDO employee, int year, VacationStatus status) {
-    final Calendar startYear = new GregorianCalendar(year, Calendar.JANUARY, 1);
-    final Calendar endYear = new GregorianCalendar(year, Calendar.DECEMBER, 31);
+    final LocalDate startYear = LocalDate.of(year, Month.JANUARY, 1);
+    final LocalDate endYear = LocalDate.of(year, Month.DECEMBER, 31);
     final List<VacationDO> resultList = emgrFactory.runRoTrans(emgr -> {
       final String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate AND v.status = :status AND v.special = :special";
       return emgr
-              .selectDetached(VacationDO.class, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "startDate", startYear.getTime(), "endDate",
-                      endYear.getTime(), "status", status, "special", true, "deleted", false, "tenant", getTenant());
+              .selectDetached(VacationDO.class, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "startDate", startYear, "endDate",
+                      endYear, "status", status, "special", true, "deleted", false, "tenant", getTenant());
     });
     return resultList != null ? resultList : Collections.emptyList();
   }
