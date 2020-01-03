@@ -189,8 +189,8 @@ open class ForecastExport { // open needed by Wicket.
         for (row in 1..7) {
             val excelRow = forecastSheet.getRow(row)!!
             MonthCol.values().forEach {
-                val cell = excelRow.getCell(forecastSheet.getColumnDef(it.header))
-                cell.evaluateFormularCell()
+                val cell = excelRow.getCell(forecastSheet.getColumnDef(it.header)!!)
+                cell?.evaluateFormularCell()
             }
         }
         val revenueSheet = workbook.getSheet("Umsatz kumuliert")!!
@@ -198,7 +198,7 @@ open class ForecastExport { // open needed by Wicket.
             val excelRow = revenueSheet.getRow(row)!!
             for (col in 1..12) {
                 val cell = excelRow.getCell(col)
-                cell.evaluateFormularCell()
+                cell?.evaluateFormularCell()
             }
         }
 
@@ -250,8 +250,8 @@ open class ForecastExport { // open needed by Wicket.
     private fun replaceMonthDatesInHeaderRow(sheet: ExcelSheet, baseDate: PFDay) { // Adding month columns
         var currentMonth = baseDate
         MonthCol.values().forEach {
-            val cell = sheet.headRow!!.getCell(sheet.getColumnDef(it.header))
-            cell.setCellValue(formatMonthHeader(currentMonth))
+            val cell = sheet.headRow!!.getCell(sheet.getColumnDef(it.header)!!)
+            cell?.setCellValue(formatMonthHeader(currentMonth))
             currentMonth = currentMonth.plusMonths(1)
         }
     }
