@@ -50,13 +50,13 @@ class ForecastExportTest : AbstractTestBase() {
         logon(TEST_FINANCE_USER)
         val today = PFDay.now()
         val baseDate = today.plusMonths(-4)
-        var order1 = createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsPositionsStatus.BEAUFTRAGT,
+        val order1 = createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsPositionsStatus.BEAUFTRAGT,
                 1000.0, baseDate,
                 baseDate.plusMonths(1), baseDate.plusMonths(4),
                 baseDate.plusMonths(2), baseDate.plusMonths(3), baseDate.plusMonths(4))
         //order1.addPaymentSchedule()
 
-        var order2 = createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsPositionsStatus.BEAUFTRAGT,
+        val order2 = createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsPositionsStatus.BEAUFTRAGT,
                 1000.0, baseDate,
                 baseDate.plusMonths(1), baseDate.plusMonths(4),
                 baseDate.plusMonths(2), baseDate.plusMonths(3))
@@ -83,8 +83,8 @@ class ForecastExportTest : AbstractTestBase() {
         forecastSheet.headRow // Enforce analyzing the column definitions.
 
         // order 1
-        Assertions.assertTrue(forecastSheet.getCell(firstRow + 1, monthCols[3]).stringCellValue.isNullOrBlank())
-        val amount = forecastSheet.getCell(firstRow + 1, monthCols[4]).numericCellValue
+        Assertions.assertTrue(forecastSheet.getCell(firstRow + 1, monthCols[3])!!.stringCellValue.isNullOrBlank())
+        val amount = forecastSheet.getCell(firstRow + 1, monthCols[4])!!.numericCellValue
         assertAmount(order1.getPosition(1)!!.nettoSumme!!.divide(BigDecimal(4)), amount)
         workbook.close()
     }
