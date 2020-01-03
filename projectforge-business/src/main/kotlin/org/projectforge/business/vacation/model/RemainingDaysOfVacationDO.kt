@@ -1,0 +1,81 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.business.vacation.model
+
+import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.annotations.IndexedEmbedded
+import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.persistence.entities.AbstractBaseDO
+import javax.persistence.*
+
+/**
+ * Repräsentiert einen Urlaub. Ein Urlaub ist einem ProjectForge-Mitarbeiter zugeordnet und enthält buchhalterische
+ * Angaben.
+ *
+ * @author Florian Blumenstein
+ */
+@Entity
+@Indexed
+@Table(name = "t_fibu_employee_vacation_remaining",
+        indexes = [javax.persistence.Index(name = "idx_fk_t_vacation_remaining_employee_id", columnList = "employee_id")],
+        uniqueConstraints = [UniqueConstraint(columnNames = ["tenant_id", "employee_id", "year"])])
+@NamedQueries(NamedQuery(name = RemainingDaysOfVacationDO.FIND_BY_EMPLOYEE_ID_AND_YEAR,
+                query = "from RemainingDaysOfVacationDO where employee.id=:employeeId and year=:year"))
+open class RemainingDaysOfVacationDO : AbstractBaseDO<Int>() {
+    @PropertyInfo(i18nKey = "id")
+    private var id: Int? = null
+
+    /**
+     * The employee.
+     */
+    @PropertyInfo(i18nKey = "vacation.employee")
+    @IndexedEmbedded(includePaths = ["user.firstname", "user.lastname"])
+    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:JoinColumn(name = "employee_id", nullable = false)
+    open var employee: EmployeeDO? = null
+
+    @PropertyInfo(i18nKey = "calendar.year")
+    @get:Column(name = "year", nullable = false)
+    open var year: Int = 0
+
+    @PropertyInfo(i18nKey = "vacation.previousyearleave")
+    @get:Column(name = "carry_vacation_days_from_previous_year", nullable = true)
+    open var carryVacationDaysFromPreviousYear: Int? = null
+
+    @Id
+    @GeneratedValue
+    @Column(name = "pk")
+    override fun getId(): Int? {
+        return id
+    }
+
+    override fun setId(id: Int?) {
+        this.id = id
+    }
+
+    companion object {
+        internal const val FIND_BY_EMPLOYEE_ID_AND_YEAR = "RemainingDaysOfVacationDO_FindByEmployeeIdAndYear"
+    }
+}
