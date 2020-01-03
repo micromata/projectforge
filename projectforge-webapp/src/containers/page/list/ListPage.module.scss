@@ -54,10 +54,6 @@
   .magicFilter {
     margin-right: .8em;
 
-    &:last-child {
-      flex: 1;
-    }
-
     .pill {
       $transitionTime: .3s;
 
@@ -80,6 +76,7 @@
 
   .allFilters {
     .filterList {
+      width: 100vw;
       margin: 0;
       padding: 0;
 

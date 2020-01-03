@@ -21,22 +21,34 @@ function AdvancedPopper(
     const [basicHeight, setBasicHeight] = React.useState(0);
     const [basicWidth, setBasicWidth] = React.useState(0);
     const [additionalHeight, setAdditionalHeight] = React.useState(0);
+    const [additionalWidth, setAdditionalWidth] = React.useState(0);
 
     useClickOutsideHandler(reference, setIsOpen, isOpen);
 
     React.useLayoutEffect(
         () => {
-            if (reference.current) {
-                setAdditionalHeight(
-                    window.innerHeight
-                    - reference.current.getBoundingClientRect().top
-                    - basicHeight
-                    - 64,
-                );
-            }
             if (basicReference.current) {
                 setBasicWidth(basicReference.current.clientWidth + 2);
                 setBasicHeight(basicReference.current.clientHeight + 10);
+            }
+        },
+        [
+            basicReference.current && basicReference.current.clientHeight,
+            basicReference.current && basicReference.current.clientWidth,
+        ],
+    );
+    React.useLayoutEffect(
+        () => {
+            if (basicReference.current) {
+                setBasicWidth(basicReference.current.clientWidth + 2);
+                setBasicHeight(basicReference.current.clientHeight + 10);
+            }
+
+            if (reference.current) {
+                const { top, left } = reference.current.getBoundingClientRect();
+
+                setAdditionalHeight(window.innerHeight - top - newBasicHeight - 64);
+                setAdditionalWidth(window.innerWidth - left - newBasicWidth - 16);
             }
         },
         [
@@ -72,6 +84,7 @@ function AdvancedPopper(
                 style={{
                     top: basicHeight,
                     minWidth: basicWidth,
+                    maxWidth: additionalWidth,
                     maxHeight: additionalVisible ? additionalHeight : 0,
                 }}
             >
