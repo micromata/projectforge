@@ -594,7 +594,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
       }
     }
     LocalDate today = LocalDate.now();
-    LocalDate endOfVactionYear = LocalDate.now().withMonth(month).withDayOfMonth(day);
+    LocalDate endOfVactionYear = today.withMonth(month).withDayOfMonth(day);
     if (endOfVactionYear.isAfter(today)) {
       // Now is between 01.01. and 31.03.:
       endOfVactionYear = endOfVactionYear.minusYears(1);

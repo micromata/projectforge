@@ -61,6 +61,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.Year;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -251,10 +252,9 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
       }
       return BigDecimal.ZERO;
     }
-    LocalDate today = LocalDate.now();
     LocalDate startDate = vacationData.getStartDate();
     LocalDate endDateVacationFromLastYear = getEndDateVacationFromLastYear();
-    if (startDate.getYear() > today.getYear() && !startDate.isBefore(endDateVacationFromLastYear)) {
+    if (startDate.getYear() > Year.now().getValue() && !startDate.isBefore(endDateVacationFromLastYear)) {
       return BigDecimal.ZERO;
     }
 
