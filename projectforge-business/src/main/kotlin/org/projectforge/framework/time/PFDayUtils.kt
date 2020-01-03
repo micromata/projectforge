@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -159,6 +159,11 @@ class PFDayUtils {
         }
 
         @JvmStatic
+        fun getNumberOfWorkingDays(from: LocalDate, to: LocalDate): BigDecimal {
+            return getNumberOfWorkingDays(PFDay.from(from)!!, PFDay.from(to)!!)
+        }
+
+        @JvmStatic
         fun <T : IPFDate<T>> getNumberOfWorkingDays(from: T, to: T): BigDecimal {
             Validate.notNull(from)
             Validate.notNull(to)
@@ -258,6 +263,14 @@ class PFDayUtils {
                     parseUTCDate(str, PFDateTime.isoDateTimeFormatterSeconds, zoneId, locale)
                 }
             }
+        }
+
+        /**
+         * return year of given LocalDate or -1 if LocalDate is null.
+         */
+        @JvmStatic
+        fun getYear(date: LocalDate?): Int {
+            return date?.year ?: -1
         }
 
         /**

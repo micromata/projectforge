@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.business.vacation.service;
 
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.vacation.model.VacationDO;
@@ -33,9 +34,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Calendar;
+import java.time.LocalDate;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -53,7 +53,7 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @param endDate
    * @return List of vacations
    */
-  List<VacationDO> getVacationForDate(EmployeeDO employee, Date startDate, Date endDate, boolean withSpecial);
+  List<VacationDO> getVacationForDate(EmployeeDO employee, LocalDate startDate, LocalDate endDate, boolean withSpecial);
 
   /**
    * Getting all not deleted vacations for given employee of the current year.
@@ -102,7 +102,7 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @param queryDate
    * @return
    */
-  BigDecimal getAvailableVacationDaysForYearAtDate(final EmployeeDO employee, final Date queryDate);
+  BigDecimal getAvailableVacationDaysForYearAtDate(final EmployeeDO employee, final LocalDate queryDate);
 
   /**
    * Returns the number of pland vacation days for the given employee at the given date.
@@ -112,7 +112,7 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @param queryDate
    * @return
    */
-  BigDecimal getPlandVacationDaysForYearAtDate(final EmployeeDO employee, final Date queryDate);
+  BigDecimal getPlandVacationDaysForYearAtDate(final EmployeeDO employee, final LocalDate queryDate);
 
   /**
    * Returns the number of approved vacation days
@@ -161,9 +161,9 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
   /**
    * Returns the date for ending usage of vacation from last year
    *
-   * @return
+   * @see ConfigurationService#getEndDateVacationFromLastYear()
    */
-  Calendar getEndDateVacationFromLastYear();
+  LocalDate getEndDateVacationFromLastYear();
 
   /**
    * Updates the used days from last year
@@ -274,7 +274,7 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @param isHalfDayVacation
    * @return
    */
-  BigDecimal getVacationDays(final Date from, final Date to, final Boolean isHalfDayVacation);
+  BigDecimal getVacationDays(final LocalDate from, final LocalDate to, final Boolean isHalfDayVacation);
 
   /**
    * UnDelete Calender for apllication for leave
