@@ -38,7 +38,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "t_fibu_employee_vacation_remaining",
+@Table(name = "t_employee_vacation_remaining",
         indexes = [javax.persistence.Index(name = "idx_fk_t_vacation_remaining_employee_id", columnList = "employee_id")],
         uniqueConstraints = [UniqueConstraint(columnNames = ["tenant_id", "employee_id", "year"])])
 @NamedQueries(NamedQuery(name = RemainingDaysOfVacationDO.FIND_BY_EMPLOYEE_ID_AND_YEAR,

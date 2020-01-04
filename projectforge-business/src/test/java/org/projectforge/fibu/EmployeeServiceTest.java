@@ -32,7 +32,6 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.business.vacation.service.VacationService;
-import org.projectforge.business.vacation.service.VacationServiceImpl;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
@@ -55,7 +54,7 @@ public class EmployeeServiceTest extends AbstractTestBase
   private UserService userService;
 
   @InjectMocks
-  private VacationService vacationService = new VacationServiceImpl();
+  private VacationService vacationService = new VacationService();
 
   @Test
   public void testInsertDelete()
