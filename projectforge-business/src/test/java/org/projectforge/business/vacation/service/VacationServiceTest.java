@@ -70,7 +70,7 @@ public class VacationServiceTest {
   private LocalDate endLastYear = now;
 
   @InjectMocks
-  private VacationService vacationService = new VacationServiceImpl();
+  private VacationService vacationService = new VacationService();
 
   @Mock
   private ConfigurationService configService;

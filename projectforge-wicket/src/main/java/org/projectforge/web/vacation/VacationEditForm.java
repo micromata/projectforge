@@ -42,6 +42,7 @@ import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationMode;
 import org.projectforge.business.vacation.model.VacationStatus;
+import org.projectforge.business.vacation.service.VacationCalendarService;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
@@ -74,6 +75,9 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   @SpringBean
   private VacationService vacationService;
+
+  @SpringBean
+  private VacationCalendarService vacationCalendarService;
 
   @SpringBean
   private EmployeeService employeeService;
@@ -135,7 +139,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     if (checkReadAccess() == false) {
       throw new AccessException("access.exception.userHasNotRight");
     }
-    VacationFormValidator formValidator = new VacationFormValidator(vacationService, configService, data);
+    VacationFormValidator formValidator = new VacationFormValidator(vacationService, vacationCalendarService, configService, data);
     add(formValidator);
 
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -301,7 +305,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     {
       // Calendars
       final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("vacation.calendar"));
-      final List<TeamCalDO> calendarsForVacation = vacationService.getCalendarsForVacation(this.data);
+      final List<TeamCalDO> calendarsForVacation = vacationCalendarService.getCalendarsForVacation(this.data);
       final Set<TeamCalDO> availableCalendars = new HashSet<>(teamCalCache.getAllFullAccessCalendars());
       final Set<TeamCalDO> currentCalendars = new HashSet<>();
       final TeamCalDO configuredVacationCalendar = configService.getVacationCalendar();

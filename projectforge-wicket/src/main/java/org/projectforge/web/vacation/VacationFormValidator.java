@@ -34,6 +34,7 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
+import org.projectforge.business.vacation.service.VacationCalendarService;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -58,14 +59,16 @@ public class VacationFormValidator implements IFormValidator {
 
   private final VacationService vacationService;
 
+  private final VacationCalendarService vacationCalendarService;
+
   private final VacationDO data;
 
   private ConfigurationService configService;
 
   private final LocalDate now;
 
-  public VacationFormValidator(VacationService vacationService, ConfigurationService configService, VacationDO data) {
-    this(vacationService, configService, data, LocalDate.now());
+  public VacationFormValidator(VacationService vacationService, VacationCalendarService vacationCalendarService, ConfigurationService configService, VacationDO data) {
+    this(vacationService, vacationCalendarService, configService, data, LocalDate.now());
   }
 
   /**
@@ -76,9 +79,10 @@ public class VacationFormValidator implements IFormValidator {
    * @param data
    * @param now
    */
-  protected VacationFormValidator(VacationService vacationService, ConfigurationService configService, VacationDO data, LocalDate now) {
+  protected VacationFormValidator(VacationService vacationService, VacationCalendarService vacationCalendarService, ConfigurationService configService, VacationDO data, LocalDate now) {
     this.configService = configService;
     this.vacationService = vacationService;
+    this.vacationCalendarService = vacationCalendarService;
     this.data = data;
     this.now = now;
   }
@@ -166,7 +170,7 @@ public class VacationFormValidator implements IFormValidator {
             : BigDecimal.ZERO;
 
     //Negative
-    final BigDecimal usedVacationDaysWholeYear = vacationService.getApprovedAndPlanedVacationdaysForYear(employee, startDate.getYear());
+    final BigDecimal usedVacationDaysWholeYear = vacationService.getApprovedAndPlannedVacationdaysForYear(employee, startDate.getYear());
     final BigDecimal usedVacationDaysFromLastYear =
             employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) != null
                     ? employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)
@@ -266,7 +270,7 @@ public class VacationFormValidator implements IFormValidator {
     if (calendars != null && calendars.getConvertedInput() != null && calendars.getConvertedInput().size() > 0) {
       selectedCalendars.addAll(calendars.getConvertedInput());
     } else {
-      selectedCalendars.addAll(vacationService.getCalendarsForVacation(this.data));
+      selectedCalendars.addAll(vacationCalendarService.getCalendarsForVacation(this.data));
     }
     return selectedCalendars;
   }
