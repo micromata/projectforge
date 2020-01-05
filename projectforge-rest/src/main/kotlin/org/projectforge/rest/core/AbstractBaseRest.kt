@@ -176,6 +176,7 @@ abstract class AbstractBaseRest<
                     url = "${getRestPath()}/reindexFull",
                     type = MenuItemTargetType.RESTCALL))
         layout.add(gearMenu)
+        layout.addTranslations("reset")
         return layout
     }
 

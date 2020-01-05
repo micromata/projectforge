@@ -1,5 +1,6 @@
 import { loadList } from './index';
 
+export const LIST_FILTER_RESET = 'LIST_FILTER_RESET';
 export const LIST_FILTER_SEARCH_STRING_CHANGED = 'LIST_FILTER_SEARCH_STRING_CHANGED';
 export const LIST_FILTER_SORT = 'LIST_FILTER_SORT';
 
@@ -20,8 +21,17 @@ const sort = (column, sortProperty, category) => ({
     },
 });
 
+const reset = category => ({
+    type: LIST_FILTER_RESET,
+    payload: { category },
+});
+
 export const changeSearchString = searchString => (dispatch, getState) => dispatch(
     searchFilterChanged(getState().list.currentCategory, searchString),
+);
+
+export const resetAllFilters = () => (dispatch, getState) => dispatch(
+    reset(getState().list.currentCategory),
 );
 
 export const sortList = (property, sortOrder) => (dispatch, getState) => {
