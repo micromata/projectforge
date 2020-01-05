@@ -54,8 +54,6 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
         case LIST_FILTER_ADD: {
             const { filter } = state;
 
-            console.log(payload);
-
             return {
                 ...state,
                 filter: {
