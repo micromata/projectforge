@@ -40,6 +40,7 @@ function MagicFilters(
                 .map(({ details }) => (
                     <MagicFilterPill
                         key={`magic-filter-${details.id}`}
+                        fieldId={details.id}
                         name={details.label}
                         hasValue
                     >
@@ -47,11 +48,6 @@ function MagicFilters(
                         {details.label}
                     </MagicFilterPill>
                 ))}
-            <MagicFilterPill
-                name="Name"
-            >
-                Input Name
-            </MagicFilterPill>
             <div className={styles.magicFilter}>
                 <AdvancedPopper
                     setIsOpen={setAllFiltersAreOpen}
