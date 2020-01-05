@@ -23,10 +23,7 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.function.Function;
-
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.IModel;
@@ -56,23 +53,13 @@ import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.components.MaxLengthTextFieldWithRequiredSupplier;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.components.TabPanel;
-import org.projectforge.web.wicket.flowlayout.AbstractFieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.FieldProperties;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.projectforge.web.wicket.components.*;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.function.Function;
 
 public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditPage>
 {
@@ -156,13 +143,10 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
   public static void createBirthdayPanel(final GridBuilder gridBuilder, EmployeeDO data)
   {
     // Birthday
-    final FieldProperties<Date> props = new FieldProperties<>("fibu.employee.birthday",
+    final FieldProperties<LocalDate> props = new FieldProperties<>("fibu.employee.birthday",
         new PropertyModel<>(data, "birthday"));
     final AbstractFieldsetPanel<?> fs = gridBuilder.newFieldset(props);
-    DatePanel datePanel = new DatePanel(
-        fs.newChildId(),
-        props.getModel(),
-        DatePanelSettings.get().withTargetType(java.sql.Date.class));
+    LocalDatePanel datePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
     datePanel.getDateField().setMarkupId("birthday").setOutputMarkupId(true);
     fs.add(datePanel);
     fs.add(new HtmlCommentPanel(fs.newChildId(), new Model<String>()
@@ -304,12 +288,12 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     {
       // Start date
       final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "eintrittsDatum");
-      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<>(data, "eintrittsDatum"), new DatePanelSettings()));
+      fs.add(new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<>(data, "eintrittsDatum"))));
     }
     {
       // End date
       final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "austrittsDatum");
-      DatePanel austrittsDatum = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "austrittsDatum"), new DatePanelSettings());
+      LocalDatePanel austrittsDatum = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<>(data, "austrittsDatum")));
       austrittsDatum.getDateField().setMarkupId("endDate").setOutputMarkupId(true);
       fs.add(austrittsDatum);
     }

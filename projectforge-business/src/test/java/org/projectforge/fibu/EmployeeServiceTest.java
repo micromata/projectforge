@@ -38,6 +38,7 @@ import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.NoResultException;
+import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
@@ -110,8 +111,8 @@ public class EmployeeServiceTest extends AbstractTestBase
   public void isEmployeeActiveWithAustrittsdatumTest()
   {
     EmployeeDO employee = new EmployeeDO();
-    PFDateTime dt = PFDateTime.now().plusMonths(1);
-    employee.setAustrittsDatum(dt.getUtilDate());
+    LocalDate dt = LocalDate.now().plusMonths(1);
+    employee.setAustrittsDatum(dt);
     boolean result = employeeService.isEmployeeActive(employee);
     assertTrue(result);
   }
@@ -120,8 +121,8 @@ public class EmployeeServiceTest extends AbstractTestBase
   public void isEmployeeActiveWithAustrittsdatumBeforeTest()
   {
     EmployeeDO employee = new EmployeeDO();
-    PFDateTime dt = PFDateTime.now().minusMonths(1);
-    employee.setAustrittsDatum(dt.getUtilDate());
+    LocalDate dt = LocalDate.now().minusMonths(1);
+    employee.setAustrittsDatum(dt);
     boolean result = employeeService.isEmployeeActive(employee);
     assertFalse(result);
   }
@@ -130,8 +131,8 @@ public class EmployeeServiceTest extends AbstractTestBase
   public void isEmployeeActiveWithAustrittsdatumNowTest()
   {
     EmployeeDO employee = new EmployeeDO();
-    PFDateTime dt = PFDateTime.now();
-    employee.setAustrittsDatum(dt.getUtilDate());
+    LocalDate dt = LocalDate.now();
+    employee.setAustrittsDatum(dt);
     boolean result = employeeService.isEmployeeActive(employee);
     assertFalse(result);
   }
@@ -152,9 +153,9 @@ public class EmployeeServiceTest extends AbstractTestBase
     PFDateTime testCase2 = PFDateTime.now().withYear(2017).withMonth(Month.FEBRUARY.getValue());
     when(PFDateTime.now()).thenReturn(testCase2);
 
-    PFDateTime testCase3 = PFDateTime.now().withYear(2017).withMonth(Month.AUGUST.getValue());
-    when(PFDateTime.now()).thenReturn(testCase3);
-    when(new EmployeeDO().getEintrittsDatum()).thenReturn(testCase3.getUtilDate());
+    LocalDate testCase3 = LocalDate.now().withYear(2017).withMonth(Month.AUGUST.getValue());
+    when(LocalDate.now()).thenReturn(testCase3);
+    when(new EmployeeDO().getEintrittsDatum()).thenReturn(testCase3);
   }
 
 }
