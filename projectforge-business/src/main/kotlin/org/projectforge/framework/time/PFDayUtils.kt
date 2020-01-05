@@ -163,6 +163,10 @@ class PFDayUtils {
             return getNumberOfWorkingDays(PFDay.from(from)!!, PFDay.from(to)!!)
         }
 
+        /**
+         * Determines the number of working days in the given period. Please note: there might be also half working days
+         * (e. g. on Xmas or New Years Eve), so a BigDecimal is returned.
+         */
         @JvmStatic
         fun <T : IPFDate<T>> getNumberOfWorkingDays(from: T, to: T): BigDecimal {
             Validate.notNull(from)
