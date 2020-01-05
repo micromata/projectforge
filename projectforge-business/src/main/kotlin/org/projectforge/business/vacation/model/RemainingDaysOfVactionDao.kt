@@ -30,6 +30,7 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.utils.SQLHelper
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
 import java.time.Year
@@ -46,7 +47,7 @@ open class RemainingDaysOfVactionDao : BaseDao<RemainingDaysOfVacationDO>(Remain
         }
         val entry = internalGet(employee.id, year) ?: RemainingDaysOfVacationDO()
         if (entry.id == null) {
-            entry.employee
+            entry.employee = employee
             entry.year = year
             internalSave(entry)
         } else {
@@ -62,9 +63,9 @@ open class RemainingDaysOfVactionDao : BaseDao<RemainingDaysOfVacationDO>(Remain
     }
 
     open fun internalGet(employeeId: Int, year: Int): RemainingDaysOfVacationDO? {
-        return em.createNamedQuery(RemainingDaysOfVacationDO.FIND_BY_EMPLOYEE_ID_AND_YEAR, RemainingDaysOfVacationDO::class.java)
+        return SQLHelper.ensureUniqueResult(em.createNamedQuery(RemainingDaysOfVacationDO.FIND_BY_EMPLOYEE_ID_AND_YEAR, RemainingDaysOfVacationDO::class.java)
                 .setParameter("employeeId", employeeId)
-                .setParameter("year", year).singleResult
+                .setParameter("year", year))
     }
 
     /**
