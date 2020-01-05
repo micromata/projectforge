@@ -28,6 +28,7 @@ import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
+import java.math.BigDecimal
 import javax.persistence.*
 
 /**
@@ -62,7 +63,7 @@ open class RemainingDaysOfVacationDO : AbstractBaseDO<Int>() {
 
     @PropertyInfo(i18nKey = "vacation.previousyearleave")
     @get:Column(name = "carry_vacation_days_from_previous_year", nullable = true)
-    open var carryVacationDaysFromPreviousYear: Int? = null
+    open var carryVacationDaysFromPreviousYear: BigDecimal? = null
 
     @Id
     @GeneratedValue
