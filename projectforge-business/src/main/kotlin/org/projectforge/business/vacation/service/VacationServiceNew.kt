@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.vacation.model.RemainingDaysOfVactionDao
 import org.projectforge.business.vacation.model.VacationDO
+import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.time.LocalDatePeriod
 import org.projectforge.framework.time.PFDayUtils
@@ -82,6 +83,7 @@ open class VacationServiceNew {
      * Method for getting stats for tests, exports and logging.
      * @param nowYear Only for test cases (so they will run in further years).
      */
+    @JvmOverloads
     open fun getVacationStats(employee: EmployeeDO, year: Int = Year.now().value, calculateCarryInFormerYears: Boolean = true, nowYear: Int = Year.now().value): VacationStats {
         val stats = VacationStats(employee, year)
         stats.vacationDaysInYearFromContract = getYearlyVacationDays(employee, year)
@@ -94,7 +96,7 @@ open class VacationServiceNew {
         }
         // Calculate remaining vacation days from previous year:
         val yearPeriod = LocalDatePeriod.wholeYear(year)
-        val allVacationsOfYear = vacationDao.getVacationForPeriod(employee, yearPeriod.begin, yearPeriod.end, false)
+        val allVacationsOfYear = getVacationsListForPeriod(employee, yearPeriod.begin, yearPeriod.end)
         stats.vacationDaysUsedInYear = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end)
 
         stats.usedDaysInOverlapPeriod = getNumberOfUsedVacationDaysInOverlapPeriod(allVacationsOfYear, year)
@@ -123,6 +125,16 @@ open class VacationServiceNew {
         return stats
     }
 
+    @JvmOverloads
+    open fun getVacationsListForPeriod(employee: EmployeeDO, periodBegin: LocalDate, periodEnd: LocalDate, withSpecial: Boolean = false, vararg status: VacationStatus)
+            : List<VacationDO> {
+        val result = vacationDao.getVacationForPeriod(employee, periodBegin, periodEnd, withSpecial)
+        if (status.isNotEmpty()) {
+            return result.filter { VacationStatus.values().contains(it.status) }
+        }
+        return result.filter { DEFAULT_VACATION_STATUS_LIST.contains(it.status) }
+    }
+
     fun validate() {
         // Overlap
         // carry
@@ -135,7 +147,7 @@ open class VacationServiceNew {
     @JvmOverloads
     open fun getUsedCarryVacationDays(employee: EmployeeDO, year: Int = Year.now().value): BigDecimal {
         val yearPeriod = LocalDatePeriod.wholeYear(year)
-        val allVacationsOfYear = vacationDao.getVacationForPeriod(employee, yearPeriod.begin, yearPeriod.end, false)
+        val allVacationsOfYear = getVacationsListForPeriod(employee, yearPeriod.begin, yearPeriod.end)
         val carryOfYearBefore = remainingDaysOfVactionDao.getCarryVacationDaysFromPreviousYear(employee.id, year - 1)
                 ?: BigDecimal.ZERO
         val usedDaysInOverlapPeriod = getNumberOfUsedVacationDaysInOverlapPeriod(allVacationsOfYear, year)
@@ -207,5 +219,6 @@ open class VacationServiceNew {
         private val log = LoggerFactory.getLogger(VacationServiceNew::class.java)
         private val HALF_DAY = BigDecimal(0.5)
         private val TWELVE = BigDecimal(12)
+        private val DEFAULT_VACATION_STATUS_LIST = listOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)
     }
 }
