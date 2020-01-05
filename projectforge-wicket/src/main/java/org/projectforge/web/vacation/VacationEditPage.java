@@ -26,8 +26,6 @@ package org.projectforge.web.vacation;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationCalendarService;
@@ -151,7 +149,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
           switch (form.getData().getStatus()) {
             case APPROVED:
               // IN_PROGRESS -> APPROVED
-              vacationService.updateUsedVacationDaysFromLastYear(form.getData());
+              // Not needed anymore: vacationService.updateUsedVacationDaysFromLastYear(form.getData());
               vacationMailService.sendMailToEmployeeAndHR(form.getData(), true);
               break;
 
@@ -169,7 +167,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
             case REJECTED:
             case IN_PROGRESS:  // APPROVED -> NOT APPROVED
               vacationCalendarService.markTeamEventsOfVacationAsDeleted(form.getData(), true);
-              vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
+              // Not needed anymore: vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
               break;
             default:
               // nothing to do
@@ -189,7 +187,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
     try {
       if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
         vacationCalendarService.markTeamEventsOfVacationAsDeleted(form.getData(), true);
-        vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
+        // Not needed anymore: vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
         vacationMailService.sendMailToVacationInvolved(form.getData(), false, true);
       }
     } catch (final Exception e) {
@@ -206,7 +204,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
       vacationCalendarService.undeleteTeamEventsOfVacation(form.getData());
       if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
         vacationCalendarService.markAsUnDeleteEventsForVacationCalendars(form.getData());
-        vacationService.updateUsedVacationDaysFromLastYear(form.getData());
+        // Not needed anymore: vacationService.updateUsedVacationDaysFromLastYear(form.getData());
         vacationMailService.sendMailToEmployeeAndHR(form.getData(), true);
         vacationCalendarService.createEventsForVacationCalendars(form.getData());
       } else {

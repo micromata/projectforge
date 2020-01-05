@@ -44,6 +44,7 @@ import org.projectforge.business.vacation.model.VacationMode;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationCalendarService;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.business.vacation.service.VacationServiceNew;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.I18nHelper;
@@ -64,7 +65,6 @@ import org.wicketstuff.select2.Select2Choice;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.Year;
 import java.util.*;
 
@@ -77,6 +77,8 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   private final Model<String> availableVacationDaysModel = new Model<>();
   @SpringBean
   private VacationService vacationService;
+  @SpringBean
+  private VacationServiceNew vacationServiceNew;
   @SpringBean
   private VacationCalendarService vacationCalendarService;
   @SpringBean
@@ -366,13 +368,13 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   private BigDecimal getAvailableVacationDays(VacationDO vacationData) {
     BigDecimal availableVacationDays;
+    int year;
     if (vacationData.getStartDate() != null) {
-      LocalDate startDate = vacationData.getStartDate();
-      availableVacationDays = vacationService.getAvailableVacationdaysForYear(vacationData.getEmployee(), startDate.getYear(), true);
+      year = vacationData.getStartDate().getYear();
     } else {
-      availableVacationDays = vacationService.getAvailableVacationdaysForYear(vacationData.getEmployee(), Year.now().getValue(), true);
+      year = Year.now().getValue();
     }
-    return availableVacationDays;
+    return vacationServiceNew.getVacationStats(vacationData.getEmployee(), year).getVacationDaysLeftInYear();
   }
 
   private boolean checkEnableInputField() {
