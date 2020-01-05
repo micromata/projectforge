@@ -7,6 +7,7 @@ import AdvancedPopper from '../../../../components/design/popper/AdvancedPopper'
 import AdvancedPopperAction from '../../../../components/design/popper/AdvancedPopperAction';
 import { getNamedContainer } from '../../../../utilities/layout';
 import styles from '../ListPage.module.scss';
+import FilterListEntry from './FilterListEntry';
 import MagicFilterPill from './MagicFilterPill';
 
 function MagicFilters(
@@ -20,6 +21,13 @@ function MagicFilters(
     },
 ) {
     const [allFiltersAreOpen, setAllFiltersAreOpen] = React.useState(false);
+
+    const handleAllFiltersDelete = () => {
+        setAllFiltersAreOpen(false);
+        onResetAllFilters();
+    };
+
+    const handleAfterSelectFilter = () => setAllFiltersAreOpen(false);
 
     return (
         <div className={styles.magicFilters}>
@@ -59,7 +67,7 @@ function MagicFilters(
                         <AdvancedPopperAction
                             type="delete"
                             disabled={!((filterEntries && filterEntries.size) || searchString)}
-                            onClick={onResetAllFilters}
+                            onClick={handleAllFiltersDelete}
                         >
                             {translations.reset || '???Zurücksetzen???'}
                         </AdvancedPopperAction>
@@ -67,17 +75,13 @@ function MagicFilters(
                 >
                     {searchFilter && (
                         <ul className={styles.filterList}>
-                            {searchFilter.content.map(entry => (
-                                <li
-                                    key={`filter-${entry.id}`}
-                                    className={styles.filter}
-                                    onClick={() => onFilterAdd(entry.id)}
-                                    role="option"
-                                    aria-selected="false"
-                                    onKeyPress={undefined}
-                                >
-                                    {entry.label}
-                                </li>
+                            {searchFilter.content.map(({ id, label }) => (
+                                <FilterListEntry
+                                    key={`filter-${id}`}
+                                    afterSelect={handleAfterSelectFilter}
+                                    id={id}
+                                    label={label}
+                                />
                             ))}
                         </ul>
                     )}

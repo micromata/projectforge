@@ -50,9 +50,11 @@
 .magicFilters {
   display: flex;
   margin: .8em 0 0 1em;
+  flex-wrap: wrap;
 
   .magicFilter {
     margin-right: .8em;
+    margin-bottom: .5em;
 
     .pill {
       $transitionTime: .3s;
@@ -83,9 +85,19 @@
       .filter {
         padding: 1em;
         cursor: default;
+        color: #333;
 
         &:hover {
           background-color: #eee;
+        }
+
+        &.isSelected {
+          font-weight: 600;
+          cursor: not-allowed;
+
+          &:hover {
+            background-color: #f9f9f9;
+          }
         }
       }
     }
