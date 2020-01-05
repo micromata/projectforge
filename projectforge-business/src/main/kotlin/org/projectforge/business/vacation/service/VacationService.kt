@@ -156,12 +156,12 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
 
     private fun getAvailableVacationdaysForGivenYear(currentEmployee: EmployeeDO?, year: Int, b: Boolean): BigDecimal {
         val vacationdays = if (currentEmployee!!.urlaubstage != null) BigDecimal(currentEmployee.urlaubstage!!) else BigDecimal.ZERO
-        val vacationdaysPreviousYear = if (currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.propertyName, BigDecimal::class.java) != null) currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.propertyName, BigDecimal::class.java) else BigDecimal.ZERO
+        val vacationdaysPreviousYear = currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.propertyName, BigDecimal::class.java) ?: BigDecimal.ZERO
         val subtotal1 = vacationdays.add(vacationdaysPreviousYear)
         val approvedVacationdays = getApprovedVacationdaysForYear(currentEmployee, year)
         var availableVacation = subtotal1.subtract(approvedVacationdays)
         //Needed for left and middle part
-        val vacationdaysPreviousYearUsed = if (currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.propertyName, BigDecimal::class.java) != null) currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.propertyName, BigDecimal::class.java) else BigDecimal.ZERO
+        val vacationdaysPreviousYearUsed = currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.propertyName, BigDecimal::class.java) ?: BigDecimal.ZERO
         val vacationdaysPreviousYearUnused = vacationdaysPreviousYear.subtract(vacationdaysPreviousYearUsed)
         //If previousyearleaveunused > 0, then extend left area and display new row
         if (vacationdaysPreviousYearUnused.compareTo(BigDecimal.ZERO) > 0) {
@@ -533,7 +533,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
     }
 
     /**
-     * Get VacationCount for PFUser
+     * Get VacationCount for PFUser. For calculating vacation for students, only.
      *
      * @param fromYear
      * @param fromMonth 1-based: 1 - January, ..., 12 - December
