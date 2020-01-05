@@ -73,6 +73,14 @@ fun toJsonString(obj: Any, vararg ignoreEmbeddedSerializers: Class<out Any>): St
 
 class ToStringUtil {
     class Serializer<T>(val clazz: Class<T>, val serializer: JsonSerializer<T>)
+    /**
+     * Helper class for having data classes with to json functionality (e. g. for logging).
+     */
+    open class ToJsonStringObject {
+        override fun toString(): String {
+            return toJsonString(this)
+        }
+    }
     companion object {
         private val log = LoggerFactory.getLogger(ToStringUtil::class.java)
 
