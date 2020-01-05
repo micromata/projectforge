@@ -76,7 +76,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                 filter: {
                     ...filter,
                     entries: filter.entries
-                        .filter(({ field }) => field !== payload.fieldId),
+                        .filter(({ field }) => field !== payload.filterId),
                 },
             };
         }
