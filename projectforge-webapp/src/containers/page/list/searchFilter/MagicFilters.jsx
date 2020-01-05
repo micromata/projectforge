@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { resetAllFilters } from '../../../../actions/list/filter';
+import { addFilter, resetAllFilters } from '../../../../actions/list/filter';
 import AdvancedPopper from '../../../../components/design/popper/AdvancedPopper';
 import AdvancedPopperAction from '../../../../components/design/popper/AdvancedPopperAction';
 import { getNamedContainer } from '../../../../utilities/layout';
@@ -12,6 +12,7 @@ import MagicFilterPill from './MagicFilterPill';
 function MagicFilters(
     {
         filterEntries,
+        onFilterAdd,
         onResetAllFilters,
         searchFilter,
         searchString,
@@ -70,6 +71,10 @@ function MagicFilters(
                                 <li
                                     key={`filter-${entry.id}`}
                                     className={styles.filter}
+                                    onClick={() => onFilterAdd(entry.id)}
+                                    role="option"
+                                    aria-selected="false"
+                                    onKeyPress={undefined}
                                 >
                                     {entry.label}
                                 </li>
@@ -87,6 +92,7 @@ MagicFilters.propTypes = {
         reset: PropTypes.string,
     }).isRequired,
     filterEntries: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
+    onFilterAdd: PropTypes.func.isRequired,
     onResetAllFilters: PropTypes.func.isRequired,
     searchFilter: PropTypes.shape({}),
     searchString: PropTypes.string,
@@ -109,6 +115,7 @@ const mapStateToProps = ({ list }) => {
 };
 
 const actions = dispatch => ({
+    onFilterAdd: filterId => dispatch(addFilter(filterId)),
     onResetAllFilters: () => dispatch(resetAllFilters()),
 });
 
