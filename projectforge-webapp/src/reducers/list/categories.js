@@ -3,8 +3,11 @@ import {
     LIST_FAVORITES_RECEIVED,
     LIST_FETCH_DATA_BEGIN,
     LIST_FETCH_FAILURE,
+    LIST_FILTER_ADD,
+    LIST_FILTER_REMOVE,
     LIST_FILTER_RESET,
     LIST_FILTER_SEARCH_STRING_CHANGED,
+    LIST_FILTER_SET,
     LIST_FILTER_SORT,
     LIST_INITIAL_CALL_BEGIN,
 } from '../../actions';
@@ -48,6 +51,37 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                 isFetching: false,
                 error: payload.error,
             };
+        case LIST_FILTER_ADD: {
+            const { filter } = state;
+
+            console.log(payload);
+
+            return {
+                ...state,
+                filter: {
+                    ...filter,
+                    entries: [
+                        ...filter.entries,
+                        {
+                            field: payload.filterId,
+                            isNew: true,
+                        },
+                    ],
+                },
+            };
+        }
+        case LIST_FILTER_REMOVE: {
+            const { filter } = state;
+
+            return {
+                ...state,
+                filter: {
+                    ...filter,
+                    entries: filter.entries
+                        .filter(({ field }) => field !== payload.fieldId),
+                },
+            };
+        }
         case LIST_FILTER_RESET:
             return {
                 ...state,
@@ -65,6 +99,24 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                     searchString: payload.searchString,
                 },
             };
+        case LIST_FILTER_SET: {
+            const { filter } = state;
+
+            return {
+                ...state,
+                filter: {
+                    ...filter,
+                    entries: [
+                        ...filter.entries
+                            .filter(({ field }) => field !== payload.fieldId),
+                        {
+                            field: payload.fieldId,
+                            value: payload.newValue,
+                        },
+                    ],
+                },
+            };
+        }
         case LIST_FILTER_SORT: {
             const { filter } = state;
 
@@ -97,8 +149,11 @@ const reducer = (state = initialState, action) => {
         case LIST_INITIAL_CALL_BEGIN:
         case LIST_FETCH_DATA_BEGIN:
         case LIST_CALL_SUCCESS:
+        case LIST_FILTER_ADD:
+        case LIST_FILTER_REMOVE:
         case LIST_FILTER_RESET:
         case LIST_FILTER_SEARCH_STRING_CHANGED:
+        case LIST_FILTER_SET:
         case LIST_FILTER_SORT:
         case LIST_FAVORITES_RECEIVED: {
             const { category } = payload;

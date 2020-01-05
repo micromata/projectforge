@@ -24,9 +24,12 @@ export {
 } from './list';
 
 export {
-    LIST_FILTER_SORT,
-    LIST_FILTER_SEARCH_STRING_CHANGED,
+    LIST_FILTER_ADD,
+    LIST_FILTER_REMOVE,
     LIST_FILTER_RESET,
+    LIST_FILTER_SEARCH_STRING_CHANGED,
+    LIST_FILTER_SET,
+    LIST_FILTER_SORT,
 } from './list/filter';
 
 export {
