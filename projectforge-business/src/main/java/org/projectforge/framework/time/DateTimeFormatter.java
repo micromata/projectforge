@@ -28,6 +28,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -37,12 +38,10 @@ import java.util.TimeZone;
  *
  * @author NOT Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-public class DateTimeFormatter extends AbstractFormatter
-{
+public class DateTimeFormatter extends AbstractFormatter {
   private static final DateTimeFormatter instance = new DateTimeFormatter();
 
-  public static DateTimeFormatter instance()
-  {
+  public static DateTimeFormatter instance() {
     return instance;
   }
 
@@ -61,8 +60,7 @@ public class DateTimeFormatter extends AbstractFormatter
    * @return Return the as two digits formatted week of year. If given date is null then "" is returned.
    * @see DateHelper#getWeekOfYear(Date)
    */
-  public static String formatWeekOfYear(final Date date)
-  {
+  public static String formatWeekOfYear(final Date date) {
     if (date == null) {
       return "";
     }
@@ -78,8 +76,7 @@ public class DateTimeFormatter extends AbstractFormatter
    * @param dateTime
    * @see #getFormattedDateTime(Object, String, Locale, TimeZone)
    */
-  public String getFormattedDate(final Object date)
-  {
+  public String getFormattedDate(final Object date) {
     return getFormattedDate(date, ThreadLocalUserContext.getLocale(), ThreadLocalUserContext.getTimeZone());
   }
 
@@ -89,11 +86,10 @@ public class DateTimeFormatter extends AbstractFormatter
    * @param dateTime
    * @see #getFormattedDateTime(Object, String)
    */
-  public String getFormattedDate(final Object date, final Locale locale, final TimeZone timeZone)
-  {
+  public String getFormattedDate(final Object date, final Locale locale, final TimeZone timeZone) {
     return getFormattedDate(date, DateFormats.getFormatString(org.projectforge.common.DateFormatType.DATE),
-        locale,
-        timeZone);
+            locale,
+            timeZone);
   }
 
   /**
@@ -102,8 +98,7 @@ public class DateTimeFormatter extends AbstractFormatter
    * @param date
    * @param patternKey i18n key of the pattern
    */
-  public String getFormattedDate(final Object date, final String pattern)
-  {
+  public String getFormattedDate(final Object date, final String pattern) {
     return getFormattedDate(date, pattern, ThreadLocalUserContext.getLocale(), ThreadLocalUserContext.getTimeZone());
   }
 
@@ -113,10 +108,13 @@ public class DateTimeFormatter extends AbstractFormatter
    * @param date
    * @param patternKey i18n key of the pattern
    */
-  public String getFormattedDate(final Object date, final String pattern, final Locale locale, final TimeZone timeZone)
-  {
+  public String getFormattedDate(final Object date, final String pattern, final Locale locale, final TimeZone timeZone) {
     if (date == null) {
       return "";
+    }
+    if (date instanceof LocalDate) {
+      java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern(pattern, locale).withZone(timeZone.toZoneId());
+      return ((LocalDate) date).format(dtf);
     }
     final DateFormat format = locale != null ? new SimpleDateFormat(pattern, locale) : new SimpleDateFormat(pattern);
     if (timeZone != null) {
@@ -131,10 +129,9 @@ public class DateTimeFormatter extends AbstractFormatter
    * @param dateTime
    * @see #getFormattedDateTime(Date, String)
    */
-  public String getFormattedDateTime(final Date dateTime)
-  {
+  public String getFormattedDateTime(final Date dateTime) {
     return getFormattedDateTime(dateTime,
-        DateFormats.getFormatString(org.projectforge.common.DateFormatType.DATE_TIME_SHORT_MINUTES));
+            DateFormats.getFormatString(org.projectforge.common.DateFormatType.DATE_TIME_SHORT_MINUTES));
   }
 
   /**
@@ -143,11 +140,10 @@ public class DateTimeFormatter extends AbstractFormatter
    * @param dateTime
    * @see #getFormattedDateTime(Date, String)
    */
-  public String getFormattedDateTime(final Date dateTime, final Locale locale, final TimeZone timeZone)
-  {
+  public String getFormattedDateTime(final Date dateTime, final Locale locale, final TimeZone timeZone) {
     return getFormattedDateTime(dateTime,
-        DateFormats.getFormatString(org.projectforge.common.DateFormatType.DATE_TIME_SHORT_MINUTES),
-        ThreadLocalUserContext.getLocale(), ThreadLocalUserContext.getTimeZone());
+            DateFormats.getFormatString(org.projectforge.common.DateFormatType.DATE_TIME_SHORT_MINUTES),
+            ThreadLocalUserContext.getLocale(), ThreadLocalUserContext.getTimeZone());
   }
 
   /**
@@ -156,10 +152,9 @@ public class DateTimeFormatter extends AbstractFormatter
    * @param dateTime
    * @param patternKey i18n key of the pattern
    */
-  public String getFormattedDateTime(final Date dateTime, final String pattern)
-  {
+  public String getFormattedDateTime(final Date dateTime, final String pattern) {
     return getFormattedDateTime(dateTime, pattern, ThreadLocalUserContext.getLocale(),
-        ThreadLocalUserContext.getTimeZone());
+            ThreadLocalUserContext.getTimeZone());
   }
 
   /**
@@ -169,8 +164,7 @@ public class DateTimeFormatter extends AbstractFormatter
    * @param patternKey i18n key of the pattern
    */
   public String getFormattedDateTime(final Date dateTime, final String pattern, final Locale locale,
-      final TimeZone timeZone)
-  {
+                                     final TimeZone timeZone) {
     if (dateTime == null) {
       return "";
     }
@@ -187,10 +181,9 @@ public class DateTimeFormatter extends AbstractFormatter
    * @param dateTime
    * @see #getFormattedTime(Date, String)
    */
-  public String getFormattedTime(final Date time)
-  {
+  public String getFormattedTime(final Date time) {
     return getFormattedTime(time,
-        DateFormats.getFormatString(org.projectforge.common.DateFormatType.TIME_OF_DAY_MINUTES));
+            DateFormats.getFormatString(org.projectforge.common.DateFormatType.TIME_OF_DAY_MINUTES));
   }
 
   /**
@@ -199,8 +192,7 @@ public class DateTimeFormatter extends AbstractFormatter
    * @param time
    * @param patternKey i18n key of the pattern
    */
-  public String getFormattedTime(final Date time, final String pattern)
-  {
+  public String getFormattedTime(final Date time, final String pattern) {
     if (time == null) {
       return "";
     }
@@ -209,8 +201,7 @@ public class DateTimeFormatter extends AbstractFormatter
     return format.format(time);
   }
 
-  public String getFormattedDuration(final TimePeriod timePeriod)
-  {
+  public String getFormattedDuration(final TimePeriod timePeriod) {
     return getFormattedDuration(timePeriod.getDuration());
   }
 
@@ -221,8 +212,7 @@ public class DateTimeFormatter extends AbstractFormatter
    * @return
    * @see #getFormattedDuration(long, int, int)
    */
-  public String getFormattedDuration(final long millis)
-  {
+  public String getFormattedDuration(final long millis) {
     return getFormattedDuration(millis, durationOfWorkingDay, 24);
   }
 
@@ -233,8 +223,7 @@ public class DateTimeFormatter extends AbstractFormatter
    * @return
    * @see #getPrettyFormattedDuration(long, int, int)
    */
-  public String getPrettyFormattedDuration(final long millis)
-  {
+  public String getPrettyFormattedDuration(final long millis) {
     return getPrettyFormattedDuration(millis, DEFAULT_HOURS_OF_DAY, DEFAULT_MIN_HOURS4DAY_SEPARATION);
   }
 
@@ -246,8 +235,7 @@ public class DateTimeFormatter extends AbstractFormatter
    * @param minHours4DaySeparation
    * @return
    */
-  public String getPrettyFormattedDuration(final long millis, final int hoursOfDay, final int minHours4DaySeparation)
-  {
+  public String getPrettyFormattedDuration(final long millis, final int hoursOfDay, final int minHours4DaySeparation) {
     final StringBuilder buf = new StringBuilder();
     final String str1 = getFormattedDuration(millis, hoursOfDay, minHours4DaySeparation);
     final String str2 = getFormattedDuration(millis, hoursOfDay, -1);
@@ -266,8 +254,7 @@ public class DateTimeFormatter extends AbstractFormatter
    * @param minHours4DaySeparation
    * @return
    */
-  public String getFormattedDuration(final long millis, final int hoursOfDay, final int minHours4DaySeparation)
-  {
+  public String getFormattedDuration(final long millis, final int hoursOfDay, final int minHours4DaySeparation) {
     final int[] fields = TimePeriod.getDurationFields(millis, hoursOfDay, minHours4DaySeparation);
     final StringBuffer buf = new StringBuffer();
     if (fields[0] > 0) { // days
@@ -279,8 +266,7 @@ public class DateTimeFormatter extends AbstractFormatter
     return buf.toString();
   }
 
-  private void formatNumber(final StringBuffer buf, final long number)
-  {
+  private void formatNumber(final StringBuffer buf, final long number) {
     if (number < 10) {
       buf.append("0");
     }
@@ -292,18 +278,17 @@ public class DateTimeFormatter extends AbstractFormatter
    *
    * @param durationOfWorkingDay
    */
-  public void setDurationOfWorkingDay(final int durationOfWorkingDay)
-  {
+  public void setDurationOfWorkingDay(final int durationOfWorkingDay) {
     this.durationOfWorkingDay = durationOfWorkingDay;
   }
 
-  public int getDurationOfWorkingDay()
-  {
+  public int getDurationOfWorkingDay() {
     return durationOfWorkingDay;
   }
 
   /**
    * Formats a time period of a time sheet (with a time period of max. 24h).
+   *
    * @param timePeriod
    * @return {fromDate} {fromTime}-{toTime}
    */

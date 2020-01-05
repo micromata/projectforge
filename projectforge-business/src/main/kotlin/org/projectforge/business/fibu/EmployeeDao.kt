@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
 import java.util.*
 import javax.persistence.NoResultException
 
@@ -110,12 +111,12 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         val myFilter = if (filter is EmployeeFilter) filter else EmployeeFilter(filter)
         val queryFilter = QueryFilter(myFilter)
         var list = getList(queryFilter)
-        val now = Date()
+        val now = LocalDate.now()
         if (myFilter.isShowOnlyActiveEntries) {
             list = list.filter { employee ->
-                if (employee.eintrittsDatum != null && now.before(employee.eintrittsDatum)) {
+                if (employee.eintrittsDatum != null && now.isBefore(employee.eintrittsDatum)) {
                     false
-                } else employee.austrittsDatum == null || !now.after(employee.austrittsDatum)
+                } else employee.austrittsDatum == null || !now.isAfter(employee.austrittsDatum)
             }
         }
         for (employeeDO in list) {

@@ -42,7 +42,7 @@ import java.util.*
  * @author Florian Blumenstein
  */
 @Service
-class VacationSendMailService {
+open class VacationSendMailService {
     @Autowired
     private lateinit var sendMailService: SendMail
     @Autowired
@@ -57,7 +57,7 @@ class VacationSendMailService {
      * @param isNew        flag for new vacation request
      * @param isDeleted
      */
-    fun sendMailToVacationInvolved(vacationData: VacationDO?, isNew: Boolean, isDeleted: Boolean) {
+    open fun sendMailToVacationInvolved(vacationData: VacationDO?, isNew: Boolean, isDeleted: Boolean) {
         val urlOfVacationEditPage = domainService.domain + vacationEditPagePath + "?id=" + vacationData!!.id
         val employeeFullName = vacationData.employee!!.user!!.getFullname()
         val managerFirstName = vacationData.manager!!.user!!.firstname
@@ -113,7 +113,7 @@ class VacationSendMailService {
      * @param vacationData data
      * @param approved     is application approved
      */
-    fun sendMailToEmployeeAndHR(vacationData: VacationDO, approved: Boolean) {
+    open fun sendMailToEmployeeAndHR(vacationData: VacationDO, approved: Boolean) {
         val employeeUser = vacationData.employee?.user
         val urlOfVacationEditPage = domainService.domain + vacationEditPagePath + "?id=" + vacationData.id
         val employeeFullName = vacationData.employee?.user?.getFullname()

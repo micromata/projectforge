@@ -31,10 +31,10 @@ import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.Gender;
 import org.projectforge.business.fibu.GenderConverter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
-import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
 
@@ -85,13 +85,13 @@ public class EmployeeTest extends AbstractTestBase
     log.info("Employee history entry size: " + historyEntries.size());
 
     //Update employee
-    PFDateTime birthday = PFDateTime.withDate(1985, Month.DECEMBER, 17);
-    e.setBirthday(birthday.getUtilDate());
+    LocalDate birthday = LocalDate.of(1985, Month.DECEMBER, 17);
+    e.setBirthday(birthday);
     employeeDao.update(e);
 
     //Check updates
     EmployeeDO updatdEmployee = employeeDao.getById(e.getId());
-    assertEquals(updatdEmployee.getBirthday().getTime(), e.getBirthday().getTime());
+    assertEquals(updatdEmployee.getBirthday(), e.getBirthday());
 
     // test history
     List<DisplayHistoryEntry> updatedHistoryEntries = employeeDao.getDisplayHistoryEntries(e);

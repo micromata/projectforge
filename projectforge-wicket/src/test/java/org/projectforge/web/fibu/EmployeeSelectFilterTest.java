@@ -38,8 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.time.Duration;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 public class EmployeeSelectFilterTest extends AbstractTestBase {
@@ -85,7 +84,7 @@ public class EmployeeSelectFilterTest extends AbstractTestBase {
     userDao.update(pfUserDO1);
     EmployeeDO employeeDO1 = new EmployeeDO();
     employeeDO1.setUser(pfUserDO1);
-    employeeDO1.setAustrittsDatum(Date.from(new Date().toInstant().minus(Duration.ofDays(2))));
+    employeeDO1.setAustrittsDatum(LocalDate.now().minusDays(2));
     this.employeeDao.save(employeeDO1);
 
     PFUserDO pfUserDO2 = new PFUserDO();
@@ -96,7 +95,7 @@ public class EmployeeSelectFilterTest extends AbstractTestBase {
     userDao.save(pfUserDO2);
     EmployeeDO employeeDO2 = new EmployeeDO();
     employeeDO2.setUser(pfUserDO2);
-    employeeDO2.setAustrittsDatum(Date.from(new Date().toInstant().plus(Duration.ofDays(2))));
+    employeeDO2.setAustrittsDatum(LocalDate.now().plusDays(2));
     this.employeeDao.save(employeeDO2);
 
     Method getChoices = EmployeeSelectPanel.class.getDeclaredMethod("getFilteredEmployeeDOs", String.class);

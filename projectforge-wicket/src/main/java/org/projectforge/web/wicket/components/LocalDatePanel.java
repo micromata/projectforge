@@ -70,6 +70,15 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
   /**
    * @param id
    * @param model
+   */
+  public LocalDatePanel(final String id, final LocalDateModel model)
+  {
+    this(id, model, new DatePanelSettings(), true, null);
+  }
+
+  /**
+   * @param id
+   * @param model
    * @param settings         with target type etc.
    * @param useModelDirectly use the given model directly in the internal dateField
    */

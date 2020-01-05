@@ -56,7 +56,7 @@ import java.time.Year
  *
  * @author Florian Blumenstein
  */
-// Must be open for mocking in tests.
+// Must be open for usage by SpringBeans (Wicket).
 @Service
 open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPersistenceService<VacationDO>, IDao<VacationDO> {
     @Autowired
@@ -75,7 +75,6 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param year
      * @return number of used vacation days
      */
-    // Must be open for mocking in test cases.
     open fun getApprovedAndPlannedVacationdaysForYear(employee: EmployeeDO?, year: Int): BigDecimal? {
         val approved = getApprovedVacationdaysForYear(employee, year)
         val planned = getPlannedVacationdaysForYear(employee, year)
@@ -94,7 +93,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param vacationData
      * @return new value for used days
      */
-    fun updateUsedVacationDaysFromLastYear(vacationData: VacationDO?): BigDecimal? {
+    open fun updateUsedVacationDaysFromLastYear(vacationData: VacationDO?): BigDecimal? {
         if (vacationData == null || vacationData.employee == null || vacationData.startDate == null || vacationData.endDate == null) {
             return BigDecimal.ZERO
         }
@@ -131,7 +130,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param employee
      * @param year
      */
-    fun updateVacationDaysFromLastYearForNewYear(employee: EmployeeDO?, year: Int) {
+    open fun updateVacationDaysFromLastYearForNewYear(employee: EmployeeDO?, year: Int) {
         val availableVacationdaysFromActualYear = getAvailableVacationdaysForGivenYear(employee, year, false)
         employee!!.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.propertyName, availableVacationdaysFromActualYear)
         // find approved vacations in new year
@@ -156,12 +155,14 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
 
     private fun getAvailableVacationdaysForGivenYear(currentEmployee: EmployeeDO?, year: Int, b: Boolean): BigDecimal {
         val vacationdays = if (currentEmployee!!.urlaubstage != null) BigDecimal(currentEmployee.urlaubstage!!) else BigDecimal.ZERO
-        val vacationdaysPreviousYear = currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.propertyName, BigDecimal::class.java) ?: BigDecimal.ZERO
+        val vacationdaysPreviousYear = currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.propertyName, BigDecimal::class.java)
+                ?: BigDecimal.ZERO
         val subtotal1 = vacationdays.add(vacationdaysPreviousYear)
         val approvedVacationdays = getApprovedVacationdaysForYear(currentEmployee, year)
         var availableVacation = subtotal1.subtract(approvedVacationdays)
         //Needed for left and middle part
-        val vacationdaysPreviousYearUsed = currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.propertyName, BigDecimal::class.java) ?: BigDecimal.ZERO
+        val vacationdaysPreviousYearUsed = currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.propertyName, BigDecimal::class.java)
+                ?: BigDecimal.ZERO
         val vacationdaysPreviousYearUnused = vacationdaysPreviousYear.subtract(vacationdaysPreviousYearUsed)
         //If previousyearleaveunused > 0, then extend left area and display new row
         if (vacationdaysPreviousYearUnused.compareTo(BigDecimal.ZERO) > 0) {
@@ -176,7 +177,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param vacationData
      * @return new value for used days
      */
-    fun deleteUsedVacationDaysFromLastYear(vacationData: VacationDO?): BigDecimal? {
+    open fun deleteUsedVacationDaysFromLastYear(vacationData: VacationDO?): BigDecimal? {
         val employee = vacationData?.employee
         if (employee == null || vacationData.special!! || vacationData.startDate == null || vacationData.endDate == null) {
             return BigDecimal.ZERO
@@ -218,7 +219,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param throwException
      * @return
      */
-    fun couldUserUseVacationService(user: PFUserDO?, throwException: Boolean): Boolean {
+    open fun couldUserUseVacationService(user: PFUserDO?, throwException: Boolean): Boolean {
         var result = true
         if (user == null || user.id == null) {
             return false
@@ -245,7 +246,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param year
      * @return
      */
-    fun getApprovedVacationdaysForYear(employee: EmployeeDO?, year: Int): BigDecimal {
+    open fun getApprovedVacationdaysForYear(employee: EmployeeDO?, year: Int): BigDecimal {
         return getVacationDaysForYearByStatus(employee, year, VacationStatus.APPROVED)
     }
 
@@ -256,7 +257,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param year
      * @return
      */
-    fun getPlannedVacationdaysForYear(employee: EmployeeDO?, year: Int): BigDecimal {
+    open fun getPlannedVacationdaysForYear(employee: EmployeeDO?, year: Int): BigDecimal {
         return getVacationDaysForYearByStatus(employee, year, VacationStatus.IN_PROGRESS)
     }
 
@@ -284,7 +285,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param checkLastYear
      * @return number of available vacation
      */
-    fun getAvailableVacationdaysForYear(user: PFUserDO?, year: Int, checkLastYear: Boolean): BigDecimal? {
+    open fun getAvailableVacationdaysForYear(user: PFUserDO?, year: Int, checkLastYear: Boolean): BigDecimal? {
         if (user == null) {
             return BigDecimal.ZERO
         }
@@ -300,7 +301,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param checkLastYear
      * @return number of available vacation
      */
-    fun getAvailableVacationdaysForYear(employee: EmployeeDO?, year: Int, checkLastYear: Boolean): BigDecimal? {
+    open fun getAvailableVacationdaysForYear(employee: EmployeeDO?, year: Int, checkLastYear: Boolean): BigDecimal? {
         if (employee?.urlaubstage == null) {
             return BigDecimal.ZERO
         }
@@ -332,12 +333,12 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param queryDate
      * @return
      */
-    fun getPlandVacationDaysForYearAtDate(employee: EmployeeDO, queryDate: LocalDate?): BigDecimal? {
+    open fun getPlandVacationDaysForYearAtDate(employee: EmployeeDO, queryDate: LocalDate?): BigDecimal? {
         val endDate = queryDate!!.withMonth(12).withDayOfMonth(31)
         return getApprovedVacationDaysForYearUntilDate(employee, queryDate, endDate)
     }
 
-    fun getAvailableVacationDaysForYearAtDate(employee: EmployeeDO?, queryDate: LocalDate): BigDecimal? {
+    open fun getAvailableVacationDaysForYearAtDate(employee: EmployeeDO?, queryDate: LocalDate): BigDecimal? {
         val urlaubstage = employee?.urlaubstage ?: return BigDecimal.ZERO
         val startDate = queryDate.withMonth(1).withDayOfMonth(1)
         val vacationDays = BigDecimal(urlaubstage)
@@ -395,7 +396,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param withSpecial
      * @return
      */
-    fun getAllActiveVacation(employee: EmployeeDO?, withSpecial: Boolean): List<VacationDO?>? {
+    open fun getAllActiveVacation(employee: EmployeeDO?, withSpecial: Boolean): List<VacationDO?>? {
         return vacationDao.getAllActiveVacation(employee, withSpecial)
     }
 
@@ -409,7 +410,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param idList
      * @return List of vacations
      */
-    fun getVacation(idList: List<Serializable?>?): List<VacationDO?>? {
+    open fun getVacation(idList: List<Serializable?>?): List<VacationDO?>? {
         return vacationDao.internalLoad(idList)
     }
 
@@ -432,7 +433,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param user
      * @return
      */
-    fun getOpenLeaveApplicationsForUser(user: PFUserDO): BigDecimal {
+    open fun getOpenLeaveApplicationsForUser(user: PFUserDO): BigDecimal {
         val employee = employeeService.getEmployeeByUserId(user.id) ?: return BigDecimal.ZERO
         return vacationDao.getOpenLeaveApplicationsForEmployee(employee)
     }
@@ -445,11 +446,11 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param status
      * @return
      */
-    fun getSpecialVacationCount(employee: EmployeeDO, year: Int, status: VacationStatus?): BigDecimal? {
+    open fun getSpecialVacationCount(employee: EmployeeDO, year: Int, status: VacationStatus?): BigDecimal? {
         return sum(vacationDao.getSpecialVacation(employee, year, status))
     }
 
-    fun getVacationDays(vacationData: VacationDO): BigDecimal? {
+    open fun getVacationDays(vacationData: VacationDO): BigDecimal? {
         return getVacationDays(vacationData, null)
     }
 
@@ -512,7 +513,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      *
      * @return
      */
-    fun hasLoggedInUserHRVacationAccess(): Boolean {
+    open fun hasLoggedInUserHRVacationAccess(): Boolean {
         return vacationDao.hasLoggedInUserHRVacationAccess()
     }
 
@@ -542,7 +543,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param user
      * @return
      */
-    fun getVacationCount(fromYear: Int, fromMonth: Int, toYear: Int, toMonth: Int, user: PFUserDO?): String? {
+    open fun getVacationCount(fromYear: Int, fromMonth: Int, toYear: Int, toMonth: Int, user: PFUserDO?): String? {
         var hours: Long = 0
         var days = BigDecimal.ZERO
         if (fromYear == toYear) {
