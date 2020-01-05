@@ -1,11 +1,25 @@
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
+import { resetAllFilters } from '../../../../actions/list/filter';
+import AdvancedPopper from '../../../../components/design/popper/AdvancedPopper';
+import AdvancedPopperAction from '../../../../components/design/popper/AdvancedPopperAction';
 import { getNamedContainer } from '../../../../utilities/layout';
 import styles from '../ListPage.module.scss';
 import MagicFilterPill from './MagicFilterPill';
 
-function MagicFilters({ searchFilter, filterEntries }) {
+function MagicFilters(
+    {
+        filterEntries,
+        onResetAllFilters,
+        searchFilter,
+        searchString,
+        translations,
+    },
+) {
+    const [allFiltersAreOpen, setAllFiltersAreOpen] = React.useState(false);
+
     return (
         <div className={styles.magicFilters}>
             {searchFilter && filterEntries
@@ -19,60 +33,83 @@ function MagicFilters({ searchFilter, filterEntries }) {
                     <MagicFilterPill
                         key={`magic-filter-${details.id}`}
                         name={details.label}
-                        value="abc"
+                        hasValue
                     >
                         {/* TODO IMPLEMENT DIFFERENT SELECTION TYPES */}
                         {details.label}
                     </MagicFilterPill>
                 ))}
             <MagicFilterPill
-                name="Firma"
-                value="Micromata"
-            >
-                Input Firma
-            </MagicFilterPill>
-            <MagicFilterPill
                 name="Name"
             >
                 Input Name
             </MagicFilterPill>
-            <MagicFilterPill
-                name="???Alle Filter???"
-                className={styles.allFilters}
-            >
-                {searchFilter && (
-                    <ul className={styles.filterList}>
-                        {searchFilter.content.map(entry => (
-                            <li
-                                key={`filter-${entry.id}`}
-                                className={styles.filter}
-                            >
-                                {entry.label}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </MagicFilterPill>
+            <div className={styles.magicFilter}>
+                <AdvancedPopper
+                    setIsOpen={setAllFiltersAreOpen}
+                    isOpen={allFiltersAreOpen}
+                    basic="???Alle Filter???"
+                    className={styles.allFilters}
+                    contentClassName={classNames(
+                        styles.pill,
+                        { [styles.marked]: allFiltersAreOpen },
+                    )}
+                    actions={(
+                        <AdvancedPopperAction
+                            type="delete"
+                            disabled={!((filterEntries && filterEntries.size) || searchString)}
+                            onClick={onResetAllFilters}
+                        >
+                            {translations.reset || '???Zurücksetzen???'}
+                        </AdvancedPopperAction>
+                    )}
+                >
+                    {searchFilter && (
+                        <ul className={styles.filterList}>
+                            {searchFilter.content.map(entry => (
+                                <li
+                                    key={`filter-${entry.id}`}
+                                    className={styles.filter}
+                                >
+                                    {entry.label}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </AdvancedPopper>
+            </div>
         </div>
     );
 }
 
 MagicFilters.propTypes = {
+    translations: PropTypes.shape({
+        reset: PropTypes.string,
+    }).isRequired,
     filterEntries: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
+    onResetAllFilters: PropTypes.func.isRequired,
     searchFilter: PropTypes.shape({}),
+    searchString: PropTypes.string,
 };
 
 MagicFilters.defaultProps = {
     searchFilter: undefined,
+    searchString: undefined,
 };
 
 const mapStateToProps = ({ list }) => {
     const { ui, filter } = list.categories[list.currentCategory];
 
     return {
+        translations: ui.translations,
         searchFilter: getNamedContainer('searchFilter', ui.namedContainers),
         filterEntries: filter.entries,
+        searchString: filter.searchString,
     };
 };
 
-export default connect(mapStateToProps)(MagicFilters);
+const actions = dispatch => ({
+    onResetAllFilters: () => dispatch(resetAllFilters()),
+});
+
+export default connect(mapStateToProps, actions)(MagicFilters);

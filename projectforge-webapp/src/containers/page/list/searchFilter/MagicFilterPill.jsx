@@ -9,9 +9,9 @@ import styles from '../ListPage.module.scss';
 function MagicFilterPill(
     {
         children,
+        hasValue,
         name,
         translations,
-        value,
         ...props
     },
 ) {
@@ -23,10 +23,10 @@ function MagicFilterPill(
                 setIsOpen={setIsOpen}
                 isOpen={isOpen}
                 basic={name}
-                contentClassName={classNames(styles.pill, { [styles.marked]: isOpen || value })}
+                contentClassName={classNames(styles.pill, { [styles.marked]: isOpen || hasValue })}
                 actions={(
                     <React.Fragment>
-                        <AdvancedPopperAction type="delete" disabled>
+                        <AdvancedPopperAction type="delete" disabled={!hasValue}>
                             {translations.delete || ''}
                         </AdvancedPopperAction>
                         <AdvancedPopperAction type="success">
@@ -46,12 +46,12 @@ MagicFilterPill.propTypes = {
     name: PropTypes.string.isRequired,
     translations: PropTypes.shape({}).isRequired,
     children: PropTypes.node,
-    value: PropTypes.string,
+    hasValue: PropTypes.bool,
 };
 
 MagicFilterPill.defaultProps = {
     children: undefined,
-    value: undefined,
+    hasValue: false,
 };
 
 const mapStateToProps = ({ list }) => ({
