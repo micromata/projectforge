@@ -46,9 +46,10 @@ open class RemainingDaysOfVactionDao : BaseDao<RemainingDaysOfVacationDO>(Remain
             throw IllegalArgumentException("Can't determine remaining vacation days for future year $year.")
         }
         val entry = internalGet(employee.id, year) ?: RemainingDaysOfVacationDO()
+        entry.employee = employee
+        entry.year = year
+        entry.carryVacationDaysFromPreviousYear = carryVacationDaysFromPreviousYear
         if (entry.id == null) {
-            entry.employee = employee
-            entry.year = year
             internalSave(entry)
         } else {
             internalUpdate(entry)
@@ -63,9 +64,10 @@ open class RemainingDaysOfVactionDao : BaseDao<RemainingDaysOfVacationDO>(Remain
     }
 
     open fun internalGet(employeeId: Int, year: Int): RemainingDaysOfVacationDO? {
-        return SQLHelper.ensureUniqueResult(em.createNamedQuery(RemainingDaysOfVacationDO.FIND_BY_EMPLOYEE_ID_AND_YEAR, RemainingDaysOfVacationDO::class.java)
+        val result = SQLHelper.ensureUniqueResult(em.createNamedQuery(RemainingDaysOfVacationDO.FIND_BY_EMPLOYEE_ID_AND_YEAR, RemainingDaysOfVacationDO::class.java)
                 .setParameter("employeeId", employeeId)
                 .setParameter("year", year))
+        return result
     }
 
     /**

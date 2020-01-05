@@ -135,6 +135,9 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @get:Column(length = 255)
     open var staffNumber: String? = null
 
+    /**
+     * Number of yearly available vacation days.
+     */
     @PropertyInfo(i18nKey = "fibu.employee.urlaubstage")
     @Field(analyze = Analyze.NO)
     @get:Column
