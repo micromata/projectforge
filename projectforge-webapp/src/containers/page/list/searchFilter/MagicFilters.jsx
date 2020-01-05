@@ -65,7 +65,7 @@ function MagicFilters(
                     actions={(
                         <AdvancedPopperAction
                             type="delete"
-                            disabled={!((filterEntries && filterEntries.size) || searchString)}
+                            disabled={!(filterEntries.length || searchString)}
                             onClick={handleAllFiltersDelete}
                         >
                             {translations.reset || '???Zurücksetzen???'}
