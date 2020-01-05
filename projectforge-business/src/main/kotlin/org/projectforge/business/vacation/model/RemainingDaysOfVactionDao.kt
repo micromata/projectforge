@@ -31,6 +31,8 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.stereotype.Repository
+import java.math.BigDecimal
+import java.time.Year
 
 /**
  * Not multi tenant proven.
@@ -38,7 +40,10 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 open class RemainingDaysOfVactionDao : BaseDao<RemainingDaysOfVacationDO>(RemainingDaysOfVacationDO::class.java) {
-    open fun internalSaveOrDelete(employee: EmployeeDO, year: Int, carryVacationDaysFromPreviousYear: Int?) {
+    open fun internalSaveOrUpdate(employee: EmployeeDO, year: Int, carryVacationDaysFromPreviousYear: BigDecimal?) {
+        if (year > Year.now().value) {
+            throw IllegalArgumentException("Can't determine remaining vacation days for future year $year.")
+        }
         val entry = internalGet(employee.id, year) ?: RemainingDaysOfVacationDO()
         if (entry.id == null) {
             entry.employee
@@ -49,7 +54,10 @@ open class RemainingDaysOfVactionDao : BaseDao<RemainingDaysOfVacationDO>(Remain
         }
     }
 
-    open fun getCarryVacationDaysFromPreviousYear(employeeId: Int, year: Int): Int? {
+    open fun getCarryVacationDaysFromPreviousYear(employeeId: Int, year: Int): BigDecimal? {
+        if (year > Year.now().value) {
+            throw IllegalArgumentException("Can't determine remaining vacation days for future year $year.")
+        }
         return internalGet(employeeId, year)?.carryVacationDaysFromPreviousYear
     }
 

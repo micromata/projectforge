@@ -1,12 +1,12 @@
 CREATE TABLE t_employee_vacation_remaining (
   pk                                     INTEGER                      NOT NULL,
-  created                                TIMESTAMP WITHOUT TIME ZONE,
   deleted                                BOOLEAN                      NOT NULL,
+  created                                TIMESTAMP WITHOUT TIME ZONE,
   last_update                            TIMESTAMP WITHOUT TIME ZONE,
   tenant_id                              INTEGER,
   employee_id                            INTEGER                      NOT NULL,
   year                                   INTEGER                      NOT NULL,
-  carry_vacation_days_from_previous_year INTEGER                      NOT NULL
+  carry_vacation_days_from_previous_year NUMERIC(5, 2)                NOT NULL
 );
 
 ALTER TABLE t_employee_vacation_remaining
