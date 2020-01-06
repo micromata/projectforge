@@ -2,8 +2,8 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { addFilter } from '../../../../actions/list/filter';
-import styles from '../ListPage.module.scss';
+import { addFilter } from '../../../../../actions/list/filter';
+import styles from '../../ListPage.module.scss';
 
 function FilterListEntry(
     {

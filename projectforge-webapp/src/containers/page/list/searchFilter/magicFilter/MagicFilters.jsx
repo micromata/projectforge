@@ -2,11 +2,11 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { resetAllFilters } from '../../../../actions/list/filter';
-import AdvancedPopper from '../../../../components/design/popper/AdvancedPopper';
-import AdvancedPopperAction from '../../../../components/design/popper/AdvancedPopperAction';
-import { getNamedContainer } from '../../../../utilities/layout';
-import styles from '../ListPage.module.scss';
+import { resetAllFilters } from '../../../../../actions/list/filter';
+import AdvancedPopper from '../../../../../components/design/popper/AdvancedPopper';
+import AdvancedPopperAction from '../../../../../components/design/popper/AdvancedPopperAction';
+import { getNamedContainer } from '../../../../../utilities/layout';
+import styles from '../../ListPage.module.scss';
 import FilterListEntry from './FilterListEntry';
 import MagicFilterPill from './MagicFilterPill';
 
@@ -31,22 +31,16 @@ function MagicFilters(
     return (
         <div className={styles.magicFilters}>
             {searchFilter && filterEntries
-                .map(({ field, value }) => ({
-                    details: Array.findByField(searchFilter.content, 'id', field),
-                    field,
-                    value,
+                .map(entry => ({
+                    ...Array.findByField(searchFilter.content, 'id', entry.field),
+                    ...entry,
                 }))
-                .filter(({ details }) => details !== undefined)
-                .map(({ details }) => (
+                .filter(({ id }) => id !== undefined)
+                .map(entry => (
                     <MagicFilterPill
-                        key={`magic-filter-${details.id}`}
-                        fieldId={details.id}
-                        name={details.label}
-                        hasValue
-                    >
-                        {/* TODO IMPLEMENT DIFFERENT SELECTION TYPES */}
-                        {details.label}
-                    </MagicFilterPill>
+                        key={`magic-filter-${entry.id}`}
+                        {...entry}
+                    />
                 ))}
             <div className={styles.magicFilter}>
                 <AdvancedPopper

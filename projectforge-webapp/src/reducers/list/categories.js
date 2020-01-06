@@ -61,7 +61,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                     entries: [
                         ...filter.entries,
                         {
-                            field: payload.filterId,
+                            field: payload.fieldId,
                             isNew: true,
                         },
                     ],
@@ -76,7 +76,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                 filter: {
                     ...filter,
                     entries: filter.entries
-                        .filter(({ field }) => field !== payload.filterId),
+                        .filter(({ field }) => field !== payload.fieldId),
                 },
             };
         }
@@ -99,6 +99,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
             };
         case LIST_FILTER_SET: {
             const { filter } = state;
+
 
             return {
                 ...state,

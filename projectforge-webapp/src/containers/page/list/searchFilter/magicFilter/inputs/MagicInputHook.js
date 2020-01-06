@@ -1,0 +1,29 @@
+import React from 'react';
+import MagicInputNotImplemented from './MagicInputNotImplemented';
+import MagicStringInput from './MagicStringInput';
+
+const useMagicInput = (type) => {
+    const [inputTag, setInputTag] = React.useState(() => MagicInputNotImplemented);
+
+    React.useEffect(() => {
+        let tag;
+
+        switch (type) {
+            case 'STRING':
+                tag = MagicStringInput;
+                break;
+            default:
+                tag = MagicInputNotImplemented;
+                break;
+        }
+
+        if (tag !== inputTag) {
+            // Important to use a state function to prevent the tag to be called
+            setInputTag(() => tag);
+        }
+    }, [type]);
+
+    return inputTag;
+};
+
+export default useMagicInput;
