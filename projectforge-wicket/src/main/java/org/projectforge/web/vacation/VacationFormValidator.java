@@ -36,6 +36,7 @@ import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationCalendarService;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.business.vacation.service.VacationServiceNew;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.PFDay;
@@ -59,6 +60,8 @@ public class VacationFormValidator implements IFormValidator {
 
   private final VacationService vacationService;
 
+  private final VacationServiceNew vacationServiceNew;
+
   private final VacationCalendarService vacationCalendarService;
 
   private final VacationDO data;
@@ -67,8 +70,8 @@ public class VacationFormValidator implements IFormValidator {
 
   private final LocalDate now;
 
-  public VacationFormValidator(VacationService vacationService, VacationCalendarService vacationCalendarService, ConfigurationService configService, VacationDO data) {
-    this(vacationService, vacationCalendarService, configService, data, LocalDate.now());
+  public VacationFormValidator(VacationService vacationService, VacationServiceNew vacationServiceNew, VacationCalendarService vacationCalendarService, ConfigurationService configService, VacationDO data) {
+    this(vacationService, vacationServiceNew, vacationCalendarService, configService, data, LocalDate.now());
   }
 
   /**
@@ -79,9 +82,10 @@ public class VacationFormValidator implements IFormValidator {
    * @param data
    * @param now
    */
-  protected VacationFormValidator(VacationService vacationService, VacationCalendarService vacationCalendarService, ConfigurationService configService, VacationDO data, LocalDate now) {
+  protected VacationFormValidator(VacationService vacationService, VacationServiceNew vacationServiceNew, VacationCalendarService vacationCalendarService, ConfigurationService configService, VacationDO data, LocalDate now) {
     this.configService = configService;
     this.vacationService = vacationService;
+    this.vacationServiceNew = vacationServiceNew;
     this.vacationCalendarService = vacationCalendarService;
     this.data = data;
     this.now = now;

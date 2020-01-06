@@ -141,7 +141,7 @@ public interface ConfigurationService {
    * 31.03. of the given year, if not configured different. This date determine when vacation days of an employee
    * from the last year will be invalid, if not used.
    */
-  LocalDate getEndOfVacation(int year);
+  LocalDate getEndOfCarryVacationOfPreviousYear(int year);
 
   String getHREmailadress();
 

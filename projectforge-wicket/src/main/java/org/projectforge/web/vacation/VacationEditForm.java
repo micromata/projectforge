@@ -128,7 +128,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     if (checkReadAccess() == false) {
       throw new AccessException("access.exception.userHasNotRight");
     }
-    VacationFormValidator formValidator = new VacationFormValidator(vacationService, vacationCalendarService, configService, data);
+    VacationFormValidator formValidator = new VacationFormValidator(vacationService, vacationServiceNew, vacationCalendarService, configService, data);
     add(formValidator);
 
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -146,7 +146,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
         @Override
         protected void onUpdate(final AjaxRequestTarget target) {
-          if (data.getEndDate().getYear() == Year.now().getValue()) {
+          if (data.getEndDate() != null && data.getEndDate().getYear() == Year.now().getValue()) {
             BigDecimal availableVacationDays = getAvailableVacationDays(data);
             availableVacationDaysModel.setObject(availableVacationDays.toString());
             target.add(availableVacationDaysLabel);
@@ -190,7 +190,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
         @Override
         protected void onUpdate(final AjaxRequestTarget target) {
-          if (data.getEndDate().getYear() == Year.now().getValue()) {
+          if (data.getEndDate() != null && data.getEndDate().getYear() == Year.now().getValue()) {
             // needed days
             BigDecimal availableVacationDays = getAvailableVacationDays(data);
             availableVacationDaysModel.setObject(availableVacationDays.toString());

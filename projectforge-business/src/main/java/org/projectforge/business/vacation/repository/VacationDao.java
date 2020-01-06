@@ -31,6 +31,7 @@ import org.projectforge.business.vacation.VacationFilter;
 import org.projectforge.business.vacation.model.VacationCalendarDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
+import org.projectforge.business.vacation.service.VacationServiceNew;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -42,6 +43,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -71,6 +73,9 @@ public class VacationDao extends BaseDao<VacationDO> {
   private AccessChecker accessChecker;
 
   @Autowired
+  private ApplicationContext applicationContext;
+
+  @Autowired
   private PfEmgrFactory emgrFactory;
 
   public VacationDao() {
@@ -97,6 +102,20 @@ public class VacationDao extends BaseDao<VacationDO> {
 
   public boolean hasLoggedInUserHRVacationAccess() {
     return accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE);
+  }
+
+  @Override
+  protected void onSave(VacationDO obj) {
+    super.onSave(obj);
+    VacationServiceNew service = applicationContext.getBean(VacationServiceNew.class);
+    service.validate(obj);
+  }
+
+  @Override
+  protected void onChange(VacationDO obj, VacationDO dbObj) {
+    super.onChange(obj, dbObj);
+    VacationServiceNew service = applicationContext.getBean(VacationServiceNew.class);
+    service.validate(obj, dbObj);
   }
 
   public List<VacationDO> getVacationForPeriod(EmployeeDO employee, LocalDate startVacationDate, LocalDate endVacationDate, boolean withSpecial) {
