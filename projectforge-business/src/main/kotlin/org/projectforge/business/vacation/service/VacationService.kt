@@ -32,6 +32,7 @@ import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.IDao
 import org.projectforge.framework.persistence.api.IPersistenceService
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
@@ -98,6 +99,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
         val stats = VacationStats(employee, year)
         stats.vacationDaysInYearFromContract = getYearlyVacationDays(employee, year)
         stats.carryVacationDaysFromPreviousYear = remainingDaysOfVactionDao.getCarryVacationDaysFromPreviousYear(employee.id, year)
+        stats.endOfVacationYear = getEndOfCarryVacationOfPreviousYear(year)
         val dateOfJoining = employee.eintrittsDatum
         if (dateOfJoining == null) {
             log.warn("Employee has now joining date, can't calculate vacation days.")
@@ -108,10 +110,10 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
         val yearPeriod = LocalDatePeriod.wholeYear(year)
         val allVacationsOfYear = getVacationsListForPeriod(employee, yearPeriod.begin, yearPeriod.end, true)
         stats.vacationDaysInProgressAndApproved = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false)
-        stats.vacationDaysInProgress = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false,  VacationStatus.IN_PROGRESS)
-        stats.vacationDaysApproved = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false,  VacationStatus.APPROVED)
-        stats.specialVacationDaysInProgress = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end,  true,  VacationStatus.IN_PROGRESS)
-        stats.specialVacationDaysApproved = sum(allVacationsOfYear, LocalDate.now(), yearPeriod.end,  true,  VacationStatus.APPROVED)
+        stats.vacationDaysInProgress = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false, VacationStatus.IN_PROGRESS)
+        stats.vacationDaysApproved = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false, VacationStatus.APPROVED)
+        stats.specialVacationDaysInProgress = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, true, VacationStatus.IN_PROGRESS)
+        stats.specialVacationDaysApproved = sum(allVacationsOfYear, LocalDate.now(), yearPeriod.end, true, VacationStatus.APPROVED)
 
         stats.allocatedDaysInOverlapPeriod = getNumberValidVacationDaysInOverlapPeriod(allVacationsOfYear, year)
 
@@ -348,7 +350,11 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
     }
 
 
-    // CorePersistenceServiceImpl, IPersistenceService and IDao stuff (needed by VacationListPage/Wicket):
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // CorePersistenceServiceImpl, IPersistenceService and IDao stuff (needed by VacationListPage/Wicket).
+    //
+    // To be removed after migration from Wicket to React:
 
     override fun hasInsertAccess(user: PFUserDO): Boolean {
         return true
@@ -384,6 +390,10 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
 
     override fun getAutocompletion(property: String, searchString: String): List<String> {
         return vacationDao.getAutocompletion(property, searchString)
+    }
+
+    override fun getList(filter: BaseSearchFilter): List<VacationDO> {
+        return vacationDao.getList(filter)
     }
 
     override fun getDisplayHistoryEntries(obj: VacationDO): List<DisplayHistoryEntry> {
