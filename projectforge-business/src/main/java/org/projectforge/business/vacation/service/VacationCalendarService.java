@@ -24,8 +24,8 @@
 package org.projectforge.business.vacation.service;
 
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.event.CalEventDao;
-import org.projectforge.business.teamcal.event.model.CalEventDO;
+import org.projectforge.business.teamcal.event.TeamEventDao;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.vacation.model.VacationCalendarDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.repository.VacationDao;
@@ -48,7 +48,7 @@ public class VacationCalendarService {
   private VacationDao vacationDao;
 
   @Autowired
-  private CalEventDao calEventDao;
+  private TeamEventDao teamEventDao;
 
   public List<TeamCalDO> getCalendarsForVacation(final VacationDO vacation) {
     return vacationDao.getCalendarsForVacation(vacation);
@@ -78,7 +78,7 @@ public class VacationCalendarService {
         if (deleteIncludingVacationCalendarDO) {
           vacationDao.markAsDeleted(vacationCalendarDO);
         }
-        calEventDao.internalMarkAsDeleted(calEventDao.internalGetById((vacationCalendarDO.getEvent().getId())));
+        teamEventDao.internalMarkAsDeleted(teamEventDao.internalGetById((vacationCalendarDO.getEvent().getId())));
       }
     }
   }
@@ -96,7 +96,7 @@ public class VacationCalendarService {
     List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
     for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
       if (vacationCalendarDO.getEvent() != null) {
-        calEventDao.internalUndelete(calEventDao.internalGetById(vacationCalendarDO.getEvent().getId()));
+        teamEventDao.internalUndelete(teamEventDao.internalGetById(vacationCalendarDO.getEvent().getId()));
       }
     }
   }
@@ -125,32 +125,32 @@ public class VacationCalendarService {
     return vacationCalendarDO;
   }
 
-  private CalEventDO getAndUpdateOrCreateTeamEventDO(final VacationCalendarDO vacationCalendarDO) {
+  private TeamEventDO getAndUpdateOrCreateTeamEventDO(final VacationCalendarDO vacationCalendarDO) {
     final PFDateTime startTimestamp = PFDateTime.from(vacationCalendarDO.getVacation().getStartDate());
     final PFDateTime endTimestamp = PFDateTime.from(vacationCalendarDO.getVacation().getEndDate());
 
     if (vacationCalendarDO.getEvent() != null) {
-      final CalEventDO vacationTeamEvent = calEventDao.internalGetById(vacationCalendarDO.getEvent().getId());
+      final TeamEventDO vacationTeamEvent = teamEventDao.internalGetById(vacationCalendarDO.getEvent().getId());
       if (vacationTeamEvent != null) {
         if (vacationTeamEvent.isDeleted()) {
-          calEventDao.internalUndelete(vacationTeamEvent);
+          teamEventDao.internalUndelete(vacationTeamEvent);
         }
 
         if (!vacationTeamEvent.getStartDate().equals(startTimestamp) || !vacationTeamEvent.getEndDate().equals(endTimestamp)) {
           vacationTeamEvent.setStartDate(startTimestamp.getSqlTimestamp());
           vacationTeamEvent.setEndDate(endTimestamp.getSqlTimestamp());
-          calEventDao.internalSaveOrUpdate(vacationTeamEvent);
+          teamEventDao.internalSaveOrUpdate(vacationTeamEvent);
         }
       }
       return vacationTeamEvent;
     } else {
-      final CalEventDO newCalEventDO = new CalEventDO();
+      final TeamEventDO newCalEventDO = new TeamEventDO();
       newCalEventDO.setAllDay(true);
       newCalEventDO.setStartDate(startTimestamp.getSqlTimestamp());
       newCalEventDO.setEndDate(endTimestamp.getSqlTimestamp());
       newCalEventDO.setSubject(vacationCalendarDO.getVacation().getEmployee().getUser().getFullname());
       newCalEventDO.setCalendar(vacationCalendarDO.getCalendar());
-      calEventDao.internalSave(newCalEventDO);
+      teamEventDao.internalSave(newCalEventDO);
       return newCalEventDO;
     }
   }
