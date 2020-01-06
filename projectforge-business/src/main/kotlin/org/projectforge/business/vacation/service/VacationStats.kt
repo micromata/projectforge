@@ -40,7 +40,13 @@ class VacationStats(
         /**
          * Specifies the base year.
          */
-        val year: Int) : ToStringUtil.ToJsonStringObject() {
+        val year: Int,
+        /**
+         * The base date is used for rejecting carry vacation days. If after end of vacation year, the carry is rejected.
+         * This date is normally now, but might be differ from for test cases.
+         */
+        val baseDate: LocalDate = LocalDate.now())
+    : ToStringUtil.ToJsonStringObject() {
 
     /**
      * Only for logging purposes.
@@ -79,10 +85,14 @@ class VacationStats(
      */
     var vacationDaysInProgressAndApproved: BigDecimal? = null
     /**
-     * The employee has some vacation days left (used less than the annual vacation days of contract, including any
-     * carry from previous years.
+     * The left vacation days of the year including any carry from previous years (if base date is before 31.03.). For
+     * any date after end of vacation year (31.03.), this value is equal to [vacationDaysLeftInYearWithoutCarry].
      */
     var vacationDaysLeftInYear: BigDecimal? = null
+    /**
+     * The left vacation days of the year without any carry.
+     */
+    var vacationDaysLeftInYearWithoutCarry: BigDecimal? = null
     /**
      * Number of vacation days in progress, not yet approved.
      */
@@ -105,7 +115,6 @@ class VacationStats(
      */
     var lastYearStats: VacationStats? = null
     var endOfVacationYear: LocalDate? = null
-    var dateOfCalculation: LocalDate = LocalDate.now()
 
     /**
      * Internal function calculates vacationDaysLeftInYear after having all other properties.
@@ -116,7 +125,8 @@ class VacationStats(
         var leftInYear = minOf(carryVacationDaysFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
         leftInYear += vacationDaysInYearFromContract!! // annual vacation days from contract.
         leftInYear -= vacationDaysInProgressAndApproved!!
-        if (dateOfCalculation.isBefore(endOfVacationYear)) {
+        this.vacationDaysLeftInYearWithoutCarry = leftInYear
+        if (baseDate.isBefore(endOfVacationYear)) {
             leftInYear += carryVacationDaysFromPreviousYearUnused ?: BigDecimal.ZERO
         }
         this.vacationDaysLeftInYear = leftInYear

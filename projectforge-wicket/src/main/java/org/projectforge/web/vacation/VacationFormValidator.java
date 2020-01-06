@@ -104,6 +104,7 @@ public class VacationFormValidator implements IFormValidator {
     final LocalDate endDate = endDatePanel.getConvertedInputAsLocalDate();
 
     VacationDO vacation = new VacationDO();
+    vacation.setId(data.getId());
     vacation.setStartDate(startDate);
     vacation.setEndDate(endDate);
     vacation.setEmployee(employee);

@@ -43,6 +43,7 @@ object VacationValidator {
          */
         DATE_NOT_SET("vacation.validate.datenotset"),
         END_DATE_BEFORE_START_DATE("vacation.validate.endbeforestart"),
+        DATE_BEFORE_JOINING("vacation.validate.vacationBeforeJoinDate"),
         START_DATE_BEFORE_NOW("vacation.validate.startDateBeforeNow"),
         /**
          * Number of vacation days is zero or less.
@@ -61,6 +62,11 @@ object VacationValidator {
          */
         NOT_ENOUGH_DAYS_LEFT("vacation.validate.notEnoughVacationDaysLeft"),
         /**
+         * The current user is not allowed to approve this entry. Only allowed for the manager of this entry or
+         * HR staff members. Checked by [VacationDao].
+         */
+        NOT_ALLOWED_TO_APPROVE("vacation.validate.notAllowedToSelfApprove"),
+        /**
          * Vacation entries with half day option are not allowed to have more than one half day.
          */
         MORE_THAN_ONE_HALF_DAY("vacation.validate.moreThanOneDaySelectedOnHalfDay") {
@@ -71,7 +77,12 @@ object VacationValidator {
     }
 
     /**
-     * Checks for collissions, enough left days etc.
+     * May be modified for test cases.
+     */
+    internal var rejectNewVacationEntriesBeforeNow = true
+
+    /**
+     * Checks for collisions, enough left days etc. The access checking will be done by [VactionDO].
      * @param vacation The vacation entry to check.
      * @param dbVacation If modified, the previous entry (data base entry).
      * @param throwException If true, an exception is thrown if validation failed. Default is false.
@@ -89,8 +100,18 @@ object VacationValidator {
         require(employee != null)
         val year = startDate.year
         if (endDate.isBefore(startDate)) {
+            return returnOrThrow(Error.END_DATE_BEFORE_START_DATE, throwException)
+        }
+        val joinDate = employee.eintrittsDatum
+        if (joinDate != null && startDate.isBefore(joinDate)) {
+            return returnOrThrow(Error.DATE_BEFORE_JOINING, throwException)
+        }
+
+        // Is new vacation data
+        if (rejectNewVacationEntriesBeforeNow && vacation.id == null && startDate.isBefore(LocalDate.now()) && !vacationService.hasLoggedInUserHRVacationAccess()) {
             return returnOrThrow(Error.START_DATE_BEFORE_NOW, throwException)
         }
+
         if (startDate.year != endDate.year) {
             return returnOrThrow(Error.VACATION_IN_2YEARS, throwException)
         }
@@ -101,15 +122,12 @@ object VacationValidator {
         val status = vacation.status
                 ?: throw IllegalStateException("Status of vacation data is required for validation, but not given.")
         if (vacation.isDeleted || !CHECK_VACATION_STATUS_LIST.contains(status)) {
-           // No further validations for deleted or REJECTED vacations required.
+            // No further validations for deleted or REJECTED vacations required.
             return null
         }
         if (vacationService.getVacationsListForPeriod(employee, startDate, endDate).filter { it.id != vacation.id }.isNotEmpty()) {
             // Any other entry exist with overlapping time period.
             return returnOrThrow(Error.COLLISION, throwException)
-        }
-        if (startDate.isBefore(LocalDate.now())) {
-            return returnOrThrow(Error.START_DATE_BEFORE_NOW, throwException)
         }
         val numberOfWorkingDays = PFDayUtils.getNumberOfWorkingDays(startDate, endDate)
         //vacationdays <= 0 days
@@ -127,7 +145,7 @@ object VacationValidator {
                 PFDayUtils.getNumberOfWorkingDays(dbVacation.startDate!!, dbVacation.endDate!!)
             else
                 BigDecimal.ZERO
-            if (numberOfWorkingDays - dbDays > stats.vacationDaysLeftInYear) {
+            if (numberOfWorkingDays - dbDays > stats.vacationDaysLeftInYearWithoutCarry) {
                 val endOfVacationYear = vacationService.getEndOfCarryVacationOfPreviousYear(year)
                 var enoughDaysLeft = false
                 if (startDate.isBefore(endOfVacationYear)) {

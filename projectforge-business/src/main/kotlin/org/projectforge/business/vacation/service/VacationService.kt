@@ -95,8 +95,14 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param nowYear Only for test cases (so they will run in further years).
      */
     @JvmOverloads
-    open fun getVacationStats(employee: EmployeeDO, year: Int = Year.now().value, calculateCarryInFormerYears: Boolean = true, nowYear: Int = Year.now().value): VacationStats {
-        val stats = VacationStats(employee, year)
+    open fun getVacationStats(employee: EmployeeDO, year: Int = Year.now().value,
+                              /** Only for internal use for recursive calls. */
+                              calculateCarryInFormerYears: Boolean = true,
+                              /**
+                               * Only for testing with fixed simulated now date. Default is today.
+                               */
+                              baseDate: LocalDate = LocalDate.now()): VacationStats {
+        val stats = VacationStats(employee, year, baseDate)
         stats.vacationDaysInYearFromContract = getYearlyVacationDays(employee, year)
         stats.carryVacationDaysFromPreviousYear = remainingDaysOfVactionDao.getCarryVacationDaysFromPreviousYear(employee.id, year)
         stats.endOfVacationYear = getEndOfCarryVacationOfPreviousYear(year)
@@ -113,20 +119,20 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
         stats.vacationDaysInProgress = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false, VacationStatus.IN_PROGRESS)
         stats.vacationDaysApproved = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false, VacationStatus.APPROVED)
         stats.specialVacationDaysInProgress = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, true, VacationStatus.IN_PROGRESS)
-        stats.specialVacationDaysApproved = sum(allVacationsOfYear, LocalDate.now(), yearPeriod.end, true, VacationStatus.APPROVED)
+        stats.specialVacationDaysApproved = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, true, VacationStatus.APPROVED)
 
         stats.allocatedDaysInOverlapPeriod = getNumberValidVacationDaysInOverlapPeriod(allVacationsOfYear, year)
 
         stats.carryVacationDaysFromPreviousYear = remainingDaysOfVactionDao.getCarryVacationDaysFromPreviousYear(employee.id, year)
         if (stats.carryVacationDaysFromPreviousYear == null) {
-            if (dateOfJoining.year >= year || year > nowYear || year < nowYear - 1) {
+            if (dateOfJoining.year >= year || year > baseDate.year || year < baseDate.year - 1) {
                 // Employee joins in current year or later, no carry of vacation days exist, or
                 // the year a future year, so it will not be calculated. Also, only the last year will be calculated, any year
                 // before the last year will not anymore.
                 stats.carryVacationDaysFromPreviousYear = BigDecimal.ZERO
-            } else if (year == nowYear) {
+            } else if (year == baseDate.year) {
                 // Carry of holidays from last year weren't yet calculated, do it now:
-                stats.lastYearStats = getVacationStats(employee, nowYear - 1, false)
+                stats.lastYearStats = getVacationStats(employee, baseDate.year - 1, false)
                 stats.carryVacationDaysFromPreviousYear = stats.lastYearStats!!.vacationDaysLeftInYear
                         ?: BigDecimal.ZERO
                 log.info("Calculation of carry for employee: $stats")

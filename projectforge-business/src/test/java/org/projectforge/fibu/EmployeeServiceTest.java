@@ -23,39 +23,24 @@
 
 package org.projectforge.fibu;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.MockitoAnnotations;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.business.user.service.UserService;
-import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.NoResultException;
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 
 public class EmployeeServiceTest extends AbstractTestBase
 {
   @Autowired
   private EmployeeService employeeService;
-
-  @Autowired
-  private UserService userService;
-
-  @InjectMocks
-  private VacationService vacationService = new VacationService();
 
   @Test
   public void testInsertDelete()
@@ -77,8 +62,8 @@ public class EmployeeServiceTest extends AbstractTestBase
       exceptionList.add(e);
     }
 
-    assertEquals(exceptionList.size(), 1);
-    assertEquals(employeeDO1, null);
+    assertEquals(1, exceptionList.size());
+    assertNull(employeeDO1);
   }
 
   @Test
@@ -136,26 +121,4 @@ public class EmployeeServiceTest extends AbstractTestBase
     boolean result = employeeService.isEmployeeActive(employee);
     assertFalse(result);
   }
-
-  @Test
-  @Disabled
-  public void testGetStudentVacationCountPerDay()
-  {
-    MockitoAnnotations.initMocks(this);
-    when(vacationService.getStudentsVacationCount(2017, Month.MAY.getValue(), 2017, Month.OCTOBER.getValue(), new PFUserDO())).thenReturn("TestCase 1");
-    when(vacationService.getStudentsVacationCount(2016, Month.JULY.getValue(), 2017, Month.OCTOBER.getValue(), new PFUserDO())).thenReturn("TestCase 2");
-    when(vacationService.getStudentsVacationCount(2017, Month.JULY.getValue(), 2017, Month.OCTOBER.getValue(), new PFUserDO())).thenReturn("TestCase 3");
-
-    PFDateTime testCase1 = PFDateTime.now().withYear(2017).withMonth(Month.OCTOBER.getValue());
-    when(PFDateTime.now()).thenReturn(testCase1);
-    Assertions.assertEquals("TestCase 1", employeeService.getStudentVacationCountPerDay(new EmployeeDO()));
-
-    PFDateTime testCase2 = PFDateTime.now().withYear(2017).withMonth(Month.FEBRUARY.getValue());
-    when(PFDateTime.now()).thenReturn(testCase2);
-
-    LocalDate testCase3 = LocalDate.now().withYear(2017).withMonth(Month.AUGUST.getValue());
-    when(LocalDate.now()).thenReturn(testCase3);
-    when(new EmployeeDO().getEintrittsDatum()).thenReturn(testCase3);
-  }
-
 }

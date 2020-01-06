@@ -32,7 +32,9 @@ import org.projectforge.business.vacation.model.VacationCalendarDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.business.vacation.service.VacationValidator;
 import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -50,8 +52,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -97,6 +99,27 @@ public class VacationDao extends BaseDao<VacationDO> {
   public boolean hasAccess(final PFUserDO user, final VacationDO obj, final VacationDO oldObj,
                            final OperationType operationType,
                            final boolean throwException) {
+    if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE) ||
+            obj.getManager() != null && Objects.equals(obj.getManager().getUserId(), user.getId())) {
+      // User is HR staff member or assigned manager.
+      return true;
+    }
+    EmployeeDO employee = obj.getEmployee();
+    if (employee == null || !Objects.equals(employee.getUserId(), user.getId())) {
+      // User is not allowed to modify entries of other users.
+      if (throwException) {
+        throw new AccessException("access.exception.userHasNotRight", UserRightId.HR_VACATION, UserRightValue.READWRITE);
+      }
+      return false;
+    }
+    // User is owner of given object.
+    if (!obj.isDeleted() && obj.getStatus() == VacationStatus.APPROVED) {
+      if (oldObj == null || oldObj.getStatus() != VacationStatus.APPROVED) {
+        // User tried to insert a new entry as approved or tries to approve a not yet approved entry.
+        throw new AccessException(VacationValidator.Error.NOT_ALLOWED_TO_APPROVE.getMessageKey());
+      }
+      return false;
+    }
     return true;
   }
 
@@ -108,14 +131,14 @@ public class VacationDao extends BaseDao<VacationDO> {
   protected void onSave(VacationDO obj) {
     super.onSave(obj);
     VacationService service = applicationContext.getBean(VacationService.class);
-    service.validate(obj);
+    service.validate(obj, null, true);
   }
 
   @Override
   protected void onChange(VacationDO obj, VacationDO dbObj) {
     super.onChange(obj, dbObj);
     VacationService service = applicationContext.getBean(VacationService.class);
-    service.validate(obj, dbObj);
+    service.validate(obj, dbObj, true);
   }
 
   public List<VacationDO> getVacationForPeriod(EmployeeDO employee, LocalDate startVacationDate, LocalDate endVacationDate, boolean withSpecial) {
@@ -179,17 +202,6 @@ public class VacationDao extends BaseDao<VacationDO> {
             tenantService.getDefaultTenant();
   }
 
-  public List<VacationDO> getAllActiveVacation(EmployeeDO employee, boolean withSpecial) {
-    final List<VacationDO> result = emgrFactory.runRoTrans(emgr -> {
-      String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee";
-      List<VacationDO> dbResultList = emgr
-              .selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee, "deleted", false, "tenant",
-                      getTenant());
-      return dbResultList;
-    });
-    return result;
-  }
-
   public BigDecimal getOpenLeaveApplicationsForEmployee(EmployeeDO employee) {
     BigDecimal result = BigDecimal.ZERO;
     final List<VacationDO> resultList = emgrFactory.runRoTrans(emgr -> {
@@ -203,18 +215,6 @@ public class VacationDao extends BaseDao<VacationDO> {
       result = new BigDecimal(resultList.size());
     }
     return result;
-  }
-
-  public List<VacationDO> getSpecialVacation(EmployeeDO employee, int year, VacationStatus status) {
-    final LocalDate startYear = LocalDate.of(year, Month.JANUARY, 1);
-    final LocalDate endYear = LocalDate.of(year, Month.DECEMBER, 31);
-    final List<VacationDO> resultList = emgrFactory.runRoTrans(emgr -> {
-      final String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate AND v.status = :status AND v.special = :special";
-      return emgr
-              .selectDetached(VacationDO.class, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "startDate", startYear, "endDate",
-                      endYear, "status", status, "special", true, "deleted", false, "tenant", getTenant());
-    });
-    return resultList != null ? resultList : Collections.emptyList();
   }
 
   public List<TeamCalDO> getCalendarsForVacation(VacationDO vacation) {
