@@ -22,8 +22,6 @@ function MagicFilterPill(
         ...props
     },
 ) {
-    console.log(isNew);
-
     const [isOpen, setIsOpen] = React.useState(isNew);
     const [tempValue, setTempValue] = React.useState(value);
 
