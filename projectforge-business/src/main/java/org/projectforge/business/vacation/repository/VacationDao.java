@@ -31,7 +31,7 @@ import org.projectforge.business.vacation.VacationFilter;
 import org.projectforge.business.vacation.model.VacationCalendarDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
-import org.projectforge.business.vacation.service.VacationServiceNew;
+import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -107,14 +107,14 @@ public class VacationDao extends BaseDao<VacationDO> {
   @Override
   protected void onSave(VacationDO obj) {
     super.onSave(obj);
-    VacationServiceNew service = applicationContext.getBean(VacationServiceNew.class);
+    VacationService service = applicationContext.getBean(VacationService.class);
     service.validate(obj);
   }
 
   @Override
   protected void onChange(VacationDO obj, VacationDO dbObj) {
     super.onChange(obj, dbObj);
-    VacationServiceNew service = applicationContext.getBean(VacationServiceNew.class);
+    VacationService service = applicationContext.getBean(VacationService.class);
     service.validate(obj, dbObj);
   }
 

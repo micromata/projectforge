@@ -142,9 +142,9 @@ public class EmployeeServiceTest extends AbstractTestBase
   public void testGetStudentVacationCountPerDay()
   {
     MockitoAnnotations.initMocks(this);
-    when(vacationService.getVacationCount(2017, Month.MAY.getValue(), 2017, Month.OCTOBER.getValue(), new PFUserDO())).thenReturn("TestCase 1");
-    when(vacationService.getVacationCount(2016, Month.JULY.getValue(), 2017, Month.OCTOBER.getValue(), new PFUserDO())).thenReturn("TestCase 2");
-    when(vacationService.getVacationCount(2017, Month.JULY.getValue(), 2017, Month.OCTOBER.getValue(), new PFUserDO())).thenReturn("TestCase 3");
+    when(vacationService.getStudentsVacationCount(2017, Month.MAY.getValue(), 2017, Month.OCTOBER.getValue(), new PFUserDO())).thenReturn("TestCase 1");
+    when(vacationService.getStudentsVacationCount(2016, Month.JULY.getValue(), 2017, Month.OCTOBER.getValue(), new PFUserDO())).thenReturn("TestCase 2");
+    when(vacationService.getStudentsVacationCount(2017, Month.JULY.getValue(), 2017, Month.OCTOBER.getValue(), new PFUserDO())).thenReturn("TestCase 3");
 
     PFDateTime testCase1 = PFDateTime.now().withYear(2017).withMonth(Month.OCTOBER.getValue());
     when(PFDateTime.now()).thenReturn(testCase1);

@@ -271,15 +271,15 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
       if (eintrittsDatum.isBefore(deadLine)) {
         if (now.getMonthValue() >= Month.JUNE.getValue()) {
           vacationCountPerDay = vacationService
-              .getVacationCount(now.getYear(), now.getMonthValue() - 5, now.getYear(), now.getMonthValue(),
+              .getStudentsVacationCount(now.getYear(), now.getMonthValue() - 5, now.getYear(), now.getMonthValue(),
                   currentEmployee.getUser());
         } else {
           vacationCountPerDay = vacationService
-              .getVacationCount(now.getYear() - 1, 12 - (6 - now.getMonthValue() + 1), now.getYear(), now.getMonthValue(), currentEmployee.getUser());
+              .getStudentsVacationCount(now.getYear() - 1, 12 - (6 - now.getMonthValue() + 1), now.getYear(), now.getMonthValue(), currentEmployee.getUser());
         }
       } else {
         vacationCountPerDay = vacationService
-            .getVacationCount(eintrittsDatum.getYear(), eintrittsDatum.getMonthValue(), now.getYear(), now.getMonthValue(), currentEmployee.getUser());
+            .getStudentsVacationCount(eintrittsDatum.getYear(), eintrittsDatum.getMonthValue(), now.getYear(), now.getMonthValue(), currentEmployee.getUser());
       }
     }
     return vacationCountPerDay;
