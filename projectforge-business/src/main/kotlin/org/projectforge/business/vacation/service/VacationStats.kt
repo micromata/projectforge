@@ -53,35 +53,51 @@ class VacationStats(
     /**
      * The number of vacation days left from the previous year, which are already used for vacation.
      */
-    var carryVacationDaysFromPreviousYearUsed: BigDecimal? = null
+    var carryVacationDaysFromPreviousYearAllocated: BigDecimal? = null
     val carryVacationDaysFromPreviousYearUnused: BigDecimal?
         get() {
             val total = carryVacationDaysFromPreviousYear
-            val used = carryVacationDaysFromPreviousYearUsed
+            val allocated = carryVacationDaysFromPreviousYearAllocated
             if (total == null)
                 return null
-            if (used == null)
+            if (allocated == null)
                 return BigDecimal.ZERO
-            return maxOf(total - used, BigDecimal.ZERO)
+            return maxOf(total - allocated, BigDecimal.ZERO)
         }
     /**
      * The overlap period defines the beginning of year until the end of the vacation year (after it the carried and unused
      * vacation days of the previous years will be lost.
      */
-    var usedDaysInOverlapPeriod: BigDecimal? = null
+    var allocatedDaysInOverlapPeriod: BigDecimal? = null
     /**
      * Number of annual vacation days from contract. If the employee has joined in the same year, a fraction is calculated.
      */
     var vacationDaysInYearFromContract: BigDecimal? = null
     /**
-     * Number of vacation days, persisted as VacationDO objects in the data-base for the specified base year.
+     * Number of approved vacation days or vacation days in progress, persisted as VacationDO objects in the data-base for the specified base year.
      */
-    var vacationDaysUsedInYear: BigDecimal? = null
+    var vacationDaysInProgressAndApproved: BigDecimal? = null
     /**
      * The employee has some vacation days left (used less than the annual vacation days of contract, including any
      * carry from previous years.
      */
     var vacationDaysLeftInYear: BigDecimal? = null
+    /**
+     * Number of vacation days in progress, not yet approved.
+     */
+    var vacationDaysInProgress: BigDecimal? = null
+    /**
+     * Number of approved vacation days.
+     */
+    var vacationDaysApproved: BigDecimal? = null
+    /**
+     * Number of special vacation days in progress, not yet approved.
+     */
+    var specialVacationDaysInProgress: BigDecimal? = null
+    /**
+     * Number of approved special vacation days.
+     */
+    var specialVacationDaysApproved: BigDecimal? = null
     /**
      * Only given, if this year has to be calculated for getting the the carry of vacation days of this year.
      * The year must be the last year (from today).
@@ -94,10 +110,10 @@ class VacationStats(
     internal fun calculateLeftDaysInYear() {
         // carried vacation days or actual used vacation days in overlap period. If the employee has less vacation days
         // than carried, these vacation days will be lost after the end of vacation year (31.3.).
-        var leftInYear = minOf(carryVacationDaysFromPreviousYear!!, usedDaysInOverlapPeriod!!)
+        var leftInYear = minOf(carryVacationDaysFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
         leftInYear += vacationDaysInYearFromContract!! // annual vacation days from contract.
-        leftInYear -= vacationDaysUsedInYear!!
+        leftInYear -= vacationDaysInProgressAndApproved!!
         this.vacationDaysLeftInYear = leftInYear
-        this.carryVacationDaysFromPreviousYearUsed = maxOf(carryVacationDaysFromPreviousYear!!, usedDaysInOverlapPeriod!!)
+        this.carryVacationDaysFromPreviousYearAllocated = maxOf(carryVacationDaysFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
     }
 }

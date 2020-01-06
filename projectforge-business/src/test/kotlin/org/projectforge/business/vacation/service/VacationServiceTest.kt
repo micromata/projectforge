@@ -40,7 +40,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
 
-class VacationServiceNewTest : AbstractTestBase() {
+class VacationServiceTest : AbstractTestBase() {
     @Autowired
     private lateinit var employeeDao: EmployeeDao
 
@@ -54,7 +54,7 @@ class VacationServiceNewTest : AbstractTestBase() {
     private lateinit var vacationDao: VacationDao
 
     @Autowired
-    private lateinit var vacationServiceNew: VacationServiceNew
+    private lateinit var vacationService: VacationService
 
     /**
      * Test is based on year 2020 (should also run in 2021...).
@@ -78,10 +78,10 @@ class VacationServiceNewTest : AbstractTestBase() {
         Assertions.assertEquals(20.0, addVacations(employee, 2019, Month.JULY, 1, Month.JULY, 26), "days off expected.")
         Assertions.assertEquals(10.0, addVacations(employee, 2020, Month.JULY, 13, Month.JULY, 24), "days off expected.")
         assertStats(employee, 2019,
-                vacationDaysUsedInYear = 20.0,
+                vacationDaysAllocatedInYear = 20.0,
                 vacationDaysInYearFromContract = 30.0) // Full year
         assertStats(employee, 2020,
-                vacationDaysUsedInYear = 10.0,
+                vacationDaysAllocatedInYear = 10.0,
                 carryVacationDaysFromPreviousYear = 10.0) // Employee joined in 2018, carry expected.
     }
 
@@ -112,11 +112,11 @@ class VacationServiceNewTest : AbstractTestBase() {
 
         assertStats(employee, 2019,
                 vacationDaysInYearFromContract = 20.0, // 7 months
-                vacationDaysUsedInYear = 13.0)
+                vacationDaysAllocatedInYear = 13.0)
         assertStats(employee, 2020,
                 carryVacationDaysFromPreviousYear = 7.0,
                 vacationDaysInYearFromContract = 30.0, // Full year
-                vacationDaysUsedInYear = 10.0,
+                vacationDaysAllocatedInYear = 10.0,
                 vacationDaysLeftInYear = 23.0) // 4 days lost after overlap period: 7 - 4 + 30 - 10
     }
 
@@ -132,7 +132,7 @@ class VacationServiceNewTest : AbstractTestBase() {
         Assertions.assertEquals(7.0, addVacations(employee, 2020, Month.JUNE, 1, Month.JUNE, 10), "days off expected.")
         assertStats(employee, 2020,
                 vacationDaysInYearFromContract = 20.0,
-                vacationDaysUsedInYear = 7.0)
+                vacationDaysAllocatedInYear = 7.0)
     }
 
     @Test
@@ -166,19 +166,19 @@ class VacationServiceNewTest : AbstractTestBase() {
      * If endMonth is before startMonth, the next year will be used as endYear.
      * @return Number of vacation days (equals to working days between startDate and endDate)
      */
-    private fun addVacations(employee: EmployeeDO, startYear: Int, startMonth: Month, startDay: Int, endMonth: Month, endDay: Int): Double {
+    private fun addVacations(employee: EmployeeDO, startYear: Int, startMonth: Month, startDay: Int, endMonth: Month, endDay: Int, special: Boolean = false): Double {
         val endYear = if (startMonth > endMonth)
             startYear + 1 // Vacations over years.
         else
             startYear
-        return addVacations(employee, LocalDate.of(startYear, startMonth, startDay), LocalDate.of(endYear, endMonth, endDay))
+        return addVacations(employee, LocalDate.of(startYear, startMonth, startDay), LocalDate.of(endYear, endMonth, endDay), special)
     }
 
     /**
      * Ensures vacation days only after join date of this employee.
      * @return Number of vacation days (equals to working days between startDate and endDate)
      */
-    private fun addVacations(employee: EmployeeDO, startDate: LocalDate, endDate: LocalDate): Double {
+    private fun addVacations(employee: EmployeeDO, startDate: LocalDate, endDate: LocalDate, special: Boolean = false): Double {
         if (endDate.isBefore(employee.eintrittsDatum))
             return 0.0
         val vacation = VacationDO()
@@ -189,6 +189,7 @@ class VacationServiceNewTest : AbstractTestBase() {
         vacation.special = false
         vacation.status = VacationStatus.APPROVED
         vacation.manager = employee // OK for tests...
+        vacation.special = special
         vacationDao.internalSave(vacation)
         return PFDayUtils.getNumberOfWorkingDays(startDate, endDate).toDouble()
     }
@@ -212,16 +213,16 @@ class VacationServiceNewTest : AbstractTestBase() {
                             year: Int,
                             carryVacationDaysFromPreviousYear: Double = 0.0,
                             vacationDaysInYearFromContract: Double = 30.0,
-                            vacationDaysUsedInYear: Double = 0.0,
+                            vacationDaysAllocatedInYear: Double = 0.0,
                             vacationDaysLeftInYear: Double? = null): VacationStats {
-        val stats = vacationServiceNew.getVacationStats(employee, year, true, 2020)
+        val stats = vacationService.getVacationStats(employee, year, true, 2020)
         assertNumbers(stats, carryVacationDaysFromPreviousYear, stats.carryVacationDaysFromPreviousYear, "carryVacationDaysFromPreviousYear")
-        assertNumbers(stats, vacationDaysUsedInYear, stats.vacationDaysUsedInYear, "vacationDaysUsedInYear")
+        assertNumbers(stats, vacationDaysAllocatedInYear, stats.vacationDaysInProgressAndApproved, "vacationDaysAllocatedInYear")
         assertNumbers(stats, vacationDaysInYearFromContract, stats.vacationDaysInYearFromContract, "vacationDaysInYearFromContract")
         if (vacationDaysLeftInYear != null)
             assertNumbers(stats, vacationDaysLeftInYear, stats.vacationDaysLeftInYear, "vacationDaysLeftInYear")
         else
-            assertNumbers(stats, vacationDaysInYearFromContract - vacationDaysUsedInYear, stats.vacationDaysLeftInYear, "vacationDaysLeftInYear")
+            assertNumbers(stats, vacationDaysInYearFromContract - vacationDaysAllocatedInYear, stats.vacationDaysLeftInYear, "vacationDaysLeftInYear")
         if (carryVacationDaysFromPreviousYear != null && carryVacationDaysFromPreviousYear > 0) {
             assertNumbers(stats,
                     carryVacationDaysFromPreviousYear,

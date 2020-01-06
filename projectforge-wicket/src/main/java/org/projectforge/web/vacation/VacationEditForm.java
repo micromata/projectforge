@@ -44,7 +44,6 @@ import org.projectforge.business.vacation.model.VacationMode;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationCalendarService;
 import org.projectforge.business.vacation.service.VacationService;
-import org.projectforge.business.vacation.service.VacationServiceNew;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.I18nHelper;
@@ -77,8 +76,6 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   private final Model<String> availableVacationDaysModel = new Model<>();
   @SpringBean
   private VacationService vacationService;
-  @SpringBean
-  private VacationServiceNew vacationServiceNew;
   @SpringBean
   private VacationCalendarService vacationCalendarService;
   @SpringBean
@@ -128,7 +125,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     if (checkReadAccess() == false) {
       throw new AccessException("access.exception.userHasNotRight");
     }
-    VacationFormValidator formValidator = new VacationFormValidator(vacationService, vacationServiceNew, vacationCalendarService, configService, data);
+    VacationFormValidator formValidator = new VacationFormValidator(vacationService, vacationService, vacationCalendarService, configService, data);
     add(formValidator);
 
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -374,7 +371,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     } else {
       year = Year.now().getValue();
     }
-    return vacationServiceNew.getVacationStats(vacationData.getEmployee(), year).getVacationDaysLeftInYear();
+    return vacationService.getVacationStats(vacationData.getEmployee(), year).getVacationDaysLeftInYear();
   }
 
   private boolean checkEnableInputField() {

@@ -33,13 +33,14 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.projectforge.Const;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.WicketRenderHeadUtils;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.converter.MyDateConverter;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
-import java.util.Calendar;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.function.BooleanSupplier;
 
@@ -66,6 +67,8 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
   private boolean autosubmit;
 
   private int minYear = Const.MINYEAR, maxYear = Const.MAXYEAR;
+
+  private DatePanelSettings settings;
 
   /**
    * @param id
@@ -99,6 +102,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
                         final BooleanSupplier requiredSupplier)
   {
     super(id, model);
+    this.settings = settings;
     this.requiredSupplier = requiredSupplier;
     setType(settings.targetType);
     final MyDateConverter dateConverter = new MyDateConverter(settings.targetType, "M-");
@@ -140,9 +144,8 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
       {
         final Date date = validatable.getValue();
         if (date != null) {
-          final Calendar cal = Calendar.getInstance();
-          cal.setTime(date);
-          final int year = cal.get(Calendar.YEAR);
+          final PFDay day = PFDay.from(date, false, settings.timeZone);
+          final int year = day.getYear();
           if (year < minYear || year > maxYear) {
             validatable.error(new ValidationError().addKey("error.date.yearOutOfRange").setVariable("minimumYear", minYear)
                 .setVariable("maximumYear", maxYear));
@@ -289,5 +292,9 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
   public FormComponent<?> getFormComponent()
   {
     return dateField;
+  }
+
+  public LocalDate getConvertedInputAsLocalDate() {
+    return PFDay.from(date, false, settings.timeZone).getDate();
   }
 }

@@ -43,12 +43,10 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
-import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.business.vacation.service.VacationStats;
 import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.vacation.VacationEditPage;
 import org.projectforge.web.vacation.VacationViewPageSortableDataProvider;
@@ -61,9 +59,8 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Year;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 @Component
@@ -80,8 +77,8 @@ public class VacationViewHelper
 
   public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee, boolean showAddButton, final WebPage returnToPage)
   {
-    final Calendar now = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     LocalDate endDatePreviousYearVacation = configService.getEndDateVacationFromLastYear();
+    VacationStats stats = vacationService.getVacationStats(currentEmployee);
 
     // leave account
     GridBuilder sectionLeftGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
@@ -91,35 +88,21 @@ public class VacationViewHelper
     BigDecimal vacationdays = currentEmployee.getUrlaubstage() != null ? new BigDecimal(currentEmployee.getUrlaubstage()) : BigDecimal.ZERO;
     appendFieldset(sectionLeftGridBuilder, "vacation.annualleave", vacationdays.toString());
 
-    BigDecimal vacationdaysPreviousYear = currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class) != null
-        ? currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class) : BigDecimal.ZERO;
+    BigDecimal vacationdaysPreviousYear = stats.getCarryVacationDaysFromPreviousYear();
+    if (vacationdaysPreviousYear == null)
+      vacationdaysPreviousYear = BigDecimal.ZERO;
     appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleave", vacationdaysPreviousYear.toString());
 
     BigDecimal subtotal1 = vacationdays.add(vacationdaysPreviousYear);
     appendFieldset(sectionLeftGridBuilder, "vacation.subtotal", subtotal1.toString());
 
-    BigDecimal approvedVacationdays = vacationService.getApprovedVacationdaysForYear(currentEmployee, now.get(Calendar.YEAR));
+    BigDecimal approvedVacationdays = stats.getVacationDaysApproved();
     appendFieldset(sectionLeftGridBuilder, "vacation.approvedvacation", approvedVacationdays.toString());
 
-    BigDecimal plannedVacation = vacationService.getPlannedVacationdaysForYear(currentEmployee, now.get(Calendar.YEAR));
+    BigDecimal plannedVacation = stats.getVacationDaysInProgress();
     appendFieldset(sectionLeftGridBuilder, "vacation.plannedvacation", plannedVacation.toString());
 
-    BigDecimal availableVacation = subtotal1.subtract(plannedVacation).subtract(approvedVacationdays);
-
-    //Needed for left and middle part
-    BigDecimal vacationdaysPreviousYearUsed =
-        currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) != null ?
-            currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) : BigDecimal.ZERO;
-    BigDecimal vacationdaysPreviousYearUnused = vacationdaysPreviousYear.subtract(vacationdaysPreviousYearUsed);
-    String endDatePreviousYearVacationString =
-        endDatePreviousYearVacation.getDayOfMonth() + "." + endDatePreviousYearVacation.getMonthValue() + ".";
-
-    //If previousyearleaveunused > 0, then extend left area and display new row
-    if (vacationdaysPreviousYearUnused.compareTo(BigDecimal.ZERO) > 0 && now.after(endDatePreviousYearVacation)) {
-      appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveunused", vacationdaysPreviousYearUnused.toString(),
-          endDatePreviousYearVacationString);
-      availableVacation = availableVacation.subtract(vacationdaysPreviousYearUnused);
-    }
+    BigDecimal availableVacation = stats.getVacationDaysLeftInYear();
     appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", availableVacation.toString());
 
     //middel
@@ -127,9 +110,10 @@ public class VacationViewHelper
     DivPanel sectionMiddleLeft = sectionMiddleLeftGridBuilder.getPanel();
     sectionMiddleLeft.add(new Heading1Panel(sectionMiddleLeft.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.lastyear")));
 
-    appendFieldset(sectionMiddleLeftGridBuilder, "vacation.previousyearleaveused", vacationdaysPreviousYearUsed.toString());
+    appendFieldset(sectionMiddleLeftGridBuilder, "vacation.previousyearleaveused", stats.getCarryVacationDaysFromPreviousYearAllocated().toString());
 
-    appendFieldset(sectionMiddleLeftGridBuilder, "vacation.previousyearleaveunused", vacationdaysPreviousYearUnused.toString(),
+    String endDatePreviousYearVacationString = endDatePreviousYearVacation.getDayOfMonth() + "." + endDatePreviousYearVacation.getMonthValue() + ".";
+    appendFieldset(sectionMiddleLeftGridBuilder, "vacation.previousyearleaveunused", stats.getCarryVacationDaysFromPreviousYearUnused().toString(),
         endDatePreviousYearVacationString);
 
     // special leave
@@ -137,10 +121,10 @@ public class VacationViewHelper
     DivPanel sectionMiddleRight = sectionMiddleRightGridBuilder.getPanel();
     sectionMiddleRight.add(new Heading1Panel(sectionMiddleRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.isSpecial")));
     appendFieldset(sectionMiddleRightGridBuilder, "vacation.isSpecialPlaned",
-        String.valueOf(vacationService.getSpecialVacationCount(currentEmployee, now.get(Calendar.YEAR), VacationStatus.IN_PROGRESS)));
+        String.valueOf(stats.getSpecialVacationDaysInProgress()));
 
     appendFieldset(sectionMiddleRightGridBuilder, "vacation.isSpecialApproved",
-        String.valueOf(vacationService.getSpecialVacationCount(currentEmployee, now.get(Calendar.YEAR), VacationStatus.APPROVED)));
+        String.valueOf(stats.getSpecialVacationDaysApproved()));
 
     //student leave
     if (EmployeeStatus.STUD_ABSCHLUSSARBEIT.equals(employeeService.getEmployeeStatus(currentEmployee)) ||
@@ -157,7 +141,7 @@ public class VacationViewHelper
     GridBuilder sectionBottomGridBuilder = gridBuilder.newSplitPanel(GridSize.COL100);
     DivPanel sectionBottom = sectionBottomGridBuilder.getPanel();
     sectionBottom.add(new Heading3Panel(sectionBottom.newChildId(),
-        I18nHelper.getLocalizedMessage("vacation.title.list") + " " + now.get(Calendar.YEAR)));
+        I18nHelper.getLocalizedMessage("vacation.title.list") + " " + Year.now().getValue()));
     if (showAddButton) {
       final PageParameters pageParameter = new PageParameters();
       pageParameter.add("employeeId", currentEmployee.getId());

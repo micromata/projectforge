@@ -28,7 +28,7 @@ import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserRightId
-import org.projectforge.business.vacation.service.VacationServiceNew
+import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -139,15 +139,15 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     }
 
     /**
-     * If change of [EmployeeDO.urlaubstage] detected, [VacationServiceNew.getRemainingDaysFromPreviousYear] will be called.
-     * @see VacationServiceNew.getRemainingDaysFromPreviousYear
+     * If change of [EmployeeDO.urlaubstage] detected, [VacationService.getRemainingDaysFromPreviousYear] will be called.
+     * @see VacationService.getRemainingDaysFromPreviousYear
      */
     override fun onChange(obj: EmployeeDO, dbObj: EmployeeDO) {
         super.onChange(obj, dbObj)
         if (obj.urlaubstage != dbObj.urlaubstage) {
             log.info("Number of vacation days per year changed, so calculate remaining vacation days from previuos year, if not yet done.")
             // Can't autowire due to circular reference:
-            applicationContext.getBean(VacationServiceNew::class.java).getRemainingDaysFromPreviousYear(obj)
+            applicationContext.getBean(VacationService::class.java).getRemainingDaysFromPreviousYear(obj)
         }
     }
 
