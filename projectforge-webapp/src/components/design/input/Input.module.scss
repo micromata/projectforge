@@ -45,6 +45,7 @@
       @include transition-transform-extra(.3s, translate(2px, 1em) scale(1, 1), color .3s);
       transform-origin: top left;
       color: #7a7a7a;
+      white-space: nowrap;
     }
 
     .input {
