@@ -31,6 +31,7 @@ import org.projectforge.business.vacation.model.RemainingDaysOfVactionDao
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.time.LocalDatePeriod
 import org.projectforge.framework.time.PFDayUtils
 import org.slf4j.LoggerFactory
@@ -135,9 +136,60 @@ open class VacationServiceNew {
         return result.filter { DEFAULT_VACATION_STATUS_LIST.contains(it.status) }
     }
 
-    fun validate() {
-        // Overlap
-        // carry
+    /**
+     * Checks for collissions, enough left days etc.
+     * @param vacation The vacation entry to check.
+     * @param dbVacation If modified, the previous entry (data base entry).
+     */
+    @JvmOverloads
+    fun validate(vacation: VacationDO, dbVacation: VacationDO? = null) {
+        val startDate = vacation.startDate
+        val endDate = vacation.endDate
+        val employee = vacation.employee
+        if (startDate == null || endDate == null) {
+            throw UserException("vacation.validate.datenotset")
+        }
+        require(employee != null)
+        val year = startDate.year
+        getVacationsListForPeriod(employee, startDate, endDate).forEach {
+            if (dbVacation == null || vacation.id == null || vacation.id != dbVacation.id) {
+                // Any other entry exist with overlapping time period.
+                throw UserException("vacation.validate.collission")
+            }
+        }
+        if (startDate.year != endDate.year) {
+            throw UserException("vacation.validate.vacationIn2Years")
+        }
+        if (vacation.special == true) {
+            // No checking of available days.
+        } else {
+            // Check of available days:
+            val stats = getVacationStats(employee, year)
+            val numberOfWorkingDays = PFDayUtils.getNumberOfWorkingDays(startDate, endDate)
+            // If this entry will be modified, the number of days from must be substracted, otherwise it would be count
+            // twice.
+            val dbDays = if (dbVacation != null)
+                PFDayUtils.getNumberOfWorkingDays(dbVacation.startDate!!, dbVacation.endDate!!)
+            else
+                BigDecimal.ZERO
+            if (numberOfWorkingDays - dbDays > stats.vacationDaysLeftInYear) {
+                val endOfVacationYear = configService.getEndOfCarryVacationOfPreviousYear(year)
+                var enoughDaysLeft = false
+                if (startDate.isBefore(endOfVacationYear)) {
+                    val overlapDays = if (endDate > endOfVacationYear)
+                        PFDayUtils.getNumberOfWorkingDays(startDate, endOfVacationYear)
+                    else
+                        PFDayUtils.getNumberOfWorkingDays(startDate, endDate)
+                    val additionalCarryDays = maxOf(stats.carryVacationDaysFromPreviousYearUnused!! - overlapDays, BigDecimal.ZERO)
+                    if (numberOfWorkingDays - dbDays <= stats.vacationDaysLeftInYear!! + additionalCarryDays) {
+                        // Including unused carry days, it's now enough:
+                        enoughDaysLeft = true
+                    }
+                }
+                if (!enoughDaysLeft)
+                    throw UserException("vacation.validate.notEnoughVacationDaysLeft")
+            }
+        }
     }
 
     /**
@@ -160,7 +212,7 @@ open class VacationServiceNew {
      */
     private fun getNumberOfUsedVacationDaysInOverlapPeriod(vacations: List<VacationDO>, year: Int): BigDecimal {
         val periodBegin = LocalDate.of(year, Month.JANUARY, 1)
-        val periodEnd = configService.getEndOfVacation(year)
+        val periodEnd = configService.getEndOfCarryVacationOfPreviousYear(year)
         return sum(vacations, periodBegin, periodEnd)
     }
 

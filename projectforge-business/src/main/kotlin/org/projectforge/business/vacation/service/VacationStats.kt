@@ -51,6 +51,20 @@ class VacationStats(
      */
     var carryVacationDaysFromPreviousYear: BigDecimal? = null
     /**
+     * The number of vacation days left from the previous year, which are already used for vacation.
+     */
+    var carryVacationDaysFromPreviousYearUsed: BigDecimal? = null
+    val carryVacationDaysFromPreviousYearUnused: BigDecimal?
+        get() {
+            val total = carryVacationDaysFromPreviousYear
+            val used = carryVacationDaysFromPreviousYearUsed
+            if (total == null)
+                return null
+            if (used == null)
+                return BigDecimal.ZERO
+            return maxOf(total - used, BigDecimal.ZERO)
+        }
+    /**
      * The overlap period defines the beginning of year until the end of the vacation year (after it the carried and unused
      * vacation days of the previous years will be lost.
      */
@@ -84,5 +98,6 @@ class VacationStats(
         leftInYear += vacationDaysInYearFromContract!! // annual vacation days from contract.
         leftInYear -= vacationDaysUsedInYear!!
         this.vacationDaysLeftInYear = leftInYear
+        this.carryVacationDaysFromPreviousYearUsed = maxOf(carryVacationDaysFromPreviousYear!!, usedDaysInOverlapPeriod!!)
     }
 }

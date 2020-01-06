@@ -580,7 +580,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   @Override
   public LocalDate getEndDateVacationFromLastYear() {
     LocalDate today = LocalDate.now();
-    LocalDate endOfVactionYear = getEndOfVacation(today.getYear());
+    LocalDate endOfVactionYear = getEndOfCarryVacationOfPreviousYear(today.getYear());
     if (endOfVactionYear.isAfter(today)) {
       // Now is between 01.01. and 31.03.:
       endOfVactionYear = endOfVactionYear.minusYears(1);
@@ -593,7 +593,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
    * from the last year will be invalid, if not used.
    */
   @Override
-  public LocalDate getEndOfVacation(int year) {
+  public LocalDate getEndOfCarryVacationOfPreviousYear(int year) {
     int day = 31;
     int month = 3; // March, 1 based, 1-January, ..., 12-December.
     ConfigurationDO configDO = configDao.getEntry(ConfigurationParam.END_DATE_VACATION_LASTR_YEAR);
