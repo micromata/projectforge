@@ -7,19 +7,19 @@ export const LIST_FILTER_SEARCH_STRING_CHANGED = 'LIST_FILTER_SEARCH_STRING_CHAN
 export const LIST_FILTER_SET = 'LIST_FILTER_SET';
 export const LIST_FILTER_SORT = 'LIST_FILTER_SORT';
 
-const add = (category, filterId) => ({
+const add = (category, fieldId) => ({
     type: LIST_FILTER_ADD,
     payload: {
         category,
-        filterId,
+        fieldId,
     },
 });
 
-const remove = (category, filterId) => ({
+const remove = (category, fieldId) => ({
     type: LIST_FILTER_REMOVE,
     payload: {
         category,
-        filterId,
+        fieldId,
     },
 });
 
@@ -36,11 +36,11 @@ const searchFilterChanged = (category, searchString) => ({
     },
 });
 
-const set = (category, filterId, newValue) => ({
+const set = (category, fieldId, newValue) => ({
     type: LIST_FILTER_SET,
     payload: {
         category,
-        filterId,
+        fieldId,
         newValue,
     },
 });
@@ -54,12 +54,12 @@ const sort = (column, sortProperty, category) => ({
     },
 });
 
-export const addFilter = filterId => (dispatch, getState) => dispatch(
-    add(getState().list.currentCategory, filterId),
+export const addFilter = fieldId => (dispatch, getState) => dispatch(
+    add(getState().list.currentCategory, fieldId),
 );
 
-export const removeFilter = filterId => (dispatch, getState) => dispatch(
-    remove(getState().list.currentCategory, filterId),
+export const removeFilter = fieldId => (dispatch, getState) => dispatch(
+    remove(getState().list.currentCategory, fieldId),
 );
 
 export const changeSearchString = searchString => (dispatch, getState) => dispatch(
@@ -70,8 +70,8 @@ export const resetAllFilters = () => (dispatch, getState) => dispatch(
     reset(getState().list.currentCategory),
 );
 
-export const setFilter = (filterId, newValue) => (dispatch, getState) => dispatch(
-    set(getState().list.currentCategory, filterId, newValue),
+export const setFilter = (fieldId, newValue) => (dispatch, getState) => dispatch(
+    set(getState().list.currentCategory, fieldId, newValue),
 );
 
 export const sortList = (property, sortOrder) => (dispatch, getState) => {

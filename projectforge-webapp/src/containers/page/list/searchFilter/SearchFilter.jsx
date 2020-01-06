@@ -13,7 +13,7 @@ import AdvancedPopperAction from '../../../../components/design/popper/AdvancedP
 import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
 import FavoritesPanel from '../../../panel/favorite/FavoritesPanel';
 import styles from '../ListPage.module.scss';
-import MagicFilters from './MagicFilters';
+import MagicFilters from './magicFilter/MagicFilters';
 import QuickSelectionEntry from './QuickSelectionEntry';
 
 const loadQuickSelectionsBounced = (
