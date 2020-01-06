@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.framework.ToStringUtil
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * For calculations of vacations, this class holds all calculated information for further processing, displaying, logging or testing.
@@ -57,7 +58,7 @@ class VacationStats(
     val carryVacationDaysFromPreviousYearUnused: BigDecimal?
         get() {
             val total = carryVacationDaysFromPreviousYear
-            val allocated = carryVacationDaysFromPreviousYearAllocated
+            val allocated = allocatedDaysInOverlapPeriod
             if (total == null)
                 return null
             if (allocated == null)
@@ -103,6 +104,8 @@ class VacationStats(
      * The year must be the last year (from today).
      */
     var lastYearStats: VacationStats? = null
+    var endOfVacationYear: LocalDate? = null
+    var dateOfCalculation: LocalDate = LocalDate.now()
 
     /**
      * Internal function calculates vacationDaysLeftInYear after having all other properties.
@@ -113,7 +116,10 @@ class VacationStats(
         var leftInYear = minOf(carryVacationDaysFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
         leftInYear += vacationDaysInYearFromContract!! // annual vacation days from contract.
         leftInYear -= vacationDaysInProgressAndApproved!!
+        if (dateOfCalculation.isBefore(endOfVacationYear)) {
+            leftInYear += carryVacationDaysFromPreviousYearUnused ?: BigDecimal.ZERO
+        }
         this.vacationDaysLeftInYear = leftInYear
-        this.carryVacationDaysFromPreviousYearAllocated = maxOf(carryVacationDaysFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
+        this.carryVacationDaysFromPreviousYearAllocated = minOf(carryVacationDaysFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
     }
 }
