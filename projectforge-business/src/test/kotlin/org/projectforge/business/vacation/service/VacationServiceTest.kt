@@ -313,7 +313,7 @@ class VacationServiceTest : AbstractTestBase() {
         vacation.employee = employee
         vacation.startDate = if (startDate.isBefore(employee.eintrittsDatum)) employee.eintrittsDatum else startDate
         vacation.endDate = endDate
-        vacation.halfDay = false
+        vacation.halfDayBegin = false
         vacation.special = false
         vacation.status = status
         vacation.manager = manager

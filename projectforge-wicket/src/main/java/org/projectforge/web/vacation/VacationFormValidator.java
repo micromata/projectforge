@@ -109,7 +109,7 @@ public class VacationFormValidator implements IFormValidator {
     vacation.setEndDate(endDate);
     vacation.setEmployee(employee);
     vacation.setSpecial(isOn(isSpecialCheckbox));
-    vacation.setHalfDay(isOn(isHalfDayCheckbox));
+    vacation.setHalfDayBegin(isOn(isHalfDayCheckbox));
     vacation.setStatus(statusChoice.getConvertedInput());
 
     VacationValidator.Error error = vacationService.validate(vacation, null,false);

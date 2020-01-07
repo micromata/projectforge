@@ -349,7 +349,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     if (data.getStartDate() == null || data.getEndDate() == null) {
       days = BigDecimal.ZERO;
     } else {
-      days = vacationService.getVacationDays(data.getStartDate(), data.getEndDate(), data.getHalfDay());
+      days = vacationService.getVacationDays(data.getStartDate(), data.getEndDate(), data.getHalfDayBegin());
     }
     if (days != null) {
       neededVacationDaysModel.setObject(days.toString());

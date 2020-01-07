@@ -117,7 +117,7 @@ object VacationValidator {
             return returnOrThrow(Error.VACATION_IN_2YEARS, throwException)
         }
         // only one day allowed if half day checkbox is active
-        if (vacation.halfDay == true && endDate != startDate) {
+        if (vacation.halfDayBegin == true && endDate != startDate) {
             return returnOrThrow(Error.MORE_THAN_ONE_HALF_DAY, throwException)
         }
         val status = vacation.status
@@ -132,7 +132,7 @@ object VacationValidator {
         }
         val numberOfWorkingDays = PFDayUtils.getNumberOfWorkingDays(startDate, endDate)
         //vacationdays <= 0 days
-        if (vacation.halfDay == true && numberOfWorkingDays <= BigDecimal.ZERO) {
+        if (vacation.halfDayBegin == true && numberOfWorkingDays <= BigDecimal.ZERO) {
             return returnOrThrow(Error.ZERO_NUMBER_OF_DAYS, throwException)
         }
         if (vacation.special == true) {

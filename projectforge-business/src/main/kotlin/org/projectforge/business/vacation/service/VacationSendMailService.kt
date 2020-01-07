@@ -61,7 +61,7 @@ open class VacationSendMailService {
         val urlOfVacationEditPage = domainService.domain + vacationEditPagePath + "?id=" + vacationData!!.id
         val employeeFullName = vacationData.employee!!.user!!.getFullname()
         val managerFirstName = vacationData.manager!!.user!!.firstname
-        val periodI18nKey = if (vacationData.halfDay!!) "vacation.mail.period.halfday" else "vacation.mail.period.fromto"
+        val periodI18nKey = if (vacationData.halfDayBegin!!) "vacation.mail.period.halfday" else "vacation.mail.period.fromto"
         val vacationStartDate = dateFormatter.getFormattedDate(vacationData.startDate)
         val vacationEndDate = dateFormatter.getFormattedDate(vacationData.endDate)
         val periodText = I18nHelper.getLocalizedMessage(periodI18nKey, vacationStartDate, vacationEndDate)
@@ -119,7 +119,7 @@ open class VacationSendMailService {
         val employeeFullName = vacationData.employee?.user?.getFullname()
         val managerFullName = vacationData.manager?.user?.getFullname()
         val substitutionFullNames = vacationData.substitutions!!.map { it.user?.getFullname() }.joinToString(", ")
-        val periodI18nKey = if (vacationData.halfDay!!) "vacation.mail.period.halfday" else "vacation.mail.period.fromto"
+        val periodI18nKey = if (vacationData.halfDayBegin!!) "vacation.mail.period.halfday" else "vacation.mail.period.fromto"
         val vacationStartDate = dateFormatter.getFormattedDate(vacationData.startDate)
         val vacationEndDate = dateFormatter.getFormattedDate(vacationData.endDate)
         val periodText = I18nHelper.getLocalizedMessage(periodI18nKey, vacationStartDate, vacationEndDate)
