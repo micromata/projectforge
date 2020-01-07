@@ -26,6 +26,7 @@ package org.projectforge.business.vacation.service
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.i18n.UserException
+import org.projectforge.framework.time.LocalDatePeriod
 import org.projectforge.framework.time.PFDayUtils
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -138,14 +139,15 @@ object VacationValidator {
             // No checking of available days.
         } else {
             // Check of available days:
-            val stats = vacationService.getVacationStats(employee, year)
-            // If this entry will be modified, the number of days from must be substracted, otherwise it would be count
-            // twice.
-            val dbDays = if (dbVacation != null)
-                PFDayUtils.getNumberOfWorkingDays(dbVacation.startDate!!, dbVacation.endDate!!)
-            else
-                BigDecimal.ZERO
-            if (numberOfWorkingDays - dbDays > stats.vacationDaysLeftInYearWithoutCarry) {
+
+            val yearPeriod = LocalDatePeriod.wholeYear(year)
+            var allVacationEntriesOfYear = vacationService.getVacationsListForPeriod(employee, yearPeriod.begin, yearPeriod.end, false)
+            if (dbVacation != null) {
+                // Remove old entry from list to get statistics without this entry. Otherwise this entry would count twice.
+                allVacationEntriesOfYear = allVacationEntriesOfYear.filter { it.id != dbVacation.id }
+            }
+            val stats = vacationService.getVacationStats(employee, year, vacationEntries = allVacationEntriesOfYear)
+            if (numberOfWorkingDays  > stats.vacationDaysLeftInYearWithoutCarry) {
                 val endOfVacationYear = vacationService.getEndOfCarryVacationOfPreviousYear(year)
                 var enoughDaysLeft = false
                 if (startDate.isBefore(endOfVacationYear)) {
@@ -154,7 +156,7 @@ object VacationValidator {
                     else
                         PFDayUtils.getNumberOfWorkingDays(startDate, endDate)
                     val additionalCarryDays = maxOf(stats.carryVacationDaysFromPreviousYearUnused!! - overlapDays, BigDecimal.ZERO)
-                    if (numberOfWorkingDays - dbDays <= stats.vacationDaysLeftInYear!! + additionalCarryDays) {
+                    if (numberOfWorkingDays  <= stats.vacationDaysLeftInYearWithoutCarry!! + additionalCarryDays) {
                         // Including unused carry days, it's now enough:
                         enoughDaysLeft = true
                     }
