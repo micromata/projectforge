@@ -236,23 +236,53 @@ class VacationServiceTest : AbstractTestBase() {
         assertStats(employee, 2020)
     }
 
+    @Test
+    fun checkAccessTest() {
+        val employee = createEmployee("check-access", LocalDate.of(2018, Month.MAY, 1))
+        val foreignEmployee = createEmployee("check-access-foreign", LocalDate.of(2018, Month.MAY, 1))
+        val managerEmployee = createEmployee("check-access-manager", LocalDate.of(2018, Month.MAY, 1))
+        logon(employee.user)
+        try {
+            addVacations(employee, 2019, Month.JULY, 1, Month.JULY, 12, manager = managerEmployee)
+            fail("UserException expected.")
+        } catch (ex: Exception) {
+            Assertions.assertTrue(ex is AccessException)
+            Assertions.assertEquals(VacationValidator.Error.NOT_ALLOWED_TO_APPROVE.messageKey, ex.message)
+        }
+        addVacations(employee, 2019, Month.JULY, 1, Month.JULY, 12, manager = managerEmployee, status = VacationStatus.IN_PROGRESS)
+        lastStoredVacation!!.status = VacationStatus.APPROVED
+        try {
+            vacationDao.update(lastStoredVacation!!) // Employee himself is not allowed to approve his vacation.
+            fail("UserException expected.")
+        } catch (ex: Exception) {
+            Assertions.assertTrue(ex is AccessException)
+            Assertions.assertEquals(VacationValidator.Error.NOT_ALLOWED_TO_APPROVE.messageKey, ex.message)
+        }
+        logon(managerEmployee.user)
+        vacationDao.update(lastStoredVacation!!) // Manger is allowed to approve this vacation.
+    }
+
     /**
      * If endMonth is before startMonth, the next year will be used as endYear.
      * @return Number of vacation days (equals to working days between startDate and endDate)
      */
-    private fun addVacations(employee: EmployeeDO, startYear: Int, startMonth: Month, startDay: Int, endMonth: Month, endDay: Int, special: Boolean = false): Double {
+    private fun addVacations(employee: EmployeeDO, startYear: Int, startMonth: Month, startDay: Int, endMonth: Month, endDay: Int,
+                             special: Boolean = false, manager: EmployeeDO = employee,
+                             status: VacationStatus = VacationStatus.APPROVED): Double {
         val endYear = if (startMonth > endMonth)
             startYear + 1 // Vacations over years.
         else
             startYear
-        return addVacations(employee, LocalDate.of(startYear, startMonth, startDay), LocalDate.of(endYear, endMonth, endDay), special)
+        return addVacations(employee, LocalDate.of(startYear, startMonth, startDay), LocalDate.of(endYear, endMonth, endDay), special, manager, status)
     }
 
     /**
      * Ensures vacation days only after join date of this employee.
      * @return Number of vacation days (equals to working days between startDate and endDate)
      */
-    private fun addVacations(employee: EmployeeDO, startDate: LocalDate, endDate: LocalDate, special: Boolean = false): Double {
+    private fun addVacations(employee: EmployeeDO, startDate: LocalDate, endDate: LocalDate,
+                             special: Boolean = false, manager: EmployeeDO = employee,
+                             status: VacationStatus = VacationStatus.APPROVED): Double {
         if (endDate.isBefore(employee.eintrittsDatum))
             return 0.0
         val vacation = VacationDO()
@@ -261,8 +291,8 @@ class VacationServiceTest : AbstractTestBase() {
         vacation.endDate = endDate
         vacation.halfDay = false
         vacation.special = false
-        vacation.status = VacationStatus.APPROVED
-        vacation.manager = employee // OK for tests...
+        vacation.status = status
+        vacation.manager = manager
         vacation.special = special
         vacationDao.save(vacation)
         lastStoredVacation = vacation
