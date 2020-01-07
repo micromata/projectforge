@@ -152,9 +152,17 @@ class PFDayUtils {
          */
         @Throws(IllegalArgumentException::class)
         @JvmStatic
-        fun validateMonthValue(month: Int?): Int? {
-            if (month != null && month !in 1..12)
+        @JvmOverloads
+        fun validateMonthValue(month: Int?, autoFix: Boolean = true): Int? {
+            if (month != null && month !in 1..12) {
+                if (autoFix){
+                    if (month < 1)
+                        return 1
+                    else
+                        return 12
+                }
                 throw IllegalArgumentException("Month value out of range 1..12: $month")
+            }
             return month
         }
 
