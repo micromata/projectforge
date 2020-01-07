@@ -48,6 +48,7 @@ import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.business.vacation.service.VacationStats;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.vacation.VacationEditPage;
 import org.projectforge.web.vacation.VacationViewPageSortableDataProvider;
 import org.projectforge.web.wicket.*;
@@ -64,8 +65,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class VacationViewHelper
-{
+public class VacationViewHelper {
   @Autowired
   private VacationService vacationService;
 
@@ -75,8 +75,7 @@ public class VacationViewHelper
   @Autowired
   private EmployeeService employeeService;
 
-  public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee, boolean showAddButton, final WebPage returnToPage)
-  {
+  public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee, boolean showAddButton, final WebPage returnToPage) {
     LocalDate endDatePreviousYearVacation = configService.getEndDateVacationFromLastYear();
     VacationStats stats = vacationService.getVacationStats(currentEmployee);
 
@@ -86,62 +85,62 @@ public class VacationViewHelper
     sectionLeft.add(new Heading1Panel(sectionLeft.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.leaveaccount")));
 
     BigDecimal vacationdays = currentEmployee.getUrlaubstage() != null ? new BigDecimal(currentEmployee.getUrlaubstage()) : BigDecimal.ZERO;
-    appendFieldset(sectionLeftGridBuilder, "vacation.annualleave", vacationdays.toString());
+    appendFieldset(sectionLeftGridBuilder, "vacation.annualleave", NumberHelper.getAsString(vacationdays));
 
     BigDecimal vacationdaysPreviousYear = stats.getCarryVacationDaysFromPreviousYear();
     if (vacationdaysPreviousYear == null)
       vacationdaysPreviousYear = BigDecimal.ZERO;
-    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleave", vacationdaysPreviousYear.toString());
+    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleave", NumberHelper.getAsString(vacationdaysPreviousYear));
 
     BigDecimal subtotal1 = vacationdays.add(vacationdaysPreviousYear);
-    appendFieldset(sectionLeftGridBuilder, "vacation.subtotal", subtotal1.toString());
+    appendFieldset(sectionLeftGridBuilder, "vacation.subtotal", NumberHelper.getAsString(subtotal1));
 
     BigDecimal approvedVacationdays = stats.getVacationDaysApproved();
-    appendFieldset(sectionLeftGridBuilder, "vacation.approvedvacation", approvedVacationdays.toString());
+    appendFieldset(sectionLeftGridBuilder, "vacation.approvedvacation", NumberHelper.getAsString(approvedVacationdays));
 
     BigDecimal plannedVacation = stats.getVacationDaysInProgress();
-    appendFieldset(sectionLeftGridBuilder, "vacation.plannedvacation", plannedVacation.toString());
+    appendFieldset(sectionLeftGridBuilder, "vacation.plannedvacation", NumberHelper.getAsString(plannedVacation));
 
     BigDecimal availableVacation = stats.getVacationDaysLeftInYear();
-    appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", availableVacation.toString());
+    appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", NumberHelper.getAsString(availableVacation));
 
     //middel
     GridBuilder sectionMiddleLeftGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
     DivPanel sectionMiddleLeft = sectionMiddleLeftGridBuilder.getPanel();
     sectionMiddleLeft.add(new Heading1Panel(sectionMiddleLeft.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.lastyear")));
 
-    appendFieldset(sectionMiddleLeftGridBuilder, "vacation.previousyearleaveused", stats.getCarryVacationDaysFromPreviousYearAllocated().toString());
+    appendFieldset(sectionMiddleLeftGridBuilder, "vacation.previousyearleaveused", NumberHelper.getAsString(stats.getCarryVacationDaysFromPreviousYearAllocated()));
 
     String endDatePreviousYearVacationString = endDatePreviousYearVacation.getDayOfMonth() + "." + endDatePreviousYearVacation.getMonthValue() + ".";
-    appendFieldset(sectionMiddleLeftGridBuilder, "vacation.previousyearleaveunused", stats.getCarryVacationDaysFromPreviousYearUnused().toString(),
-        endDatePreviousYearVacationString);
+    appendFieldset(sectionMiddleLeftGridBuilder, "vacation.previousyearleaveunused", NumberHelper.getAsString(stats.getCarryVacationDaysFromPreviousYearUnused()),
+            endDatePreviousYearVacationString);
 
     // special leave
     GridBuilder sectionMiddleRightGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
     DivPanel sectionMiddleRight = sectionMiddleRightGridBuilder.getPanel();
     sectionMiddleRight.add(new Heading1Panel(sectionMiddleRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.isSpecial")));
     appendFieldset(sectionMiddleRightGridBuilder, "vacation.isSpecialPlaned",
-        String.valueOf(stats.getSpecialVacationDaysInProgress()));
+            String.valueOf(stats.getSpecialVacationDaysInProgress()));
 
     appendFieldset(sectionMiddleRightGridBuilder, "vacation.isSpecialApproved",
-        String.valueOf(stats.getSpecialVacationDaysApproved()));
+            String.valueOf(stats.getSpecialVacationDaysApproved()));
 
     //student leave
     if (EmployeeStatus.STUD_ABSCHLUSSARBEIT.equals(employeeService.getEmployeeStatus(currentEmployee)) ||
-        EmployeeStatus.STUDENTISCHE_HILFSKRAFT.equals(employeeService.getEmployeeStatus(currentEmployee))) {
+            EmployeeStatus.STUDENTISCHE_HILFSKRAFT.equals(employeeService.getEmployeeStatus(currentEmployee))) {
 
       GridBuilder sectionRightGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
       DivPanel sectionRight = sectionRightGridBuilder.getPanel();
       sectionRight.add(new Heading1Panel(sectionRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.Days")));
       appendFieldset(sectionRightGridBuilder, "vacation.countPerDay",
-          employeeService.getStudentVacationCountPerDay(currentEmployee));
+              employeeService.getStudentVacationCountPerDay(currentEmployee));
     }
 
     // bottom list
     GridBuilder sectionBottomGridBuilder = gridBuilder.newSplitPanel(GridSize.COL100);
     DivPanel sectionBottom = sectionBottomGridBuilder.getPanel();
     sectionBottom.add(new Heading3Panel(sectionBottom.newChildId(),
-        I18nHelper.getLocalizedMessage("vacation.title.list") + " " + Year.now().getValue()));
+            I18nHelper.getLocalizedMessage("vacation.title.list") + " " + Year.now().getValue()));
     if (showAddButton) {
       final PageParameters pageParameter = new PageParameters();
       pageParameter.add("employeeId", currentEmployee.getId());
@@ -152,68 +151,67 @@ public class VacationViewHelper
     TablePanel tablePanel = new TablePanel(sectionBottom.newChildId());
     sectionBottom.add(tablePanel);
     final DataTable<VacationDO, String> dataTable = createDataTable(createColumns(returnToPage), "startDate", SortOrder.ASCENDING,
-        currentEmployee);
+            currentEmployee);
     tablePanel.add(dataTable);
   }
 
   private DataTable<VacationDO, String> createDataTable(final List<IColumn<VacationDO, String>> columns,
-      final String sortProperty, final SortOrder sortOrder, final EmployeeDO employee)
-  {
+                                                        final String sortProperty, final SortOrder sortOrder, final EmployeeDO employee) {
     final SortParam<String> sortParam = sortProperty != null
-        ? new SortParam<String>(sortProperty, sortOrder == SortOrder.ASCENDING) : null;
+            ? new SortParam<String>(sortProperty, sortOrder == SortOrder.ASCENDING) : null;
     return new DefaultDataTable<VacationDO, String>(TablePanel.TABLE_ID, columns,
-        createSortableDataProvider(sortParam, employee), 50);
+            createSortableDataProvider(sortParam, employee), 50);
   }
 
   private ISortableDataProvider<VacationDO, String> createSortableDataProvider(final SortParam<String> sortParam,
-      EmployeeDO employee)
-  {
+                                                                               EmployeeDO employee) {
     return new VacationViewPageSortableDataProvider<VacationDO>(sortParam, vacationService, employee);
   }
 
-  private List<IColumn<VacationDO, String>> createColumns(WebPage returnToPage)
-  {
+  private List<IColumn<VacationDO, String>> createColumns(WebPage returnToPage) {
     final List<IColumn<VacationDO, String>> columns = new ArrayList<IColumn<VacationDO, String>>();
 
-    final CellItemListener<VacationDO> cellItemListener = new CellItemListener<VacationDO>()
-    {
+    final CellItemListener<VacationDO> cellItemListener = new CellItemListener<VacationDO>() {
       private static final long serialVersionUID = 1L;
 
       @Override
       public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
-          final IModel<VacationDO> rowModel)
-      {
+                               final IModel<VacationDO> rowModel) {
         //Nothing to do here
       }
     };
-    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "startDate", "startDate", cellItemListener)
-    {
+    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "startDate", "startDate", cellItemListener) {
       @Override
       public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
-          final IModel<VacationDO> rowModel)
-      {
+                               final IModel<VacationDO> rowModel) {
         final VacationDO vacation = rowModel.getObject();
         item.add(new ListSelectActionPanel(componentId, rowModel, VacationEditPage.class, vacation.getId(),
-            returnToPage, DateTimeFormatter.instance().getFormattedDate(vacation.getStartDate())));
+                returnToPage, DateTimeFormatter.instance().getFormattedDate(vacation.getStartDate())));
         cellItemListener.populateItem(item, componentId, rowModel);
         final Item<?> row = (item.findParent(Item.class));
         WicketUtils.addRowClick(row);
       }
     });
 
-    columns.add(new CellItemListenerPropertyColumn<>(VacationDO.class, "endDate", "endDate", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<>(VacationDO.class, "status", "status", cellItemListener));
-    columns.add(new CellItemListenerLambdaColumn<>(new ResourceModel("vacation.workingdays"),
-        rowModel -> vacationService.getVacationDays(rowModel.getObject().getStartDate(), rowModel.getObject().getEndDate(), rowModel.getObject().getHalfDay()),
-        cellItemListener)
-    );
-
-    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "special", "special", cellItemListener)
-    {
+    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "endDate", "endDate", cellItemListener) {
       @Override
       public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
-          final IModel<VacationDO> rowModel)
-      {
+                               final IModel<VacationDO> rowModel) {
+        final VacationDO vacation = rowModel.getObject();
+        item.add(new TextPanel(componentId, DateTimeFormatter.instance().getFormattedDate(vacation.getStartDate())));
+        cellItemListener.populateItem(item, componentId, rowModel);
+      }
+    });
+    columns.add(new CellItemListenerPropertyColumn<>(VacationDO.class, "status", "status", cellItemListener));
+    columns.add(new CellItemListenerLambdaColumn<>(new ResourceModel("vacation.workingdays"),
+            rowModel -> vacationService.getVacationDays(rowModel.getObject().getStartDate(), rowModel.getObject().getEndDate(), rowModel.getObject().getHalfDay()),
+            cellItemListener)
+    );
+
+    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "special", "special", cellItemListener) {
+      @Override
+      public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
+                               final IModel<VacationDO> rowModel) {
         final VacationDO vacation = rowModel.getObject();
         if (vacation.getSpecial() != null && vacation.getSpecial() == Boolean.TRUE) {
           item.add(new TextPanel(componentId, I18nHelper.getLocalizedMessage("yes")));
@@ -226,8 +224,7 @@ public class VacationViewHelper
     return columns;
   }
 
-  private boolean appendFieldset(GridBuilder gridBuilder, final String label, final String value, final String... labelParameters)
-  {
+  private boolean appendFieldset(GridBuilder gridBuilder, final String label, final String value, final String... labelParameters) {
     if (StringUtils.isBlank(value) == true) {
       return false;
     }
