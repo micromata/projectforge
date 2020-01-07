@@ -205,6 +205,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
    * @param groups
    * @see #isUserMemberOfGroup(PFUserDO, ProjectForgeGroup...)
    */
+  @Override
   public boolean isLoggedInUserMemberOfGroup(final boolean throwException, final ProjectForgeGroup... groups) {
     return isUserMemberOfGroup(ThreadLocalUserContext.getUser(), throwException, groups);
   }

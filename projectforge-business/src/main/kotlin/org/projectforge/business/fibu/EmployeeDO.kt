@@ -55,6 +55,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.Constants
 import java.io.Serializable
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.*
 import javax.persistence.*
 
@@ -115,13 +116,13 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "eintritt")
-    open var eintrittsDatum: Date? = null
+    open var eintrittsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.austrittsdatum")
     @Field
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "austritt")
-    open var austrittsDatum: Date? = null
+    open var austrittsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.division")
     @Field
@@ -134,6 +135,9 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @get:Column(length = 255)
     open var staffNumber: String? = null
 
+    /**
+     * Number of yearly available vacation days.
+     */
     @PropertyInfo(i18nKey = "fibu.employee.urlaubstage")
     @Field(analyze = Analyze.NO)
     @get:Column
@@ -154,7 +158,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
-    open var birthday: Date? = null
+    open var birthday: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.accountHolder")
     @Field

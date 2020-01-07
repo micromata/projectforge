@@ -42,11 +42,18 @@ public class LocalDateModel implements IModel<Date> {
 
   @Override
   public Date getObject() {
-    return PFDay.from(model.getObject()).getSqlDate();
+    LocalDate result = model.getObject();
+    if (result == null)
+      return null;
+    return PFDay.from(result).getSqlDate();
   }
 
   @Override
   public void setObject(Date object) {
+    if (object == null) {
+      model.setObject(null);
+      return;
+    }
     model.setObject(PFDay.from(object).getDate());
   }
 

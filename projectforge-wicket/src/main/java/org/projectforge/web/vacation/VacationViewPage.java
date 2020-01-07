@@ -48,7 +48,7 @@ public class VacationViewPage extends AbstractViewPage
   protected void onInitialize()
   {
     super.onInitialize();
-    vacationService.couldUserUseVacationService(currentUser, true); // throw runtime exception if not allowed
+    vacationService.hasAccessToVacationService(currentUser, true); // throw runtime exception if not allowed
   }
 
   @Override

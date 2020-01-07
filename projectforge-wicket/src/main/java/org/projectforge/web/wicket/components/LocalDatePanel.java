@@ -33,13 +33,14 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.projectforge.Const;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.WicketRenderHeadUtils;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.converter.MyDateConverter;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
-import java.util.Calendar;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.function.BooleanSupplier;
 
@@ -49,8 +50,7 @@ import java.util.function.BooleanSupplier;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class LocalDatePanel extends FormComponentPanel<Date> implements ComponentWrapperPanel
-{
+public class LocalDatePanel extends FormComponentPanel<Date> implements ComponentWrapperPanel {
   private static final long serialVersionUID = 3785639935585959803L;
 
   private BooleanSupplier requiredSupplier;
@@ -67,14 +67,23 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
 
   private int minYear = Const.MINYEAR, maxYear = Const.MAXYEAR;
 
+  private DatePanelSettings settings;
+
+  /**
+   * @param id
+   * @param model
+   */
+  public LocalDatePanel(final String id, final LocalDateModel model) {
+    this(id, model, new DatePanelSettings(), true, null);
+  }
+
   /**
    * @param id
    * @param model
    * @param settings         with target type etc.
    * @param useModelDirectly use the given model directly in the internal dateField
    */
-  public LocalDatePanel(final String id, final LocalDateModel model, final DatePanelSettings settings, final boolean useModelDirectly)
-  {
+  public LocalDatePanel(final String id, final LocalDateModel model, final DatePanelSettings settings, final boolean useModelDirectly) {
     this(id, model, settings, useModelDirectly, null);
   }
 
@@ -87,30 +96,27 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
    */
   @SuppressWarnings("serial")
   public LocalDatePanel(final String id, final LocalDateModel model, final DatePanelSettings settings, final boolean useModelDirectly,
-                        final BooleanSupplier requiredSupplier)
-  {
+                        final BooleanSupplier requiredSupplier) {
     super(id, model);
+    this.settings = settings;
     this.requiredSupplier = requiredSupplier;
     setType(settings.targetType);
     final MyDateConverter dateConverter = new MyDateConverter(settings.targetType, "M-");
     dateConverter.setTimeZone(settings.timeZone);
     final IModel<Date> modelForDateField = useModelDirectly ? model : LambdaModel.of(() -> this.date, date -> this.date = date);
-    dateField = new DateTextField("dateField", modelForDateField, dateConverter)
-    {
+    dateField = new DateTextField("dateField", modelForDateField, dateConverter) {
       /**
        * @see org.apache.wicket.Component#renderHead(IHeaderResponse)
        */
       @Override
-      public void renderHead(final IHeaderResponse response)
-      {
+      public void renderHead(final IHeaderResponse response) {
         super.renderHead(response);
         WicketRenderHeadUtils.renderMainJavaScriptIncludes(response);
         DatePickerUtils.renderHead(response, getLocale(), dateField.getMarkupId(), autosubmit);
       }
 
       @Override
-      public boolean isRequired()
-      {
+      public boolean isRequired() {
         return (LocalDatePanel.this.requiredSupplier != null) ? LocalDatePanel.this.requiredSupplier.getAsBoolean() : super.isRequired();
       }
     };
@@ -123,20 +129,17 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
     if (settings.tabIndex != null) {
       dateField.add(AttributeModifier.replace("tabindex", String.valueOf(settings.tabIndex)));
     }
-    dateField.add(new IValidator<Date>()
-    {
+    dateField.add(new IValidator<Date>() {
 
       @Override
-      public void validate(final IValidatable<Date> validatable)
-      {
+      public void validate(final IValidatable<Date> validatable) {
         final Date date = validatable.getValue();
         if (date != null) {
-          final Calendar cal = Calendar.getInstance();
-          cal.setTime(date);
-          final int year = cal.get(Calendar.YEAR);
+          final PFDay day = PFDay.from(date, false, settings.timeZone);
+          final int year = day.getYear();
           if (year < minYear || year > maxYear) {
             validatable.error(new ValidationError().addKey("error.date.yearOutOfRange").setVariable("minimumYear", minYear)
-                .setVariable("maximumYear", maxYear));
+                    .setVariable("maximumYear", maxYear));
           }
         }
       }
@@ -144,8 +147,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
   }
 
   @Override
-  public void validate()
-  {
+  public void validate() {
     dateField.validate();
     super.validate();
   }
@@ -156,8 +158,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
    * @param minYear the minYear to set
    * @return this for chaining.
    */
-  public LocalDatePanel setMinYear(final int minYear)
-  {
+  public LocalDatePanel setMinYear(final int minYear) {
     this.minYear = minYear;
     return this;
   }
@@ -168,8 +169,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
    * @param maxYear the maxYear to set
    * @return this for chaining.
    */
-  public LocalDatePanel setMaxYear(final int maxYear)
-  {
+  public LocalDatePanel setMaxYear(final int maxYear) {
     this.maxYear = maxYear;
     return this;
   }
@@ -178,15 +178,13 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
    * @see FormComponent#setLabel(IModel)
    */
   @Override
-  public LocalDatePanel setLabel(final IModel<String> labelModel)
-  {
+  public LocalDatePanel setLabel(final IModel<String> labelModel) {
     dateField.setLabel(labelModel);
     super.setLabel(labelModel);
     return this;
   }
 
-  public LocalDatePanel setFocus()
-  {
+  public LocalDatePanel setFocus() {
     dateField.add(WicketUtils.setFocus());
     return this;
   }
@@ -197,14 +195,12 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
    * @param autosubmit the autosubmit to set
    * @return this for chaining.
    */
-  public LocalDatePanel setAutosubmit(final boolean autosubmit)
-  {
+  public LocalDatePanel setAutosubmit(final boolean autosubmit) {
     this.autosubmit = autosubmit;
     return this;
   }
 
-  public void setRequiredSupplier(final BooleanSupplier requiredSupplier)
-  {
+  public void setRequiredSupplier(final BooleanSupplier requiredSupplier) {
     this.requiredSupplier = requiredSupplier;
   }
 
@@ -212,14 +208,12 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
    * Work around: If you change the model call this method, so onBeforeRender calls DateField.modelChanged() for updating the form text
    * field.
    */
-  public void markModelAsChanged()
-  {
+  public void markModelAsChanged() {
     modelMarkedAsChanged = true;
   }
 
   @Override
-  protected void onBeforeRender()
-  {
+  protected void onBeforeRender() {
     date = (Date) getDefaultModelObject(); // copy the value from the outer model to the dateField's model
     if (modelMarkedAsChanged == true) {
       dateField.modelChanged();
@@ -237,8 +231,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
    * @see FormComponent#updateModel()
    */
   @Override
-  public void updateModel()
-  {
+  public void updateModel() {
     if (modelMarkedAsChanged == true) {
       // Work-around: update model only if not marked as changed. Prevent overwriting the model by the user's input.
       modelMarkedAsChanged = false;
@@ -247,20 +240,17 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
     }
   }
 
-  public DateTextField getDateField()
-  {
+  public DateTextField getDateField() {
     return dateField;
   }
 
   @Override
-  public void convertInput()
-  {
+  public void convertInput() {
     setConvertedInput(dateField.getConvertedInput());
   }
 
   @Override
-  public String getInput()
-  {
+  public String getInput() {
     return dateField.getInput();
   }
 
@@ -268,8 +258,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
    * @see ComponentWrapperPanel#getComponentOutputId()
    */
   @Override
-  public String getComponentOutputId()
-  {
+  public String getComponentOutputId() {
     return dateField.getMarkupId();
   }
 
@@ -277,8 +266,14 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
    * @see ComponentWrapperPanel#getFormComponent()
    */
   @Override
-  public FormComponent<?> getFormComponent()
-  {
+  public FormComponent<?> getFormComponent() {
     return dateField;
+  }
+
+  public LocalDate getConvertedInputAsLocalDate() {
+    final Date date = getConvertedInput();
+    if (date == null)
+      return null;
+    return PFDay.from(date, false, settings.timeZone).getDate();
   }
 }

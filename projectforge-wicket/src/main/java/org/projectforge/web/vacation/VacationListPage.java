@@ -223,7 +223,7 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
   @Override
   protected void init()
   {
-    newItemMenuEntry.setVisible(vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), false));
+    newItemMenuEntry.setVisible(vacationService.hasAccessToVacationService(ThreadLocalUserContext.getUser(), false));
     final List<IColumn<VacationDO, String>> columns = createColumns(this, true);
     dataTable = createDataTable(columns, "startDate", SortOrder.DESCENDING);
     form.add(dataTable);
