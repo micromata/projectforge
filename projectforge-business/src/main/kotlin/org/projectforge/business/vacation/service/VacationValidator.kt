@@ -155,7 +155,7 @@ object VacationValidator {
                         PFDayUtils.getNumberOfWorkingDays(startDate, endOfVacationYear)
                     else
                         PFDayUtils.getNumberOfWorkingDays(startDate, endDate)
-                    val additionalCarryDays = maxOf(stats.carryVacationDaysFromPreviousYearUnused!! - overlapDays, BigDecimal.ZERO)
+                    val additionalCarryDays = maxOf(stats.remainingLeaveFromPreviousYearUnused!! - overlapDays, BigDecimal.ZERO)
                     if (numberOfWorkingDays  <= stats.vacationDaysLeftInYearWithoutCarry!! + additionalCarryDays) {
                         // Including unused carry days, it's now enough:
                         enoughDaysLeft = true
