@@ -30,7 +30,6 @@ import org.projectforge.framework.configuration.IConfigurationParam;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
-import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.mail.SendMailConfig;
 
@@ -137,6 +136,12 @@ public interface ConfigurationService {
    * </ul>
    */
   LocalDate getEndDateVacationFromLastYear();
+
+  /**
+   * 31.03. of the given year, if not configured different. This date determine when vacation days of an employee
+   * from the last year will be invalid, if not used.
+   */
+  LocalDate getEndOfCarryVacationOfPreviousYear(int year);
 
   String getHREmailadress();
 

@@ -23,15 +23,6 @@
 
 package org.projectforge.web.vacation;
 
-import java.io.Serializable;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -45,6 +36,9 @@ import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.persistence.api.IdObject;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.MyBeanComparator;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Stores list of result sets (id's) for pagination and provides iterator of data-base objects on demand.
@@ -77,7 +71,7 @@ public class VacationViewPageSortableDataProvider<T extends IdObject<?>>
   private EmployeeDO employee;
 
   public VacationViewPageSortableDataProvider(final SortParam<String> sortParam, VacationService vacationService,
-      EmployeeDO employee)
+                                              EmployeeDO employee)
   {
     this.vacationService = vacationService;
     this.employee = employee;

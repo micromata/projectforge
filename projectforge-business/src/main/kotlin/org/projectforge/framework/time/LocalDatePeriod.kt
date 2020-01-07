@@ -21,30 +21,20 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.jobs;
+package org.projectforge.framework.time
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.projectforge.framework.time.PFDateTime;
-import org.springframework.scheduling.support.CronSequenceGenerator;
+import java.time.LocalDate
+import java.time.Month
 
-import java.text.SimpleDateFormat;
-
-public class UpdateVacationFromLastYearJobCronCheckTest
-{
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
-      .getLogger(UpdateVacationFromLastYearJobCronCheckTest.class);
-
-  @Test
-  @Disabled
-  public void testCronExpression()
-  {
-    CronSequenceGenerator cron1 = new CronSequenceGenerator("0 0 23 31 12 *");
-    PFDateTime dt = PFDateTime.now().plusDays(2);
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy MMM dd HH:mm:ss");
-
-    log.error("current date " + sdf.format(dt.getUtilDate()));
-
-    log.error("Next cron trigger date cron1 " + cron1.next(dt.getUtilDate()));
-  }
+/**
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ */
+class LocalDatePeriod(val begin: LocalDate, val end: LocalDate) {
+    companion object {
+        @JvmStatic
+        fun wholeYear(year: Int): LocalDatePeriod {
+            val beginOfYear = LocalDate.of(year, Month.JANUARY, 1)
+            return LocalDatePeriod(beginOfYear, PFDay.from(beginOfYear)!!.endOfYear.date)
+        }
+    }
 }

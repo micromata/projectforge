@@ -23,20 +23,20 @@
 
 package org.projectforge.web.vacation;
 
-import org.slf4j.Logger;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
+import org.projectforge.business.vacation.service.VacationCalendarService;
+import org.projectforge.business.vacation.service.VacationSendMailService;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = VacationListPage.class)
 public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditForm, VacationService>
@@ -50,10 +50,10 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   private VacationService vacationService;
 
   @SpringBean
-  private ConfigurationService configService;
+  private VacationCalendarService vacationCalendarService;
 
   @SpringBean
-  private EmployeeService employeeService;
+  private VacationSendMailService vacationMailService;
 
   Integer employeeIdFromPageParameters;
 
@@ -133,29 +133,29 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
     try {
-      vacationService.saveOrUpdateVacationCalendars(form.getData(), form.assignCalendarListHelper.getAssignedItems());
+      vacationCalendarService.saveOrUpdateVacationCalendars(form.getData(), form.assignCalendarListHelper.getAssignedItems());
       if (wasNew) {
-        vacationService.sendMailToVacationInvolved(form.getData(), true, false);
+        vacationMailService.sendMailToVacationInvolved(form.getData(), true, false);
       } else if (VacationStatus.IN_PROGRESS == form.getData().getStatus()) {
-        vacationService.sendMailToVacationInvolved(form.getData(), false, false);
+        vacationMailService.sendMailToVacationInvolved(form.getData(), false, false);
       }
       if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
         //To intercept special cases for add or delete team calendars
-        vacationService.markTeamEventsOfVacationAsDeleted(form.getData(), false);
-        vacationService.createEventsForVacationCalendars(form.getData());
+        vacationCalendarService.markTeamEventsOfVacationAsDeleted(form.getData(), false);
+        vacationCalendarService.createEventsForVacationCalendars(form.getData());
       }
       if (form.getStatusBeforeModification() != null) {
         if (form.getStatusBeforeModification() == VacationStatus.IN_PROGRESS) {
           switch (form.getData().getStatus()) {
             case APPROVED:
               // IN_PROGRESS -> APPROVED
-              vacationService.updateUsedVacationDaysFromLastYear(form.getData());
-              vacationService.sendMailToEmployeeAndHR(form.getData(), true);
+              // Not needed anymore: vacationService.updateUsedVacationDaysFromLastYear(form.getData());
+              vacationMailService.sendMailToEmployeeAndHR(form.getData(), true);
               break;
 
             case REJECTED:
               // IN_PROGRESS -> REJECTED
-              vacationService.sendMailToEmployeeAndHR(form.getData(), false);
+              vacationMailService.sendMailToEmployeeAndHR(form.getData(), false);
               break;
 
             default:
@@ -166,8 +166,8 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
           switch (form.getData().getStatus()) {
             case REJECTED:
             case IN_PROGRESS:  // APPROVED -> NOT APPROVED
-              vacationService.markTeamEventsOfVacationAsDeleted(form.getData(), true);
-              vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
+              vacationCalendarService.markTeamEventsOfVacationAsDeleted(form.getData(), true);
+              // Not needed anymore: vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
               break;
             default:
               // nothing to do
@@ -186,9 +186,9 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   {
     try {
       if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
-        vacationService.markTeamEventsOfVacationAsDeleted(form.getData(), true);
-        vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
-        vacationService.sendMailToVacationInvolved(form.getData(), false, true);
+        vacationCalendarService.markTeamEventsOfVacationAsDeleted(form.getData(), true);
+        // Not needed anymore: vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
+        vacationMailService.sendMailToVacationInvolved(form.getData(), false, true);
       }
     } catch (final Exception e) {
       log.error("There is a exception in afterDelete: " + e.getMessage(), e);
@@ -201,14 +201,14 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   public WebPage afterUndelete()
   {
     try {
-      vacationService.undeleteTeamEventsOfVacation(form.getData());
+      vacationCalendarService.undeleteTeamEventsOfVacation(form.getData());
       if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
-        vacationService.markAsUnDeleteEventsForVacationCalendars(form.getData());
-        vacationService.updateUsedVacationDaysFromLastYear(form.getData());
-        vacationService.sendMailToEmployeeAndHR(form.getData(), true);
-        vacationService.createEventsForVacationCalendars(form.getData());
+        vacationCalendarService.markAsUnDeleteEventsForVacationCalendars(form.getData());
+        // Not needed anymore: vacationService.updateUsedVacationDaysFromLastYear(form.getData());
+        vacationMailService.sendMailToEmployeeAndHR(form.getData(), true);
+        vacationCalendarService.createEventsForVacationCalendars(form.getData());
       } else {
-        vacationService.sendMailToVacationInvolved(form.getData(), false, false);
+        vacationMailService.sendMailToVacationInvolved(form.getData(), false, false);
       }
     } catch (final Exception e) {
       log.error("There is a exception in afterUndelete: " + e.getMessage(), e);

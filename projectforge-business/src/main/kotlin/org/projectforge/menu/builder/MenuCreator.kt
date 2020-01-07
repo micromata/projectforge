@@ -351,7 +351,7 @@ class MenuCreator {
                 .add(MenuItemDef(MenuItemDefId.VACATION_VIEW, "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationViewPage",
                         checkAccess =
                         {
-                            vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), false)
+                            vacationService.hasAccessToVacationService(ThreadLocalUserContext.getUser(), false)
                         }))
                 .add(MenuItemDef(MenuItemDefId.CHANGE_PASSWORD, "wa/changePassword",
                         checkAccess =
