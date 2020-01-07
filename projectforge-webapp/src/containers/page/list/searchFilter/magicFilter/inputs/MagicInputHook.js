@@ -1,4 +1,5 @@
 import React from 'react';
+import MagicColorPicker from './MagicColorPicker';
 import MagicInputNotImplemented from './MagicInputNotImplemented';
 import MagicSelectInput from './MagicSelectInput';
 import MagicStringInput from './MagicStringInput';
@@ -12,6 +13,9 @@ const useMagicInput = (type) => {
         switch (type) {
             case 'STRING':
                 tag = MagicStringInput;
+                break;
+            case 'COLOR_PICKER':
+                tag = MagicColorPicker;
                 break;
             case 'SELECT':
                 tag = MagicSelectInput;
