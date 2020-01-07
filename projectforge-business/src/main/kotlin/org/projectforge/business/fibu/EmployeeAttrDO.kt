@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -50,7 +50,7 @@ open class EmployeeAttrDO : JpaTabAttrBaseDO<EmployeeDO, Int> {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "parent", referencedColumnName = "pk")
-    override fun getParent(): EmployeeDO {
+    override fun getParent(): EmployeeDO? {
         return super.getParent()
     }
 }

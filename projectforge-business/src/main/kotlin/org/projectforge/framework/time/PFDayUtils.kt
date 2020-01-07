@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -152,12 +152,33 @@ class PFDayUtils {
          */
         @Throws(IllegalArgumentException::class)
         @JvmStatic
-        fun validateMonthValue(month: Int?): Int? {
-            if (month != null && month !in 1..12)
+        @JvmOverloads
+        fun validateMonthValue(month: Int?, autoFix: Boolean = true): Int? {
+            if (month != null && month !in 1..12) {
+                if (autoFix){
+                    if (month < 1)
+                        return 1
+                    else
+                        return 12
+                }
                 throw IllegalArgumentException("Month value out of range 1..12: $month")
+            }
             return month
         }
 
+        /**
+         * Determines the number of working days in the given period. Please note: there might be also half working days
+         * (e. g. on Xmas or New Years Eve), so a BigDecimal is returned.
+         */
+        @JvmStatic
+        fun getNumberOfWorkingDays(from: LocalDate, to: LocalDate): BigDecimal {
+            return getNumberOfWorkingDays(PFDay.from(from)!!, PFDay.from(to)!!)
+        }
+
+        /**
+         * Determines the number of working days in the given period. Please note: there might be also half working days
+         * (e. g. on Xmas or New Years Eve), so a BigDecimal is returned.
+         */
         @JvmStatic
         fun <T : IPFDate<T>> getNumberOfWorkingDays(from: T, to: T): BigDecimal {
             Validate.notNull(from)
@@ -258,6 +279,14 @@ class PFDayUtils {
                     parseUTCDate(str, PFDateTime.isoDateTimeFormatterSeconds, zoneId, locale)
                 }
             }
+        }
+
+        /**
+         * return year of given LocalDate or -1 if LocalDate is null.
+         */
+        @JvmStatic
+        fun getYear(date: LocalDate?): Int {
+            return date?.year ?: -1
         }
 
         /**

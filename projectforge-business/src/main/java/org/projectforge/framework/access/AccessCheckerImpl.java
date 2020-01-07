@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -205,6 +205,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
    * @param groups
    * @see #isUserMemberOfGroup(PFUserDO, ProjectForgeGroup...)
    */
+  @Override
   public boolean isLoggedInUserMemberOfGroup(final boolean throwException, final ProjectForgeGroup... groups) {
     return isUserMemberOfGroup(ThreadLocalUserContext.getUser(), throwException, groups);
   }

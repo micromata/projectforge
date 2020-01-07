@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -78,7 +78,7 @@ public class SourceFileHeadersMain {
     validateAndFixHeaders(new File(baseDir, "projectforge-common").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-model").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-rest").getAbsolutePath(), true, autoFixFiles);
-    validateAndFixHeaders(new File(baseDir, "projectforge-webapp").getAbsolutePath(), true, autoFixFiles);
+    validateAndFixHeaders(new File(baseDir, "projectforge-wicket").getAbsolutePath(), true, autoFixFiles);
     final File[] files = new File(baseDir, "plugins").listFiles();
     for (File file : files) {
       if (!file.isDirectory() || !file.getName().startsWith("org.projectforge.plugins")) continue;

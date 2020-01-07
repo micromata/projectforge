@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -218,7 +218,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
         @Override
         public boolean isVisible()
         {
-          return report != null && StringUtils.isNotBlank(report.getFormattedVacationCount()) && vacationService.couldUserUseVacationService(
+          return report != null && StringUtils.isNotBlank(report.getFormattedVacationCount()) && vacationService.hasAccessToVacationService(
               ThreadLocalUserContext.getUser(), false);
         }
       }.suppressLabelForWarning();
@@ -244,7 +244,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
         @Override
         public boolean isVisible()
         {
-          return report != null && StringUtils.isNotBlank(report.getFormattedVacationPlandCount()) && vacationService.couldUserUseVacationService(
+          return report != null && StringUtils.isNotBlank(report.getFormattedVacationPlandCount()) && vacationService.hasAccessToVacationService(
               ThreadLocalUserContext.getUser(), false);
         }
       }.suppressLabelForWarning();
@@ -499,7 +499,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     data.put("sumLabel", getString("sum"));
     data.put("netSumLabel", getString("sum"));
     data.put("totalSumLabel", getString("fibu.monthlyEmployeeReport.totalSum"));
-    data.put("vacationAvailabel", vacationService.couldUserUseVacationService(form.filter.getUser(), false));
+    data.put("vacationAvailabel", vacationService.hasAccessToVacationService(form.filter.getUser(), false));
     data.put("vacationCountLabel", getString("vacation.annualleave"));
     data.put("vacationPlandCountLabel", getString("vacation.plandannualleave"));
     data.put("report", report);

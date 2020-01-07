@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -223,7 +223,7 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
   @Override
   protected void init()
   {
-    newItemMenuEntry.setVisible(vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), false));
+    newItemMenuEntry.setVisible(vacationService.hasAccessToVacationService(ThreadLocalUserContext.getUser(), false));
     final List<IColumn<VacationDO, String>> columns = createColumns(this, true);
     dataTable = createDataTable(columns, "startDate", SortOrder.DESCENDING);
     form.add(dataTable);

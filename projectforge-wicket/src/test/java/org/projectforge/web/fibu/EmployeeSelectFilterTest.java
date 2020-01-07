@@ -1,3 +1,26 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.web.fibu;
 
 import org.apache.wicket.model.PropertyModel;
@@ -15,8 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.time.Duration;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 public class EmployeeSelectFilterTest extends AbstractTestBase {
@@ -62,7 +84,7 @@ public class EmployeeSelectFilterTest extends AbstractTestBase {
     userDao.update(pfUserDO1);
     EmployeeDO employeeDO1 = new EmployeeDO();
     employeeDO1.setUser(pfUserDO1);
-    employeeDO1.setAustrittsDatum(Date.from(new Date().toInstant().minus(Duration.ofDays(2))));
+    employeeDO1.setAustrittsDatum(LocalDate.now().minusDays(2));
     this.employeeDao.save(employeeDO1);
 
     PFUserDO pfUserDO2 = new PFUserDO();
@@ -73,7 +95,7 @@ public class EmployeeSelectFilterTest extends AbstractTestBase {
     userDao.save(pfUserDO2);
     EmployeeDO employeeDO2 = new EmployeeDO();
     employeeDO2.setUser(pfUserDO2);
-    employeeDO2.setAustrittsDatum(Date.from(new Date().toInstant().plus(Duration.ofDays(2))));
+    employeeDO2.setAustrittsDatum(LocalDate.now().plusDays(2));
     this.employeeDao.save(employeeDO2);
 
     Method getChoices = EmployeeSelectPanel.class.getDeclaredMethod("getFilteredEmployeeDOs", String.class);

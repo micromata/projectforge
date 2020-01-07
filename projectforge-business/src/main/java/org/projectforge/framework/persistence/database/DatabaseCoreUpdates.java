@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -63,10 +63,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
-import org.projectforge.framework.time.DateFormats;
-import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.framework.time.PFDateTimeUtils;
+import org.projectforge.framework.time.*;
 import org.springframework.context.ApplicationContext;
 
 import java.math.BigDecimal;
@@ -75,6 +72,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
@@ -1924,9 +1922,9 @@ public class DatabaseCoreUpdates
     }
 
     // ... if there is nothing in the history, then use the entrittsdatum ...
-    final Date eintrittsDatum = employee.getEintrittsDatum();
+    final LocalDate eintrittsDatum = employee.getEintrittsDatum();
     if (eintrittsDatum != null) {
-      return PFDateTime.from(eintrittsDatum, false, PFDateTimeUtils.TIMEZONE_UTC).getBeginOfDay().getUtilDate();
+      return PFDay.from(eintrittsDatum).getSqlDate();
     }
 
     // ... if there is no eintrittsdatum, use the current date.

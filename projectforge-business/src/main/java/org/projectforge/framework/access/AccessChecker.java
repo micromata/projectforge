@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -97,6 +97,13 @@ public interface AccessChecker
    * @param groups
    */
   boolean isLoggedInUserMemberOfGroup(ProjectForgeGroup... groups);
+
+  /**
+   * Checks if the user of the ThreadLocalUserContext (logged in user) is member at least of one of the given groups.
+   * @param throwException default false.
+   * @param groups
+   */
+  boolean isLoggedInUserMemberOfGroup(boolean throwException, ProjectForgeGroup... groups);
 
   /**
    * Checks if the user of the ThreadLocalUserContext (logged in user) is member at least of one of the given groups.
