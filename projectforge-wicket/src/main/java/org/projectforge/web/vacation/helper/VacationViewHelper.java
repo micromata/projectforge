@@ -120,10 +120,10 @@ public class VacationViewHelper {
     DivPanel sectionMiddleRight = sectionMiddleRightGridBuilder.getPanel();
     sectionMiddleRight.add(new Heading1Panel(sectionMiddleRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.isSpecial")));
     appendFieldset(sectionMiddleRightGridBuilder, "vacation.isSpecialPlaned",
-            String.valueOf(stats.getSpecialVacationDaysInProgress()));
+            NumberHelper.getAsString(stats.getSpecialVacationDaysInProgress()));
 
     appendFieldset(sectionMiddleRightGridBuilder, "vacation.isSpecialApproved",
-            String.valueOf(stats.getSpecialVacationDaysApproved()));
+            NumberHelper.getAsString(stats.getSpecialVacationDaysApproved()));
 
     //student leave
     if (EmployeeStatus.STUD_ABSCHLUSSARBEIT.equals(employeeService.getEmployeeStatus(currentEmployee)) ||
@@ -198,7 +198,7 @@ public class VacationViewHelper {
       public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
                                final IModel<VacationDO> rowModel) {
         final VacationDO vacation = rowModel.getObject();
-        item.add(new TextPanel(componentId, DateTimeFormatter.instance().getFormattedDate(vacation.getStartDate())));
+        item.add(new TextPanel(componentId, DateTimeFormatter.instance().getFormattedDate(vacation.getEndDate())));
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });

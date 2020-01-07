@@ -113,7 +113,8 @@ public class VacationDao extends BaseDao<VacationDO> {
       return false;
     }
     // User is owner of given object.
-    if (!obj.isDeleted() && obj.getStatus() == VacationStatus.APPROVED) {
+    if (operationType.isIn(OperationType.INSERT, OperationType.UPDATE, OperationType.UNDELETE)
+            && !obj.isDeleted() && obj.getStatus() == VacationStatus.APPROVED) {
       if (oldObj == null || oldObj.getStatus() != VacationStatus.APPROVED) {
         // User tried to insert a new entry as approved or tries to approve a not yet approved entry.
         throw new AccessException(VacationValidator.Error.NOT_ALLOWED_TO_APPROVE.getMessageKey());
