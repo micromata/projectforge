@@ -47,7 +47,7 @@ function MagicFilterPill(
                 basic={(
                     <React.Fragment>
                         {value && Object.keys(value).length
-                            ? MagicInput.getLabel(label, value)
+                            ? MagicInput.getLabel(label, value, props)
                             : label}
                         <FontAwesomeIcon
                             icon={faBan}
@@ -84,6 +84,7 @@ function MagicFilterPill(
                         onSubmit={handleSave}
                         onCancel={handleCancel}
                         value={tempValue}
+                        {...props}
                     />
                 </div>
             </AdvancedPopper>
