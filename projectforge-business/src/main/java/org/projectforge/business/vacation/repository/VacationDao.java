@@ -100,7 +100,7 @@ public class VacationDao extends BaseDao<VacationDO> {
                            final OperationType operationType,
                            final boolean throwException) {
     if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE) ||
-            obj.getManager() != null && Objects.equals(obj.getManager().getUserId(), user.getId())) {
+            obj == null || obj.getManager() != null && Objects.equals(obj.getManager().getUserId(), user.getId())) {
       // User is HR staff member or assigned manager.
       return true;
     }
