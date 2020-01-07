@@ -95,13 +95,18 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @param nowYear Only for test cases (so they will run in further years).
      */
     @JvmOverloads
-    open fun getVacationStats(employee: EmployeeDO, year: Int = Year.now().value,
+    open fun getVacationStats(employee: EmployeeDO,
+                              year: Int = Year.now().value,
                               /** Only for internal use for recursive calls. */
                               calculateCarryInFormerYears: Boolean = true,
                               /**
                                * Only for testing with fixed simulated now date. Default is today.
                                */
-                              baseDate: LocalDate = LocalDate.now()): VacationStats {
+                              baseDate: LocalDate = LocalDate.now(),
+                              /**
+                               * For internal usage of [VacationValidator].
+                               */
+                              vacationEntries: List<VacationDO>? = null): VacationStats {
         val stats = VacationStats(employee, year, baseDate)
         stats.vacationDaysInYearFromContract = getYearlyVacationDays(employee, year)
         stats.carryVacationDaysFromPreviousYear = remainingDaysOfVactionDao.getCarryVacationDaysFromPreviousYear(employee.id, year)
@@ -114,7 +119,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
         }
         // Calculate remaining vacation days from previous year:
         val yearPeriod = LocalDatePeriod.wholeYear(year)
-        val allVacationsOfYear = getVacationsListForPeriod(employee, yearPeriod.begin, yearPeriod.end, true)
+        val allVacationsOfYear = vacationEntries ?: getVacationsListForPeriod(employee, yearPeriod.begin, yearPeriod.end, true)
         stats.vacationDaysInProgressAndApproved = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false)
         stats.vacationDaysInProgress = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false, VacationStatus.IN_PROGRESS)
         stats.vacationDaysApproved = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false, VacationStatus.APPROVED)

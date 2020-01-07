@@ -61,6 +61,11 @@ class VacationServiceTest : AbstractTestBase() {
     private lateinit var vacationService: VacationService
 
     /**
+     * For access in caller.
+     */
+    private var lastStoredVacation: VacationDO? = null
+
+    /**
      * Test is based on year 2020 (should also run in 2021...).
      */
     @Test
@@ -178,8 +183,30 @@ class VacationServiceTest : AbstractTestBase() {
                 vacationDaysLeftInYear = 5.0) // 4 days lost after overlap period: 7 - 4 + 30 - 28
 
         try {
-            Assertions.assertEquals(7.0, addVacations(employee, 2020, Month.APRIL, 1, Month.APRIL, 10), "days off expected.")
-            fail("UserException expected due to collision of vacation entries.")
+            // Only 5 days left after 31.03.
+            addVacations(employee, 2020, Month.APRIL, 1, Month.APRIL, 10)
+            fail("UserException expected due to not enough left vacation days.")
+        } catch (ex: Exception) {
+            Assertions.assertTrue(ex is UserException)
+            Assertions.assertEquals(VacationValidator.Error.NOT_ENOUGH_DAYS_LEFT.messageKey, ex.message)
+        }
+        try {
+            // So, try to put vacation partly into the overlap period: get 2 days from previous year and 6 days from new year (but only 5 are available)
+            addVacations(employee, 2020, Month.MARCH, 30, Month.APRIL, 8)
+            fail("UserException expected due to not enough left vacation days.")
+        } catch (ex: Exception) {
+            Assertions.assertTrue(ex is UserException)
+            Assertions.assertEquals(VacationValidator.Error.NOT_ENOUGH_DAYS_LEFT.messageKey, ex.message)
+        }
+        // So, try to put vacation partly into the overlap period: get 3 days from previous year and 5 days from new year, should work:
+        Assertions.assertEquals(7.0, addVacations(employee, 2020, Month.MARCH, 29, Month.APRIL, 7), "days off expected.")
+
+        // So, try to move this vacation one day later, this should fail:
+        lastStoredVacation!!.startDate = lastStoredVacation!!.startDate!!.plusDays(1)
+        lastStoredVacation!!.endDate = lastStoredVacation!!.endDate!!.plusDays(1)
+        try {
+            vacationDao.update(lastStoredVacation!!)
+            fail("UserException expected due to not enough left vacation days.")
         } catch (ex: Exception) {
             Assertions.assertTrue(ex is UserException)
             Assertions.assertEquals(VacationValidator.Error.NOT_ENOUGH_DAYS_LEFT.messageKey, ex.message)
@@ -238,6 +265,7 @@ class VacationServiceTest : AbstractTestBase() {
         vacation.manager = employee // OK for tests...
         vacation.special = special
         vacationDao.save(vacation)
+        lastStoredVacation = vacation
         return PFDayUtils.getNumberOfWorkingDays(startDate, endDate).toDouble()
     }
 
