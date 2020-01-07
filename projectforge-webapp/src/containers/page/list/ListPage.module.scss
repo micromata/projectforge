@@ -1,28 +1,39 @@
+.search {
+  width: 100%;
+  margin: 0;
+  padding: .5em;
+
+  input {
+    border: none !important;
+    margin-left: 2px;
+
+    // Use :global(...) to force css-modules to not convert #searchFilter.
+    &:global(#searchString) {
+      top: -2px;
+    }
+  }
+
+  + hr {
+    margin-top: .5em;
+    margin-bottom: 0;
+  }
+}
+
+.errorMessage {
+  margin: 0;
+  padding: 1em;
+  text-align: center;
+}
+
 .searchContainer {
   margin: 1em 0 0 1em;
   height: 2.9em;
-
-  .search {
-    width: 100%;
-    margin: 0;
-    padding: .5em;
-
-    // Use :global(...) to force css-modules to not convert #searchFilter.
-    :global(#searchString) {
-      border: none;
-      top: -2px;
-      margin-left: 2px;
-    }
-  }
 
   .completions {
     top: .8em;
 
     .errorMessage {
-      margin: 0;
-      padding: 1em;
       background-color: #fafafa;
-      text-align: center;
     }
 
     .entries {
