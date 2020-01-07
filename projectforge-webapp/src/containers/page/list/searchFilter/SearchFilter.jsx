@@ -1,4 +1,3 @@
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -7,7 +6,7 @@ import { Navbar } from 'reactstrap';
 import { fetchListFavorites } from '../../../../actions';
 import { changeSearchString } from '../../../../actions/list/filter';
 import Navigation from '../../../../components/base/navigation';
-import { Col, Input, Row } from '../../../../components/design';
+import { Col, Row } from '../../../../components/design';
 import AdvancedPopper from '../../../../components/design/popper/AdvancedPopper';
 import AdvancedPopperAction from '../../../../components/design/popper/AdvancedPopperAction';
 import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
@@ -15,6 +14,7 @@ import FavoritesPanel from '../../../panel/favorite/FavoritesPanel';
 import styles from '../ListPage.module.scss';
 import MagicFilters from './magicFilter/MagicFilters';
 import QuickSelectionEntry from './QuickSelectionEntry';
+import SearchField from './SearchField';
 
 const loadQuickSelectionsBounced = (
     {
@@ -81,14 +81,10 @@ function SearchFilter(props) {
                         setIsOpen={setSearchActive}
                         isOpen={searchActive}
                         basic={(
-                            <Input
+                            <SearchField
                                 id="searchString"
-                                icon={faSearch}
-                                className={styles.search}
-                                autoComplete="off"
-                                placeholder={ui.translations.search}
                                 onChange={onSearchStringChange}
-                                value={filter.searchString || ''}
+                                value={filter.searchString}
                             />
                         )}
                         className={styles.searchContainer}

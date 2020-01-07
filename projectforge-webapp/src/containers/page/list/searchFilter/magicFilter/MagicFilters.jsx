@@ -7,6 +7,7 @@ import AdvancedPopper from '../../../../../components/design/popper/AdvancedPopp
 import AdvancedPopperAction from '../../../../../components/design/popper/AdvancedPopperAction';
 import { getNamedContainer } from '../../../../../utilities/layout';
 import styles from '../../ListPage.module.scss';
+import SearchField from '../SearchField';
 import FilterListEntry from './FilterListEntry';
 import MagicFilterPill from './MagicFilterPill';
 
@@ -20,6 +21,9 @@ function MagicFilters(
     },
 ) {
     const [allFiltersAreOpen, setAllFiltersAreOpen] = React.useState(false);
+    const [search, setSearch] = React.useState('');
+
+    const handleSearchChange = ({ target }) => setSearch(target.value);
 
     const handleAllFiltersDelete = () => {
         setAllFiltersAreOpen(false);
@@ -27,6 +31,15 @@ function MagicFilters(
     };
 
     const handleAfterSelectFilter = () => setAllFiltersAreOpen(false);
+
+    const searchLowerCase = search.toLowerCase();
+    const filteredSearchFilters = searchFilter && searchFilter.content
+        .filter(({ id, label }) => (
+            id.toLowerCase()
+                .includes(searchLowerCase)
+            || label.toLowerCase()
+                .includes(searchLowerCase)
+        ));
 
     return (
         <div className={styles.magicFilters}>
@@ -62,9 +75,15 @@ function MagicFilters(
                         </AdvancedPopperAction>
                     )}
                 >
+                    <SearchField
+                        onChange={handleSearchChange}
+                        id="magicFiltersSearch"
+                        value={search}
+                    />
+                    <hr />
                     {searchFilter && (
                         <ul className={styles.filterList}>
-                            {searchFilter.content.map(({ id, label }) => (
+                            {filteredSearchFilters.map(({ id, label }) => (
                                 <FilterListEntry
                                     key={`filter-${id}`}
                                     afterSelect={handleAfterSelectFilter}
@@ -72,6 +91,9 @@ function MagicFilters(
                                     label={label}
                                 />
                             ))}
+                            {filteredSearchFilters.length === 0 && (
+                                <span className={styles.errorMessage}>???No Entries found???</span>
+                            )}
                         </ul>
                     )}
                 </AdvancedPopper>
