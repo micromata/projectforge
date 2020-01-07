@@ -1,3 +1,5 @@
+import { faBan } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -42,9 +44,18 @@ function MagicFilterPill(
             <AdvancedPopper
                 setIsOpen={setIsOpen}
                 isOpen={isOpen}
-                basic={value && Object.keys(value).length
-                    ? MagicInput.getLabel(label, value)
-                    : label}
+                basic={(
+                    <React.Fragment>
+                        {value && Object.keys(value).length
+                            ? MagicInput.getLabel(label, value)
+                            : label}
+                        <FontAwesomeIcon
+                            icon={faBan}
+                            className={styles.deleteIcon}
+                            onClick={() => onFilterDelete(id)}
+                        />
+                    </React.Fragment>
+                )}
                 contentClassName={classNames(styles.pill, { [styles.marked]: isOpen || value })}
                 actions={(
                     <React.Fragment>
