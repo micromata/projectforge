@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,7 +24,7 @@
 package org.projectforge.business.vacation.model
 
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
-import org.projectforge.business.teamcal.event.model.CalEventDO
+import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import javax.persistence.*
@@ -47,6 +47,6 @@ open class VacationCalendarDO : DefaultBaseDO() {
 
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "event_id")
-    open var event: CalEventDO? = null
+    open var event: TeamEventDO? = null
 
 }

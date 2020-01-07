@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,6 +33,7 @@ import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.formatter.TaskFormatter;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.business.vacation.service.VacationStats;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.calendar.MonthHolder;
@@ -154,7 +155,7 @@ public class MonthlyEmployeeReport implements Serializable {
 
   private BigDecimal vacationCount = BigDecimal.ZERO;
 
-  private BigDecimal vacationPlandCount = BigDecimal.ZERO;
+  private BigDecimal vacationPlannedCount = BigDecimal.ZERO;
 
   private Integer kost1Id;
 
@@ -336,9 +337,10 @@ public class MonthlyEmployeeReport implements Serializable {
       }
     }
     if (vacationService != null && this.employee != null && this.employee.getUser() != null) {
-      if (vacationService.couldUserUseVacationService(this.employee.getUser(), false)) {
-        this.vacationCount = vacationService.getAvailableVacationDaysForYearAtDate(this.employee, this.toDate.getUtilDate());
-        this.vacationPlandCount = vacationService.getPlandVacationDaysForYearAtDate(this.employee, this.toDate.getUtilDate());
+      if (vacationService.hasAccessToVacationService(this.employee.getUser(), false)) {
+        VacationStats stats = vacationService.getVacationStats(employee);
+        this.vacationCount = stats.getVacationDaysLeftInYear(); // was vacationService.getAvailableVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
+        this.vacationPlannedCount = stats.getVacationDaysInProgress(); // was vacationService.getPlandVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
       }
     }
   }
@@ -464,7 +466,7 @@ public class MonthlyEmployeeReport implements Serializable {
   }
 
   public String getFormattedVacationPlandCount() {
-    return vacationPlandCount + " " + I18nHelper.getLocalizedMessage("day");
+    return vacationPlannedCount + " " + I18nHelper.getLocalizedMessage("day");
   }
 
   public String getFormattedTotalNetDuration() {

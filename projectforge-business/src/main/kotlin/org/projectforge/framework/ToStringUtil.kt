@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,6 +39,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.Hibernate
 import org.hibernate.proxy.AbstractLazyInitializer
+import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.kost.Kost1DO
@@ -73,6 +74,14 @@ fun toJsonString(obj: Any, vararg ignoreEmbeddedSerializers: Class<out Any>): St
 
 class ToStringUtil {
     class Serializer<T>(val clazz: Class<T>, val serializer: JsonSerializer<T>)
+    /**
+     * Helper class for having data classes with to json functionality (e. g. for logging).
+     */
+    open class ToJsonStringObject {
+        override fun toString(): String {
+            return toJsonString(this)
+        }
+    }
     companion object {
         private val log = LoggerFactory.getLogger(ToStringUtil::class.java)
 
@@ -171,6 +180,7 @@ class ToStringUtil {
                 register(module, Kost2DO::class.java, Kost2Serializer(), objClass, ignoreEmbeddedSerializers)
                 register(module, KundeDO::class.java, KundeSerializer(), objClass, ignoreEmbeddedSerializers)
                 register(module, PFUserDO::class.java, UserSerializer(), objClass, ignoreEmbeddedSerializers)
+                register(module, EmployeeDO::class.java, EmployeeSerializer(), objClass, ignoreEmbeddedSerializers)
                 register(module, ProjektDO::class.java, ProjektSerializer(), objClass, ignoreEmbeddedSerializers)
                 register(module, TaskDO::class.java, TaskSerializer(), objClass, ignoreEmbeddedSerializers)
             }
@@ -230,6 +240,12 @@ class ToStringUtil {
     class Kost2Serializer : EmbeddedDOSerializer<Kost2DO>(Kost2DO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: Kost2DO, initialized: Boolean) {
             writeFields(jgen, value.id, "number", if (initialized) value.formattedNumber else null)
+        }
+    }
+
+    class EmployeeSerializer : EmbeddedDOSerializer<EmployeeDO>(EmployeeDO::class.java) {
+        override fun writeFields(jgen: JsonGenerator, value: EmployeeDO, initialized: Boolean) {
+            writeFields(jgen, value.id, "name", if (initialized) value.user?.getFullname() else null)
         }
     }
 

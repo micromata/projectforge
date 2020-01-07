@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -199,7 +199,7 @@ public class NavTopPanel extends NavAbstractPanel {
             VacationViewPage.class) {
       @Override
       public boolean isVisible() {
-        return vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), false);
+        return vacationService.hasAccessToVacationService(ThreadLocalUserContext.getUser(), false);
       }
     };
     add(vacationViewLink);
