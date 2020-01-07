@@ -27,7 +27,7 @@ import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.api.EmployeeService
-import org.projectforge.business.vacation.model.RemainingDaysOfVactionDao
+import org.projectforge.business.vacation.repository.RemainingLeaveDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
@@ -75,7 +75,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
     @Autowired
     private lateinit var employeeService: EmployeeService
     @Autowired
-    private lateinit var remainingDaysOfVactionDao: RemainingDaysOfVactionDao
+    private lateinit var remainingLeaveDao: RemainingLeaveDO
     @PersistenceContext
     private lateinit var entityManager: EntityManager
 
@@ -87,7 +87,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      */
     @JvmOverloads
     open fun getRemainingDaysFromPreviousYear(employee: EmployeeDO, year: Int = Year.now().value): BigDecimal {
-        return getVacationStats(employee, year).carryVacationDaysFromPreviousYear ?: BigDecimal.ZERO
+        return getVacationStats(employee, year).remainingLeaveFromPreviousYear ?: BigDecimal.ZERO
     }
 
     /**
@@ -109,12 +109,12 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
                               vacationEntries: List<VacationDO>? = null): VacationStats {
         val stats = VacationStats(employee, year, baseDate)
         stats.vacationDaysInYearFromContract = getYearlyVacationDays(employee, year)
-        stats.carryVacationDaysFromPreviousYear = remainingDaysOfVactionDao.getCarryVacationDaysFromPreviousYear(employee.id, year)
+        stats.remainingLeaveFromPreviousYear = remainingLeaveDao.getCarryVacationDaysFromPreviousYear(employee.id, year)
         stats.endOfVacationYear = getEndOfCarryVacationOfPreviousYear(year)
         val dateOfJoining = employee.eintrittsDatum
         if (dateOfJoining == null) {
             log.warn("Employee has no joining date, can't calculate vacation days.")
-            stats.carryVacationDaysFromPreviousYear = BigDecimal.ZERO
+            stats.remainingLeaveFromPreviousYear = BigDecimal.ZERO
             return stats
         }
         // Calculate remaining vacation days from previous year:
@@ -129,23 +129,23 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
 
         stats.allocatedDaysInOverlapPeriod = getNumberValidVacationDaysInOverlapPeriod(allVacationsOfYear, year)
 
-        stats.carryVacationDaysFromPreviousYear = remainingDaysOfVactionDao.getCarryVacationDaysFromPreviousYear(employee.id, year)
-        if (stats.carryVacationDaysFromPreviousYear == null) {
+        stats.remainingLeaveFromPreviousYear = remainingLeaveDao.getCarryVacationDaysFromPreviousYear(employee.id, year)
+        if (stats.remainingLeaveFromPreviousYear == null) {
             if (dateOfJoining.year >= year || year > baseDate.year || year < baseDate.year - 1) {
                 // Employee joins in current year or later, no carry of vacation days exist, or
                 // the year a future year, so it will not be calculated. Also, only the last year will be calculated, any year
                 // before the last year will not anymore.
-                stats.carryVacationDaysFromPreviousYear = BigDecimal.ZERO
+                stats.remainingLeaveFromPreviousYear = BigDecimal.ZERO
             } else if (year == baseDate.year) {
                 // Carry of holidays from last year weren't yet calculated, do it now:
                 stats.lastYearStats = getVacationStats(employee, baseDate.year - 1, false)
-                stats.carryVacationDaysFromPreviousYear = stats.lastYearStats!!.vacationDaysLeftInYear
+                stats.remainingLeaveFromPreviousYear = stats.lastYearStats!!.vacationDaysLeftInYear
                         ?: BigDecimal.ZERO
                 log.info("Calculation of carry for employee: $stats")
-                remainingDaysOfVactionDao.internalSaveOrUpdate(employee, year, stats.carryVacationDaysFromPreviousYear)
+                remainingLeaveDao.internalSaveOrUpdate(employee, year, stats.remainingLeaveFromPreviousYear)
             } else {
                 // Calculate last year
-                stats.carryVacationDaysFromPreviousYear = remainingDaysOfVactionDao.getCarryVacationDaysFromPreviousYear(employee.id, year)
+                stats.remainingLeaveFromPreviousYear = remainingLeaveDao.getCarryVacationDaysFromPreviousYear(employee.id, year)
                         ?: BigDecimal.ZERO
             }
         }

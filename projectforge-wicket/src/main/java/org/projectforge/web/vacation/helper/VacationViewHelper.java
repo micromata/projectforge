@@ -87,7 +87,7 @@ public class VacationViewHelper {
     BigDecimal vacationdays = stats.getVacationDaysInYearFromContract();
     appendFieldset(sectionLeftGridBuilder, "vacation.annualleave", NumberHelper.getAsString(vacationdays));
 
-    BigDecimal vacationdaysPreviousYear = stats.getCarryVacationDaysFromPreviousYear();
+    BigDecimal vacationdaysPreviousYear = stats.getRemainingLeaveFromPreviousYear();
     if (vacationdaysPreviousYear == null)
       vacationdaysPreviousYear = BigDecimal.ZERO;
     appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleave", NumberHelper.getAsString(vacationdaysPreviousYear));
@@ -109,10 +109,10 @@ public class VacationViewHelper {
     DivPanel sectionMiddleLeft = sectionMiddleLeftGridBuilder.getPanel();
     sectionMiddleLeft.add(new Heading1Panel(sectionMiddleLeft.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.lastyear")));
 
-    appendFieldset(sectionMiddleLeftGridBuilder, "vacation.previousyearleaveused", NumberHelper.getAsString(stats.getCarryVacationDaysFromPreviousYearAllocated()));
+    appendFieldset(sectionMiddleLeftGridBuilder, "vacation.previousyearleaveused", NumberHelper.getAsString(stats.getRemainingLeaveFromPreviousYearAllocated()));
 
     String endDatePreviousYearVacationString = endDatePreviousYearVacation.getDayOfMonth() + "." + endDatePreviousYearVacation.getMonthValue() + ".";
-    appendFieldset(sectionMiddleLeftGridBuilder, "vacation.previousyearleaveunused", NumberHelper.getAsString(stats.getCarryVacationDaysFromPreviousYearUnused()),
+    appendFieldset(sectionMiddleLeftGridBuilder, "vacation.previousyearleaveunused", NumberHelper.getAsString(stats.getRemainingLeaveFromPreviousYearUnused()),
             endDatePreviousYearVacationString);
 
     // special leave

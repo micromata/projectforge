@@ -30,7 +30,7 @@ import org.junit.jupiter.api.fail
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.UserDao
-import org.projectforge.business.vacation.model.RemainingDaysOfVactionDao
+import org.projectforge.business.vacation.repository.RemainingLeaveDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
@@ -52,7 +52,7 @@ class VacationServiceTest : AbstractTestBase() {
     private lateinit var userDao: UserDao
 
     @Autowired
-    private lateinit var remainingDaysOfVactionDao: RemainingDaysOfVactionDao
+    private lateinit var remainingLeaveDao: RemainingLeaveDO
 
     @Autowired
     private lateinit var vacationDao: VacationDao
@@ -350,8 +350,8 @@ class VacationServiceTest : AbstractTestBase() {
                              */
                             baseMonth: Month = Month.JANUARY): VacationStats {
         val stats = vacationService.getVacationStats(employee, year, true, LocalDate.of(2020, baseMonth, 15))
-        assertNumbers(stats, carryVacationDaysFromPreviousYear, stats.carryVacationDaysFromPreviousYear, "carryVacationDaysFromPreviousYear")
-        assertNumbers(stats, carryVacationDaysFromPreviousYearUnused, stats.carryVacationDaysFromPreviousYearUnused, "carryVacationDaysFromPreviousYearUnused")
+        assertNumbers(stats, carryVacationDaysFromPreviousYear, stats.remainingLeaveFromPreviousYear, "carryVacationDaysFromPreviousYear")
+        assertNumbers(stats, carryVacationDaysFromPreviousYearUnused, stats.remainingLeaveFromPreviousYearUnused, "carryVacationDaysFromPreviousYearUnused")
         assertNumbers(stats, vacationDaysAllocatedInYear, stats.vacationDaysInProgressAndApproved, "vacationDaysAllocatedInYear")
         assertNumbers(stats, vacationDaysInYearFromContract, stats.vacationDaysInYearFromContract, "vacationDaysInYearFromContract")
         if (vacationDaysLeftInYear != null)
@@ -361,7 +361,7 @@ class VacationServiceTest : AbstractTestBase() {
         if (carryVacationDaysFromPreviousYear != null && carryVacationDaysFromPreviousYear > 0) {
             assertNumbers(stats,
                     carryVacationDaysFromPreviousYear,
-                    remainingDaysOfVactionDao.internalGet(stats.employee.id, stats.year)?.carryVacationDaysFromPreviousYear,
+                    remainingLeaveDao.internalGet(stats.employee.id, stats.year)?.remainingFromPreviousYear,
                     "carryVacationDaysFromPreviousYear in db: $stats")
         }
         return stats

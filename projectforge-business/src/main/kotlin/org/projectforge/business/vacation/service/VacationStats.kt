@@ -56,14 +56,14 @@ class VacationStats(
     /**
      * The number of vacation days left from the previous year.
      */
-    var carryVacationDaysFromPreviousYear: BigDecimal? = null
+    var remainingLeaveFromPreviousYear: BigDecimal? = null
     /**
      * The number of vacation days left from the previous year, which are already used for vacation.
      */
-    var carryVacationDaysFromPreviousYearAllocated: BigDecimal? = null
-    val carryVacationDaysFromPreviousYearUnused: BigDecimal?
+    var remainingLeaveFromPreviousYearAllocated: BigDecimal? = null
+    val remainingLeaveFromPreviousYearUnused: BigDecimal?
         get() {
-            val total = carryVacationDaysFromPreviousYear
+            val total = remainingLeaveFromPreviousYear
             val allocated = allocatedDaysInOverlapPeriod
             if (total == null)
                 return null
@@ -122,14 +122,14 @@ class VacationStats(
     internal fun calculateLeftDaysInYear() {
         // carried vacation days or actual used vacation days in overlap period. If the employee has less vacation days
         // than carried, these vacation days will be lost after the end of vacation year (31.3.).
-        var leftInYear = minOf(carryVacationDaysFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
+        var leftInYear = minOf(remainingLeaveFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
         leftInYear += vacationDaysInYearFromContract!! // annual vacation days from contract.
         leftInYear -= vacationDaysInProgressAndApproved!!
         this.vacationDaysLeftInYearWithoutCarry = leftInYear
         if (baseDate.isBefore(endOfVacationYear)) {
-            leftInYear += carryVacationDaysFromPreviousYearUnused ?: BigDecimal.ZERO
+            leftInYear += remainingLeaveFromPreviousYearUnused ?: BigDecimal.ZERO
         }
         this.vacationDaysLeftInYear = leftInYear
-        this.carryVacationDaysFromPreviousYearAllocated = minOf(carryVacationDaysFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
+        this.remainingLeaveFromPreviousYearAllocated = minOf(remainingLeaveFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
     }
 }
