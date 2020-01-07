@@ -101,8 +101,11 @@ open class VacationDO : DefaultBaseDO() {
     open var special: Boolean? = null
 
     @PropertyInfo(i18nKey = "vacation.isHalfDay")
-    @get:Column(name = "is_half_day")
-    open var halfDay: Boolean? = null
+    @get:Column(name = "is_half_day_begin")
+    open var halfDayBegin: Boolean? = null
+
+    @get:Column(name = "is_half_day_end")
+    open var halfDayEnd: Boolean? = null
 
     @Transient
     fun getVacationmode(): VacationMode {

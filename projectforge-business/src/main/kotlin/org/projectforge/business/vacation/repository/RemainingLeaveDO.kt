@@ -42,14 +42,14 @@ import java.time.Year
  */
 @Repository
 open class RemainingLeaveDO : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class.java) {
-    open fun internalSaveOrUpdate(employee: EmployeeDO, year: Int, carryVacationDaysFromPreviousYear: BigDecimal?) {
+    open fun internalSaveOrUpdate(employee: EmployeeDO, year: Int, remainingLeaveFromPreviousYear: BigDecimal?) {
         if (year > Year.now().value) {
             throw IllegalArgumentException("Can't determine remaining vacation days for future year $year.")
         }
         val entry = internalGet(employee.id, year) ?: RemainingLeaveDO()
         entry.employee = employee
         entry.year = year
-        entry.remainingFromPreviousYear = carryVacationDaysFromPreviousYear
+        entry.remainingFromPreviousYear = remainingLeaveFromPreviousYear
         if (entry.id == null) {
             internalSave(entry)
         } else {
@@ -57,7 +57,7 @@ open class RemainingLeaveDO : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class.
         }
     }
 
-    open fun getCarryVacationDaysFromPreviousYear(employeeId: Int, year: Int): BigDecimal? {
+    open fun getRemainingLeaveFromPreviousYear(employeeId: Int, year: Int): BigDecimal? {
         if (year > Year.now().value) {
             throw IllegalArgumentException("Can't determine remaining vacation days for future year $year.")
         }

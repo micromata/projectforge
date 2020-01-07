@@ -139,8 +139,6 @@ public class VacationViewHelper {
     // bottom list
     GridBuilder sectionBottomGridBuilder = gridBuilder.newSplitPanel(GridSize.COL100);
     DivPanel sectionBottom = sectionBottomGridBuilder.getPanel();
-    sectionBottom.add(new Heading3Panel(sectionBottom.newChildId(),
-            I18nHelper.getLocalizedMessage("vacation.title.list") + " " + Year.now().getValue()));
     if (showAddButton) {
       final PageParameters pageParameter = new PageParameters();
       pageParameter.add("employeeId", currentEmployee.getId());
@@ -148,24 +146,32 @@ public class VacationViewHelper {
       addLink.addLinkAttribute("class", "btn btn-sm btn-success bottom-xs-gap");
       sectionBottom.add(addLink);
     }
+    int nowYear = Year.now().getValue();
+    addLeaveTable(returnToPage, sectionBottom, currentEmployee, nowYear);
+    addLeaveTable(returnToPage, sectionBottom, currentEmployee, nowYear - 1);
+  }
+
+  private void addLeaveTable(WebPage returnToPage, DivPanel sectionBottom, EmployeeDO currentEmployee, int year) {
+    sectionBottom.add(new Heading3Panel(sectionBottom.newChildId(),
+            I18nHelper.getLocalizedMessage("vacation.title.list") + " " + year));
     TablePanel tablePanel = new TablePanel(sectionBottom.newChildId());
     sectionBottom.add(tablePanel);
     final DataTable<VacationDO, String> dataTable = createDataTable(createColumns(returnToPage), "startDate", SortOrder.ASCENDING,
-            currentEmployee);
+            currentEmployee, year);
     tablePanel.add(dataTable);
   }
 
   private DataTable<VacationDO, String> createDataTable(final List<IColumn<VacationDO, String>> columns,
-                                                        final String sortProperty, final SortOrder sortOrder, final EmployeeDO employee) {
+                                                        final String sortProperty, final SortOrder sortOrder, final EmployeeDO employee, int year) {
     final SortParam<String> sortParam = sortProperty != null
             ? new SortParam<String>(sortProperty, sortOrder == SortOrder.ASCENDING) : null;
     return new DefaultDataTable<VacationDO, String>(TablePanel.TABLE_ID, columns,
-            createSortableDataProvider(sortParam, employee), 50);
+            createSortableDataProvider(sortParam, employee, year), 50);
   }
 
   private ISortableDataProvider<VacationDO, String> createSortableDataProvider(final SortParam<String> sortParam,
-                                                                               EmployeeDO employee) {
-    return new VacationViewPageSortableDataProvider<VacationDO>(sortParam, vacationService, employee);
+                                                                               EmployeeDO employee, int year) {
+    return new VacationViewPageSortableDataProvider<VacationDO>(sortParam, vacationService, employee, year);
   }
 
   private List<IColumn<VacationDO, String>> createColumns(WebPage returnToPage) {
@@ -204,7 +210,7 @@ public class VacationViewHelper {
     });
     columns.add(new CellItemListenerPropertyColumn<>(VacationDO.class, "status", "status", cellItemListener));
     columns.add(new CellItemListenerLambdaColumn<>(new ResourceModel("vacation.workingdays"),
-            rowModel -> vacationService.getVacationDays(rowModel.getObject().getStartDate(), rowModel.getObject().getEndDate(), rowModel.getObject().getHalfDay()),
+            rowModel -> vacationService.getVacationDays(rowModel.getObject().getStartDate(), rowModel.getObject().getEndDate(), rowModel.getObject().getHalfDayBegin()),
             cellItemListener)
     );
 

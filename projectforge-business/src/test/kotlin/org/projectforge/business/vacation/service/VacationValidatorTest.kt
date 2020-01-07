@@ -63,11 +63,11 @@ class VacationValidatorTest : AbstractTestBase() {
 
         vacation.startDate = LocalDate.now().plusMonths(1)
         vacation.endDate = vacation.startDate
-        vacation.halfDay = true
+        vacation.halfDayBegin = true
         Assertions.assertNull(vacationService.validate(vacation))
         vacation.endDate = vacation.endDate!!.plusDays(1)
         Assertions.assertEquals(VacationValidator.Error.MORE_THAN_ONE_HALF_DAY, vacationService.validate(vacation))
-        vacation.halfDay = false
+        vacation.halfDayBegin = false
 
         vacation.startDate = LocalDate.now().with(Month.DECEMBER).withDayOfMonth(24)
         vacation.endDate = vacation.startDate!!.plusMonths(1).withDayOfMonth(6)
@@ -97,7 +97,7 @@ class VacationValidatorTest : AbstractTestBase() {
         vacation.employee = employee
         vacation.startDate = if (startDate.isBefore(employee.eintrittsDatum)) employee.eintrittsDatum else startDate
         vacation.endDate = endDate
-        vacation.halfDay = false
+        vacation.halfDayBegin = false
         vacation.special = false
         vacation.status = status
         vacation.manager = employee // OK for tests...

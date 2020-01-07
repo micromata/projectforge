@@ -44,7 +44,6 @@ import javax.persistence.*
         indexes = [javax.persistence.Index(name = "idx_fk_t_leave_account_employee_id", columnList = "employee_id"),
             javax.persistence.Index(name = "idx_fk_t_leave_account_tenant_id", columnList = "tenant_id")])
 open class LeaveAccountEntryDO : DefaultBaseDO() {
-
     /**
      * The employee.
      */
