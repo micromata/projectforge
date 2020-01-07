@@ -84,7 +84,7 @@ public class VacationViewHelper {
     DivPanel sectionLeft = sectionLeftGridBuilder.getPanel();
     sectionLeft.add(new Heading1Panel(sectionLeft.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.leaveaccount")));
 
-    BigDecimal vacationdays = currentEmployee.getUrlaubstage() != null ? new BigDecimal(currentEmployee.getUrlaubstage()) : BigDecimal.ZERO;
+    BigDecimal vacationdays = stats.getVacationDaysInYearFromContract();
     appendFieldset(sectionLeftGridBuilder, "vacation.annualleave", NumberHelper.getAsString(vacationdays));
 
     BigDecimal vacationdaysPreviousYear = stats.getCarryVacationDaysFromPreviousYear();

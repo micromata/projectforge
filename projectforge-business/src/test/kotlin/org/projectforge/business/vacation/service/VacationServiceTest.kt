@@ -237,6 +237,30 @@ class VacationServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun yearlyVacationDaysForJoinersAndLeaversTest() {
+        val leaver1 = createEmployee("Leaver1", LocalDate.of(2019, Month.JULY, 14), LocalDate.of(2020, Month.JUNE, 15))
+        Assertions.assertEquals(15, vacationService.getYearlyVacationDays(leaver1, 2019).toInt()) // Jul - Dec (6)
+        Assertions.assertEquals(15, vacationService.getYearlyVacationDays(leaver1, 2020).toInt()) // Jan - Jun (6)
+
+        val leaver2 = createEmployee("Leaver2", LocalDate.of(2019, Month.JULY, 15), LocalDate.of(2020, Month.JUNE, 14))
+        Assertions.assertEquals(13, vacationService.getYearlyVacationDays(leaver2, 2019).toInt()) // Aug - Dec (5):5/12*30=12.5
+        Assertions.assertEquals(13, vacationService.getYearlyVacationDays(leaver2, 2020).toInt()) // Jan-May: 5/12*30=12.5
+
+        val leaver3 = createEmployee("Leaver3", LocalDate.of(2020, Month.FEBRUARY, 14), LocalDate.of(2020, Month.JUNE, 15))
+        Assertions.assertEquals(13, vacationService.getYearlyVacationDays(leaver3, 2020).toInt()) // 5/12*30=12.5
+
+        val leaver4 = createEmployee("Leaver4", LocalDate.of(2020, Month.FEBRUARY, 15), LocalDate.of(2020, Month.JUNE, 15))
+        Assertions.assertEquals(10, vacationService.getYearlyVacationDays(leaver4, 2020).toInt()) // 4/12*30=10 (March - June)
+
+        val leaver5 = createEmployee("Leaver5", LocalDate.of(2020, Month.FEBRUARY, 14), LocalDate.of(2020, Month.JUNE, 14))
+        Assertions.assertEquals(10, vacationService.getYearlyVacationDays(leaver5, 2020).toInt()) // 5/12*30=12.5 (February - May)
+
+        val leaver6 = createEmployee("Leaver6", LocalDate.of(2020, Month.JANUARY, 1), LocalDate.of(2020, Month.DECEMBER, 31))
+        Assertions.assertEquals(30, vacationService.getYearlyVacationDays(leaver6, 2020).toInt()) // 12
+    }
+
+
+    @Test
     fun checkAccessTest() {
         val employee = createEmployee("check-access", LocalDate.of(2018, Month.MAY, 1))
         val foreignEmployee = createEmployee("check-access-foreign", LocalDate.of(2018, Month.MAY, 1))

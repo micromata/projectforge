@@ -113,13 +113,14 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
         stats.endOfVacationYear = getEndOfCarryVacationOfPreviousYear(year)
         val dateOfJoining = employee.eintrittsDatum
         if (dateOfJoining == null) {
-            log.warn("Employee has now joining date, can't calculate vacation days.")
+            log.warn("Employee has no joining date, can't calculate vacation days.")
             stats.carryVacationDaysFromPreviousYear = BigDecimal.ZERO
             return stats
         }
         // Calculate remaining vacation days from previous year:
         val yearPeriod = LocalDatePeriod.wholeYear(year)
-        val allVacationsOfYear = vacationEntries ?: getVacationsListForPeriod(employee, yearPeriod.begin, yearPeriod.end, true)
+        val allVacationsOfYear = vacationEntries
+                ?: getVacationsListForPeriod(employee, yearPeriod.begin, yearPeriod.end, true)
         stats.vacationDaysInProgressAndApproved = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false)
         stats.vacationDaysInProgress = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false, VacationStatus.IN_PROGRESS)
         stats.vacationDaysApproved = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false, VacationStatus.APPROVED)
@@ -287,18 +288,30 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * Please note: If number of yearly vacation days are modified over time, this method assumes the current value also for previous years!!!!!!!!!!!!
      * @return [EmployeeDO.urlaubstage] if employee joined before given year, 0 if employee joined later than given year, otherwise fraction (joined in given year).
      */
-    private fun getYearlyVacationDays(employee: EmployeeDO, year: Int): BigDecimal {
-        val joinDate = employee.eintrittsDatum
+    internal fun getYearlyVacationDays(employee: EmployeeDO, year: Int): BigDecimal {
+        val joinDate = employee.eintrittsDatum ?: LocalDate.of(1900, Month.JANUARY, 1)
+        val leaveDate = employee.austrittsDatum ?: LocalDate.of(2999, Month.DECEMBER, 31)
         val vacationDaysPerYear = employee.urlaubstage ?: return BigDecimal.ZERO
-        if (joinDate == null || joinDate.year < year) {
+        /*if (joinDate == null || joinDate.year < year) {
             return BigDecimal(vacationDaysPerYear)
-        }
-        if (joinDate.year > year) {
+        }*/
+        if (joinDate.year > year || leaveDate.year < year) {
             return BigDecimal.ZERO
         }
-        var employedMonths = Month.DECEMBER.value - joinDate.month.value
-        if (joinDate.dayOfMonth < 15)
-            employedMonths++ // Month counts only if the employee joined latest at 14th of month.
+        var employedMonths = 12
+        if (joinDate.year == year) {
+            employedMonths = Month.DECEMBER.value - joinDate.month.value
+            if (joinDate.dayOfMonth < 15)
+                employedMonths++ // Month counts only if the employee joined latest at 14th of month.
+        }
+        if (leaveDate.year == year) {
+            employedMonths -= Month.DECEMBER.value - leaveDate.month.value
+            if (leaveDate.dayOfMonth < 15)
+                employedMonths-- // Month counts only if the employee leaved not earlier than 15th of month.
+        }
+        if (employedMonths == 12) {
+            return BigDecimal(vacationDaysPerYear)
+        }
         return (BigDecimal(vacationDaysPerYear).divide(TWELVE, 2, RoundingMode.HALF_UP) * BigDecimal(employedMonths)).setScale(0, RoundingMode.HALF_UP)
     }
 
