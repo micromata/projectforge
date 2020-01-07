@@ -58,9 +58,12 @@ export const addFilter = fieldId => (dispatch, getState) => dispatch(
     add(getState().list.currentCategory, fieldId),
 );
 
-export const removeFilter = fieldId => (dispatch, getState) => dispatch(
-    remove(getState().list.currentCategory, fieldId),
-);
+export const removeFilter = fieldId => (dispatch, getState) => {
+    const category = getState().list.currentCategory;
+
+    dispatch(remove(category, fieldId));
+    loadList(category)(dispatch, getState);
+};
 
 export const changeSearchString = searchString => (dispatch, getState) => dispatch(
     searchFilterChanged(getState().list.currentCategory, searchString),
@@ -70,9 +73,12 @@ export const resetAllFilters = () => (dispatch, getState) => dispatch(
     reset(getState().list.currentCategory),
 );
 
-export const setFilter = (fieldId, newValue) => (dispatch, getState) => dispatch(
-    set(getState().list.currentCategory, fieldId, newValue),
-);
+export const setFilter = (fieldId, newValue) => (dispatch, getState) => {
+    const category = getState().list.currentCategory;
+
+    dispatch(set(category, fieldId, newValue));
+    loadList(category)(dispatch, getState);
+};
 
 export const sortList = (property, sortOrder) => (dispatch, getState) => {
     let sortProperty = {
