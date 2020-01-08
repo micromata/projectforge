@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.SecureRandom;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -103,22 +104,22 @@ public class NumberHelper {
       return String.valueOf(bytes) + " bytes";
     }
     if (bytes < MEGA_BYTES) {
-      BigDecimal no = new BigDecimal(bytes).divide(KB_BD, 1, BigDecimal.ROUND_HALF_UP);
+      BigDecimal no = new BigDecimal(bytes).divide(KB_BD, 1, RoundingMode.HALF_UP);
       if (no.longValue() >= 100) {
-        no = no.setScale(0, BigDecimal.ROUND_HALF_UP);
+        no = no.setScale(0, RoundingMode.HALF_UP);
       }
       return NumberFormat.getInstance(ThreadLocalUserContext.getLocale()).format(no) + " kb";
     }
     if (bytes < GIGA_BYTES) {
-      BigDecimal no = new BigDecimal(bytes).divide(MB_BD, 1, BigDecimal.ROUND_HALF_UP);
+      BigDecimal no = new BigDecimal(bytes).divide(MB_BD, 1, RoundingMode.HALF_UP);
       if (no.longValue() >= 100) {
-        no = no.setScale(0, BigDecimal.ROUND_HALF_UP);
+        no = no.setScale(0, RoundingMode.HALF_UP);
       }
       return NumberFormat.getInstance(ThreadLocalUserContext.getLocale()).format(no) + " Mb";
     }
-    BigDecimal no = new BigDecimal(bytes).divide(GB_BD, 1, BigDecimal.ROUND_HALF_UP);
+    BigDecimal no = new BigDecimal(bytes).divide(GB_BD, 1, RoundingMode.HALF_UP);
     if (no.longValue() >= 100) {
-      no = no.setScale(0, BigDecimal.ROUND_HALF_UP);
+      no = no.setScale(0, RoundingMode.HALF_UP);
     }
     return NumberFormat.getInstance(ThreadLocalUserContext.getLocale()).format(no) + " Gb";
   }
@@ -171,7 +172,7 @@ public class NumberHelper {
     }
     Integer result = null;
     try {
-      result = new Integer(value);
+      result = Integer.valueOf(value);
     } catch (final NumberFormatException ex) {
       log.warn("Can't parse integer: '" + value + "'.");
     }
@@ -194,7 +195,7 @@ public class NumberHelper {
     }
     Short result = null;
     try {
-      result = new Short(value);
+      result = Short.valueOf(value);
     } catch (final NumberFormatException ex) {
       log.debug(ex.getMessage(), ex);
     }
@@ -214,7 +215,7 @@ public class NumberHelper {
     }
     Long result = null;
     try {
-      result = new Long(value);
+      result = Long.valueOf(value);
     } catch (final NumberFormatException ex) {
       log.debug(ex.getMessage(), ex);
     }
@@ -262,7 +263,7 @@ public class NumberHelper {
       final Number number = format.parse(value);
       if (number != null) {
         result = new BigDecimal(number.toString());
-        result = result.setScale(2, BigDecimal.ROUND_HALF_UP);
+        result = result.setScale(2, RoundingMode.HALF_UP);
       }
     } catch (final ParseException ex) {
       log.debug(ex.getMessage(), ex);
@@ -487,11 +488,11 @@ public class NumberHelper {
       return null;
     }
     if (number.compareTo(NumberHelper.HUNDRED) >= 0 || number.compareTo(NumberHelper.MINUS_HUNDRED) <= 0) {
-      return number.setScale(0, BigDecimal.ROUND_HALF_UP);
+      return number.setScale(0, RoundingMode.HALF_UP);
     } else if (number.compareTo(NumberHelper.TWENTY) >= 0 || number.compareTo(NumberHelper.MINUS_TWENTY) <= 0) {
-      return number.setScale(1, BigDecimal.ROUND_HALF_UP);
+      return number.setScale(1, RoundingMode.HALF_UP);
     }
-    return number.setScale(2, BigDecimal.ROUND_HALF_UP);
+    return number.setScale(2, RoundingMode.HALF_UP);
   }
 
   /**
