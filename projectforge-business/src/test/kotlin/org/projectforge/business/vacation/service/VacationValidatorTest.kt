@@ -61,7 +61,7 @@ class VacationValidatorTest : AbstractTestBase() {
         vacation.endDate = vacation.startDate!!.plusDays(2)
         Assertions.assertEquals(VacationValidator.Error.START_DATE_BEFORE_NOW, vacationService.validate(vacation))
 
-        vacation.startDate = LocalDate.now().plusMonths(1)
+        vacation.startDate = LocalDate.of(2020, Month.JANUARY, 8)
         vacation.endDate = vacation.startDate
         vacation.halfDayBegin = true
         Assertions.assertNull(vacationService.validate(vacation))
