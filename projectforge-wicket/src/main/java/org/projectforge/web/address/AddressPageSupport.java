@@ -40,7 +40,7 @@ import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.flowlayout.*;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 
@@ -292,10 +292,9 @@ class AddressPageSupport implements Serializable {
 
   @SuppressWarnings("serial")
   public AbstractFieldsetPanel<?> addBirthday() {
-    final FieldProperties<Date> props = getBirthdayProperties();
+    final FieldProperties<LocalDate> props = getBirthdayProperties();
     final AbstractFieldsetPanel<?> fs = gridBuilder.newFieldset(props);
-    DatePanel components = new DatePanel(fs.newChildId(), props.getModel(),
-            DatePanelSettings.get().withTargetType(java.sql.Date.class));
+    LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
     components.getFormComponent().setMarkupId("birthday").setOutputMarkupId(true);
     fs.add(
             components);
@@ -308,8 +307,8 @@ class AddressPageSupport implements Serializable {
     return fs;
   }
 
-  public FieldProperties<Date> getBirthdayProperties() {
-    return new FieldProperties<Date>("address.birthday", new PropertyModel<Date>(address, "birthday"));
+  public FieldProperties<LocalDate> getBirthdayProperties() {
+    return new FieldProperties<LocalDate>("address.birthday", new PropertyModel<LocalDate>(address, "birthday"));
   }
 
   public AbstractFieldsetPanel<?> addLanguage() {

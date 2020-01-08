@@ -35,7 +35,7 @@ import org.projectforge.web.rest.TaskDaoRest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.core.Response;
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.Locale;
 
 public class RestServicesTest extends AbstractTestBase {
@@ -60,7 +60,7 @@ public class RestServicesTest extends AbstractTestBase {
     AddressDO addressDO = new AddressDO();
     addressDO.setAddressStatus(AddressStatus.UPTODATE);
     addressDO.setAddressText("Some nice text");
-    addressDO.setBirthday(new Date(System.currentTimeMillis()));
+    addressDO.setBirthday(LocalDate.now());
     addressDO.setBusinessPhone("1-800-STARWARS");
     addressDO.setCity("Kassel");
     addressDO.setCountry("Germany");
