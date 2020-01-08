@@ -27,15 +27,14 @@ import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.entities.AbstractBaseDO
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import javax.persistence.*
 
 /**
- * Repräsentiert einen Urlaub. Ein Urlaub ist einem ProjectForge-Mitarbeiter zugeordnet und enthält buchhalterische
- * Angaben.
+ * Remaining leave entries for employees per year.
  *
- * @author Florian Blumenstein
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed
@@ -43,11 +42,8 @@ import javax.persistence.*
         indexes = [javax.persistence.Index(name = "idx_fk_t_vacation_remaining_employee_id", columnList = "employee_id")],
         uniqueConstraints = [UniqueConstraint(columnNames = ["tenant_id", "employee_id", "year"])])
 @NamedQueries(NamedQuery(name = RemainingLeaveDO.FIND_BY_EMPLOYEE_ID_AND_YEAR,
-                query = "from RemainingLeaveDO where employee.id=:employeeId and year=:year"))
-open class RemainingLeaveDO : AbstractBaseDO<Int>() {
-    @PropertyInfo(i18nKey = "id")
-    private var id: Int? = null
-
+                query = "from RemainingLeaveDO where employee.id=:employeeId and year=:year and deleted=false"))
+open class RemainingLeaveDO : DefaultBaseDO() {
     /**
      * The employee.
      */
@@ -65,16 +61,9 @@ open class RemainingLeaveDO : AbstractBaseDO<Int>() {
     @get:Column(name = "remaining_from_previous_year", nullable = true)
     open var remainingFromPreviousYear: BigDecimal? = null
 
-    @Id
-    @GeneratedValue
-    @Column(name = "pk")
-    override fun getId(): Int? {
-        return id
-    }
-
-    override fun setId(id: Int?) {
-        this.id = id
-    }
+    @PropertyInfo(i18nKey = "comment")
+    @get:Column(length = 4000)
+    open var comment: String? = null
 
     companion object {
         internal const val FIND_BY_EMPLOYEE_ID_AND_YEAR = "RemainingLeaveDO_FindByEmployeeIdAndYear"

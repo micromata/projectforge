@@ -43,6 +43,8 @@ import javax.persistence.*
 @Table(name = "t_employee_leave_account_entry",
         indexes = [javax.persistence.Index(name = "idx_fk_t_leave_account_employee_id", columnList = "employee_id"),
             javax.persistence.Index(name = "idx_fk_t_leave_account_tenant_id", columnList = "tenant_id")])
+@NamedQueries(NamedQuery(name = LeaveAccountEntryDO.FIND_BY_EMPLOYEE_ID_AND_YEAR,
+        query = "from LeaveAccountEntryDO where employee.id=:employeeId and date=:date and deleted=false"))
 open class LeaveAccountEntryDO : DefaultBaseDO() {
     /**
      * The employee.
@@ -57,22 +59,15 @@ open class LeaveAccountEntryDO : DefaultBaseDO() {
     @get:Column(name = "date", nullable = false)
     open var date: LocalDate? = null
 
-    /**
-     * For setting an accounting balance for a date, meaning, that the employee has the given amount of leave days
-     * from this day for this year, independent of any remaining leave or previous vacation entries.
-     * Any calculation starts from this date as a reset.
-     * You may overwrite any remainingLeave manually.
-     */
-    @PropertyInfo(i18nKey = "vacation.accountingBalance")
-    @get:Column(name = "accounting_balance", nullable = false)
-    open var accountingBalance: Boolean? = null
-
-
     @PropertyInfo(i18nKey = "vacation.Days")
     @get:Column(nullable = true)
     open var amount: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "description")
     @get:Column(nullable = true)
-    open var description: String? = null
+    open var comment: String? = null
+
+    companion object {
+        internal const val FIND_BY_EMPLOYEE_ID_AND_YEAR = "LeaveAccountEntryDO_FindByEmployeeIdAndYear"
+    }
 }

@@ -41,7 +41,8 @@ import java.time.Year
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-open class RemainingLeaveDO : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class.java) {
+open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class.java) {
+
     open fun internalSaveOrUpdate(employee: EmployeeDO, year: Int, remainingLeaveFromPreviousYear: BigDecimal?) {
         if (year > Year.now().value) {
             throw IllegalArgumentException("Can't determine remaining vacation days for future year $year.")
@@ -50,6 +51,7 @@ open class RemainingLeaveDO : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class.
         entry.employee = employee
         entry.year = year
         entry.remainingFromPreviousYear = remainingLeaveFromPreviousYear
+        entry.isDeleted = false
         if (entry.id == null) {
             internalSave(entry)
         } else {
@@ -57,6 +59,11 @@ open class RemainingLeaveDO : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class.
         }
     }
 
+    /**
+     * Tries first to get any manual stored value in [RemainingLeaveDO]. If not found then the value of this table
+     * will be returned if exists.
+     * @see [LeaveAccountEntryDao.getRemainingLeaveFromPreviousYear]
+     */
     open fun getRemainingLeaveFromPreviousYear(employeeId: Int, year: Int): BigDecimal? {
         if (year > Year.now().value) {
             throw IllegalArgumentException("Can't determine remaining vacation days for future year $year.")
@@ -69,13 +76,6 @@ open class RemainingLeaveDO : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class.
                 .setParameter("employeeId", employeeId)
                 .setParameter("year", year))
         return result
-    }
-
-    /**
-     * Throws [UnsupportedOperationException]
-     */
-    override fun delete(obj: RemainingLeaveDO?) {
-        throw UnsupportedOperationException("Deletion not supported.")
     }
 
     override fun hasAccess(user: PFUserDO?, obj: RemainingLeaveDO?, oldObj: RemainingLeaveDO?, operationType: OperationType?, throwException: Boolean): Boolean {

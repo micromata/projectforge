@@ -263,7 +263,7 @@ public class VacationViewHelper {
     return true;
   }
 
-  private class VacationStatsModel extends Model {
+  private class VacationStatsModel extends Model<VacationStats> {
     VacationStats stats;
     EmployeeDO employeeDO;
 

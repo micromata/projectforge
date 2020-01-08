@@ -29,7 +29,7 @@ import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
-import org.projectforge.business.vacation.repository.RemainingLeaveDO
+import org.projectforge.business.vacation.repository.RemainingLeaveDao
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.BaseSearchFilter
@@ -75,7 +75,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
     @Autowired
     private lateinit var employeeService: EmployeeService
     @Autowired
-    private lateinit var remainingLeaveDao: RemainingLeaveDO
+    private lateinit var remainingLeaveDao: RemainingLeaveDao
     @PersistenceContext
     private lateinit var entityManager: EntityManager
 

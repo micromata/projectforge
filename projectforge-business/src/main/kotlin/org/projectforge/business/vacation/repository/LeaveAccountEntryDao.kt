@@ -28,8 +28,9 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.springframework.stereotype.Repository
 
 @Repository
-open class LeaveAccountEntryDao protected constructor() : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntryDO::class.java) {
-    open override fun newInstance(): LeaveAccountEntryDO {
+open class LeaveAccountEntryDao: BaseDao<LeaveAccountEntryDO>(LeaveAccountEntryDO::class.java) {
+    override fun newInstance(): LeaveAccountEntryDO {
         return LeaveAccountEntryDO()
     }
+
 }

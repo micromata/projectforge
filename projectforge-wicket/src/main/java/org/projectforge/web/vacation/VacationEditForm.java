@@ -35,46 +35,36 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.multitenancy.TenantService;
-import org.projectforge.business.teamcal.admin.TeamCalCache;
-import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationMode;
 import org.projectforge.business.vacation.model.VacationStatus;
-import org.projectforge.business.vacation.service.VacationCalendarService;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.employee.DefaultEmployeeWicketProvider;
-import org.projectforge.web.teamcal.admin.TeamCalsProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2Choice;
-import org.wicketstuff.select2.Select2MultiChoice;
 
 import java.math.BigDecimal;
 import java.time.Year;
-import java.util.*;
+import java.util.Date;
 
 public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditPage> {
   private static final long serialVersionUID = 8746545901236124484L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(VacationEditForm.class);
-  final MultiChoiceListHelper<TeamCalDO> assignCalendarListHelper = new MultiChoiceListHelper<>();
   private final Model<String> neededVacationDaysModel = new Model<>();
   private final Model<String> availableVacationDaysModel = new Model<>();
   @SpringBean
   private VacationService vacationService;
-  @SpringBean
-  private VacationCalendarService vacationCalendarService;
   @SpringBean
   private EmployeeService employeeService;
   @SpringBean
@@ -83,8 +73,6 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   private ConfigurationService configService;
   @SpringBean
   private AccessChecker accessChecker;
-  @SpringBean
-  private TeamCalCache teamCalCache;
   private Label neededVacationDaysLabel;
   private Label availableVacationDaysLabel;
   private VacationStatus statusBeforeModification;
@@ -122,7 +110,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     if (checkReadAccess() == false) {
       throw new AccessException("access.exception.userHasNotRight");
     }
-    VacationFormValidator formValidator = new VacationFormValidator(vacationService, vacationService, vacationCalendarService, configService, data);
+    VacationFormValidator formValidator = new VacationFormValidator(vacationService, vacationService, configService, data);
     add(formValidator);
 
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -274,54 +262,16 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     }
 
     {
-      // Substitutions
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("vacation.substitution"));
-      final Select2MultiChoice<EmployeeDO> substitutionSelect = new Select2MultiChoice<>(
-              Select2MultiChoicePanel.WICKET_ID,
-              new PropertyModel<>(data, "substitutions"),
-              new DefaultEmployeeWicketProvider(employeeService, checkHRWriteRight()));
-      substitutionSelect.setRequired(true).setMarkupId("vacation-substitution").setOutputMarkupId(true);
-      substitutionSelect.setEnabled(checkEnableInputField());
-      fs.add(new Select2MultiChoicePanel<>(fs.newChildId(), substitutionSelect));
-    }
-
-    {
-      // Calendars
-      final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("vacation.calendar"));
-      final List<TeamCalDO> calendarsForVacation = vacationCalendarService.getCalendarsForVacation(this.data);
-      final Set<TeamCalDO> availableCalendars = new HashSet<>(teamCalCache.getAllFullAccessCalendars());
-      final Set<TeamCalDO> currentCalendars = new HashSet<>();
-      final TeamCalDO configuredVacationCalendar = configService.getVacationCalendar();
-      final List<TeamCalDO> additionalCalendars = new ArrayList<>();
-
-      if (configuredVacationCalendar != null) {
-        availableCalendars.add(configuredVacationCalendar);
-        currentCalendars.add(configuredVacationCalendar);
-        additionalCalendars.add(configuredVacationCalendar);
-      }
-
-      assignCalendarListHelper
-              .setComparator(Comparator.comparing(BaseDO::getPk))
-              .setFullList(availableCalendars);
-
-      if (calendarsForVacation != null) {
-        currentCalendars.addAll(calendarsForVacation);
-      }
-
-      for (final TeamCalDO calendar : currentCalendars) {
-        assignCalendarListHelper
-                .addOriginalAssignedItem(calendar)
-                .assignItem(calendar);
-      }
-
-      final Select2MultiChoice<TeamCalDO> calendarsSelect = new Select2MultiChoice<>(
-              fieldSet.getSelect2MultiChoiceId(),
-              new PropertyModel<Collection<TeamCalDO>>(assignCalendarListHelper, "assignedItems"),
-              new TeamCalsProvider(teamCalCache, true, additionalCalendars));
-      calendarsSelect.setMarkupId("calenders").setOutputMarkupId(true);
-      calendarsSelect.setEnabled(checkEnableInputField());
-      formValidator.getDependentFormComponents()[6] = calendarsSelect;
-      fieldSet.add(calendarsSelect);
+      // Replacement
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("vacation.replacement"));
+      final Select2Choice<EmployeeDO> replacementSelect = new Select2Choice<>(
+              Select2SingleChoicePanel.WICKET_ID,
+              new PropertyModel<>(data, "replacement"),
+              new DefaultEmployeeWicketProvider(employeeService, checkHRWriteRight(), EmployeeStatus.FEST_ANGESTELLTER, EmployeeStatus.BEFRISTET_ANGESTELLTER,
+                      EmployeeStatus.FREELANCER));
+      replacementSelect.setRequired(true).setMarkupId("vacation-replacement").setOutputMarkupId(true);
+      replacementSelect.setEnabled(checkEnableInputField());
+      fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), replacementSelect));
     }
 
     {
@@ -432,7 +382,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     final Integer userId = ThreadLocalUserContext.getUserId();
     if (data.getEmployee().getUser().getPk().equals(userId)
             || (data.getManager() != null && data.getManager().getUser().getPk().equals(userId))
-            || data.isSubstitution(userId)) {
+            || data.isReplacement(userId)) {
       return true;
     }
     return accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READONLY,
