@@ -1,4 +1,4 @@
-ALTER TABLE t_employee_vacation ADD COLUMN desciption CHARACTER VARYING(4000);
+ALTER TABLE t_employee_vacation ADD COLUMN comment CHARACTER VARYING(4000);
 ALTER TABLE t_employee_vacation ADD COLUMN is_half_day_end BOOLEAN;
 
 CREATE TABLE t_employee_leave_account_entry (

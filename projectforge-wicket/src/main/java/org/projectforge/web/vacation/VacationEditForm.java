@@ -54,10 +54,7 @@ import org.projectforge.web.employee.DefaultEmployeeWicketProvider;
 import org.projectforge.web.teamcal.admin.TeamCalsProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.LocalDateModel;
-import org.projectforge.web.wicket.components.LocalDatePanel;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2Choice;
@@ -342,6 +339,11 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       fs.add(statusChoice);
     }
 
+    {
+      // Comment
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("comment"));
+      fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(data, "comment")), true);
+    }
   }
 
   private void updateNeededVacationDaysLabel() {

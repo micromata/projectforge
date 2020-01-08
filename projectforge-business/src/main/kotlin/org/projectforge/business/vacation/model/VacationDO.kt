@@ -107,6 +107,10 @@ open class VacationDO : DefaultBaseDO() {
     @get:Column(name = "is_half_day_end")
     open var halfDayEnd: Boolean? = null
 
+    @PropertyInfo(i18nKey = "comment")
+    @get:Column(length = 4000)
+    open var comment: String? = null
+
     @Transient
     fun getVacationmode(): VacationMode {
         val currentUserId = ThreadLocalUserContext.getUserId()
