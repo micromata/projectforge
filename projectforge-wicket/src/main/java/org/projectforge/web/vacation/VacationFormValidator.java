@@ -96,10 +96,6 @@ public class VacationFormValidator implements IFormValidator {
       employee = data.getEmployee();
     }
 
-    if (checkOnlyStatusChange(statusChoice)) {
-      return;
-    }
-
     final LocalDate startDate = startDatePanel.getConvertedInputAsLocalDate();
     final LocalDate endDate = endDatePanel.getConvertedInputAsLocalDate();
 
@@ -139,23 +135,6 @@ public class VacationFormValidator implements IFormValidator {
       selectedCalendars.addAll(vacationCalendarService.getCalendarsForVacation(this.data));
     }
     return selectedCalendars;
-  }
-
-  private boolean checkOnlyStatusChange(final DropDownChoice<VacationStatus> statusChoice) {
-    if (statusChoice != null && statusChoice.getConvertedInput() != null && data.getStatus() != null) {
-      if (
-        //Changes from IN_PROGRESS to APPROVED or REJECTED
-              (VacationStatus.IN_PROGRESS.equals(data.getStatus()) && (VacationStatus.APPROVED.equals(statusChoice.getConvertedInput()) || VacationStatus.REJECTED
-                      .equals(statusChoice.getConvertedInput())))
-                      ||
-                      //Changes from REJECTED to APPROVED or IN_PROGRESS
-                      (VacationStatus.REJECTED.equals(data.getStatus()) && (VacationStatus.APPROVED.equals(statusChoice.getConvertedInput())
-                              || VacationStatus.IN_PROGRESS.equals(statusChoice.getConvertedInput())))
-      ) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private boolean isOn(final CheckBox checkBox) {

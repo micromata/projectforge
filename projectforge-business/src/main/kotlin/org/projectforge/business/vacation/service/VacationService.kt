@@ -92,20 +92,15 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
 
     /**
      * Method for getting stats for tests, exports and logging.
-     * @param nowYear Only for test cases (so they will run in further years).
+     * @param calculateRemainingLeaveInFormerYears Only for internal use for recursive calls.
+     * @param baseDate Only for testing with fixed simulated now date. Default is today.
+     * @param vacationEntries For internal usage by [VacationValidator].
      */
     @JvmOverloads
     open fun getVacationStats(employee: EmployeeDO,
                               year: Int = Year.now().value,
-                              /** Only for internal use for recursive calls. */
                               calculateRemainingLeaveInFormerYears: Boolean = true,
-                              /**
-                               * Only for testing with fixed simulated now date. Default is today.
-                               */
                               baseDate: LocalDate = LocalDate.now(),
-                              /**
-                               * For internal usage of [VacationValidator].
-                               */
                               vacationEntries: List<VacationDO>? = null): VacationStats {
         val stats = VacationStats(employee, year, baseDate)
         stats.vacationDaysInYearFromContract = getYearlyVacationDays(employee, year)
@@ -233,8 +228,12 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @return null if no validation error was detected, or i18n-key of error, if validation failed.
      */
     @JvmOverloads
-    fun validate(vacation: VacationDO, dbVacation: VacationDO? = null, throwException: Boolean = false): VacationValidator.Error? {
-        return VacationValidator.validate(this, vacation, dbVacation, throwException)
+    open fun validate(vacation: VacationDO, dbVacation: VacationDO? = null, throwException: Boolean = false): VacationValidator.Error? {
+        var dbVal = dbVacation
+        if (dbVacation == null && vacation.id != null) {
+            dbVal = vacationDao.internalGetById(vacation.id)
+        }
+        return VacationValidator.validate(this, vacation, dbVal, throwException)
     }
 
     open fun getOpenLeaveApplicationsForUser(user: PFUserDO): BigDecimal {
