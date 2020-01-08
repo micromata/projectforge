@@ -26,7 +26,6 @@ package org.projectforge.rest.calendar
 import org.projectforge.business.vacation.VacationCache
 import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.time.PFDay
 
 /**
  * Provides the vacation days of the employees. You may filter the vacation by ProjectForge groups.
@@ -54,8 +53,8 @@ object VacationProvider {
 
             events.add(BigCalendarEvent(
                     title = it.employee?.user?.getFullname(),
-                    start = PFDay.from(it.startDate)!!.utilDate,
-                    end = PFDateTime.from(it.endDate)!!.endOfDay.utilDate,
+                    start = it.startDate!!,
+                    end = it.endDate!!,
                     allDay = true,
                     category = "vacation",
                     bgColor = bgColor,
