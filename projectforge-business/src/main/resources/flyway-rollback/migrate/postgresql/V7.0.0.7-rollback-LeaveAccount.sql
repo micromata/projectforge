@@ -1,0 +1,7 @@
+
+ALTER TABLE t_employee_remaining_leave RENAME remaining_from_previous_year TO carry_vacation_days_from_previous_year;
+
+ALTER TABLE t_employee_vacation RENAME is_half_day_begin TO is_half_day;
+
+ALTER TABLE t_employee_remaining_leave TO t_employee_vacation_remaining rename;
+
