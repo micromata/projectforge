@@ -32,11 +32,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
-import org.projectforge.common.BeanHelper;
 import org.projectforge.export.DOGetterListExcelExporter;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -44,10 +42,8 @@ import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.flowlayout.TextPanel;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @ListPage(editPage = VacationEditPage.class)
 public class VacationListPage extends AbstractListPage<VacationListForm, VacationService, VacationDO> implements
@@ -183,8 +179,8 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
     });
 
     columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class,
-        getSortable("substitutions", sortable),
-        "substitutions", cellItemListener)
+            getSortable("replacement", sortable),
+            "replacement", cellItemListener)
     {
       /**
        * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
@@ -192,30 +188,29 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
        */
       @Override
       public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
-          final IModel<VacationDO> rowModel)
+                               final IModel<VacationDO> rowModel)
       {
         final VacationDO vacation = rowModel.getObject();
-        final Set<EmployeeDO> substitutions = vacation.getSubstitutions();
-        final List<String> substitutionNames = new ArrayList<>();
-
-        for (EmployeeDO substitution : substitutions) {
-          if (substitution != null && substitution.getUser() != null) {
-            substitutionNames.add(substitution.getUser().getFullname());
-          }
-        }
-
+        final EmployeeDO replacement = vacation.getReplacement();
+        final String fullname = replacement != null && replacement.getUser() != null ? replacement.getUser().getFullname()
+                : null;
         if (isSelectMode() == false) {
           item.add(new ListSelectActionPanel(componentId, rowModel, VacationEditPage.class, vacation.getId(),
-              returnToPage, String.join(", ", substitutionNames)));
+                  returnToPage, fullname));
         } else {
           item.add(
-              new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, vacation.getId(), String.join(" ,", substitutionNames)));
+                  new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, vacation.getId(), fullname));
         }
-
         cellItemListener.populateItem(item, componentId, rowModel);
         addRowClick(item);
       }
     });
+
+    columns
+            .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, getSortable("comment", sortable),
+                    "comment",
+                    cellItemListener));
+
 
     return columns;
   }
@@ -233,30 +228,7 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
   @Override
   protected DOGetterListExcelExporter createExcelExporter(final String filenameIdentifier)
   {
-    return new DOGetterListExcelExporter(filenameIdentifier)
-    {
-      @Override
-      public void addMapping(final PropertyMapping mapping, final Object entry, final Field field)
-      {
-        if (field.getName().equals("substitutions")) {
-          Set<EmployeeDO> substitutions = (Set<EmployeeDO>) BeanHelper.getFieldValue(entry, field);
-          StringBuilder sb = new StringBuilder();
-
-          for (EmployeeDO sub : substitutions) {
-            sb.append(", ");
-            sb.append(sub.getUser().getFullname());
-          }
-
-          if (sb.length() > 2) {
-            mapping.add(field.getName(), sb.substring(2));
-          } else {
-            mapping.add(field.getName(), "");
-          }
-        } else {
-          super.addMapping(mapping, entry, field);
-        }
-      }
-    };
+    return new DOGetterListExcelExporter(filenameIdentifier);
   }
 
   @Override

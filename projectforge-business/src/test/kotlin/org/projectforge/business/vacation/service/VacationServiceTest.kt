@@ -30,7 +30,7 @@ import org.junit.jupiter.api.fail
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.UserDao
-import org.projectforge.business.vacation.repository.RemainingLeaveDO
+import org.projectforge.business.vacation.repository.RemainingLeaveDao
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
@@ -52,7 +52,7 @@ class VacationServiceTest : AbstractTestBase() {
     private lateinit var userDao: UserDao
 
     @Autowired
-    private lateinit var remainingLeaveDao: RemainingLeaveDO
+    private lateinit var remainingLeaveDao: RemainingLeaveDao
 
     @Autowired
     private lateinit var vacationDao: VacationDao
