@@ -125,7 +125,10 @@ public class TimesheetDisciplineChartBuilder
       current = it.next();
     }
     for (int i = 0; i <= forLastNDays; i++) {
-      PFDateTime dateTime = PFDateTime.from(current.getStartTime());
+      // NPE-Fix required: current may be null.
+      PFDateTime dateTime = null;
+      if (current != null)
+        dateTime = PFDateTime.from(current.getStartTime());
       while (current != null && (dt.isSameDay(dateTime) || dateTime.isBefore(dt))) {
         actualWorkingHours += ((double) current.getWorkFractionDuration()) / 3600000;
         if (it.hasNext()) {
