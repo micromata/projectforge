@@ -42,7 +42,7 @@ import java.util.Date;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class LiquidityChartBuilder
 {
@@ -75,7 +75,7 @@ public class LiquidityChartBuilder
       if (log.isDebugEnabled()) {
         log.debug("day: " + i + ", credits=" + cashFlow.getCredits()[i] + ", debits=" + cashFlow.getDebits()[i]);
       }
-      final Day day = new Day(dt.getDayOfMonth(), dt.getMonthValue() + 1, dt.getYear());
+      final Day day = new Day(dt.getDayOfMonth(), dt.getMonthValue(), dt.getYear());
       if (i > 0) {
         accumulated += cashFlow.getDebits()[i - 1].doubleValue() + cashFlow.getCredits()[i - 1].doubleValue();
         accumulatedExpected += cashFlow.getDebitsExpected()[i - 1].doubleValue() + cashFlow.getCreditsExpected()[i - 1].doubleValue();
@@ -133,7 +133,7 @@ public class LiquidityChartBuilder
     PFDateTime dt = PFDateTime.now();
     final Date lower = dt.getUtilDate();
     for (int i = 0; i < settings.getNextDays(); i++) {
-      final Day day = new Day(dt.getDayOfMonth(), dt.getMonthValue() + 1, dt.getYear());
+      final Day day = new Day(dt.getDayOfMonth(), dt.getMonthValue(), dt.getYear());
       if (i > 0) {
         accumulatedExpected += cashFlow.getDebitsExpected()[i - 1].doubleValue() + cashFlow.getCreditsExpected()[i - 1].doubleValue();
       }
