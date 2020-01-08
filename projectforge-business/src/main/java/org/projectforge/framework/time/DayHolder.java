@@ -83,7 +83,7 @@ public class DayHolder {
    * @param date
    */
   public DayHolder(final Date date) {
-    this.date = PFDay.from(date);
+    this.date = PFDay.from(date, true);
   }
 
   public DayHolder(final Date date, final TimeZone timeZone) {
