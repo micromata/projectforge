@@ -5,23 +5,13 @@ import { connect } from 'react-redux';
 import { Input } from '../../../../components/design';
 import styles from '../ListPage.module.scss';
 
-function SearchField(
-    {
-        id,
-        placeholder,
-        onChange,
-        value,
-    },
-) {
+function SearchField(props) {
     return (
         <Input
-            id={id}
             icon={faSearch}
             className={styles.search}
             autoComplete="off"
-            placeholder={placeholder}
-            onChange={onChange}
-            value={value}
+            {...props}
         />
     );
 }
