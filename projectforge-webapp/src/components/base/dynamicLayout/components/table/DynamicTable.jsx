@@ -11,7 +11,12 @@ function DynamicTable({ columns, id }) {
     const entries = Object.getByString(data, id) || '';
 
     return React.useMemo(() => (
-        <React.Fragment>
+        <div
+            style={{
+                marginLeft: '1em',
+                marginRight: '1em',
+            }}
+        >
             <Table striped hover responsive>
                 <thead>
                     <tr>
@@ -34,11 +39,11 @@ function DynamicTable({ columns, id }) {
                 </tbody>
             </Table>
             {data.size !== undefined && (
-                <p style={{ paddingLeft: '1em' }}>
+                <p>
                     {`${ui.translations['table.showing']} ${data.size}/${data.totalSize}`}
                 </p>
             )}
-        </React.Fragment>
+        </div>
     ), [entries, ui]);
 }
 

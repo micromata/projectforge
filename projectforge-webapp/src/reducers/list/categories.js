@@ -1,5 +1,6 @@
 import {
     LIST_CALL_SUCCESS,
+    LIST_DISMISS_ERROR,
     LIST_FAVORITES_RECEIVED,
     LIST_FETCH_DATA_BEGIN,
     LIST_FETCH_FAILURE,
@@ -27,6 +28,11 @@ const initialCategoryState = {
 
 const categoryReducer = (state = initialCategoryState, { type, payload }) => {
     switch (type) {
+        case LIST_DISMISS_ERROR:
+            return {
+                ...state,
+                error: undefined,
+            };
         case LIST_INITIAL_CALL_BEGIN:
             return {
                 ...state,
@@ -146,6 +152,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
 const reducer = (state = initialState, action) => {
     const { type, payload } = action;
     switch (type) {
+        case LIST_DISMISS_ERROR:
         case LIST_INITIAL_CALL_BEGIN:
         case LIST_FETCH_DATA_BEGIN:
         case LIST_FETCH_FAILURE:
