@@ -22,8 +22,8 @@ function DynamicTableHead(
 
     return (
         <th onClick={handleHeadClick} className={sortable ? style.clickableTableHead : ''}>
-            {sortable && <AnimatedChevron direction={direction} />}
             {title}
+            {sortable && <AnimatedChevron direction={direction} />}
         </th>
     );
 }
