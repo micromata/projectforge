@@ -23,7 +23,7 @@ export const getServiceURL = (serviceURL, params) => {
 
 export const handleHTTPErrors = (response) => {
     if (!response.ok) {
-        throw Error(response.status);
+        throw Error(`Fetch failed: Error ${response.status}`);
     }
 
     return response;

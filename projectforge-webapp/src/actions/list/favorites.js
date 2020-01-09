@@ -29,5 +29,5 @@ export const fetchFavorites = (action, { params = {}, body }) => (dispatch, getS
         .then(handleHTTPErrors)
         .then(response => response.json())
         .then(response => dispatch(saveFavoritesResponse(category, response)))
-        .catch(error => dispatch(fetchFailure(error)));
+        .catch(error => dispatch(fetchFailure(category, error.message)));
 };
