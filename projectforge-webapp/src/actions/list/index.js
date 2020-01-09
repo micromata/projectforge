@@ -1,11 +1,17 @@
 import history from '../../utilities/history';
 import { getObjectFromQuery, getServiceURL, handleHTTPErrors } from '../../utilities/rest';
 
+export const LIST_DISMISS_ERROR = 'LIST_DISMISS_ERROR';
 export const LIST_SWITCH_CATEGORY = 'LIST_SWITCH_CATEGORY';
 export const LIST_FETCH_FAILURE = 'LIST_FETCH_FAILURE';
 export const LIST_INITIAL_CALL_BEGIN = 'LIST_INITIAL_CALL_BEGIN';
 export const LIST_FETCH_DATA_BEGIN = 'LIST_FETCH_DATA_BEGIN';
 export const LIST_CALL_SUCCESS = 'LIST_CALL_SUCCESS';
+
+const dismissError = category => ({
+    type: LIST_DISMISS_ERROR,
+    payload: { category },
+});
 
 const switchCategory = category => ({
     type: LIST_SWITCH_CATEGORY,
@@ -79,6 +85,10 @@ const fetchData = (category, dispatch, getState) => {
         .then(data => dispatch(callSuccess(category, { data })))
         .catch(error => dispatch(fetchFailure(category, error.message)));
 };
+
+export const dismissCurrentError = () => (dispatch, getState) => dispatch(
+    dismissError(getState().list.currentCategory),
+);
 
 export const loadList = category => (dispatch, getState) => {
     if (getState().list.currentCategory !== category) {

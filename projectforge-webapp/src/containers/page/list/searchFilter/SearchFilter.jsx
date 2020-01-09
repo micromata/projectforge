@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Navbar } from 'reactstrap';
-import { fetchCurrentList, fetchListFavorites } from '../../../../actions';
+import { dismissCurrentError, fetchCurrentList, fetchListFavorites } from '../../../../actions';
 import { changeSearchString } from '../../../../actions/list/filter';
 import Navigation from '../../../../components/base/navigation';
-import { Col, Spinner } from '../../../../components/design';
+import { Alert, Col, Spinner } from '../../../../components/design';
 import AdvancedPopper from '../../../../components/design/popper/AdvancedPopper';
 import AdvancedPopperAction from '../../../../components/design/popper/AdvancedPopperAction';
 import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
@@ -39,6 +39,7 @@ const loadQuickSelectionsBounced = (
 function SearchFilter(props) {
     const {
         category,
+        onErrorDismiss,
         onFavoriteCreate,
         onFavoriteDelete,
         onFavoriteRename,
@@ -50,6 +51,7 @@ function SearchFilter(props) {
     } = props;
 
     const {
+        error,
         filter,
         filterFavorites,
         isFetching,
@@ -153,6 +155,16 @@ function SearchFilter(props) {
             </div>
             <MagicFilters />
             <hr />
+            {/* TODO ADD DISMISS */}
+            <Alert
+                color="danger"
+                className={styles.alert}
+                toggle={onErrorDismiss}
+                isOpen={error !== undefined}
+            >
+                <h4>Fehler</h4>
+                <p>???Huch?! Das soll so aber nicht :o???</p>
+            </Alert>
         </React.Fragment>
     );
 }
@@ -162,6 +174,7 @@ SearchFilter.propTypes = {
         filter: PropTypes.shape({}),
         filterFavorites: PropTypes.arrayOf(PropTypes.shape({})),
     }).isRequired,
+    onErrorDismiss: PropTypes.func.isRequired,
     onFavoriteCreate: PropTypes.func.isRequired,
     onFavoriteDelete: PropTypes.func.isRequired,
     onFavoriteRename: PropTypes.func.isRequired,
@@ -184,6 +197,7 @@ const mapStateToProps = ({ list }) => {
 };
 
 const actions = (dispatch, { filter }) => ({
+    onErrorDismiss: () => dispatch(dismissCurrentError()),
     onFavoriteCreate: name => dispatch(fetchListFavorites('create', {
         body: {
             ...filter,

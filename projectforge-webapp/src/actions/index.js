@@ -14,11 +14,13 @@ export {
 } from './menu';
 
 export {
+    LIST_DISMISS_ERROR,
     LIST_SWITCH_CATEGORY,
     LIST_INITIAL_CALL_BEGIN,
     LIST_FETCH_DATA_BEGIN,
     LIST_CALL_SUCCESS,
     LIST_FETCH_FAILURE,
+    dismissCurrentError,
     loadList,
     fetchCurrentList,
     openEditPage,
