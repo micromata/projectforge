@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Button, ButtonGroup } from '../../../../../../components/design';
+import { CheckBox } from '../../../../../../components/design';
 
 function MagicSelectInput(
     {
@@ -10,11 +10,13 @@ function MagicSelectInput(
     },
 ) {
     return (
-        <ButtonGroup>
+        <React.Fragment>
             {values.map(({ value: selectValue, label }) => (
-                <Button
+                <CheckBox
                     key={`magic-select-${selectValue}`}
-                    onClick={() => {
+                    id={`magic-select-${selectValue}`}
+                    label={label}
+                    onChange={() => {
                         const oldValues = value.values || [];
                         if (oldValues.includes(selectValue)) {
                             onChange({ values: oldValues.filter(v => v !== selectValue) });
@@ -22,12 +24,10 @@ function MagicSelectInput(
                             onChange({ values: [...oldValues, selectValue] });
                         }
                     }}
-                    active={value.values && value.values.includes(selectValue)}
-                >
-                    {label}
-                </Button>
+                    checked={Boolean(value.values && value.values.includes(selectValue))}
+                />
             ))}
-        </ButtonGroup>
+        </React.Fragment>
     );
 }
 
