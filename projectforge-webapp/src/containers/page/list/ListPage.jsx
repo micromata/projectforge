@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import { loadList } from '../../../actions';
 import DynamicLayout from '../../../components/base/dynamicLayout';
 import { Card, Container } from '../../../components/design';
-import LoadingContainer from '../../../components/design/loading-container';
 import SearchFilter from './searchFilter/SearchFilter';
 
 function ListPage(
@@ -28,24 +27,21 @@ function ListPage(
     return (
         <Container fluid>
             <Card>
-                <LoadingContainer loading={!category || category.isFetching}>
-                    {category && (
-                        <DynamicLayout
-                            ui={category.ui}
-                            data={category.data}
-                            setData={category.setData}
-                            options={{
-                                disableLayoutRendering: category.isFetching,
-                                displayPageMenu: false,
-                                setBrowserTitle: true,
-                                showActionButtons: false,
-                            }}
-                            variables={category.variables}
-                        >
-                            <SearchFilter />
-                        </DynamicLayout>
-                    )}
-                </LoadingContainer>
+                {category && (
+                    <DynamicLayout
+                        ui={category.ui}
+                        data={category.data}
+                        setData={category.setData}
+                        options={{
+                            displayPageMenu: false,
+                            setBrowserTitle: true,
+                            showActionButtons: false,
+                        }}
+                        variables={category.variables}
+                    >
+                        <SearchFilter />
+                    </DynamicLayout>
+                )}
             </Card>
         </Container>
     );
