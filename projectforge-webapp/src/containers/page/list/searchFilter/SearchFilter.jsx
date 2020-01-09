@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Navbar } from 'reactstrap';
-import { fetchListFavorites } from '../../../../actions';
+import { fetchCurrentList, fetchListFavorites } from '../../../../actions';
 import { changeSearchString } from '../../../../actions/list/filter';
 import Navigation from '../../../../components/base/navigation';
-import { Col, Row } from '../../../../components/design';
+import { Col, Spinner } from '../../../../components/design';
 import AdvancedPopper from '../../../../components/design/popper/AdvancedPopper';
 import AdvancedPopperAction from '../../../../components/design/popper/AdvancedPopperAction';
 import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
@@ -44,6 +44,7 @@ function SearchFilter(props) {
         onFavoriteRename,
         onFavoriteSelect,
         onFavoriteUpdate,
+        onSearchStringBlur,
         onSearchStringChange,
         onSearchStringDelete,
     } = props;
@@ -51,6 +52,7 @@ function SearchFilter(props) {
     const {
         filter,
         filterFavorites,
+        isFetching,
         quickSelectUrl,
         ui,
     } = category;
@@ -74,52 +76,51 @@ function SearchFilter(props) {
 
     return (
         <React.Fragment>
-            <Row>
-                <Col sm={4}>
-                    <AdvancedPopper
-                        additionalClassName={styles.completions}
-                        setIsOpen={setSearchActive}
-                        isOpen={searchActive}
-                        basic={(
-                            <SearchField
-                                id="searchString"
-                                onChange={onSearchStringChange}
-                                value={filter.searchString}
-                            />
-                        )}
-                        className={styles.searchContainer}
-                        actions={(
-                            <AdvancedPopperAction
-                                type="delete"
-                                disabled={!filter.searchString}
-                                onClick={onSearchStringDelete}
-                            >
-                                {ui.translations.delete || ''}
-                            </AdvancedPopperAction>
-                        )}
-                    >
-                        {quickSelectUrl && (
-                            <React.Fragment>
-                                <ul className={styles.entries}>
-                                    {/* TODO ADD KEYBOARD LISTENER FOR SELECTING */}
-                                    {quickSelections.map(({ id, displayName }) => (
-                                        <QuickSelectionEntry
-                                            key={`quick-selection-${id}`}
-                                            id={id}
-                                            displayName={displayName}
-                                        />
-                                    ))}
-                                </ul>
-                                {quickSelections.length === 0 && (
-                                    <p className={styles.errorMessage}>
-                                        ???No quick selections found.???
-                                    </p>
-                                )}
-                            </React.Fragment>
-                        )}
-                    </AdvancedPopper>
-                </Col>
-                <Col sm={1} className="d-flex align-items-center">
+            <div className={styles.searchRow}>
+                <AdvancedPopper
+                    additionalClassName={styles.completions}
+                    setIsOpen={setSearchActive}
+                    isOpen={searchActive}
+                    basic={(
+                        <SearchField
+                            id="searchString"
+                            onBlur={onSearchStringBlur}
+                            onChange={onSearchStringChange}
+                            value={filter.searchString}
+                        />
+                    )}
+                    className={styles.searchContainer}
+                    actions={(
+                        <AdvancedPopperAction
+                            type="delete"
+                            disabled={!filter.searchString}
+                            onClick={onSearchStringDelete}
+                        >
+                            {ui.translations.delete || ''}
+                        </AdvancedPopperAction>
+                    )}
+                >
+                    {quickSelectUrl && (
+                        <React.Fragment>
+                            <ul className={styles.entries}>
+                                {/* TODO ADD KEYBOARD LISTENER FOR SELECTING */}
+                                {quickSelections.map(({ id, displayName }) => (
+                                    <QuickSelectionEntry
+                                        key={`quick-selection-${id}`}
+                                        id={id}
+                                        displayName={displayName}
+                                    />
+                                ))}
+                            </ul>
+                            {quickSelections.length === 0 && (
+                                <p className={styles.errorMessage}>
+                                    ???No quick selections found.???
+                                </p>
+                            )}
+                        </React.Fragment>
+                    )}
+                </AdvancedPopper>
+                <div className={styles.container}>
                     <FavoritesPanel
                         onFavoriteCreate={onFavoriteCreate}
                         onFavoriteDelete={onFavoriteDelete}
@@ -133,21 +134,23 @@ function SearchFilter(props) {
                         translations={ui.translations}
                         htmlId="searchFilterFavoritesPopover"
                     />
-                </Col>
-                {/* Render the menu if it's loaded. */}
-                {ui && ui.pageMenu && (
-                    <Col>
-                        <Navbar>
-                            <Navigation
-                                entries={ui.pageMenu}
-                                // Let the menu float to the right.
-                                className="ml-auto"
-                            />
-                        </Navbar>
-                    </Col>
-                )}
-            </Row>
-            <hr />
+                    {isFetching && <Spinner className={styles.loadingSpinner} />}
+                </div>
+                <div className={styles.container}>
+                    {/* Render the menu if it's loaded. */}
+                    {ui && ui.pageMenu && (
+                        <Col>
+                            <Navbar>
+                                <Navigation
+                                    entries={ui.pageMenu}
+                                    // Let the menu float to the right.
+                                    className="ml-auto"
+                                />
+                            </Navbar>
+                        </Col>
+                    )}
+                </div>
+            </div>
             <MagicFilters />
             <hr />
         </React.Fragment>
@@ -164,6 +167,7 @@ SearchFilter.propTypes = {
     onFavoriteRename: PropTypes.func.isRequired,
     onFavoriteSelect: PropTypes.func.isRequired,
     onFavoriteUpdate: PropTypes.func.isRequired,
+    onSearchStringBlur: PropTypes.func.isRequired,
     onSearchStringChange: PropTypes.func.isRequired,
     onSearchStringDelete: PropTypes.func.isRequired,
 };
@@ -195,6 +199,7 @@ const actions = (dispatch, { filter }) => ({
     }),
     onFavoriteSelect: id => dispatch(fetchListFavorites('select', { params: { id } })),
     onFavoriteUpdate: () => dispatch(fetchListFavorites('update', { body: filter })),
+    onSearchStringBlur: () => dispatch(fetchCurrentList()),
     onSearchStringChange: ({ target }) => dispatch(changeSearchString(target.value)),
     onSearchStringDelete: () => dispatch(changeSearchString('')),
 });

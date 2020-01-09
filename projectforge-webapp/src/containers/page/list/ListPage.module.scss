@@ -51,32 +51,49 @@
   padding: 1em;
 }
 
-.searchContainer {
-  margin: 1em 0 0 1em;
-  height: 2.9em;
+.searchRow {
+  display: flex;
 
-  .completions {
-    top: .8em;
+  .container, .searchContainer {
+    margin: 1em 0 .25em 1em;
+    flex: 1;
+    align-self: center;
+    position: relative;
+  }
 
-    .entries {
-      margin: 0;
-      padding: 0;
+  .searchContainer {
+    height: 2.9em;
 
-      .entry {
-        position: relative;
-        padding: 1em 1.5em;
-        cursor: default;
+    .completions {
+      top: .8em;
 
-        &:hover {
-          background-color: #eee;
-        }
+      .entries {
+        margin: 0;
+        padding: 0;
 
-        .icon {
-          right: 1em;
-          position: absolute;
+        .entry {
+          position: relative;
+          padding: 1em 1.5em;
+          cursor: default;
+
+          &:hover {
+            background-color: #eee;
+          }
+
+          .icon {
+            right: 1em;
+            position: absolute;
+          }
         }
       }
     }
+  }
+
+  .loadingSpinner {
+    position: absolute;
+    top: 1px;
+    margin-left: .5em;
+    display: inline-block;
   }
 }
 
