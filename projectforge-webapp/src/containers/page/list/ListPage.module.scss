@@ -9,12 +9,32 @@
     }
   }
 
+  &.dark {
+    background-color: #333;
+    color: #fff;
+    padding: .8em;
+
+    input {
+      color: #fff;
+
+      &::placeholder {
+        color: #eee;
+      }
+    }
+
+    &:hover {
+      input::placeholder {
+        color: #fff;
+      }
+    }
+  }
+
   input {
     border: none !important;
     margin-left: 2px;
 
     // Use :global(...) to force css-modules to not convert #searchFilter.
-    &:global(#searchString) {
+    &:global(#searchString), &:global(#magicFiltersSearch) {
       top: -2px;
     }
   }
@@ -26,9 +46,9 @@
 }
 
 .errorMessage {
+  display: block;
   margin: 0;
   padding: 1em;
-  text-align: center;
 }
 
 .searchContainer {
@@ -37,10 +57,6 @@
 
   .completions {
     top: .8em;
-
-    .errorMessage {
-      background-color: #fafafa;
-    }
 
     .entries {
       margin: 0;
@@ -95,6 +111,13 @@
         margin-left: .5em;
         cursor: pointer;
       }
+    }
+
+    .title {
+      background-color: #333;
+      color: #fff;
+      padding: 5px 10px;
+      border-bottom: 1px solid #eee;
     }
 
     .content {

@@ -28,7 +28,7 @@ function MagicStringInput(
         <Input
             autoFocus
             id={`magic-string-input-${id}`}
-            label={label}
+            placeholder="???Eingabe???"
             onChange={({ target }) => onChange({ value: target.value })}
             onKeyDown={handleKeyDown}
             value={value.value || ''}
