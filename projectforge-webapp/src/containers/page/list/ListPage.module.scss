@@ -3,6 +3,12 @@
   margin: 0;
   padding: .5em;
 
+  &:hover {
+    input::placeholder {
+      color: #444;
+    }
+  }
+
   input {
     border: none !important;
     margin-left: 2px;
