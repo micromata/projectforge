@@ -337,12 +337,12 @@ object NumberHelper {
      * @return
      */
     @JvmStatic
-    fun extractPhonenumber(str: String?, countryPrefix: String): String? {
+    fun extractPhonenumber(str: String?, countryPrefix: String?): String? {
         var s = str ?: return null
         s = s.trim { it <= ' ' }
         s = s.replace("\\p{C}".toRegex(), "") // Replace UTF controls chars, such as UTF-202C or UTF-202D (from Apple contacts app).
         val buf = StringBuilder()
-        if (StringUtils.isNotEmpty(countryPrefix) && s.startsWith(countryPrefix)) {
+        if (!countryPrefix.isNullOrEmpty() && s.startsWith(countryPrefix)) {
             buf.append('0')
             s = s.substring(countryPrefix.length)
         } else if (s.length > 3 && s[0] == '+' && Character.isDigit(s[1])
@@ -363,7 +363,7 @@ object NumberHelper {
 
     @JvmStatic
     fun matchesPhoneNumber(str: String): Boolean {
-        return str.matches(Regex("^\\+?[0-9/\\-()\\s]+$")) && str.matches(Regex(".*\\d.*"))
+        return str.matches("^\\+?[0-9/\\-()\\s]+$".toRegex()) && str.matches(".*\\d.*".toRegex())
     }
 
     /**
@@ -378,7 +378,7 @@ object NumberHelper {
     @JvmStatic
     fun isEqual(value1: BigDecimal?, value2: BigDecimal?): Boolean {
         if (value1 == null) {
-            return if (value2 == null) true else false
+            return value2 == null
         }
         return if (value2 == null) {
             false
