@@ -20,6 +20,7 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.framework.utils
 
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
