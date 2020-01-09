@@ -61,7 +61,7 @@ class VacationCache : AbstractCache() {
             log.info("No groups given, therefore no vacation will be returned.")
             return result
         }
-        val userGroupCache = UserGroupCache.getTenantInstance()
+        val userGroupCache = UserGroupCache.tenantInstance
         val loggedInUser = ThreadLocalUserContext.getUser()
         for (vacation in vacationSet) {
             if (vacation.endDate?.isBefore(startVacationDate) ?: false ||

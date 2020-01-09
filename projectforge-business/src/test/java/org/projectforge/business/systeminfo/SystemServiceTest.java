@@ -37,6 +37,7 @@ import org.projectforge.business.jsonRest.RestCallService;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.model.rest.VersionCheck;
+import org.projectforge.test.TestSetup;
 
 import java.util.Locale;
 import java.util.TimeZone;
@@ -68,7 +69,7 @@ public class SystemServiceTest {
   public void setUp() {
     MockitoAnnotations.initMocks(this);
     mockStatic(ThreadLocalUserContext.class);
-    ConfigXml.createForJunitTests();
+    TestSetup.init();
     PowerMockito.when(ThreadLocalUserContext.getLocale()).thenReturn(locale);
     PowerMockito.when(ThreadLocalUserContext.getTimeZone()).thenReturn(timeZone);
     systemService.setEnableVersionCheck(true);

@@ -41,8 +41,9 @@ public class TestSetup {
    * Puts a context user in ThreadLocaleUserContext and creates a minimal ConfigXml configuration.
    * This is use-full for tests needing the user's locale, timezone etc, but not the time consuming
    * database and Spring setup.
+   * @return created user in ThreadLocalUserContext.
    */
-  public static void init() {
+  public static PFUserDO init() {
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     PFUserDO user = new PFUserDO();
     user.setTimeZone(TimeZone.getTimeZone("Europe/Berlin"));
@@ -50,8 +51,9 @@ public class TestSetup {
     user.setDateFormat("dd.MM.yyyy");
     user.setLocale(new Locale("de", "DE"));
     user.setFirstDayOfWeek(DayOfWeek.MONDAY);
-    ThreadLocalUserContext.setUserContext(new UserContext(user, null));
+    ThreadLocalUserContext.setUserContext(UserContext.createTestInstance(user));
     ConfigXmlTest.createTestConfiguration();
     ConfigurationServiceAccessor.internalInitJunitTestMode();
+    return user;
   }
 }
