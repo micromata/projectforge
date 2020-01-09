@@ -5,7 +5,13 @@ import { connect } from 'react-redux';
 import { Input } from '../../../../components/design';
 import styles from '../ListPage.module.scss';
 
-function SearchField(props) {
+function SearchField(
+    {
+        // Extract 'dispatch' so it's not passed to the input tag
+        dispatch,
+        ...props
+    },
+) {
     return (
         <Input
             icon={faSearch}
@@ -19,11 +25,13 @@ function SearchField(props) {
 SearchField.propTypes = {
     id: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
+    dispatch: PropTypes.func,
     placeholder: PropTypes.string,
     value: PropTypes.string,
 };
 
 SearchField.defaultProps = {
+    dispatch: undefined,
     placeholder: '',
     value: '',
 };
