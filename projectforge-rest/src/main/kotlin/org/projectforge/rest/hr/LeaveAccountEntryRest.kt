@@ -60,12 +60,7 @@ class LeaveAccountEntryRest() : AbstractDORest<LeaveAccountEntryDO, LeaveAccount
      */
     override fun createEditLayout(dto: LeaveAccountEntryDO, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
-                .add(UISelect<Int>("employee", lc,
-                                label = "fibu.employee",
-                                autoCompletion = AutoCompletion<Int>(url = "employee/aco?search="),
-                                labelProperty = "fullname",
-                                valueProperty = "id"))
-                .add(lc, "date", "amount", "description")
+                .add(lc, "employee", "date", "amount", "description")
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

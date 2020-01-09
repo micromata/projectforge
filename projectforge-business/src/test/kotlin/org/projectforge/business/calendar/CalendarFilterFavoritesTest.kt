@@ -29,12 +29,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.projectforge.business.user.UserPrefDao
 import org.projectforge.favorites.Favorites
-import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.UserContext
-import org.projectforge.framework.persistence.user.entities.PFUserDO
-import java.util.*
+import org.projectforge.test.TestSetup
 
 class CalendarFilterFavoritesTest {
     @Test
@@ -80,10 +76,7 @@ class CalendarFilterFavoritesTest {
         @BeforeAll
         @JvmStatic
         fun setup() {
-            ConfigXml.createForJunitTests()
-            val user = PFUserDO()
-            user.locale = Locale.GERMAN
-            ThreadLocalUserContext.setUserContext(UserContext(user, null))
+            TestSetup.init()
         }
     }
 }

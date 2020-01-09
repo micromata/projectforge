@@ -71,6 +71,15 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
                 .setParameter("tenantId", TenantRegistryMap.getInstance().tenantRegistry.tenantId))
     }
 
+    @JvmOverloads
+    open fun getEmployeeIdByByUserId(userId: Int?, tenantId: Int? = null): Int? {
+        return ensureUniqueResult(em
+                .createNamedQuery(EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID, Int::class.java)
+                .setParameter("userId", userId)
+                .setParameter("tenantId", tenantId ?: TenantRegistryMap.getInstance().tenantRegistry.tenantId))
+    }
+
+
     /**
      * If more than one employee is found, null will be returned.
      *
