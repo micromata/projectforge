@@ -12,9 +12,12 @@ const switchCategory = category => ({
     payload: { category },
 });
 
-export const fetchFailure = error => ({
+export const fetchFailure = (category, error) => ({
     type: LIST_FETCH_FAILURE,
-    payload: { error },
+    payload: {
+        category,
+        error,
+    },
 });
 
 const initialCallBegin = (category, search) => ({
@@ -54,7 +57,7 @@ const initialCall = (category, dispatch) => {
         .then(handleHTTPErrors)
         .then(response => response.json())
         .then(response => dispatch(callSuccess(category, response)))
-        .catch(error => dispatch(fetchFailure(error)));
+        .catch(error => dispatch(fetchFailure(category, error.message)));
 };
 
 const fetchData = (category, dispatch, getState) => {
@@ -74,7 +77,7 @@ const fetchData = (category, dispatch, getState) => {
         .then(handleHTTPErrors)
         .then(response => response.json())
         .then(data => dispatch(callSuccess(category, { data })))
-        .catch(error => dispatch(fetchFailure(error)));
+        .catch(error => dispatch(fetchFailure(category, error.message)));
 };
 
 export const loadList = category => (dispatch, getState) => {
@@ -100,6 +103,12 @@ export const loadList = category => (dispatch, getState) => {
     }
 
     return fn(category, dispatch, getState);
+};
+
+export const fetchCurrentList = () => (dispatch, getState) => {
+    const category = getState().list.currentCategory;
+
+    loadList(category)(dispatch, getState);
 };
 
 export const openEditPage = id => (_, getState) => {

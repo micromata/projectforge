@@ -20,6 +20,7 @@ export {
     LIST_CALL_SUCCESS,
     LIST_FETCH_FAILURE,
     loadList,
+    fetchCurrentList,
     openEditPage,
 } from './list';
 

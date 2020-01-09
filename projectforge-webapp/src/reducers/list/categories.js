@@ -37,6 +37,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
         case LIST_FETCH_DATA_BEGIN:
             return {
                 ...state,
+                isFetching: true,
                 error: undefined,
             };
         case LIST_CALL_SUCCESS:
@@ -147,6 +148,7 @@ const reducer = (state = initialState, action) => {
     switch (type) {
         case LIST_INITIAL_CALL_BEGIN:
         case LIST_FETCH_DATA_BEGIN:
+        case LIST_FETCH_FAILURE:
         case LIST_CALL_SUCCESS:
         case LIST_FILTER_ADD:
         case LIST_FILTER_REMOVE:
