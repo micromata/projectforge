@@ -129,6 +129,7 @@ public class ListSelectActionPanel extends Panel
       @Override
       public void onClick()
       {
+        ListSelectActionPanel.this.onClick();
         final PageParameters pageParams = WicketUtils.getPageParameters(params);
         if (objectId != null) {
           pageParams.add(AbstractEditPage.PARAMETER_KEY_ID, String.valueOf(objectId));
@@ -143,6 +144,9 @@ public class ListSelectActionPanel extends Panel
     };
     add(link);
     add(label);
+  }
+
+  public void onClick() {
   }
 
   public ListSelectActionPanel(final String id, final AbstractLink link, final Model<String> label)

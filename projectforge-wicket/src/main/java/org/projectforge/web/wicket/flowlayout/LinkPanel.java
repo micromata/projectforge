@@ -57,6 +57,7 @@ public class LinkPanel extends Panel
       @Override
       public void onClick()
       {
+        LinkPanel.this.onClick();
         final AbstractSecuredPage editPage = (AbstractSecuredPage) ReflectionHelper.newInstance(editClass, PageParameters.class,
             pageParameters);
         if (editPage instanceof AbstractEditPage) {
@@ -68,6 +69,9 @@ public class LinkPanel extends Panel
     add(link);
 
     link.add(new Label("label", linkName));
+  }
+
+  public void onClick() {
   }
 
   public void addLinkAttribute(String attribute, String value)

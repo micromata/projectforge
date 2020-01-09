@@ -222,6 +222,11 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
       myFilter.setStopTime(dateTime.getUtilDate());
     }
     final QueryFilter queryFilter = buildQueryFilter(myFilter);
+    if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.CONTROLLING_GROUP, ProjectForgeGroup.FINANCE_GROUP)) {
+      // Financial staff needs sometimes to query a lot of time sheets for exporting, statistics etc.
+      queryFilter.setMaxRows(100000);
+    }
+
     List<TimesheetDO> result;
     if (checkAccess) {
       result = getList(queryFilter);

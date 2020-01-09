@@ -38,7 +38,7 @@ import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrD
 import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.LabelValueBean
-import java.sql.Date
+import java.time.LocalDate
 import java.util.*
 import javax.persistence.*
 
@@ -255,7 +255,7 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), ShortDisplayNameCapab
     @Field(index = Index.YES, analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
-    open var birthday: Date? = null
+    open var birthday: LocalDate? = null
 
     @PropertyInfo(i18nKey = "address.image")
     @field:NoHistory
