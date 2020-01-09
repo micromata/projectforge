@@ -167,28 +167,9 @@ abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected construc
     }
 
     private fun isMemberOfAny(groupIds: Array<Int>?, userIds: Array<Int>?, userId: Int): Boolean {
-        groupIds ?: return false
-        if (userGroupCache.isUserMemberOfAtLeastOneGroup(userId, *groupIds)) {
+        if (!groupIds.isNullOrEmpty() && userGroupCache.isUserMemberOfAtLeastOneGroup(userId, *groupIds)) {
             return true
         }
-        return userIds?.any { it == userId} ?: false
+        return userIds?.any { it == userId } ?: false
     }
-
-   /* private open fun isMemberOfAny(groupIds: Array<Int>, userIds: Array<Int>?, userId: Int): Boolean {
-        if (getUserGroupCache().isUserMemberOfAtLeastOneGroup(userId, groupIds)) {
-            return true
-        }
-        if (userIds == null) {
-            return false
-        }
-        for (id in userIds) {
-            if (id == null) {
-                continue
-            }
-            if (id == userId) {
-                return true
-            }
-        }
-        return false
-    }*/
 }
