@@ -143,7 +143,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       // Start date
       final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "startDate");
       LocalDatePanel startDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<>(data, "startDate")),
-              DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
+              DatePanelSettings.get(), true);
       startDatePanel.setRequired(true).setMarkupId("vacation-startdate").setOutputMarkupId(true);
       startDatePanel.setEnabled(checkEnableInputField());
       formValidator.getDependentFormComponents()[0] = startDatePanel;

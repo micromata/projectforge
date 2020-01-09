@@ -28,19 +28,23 @@ import org.projectforge.business.fibu.EmployeeStatus
 import org.projectforge.business.fibu.Gender
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
-import java.util.*
+import java.time.LocalDate
 
 class Employee(var user: PFUserDO? = null,
+               /**
+                * Only for displaying purposes. Will be ignored on save or update.
+                */
+               var fullname: String? = null,
                var kost1: Kost1? = null,
                var status: EmployeeStatus? = null,
                var position: String? = null,
-               var eintrittsDatum: Date? = null,
-               var austrittsDatum: Date? = null,
+               var eintrittsDatum: LocalDate? = null,
+               var austrittsDatum: LocalDate? = null,
                var abteilung: String? = null,
                var staffNumber: String? = null,
                var urlaubstage: Int? = null,
                var weeklyWorkingHours: BigDecimal? = null,
-               var birthday: Date? = null,
+               var birthday: LocalDate? = null,
                var accountHolder: String? = null,
                var iban: String? = null,
                var bic: String? = null,
@@ -51,5 +55,14 @@ class Employee(var user: PFUserDO? = null,
                var country: String? = null,
                var state: String? = null,
                var comment: String? = null
-               )
-    : BaseDTO<EmployeeDO>()
+) : BaseDTO<EmployeeDO>() {
+    override fun copyFrom(src: EmployeeDO) {
+        super.copyFrom(src)
+        fullname = src.user?.getFullname() ?: ""
+    }
+
+    override fun copyFromMinimal(src: EmployeeDO) {
+        super.copyFromMinimal(src)
+        fullname = src.user?.getFullname() ?: ""
+    }
+}
