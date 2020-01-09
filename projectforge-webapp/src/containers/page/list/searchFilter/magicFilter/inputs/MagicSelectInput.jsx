@@ -42,6 +42,8 @@ MagicSelectInput.propTypes = {
 
 MagicSelectInput.defaultProps = {};
 
+MagicSelectInput.isEmpty = ({ values }) => !values || values.length === 0;
+
 MagicSelectInput.getLabel = (label, { values }, { values: dataValues }) => `${label}: ${values
     // Find Labels for selected items by values
     .map(v => dataValues.find(dv => dv.value === v).label)

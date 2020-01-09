@@ -48,6 +48,8 @@ MagicStringInput.propTypes = {
 
 MagicStringInput.defaultProps = {};
 
+MagicStringInput.isEmpty = ({ value }) => !value || value.trim() === '';
+
 MagicStringInput.getLabel = (label, { value }) => `${label}: ${value}`;
 
 export default MagicStringInput;
