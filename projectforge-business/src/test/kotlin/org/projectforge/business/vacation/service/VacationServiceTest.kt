@@ -30,9 +30,9 @@ import org.junit.jupiter.api.fail
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.UserDao
-import org.projectforge.business.vacation.repository.RemainingLeaveDao
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
+import org.projectforge.business.vacation.repository.RemainingLeaveDao
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.UserException
@@ -291,13 +291,13 @@ class VacationServiceTest : AbstractTestBase() {
      * @return Number of vacation days (equals to working days between startDate and endDate)
      */
     private fun addVacations(employee: EmployeeDO, startYear: Int, startMonth: Month, startDay: Int, endMonth: Month, endDay: Int,
-                             special: Boolean = false, manager: EmployeeDO = employee,
+                             special: Boolean = false, replacement: EmployeeDO = employee, manager: EmployeeDO = employee,
                              status: VacationStatus = VacationStatus.APPROVED): Double {
         val endYear = if (startMonth > endMonth)
             startYear + 1 // Vacations over years.
         else
             startYear
-        return addVacations(employee, LocalDate.of(startYear, startMonth, startDay), LocalDate.of(endYear, endMonth, endDay), special, manager, status)
+        return addVacations(employee, LocalDate.of(startYear, startMonth, startDay), LocalDate.of(endYear, endMonth, endDay), special, replacement, manager, status)
     }
 
     /**
@@ -305,7 +305,7 @@ class VacationServiceTest : AbstractTestBase() {
      * @return Number of vacation days (equals to working days between startDate and endDate)
      */
     private fun addVacations(employee: EmployeeDO, startDate: LocalDate, endDate: LocalDate,
-                             special: Boolean = false, manager: EmployeeDO = employee,
+                             special: Boolean = false, replacement: EmployeeDO = employee, manager: EmployeeDO = employee,
                              status: VacationStatus = VacationStatus.APPROVED): Double {
         if (endDate.isBefore(employee.eintrittsDatum))
             return 0.0
@@ -317,6 +317,7 @@ class VacationServiceTest : AbstractTestBase() {
         vacation.special = false
         vacation.status = status
         vacation.manager = manager
+        vacation.replacement = replacement
         vacation.special = special
         vacationDao.save(vacation)
         lastStoredVacation = vacation
