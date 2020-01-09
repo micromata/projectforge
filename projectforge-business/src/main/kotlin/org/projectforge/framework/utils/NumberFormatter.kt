@@ -90,12 +90,8 @@ object NumberFormatter {
         return if (value == null) {
             ""
         } else {
-            when (value) {
-                is BigDecimal -> "${format(value.multiply(NumberHelper.HUNDRED), 0)}%"
-                is Double -> "${format(value * 100, 0)}%"
-                is Float -> "${format(value * 100, 0)}%"
-                else -> "${format(value, 0)}%"
-            }
+            val bigDecimal = NumberHelper.toBigDecimal(value, true)!!
+            "${format(bigDecimal.multiply(NumberHelper.HUNDRED))}%"
         }
     }
 }
