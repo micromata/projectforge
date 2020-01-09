@@ -49,23 +49,23 @@ open class LeaveAccountEntryDO : DefaultBaseDO() {
     /**
      * The employee.
      */
-    @PropertyInfo(i18nKey = "vacation.employee")
+    @PropertyInfo(i18nKey = "fibu.employee", required = true)
     @IndexedEmbedded(includePaths = ["user.firstname", "user.lastname"])
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "employee_id", nullable = false)
     open var employee: EmployeeDO? = null
 
-    @PropertyInfo(i18nKey = "vacation.startdate")
+    @PropertyInfo(i18nKey = "date", required = true)
     @get:Column(name = "date", nullable = false)
     open var date: LocalDate? = null
 
-    @PropertyInfo(i18nKey = "vacation.Days")
+    @PropertyInfo(i18nKey = "vacation.leaveAccountEntry.amount", required = true)
     @get:Column(nullable = true)
     open var amount: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "description")
     @get:Column(nullable = true)
-    open var comment: String? = null
+    open var description: String? = null
 
     companion object {
         internal const val FIND_BY_EMPLOYEE_ID_AND_YEAR = "LeaveAccountEntryDO_FindByEmployeeIdAndYear"
