@@ -83,6 +83,7 @@ function MagicFilterPill(
                 )}
                 {...props}
             >
+                <p className={styles.title}>{label}</p>
                 <div className={styles.content}>
                     <MagicInput
                         label={label}

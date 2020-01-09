@@ -76,11 +76,11 @@ function MagicFilters(
                     )}
                 >
                     <SearchField
+                        dark
                         onChange={handleSearchChange}
                         id="magicFiltersSearch"
                         value={search}
                     />
-                    <hr />
                     {searchFilter && (
                         <ul className={styles.filterList}>
                             {filteredSearchFilters.map(({ id, label }) => (

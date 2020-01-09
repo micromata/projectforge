@@ -1,4 +1,5 @@
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
@@ -7,6 +8,7 @@ import styles from '../ListPage.module.scss';
 
 function SearchField(
     {
+        dark,
         // Extract 'dispatch' so it's not passed to the input tag
         dispatch,
         ...props
@@ -15,7 +17,7 @@ function SearchField(
     return (
         <Input
             icon={faSearch}
-            className={styles.search}
+            className={classNames(styles.search, { [styles.dark]: dark })}
             autoComplete="off"
             {...props}
         />
@@ -25,12 +27,14 @@ function SearchField(
 SearchField.propTypes = {
     id: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
+    dark: PropTypes.bool,
     dispatch: PropTypes.func,
     placeholder: PropTypes.string,
     value: PropTypes.string,
 };
 
 SearchField.defaultProps = {
+    dark: false,
     dispatch: undefined,
     placeholder: '',
     value: '',
