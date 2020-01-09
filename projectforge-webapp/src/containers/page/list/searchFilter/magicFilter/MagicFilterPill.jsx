@@ -92,6 +92,7 @@ function MagicFilterPill(
                         onSubmit={handleSave}
                         onCancel={handleCancel}
                         value={tempValue}
+                        translations={translations}
                         {...props}
                     />
                 </div>
