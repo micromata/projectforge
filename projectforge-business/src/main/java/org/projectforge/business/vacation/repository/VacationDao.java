@@ -24,11 +24,9 @@
 package org.projectforge.business.vacation.repository;
 
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.vacation.VacationFilter;
-import org.projectforge.business.vacation.model.VacationCalendarDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
@@ -51,7 +49,6 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -216,59 +213,5 @@ public class VacationDao extends BaseDao<VacationDO> {
       result = new BigDecimal(resultList.size());
     }
     return result;
-  }
-
-  public List<TeamCalDO> getCalendarsForVacation(VacationDO vacation) {
-    final List<TeamCalDO> calendarList = new ArrayList<>();
-    if (vacation.getId() == null) {
-      return calendarList;
-    }
-    final List<VacationCalendarDO> resultList = getVacationCalendarDOs(vacation);
-    if (resultList != null && resultList.size() > 0) {
-      resultList.forEach(res -> {
-        if (!res.isDeleted())
-          calendarList.add(res.getCalendar());
-      });
-    }
-    return calendarList;
-  }
-
-  public List<VacationCalendarDO> getVacationCalendarDOs(VacationDO vacation) {
-    final List<VacationCalendarDO> resultList = emgrFactory.runRoTrans(emgr -> {
-      final String baseSQL = "SELECT vc FROM VacationCalendarDO vc WHERE vc.vacation = :vacation";
-      return emgr.selectDetached(VacationCalendarDO.class, baseSQL, "vacation", vacation);
-    });
-    return resultList;
-  }
-
-  public void saveVacationCalendar(VacationCalendarDO obj) {
-    try {
-      emgrFactory.runInTrans(emgr -> {
-        if (obj.getId() != null) {
-          VacationCalendarDO vacationCalendarDO = emgr.selectByPkAttached(VacationCalendarDO.class, obj.getPk());
-          vacationCalendarDO.setEvent(obj.getEvent());
-          emgr.update(vacationCalendarDO);
-        } else {
-          emgr.insert(obj);
-        }
-        return null;
-      });
-    } catch (Exception ex) {
-      log.error("Error while writing vacation event: " + ex.getMessage(), ex);
-    }
-  }
-
-  public void markAsDeleted(VacationCalendarDO obj) {
-    emgrFactory.runInTrans(emgr -> {
-      emgr.markDeleted(obj);
-      return null;
-    });
-  }
-
-  public void markAsUndeleted(VacationCalendarDO obj) {
-    emgrFactory.runInTrans(emgr -> {
-      emgr.markUndeleted(obj);
-      return null;
-    });
   }
 }

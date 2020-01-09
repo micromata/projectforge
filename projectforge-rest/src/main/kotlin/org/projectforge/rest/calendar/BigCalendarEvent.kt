@@ -23,6 +23,9 @@
 
 package org.projectforge.rest.calendar
 
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDay
+import java.time.LocalDate
 import java.util.*
 
 class BigCalendarEvent(val title: String?,
@@ -47,9 +50,35 @@ class BigCalendarEvent(val title: String?,
                         * The db id of the object (team event, address (birthday) etc.)
                         */
                        val dbId: Int? = null) {
+
+    constructor(title: String?,
+                start: LocalDate,
+                end: LocalDate,
+                allDay: Boolean? = null,
+                desc: String? = null,
+                location: String? = null,
+                tooltip: String? = null,
+                formattedDuration: String? = null,
+                outOfRange: Boolean? = null,
+                fgColor: String? = null,
+                bgColor: String? = null,
+                cssClass: String? = null,
+                category: String,
+                readOnly: Boolean = false,
+                /**
+                 * For subscribed events.
+                 */
+                uid: String? = null,
+                /**
+                 * The db id of the object (team event, address (birthday) etc.)
+                 */
+                dbId: Int? = null)
+            : this(title, PFDay.from(start)!!.utilDate, PFDateTime.from(end)!!.endOfDay.utilDate,
+            allDay, desc, location, tooltip, formattedDuration, outOfRange, fgColor, bgColor, cssClass, category, readOnly)
+
     /**
      * Must be unique in the list of events. The index of the list will be used: 'e-1', 'e-2', ...
      * Will be set by [CalendarServicesRest].
      */
-   internal var key : String? = null
+    internal var key: String? = null
 }

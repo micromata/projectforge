@@ -21,12 +21,13 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.vacation.model
+package org.projectforge.business.vacation.repository
 
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
+import org.projectforge.business.vacation.model.RemainingLeaveDO
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -40,15 +41,17 @@ import java.time.Year
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-open class RemainingDaysOfVactionDao : BaseDao<RemainingDaysOfVacationDO>(RemainingDaysOfVacationDO::class.java) {
-    open fun internalSaveOrUpdate(employee: EmployeeDO, year: Int, carryVacationDaysFromPreviousYear: BigDecimal?) {
+open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class.java) {
+
+    open fun internalSaveOrUpdate(employee: EmployeeDO, year: Int, remainingLeaveFromPreviousYear: BigDecimal?) {
         if (year > Year.now().value) {
             throw IllegalArgumentException("Can't determine remaining vacation days for future year $year.")
         }
-        val entry = internalGet(employee.id, year) ?: RemainingDaysOfVacationDO()
+        val entry = internalGet(employee.id, year) ?: RemainingLeaveDO()
         entry.employee = employee
         entry.year = year
-        entry.carryVacationDaysFromPreviousYear = carryVacationDaysFromPreviousYear
+        entry.remainingFromPreviousYear = remainingLeaveFromPreviousYear
+        entry.isDeleted = false
         if (entry.id == null) {
             internalSave(entry)
         } else {
@@ -56,28 +59,26 @@ open class RemainingDaysOfVactionDao : BaseDao<RemainingDaysOfVacationDO>(Remain
         }
     }
 
-    open fun getCarryVacationDaysFromPreviousYear(employeeId: Int, year: Int): BigDecimal? {
+    /**
+     * Tries first to get any manual stored value in [RemainingLeaveDO]. If not found then the value of this table
+     * will be returned if exists.
+     * @see [LeaveAccountEntryDao.getRemainingLeaveFromPreviousYear]
+     */
+    open fun getRemainingLeaveFromPreviousYear(employeeId: Int, year: Int): BigDecimal? {
         if (year > Year.now().value) {
             throw IllegalArgumentException("Can't determine remaining vacation days for future year $year.")
         }
-        return internalGet(employeeId, year)?.carryVacationDaysFromPreviousYear
+        return internalGet(employeeId, year)?.remainingFromPreviousYear
     }
 
-    open fun internalGet(employeeId: Int, year: Int): RemainingDaysOfVacationDO? {
-        val result = SQLHelper.ensureUniqueResult(em.createNamedQuery(RemainingDaysOfVacationDO.FIND_BY_EMPLOYEE_ID_AND_YEAR, RemainingDaysOfVacationDO::class.java)
+    open fun internalGet(employeeId: Int, year: Int): RemainingLeaveDO? {
+        val result = SQLHelper.ensureUniqueResult(em.createNamedQuery(RemainingLeaveDO.FIND_BY_EMPLOYEE_ID_AND_YEAR, RemainingLeaveDO::class.java)
                 .setParameter("employeeId", employeeId)
                 .setParameter("year", year))
         return result
     }
 
-    /**
-     * Throws [UnsupportedOperationException]
-     */
-    override fun delete(obj: RemainingDaysOfVacationDO?) {
-        throw UnsupportedOperationException("Deletion not supported.")
-    }
-
-    override fun hasAccess(user: PFUserDO?, obj: RemainingDaysOfVacationDO?, oldObj: RemainingDaysOfVacationDO?, operationType: OperationType?, throwException: Boolean): Boolean {
+    override fun hasAccess(user: PFUserDO?, obj: RemainingLeaveDO?, oldObj: RemainingLeaveDO?, operationType: OperationType?, throwException: Boolean): Boolean {
         if (operationType == OperationType.SELECT) {
             return accessChecker.isLoggedInUserMemberOfGroup(throwException, ProjectForgeGroup.CONTROLLING_GROUP, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.HR_GROUP, ProjectForgeGroup.ORGA_TEAM)
         } else {
@@ -85,7 +86,7 @@ open class RemainingDaysOfVactionDao : BaseDao<RemainingDaysOfVacationDO>(Remain
         }
     }
 
-    override fun newInstance(): RemainingDaysOfVacationDO {
-        return RemainingDaysOfVacationDO()
+    override fun newInstance(): RemainingLeaveDO {
+        return RemainingLeaveDO()
     }
 }

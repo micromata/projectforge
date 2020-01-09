@@ -125,7 +125,10 @@ public class TimesheetDisciplineChartBuilder
       current = it.next();
     }
     for (int i = 0; i <= forLastNDays; i++) {
-      PFDateTime dateTime = PFDateTime.from(current.getStartTime());
+      // NPE-Fix required: current may be null.
+      PFDateTime dateTime = null;
+      if (current != null)
+        dateTime = PFDateTime.from(current.getStartTime());
       while (current != null && (dt.isSameDay(dateTime) || dateTime.isBefore(dt))) {
         actualWorkingHours += ((double) current.getWorkFractionDuration()) / 3600000;
         if (it.hasNext()) {
@@ -144,7 +147,7 @@ public class TimesheetDisciplineChartBuilder
           planWorkingHours += workingHoursPerDay;
         }
       }
-      final Day day = new Day(dt.getDayOfMonth(), dt.getMonthValue() + 1, dt.getYear());
+      final Day day = new Day(dt.getDayOfMonth(), dt.getMonthValue(), dt.getYear());
       sollSeries.add(day, planWorkingHours);
       istSeries.add(day, actualWorkingHours);
       dt = dt.plusDays(1);
@@ -192,7 +195,9 @@ public class TimesheetDisciplineChartBuilder
     for (int i = 0; i <= forLastNDays; i++) {
       long difference = 0;
       long totalDuration = 0; // Weight for average.
-      PFDateTime dateTime = PFDateTime.from(current.getStartTime());
+      PFDateTime dateTime = null;
+      if (current != null)
+        dateTime = PFDateTime.from(current.getStartTime());
       while (current != null && (dt.isSameDay(dateTime) || dateTime.isBefore(dt))) {
         final long duration = current.getWorkFractionDuration();
         difference += (current.getCreated().getTime() - current.getStartTime().getTime()) * duration;
@@ -205,7 +210,7 @@ public class TimesheetDisciplineChartBuilder
         }
       }
       final double averageDifference = difference > 0 ? ((double) difference) / totalDuration / 86400000 : 0; // In days.
-      final Day day = new Day(dt.getDayOfMonth(), dt.getMonthValue() + 1, dt.getYear());
+      final Day day = new Day(dt.getDayOfMonth(), dt.getMonthValue(), dt.getYear());
       if (averageDifference > 0) {
         planSeries.add(day, PLANNED_AVERAGE_DIFFERENCE_BETWEEN_TIMESHEET_AND_BOOKING); // plan average
         // (PLANNED_AVERAGE_DIFFERENCE_BETWEEN_TIMESHEET_AND_BOOKING
