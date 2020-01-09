@@ -106,12 +106,8 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
         stats.vacationDaysInYearFromContract = getYearlyVacationDays(employee, year)
         stats.remainingLeaveFromPreviousYear = remainingLeaveDao.getRemainingLeaveFromPreviousYear(employee.id, year)
         stats.endOfVacationYear = getEndOfCarryVacationOfPreviousYear(year)
-        val dateOfJoining = employee.eintrittsDatum
-        if (dateOfJoining == null) {
-            log.warn("Employee has no joining date, can't calculate vacation days.")
-            stats.remainingLeaveFromPreviousYear = BigDecimal.ZERO
-            return stats
-        }
+        // If date of joining not given, assume 1900...
+        val dateOfJoining = employee.eintrittsDatum ?: LocalDate.of(1900, Month.JANUARY, 1)
         // Calculate remaining vacation days from previous year:
         val yearPeriod = LocalDatePeriod.wholeYear(year)
         val allVacationsOfYear = vacationEntries
