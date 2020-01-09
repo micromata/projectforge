@@ -30,6 +30,7 @@ function MagicTimeStampInput(
         return fragment;
     }
 
+    // TODO CHECK IF FROM IS AFTER TO (AND VICE VERSA)
     const setFrom = from => onChange({
         ...value,
         from,
