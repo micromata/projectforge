@@ -29,13 +29,20 @@ function MagicFilterPill(
 
     const MagicInput = useMagicInput(filterType);
 
-    const handleSave = () => {
-        onFilterSet(id, tempValue);
+    const handleCancel = () => {
+        setTempValue(value);
         setIsOpen(false);
     };
 
-    const handleCancel = () => {
-        setTempValue(value);
+    const handleDelete = () => onFilterDelete(id);
+
+    const handleSave = () => {
+        if (MagicInput.isEmpty(tempValue)) {
+            handleDelete();
+            return;
+        }
+
+        onFilterSet(id, tempValue);
         setIsOpen(false);
     };
 
@@ -62,7 +69,7 @@ function MagicFilterPill(
                         <AdvancedPopperAction
                             type="delete"
                             disabled={!value}
-                            onClick={() => onFilterDelete(id)}
+                            onClick={handleDelete}
                         >
                             {translations.delete || ''}
                         </AdvancedPopperAction>
