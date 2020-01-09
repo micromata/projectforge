@@ -4,11 +4,11 @@ import Input from '../../../../../../components/design/input';
 
 function MagicStringInput(
     {
-        label,
         id,
         onCancel,
         onChange,
         onSubmit,
+        translations,
         value,
     },
 ) {
@@ -28,7 +28,7 @@ function MagicStringInput(
         <Input
             autoFocus
             id={`magic-string-input-${id}`}
-            placeholder="???Eingabe???"
+            placeholder={translations.search || ''}
             onChange={({ target }) => onChange({ value: target.value })}
             onKeyDown={handleKeyDown}
             value={value.value || ''}
@@ -38,11 +38,13 @@ function MagicStringInput(
 }
 
 MagicStringInput.propTypes = {
-    label: PropTypes.string.isRequired,
     id: PropTypes.string.isRequired,
     onCancel: PropTypes.func.isRequired,
     onChange: PropTypes.func.isRequired,
     onSubmit: PropTypes.func.isRequired,
+    translations: PropTypes.shape({
+        search: PropTypes.string,
+    }).isRequired,
     value: PropTypes.shape({}).isRequired,
 };
 
