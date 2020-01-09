@@ -1,5 +1,6 @@
 import React from 'react';
 import MagicInputNotImplemented from './MagicInputNotImplemented';
+import MagicObjectInput from './MagicObjectInput';
 import MagicSelectInput from './MagicSelectInput';
 import MagicStringInput from './MagicStringInput';
 import MagicTimeStampInput from './MagicTimeStampInput';
@@ -19,6 +20,9 @@ const useMagicInput = (type) => {
                 break;
             case 'TIME_STAMP':
                 tag = MagicTimeStampInput;
+                break;
+            case 'OBJECT':
+                tag = MagicObjectInput;
                 break;
             default:
                 tag = MagicInputNotImplemented;
