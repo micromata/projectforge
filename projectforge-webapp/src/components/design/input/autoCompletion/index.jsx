@@ -78,11 +78,11 @@ function AutoCompletion(
             {...props}
         >
             <ul className={styles.entries}>
-                {completions.map(({ id, displayName }) => (
+                {completions.map(completion => (
                     <Completion
-                        key={`completion-${id}`}
-                        displayName={displayName}
-                        onClick={() => onSelect(id, displayName)}
+                        key={`completion-${completion.id}`}
+                        displayName={completion.displayName}
+                        onClick={() => onSelect(completion)}
                     />
                 ))}
             </ul>

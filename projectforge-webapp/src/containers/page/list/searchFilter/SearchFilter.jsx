@@ -163,7 +163,7 @@ const actions = (dispatch, { filter }) => ({
     onSearchStringBlur: () => dispatch(fetchCurrentList()),
     onSearchStringChange: ({ target }) => dispatch(changeSearchString(target.value)),
     onSearchStringDelete: () => dispatch(changeSearchString('')),
-    onSelectQuickSelection: id => dispatch(openEditPage(id)),
+    onSelectQuickSelection: ({ id }) => dispatch(openEditPage(id)),
 });
 
 export default connect(mapStateToProps, actions)(SearchFilter);
