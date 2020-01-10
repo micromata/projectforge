@@ -13,6 +13,8 @@ function TextAutoCompletion(
         ...props
     },
 ) {
+    const handleChange = ({ target }) => onChange(target.value);
+
     const handleSelect = (completion) => {
         if (onSelect) {
             onSelect(completion);
@@ -29,11 +31,12 @@ function TextAutoCompletion(
                     id={inputId}
                     {...otherInputProps}
                     {...inputProps}
-                    onChange={onChange}
+                    onChange={handleChange}
                 />
             )}
             onSelect={handleSelect}
             search={value}
+            type="TEXT"
             {...props}
         />
     );

@@ -1,7 +1,6 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { connect } from 'react-redux';
 import { Input } from '../index';
 import styles from './Popper.module.scss';
 
@@ -63,8 +62,4 @@ AdvancedPopperInput.defaultProps = {
     value: '',
 };
 
-const mapStateToProps = ({ list }) => ({
-    placeholder: list.categories[list.currentCategory].ui.translations.search,
-});
-
-export default connect(mapStateToProps)(AdvancedPopperInput);
+export default AdvancedPopperInput;
