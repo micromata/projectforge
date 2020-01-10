@@ -72,7 +72,7 @@ function MagicFilters(
                 <AdvancedPopper
                     setIsOpen={setIsOpen}
                     isOpen={allFiltersAreOpen}
-                    basic="???Alle Filter???"
+                    basic={translations.searchFilter}
                     className={styles.allFilters}
                     contentClassName={classNames(
                         styles.pill,
@@ -120,6 +120,7 @@ function MagicFilters(
 MagicFilters.propTypes = {
     translations: PropTypes.shape({
         reset: PropTypes.string,
+        searchFilter: PropTypes.string,
     }).isRequired,
     filterEntries: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     onResetAllFilters: PropTypes.func.isRequired,
