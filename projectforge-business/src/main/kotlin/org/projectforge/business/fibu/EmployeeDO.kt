@@ -81,7 +81,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
 
     override val shortDisplayName: String
         @Transient
-        get() = "${user?.shortDisplayName}"
+        get() = "${user?.getFullname()}"
 
     /**
      * The ProjectForge user assigned to this employee.

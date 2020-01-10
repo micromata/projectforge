@@ -10,7 +10,7 @@ import ReactSelect from '../../../design/ReactSelect';
 
 const getOptionLabel = (option) => {
     if (option) {
-        return `${option.fullname}`;
+        return `${option.displayName}`;
     }
 
     return '';
@@ -94,10 +94,7 @@ EmployeeSelect.propTypes = {
     translations: PropTypes.shape({
         'tooltip.selectMe': PropTypes.string.isRequired,
     }).isRequired,
-    employee: PropTypes.shape({
-        fullname: PropTypes.string.isRequired,
-        id: PropTypes.number.isRequired,
-    }).isRequired,
+    displayName: PropTypes.string,
     required: PropTypes.bool,
     value: PropTypes.oneOfType([
         PropTypes.shape({}),
@@ -107,6 +104,7 @@ EmployeeSelect.propTypes = {
 
 EmployeeSelect.defaultProps = {
     required: false,
+    displayName: undefined,
     value: undefined,
 };
 
