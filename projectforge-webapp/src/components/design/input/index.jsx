@@ -6,7 +6,7 @@ import { colorPropType } from '../../../utilities/propTypes';
 import AdditionalLabel from './AdditionalLabel';
 import style from './Input.module.scss';
 
-function Input(
+const Input = React.forwardRef((
     {
         additionalLabel,
         className,
@@ -21,9 +21,8 @@ function Input(
         value,
         ...props
     },
-) {
-    // Use new React Hook Feature
-    // https://reactjs.org/docs/hooks-intro.html
+    ref,
+) => {
     const [active, setActive] = React.useState(false);
 
     const handleBlur = (event) => {
@@ -65,6 +64,7 @@ function Input(
             >
                 {icon && <FontAwesomeIcon icon={icon} className={style.icon} />}
                 <input
+                    ref={ref}
                     className={style.input}
                     type={type}
                     id={id}
@@ -78,7 +78,7 @@ function Input(
             <AdditionalLabel title={additionalLabel} />
         </div>
     );
-}
+});
 
 Input.propTypes = {
     id: PropTypes.string.isRequired,
