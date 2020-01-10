@@ -1,3 +1,4 @@
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
@@ -15,12 +16,12 @@ import {
 import { changeSearchString } from '../../../../actions/list/filter';
 import Navigation from '../../../../components/base/navigation';
 import { Alert, Col, Spinner } from '../../../../components/design';
-import AutoCompletion from '../../../../components/design/input/autoCompletion/';
+import TextAutoCompletion
+    from '../../../../components/design/input/autoCompletion/TextAutoCompletion';
 import AdvancedPopperAction from '../../../../components/design/popper/AdvancedPopperAction';
 import FavoritesPanel from '../../../panel/favorite/FavoritesPanel';
 import styles from '../ListPage.module.scss';
 import MagicFilters from './magicFilter/MagicFilters';
-import SearchField from './SearchField';
 
 function SearchFilter(props) {
     const {
@@ -49,7 +50,7 @@ function SearchFilter(props) {
     return (
         <React.Fragment>
             <div className={styles.searchRow}>
-                <AutoCompletion
+                <TextAutoCompletion
                     actions={(
                         <AdvancedPopperAction
                             type="delete"
@@ -60,18 +61,15 @@ function SearchFilter(props) {
                         </AdvancedPopperAction>
                     )}
                     className={styles.searchContainer}
-                    input={({ ref, ...searchProps }) => (
-                        <SearchField
-                            forwardRef={ref}
-                            id="searchString"
-                            onBlur={onSearchStringBlur}
-                            onChange={onSearchStringChange}
-                            {...searchProps}
-                        />
-                    )}
+                    inputId="searchString"
+                    inputProps={{
+                        onBlur: onSearchStringBlur,
+                        icon: faSearch,
+                    }}
+                    onChange={onSearchStringChange}
                     onSelect={onSelectQuickSelection}
-                    search={filter.searchString}
                     url={quickSelectUrl}
+                    value={filter.searchString}
                 />
                 <div className={styles.container}>
                     <FavoritesPanel

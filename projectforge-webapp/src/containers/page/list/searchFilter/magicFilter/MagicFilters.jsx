@@ -1,3 +1,4 @@
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -5,9 +6,9 @@ import { connect } from 'react-redux';
 import { resetAllFilters } from '../../../../../actions/list/filter';
 import AdvancedPopper from '../../../../../components/design/popper/AdvancedPopper';
 import AdvancedPopperAction from '../../../../../components/design/popper/AdvancedPopperAction';
+import AdvancedPopperInput from '../../../../../components/design/popper/AdvancedPopperInput';
 import { getNamedContainer } from '../../../../../utilities/layout';
 import styles from '../../ListPage.module.scss';
-import SearchField from '../SearchField';
 import FilterListEntry from './FilterListEntry';
 import MagicFilterPill from './MagicFilterPill';
 
@@ -88,10 +89,11 @@ function MagicFilters(
                         </AdvancedPopperAction>
                     )}
                 >
-                    <SearchField
+                    <AdvancedPopperInput
                         forwardRef={searchRef}
                         dark
                         id="magicFiltersSearch"
+                        icon={faSearch}
                         onCancel={() => setIsOpen(false)}
                         onChange={handleSearchChange}
                         value={search}
