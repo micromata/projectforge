@@ -46,6 +46,8 @@ object MagicFilterProcessor {
             SortProperty(property, it.sortOrder)
         }.toMutableList()
         queryFilter.extended = magicFilter.extended
+        if (!magicFilter.searchString.isNullOrBlank())
+            queryFilter.addFullTextSearch(magicFilter.searchString)
         for (magicFilterEntry in magicFilter.entries) {
             if (magicFilterEntry.field.isNullOrBlank()) {
                 // Full text search (no field given).
