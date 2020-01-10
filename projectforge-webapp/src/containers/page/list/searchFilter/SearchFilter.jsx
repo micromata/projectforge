@@ -1,40 +1,22 @@
-import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Navbar } from 'reactstrap';
-import { dismissCurrentError, fetchCurrentList, fetchListFavorites } from '../../../../actions';
+import {
+    dismissCurrentError,
+    fetchCurrentList,
+    fetchListFavorites,
+    openEditPage,
+} from '../../../../actions';
 import { changeSearchString } from '../../../../actions/list/filter';
 import Navigation from '../../../../components/base/navigation';
 import { Alert, Col, Spinner } from '../../../../components/design';
-import AdvancedPopper from '../../../../components/design/popper/AdvancedPopper';
+import AutoCompletion from '../../../../components/design/input/autoCompletion/';
 import AdvancedPopperAction from '../../../../components/design/popper/AdvancedPopperAction';
-import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
 import FavoritesPanel from '../../../panel/favorite/FavoritesPanel';
 import styles from '../ListPage.module.scss';
 import MagicFilters from './magicFilter/MagicFilters';
-import QuickSelectionEntry from './QuickSelectionEntry';
 import SearchField from './SearchField';
-
-const loadQuickSelectionsBounced = (
-    {
-        url,
-        searchString = '',
-        setQuickSelections,
-    },
-) => {
-    fetch(
-        getServiceURL(url.replace(':searchString', encodeURIComponent(searchString))),
-        {
-            method: 'GET',
-            credentials: 'include',
-            headers: { Accept: 'application/json' },
-        },
-    )
-        .then(handleHTTPErrors)
-        .then(response => response.json())
-        .then(setQuickSelections);
-};
 
 function SearchFilter(props) {
     const {
@@ -48,6 +30,7 @@ function SearchFilter(props) {
         onSearchStringBlur,
         onSearchStringChange,
         onSearchStringDelete,
+        onSelectQuickSelection,
     } = props;
 
     const {
@@ -59,51 +42,10 @@ function SearchFilter(props) {
         ui,
     } = category;
 
-    const [quickSelections, setQuickSelections] = React.useState([]);
-    const [searchActive, setSearchActive] = React.useState(false);
-    const [loadQuickSelections] = React.useState(
-        () => AwesomeDebouncePromise(loadQuickSelectionsBounced, debouncedWaitTime),
-    );
-    const searchRef = React.useRef(null);
-
-    // Initial QuickSelections call. Recall when url changed.
-    React.useEffect(() => {
-        if (quickSelectUrl) {
-            loadQuickSelections({
-                url: quickSelectUrl,
-                searchString: filter.searchString,
-                setQuickSelections,
-            });
-        }
-    }, [quickSelectUrl, filter.searchString]);
-
-    const handleSearchKeyDown = ({ key }) => {
-        if (key === 'Escape' || key === 'Enter') {
-            if (searchRef.current) {
-                searchRef.current.blur();
-            }
-            setSearchActive(false);
-        }
-    };
-
     return (
         <React.Fragment>
             <div className={styles.searchRow}>
-                <AdvancedPopper
-                    additionalClassName={styles.completions}
-                    setIsOpen={setSearchActive}
-                    isOpen={searchActive}
-                    basic={(
-                        <SearchField
-                            forwardRef={searchRef}
-                            id="searchString"
-                            onBlur={onSearchStringBlur}
-                            onChange={onSearchStringChange}
-                            onKeyDown={handleSearchKeyDown}
-                            value={filter.searchString}
-                        />
-                    )}
-                    className={styles.searchContainer}
+                <AutoCompletion
                     actions={(
                         <AdvancedPopperAction
                             type="delete"
@@ -113,27 +55,20 @@ function SearchFilter(props) {
                             {ui.translations.delete || ''}
                         </AdvancedPopperAction>
                     )}
-                >
-                    {quickSelectUrl && (
-                        <React.Fragment>
-                            <ul className={styles.entries}>
-                                {/* TODO ADD KEYBOARD LISTENER FOR SELECTING */}
-                                {quickSelections.map(({ id, displayName }) => (
-                                    <QuickSelectionEntry
-                                        key={`quick-selection-${id}`}
-                                        id={id}
-                                        displayName={displayName}
-                                    />
-                                ))}
-                            </ul>
-                            {quickSelections.length === 0 && (
-                                <p className={styles.errorMessage}>
-                                    ???No quick selections found.???
-                                </p>
-                            )}
-                        </React.Fragment>
+                    className={styles.searchContainer}
+                    input={({ ref, ...searchProps }) => (
+                        <SearchField
+                            forwardRef={ref}
+                            id="searchString"
+                            onBlur={onSearchStringBlur}
+                            onChange={onSearchStringChange}
+                            {...searchProps}
+                        />
                     )}
-                </AdvancedPopper>
+                    onSelect={onSelectQuickSelection}
+                    search={filter.searchString}
+                    url={quickSelectUrl}
+                />
                 <div className={styles.container}>
                     <FavoritesPanel
                         onFavoriteCreate={onFavoriteCreate}
@@ -167,7 +102,6 @@ function SearchFilter(props) {
             </div>
             <MagicFilters />
             <hr />
-            {/* TODO ADD DISMISS */}
             <Alert
                 color="danger"
                 className={styles.alert}
@@ -195,6 +129,7 @@ SearchFilter.propTypes = {
     onSearchStringBlur: PropTypes.func.isRequired,
     onSearchStringChange: PropTypes.func.isRequired,
     onSearchStringDelete: PropTypes.func.isRequired,
+    onSelectQuickSelection: PropTypes.func.isRequired,
 };
 
 SearchFilter.defaultProps = {};
@@ -228,6 +163,7 @@ const actions = (dispatch, { filter }) => ({
     onSearchStringBlur: () => dispatch(fetchCurrentList()),
     onSearchStringChange: ({ target }) => dispatch(changeSearchString(target.value)),
     onSearchStringDelete: () => dispatch(changeSearchString('')),
+    onSelectQuickSelection: id => dispatch(openEditPage(id)),
 });
 
 export default connect(mapStateToProps, actions)(SearchFilter);
