@@ -1,48 +1,6 @@
-.search {
-  width: 100%;
-  margin: 0;
-  padding: .5em;
-
-  &:hover {
-    input::placeholder {
-      color: #444;
-    }
-  }
-
-  &.dark {
-    background-color: #333;
-    color: #fff;
-    padding: .8em;
-
-    input {
-      color: #fff;
-
-      &::placeholder {
-        color: #eee;
-      }
-    }
-
-    &:hover {
-      input::placeholder {
-        color: #fff;
-      }
-    }
-  }
-
-  input {
-    border: none !important;
-    margin-left: 2px;
-
-    // Use :global(...) to force css-modules to not convert #searchFilter.
-    &:global(#searchString), &:global(#magicFiltersSearch) {
-      top: -2px;
-    }
-  }
-
-  + hr {
-    margin-top: .5em;
-    margin-bottom: 0;
-  }
+// Use :global(...) to force css-modules to not convert #searchFilter.
+:global(#searchString), :global(#magicFiltersSearch) {
+  top: -2px;
 }
 
 .errorMessage {
@@ -65,29 +23,25 @@
     position: relative;
   }
 
-  .searchContainer {
-    height: 2.9em;
+  .searchContainer .completions {
+    top: .8em;
 
-    .completions {
-      top: .8em;
+    .entries {
+      margin: 0;
+      padding: 0;
 
-      .entries {
-        margin: 0;
-        padding: 0;
+      .entry {
+        position: relative;
+        padding: 1em 1.5em;
+        cursor: default;
 
-        .entry {
-          position: relative;
-          padding: 1em 1.5em;
-          cursor: default;
+        &:hover {
+          background-color: #eee;
+        }
 
-          &:hover {
-            background-color: #eee;
-          }
-
-          .icon {
-            right: 1em;
-            position: absolute;
-          }
+        .icon {
+          right: 1em;
+          position: absolute;
         }
       }
     }
