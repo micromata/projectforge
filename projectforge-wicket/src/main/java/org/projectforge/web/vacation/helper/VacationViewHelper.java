@@ -77,7 +77,9 @@ public class VacationViewHelper {
 
   public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee, boolean showAddButton, final WebPage returnToPage) {
     LocalDate endDatePreviousYearVacation = configService.getEndDateVacationFromLastYear();
-    final VacationStatsModel statsModel = new VacationStatsModel(currentEmployee);
+    final int year = Year.now().getValue();
+    final VacationStatsModel statsModel = new VacationStatsModel(currentEmployee, year);
+    final VacationStatsModel previousYearStatsModel = new VacationStatsModel(currentEmployee, year - 1);
 
     // leave account
     GridBuilder sectionLeftGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
@@ -111,9 +113,10 @@ public class VacationViewHelper {
 
     appendFieldset(sectionMiddleLeftGridBuilder, "vacation.previousyearleaveused", statsModel, "remainingLeaveFromPreviousYearAllocatedAsString");
 
-    String endDatePreviousYearVacationString = endDatePreviousYearVacation.getDayOfMonth() + "." + endDatePreviousYearVacation.getMonthValue() + ".";
+    String endDatePreviousYearVacationString = endDatePreviousYearVacation.getDayOfMonth() + "." + endDatePreviousYearVacation.getMonthValue() + "." + year;
     appendFieldset(sectionMiddleLeftGridBuilder, "vacation.previousyearleaveunused", statsModel, "remainingLeaveFromPreviousYearUnusedAsString",
             endDatePreviousYearVacationString);
+
 
     // special leave
     GridBuilder sectionMiddleRightGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
@@ -122,6 +125,11 @@ public class VacationViewHelper {
     appendFieldset(sectionMiddleRightGridBuilder, "vacation.isSpecialPlaned", statsModel, "specialVacationDaysInProgressAsString");
 
     appendFieldset(sectionMiddleRightGridBuilder, "vacation.isSpecialApproved", statsModel, "specialVacationDaysApprovedAsString");
+
+    sectionMiddleRight.add(new Heading1Panel(sectionMiddleRight.newChildId(), I18nHelper.getLocalizedMessage("misc")));
+    appendFieldset(sectionMiddleRightGridBuilder, "vacation.leaveFromYear", previousYearStatsModel, "remainingLeaveFromPreviousYearAllocatedAsString",
+            String.valueOf(year - 2));
+
 
     //student leave
     if (EmployeeStatus.STUD_ABSCHLUSSARBEIT.equals(employeeService.getEmployeeStatus(currentEmployee)) ||
@@ -241,16 +249,16 @@ public class VacationViewHelper {
   private boolean appendFieldset(GridBuilder gridBuilder, final String label, final Model<VacationStats> statsModel, final String property, final String... labelParameters) {
     final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage(label, (Object[]) labelParameters)).suppressLabelForWarning();
     DivTextPanel divTextPanel = new DivTextPanel(fs.newChildId(), new PropertyModel<>(statsModel, property));
-    return appendFieldset(gridBuilder, label, fs, divTextPanel, labelParameters);
+    return appendFieldset(gridBuilder, label, fs, divTextPanel);
   }
 
   private boolean appendFieldset(GridBuilder gridBuilder, final String label, final String value, final String... labelParameters) {
     final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage(label, (Object[]) labelParameters)).suppressLabelForWarning();
     DivTextPanel divTextPanel = new DivTextPanel(fs.newChildId(), value);
-    return appendFieldset(gridBuilder, label, fs, divTextPanel, labelParameters);
+    return appendFieldset(gridBuilder, label, fs, divTextPanel);
   }
 
-  private boolean appendFieldset(GridBuilder gridBuilder, final String label, final FieldsetPanel fs, final DivTextPanel divTextPanel, final String... labelParameters) {
+  private boolean appendFieldset(GridBuilder gridBuilder, final String label, final FieldsetPanel fs, final DivTextPanel divTextPanel) {
     WebMarkupContainer fieldset = fs.getFieldset();
     fieldset.add(AttributeAppender.append("class", "vacationPanel"));
     if (label.contains("vacation.subtotal") || label.contains("vacation.availablevacation")) {
@@ -266,15 +274,17 @@ public class VacationViewHelper {
   private class VacationStatsModel extends Model<VacationStats> {
     VacationStats stats;
     EmployeeDO employeeDO;
+    int year;
 
-    VacationStatsModel(EmployeeDO employeeDO) {
+    VacationStatsModel(EmployeeDO employeeDO, int year) {
       this.employeeDO = employeeDO;
+      this.year = year;
     }
 
     @Override
     public VacationStats getObject() {
       if (stats == null) {
-        stats = vacationService.getVacationStats(employeeDO);
+        stats = vacationService.getVacationStats(employeeDO, year);
       }
       return stats;
     }
