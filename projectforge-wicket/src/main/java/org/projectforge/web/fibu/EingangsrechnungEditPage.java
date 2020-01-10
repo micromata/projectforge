@@ -29,8 +29,8 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EingangsrechnungDao;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
-import org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator;
-import org.projectforge.business.fibu.kost.reporting.SEPATransferResult;
+import org.projectforge.business.fibu.SEPATransferGenerator;
+import org.projectforge.business.fibu.SEPATransferResult;
 import org.projectforge.common.props.PropUtils;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
@@ -107,7 +107,7 @@ public class EingangsrechnungEditPage
         List<String> missingFields = new ArrayList<>();
 
         // check invoice
-        for (org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator.SEPATransferError error : result.getErrors().get(invoice)) {
+        for (org.projectforge.business.fibu.SEPATransferGenerator.SEPATransferError error : result.getErrors().get(invoice)) {
           switch (error) {
             case SUM:
               missingFields.add(this.getString("fibu.common.brutto"));
