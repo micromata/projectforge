@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import DynamicEmployeeSelect from '../select/DynamicEmployeeSelect';
-import DynamicUserSelect from '../select/DynamicUserSelect';
+import DynamicQuickSelect from '../select/DynamicQuickSelect';
 import DynamicTaskSelect from '../select/task';
 import DynamicAutoCompletion from './DynamicAutoCompletion';
 import DynamicDateInput from './DynamicDateInput';
@@ -32,10 +31,9 @@ function DynamicInputResolver({ dataType, autoCompletionUrl, ...props }) {
             Tag = DynamicTaskSelect;
             break;
         case 'USER':
-            Tag = DynamicUserSelect;
-            break;
         case 'EMPLOYEE':
-            Tag = DynamicEmployeeSelect;
+            Tag = DynamicQuickSelect;
+            additionalProps.dataType = dataType;
             break;
         case 'INT':
         case 'DECIMAL':
