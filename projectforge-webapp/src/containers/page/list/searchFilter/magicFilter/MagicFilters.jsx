@@ -22,6 +22,19 @@ function MagicFilters(
 ) {
     const [allFiltersAreOpen, setAllFiltersAreOpen] = React.useState(false);
     const [search, setSearch] = React.useState('');
+    const searchRef = React.useRef(null);
+
+    const setIsOpen = (open) => {
+        if (searchRef.current) {
+            if (open) {
+                searchRef.current.focus({ preventScroll: true });
+            } else {
+                searchRef.current.blur();
+            }
+        }
+
+        setAllFiltersAreOpen(open);
+    };
 
     const handleSearchChange = ({ target }) => setSearch(target.value);
 
@@ -57,7 +70,7 @@ function MagicFilters(
                 ))}
             <div className={styles.magicFilter}>
                 <AdvancedPopper
-                    setIsOpen={setAllFiltersAreOpen}
+                    setIsOpen={setIsOpen}
                     isOpen={allFiltersAreOpen}
                     basic="???Alle Filter???"
                     className={styles.allFilters}
@@ -76,9 +89,10 @@ function MagicFilters(
                     )}
                 >
                     <SearchField
+                        forwardRef={searchRef}
                         dark
-                        onChange={handleSearchChange}
                         id="magicFiltersSearch"
+                        onChange={handleSearchChange}
                         value={search}
                     />
                     {searchFilter && (
