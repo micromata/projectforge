@@ -72,7 +72,7 @@ class MagicFilter(
                 it.value.label = getUserGroupCache().getUser(it.value.value?.toInt())?.username
             }
         }
-        entries.removeIf { it.field.isNullOrBlank() }
+        entries.removeIf { it.field.isNullOrBlank() } // Former filter versions (7.0-SNAPSHOT in 2019 supported entries with no values. This is now replaced by searchString.
     }
 
     fun reset() {

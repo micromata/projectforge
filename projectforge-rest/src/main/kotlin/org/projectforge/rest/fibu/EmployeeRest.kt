@@ -93,7 +93,7 @@ class EmployeeRest : AbstractDTORest<EmployeeDO, Employee, EmployeeDao>(Employee
     override val autoCompleteSearchFields = arrayOf("user.username", "user.firstname", "user.lastname", "user.email")
 
     override fun queryAutocompleteObjects(filter: BaseSearchFilter): MutableList<EmployeeDO> {
-        val list = super.queryAutocompleteObjects(filter)
+        val list = super.queryAutocompleteObjects(filter).toMutableList()
         val today = LocalDate.now()
         list.removeIf { it.austrittsDatum?.isBefore(today) == true || it.isDeleted } // Remove deactivated users when returning all. Show deactivated users only if search string is given.
         return list

@@ -85,14 +85,12 @@ object ElementsRegistry {
                             }
                         }
                         Boolean::class.java -> UICheckbox(property)
-                        Date::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
-                        LocalDate::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
-                        java.sql.Date::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        Date::class.java,
+                        LocalDate::class.java,
+                        java.sql.Date::class.java,
                         java.sql.Timestamp::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
-                        PFUserDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
-                        Integer::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
-                        BigDecimal::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
-                        TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        PFUserDO::class.java, EmployeeDO::class.java, TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        Integer::class.java, BigDecimal::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
                         Locale::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
                         else -> null
                     }
@@ -123,7 +121,7 @@ object ElementsRegistry {
             String::class.java -> UIDataType.STRING
             Boolean::class.java -> UIDataType.BOOLEAN
             Date::class.java -> UIDataType.TIMESTAMP
-            LocalDate::class.java -> UIDataType.DATE
+            LocalDate::class.java,
             java.sql.Date::class.java -> UIDataType.DATE
             java.sql.Timestamp::class.java -> UIDataType.TIMESTAMP
             PFUserDO::class.java -> UIDataType.USER
