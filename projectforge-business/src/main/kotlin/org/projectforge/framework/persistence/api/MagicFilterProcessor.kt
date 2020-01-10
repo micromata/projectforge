@@ -46,8 +46,10 @@ object MagicFilterProcessor {
             SortProperty(property, it.sortOrder)
         }.toMutableList()
         queryFilter.extended = magicFilter.extended
-        if (!magicFilter.searchString.isNullOrBlank())
-            queryFilter.addFullTextSearch(magicFilter.searchString)
+        val searchString = magicFilter.searchString;
+        if (!searchString.isNullOrBlank()) {
+            queryFilter.addFullTextSearch(DBPredicate.modifySearchString(searchString, '*', '%', magicFilter.autoWildcardSearch))
+        }
         for (magicFilterEntry in magicFilter.entries) {
             if (magicFilterEntry.field.isNullOrBlank()) {
                 // Full text search (no field given).
