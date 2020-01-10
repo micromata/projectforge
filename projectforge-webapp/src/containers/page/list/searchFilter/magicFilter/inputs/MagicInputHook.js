@@ -15,7 +15,7 @@ const useMagicInput = (type) => {
             case 'STRING':
                 tag = MagicStringInput;
                 break;
-            case 'SELECT':
+            case 'LIST':
                 tag = MagicSelectInput;
                 break;
             case 'TIME_STAMP':

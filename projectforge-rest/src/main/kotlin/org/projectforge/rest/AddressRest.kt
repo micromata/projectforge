@@ -41,6 +41,7 @@ import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.Address
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
+import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -123,7 +124,11 @@ class AddressRest()
 
     // TODO Menus: print view, ical export, direct call: see AddressEditPage
     // TODO: onSaveOrUpdate: see AddressEditPage
-
+    
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        elements.add(UIFilterElement("myFavorites", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.myFavorites")))
+        elements.add(UIFilterElement("doublets",  UIFilterElement.FilterType.BOOLEAN,translate("address.filter.doublets")))
+    }
 
     /**
      * Sets also uid to null.
@@ -193,9 +198,6 @@ class AddressRest()
         layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
         layout.getTableColumnById("address.addressbookList").formatter = Formatter.ADDRESS_BOOK
         layout.getTableColumnById("address.addressbookList").sortable = false
-        LayoutUtils.addListFilterContainer(layout,
-                UICheckbox("favorites", label = "address.filter.myFavorites"),
-                UICheckbox("doublets", label = "address.filter.doublets"))
         var menuIndex = 0
         if (smsSenderConfig.isSmsConfigured()) {
             layout.add(MenuItem("address.writeSMS", i18nKey = "address.tooltip.writeSMS", url = "wa/sendSms"), menuIndex++)
