@@ -11,11 +11,13 @@ function SearchField(
         dark,
         // Extract 'dispatch' so it's not passed to the input tag
         dispatch,
+        forwardRef,
         ...props
     },
 ) {
     return (
         <Input
+            ref={forwardRef}
             icon={faSearch}
             className={classNames(styles.search, { [styles.dark]: dark })}
             autoComplete="off"
@@ -29,6 +31,7 @@ SearchField.propTypes = {
     onChange: PropTypes.func.isRequired,
     dark: PropTypes.bool,
     dispatch: PropTypes.func,
+    forwardRef: PropTypes.shape({}),
     placeholder: PropTypes.string,
     value: PropTypes.string,
 };
@@ -36,6 +39,7 @@ SearchField.propTypes = {
 SearchField.defaultProps = {
     dark: false,
     dispatch: undefined,
+    forwardRef: undefined,
     placeholder: '',
     value: '',
 };
