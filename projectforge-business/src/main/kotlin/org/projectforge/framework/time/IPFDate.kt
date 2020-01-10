@@ -24,6 +24,7 @@
 package org.projectforge.framework.time
 
 import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.Month
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalUnit
@@ -33,6 +34,11 @@ interface IPFDate<T> : Comparable<T> {
     val year: Int
 
     val month: Month
+
+    /**
+     * The day represented by this object (time zone is considered, if any).
+     */
+    val localDate: LocalDate
 
     /**
      * Uses the locale configured in projectforge.properties. Ensures, that every user of ProjectForge uses same week-of-year-algorithm.

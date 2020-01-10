@@ -387,7 +387,7 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
      * @return The date as LocalDate. LocalDate is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
      */
-    val localDate: LocalDate
+    override val localDate: LocalDate
         get() {
             if (_localDate == null)
                 _localDate = dateTime.toLocalDate()

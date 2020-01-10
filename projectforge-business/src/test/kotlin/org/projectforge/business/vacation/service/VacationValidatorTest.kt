@@ -31,6 +31,7 @@ import org.projectforge.business.user.UserDao
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
@@ -61,7 +62,7 @@ class VacationValidatorTest : AbstractTestBase() {
         vacation.endDate = vacation.startDate!!.plusDays(2)
         Assertions.assertEquals(VacationValidator.Error.START_DATE_BEFORE_NOW, vacationService.validate(vacation))
 
-        vacation.startDate = LocalDate.now().plusDays(1)
+        vacation.startDate = PFDayUtils.getNextWorkingDay(LocalDate.now().plusDays(1))
         vacation.endDate = vacation.startDate
         vacation.halfDayBegin = true
         Assertions.assertNull(vacationService.validate(vacation))
