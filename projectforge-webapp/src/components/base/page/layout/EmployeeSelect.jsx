@@ -34,7 +34,7 @@ function EmployeeSelect(props) {
 
     const loadOptions = (inputValue, callback) => {
         fetch(
-            getServiceURL('employee/aco', { search: inputValue }),
+            getServiceURL('employee/autosearch', { search: inputValue }),
             {
                 method: 'GET',
                 credentials: 'include',

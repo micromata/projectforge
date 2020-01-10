@@ -25,12 +25,12 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.Employee
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 
@@ -92,14 +92,10 @@ class EmployeeRest : AbstractDTORest<EmployeeDO, Employee, EmployeeDao>(Employee
 
     override val autoCompleteSearchFields = arrayOf("user.username", "user.firstname", "user.lastname", "user.email")
 
-    override fun getAutoCompletionObjects(@RequestParam("search") searchString: String?): MutableList<Employee> {
-        val result = super.getAutoCompletionObjects(searchString)
+    override fun queryAutocompleteObjects(filter: BaseSearchFilter): MutableList<EmployeeDO> {
+        val list = super.queryAutocompleteObjects(filter)
         val today = LocalDate.now()
-        result.removeIf { it.austrittsDatum?.isBefore(today) == true || it.deleted } // Remove deactivated users when returning all. Show deactivated users only if search string is given.
-        return result.map {
-            val employee = Employee(fullname = it.fullname)
-            employee.id = it.id
-            employee
-        }.toMutableList()
+        list.removeIf { it.austrittsDatum?.isBefore(today) == true || it.isDeleted } // Remove deactivated users when returning all. Show deactivated users only if search string is given.
+        return list
     }
 }
