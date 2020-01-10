@@ -47,6 +47,9 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
     override val month: Month
         get() = date.month
 
+    override val localDate: LocalDate
+        get() = date
+
     /**
      * Uses the locale configured in projectforge.properties. Ensures, that every user of ProjectForge uses same week-of-year-algorithm.
      */
@@ -294,8 +297,21 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
             return PFDay(LocalDate.of(year, month, day))
         }
 
+        /**
+         *  1-based Month: 1 (January) to 12 (December)
+         */
+        @JvmStatic
+        fun of(year: Int, month: Int, day: Int): PFDay {
+            return PFDay(LocalDate.of(year, month, day))
+        }
+
         @JvmStatic
         fun withDate(year: Int, month: Month, day: Int): PFDay {
+            return PFDay(LocalDate.of(year, month, day))
+        }
+
+        @JvmStatic
+        fun of(year: Int, month: Month, day: Int): PFDay {
             return PFDay(LocalDate.of(year, month, day))
         }
 

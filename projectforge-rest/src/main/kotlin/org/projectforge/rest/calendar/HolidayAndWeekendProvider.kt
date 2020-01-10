@@ -31,7 +31,7 @@ import java.time.format.DateTimeFormatter
 
 object HolidayAndWeekendProvider {
     private val log = org.slf4j.LoggerFactory.getLogger(HolidayAndWeekendProvider::class.java)
-    private val holidays = Holidays.getInstance()
+    private val holidays = Holidays.instance
 
     class SpecialDayInfo(val weekend: Boolean = false, val holiday: Boolean = false, val holidayTitle: String? = null, val workingDay: Boolean = false)
 
