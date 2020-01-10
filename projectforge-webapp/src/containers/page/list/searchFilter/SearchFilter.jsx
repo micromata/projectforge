@@ -3,10 +3,14 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Navbar } from 'reactstrap';
 import {
+    createListFavorite,
+    deleteListFavorite,
     dismissCurrentError,
     fetchCurrentList,
-    fetchListFavorites,
     openEditPage,
+    renameListFavorite,
+    selectListFavorite,
+    updateListFavorite,
 } from '../../../../actions';
 import { changeSearchString } from '../../../../actions/list/filter';
 import Navigation from '../../../../components/base/navigation';
@@ -139,27 +143,19 @@ const mapStateToProps = ({ list }) => {
 
     return {
         category,
-        filter: category.filter,
     };
 };
 
-const actions = (dispatch, { filter }) => ({
+const actions = dispatch => ({
     onErrorDismiss: () => dispatch(dismissCurrentError()),
-    onFavoriteCreate: name => dispatch(fetchListFavorites('create', {
-        body: {
-            ...filter,
-            name,
-        },
+    onFavoriteCreate: name => dispatch(createListFavorite({ name })),
+    onFavoriteDelete: id => dispatch(deleteListFavorite({ id })),
+    onFavoriteRename: (id, newName) => dispatch(renameListFavorite({
+        id,
+        newName,
     })),
-    onFavoriteDelete: id => dispatch(fetchListFavorites('delete', { params: { id } })),
-    onFavoriteRename: (id, newName) => fetchListFavorites('rename', {
-        params: {
-            id,
-            newName,
-        },
-    }),
-    onFavoriteSelect: id => dispatch(fetchListFavorites('select', { params: { id } })),
-    onFavoriteUpdate: () => dispatch(fetchListFavorites('update', { body: filter })),
+    onFavoriteSelect: id => dispatch(selectListFavorite({ id })),
+    onFavoriteUpdate: () => dispatch(updateListFavorite()),
     onSearchStringBlur: () => dispatch(fetchCurrentList()),
     onSearchStringChange: ({ target }) => dispatch(changeSearchString(target.value)),
     onSearchStringDelete: () => dispatch(changeSearchString('')),
