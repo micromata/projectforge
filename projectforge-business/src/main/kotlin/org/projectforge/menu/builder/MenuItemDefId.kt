@@ -57,7 +57,7 @@ enum class MenuItemDefId private constructor(private val i18nKey: String) {
     DOCUMENTATION("documentation"), //
     EMPLOYEE_LIST("fibu.employees"), //
     EMPLOYEE_SALARY_LIST("fibu.employeeSalaries"), //
-    EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("vacation.leaveAccountEntry.title.list"), //
+    EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("vacation.leaveAccountEntry"), //
     GANTT("gantt"), //
     GROUP_LIST("groupList"), //
     HR_PLANNING_LIST("hrPlanningList"), //

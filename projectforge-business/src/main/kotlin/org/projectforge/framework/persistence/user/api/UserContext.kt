@@ -49,7 +49,6 @@ class UserContext : Serializable {
      * @return the currentTenant
      */
     var currentTenant: TenantDO? = null
-        private set
     /**
      * @return the stayLoggedIn
      */
