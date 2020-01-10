@@ -23,19 +23,28 @@
 
 package org.projectforge.ui.filter
 
-import org.projectforge.ui.UISelect
+import org.projectforge.common.i18n.I18nEnum
+import org.projectforge.framework.i18n.translate
+import org.projectforge.rest.core.log
+import org.projectforge.ui.UISelectValue
 
-/**
- * An element for the UI specifying a filter attribute which may be added by the user to the search string.
- * Filter attributes are e. g. title or authors for books as well as modifiedInIntervall or modifiedByUser.
- */
-open class UIFilterChoicesElement<T>(
-        /**
-         *  The id (property) of the filter to be defined.
-         */
+open class UIFilterListElement(
         id: String,
-        /**
-         * The selection values.
-         */
-        var select: UISelect<T>? = null
-) :UIFilterElement(id, FilterType.CHOICE)
+        var values: List<UISelectValue<String>>? = null
+) : UIFilterElement(id, FilterType.LIST) {
+
+    fun buildValues(i18nEnum: Class<out Enum<*>>): UIFilterListElement {
+        val newValues = mutableListOf<UISelectValue<String>>()
+        i18nEnum.enumConstants.forEach { enum ->
+            if (enum is I18nEnum) {
+                newValues.add(UISelectValue(enum.name, translate(enum.i18nKey)))
+            } else {
+                log.error("UIFilterSelectElement supports only enums of type I18nEnum, not '$enum': '${this}'")
+            }
+        }
+
+        values = newValues
+
+        return this
+    }
+}

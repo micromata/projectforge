@@ -48,7 +48,7 @@ class LayoutListFilterUtils {
                     autoCompletion = AutoCompletion<Int>(2,
                             //recent = listOf(AutoCompletion.Entry(42,"Fin Reinhard"), AutoCompletion.Entry(43, "Kai Reinhard")),
                             type = AutoCompletion.Type.USER.name,
-                            url = "user/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=")))
+                            url = "user/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=:search")))
             elements.add(UIFilterTimestampElement(MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName,
                     label = translate(MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.i18nKey),
                     openInterval = true,
@@ -70,7 +70,7 @@ class LayoutListFilterUtils {
                     val element: UIElement
                     if (elInfo.propertyType.isEnum) {
                         @Suppress("UNCHECKED_CAST")
-                        element = UIFilterSelectElement(it)
+                        element = UIFilterListElement(it)
                                 .buildValues(i18nEnum = elInfo.propertyType as Class<out Enum<*>>)
                         element.label = element.id // Default label if no translation will be found below.
                     } else {
