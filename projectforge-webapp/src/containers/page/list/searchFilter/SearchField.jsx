@@ -12,9 +12,21 @@ function SearchField(
         // Extract 'dispatch' so it's not passed to the input tag
         dispatch,
         forwardRef,
+        onCancel,
+        onKeyDown,
         ...props
     },
 ) {
+    const handleKeyDown = (event) => {
+        if (onCancel && event.key === 'Escape') {
+            onCancel();
+        }
+
+        if (onKeyDown) {
+            onKeyDown(event);
+        }
+    };
+
     return (
         <Input
             ref={forwardRef}
@@ -22,6 +34,7 @@ function SearchField(
             className={classNames(styles.search, { [styles.dark]: dark })}
             autoComplete="off"
             {...props}
+            onKeyDown={handleKeyDown}
         />
     );
 }
@@ -32,6 +45,8 @@ SearchField.propTypes = {
     dark: PropTypes.bool,
     dispatch: PropTypes.func,
     forwardRef: PropTypes.shape({}),
+    onCancel: PropTypes.func,
+    onKeyDown: PropTypes.func,
     placeholder: PropTypes.string,
     value: PropTypes.string,
 };
@@ -40,6 +55,8 @@ SearchField.defaultProps = {
     dark: false,
     dispatch: undefined,
     forwardRef: undefined,
+    onCancel: undefined,
+    onKeyDown: undefined,
     placeholder: '',
     value: '',
 };
