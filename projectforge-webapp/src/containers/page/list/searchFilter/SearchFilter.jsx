@@ -162,8 +162,8 @@ function SearchFilter(props) {
                 toggle={onErrorDismiss}
                 isOpen={error !== undefined}
             >
-                <h4>Fehler</h4>
-                <p>???Huch?! Das soll so aber nicht :o???</p>
+                <h4>Oh Snap!</h4>
+                <p>Error while contacting the server. Please contact an administrator.</p>
             </Alert>
         </React.Fragment>
     );
