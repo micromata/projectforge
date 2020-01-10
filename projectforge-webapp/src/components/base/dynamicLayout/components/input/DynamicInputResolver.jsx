@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import DynamicReactSelect from '../select/DynamicReactSelect';
+import DynamicEmployeeSelect from '../select/DynamicEmployeeSelect';
 import DynamicUserSelect from '../select/DynamicUserSelect';
 import DynamicTaskSelect from '../select/task';
 import DynamicDateInput from './DynamicDateInput';
