@@ -37,5 +37,9 @@ export {
 
 export {
     LIST_FAVORITES_RECEIVED,
-    fetchFavorites as fetchListFavorites,
+    createFavorite as createListFavorite,
+    deleteFavorite as deleteListFavorite,
+    renameFavorite as renameListFavorite,
+    selectFavorite as selectListFavorite,
+    updateFavorite as updateListFavorite,
 } from './list/favorites';
