@@ -92,6 +92,7 @@ function MagicFilters(
                         forwardRef={searchRef}
                         dark
                         id="magicFiltersSearch"
+                        onCancel={() => setIsOpen(false)}
                         onChange={handleSearchChange}
                         value={search}
                     />

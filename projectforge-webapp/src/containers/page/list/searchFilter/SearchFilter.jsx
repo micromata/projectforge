@@ -64,6 +64,7 @@ function SearchFilter(props) {
     const [loadQuickSelections] = React.useState(
         () => AwesomeDebouncePromise(loadQuickSelectionsBounced, debouncedWaitTime),
     );
+    const searchRef = React.useRef(null);
 
     // Initial QuickSelections call. Recall when url changed.
     React.useEffect(() => {
@@ -76,6 +77,15 @@ function SearchFilter(props) {
         }
     }, [quickSelectUrl, filter.searchString]);
 
+    const handleSearchKeyDown = ({ key }) => {
+        if (key === 'Escape' || key === 'Enter') {
+            if (searchRef.current) {
+                searchRef.current.blur();
+            }
+            setSearchActive(false);
+        }
+    };
+
     return (
         <React.Fragment>
             <div className={styles.searchRow}>
@@ -85,9 +95,11 @@ function SearchFilter(props) {
                     isOpen={searchActive}
                     basic={(
                         <SearchField
+                            forwardRef={searchRef}
                             id="searchString"
                             onBlur={onSearchStringBlur}
                             onChange={onSearchStringChange}
+                            onKeyDown={handleSearchKeyDown}
                             value={filter.searchString}
                         />
                     )}

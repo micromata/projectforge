@@ -68,7 +68,7 @@ function AdvancedPopper(
                 ref={basicReference}
                 tabIndex={0}
                 onClick={() => setIsOpen(true)}
-                onKeyDown={() => setIsOpen(true)}
+                onKeyDown={undefined}
             >
                 {basic}
             </div>
