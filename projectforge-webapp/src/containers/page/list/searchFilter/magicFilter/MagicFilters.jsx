@@ -72,7 +72,7 @@ function MagicFilters(
                 <AdvancedPopper
                     setIsOpen={setIsOpen}
                     isOpen={allFiltersAreOpen}
-                    basic={translations.searchFilter}
+                    basic={translations.searchFilter || ''}
                     className={styles.allFilters}
                     contentClassName={classNames(
                         styles.pill,
