@@ -25,25 +25,19 @@ package org.projectforge.rest.core
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.projectforge.framework.configuration.ConfigXml
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.UserContext
-import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.test.TestSetup
 import java.util.*
 
 class TimeZoneServiceTest {
 
     @Test
     fun timeZonesTest() {
-        val user = PFUserDO()
-        user.locale = Locale.GERMAN
-        ThreadLocalUserContext.setUserContext(UserContext(user, null))
+        contextUser.locale = Locale.GERMAN
         var timeZones = TimeZoneService().getAllTimeZones()
         var timeZone = timeZones.find { it.value == "Europe/Berlin" }
         assertEquals("Europe/Berlin (MEZ)", timeZone?.label)
-        user.locale = Locale.ENGLISH
+        contextUser.locale = Locale.ENGLISH
         timeZones = TimeZoneService().getAllTimeZones()
         timeZone = timeZones.find { it.value == "Europe/Berlin" }
         assertEquals("Europe/Berlin (CET)", timeZone?.label)
@@ -67,11 +61,7 @@ class TimeZoneServiceTest {
     }
 
     companion object {
-        @BeforeAll
-        @JvmStatic
-        fun setup() {
-            ConfigXml.createForJunitTests()
-        }
+        private val contextUser = TestSetup.init()
     }
 
     // https://momentjs.com: moment.tz.names() or JSON.stringify(moment.tz.names())

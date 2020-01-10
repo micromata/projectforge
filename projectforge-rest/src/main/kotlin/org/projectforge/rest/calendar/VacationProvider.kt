@@ -32,7 +32,7 @@ import org.projectforge.framework.time.PFDateTime
  */
 object VacationProvider {
     private val log = org.slf4j.LoggerFactory.getLogger(VacationProvider::class.java)
-    private val holidays = Holidays.getInstance()
+    private val holidays = Holidays.instance
 
     fun addEvents(vacationCache: VacationCache,
                   start: PFDateTime,

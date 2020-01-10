@@ -6,6 +6,7 @@ import ReactSelect from '../ReactSelect';
 const resolveJSON = (callback, type = undefined) => json => callback(json.map((completion) => {
     switch (type) {
         case 'USER':
+        case 'EMPLOYEE':
             return ({
                 label: completion.fullname,
                 value: completion.id,
@@ -50,7 +51,7 @@ function AutoCompletion({ url, type, ...props }) {
 
 AutoCompletion.propTypes = {
     url: PropTypes.string.isRequired,
-    type: PropTypes.oneOf(['USER', 'RAW', undefined]),
+    type: PropTypes.oneOf(['USER', 'EMPLOYEE', 'RAW', undefined]),
 };
 
 AutoCompletion.defaultProps = {

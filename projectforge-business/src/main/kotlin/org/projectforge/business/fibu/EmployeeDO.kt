@@ -72,6 +72,7 @@ import javax.persistence.*
 @AUserRightId("HR_EMPLOYEE")
 @NamedQueries(
         NamedQuery(name = EmployeeDO.FIND_BY_USER_ID, query = "from EmployeeDO where user.id=:userId and tenant.id=:tenantId"),
+        NamedQuery(name = EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID, query = "select id from EmployeeDO where user.id=:userId and tenant.id=:tenantId"),
         NamedQuery(name = EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME, query = "from EmployeeDO where user.lastname=:lastname and user.firstname=:firstname"))
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr, Comparable<Any>,
@@ -322,6 +323,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
 
     companion object {
         internal const val FIND_BY_USER_ID = "EmployeeDO_FindByUserId"
+        internal const val GET_EMPLOYEE_ID_BY_USER_ID = "EmployeeDO_GetEmployeeIdByUserId"
         internal const val FIND_BY_LASTNAME_AND_FIRST_NAME = "EmployeeDO_FindByLastnameAndFirstname"
     }
 }

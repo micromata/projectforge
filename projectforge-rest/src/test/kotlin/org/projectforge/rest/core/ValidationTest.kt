@@ -25,16 +25,14 @@ package org.projectforge.rest.core
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.projectforge.framework.configuration.ConfigXml
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.UserContext
-import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.test.TestSetup
 import org.projectforge.ui.ValidationError
-import java.util.*
 
 class ValidationTest {
+    companion object {
+        private val contextUser = TestSetup.init()
+    }
 
     @Test
     fun validationTest() {
@@ -58,16 +56,5 @@ class ValidationTest {
         if (validationErrors.size > 0)
             return validationErrors[0]
         return null
-    }
-
-    companion object {
-        @BeforeAll
-        @JvmStatic
-        fun setup() {
-            ConfigXml.createForJunitTests()
-            val user = PFUserDO()
-            user.locale = Locale.GERMAN
-            ThreadLocalUserContext.setUserContext(UserContext(user, null))
-        }
     }
 }
