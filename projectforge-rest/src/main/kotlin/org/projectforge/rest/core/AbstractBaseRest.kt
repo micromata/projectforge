@@ -280,8 +280,8 @@ abstract class AbstractBaseRest<
         val favorites = getFilterFavorites()
         val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter))
         val layout = createListLayout()
-                .addTranslations("table.showing")
-                .addTranslation("searchFilter")
+                .addTranslations("table.showing",
+                        "searchFilter")
         layout.add(LayoutListFilterUtils.createNamedContainer(this, lc))
         layout.postProcessPageMenu()
         layout.add(MenuItem(CREATE_MENU, title = "+", url = "${Const.REACT_APP_PATH}${getCategory()}/edit"), 0)
