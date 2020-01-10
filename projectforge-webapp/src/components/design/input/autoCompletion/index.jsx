@@ -45,13 +45,22 @@ function AutoCompletion(
         () => AwesomeDebouncePromise(loadCompletionsBounced, debouncedWaitTime),
     );
 
+    const close = () => {
+        if (searchRef.current) {
+            searchRef.current.blur();
+        }
+        setIsOpen(false);
+    };
+
     const handleKeyDown = ({ key }) => {
         if (key === 'Escape' || key === 'Enter') {
-            if (searchRef.current) {
-                searchRef.current.blur();
-            }
-            setIsOpen(false);
+            close();
         }
+    };
+
+    const handleSelect = (completion) => {
+        onSelect(completion);
+        close();
     };
 
     React.useEffect(() => {
@@ -78,13 +87,22 @@ function AutoCompletion(
             {...props}
         >
             <ul className={styles.entries}>
-                {completions.map(completion => (
-                    <Completion
-                        key={`completion-${completion.id}`}
-                        displayName={completion.displayName}
-                        onClick={() => onSelect(completion)}
-                    />
-                ))}
+                {completions.map((completion) => {
+                    let { id, displayName } = completion;
+
+                    if (typeof completion === 'string') {
+                        displayName = completion;
+                        id = completion;
+                    }
+
+                    return (
+                        <Completion
+                            key={`completion-${id}`}
+                            displayName={displayName}
+                            onClick={() => handleSelect(completion)}
+                        />
+                    );
+                })}
             </ul>
         </AdvancedPopper>
     );

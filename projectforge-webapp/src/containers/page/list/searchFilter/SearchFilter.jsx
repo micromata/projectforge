@@ -65,6 +65,7 @@ function SearchFilter(props) {
                     inputProps={{
                         onBlur: onSearchStringBlur,
                         icon: faSearch,
+                        placeholder: ui.translations.search || '',
                     }}
                     onChange={onSearchStringChange}
                     onSelect={onSelectQuickSelection}
@@ -119,6 +120,11 @@ function SearchFilter(props) {
 
 SearchFilter.propTypes = {
     category: PropTypes.shape({
+        ui: PropTypes.shape({
+            translations: PropTypes.shape({
+                search: PropTypes.string,
+            }),
+        }),
         filter: PropTypes.shape({}),
         filterFavorites: PropTypes.arrayOf(PropTypes.shape({})),
     }).isRequired,
@@ -155,7 +161,7 @@ const actions = dispatch => ({
     onFavoriteSelect: id => dispatch(selectListFavorite({ id })),
     onFavoriteUpdate: () => dispatch(updateListFavorite()),
     onSearchStringBlur: () => dispatch(fetchCurrentList()),
-    onSearchStringChange: ({ target }) => dispatch(changeSearchString(target.value)),
+    onSearchStringChange: completion => dispatch(changeSearchString(completion)),
     onSearchStringDelete: () => dispatch(changeSearchString('')),
     onSelectQuickSelection: ({ id }) => dispatch(openEditPage(id)),
 });

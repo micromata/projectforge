@@ -384,7 +384,7 @@ abstract class AbstractBaseRest<
     /**
      * @return currentFilter, new filterFavorites and isFilterModified=false.
      */
-    @RequestMapping("filter/create")
+    @PostMapping("filter/create")
     fun createFavoriteFilter(@RequestBody newFilter: MagicFilter): Map<String, Any> {
         fixMagicFilterFromClient(newFilter)
         val favorites = getFilterFavorites()
@@ -578,7 +578,7 @@ abstract class AbstractBaseRest<
      * @return list of strings as json.
      * @see BaseDao.getAutocompletion
      */
-    @GetMapping("ac")
+    @GetMapping(AutoCompletion.AUTOCOMPLETE_TEXT)
     open fun getAutoCompletionForProperty(@RequestParam("property") property: String, @RequestParam("search") searchString: String?)
             : List<String> {
         return baseDao.getAutocompletion(property, searchString)

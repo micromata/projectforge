@@ -97,6 +97,7 @@ function MagicFilters(
                         onCancel={() => setIsOpen(false)}
                         onChange={handleSearchChange}
                         value={search}
+                        placeholder={translations.search || ''}
                     />
                     {searchFilter && (
                         <ul className={styles.filterList}>
@@ -123,6 +124,7 @@ MagicFilters.propTypes = {
     translations: PropTypes.shape({
         reset: PropTypes.string,
         searchFilter: PropTypes.string,
+        search: PropTypes.string,
     }).isRequired,
     filterEntries: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     onResetAllFilters: PropTypes.func.isRequired,
