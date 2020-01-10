@@ -231,6 +231,9 @@ abstract class AbstractBaseRest<
                         PropertyUtils.getProperty(dbObj, property)
                     } catch (ex: NestedNullException) {
                         null
+                    } catch (ex: Exception) {
+                        log.warn("Unknown property '${dbObj::class.java}.$property': ${ex.message}.")
+                        null
                     }
             if (elementInfo.required == true) {
                 var error = false
