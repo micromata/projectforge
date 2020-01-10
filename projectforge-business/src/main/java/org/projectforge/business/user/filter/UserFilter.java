@@ -124,7 +124,7 @@ public class UserFilter implements Filter {
     return userContext != null ? userContext.getUser() : null;
   }
 
-  private static UserContext getUserContext(final HttpServletRequest request) {
+  public static UserContext getUserContext(final HttpServletRequest request) {
     final HttpSession session = request.getSession();
     if (session == null) {
       return null;

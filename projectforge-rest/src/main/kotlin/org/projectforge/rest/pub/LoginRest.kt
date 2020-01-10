@@ -111,7 +111,7 @@ open class LoginRest {
             cookieService.addStayLoggedInCookie(request, response, cookie)
         }
         // Execute login:
-        val userContext = UserContext(PFUserDO.createCopyWithoutSecretFields(user), getUserGroupCache())
+        val userContext = UserContext(PFUserDO.createCopyWithoutSecretFields(user)!!, getUserGroupCache())
         executeLogin(request, userContext)
         return LoginResultStatus.SUCCESS
     }

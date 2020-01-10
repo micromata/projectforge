@@ -234,6 +234,8 @@ class MenuCreator {
                         requiredUserRightId = EmployeeDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
                 .add(MenuItemDef(MenuItemDefId.EMPLOYEE_SALARY_LIST, "wa/employeeSalaryList", // new: employeeSalary
                         requiredUserRightId = EmployeeSalaryDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
+                .add(MenuItemDef(MenuItemDefId.EMPLOYEE_LEAVE_ACCOUNT_ENTRIES, "react/leaveAccountEntry",
+                        requiredUserRightId = EmployeeSalaryDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
 
         //////////////////////////////////////
         //

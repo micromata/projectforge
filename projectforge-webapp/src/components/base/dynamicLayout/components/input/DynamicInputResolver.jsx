@@ -33,6 +33,9 @@ function DynamicInputResolver({ dataType, autoCompletionUrl, ...props }) {
         case 'USER':
             Tag = DynamicUserSelect;
             break;
+        case 'EMPLOYEE':
+            Tag = DynamicEmployeeSelect;
+            break;
         case 'INT':
         case 'DECIMAL':
         case 'NUMBER':
@@ -53,6 +56,7 @@ DynamicInputResolver.propTypes = {
         // All dataTypes yet implemented for type 'INPUT'.
         'STRING',
         'DATE',
+        'EMPLOYEE',
         'TIMESTAMP',
         'TASK',
         'USER',

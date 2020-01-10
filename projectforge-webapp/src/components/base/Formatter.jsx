@@ -9,6 +9,7 @@ const COST1_FORMATTER = 'COST1';
 const COST2_FORMATTER = 'COST2';
 const CUSTOMER_FORMATTER = 'CUSTOMER';
 const DATE_FORMATTER = 'DATE';
+const EMPLOYEE_FORMATTER = 'EMPLOYEE';
 const KONTO_FORMATTER = 'KONTO';
 const PROJECT_FORMATTER = 'PROJECT';
 const USER_FORMATTER = 'USER';
@@ -63,6 +64,9 @@ function Formatter(
                     .format(timestampFormatMinutes);
                 break;
             case USER_FORMATTER:
+                result = value.fullname;
+                break;
+            case EMPLOYEE_FORMATTER:
                 result = value.fullname;
                 break;
             case AUFTRAGPOSITION_FORMATTER:

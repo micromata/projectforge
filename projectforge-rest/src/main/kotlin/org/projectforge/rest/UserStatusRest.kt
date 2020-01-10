@@ -59,6 +59,7 @@ open class UserStatusRest {
                         var lastName: String? = null,
                         var firstName: String? = null,
                         var userId: Int? = null,
+                        var employeeId: Int? = null,
                         var locale: Locale? = null,
                         var timeZone: String? = null,
                         var dateFormat: String? = null,
@@ -82,10 +83,7 @@ open class UserStatusRest {
 
     @GetMapping
     fun loginTest(request: HttpServletRequest): ResponseEntity<Result> {
-        val user = UserFilter.getUser(request)
-        if (user == null) {
-            return ResponseEntity(HttpStatus.UNAUTHORIZED)
-        }
+        val user = UserFilter.getUser(request) ?: return ResponseEntity(HttpStatus.UNAUTHORIZED)
         val firstDayOfWeekNo = ThreadLocalUserContext.getFirstDayOfWeekValue() // Mon - 1, Tue - 2, ..., Sun - 7
         val userData = UserData(username = user.username,
                 organization = user.organization,

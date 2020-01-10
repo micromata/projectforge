@@ -25,6 +25,7 @@ package org.projectforge.ui
 
 import de.micromata.genome.jpa.metainf.ColumnMetadata
 import de.micromata.genome.jpa.metainf.ColumnMetadataBean
+import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.I18nEnum
@@ -126,6 +127,7 @@ object ElementsRegistry {
             java.sql.Date::class.java -> UIDataType.DATE
             java.sql.Timestamp::class.java -> UIDataType.TIMESTAMP
             PFUserDO::class.java -> UIDataType.USER
+            EmployeeDO::class.java -> UIDataType.EMPLOYEE
             Integer::class.java -> UIDataType.INT
             BigDecimal::class.java -> UIDataType.DECIMAL
             TaskDO::class.java -> UIDataType.TASK

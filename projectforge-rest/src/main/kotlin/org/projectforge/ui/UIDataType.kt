@@ -29,6 +29,7 @@ enum class UIDataType {
     CUSTOMIZED,
     DATE,
     DECIMAL,
+    EMPLOYEE,
     INT,
     LOCALE,
     PICTURE,

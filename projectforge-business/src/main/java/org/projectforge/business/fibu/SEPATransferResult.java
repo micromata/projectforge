@@ -21,9 +21,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu.kost.reporting;
+package org.projectforge.business.fibu;
 
 import org.projectforge.business.fibu.EingangsrechnungDO;
+import org.projectforge.business.fibu.SEPATransferGenerator;
 
 import java.util.HashMap;
 import java.util.List;

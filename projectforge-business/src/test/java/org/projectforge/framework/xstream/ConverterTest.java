@@ -25,7 +25,6 @@ package org.projectforge.framework.xstream;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
@@ -43,19 +42,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class ConverterTest {
+  private static PFUserDO contextUser;
 
   @BeforeAll
   static void setup() {
-    TestSetup.init();
+    contextUser = TestSetup.init();
   }
 
   @Test
   public void testIsoDateConverter() {
     final DateConverter dateConverter = new DateConverter();
     final ISODateConverter isoDateConverter = new ISODateConverter();
-    final PFUserDO cetUser = new PFUserDO();
-    cetUser.setTimeZone(DateHelper.EUROPE_BERLIN);
-    ThreadLocalUserContext.setUser(null, cetUser); // login CET user.
+    contextUser.setTimeZone(DateHelper.EUROPE_BERLIN);
     PFDateTime dt = PFDateTime.withDate(2010, Month.AUGUST, 29, 23, 8, 17, 123);
     assertEquals("1283116097123", dateConverter.toString(dt.getUtilDate()));
     assertEquals("2010-08-29 21:08:17.123", dt.getIsoStringMilli(), "2 hours back in UTC time zone.");
@@ -68,9 +66,7 @@ public class ConverterTest {
     assertEquals("2010-08-29 23:00", isoDateConverter.toString(dt.getUtilDate()));
     dt = dt.withHour(0);
     assertEquals("2010-08-29", isoDateConverter.toString(dt.getUtilDate()));
-    final PFUserDO utcUser = new PFUserDO();
-    utcUser.setTimeZone(DateHelper.UTC);
-    ThreadLocalUserContext.setUser(null, utcUser); // login UTC user.
+    contextUser.setTimeZone(DateHelper.UTC);
     dt = PFDateTime.withDate(2010, Month.AUGUST, 29, 23, 8, 17, 123);
     assertEquals("2010-08-29 23:08:17.123", isoDateConverter.toString(dt.getUtilDate()));
     assertEquals("2010-08-29 23:08:17.123", dt.getIsoStringMilli(), "UTC time zone.");
