@@ -36,7 +36,6 @@ function TextAutoCompletion(
             )}
             onSelect={handleSelect}
             search={value}
-            type="TEXT"
             {...props}
         />
     );
