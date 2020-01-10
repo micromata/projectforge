@@ -72,6 +72,7 @@ class MagicFilter(
                 it.value.label = getUserGroupCache().getUser(it.value.value?.toInt())?.username
             }
         }
+        entries.removeIf { it.field.isNullOrBlank() }
     }
 
     fun reset() {
