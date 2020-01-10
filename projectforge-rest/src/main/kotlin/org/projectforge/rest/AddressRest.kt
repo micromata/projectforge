@@ -250,7 +250,7 @@ class AddressRest()
                 // The used languages are the values (for quicker select). The current language of the dto is
                 // therefore a part of the values as well and is needed for displaying the current value.
                 values = addressServicesRest.getUsedLanguages().map { UISelectValue(it.value, it.label) },
-                autoCompletion = AutoCompletion<String>(url = "address/acLang"))
+                autoCompletion = AutoCompletion<String>(url = "address/acLang?search=:search"))
         val layout = super.createEditLayout(dto, userAccess)
                 //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
                 .add(UIRow()

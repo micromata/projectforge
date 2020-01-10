@@ -76,4 +76,9 @@ class AutoCompletion<T>(
             }
         }
     }
+
+    companion object {
+        const val AUTOCOMPLETE_TEXT = "autocomplete"
+        const val AUTOCOMPLETE_OBJECT = "autosearch"
+    }
 }

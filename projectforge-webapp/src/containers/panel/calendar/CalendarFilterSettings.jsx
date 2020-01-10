@@ -21,7 +21,7 @@ class CalendarFilterSettings extends Component {
 
     static loadVacationGroupsOptions(search, callback) {
         fetchJsonGet(
-            'group/aco',
+            'group/autosearch',
             { search },
             callback,
         );

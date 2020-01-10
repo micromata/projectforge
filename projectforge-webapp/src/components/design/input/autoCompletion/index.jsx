@@ -101,7 +101,7 @@ AutoCompletion.propTypes = {
 AutoCompletion.defaultProps = {
     url: undefined,
     search: '',
-    searchParameter: 'searchString',
+    searchParameter: 'search',
 };
 
 export default AutoCompletion;

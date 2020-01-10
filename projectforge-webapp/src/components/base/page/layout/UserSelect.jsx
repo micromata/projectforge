@@ -34,7 +34,7 @@ function UserSelect(props) {
 
     const loadOptions = (inputValue, callback) => {
         fetch(
-            getServiceURL('user/aco', { search: inputValue }),
+            getServiceURL('user/autosearch', { search: inputValue }),
             {
                 method: 'GET',
                 credentials: 'include',
