@@ -25,6 +25,7 @@ package org.projectforge.business.vacation.service
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.vacation.model.LeaveAccountEntryDO
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.utils.NumberFormatter
 import java.io.Serializable
@@ -143,6 +144,12 @@ class VacationStats(
     var endOfVacationYear: LocalDate? = null
 
     /**
+     * Entries per date for correction values, if the annual leave day statistics have to be corrected,
+     * @see LeaveAccountEntryDO
+     */
+    var leaveAccountEntries: List<LeaveAccountEntryDO>? = null
+
+    /**
      * Internal function calculates vacationDaysLeftInYear after having all other properties.
      */
     internal fun calculateLeftDaysInYear() {
@@ -154,6 +161,11 @@ class VacationStats(
         this.vacationDaysLeftInYearWithoutCarry = leftInYear
         if (baseDate.isBefore(endOfVacationYear)) {
             leftInYear += remainingLeaveFromPreviousYearUnused ?: BigDecimal.ZERO
+        }
+        leaveAccountEntries?.forEach {
+            it.amount?.let { amount ->
+                leftInYear += amount
+            }
         }
         this.vacationDaysLeftInYear = leftInYear
         this.remainingLeaveFromPreviousYearAllocated = minOf(remainingLeaveFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)

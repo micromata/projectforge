@@ -310,8 +310,8 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
 
     if (isNew() == false && vacationService.hasAccessToVacationService(data.getUser(), false)) {
       GridBuilder vacationGridBuilder = tabPanel.getOrCreateTab("vacation");
-      vacationViewHelper.createVacationView(vacationGridBuilder, data, accessChecker
-              .hasLoggedInUserWriteAccess(UserRightId.HR_VACATION, false), parentPage);
+      boolean writeAccess = accessChecker.hasLoggedInUserWriteAccess(UserRightId.HR_VACATION, false);
+      vacationViewHelper.createVacationView(vacationGridBuilder, data, writeAccess, writeAccess, parentPage);
     }
 
   }

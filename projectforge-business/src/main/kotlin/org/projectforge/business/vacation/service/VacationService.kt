@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
+import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
 import org.projectforge.business.vacation.repository.RemainingLeaveDao
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.access.AccessException
@@ -76,6 +77,8 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
     private lateinit var employeeService: EmployeeService
     @Autowired
     private lateinit var remainingLeaveDao: RemainingLeaveDao
+    @Autowired
+    private lateinit var leaveAccountEntryDao: LeaveAccountEntryDao
     @PersistenceContext
     private lateinit var entityManager: EntityManager
 
@@ -140,6 +143,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
                         ?: BigDecimal.ZERO
             }
         }
+        stats.leaveAccountEntries = leaveAccountEntryDao.getList(employee.id, year)
         stats.calculateLeftDaysInYear()
         return stats
     }
