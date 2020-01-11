@@ -55,7 +55,7 @@ public class VacationViewPage extends AbstractViewPage
   protected void onConfigure()
   {
     super.onConfigure();
-    vacationViewHelper.createVacationView(gridBuilder, currentEmployee, true, this);
+    vacationViewHelper.createVacationView(gridBuilder, currentEmployee, true, false,this);
   }
 
   @Override

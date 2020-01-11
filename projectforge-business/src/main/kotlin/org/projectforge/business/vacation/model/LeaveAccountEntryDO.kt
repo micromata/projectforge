@@ -36,6 +36,11 @@ import javax.persistence.*
  * You may add manual correction entries to the leave account for an employee, e. g. for special leave days or for adding
  * or substracting leave days from previous employer.
  *
+ * Examples:
+ * * Due to special agreements some vacation days of the overlap period has to be preserved over the the end of
+ * vacation year, or
+ * * The employee hºas vacation days left from the previous employer.
+ *
  * @author Kai Reinhard
  */
 @Entity
@@ -43,8 +48,8 @@ import javax.persistence.*
 @Table(name = "t_employee_leave_account_entry",
         indexes = [javax.persistence.Index(name = "idx_fk_t_leave_account_employee_id", columnList = "employee_id"),
             javax.persistence.Index(name = "idx_fk_t_leave_account_tenant_id", columnList = "tenant_id")])
-@NamedQueries(NamedQuery(name = LeaveAccountEntryDO.FIND_BY_EMPLOYEE_ID_AND_YEAR,
-        query = "from LeaveAccountEntryDO where employee.id=:employeeId and date=:date and deleted=false"))
+@NamedQueries(NamedQuery(name = LeaveAccountEntryDO.FIND_BY_EMPLOYEE_ID_AND_DATEPERIOD,
+        query = "from LeaveAccountEntryDO where employee.id=:employeeId and date>=:fromDate and date<=:toDate and deleted=false"))
 open class LeaveAccountEntryDO : DefaultBaseDO() {
     /**
      * The employee.
@@ -68,6 +73,6 @@ open class LeaveAccountEntryDO : DefaultBaseDO() {
     open var description: String? = null
 
     companion object {
-        internal const val FIND_BY_EMPLOYEE_ID_AND_YEAR = "LeaveAccountEntryDO_FindByEmployeeIdAndYear"
+        internal const val FIND_BY_EMPLOYEE_ID_AND_DATEPERIOD = "LeaveAccountEntryDO_FindByEmployeeIdAndDatePeriod"
     }
 }

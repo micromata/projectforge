@@ -43,6 +43,15 @@ import java.time.Year
 @Repository
 open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class.java) {
 
+    /**
+     * Mark entry for given employee as deleted (for recalculation), if exist. Otherwise nop.
+     * Forces recalculation of remaining leave (carry from previous year).
+     */
+    open fun internalMarkAsDeleted(employeeId: Int, year: Int) {
+        val entry = internalGet(employeeId, year) ?: return
+        internalMarkAsDeleted(entry)
+    }
+
     open fun internalSaveOrUpdate(employee: EmployeeDO, year: Int, remainingLeaveFromPreviousYear: BigDecimal?) {
         if (year > Year.now().value) {
             throw IllegalArgumentException("Can't determine remaining vacation days for future year $year.")
