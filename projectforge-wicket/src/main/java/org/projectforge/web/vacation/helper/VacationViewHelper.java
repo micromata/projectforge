@@ -86,7 +86,7 @@ public class VacationViewHelper {
     final VacationStatsModel previousYearStatsModel = new VacationStatsModel(currentEmployee, year - 1);
 
     // leave account
-    GridBuilder sectionLeftGridBuilder = gridBuilder.newSplitPanel(GridSize.COL50);
+    GridBuilder sectionLeftGridBuilder = gridBuilder.newSplitPanel(GridSize.COL33);
     DivPanel sectionLeft = sectionLeftGridBuilder.getPanel();
     sectionLeft.add(new Heading1Panel(sectionLeft.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.leaveaccount")));
 
@@ -115,18 +115,24 @@ public class VacationViewHelper {
     appendFieldset(sectionLeftGridBuilder, "vacation.plannedvacation", statsModel, "vacationDaysInProgressAsString", false);
 
     appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", statsModel, "vacationDaysLeftInYearAsString", true);
+
+    //middle
+    GridBuilder sectionMiddleGridBuilder = gridBuilder.newSplitPanel(GridSize.COL33);
+    DivPanel sectionMiddle = sectionMiddleGridBuilder.getPanel();
+    sectionMiddle.add(new Heading1Panel(sectionMiddle.newChildId(), I18nHelper.getLocalizedMessage("vacation.isSpecial")));
+    appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialPlaned", statsModel, "specialVacationDaysInProgressAsString", false);
+
+    appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialApproved", statsModel, "specialVacationDaysApprovedAsString", false);
+
+    sectionMiddle.add(new Heading1Panel(sectionMiddle.newChildId(), I18nHelper.getLocalizedMessage("vacation.previousyearleave")));
     appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveused", statsModel, "remainingLeaveFromPreviousYearAllocatedAsString", false);
     String endDatePreviousYearVacationString = endDatePreviousYearVacation.getDayOfMonth() + "." + endDatePreviousYearVacation.getMonthValue() + "." + year;
     appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveunused", statsModel, "remainingLeaveFromPreviousYearUnusedAsString", false,
             endDatePreviousYearVacationString);
 
-    //middle
-    GridBuilder sectionRightGridBuilder = gridBuilder.newSplitPanel(GridSize.COL50);
+    // right
+    GridBuilder sectionRightGridBuilder = gridBuilder.newSplitPanel(GridSize.COL33);
     DivPanel sectionRight = sectionRightGridBuilder.getPanel();
-    sectionRight.add(new Heading1Panel(sectionRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.isSpecial")));
-    appendFieldset(sectionRightGridBuilder, "vacation.isSpecialPlaned", statsModel, "specialVacationDaysInProgressAsString", false);
-
-    appendFieldset(sectionRightGridBuilder, "vacation.isSpecialApproved", statsModel, "specialVacationDaysApprovedAsString", false);
 
     sectionRight.add(new Heading1Panel(sectionRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.leaveOfYear", String.valueOf(year - 1))));
     appendFieldset(sectionRightGridBuilder, "vacation.remainingLeaveFromYear", previousYearStatsModel, "remainingLeaveFromPreviousYearAllocatedAsString", false,
