@@ -36,15 +36,12 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.Gender;
 import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.business.user.UserRightId;
-import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.common.BicValidator;
 import org.projectforge.web.common.IbanValidator;
 import org.projectforge.web.user.UserSelectPanel;
-import org.projectforge.web.vacation.helper.VacationViewHelper;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
@@ -69,12 +66,6 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
 
   @SpringBean
   private GuiAttrSchemaService attrSchemaService;
-
-  @SpringBean
-  private VacationViewHelper vacationViewHelper;
-
-  @SpringBean
-  private VacationService vacationService;
 
   @SpringBean
   private AccessChecker accessChecker;
@@ -307,13 +298,6 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
       final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "comment");
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "comment")), true);
     }
-
-    if (isNew() == false && vacationService.hasAccessToVacationService(data.getUser(), false)) {
-      GridBuilder vacationGridBuilder = tabPanel.getOrCreateTab("vacation");
-      boolean writeAccess = accessChecker.hasLoggedInUserWriteAccess(UserRightId.HR_VACATION, false);
-      vacationViewHelper.createVacationView(vacationGridBuilder, data, writeAccess, writeAccess, parentPage);
-    }
-
   }
 
   @Override

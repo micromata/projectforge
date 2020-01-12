@@ -78,6 +78,14 @@ class VacationStats(
                 return BigDecimal.ZERO
             return maxOf(total - allocated, BigDecimal.ZERO)
         }
+    val totalLeaveIncludingCarry: BigDecimal?
+        get() {
+            var subTotal = vacationDaysInYearFromContract ?: BigDecimal.ZERO
+            remainingLeaveFromPreviousYear?.let {
+                subTotal += it
+            }
+            return subTotal
+        }
     /**
      * The overlap period defines the beginning of year until the end of the vacation year (after it the carried and unused
      * vacation days of the previous years will be lost.

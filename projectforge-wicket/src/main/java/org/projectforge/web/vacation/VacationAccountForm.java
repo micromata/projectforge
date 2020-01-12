@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.vacation.helper;
+package org.projectforge.web.vacation;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -33,13 +33,14 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeStatus;
@@ -50,84 +51,125 @@ import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.business.vacation.service.VacationStats;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.web.vacation.VacationEditPage;
-import org.projectforge.web.vacation.VacationViewPageSortableDataProvider;
+import org.projectforge.web.fibu.EmployeeSelectPanel;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-@Component
-public class VacationViewHelper {
-  @Autowired
+public class VacationAccountForm extends AbstractStandardForm<VacationAccountForm, VacationAccountPage> {
+  @SpringBean
   private VacationService vacationService;
 
-  @Autowired
+  @SpringBean
   private ConfigurationService configService;
 
-  @Autowired
+  @SpringBean
   private EmployeeService employeeService;
 
-  @Autowired
+  @SpringBean
   private RemainingLeaveDao remainingLeaveDao;
 
-  public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee, boolean showAddButton, boolean showRecalculateButton, final WebPage returnToPage) {
+  private EmployeeDO employee;
+
+  final int year = Year.now().getValue();
+  final VacationStatsModel currentYearStatsModel = new VacationStatsModel(year);
+  final VacationStatsModel previousYearStatsModel = new VacationStatsModel(year - 1);
+
+  public VacationAccountForm(final VacationAccountPage parentPage) {
+    super(parentPage);
+  }
+
+  @Override
+  protected void onSubmit() {
+    super.onSubmit();
+    clear();
+    Integer employeeId = null;
+    if (employee != null) {
+      employeeId = employee.getId();
+    }
+    // Force reload of page.
+    setResponsePage(VacationAccountPage.class, new PageParameters().add("employee", employeeId));
+  }
+
+  private void clear() {
+    currentYearStatsModel.clear();
+    previousYearStatsModel.clear();
+  }
+
+  @Override
+  @SuppressWarnings("serial")
+  protected void init() {
+    super.init();
+    boolean showAddButton = false;
+    boolean hrAccess = vacationService.hasAccessToVacationService(getUser(), false);
+
+    if (employee == null) {
+      employee = employeeService.getEmployeeByUserId(getUserId());
+    }
+    if (employee == null) {
+      throw new IllegalStateException("Emmployee with user id " + getUserId() + " not found.");
+    }
+    if (hrAccess || Objects.equals(employee.getUserId(), getUserId())) {
+      showAddButton = true;
+    }
+    if (hrAccess) {
+      gridBuilder.newSplitPanel(GridSize.COL33);
+      // Employee
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.employee"));
+      final EmployeeSelectPanel employeeSelectPanel = new EmployeeSelectPanel(fs.newChildId(), new PropertyModel<EmployeeDO>(this,
+              "employee"), parentPage, "employee").withAutoSubmit(true);
+      fs.add(employeeSelectPanel);
+      employeeSelectPanel.setFocus().setRequired(true);
+      employeeSelectPanel.init();
+      gridBuilder.newSplitPanel(GridSize.COL66);
+      gridBuilder.newSplitPanel(GridSize.COL100);
+    }
+
     LocalDate endDatePreviousYearVacation = configService.getEndDateVacationFromLastYear();
-    final int year = Year.now().getValue();
-    final VacationStatsModel statsModel = new VacationStatsModel(currentEmployee, year);
-    final VacationStatsModel previousYearStatsModel = new VacationStatsModel(currentEmployee, year - 1);
 
     // leave account
     GridBuilder sectionLeftGridBuilder = gridBuilder.newSplitPanel(GridSize.COL33);
     DivPanel sectionLeft = sectionLeftGridBuilder.getPanel();
     sectionLeft.add(new Heading1Panel(sectionLeft.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.leaveaccount")));
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.annualleave", statsModel, "vacationDaysInYearFromContract", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.annualleave", currentYearStatsModel, "vacationDaysInYearFromContract", false);
 
     //student leave
-    if (EmployeeStatus.STUD_ABSCHLUSSARBEIT.equals(employeeService.getEmployeeStatus(currentEmployee)) ||
-            EmployeeStatus.STUDENTISCHE_HILFSKRAFT.equals(employeeService.getEmployeeStatus(currentEmployee))) {
-      appendFieldset(sectionLeftGridBuilder, "vacation.countPerDay", employeeService.getStudentVacationCountPerDay(currentEmployee), false);
+    if (EmployeeStatus.STUD_ABSCHLUSSARBEIT.equals(employeeService.getEmployeeStatus(employee)) ||
+            EmployeeStatus.STUDENTISCHE_HILFSKRAFT.equals(employeeService.getEmployeeStatus(employee))) {
+      appendFieldset(sectionLeftGridBuilder, "vacation.countPerDay", employeeService.getStudentVacationCountPerDay(employee), false);
     }
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleave", statsModel, "remainingLeaveFromPreviousYear", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleave", currentYearStatsModel, "remainingLeaveFromPreviousYear", false);
 
-    BigDecimal subTotal = statsModel.getObject().getVacationDaysInYearFromContract();
-    if (subTotal == null) {
-      subTotal = BigDecimal.ZERO;
-    }
-    BigDecimal vacationdaysPreviousYear = statsModel.getObject().getRemainingLeaveFromPreviousYear();
-    if (vacationdaysPreviousYear != null) {
-      subTotal = subTotal.add(vacationdaysPreviousYear);
-    }
-    appendFieldset(sectionLeftGridBuilder, "vacation.subtotal", statsModel.getObject().format(subTotal), true);
+    appendFieldset(sectionLeftGridBuilder, "vacation.subtotal", currentYearStatsModel, "totalLeaveIncludingCarry", true);
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.approvedvacation", statsModel, "vacationDaysApproved", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.approvedvacation", currentYearStatsModel, "vacationDaysApproved", false);
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.plannedvacation", statsModel, "vacationDaysInProgress", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.plannedvacation", currentYearStatsModel, "vacationDaysInProgress", false);
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", statsModel, "vacationDaysLeftInYear", true);
+    appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", currentYearStatsModel, "vacationDaysLeftInYear", true);
 
     //middle
     GridBuilder sectionMiddleGridBuilder = gridBuilder.newSplitPanel(GridSize.COL33);
     DivPanel sectionMiddle = sectionMiddleGridBuilder.getPanel();
     sectionMiddle.add(new Heading1Panel(sectionMiddle.newChildId(), I18nHelper.getLocalizedMessage("vacation.isSpecial")));
-    appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialPlaned", statsModel, "specialVacationDaysInProgress", false);
+    appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialPlaned", currentYearStatsModel, "specialVacationDaysInProgress", false);
 
-    appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialApproved", statsModel, "specialVacationDaysApproved", false);
+    appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialApproved", currentYearStatsModel, "specialVacationDaysApproved", false);
 
     sectionMiddle.add(new Heading1Panel(sectionMiddle.newChildId(), I18nHelper.getLocalizedMessage("vacation.previousyearleave")));
-    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveused", statsModel, "remainingLeaveFromPreviousYearAllocated", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveused", currentYearStatsModel, "remainingLeaveFromPreviousYearAllocated", false);
     String endDatePreviousYearVacationString = endDatePreviousYearVacation.getDayOfMonth() + "." + endDatePreviousYearVacation.getMonthValue() + "." + year;
-    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveunused", statsModel, "remainingLeaveFromPreviousYearUnused", false,
+    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveunused", currentYearStatsModel, "remainingLeaveFromPreviousYearUnused", false,
             endDatePreviousYearVacationString);
 
     // right
@@ -148,41 +190,42 @@ public class VacationViewHelper {
     DivPanel sectionBottom = sectionBottomGridBuilder.getPanel();
     if (showAddButton) {
       final PageParameters pageParameter = new PageParameters();
-      pageParameter.add("employeeId", currentEmployee.getId());
-      LinkPanel addLink = new LinkPanel(sectionBottom.newChildId(), I18nHelper.getLocalizedMessage("add"), VacationEditPage.class, returnToPage, pageParameter) {
+      pageParameter.add("employeeId", employee.getId());
+      LinkPanel addLink = new LinkPanel(sectionBottom.newChildId(), I18nHelper.getLocalizedMessage("add"), VacationEditPage.class, parentPage, pageParameter) {
         @Override
         public void onClick() {
-          statsModel.clear();
+          clear();
         }
       };
       addLink.addLinkAttribute("class", "btn btn-sm btn-success bottom-xs-gap");
       sectionBottom.add(addLink);
     }
-    if (showRecalculateButton) {
-      final PageParameters pageParameter = new PageParameters();
-      pageParameter.add("employeeId", currentEmployee.getId());
-      LinkPanel addLink = new LinkPanel(sectionBottom.newChildId(), I18nHelper.getLocalizedMessage("recalculate"), returnToPage.getClass(), returnToPage, pageParameter) {
+    if (hrAccess) {
+      ButtonPanel recalculateButton = new ButtonPanel(sectionBottom.newChildId(), I18nHelper.getLocalizedMessage("vacation.recalculateRemainingLeave"), new Button(ButtonPanel.BUTTON_ID) {
         @Override
-        public void onClick() {
+        public void onSubmit() {
+          super.onSubmit();
           // Force recalculation of remaining leave (carry from previous year):
-          remainingLeaveDao.internalMarkAsDeleted(currentEmployee.getId(), year);
-          statsModel.clear();
+          remainingLeaveDao.internalMarkAsDeleted(employee.getId(), year);
+          clear();
+          final PageParameters pageParameters = new PageParameters();
+          pageParameters.add("employee", employee.getId());
+          setResponsePage(VacationAccountPage.class, pageParameters);
         }
-      };
-      addLink.addLinkAttribute("class", "btn btn-sm btn-success bottom-xs-gap");
-      sectionBottom.add(addLink);
+      }, ButtonType.DELETE);
+      sectionBottom.add(recalculateButton);
     }
     int nowYear = Year.now().getValue();
-    addLeaveTable(statsModel, returnToPage, sectionBottom, currentEmployee, nowYear);
-    addLeaveTable(statsModel, returnToPage, sectionBottom, currentEmployee, nowYear - 1);
+    addLeaveTable(sectionBottom, employee, nowYear);
+    addLeaveTable(sectionBottom, employee, nowYear - 1);
   }
 
-  private void addLeaveTable(final VacationStatsModel statsModel, WebPage returnToPage, DivPanel sectionBottom, EmployeeDO currentEmployee, int year) {
+  private void addLeaveTable(DivPanel sectionBottom, EmployeeDO currentEmployee, int year) {
     sectionBottom.add(new Heading3Panel(sectionBottom.newChildId(),
             I18nHelper.getLocalizedMessage("vacation.title.list") + " " + year));
     TablePanel tablePanel = new TablePanel(sectionBottom.newChildId());
     sectionBottom.add(tablePanel);
-    final DataTable<VacationDO, String> dataTable = createDataTable(createColumns(statsModel, returnToPage), "startDate", SortOrder.ASCENDING,
+    final DataTable<VacationDO, String> dataTable = createDataTable(createColumns(), "startDate", SortOrder.ASCENDING,
             currentEmployee, year);
     tablePanel.add(dataTable);
   }
@@ -192,7 +235,7 @@ public class VacationViewHelper {
     final SortParam<String> sortParam = sortProperty != null
             ? new SortParam<String>(sortProperty, sortOrder == SortOrder.ASCENDING) : null;
     return new DefaultDataTable<VacationDO, String>(TablePanel.TABLE_ID, columns,
-            createSortableDataProvider(sortParam, employee, year), 50);
+            createSortableDataProvider(sortParam, employee, year), 1000);
   }
 
   private ISortableDataProvider<VacationDO, String> createSortableDataProvider(final SortParam<String> sortParam,
@@ -200,7 +243,7 @@ public class VacationViewHelper {
     return new VacationViewPageSortableDataProvider<VacationDO>(sortParam, vacationService, employee, year);
   }
 
-  private List<IColumn<VacationDO, String>> createColumns(final VacationStatsModel statsModel, WebPage returnToPage) {
+  private List<IColumn<VacationDO, String>> createColumns() {
     final List<IColumn<VacationDO, String>> columns = new ArrayList<IColumn<VacationDO, String>>();
 
     final CellItemListener<VacationDO> cellItemListener = new CellItemListener<VacationDO>() {
@@ -218,10 +261,10 @@ public class VacationViewHelper {
                                final IModel<VacationDO> rowModel) {
         final VacationDO vacation = rowModel.getObject();
         item.add(new ListSelectActionPanel(componentId, rowModel, VacationEditPage.class, vacation.getId(),
-                returnToPage, DateTimeFormatter.instance().getFormattedDate(vacation.getStartDate())) {
+                parentPage, DateTimeFormatter.instance().getFormattedDate(vacation.getStartDate())) {
           @Override
           public void onClick() {
-            statsModel.clear();
+            clear();
           }
         });
         cellItemListener.populateItem(item, componentId, rowModel);
@@ -258,6 +301,7 @@ public class VacationViewHelper {
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
+    columns.add(new CellItemListenerPropertyColumn<>(VacationDO.class, "comment", "comment", cellItemListener));
     return columns;
   }
 
@@ -267,13 +311,13 @@ public class VacationViewHelper {
     return appendFieldset(label, fs, bold, divTextPanel);
   }
 
-  private boolean appendFieldset(GridBuilder gridBuilder, final String label, final String value, final boolean bold,final String... labelParameters) {
+  private boolean appendFieldset(GridBuilder gridBuilder, final String label, final String value, final boolean bold, final String... labelParameters) {
     final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage(label, (Object[]) labelParameters)).suppressLabelForWarning();
     DivTextPanel divTextPanel = new DivTextPanel(fs.newChildId(), value);
     return appendFieldset(label, fs, bold, divTextPanel);
   }
 
-  private boolean appendFieldset(final String label, final FieldsetPanel fs, final boolean bold,final DivTextPanel divTextPanel) {
+  private boolean appendFieldset(final String label, final FieldsetPanel fs, final boolean bold, final DivTextPanel divTextPanel) {
     WebMarkupContainer fieldset = fs.getFieldset();
     fieldset.add(AttributeAppender.append("class", "vacationPanel"));
     if (bold) {
@@ -288,18 +332,16 @@ public class VacationViewHelper {
 
   private class VacationStatsModel extends Model<VacationStats> {
     VacationStats stats;
-    EmployeeDO employeeDO;
     int year;
 
-    VacationStatsModel(EmployeeDO employeeDO, int year) {
-      this.employeeDO = employeeDO;
+    VacationStatsModel(int year) {
       this.year = year;
     }
 
     @Override
     public VacationStats getObject() {
       if (stats == null) {
-        stats = vacationService.getVacationStats(employeeDO, year);
+        stats = vacationService.getVacationStats(VacationAccountForm.this.employee, year);
       }
       return stats;
     }
@@ -312,7 +354,7 @@ public class VacationViewHelper {
   public class BigDecimalModel implements IModel<String> {
     private IModel<BigDecimal> model;
 
-    public BigDecimalModel(IModel<BigDecimal> bigDecimalIModel){
+    public BigDecimalModel(IModel<BigDecimal> bigDecimalIModel) {
       this.model = bigDecimalIModel;
     }
 
@@ -330,5 +372,13 @@ public class VacationViewHelper {
     public void detach() {
       model.detach();
     }
+  }
+
+  public EmployeeDO getEmployee() {
+    return employee;
+  }
+
+  public void setEmployee(EmployeeDO employee) {
+    this.employee = employee;
   }
 }
