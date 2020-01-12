@@ -271,9 +271,15 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
   }
 
   public LocalDate getConvertedInputAsLocalDate() {
-    final Date date = getConvertedInput();
-    if (date == null)
+    Date newDate = null;
+    if (isEnabled()) {
+      newDate = getConvertedInput();
+    } else {
+      newDate = date;
+    }
+    if (newDate == null) {
       return null;
-    return PFDay.from(date, false, settings.timeZone).getDate();
+    }
+    return PFDay.from(newDate, false, settings.timeZone).getDate();
   }
 }
