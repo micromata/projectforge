@@ -96,7 +96,7 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
       employeeId = employee.getId();
     }
     // Force reload of page.
-    setResponsePage(VacationAccountPage.class, new PageParameters().add("employee", employeeId));
+    setResponsePage(VacationAccountPage.class, new PageParameters().add("employeeId", employeeId));
   }
 
   private void clear() {
@@ -125,7 +125,7 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
       // Employee
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.employee"));
       final EmployeeSelectPanel employeeSelectPanel = new EmployeeSelectPanel(fs.newChildId(), new PropertyModel<EmployeeDO>(this,
-              "employee"), parentPage, "employee").withAutoSubmit(true);
+              "employee"), parentPage, "employeeId").withAutoSubmit(true);
       fs.add(employeeSelectPanel);
       employeeSelectPanel.setFocus().setRequired(true);
       employeeSelectPanel.init();
@@ -189,9 +189,9 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
     GridBuilder sectionBottomGridBuilder = gridBuilder.newSplitPanel(GridSize.COL100);
     DivPanel sectionBottom = sectionBottomGridBuilder.getPanel();
     if (showAddButton) {
-      final PageParameters pageParameter = new PageParameters();
-      pageParameter.add("employeeId", employee.getId());
-      LinkPanel addLink = new LinkPanel(sectionBottom.newChildId(), I18nHelper.getLocalizedMessage("add"), VacationEditPage.class, parentPage, pageParameter) {
+      final PageParameters pageParameters = new PageParameters();
+      pageParameters.add("employeeId", employee.getId());
+      LinkPanel addLink = new LinkPanel(sectionBottom.newChildId(), I18nHelper.getLocalizedMessage("add"), VacationEditPage.class, VacationAccountPage.class, pageParameters) {
         @Override
         public void onClick() {
           clear();
@@ -209,10 +209,11 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
           remainingLeaveDao.internalMarkAsDeleted(employee.getId(), year);
           clear();
           final PageParameters pageParameters = new PageParameters();
-          pageParameters.add("employee", employee.getId());
+          pageParameters.add("employeeId", employee.getId());
           setResponsePage(VacationAccountPage.class, pageParameters);
         }
-      }, ButtonType.DELETE);
+      });
+      recalculateButton.add(new AttributeAppender("class", "btn btn-sm btn-success bottom-xs-gap"));
       sectionBottom.add(recalculateButton);
     }
     int nowYear = Year.now().getValue();
@@ -298,6 +299,32 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
         } else {
           item.add(new TextPanel(componentId, I18nHelper.getLocalizedMessage("no")));
         }
+        cellItemListener.populateItem(item, componentId, rowModel);
+      }
+    });
+    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "manager", "manager", cellItemListener) {
+      @Override
+      public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
+                               final IModel<VacationDO> rowModel) {
+        final VacationDO vacation = rowModel.getObject();
+        String userString = "";
+        if (vacation.getManager() != null) {
+          userString = vacation.getManager().getUser().getFullname();
+        }
+        item.add(new TextPanel(componentId, userString));
+        cellItemListener.populateItem(item, componentId, rowModel);
+      }
+    });
+    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "replacement", "replacement", cellItemListener) {
+      @Override
+      public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
+                               final IModel<VacationDO> rowModel) {
+        final VacationDO vacation = rowModel.getObject();
+        String userString = "";
+        if (vacation.getReplacement() != null) {
+          userString = vacation.getReplacement().getUser().getFullname();
+        }
+        item.add(new TextPanel(componentId, userString));
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
