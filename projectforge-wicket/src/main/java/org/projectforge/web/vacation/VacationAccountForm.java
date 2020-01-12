@@ -36,7 +36,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -80,8 +79,8 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
   private EmployeeDO employee;
 
   final int year = Year.now().getValue();
-  final VacationStatsModel currentYearStatsModel = new VacationStatsModel(year);
-  final VacationStatsModel previousYearStatsModel = new VacationStatsModel(year - 1);
+   VacationStats currentYearStats;
+   VacationStats previousYearStats;
 
   public VacationAccountForm(final VacationAccountPage parentPage) {
     super(parentPage);
@@ -90,18 +89,12 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
   @Override
   protected void onSubmit() {
     super.onSubmit();
-    clear();
     Integer employeeId = null;
     if (employee != null) {
       employeeId = employee.getId();
     }
     // Force reload of page.
     setResponsePage(VacationAccountPage.class, new PageParameters().add("employeeId", employeeId));
-  }
-
-  private void clear() {
-    currentYearStatsModel.clear();
-    previousYearStatsModel.clear();
   }
 
   @Override
@@ -117,6 +110,8 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
     if (employee == null) {
       throw new IllegalStateException("Emmployee with user id " + getUserId() + " not found.");
     }
+    currentYearStats  =  vacationService.getVacationStats(VacationAccountForm.this.employee, year);
+    previousYearStats  =  vacationService.getVacationStats(VacationAccountForm.this.employee, year - 1);
     if (hrAccess || Objects.equals(employee.getUserId(), getUserId())) {
       showAddButton = true;
     }
@@ -140,7 +135,7 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
     DivPanel sectionLeft = sectionLeftGridBuilder.getPanel();
     sectionLeft.add(new Heading1Panel(sectionLeft.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.leaveaccount")));
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.annualleave", currentYearStatsModel, "vacationDaysInYearFromContract", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.annualleave", currentYearStats, "vacationDaysInYearFromContract", false);
 
     //student leave
     if (EmployeeStatus.STUD_ABSCHLUSSARBEIT.equals(employeeService.getEmployeeStatus(employee)) ||
@@ -148,28 +143,28 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
       appendFieldset(sectionLeftGridBuilder, "vacation.countPerDay", employeeService.getStudentVacationCountPerDay(employee), false);
     }
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleave", currentYearStatsModel, "remainingLeaveFromPreviousYear", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleave", currentYearStats, "remainingLeaveFromPreviousYear", false);
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.subtotal", currentYearStatsModel, "totalLeaveIncludingCarry", true);
+    appendFieldset(sectionLeftGridBuilder, "vacation.subtotal", currentYearStats, "totalLeaveIncludingCarry", true);
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.approvedvacation", currentYearStatsModel, "vacationDaysApproved", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.approvedvacation", currentYearStats, "vacationDaysApproved", false);
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.plannedvacation", currentYearStatsModel, "vacationDaysInProgress", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.plannedvacation", currentYearStats, "vacationDaysInProgress", false);
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", currentYearStatsModel, "vacationDaysLeftInYear", true);
+    appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", currentYearStats, "vacationDaysLeftInYear", true);
 
     //middle
     GridBuilder sectionMiddleGridBuilder = gridBuilder.newSplitPanel(GridSize.COL33);
     DivPanel sectionMiddle = sectionMiddleGridBuilder.getPanel();
     sectionMiddle.add(new Heading1Panel(sectionMiddle.newChildId(), I18nHelper.getLocalizedMessage("vacation.isSpecial")));
-    appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialPlaned", currentYearStatsModel, "specialVacationDaysInProgress", false);
+    appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialPlaned", currentYearStats, "specialVacationDaysInProgress", false);
 
-    appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialApproved", currentYearStatsModel, "specialVacationDaysApproved", false);
+    appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialApproved", currentYearStats, "specialVacationDaysApproved", false);
 
     sectionMiddle.add(new Heading1Panel(sectionMiddle.newChildId(), I18nHelper.getLocalizedMessage("vacation.previousyearleave")));
-    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveused", currentYearStatsModel, "remainingLeaveFromPreviousYearAllocated", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveused", currentYearStats, "remainingLeaveFromPreviousYearAllocated", false);
     String endDatePreviousYearVacationString = endDatePreviousYearVacation.getDayOfMonth() + "." + endDatePreviousYearVacation.getMonthValue() + "." + year;
-    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveunused", currentYearStatsModel, "remainingLeaveFromPreviousYearUnused", false,
+    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveunused", currentYearStats, "remainingLeaveFromPreviousYearUnused", false,
             endDatePreviousYearVacationString);
 
     // right
@@ -177,11 +172,11 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
     DivPanel sectionRight = sectionRightGridBuilder.getPanel();
 
     sectionRight.add(new Heading1Panel(sectionRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.leaveOfYear", String.valueOf(year - 1))));
-    appendFieldset(sectionRightGridBuilder, "vacation.remainingLeaveFromYear", previousYearStatsModel, "remainingLeaveFromPreviousYearAllocated", false,
+    appendFieldset(sectionRightGridBuilder, "vacation.remainingLeaveFromYear", previousYearStats, "remainingLeaveFromPreviousYearAllocated", false,
             String.valueOf(year - 2));
-    appendFieldset(sectionRightGridBuilder, "vacation.approvedVacationInYear", previousYearStatsModel, "vacationDaysApproved", false,
+    appendFieldset(sectionRightGridBuilder, "vacation.approvedVacationInYear", previousYearStats, "vacationDaysApproved", false,
             String.valueOf(year - 1));
-    appendFieldset(sectionRightGridBuilder, "vacation.approvedSpecialVacationInYear", previousYearStatsModel, "specialVacationDaysApproved", false,
+    appendFieldset(sectionRightGridBuilder, "vacation.approvedSpecialVacationInYear", previousYearStats, "specialVacationDaysApproved", false,
             String.valueOf(year - 1));
 
 
@@ -191,12 +186,7 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
     if (showAddButton) {
       final PageParameters pageParameters = new PageParameters();
       pageParameters.add("employeeId", employee.getId());
-      LinkPanel addLink = new LinkPanel(sectionBottom.newChildId(), I18nHelper.getLocalizedMessage("add"), VacationEditPage.class, VacationAccountPage.class, pageParameters) {
-        @Override
-        public void onClick() {
-          clear();
-        }
-      };
+      LinkPanel addLink = new LinkPanel(sectionBottom.newChildId(), I18nHelper.getLocalizedMessage("add"), VacationEditPage.class, VacationAccountPage.class, pageParameters);
       addLink.addLinkAttribute("class", "btn btn-sm btn-success bottom-xs-gap");
       sectionBottom.add(addLink);
     }
@@ -207,7 +197,6 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
           super.onSubmit();
           // Force recalculation of remaining leave (carry from previous year):
           remainingLeaveDao.internalMarkAsDeleted(employee.getId(), year);
-          clear();
           final PageParameters pageParameters = new PageParameters();
           pageParameters.add("employeeId", employee.getId());
           setResponsePage(VacationAccountPage.class, pageParameters);
@@ -262,12 +251,7 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
                                final IModel<VacationDO> rowModel) {
         final VacationDO vacation = rowModel.getObject();
         item.add(new ListSelectActionPanel(componentId, rowModel, VacationEditPage.class, vacation.getId(),
-                parentPage, DateTimeFormatter.instance().getFormattedDate(vacation.getStartDate())) {
-          @Override
-          public void onClick() {
-            clear();
-          }
-        });
+                VacationAccountPage.class, DateTimeFormatter.instance().getFormattedDate(vacation.getStartDate()), "employeeId", String.valueOf(employee.getId())));
         cellItemListener.populateItem(item, componentId, rowModel);
         final Item<?> row = (item.findParent(Item.class));
         WicketUtils.addRowClick(row);
@@ -332,9 +316,9 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
     return columns;
   }
 
-  private boolean appendFieldset(GridBuilder gridBuilder, final String label, final Model<VacationStats> statsModel, final String property, final boolean bold, final String... labelParameters) {
+  private boolean appendFieldset(GridBuilder gridBuilder, final String label, final VacationStats stats, final String property, final boolean bold, final String... labelParameters) {
     final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage(label, (Object[]) labelParameters)).suppressLabelForWarning();
-    DivTextPanel divTextPanel = new DivTextPanel(fs.newChildId(), new BigDecimalModel(new PropertyModel(statsModel, property)));
+    DivTextPanel divTextPanel = new DivTextPanel(fs.newChildId(), new BigDecimalModel(new PropertyModel(stats, property)));
     return appendFieldset(label, fs, bold, divTextPanel);
   }
 
@@ -355,27 +339,6 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
     }
     fs.add(divTextPanel);
     return true;
-  }
-
-  private class VacationStatsModel extends Model<VacationStats> {
-    VacationStats stats;
-    int year;
-
-    VacationStatsModel(int year) {
-      this.year = year;
-    }
-
-    @Override
-    public VacationStats getObject() {
-      if (stats == null) {
-        stats = vacationService.getVacationStats(VacationAccountForm.this.employee, year);
-      }
-      return stats;
-    }
-
-    public void clear() {
-      stats = null;
-    }
   }
 
   public class BigDecimalModel implements IModel<String> {
