@@ -147,6 +147,10 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
 
     appendFieldset(sectionLeftGridBuilder, "vacation.subtotal", currentYearStats, "totalLeaveIncludingCarry", true);
 
+    if (currentYearStats.getLeaveAccountEntriesSum().compareTo(BigDecimal.ZERO) != 0) {
+      appendFieldset(sectionLeftGridBuilder, "menu.vacation.leaveAccountEntry", currentYearStats, "leaveAccountEntriesSum", true);
+    }
+
     appendFieldset(sectionLeftGridBuilder, "vacation.approvedvacation", currentYearStats, "vacationDaysApproved", false);
 
     appendFieldset(sectionLeftGridBuilder, "vacation.plannedvacation", currentYearStats, "vacationDaysInProgress", false);
@@ -178,7 +182,9 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
             String.valueOf(year - 1));
     appendFieldset(sectionRightGridBuilder, "vacation.approvedSpecialVacationInYear", previousYearStats, "specialVacationDaysApproved", false,
             String.valueOf(year - 1));
-
+    if (previousYearStats.getLeaveAccountEntriesSum().compareTo(BigDecimal.ZERO) != 0) {
+      appendFieldset(sectionLeftGridBuilder, "menu.vacation.leaveAccountEntry", previousYearStats, "leaveAccountEntriesSum", true);
+    }
 
     // bottom list
     GridBuilder sectionBottomGridBuilder = gridBuilder.newSplitPanel(GridSize.COL100);

@@ -136,6 +136,16 @@ class VacationStats(
      * @see LeaveAccountEntryDO
      */
     var leaveAccountEntries: List<LeaveAccountEntryDO>? = null
+    val leaveAccountEntriesSum: BigDecimal
+        get() {
+            var result = BigDecimal.ZERO
+            leaveAccountEntries?.forEach {
+                it.amount?.let { amount ->
+                    result += amount
+                }
+            }
+            return result
+        }
 
     /**
      * Internal function calculates vacationDaysLeftInYear after having all other properties.
@@ -150,11 +160,7 @@ class VacationStats(
         if (baseDate.isBefore(endOfVacationYear)) {
             leftInYear += remainingLeaveFromPreviousYearUnused ?: BigDecimal.ZERO
         }
-        leaveAccountEntries?.forEach {
-            it.amount?.let { amount ->
-                leftInYear += amount
-            }
-        }
+        leftInYear += leaveAccountEntriesSum
         this.vacationDaysLeftInYear = leftInYear
         this.remainingLeaveFromPreviousYearAllocated = minOf(remainingLeaveFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
     }
@@ -166,3 +172,4 @@ class VacationStats(
         }
     }
 }
+
