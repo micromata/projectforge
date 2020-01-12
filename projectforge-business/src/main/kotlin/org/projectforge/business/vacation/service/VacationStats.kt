@@ -25,6 +25,7 @@ package org.projectforge.business.vacation.service
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.vacation.model.LeaveAccountEntryDO
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.utils.NumberFormatter
 import java.io.Serializable
@@ -59,14 +60,14 @@ class VacationStats(
      * The number of vacation days left from the previous year.
      */
     var remainingLeaveFromPreviousYear: BigDecimal? = null
-    val remainingLeaveFromPreviousYearAsString: String
-        get() = format(remainingLeaveFromPreviousYear)
     /**
      * The number of vacation days left from the previous year, which are already used for vacation.
      */
     var remainingLeaveFromPreviousYearAllocated: BigDecimal? = null
-    val remainingLeaveFromPreviousYearAllocatedAsString: String
-        get() = format(remainingLeaveFromPreviousYearAllocated)
+    /**
+     * The number of vacation days left from the previous year and not allocated (used). They might be lost after end of
+     * vacation year ([remainingLeaveFromPreviousYear] - [allocatedDaysInOverlapPeriod]).
+     */
     val remainingLeaveFromPreviousYearUnused: BigDecimal?
         get() {
             val total = remainingLeaveFromPreviousYear
@@ -77,70 +78,74 @@ class VacationStats(
                 return BigDecimal.ZERO
             return maxOf(total - allocated, BigDecimal.ZERO)
         }
-    val remainingLeaveFromPreviousYearUnusedAsString: String
-        get() = format(remainingLeaveFromPreviousYearUnused)
+    val totalLeaveIncludingCarry: BigDecimal?
+        get() {
+            var subTotal = vacationDaysInYearFromContract ?: BigDecimal.ZERO
+            remainingLeaveFromPreviousYear?.let {
+                subTotal += it
+            }
+            return subTotal
+        }
     /**
      * The overlap period defines the beginning of year until the end of the vacation year (after it the carried and unused
      * vacation days of the previous years will be lost.
      */
     var allocatedDaysInOverlapPeriod: BigDecimal? = null
-    val allocatedDaysInOverlapPeriodAsString: String
-        get() = format(allocatedDaysInOverlapPeriod)
     /**
      * Number of annual vacation days from contract. If the employee has joined in the same year, a fraction is calculated.
      */
     var vacationDaysInYearFromContract: BigDecimal? = null
-    val vacationDaysInYearFromContractAsString: String
-        get() = format(vacationDaysInYearFromContract)
     /**
      * Number of approved vacation days or vacation days in progress, persisted as VacationDO objects in the data-base for the specified base year.
      */
     var vacationDaysInProgressAndApproved: BigDecimal? = null
-    val vacationDaysInProgressAndApprovedAsString: String
-        get() = format(vacationDaysInProgressAndApproved)
     /**
      * The left vacation days of the year including any carry from previous years (if base date is before 31.03.). For
      * any date after end of vacation year (31.03.), this value is equal to [vacationDaysLeftInYearWithoutCarry].
      */
     var vacationDaysLeftInYear: BigDecimal? = null
-    val vacationDaysLeftInYearAsString: String
-        get() = format(vacationDaysLeftInYear)
     /**
      * The left vacation days of the year without any carry.
      */
     var vacationDaysLeftInYearWithoutCarry: BigDecimal? = null
-    val vacationDaysLeftInYearWithoutCarryAsString: String
-        get() = format(vacationDaysLeftInYearWithoutCarry)
     /**
      * Number of vacation days in progress, not yet approved.
      */
     var vacationDaysInProgress: BigDecimal? = null
-    val vacationDaysInProgressAsString: String
-        get() = format(vacationDaysInProgress)
     /**
      * Number of approved vacation days.
      */
     var vacationDaysApproved: BigDecimal? = null
-    val vacationDaysApprovedAsString: String
-        get() = format(vacationDaysApproved)
     /**
      * Number of special vacation days in progress, not yet approved.
      */
     var specialVacationDaysInProgress: BigDecimal? = null
-    val specialVacationDaysInProgressAsString: String
-        get() = format(specialVacationDaysInProgress)
     /**
      * Number of approved special vacation days.
      */
     var specialVacationDaysApproved: BigDecimal? = null
-    val specialVacationDaysApprovedAsString: String
-        get() = format(specialVacationDaysApproved)
     /**
      * Only given, if this year has to be calculated for getting the the carry of vacation days of this year.
      * The year must be the last year (from today).
      */
     var lastYearStats: VacationStats? = null
     var endOfVacationYear: LocalDate? = null
+
+    /**
+     * Entries per date for correction values, if the annual leave day statistics have to be corrected,
+     * @see LeaveAccountEntryDO
+     */
+    var leaveAccountEntries: List<LeaveAccountEntryDO>? = null
+    val leaveAccountEntriesSum: BigDecimal
+        get() {
+            var result = BigDecimal.ZERO
+            leaveAccountEntries?.forEach {
+                it.amount?.let { amount ->
+                    result += amount
+                }
+            }
+            return result
+        }
 
     /**
      * Internal function calculates vacationDaysLeftInYear after having all other properties.
@@ -155,11 +160,16 @@ class VacationStats(
         if (baseDate.isBefore(endOfVacationYear)) {
             leftInYear += remainingLeaveFromPreviousYearUnused ?: BigDecimal.ZERO
         }
+        leftInYear += leaveAccountEntriesSum
         this.vacationDaysLeftInYear = leftInYear
         this.remainingLeaveFromPreviousYearAllocated = minOf(remainingLeaveFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
     }
 
-    fun format(value: Number?): String {
-        return NumberFormatter.format(value, 1)
+    companion object {
+        @JvmStatic
+        fun format(value: Number?): String {
+            return NumberFormatter.format(value, 1)
+        }
     }
 }
+

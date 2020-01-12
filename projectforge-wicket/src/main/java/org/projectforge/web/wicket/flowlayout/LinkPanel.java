@@ -28,6 +28,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.framework.utils.ReflectionHelper;
 import org.projectforge.web.wicket.AbstractEditPage;
@@ -62,6 +63,30 @@ public class LinkPanel extends Panel
             pageParameters);
         if (editPage instanceof AbstractEditPage) {
           ((AbstractEditPage<?, ?, ?>) editPage).setReturnToPage(returnToPage);
+        }
+        setResponsePage(editPage);
+      }
+    };
+    add(link);
+
+    link.add(new Label("label", linkName));
+  }
+
+  public LinkPanel(final String id, final String linkName, final Class<? extends WebPage> editClass,
+                   final Class<? extends IRequestablePage> returnToPage, final PageParameters pageParameters)
+  {
+    super(id);
+
+    link = new Link<String>("link")
+    {
+      @Override
+      public void onClick()
+      {
+        LinkPanel.this.onClick();
+        final AbstractSecuredPage editPage = (AbstractSecuredPage) ReflectionHelper.newInstance(editClass, PageParameters.class,
+                pageParameters);
+        if (editPage instanceof AbstractEditPage) {
+          ((AbstractEditPage<?, ?, ?>) editPage).setReturnToPage(returnToPage, pageParameters);
         }
         setResponsePage(editPage);
       }

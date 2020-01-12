@@ -30,6 +30,7 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -69,6 +70,13 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
    * If set then return after save, update or cancel to this page. If not given then return to given list page.
    */
   protected WebPage returnToPage;
+
+  /**
+   * If set then return after save, update or cancel to this page. If not given then return to given list page.
+   */
+  protected Class<? extends IRequestablePage> returnToPageClass;
+
+  protected PageParameters returnToPageParameters;
 
   private final RepeatingView modalDialogs;
 
@@ -202,6 +210,18 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
   {
     return returnToPage;
   }
+
+  /**
+   * If set then return after save, update or cancel to this page. If not given then return to given list page. As an
+   * alternative you can set the returnToPage as a page parameter (if supported by the derived page).
+   */
+  public AbstractSecuredPage setReturnToPage(final Class returnToPageClass, PageParameters returnToPageParameters)
+  {
+    this.returnToPageClass = returnToPageClass;
+    this.returnToPageParameters = returnToPageParameters;
+    return this;
+  }
+
 
   public void addContentMenuEntry(final ContentMenuEntryPanel panel)
   {
