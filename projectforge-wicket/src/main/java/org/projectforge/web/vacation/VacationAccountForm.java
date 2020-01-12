@@ -109,7 +109,7 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
   protected void init() {
     super.init();
     boolean showAddButton = false;
-    boolean hrAccess = vacationService.hasAccessToVacationService(getUser(), false);
+    boolean hrAccess = vacationService.hasLoggedInUserHRVacationAccess();
 
     if (employee == null) {
       employee = employeeService.getEmployeeByUserId(getUserId());
