@@ -32,12 +32,25 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDayUtils
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
+import java.time.Month
 
 @Repository
 open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntryDO::class.java) {
     override fun newInstance(): LeaveAccountEntryDO {
         return LeaveAccountEntryDO()
+    }
+
+    // Open needed or proxying.
+    open fun getList(employeeId: Int, year: Int): List<LeaveAccountEntryDO>? {
+        val beginOfYear = LocalDate.of(year, Month.JANUARY, 1)
+        val endOfYear = PFDayUtils.getEndOfYear(beginOfYear)
+        return em.createNamedQuery(LeaveAccountEntryDO.FIND_BY_EMPLOYEE_ID_AND_DATEPERIOD, LeaveAccountEntryDO::class.java)
+                .setParameter("employeeId", employeeId)
+                .setParameter("fromDate", beginOfYear)
+                .setParameter("toDate", endOfYear).resultList
     }
 
     override fun getList(filter: BaseSearchFilter): List<LeaveAccountEntryDO?>? {
@@ -50,7 +63,7 @@ open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntry
     override fun hasAccess(user: PFUserDO?, obj: LeaveAccountEntryDO?, oldObj: LeaveAccountEntryDO?, operationType: OperationType?, throwException: Boolean): Boolean {
         if (operationType == OperationType.SELECT) {
             return accessChecker.isLoggedInUserMemberOfGroup(throwException, ProjectForgeGroup.CONTROLLING_GROUP, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.HR_GROUP, ProjectForgeGroup.ORGA_TEAM)
-                    || (user?.id != null && user.id  == obj?.employee?.userId) // User has select access to his own entries.
+                    || (user?.id != null && user.id == obj?.employee?.userId) // User has select access to his own entries.
         } else {
             return accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, throwException, UserRightValue.READONLY, UserRightValue.READWRITE)
         }

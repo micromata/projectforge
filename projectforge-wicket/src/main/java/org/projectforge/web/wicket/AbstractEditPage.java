@@ -23,11 +23,7 @@
 
 package org.projectforge.web.wicket;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
+import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -59,8 +55,11 @@ import org.projectforge.web.admin.WizardPage;
 import org.projectforge.web.task.TaskTreePage;
 import org.projectforge.web.user.UserPropertyColumn;
 import org.projectforge.web.wicket.flowlayout.DiffTextPanel;
+import org.slf4j.Logger;
 
-import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F extends AbstractEditForm<O, ?>, D extends IPersistenceService<O>>
     extends
@@ -447,6 +446,8 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
   {
     if (this.returnToPage != null) {
       setResponsePageAndHighlightedRow(this.returnToPage);
+    } else if (this.returnToPageClass != null) {
+      setResponsePage(this.returnToPageClass, returnToPageParameters);
     } else {
       final EditPage ann = getClass().getAnnotation(EditPage.class);
       final Class<? extends WebPage> redirectPage;

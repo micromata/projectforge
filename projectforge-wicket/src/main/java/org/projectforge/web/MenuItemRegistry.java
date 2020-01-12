@@ -50,8 +50,8 @@ import org.projectforge.web.teamcal.admin.TeamCalListPage;
 import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.user.*;
+import org.projectforge.web.vacation.VacationAccountPage;
 import org.projectforge.web.vacation.VacationListPage;
-import org.projectforge.web.vacation.VacationViewPage;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -130,7 +130,7 @@ public class MenuItemRegistry implements Serializable {
     register(MenuItemDefId.CONTRACTS, ContractListPage.class);
     register(MenuItemDefId.VISITORBOOK, VisitorbookListPage.class);
     register(MenuItemDefId.MY_ACCOUNT, MyAccountEditPage.class);
-    register(MenuItemDefId.VACATION_VIEW, VacationViewPage.class);
+    register(MenuItemDefId.VACATION_ACCOUNT, VacationAccountPage.class);
     register(MenuItemDefId.MY_PREFERENCES, UserPrefListPage.class);
     register(MenuItemDefId.CHANGE_PASSWORD, ChangePasswordPage.class);
     register(MenuItemDefId.CHANGE_WLAN_PASSWORD, ChangeWlanPasswordPage.class);
