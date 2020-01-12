@@ -54,7 +54,7 @@ import org.projectforge.web.doc.DocumentationPage;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.user.ChangePasswordPage;
 import org.projectforge.web.user.MyAccountEditPage;
-import org.projectforge.web.vacation.VacationViewPage;
+import org.projectforge.web.vacation.VacationAccountPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.FeedbackPage;
@@ -196,7 +196,7 @@ public class NavTopPanel extends NavAbstractPanel {
 
   private void addVacationViewLink() {
     final BookmarkablePageLink<Void> vacationViewLink = new BookmarkablePageLink<Void>("vacationViewLink",
-            VacationViewPage.class) {
+            VacationAccountPage.class) {
       @Override
       public boolean isVisible() {
         return vacationService.hasAccessToVacationService(ThreadLocalUserContext.getUser(), false);
