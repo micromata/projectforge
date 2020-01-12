@@ -42,7 +42,7 @@ import javax.persistence.*
         indexes = [javax.persistence.Index(name = "idx_fk_t_vacation_remaining_employee_id", columnList = "employee_id")],
         uniqueConstraints = [UniqueConstraint(columnNames = ["tenant_id", "employee_id", "year"])])
 @NamedQueries(NamedQuery(name = RemainingLeaveDO.FIND_BY_EMPLOYEE_ID_AND_YEAR,
-                query = "from RemainingLeaveDO where employee.id=:employeeId and year=:year and deleted=false"))
+                query = "from RemainingLeaveDO where employee.id=:employeeId and year=:year"))
 open class RemainingLeaveDO : DefaultBaseDO() {
     /**
      * The employee.

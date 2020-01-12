@@ -48,7 +48,7 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
      * Forces recalculation of remaining leave (carry from previous year).
      */
     open fun internalMarkAsDeleted(employeeId: Int, year: Int) {
-        val entry = internalGet(employeeId, year) ?: return
+        val entry = internalGet(employeeId, year, false) ?: return
         internalMarkAsDeleted(entry)
     }
 
@@ -56,7 +56,7 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
         if (year > Year.now().value) {
             throw IllegalArgumentException("Can't determine remaining vacation days for future year $year.")
         }
-        val entry = internalGet(employee.id, year) ?: RemainingLeaveDO()
+        val entry = internalGet(employee.id, year, false) ?: RemainingLeaveDO()
         entry.employee = employee
         entry.year = year
         entry.remainingFromPreviousYear = remainingLeaveFromPreviousYear
@@ -80,11 +80,15 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
         return internalGet(employeeId, year)?.remainingFromPreviousYear
     }
 
-    open fun internalGet(employeeId: Int, year: Int): RemainingLeaveDO? {
+    @JvmOverloads
+    open fun internalGet(employeeId: Int, year: Int, ignoreDeleted: Boolean = true): RemainingLeaveDO? {
         val result = SQLHelper.ensureUniqueResult(em.createNamedQuery(RemainingLeaveDO.FIND_BY_EMPLOYEE_ID_AND_YEAR, RemainingLeaveDO::class.java)
                 .setParameter("employeeId", employeeId)
-                .setParameter("year", year))
-        return result
+                .setParameter("year", year)) ?: return null
+        return if (!ignoreDeleted || !result.isDeleted)
+            result
+        else
+            null
     }
 
     override fun hasAccess(user: PFUserDO?, obj: RemainingLeaveDO?, oldObj: RemainingLeaveDO?, operationType: OperationType?, throwException: Boolean): Boolean {
