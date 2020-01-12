@@ -90,7 +90,7 @@ public class VacationViewHelper {
     DivPanel sectionLeft = sectionLeftGridBuilder.getPanel();
     sectionLeft.add(new Heading1Panel(sectionLeft.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.leaveaccount")));
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.annualleave", statsModel, "vacationDaysInYearFromContractAsString", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.annualleave", statsModel, "vacationDaysInYearFromContract", false);
 
     //student leave
     if (EmployeeStatus.STUD_ABSCHLUSSARBEIT.equals(employeeService.getEmployeeStatus(currentEmployee)) ||
@@ -98,7 +98,7 @@ public class VacationViewHelper {
       appendFieldset(sectionLeftGridBuilder, "vacation.countPerDay", employeeService.getStudentVacationCountPerDay(currentEmployee), false);
     }
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleave", statsModel, "remainingLeaveFromPreviousYearAsString", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleave", statsModel, "remainingLeaveFromPreviousYear", false);
 
     BigDecimal subTotal = statsModel.getObject().getVacationDaysInYearFromContract();
     if (subTotal == null) {
@@ -110,24 +110,24 @@ public class VacationViewHelper {
     }
     appendFieldset(sectionLeftGridBuilder, "vacation.subtotal", statsModel.getObject().format(subTotal), true);
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.approvedvacation", statsModel, "vacationDaysApprovedAsString", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.approvedvacation", statsModel, "vacationDaysApproved", false);
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.plannedvacation", statsModel, "vacationDaysInProgressAsString", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.plannedvacation", statsModel, "vacationDaysInProgress", false);
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", statsModel, "vacationDaysLeftInYearAsString", true);
+    appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", statsModel, "vacationDaysLeftInYear", true);
 
     //middle
     GridBuilder sectionMiddleGridBuilder = gridBuilder.newSplitPanel(GridSize.COL33);
     DivPanel sectionMiddle = sectionMiddleGridBuilder.getPanel();
     sectionMiddle.add(new Heading1Panel(sectionMiddle.newChildId(), I18nHelper.getLocalizedMessage("vacation.isSpecial")));
-    appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialPlaned", statsModel, "specialVacationDaysInProgressAsString", false);
+    appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialPlaned", statsModel, "specialVacationDaysInProgress", false);
 
-    appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialApproved", statsModel, "specialVacationDaysApprovedAsString", false);
+    appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialApproved", statsModel, "specialVacationDaysApproved", false);
 
     sectionMiddle.add(new Heading1Panel(sectionMiddle.newChildId(), I18nHelper.getLocalizedMessage("vacation.previousyearleave")));
-    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveused", statsModel, "remainingLeaveFromPreviousYearAllocatedAsString", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveused", statsModel, "remainingLeaveFromPreviousYearAllocated", false);
     String endDatePreviousYearVacationString = endDatePreviousYearVacation.getDayOfMonth() + "." + endDatePreviousYearVacation.getMonthValue() + "." + year;
-    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveunused", statsModel, "remainingLeaveFromPreviousYearUnusedAsString", false,
+    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveunused", statsModel, "remainingLeaveFromPreviousYearUnused", false,
             endDatePreviousYearVacationString);
 
     // right
@@ -135,11 +135,11 @@ public class VacationViewHelper {
     DivPanel sectionRight = sectionRightGridBuilder.getPanel();
 
     sectionRight.add(new Heading1Panel(sectionRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.leaveOfYear", String.valueOf(year - 1))));
-    appendFieldset(sectionRightGridBuilder, "vacation.remainingLeaveFromYear", previousYearStatsModel, "remainingLeaveFromPreviousYearAllocatedAsString", false,
+    appendFieldset(sectionRightGridBuilder, "vacation.remainingLeaveFromYear", previousYearStatsModel, "remainingLeaveFromPreviousYearAllocated", false,
             String.valueOf(year - 2));
-    appendFieldset(sectionRightGridBuilder, "vacation.approvedVacationInYear", previousYearStatsModel, "vacationDaysApprovedAsString", false,
+    appendFieldset(sectionRightGridBuilder, "vacation.approvedVacationInYear", previousYearStatsModel, "vacationDaysApproved", false,
             String.valueOf(year - 1));
-    appendFieldset(sectionRightGridBuilder, "vacation.approvedSpecialVacationInYear", previousYearStatsModel, "specialVacationDaysApprovedAsString", false,
+    appendFieldset(sectionRightGridBuilder, "vacation.approvedSpecialVacationInYear", previousYearStatsModel, "specialVacationDaysApproved", false,
             String.valueOf(year - 1));
 
 
@@ -263,7 +263,7 @@ public class VacationViewHelper {
 
   private boolean appendFieldset(GridBuilder gridBuilder, final String label, final Model<VacationStats> statsModel, final String property, final boolean bold, final String... labelParameters) {
     final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage(label, (Object[]) labelParameters)).suppressLabelForWarning();
-    DivTextPanel divTextPanel = new DivTextPanel(fs.newChildId(), new PropertyModel<>(statsModel, property));
+    DivTextPanel divTextPanel = new DivTextPanel(fs.newChildId(), new BigDecimalModel(new PropertyModel(statsModel, property)));
     return appendFieldset(label, fs, bold, divTextPanel);
   }
 
@@ -306,6 +306,29 @@ public class VacationViewHelper {
 
     public void clear() {
       stats = null;
+    }
+  }
+
+  public class BigDecimalModel implements IModel<String> {
+    private IModel<BigDecimal> model;
+
+    public BigDecimalModel(IModel<BigDecimal> bigDecimalIModel){
+      this.model = bigDecimalIModel;
+    }
+
+    @Override
+    public String getObject() {
+      return VacationStats.format(model.getObject());
+    }
+
+    @Override
+    public void setObject(String object) {
+      throw new IllegalStateException("setObject not supported.");
+    }
+
+    @Override
+    public void detach() {
+      model.detach();
     }
   }
 }
