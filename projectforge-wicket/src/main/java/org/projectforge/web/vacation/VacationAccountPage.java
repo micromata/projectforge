@@ -59,7 +59,7 @@ public class VacationAccountPage extends AbstractStandardFormPage implements ISe
   public VacationAccountPage(final PageParameters parameters) {
     super(parameters);
     form = new VacationAccountForm(this);
-    StringValue employeeString = parameters.get("employee");
+    StringValue employeeString = parameters.get("employeeId");
     if (!employeeString.isEmpty()) {
       Integer employeeId = NumberHelper.parseInteger(employeeString.toString());
       if (employeeId != null) {
@@ -72,7 +72,7 @@ public class VacationAccountPage extends AbstractStandardFormPage implements ISe
 
   @Override
   public void select(String property, Object selectedValue) {
-    if ("employee".equals(property) == true) {
+    if ("employeeId".equals(property) == true) {
       final Integer id;
       if (selectedValue instanceof String) {
         id = NumberHelper.parseInteger((String) selectedValue);
