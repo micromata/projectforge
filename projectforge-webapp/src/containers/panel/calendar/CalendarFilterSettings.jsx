@@ -207,7 +207,7 @@ class CalendarFilterSettings extends Component {
                                     {otherTimesheetUsersEnabled ? (
                                         <ObjectSelect
                                             id="showTimesheets"
-                                            label={translations['calendar.option.timesheets'] || ''}
+                                            label={translations['calendar.option.timesheets']}
                                             onSelect={this.handleTimesheetUserChange}
                                             translations={translations}
                                             type="USER"
