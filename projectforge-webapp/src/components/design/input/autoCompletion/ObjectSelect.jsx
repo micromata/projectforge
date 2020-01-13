@@ -15,22 +15,26 @@ function ObjectSelect(
         translations,
         type,
         user,
+        value,
         ...props
     },
 ) {
     const [selectMeIcon, setSelectMeIcon] = React.useState(faSmile);
 
+    const handleSelectMeHoverBegin = () => setSelectMeIcon(faSmileWink);
+    const handleSelectMeHoverEnd = () => setSelectMeIcon(faSmile);
     const handleSelectMeClick = (event) => {
         event.stopPropagation();
         onSelect({
             id: user.id,
             displayName: user.displayName,
         });
-    };
-    const handleSelectMeHoverBegin = () => setSelectMeIcon(faSmileWink);
-    const handleSelectMeHoverEnd = () => setSelectMeIcon(faSmile);
 
-    const hasSelectMe = type === 'USER' || type === 'EMPLOYEE';
+        // Un-hover because the element will be removed from the dom.
+        handleSelectMeHoverEnd();
+    };
+
+    const hasSelectMe = (type === 'USER' || type === 'EMPLOYEE') && value && value.id !== user.id;
 
     let inputProps = {
         label,
@@ -57,6 +61,7 @@ function ObjectSelect(
                 inputProps={inputProps}
                 onSelect={onSelect}
                 url={`${type.toLowerCase()}/autosearch?search=:search`}
+                value={value}
                 {...props}
             />
             {hasSelectMe && translations['tooltip.selectMe'] && (
@@ -80,10 +85,12 @@ ObjectSelect.propTypes = {
     translations: PropTypes.shape({
         'tooltip.selectMe': PropTypes.string,
     }),
+    value: PropTypes.shape({}),
 };
 
 ObjectSelect.defaultProps = {
     translations: undefined,
+    value: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({
