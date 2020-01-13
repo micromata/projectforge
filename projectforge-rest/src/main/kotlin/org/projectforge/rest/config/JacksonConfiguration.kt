@@ -72,6 +72,8 @@ open class JacksonConfiguration {
 
         private val allowedUnknownProperties = mutableMapOf<Class<*>, MutableSet<String>>()
 
+        private val allowedUnknownGlobalProperties = mutableSetOf<String>()
+
         /**
          * Properties (field) sent by any client and unknown by the server will result in an exception and BAD_REQUEST.
          * In special cases you may add properties, which should be simply ignored.
@@ -87,7 +89,18 @@ open class JacksonConfiguration {
             }
         }
 
+        /**
+         * Properties (field) sent by any client and unknown by the server will result in an exception and BAD_REQUEST.
+         * In special cases you may add properties, which should be simply ignored.
+         */
+        fun registerAllowedUnknownGlobalProperties(vararg properties: String) {
+            synchronized(allowedUnknownGlobalProperties) {
+                allowedUnknownGlobalProperties.addAll(properties)
+            }
+        }
+
         init {
+            registerAllowedUnknownGlobalProperties("displayName")
             registerAllowedUnknownProperties(PFUserDO::class.java, "fullname")
             registerAllowedUnknownProperties(KundeDO::class.java, "id")
             // reminderDuration* will be there after function switchToTimesheet is used:
@@ -126,7 +139,7 @@ open class JacksonConfiguration {
                         if (beanOrClass == null)
                             return false
                         val clazz = if (beanOrClass is Class<*>) beanOrClass else beanOrClass.javaClass
-                        return allowedUnknownProperties[clazz]?.contains(propertyName) ?: false
+                        return allowedUnknownGlobalProperties.contains(propertyName) || allowedUnknownProperties[clazz]?.contains(propertyName) ?: false
                     }
                 })
             }

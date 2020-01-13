@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import java.sql.Date
@@ -45,9 +45,9 @@ import javax.persistence.*
             javax.persistence.Index(name = "idx_fk_t_plugin_skill_training_tenant_id", columnList = "tenant_id")])
 @NamedQueries(
         NamedQuery(name = TrainingDO.FIND_BY_TITLE, query = "from TrainingDO where title=:title"))
-open class TrainingDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class TrainingDO : DefaultBaseDO(), DisplayNameCapable {
 
-    override val shortDisplayName: String
+    override val displayName: String
         @Transient
         get() = "$title (#$id)"
 

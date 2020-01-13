@@ -28,7 +28,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.hibernate.Hibernate;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.HibernateUtils;
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
+import org.projectforge.framework.DisplayNameCapable;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -58,7 +58,7 @@ public class ReflectionToString extends ReflectionToStringBuilder
           return super.append(fieldName, id != null ? id : "<id>");
         }
         return super.append(fieldName, "LazyCollection");
-      } else if (ShortDisplayNameCapable.class.isAssignableFrom(object.getClass())) {
+      } else if (DisplayNameCapable.class.isAssignableFrom(object.getClass())) {
         return super.append(fieldName, myToString(object));
       } else if (BaseDO.class.isAssignableFrom(object.getClass())) {
         return super.append(fieldName, myToString(object));
@@ -83,12 +83,12 @@ public class ReflectionToString extends ReflectionToStringBuilder
   {
     if (obj == null) {
       return "<null>";
-    } else if (ShortDisplayNameCapable.class.isAssignableFrom(obj.getClass())) {
+    } else if (DisplayNameCapable.class.isAssignableFrom(obj.getClass())) {
       if (BaseDO.class.isAssignableFrom(obj.getClass())) {
         final Serializable id = HibernateUtils.getIdentifier((BaseDO< ? >) obj);
-        return id + ":" + ((ShortDisplayNameCapable) obj).getShortDisplayName();
+        return id + ":" + ((DisplayNameCapable) obj).getDisplayName();
       }
-      return ((ShortDisplayNameCapable) obj).getShortDisplayName();
+      return ((DisplayNameCapable) obj).getDisplayName();
     } else if (BaseDO.class.isAssignableFrom(obj.getClass())) {
       final Serializable id = HibernateUtils.getIdentifier((BaseDO< ? >) obj);
       return id != null ? id.toString() : "<id>";

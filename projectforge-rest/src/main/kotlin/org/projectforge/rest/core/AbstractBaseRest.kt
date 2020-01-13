@@ -28,6 +28,7 @@ import org.apache.commons.beanutils.PropertyUtils
 import org.projectforge.Const
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.InternalErrorException
@@ -81,7 +82,7 @@ abstract class AbstractBaseRest<
         const val CREATE_MENU = "CREATE"
     }
 
-    class ShortDisplayObject(override val id: Any, override val displayName: String?): IShortDisplayObject<Any>
+    class DisplayObject(val id: Any, override val displayName: String?) : DisplayNameCapable
 
     /**
      * Contains the layout data returned for the frontend regarding edit pages.
@@ -298,10 +299,10 @@ abstract class AbstractBaseRest<
     }
 
     /**
-     * At standard, quickSelectUrl is only given, if the doClass implements ShortDisplayNameCapable and autoCompleteSearchFields are given.
+     * At standard, quickSelectUrl is only given, if the doClass implements DisplayObject and autoCompleteSearchFields are given.
      */
     protected open val quickSelectUrl: String?
-        get() = if (!autoCompleteSearchFields.isNullOrEmpty() && ShortDisplayNameCapable::class.java.isAssignableFrom(baseDao.doClass)) "${getRestPath()}/${AutoCompletion.AUTOCOMPLETE_OBJECT}?maxResults=30&search=:search" else null
+        get() = if (!autoCompleteSearchFields.isNullOrEmpty() && DisplayObject::class.java.isAssignableFrom(baseDao.doClass)) "${getRestPath()}/${AutoCompletion.AUTOCOMPLETE_OBJECT}?maxResults=30&search=:search" else null
 
     /**
      * Add customized magic filter element in addition to the automatically detected elements.
@@ -595,7 +596,7 @@ abstract class AbstractBaseRest<
      * @return list of found objects.
      */
     @GetMapping(AutoCompletion.AUTOCOMPLETE_OBJECT)
-    open fun getAutoCompleteObjects(@RequestParam("search") searchString: String?, @RequestParam("maxResults") maxResults: Int?): List<ShortDisplayObject> {
+    open fun getAutoCompleteObjects(@RequestParam("search") searchString: String?, @RequestParam("maxResults") maxResults: Int?): List<DisplayObject> {
         if (autoCompleteSearchFields.isNullOrEmpty()) {
             throw RuntimeException("Can't call getAutoCompletion without property, because no autoCompleteSearchFields are configured by the developers for this entity.")
         }
@@ -605,7 +606,7 @@ abstract class AbstractBaseRest<
         filter.setSearchFields(*autoCompleteSearchFields!!)
         maxResults?.let { filter.setMaxRows(it) }
         val list = queryAutocompleteObjects(filter)
-       return list.map { ShortDisplayObject(it.id, (it as ShortDisplayNameCapable).shortDisplayName) }
+        return list.map { DisplayObject(it.id, if (it is DisplayNameCapable) it.displayName else it.toString()) }
     }
 
     protected open fun queryAutocompleteObjects(filter: BaseSearchFilter): MutableList<O> {

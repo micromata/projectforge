@@ -34,7 +34,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.common.task.TimesheetBookingStatus
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
@@ -62,9 +62,9 @@ import javax.persistence.Index
                 query = "from TaskDO where parentTask.id=:parentTaskId and title=:title and id!=:id"),
         NamedQuery(name = TaskDO.FIND_BY_PARENTTASKID_AND_TITLE,
                 query = "from TaskDO where parentTask.id=:parentTaskId and title=:title"))
-open class TaskDO : DefaultBaseDO(), Cloneable, ShortDisplayNameCapable // , GanttObject
+open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObject
 {
-    override val shortDisplayName: String
+    override val displayName: String
         @Transient
         get() = this.title + " (#" + this.id + ")"
 

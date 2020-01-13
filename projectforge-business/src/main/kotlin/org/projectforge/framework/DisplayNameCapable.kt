@@ -21,9 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.core
+package org.projectforge.framework
 
-interface IShortDisplayObject<T> {
-    val id: T?
+interface DisplayNameCapable {
     val displayName: String?
 }

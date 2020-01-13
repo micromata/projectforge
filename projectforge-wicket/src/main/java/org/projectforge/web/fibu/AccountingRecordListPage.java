@@ -176,7 +176,7 @@ public class AccountingRecordListPage
             cellItemListener));
     columns
         .add(new CellItemListenerPropertyColumn<BuchungssatzDO>(new Model<String>(getString("fibu.kost1")), getSortable(
-            "kost1.shortDisplayName", sortable), "kost1.shortDisplayName", cellItemListener)
+            "kost1.displayName", sortable), "kost1.displayName", cellItemListener)
         {
           @Override
           public String getTooltip(final BuchungssatzDO satz)
@@ -191,7 +191,7 @@ public class AccountingRecordListPage
         });
     columns
         .add(new CellItemListenerPropertyColumn<BuchungssatzDO>(new Model<String>(getString("fibu.kost2")), getSortable(
-            "kost2.shortDisplayName", sortable), "kost2.shortDisplayName", cellItemListener)
+            "kost2.displayName", sortable), "kost2.displayName", cellItemListener)
         {
           @Override
           public String getTooltip(final BuchungssatzDO satz)
@@ -206,8 +206,8 @@ public class AccountingRecordListPage
         });
     columns.add(new CellItemListenerPropertyColumn<BuchungssatzDO>(
         new Model<String>(getString("fibu.buchungssatz.konto")), getSortable(
-            "konto.shortDisplayName", sortable),
-        "konto.shortDisplayName", cellItemListener)
+            "konto.displayName", sortable),
+        "konto.displayName", cellItemListener)
     {
       @Override
       public String getTooltip(final BuchungssatzDO satz)
@@ -222,7 +222,7 @@ public class AccountingRecordListPage
     });
     columns.add(
         new CellItemListenerPropertyColumn<BuchungssatzDO>(new Model<String>(getString("fibu.buchungssatz.gegenKonto")),
-            getSortable("gegenKonto.shortDisplayName", sortable), "gegenKonto.shortDisplayName", cellItemListener)
+            getSortable("gegenKonto.displayName", sortable), "gegenKonto.displayName", cellItemListener)
         {
           @Override
           public String getTooltip(final BuchungssatzDO satz)

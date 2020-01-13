@@ -163,7 +163,7 @@ public class TimesheetExport
       String projektName = null;
       String kundeName = null;
       if (kost2 != null) {
-        kost2Name = kost2.getShortDisplayName();
+        kost2Name = kost2.getDisplayName();
         final ProjektDO projekt = kost2.getProjekt();
         if (projekt != null) {
           projektName = projekt.getName();

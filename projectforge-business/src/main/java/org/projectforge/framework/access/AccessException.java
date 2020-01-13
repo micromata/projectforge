@@ -248,7 +248,7 @@ public class AccessException extends UserException
     }
     if (taskId != null) {
       final TaskDO task = taskTree != null ? getTaskTree().getTaskById(taskId) : null;
-      final String ts = task != null ? ":" + task.getShortDisplayName() : "";
+      final String ts = task != null ? ":" + task.getDisplayName() : "";
       builder.append("task", String.valueOf(taskId) + ts);
     }
     if (accessType != null) {

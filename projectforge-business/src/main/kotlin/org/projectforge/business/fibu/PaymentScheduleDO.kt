@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.sql.Date
@@ -38,9 +38,9 @@ import javax.persistence.*
  */
 @Entity
 @Table(name = "T_FIBU_PAYMENT_SCHEDULE", uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_id", "number"])], indexes = [Index(name = "idx_fk_t_fibu_payment_schedule_auftrag_id", columnList = "auftrag_id"), Index(name = "idx_fk_t_fibu_payment_schedule_tenant_id", columnList = "tenant_id")])
-open class PaymentScheduleDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
 
-    override val shortDisplayName: String
+    override val displayName: String
         @Transient
         get() = "$auftragId:$number"
 

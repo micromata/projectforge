@@ -28,7 +28,7 @@ import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.annotations.*
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -47,9 +47,9 @@ import javax.persistence.*
 @WithHistory
 @NamedQueries(
         NamedQuery(name = ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER, query = "from ProjektDO where internKost2_4=:internKost24 and nummer=:nummer"))
-open class ProjektDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
 
-    override val shortDisplayName: String
+    override val displayName: String
         @Transient
         get() = KostFormatter.formatProjekt(this)
 

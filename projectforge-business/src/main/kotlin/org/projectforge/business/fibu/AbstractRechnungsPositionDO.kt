@@ -26,7 +26,7 @@ package org.projectforge.business.fibu
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
@@ -35,9 +35,9 @@ import javax.persistence.MappedSuperclass
 import javax.persistence.Transient
 
 @MappedSuperclass
-abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
+abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable {
 
-    override val shortDisplayName: String
+    override val displayName: String
         @Transient
         get() = "$number"
 

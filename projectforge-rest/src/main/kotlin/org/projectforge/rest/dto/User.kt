@@ -23,8 +23,8 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.rest.core.IShortDisplayObject
 
 class User(id: Int? = null,
            /**
@@ -37,7 +37,7 @@ class User(id: Int? = null,
            var description: String? = null,
            var email: String? = null,
            var deactivated: Boolean = false
-) : BaseDTO<PFUserDO>(id = id), IShortDisplayObject<Int> {
+) : BaseDTO<PFUserDO>(id = id), DisplayNameCapable {
 
     override fun copyFrom(src: PFUserDO) {
         super.copyFrom(src)

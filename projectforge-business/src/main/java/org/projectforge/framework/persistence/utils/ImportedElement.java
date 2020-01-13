@@ -28,7 +28,7 @@ import de.micromata.hibernate.history.delta.SimplePropertyDelta;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.projectforge.common.BeanHelper;
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
+import org.projectforge.framework.DisplayNameCapable;
 import org.projectforge.framework.utils.NumberHelper;
 
 import java.io.Serializable;
@@ -157,13 +157,13 @@ public class ImportedElement<T> implements Serializable
     if (modified) {
       Object ov;
       Object nv;
-      if (origValue instanceof ShortDisplayNameCapable) {
-        ov = ((ShortDisplayNameCapable) origValue).getShortDisplayName();
+      if (origValue instanceof DisplayNameCapable) {
+        ov = ((DisplayNameCapable) origValue).getDisplayName();
       } else {
         ov = origValue;
       }
-      if (newValue instanceof ShortDisplayNameCapable) {
-        nv = ((ShortDisplayNameCapable) newValue).getShortDisplayName();
+      if (newValue instanceof DisplayNameCapable) {
+        nv = ((DisplayNameCapable) newValue).getDisplayName();
       } else {
         nv = newValue;
       }
