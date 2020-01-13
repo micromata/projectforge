@@ -63,8 +63,8 @@ function SearchFilter(props) {
                     className={styles.searchContainer}
                     inputId="searchString"
                     inputProps={{
-                        onBlur: onSearchStringBlur,
                         icon: faSearch,
+                        onBlur: onSearchStringBlur,
                         placeholder: ui.translations.search || '',
                     }}
                     onChange={onSearchStringChange}

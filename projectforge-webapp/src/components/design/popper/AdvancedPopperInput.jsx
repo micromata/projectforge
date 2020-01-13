@@ -27,14 +27,17 @@ function AdvancedPopperInput(
     };
 
     return (
-        <Input
-            ref={forwardRef}
-            icon={icon}
-            className={classNames(styles.input, { [styles.dark]: dark })}
-            autoComplete="off"
-            {...props}
-            onKeyDown={handleKeyDown}
-        />
+        <div className={classNames(styles.input, { [styles.dark]: dark })}>
+            <Input
+                ref={forwardRef}
+                icon={icon}
+                className={styles.container}
+                autoComplete="off"
+                noLine
+                {...props}
+                onKeyDown={handleKeyDown}
+            />
+        </div>
     );
 }
 
