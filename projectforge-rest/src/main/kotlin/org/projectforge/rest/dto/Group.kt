@@ -25,12 +25,16 @@ package org.projectforge.rest.dto
 
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.rest.core.IShortDisplayObject
 
 class Group(id: Int? = null,
             var name: String? = null,
+            /**
+             * Only for displaying purposes. Will be ignored on save or update.
+             */
+            override var displayName: String = name ?: "",
             var assignedUsers: MutableSet<PFUserDO>? = null
-) : BaseDTO<GroupDO>(id = id) {
-
+) : BaseDTO<GroupDO>(id = id), IShortDisplayObject<Int> {
     override fun copyFromMinimal(src: GroupDO) {
         super.copyFromMinimal(src)
         name = src.name

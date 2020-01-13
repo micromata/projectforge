@@ -39,8 +39,8 @@ import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateCompabilityUtils
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.TimeNotation
 import java.io.Serializable
 import java.sql.Timestamp
@@ -366,7 +366,7 @@ open class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
         val first = this.firstname
         val last = this.lastname
         return if (first.isNullOrBlank()) {
-            if (last.isNullOrBlank()) ""
+            if (last.isNullOrBlank()) this.username ?: ""
             else last
         } else {
             if (last.isNullOrBlank()) first

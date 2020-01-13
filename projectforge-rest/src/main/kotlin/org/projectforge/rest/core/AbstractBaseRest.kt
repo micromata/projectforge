@@ -81,7 +81,7 @@ abstract class AbstractBaseRest<
         const val CREATE_MENU = "CREATE"
     }
 
-    class ShortDisplayObject(val id: Any, val displayName: String?)
+    class ShortDisplayObject(override val id: Any, override val displayName: String?): IShortDisplayObject<Any>
 
     /**
      * Contains the layout data returned for the frontend regarding edit pages.

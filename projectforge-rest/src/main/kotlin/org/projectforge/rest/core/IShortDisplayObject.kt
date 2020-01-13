@@ -21,32 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.dto
+package org.projectforge.rest.core
 
-import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.rest.core.IShortDisplayObject
-
-class User(id: Int? = null,
-           /**
-            * Only for displaying purposes. Will be ignored on save or update.
-            */
-           override var displayName: String = "",
-           var username: String? = null,
-           var firstname: String? = null,
-           var lastname: String? = null,
-           var description: String? = null,
-           var email: String? = null,
-           var deactivated: Boolean = false
-) : BaseDTO<PFUserDO>(id = id), IShortDisplayObject<Int> {
-
-    override fun copyFrom(src: PFUserDO) {
-        super.copyFrom(src)
-        displayName = src.getFullname()
-    }
-
-    override fun copyFromMinimal(src: PFUserDO) {
-        super.copyFromMinimal(src)
-        username = src.username
-        displayName = src.getFullname()
-    }
+interface IShortDisplayObject<T> {
+    val id: T?
+    val displayName: String?
 }
