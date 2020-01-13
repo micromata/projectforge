@@ -97,10 +97,6 @@
 }
 
 .input {
-  width: 100%;
-  margin: 0;
-  padding: .5em;
-
   &:hover {
     input::placeholder {
       color: #444;
@@ -110,7 +106,6 @@
   &.dark {
     background-color: #333;
     color: #fff;
-    padding: .8em;
 
     input {
       color: #fff;
@@ -127,8 +122,7 @@
     }
   }
 
-  input {
-    border: none !important;
-    margin-left: 2px;
+  .container {
+    padding: .5em;
   }
 }
