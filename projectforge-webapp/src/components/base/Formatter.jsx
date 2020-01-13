@@ -64,10 +64,10 @@ function Formatter(
                     .format(timestampFormatMinutes);
                 break;
             case USER_FORMATTER:
-                result = value.fullname;
+                result = value.displayName;
                 break;
             case EMPLOYEE_FORMATTER:
-                result = value.fullname;
+                result = value.displayName;
                 break;
             case AUFTRAGPOSITION_FORMATTER:
                 result = value.number;

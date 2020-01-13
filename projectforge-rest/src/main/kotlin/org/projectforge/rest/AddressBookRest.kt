@@ -55,8 +55,8 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
         addressbook.fullAccessGroups?.forEach { it.name = groupService.getGroupname(it.id) }
         addressbook.readonlyAccessGroups?.forEach { it.name = groupService.getGroupname(it.id) }
         // Usernames needed by React client (for ReactSelect):
-        addressbook.fullAccessUsers?.forEach { it.fullname = userService.getUser(it.id)?.getFullname() }
-        addressbook.readonlyAccessUsers?.forEach { it.fullname = userService.getUser(it.id)?.getFullname() }
+        addressbook.fullAccessUsers?.forEach { it.displayName = userService.getUser(it.id)?.shortDisplayName ?: "" }
+        addressbook.readonlyAccessUsers?.forEach { it.displayName = userService.getUser(it.id)?.shortDisplayName ?: "" }
         return addressbook
     }
 
@@ -98,7 +98,7 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
                                         additionalLabel = "access.users",
                                         autoCompletion = AutoCompletion<Int>(url = "user/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=",
                                                 type = AutoCompletion.Type.USER.name),
-                                        labelProperty = "fullname",
+                                        labelProperty = "displayName",
                                         valueProperty = "id",
                                         tooltip = "addressbook.fullAccess.tooltip"))
                                 .add(UISelect<Int>("readonlyAccessUsers", lc,
@@ -107,7 +107,7 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
                                         additionalLabel = "access.users",
                                         autoCompletion = AutoCompletion<Int>(url = "user/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=",
                                                 type = AutoCompletion.Type.USER.name),
-                                        labelProperty = "fullname",
+                                        labelProperty = "displayName",
                                         valueProperty = "id",
                                         tooltip = "addressbook.readonlyAccess.tooltip")))
                         .add(UICol()
@@ -117,7 +117,7 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
                                         additionalLabel = "access.groups",
                                         autoCompletion = AutoCompletion<Int>(url = "group/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=",
                                                 type = AutoCompletion.Type.GROUP.name),
-                                        labelProperty = "name",
+                                        labelProperty = "displayName",
                                         valueProperty = "id",
                                         tooltip = "addressbook.fullAccess.tooltip"))
                                 .add(UISelect<Int>("readonlyAccessGroups", lc,
@@ -126,7 +126,7 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
                                         additionalLabel = "access.groups",
                                         autoCompletion = AutoCompletion<Int>(url = "group/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=",
                                                 type = AutoCompletion.Type.GROUP.name),
-                                        labelProperty = "name",
+                                        labelProperty = "displayName",
                                         valueProperty = "id",
                                         tooltip = "addressbook.readonlyAccess.tooltip"))))
         return LayoutUtils.processEditPage(layout, dto, this)

@@ -56,14 +56,14 @@ class Addressbook(var title: String? = null,
     private fun toUserList(str: String?): MutableList<User>? {
         if (str.isNullOrBlank()) return null
         val users = mutableListOf<User>()
-        StringHelper.splitToInts(str, ",", false).forEach { users.add(User(it, fullname = "Kai Reinhard")) }
+        StringHelper.splitToInts(str, ",", false).forEach { users.add(User(it, "???")) }
         return users
     }
 
     private fun toGroupList(str: String?): MutableList<Group>? {
         if (str.isNullOrBlank()) return null
         val groups = mutableListOf<Group>()
-        StringHelper.splitToInts(str, ",", false).forEach { groups.add(Group(it, name = "Gruppe")) }
+        StringHelper.splitToInts(str, ",", false).forEach { groups.add(Group(it, name = "???")) }
         return groups
     }
 }
