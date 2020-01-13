@@ -268,6 +268,9 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
 
   @Override
   public BigDecimal getAnnualLeaveDays(EmployeeDO employee, LocalDate validAtDate) {
+    if (employee == null) { // Should only occur in CallAllPagesTest (Wicket).
+      return null;
+    }
     Date date = PFDateTime.from(validAtDate).getUtilDate();
     final EmployeeTimedDO attrRow = timeableService
             .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_ANNUAL_LEAVEDAYS_GROUP_NAME, date);
