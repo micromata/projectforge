@@ -40,6 +40,7 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.LocalDatePeriod
+import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.NumberHelper
 import org.slf4j.LoggerFactory
@@ -106,7 +107,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
                               baseDate: LocalDate = LocalDate.now(),
                               vacationEntries: List<VacationDO>? = null): VacationStats {
         val stats = VacationStats(employee, year, baseDate)
-        stats.vacationDaysInYearFromContract = getYearlyVacationDays(employee, year)
+        stats.vacationDaysInYearFromContract = getAnnualLeaveDays(employee, year)
         stats.remainingLeaveFromPreviousYear = remainingLeaveDao.getRemainingLeaveFromPreviousYear(employee.id, year)
         stats.endOfVacationYear = getEndOfCarryVacationOfPreviousYear(year)
         // If date of joining not given, assume 1900...
@@ -243,12 +244,13 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
 
     /**
      * Check, if user is able to use vacation services, meaning, has configured annual vacation days (urlaubstage).
-     * @see [EmployeeDO.urlaubstage]
+     * @see EmployeeService.getAnnualLeaveDays
      */
     open fun hasAccessToVacationService(user: PFUserDO?, throwException: Boolean): Boolean {
         if (user?.id == null)
             return false
         val employee = employeeService.getEmployeeByUserId(user.id)
+        val annualLeaveDays = employeeService.getAnnualLeaveDays(employee) ?: BigDecimal.ZERO
         return when {
             employee == null -> {
                 if (throwException) {
@@ -256,7 +258,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
                 }
                 false
             }
-            employee.urlaubstage == null -> {
+            annualLeaveDays <= BigDecimal.ZERO -> {
                 if (throwException) {
                     throw AccessException("access.exception.employeeHasNoVacationDays")
                 }
@@ -284,13 +286,13 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
     }
 
     /**
-     * Please note: If number of yearly vacation days are modified over time, this method assumes the current value also for previous years!!!!!!!!!!!!
-     * @return [EmployeeDO.urlaubstage] if employee joined before given year, 0 if employee joined later than given year, otherwise fraction (joined in given year).
+     * @return [EmployeeService.getAnnualLeaveDays] of the end of given year if employee joined before given year, 0 if employee joined later than given year, otherwise fraction (joined in given year).
      */
-    internal fun getYearlyVacationDays(employee: EmployeeDO, year: Int): BigDecimal {
+    internal fun getAnnualLeaveDays(employee: EmployeeDO, year: Int): BigDecimal {
         val joinDate = employee.eintrittsDatum ?: LocalDate.of(1900, Month.JANUARY, 1)
         val leaveDate = employee.austrittsDatum ?: LocalDate.of(2999, Month.DECEMBER, 31)
-        val vacationDaysPerYear = employee.urlaubstage ?: return BigDecimal.ZERO
+        val endOfYear = PFDay.of(year, Month.JANUARY, 1).endOfYear.date
+        val annualLeaveDays = employeeService.getAnnualLeaveDays(employee, endOfYear) ?: BigDecimal.ZERO
         /*if (joinDate == null || joinDate.year < year) {
             return BigDecimal(vacationDaysPerYear)
         }*/
@@ -309,9 +311,9 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
                 employedMonths-- // Month counts only if the employee leaved not earlier than 15th of month.
         }
         if (employedMonths == 12) {
-            return BigDecimal(vacationDaysPerYear)
+            return annualLeaveDays
         }
-        return (BigDecimal(vacationDaysPerYear).divide(TWELVE, 2, RoundingMode.HALF_UP) * BigDecimal(employedMonths)).setScale(0, RoundingMode.HALF_UP)
+        return (annualLeaveDays.divide(TWELVE, 2, RoundingMode.HALF_UP) * BigDecimal(employedMonths)).setScale(0, RoundingMode.HALF_UP)
     }
 
     private fun sum(list: List<VacationDO?>, periodBegin: LocalDate, periodEnd: LocalDate, withSpecial: Boolean, vararg status: VacationStatus): BigDecimal {

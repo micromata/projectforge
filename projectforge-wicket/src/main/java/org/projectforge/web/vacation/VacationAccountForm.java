@@ -79,8 +79,8 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
   private EmployeeDO employee;
 
   final int year = Year.now().getValue();
-   VacationStats currentYearStats;
-   VacationStats previousYearStats;
+  VacationStats currentYearStats;
+  VacationStats previousYearStats;
 
   public VacationAccountForm(final VacationAccountPage parentPage) {
     super(parentPage);
@@ -110,8 +110,8 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
     if (employee == null) {
       throw new IllegalStateException("Emmployee with user id " + getUserId() + " not found.");
     }
-    currentYearStats  =  vacationService.getVacationStats(VacationAccountForm.this.employee, year);
-    previousYearStats  =  vacationService.getVacationStats(VacationAccountForm.this.employee, year - 1);
+    currentYearStats = vacationService.getVacationStats(VacationAccountForm.this.employee, year);
+    previousYearStats = vacationService.getVacationStats(VacationAccountForm.this.employee, year - 1);
     if (hrAccess || Objects.equals(employee.getUserId(), getUserId())) {
       showAddButton = true;
     }
@@ -135,7 +135,7 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
     DivPanel sectionLeft = sectionLeftGridBuilder.getPanel();
     sectionLeft.add(new Heading1Panel(sectionLeft.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.leaveaccount")));
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.annualleave", currentYearStats, "vacationDaysInYearFromContract", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.annualleave", currentYearStats.getVacationDaysInYearFromContract(), false);
 
     //student leave
     if (EmployeeStatus.STUD_ABSCHLUSSARBEIT.equals(employeeService.getEmployeeStatus(employee)) ||
@@ -143,32 +143,35 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
       appendFieldset(sectionLeftGridBuilder, "vacation.countPerDay", employeeService.getStudentVacationCountPerDay(employee), false);
     }
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleave", currentYearStats, "remainingLeaveFromPreviousYear", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleave", currentYearStats.getRemainingLeaveFromPreviousYear(), false);
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.subtotal", currentYearStats, "totalLeaveIncludingCarry", true);
+    appendFieldset(sectionLeftGridBuilder, "vacation.subtotal", currentYearStats.getTotalLeaveIncludingCarry(), true);
 
     if (currentYearStats.getLeaveAccountEntriesSum().compareTo(BigDecimal.ZERO) != 0) {
-      appendFieldset(sectionLeftGridBuilder, "menu.vacation.leaveAccountEntry", currentYearStats, "leaveAccountEntriesSum", true);
+      appendFieldset(sectionLeftGridBuilder, "menu.vacation.leaveAccountEntry", currentYearStats.getLeaveAccountEntriesSum(), true);
     }
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.approvedvacation", currentYearStats, "vacationDaysApproved", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.approvedvacation", currentYearStats.getVacationDaysApproved(), false);
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.plannedvacation", currentYearStats, "vacationDaysInProgress", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.plannedvacation", currentYearStats.getVacationDaysInProgress(), false);
 
-    appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", currentYearStats, "vacationDaysLeftInYear", true);
+    appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", currentYearStats.getVacationDaysLeftInYear(), true);
 
     //middle
     GridBuilder sectionMiddleGridBuilder = gridBuilder.newSplitPanel(GridSize.COL33);
     DivPanel sectionMiddle = sectionMiddleGridBuilder.getPanel();
-    sectionMiddle.add(new Heading1Panel(sectionMiddle.newChildId(), I18nHelper.getLocalizedMessage("vacation.isSpecial")));
-    appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialPlaned", currentYearStats, "specialVacationDaysInProgress", false);
-
-    appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialApproved", currentYearStats, "specialVacationDaysApproved", false);
-
+    BigDecimal specialDaysApproved = currentYearStats.getSpecialVacationDaysApproved();
+    BigDecimal specialDaysInProgress = currentYearStats.getSpecialVacationDaysInProgress();
+    if (specialDaysApproved != null && specialDaysApproved.compareTo(BigDecimal.ZERO) != 0 ||
+            specialDaysInProgress != null && specialDaysInProgress.compareTo(BigDecimal.ZERO) != 0) {
+      sectionMiddle.add(new Heading1Panel(sectionMiddle.newChildId(), I18nHelper.getLocalizedMessage("vacation.isSpecial")));
+      appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialPlaned", specialDaysInProgress, false);
+      appendFieldset(sectionMiddleGridBuilder, "vacation.isSpecialApproved", specialDaysApproved, false);
+    }
     sectionMiddle.add(new Heading1Panel(sectionMiddle.newChildId(), I18nHelper.getLocalizedMessage("vacation.previousyearleave")));
-    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveused", currentYearStats, "remainingLeaveFromPreviousYearAllocated", false);
+    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveused", currentYearStats.getRemainingLeaveFromPreviousYearAllocated(), false);
     String endDatePreviousYearVacationString = endDatePreviousYearVacation.getDayOfMonth() + "." + endDatePreviousYearVacation.getMonthValue() + "." + year;
-    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveunused", currentYearStats, "remainingLeaveFromPreviousYearUnused", false,
+    appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveunused", currentYearStats.getRemainingLeaveFromPreviousYearUnused(), false,
             endDatePreviousYearVacationString);
 
     // right
@@ -176,14 +179,16 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
     DivPanel sectionRight = sectionRightGridBuilder.getPanel();
 
     sectionRight.add(new Heading1Panel(sectionRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.leaveOfYear", String.valueOf(year - 1))));
-    appendFieldset(sectionRightGridBuilder, "vacation.remainingLeaveFromYear", previousYearStats, "remainingLeaveFromPreviousYearAllocated", false,
+    appendFieldset(sectionRightGridBuilder, "vacation.annualleave", previousYearStats.getVacationDaysInYearFromContract(), false,
             String.valueOf(year - 2));
-    appendFieldset(sectionRightGridBuilder, "vacation.approvedVacationInYear", previousYearStats, "vacationDaysApproved", false,
+    appendFieldset(sectionRightGridBuilder, "vacation.remainingLeaveFromYear", previousYearStats.getRemainingLeaveFromPreviousYearAllocated(), false,
+            String.valueOf(year - 2));
+    appendFieldset(sectionRightGridBuilder, "vacation.approvedVacationInYear", previousYearStats.getVacationDaysApproved(), false,
             String.valueOf(year - 1));
-    appendFieldset(sectionRightGridBuilder, "vacation.approvedSpecialVacationInYear", previousYearStats, "specialVacationDaysApproved", false,
+    appendFieldset(sectionRightGridBuilder, "vacation.approvedSpecialVacationInYear", previousYearStats.getSpecialVacationDaysApproved(), false,
             String.valueOf(year - 1));
     if (previousYearStats.getLeaveAccountEntriesSum().compareTo(BigDecimal.ZERO) != 0) {
-      appendFieldset(sectionLeftGridBuilder, "menu.vacation.leaveAccountEntry", previousYearStats, "leaveAccountEntriesSum", true);
+      appendFieldset(sectionLeftGridBuilder, "menu.vacation.leaveAccountEntry", previousYearStats.getLeaveAccountEntriesSum(), true);
     }
 
     // bottom list
@@ -322,9 +327,9 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
     return columns;
   }
 
-  private boolean appendFieldset(GridBuilder gridBuilder, final String label, final VacationStats stats, final String property, final boolean bold, final String... labelParameters) {
+  private boolean appendFieldset(GridBuilder gridBuilder, final String label, final BigDecimal value, final boolean bold, final String... labelParameters) {
     final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage(label, (Object[]) labelParameters)).suppressLabelForWarning();
-    DivTextPanel divTextPanel = new DivTextPanel(fs.newChildId(), new BigDecimalModel(new PropertyModel(stats, property)));
+    DivTextPanel divTextPanel = new DivTextPanel(fs.newChildId(), VacationStats.format(value));
     return appendFieldset(label, fs, bold, divTextPanel);
   }
 
@@ -345,29 +350,6 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
     }
     fs.add(divTextPanel);
     return true;
-  }
-
-  public class BigDecimalModel implements IModel<String> {
-    private IModel<BigDecimal> model;
-
-    public BigDecimalModel(IModel<BigDecimal> bigDecimalIModel) {
-      this.model = bigDecimalIModel;
-    }
-
-    @Override
-    public String getObject() {
-      return VacationStats.format(model.getObject());
-    }
-
-    @Override
-    public void setObject(String object) {
-      throw new IllegalStateException("setObject not supported.");
-    }
-
-    @Override
-    public void detach() {
-      model.detach();
-    }
   }
 
   public EmployeeDO getEmployee() {
