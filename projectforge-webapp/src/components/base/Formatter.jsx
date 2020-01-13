@@ -29,7 +29,7 @@ function Formatter(
 ) {
     const value = Object.getByString(data, id);
     if (!value) {
-        return <React.Fragment />;
+        return <React.Fragment/>;
     }
 
     let result = value;
@@ -64,7 +64,7 @@ function Formatter(
                     .format(timestampFormatMinutes);
                 break;
             case USER_FORMATTER:
-                result = value.displayName;
+                result = value.displayName || value.fullname || value.username;
                 break;
             case EMPLOYEE_FORMATTER:
                 result = value.displayName;
