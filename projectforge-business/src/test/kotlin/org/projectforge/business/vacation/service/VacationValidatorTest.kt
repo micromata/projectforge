@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
+import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
@@ -34,12 +35,16 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
 
 class VacationValidatorTest : AbstractTestBase() {
     @Autowired
     private lateinit var employeeDao: EmployeeDao
+
+    @Autowired
+    private lateinit var employeeService: EmployeeService
 
     @Autowired
     private lateinit var userDao: UserDao
@@ -116,9 +121,8 @@ class VacationValidatorTest : AbstractTestBase() {
         employee.user = user
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
-        employee.urlaubstage = 30
+        employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(30));
         employeeDao.internalSave(employee)
         return employee
     }
-
 }

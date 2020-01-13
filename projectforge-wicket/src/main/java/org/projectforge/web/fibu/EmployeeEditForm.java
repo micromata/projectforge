@@ -237,13 +237,13 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
       fs.add(new MinMaxNumberField<>(InputPanel.WICKET_ID,
               new PropertyModel<>(data, "weeklyWorkingHours"), BigDecimal.ZERO, NUMBER_OF_WEEK_HOURS));
     }
-    {
+    /*{
       // Holidays
       final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "urlaubstage");
       MinMaxNumberField<Integer> fieldHolidays = new MinMaxNumberField<>(InputPanel.WICKET_ID, new PropertyModel<>(data, "urlaubstage"), 0, 366);
       fieldHolidays.setMarkupId("urlaubstage").setOutputMarkupId(true);
       fs.add(fieldHolidays);
-    }
+    }*/
     {
       // Start date
       final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "eintrittsDatum");

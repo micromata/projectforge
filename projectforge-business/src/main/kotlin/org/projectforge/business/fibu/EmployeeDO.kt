@@ -56,7 +56,6 @@ import org.projectforge.framework.utils.Constants
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
 import javax.persistence.*
 
 /**
@@ -136,18 +135,10 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @get:Column(length = 255)
     open var staffNumber: String? = null
 
-    /**
-     * Number of yearly available vacation days.
-     */
-    @PropertyInfo(i18nKey = "fibu.employee.urlaubstage")
-    @Field(analyze = Analyze.NO)
-    @get:Column
-    open var urlaubstage: Int? = null // Open needed for mocking in VacationServiceTest
-
     @Field(store = Store.YES)
     @FieldBridge(impl = TimeableListFieldBridge::class)
     @IndexedEmbedded(depth = 2)
-    private var timeableAttributes: MutableList<EmployeeTimedDO> = ArrayList()
+    private var timeableAttributes = mutableListOf<EmployeeTimedDO>()
 
     @PropertyInfo(i18nKey = "fibu.employee.wochenstunden")
     @Field(analyze = Analyze.NO)
