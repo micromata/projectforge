@@ -167,10 +167,10 @@ abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected construc
         return getAccessType(obj, userId) == DataobjectAccessType.MINIMAL
     }
 
-    private fun isMemberOfAny(groupIds: Array<Int>?, userIds: Array<Int>?, userId: Int): Boolean {
+    private fun isMemberOfAny(groupIds: Array<Int>?, userIds: Array<Int?>?, userId: Int): Boolean {
         if (!groupIds.isNullOrEmpty() && userGroupCache.isUserMemberOfAtLeastOneGroup(userId, *groupIds)) {
             return true
         }
-        return userIds?.any { it == userId } ?: false
+        return userIds?.any { it != null && it == userId } ?: false
     }
 }
