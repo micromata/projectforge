@@ -12,7 +12,7 @@ function ObjectAutoCompletion(
         ...props
     },
 ) {
-    const [search, setSearch] = React.useState(value.displayName);
+    const [search, setSearch] = React.useState('');
 
     React.useEffect(() => {
         if (search !== value.displayName) {

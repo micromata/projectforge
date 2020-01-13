@@ -34,7 +34,7 @@ function ObjectSelect(
         handleSelectMeHoverEnd();
     };
 
-    const hasSelectMe = (type === 'USER' || type === 'EMPLOYEE') && value && value.id !== user.id;
+    const hasSelectMe = (type === 'USER' || type === 'EMPLOYEE') && (!value || value.id !== user.id);
 
     let inputProps = {
         label,
