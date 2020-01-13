@@ -51,8 +51,8 @@ const Input = React.forwardRef((
             {icon && (
                 <FontAwesomeIcon
                     icon={icon}
-                    className={styles.icon}
                     {...iconProps}
+                    className={classNames(styles.icon, iconProps && iconProps.className)}
                 />
             )}
             <label
