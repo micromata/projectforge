@@ -181,7 +181,9 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
     sectionRight.add(new Heading1Panel(sectionRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.leaveOfYear", String.valueOf(year - 1))));
     appendFieldset(sectionRightGridBuilder, "vacation.annualleave", previousYearStats.getVacationDaysInYearFromContract(), false,
             String.valueOf(year - 2));
-    appendFieldset(sectionRightGridBuilder, "vacation.remainingLeaveFromYear", previousYearStats.getRemainingLeaveFromPreviousYearAllocated(), false,
+    appendFieldset(sectionRightGridBuilder, "vacation.remainingLeaveFromYear", previousYearStats.getRemainingLeaveFromPreviousYear(), false,
+            String.valueOf(year - 2));
+    appendFieldset(sectionRightGridBuilder, "vacation.vacation.remainingLeaveFromYearUnused", previousYearStats.getRemainingLeaveFromPreviousYearUnused(), false,
             String.valueOf(year - 2));
     appendFieldset(sectionRightGridBuilder, "vacation.approvedVacationInYear", previousYearStats.getVacationDaysApproved(), false,
             String.valueOf(year - 1));
