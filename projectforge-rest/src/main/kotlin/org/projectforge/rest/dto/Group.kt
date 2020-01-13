@@ -38,5 +38,6 @@ class Group(id: Int? = null,
     override fun copyFromMinimal(src: GroupDO) {
         super.copyFromMinimal(src)
         name = src.name
+        displayName = src.shortDisplayName
     }
 }
