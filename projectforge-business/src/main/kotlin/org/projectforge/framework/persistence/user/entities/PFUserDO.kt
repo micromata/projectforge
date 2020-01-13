@@ -366,7 +366,7 @@ open class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
         val first = this.firstname
         val last = this.lastname
         return if (first.isNullOrBlank()) {
-            if (last.isNullOrBlank()) this.username ?: ""
+            if (last.isNullOrBlank()) ""
             else last
         } else {
             if (last.isNullOrBlank()) first
