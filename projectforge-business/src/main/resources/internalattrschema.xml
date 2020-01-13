@@ -12,7 +12,7 @@
             <constructor-arg>
               <list>
 
-                <!-- Status -->
+                <!-- Employee status -->
                 <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
                   <property name="type" value="PERIOD"/>
                   <property name="name" value="employeestatus"/>
@@ -41,6 +41,29 @@
                             </property>
                           </bean>
                         </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- Employee annual leave days from contract -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="name" value="employeeannualleave"/>
+                  <property name="i18nKey" value="vacation.annualleave"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="employeeannualleavedays"/>
+                        <property name="i18nkey" value="vacation.annualleave"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="required" value="true"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="280"/>
                       </bean>
                     </list>
                   </property>
