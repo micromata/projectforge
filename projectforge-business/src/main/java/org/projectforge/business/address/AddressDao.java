@@ -40,6 +40,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -469,7 +470,7 @@ public class AddressDao extends BaseDao<AddressDO> {
     }
     print(pw, "URL;type=pref:", addressDO.getWebsite());
     if (addressDO.getBirthday() != null) {
-      print(pw, "BDAY;value=date:", V_CARD_DATE_FORMAT.format(addressDO.getBirthday()));
+      print(pw, "BDAY;value=date:", V_CARD_DATE_FORMAT.format(PFDay.from(addressDO.getBirthday()).getSqlDate()));
     }
     if (isGiven(addressDO.getComment())) {
       print(pw, "NOTE:", addressDO.getComment() + "\\nCLASS: WORK");
