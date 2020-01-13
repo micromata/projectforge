@@ -23,9 +23,9 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.rest.core.IShortDisplayObject
 
 class Group(id: Int? = null,
             var name: String? = null,
@@ -34,10 +34,10 @@ class Group(id: Int? = null,
              */
             override var displayName: String = name ?: "",
             var assignedUsers: MutableSet<PFUserDO>? = null
-) : BaseDTO<GroupDO>(id = id), IShortDisplayObject<Int> {
+) : BaseDTO<GroupDO>(id = id), DisplayNameCapable {
     override fun copyFromMinimal(src: GroupDO) {
         super.copyFromMinimal(src)
         name = src.name
-        displayName = src.shortDisplayName
+        displayName = src.displayName
     }
 }

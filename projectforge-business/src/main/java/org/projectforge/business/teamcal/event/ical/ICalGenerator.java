@@ -105,7 +105,7 @@ public class ICalGenerator {
   public ICalGenerator reset() {
     // creating a new calendar
     this.calendar = new Calendar();
-    calendar.getProperties().add(new ProdId("-//" + user.getShortDisplayName() + "//ProjectForge//" + locale.toString().toUpperCase()));
+    calendar.getProperties().add(new ProdId("-//" + user.getDisplayName() + "//ProjectForge//" + locale.toString().toUpperCase()));
     calendar.getProperties().add(Version.VERSION_2_0);
     calendar.getProperties().add(CalScale.GREGORIAN);
 

@@ -31,13 +31,13 @@ import de.micromata.genome.jpa.metainf.EntityDependencies
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.ModificationStatus
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.PFDateCompabilityUtils
 import org.projectforge.framework.time.PFDateTime
@@ -67,11 +67,11 @@ import javax.persistence.*
         NamedQuery(name = PFUserDO.SELECT_ID_MEB_MOBILE_NUMBERS,
                 query = "select id, personalMebMobileNumbers from PFUserDO where deleted=false and personalMebMobileNumbers is not null"))
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
-open class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
 
-    override val shortDisplayName
+    override val displayName: String?
         @Transient
-        get() = "$username"
+        get() = "${getFullname()}"
 
     @Transient
     private var attributeMap: MutableMap<String, Any>? = null

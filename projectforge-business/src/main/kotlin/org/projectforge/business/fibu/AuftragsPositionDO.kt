@@ -32,7 +32,7 @@ import org.hibernate.search.annotations.*
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.i18n.UserException
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.sql.Date
@@ -49,9 +49,9 @@ import javax.persistence.*
 @Cache(region = "orders", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 //@Cacheable
 @Table(name = "t_fibu_auftrag_position", uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_fk", "number"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_auftrag_fk", columnList = "auftrag_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_task_fk", columnList = "task_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_tenant_id", columnList = "tenant_id")])
-open class AuftragsPositionDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
 
-    override val shortDisplayName: String
+    override val displayName: String
         @Transient
         get() = "${auftrag?.nummer}.$number"
 

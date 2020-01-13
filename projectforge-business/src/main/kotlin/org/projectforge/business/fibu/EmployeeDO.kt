@@ -43,10 +43,10 @@ import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.anots.StringAlphanumericSort
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ModificationStatus
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO
 import org.projectforge.framework.persistence.attr.impl.HibernateSearchAttrSchemaFieldInfoProvider
 import org.projectforge.framework.persistence.history.ToStringFieldBridge
@@ -75,10 +75,10 @@ import javax.persistence.*
         NamedQuery(name = EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME, query = "from EmployeeDO where user.lastname=:lastname and user.firstname=:firstname"))
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr, Comparable<Any>,
-        ShortDisplayNameCapable {
+        DisplayNameCapable {
     // The class must be declared as open for mocking in VacationServiceTest.
 
-    override val shortDisplayName: String
+    override val displayName: String
         @Transient
         get() = "${user?.getFullname()}"
 

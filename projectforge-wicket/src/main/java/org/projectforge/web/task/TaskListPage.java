@@ -153,9 +153,9 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
     for (int i = 0; i < kost2s.length; i++) {
       final Kost2DO kost2 = list.get(i);
       if (kost2.getProjekt() != null) {
-        kost2s[i] = kost2.getShortDisplayName() + " " + kost2.getKost2Art().getName();
+        kost2s[i] = kost2.getDisplayName() + " " + kost2.getKost2Art().getName();
       } else {
-        kost2s[i] = kost2.getShortDisplayName() + " " + kost2.getDescription();
+        kost2s[i] = kost2.getDisplayName() + " " + kost2.getDescription();
       }
     }
     return kost2s;
@@ -168,7 +168,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
     String[] kost2s = null;
     if (list != null) {
       if (list.size() == 1) {
-        buf.append(HtmlHelper.escapeXml(list.get(0).getShortDisplayName()));
+        buf.append(HtmlHelper.escapeXml(list.get(0).getDisplayName()));
       } else {
         kost2s = getKost2s(list);
         buf.append(HtmlHelper.escapeXml(StringHelper.getWildcardString(kost2s))).append("*");

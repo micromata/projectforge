@@ -33,7 +33,7 @@ import org.hibernate.search.annotations.*
 import org.hibernate.search.annotations.Index
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO
 import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -53,8 +53,8 @@ import javax.persistence.*
         indexes = [javax.persistence.Index(name = "idx_fk_t_address_tenant_id",
                 columnList = "tenant_id"), javax.persistence.Index(name = "idx_fk_t_address_uid_tenant_id",
                 columnList = "uid, tenant_id")])
-open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), ShortDisplayNameCapable {
-    override val shortDisplayName: String
+open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
+    override val displayName: String
         @Transient
         get() = if (city.isNullOrBlank()) "$fullName" else "$fullName, $city"
 

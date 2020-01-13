@@ -26,7 +26,7 @@ package org.projectforge.plugins.skillmatrix
 import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -41,9 +41,9 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_SKILL_TRAINING_ATTENDEE", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_skill_training_attendee_attendee_fk", columnList = "attendee_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_skill_training_attendee_training_fk", columnList = "training_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_skill_training_attendee_tenant_id", columnList = "tenant_id")])
-open class TrainingAttendeeDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class TrainingAttendeeDO : DefaultBaseDO(), DisplayNameCapable {
 
-    override val shortDisplayName: String
+    override val displayName: String
         @Transient
         get() = "${training?.title} (#$id)"
 

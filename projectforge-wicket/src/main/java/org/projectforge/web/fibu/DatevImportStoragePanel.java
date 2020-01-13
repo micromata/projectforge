@@ -127,12 +127,12 @@ public class DatevImportStoragePanel extends AbstractImportStoragePanel<DatevImp
       addCell(cellRepeater, satz.getKonto() != null ? satz.getKonto().getNummer() : null, style);
       addCell(cellRepeater, satz.getGegenKonto() != null ? satz.getGegenKonto().getNummer() : null, style);
       final Kost1DO kost1 = satz.getKost1();
-      Component comp = addCell(cellRepeater, kost1 != null ? kost1.getShortDisplayName() : null, style);
+      Component comp = addCell(cellRepeater, kost1 != null ? kost1.getDisplayName() : null, style);
       if (kost1 != null) {
         WicketUtils.addTooltip(comp, KostFormatter.formatToolTip(kost1));
       }
       final Kost2DO kost2 = satz.getKost2();
-      comp = addCell(cellRepeater, kost2 != null ? kost2.getShortDisplayName() : null, style);
+      comp = addCell(cellRepeater, kost2 != null ? kost2.getDisplayName() : null, style);
       if (kost2 != null) {
         WicketUtils.addTooltip(comp, KostFormatter.formatToolTip(kost2));
       }

@@ -33,7 +33,7 @@ import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektFormatter
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.Priority
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.ObjectHelper
@@ -47,9 +47,9 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_HR_PLANNING_ENTRY", indexes = [javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_planning_fk", columnList = "planning_fk"), javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_projekt_fk", columnList = "projekt_fk"), javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_tenant_id", columnList = "tenant_id")])
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
-open class HRPlanningEntryDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
 
-    override val shortDisplayName: String
+    override val displayName: String
         @Transient
         get() = "${projekt?.name}"
 

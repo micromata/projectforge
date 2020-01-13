@@ -191,7 +191,7 @@ public class TaskFilter extends BaseSearchFilter
         || StringUtils.containsIgnoreCase(task.getReference(), this.searchString)
         || StringUtils.containsIgnoreCase(task.getShortDescription(), this.searchString)
         || StringUtils.containsIgnoreCase(task.getDescription(), this.searchString)
-        || StringUtils.containsIgnoreCase(task.getShortDisplayName(), this.searchString)
+        || StringUtils.containsIgnoreCase(task.getDisplayName(), this.searchString)
         || StringUtils.containsIgnoreCase(username, this.searchString)
         || StringUtils.containsIgnoreCase(task.getWorkpackageCode(), this.searchString)) {
       taskVisibility.put(task.getId(), true);

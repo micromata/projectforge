@@ -470,7 +470,7 @@ public class CalendarPanel extends Panel
     OperationType type = isMoveAction ? OperationType.UPDATE : OperationType.INSERT;
     if (timesheetDao.checkTimesheetProtection(loggedInUser, timesheet, dbTimesheet, type, false)) {
       if (timesheetDao.checkTaskBookable(timesheet, dbTimesheet, type, false) == false) {
-        this.error(getString("timesheet.error.taskNotBookable.taskNotOpened").replace("{0}", timesheet.getTask().getShortDisplayName()));
+        this.error(getString("timesheet.error.taskNotBookable.taskNotOpened").replace("{0}", timesheet.getTask().getDisplayName()));
         setResponsePage(getPage());
         return;
       }

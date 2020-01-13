@@ -284,7 +284,7 @@ public class MonthlyEmployeeReport implements Serializable {
       if (MapUtils.isNotEmpty(week.getKost2Entries())) {
         for (final MonthlyEmployeeReportEntry entry : week.getKost2Entries().values()) {
           Validate.notNull(entry.getKost2());
-          kost2Rows.put(entry.getKost2().getShortDisplayName(), new Kost2Row(entry.getKost2()));
+          kost2Rows.put(entry.getKost2().getDisplayName(), new Kost2Row(entry.getKost2()));
           MonthlyEmployeeReportEntry kost2Total = kost2Durations.get(entry.getKost2().getId());
           if (kost2Total == null) {
             kost2Total = new MonthlyEmployeeReportEntry(entry.getKost2());
@@ -375,7 +375,7 @@ public class MonthlyEmployeeReport implements Serializable {
   }
 
   /**
-   * Key is the shortDisplayName of Kost2DO. The Map is a TreeMap sorted by the keys.
+   * Key is the displayName of Kost2DO. The Map is a TreeMap sorted by the keys.
    */
   public Map<String, Kost2Row> getKost2Rows() {
     return kost2Rows;

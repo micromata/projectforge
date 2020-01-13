@@ -29,7 +29,7 @@ import org.hibernate.search.annotations.ContainedIn
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.multitenancy.TenantTableTruncater
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -45,7 +45,7 @@ import javax.persistence.*
 @Table(name = "T_TENANT")
 @ATableTruncater(TenantTableTruncater::class)
 @NamedQueries(NamedQuery(name = TenantDO.FIND_ASSIGNED_TENANTS, query = "from TenantDO t where :user member of t.assignedUsers"))
-open class TenantDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class TenantDO : DefaultBaseDO(), DisplayNameCapable {
 
     private val log = LoggerFactory.getLogger(TenantDO::class.java)
 
@@ -55,7 +55,7 @@ open class TenantDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @get:Column(length = 100)
     open var shortName: String? = null
 
-    override val shortDisplayName: String
+    override val displayName: String
         @Transient
         get() = "$shortName"
 
