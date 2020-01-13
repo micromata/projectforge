@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { Button, Col, Container, Popover, PopoverBody, PopoverHeader, Row } from 'reactstrap';
-import UserSelect from '../../../components/base/page/layout/UserSelect';
 import ObjectSelect from '../../../components/design/input/autoCompletion/ObjectSelect';
 import CheckBox from '../../../components/design/input/CheckBox';
 import style from '../../../components/design/input/Input.module.scss';
@@ -208,7 +207,7 @@ class CalendarFilterSettings extends Component {
                                     {otherTimesheetUsersEnabled ? (
                                         <ObjectSelect
                                             id="showTimesheets"
-                                            label={translations['calendar.option.timesheets']}
+                                            label={translations['calendar.option.timesheets'] || ''}
                                             onSelect={this.handleTimesheetUserChange}
                                             translations={translations}
                                             type="USER"
