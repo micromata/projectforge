@@ -241,7 +241,7 @@ class VacationServiceTest : AbstractTestBase() {
     fun employeeJoinedInFutureTest() {
         val employee = createEmployee("FutureJoiner", LocalDate.now().plusDays(1))
         logon(employee.user)
-        assertStats(employee, 2020)
+        assertStats(employee, 2020, vacationDaysInYearFromContract = -1.0) // Don't check vacationDaysInYearFromContract: it depends on the date of year this test runs.
     }
 
     @Test
@@ -365,11 +365,13 @@ class VacationServiceTest : AbstractTestBase() {
         assertNumbers(stats, carryVacationDaysFromPreviousYear, stats.remainingLeaveFromPreviousYear, "carryVacationDaysFromPreviousYear")
         assertNumbers(stats, carryVacationDaysFromPreviousYearUnused, stats.remainingLeaveFromPreviousYearUnused, "carryVacationDaysFromPreviousYearUnused")
         assertNumbers(stats, vacationDaysAllocatedInYear, stats.vacationDaysInProgressAndApproved, "vacationDaysAllocatedInYear")
-        assertNumbers(stats, vacationDaysInYearFromContract, stats.vacationDaysInYearFromContract, "vacationDaysInYearFromContract")
-        if (vacationDaysLeftInYear != null)
-            assertNumbers(stats, vacationDaysLeftInYear, stats.vacationDaysLeftInYear, "vacationDaysLeftInYear")
-        else
-            assertNumbers(stats, vacationDaysInYearFromContract - vacationDaysAllocatedInYear, stats.vacationDaysLeftInYear, "vacationDaysLeftInYear")
+        if (vacationDaysInYearFromContract >= 0) {
+            assertNumbers(stats, vacationDaysInYearFromContract, stats.vacationDaysInYearFromContract, "vacationDaysInYearFromContract")
+            if (vacationDaysLeftInYear != null)
+                assertNumbers(stats, vacationDaysLeftInYear, stats.vacationDaysLeftInYear, "vacationDaysLeftInYear")
+            else
+                assertNumbers(stats, vacationDaysInYearFromContract - vacationDaysAllocatedInYear, stats.vacationDaysLeftInYear, "vacationDaysLeftInYear")
+        }
         if (carryVacationDaysFromPreviousYear != null && carryVacationDaysFromPreviousYear > 0) {
             assertNumbers(stats,
                     carryVacationDaysFromPreviousYear,
