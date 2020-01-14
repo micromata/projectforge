@@ -31,6 +31,10 @@ import java.nio.charset.StandardCharsets
  * The blocks (separated by new lines or comments) will be preserved. Sorting will only be done inside a block.
  * All specific language properties files will have the same order and blocks as the default properties file. Any non key-value-lines of
  * language specific properties file will be replaced by the lines of the default properties file.
+ *
+ * Running this script will preserve any key-value properties in all translation files, but will re-order them.
+ * Any comment or blank line in the default properties file is preserved. Any comment or blank will be disregarded and replaced by
+ * the lines of the default properties.
  */
 object SortAndCheckI18nPropertiesMain {
     val ENCODING = StandardCharsets.ISO_8859_1
@@ -131,9 +135,12 @@ object SortAndCheckI18nPropertiesMain {
                     out.println("# You may correct the entries wherever you want without taking care of any sort order.")
                     out.println("# Make any correction you want and re-run ${mainClass.simpleName}.kt again.")
                     out.println("# This main function sorts all entries in default properties and ensures the same output in this lang properties.")
+                    out.println("#")
+                    out.println("# Any comment or blank line of this file will be ignored and replaced by such lines from default properties.")
                     out.println("")
                     if (!missedEntriesInMaster.isNullOrEmpty()) {
                         out.println("# ******** Entries in '${File(filename).name}' MISSED in default '${File(masterFile.filename).name}':")
+                        out.println("#")
                         missedEntriesInMaster.forEach {
                             out.println("${it.key}=${it.value}")
                         }
@@ -141,6 +148,7 @@ object SortAndCheckI18nPropertiesMain {
                     }
                     if (!missedKeyInLang.isNullOrEmpty()) {
                         out.println("# Missed translations from default '${File(masterFile.filename).name}' (might be OK):")
+                        out.println("#")
                         missedKeyInLang.forEach {key ->
                             val entry = masterFile.entries.find { it.key == key }
                             if (entry != null) {
