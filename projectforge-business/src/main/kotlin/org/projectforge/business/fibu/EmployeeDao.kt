@@ -28,7 +28,6 @@ import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserRightId
-import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -74,9 +73,9 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     @JvmOverloads
     open fun getEmployeeIdByByUserId(userId: Int?, tenantId: Int? = null): Int? {
         return ensureUniqueResult(em
-                .createNamedQuery(EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID, Int::class.java)
+                .createNamedQuery(EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID, Integer::class.java)
                 .setParameter("userId", userId)
-                .setParameter("tenantId", tenantId ?: TenantRegistryMap.getInstance().tenantRegistry.tenantId))
+                .setParameter("tenantId", tenantId ?: TenantRegistryMap.getInstance().tenantRegistry.tenantId))?.toInt()
     }
 
 

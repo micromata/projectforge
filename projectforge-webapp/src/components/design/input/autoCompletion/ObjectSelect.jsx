@@ -26,7 +26,7 @@ function ObjectSelect(
     const handleSelectMeClick = (event) => {
         event.stopPropagation();
         onSelect({
-            id: user.id,
+            id: type === 'EMPLOYEE' ? user.employeeId : user.id,
             displayName: user.displayName,
         });
 
@@ -34,7 +34,8 @@ function ObjectSelect(
         handleSelectMeHoverEnd();
     };
 
-    const hasSelectMe = (type === 'USER' || type === 'EMPLOYEE') && (!value || value.id !== user.id);
+    const hasSelectMe = (type === 'USER' && (!value || value.id !== user.id))
+        || (type === 'EMPLOYEE' && (!value || value.id !== user.employeeId));
 
     let inputProps = {
         label,
@@ -96,6 +97,7 @@ ObjectSelect.defaultProps = {
 const mapStateToProps = ({ authentication }) => ({
     user: {
         id: authentication.user.userId,
+        employeeId: authentication.user.employeeId,
         displayName: authentication.user.username,
     },
 });
