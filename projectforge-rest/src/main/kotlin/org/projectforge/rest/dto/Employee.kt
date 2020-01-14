@@ -30,11 +30,9 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
 import java.time.LocalDate
 
-class Employee(var user: PFUserDO? = null,
-               /**
-                * Only for displaying purposes. Will be ignored on save or update.
-                */
-               var fullname: String? = null,
+class Employee(id: Int? = null,
+               displayName: String? = null,
+               var user: PFUserDO? = null,
                var kost1: Kost1? = null,
                var status: EmployeeStatus? = null,
                var position: String? = null,
@@ -55,14 +53,4 @@ class Employee(var user: PFUserDO? = null,
                var country: String? = null,
                var state: String? = null,
                var comment: String? = null
-) : BaseDTO<EmployeeDO>() {
-    override fun copyFrom(src: EmployeeDO) {
-        super.copyFrom(src)
-        fullname = src.user?.getFullname() ?: ""
-    }
-
-    override fun copyFromMinimal(src: EmployeeDO) {
-        super.copyFromMinimal(src)
-        fullname = src.user?.getFullname() ?: ""
-    }
-}
+) : BaseDTODisplayObject<EmployeeDO>(id, displayName = displayName)

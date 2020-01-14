@@ -69,7 +69,7 @@ import javax.persistence.*
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
 
-    override val displayName: String?
+    override val displayName: String
         @Transient
         get() = "${getFullname()}"
 

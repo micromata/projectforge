@@ -28,6 +28,7 @@ import org.projectforge.business.fibu.kost.KostentraegerStatus
 
 class Kost2(
         id: Int? = null,
+        displayName: String? = null,
         var nummernkreis: Int = 0,
         var bereich: Int = 0,
         var teilbereich: Int = 0,
@@ -35,7 +36,9 @@ class Kost2(
         var kostentraegerStatus: KostentraegerStatus? = null,
         var description: String? = null,
         var formattedNumber: String? = null
-) : BaseDTO<Kost2DO>(id) {
+) : BaseDTODisplayObject<Kost2DO>(id, displayName = displayName) {
+    var projekt: Projekt? = null
+
     override fun copyFromMinimal(src: Kost2DO) {
         super.copyFromMinimal(src)
         nummernkreis = src.nummernkreis

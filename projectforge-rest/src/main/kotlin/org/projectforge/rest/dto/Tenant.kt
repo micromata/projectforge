@@ -25,4 +25,6 @@ package org.projectforge.rest.dto
 
 import org.projectforge.framework.persistence.user.entities.TenantDO
 
-class Tenant(var name: String? = null) : BaseDTO<TenantDO>()
+class Tenant(id: Int? = null,
+             displayName: String? = null,
+             var name: String? = null) : BaseDTODisplayObject<TenantDO>(id, displayName = displayName)

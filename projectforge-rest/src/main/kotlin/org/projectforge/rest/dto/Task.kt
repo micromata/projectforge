@@ -31,7 +31,9 @@ import org.projectforge.common.task.TaskStatus
 import org.projectforge.common.task.TimesheetBookingStatus
 import java.math.BigDecimal
 
-class Task(var parentTask: Task? = null,
+class Task(id: Int? = null,
+           displayName: String? = null,
+           var parentTask: Task? = null,
            var title: String? = null,
            var status: TaskStatus? = null,
            var priority: Priority? = null,
@@ -54,7 +56,7 @@ class Task(var parentTask: Task? = null,
            var ganttRelationType: GanttRelationType? = null,
            var ganttObjectType: GanttObjectType? = null,
            var ganttPredecessor: Task? = null
-) : BaseDTO<TaskDO>() {
+) : BaseDTODisplayObject<TaskDO>(id, displayName = displayName) {
 
     override fun copyFromMinimal(src: TaskDO) {
         super.copyFromMinimal(src)
