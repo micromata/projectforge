@@ -24,11 +24,9 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.ProjektDO
-import java.util.*
 
-class Projekt(id: Int?,
-              deleted: Boolean,
-              created: Date?,
-              lastUpdate: Date?,
-              tenant: Tenant?)
-    : BaseDTO<ProjektDO>(id, deleted, created, lastUpdate, tenant)
+class Projekt(id: Int? = null,
+              displayName: String? = null)
+    : BaseDTODisplayObject<ProjektDO>(id, displayName = displayName) {
+    var kunde: Kunde? = null
+}
