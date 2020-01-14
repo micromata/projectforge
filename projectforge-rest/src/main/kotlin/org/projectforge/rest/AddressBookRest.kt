@@ -27,6 +27,7 @@ import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.Addressbook
@@ -130,5 +131,12 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
                                         valueProperty = "id",
                                         tooltip = "addressbook.readonlyAccess.tooltip"))))
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    override val autoCompleteSearchFields = arrayOf("title", "description")
+
+    override fun queryAutocompleteObjects(filter: BaseSearchFilter): MutableList<AddressbookDO> {
+        val list = super.queryAutocompleteObjects(filter)
+        return list
     }
 }
