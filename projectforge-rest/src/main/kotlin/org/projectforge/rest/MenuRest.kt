@@ -62,7 +62,7 @@ class MenuRest {
         myAccountMenu.add(item)
         item.add(MenuItem("SendFeedback", i18nKey = "menu.gear.feedback", url = "wa/feedback"))
         item.add(MenuItem("MyAccount", i18nKey = "menu.myAccount", url = "wa/myAccount"))
-        item.add(MenuItem("MyLeaveAccount", i18nKey = "menu.vacation.leaveaccount", url = "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationViewPage"))
+        item.add(MenuItem("MyLeaveAccount", i18nKey = "menu.vacation.leaveaccount", url = "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationAccountPage"))
         item.add(MenuItem("Logout", i18nKey = "menu.logout", url = "logout", type = MenuItemTargetType.RESTCALL))
         item.subMenu?.forEach { it.postProcess() }
         return Menus(mainMenu, favoritesMenu, myAccountMenu)
