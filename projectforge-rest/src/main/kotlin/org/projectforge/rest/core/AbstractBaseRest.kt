@@ -302,7 +302,7 @@ abstract class AbstractBaseRest<
      * At standard, quickSelectUrl is only given, if the doClass implements DisplayObject and autoCompleteSearchFields are given.
      */
     protected open val quickSelectUrl: String?
-        get() = if (!autoCompleteSearchFields.isNullOrEmpty() && DisplayObject::class.java.isAssignableFrom(baseDao.doClass)) "${getRestPath()}/${AutoCompletion.AUTOCOMPLETE_OBJECT}?maxResults=30&search=:search" else null
+        get() = if (!autoCompleteSearchFields.isNullOrEmpty() && DisplayNameCapable::class.java.isAssignableFrom(baseDao.doClass)) "${getRestPath()}/${AutoCompletion.AUTOCOMPLETE_OBJECT}?maxResults=30&search=:search" else null
 
     /**
      * Add customized magic filter element in addition to the automatically detected elements.
