@@ -346,7 +346,7 @@ class MenuCreator {
         val adminMenu = menuItemDefHolder.add(MenuItemDef(MenuItemDefId.ADMINISTRATION, visibleForRestrictedUsers = true))
                 .add(MenuItemDef(MenuItemDefId.MY_ACCOUNT, "wa/myAccount"))
                 .add(MenuItemDef(MenuItemDefId.MY_PREFERENCES, "wa/userPrefList"))
-                .add(MenuItemDef(MenuItemDefId.VACATION_ACCOUNT, "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationViewPage",
+                .add(MenuItemDef(MenuItemDefId.VACATION_ACCOUNT, "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationAccountPage",
                         checkAccess =
                         {
                             vacationService.hasAccessToVacationService(ThreadLocalUserContext.getUser(), false)

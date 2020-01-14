@@ -271,7 +271,7 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
                                final IModel<VacationDO> rowModel) {
         final VacationDO vacation = rowModel.getObject();
         item.add(new ListSelectActionPanel(componentId, rowModel, VacationEditPage.class, vacation.getId(),
-                VacationAccountPage.class, DateTimeFormatter.instance().getFormattedDate(vacation.getStartDate()), "employeeId", String.valueOf(employee.getId())));
+                VacationAccountPage.class, DateTimeFormatter.instance().getFormattedDate(vacation.getStartDate()), "employeeId", String.valueOf(vacation.getEmployeeId())));
         cellItemListener.populateItem(item, componentId, rowModel);
         final Item<?> row = (item.findParent(Item.class));
         WicketUtils.addRowClick(row);
