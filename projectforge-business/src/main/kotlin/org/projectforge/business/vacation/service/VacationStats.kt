@@ -78,6 +78,11 @@ class VacationStats(
                 return BigDecimal.ZERO
             return maxOf(total - allocated, BigDecimal.ZERO)
         }
+    /**
+     * @return true, if [baseDate] is after [endOfVacationYear] and the unused remaining days from the previous year is lost.
+     */
+    val endOfVactionYearExceeded: Boolean
+        get() = baseDate.isAfter(endOfVacationYear)
     val totalLeaveIncludingCarry: BigDecimal?
         get() {
             var subTotal = vacationDaysInYearFromContract ?: BigDecimal.ZERO
@@ -157,7 +162,8 @@ class VacationStats(
         leftInYear += vacationDaysInYearFromContract!! // annual vacation days from contract.
         leftInYear -= vacationDaysInProgressAndApproved!!
         this.vacationDaysLeftInYearWithoutCarry = leftInYear
-        if (baseDate.isBefore(endOfVacationYear)) {
+        if (!endOfVactionYearExceeded) {
+            // End of vacation year is not reached: full remaining days from previuos year are available:
             leftInYear += remainingLeaveFromPreviousYearUnused ?: BigDecimal.ZERO
         }
         leftInYear += leaveAccountEntriesSum
@@ -167,8 +173,16 @@ class VacationStats(
 
     companion object {
         @JvmStatic
-        fun format(value: Number?): String {
-            return NumberFormatter.format(value, 1)
+        @JvmOverloads
+        fun format(value: Number?, negate: Boolean = false): String {
+            value ?: return ""
+            if (!negate) {
+                return NumberFormatter.format(value, 1)
+            }
+            if (value is BigDecimal) {
+                return NumberFormatter.format(value.negate(), 1)
+            }
+            return NumberFormatter.format((0.0 - value.toDouble()), 1)
         }
     }
 }

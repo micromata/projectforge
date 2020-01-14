@@ -98,7 +98,7 @@ open class VacationDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "vacation.vacationmode")
     private val vacationmode: VacationMode? = null
 
-    @PropertyInfo(i18nKey = "vacation.isSpecial")
+    @PropertyInfo(i18nKey = "vacation.special")
     @get:Column(name = "is_special", nullable = false)
     open var special: Boolean? = null
 
