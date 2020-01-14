@@ -23,10 +23,6 @@
 
 package org.projectforge.web.user;
 
-import java.util.Arrays;
-import java.util.Collection;
-
-import org.slf4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -47,7 +43,11 @@ import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditPage>
 {
@@ -106,10 +106,7 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
     }
     UserEditForm.createFirstName(gridBuilder, data);
     UserEditForm.createLastName(gridBuilder, data);
-    UserEditForm.createOrganization(gridBuilder, data);
-    UserEditForm.createEMail(gridBuilder, data);
     UserEditForm.createAuthenticationToken(gridBuilder, data, (UserDao) getBaseDao(), this);
-    UserEditForm.createJIRAUsername(gridBuilder, data);
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("user.assignedGroups")).suppressLabelForWarning();
     fs.add(new DivTextPanel(fs.newChildId(), groupService.getGroupnames(data.getId())));
 
