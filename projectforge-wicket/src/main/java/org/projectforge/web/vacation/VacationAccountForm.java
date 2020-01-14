@@ -230,7 +230,7 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
     TablePanel tablePanel = new TablePanel(sectionBottom.newChildId());
     sectionBottom.add(tablePanel);
     final DataTable<VacationDO, String> dataTable = createDataTable(createColumns(), "startDate", SortOrder.ASCENDING,
-            currentEmployee, year);
+            currentEmployee, stats.getYear());
     tablePanel.add(dataTable);
     if (CollectionUtils.isNotEmpty(stats.getLeaveAccountEntries())) {
       sectionBottom.add(new Heading1Panel(sectionBottom.newChildId(), I18nHelper.getLocalizedMessage("vacation.leaveAccountEntry.title.list")));
