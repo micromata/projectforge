@@ -37,7 +37,6 @@ import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
-import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -484,20 +483,28 @@ public class UserDao extends BaseDao<PFUserDO> {
   public void updateMyAccount(final PFUserDO user) {
     accessChecker.checkRestrictedOrDemoUser();
     final PFUserDO contextUser = ThreadLocalUserContext.getUser();
-    Validate.isTrue(user.getId().equals(contextUser.getId()));
-    final PFUserDO dbUser = em.getReference(clazz, user.getId());
-    final String[] ignoreFields = {"deleted", "password", "lastLogin", "loginFailures", "username", "stayLoggedInKey",
-            "authenticationToken", "rights"};
-    final ModificationStatus result = HistoryBaseDaoAdapter.wrappHistoryUpdate(dbUser,
-            () -> copyValues(user, dbUser, ignoreFields));
+    Validate.isTrue(Objects.equals(user.getId(), contextUser.getId()));
+    final PFUserDO dbUser = internalGetById(user.getId());
+    dbUser.setTimeZone(user.getTimeZone());
+    dbUser.setDateFormat(user.getDateFormat());
+    dbUser.setExcelDateFormat(user.getExcelDateFormat());
+    dbUser.setTimeNotation(user.getTimeNotation());
+    dbUser.setLocale(user.getLocale());
+    dbUser.setPersonalPhoneIdentifiers(user.getPersonalPhoneIdentifiers());
+    dbUser.setPersonalMebMobileNumbers(user.getPersonalMebMobileNumbers());
+    dbUser.setSshPublicKey(user.getSshPublicKey());
+    dbUser.setFirstname(user.getFirstname());
+    dbUser.setLastname(user.getLastname());
+    dbUser.setDescription(user.getDescription());
+    final ModificationStatus result = internalUpdate(dbUser);
     if (result != ModificationStatus.NONE) {
-      dbUser.setLastUpdate();
       log.info("Object updated: " + dbUser.toString());
-      copyValues(user, contextUser, ignoreFields);
+      copyValues(user, contextUser);
+      contextUser.clearSecretFields();
     } else {
       log.info("No modifications detected (no update needed): " + dbUser.toString());
     }
-    getUserGroupCache().updateUser(user);
+    getUserGroupCache().updateUser(contextUser);
   }
 
   /**
