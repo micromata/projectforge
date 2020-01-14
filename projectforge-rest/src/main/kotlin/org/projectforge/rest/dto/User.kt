@@ -33,4 +33,9 @@ class User(id: Int? = null,
            var description: String? = null,
            var email: String? = null,
            var deactivated: Boolean = false
-) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName)
+) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName) {
+    override fun copyFromMinimal(src: PFUserDO) {
+        super.copyFromMinimal(src)
+        this.username = src.username
+    }
+}
