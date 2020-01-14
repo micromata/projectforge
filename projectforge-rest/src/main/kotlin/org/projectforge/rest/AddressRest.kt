@@ -124,7 +124,7 @@ class AddressRest()
 
     // TODO Menus: print view, ical export, direct call: see AddressEditPage
     // TODO: onSaveOrUpdate: see AddressEditPage
-    
+
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         elements.add(UIFilterElement("myFavorites", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.myFavorites")))
         elements.add(UIFilterElement("doublets",  UIFilterElement.FilterType.BOOLEAN,translate("address.filter.doublets")))
@@ -243,11 +243,6 @@ class AddressRest()
      * LAYOUT Edit page
      */
     override fun createEditLayout(dto: Address, userAccess: UILayout.UserAccess): UILayout {
-        val addressbookDOs = addressbookDao.allAddressbooksWithFullAccess
-        val addressbooks = mutableListOf<UISelectValue<Int>>()
-        addressbookDOs.forEach {
-            addressbooks.add(UISelectValue(it.id, it.title!!))
-        }
         val communicationLanguage = UISelect("communicationLanguage", lc,
                 // The used languages are the values (for quicker select). The current language of the dto is
                 // therefore a part of the values as well and is needed for displaying the current value.
@@ -265,10 +260,11 @@ class AddressRest()
                                                         .add(UICol(lgLength = 6)
                                                                 .add(lc, "contactStatus"))))
                                         .add(UICol(mdLength = 6)
-                                                .add(createFavoriteRow(UISelect("addressbookList", lc,
+                                                .add(createFavoriteRow(UISelect<Int>("addressbookList", lc,
                                                         multi = true,
-                                                        values = addressbooks,
-                                                        labelProperty = "title",
+                                                        autoCompletion = AutoCompletion<Int>(url = "addressBook/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=",
+                                                                type = AutoCompletion.Type.USER.name),
+                                                        labelProperty = "displayName",
                                                         valueProperty = "id"),
                                                         "isFavoriteCard"))))))
                 .add(UIRow()
