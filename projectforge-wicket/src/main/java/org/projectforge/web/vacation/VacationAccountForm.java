@@ -23,6 +23,7 @@
 
 package org.projectforge.web.vacation;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -44,6 +45,7 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.vacation.model.LeaveAccountEntryDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.repository.RemainingLeaveDao;
 import org.projectforge.business.vacation.service.VacationService;
@@ -218,19 +220,24 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
       recalculateButton.add(new AttributeAppender("class", "btn btn-sm btn-success bottom-xs-gap"));
       sectionBottom.add(recalculateButton);
     }
-    int nowYear = Year.now().getValue();
-    addLeaveTable(sectionBottom, employee, nowYear);
-    addLeaveTable(sectionBottom, employee, nowYear - 1);
+    addLeaveTable(sectionBottom, employee, currentYearStats);
+    addLeaveTable(sectionBottom, employee, previousYearStats);
   }
 
-  private void addLeaveTable(DivPanel sectionBottom, EmployeeDO currentEmployee, int year) {
+  private void addLeaveTable(DivPanel sectionBottom, EmployeeDO currentEmployee, VacationStats stats) {
     sectionBottom.add(new Heading3Panel(sectionBottom.newChildId(),
-            I18nHelper.getLocalizedMessage("vacation.title.list") + " " + year));
+            I18nHelper.getLocalizedMessage("vacation.title.list") + " " + stats.getYear()));
     TablePanel tablePanel = new TablePanel(sectionBottom.newChildId());
     sectionBottom.add(tablePanel);
     final DataTable<VacationDO, String> dataTable = createDataTable(createColumns(), "startDate", SortOrder.ASCENDING,
             currentEmployee, year);
     tablePanel.add(dataTable);
+    if (CollectionUtils.isNotEmpty(stats.getLeaveAccountEntries())) {
+      sectionBottom.add(new Heading1Panel(sectionBottom.newChildId(), I18nHelper.getLocalizedMessage("vacation.leaveAccountEntry.title.list")));
+      for (LeaveAccountEntryDO entry : stats.getLeaveAccountEntries()) {
+        sectionBottom.add(new DivTextPanel(sectionBottom.newChildId(), "" + entry.getDate() + ": " + VacationStats.format(entry.getAmount()) + " " + entry.getDescription()));
+      }
+    }
   }
 
   private DataTable<VacationDO, String> createDataTable(final List<IColumn<VacationDO, String>> columns,
