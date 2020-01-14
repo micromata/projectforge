@@ -289,7 +289,7 @@
     <!-- HIBERNATE5 -->
     <postgresql.version>42.2.8</postgresql.version>
     <hsqldb.version>2.5.0</hsqldb.version>
-    <jackson.version>2.10.1</jackson.version>
+    <jackson.version>2.9.10</jackson.version>
     <powermock.version>2.0.4</powermock.version>
     <apacheds.version>1.5.7</apacheds.version>
   </properties>
