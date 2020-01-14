@@ -52,8 +52,8 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
         val addressbook = Addressbook()
         addressbook.copyFrom(obj)
         // Group names needed by React client (for ReactSelect):
-        addressbook.fullAccessGroups?.forEach { it.name = groupService.getGroupname(it.id) }
-        addressbook.readonlyAccessGroups?.forEach { it.name = groupService.getGroupname(it.id) }
+        addressbook.fullAccessGroups?.forEach { it.displayName = groupService.getGroupname(it.id) }
+        addressbook.readonlyAccessGroups?.forEach { it.displayName = groupService.getGroupname(it.id) }
         // Usernames needed by React client (for ReactSelect):
         addressbook.fullAccessUsers?.forEach { it.displayName = userService.getUser(it.id)?.displayName ?: "" }
         addressbook.readonlyAccessUsers?.forEach { it.displayName = userService.getUser(it.id)?.displayName ?: "" }

@@ -113,7 +113,7 @@ class Kost2DOSerializer : StdSerializer<Kost2DO>(Kost2DO::class.java) {
                     val kundeDao = Registry.instance.getEntry(KundeDao::class.java)?.dao as KundeDao
                     val kundeDO = kundeDao.internalGetById(projektDO.kundeId)
                     if (kundeDO != null) {
-                        val kunde = Kunde(kundeDO.id!!, displayName = kundeDO.displayName, kundeDO.name)
+                        val kunde = Kunde(kundeDO.id!!, displayName = kundeDO.displayName, name = kundeDO.name)
                         projekt.kunde = kunde
                     }
                 }

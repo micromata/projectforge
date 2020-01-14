@@ -65,7 +65,7 @@ class Addressbook(id: Int? = null,
     private fun toGroupList(str: String?): MutableList<Group>? {
         if (str.isNullOrBlank()) return null
         val groups = mutableListOf<Group>()
-        StringHelper.splitToInts(str, ",", false).forEach { groups.add(Group(it, name = "???")) }
+        StringHelper.splitToInts(str, ",", false).forEach { groups.add(Group(it, displayName = "???")) }
         return groups
     }
 }
