@@ -94,7 +94,7 @@ public class MenuItemRegistry implements Serializable {
     // createdMenuEntry.setNewCounterModel(new MenuNewCounterVacation());
 
     register(MenuItemDefId.ADDRESSBOOK_LIST, AddressbookListPage.class);
-    register(MenuItemDefId.ADDRESS_LIST, AddressListPage.class);
+    register(MenuItemDefId.ADDRESS_LIST_CLASSICS, AddressListPage.class);
     register(MenuItemDefId.PHONE_CALL, PhoneCallPage.class);
     register(MenuItemDefId.SEND_SMS, SendSmsPage.class);
     register(MenuItemDefId.MEB, MebListPage.class);
