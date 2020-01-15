@@ -42,8 +42,6 @@ function AdvancedPopper(
             if (reference.current) {
                 const { top, left } = reference.current.getBoundingClientRect();
 
-                console.log(top, left);
-
                 setAdditionalHeight(window.innerHeight - top - basicHeight - 64);
                 setAdditionalWidth(window.innerWidth - left - basicWidth - 16);
             }
