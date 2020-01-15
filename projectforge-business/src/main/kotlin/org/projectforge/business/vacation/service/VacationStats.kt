@@ -25,7 +25,10 @@ package org.projectforge.business.vacation.service
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.vacation.model.LeaveAccountEntryDO
 import org.projectforge.framework.ToStringUtil
+import org.projectforge.framework.utils.NumberFormatter
+import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -46,7 +49,7 @@ class VacationStats(
          * This date is normally now, but might be differ from for test cases.
          */
         val baseDate: LocalDate = LocalDate.now())
-    : ToStringUtil.ToJsonStringObject() {
+    : ToStringUtil.ToJsonStringObject(), Serializable { // Needed by Wicket (VacationViewHelper)
 
     /**
      * Only for logging purposes.
@@ -56,20 +59,37 @@ class VacationStats(
     /**
      * The number of vacation days left from the previous year.
      */
-    var carryVacationDaysFromPreviousYear: BigDecimal? = null
+    var remainingLeaveFromPreviousYear: BigDecimal? = null
     /**
      * The number of vacation days left from the previous year, which are already used for vacation.
      */
-    var carryVacationDaysFromPreviousYearAllocated: BigDecimal? = null
-    val carryVacationDaysFromPreviousYearUnused: BigDecimal?
+    var remainingLeaveFromPreviousYearAllocated: BigDecimal? = null
+    /**
+     * The number of vacation days left from the previous year and not allocated (used). They might be lost after end of
+     * vacation year ([remainingLeaveFromPreviousYear] - [allocatedDaysInOverlapPeriod]).
+     */
+    val remainingLeaveFromPreviousYearUnused: BigDecimal?
         get() {
-            val total = carryVacationDaysFromPreviousYear
+            val total = remainingLeaveFromPreviousYear
             val allocated = allocatedDaysInOverlapPeriod
             if (total == null)
                 return null
             if (allocated == null)
                 return BigDecimal.ZERO
             return maxOf(total - allocated, BigDecimal.ZERO)
+        }
+    /**
+     * @return true, if [baseDate] is after [endOfVacationYear] and the unused remaining days from the previous year is lost.
+     */
+    val endOfVactionYearExceeded: Boolean
+        get() = baseDate.isAfter(endOfVacationYear)
+    val totalLeaveIncludingCarry: BigDecimal?
+        get() {
+            var subTotal = vacationDaysInYearFromContract ?: BigDecimal.ZERO
+            remainingLeaveFromPreviousYear?.let {
+                subTotal += it
+            }
+            return subTotal
         }
     /**
      * The overlap period defines the beginning of year until the end of the vacation year (after it the carried and unused
@@ -117,19 +137,53 @@ class VacationStats(
     var endOfVacationYear: LocalDate? = null
 
     /**
+     * Entries per date for correction values, if the annual leave day statistics have to be corrected,
+     * @see LeaveAccountEntryDO
+     */
+    var leaveAccountEntries: List<LeaveAccountEntryDO>? = null
+    val leaveAccountEntriesSum: BigDecimal
+        get() {
+            var result = BigDecimal.ZERO
+            leaveAccountEntries?.forEach {
+                it.amount?.let { amount ->
+                    result += amount
+                }
+            }
+            return result
+        }
+
+    /**
      * Internal function calculates vacationDaysLeftInYear after having all other properties.
      */
     internal fun calculateLeftDaysInYear() {
         // carried vacation days or actual used vacation days in overlap period. If the employee has less vacation days
         // than carried, these vacation days will be lost after the end of vacation year (31.3.).
-        var leftInYear = minOf(carryVacationDaysFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
+        var leftInYear = minOf(remainingLeaveFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
         leftInYear += vacationDaysInYearFromContract!! // annual vacation days from contract.
         leftInYear -= vacationDaysInProgressAndApproved!!
         this.vacationDaysLeftInYearWithoutCarry = leftInYear
-        if (baseDate.isBefore(endOfVacationYear)) {
-            leftInYear += carryVacationDaysFromPreviousYearUnused ?: BigDecimal.ZERO
+        if (!endOfVactionYearExceeded) {
+            // End of vacation year is not reached: full remaining days from previuos year are available:
+            leftInYear += remainingLeaveFromPreviousYearUnused ?: BigDecimal.ZERO
         }
+        leftInYear += leaveAccountEntriesSum
         this.vacationDaysLeftInYear = leftInYear
-        this.carryVacationDaysFromPreviousYearAllocated = minOf(carryVacationDaysFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
+        this.remainingLeaveFromPreviousYearAllocated = minOf(remainingLeaveFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
+    }
+
+    companion object {
+        @JvmStatic
+        @JvmOverloads
+        fun format(value: Number?, negate: Boolean = false): String {
+            value ?: return ""
+            if (!negate) {
+                return NumberFormatter.format(value, 1)
+            }
+            if (value is BigDecimal) {
+                return NumberFormatter.format(value.negate(), 1)
+            }
+            return NumberFormatter.format((0.0 - value.toDouble()), 1)
+        }
     }
 }
+

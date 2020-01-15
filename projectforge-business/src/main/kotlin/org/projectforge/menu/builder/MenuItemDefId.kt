@@ -40,6 +40,7 @@ enum class MenuItemDefId private constructor(private val i18nKey: String) {
     ACCOUNTING_RECORD_LIST("fibu.buchungssaetze"), //
     ADDRESSBOOK_LIST("addressbookList"), //
     ADDRESS_LIST("addressList"), //
+    ADDRESS_LIST_CLASSICS("addressListClassics"), //
     BANK_ACCOUNT_LIST("finance.bankAccounts"), //
     BOOK_LIST("bookList"), //
     CALENDAR("calendar"), //
@@ -57,6 +58,7 @@ enum class MenuItemDefId private constructor(private val i18nKey: String) {
     DOCUMENTATION("documentation"), //
     EMPLOYEE_LIST("fibu.employees"), //
     EMPLOYEE_SALARY_LIST("fibu.employeeSalaries"), //
+    EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("vacation.leaveAccountEntry"), //
     GANTT("gantt"), //
     GROUP_LIST("groupList"), //
     HR_PLANNING_LIST("hrPlanningList"), //
@@ -69,7 +71,7 @@ enum class MenuItemDefId private constructor(private val i18nKey: String) {
     MONTHLY_EMPLOYEE_REPORT("monthlyEmployeeReport"), //
     TENANT_LIST("multiTenancy"), //
     MY_ACCOUNT("myAccount"), //
-    VACATION_VIEW("vacation.leaveaccount"), //
+    VACATION_ACCOUNT("vacation.leaveaccount"), //
     MY_PREFERENCES("myPreferences"), //
     REPORT_OBJECTIVES("fibu.reporting.reportObjectives"), //
     ORDER_LIST("fibu.orderbook"), //

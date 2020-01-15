@@ -27,18 +27,24 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
+import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
 
 class VacationValidatorTest : AbstractTestBase() {
     @Autowired
     private lateinit var employeeDao: EmployeeDao
+
+    @Autowired
+    private lateinit var employeeService: EmployeeService
 
     @Autowired
     private lateinit var userDao: UserDao
@@ -61,13 +67,13 @@ class VacationValidatorTest : AbstractTestBase() {
         vacation.endDate = vacation.startDate!!.plusDays(2)
         Assertions.assertEquals(VacationValidator.Error.START_DATE_BEFORE_NOW, vacationService.validate(vacation))
 
-        vacation.startDate = LocalDate.now().plusMonths(1)
+        vacation.startDate = PFDayUtils.getNextWorkingDay(LocalDate.now().plusDays(1))
         vacation.endDate = vacation.startDate
-        vacation.halfDay = true
+        vacation.halfDayBegin = true
         Assertions.assertNull(vacationService.validate(vacation))
         vacation.endDate = vacation.endDate!!.plusDays(1)
         Assertions.assertEquals(VacationValidator.Error.MORE_THAN_ONE_HALF_DAY, vacationService.validate(vacation))
-        vacation.halfDay = false
+        vacation.halfDayBegin = false
 
         vacation.startDate = LocalDate.now().with(Month.DECEMBER).withDayOfMonth(24)
         vacation.endDate = vacation.startDate!!.plusMonths(1).withDayOfMonth(6)
@@ -97,7 +103,7 @@ class VacationValidatorTest : AbstractTestBase() {
         vacation.employee = employee
         vacation.startDate = if (startDate.isBefore(employee.eintrittsDatum)) employee.eintrittsDatum else startDate
         vacation.endDate = endDate
-        vacation.halfDay = false
+        vacation.halfDayBegin = false
         vacation.special = false
         vacation.status = status
         vacation.manager = employee // OK for tests...
@@ -115,9 +121,8 @@ class VacationValidatorTest : AbstractTestBase() {
         employee.user = user
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
-        employee.urlaubstage = 30
+        employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(30));
         employeeDao.internalSave(employee)
         return employee
     }
-
 }

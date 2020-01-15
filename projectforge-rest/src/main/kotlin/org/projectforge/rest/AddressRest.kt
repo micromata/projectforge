@@ -41,6 +41,7 @@ import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.Address
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
+import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -124,6 +125,10 @@ class AddressRest()
     // TODO Menus: print view, ical export, direct call: see AddressEditPage
     // TODO: onSaveOrUpdate: see AddressEditPage
 
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        elements.add(UIFilterElement("myFavorites", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.myFavorites")))
+        elements.add(UIFilterElement("doublets",  UIFilterElement.FilterType.BOOLEAN,translate("address.filter.doublets")))
+    }
 
     /**
      * Sets also uid to null.
@@ -193,9 +198,6 @@ class AddressRest()
         layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
         layout.getTableColumnById("address.addressbookList").formatter = Formatter.ADDRESS_BOOK
         layout.getTableColumnById("address.addressbookList").sortable = false
-        LayoutUtils.addListFilterContainer(layout,
-                UICheckbox("favorites", label = "address.filter.myFavorites"),
-                UICheckbox("doublets", label = "address.filter.doublets"))
         var menuIndex = 0
         if (smsSenderConfig.isSmsConfigured()) {
             layout.add(MenuItem("address.writeSMS", i18nKey = "address.tooltip.writeSMS", url = "wa/sendSms"), menuIndex++)
@@ -241,16 +243,11 @@ class AddressRest()
      * LAYOUT Edit page
      */
     override fun createEditLayout(dto: Address, userAccess: UILayout.UserAccess): UILayout {
-        val addressbookDOs = addressbookDao.allAddressbooksWithFullAccess
-        val addressbooks = mutableListOf<UISelectValue<Int>>()
-        addressbookDOs.forEach {
-            addressbooks.add(UISelectValue(it.id, it.title!!))
-        }
         val communicationLanguage = UISelect("communicationLanguage", lc,
                 // The used languages are the values (for quicker select). The current language of the dto is
                 // therefore a part of the values as well and is needed for displaying the current value.
                 values = addressServicesRest.getUsedLanguages().map { UISelectValue(it.value, it.label) },
-                autoCompletion = AutoCompletion<String>(url = "address/acLang"))
+                autoCompletion = AutoCompletion<String>(url = "address/acLang?search=:search"))
         val layout = super.createEditLayout(dto, userAccess)
                 //autoCompletion = AutoCompletion(url = "addressBook/ac?search="))))
                 .add(UIRow()
@@ -263,10 +260,11 @@ class AddressRest()
                                                         .add(UICol(lgLength = 6)
                                                                 .add(lc, "contactStatus"))))
                                         .add(UICol(mdLength = 6)
-                                                .add(createFavoriteRow(UISelect("addressbookList", lc,
+                                                .add(createFavoriteRow(UISelect<Int>("addressbookList", lc,
                                                         multi = true,
-                                                        values = addressbooks,
-                                                        labelProperty = "title",
+                                                        autoCompletion = AutoCompletion<Int>(url = "addressBook/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=",
+                                                                type = AutoCompletion.Type.USER.name),
+                                                        labelProperty = "displayName",
                                                         valueProperty = "id"),
                                                         "isFavoriteCard"))))))
                 .add(UIRow()

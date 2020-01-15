@@ -27,9 +27,10 @@ import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.api.EmployeeService
-import org.projectforge.business.vacation.model.RemainingDaysOfVactionDao
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
+import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
+import org.projectforge.business.vacation.repository.RemainingLeaveDao
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.BaseSearchFilter
@@ -39,6 +40,7 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.LocalDatePeriod
+import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.NumberHelper
 import org.slf4j.LoggerFactory
@@ -75,51 +77,45 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
     @Autowired
     private lateinit var employeeService: EmployeeService
     @Autowired
-    private lateinit var remainingDaysOfVactionDao: RemainingDaysOfVactionDao
+    private lateinit var remainingLeaveDao: RemainingLeaveDao
+    @Autowired
+    private lateinit var leaveAccountEntryDao: LeaveAccountEntryDao
     @PersistenceContext
     private lateinit var entityManager: EntityManager
 
     /**
-     * Gets the carry vacation days from the previous year. If not exist, it will be calculated and persisted.
+     * Gets the remaining leave from the previous year. If not exist, it will be calculated and persisted.
      * @param employee
      * @param year This is usually the current year, for which the carried vacation days from previous year will be returned.
-     * @return Number of carried vacation days from previous year or 0, if no carry found.
+     * @return Number of carried vacation days from previous year or 0, if no remaining leave found.
      */
     @JvmOverloads
     open fun getRemainingDaysFromPreviousYear(employee: EmployeeDO, year: Int = Year.now().value): BigDecimal {
-        return getVacationStats(employee, year).carryVacationDaysFromPreviousYear ?: BigDecimal.ZERO
+        return getVacationStats(employee, year).remainingLeaveFromPreviousYear ?: BigDecimal.ZERO
     }
 
     /**
      * Method for getting stats for tests, exports and logging.
-     * @param nowYear Only for test cases (so they will run in further years).
+     * @param calculateRemainingLeaveInFormerYears Only for internal use for recursive calls.
+     * @param baseDate Only for testing with fixed simulated now date. Default is today.
+     * @param vacationEntries For internal usage by [VacationValidator].
      */
     @JvmOverloads
     open fun getVacationStats(employee: EmployeeDO,
                               year: Int = Year.now().value,
-                              /** Only for internal use for recursive calls. */
-                              calculateCarryInFormerYears: Boolean = true,
-                              /**
-                               * Only for testing with fixed simulated now date. Default is today.
-                               */
+                              calculateRemainingLeaveInFormerYears: Boolean = true,
                               baseDate: LocalDate = LocalDate.now(),
-                              /**
-                               * For internal usage of [VacationValidator].
-                               */
                               vacationEntries: List<VacationDO>? = null): VacationStats {
         val stats = VacationStats(employee, year, baseDate)
-        stats.vacationDaysInYearFromContract = getYearlyVacationDays(employee, year)
-        stats.carryVacationDaysFromPreviousYear = remainingDaysOfVactionDao.getCarryVacationDaysFromPreviousYear(employee.id, year)
+        stats.vacationDaysInYearFromContract = getAnnualLeaveDays(employee, year)
+        stats.remainingLeaveFromPreviousYear = remainingLeaveDao.getRemainingLeaveFromPreviousYear(employee.id, year)
         stats.endOfVacationYear = getEndOfCarryVacationOfPreviousYear(year)
-        val dateOfJoining = employee.eintrittsDatum
-        if (dateOfJoining == null) {
-            log.warn("Employee has now joining date, can't calculate vacation days.")
-            stats.carryVacationDaysFromPreviousYear = BigDecimal.ZERO
-            return stats
-        }
+        // If date of joining not given, assume 1900...
+        val dateOfJoining = employee.eintrittsDatum ?: LocalDate.of(1900, Month.JANUARY, 1)
         // Calculate remaining vacation days from previous year:
         val yearPeriod = LocalDatePeriod.wholeYear(year)
-        val allVacationsOfYear = vacationEntries ?: getVacationsListForPeriod(employee, yearPeriod.begin, yearPeriod.end, true)
+        val allVacationsOfYear = vacationEntries
+                ?: getVacationsListForPeriod(employee, yearPeriod.begin, yearPeriod.end, true)
         stats.vacationDaysInProgressAndApproved = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false)
         stats.vacationDaysInProgress = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false, VacationStatus.IN_PROGRESS)
         stats.vacationDaysApproved = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false, VacationStatus.APPROVED)
@@ -128,26 +124,27 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
 
         stats.allocatedDaysInOverlapPeriod = getNumberValidVacationDaysInOverlapPeriod(allVacationsOfYear, year)
 
-        stats.carryVacationDaysFromPreviousYear = remainingDaysOfVactionDao.getCarryVacationDaysFromPreviousYear(employee.id, year)
-        if (stats.carryVacationDaysFromPreviousYear == null) {
+        stats.remainingLeaveFromPreviousYear = remainingLeaveDao.getRemainingLeaveFromPreviousYear(employee.id, year)
+        if (stats.remainingLeaveFromPreviousYear == null) {
             if (dateOfJoining.year >= year || year > baseDate.year || year < baseDate.year - 1) {
                 // Employee joins in current year or later, no carry of vacation days exist, or
                 // the year a future year, so it will not be calculated. Also, only the last year will be calculated, any year
                 // before the last year will not anymore.
-                stats.carryVacationDaysFromPreviousYear = BigDecimal.ZERO
+                stats.remainingLeaveFromPreviousYear = BigDecimal.ZERO
             } else if (year == baseDate.year) {
                 // Carry of holidays from last year weren't yet calculated, do it now:
                 stats.lastYearStats = getVacationStats(employee, baseDate.year - 1, false)
-                stats.carryVacationDaysFromPreviousYear = stats.lastYearStats!!.vacationDaysLeftInYear
+                stats.remainingLeaveFromPreviousYear = stats.lastYearStats!!.vacationDaysLeftInYear
                         ?: BigDecimal.ZERO
                 log.info("Calculation of carry for employee: $stats")
-                remainingDaysOfVactionDao.internalSaveOrUpdate(employee, year, stats.carryVacationDaysFromPreviousYear)
+                remainingLeaveDao.internalSaveOrUpdate(employee, year, stats.remainingLeaveFromPreviousYear)
             } else {
                 // Calculate last year
-                stats.carryVacationDaysFromPreviousYear = remainingDaysOfVactionDao.getCarryVacationDaysFromPreviousYear(employee.id, year)
+                stats.remainingLeaveFromPreviousYear = remainingLeaveDao.getRemainingLeaveFromPreviousYear(employee.id, year)
                         ?: BigDecimal.ZERO
             }
         }
+        stats.leaveAccountEntries = leaveAccountEntryDao.getList(employee.id, year)
         stats.calculateLeftDaysInYear()
         return stats
     }
@@ -232,8 +229,12 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
      * @return null if no validation error was detected, or i18n-key of error, if validation failed.
      */
     @JvmOverloads
-    fun validate(vacation: VacationDO, dbVacation: VacationDO? = null, throwException: Boolean = false): VacationValidator.Error? {
-        return VacationValidator.validate(this, vacation, dbVacation, throwException)
+    open fun validate(vacation: VacationDO, dbVacation: VacationDO? = null, throwException: Boolean = false): VacationValidator.Error? {
+        var dbVal = dbVacation
+        if (dbVacation == null && vacation.id != null) {
+            dbVal = vacationDao.internalGetById(vacation.id)
+        }
+        return VacationValidator.validate(this, vacation, dbVal, throwException)
     }
 
     open fun getOpenLeaveApplicationsForUser(user: PFUserDO): Int {
@@ -243,12 +244,13 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
 
     /**
      * Check, if user is able to use vacation services, meaning, has configured annual vacation days (urlaubstage).
-     * @see [EmployeeDO.urlaubstage]
+     * @see EmployeeService.getAnnualLeaveDays
      */
     open fun hasAccessToVacationService(user: PFUserDO?, throwException: Boolean): Boolean {
         if (user?.id == null)
             return false
         val employee = employeeService.getEmployeeByUserId(user.id)
+        val annualLeaveDays = employeeService.getAnnualLeaveDays(employee) ?: BigDecimal.ZERO
         return when {
             employee == null -> {
                 if (throwException) {
@@ -256,7 +258,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
                 }
                 false
             }
-            employee.urlaubstage == null -> {
+            annualLeaveDays <= BigDecimal.ZERO -> {
                 if (throwException) {
                     throw AccessException("access.exception.employeeHasNoVacationDays")
                 }
@@ -284,22 +286,34 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
     }
 
     /**
-     * Please note: If number of yearly vacation days are modified over time, this method assumes the current value also for previous years!!!!!!!!!!!!
-     * @return [EmployeeDO.urlaubstage] if employee joined before given year, 0 if employee joined later than given year, otherwise fraction (joined in given year).
+     * @return [EmployeeService.getAnnualLeaveDays] of the end of given year if employee joined before given year, 0 if employee joined later than given year, otherwise fraction (joined in given year).
      */
-    private fun getYearlyVacationDays(employee: EmployeeDO, year: Int): BigDecimal {
-        val joinDate = employee.eintrittsDatum
-        val vacationDaysPerYear = employee.urlaubstage ?: return BigDecimal.ZERO
-        if (joinDate == null || joinDate.year < year) {
+    internal fun getAnnualLeaveDays(employee: EmployeeDO, year: Int): BigDecimal {
+        val joinDate = employee.eintrittsDatum ?: LocalDate.of(1900, Month.JANUARY, 1)
+        val leaveDate = employee.austrittsDatum ?: LocalDate.of(2999, Month.DECEMBER, 31)
+        val endOfYear = PFDay.of(year, Month.JANUARY, 1).endOfYear.date
+        val annualLeaveDays = employeeService.getAnnualLeaveDays(employee, endOfYear) ?: BigDecimal.ZERO
+        /*if (joinDate == null || joinDate.year < year) {
             return BigDecimal(vacationDaysPerYear)
-        }
-        if (joinDate.year > year) {
+        }*/
+        if (joinDate.year > year || leaveDate.year < year) {
             return BigDecimal.ZERO
         }
-        var employedMonths = Month.DECEMBER.value - joinDate.month.value
-        if (joinDate.dayOfMonth < 15)
-            employedMonths++ // Month counts only if the employee joined latest at 14th of month.
-        return (BigDecimal(vacationDaysPerYear).divide(TWELVE, 2, RoundingMode.HALF_UP) * BigDecimal(employedMonths)).setScale(0, RoundingMode.HALF_UP)
+        var employedMonths = 12
+        if (joinDate.year == year) {
+            employedMonths = Month.DECEMBER.value - joinDate.month.value
+            if (joinDate.dayOfMonth < 15)
+                employedMonths++ // Month counts only if the employee joined latest at 14th of month.
+        }
+        if (leaveDate.year == year) {
+            employedMonths -= Month.DECEMBER.value - leaveDate.month.value
+            if (leaveDate.dayOfMonth < 15)
+                employedMonths-- // Month counts only if the employee leaved not earlier than 15th of month.
+        }
+        if (employedMonths == 12) {
+            return annualLeaveDays
+        }
+        return (annualLeaveDays.divide(TWELVE, 2, RoundingMode.HALF_UP) * BigDecimal(employedMonths)).setScale(0, RoundingMode.HALF_UP)
     }
 
     private fun sum(list: List<VacationDO?>, periodBegin: LocalDate, periodEnd: LocalDate, withSpecial: Boolean, vararg status: VacationStatus): BigDecimal {
@@ -321,7 +335,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
                         vacationStart = periodBegin
                     if (vacationEnd.isAfter(periodEnd))
                         vacationEnd = periodEnd
-                    val numberOfDays = getVacationDays(vacationStart, vacationEnd, it.halfDay, periodBegin, periodEnd)
+                    val numberOfDays = getVacationDays(vacationStart, vacationEnd, it.halfDayBegin, periodBegin, periodEnd)
                     if (numberOfDays != null)
                         sum += numberOfDays
                 }

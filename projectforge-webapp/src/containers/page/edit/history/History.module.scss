@@ -3,7 +3,7 @@
 div.entry {
   border-bottom: 1px solid #ddd;
   padding: 5px;
-  cursor: pointer;
+  cursor: default;
 
   &.active {
     .icon {
@@ -16,7 +16,7 @@ div.entry {
   }
 
   &:hover {
-    background-color: #eee;
+    background-color: #f0f0f0;
   }
 
   .icon {

@@ -35,7 +35,7 @@ import java.time.format.DateTimeFormatter
 
 object BirthdaysProvider {
     private val log = org.slf4j.LoggerFactory.getLogger(BirthdaysProvider::class.java)
-    private val holidays = Holidays.getInstance()
+    private val holidays = Holidays.instance
 
     fun addEvents(addressDao: AddressDao,
                   start: PFDateTime,

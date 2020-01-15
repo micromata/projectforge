@@ -112,7 +112,7 @@ ReactSelect.propTypes = {
     label: PropTypes.string.isRequired,
     additionalLabel: PropTypes.string,
     autoCompletion: PropTypes.shape({
-        type: PropTypes.oneOf(['USER', 'GROUP', undefined]),
+        type: PropTypes.oneOf(['USER', 'GROUP', 'EMPLOYEE', undefined]),
     }),
     value: PropTypes.oneOfType([
         PropTypes.shape({}),

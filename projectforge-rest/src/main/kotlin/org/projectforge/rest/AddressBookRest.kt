@@ -27,6 +27,7 @@ import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.Addressbook
@@ -52,11 +53,11 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
         val addressbook = Addressbook()
         addressbook.copyFrom(obj)
         // Group names needed by React client (for ReactSelect):
-        addressbook.fullAccessGroups?.forEach { it.name = groupService.getGroupname(it.id) }
-        addressbook.readonlyAccessGroups?.forEach { it.name = groupService.getGroupname(it.id) }
+        addressbook.fullAccessGroups?.forEach { it.displayName = groupService.getGroupname(it.id) }
+        addressbook.readonlyAccessGroups?.forEach { it.displayName = groupService.getGroupname(it.id) }
         // Usernames needed by React client (for ReactSelect):
-        addressbook.fullAccessUsers?.forEach { it.fullname = userService.getUser(it.id)?.getFullname() }
-        addressbook.readonlyAccessUsers?.forEach { it.fullname = userService.getUser(it.id)?.getFullname() }
+        addressbook.fullAccessUsers?.forEach { it.displayName = userService.getUser(it.id)?.displayName ?: "" }
+        addressbook.readonlyAccessUsers?.forEach { it.displayName = userService.getUser(it.id)?.displayName ?: "" }
         return addressbook
     }
 
@@ -96,18 +97,18 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
                                         multi = true,
                                         label = "addressbook.fullAccess",
                                         additionalLabel = "access.users",
-                                        autoCompletion = AutoCompletion<Int>(url = "user/aco?search=",
+                                        autoCompletion = AutoCompletion<Int>(url = "user/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=",
                                                 type = AutoCompletion.Type.USER.name),
-                                        labelProperty = "fullname",
+                                        labelProperty = "displayName",
                                         valueProperty = "id",
                                         tooltip = "addressbook.fullAccess.tooltip"))
                                 .add(UISelect<Int>("readonlyAccessUsers", lc,
                                         multi = true,
                                         label = "addressbook.readonlyAccess",
                                         additionalLabel = "access.users",
-                                        autoCompletion = AutoCompletion<Int>(url = "user/aco?search=",
+                                        autoCompletion = AutoCompletion<Int>(url = "user/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=",
                                                 type = AutoCompletion.Type.USER.name),
-                                        labelProperty = "fullname",
+                                        labelProperty = "displayName",
                                         valueProperty = "id",
                                         tooltip = "addressbook.readonlyAccess.tooltip")))
                         .add(UICol()
@@ -115,20 +116,27 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
                                         multi = true,
                                         label = "addressbook.fullAccess",
                                         additionalLabel = "access.groups",
-                                        autoCompletion = AutoCompletion<Int>(url = "group/aco?search=",
+                                        autoCompletion = AutoCompletion<Int>(url = "group/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=",
                                                 type = AutoCompletion.Type.GROUP.name),
-                                        labelProperty = "name",
+                                        labelProperty = "displayName",
                                         valueProperty = "id",
                                         tooltip = "addressbook.fullAccess.tooltip"))
                                 .add(UISelect<Int>("readonlyAccessGroups", lc,
                                         multi = true,
                                         label = "addressbook.readonlyAccess",
                                         additionalLabel = "access.groups",
-                                        autoCompletion = AutoCompletion<Int>(url = "group/aco?search=",
+                                        autoCompletion = AutoCompletion<Int>(url = "group/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=",
                                                 type = AutoCompletion.Type.GROUP.name),
-                                        labelProperty = "name",
+                                        labelProperty = "displayName",
                                         valueProperty = "id",
                                         tooltip = "addressbook.readonlyAccess.tooltip"))))
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    override val autoCompleteSearchFields = arrayOf("title", "description")
+
+    override fun queryAutocompleteObjects(filter: BaseSearchFilter): MutableList<AddressbookDO> {
+        val list = super.queryAutocompleteObjects(filter)
+        return list
     }
 }

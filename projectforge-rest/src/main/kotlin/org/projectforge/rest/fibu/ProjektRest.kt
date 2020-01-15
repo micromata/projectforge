@@ -40,7 +40,7 @@ class ProjektRest
         "fibu.projekt.title") {
 
     override fun transformFromDB(obj: ProjektDO, editMode: Boolean): Projekt {
-        val kunde = Projekt(null, false, null, null, null)
+        val kunde = Projekt(null, obj.displayName)
         kunde.copyFrom(obj)
         return kunde
     }

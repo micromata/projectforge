@@ -32,7 +32,7 @@ import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.util.*
 import javax.persistence.*
@@ -47,9 +47,9 @@ import javax.persistence.*
 @NamedQueries(
         NamedQuery(name = GroupDO.FIND_BY_NAME, query = "from GroupDO where name=:name"),
         NamedQuery(name = GroupDO.FIND_OTHER_GROUP_BY_NAME, query = "from GroupDO where name=:name and id<>:id"))
-open class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
 
-    override val shortDisplayName: String
+    override val displayName: String
         @Transient
         get() = "$name"
 

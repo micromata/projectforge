@@ -84,7 +84,7 @@ class GroupRest() : AbstractDTORest<GroupDO, Group, GroupDao>(GroupDao::class.ja
                                         multi = true,
                                         label = "group.assignedUsers",
                                         additionalLabel = "access.users",
-                                        autoCompletion = AutoCompletion<Int>(url = "user/aco?search=",
+                                        autoCompletion = AutoCompletion<Int>(url = "user/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=",
                                                 type = AutoCompletion.Type.USER.name),
                                         labelProperty = "fullname",
                                         valueProperty = "id"))))

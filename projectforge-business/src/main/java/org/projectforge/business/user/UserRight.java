@@ -24,14 +24,14 @@
 package org.projectforge.business.user;
 
 import org.projectforge.framework.persistence.api.IUserRightId;
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
+import org.projectforge.framework.DisplayNameCapable;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class UserRight implements Serializable, ShortDisplayNameCapable
+public abstract class UserRight implements Serializable, DisplayNameCapable
 {
   private static final long serialVersionUID = -4356329396089081134L;
 
@@ -225,10 +225,10 @@ public abstract class UserRight implements Serializable, ShortDisplayNameCapable
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.ShortDisplayNameCapable#getShortDisplayName()
+   * @see org.projectforge.framework.DisplayNameCapable#getDisplayName()
    */
   @Override
-  public String getShortDisplayName()
+  public String getDisplayName()
   {
     return this.id.toString();
   }

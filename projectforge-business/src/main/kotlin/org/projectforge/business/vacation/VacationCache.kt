@@ -28,10 +28,10 @@ import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.time.PFDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.time.LocalDate
 import javax.persistence.EntityManager
 import javax.persistence.LockModeType
 
@@ -53,7 +53,7 @@ class VacationCache : AbstractCache() {
     /**
      * Checks also the select access of the logged in user.
      */
-    fun getVacationForPeriodAndUsers(startVacationDate: PFDateTime, endVacationDate: PFDateTime,
+    fun getVacationForPeriodAndUsers(startVacationDate: LocalDate, endVacationDate: LocalDate,
                                      groupIds: Set<Int>?, userIds: Set<Int>?): List<VacationDO> {
         checkRefresh()
         val result = mutableListOf<VacationDO>()
@@ -61,9 +61,13 @@ class VacationCache : AbstractCache() {
             log.info("No groups given, therefore no vacation will be returned.")
             return result
         }
-        val userGroupCache = UserGroupCache.getTenantInstance()
+        val userGroupCache = UserGroupCache.tenantInstance
         val loggedInUser = ThreadLocalUserContext.getUser()
         for (vacation in vacationSet) {
+            if (vacation.endDate?.isBefore(startVacationDate) ?: false ||
+                    vacation.startDate?.isAfter(endVacationDate) ?: false   ) {
+                continue
+            }
             if (!vacationDao.hasSelectAccess(vacation, loggedInUser, false)) {
                 continue
             }

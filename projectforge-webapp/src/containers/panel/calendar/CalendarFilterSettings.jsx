@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { Button, Col, Container, Popover, PopoverBody, PopoverHeader, Row } from 'reactstrap';
-import UserSelect from '../../../components/base/page/layout/UserSelect';
+import ObjectSelect from '../../../components/design/input/autoCompletion/ObjectSelect';
 import CheckBox from '../../../components/design/input/CheckBox';
 import style from '../../../components/design/input/Input.module.scss';
 import ReactSelect from '../../../components/design/ReactSelect';
@@ -21,7 +21,7 @@ class CalendarFilterSettings extends Component {
 
     static loadVacationGroupsOptions(search, callback) {
         fetchJsonGet(
-            'group/aco',
+            'group/autosearch',
             { search },
             callback,
         );
@@ -205,11 +205,13 @@ class CalendarFilterSettings extends Component {
                             <Row>
                                 <Col>
                                     {otherTimesheetUsersEnabled ? (
-                                        <UserSelect
-                                            onChange={this.handleTimesheetUserChange}
-                                            value={timesheetUser}
-                                            label={translations['calendar.option.timesheeets']}
+                                        <ObjectSelect
+                                            id="showTimesheets"
+                                            label={translations['calendar.option.timesheets']}
+                                            onSelect={this.handleTimesheetUserChange}
                                             translations={translations}
+                                            type="USER"
+                                            value={timesheetUser}
                                         />
                                     ) : (
                                         <CheckBox
@@ -227,12 +229,12 @@ class CalendarFilterSettings extends Component {
                                         loadOptions={
                                             CalendarFilterSettings.loadVacationGroupsOptions
                                         }
-                                        getOptionLabel={({ name }) => name}
                                         value={vacationGroups}
                                         label={translations['calendar.filter.vacation.groups']}
                                         tooltip={translations['calendar.filter.vacation.groups.tooltip']}
                                         translations={translations}
                                         valueProperty="id"
+                                        labelProperty="displayName"
                                         multi
                                         onChange={this.handleVacationGroupsChange}
                                     />
@@ -244,13 +246,12 @@ class CalendarFilterSettings extends Component {
                                         loadOptions={
                                             CalendarFilterSettings.loadVacationUsersOptions
                                         }
-                                        getOptionLabel={({ fullname, username }) => `${fullname} (${username})`}
                                         value={vacationUsers}
                                         label={translations['calendar.filter.vacation.users']}
                                         tooltip={translations['calendar.filter.vacation.user.tooltip']}
                                         translations={translations}
                                         valueProperty="id"
-                                        labelProperty="title"
+                                        labelProperty="displayName"
                                         multi
                                         onChange={this.handleVacationUsersChange}
                                     />

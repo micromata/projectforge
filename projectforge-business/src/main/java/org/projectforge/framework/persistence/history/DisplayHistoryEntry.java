@@ -36,7 +36,7 @@ import org.jfree.util.Log;
 import org.projectforge.business.address.AddressbookDO;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
+import org.projectforge.framework.DisplayNameCapable;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
@@ -241,7 +241,7 @@ public class DisplayHistoryEntry implements Serializable {
 
   String toShortName(final Object object) {
     return String.valueOf(
-            object instanceof ShortDisplayNameCapable ? ((ShortDisplayNameCapable) object).getShortDisplayName() : object);
+            object instanceof DisplayNameCapable ? ((DisplayNameCapable) object).getDisplayName() : object);
   }
 
   /**

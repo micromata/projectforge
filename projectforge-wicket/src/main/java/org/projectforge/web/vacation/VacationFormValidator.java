@@ -30,30 +30,23 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
-import org.projectforge.business.vacation.service.VacationCalendarService;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.business.vacation.service.VacationValidator;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.wicketstuff.select2.Select2Choice;
-import org.wicketstuff.select2.Select2MultiChoice;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashSet;
 
 public class VacationFormValidator implements IFormValidator {
   private static final long serialVersionUID = -8478416045860851983L;
 
   // Components for form validation.
-  private final FormComponent<?>[] dependentFormComponents = new FormComponent[7];
+  private final FormComponent<?>[] dependentFormComponents = new FormComponent[6];
 
   private final VacationService vacationService;
-
-  private final VacationCalendarService vacationCalendarService;
 
   private final VacationDO data;
 
@@ -61,8 +54,8 @@ public class VacationFormValidator implements IFormValidator {
 
   private final LocalDate now;
 
-  public VacationFormValidator(VacationService vacationService, VacationService vacationServiceNew, VacationCalendarService vacationCalendarService, ConfigurationService configService, VacationDO data) {
-    this(vacationService, vacationServiceNew, vacationCalendarService, configService, data, LocalDate.now());
+  public VacationFormValidator(VacationService vacationService, VacationService vacationServiceNew, ConfigurationService configService, VacationDO data) {
+    this(vacationService, vacationServiceNew, configService, data, LocalDate.now());
   }
 
   /**
@@ -73,10 +66,9 @@ public class VacationFormValidator implements IFormValidator {
    * @param data
    * @param now
    */
-  protected VacationFormValidator(VacationService vacationService, VacationService vacationServiceNew, VacationCalendarService vacationCalendarService, ConfigurationService configService, VacationDO data, LocalDate now) {
+  protected VacationFormValidator(VacationService vacationService, VacationService vacationServiceNew, ConfigurationService configService, VacationDO data, LocalDate now) {
     this.configService = configService;
     this.vacationService = vacationService;
-    this.vacationCalendarService = vacationCalendarService;
     this.data = data;
     this.now = now;
   }
@@ -89,15 +81,10 @@ public class VacationFormValidator implements IFormValidator {
     final Select2Choice<EmployeeDO> employeeSelect = (Select2Choice<EmployeeDO>) dependentFormComponents[3];
     final CheckBox isHalfDayCheckbox = (CheckBox) dependentFormComponents[4];
     final CheckBox isSpecialCheckbox = (CheckBox) dependentFormComponents[5];
-    final Select2MultiChoice<TeamCalDO> calendars = (Select2MultiChoice<TeamCalDO>) dependentFormComponents[6];
 
     EmployeeDO employee = employeeSelect.getConvertedInput();
     if (employee == null) {
       employee = data.getEmployee();
-    }
-
-    if (checkOnlyStatusChange(statusChoice)) {
-      return;
     }
 
     final LocalDate startDate = startDatePanel.getConvertedInputAsLocalDate();
@@ -109,53 +96,14 @@ public class VacationFormValidator implements IFormValidator {
     vacation.setEndDate(endDate);
     vacation.setEmployee(employee);
     vacation.setSpecial(isOn(isSpecialCheckbox));
-    vacation.setHalfDay(isOn(isHalfDayCheckbox));
+    vacation.setHalfDayBegin(isOn(isHalfDayCheckbox));
     vacation.setStatus(statusChoice.getConvertedInput());
 
-    VacationValidator.Error error = vacationService.validate(vacation, null,false);
+    VacationValidator.Error error = vacationService.validate(vacation, null, false);
 
     if (error != null) {
       form.error(I18nHelper.getLocalizedMessage(error.getMessageKey()));
     }
-
-    //Getting selected calendars from form component or direct from data
-    final Collection<TeamCalDO> selectedCalendars = getSelectedCalendars(calendars);
-
-    // check Vacation Calender
-    final TeamCalDO configuredVacationCalendar = configService.getVacationCalendar();
-    if (configuredVacationCalendar != null) {
-      if (selectedCalendars == null || selectedCalendars.contains(configuredVacationCalendar) == false) {
-        form.error(I18nHelper.getLocalizedMessage("vacation.validate.noCalender", configuredVacationCalendar.getTitle()));
-        return;
-      }
-    }
-  }
-
-  private Collection<TeamCalDO> getSelectedCalendars(final Select2MultiChoice<TeamCalDO> calendars) {
-    final Collection<TeamCalDO> selectedCalendars = new HashSet<>();
-    if (calendars != null && calendars.getConvertedInput() != null && calendars.getConvertedInput().size() > 0) {
-      selectedCalendars.addAll(calendars.getConvertedInput());
-    } else {
-      selectedCalendars.addAll(vacationCalendarService.getCalendarsForVacation(this.data));
-    }
-    return selectedCalendars;
-  }
-
-  private boolean checkOnlyStatusChange(final DropDownChoice<VacationStatus> statusChoice) {
-    if (statusChoice != null && statusChoice.getConvertedInput() != null && data.getStatus() != null) {
-      if (
-        //Changes from IN_PROGRESS to APPROVED or REJECTED
-              (VacationStatus.IN_PROGRESS.equals(data.getStatus()) && (VacationStatus.APPROVED.equals(statusChoice.getConvertedInput()) || VacationStatus.REJECTED
-                      .equals(statusChoice.getConvertedInput())))
-                      ||
-                      //Changes from REJECTED to APPROVED or IN_PROGRESS
-                      (VacationStatus.REJECTED.equals(data.getStatus()) && (VacationStatus.APPROVED.equals(statusChoice.getConvertedInput())
-                              || VacationStatus.IN_PROGRESS.equals(statusChoice.getConvertedInput())))
-      ) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private boolean isOn(final CheckBox checkBox) {

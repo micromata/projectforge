@@ -30,7 +30,7 @@ import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.IManualIndex
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import javax.persistence.*
 
@@ -46,9 +46,9 @@ import javax.persistence.*
         indexes = [Index(name = "idx_fk_t_fibu_kunde_konto_id", columnList = "konto_id"),
             Index(name = "idx_fk_t_fibu_kunde_tenant_id", columnList = "tenant_id")])
 @Analyzer(impl = ClassicAnalyzer::class)
-open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, ShortDisplayNameCapable {
+open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, DisplayNameCapable {
 
-    override val shortDisplayName: String
+    override val displayName: String
         @Transient
         get() = KostFormatter.formatKunde(this)
 

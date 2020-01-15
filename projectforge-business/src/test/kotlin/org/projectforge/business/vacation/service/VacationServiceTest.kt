@@ -29,10 +29,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
+import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.UserDao
-import org.projectforge.business.vacation.model.RemainingDaysOfVactionDao
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
+import org.projectforge.business.vacation.repository.RemainingLeaveDao
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.UserException
@@ -49,10 +50,13 @@ class VacationServiceTest : AbstractTestBase() {
     private lateinit var employeeDao: EmployeeDao
 
     @Autowired
+    private lateinit var employeeService: EmployeeService
+
+    @Autowired
     private lateinit var userDao: UserDao
 
     @Autowired
-    private lateinit var remainingDaysOfVactionDao: RemainingDaysOfVactionDao
+    private lateinit var remainingLeaveDao: RemainingLeaveDao
 
     @Autowired
     private lateinit var vacationDao: VacationDao
@@ -91,13 +95,17 @@ class VacationServiceTest : AbstractTestBase() {
      */
     @Test
     fun employeeJoined2018YearTest() {
-        val employee = createEmployee("2018-joiner", LocalDate.of(2018, Month.MAY, 1))
+        val employee = createEmployee("2018-joiner", LocalDate.of(2018, Month.JULY, 1), annualLeaveDays = 20,
+                annualLeaveDayEntries = arrayOf(AnnualLeaveDays(2019, 30)))
         logon(employee.user)
         Assertions.assertEquals(20.0, addVacations(employee, 2019, Month.JULY, 1, Month.JULY, 26), "days off expected.")
         Assertions.assertEquals(10.0, addVacations(employee, 2020, Month.JULY, 13, Month.JULY, 24), "days off expected.")
+        assertStats(employee, 2018,
+                vacationDaysAllocatedInYear = 0.0,
+                vacationDaysInYearFromContract = 10.0) // Half year (20 days/2)
         assertStats(employee, 2019,
                 vacationDaysAllocatedInYear = 20.0,
-                vacationDaysInYearFromContract = 30.0) // Full year
+                vacationDaysInYearFromContract = 30.0) // Full year (30 days since 2019)
         assertStats(employee, 2020,
                 vacationDaysLeftInYear = 30.0, // 30 from contract + 10 carry - 10 used
                 vacationDaysAllocatedInYear = 10.0,
@@ -233,8 +241,32 @@ class VacationServiceTest : AbstractTestBase() {
     fun employeeJoinedInFutureTest() {
         val employee = createEmployee("FutureJoiner", LocalDate.now().plusDays(1))
         logon(employee.user)
-        assertStats(employee, 2020)
+        assertStats(employee, 2020, vacationDaysInYearFromContract = -1.0) // Don't check vacationDaysInYearFromContract: it depends on the date of year this test runs.
     }
+
+    @Test
+    fun yearlyVacationDaysForJoinersAndLeaversTest() {
+        val leaver1 = createEmployee("Leaver1", LocalDate.of(2019, Month.JULY, 14), LocalDate.of(2020, Month.JUNE, 15))
+        Assertions.assertEquals(15, vacationService.getAnnualLeaveDays(leaver1, 2019).toInt()) // Jul - Dec (6)
+        Assertions.assertEquals(15, vacationService.getAnnualLeaveDays(leaver1, 2020).toInt()) // Jan - Jun (6)
+
+        val leaver2 = createEmployee("Leaver2", LocalDate.of(2019, Month.JULY, 15), LocalDate.of(2020, Month.JUNE, 14))
+        Assertions.assertEquals(13, vacationService.getAnnualLeaveDays(leaver2, 2019).toInt()) // Aug - Dec (5):5/12*30=12.5
+        Assertions.assertEquals(13, vacationService.getAnnualLeaveDays(leaver2, 2020).toInt()) // Jan-May: 5/12*30=12.5
+
+        val leaver3 = createEmployee("Leaver3", LocalDate.of(2020, Month.FEBRUARY, 14), LocalDate.of(2020, Month.JUNE, 15))
+        Assertions.assertEquals(13, vacationService.getAnnualLeaveDays(leaver3, 2020).toInt()) // 5/12*30=12.5
+
+        val leaver4 = createEmployee("Leaver4", LocalDate.of(2020, Month.FEBRUARY, 15), LocalDate.of(2020, Month.JUNE, 15))
+        Assertions.assertEquals(10, vacationService.getAnnualLeaveDays(leaver4, 2020).toInt()) // 4/12*30=10 (March - June)
+
+        val leaver5 = createEmployee("Leaver5", LocalDate.of(2020, Month.FEBRUARY, 14), LocalDate.of(2020, Month.JUNE, 14))
+        Assertions.assertEquals(10, vacationService.getAnnualLeaveDays(leaver5, 2020).toInt()) // 5/12*30=12.5 (February - May)
+
+        val leaver6 = createEmployee("Leaver6", LocalDate.of(2020, Month.JANUARY, 1), LocalDate.of(2020, Month.DECEMBER, 31))
+        Assertions.assertEquals(30, vacationService.getAnnualLeaveDays(leaver6, 2020).toInt()) // 12
+    }
+
 
     @Test
     fun checkAccessTest() {
@@ -267,13 +299,13 @@ class VacationServiceTest : AbstractTestBase() {
      * @return Number of vacation days (equals to working days between startDate and endDate)
      */
     private fun addVacations(employee: EmployeeDO, startYear: Int, startMonth: Month, startDay: Int, endMonth: Month, endDay: Int,
-                             special: Boolean = false, manager: EmployeeDO = employee,
+                             special: Boolean = false, replacement: EmployeeDO = employee, manager: EmployeeDO = employee,
                              status: VacationStatus = VacationStatus.APPROVED): Double {
         val endYear = if (startMonth > endMonth)
             startYear + 1 // Vacations over years.
         else
             startYear
-        return addVacations(employee, LocalDate.of(startYear, startMonth, startDay), LocalDate.of(endYear, endMonth, endDay), special, manager, status)
+        return addVacations(employee, LocalDate.of(startYear, startMonth, startDay), LocalDate.of(endYear, endMonth, endDay), special, replacement, manager, status)
     }
 
     /**
@@ -281,7 +313,7 @@ class VacationServiceTest : AbstractTestBase() {
      * @return Number of vacation days (equals to working days between startDate and endDate)
      */
     private fun addVacations(employee: EmployeeDO, startDate: LocalDate, endDate: LocalDate,
-                             special: Boolean = false, manager: EmployeeDO = employee,
+                             special: Boolean = false, replacement: EmployeeDO = employee, manager: EmployeeDO = employee,
                              status: VacationStatus = VacationStatus.APPROVED): Double {
         if (endDate.isBefore(employee.eintrittsDatum))
             return 0.0
@@ -289,17 +321,18 @@ class VacationServiceTest : AbstractTestBase() {
         vacation.employee = employee
         vacation.startDate = if (startDate.isBefore(employee.eintrittsDatum)) employee.eintrittsDatum else startDate
         vacation.endDate = endDate
-        vacation.halfDay = false
+        vacation.halfDayBegin = false
         vacation.special = false
         vacation.status = status
         vacation.manager = manager
+        vacation.replacement = replacement
         vacation.special = special
         vacationDao.save(vacation)
         lastStoredVacation = vacation
         return PFDayUtils.getNumberOfWorkingDays(startDate, endDate).toDouble()
     }
 
-    private fun createEmployee(name: String, joinDate: LocalDate?, leaveDate: LocalDate? = null): EmployeeDO {
+    private fun createEmployee(name: String, joinDate: LocalDate?, leaveDate: LocalDate? = null, annualLeaveDays: Int = 30, annualLeaveDayEntries: Array<AnnualLeaveDays>? = null): EmployeeDO {
         val user = PFUserDO()
         user.firstname = name
         user.lastname = name
@@ -309,7 +342,10 @@ class VacationServiceTest : AbstractTestBase() {
         employee.user = user
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
-        employee.urlaubstage = 30
+        employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(annualLeaveDays));
+        annualLeaveDayEntries?.forEach {
+            employeeService.addNewAnnualLeaveDays(employee, LocalDate.of(it.year, Month.JUNE, 1), BigDecimal(it.value));
+        }
         employeeDao.internalSave(employee)
         return employee
     }
@@ -326,18 +362,20 @@ class VacationServiceTest : AbstractTestBase() {
                              */
                             baseMonth: Month = Month.JANUARY): VacationStats {
         val stats = vacationService.getVacationStats(employee, year, true, LocalDate.of(2020, baseMonth, 15))
-        assertNumbers(stats, carryVacationDaysFromPreviousYear, stats.carryVacationDaysFromPreviousYear, "carryVacationDaysFromPreviousYear")
-        assertNumbers(stats, carryVacationDaysFromPreviousYearUnused, stats.carryVacationDaysFromPreviousYearUnused, "carryVacationDaysFromPreviousYearUnused")
+        assertNumbers(stats, carryVacationDaysFromPreviousYear, stats.remainingLeaveFromPreviousYear, "carryVacationDaysFromPreviousYear")
+        assertNumbers(stats, carryVacationDaysFromPreviousYearUnused, stats.remainingLeaveFromPreviousYearUnused, "carryVacationDaysFromPreviousYearUnused")
         assertNumbers(stats, vacationDaysAllocatedInYear, stats.vacationDaysInProgressAndApproved, "vacationDaysAllocatedInYear")
-        assertNumbers(stats, vacationDaysInYearFromContract, stats.vacationDaysInYearFromContract, "vacationDaysInYearFromContract")
-        if (vacationDaysLeftInYear != null)
-            assertNumbers(stats, vacationDaysLeftInYear, stats.vacationDaysLeftInYear, "vacationDaysLeftInYear")
-        else
-            assertNumbers(stats, vacationDaysInYearFromContract - vacationDaysAllocatedInYear, stats.vacationDaysLeftInYear, "vacationDaysLeftInYear")
+        if (vacationDaysInYearFromContract >= 0) {
+            assertNumbers(stats, vacationDaysInYearFromContract, stats.vacationDaysInYearFromContract, "vacationDaysInYearFromContract")
+            if (vacationDaysLeftInYear != null)
+                assertNumbers(stats, vacationDaysLeftInYear, stats.vacationDaysLeftInYear, "vacationDaysLeftInYear")
+            else
+                assertNumbers(stats, vacationDaysInYearFromContract - vacationDaysAllocatedInYear, stats.vacationDaysLeftInYear, "vacationDaysLeftInYear")
+        }
         if (carryVacationDaysFromPreviousYear != null && carryVacationDaysFromPreviousYear > 0) {
             assertNumbers(stats,
                     carryVacationDaysFromPreviousYear,
-                    remainingDaysOfVactionDao.internalGet(stats.employee.id, stats.year)?.carryVacationDaysFromPreviousYear,
+                    remainingLeaveDao.internalGet(stats.employee.id, stats.year)?.remainingFromPreviousYear,
                     "carryVacationDaysFromPreviousYear in db: $stats")
         }
         return stats
@@ -350,6 +388,8 @@ class VacationServiceTest : AbstractTestBase() {
             Assertions.assertEquals(expected, actual?.toDouble(), "$msg: $stats")
         }
     }
+
+    class AnnualLeaveDays(val year: Int, val value: Int)
 
 
     companion object {

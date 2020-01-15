@@ -69,10 +69,6 @@ class TimesheetRest : AbstractDORest<TimesheetDO, TimesheetDao>(TimesheetDao::cl
     companion object {
         private const val PREF_AREA = "timesheet"
         private const val PREF_EDIT_NAME = "edit.recent"
-
-        init {
-            JacksonConfiguration.registerAllowedUnknownProperties(Kost2DO::class.java, "title")
-        }
     }
 
     @Value("\${calendar.useNewCalendarEvents}")

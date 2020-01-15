@@ -373,9 +373,9 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
         .withTaskTree(taskTree));
     if (systemInfoCache.isCost2EntriesExists() == true) {
       columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("fibu.kost2"),
-          getSortable("kost2.shortDisplayName",
+          getSortable("kost2.displayName",
               sortable),
-          "kost2.shortDisplayName", cellItemListener));
+          "kost2.displayName", cellItemListener));
     }
     columns.add(
         new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("calendar.weekOfYearShortLabel"), getSortable(

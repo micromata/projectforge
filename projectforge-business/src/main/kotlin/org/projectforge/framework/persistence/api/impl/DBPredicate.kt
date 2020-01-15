@@ -63,6 +63,19 @@ abstract class DBPredicate(
 
     companion object {
         private val log = LoggerFactory.getLogger(DBPredicate::class.java)
+        /**
+         * Replaces trailing and leading '*' by '%' or vica versa. Appends '%' (or '*') to alphanumeric strings doesn't start or end with '%' or '*'.
+         */
+        internal fun modifySearchString(str: String, oldChar: Char, newChar: Char, autoWildcardSearch: Boolean = false): String {
+            var queryString = str.trim()
+            if (queryString.endsWith(oldChar))
+                queryString = "${queryString.substring(0, queryString.length - 1)}$newChar"
+            if (queryString.startsWith(oldChar))
+                queryString = "$newChar${queryString.substring(1)}"
+            else if (autoWildcardSearch)
+                queryString = HibernateSearchFilterUtils.modifySearchString(queryString, "$newChar", false) // Always look for keyword* (\p{L} means all letters in all languages.
+            return queryString
+        }
     }
 
     class Equal(field: String, val value: Any)
@@ -538,21 +551,6 @@ abstract class DBPredicate(
             }
         }
         return false
-    }
-
-    /**
-     * Replaces trailing and leading '*' by '%' or vica versa. Appends '%' (or '*') to alphanumeric strings doesn't start or end with '%' or '*'.
-     */
-
-    internal fun modifySearchString(str: String, oldChar: Char, newChar: Char, autoWildcardSearch: Boolean = false): String {
-        var queryString = str.trim()
-        if (queryString.endsWith(oldChar))
-            queryString = "${queryString.substring(0, queryString.length - 1)}$newChar"
-        if (queryString.startsWith(oldChar))
-            queryString = "$newChar${queryString.substring(1)}"
-        else if (autoWildcardSearch)
-            queryString = HibernateSearchFilterUtils.modifySearchString(queryString, "$newChar", false) // Always look for keyword* (\p{L} means all letters in all languages.
-        return queryString
     }
 
     internal fun isEquals(val1: Any?, val2: Any?): Boolean {

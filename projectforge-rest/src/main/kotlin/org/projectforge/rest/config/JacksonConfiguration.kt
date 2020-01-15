@@ -72,6 +72,8 @@ open class JacksonConfiguration {
 
         private val allowedUnknownProperties = mutableMapOf<Class<*>, MutableSet<String>>()
 
+        private val allowedUnknownGlobalProperties = mutableSetOf<String>()
+
         /**
          * Properties (field) sent by any client and unknown by the server will result in an exception and BAD_REQUEST.
          * In special cases you may add properties, which should be simply ignored.
@@ -87,16 +89,28 @@ open class JacksonConfiguration {
             }
         }
 
+        /**
+         * Properties (field) sent by any client and unknown by the server will result in an exception and BAD_REQUEST.
+         * In special cases you may add properties, which should be simply ignored.
+         */
+        fun registerAllowedUnknownGlobalProperties(vararg properties: String) {
+            synchronized(allowedUnknownGlobalProperties) {
+                allowedUnknownGlobalProperties.addAll(properties)
+            }
+        }
+
         init {
+            registerAllowedUnknownGlobalProperties("displayName")
             registerAllowedUnknownProperties(PFUserDO::class.java, "fullname")
             registerAllowedUnknownProperties(KundeDO::class.java, "id")
             // reminderDuration* will be there after function switchToTimesheet is used:
             registerAllowedUnknownProperties(TimesheetDO::class.java, "reminderDuration", "reminderDurationUnit")
+            registerAllowedUnknownProperties(Kost2DO::class.java,  "nummernkreis", "teilbereich", "bereich", "endziffer")
         }
     }
 
-    @Value("\${projectforge.rest.json.allowUnkownProperties:true}")
-    private var allowUnknownJsonProperties: Boolean = true
+    @Value("\${projectforge.rest.json.failOnUnknownJsonProperties:false}")
+    private var failOnUnknownJsonProperties: Boolean = false
 
     private var objectMapper: ObjectMapper? = null
 
@@ -109,10 +123,10 @@ open class JacksonConfiguration {
         mapper.registerModule(KotlinModule())
         mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true)
         mapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
-        if (!allowUnknownJsonProperties) {
-            log.info("Unknown JSON properties are not allowed in REST call, due to configuration in projectforge.properties:projectforge.rest.json.allowUnkownProperties (OK, but Rest calls may fail).")
+        if (failOnUnknownJsonProperties) {
+            log.warn("Unknown JSON properties are not allowed in REST call, due to configuration in projectforge.properties:projectforge.rest.json.failOnUnknownJsonProperties (OK, but Rest calls may fail).")
         }
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, allowUnknownJsonProperties) // Should be true in development mode!
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, failOnUnknownJsonProperties) // Should be true in development mode!
         //mapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true)
         mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
         mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
@@ -126,7 +140,7 @@ open class JacksonConfiguration {
                         if (beanOrClass == null)
                             return false
                         val clazz = if (beanOrClass is Class<*>) beanOrClass else beanOrClass.javaClass
-                        return allowedUnknownProperties[clazz]?.contains(propertyName) ?: false
+                        return allowedUnknownGlobalProperties.contains(propertyName) || allowedUnknownProperties[clazz]?.contains(propertyName) ?: false
                     }
                 })
             }

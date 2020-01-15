@@ -31,9 +31,9 @@ import java.time.format.DateTimeFormatter
 
 object HolidayAndWeekendProvider {
     private val log = org.slf4j.LoggerFactory.getLogger(HolidayAndWeekendProvider::class.java)
-    private val holidays = Holidays.getInstance()
+    private val holidays = Holidays.instance
 
-    class SpecialDayInfo(val weekend: Boolean = false, val holiday: Boolean = false, val holidayTitle: String? = null, val workingDay: Boolean = false)
+    class SpecialDayInfo(val weekend: Boolean, val holiday: Boolean, val holidayTitle: String, val workingDay: Boolean)
 
     fun getSpecialDayInfos(start: PFDateTime, end: PFDateTime): Map<String, SpecialDayInfo> {
         val result = mutableMapOf<String, SpecialDayInfo>()
@@ -50,12 +50,9 @@ object HolidayAndWeekendProvider {
             if (holiday || weekend) {
                 val workingDay = holidays.isWorkingDay(dateTime)
                 var holidayInfo = holidays.getHolidayInfo(dateTime.year, dateTime.dayOfYear)
-                if (holidayInfo.isNullOrBlank()) {
-                    holidayInfo = null
-                } else
-                    if (holidayInfo.startsWith("calendar.holiday.")) {
-                        holidayInfo = translate(holidayInfo)
-                    }
+                if (holidayInfo.startsWith("calendar.holiday.")) {
+                    holidayInfo = translate(holidayInfo)
+                }
                 val dayInfo = SpecialDayInfo(weekend, holiday, holidayInfo, workingDay)
                 val localDate = day.localDate
                 result.put(isoDateFormatter.format(localDate), dayInfo)

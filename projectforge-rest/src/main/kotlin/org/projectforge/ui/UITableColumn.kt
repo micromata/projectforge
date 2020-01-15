@@ -36,6 +36,7 @@ enum class Formatter {
     ADDRESS_BOOK,
     AUFTRAG_POSITION,
     DATE,
+    EMPLOYEE,
     COST1,
     COST2,
     CUSTOMER,

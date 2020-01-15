@@ -83,7 +83,7 @@ public class DayHolder {
    * @param date
    */
   public DayHolder(final Date date) {
-    this.date = PFDay.from(date);
+    this.date = PFDay.from(date, true);
   }
 
   public DayHolder(final Date date, final TimeZone timeZone) {
@@ -197,14 +197,14 @@ public class DayHolder {
   }
 
   public boolean isWorkingDay() {
-    return holidays.isWorkingDay(this);
+    return holidays.isWorkingDay(this.date);
   }
 
   /**
    * Weekend days have always no work fraction!
    */
   public BigDecimal getWorkFraction() {
-    return holidays.getWorkFraction(this);
+    return holidays.getWorkFraction(this.date);
   }
 
   public String getHolidayInfo() {

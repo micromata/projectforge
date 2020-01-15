@@ -24,6 +24,7 @@
 package org.projectforge.rest
 
 import org.projectforge.business.user.UserDao
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
@@ -31,7 +32,6 @@ import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 
@@ -103,11 +103,11 @@ class UserRest
 
     override val autoCompleteSearchFields = arrayOf("username", "firstname", "lastname", "email")
 
-    override fun getAutoCompletionObjects(@RequestParam("search") searchString: String?): MutableList<User> {
-        val result = super.getAutoCompletionObjects(searchString)
-        if (searchString.isNullOrBlank()) {
-            result.removeIf { it.deactivated } // Remove deactivated users when returning all. Show deactivated users only if search string is given.
+    override fun queryAutocompleteObjects(filter: BaseSearchFilter): MutableList<PFUserDO> {
+        val list = super.queryAutocompleteObjects(filter)
+        if (filter.searchString.isNullOrBlank()) {
+            list.removeIf { it.deactivated } // Remove deactivated users when returning all. Show deactivated users only if search string is given.
         }
-        return result
+        return list
     }
 }

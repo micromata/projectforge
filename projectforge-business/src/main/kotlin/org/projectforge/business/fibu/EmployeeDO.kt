@@ -43,10 +43,10 @@ import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.anots.StringAlphanumericSort
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ModificationStatus
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO
 import org.projectforge.framework.persistence.attr.impl.HibernateSearchAttrSchemaFieldInfoProvider
 import org.projectforge.framework.persistence.history.ToStringFieldBridge
@@ -56,7 +56,6 @@ import org.projectforge.framework.utils.Constants
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
 import javax.persistence.*
 
 /**
@@ -72,15 +71,16 @@ import javax.persistence.*
 @AUserRightId("HR_EMPLOYEE")
 @NamedQueries(
         NamedQuery(name = EmployeeDO.FIND_BY_USER_ID, query = "from EmployeeDO where user.id=:userId and tenant.id=:tenantId"),
+        NamedQuery(name = EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID, query = "select id from EmployeeDO where user.id=:userId and tenant.id=:tenantId"),
         NamedQuery(name = EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME, query = "from EmployeeDO where user.lastname=:lastname and user.firstname=:firstname"))
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr, Comparable<Any>,
-        ShortDisplayNameCapable {
+        DisplayNameCapable {
     // The class must be declared as open for mocking in VacationServiceTest.
 
-    override val shortDisplayName: String
+    override val displayName: String
         @Transient
-        get() = "${user?.shortDisplayName}"
+        get() = "${user?.getFullname()}"
 
     /**
      * The ProjectForge user assigned to this employee.
@@ -135,18 +135,10 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @get:Column(length = 255)
     open var staffNumber: String? = null
 
-    /**
-     * Number of yearly available vacation days.
-     */
-    @PropertyInfo(i18nKey = "fibu.employee.urlaubstage")
-    @Field(analyze = Analyze.NO)
-    @get:Column
-    open var urlaubstage: Int? = null // Open needed for mocking in VacationServiceTest
-
     @Field(store = Store.YES)
     @FieldBridge(impl = TimeableListFieldBridge::class)
     @IndexedEmbedded(depth = 2)
-    private var timeableAttributes: MutableList<EmployeeTimedDO> = ArrayList()
+    private var timeableAttributes = mutableListOf<EmployeeTimedDO>()
 
     @PropertyInfo(i18nKey = "fibu.employee.wochenstunden")
     @Field(analyze = Analyze.NO)
@@ -322,6 +314,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
 
     companion object {
         internal const val FIND_BY_USER_ID = "EmployeeDO_FindByUserId"
+        internal const val GET_EMPLOYEE_ID_BY_USER_ID = "EmployeeDO_GetEmployeeIdByUserId"
         internal const val FIND_BY_LASTNAME_AND_FIRST_NAME = "EmployeeDO_FindByLastnameAndFirstname"
     }
 }

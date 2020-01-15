@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import DynamicReactSelect from '../select/DynamicReactSelect';
-import DynamicUserSelect from '../select/DynamicUserSelect';
+import DynamicObjectSelect from '../select/DynamicObjectSelect';
 import DynamicTaskSelect from '../select/task';
+import DynamicAutoCompletion from './DynamicAutoCompletion';
 import DynamicDateInput from './DynamicDateInput';
 import DynamicInput from './DynamicInput';
 import DynamicTimestampInput from './DynamicTimestampInput';
@@ -15,8 +15,8 @@ function DynamicInputResolver({ dataType, autoCompletionUrl, ...props }) {
     switch (dataType) {
         case 'STRING':
             if (autoCompletionUrl) {
-                Tag = DynamicReactSelect;
-                additionalProps.autoCompletion = { url: autoCompletionUrl };
+                Tag = DynamicAutoCompletion;
+                additionalProps.url = autoCompletionUrl;
             } else {
                 Tag = DynamicInput;
             }
@@ -31,7 +31,9 @@ function DynamicInputResolver({ dataType, autoCompletionUrl, ...props }) {
             Tag = DynamicTaskSelect;
             break;
         case 'USER':
-            Tag = DynamicUserSelect;
+        case 'EMPLOYEE':
+            Tag = DynamicObjectSelect;
+            additionalProps.type = dataType;
             break;
         case 'INT':
         case 'DECIMAL':
@@ -53,6 +55,7 @@ DynamicInputResolver.propTypes = {
         // All dataTypes yet implemented for type 'INPUT'.
         'STRING',
         'DATE',
+        'EMPLOYEE',
         'TIMESTAMP',
         'TASK',
         'USER',

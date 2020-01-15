@@ -30,7 +30,7 @@ class Konto(var nummer: Int? = null,
             var bezeichnung: String? = null,
             var description: String? = null,
             var kontoStatus: KontoStatus? = null
-) : BaseDTO<KontoDO>() {
+) : BaseDTODisplayObject<KontoDO>() {
     override fun copyFromMinimal(src: KontoDO) {
         super.copyFromMinimal(src)
         nummer = src.nummer

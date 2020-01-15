@@ -43,7 +43,7 @@ object FinalizeScreenSupport {
                    startServer: Boolean,
                    developmentMode: Boolean
     ) {
-        var port = NumberHelper.parseInteger(portText)
+        var port = NumberHelper.parseInteger(portText) ?: 8080
         setupData.domain = domain
         setupData.serverPort = if (port in 1..65535) port else 8080
         setupData.currencySymbol = currencySymbol

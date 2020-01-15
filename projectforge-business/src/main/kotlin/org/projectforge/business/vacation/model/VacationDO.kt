@@ -23,6 +23,7 @@
 
 package org.projectforge.business.vacation.model
 
+import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.fibu.EmployeeDO
@@ -30,9 +31,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.LocalDate
-import java.util.*
 import javax.persistence.*
 
 /**
@@ -59,6 +58,10 @@ open class VacationDO : DefaultBaseDO() {
     @get:JoinColumn(name = "employee_id", nullable = false)
     open var employee: EmployeeDO? = null
 
+    val employeeId: Int?
+        @Transient
+        get() = employee?.id
+
     @PropertyInfo(i18nKey = "vacation.startdate")
     @get:Column(name = "start_date", nullable = false)
     open var startDate: LocalDate? = null
@@ -68,12 +71,12 @@ open class VacationDO : DefaultBaseDO() {
     open var endDate: LocalDate? = null
 
     /**
-     * The substitutions.
+     * Coverage (during leave).
      */
-    @PropertyInfo(i18nKey = "vacation.substitution")
-    @get:ManyToMany
-    @get:JoinTable(name = "t_employee_vacation_substitution", joinColumns = [JoinColumn(name = "vacation_id", referencedColumnName = "PK")], inverseJoinColumns = [JoinColumn(name = "substitution_id", referencedColumnName = "PK")], indexes = [Index(name = "idx_fk_t_employee_vacation_substitution_vacation_id", columnList = "vacation_id"), Index(name = "idx_fk_t_employee_vacation_substitution_substitution_id", columnList = "substitution_id")])
-    open var substitutions: Set<EmployeeDO>? = HashSet()
+    @PropertyInfo(i18nKey = "vacation.replacement")
+    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:JoinColumn(name = "replacement_id", nullable = false)
+    open var replacement: EmployeeDO? = null
 
     /**
      * The manager.
@@ -91,18 +94,25 @@ open class VacationDO : DefaultBaseDO() {
             VacationStatus.IN_PROGRESS
         } else field
 
-    //TODO FB: Wird leider nur über dem Feld ausgewertet und nicht an der Methode.
-    //Feld wird eigentlich nicht benötigt
+    // Neede by Wicket in VacationListPage (could be removed after migration to ReactJS).
     @PropertyInfo(i18nKey = "vacation.vacationmode")
     private val vacationmode: VacationMode? = null
 
-    @PropertyInfo(i18nKey = "vacation.isSpecial")
+    @PropertyInfo(i18nKey = "vacation.special")
     @get:Column(name = "is_special", nullable = false)
     open var special: Boolean? = null
 
     @PropertyInfo(i18nKey = "vacation.isHalfDay")
-    @get:Column(name = "is_half_day")
-    open var halfDay: Boolean? = null
+    @get:Column(name = "is_half_day_begin")
+    open var halfDayBegin: Boolean? = null
+
+    @get:Column(name = "is_half_day_end")
+    open var halfDayEnd: Boolean? = null
+
+    @PropertyInfo(i18nKey = "comment")
+    @Field
+    @get:Column(length = 4000)
+    open var comment: String? = null
 
     @Transient
     fun getVacationmode(): VacationMode {
@@ -115,17 +125,13 @@ open class VacationDO : DefaultBaseDO() {
         if (currentUserId == managerUserId) {
             return VacationMode.MANAGER
         }
-        return if (isSubstitution(currentUserId)) {
-            VacationMode.SUBSTITUTION
+        return if (isReplacement(currentUserId)) {
+            VacationMode.REPLACEMENT
         } else VacationMode.OTHER
     }
 
     @Transient
-    fun isSubstitution(userId: Int?): Boolean {
-        return userId != null && substitutions != null && substitutions!!.stream()
-                .map<PFUserDO> { it.user }
-                .map<Int> { it.pk }
-                .anyMatch { pk -> pk == userId }
-
+    fun isReplacement(userId: Int?): Boolean {
+        return userId != null && replacement?.userId == userId
     }
 }

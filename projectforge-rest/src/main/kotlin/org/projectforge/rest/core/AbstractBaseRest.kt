@@ -28,6 +28,7 @@ import org.apache.commons.beanutils.PropertyUtils
 import org.projectforge.Const
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.InternalErrorException
@@ -81,7 +82,7 @@ abstract class AbstractBaseRest<
         const val CREATE_MENU = "CREATE"
     }
 
-    class ShortDisplayObject(val id: Any, val displayName: String?)
+    class DisplayObject(val id: Any, override val displayName: String?) : DisplayNameCapable
 
     /**
      * Contains the layout data returned for the frontend regarding edit pages.
@@ -176,6 +177,7 @@ abstract class AbstractBaseRest<
                     url = "${getRestPath()}/reindexFull",
                     type = MenuItemTargetType.RESTCALL))
         layout.add(gearMenu)
+        layout.addTranslations("reset")
         return layout
     }
 
@@ -230,6 +232,9 @@ abstract class AbstractBaseRest<
                         PropertyUtils.getProperty(dbObj, property)
                     } catch (ex: NestedNullException) {
                         null
+                    } catch (ex: Exception) {
+                        log.warn("Unknown property '${dbObj::class.java}.$property': ${ex.message}.")
+                        null
                     }
             if (elementInfo.required == true) {
                 var error = false
@@ -279,12 +284,14 @@ abstract class AbstractBaseRest<
         val favorites = getFilterFavorites()
         val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter))
         val layout = createListLayout()
-                .addTranslations("table.showing")
+                .addTranslations("table.showing",
+                        "searchFilter",
+                        "nothingFound")
         layout.add(LayoutListFilterUtils.createNamedContainer(this, lc))
         layout.postProcessPageMenu()
-        layout.add(MenuItem(CREATE_MENU, title = "+", url = "${Const.REACT_APP_PATH}${getCategory()}/edit"), 0)
+        layout.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Const.REACT_APP_PATH}${getCategory()}/edit"), 0)
         return InitialListData(ui = layout,
-                standardEditPage = "${Const.REACT_APP_PATH}${getCategory()}/edit/\${id}",
+                standardEditPage = "${Const.REACT_APP_PATH}${getCategory()}/edit/:id",
                 quickSelectUrl = quickSelectUrl,
                 data = resultSet,
                 filter = filter,
@@ -292,10 +299,10 @@ abstract class AbstractBaseRest<
     }
 
     /**
-     * At standard, quickSelectUrl is only given, if the doClass implements ShortDisplayNameCapable and autoCompleteSearchFields are given.
+     * At standard, quickSelectUrl is only given, if the doClass implements DisplayObject and autoCompleteSearchFields are given.
      */
     protected open val quickSelectUrl: String?
-        get() = if (!autoCompleteSearchFields.isNullOrEmpty() && ShortDisplayNameCapable::class.java.isAssignableFrom(baseDao.doClass)) "${getRestPath()}/quickSelect?search=\${searchString}" else null
+        get() = if (!autoCompleteSearchFields.isNullOrEmpty() && DisplayNameCapable::class.java.isAssignableFrom(baseDao.doClass)) "${getRestPath()}/${AutoCompletion.AUTOCOMPLETE_OBJECT}?maxResults=30&search=:search" else null
 
     /**
      * Add customized magic filter element in addition to the automatically detected elements.
@@ -381,7 +388,7 @@ abstract class AbstractBaseRest<
     /**
      * @return currentFilter, new filterFavorites and isFilterModified=false.
      */
-    @RequestMapping("filter/create")
+    @PostMapping("filter/create")
     fun createFavoriteFilter(@RequestBody newFilter: MagicFilter): Map<String, Any> {
         fixMagicFilterFromClient(newFilter)
         val favorites = getFilterFavorites()
@@ -575,29 +582,10 @@ abstract class AbstractBaseRest<
      * @return list of strings as json.
      * @see BaseDao.getAutocompletion
      */
-    @GetMapping("ac")
+    @GetMapping(AutoCompletion.AUTOCOMPLETE_TEXT)
     open fun getAutoCompletionForProperty(@RequestParam("property") property: String, @RequestParam("search") searchString: String?)
             : List<String> {
         return baseDao.getAutocompletion(property, searchString)
-    }
-
-    /**
-     * Gets the autocompletion list for the given search string by searching in all properties defined by [autoCompleteSearchFields].
-     * If [autoCompleteSearchFields] is not given an [InternalErrorException] will be thrown.
-     * @param searchString
-     * @return list of found objects.
-     */
-    @GetMapping("aco")
-    open fun getAutoCompletionObjects(@RequestParam("search") searchString: String?): MutableList<DTO> {
-        if (autoCompleteSearchFields.isNullOrEmpty()) {
-            throw RuntimeException("Can't call getAutoCompletion without property, because no autoCompleteSearchFields are configured by the developers for this entity.")
-        }
-        val filter = BaseSearchFilter()
-        filter.searchString = searchString
-        filter.setSearchFields(*autoCompleteSearchFields!!)
-        val resultSet = ResultSet(baseDao.getList(filter))
-        @Suppress("UNCHECKED_CAST")
-        return processResultSetBeforeExport(resultSet).resultSet as MutableList<DTO>
     }
 
     /**
@@ -607,8 +595,8 @@ abstract class AbstractBaseRest<
      * @param searchString
      * @return list of found objects.
      */
-    @GetMapping("quickSelect")
-    open fun getQuickSelectObjects(@RequestParam("search") searchString: String?): List<ShortDisplayObject> {
+    @GetMapping(AutoCompletion.AUTOCOMPLETE_OBJECT)
+    open fun getAutoCompleteObjects(@RequestParam("search") searchString: String?, @RequestParam("maxResults") maxResults: Int?): List<DisplayObject> {
         if (autoCompleteSearchFields.isNullOrEmpty()) {
             throw RuntimeException("Can't call getAutoCompletion without property, because no autoCompleteSearchFields are configured by the developers for this entity.")
         }
@@ -616,9 +604,13 @@ abstract class AbstractBaseRest<
         val modifiedSearchString = searchString?.split(' ', '\t', '\n')?.joinToString(" ") { "+$it*" }
         filter.searchString = modifiedSearchString
         filter.setSearchFields(*autoCompleteSearchFields!!)
-        val list = baseDao.getList(filter)
-        val size = if (list.size > 29) 29 else list.size
-        return list.subList(0, size).map { ShortDisplayObject(it.id, (it as ShortDisplayNameCapable).shortDisplayName) }
+        maxResults?.let { filter.setMaxRows(it) }
+        val list = queryAutocompleteObjects(filter)
+        return list.map { DisplayObject(it.id, if (it is DisplayNameCapable) it.displayName else it.toString()) }
+    }
+
+    protected open fun queryAutocompleteObjects(filter: BaseSearchFilter): MutableList<O> {
+        return baseDao.getList(filter)
     }
 
     /**
