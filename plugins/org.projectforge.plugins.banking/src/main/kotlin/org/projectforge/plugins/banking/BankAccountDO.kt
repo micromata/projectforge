@@ -26,7 +26,7 @@ package org.projectforge.plugins.banking
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -38,9 +38,9 @@ import javax.persistence.UniqueConstraint
 @Indexed
 @Table(name = "T_PLUGIN_BANK_ACCOUNT", uniqueConstraints = [UniqueConstraint(columnNames = ["account_number", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_bank_account_tenant_id", columnList = "tenant_id")])
 @WithHistory
-open class BankAccountDO : DefaultBaseDO(), ShortDisplayNameCapable {
+open class BankAccountDO : DefaultBaseDO(), DisplayNameCapable {
 
-    override val shortDisplayName: String
+    override val displayName: String
         @Transient
         get() = "$accountNumber"
 

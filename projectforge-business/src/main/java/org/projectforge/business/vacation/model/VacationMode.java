@@ -30,7 +30,7 @@ import org.projectforge.common.i18n.I18nEnum;
  */
 public enum VacationMode implements I18nEnum
 {
-  OWN("own"), SUBSTITUTION("substitution"), MANAGER("manager"), OTHER("other");
+  OWN("own"), REPLACEMENT("replacement"), MANAGER("manager"), OTHER("other");
 
   private String key;
 

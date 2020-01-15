@@ -152,9 +152,17 @@ class PFDayUtils {
          */
         @Throws(IllegalArgumentException::class)
         @JvmStatic
-        fun validateMonthValue(month: Int?): Int? {
-            if (month != null && month !in 1..12)
+        @JvmOverloads
+        fun validateMonthValue(month: Int?, autoFix: Boolean = true): Int? {
+            if (month != null && month !in 1..12) {
+                if (autoFix) {
+                    if (month < 1)
+                        return 1
+                    else
+                        return 12
+                }
                 throw IllegalArgumentException("Month value out of range 1..12: $month")
+            }
             return month
         }
 
@@ -175,7 +183,7 @@ class PFDayUtils {
         fun <T : IPFDate<T>> getNumberOfWorkingDays(from: T, to: T): BigDecimal {
             Validate.notNull(from)
             Validate.notNull(to)
-            val holidays = Holidays.getInstance()
+            val holidays = Holidays.instance
             if (to.isBefore(from)) {
                 return BigDecimal.ZERO
             }
@@ -223,7 +231,29 @@ class PFDayUtils {
         }
 
         fun <T : IPFDate<T>> isWorkingDay(date: T): Boolean {
-            return Holidays.getInstance().isWorkingDay(date)
+            return Holidays.instance.isWorkingDay(date)
+        }
+
+        fun isWorkingDay(date: LocalDate): Boolean {
+            return Holidays.instance.isWorkingDay(date)
+        }
+
+        /**
+         * @return The given date, if already a working day, otherwise the first working day after given date.
+         */
+        fun <T : IPFDate<T>>  getNextWorkingDay(date: T): T {
+            var nextWorkingDay = date
+            while (!isWorkingDay(nextWorkingDay)) {
+                nextWorkingDay = nextWorkingDay.plusDays(1)
+            }
+            return nextWorkingDay
+        }
+
+        /**
+         * @return The given date, if already a working day, otherwise the first working day after given date.
+         */
+        fun getNextWorkingDay(date: LocalDate): LocalDate {
+            return getNextWorkingDay(PFDay.from(date)!!).localDate
         }
 
         /**

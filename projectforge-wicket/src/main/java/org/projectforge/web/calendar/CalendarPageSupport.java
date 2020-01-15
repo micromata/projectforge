@@ -80,7 +80,7 @@ public class CalendarPageSupport implements Serializable
       return;
     }
     if (isOtherTimesheetsUsersAllowed() == false) {
-      addCheckBox(checkBoxDivPanel, filter, "showTimesheets", "calendar.option.timesheeets", null, autoSubmit);
+      addCheckBox(checkBoxDivPanel, filter, "showTimesheets", "calendar.option.timesheets", null, autoSubmit);
     }
     addCheckBox(checkBoxDivPanel, filter, "showBreaks", "calendar.option.showBreaks",
         "calendar.option.showBreaks.tooltip", autoSubmit);

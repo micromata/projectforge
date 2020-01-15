@@ -40,6 +40,10 @@ class MagicFilter(
          * If true, only deleted entries will be shown. If false, no deleted entries will be shown. If null, all entries will be shown.
          */
         var deleted: Boolean? = false,
+        /**
+         * Optional full text search on all indexed fields.
+         */
+        var searchString: String? = null,
         var searchHistory: String? = null,
         /**
          * If true, any searchstring (alphanumeric) without wildcard will be changed to '<searchString>*'.
@@ -68,6 +72,7 @@ class MagicFilter(
                 it.value.label = getUserGroupCache().getUser(it.value.value?.toInt())?.username
             }
         }
+        entries.removeIf { it.field.isNullOrBlank() } // Former filter versions (7.0-SNAPSHOT in 2019 supported entries with no values. This is now replaced by searchString.
     }
 
     fun reset() {

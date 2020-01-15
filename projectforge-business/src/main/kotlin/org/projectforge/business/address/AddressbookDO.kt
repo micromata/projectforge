@@ -32,7 +32,7 @@ import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsBridge
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 import javax.persistence.*
@@ -44,9 +44,9 @@ import javax.persistence.*
 @Indexed
 @ClassBridge(name = "usersgroups", impl = HibernateSearchUsersGroupsBridge::class)
 @Table(name = "T_ADDRESSBOOK", indexes = [Index(name = "idx_fk_t_addressbook_tenant_id", columnList = "tenant_id")])
-open class AddressbookDO : BaseUserGroupRightsDO(), ShortDisplayNameCapable {
+open class AddressbookDO : BaseUserGroupRightsDO(), DisplayNameCapable {
 
-    override val shortDisplayName: String
+    override val displayName: String
         @Transient
         get() = "$title"
 

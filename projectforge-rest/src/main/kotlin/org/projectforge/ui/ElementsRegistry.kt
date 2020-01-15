@@ -25,6 +25,7 @@ package org.projectforge.ui
 
 import de.micromata.genome.jpa.metainf.ColumnMetadata
 import de.micromata.genome.jpa.metainf.ColumnMetadataBean
+import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.I18nEnum
@@ -34,6 +35,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.BeanUtils
 import java.lang.reflect.Field
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.*
 import javax.persistence.Basic
 import javax.persistence.Column
@@ -83,13 +85,12 @@ object ElementsRegistry {
                             }
                         }
                         Boolean::class.java -> UICheckbox(property)
-                        Date::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
-                        java.sql.Date::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        Date::class.java,
+                        LocalDate::class.java,
+                        java.sql.Date::class.java,
                         java.sql.Timestamp::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
-                        PFUserDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
-                        Integer::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
-                        BigDecimal::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
-                        TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        PFUserDO::class.java, EmployeeDO::class.java, TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        Integer::class.java, BigDecimal::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
                         Locale::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
                         else -> null
                     }
@@ -120,9 +121,11 @@ object ElementsRegistry {
             String::class.java -> UIDataType.STRING
             Boolean::class.java -> UIDataType.BOOLEAN
             Date::class.java -> UIDataType.TIMESTAMP
+            LocalDate::class.java,
             java.sql.Date::class.java -> UIDataType.DATE
             java.sql.Timestamp::class.java -> UIDataType.TIMESTAMP
             PFUserDO::class.java -> UIDataType.USER
+            EmployeeDO::class.java -> UIDataType.EMPLOYEE
             Integer::class.java -> UIDataType.INT
             BigDecimal::class.java -> UIDataType.DECIMAL
             TaskDO::class.java -> UIDataType.TASK

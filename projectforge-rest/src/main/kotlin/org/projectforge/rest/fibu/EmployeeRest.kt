@@ -25,12 +25,14 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.Employee
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
 
 @RestController
 @RequestMapping("${Rest.URL}/employee")
@@ -86,5 +88,14 @@ class EmployeeRest : AbstractDTORest<EmployeeDO, Employee, EmployeeDao>(Employee
                 .add(UIRow()
                         .add(UICol().add(lc, "comment")))
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    override val autoCompleteSearchFields = arrayOf("user.username", "user.firstname", "user.lastname", "user.email")
+
+    override fun queryAutocompleteObjects(filter: BaseSearchFilter): MutableList<EmployeeDO> {
+        val list = super.queryAutocompleteObjects(filter).toMutableList()
+        val today = LocalDate.now()
+        list.removeIf { it.austrittsDatum?.isBefore(today) == true || it.isDeleted } // Remove deactivated users when returning all. Show deactivated users only if search string is given.
+        return list
     }
 }

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { CheckBox, Col, Input, Row } from '../../../components/design';
 import AdvancedPopper from '../../../components/design/popper/AdvancedPopper';
+import AdvancedPopperInput from '../../../components/design/popper/AdvancedPopperInput';
 import TaskTreeContext from './TaskTreeContext';
 import style from './TaskTreePanel.module.scss';
 
@@ -66,14 +67,11 @@ function TaskFilter(
     return (
         <AdvancedPopper
             basic={(
-                <Input
-                    autoComplete="off"
-                    className={style.searchInput}
+                <AdvancedPopperInput
                     icon={faSearch}
                     id="taskSearchString"
                     onChange={handleSearchChange}
                     onKeyPress={handleInputKeyPress}
-                    small
                     value={searchValue}
                 />
             )}

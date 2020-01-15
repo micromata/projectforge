@@ -110,7 +110,7 @@ class CalendarFilterServicesRest {
 
     @GetMapping("initial")
     fun getInitialCalendar(): CalendarInit {
-        val userGroupCache = UserGroupCache.getTenantInstance()
+        val userGroupCache = UserGroupCache.tenantInstance
         val initial = CalendarInit()
         val calendars = getCalendars()
         val currentFilter = getCurrentFilter()
@@ -166,7 +166,7 @@ class CalendarFilterServicesRest {
         }
 
         listOfDefaultCalendars.sortBy { it.title?.toLowerCase() }
-        listOfDefaultCalendars.add(0, TeamCalendar(id = -1, title = translate("calendar.option.timesheeets"))) // prepend time sheet pseudo calendar
+        listOfDefaultCalendars.add(0, TeamCalendar(id = -1, title = translate("calendar.option.timesheets"))) // prepend time sheet pseudo calendar
         initial.listOfDefaultCalendars = listOfDefaultCalendars
 
         val translations = addTranslations(
@@ -181,7 +181,7 @@ class CalendarFilterServicesRest {
                 "calendar.defaultCalendar.tooltip",
                 "calendar.navigation.today",
                 "calendar.option.gridSize",
-                "calendar.option.timesheeets",
+                "calendar.option.timesheets",
                 "calendar.title",
                 "calendar.view.agenda",
                 "calendar.view.day",

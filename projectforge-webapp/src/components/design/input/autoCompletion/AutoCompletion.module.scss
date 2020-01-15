@@ -1,0 +1,28 @@
+.completions {
+  top: .8em;
+
+  .entries {
+    margin: 0;
+    padding: 0;
+
+    .entry {
+      position: relative;
+      padding: 1em 1.5em;
+      cursor: default;
+
+      &:hover {
+        background-color: #eee;
+      }
+
+      .icon {
+        right: 1em;
+        position: absolute;
+      }
+    }
+  }
+}
+
+.selectMeIcon {
+  color: #007bff;
+  outline: none;
+}

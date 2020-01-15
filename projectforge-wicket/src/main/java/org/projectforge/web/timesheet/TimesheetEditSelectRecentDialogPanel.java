@@ -132,7 +132,7 @@ public class TimesheetEditSelectRecentDialogPanel extends ModalDialog
     };
     if (showCost2Column == true) { // Is maybe invisible but does always exist if cost2 entries does exist in the system.
       columns
-          .add(new CellItemListenerPropertyColumn<TimesheetDO>(getString("fibu.kost2"), null, "kost2.shortDisplayName",
+          .add(new CellItemListenerPropertyColumn<TimesheetDO>(getString("fibu.kost2"), null, "kost2.displayName",
               cellItemListener)
           {
             @Override
@@ -148,7 +148,7 @@ public class TimesheetEditSelectRecentDialogPanel extends ModalDialog
                 {
                   final StringBuffer buf = new StringBuffer();
                   if (timesheet.getKost2() != null) {
-                    buf.append(timesheet.getKost2().getShortDisplayName());
+                    buf.append(timesheet.getKost2().getDisplayName());
                   }
                   if (timesheet.getUserId() != null
                       && timesheet.getUserId().equals(ThreadLocalUserContext.getUserId()) == false) {

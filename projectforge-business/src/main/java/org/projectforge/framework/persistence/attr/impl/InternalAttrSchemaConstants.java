@@ -30,5 +30,9 @@ public final class InternalAttrSchemaConstants
 {
   public static final String EMPLOYEE_STATUS_GROUP_NAME = "employeestatus";
 
+  public static final String EMPLOYEE_ANNUAL_LEAVEDAYS_GROUP_NAME = "employeeannualleave";
+
+  public static final String EMPLOYEE_ANNUAL_LEAVEDAYS_PROP_NAME = "employeeannualleavedays";
+
   public static final String EMPLOYEE_STATUS_DESC_NAME = "status";
 }

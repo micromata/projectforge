@@ -34,6 +34,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.Month;
 import java.util.Collection;
 import java.util.List;
@@ -66,6 +67,18 @@ public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<E
   List<EmployeeDO> getAll(boolean checkAccess);
 
   EmployeeStatus getEmployeeStatus(EmployeeDO employee);
+
+  BigDecimal getAnnualLeaveDays(EmployeeDO employee);
+
+  BigDecimal getAnnualLeaveDays(EmployeeDO employee, LocalDate validAtDate);
+
+  /**
+   * Don't forget to call save or update after adding a new entry.
+   * @param employee
+   * @param validfrom
+   * @param annualLeaveDays
+   */
+  EmployeeTimedDO addNewAnnualLeaveDays(final EmployeeDO employee, final LocalDate validfrom, final BigDecimal annualLeaveDays);
 
   String getStudentVacationCountPerDay(EmployeeDO currentEmployee);
 

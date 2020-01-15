@@ -24,6 +24,7 @@
 package org.projectforge.framework.time
 
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
+import org.projectforge.common.DateFormatType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.time.*
 import java.time.format.DateTimeFormatter
@@ -46,6 +47,9 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
 
     override val month: Month
         get() = date.month
+
+    override val localDate: LocalDate
+        get() = date
 
     /**
      * Uses the locale configured in projectforge.properties. Ensures, that every user of ProjectForge uses same week-of-year-algorithm.
@@ -198,6 +202,11 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         return date.compareTo(other.date)
     }
 
+    fun format(): String {
+        val formatter = DateFormats.getDateTimeFormatter(DateFormatType.DATE)
+        return format(formatter)
+    }
+
     override fun format(formatter: DateTimeFormatter): String {
         return date.format(formatter)
     }
@@ -294,8 +303,21 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
             return PFDay(LocalDate.of(year, month, day))
         }
 
+        /**
+         *  1-based Month: 1 (January) to 12 (December)
+         */
+        @JvmStatic
+        fun of(year: Int, month: Int, day: Int): PFDay {
+            return PFDay(LocalDate.of(year, month, day))
+        }
+
         @JvmStatic
         fun withDate(year: Int, month: Month, day: Int): PFDay {
+            return PFDay(LocalDate.of(year, month, day))
+        }
+
+        @JvmStatic
+        fun of(year: Int, month: Month, day: Int): PFDay {
             return PFDay(LocalDate.of(year, month, day))
         }
 

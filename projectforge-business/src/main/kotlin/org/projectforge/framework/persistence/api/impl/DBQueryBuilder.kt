@@ -101,13 +101,12 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
 
         if (!ignoreTenant && tenantService.isMultiTenancyAvailable) {
             val userContext = ThreadLocalUserContext.getUserContext()
-            val currentTenant = userContext.currentTenant
-            if (currentTenant != null) {
+            userContext.currentTenant?.let { currentTenant ->
                 if (currentTenant.isDefault) {
-                    addMatcher(DBPredicate.Or(DBPredicate.Equal("tenant", userContext.currentTenant),
+                    addMatcher(DBPredicate.Or(DBPredicate.Equal("tenant", currentTenant),
                             DBPredicate.IsNull("tenant")))
                 } else {
-                    addMatcher(DBPredicate.Equal("tenant", userContext.currentTenant))
+                    addMatcher(DBPredicate.Equal("tenant", currentTenant))
                 }
             }
         }

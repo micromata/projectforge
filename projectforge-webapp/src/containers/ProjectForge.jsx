@@ -7,7 +7,7 @@ import LoginView from '../components/authentication/LoginView';
 import Footer from '../components/base/footer';
 import GlobalNavigation from '../components/base/navigation/GlobalNavigation';
 import TopBar from '../components/base/topbar';
-import { Alert, Container } from '../components/design';
+import { Alert } from '../components/design';
 import history from '../utilities/history';
 import prefix from '../utilities/prefix';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
@@ -69,41 +69,39 @@ function ProjectForge(
         content = (
             <React.Fragment>
                 <GlobalNavigation />
-                <Container fluid>
-                    {alertMessage ? (
-                        <Alert color="danger">
-                            {alertMessage}
-                        </Alert>
-                    ) : undefined}
-                    <Switch>
-                        {wicketRoute}
-                        <Route
-                            exact
-                            path={prefix}
-                            component={IndexPage}
-                        />
-                        <Route
-                            path={`${prefix}calendar`}
-                            component={CalendarPage}
-                        />
-                        <Route
-                            path={`${prefix}taskTree`}
-                            component={TaskTreePage}
-                        />
-                        <Route
-                            path={`${prefix}dynamic/:page`}
-                            component={DynamicPage}
-                        />
-                        <Route
-                            path={`${prefix}:category/edit/:id?`}
-                            component={EditPage}
-                        />
-                        <Route
-                            path={`${prefix}:category`}
-                            component={ListPage}
-                        />
-                    </Switch>
-                </Container>
+                {alertMessage ? (
+                    <Alert color="danger">
+                        {alertMessage}
+                    </Alert>
+                ) : undefined}
+                <Switch>
+                    {wicketRoute}
+                    <Route
+                        exact
+                        path={prefix}
+                        component={IndexPage}
+                    />
+                    <Route
+                        path={`${prefix}calendar`}
+                        component={CalendarPage}
+                    />
+                    <Route
+                        path={`${prefix}taskTree`}
+                        component={TaskTreePage}
+                    />
+                    <Route
+                        path={`${prefix}dynamic/:page`}
+                        component={DynamicPage}
+                    />
+                    <Route
+                        path={`${prefix}:category/edit/:id?`}
+                        component={EditPage}
+                    />
+                    <Route
+                        path={`${prefix}:category`}
+                        component={ListPage}
+                    />
+                </Switch>
             </React.Fragment>
         );
     } else {

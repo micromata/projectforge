@@ -24,11 +24,9 @@
 package org.projectforge.business.vacation.repository;
 
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.vacation.VacationFilter;
-import org.projectforge.business.vacation.model.VacationCalendarDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
@@ -50,7 +48,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -99,7 +96,7 @@ public class VacationDao extends BaseDao<VacationDO> {
                            final OperationType operationType,
                            final boolean throwException) {
     if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE) ||
-            obj.getManager() != null && Objects.equals(obj.getManager().getUserId(), user.getId())) {
+            obj == null || obj.getManager() != null && Objects.equals(obj.getManager().getUserId(), user.getId())) {
       // User is HR staff member or assigned manager.
       return true;
     }
@@ -112,7 +109,8 @@ public class VacationDao extends BaseDao<VacationDO> {
       return false;
     }
     // User is owner of given object.
-    if (!obj.isDeleted() && obj.getStatus() == VacationStatus.APPROVED) {
+    if (operationType.isIn(OperationType.INSERT, OperationType.UPDATE, OperationType.UNDELETE)
+            && !obj.isDeleted() && obj.getStatus() == VacationStatus.APPROVED) {
       if (oldObj == null || oldObj.getStatus() != VacationStatus.APPROVED) {
         // User tried to insert a new entry as approved or tries to approve a not yet approved entry.
         throw new AccessException(VacationValidator.Error.NOT_ALLOWED_TO_APPROVE.getMessageKey());
@@ -164,11 +162,11 @@ public class VacationDao extends BaseDao<VacationDO> {
             UserRightValue.READWRITE)) {
       final Integer employeeId = myFilter.getEmployeeId();
       final EmployeeDO employeeFromFilter = emgrFactory.runRoTrans(emgr -> emgr.selectByPk(EmployeeDO.class, employeeId));
-      queryFilter.createJoin("substitutions");
+      queryFilter.createJoin("replacement");
       queryFilter.add(QueryFilter.or(
               QueryFilter.eq("employee", employeeFromFilter),
               QueryFilter.eq("manager", employeeFromFilter),
-              QueryFilter.eq("substitutions.id", employeeId) // does not work with the whole employee object, need id
+              QueryFilter.eq("replacement.id", employeeId) // does not work with the whole employee object, need id
       ));
     }
     if (myFilter.getVacationstatus() != null) {
@@ -213,59 +211,5 @@ public class VacationDao extends BaseDao<VacationDO> {
       return resultList.size();
     }
     return 0;
-  }
-
-  public List<TeamCalDO> getCalendarsForVacation(VacationDO vacation) {
-    final List<TeamCalDO> calendarList = new ArrayList<>();
-    if (vacation.getId() == null) {
-      return calendarList;
-    }
-    final List<VacationCalendarDO> resultList = getVacationCalendarDOs(vacation);
-    if (resultList != null && resultList.size() > 0) {
-      resultList.forEach(res -> {
-        if (!res.isDeleted())
-          calendarList.add(res.getCalendar());
-      });
-    }
-    return calendarList;
-  }
-
-  public List<VacationCalendarDO> getVacationCalendarDOs(VacationDO vacation) {
-    final List<VacationCalendarDO> resultList = emgrFactory.runRoTrans(emgr -> {
-      final String baseSQL = "SELECT vc FROM VacationCalendarDO vc WHERE vc.vacation = :vacation";
-      return emgr.selectDetached(VacationCalendarDO.class, baseSQL, "vacation", vacation);
-    });
-    return resultList;
-  }
-
-  public void saveVacationCalendar(VacationCalendarDO obj) {
-    try {
-      emgrFactory.runInTrans(emgr -> {
-        if (obj.getId() != null) {
-          VacationCalendarDO vacationCalendarDO = emgr.selectByPkAttached(VacationCalendarDO.class, obj.getPk());
-          vacationCalendarDO.setEvent(obj.getEvent());
-          emgr.update(vacationCalendarDO);
-        } else {
-          emgr.insert(obj);
-        }
-        return null;
-      });
-    } catch (Exception ex) {
-      log.error("Error while writing vacation event: " + ex.getMessage(), ex);
-    }
-  }
-
-  public void markAsDeleted(VacationCalendarDO obj) {
-    emgrFactory.runInTrans(emgr -> {
-      emgr.markDeleted(obj);
-      return null;
-    });
-  }
-
-  public void markAsUndeleted(VacationCalendarDO obj) {
-    emgrFactory.runInTrans(emgr -> {
-      emgr.markUndeleted(obj);
-      return null;
-    });
   }
 }

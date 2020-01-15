@@ -163,7 +163,7 @@ public class TimesheetExport
       String projektName = null;
       String kundeName = null;
       if (kost2 != null) {
-        kost2Name = kost2.getShortDisplayName();
+        kost2Name = kost2.getDisplayName();
         final ProjektDO projekt = kost2.getProjekt();
         if (projekt != null) {
           projektName = projekt.getName();
@@ -184,8 +184,8 @@ public class TimesheetExport
           .getFormatString(DateFormatType.DAY_OF_WEEK_SHORT)));
       PFDateTime startTime = PFDateTime.from(timesheet.getStartTime());
       PFDateTime stopTime = PFDateTime.from(timesheet.getStopTime());
-      mapping.add(Col.START_TIME, startTime);
-      mapping.add(Col.STOP_TIME, stopTime);
+      mapping.add(Col.START_TIME, startTime.getUtilDate());
+      mapping.add(Col.STOP_TIME, stopTime.getUtilDate());
       final BigDecimal seconds = new BigDecimal(timesheet.getDuration() / 1000); // Seconds
       final BigDecimal duration = seconds.divide(new BigDecimal(60 * 60 * 24), 8, RoundingMode.HALF_UP); // Fraction of day (24 hours)
       mapping.add(Col.DURATION, duration.doubleValue());

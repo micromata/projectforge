@@ -24,6 +24,7 @@
 package org.projectforge.rest
 
 import org.projectforge.SystemAlertMessage
+import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -53,12 +54,16 @@ open class UserStatusRest {
     @Autowired
     private lateinit var systemStatusRest: SystemStatusRest
 
+    @Autowired
+    private lateinit var employeeDao: EmployeeDao
+
     data class UserData(var username: String? = null,
                         var organization: String? = null,
                         var fullname: String? = null,
                         var lastName: String? = null,
                         var firstName: String? = null,
                         var userId: Int? = null,
+                        var employeeId: Int? = null,
                         var locale: Locale? = null,
                         var timeZone: String? = null,
                         var dateFormat: String? = null,
@@ -82,9 +87,11 @@ open class UserStatusRest {
 
     @GetMapping
     fun loginTest(request: HttpServletRequest): ResponseEntity<Result> {
-        val user = UserFilter.getUser(request)
-        if (user == null) {
-            return ResponseEntity(HttpStatus.UNAUTHORIZED)
+        val user = UserFilter.getUser(request) ?: return ResponseEntity(HttpStatus.UNAUTHORIZED)
+        var employeeId: Int? = user.getTransientAttribute("employeeId") as Int?
+        if (employeeId == null) {
+            employeeId = employeeDao.getEmployeeIdByByUserId(user.id) ?: -1
+            user.setTransientAttribute("employeeId", employeeId) // Avoid multiple calls of db
         }
         val firstDayOfWeekNo = ThreadLocalUserContext.getFirstDayOfWeekValue() // Mon - 1, Tue - 2, ..., Sun - 7
         val userData = UserData(username = user.username,
@@ -93,6 +100,7 @@ open class UserStatusRest {
                 firstName = user.firstname,
                 lastName = user.lastname,
                 userId = user.id,
+                employeeId = employeeId,
                 locale = ThreadLocalUserContext.getLocale(),
                 timeZone = ThreadLocalUserContext.getTimeZone().id,
                 timeNotation = DateFormats.ensureAndGetDefaultTimeNotation(),

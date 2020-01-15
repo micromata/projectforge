@@ -7,39 +7,122 @@
 }
 
 .advancedPopperContainer {
-  $transitionTime: .3s;
+  $baseShadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+  $transitionTime: .2s;
 
   position: relative;
-  transition: width, border;
-  transition-duration: $transitionTime;
 
-  &.isOpen .content {
-    border: 1px solid #eee;
-    border-top: 1px solid transparent;
+  &.isOpen {
+    .content {
+      box-shadow: $baseShadow, 0 3px 12px rgba(0, 0, 0, 0.1);
+    }
 
     .additional {
       opacity: 1;
-      max-height: 300px;
       transition: opacity $transitionTime;
     }
   }
+
   .content {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 99;
-    border: 1px solid transparent;
+    position: relative;
+    border: 1px solid #ebebeb;
+    border-radius: 5px;
+    box-shadow: $baseShadow;
+    transition: box-shadow $transitionTime;
 
-    .additional {
-      background-color: #fff;
-      opacity: 0;
-      overflow: scroll;
-
-      // Set height to 0 after the transition is done.
-      max-height: 0;
-      transition: opacity $transitionTime, max-height .01s linear $transitionTime;
-
-      position: relative;
+    &:hover {
+      box-shadow: $baseShadow, 0 3px 12px rgba(0, 0, 0, 0.1);
     }
+  }
+
+  .additional {
+    background-color: #fff;
+    opacity: 0;
+    overflow: auto;
+    border: 1px solid #EBEBEB;
+    border-radius: 5px;
+    box-shadow: 0 15px 46px -10px rgba(26, 26, 29, 0.3);
+    z-index: 99;
+    top: 10px;
+
+    // Set height to 0 after the transition is done.
+    transition: opacity $transitionTime, max-height .01s linear $transitionTime;
+
+    position: absolute;
+
+    .actions {
+      padding: .8em .9em;
+      display: flex;
+
+      .action {
+        margin: 0;
+        display: inline-block;
+        text-align: center;
+        width: auto;
+        font-weight: 600;
+        padding: .4em .6em;
+        color: #333;
+        outline: none;
+        border: none;
+        border-radius: 8px;
+
+        &.delete {
+          text-decoration: underline;
+
+          &:hover {
+            color: #000;
+            background-color: #f2f2f2;
+          }
+
+          &:disabled {
+            color: #ccc;
+            background-color: transparent;
+            cursor: not-allowed;
+          }
+        }
+
+        &.success {
+          margin-left: auto;
+          background-color: #333;
+          font-size: .9em;
+          color: #fff;
+
+          &:hover {
+            background-color: #000;
+          }
+        }
+      }
+    }
+  }
+}
+
+.input {
+  &:hover {
+    input::placeholder {
+      color: #444;
+    }
+  }
+
+  &.dark {
+    background-color: #333;
+    color: #fff;
+
+    input {
+      color: #fff;
+
+      &::placeholder {
+        color: #eee;
+      }
+    }
+
+    &:hover {
+      input::placeholder {
+        color: #fff;
+      }
+    }
+  }
+
+  .container {
+    padding: .5em;
   }
 }

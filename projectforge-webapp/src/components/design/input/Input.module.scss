@@ -1,109 +1,97 @@
 @import '../../../assets/style/mixins';
 @import "../../../assets/style/theming";
 
-.checkboxGroup {
+.inputField {
+  $transitionTime: .2s ease-out;
+  $offset: .25em;
 
-}
-
-.radioButtonGroup {
-
-}
-
-.formGroup {
   position: relative;
+  margin-top: 1em;
   font-size: 1.5rem;
   letter-spacing: .02em;
-  margin-bottom: 13px;
+  padding-bottom: 1em;
 
-  .label {
-    display: block;
-    margin: 0 0 0 0;
-    height: 2.8em;
-    width: 100%;
-    cursor: text;
+  &.noLabel {
+    margin-top: 0;
+  }
+
+  .icon {
+    position: absolute;
+    font-size: 1.25em;
+
+    & ~ label, & ~ .additionalLabel {
+      margin-left: 2rem;
+      width: calc(100% - 2rem);
+    }
+  }
+
+  label {
     position: relative;
+    color: #7a7a7a;
+    margin: 0;
+    cursor: text;
+    width: 100%;
 
-    &.withIcon {
-      .icon {
-        position: absolute;
-        bottom: .6em;
-        left: 2px;
-      }
-
-      .input {
-        padding-left: 1.5em;
-      }
-
-      .text {
-        left: 1.5em;
-      }
-    }
-
-    .text {
-      position: absolute;
-      left: 15px;
-      @include transition-transform-extra(.3s, translate(2px, 1em) scale(1, 1), color .3s);
-      transform-origin: top left;
-      color: #7a7a7a;
-    }
-
-    .input {
-      padding-left: 15px;
-      padding-bottom: 0;
-      width: 100%;
-      position: relative;
-      top: 1em;
-      background-color: transparent;
-      border: none;
-      border-bottom: 1px solid #deddde;
-      outline: none;
-
-      &:focus {
-        border-bottom: 1px solid #007480;
-        transition: border-bottom 1s;
-      }
-
-      //@include transition(border-bottom .3s);
-
-    }
-
-    &.active {
-
-      .text {
+    &.isActive {
+      .labelText {
         color: #a5a2a5;
-        @include transform(translate(0, 0) scale(.7,.7));
+        transform: translateY(-1em) scale(0.8);
       }
     }
 
-    &.noLabel {
-      height: 1.1em;
+    &.noLine {
+      input {
+        border: none;
 
-      .input {
-        top: 0;
-      }
-
-      .text {
-        @include transform(none);
-      }
-
-      &.active {
-        .text {
-          opacity: 0;
+        &:focus {
+          border: none;
+          box-shadow: none;
         }
       }
     }
 
-    @mixin color($color) {
-      .text {
-        color: $color;
-      }
+    input {
+      background-color: transparent;
+      border: none;
+      border-bottom: 1px solid #deddde;
+      border-radius: 0;
+      outline: none;
+      width: 100%;
+      margin: 0;
+      padding: 0 0 0 $offset;
+      box-shadow: none;
+      transition: box-shadow .3s;
 
-      .input {
-        border-color: $color;
+      &:focus {
+        border-bottom: 1px solid #007480;
+        box-shadow: 0 1px 0 0 #007480;
       }
     }
 
-    @include color(map_get($theme-colors, dark));
+    .labelText {
+      font-size: 1.1em;
+      transition: transform $transitionTime, color $transitionTime;
+      position: absolute;
+      top: 0;
+      left: $offset;
+      transform-origin: 0 0;
+      transform: translateY(0);
+    }
+
+    @mixin color($color) {
+      input {
+        border-color: $color;
+
+        &:focus {
+          border-color: $color;
+          box-shadow: 0 1px 0 0 $color;
+        }
+      }
+
+      .labelText {
+        color: $color;
+      }
+    }
 
     &.primary {
       @include color(map_get($theme-colors, primary));
@@ -128,8 +116,32 @@
     &.info {
       @include color(map_get($theme-colors, info));
     }
-
   }
+
+  .additionalLabel {
+    margin-top: .5em;
+    padding-left: $offset;
+    position: relative;
+    min-height: 1.25em;
+    display: block;
+    font-size: 0.9em;
+    color: rgba(0, 0, 0, .54);
+  }
+}
+
+.checkboxGroup {
+
+}
+
+.radioButtonGroup {
+
+}
+
+.formGroup {
+  position: relative;
+  font-size: 1.5rem;
+  letter-spacing: .02em;
+  margin-bottom: 13px;
 
   .checkboxLabel {
     position: relative;
@@ -153,6 +165,7 @@
           @include transition(.3s);
         }
 
+        white-space: nowrap;
         padding-left: 2em;
         -webkit-touch-callout: none;
         -webkit-user-select: none;
@@ -489,15 +502,6 @@
 
     span {
       margin-left: 15px;
-    }
-  }
-
-  &.small {
-    margin-bottom: 6px;
-    font-size: 1em;
-
-    .withIcon .icon {
-      top: 2px;
     }
   }
 }

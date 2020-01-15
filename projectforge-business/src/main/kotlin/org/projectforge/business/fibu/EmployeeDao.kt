@@ -28,7 +28,6 @@ import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserRightId
-import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -70,6 +69,15 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
                 .setParameter("userId", userId)
                 .setParameter("tenantId", TenantRegistryMap.getInstance().tenantRegistry.tenantId))
     }
+
+    @JvmOverloads
+    open fun getEmployeeIdByByUserId(userId: Int?, tenantId: Int? = null): Int? {
+        return ensureUniqueResult(em
+                .createNamedQuery(EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID, Integer::class.java)
+                .setParameter("userId", userId)
+                .setParameter("tenantId", tenantId ?: TenantRegistryMap.getInstance().tenantRegistry.tenantId))?.toInt()
+    }
+
 
     /**
      * If more than one employee is found, null will be returned.
@@ -136,19 +144,6 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
             }
         }
         return list
-    }
-
-    /**
-     * If change of [EmployeeDO.urlaubstage] detected, [VacationService.getRemainingDaysFromPreviousYear] will be called.
-     * @see VacationService.getRemainingDaysFromPreviousYear
-     */
-    override fun onChange(obj: EmployeeDO, dbObj: EmployeeDO) {
-        super.onChange(obj, dbObj)
-        if (obj.urlaubstage != dbObj.urlaubstage) {
-            log.info("Number of vacation days per year changed, so calculate remaining vacation days from previuos year, if not yet done.")
-            // Can't autowire due to circular reference:
-            applicationContext.getBean(VacationService::class.java).getRemainingDaysFromPreviousYear(obj)
-        }
     }
 
     override fun newInstance(): EmployeeDO {

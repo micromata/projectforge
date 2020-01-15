@@ -192,6 +192,7 @@ class MenuCreator {
                 .add(MenuItemDef(MenuItemDefId.BOOK_LIST, "${REACT_PREFIX}book"))
                 .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST, "${REACT_PREFIX}addressBook"))
                 .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST, "${REACT_PREFIX}address"))
+                .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST_CLASSICS, "wa/addressList"))
         if (configurationService.telephoneSystemUrl.isNotEmpty())
             commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL, "wa/phoneCall"))
         if (smsSenderConfig.isSmsConfigured())
@@ -238,6 +239,8 @@ class MenuCreator {
                         requiredUserRightId = EmployeeDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
                 .add(MenuItemDef(MenuItemDefId.EMPLOYEE_SALARY_LIST, "wa/employeeSalaryList", // new: employeeSalary
                         requiredUserRightId = EmployeeSalaryDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
+                .add(MenuItemDef(MenuItemDefId.EMPLOYEE_LEAVE_ACCOUNT_ENTRIES, "react/leaveAccountEntry",
+                        requiredUserRightId = EmployeeDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
 
         //////////////////////////////////////
         //
@@ -348,7 +351,7 @@ class MenuCreator {
         val adminMenu = menuItemDefHolder.add(MenuItemDef(MenuItemDefId.ADMINISTRATION, visibleForRestrictedUsers = true))
                 .add(MenuItemDef(MenuItemDefId.MY_ACCOUNT, "wa/myAccount"))
                 .add(MenuItemDef(MenuItemDefId.MY_PREFERENCES, "wa/userPrefList"))
-                .add(MenuItemDef(MenuItemDefId.VACATION_VIEW, "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationViewPage",
+                .add(MenuItemDef(MenuItemDefId.VACATION_ACCOUNT, "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationAccountPage",
                         checkAccess =
                         {
                             vacationService.hasAccessToVacationService(ThreadLocalUserContext.getUser(), false)

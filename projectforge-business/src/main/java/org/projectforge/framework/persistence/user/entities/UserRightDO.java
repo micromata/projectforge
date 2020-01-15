@@ -32,7 +32,7 @@ import org.hibernate.search.annotations.Index;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.persistence.api.IUserRightId;
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
+import org.projectforge.framework.DisplayNameCapable;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 import javax.persistence.*;
@@ -52,7 +52,7 @@ import java.util.Objects;
 @NamedQueries(
         @NamedQuery(name = UserRightDO.FIND_ALL_ORDERED, query = "from UserRightDO order by user.id, rightIdString"))
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO>, Serializable, ShortDisplayNameCapable {
+public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO>, Serializable, DisplayNameCapable {
   private static final long serialVersionUID = 6703048743393453733L;
 
   @Field(index = Index.YES, analyze = Analyze.NO)
@@ -162,11 +162,11 @@ public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.ShortDisplayNameCapable#getShortDisplayName()
+   * @see org.projectforge.framework.DisplayNameCapable#getDisplayName()
    */
   @Transient
   @Override
-  public String getShortDisplayName() {
+  public String getDisplayName() {
     return String.valueOf(this.rightIdString);
   }
 

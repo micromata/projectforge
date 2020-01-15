@@ -32,7 +32,7 @@ import org.projectforge.framework.time.PFDateTime
  */
 object VacationProvider {
     private val log = org.slf4j.LoggerFactory.getLogger(VacationProvider::class.java)
-    private val holidays = Holidays.getInstance()
+    private val holidays = Holidays.instance
 
     fun addEvents(vacationCache: VacationCache,
                   start: PFDateTime,
@@ -46,15 +46,15 @@ object VacationProvider {
         if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
             return // Nothing to do
         }
-        val vacations = vacationCache.getVacationForPeriodAndUsers(start, end, groupIds, userIds)
+        val vacations = vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
         vacations.forEach {
             val bgColor= "#ffa500"
             val fgColor= "#ffffff"
 
             events.add(BigCalendarEvent(
                     title = it.employee?.user?.getFullname(),
-                    start = PFDateTime.from(it.startDate)!!.utilDate,
-                    end = PFDateTime.from(it.endDate)!!.utilDate,
+                    start = it.startDate!!,
+                    end = it.endDate!!,
                     allDay = true,
                     category = "vacation",
                     bgColor = bgColor,

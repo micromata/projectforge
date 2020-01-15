@@ -9,6 +9,7 @@ const COST1_FORMATTER = 'COST1';
 const COST2_FORMATTER = 'COST2';
 const CUSTOMER_FORMATTER = 'CUSTOMER';
 const DATE_FORMATTER = 'DATE';
+const EMPLOYEE_FORMATTER = 'EMPLOYEE';
 const KONTO_FORMATTER = 'KONTO';
 const PROJECT_FORMATTER = 'PROJECT';
 const USER_FORMATTER = 'USER';
@@ -28,7 +29,7 @@ function Formatter(
 ) {
     const value = Object.getByString(data, id);
     if (!value) {
-        return <React.Fragment />;
+        return <React.Fragment/>;
     }
 
     let result = value;
@@ -63,7 +64,10 @@ function Formatter(
                     .format(timestampFormatMinutes);
                 break;
             case USER_FORMATTER:
-                result = value.fullname;
+                result = value.displayName || value.fullname || value.username;
+                break;
+            case EMPLOYEE_FORMATTER:
+                result = value.displayName;
                 break;
             case AUFTRAGPOSITION_FORMATTER:
                 result = value.number;

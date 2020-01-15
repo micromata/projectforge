@@ -26,6 +26,7 @@ package org.projectforge.business.fibu.impl;
 import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.fibu.kost.Kost1DO;
@@ -44,6 +45,7 @@ import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImp
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -53,6 +55,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.Month;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -259,6 +262,43 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   }
 
   @Override
+  public BigDecimal getAnnualLeaveDays(EmployeeDO employee) {
+    return getAnnualLeaveDays(employee, LocalDate.now());
+  }
+
+  @Override
+  public BigDecimal getAnnualLeaveDays(EmployeeDO employee, LocalDate validAtDate) {
+    if (employee == null) { // Should only occur in CallAllPagesTest (Wicket).
+      return null;
+    }
+    Date date = PFDateTime.from(validAtDate).getUtilDate();
+    final EmployeeTimedDO attrRow = timeableService
+            .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_ANNUAL_LEAVEDAYS_GROUP_NAME, date);
+    if (attrRow != null) {
+      final String str = attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_ANNUAL_LEAVEDAYS_PROP_NAME);
+      if (NumberUtils.isCreatable(str)) {
+        return NumberUtils.createBigDecimal(str);
+      }
+    }
+    return BigDecimal.ZERO;
+  }
+
+  /**
+   *
+   * @param employee
+   * @param validfrom The day of year is ignored. The year is important and used.
+   * @param annualLeaveDays
+   */
+  @Override
+  public EmployeeTimedDO addNewAnnualLeaveDays(final EmployeeDO employee, final LocalDate validfrom, final BigDecimal annualLeaveDays) {
+    final EmployeeTimedDO newAttrRow = addNewTimeAttributeRow(employee, InternalAttrSchemaConstants.EMPLOYEE_ANNUAL_LEAVEDAYS_GROUP_NAME);
+    newAttrRow.setStartTime(PFDay.from(validfrom).getUtilDate());
+    newAttrRow.putAttribute(InternalAttrSchemaConstants.EMPLOYEE_ANNUAL_LEAVEDAYS_PROP_NAME, annualLeaveDays);
+    return newAttrRow;
+  }
+
+
+  @Override
   public String getStudentVacationCountPerDay(EmployeeDO currentEmployee) {
     String vacationCountPerDay = "";
     PFDateTime now = PFDateTime.now();
@@ -271,15 +311,15 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
       if (eintrittsDatum.isBefore(deadLine)) {
         if (now.getMonthValue() >= Month.JUNE.getValue()) {
           vacationCountPerDay = vacationService
-              .getStudentsVacationCount(now.getYear(), now.getMonthValue() - 5, now.getYear(), now.getMonthValue(),
-                  currentEmployee.getUser());
+                  .getStudentsVacationCount(now.getYear(), now.getMonthValue() - 5, now.getYear(), now.getMonthValue(),
+                          currentEmployee.getUser());
         } else {
           vacationCountPerDay = vacationService
-              .getStudentsVacationCount(now.getYear() - 1, 12 - (6 - now.getMonthValue() + 1), now.getYear(), now.getMonthValue(), currentEmployee.getUser());
+                  .getStudentsVacationCount(now.getYear() - 1, 12 - (6 - now.getMonthValue() + 1), now.getYear(), now.getMonthValue(), currentEmployee.getUser());
         }
       } else {
         vacationCountPerDay = vacationService
-            .getStudentsVacationCount(eintrittsDatum.getYear(), eintrittsDatum.getMonthValue(), now.getYear(), now.getMonthValue(), currentEmployee.getUser());
+                .getStudentsVacationCount(eintrittsDatum.getYear(), eintrittsDatum.getMonthValue(), now.getYear(), now.getMonthValue(), currentEmployee.getUser());
       }
     }
     return vacationCountPerDay;

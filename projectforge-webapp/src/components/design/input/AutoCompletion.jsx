@@ -4,20 +4,13 @@ import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import ReactSelect from '../ReactSelect';
 
 const resolveJSON = (callback, type = undefined) => json => callback(json.map((completion) => {
-    switch (type) {
-        case 'USER':
-            return ({
-                label: completion.fullname,
-                value: completion.id,
-            });
-        case 'RAW':
-            return completion;
-        default:
-            return ({
-                value: completion,
-                label: completion,
-            });
+    if (type) {
+        return completion;
     }
+    return ({
+        value: completion,
+        label: completion,
+    });
 }));
 
 function AutoCompletion({ url, type, ...props }) {
@@ -50,7 +43,7 @@ function AutoCompletion({ url, type, ...props }) {
 
 AutoCompletion.propTypes = {
     url: PropTypes.string.isRequired,
-    type: PropTypes.oneOf(['USER', 'RAW', undefined]),
+    type: PropTypes.oneOf(['USER', 'EMPLOYEE', 'RAW', undefined]),
 };
 
 AutoCompletion.defaultProps = {

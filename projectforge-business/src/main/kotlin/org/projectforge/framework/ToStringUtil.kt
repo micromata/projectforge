@@ -39,6 +39,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.Hibernate
 import org.hibernate.proxy.AbstractLazyInitializer
+import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.ProjektDO
@@ -48,16 +49,14 @@ import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
-import org.projectforge.framework.json.HibernateProxySerializer
-import org.projectforge.framework.json.TimestampSerializer
-import org.projectforge.framework.json.UtilDateFormat
-import org.projectforge.framework.json.UtilDateSerializer
+import org.projectforge.framework.json.*
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.sql.Timestamp
+import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
@@ -168,7 +167,9 @@ class ToStringUtil {
             module.addSerializer(java.util.Date::class.java, UtilDateSerializer(UtilDateFormat.ISO_DATE_TIME_SECONDS))
             module.addSerializer(Timestamp::class.java, TimestampSerializer(UtilDateFormat.ISO_DATE_TIME_MILLIS))
             module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
+            module.addSerializer(LocalDate::class.java, LocalDateSerializer())
             module.addSerializer(TenantDO::class.java, TenantSerializer())
+            module.addSerializer(AddressbookDO::class.java, AddressbookSerializer())
             module.addSerializer(AbstractLazyInitializer::class.java, HibernateProxySerializer())
 
             additionalSerializers?.forEach {
@@ -264,6 +265,12 @@ class ToStringUtil {
     class TenantSerializer : EmbeddedDOSerializer<TenantDO>(TenantDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: TenantDO, initialized: Boolean) {
             writeFields(jgen, value.id, "name", if (initialized) value.name else null)
+        }
+    }
+
+    class AddressbookSerializer : EmbeddedDOSerializer<AddressbookDO>(AddressbookDO::class.java) {
+        override fun writeFields(jgen: JsonGenerator, value: AddressbookDO, initialized: Boolean) {
+            writeFields(jgen, value.id, "title", if (initialized) value.title else null)
         }
     }
 
