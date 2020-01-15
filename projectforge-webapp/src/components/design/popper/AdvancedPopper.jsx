@@ -42,12 +42,15 @@ function AdvancedPopper(
             if (reference.current) {
                 const { top, left } = reference.current.getBoundingClientRect();
 
+                console.log(top, left);
+
                 setAdditionalHeight(window.innerHeight - top - basicHeight - 64);
                 setAdditionalWidth(window.innerWidth - left - basicWidth - 16);
             }
         },
         [
-            reference.current && reference.current.getBoundingClientRect(),
+            reference.current && Math.floor(reference.current.getBoundingClientRect().top),
+            reference.current && Math.floor(reference.current.getBoundingClientRect().left),
         ],
     );
 
@@ -72,22 +75,24 @@ function AdvancedPopper(
             >
                 {basic}
             </div>
-            <div
-                className={classNames(style.additional, additionalClassName)}
-                style={{
-                    top: basicHeight,
-                    minWidth: basicWidth,
-                    maxWidth: additionalWidth,
-                    maxHeight: additionalVisible ? additionalHeight : 0,
-                }}
-            >
-                {children}
-                {actions && (
-                    <div className={style.actions}>
-                        {actions}
-                    </div>
-                )}
-            </div>
+            {additionalVisible && (
+                <div
+                    className={classNames(style.additional, additionalClassName)}
+                    style={{
+                        top: basicHeight,
+                        minWidth: basicWidth,
+                        maxWidth: additionalWidth,
+                        maxHeight: additionalHeight,
+                    }}
+                >
+                    {children}
+                    {actions && (
+                        <div className={style.actions}>
+                            {actions}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
