@@ -208,7 +208,6 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
     }
 
     override fun format(formatter: DateTimeFormatter): String {
-        val formatter = DateFormats.getDateTimeFormatter(DateFormatType.DATE)
         return date.format(formatter)
     }
 
