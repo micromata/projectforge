@@ -44,6 +44,8 @@ class LeaveAccountEntryRest() : AbstractDORest<LeaveAccountEntryDO, LeaveAccount
         }
     }
 
+    override val autoCompleteSearchFields = arrayOf("employee.user.lastname", "employee.user.firstName", "employee.user.username")
+
     /**
      * LAYOUT List page
      */
