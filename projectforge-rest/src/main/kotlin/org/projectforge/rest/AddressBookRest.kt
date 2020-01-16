@@ -30,6 +30,8 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.Addressbook
+import org.projectforge.rest.dto.Group
+import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
@@ -52,11 +54,11 @@ class AddressBookRest : AbstractDTORest<AddressbookDO, Addressbook, AddressbookD
         val addressbook = Addressbook()
         addressbook.copyFrom(obj)
         // Group names needed by React client (for ReactSelect):
-        addressbook.fullAccessGroups?.forEach { it.displayName = groupService.getGroupname(it.id) }
-        addressbook.readonlyAccessGroups?.forEach { it.displayName = groupService.getGroupname(it.id) }
+        Group.restoreDisplayNames(addressbook.fullAccessGroups, groupService)
+        Group.restoreDisplayNames(addressbook.readonlyAccessGroups, groupService)
         // Usernames needed by React client (for ReactSelect):
-        addressbook.fullAccessUsers?.forEach { it.displayName = userService.getUser(it.id)?.displayName ?: "" }
-        addressbook.readonlyAccessUsers?.forEach { it.displayName = userService.getUser(it.id)?.displayName ?: "" }
+        User.restoreDisplayNames(addressbook.fullAccessUsers, userService)
+        User.restoreDisplayNames(addressbook.readonlyAccessUsers, userService)
         return addressbook
     }
 

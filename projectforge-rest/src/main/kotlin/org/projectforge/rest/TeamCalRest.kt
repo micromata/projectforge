@@ -33,7 +33,9 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
+import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.TeamCal
+import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
@@ -70,6 +72,19 @@ class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::
             teamCal.externalSubscriptionUrlAnonymized = obj.externalSubscriptionUrlAnonymized
             teamCal.externalSubscriptionUrl = null // Due to privacy reasons! Must be changed for editing mode.
         }
+
+        // Group names needed by React client (for ReactSelect):
+        Group.restoreDisplayNames(teamCal.fullAccessGroups, groupService)
+        Group.restoreDisplayNames(teamCal.readonlyAccessGroups, groupService)
+        Group.restoreDisplayNames(teamCal.minimalAccessGroups, groupService)
+        Group.restoreDisplayNames(teamCal.includeLeaveDaysForGroups, groupService)
+
+        // Usernames needed by React client (for ReactSelect):
+        User.restoreDisplayNames(teamCal.fullAccessUsers, userService)
+        User.restoreDisplayNames(teamCal.readonlyAccessUsers, userService)
+        User.restoreDisplayNames(teamCal.minimalAccessUsers, userService)
+        User.restoreDisplayNames(teamCal.includeLeaveDaysForUsers, userService)
+
         return teamCal
     }
 

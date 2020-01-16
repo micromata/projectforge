@@ -64,6 +64,13 @@ public class GroupServiceImpl implements GroupService
   }
 
   @Override
+  public String getDisplayName(final Integer groupId)
+  {
+    final GroupDO group = getGroup(groupId);
+    return group == null ? null : group.getDisplayName();
+  }
+
+  @Override
   public String getGroupnames(final Integer userId)
   {
     final Set<Integer> groupSet = getUserGroupCache().getUserGroupIdMap().get(userId);

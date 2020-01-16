@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.group.service.GroupService
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -53,6 +54,14 @@ class Group(id: Int? = null,
          */
         fun toIntList(groups: List<Group>?): String? {
             return groups?.joinToString { "${it.id}" }
+        }
+
+        /**
+         * Set display names of any existing group in the given list.
+         * @see GroupService.getDisplayName
+         */
+        fun restoreDisplayNames(groups: List<Group>?, groupService: GroupService) {
+            groups?.forEach { it.displayName = groupService.getDisplayName(it.id) }
         }
     }
 }
