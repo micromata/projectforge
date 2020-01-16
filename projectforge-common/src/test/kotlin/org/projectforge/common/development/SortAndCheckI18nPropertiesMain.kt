@@ -48,8 +48,8 @@ object SortAndCheckI18nPropertiesMain {
         FILES.forEach { basename ->
             val defaultProperties = FileContent(basename, "") // Process the default properties file.
             defaultProperties.sortAndWrite()
-            LANGUAGES.forEach {
-                val langProperties = FileContent(basename, "_$it")   // Process the lang file including diffs to the default file.
+            LANGUAGES.forEach { lang ->
+                val langProperties = FileContent(basename, "_$lang")   // Process the lang file including diffs to the default file.
                 langProperties.write(defaultProperties)
             }
         }
@@ -60,6 +60,8 @@ object SortAndCheckI18nPropertiesMain {
      *
      * Translations will be processed in blocks. Blocks started with blank or comment lines and ends with the beginning
      * of a next block.
+     * @param basename path of the resource bundle without extension.
+     * @param lang Language specification of the properties file: "" for default bundle or "_de" for the de bundle.
      */
     class FileContent(basename: String, lang: String) {
         val blocks = mutableListOf<Block>()
@@ -95,7 +97,7 @@ object SortAndCheckI18nPropertiesMain {
          * contains already translations, a new block will be started as new current block.
          */
         fun add(line: String) {
-            if (currentBlock.entries.size > 0) {
+            if (currentBlock.entries.isNotEmpty()) {
                 // Block finished. Create a new one.
                 newBlock()
             }
