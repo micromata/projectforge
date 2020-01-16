@@ -596,20 +596,27 @@ abstract class AbstractBaseRest<
      * @return list of found objects.
      */
     @GetMapping(AutoCompletion.AUTOCOMPLETE_OBJECT)
-    open fun getAutoCompleteObjects(@RequestParam("search") searchString: String?, @RequestParam("maxResults") maxResults: Int?): List<DisplayObject> {
+    open fun getAutoCompleteObjects(request: HttpServletRequest, @RequestParam("search") searchString: String?, @RequestParam("maxResults") maxResults: Int?): List<DisplayObject> {
         if (autoCompleteSearchFields.isNullOrEmpty()) {
             throw RuntimeException("Can't call getAutoCompletion without property, because no autoCompleteSearchFields are configured by the developers for this entity.")
         }
-        val filter = BaseSearchFilter()
+        val filter = createAutoCompleteObjectsFilter(request)
         val modifiedSearchString = searchString?.split(' ', '\t', '\n')?.joinToString(" ") { "+$it*" }
         filter.searchString = modifiedSearchString
         filter.setSearchFields(*autoCompleteSearchFields!!)
         maxResults?.let { filter.setMaxRows(it) }
-        val list = queryAutocompleteObjects(filter)
+        val list = queryAutocompleteObjects(request, filter)
         return list.map { DisplayObject(it.id, if (it is DisplayNameCapable) it.displayName else it.toString()) }
     }
 
-    protected open fun queryAutocompleteObjects(filter: BaseSearchFilter): MutableList<O> {
+    /**
+     * Will create a new BaseSearchFilter. If you want to use an DO specific filter, override this method.
+     */
+    open fun createAutoCompleteObjectsFilter(request: HttpServletRequest): BaseSearchFilter {
+        return BaseSearchFilter()
+    }
+
+    protected open fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<O> {
         return baseDao.getList(filter)
     }
 
