@@ -43,13 +43,19 @@ class User(id: Int? = null,
 
     companion object {
         /**
-         * Converts csv list of group ids to list of user (only with id and displayName = "???", no other content).
+         * Converts csv of user ids to list of user (only with id and displayName = "???", no other content).
          */
-        fun toUserList(str: String?): MutableList<User>? {
+        fun toUserList(str: String?): List<User>? {
             if (str.isNullOrBlank()) return null
-            val users = mutableListOf<User>()
-            StringHelper.splitToInts(str, ",", false).forEach { users.add(User(it, "???")) }
-            return users
+            return toIntArray(str)?.map {  User(it, "???") }
+        }
+
+        /**
+         * Converts csv of user ids to list of user id's.
+         */
+        fun toIntArray(str: String?): IntArray? {
+            if (str.isNullOrBlank()) return null
+            return StringHelper.splitToInts(str, ",", false)
         }
 
         /**

@@ -30,10 +30,10 @@ class Addressbook(id: Int? = null,
                   var title: String? = null,
                   var owner: User? = null,
                   var description: String? = null,
-                  var fullAccessGroups: MutableList<Group>? = null,
-                  var fullAccessUsers: MutableList<User>? = null,
-                  var readonlyAccessGroups: MutableList<Group>? = null,
-                  var readonlyAccessUsers: MutableList<User>? = null
+                  var fullAccessGroups: List<Group>? = null,
+                  var fullAccessUsers: List<User>? = null,
+                  var readonlyAccessGroups: List<Group>? = null,
+                  var readonlyAccessUsers: List<User>? = null
 ) : BaseDTODisplayObject<AddressbookDO>(id, displayName = displayName) {
 
     // The user and group ids are stored as csv list of integers in the data base.

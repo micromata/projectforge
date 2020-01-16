@@ -24,7 +24,6 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.group.service.GroupService
-import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
@@ -40,13 +39,18 @@ class Group(id: Int? = null,
 
     companion object {
         /**
-         * Converts csv list of group ids to list of groups (only with id and displayName = "???", no other content).
+         * Converts csv of group ids to list of groups (only with id and displayName = "???", no other content).
          */
-        fun toGroupList(str: String?): MutableList<Group>? {
+        fun toGroupList(str: String?): List<Group>? {
             if (str.isNullOrBlank()) return null
-            val groups = mutableListOf<Group>()
-            StringHelper.splitToInts(str, ",", false).forEach { groups.add(Group(it, displayName = "???")) }
-            return groups
+            return toIntArray(str)?.map {  Group(it, "???") }
+        }
+
+        /**
+         * Converts csv of group ids to list of user id's.
+         */
+        fun toIntArray(str: String?): IntArray? {
+            return User.toIntArray(str)
         }
 
         /**

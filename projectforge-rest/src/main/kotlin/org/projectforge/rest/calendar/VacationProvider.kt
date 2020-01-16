@@ -24,18 +24,20 @@
 package org.projectforge.rest.calendar
 
 import org.projectforge.business.vacation.VacationCache
-import org.projectforge.framework.calendar.Holidays
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
 /**
  * Provides the vacation days of the employees. You may filter the vacation by ProjectForge groups.
  */
-object VacationProvider {
-    private val log = org.slf4j.LoggerFactory.getLogger(VacationProvider::class.java)
-    private val holidays = Holidays.instance
+@Component
+open class VacationProvider {
+    @Autowired
+    private lateinit var vacationCache: VacationCache
 
-    fun addEvents(vacationCache: VacationCache,
-                  start: PFDateTime,
+    open fun addEvents(start: PFDateTime,
                   end: PFDateTime,
                   events: MutableList<BigCalendarEvent>,
                   /**
@@ -52,7 +54,7 @@ object VacationProvider {
             val fgColor= "#ffffff"
 
             events.add(BigCalendarEvent(
-                    title = it.employee?.user?.getFullname(),
+                    title = "${translate("vacation")}: ${it.employee?.user?.getFullname()}",
                     start = it.startDate!!,
                     end = it.endDate!!,
                     allDay = true,
@@ -61,5 +63,9 @@ object VacationProvider {
                     fgColor = fgColor,
                     dbId = it.id))
         }
+    }
+
+    companion object {
+        private val log = org.slf4j.LoggerFactory.getLogger(VacationProvider::class.java)
     }
 }
