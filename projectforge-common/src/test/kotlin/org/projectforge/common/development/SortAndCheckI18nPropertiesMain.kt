@@ -64,8 +64,8 @@ object SortAndCheckI18nPropertiesMain {
      * @param lang Language specification of the properties file: "" for default bundle or "_de" for the de bundle.
      */
     class FileContent(basename: String, lang: String) {
-        val blocks = mutableListOf<Block>()
-        val entries = mutableListOf<Entry>()
+        val blocks = mutableListOf<Block>()  // Block of translations including head lines (blank lines or comments).
+        val entries = mutableListOf<Entry>() // Includes all translation entries of this resource bundle.
         val filename: String = "$basename$lang.properties"
         lateinit var currentBlock: Block
 
@@ -98,7 +98,7 @@ object SortAndCheckI18nPropertiesMain {
          */
         fun add(line: String) {
             if (currentBlock.entries.isNotEmpty()) {
-                // Block finished. Create a new one.
+                // Translations do already exist, finish the current block and create a new one:
                 newBlock()
             }
             currentBlock.headLines.add(line)
@@ -139,6 +139,7 @@ object SortAndCheckI18nPropertiesMain {
          *
          * Inserts in addition all differences between this language file and the default file (missing and additional
          * translations in comparison to the masterFile).
+         * @param masterFile File to compare and use as a template (blocks and comments).
          */
         fun write(masterFile: FileContent) {
             println("Writing file '$filename' by using master file...")
