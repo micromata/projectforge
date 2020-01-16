@@ -27,7 +27,6 @@ import org.apache.wicket.Page;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.AddressListPage;
-import org.projectforge.web.address.AddressbookListPage;
 import org.projectforge.web.address.PhoneCallPage;
 import org.projectforge.web.address.SendSmsPage;
 import org.projectforge.web.admin.*;
@@ -93,7 +92,6 @@ public class MenuItemRegistry implements Serializable {
     register(MenuItemDefId.VACATION, VacationListPage.class);
     // createdMenuEntry.setNewCounterModel(new MenuNewCounterVacation());
 
-    register(MenuItemDefId.ADDRESSBOOK_LIST, AddressbookListPage.class);
     register(MenuItemDefId.ADDRESS_LIST_CLASSICS, AddressListPage.class);
     register(MenuItemDefId.PHONE_CALL, PhoneCallPage.class);
     register(MenuItemDefId.SEND_SMS, SendSmsPage.class);
