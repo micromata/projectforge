@@ -37,6 +37,7 @@ class ElementInfo(val propertyName: String,
                   var readOnly: Boolean = false,
                   var i18nKey: String? = null,
                   var additionalI18nKey: String? = null,
+                  var tooltipI18nKey: String? = null,
                   /**
                    * For nested properties, the property where this is nested in.
                    */

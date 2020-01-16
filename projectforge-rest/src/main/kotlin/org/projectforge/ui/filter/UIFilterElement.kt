@@ -48,6 +48,8 @@ open class UIFilterElement(
         @Transient
         override val ignoreAdditionalLabel: Boolean = false,
         @Transient
+        override val ignoreTooltip: Boolean = false,
+        @Transient
         override val layoutContext: LayoutContext? = null
 ) : UIElement(UIElementType.FILTER_ELEMENT), UILabelledElement {
     enum class FilterType { STRING, DATE, TIME_STAMP, BOOLEAN, OBJECT, LIST }

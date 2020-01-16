@@ -35,4 +35,8 @@ interface UILabelledElement {
      * If true, the additional label will be ignored (neither auto translated nor serialized).
      */
     val ignoreAdditionalLabel: Boolean
+    /**
+     * If true, the tooltip will be ignored (neither auto translated nor serialized).
+     */
+    val ignoreTooltip: Boolean
 }

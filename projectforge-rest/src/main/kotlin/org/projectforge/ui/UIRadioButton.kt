@@ -35,5 +35,7 @@ data class UIRadioButton(val id: String,
                          override var label: String? = null,
                          override var additionalLabel: String? = null,
                          @Transient
-                         override val ignoreAdditionalLabel: Boolean = false)
+                         override val ignoreAdditionalLabel: Boolean = false,
+                         @Transient
+                         override val ignoreTooltip: Boolean = false)
     : UIElement(UIElementType.RADIOBUTTON), UILabelledElement

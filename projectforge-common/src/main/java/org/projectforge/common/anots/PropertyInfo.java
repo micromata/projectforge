@@ -49,6 +49,11 @@ public @interface PropertyInfo {
    */
   String additionalI18nKey() default "";
 
+  /**
+   * Optional tooltip (i18n key) to display.
+   */
+  String tooltip() default "";
+
   boolean required() default false;
 
   /**

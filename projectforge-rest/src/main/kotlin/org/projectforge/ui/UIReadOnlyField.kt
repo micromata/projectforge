@@ -31,5 +31,7 @@ data class UIReadOnlyField(val id: String,
                            override var additionalLabel: String? = null,
                            override var tooltip: String? = null,
                            @Transient
-                           override val ignoreAdditionalLabel: Boolean = false)
+                           override val ignoreAdditionalLabel: Boolean = false,
+                           @Transient
+                           override val ignoreTooltip: Boolean = false)
     : UIElement(UIElementType.READONLY_FIELD), UILabelledElement
