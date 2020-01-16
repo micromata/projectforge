@@ -75,6 +75,20 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
     @get:Column(length = Constants.LENGTH_TEXT)
     open var description: String? = null
 
+    /**
+     * Optional list of user id's (csv). For these users the leave days will be included as events.
+     */
+    @PropertyInfo(i18nKey = "calendar.filter.vacation.users", tooltip = "calendar.filter.vacation.users.tooltip")
+    @get:Column(name = "include_leave_days_for_users", length = Constants.LENGTH_TEXT)
+    open var includeLeaveDaysForUsers: String? = null
+
+    /**
+     * Optional list of group id's (csv). For all users of these groups the leave days will be included as events.
+     */
+    @PropertyInfo(i18nKey = "calendar.filter.vacation.groups", tooltip = "calendar.filter.vacation.groups.tooltip")
+    @get:Column(name = "include_leave_days_for_groups", length = Constants.LENGTH_TEXT)
+    open var includeLeaveDaysForGroups: String? = null
+
     @PropertyInfo(i18nKey = "plugins.teamcal.externalsubscription.url")
     @get:Column(name = "ext_subscription", nullable = false, columnDefinition = "BOOLEAN DEFAULT 'false'")
     open var externalSubscription: Boolean = false

@@ -24,7 +24,6 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.address.AddressbookDO
-import org.projectforge.common.StringHelper
 
 class Addressbook(id: Int? = null,
                   displayName: String? = null,
@@ -40,32 +39,18 @@ class Addressbook(id: Int? = null,
     // The user and group ids are stored as csv list of integers in the data base.
     override fun copyFrom(src: AddressbookDO) {
         super.copyFrom(src)
-        fullAccessGroups = toGroupList(src.fullAccessGroupIds)
-        fullAccessUsers = toUserList(src.fullAccessUserIds)
-        readonlyAccessGroups = toGroupList(src.readonlyAccessGroupIds)
-        readonlyAccessUsers = toUserList(src.readonlyAccessUserIds)
+        fullAccessGroups = Group.toGroupList(src.fullAccessGroupIds)
+        fullAccessUsers = User.toUserList(src.fullAccessUserIds)
+        readonlyAccessGroups = Group.toGroupList(src.readonlyAccessGroupIds)
+        readonlyAccessUsers = User.toUserList(src.readonlyAccessUserIds)
     }
 
     // The user and group ids are stored as csv list of integers in the data base.
     override fun copyTo(dest: AddressbookDO) {
         super.copyTo(dest)
-        dest.fullAccessGroupIds = fullAccessGroups?.joinToString { "${it.id}" }
-        dest.fullAccessUserIds = fullAccessUsers?.joinToString { "${it.id}" }
-        dest.readonlyAccessGroupIds = readonlyAccessGroups?.joinToString { "${it.id}" }
-        dest.readonlyAccessUserIds = readonlyAccessUsers?.joinToString { "${it.id}" }
-    }
-
-    private fun toUserList(str: String?): MutableList<User>? {
-        if (str.isNullOrBlank()) return null
-        val users = mutableListOf<User>()
-        StringHelper.splitToInts(str, ",", false).forEach { users.add(User(it, "???")) }
-        return users
-    }
-
-    private fun toGroupList(str: String?): MutableList<Group>? {
-        if (str.isNullOrBlank()) return null
-        val groups = mutableListOf<Group>()
-        StringHelper.splitToInts(str, ",", false).forEach { groups.add(Group(it, displayName = "???")) }
-        return groups
+        dest.fullAccessGroupIds = Group.toIntList(fullAccessGroups)
+        dest.fullAccessUserIds = User.toIntList(fullAccessUsers)
+        dest.readonlyAccessGroupIds = Group.toIntList(readonlyAccessGroups)
+        dest.readonlyAccessUserIds = User.toIntList(readonlyAccessUsers)
     }
 }

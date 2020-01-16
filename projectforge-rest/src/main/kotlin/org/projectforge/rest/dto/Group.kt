@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
@@ -34,5 +35,24 @@ class Group(id: Int? = null,
     override fun copyFromMinimal(src: GroupDO) {
         super.copyFromMinimal(src)
         name = src.name
+    }
+
+    companion object {
+        /**
+         * Converts csv list of group ids to list of groups (only with id and displayName = "???", no other content).
+         */
+        fun toGroupList(str: String?): MutableList<Group>? {
+            if (str.isNullOrBlank()) return null
+            val groups = mutableListOf<Group>()
+            StringHelper.splitToInts(str, ",", false).forEach { groups.add(Group(it, displayName = "???")) }
+            return groups
+        }
+
+        /**
+         * Converts group list to ints (of format supported by [toGroupList]).
+         */
+        fun toIntList(groups: List<Group>?): String? {
+            return groups?.joinToString { "${it.id}" }
+        }
     }
 }

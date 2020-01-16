@@ -236,6 +236,8 @@ class LayoutUtils {
                 element.label = elementInfo.i18nKey
             if (!elementInfo.additionalI18nKey.isNullOrEmpty() && element.ignoreAdditionalLabel != true)
                 element.additionalLabel = elementInfo.additionalI18nKey
+            if (!elementInfo.tooltipI18nKey.isNullOrEmpty() && element.ignoreTooltip != true)
+                element.tooltip = elementInfo.tooltipI18nKey
         }
 
         /**

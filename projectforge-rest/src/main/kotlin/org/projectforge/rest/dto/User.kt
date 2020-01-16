@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 class User(id: Int? = null,
@@ -37,5 +38,24 @@ class User(id: Int? = null,
     override fun copyFromMinimal(src: PFUserDO) {
         super.copyFromMinimal(src)
         this.username = src.username
+    }
+
+    companion object {
+        /**
+         * Converts csv list of group ids to list of user (only with id and displayName = "???", no other content).
+         */
+        fun toUserList(str: String?): MutableList<User>? {
+            if (str.isNullOrBlank()) return null
+            val users = mutableListOf<User>()
+            StringHelper.splitToInts(str, ",", false).forEach { users.add(User(it, "???")) }
+            return users
+        }
+
+        /**
+         * Converts user list to ints (of format supported by [toUserList]).
+         */
+        fun toIntList(users: List<User>?): String? {
+            return users?.joinToString { "${it.id}" }
+        }
     }
 }
