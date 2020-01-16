@@ -120,6 +120,25 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         employee.kost1 = kost1
     }
 
+    open fun internalGetEmployeeList(filter: BaseSearchFilter, showOnlyActiveEntries: Boolean = true): List<EmployeeDO> {
+        val queryFilter = QueryFilter(filter)
+        var employees = internalGetList(queryFilter)
+        if (showOnlyActiveEntries) {
+            val now = LocalDate.now()
+            employees = employees.filter { employee ->
+                val user = employee.user
+                if (user == null || user.deactivated || user.isDeleted) {
+                    false
+                } else if (employee.eintrittsDatum != null && now.isBefore(employee.eintrittsDatum)) {
+                    false
+                } else {
+                    employee.austrittsDatum == null || !now.isAfter(employee.austrittsDatum)
+                }
+            }
+        }
+        return employees
+    }
+
     open override fun getList(filter: BaseSearchFilter): List<EmployeeDO> {
         val myFilter = if (filter is EmployeeFilter) filter else EmployeeFilter(filter)
         val queryFilter = QueryFilter(myFilter)
