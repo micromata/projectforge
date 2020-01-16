@@ -143,7 +143,6 @@ object SortAndCheckI18nPropertiesMain {
          */
         fun write(masterFile: FileContent) {
             println("Writing file '$filename' by using master file...")
-            blocks.forEach { it.sort() }
             val writtenKeys = mutableSetOf<String>()
             val missedKeyInLang = mutableSetOf<String>()
             // Write the lang file back:
@@ -154,6 +153,7 @@ object SortAndCheckI18nPropertiesMain {
                         // language properties file will be ignored.
                         out.println(line)
                     }
+                    block.sort() // Sort all translations inside block by key.
                     block.entries.forEach { entry ->
                         // Write all entries in the same order of the master file.
                         val key = entry.key
@@ -219,7 +219,7 @@ object SortAndCheckI18nPropertiesMain {
      * Represents a translation entry (key-value).
      */
     data class Entry(val key: String) { // key as prop of this data class for equals/hashCode
-        var value: String = ""
+        var value: String = ""          // value isn't a part of equals/hashcCde
 
         companion object {
             fun from(line: String): Entry {
