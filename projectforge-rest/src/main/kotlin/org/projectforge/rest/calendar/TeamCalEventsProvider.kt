@@ -24,26 +24,34 @@
 package org.projectforge.rest.calendar
 
 import org.projectforge.business.calendar.CalendarStyleMap
+import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.TeamEventFilter
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.rest.dto.Group
+import org.projectforge.rest.dto.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 /**
  * Provides the events of a calendar (team calendar).
  */
-@Deprecated("Will be replaced by CalendarEventsProvider.")
 @Component
-class TeamCalEventsProvider() {
+open class TeamCalEventsProvider() {
+
+    @Autowired
+    private lateinit var teamCalDao: TeamCalDao
 
     @Autowired
     private lateinit var teamEventDao: TeamEventDao
 
-    fun addEvents(start: PFDateTime,
+    @Autowired
+    private lateinit var vacationProvider: VacationProvider
+
+    open fun addEvents(start: PFDateTime,
                   end: PFDateTime,
                   events: MutableList<BigCalendarEvent>,
                   teamCalendarIds: List<Int>?,
@@ -55,8 +63,8 @@ class TeamCalEventsProvider() {
         eventFilter.startDate = start.utilDate
         eventFilter.endDate = end.utilDate
         eventFilter.user = ThreadLocalUserContext.getUser()
-        val teamEvents = teamEventDao.getEventList(eventFilter, true)
-        teamEvents?.forEach {
+        val teamEvents = teamEventDao.getEventList(eventFilter, true) ?: return
+        teamEvents.forEach {
             val eventDO: TeamEventDO
             val recurrentEvent: Boolean
             if (it is TeamEventDO) {
@@ -71,8 +79,8 @@ class TeamCalEventsProvider() {
             val allDay = eventDO.allDay
             val style = styleMap.get(eventDO.calendarId)
             val dbId: Int?
-            val uid:String?
-            if (eventDO.id > 0){
+            val uid: String?
+            if (eventDO.id > 0) {
                 dbId = eventDO.id
                 uid = null
             } else {
@@ -92,6 +100,15 @@ class TeamCalEventsProvider() {
                     bgColor = style?.bgColor,
                     fgColor = style?.fgColor)
             events.add(event)
+        }
+        for (calId in teamCalendarIds) {
+            val cal = teamCalDao.internalGetById(calId) ?: continue
+            if (cal.includeLeaveDaysForGroups.isNullOrBlank() && cal.includeLeaveDaysForUsers.isNullOrBlank()) {
+                continue
+            }
+            val userIds = User.toIntArray(cal.includeLeaveDaysForUsers)?.toSet()
+            val groupIds = Group.toIntArray(cal.includeLeaveDaysForGroups)?.toSet()
+            vacationProvider.addEvents(start, end, events, groupIds, userIds)
         }
     }
 }

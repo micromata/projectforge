@@ -41,7 +41,7 @@ import javax.persistence.LockModeType
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-class VacationCache : AbstractCache() {
+open class VacationCache : AbstractCache() {
     @Autowired
     private lateinit var em: EntityManager
 
@@ -53,7 +53,7 @@ class VacationCache : AbstractCache() {
     /**
      * Checks also the select access of the logged in user.
      */
-    fun getVacationForPeriodAndUsers(startVacationDate: LocalDate, endVacationDate: LocalDate,
+    open fun getVacationForPeriodAndUsers(startVacationDate: LocalDate, endVacationDate: LocalDate,
                                      groupIds: Set<Int>?, userIds: Set<Int>?): List<VacationDO> {
         checkRefresh()
         val result = mutableListOf<VacationDO>()
