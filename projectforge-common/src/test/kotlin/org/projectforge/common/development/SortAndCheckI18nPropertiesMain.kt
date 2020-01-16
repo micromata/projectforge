@@ -35,22 +35,30 @@ import java.nio.charset.StandardCharsets
  * Running this script will preserve any key-value properties in all translation files, but will re-order them.
  * Any comment or blank line in the default properties file is preserved. Any comment or blank will be disregarded and replaced by
  * the lines of the default properties.
+ *
+ * Please note: You should make a copy of the resource files before using this script. Otherwise you may loose entries.
  */
 object SortAndCheckI18nPropertiesMain {
-    val ENCODING = StandardCharsets.ISO_8859_1
-    val LANGUAGES = listOf("de")
-    val FILES = listOf("projectforge-business/src/main/resources/I18nResources")
+    val ENCODING = StandardCharsets.ISO_8859_1 // The charset to use.
+    val LANGUAGES = listOf("de")               // Add here all used languages in addition to the default language.
+    val FILES = listOf("projectforge-business/src/main/resources/I18nResources") // All resource bundle files to proceed as a list.
 
     @JvmStatic
     fun main(args: Array<String>) {
         FILES.forEach { basename ->
-            val defaultFile = FileContent(basename, "")
-            defaultFile.sortAndWrite()
-            val deFile = FileContent(basename, "_de")
-            deFile.write(defaultFile)
+            val defaultProperties = FileContent(basename, "") // Process the default properties file.
+            defaultProperties.sortAndWrite()
+            val deProperties = FileContent(basename, "_de")   // Process the lang file including diffs to the default file.
+            deProperties.write(defaultProperties)
         }
     }
 
+    /**
+     * Parses an I18n properties file and writes it back (sorted and compared to master (default) properties file.
+     *
+     * Translations will be processed in blocks. Blocks started with blank or comment lines and ends with the beginning
+     * of a next block.
+     */
     class FileContent(basename: String, lang: String) {
         val blocks = mutableListOf<Block>()
         val entries = mutableListOf<Entry>()
@@ -58,22 +66,32 @@ object SortAndCheckI18nPropertiesMain {
         lateinit var currentBlock: Block
 
         init {
-            newBlock()
+            newBlock() // Initially a block of key-values is needed.
             println("Reading file '$basename$lang.properties'...")
+            // Read file line by line:
             File("$basename$lang.properties").forEachLine(ENCODING) { line ->
                 if (line.indexOf('=') > 0 && line.trim()[0].isLetter()) {
-                    add(Entry(line))
+                    // This seems to be a key-value line with a translation.
+                    add(Entry.from(line))
                 } else {
+                    // This seems to be a comment line or blank line.
                     add(line)
                 }
             }
         }
 
+        /**
+         * Adds a current line with key-value to the current block.
+         */
         fun add(entry: Entry) {
             entries.add(entry)
             currentBlock.entries.add(entry)
         }
 
+        /**
+         * Adds a non-translation line (blank line or comment) to the current block. If the current block
+         * contains already translations, a new block will be started as new current block.
+         */
         fun add(line: String) {
             if (currentBlock.entries.size > 0) {
                 // Block finished. Create a new one.
@@ -82,19 +100,28 @@ object SortAndCheckI18nPropertiesMain {
             currentBlock.headLines.add(line)
         }
 
+        /**
+         * Start a new block with translations and comments.
+         */
         fun newBlock() {
             currentBlock = Block()
             blocks.add(currentBlock)
         }
 
+        /**
+         * Sort all translation entries by key for each block. Comment and blank lines are preserved. The output
+         * is written directly to the source file (you should use Git commit before ;-).
+         */
         fun sortAndWrite() {
             println("Sorting and writing file '$filename'...")
             blocks.forEach { it.sort() }
             File(filename).printWriter(ENCODING).use { out ->
                 blocks.forEach { block ->
+                    // First write all the comment and blank lines of the block.
                     block.headLines.forEach { line ->
                         out.println(line)
                     }
+                    // Append all (sorted) translation entries of the block:
                     block.entries.forEach { entry ->
                         out.println("${entry.key}=${entry.value}")
                     }
@@ -102,34 +129,51 @@ object SortAndCheckI18nPropertiesMain {
             }
         }
 
+        /**
+         * Writes the properties file for the language back using the sort order and comment/blank lines of
+         * the given masterFile (default properties file of the resource bundle).
+         *
+         * Inserts in addition all differences between this language file and the default file (missing and additional
+         * translations in comparison to the masterFile).
+         */
         fun write(masterFile: FileContent) {
             println("Writing file '$filename' by using master file...")
             blocks.forEach { it.sort() }
             val writtenKeys = mutableSetOf<String>()
             val missedKeyInLang = mutableSetOf<String>()
+            // Write the lang file back:
             File(filename).printWriter(ENCODING).use { out ->
                 masterFile.blocks.forEach { block ->
                     block.headLines.forEach { line ->
+                        // Write the header of the block of the master file (the comment and blank lines of the
+                        // language properties file will be ignored.
                         out.println(line)
                     }
                     block.entries.forEach { entry ->
+                        // Write all entries in the same order of the master file.
                         val key = entry.key
                         val value = entries.find { it.key == key }?.value
                         if (value == null) {
+                            // This entry of the masterFile is not part of this lang file.
                             missedKeyInLang.add(key)
                             out.println("### not translated: $key=${entry.value}")
                         } else {
+                            // This entry is part of masterFile as well as of this lang file.
                             writtenKeys.add(key)
                             out.println("$key=$value")
                         }
                     }
                 }
             }
+            // Determine the translations of this lang file not defined in masterFile:
             val missedEntriesInMaster = entries.minus(masterFile.entries)
             if (!missedKeyInLang.isNullOrEmpty() || !missedEntriesInMaster.isNullOrEmpty()) {
+                // Differences between master and lang file are detected. So write the lang file again including
+                // the detected differences.
                 val content = File(filename).readText(ENCODING)
                 val mainClass = SortAndCheckI18nPropertiesMain::class.java
                 File(filename).printWriter(ENCODING).use { out ->
+                    // Some header information:
                     out.println("# Processed output by ${mainClass.name}.kt")
                     out.println("#")
                     out.println("# You may correct the entries wherever you want without taking care of any sort order.")
@@ -138,6 +182,7 @@ object SortAndCheckI18nPropertiesMain {
                     out.println("#")
                     out.println("# Any comment or blank line of this file will be ignored and replaced by such lines from default properties.")
                     out.println("")
+                    // Start with all translations missed in masterFile:
                     if (!missedEntriesInMaster.isNullOrEmpty()) {
                         out.println("# ******** Entries in '${File(filename).name}' MISSED in default '${File(masterFile.filename).name}':")
                         out.println("#")
@@ -146,10 +191,11 @@ object SortAndCheckI18nPropertiesMain {
                         }
                         out.println()
                     }
+                    // Adds now all translations of masterFile missed in this language file:
                     if (!missedKeyInLang.isNullOrEmpty()) {
                         out.println("# Missed translations from default '${File(masterFile.filename).name}' (might be OK):")
                         out.println("#")
-                        missedKeyInLang.forEach {key ->
+                        missedKeyInLang.forEach { key ->
                             val entry = masterFile.entries.find { it.key == key }
                             if (entry != null) {
                                 out.println("# ${entry.key}=${entry.value}")
@@ -164,30 +210,35 @@ object SortAndCheckI18nPropertiesMain {
         }
     }
 
-    class Entry(line: String) {
-        val key: String
-        val value: String
+    /**
+     * Represents a translation entry (key-value).
+     */
+    data class Entry(val key: String) { // key as prop of this data class for equals/hashCode
+        var value: String = ""
 
-        override fun equals(other: Any?): Boolean {
-            return key == (other as? Entry)?.key
-        }
-
-        override fun hashCode(): Int {
-            return key.hashCode()
-        }
-
-        init {
-            val pos = line.indexOf('=')
-            key = line.substring(0, pos)
-            value = line.substring(pos + 1)
+        companion object {
+            fun from(line: String): Entry {
+                val pos = line.indexOf('=')
+                val key = line.substring(0, pos)
+                val value = line.substring(pos + 1)
+                val entry = Entry(key)
+                entry.value = value
+                return entry
+            }
         }
     }
 
+    /**
+     * Block of properties file containing head lines (comment/blank lines) and all translation entries.
+     */
     class Block() {
         val headLines = mutableListOf<String>()
         val entries = mutableListOf<Entry>()
+        /**
+         * Sort all translation entries by [Entry.key].
+         */
         fun sort() {
-            entries.sortBy { it.key?.toLowerCase() }
+            entries.sortBy { it.key.toLowerCase() }
         }
     }
 }
