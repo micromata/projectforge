@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.user.service.UserService
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
@@ -56,6 +57,14 @@ class User(id: Int? = null,
          */
         fun toIntList(users: List<User>?): String? {
             return users?.joinToString { "${it.id}" }
+        }
+
+        /**
+         * Set display names of any existing user in the given list.
+         * @see UserService.getUser
+         */
+        fun restoreDisplayNames(users: List<User>?, userService: UserService) {
+            users?.forEach { it.displayName = userService.getUser(it.id)?.displayName }
         }
     }
 }
