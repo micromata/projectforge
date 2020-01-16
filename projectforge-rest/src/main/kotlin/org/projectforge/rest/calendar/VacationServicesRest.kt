@@ -26,7 +26,6 @@ package org.projectforge.rest.calendar
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -49,8 +48,8 @@ class VacationServicesRest {
         val filter = BaseSearchFilter()
         filter.searchString = searchString
         filter.setSearchFields(*autoCompleteSearchFields)
-        val resultSet = ResultSet(employeeDao.getList(filter)).resultSet.filter { it.user?.deactivated == false && it.user?.isDeleted == false  }
-        return resultSet.map {
+        val employees = employeeDao.internalGetEmployeeList(filter, true)
+        return employees.map {
             val user = User()
             user.copyFromMinimal(it.user!!)
             user
