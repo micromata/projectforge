@@ -39,6 +39,11 @@ import java.time.Month
 
 @Repository
 open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntryDO::class.java) {
+
+    override fun getAdditionalSearchFields(): Array<String> {
+        return ADDITIONAL_SEARCH_FIELDS
+    }
+
     override fun newInstance(): LeaveAccountEntryDO {
         return LeaveAccountEntryDO()
     }
@@ -61,12 +66,15 @@ open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntry
     }
 
     override fun hasAccess(user: PFUserDO?, obj: LeaveAccountEntryDO?, oldObj: LeaveAccountEntryDO?, operationType: OperationType?, throwException: Boolean): Boolean {
-        if (operationType == OperationType.SELECT) {
-            return accessChecker.isLoggedInUserMemberOfGroup(throwException, ProjectForgeGroup.CONTROLLING_GROUP, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.HR_GROUP, ProjectForgeGroup.ORGA_TEAM)
-                    || (user?.id != null && user.id == obj?.employee?.userId) // User has select access to his own entries.
+        return if (operationType == OperationType.SELECT) {
+            (accessChecker.isLoggedInUserMemberOfGroup(throwException, ProjectForgeGroup.CONTROLLING_GROUP, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.HR_GROUP, ProjectForgeGroup.ORGA_TEAM)
+                    || (user?.id != null && user.id == obj?.employee?.userId)) // User has select access to his own entries.
         } else {
-            return accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, throwException, UserRightValue.READONLY, UserRightValue.READWRITE)
+            accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, throwException, UserRightValue.READONLY, UserRightValue.READWRITE)
         }
     }
 
+    companion object {
+        private val ADDITIONAL_SEARCH_FIELDS = arrayOf("employee.user.firstname", "employee.user.lastname", "employee.user.username", "employee.user.organization")
+    }
 }
