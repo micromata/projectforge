@@ -45,6 +45,8 @@ public interface GroupService
 
   String getGroupname(Integer groupId);
 
+  String getDisplayName(Integer groupId);
+
   String getGroupnames(Integer userId);
 
 }
