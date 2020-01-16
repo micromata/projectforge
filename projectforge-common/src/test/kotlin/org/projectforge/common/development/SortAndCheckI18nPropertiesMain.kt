@@ -48,8 +48,10 @@ object SortAndCheckI18nPropertiesMain {
         FILES.forEach { basename ->
             val defaultProperties = FileContent(basename, "") // Process the default properties file.
             defaultProperties.sortAndWrite()
-            val deProperties = FileContent(basename, "_de")   // Process the lang file including diffs to the default file.
-            deProperties.write(defaultProperties)
+            LANGUAGES.forEach {
+                val langProperties = FileContent(basename, "_$it")   // Process the lang file including diffs to the default file.
+                langProperties.write(defaultProperties)
+            }
         }
     }
 
