@@ -48,6 +48,9 @@ class TeamCal(var title: String? = null,
               var includeLeaveDaysForGroups: List<Group>? = null,
               var externalSubscription: Boolean = false,
               var externalSubscriptionUrl: String? = null,
+              /**
+               * In seconds.
+               */
               var externalSubscriptionUpdateInterval: Int? = null,
               var externalSubscriptionUrlAnonymized: String? = null,
               var vacation4Groups: List<Int>? = null,
@@ -68,7 +71,7 @@ class TeamCal(var title: String? = null,
 
         val teamCalDao = ApplicationContextProvider.getApplicationContext().getBean(TeamCalDao::class.java)
         val accessChecker = ApplicationContextProvider.getApplicationContext().getBean(AccessChecker::class.java)
-        val right = teamCalDao.getUserRight() as TeamCalRight
+        val right = teamCalDao.userRight as TeamCalRight
         val loggedInUserId = ThreadLocalUserContext.getUserId()
         accessStatus = when {
             right.isOwner(loggedInUserId, src) -> CalendarAccessStatus.OWNER
@@ -78,7 +81,7 @@ class TeamCal(var title: String? = null,
             accessChecker.isLoggedInUserMemberOfAdminGroup -> CalendarAccessStatus.ADMIN_ACCESS
             else -> null
         }
-        accessStatus?.let {  accessStatusString = translate(it.i18nKey) }
+        accessStatus?.let { accessStatusString = translate(it.i18nKey) }
     }
 
     // The user and group ids are stored as csv list of integers in the data base.

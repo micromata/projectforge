@@ -28,6 +28,7 @@ import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.teamcal.admin.TeamCalFilter.OwnerType;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
+import org.projectforge.business.teamcal.externalsubscription.SubscriptionUpdateInterval;
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;
@@ -146,6 +147,16 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
     return result;
   }
 
+  @Override
+  protected void onSaveOrModify(TeamCalDO obj) {
+    super.onSaveOrModify(obj);
+    Integer interval = obj.getExternalSubscriptionUpdateInterval();
+    if (interval != null && interval < SubscriptionUpdateInterval.FIFTEEN_MINUTES.getInterval()) {
+      // Ensures a minimal interval length of 15 minutes.
+      obj.setExternalSubscriptionUpdateInterval(SubscriptionUpdateInterval.FIFTEEN_MINUTES.getInterval());
+    }
+  }
+
   /**
    * Gets a list of all calendars with full access of the current logged-in user as well as the calendars owned by the
    * current logged-in user.
@@ -257,23 +268,23 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
         continue;
       } else if (entry.getPropertyName().endsWith("GroupIds")) {
         final String oldValue = entry.getOldValue();
-        if (StringUtils.isNotBlank(oldValue) && !"null" .equals(oldValue)) {
+        if (StringUtils.isNotBlank(oldValue) && !"null".equals(oldValue)) {
           final List<String> oldGroupNames = groupService.getGroupNames(oldValue);
           entry.setOldValue(StringHelper.listToString(oldGroupNames, ", ", true));
         }
         final String newValue = entry.getNewValue();
-        if (StringUtils.isNotBlank(newValue) && !"null" .equals(newValue)) {
+        if (StringUtils.isNotBlank(newValue) && !"null".equals(newValue)) {
           final List<String> newGroupNames = groupService.getGroupNames(newValue);
           entry.setNewValue(StringHelper.listToString(newGroupNames, ", ", true));
         }
       } else if (entry.getPropertyName().endsWith("UserIds")) {
         final String oldValue = entry.getOldValue();
-        if (StringUtils.isNotBlank(oldValue) && !"null" .equals(oldValue)) {
+        if (StringUtils.isNotBlank(oldValue) && !"null".equals(oldValue)) {
           final List<String> oldGroupNames = userService.getUserNames(oldValue);
           entry.setOldValue(StringHelper.listToString(oldGroupNames, ", ", true));
         }
         final String newValue = entry.getNewValue();
-        if (StringUtils.isNotBlank(newValue) && !"null" .equals(newValue)) {
+        if (StringUtils.isNotBlank(newValue) && !"null".equals(newValue)) {
           final List<String> newGroupNames = userService.getUserNames(newValue);
           entry.setNewValue(StringHelper.listToString(newGroupNames, ", ", true));
         }
