@@ -35,6 +35,7 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.xstream.XmlObjectReader
 import java.math.BigDecimal
 import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 @MappedSuperclass
@@ -44,7 +45,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(nullable = false)
-    open var datum: Date? = null
+    open var datum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.betreff")
     @Field
@@ -65,7 +66,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
-    open var faelligkeit: Date? = null
+    open var faelligkeit: LocalDate? = null
 
     /**
      * Wird nur zur Berechnung benutzt und kann für die Anzeige aufgerufen werden. Vorher sollte recalculate aufgerufen
@@ -86,7 +87,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "bezahl_datum")
-    open var bezahlDatum: Date? = null
+    open var bezahlDatum: LocalDate? = null
 
     /**
      * Bruttobetrag, der tatsächlich bezahlt wurde.
@@ -164,7 +165,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
                 return false
             }
             val today = PFDateTime.now()
-            return this.faelligkeit?.before(today.utilDate) ?: false
+            return this.faelligkeit?.isBefore(today.localDate) ?: false
         }
 
     val kontoId: Int?
@@ -190,7 +191,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
             this.discountZahlungsZielInTagen = null
             return
         }
-        val dueDate = this.faelligkeit
+        val dueDate = PFDateTime.from(this.faelligkeit)
         this.zahlungsZielInTagen = if (dueDate == null) null else date.daysBetween(dueDate).toInt()
         val discount = this.discountMaturity
         this.discountZahlungsZielInTagen = if (discount == null) null else date.daysBetween(discount).toInt()

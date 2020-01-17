@@ -21,13 +21,13 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu;
+package org.projectforge.business.fibu
 
-import java.util.Date;
+import java.time.LocalDate
+import java.util.Date
 
-public interface SearchFilterWithPeriodOfPerformance
-{
-  Date getPeriodOfPerformanceStartDate();
+interface SearchFilterWithPeriodOfPerformance {
+    val periodOfPerformanceStartDate: LocalDate?
 
-  Date getPeriodOfPerformanceEndDate();
+    val periodOfPerformanceEndDate: LocalDate?
 }

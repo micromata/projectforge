@@ -58,7 +58,7 @@ public class InvoiceServiceTest extends AbstractTestBase {
     data.setProjekt(projekt);
     data.setBetreff("Betreff");
     LocalDate date = LocalDate.of(2017, Month.AUGUST, 4);
-    data.setDatum(java.sql.Date.valueOf(date));
+    data.setDatum(date);
 
     String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);
@@ -78,7 +78,7 @@ public class InvoiceServiceTest extends AbstractTestBase {
     data.setProjekt(projekt);
     data.setBetreff("Betreff/Änderung?");
     LocalDate date = LocalDate.of(2017, Month.AUGUST, 4);
-    data.setDatum(java.sql.Date.valueOf(date));
+    data.setDatum(date);
     logon(TEST_USER);
     String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);

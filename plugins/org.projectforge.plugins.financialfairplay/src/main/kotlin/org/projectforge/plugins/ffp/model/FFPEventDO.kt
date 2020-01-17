@@ -25,6 +25,7 @@ package org.projectforge.plugins.ffp.model
 
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.search.annotations.DateBridge
+import org.hibernate.search.annotations.EncodingType
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.hibernate.search.annotations.Resolution
 import org.projectforge.common.anots.PropertyInfo
@@ -34,6 +35,7 @@ import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.*
 import javax.persistence.*
 
@@ -63,9 +65,8 @@ open class FFPEventDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.ffp.eventDate")
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
-    @get:Temporal(TemporalType.DATE)
     @get:Column(nullable = false)
-    open var eventDate: Date? = null
+    open var eventDate: LocalDate? = null
 
     // TODO: Set not supported
     @PropertyInfo(i18nKey = "plugins.ffp.attendees")

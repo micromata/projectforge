@@ -38,6 +38,7 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.*
 import javax.persistence.*
 import javax.persistence.Index
@@ -150,7 +151,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @PropertyInfo(i18nKey = "task.protectTimesheetsUntil")
     @get:Column(name = "protect_timesheets_until")
-    open var protectTimesheetsUntil: Date? = null
+    open var protectTimesheetsUntil: LocalDate? = null
 
     @IndexedEmbedded(depth = 1)
     @PropertyInfo(i18nKey = "task.assignedUser")
@@ -324,10 +325,10 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     public override fun clone(): Any {
         val clone = super.clone() as TaskDO
         if (this.startDate != null) {
-            clone.startDate = this.startDate!!.clone() as Date
+            clone.startDate = this.startDate!!
         }
         if (this.endDate != null) {
-            clone.endDate = this.endDate!!.clone() as Date
+            clone.endDate = this.endDate!!
         }
         if (this.ganttPredecessor != null) {
             clone.ganttPredecessor = TaskDO()
@@ -338,7 +339,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
             clone.parentTask!!.id = this.parentTaskId
         }
         if (this.protectTimesheetsUntil != null) {
-            clone.protectTimesheetsUntil = this.protectTimesheetsUntil!!.clone() as Date
+            clone.protectTimesheetsUntil = this.protectTimesheetsUntil!!
         }
         if (this.responsibleUser != null) {
             clone.responsibleUser = PFUserDO()

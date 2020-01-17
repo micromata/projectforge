@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 
@@ -125,7 +125,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
    * @param week
    * @return If week or user id is not given, return false.
    */
-  public boolean doesEntryAlreadyExist(final Integer planningId, final Integer userId, final Date week) {
+  public boolean doesEntryAlreadyExist(final Integer planningId, final Integer userId, final LocalDate week) {
     if (week == null || userId == null) {
       return false;
     }
@@ -145,12 +145,12 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
     return other != null;
   }
 
-  public HRPlanningDO getEntry(final PFUserDO user, final Date week) {
+  public HRPlanningDO getEntry(final PFUserDO user, final LocalDate week) {
     return getEntry(user.getId(), week);
   }
 
-  public HRPlanningDO getEntry(final Integer userId, final Date week) {
-    PFDay day = PFDay.from(week, false, DateHelper.UTC);
+  public HRPlanningDO getEntry(final Integer userId, final LocalDate week) {
+    PFDay day = PFDay.from(week);
     if (!day.isBeginOfWeek()) {
       log.error("Date is not begin of week, try to change date: " + day.getIsoString());
       day = day.getBeginOfWeek();
@@ -230,11 +230,11 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
    */
   @Override
   protected void onSaveOrModify(final HRPlanningDO obj) {
-    PFDay day = PFDay.from(obj.getWeek(), false, DateHelper.UTC);
+    PFDay day = PFDay.from(obj.getWeek(), false);
     if (!day.isBeginOfWeek()) {
       log.error("Date is not begin of week, try to change date: " + day.getIsoString());
       day = day.getBeginOfWeek();
-      obj.setWeek(day.getSqlDate());
+      obj.setWeek(day.getDate());
     }
 
     if (!accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.HR_GROUP, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)) {

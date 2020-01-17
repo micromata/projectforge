@@ -56,6 +56,8 @@ import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 /**
@@ -111,7 +113,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
       @Override
       public void validate(final Form<?> form)
       {
-        if (hrPlanningDao.doesEntryAlreadyExist(data.getId(), data.getUserId(), data.getWeek()) == true) {
+        if (hrPlanningDao.doesEntryAlreadyExist(data.getId(), data.getUserId(), java.sql.Date.valueOf(data.getWeek())) == true) {
           error(getString("hr.planning.entry.error.entryDoesAlreadyExistForUserAndWeekOfYear"));
         }
       }
@@ -168,7 +170,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
         if (date != null) {
           final DayHolder dh = new DayHolder(date);
           dh.setBeginOfWeek();
-          data.setWeek(dh.getSqlDate());
+          data.setWeek(dh.getUtilDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
         }
         weekDatePanel.markModelAsChanged();
       });
@@ -430,7 +432,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
       final Integer userId = data.getUserId();
       if (userId != null) {
         // Get the entry from the predecessor week:
-        final DayHolder dh = new DayHolder(getData().getWeek());
+        final DayHolder dh = new DayHolder(java.sql.Date.valueOf(getData().getWeek()));
         dh.add(Calendar.WEEK_OF_YEAR, -1);
         predecessor = hrPlanningDao.getEntry(userId, dh.getSqlDate());
       }

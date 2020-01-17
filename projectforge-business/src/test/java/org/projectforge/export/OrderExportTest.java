@@ -39,6 +39,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneOffset;
@@ -58,17 +59,15 @@ public class OrderExportTest extends AbstractTestBase
     I18nHelper.addBundleName(Const.RESOURCE_BUNDLE_NAME);
 
     AuftragDO e = new AuftragDO();
-    e.setAngebotsDatum(new Date(new java.util.Date().getTime()));
+    e.setAngebotsDatum(LocalDate.now());
     e.setTitel("Titel_TEST");
     KundeDO kunde = new KundeDO();
     kunde.setName("Kundenname");
     e.setKunde(kunde);
     e.setAuftragsStatus(AuftragsStatus.ESKALATION);
     e.setStatusBeschreibung("TESTBESCHREIBUNG");
-    e.setPeriodOfPerformanceBegin(
-        new Date(LocalDateTime.of(2020, Month.OCTOBER, 2, 0, 0).toInstant(ZoneOffset.UTC).toEpochMilli()));
-    e.setPeriodOfPerformanceEnd(
-        new Date(LocalDateTime.of(2030, Month.OCTOBER, 2, 0, 0).toInstant(ZoneOffset.UTC).toEpochMilli()));
+    e.setPeriodOfPerformanceBegin(LocalDate.of(2020, Month.OCTOBER, 2));
+    e.setPeriodOfPerformanceEnd(LocalDate.of(2030, Month.OCTOBER, 2));
 
     auftragDOList.add(e);
     byte[] export = orderExport.export(auftragDOList);
@@ -76,15 +75,15 @@ public class OrderExportTest extends AbstractTestBase
     ExcelImport excelImport = new ExcelImport(new ByteArrayInputStream(export));
     for (Row row : excelImport.getWorkbook().getSheetAt(0)) {
       for (Cell cell : row) {
-        if (cell.toString().equals("02-Oct-2020")) {
+        if (cell.toString().equals("2020-10-02")) {
           hasperformaceBegin = true;
         }
 
-        if (cell.toString().equals("02-Oct-2030")) {
+        if (cell.toString().equals("2030-10-02")) {
           hasPerformanceEnd = true;
         }
 
-        if (cell.getCellTypeEnum() == CellType.STRING && cell.getRichStringCellValue().getString().trim()
+        if (cell.getCellType() == CellType.STRING && cell.getRichStringCellValue().getString().trim()
             .equals("TESTBESCHREIBUNG")) {
           hasStatusBeschreibung = true;
         }
@@ -103,17 +102,15 @@ public class OrderExportTest extends AbstractTestBase
     I18nHelper.addBundleName(Const.RESOURCE_BUNDLE_NAME);
 
     AuftragDO e = new AuftragDO();
-    e.setAngebotsDatum(new Date(new java.util.Date().getTime()));
+    e.setAngebotsDatum(LocalDate.now());
     e.setTitel("Titel_TEST");
     KundeDO kunde = new KundeDO();
     kunde.setName("Kundenname");
     e.setKunde(kunde);
     e.setAuftragsStatus(AuftragsStatus.ESKALATION);
     e.setStatusBeschreibung("TESTBESCHREIBUNG");
-    e.setPeriodOfPerformanceBegin(
-        new Date(LocalDateTime.of(2020, Month.OCTOBER, 2, 0, 0).toInstant(ZoneOffset.UTC).toEpochMilli()));
-    e.setPeriodOfPerformanceEnd(
-        new Date(LocalDateTime.of(2030, Month.OCTOBER, 2, 0, 0).toInstant(ZoneOffset.UTC).toEpochMilli()));
+    e.setPeriodOfPerformanceBegin(LocalDate.of(2020, Month.OCTOBER, 2));
+    e.setPeriodOfPerformanceEnd(LocalDate.of(2030, Month.OCTOBER, 2));
 
     ArrayList<PaymentScheduleDO> paymentSchedules = new ArrayList<>();
     PaymentScheduleDO schedule1 = new PaymentScheduleDO();
@@ -155,32 +152,32 @@ public class OrderExportTest extends AbstractTestBase
           hasSecondScheduleDate = true;
         }
 
-        if (cell.getCellTypeEnum() == CellType.STRING && cell.getRichStringCellValue().getString().trim()
+        if (cell.getCellType() == CellType.STRING && cell.getRichStringCellValue().getString().trim()
             .equals("SCHEDULE1")) {
           hasCommentfirstSchedule = true;
         }
 
-        if (cell.getCellTypeEnum() == CellType.STRING && cell.getRichStringCellValue().getString().trim()
+        if (cell.getCellType() == CellType.STRING && cell.getRichStringCellValue().getString().trim()
             .equals("SCHEDULE2")) {
           hasCommentSecondSchedule = true;
         }
 
-        if (cell.getCellTypeEnum() == CellType.STRING && cell.getRichStringCellValue().toString().trim()
+        if (cell.getCellType() == CellType.STRING && cell.getRichStringCellValue().toString().trim()
             .equals("#2") && excelImport.getWorkbook().getSheetAt(2).getRow(2) == row) {
           hasScheduleNumber = true;
         }
 
-        if (cell.getCellTypeEnum() == CellType.STRING && cell.getRichStringCellValue().getString().trim()
+        if (cell.getCellType() == CellType.STRING && cell.getRichStringCellValue().getString().trim()
             .equals("x")) {
           hasSetBoolean = true;
         }
 
-        if (cell.getCellTypeEnum() == CellType.NUMERIC && cell.toString().trim()
+        if (cell.getCellType() == CellType.NUMERIC && cell.toString().trim()
             .equals("111.0")) {
           hasAmount1 = true;
         }
 
-        if (cell.getCellTypeEnum() == CellType.NUMERIC && cell.toString().trim()
+        if (cell.getCellType() == CellType.NUMERIC && cell.toString().trim()
             .equals("222.0")) {
           hasAmount2 = true;
         }

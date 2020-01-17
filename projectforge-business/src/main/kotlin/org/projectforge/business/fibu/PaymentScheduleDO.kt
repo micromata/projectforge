@@ -62,6 +62,7 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column
     open var number: Short = 0
 
+    // TODO: Replace this?
     @PropertyInfo(i18nKey = "date")
     @get:Column(name = "schedule_date")
     open var scheduleDate: Date? = null

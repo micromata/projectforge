@@ -32,6 +32,7 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 /**
@@ -149,10 +150,8 @@ public class AuftragRight extends UserRightAccessCheck<AuftragDO>
         if (!obj.isVollstaendigFakturiert()) {
           return true;
         } else if (obj.getAngebotsDatum() != null) {
-          final long millis = (new Date()).getTime() - obj.getAngebotsDatum().getTime();
-          if (millis / DateHelper.MILLIS_DAY <= 1800) {
-            return true;
-          }
+          final long millis = LocalDate.now().toEpochDay() - obj.getAngebotsDatum().toEpochDay();
+          return millis / DateHelper.MILLIS_DAY <= 1800;
         }
       }
       return false;

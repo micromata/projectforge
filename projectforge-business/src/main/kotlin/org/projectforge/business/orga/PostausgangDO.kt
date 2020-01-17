@@ -26,7 +26,7 @@ package org.projectforge.business.orga
 import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -46,7 +46,7 @@ open class PostausgangDO : DefaultBaseDO() {
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(nullable = false)
-    open var datum: Date? = null
+    open var datum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "orga.postausgang.empfaenger")
     @Field

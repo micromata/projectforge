@@ -37,6 +37,7 @@ import org.projectforge.web.wicket.*;
 import org.slf4j.Logger;
 
 import java.sql.Date;
+import java.time.LocalDate;
 
 /**
  *
@@ -81,19 +82,19 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
       getBaseDao().setUser(getData(), userId);
     }
     if (week != null) {
-      getData().setWeek(week);
+      getData().setWeek(week.toLocalDate());
     }
     if (getData().getWeek() != null) {
-      final DateHolder date = new DateHolder(getData().getWeek(), ConfigurationServiceAccessor.get().getDefaultLocale());
-      if (date.isBeginOfWeek() == false) {
+      final DateHolder date = new DateHolder(java.sql.Date.valueOf(getData().getWeek()), ConfigurationServiceAccessor.get().getDefaultLocale());
+      if (!date.isBeginOfWeek()) {
         date.setBeginOfWeek();
-        getData().setWeek(date.getSQLDate());
+        getData().setWeek(date.getSQLDate().toLocalDate());
       }
     } else {
       // Get week of last edited entry as default.
       final Object obj = getUserPrefEntry(SESSION_KEY_RECENT_WEEK);
       if (obj instanceof Long) {
-        getData().setWeek(new java.sql.Date((Long) obj));
+        getData().setWeek(LocalDate.ofEpochDay((Long) obj));
       }
     }
   }
@@ -113,7 +114,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
   @Override
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
-    putUserPrefEntry(SESSION_KEY_RECENT_WEEK, getData().getWeek().getTime(), true); // Store as recent date.
+    putUserPrefEntry(SESSION_KEY_RECENT_WEEK, getData().getWeek().toEpochDay(), true); // Store as recent date.
     return null;
   }
 

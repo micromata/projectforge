@@ -115,8 +115,8 @@ public class AuftragDaoTest extends AbstractTestBase
     AuftragDO auftrag3 = new AuftragDO();
     auftrag3.setNummer(auftragDao.getNextNumber(auftrag3));
     auftragDao.setContactPerson(auftrag3, getUserId(AbstractTestBase.TEST_PROJECT_MANAGER_USER));
-    final PFDateTime dateTime = PFDateTime.now().minusYears(6); // 6 years old.
-    auftrag3.setAngebotsDatum(dateTime.getSqlDate());
+    final PFDay dateTime = PFDay.now().minusYears(6); // 6 years old.
+    auftrag3.setAngebotsDatum(dateTime.getLocalDate());
     auftrag3.setAuftragsStatus(AuftragsStatus.ABGESCHLOSSEN);
     final AuftragsPositionDO position = new AuftragsPositionDO();
     position.setVollstaendigFakturiert(true);
@@ -410,8 +410,8 @@ public class AuftragDaoTest extends AbstractTestBase
     final List<AuftragsPositionDO> auftragsPositions = auftrag.ensureAndGetPositionen();
     final List<PaymentScheduleDO> paymentSchedules = auftrag.ensureAndGetPaymentSchedules();
 
-    auftrag.setPeriodOfPerformanceBegin(java.sql.Date.valueOf(LocalDate.of(2017, 5, 1)));
-    auftrag.setPeriodOfPerformanceEnd(java.sql.Date.valueOf(LocalDate.of(2017, 6, 30)));
+    auftrag.setPeriodOfPerformanceBegin(LocalDate.of(2017, 5, 1));
+    auftrag.setPeriodOfPerformanceEnd(LocalDate.of(2017, 6, 30));
 
     AuftragsPositionDO pos1 = new AuftragsPositionDO();
     pos1.setNumber((short) 1);
@@ -419,8 +419,8 @@ public class AuftragDaoTest extends AbstractTestBase
     AuftragsPositionDO pos2 = new AuftragsPositionDO();
     pos2.setNumber((short) 2);
     pos2.setPeriodOfPerformanceType(PeriodOfPerformanceType.OWN);
-    pos2.setPeriodOfPerformanceBegin(java.sql.Date.valueOf(LocalDate.of(2017, 5, 24)));
-    pos2.setPeriodOfPerformanceEnd(java.sql.Date.valueOf(LocalDate.of(2017, 5, 25)));
+    pos2.setPeriodOfPerformanceBegin(LocalDate.of(2017, 5, 24));
+    pos2.setPeriodOfPerformanceEnd(LocalDate.of(2017, 5, 25));
 
     auftragsPositions.add(pos1);
     auftragsPositions.add(pos2);
@@ -596,8 +596,8 @@ public class AuftragDaoTest extends AbstractTestBase
   private void setPeriodOfPerformanceStartDateAndEndDate(final AuftragFilter auftragFilter, final int startYear, final int startMonth, final int startDay,
       final int endYear, final int endMonth, final int endDay)
   {
-    auftragFilter.setPeriodOfPerformanceStartDate(PFDay.withDate(startYear, startMonth, startDay).getSqlDate());
-    auftragFilter.setPeriodOfPerformanceEndDate(PFDay.withDate(endYear, endMonth, endDay).getSqlDate());
+    auftragFilter.setPeriodOfPerformanceStartDate(PFDay.withDate(startYear, startMonth, startDay).getLocalDate());
+    auftragFilter.setPeriodOfPerformanceEndDate(PFDay.withDate(endYear, endMonth, endDay).getLocalDate());
   }
 
   private AuftragDO createAuftragWithPeriodOfPerformance(final int beginYear, final int beginMonth, final int beginDay, final int endYear, final int endMonth,
@@ -607,8 +607,8 @@ public class AuftragDaoTest extends AbstractTestBase
     auftrag.setNummer(auftragDao.getNextNumber(auftrag));
     dbNumber++;
     auftrag.addPosition(new AuftragsPositionDO());
-    auftrag.setPeriodOfPerformanceBegin(java.sql.Date.valueOf(LocalDate.of(beginYear, beginMonth, beginDay)));
-    auftrag.setPeriodOfPerformanceEnd(java.sql.Date.valueOf(LocalDate.of(endYear, endMonth, endDay)));
+    auftrag.setPeriodOfPerformanceBegin(LocalDate.of(beginYear, beginMonth, beginDay));
+    auftrag.setPeriodOfPerformanceEnd(LocalDate.of(endYear, endMonth, endDay));
     return auftrag;
   }
 }

@@ -24,9 +24,12 @@
 package org.projectforge.web.task;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
+import org.projectforge.web.wicket.components.*;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -60,19 +63,7 @@ import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.converter.IntegerPercentConverter;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
-import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
 
 public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
 {
@@ -260,20 +251,18 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       }
       {
         // Gantt: start date
+        final FieldProperties<LocalDate> props = getStartDateProperties();
         final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("gantt.startDate"));
-        final DatePanel startDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "startDate"),
-            DatePanelSettings.get()
-                .withTargetType(java.sql.Date.class).withSelectProperty("startDate"));
-        fs.add(startDatePanel);
+        LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+        fs.add(components);
       }
       {
         // Gantt: end date
+        final FieldProperties<LocalDate> props = getEndDateProperties();
         final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("gantt.endDate"));
-        final DatePanel endDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "endDate"),
-            DatePanelSettings.get()
-                .withTargetType(java.sql.Date.class).withSelectProperty("endDate"));
-        fs.add(endDatePanel);
-        dependentFormComponents[1] = endDatePanel;
+        LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+        fs.add(components);
+        dependentFormComponents[1] = components;
       }
 
       innerGridBuilder.newSplitPanel(GridSize.COL50);
@@ -431,13 +420,11 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       {
         // Protection until
         final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("task.protectTimesheetsUntil"));
-        final DatePanel protectTimesheetsUntilPanel = new DatePanel(fs.newChildId(),
-            new PropertyModel<Date>(data, "protectTimesheetsUntil"),
-            DatePanelSettings.get().withTargetType(java.sql.Date.class)
-                .withSelectProperty("protectTimesheetsUntil"));
-        fs.add(protectTimesheetsUntilPanel);
+        final FieldProperties<LocalDate> props = getProtectionProperties();
+        LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+        fs.add(components);
         if (getTenantRegistry().getUserGroupCache().isUserMemberOfFinanceGroup() == false) {
-          protectTimesheetsUntilPanel.setEnabled(false);
+          components.setEnabled(false);
         }
       }
     }
@@ -450,6 +437,18 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, model), true);
       fs.addJIRAField(model);
     }
+  }
+
+  public FieldProperties<LocalDate> getStartDateProperties() {
+    return new FieldProperties<LocalDate>("gantt.startDate", new PropertyModel<LocalDate>(super.getData(), "startDate"));
+  }
+
+  public FieldProperties<LocalDate> getEndDateProperties() {
+    return new FieldProperties<LocalDate>("gantt.endDate", new PropertyModel<LocalDate>(super.getData(), "endDate"));
+  }
+
+  public FieldProperties<LocalDate> getProtectionProperties() {
+    return new FieldProperties<LocalDate>("task.protectTimesheetsUntil", new PropertyModel<LocalDate>(super.getData(), "protectTimesheetsUntil"));
   }
 
   /**

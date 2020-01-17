@@ -386,10 +386,10 @@ public class TaskDao extends BaseDao<TaskDO> {
     if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
       Long ts1 = null, ts2 = null;
       if (obj.getProtectTimesheetsUntil() != null) {
-        ts1 = obj.getProtectTimesheetsUntil().getTime();
+        ts1 = obj.getProtectTimesheetsUntil().toEpochDay();
       }
       if (dbObj.getProtectTimesheetsUntil() != null) {
-        ts2 = dbObj.getProtectTimesheetsUntil().getTime();
+        ts2 = dbObj.getProtectTimesheetsUntil().toEpochDay();
       }
       if (!Objects.equals(ts1, ts2)) {
         throw new AccessException("task.error.protectTimesheetsUntilReadonly");

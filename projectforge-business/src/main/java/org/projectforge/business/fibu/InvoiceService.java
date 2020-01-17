@@ -47,8 +47,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.Date;
 import java.text.DecimalFormat;
+import java.time.LocalDate;
 import java.util.stream.Collectors;
 
 /**
@@ -154,16 +154,11 @@ public class InvoiceService {
   }
 
   private String getPeriodOfPerformance(final RechnungsPositionDO position, final RechnungDO invoice) {
-    final Date begin;
-    final Date end;
+    final LocalDate begin;
+    final LocalDate end;
 
-    if (position.getPeriodOfPerformanceType() == PeriodOfPerformanceType.OWN) {
-      begin = position.getPeriodOfPerformanceBegin();
-      end = position.getPeriodOfPerformanceEnd();
-    } else {
-      begin = invoice.getPeriodOfPerformanceBegin();
-      end = invoice.getPeriodOfPerformanceEnd();
-    }
+    begin = position.getPeriodOfPerformanceBegin();
+    end = position.getPeriodOfPerformanceEnd();
 
     return DateTimeFormatter.instance().getFormattedDate(begin) + " - " + DateTimeFormatter.instance().getFormattedDate(end);
   }

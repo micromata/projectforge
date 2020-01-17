@@ -32,7 +32,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import java.util.*
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -74,9 +74,9 @@ open class BookDO : DefaultBaseDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "date")
     @Field(index = Index.YES, analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @DateBridge(encoding = EncodingType.STRING)
     @get:Column(name = "lend_out_date")
-    open var lendOutDate: Date? = null
+    open var lendOutDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "book.lendOutNote")
     @Field

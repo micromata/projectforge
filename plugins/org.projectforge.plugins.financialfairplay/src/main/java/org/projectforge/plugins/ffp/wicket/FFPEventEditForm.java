@@ -66,6 +66,7 @@ import org.wicketstuff.select2.Select2MultiChoice;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditPage>
@@ -151,6 +152,8 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
     {
       // Event date
       final FieldsetPanel fs = gridBuilder.newFieldset(FFPEventDO.class, "eventDate");
+      final FieldProperties<LocalDate> props = getEventDateProperties();
+      LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
       DatePanel eventDate = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "eventDate"),
           DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
       eventDate.setRequired(true);
@@ -357,6 +360,10 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       this.accountingList.removeAll(toRemove);
     }
     return this.accountingList;
+  }
+
+  public FieldProperties<LocalDate> getEventDateProperties() {
+    return new FieldProperties<LocalDate>("plugins.ffp.eventDate", new PropertyModel<LocalDate>(super.getData(), "eventDate"));
   }
 
   private FFPAccountingDO getNewFfpAccountingDO(PFUserDO user)

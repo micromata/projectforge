@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
@@ -53,7 +54,7 @@ class BookServicesRest() {
      */
     @PostMapping("lendOut")
     fun lendOut(request: HttpServletRequest, @RequestBody book: BookDO): ResponseEntity<ResponseAction> {
-        book.lendOutDate = Date()
+        book.lendOutDate = LocalDate.now()
         bookDao.setLendOutBy(book, getUserId())
         return saveOrUpdate(request, bookDao, book, book, bookRest, bookRest.validate(book))
     }
