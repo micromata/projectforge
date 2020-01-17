@@ -26,6 +26,7 @@ function CalendarEditExternalSubscription() {
                 <Col sm={4}>
                     <CheckBox
                         label={ui.translations['plugins.teamcal.externalsubscription.label']}
+                        tooltip={ui.translations['plugins.teamcal.externalsubscription.label.tooltip']}
                         id="externalSubscription"
                         onChange={handleCheckBoxChange}
                         checked={data.externalSubscription}
