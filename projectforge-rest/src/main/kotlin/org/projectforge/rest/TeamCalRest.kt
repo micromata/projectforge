@@ -27,9 +27,11 @@ import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.admin.right.TeamCalRight
+import org.projectforge.business.teamcal.externalsubscription.SubscriptionUpdateInterval
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
@@ -107,6 +109,7 @@ class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::
                                 "accessStatusString", "lastUpdate", "externalSubscription"))
         layout.getTableColumnById("owner").formatter = Formatter.USER
         layout.getTableColumnById("lastUpdate").formatter = Formatter.TIMESTAMP_MINUTES
+        layout.getTableColumnById("accessStatusString").title = "access.title.heading"
         LayoutUtils.addListFilterContainer(layout, "longFormat", "recursive",
                 filterClass = TimesheetFilter::class.java)
         return LayoutUtils.processListPage(layout, this)
@@ -116,32 +119,39 @@ class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::
      * LAYOUT Edit page
      */
     override fun createEditLayout(dto: TeamCal, userAccess: UILayout.UserAccess): UILayout {
+        val intervals = SubscriptionUpdateInterval.values().map { DisplayObject(it.interval, translate(it.i18nKey)) }
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIFieldset(mdLength = 12, lgLength = 12)
                         .add(UIRow()
                                 .add(UICol()
                                         .add(lc, "title")
                                         .add(lc, "description")
-                                        .add(UICustomized("calendar.editExternalSubscription")))))
+                                        .add(UICustomized("calendar.editExternalSubscription",
+                                                values = mutableMapOf("intervals" to intervals))))))
                 .add(UIFieldset(mdLength = 12, lgLength = 12, title = "access.title.heading")
                         .add(UIRow()
                                 .add(UICol(mdLength = 6)
                                         .add(lc, "owner")))
                         .add(UIRow()
                                 .add(UICol()
-                                        .add(UISelect.creatUserSelect(lc, "fullAccessUsers", true))
-                                        .add(UISelect.creatUserSelect(lc, "readonlyAccessUsers", true))
-                                        .add(UISelect.creatUserSelect(lc, "minimalAccessUsers", true)))
+                                        .add(UISelect.creatUserSelect(lc, "fullAccessUsers", true,"plugins.teamcal.fullAccess", "access.users"))
+                                        .add(UISelect.creatUserSelect(lc, "readonlyAccessUsers", true, "plugins.teamcal.readonlyAccess", "access.users"))
+                                        .add(UISelect.creatUserSelect(lc, "minimalAccessUsers", true, "plugins.teamcal.minimalAccess", "access.users", "plugins.teamcal.minimalAccess.users.hint")))
                                 .add(UICol()
-                                        .add(UISelect.createGroupSelect(lc, "fullAccessGroups", true))
-                                        .add(UISelect.createGroupSelect(lc, "readonlyAccessGroups", true))
-                                        .add(UISelect.createGroupSelect(lc, "minimalAccessUsers", true)))))
+                                        .add(UISelect.createGroupSelect(lc, "fullAccessGroups", true,"plugins.teamcal.fullAccess", "access.groups"))
+                                        .add(UISelect.createGroupSelect(lc, "readonlyAccessGroups", true,"plugins.teamcal.readonlyAccess", "access.groups"))
+                                        .add(UISelect.createGroupSelect(lc, "minimalAccessGroups", true,"plugins.teamcal.minimalAccess", "access.groups", "plugins.teamcal.minimalAccess.groups.hint")))))
                 .add(UIFieldset(mdLength = 12, lgLength = 12, title = "vacation")
                         .add(UIRow()
                                 .add(UICol()
                                         .add(UISelect.creatUserSelect(lc, "includeLeaveDaysForUsers", true)))
                                 .add(UICol()
                                         .add(UISelect.createGroupSelect(lc, "includeLeaveDaysForGroups", true)))))
+        layout.addTranslations("plugins.teamcal.externalsubscription.label",
+                "plugins.teamcal.externalsubscription.label",
+                "plugins.teamcal.externalsubscription.url.tooltip",
+                "plugins.teamcal.externalsubscription.url",
+                "plugins.teamcal.externalsubscription.updateInterval")
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
