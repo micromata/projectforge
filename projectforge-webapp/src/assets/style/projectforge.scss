@@ -200,6 +200,10 @@ svg.fa-chevron-down {
   margin-bottom: 15px;
 }
 
+.rbc-overlay {
+  z-index: 11 !important; // Bottom line with copyright and links has 10.
+}
+
 .rbc-allday-cell {
   max-height: 100px;
   overflow-y: auto;
