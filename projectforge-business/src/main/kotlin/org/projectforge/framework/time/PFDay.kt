@@ -24,6 +24,7 @@
 package org.projectforge.framework.time
 
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
+import org.projectforge.common.DateFormatType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.time.*
 import java.time.format.DateTimeFormatter
@@ -199,6 +200,11 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
 
     override fun compareTo(other: PFDay): Int {
         return date.compareTo(other.date)
+    }
+
+    fun format(): String {
+        val formatter = DateFormats.getDateTimeFormatter(DateFormatType.DATE)
+        return format(formatter)
     }
 
     override fun format(formatter: DateTimeFormatter): String {

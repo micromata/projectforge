@@ -43,14 +43,16 @@ class UISelect<T>(val id: String,
                   override var tooltip: String? = null,
                   @Transient
                   override val ignoreAdditionalLabel: Boolean = false,
+                  @Transient
+                  override val ignoreTooltip: Boolean = false,
                   /**
                    * Optional property of value, needed by the client for mapping the data to the value. Default is "value".
                    */
-                  var valueProperty: String = "value",
+                  var valueProperty: String = "id",
                   /**
                    * Optional property of label, needed by the client for mapping the data to the label. Default is "label".
                    */
-                  var labelProperty: String = "label",
+                  var labelProperty: String = "displayName",
                   /**
                    * The recent or favorite entries, if given, will be shown as favorites for quick select
                    * (in rest client as star beside the select input).
@@ -84,4 +86,27 @@ class UISelect<T>(val id: String,
 
     // fun getEnumValues(enumClass: KClass<out Enum<*>>): Array<out Enum<*>> = enumClass.java.enumConstants
     private fun getEnumValues(enumClass: Class<out Enum<*>>): Array<out Enum<*>> = enumClass.enumConstants
+
+    companion object {
+        fun creatUserSelect(lc: LayoutContext,id:String, multi: Boolean, label: String? = null, additionalLabel: String? = null, tooltip: String? = null,
+                            showOnlyActiveUsers: Boolean = true): UISelect<Int> {
+            return UISelect<Int>(id,
+                    lc,
+                    multi = multi,
+                    label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
+                    additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
+                    autoCompletion = AutoCompletion.getAutoCompletion4Users(showOnlyActiveUsers),
+                    tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey)
+        }
+
+        fun createGroupSelect(lc: LayoutContext,id:String, multi: Boolean, label: String? = null, additionalLabel: String? = null, tooltip: String? = null): UISelect<Int> {
+            return UISelect<Int>(id,
+                    lc,
+                    multi = multi,
+                    label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
+                    additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
+                    autoCompletion = AutoCompletion.getAutoCompletion4Groups(),
+                    tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey)
+        }
+    }
 }

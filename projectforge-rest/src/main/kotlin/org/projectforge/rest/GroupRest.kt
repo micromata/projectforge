@@ -80,14 +80,7 @@ class GroupRest() : AbstractDTORest<GroupDO, Group, GroupDao>(GroupDao::class.ja
                         .add(UICol()
                                 .add(lc, "name", "organization", "description"))
                         .add(UICol()
-                                .add(UISelect<Int>("assignedUsers", lc,
-                                        multi = true,
-                                        label = "group.assignedUsers",
-                                        additionalLabel = "access.users",
-                                        autoCompletion = AutoCompletion<Int>(url = "user/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=",
-                                                type = AutoCompletion.Type.USER.name),
-                                        labelProperty = "fullname",
-                                        valueProperty = "id"))))
+                                .add(UISelect.creatUserSelect(lc, "assignedUsers", true, "group.assignedUsers", "access.users"))))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 

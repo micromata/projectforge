@@ -325,6 +325,11 @@ class CalendarPanel extends React.Component {
         initTime.setHours(8);
         initTime.setMinutes(0);
 
+        const messages = {
+            ...translations,
+            showMore: total => `+${total} ${translations['calendar.showMore']}`,
+        };
+
         return (
             <LoadingContainer loading={loading}>
                 <DragAndDropCalendar
@@ -332,6 +337,7 @@ class CalendarPanel extends React.Component {
                         minHeight: 500,
                         height: `calc(100vh - ${topHeight})`,
                     }}
+                    popup
                     localizer={localizer}
                     events={events}
                     step={gridSize}
@@ -369,7 +375,7 @@ class CalendarPanel extends React.Component {
                         },
                         toolbar: CalendarToolBar,
                     }}
-                    messages={translations}
+                    messages={messages}
                 />
                 <Route
                     path={`${match.url}/:category/edit/:id?`}

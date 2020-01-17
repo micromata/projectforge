@@ -58,6 +58,10 @@ open class VacationDO : DefaultBaseDO() {
     @get:JoinColumn(name = "employee_id", nullable = false)
     open var employee: EmployeeDO? = null
 
+    val employeeId: Int?
+        @Transient
+        get() = employee?.id
+
     @PropertyInfo(i18nKey = "vacation.startdate")
     @get:Column(name = "start_date", nullable = false)
     open var startDate: LocalDate? = null
@@ -94,7 +98,7 @@ open class VacationDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "vacation.vacationmode")
     private val vacationmode: VacationMode? = null
 
-    @PropertyInfo(i18nKey = "vacation.isSpecial")
+    @PropertyInfo(i18nKey = "vacation.special")
     @get:Column(name = "is_special", nullable = false)
     open var special: Boolean? = null
 

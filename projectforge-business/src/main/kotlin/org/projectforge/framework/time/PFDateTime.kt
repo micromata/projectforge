@@ -25,6 +25,7 @@ package org.projectforge.framework.time
 
 import org.apache.commons.lang3.ObjectUtils
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
+import org.projectforge.common.DateFormatType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.time.*
 import java.time.format.DateTimeFormatter
@@ -211,6 +212,12 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
 
     val epochMilli: Long
         get() = dateTime.toInstant().toEpochMilli()
+
+    @JvmOverloads
+    fun format(dateFormatType: DateFormatType = DateFormatType.DATE_TIME_MINUTES): String {
+        val formatter = DateFormats.getDateTimeFormatter(dateFormatType)
+        return format(formatter)
+    }
 
     override fun format(formatter: DateTimeFormatter): String {
         return dateTime.format(formatter)

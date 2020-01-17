@@ -105,7 +105,9 @@ open class UserGroupCache(tenant: TenantDO?, applicationContext: ApplicationCont
             return null
         }
         // checkRefresh(); Done by getUserMap().
-        return if (getUserMap() != null) userMap!![userId] else null // Only null in maintenance mode (if t_user isn't readable).
+        val user = if (getUserMap() != null) userMap!![userId] else null // Only null in maintenance mode (if t_user isn't readable).
+        user?.clearSecretFields()
+        return user
     }
 
     fun getUser(username: String): PFUserDO? {
@@ -114,6 +116,7 @@ open class UserGroupCache(tenant: TenantDO?, applicationContext: ApplicationCont
         }
         for (user in getUserMap()!!.values) {
             if (username == user!!.username) {
+                user.clearSecretFields()
                 return user
             }
         }
@@ -126,6 +129,7 @@ open class UserGroupCache(tenant: TenantDO?, applicationContext: ApplicationCont
         }
         for (user in getUserMap()!!.values) {
             if (fullname == user!!.getFullname()) {
+                user.clearSecretFields()
                 return user
             }
         }
@@ -376,6 +380,7 @@ open class UserGroupCache(tenant: TenantDO?, applicationContext: ApplicationCont
      * Should be called after user modifications.
      */
     fun updateUser(user: PFUserDO) {
+        user.clearSecretFields()
         getUserMap()!![user.id] = user
     }
 

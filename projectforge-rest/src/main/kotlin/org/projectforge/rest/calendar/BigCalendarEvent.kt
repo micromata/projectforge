@@ -73,7 +73,7 @@ class BigCalendarEvent(val title: String?,
                  * The db id of the object (team event, address (birthday) etc.)
                  */
                 dbId: Int? = null)
-            : this(title, PFDay.from(start)!!.utilDate, PFDateTime.from(end)!!.endOfDay.utilDate,
+            : this(title, asStartDate(start), asEndDate(end),
             allDay, desc, location, tooltip, formattedDuration, outOfRange, fgColor, bgColor, cssClass, category, readOnly)
 
     /**
@@ -81,4 +81,20 @@ class BigCalendarEvent(val title: String?,
      * Will be set by [CalendarServicesRest].
      */
     internal var key: String? = null
+
+    companion object {
+        fun asStartDate(start: LocalDate): Date {
+            return PFDay.from(start)!!.utilDate
+        }
+
+        fun asEndDate(end: LocalDate): Date {
+            return PFDateTime.from(end)!!.endOfDay.utilDate
+        }
+
+        fun samePeriod(event: BigCalendarEvent, start: LocalDate?, end: LocalDate?): Boolean {
+            start ?: return false
+            end ?: return false
+            return event.start == asStartDate(start) && event.end == asEndDate(end)
+        }
+    }
 }

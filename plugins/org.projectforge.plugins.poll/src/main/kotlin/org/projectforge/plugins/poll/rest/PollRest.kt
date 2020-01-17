@@ -76,14 +76,8 @@ class PollRest : AbstractDTORest<PollDO, Poll, PollDao>(PollDao::class.java, "pl
                 .add(lc, "title")
                 .add(location)
                 .add(lc, "description")
-                .add(UISelect<Int>("assignedItems", lc,
-                        multi = true,
-                        label = "plugins.poll.attendee.users",
-                        //additionalLabel = "access.users",
-                        autoCompletion = AutoCompletion<Int>(url = "user/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=",
-                                type = AutoCompletion.Type.USER.name),
-                        labelProperty = "fullname",
-                        valueProperty = "id"))
+                .add(UISelect.creatUserSelect(lc, "assignedItems", true, "plugins.poll.attendee.users"))
+        //additionalLabel = "access.users",
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

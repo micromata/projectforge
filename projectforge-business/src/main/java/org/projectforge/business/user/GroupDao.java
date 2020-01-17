@@ -195,7 +195,7 @@ public class GroupDao extends BaseDao<GroupDO> {
       if (groupsToAssign != null) {
         for (final GroupDO group : groupsToAssign) {
           final GroupDO dbGroup = emgr.selectByPkAttached(GroupDO.class, group.getId());
-          HistoryBaseDaoAdapter.wrappHistoryUpdate(dbGroup, () -> {
+          HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup, () -> {
             Set<PFUserDO> assignedUsers = dbGroup.getAssignedUsers();
             if (assignedUsers == null) {
               assignedUsers = new HashSet<>();
@@ -217,7 +217,7 @@ public class GroupDao extends BaseDao<GroupDO> {
       if (groupsToUnassign != null) {
         for (final GroupDO group : groupsToUnassign) {
           final GroupDO dbGroup = emgr.selectByPkAttached(GroupDO.class, group.getId());
-          HistoryBaseDaoAdapter.wrappHistoryUpdate(dbGroup, () -> {
+          HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup, () -> {
             final Set<PFUserDO> assignedUsers = dbGroup.getAssignedUsers();
             if (assignedUsers != null && assignedUsers.contains(dbUser)) {
               log.info("Unassigning user '" + dbUser.getUsername() + "' from group '" + dbGroup.getName() + "'.");

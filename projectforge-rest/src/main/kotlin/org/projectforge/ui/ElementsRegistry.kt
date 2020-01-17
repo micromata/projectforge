@@ -201,6 +201,7 @@ object ElementsRegistry {
         }
         elementInfo.i18nKey = getNullIfEmpty(propertyInfo.i18nKey)
         elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo.additionalI18nKey)
+        elementInfo.tooltipI18nKey = getNullIfEmpty(propertyInfo.tooltip)
         ensureClassMap(clazz)[property] = elementInfo
         return elementInfo
     }

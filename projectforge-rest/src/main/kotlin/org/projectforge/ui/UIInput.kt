@@ -38,7 +38,9 @@ data class UIInput(val id: String,
                    override var additionalLabel: String? = null,
                    override var tooltip: String? = null,
                    @Transient
-                   override val ignoreAdditionalLabel: Boolean = false)
+                   override val ignoreAdditionalLabel: Boolean = false,
+                   @Transient
+                   override val ignoreTooltip: Boolean = false)
     : UIElement(UIElementType.INPUT), UILabelledElement {
     var autoCompletionUrl: String? = null
 

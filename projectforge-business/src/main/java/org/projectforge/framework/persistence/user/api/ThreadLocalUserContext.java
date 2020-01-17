@@ -33,6 +33,7 @@ import org.projectforge.framework.time.PFDateCompabilityUtils;
 
 import java.text.Collator;
 import java.time.DayOfWeek;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.Objects;
@@ -159,6 +160,16 @@ public class ThreadLocalUserContext {
       return Configuration.getInstance().getDefaultTimeZone();
     }
     return TimeZone.getDefault();
+  }
+
+  /**
+   * @return The timeZone of the user if exists, otherwise default timezone of the Configuration
+   * @see #getUser()
+   * @see PFUserDO#getTimeZoneObject()
+   * @see Configuration#getDefaultTimeZone()
+   */
+  public static ZoneId getZoneId() {
+    return getTimeZone().toZoneId();
   }
 
   @Deprecated

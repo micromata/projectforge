@@ -24,6 +24,9 @@
 package org.projectforge.plugins.eed.excelimport;
 
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
+import de.micromata.merlin.excel.importer.ImportStorage;
+import de.micromata.merlin.excel.importer.ImportedElement;
+import de.micromata.merlin.excel.importer.ImportedSheet;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.excel.ExcelImport;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -33,9 +36,7 @@ import org.projectforge.business.fibu.api.EmployeeSalaryService;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.utils.ImportStorage;
-import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
+import org.projectforge.framework.persistence.utils.MyImportedElement;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
 import org.projectforge.plugins.eed.service.EmployeeConfigurationService;
@@ -87,7 +88,7 @@ public class EmployeeSalaryExcelImporter
 
   private void importEmployeeSalary(final ExcelImport<EmployeeSalaryExcelRow> importer)
   {
-    final ImportedSheet<EmployeeSalaryDO> importedSheet = new ImportedSheet<>();
+    final ImportedSheet<EmployeeSalaryDO> importedSheet = new ImportedSheet<>(storage);
     storage.addSheet(importedSheet);
     importedSheet.setName(NAME_OF_EXCEL_SHEET);
     importer.setNameRowIndex(ROW_INDEX_OF_COLUMN_NAMES);
@@ -127,15 +128,15 @@ public class EmployeeSalaryExcelImporter
     final EmployeeSalaryExcelRow[] rows = importer.convertToRows(EmployeeSalaryExcelRow.class);
     for (final EmployeeSalaryExcelRow row : rows) {
       if (row.getStaffnumber() != null) {
-        final ImportedElement<EmployeeSalaryDO> element = convertRowToDo(row);
+        final ImportedElement<EmployeeSalaryDO> element = convertRowToDo(importedSheet, row);
         importedSheet.addElement(element);
       }
     }
   }
 
-  private ImportedElement<EmployeeSalaryDO> convertRowToDo(final EmployeeSalaryExcelRow row)
+  private ImportedElement<EmployeeSalaryDO> convertRowToDo(final ImportedSheet<EmployeeSalaryDO> importedSheet, final EmployeeSalaryExcelRow row)
   {
-    final ImportedElement<EmployeeSalaryDO> element = new ImportedElement<>(storage.nextVal(), EmployeeSalaryDO.class, DIFF_PROPERTIES);
+    final MyImportedElement<EmployeeSalaryDO> element = new MyImportedElement<>(importedSheet, -1, EmployeeSalaryDO.class, DIFF_PROPERTIES);
     PFDateTime selectedDateTime = PFDateTime.from(this.dateToSelectAttrRow);
     EmployeeDO employee;
     EmployeeSalaryDO employeeSalary = null;

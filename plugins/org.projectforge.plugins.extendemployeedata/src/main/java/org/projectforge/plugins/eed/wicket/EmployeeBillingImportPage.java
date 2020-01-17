@@ -23,13 +23,13 @@
 
 package org.projectforge.plugins.eed.wicket;
 
+import de.micromata.merlin.excel.importer.ImportedSheet;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.export.AttrColumnDescription;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.plugins.eed.service.EmployeeBillingImportService;
 import org.projectforge.web.core.importstorage.AbstractImportPage;
 

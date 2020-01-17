@@ -23,16 +23,16 @@
 
 package org.projectforge.plugins.eed.service;
 
+import de.micromata.merlin.excel.importer.ImportStatus;
+import de.micromata.merlin.excel.importer.ImportStorage;
+import de.micromata.merlin.excel.importer.ImportedElement;
+import de.micromata.merlin.excel.importer.ImportedSheet;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.excel.ExcelImportException;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
 import org.projectforge.business.fibu.api.EmployeeSalaryService;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.utils.ImportStatus;
-import org.projectforge.framework.persistence.utils.ImportStorage;
-import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.plugins.eed.excelimport.EmployeeSalaryExcelImporter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -115,7 +115,7 @@ public class EmployeeSalaryImportService
     final List<EmployeeSalaryDO> employeeSalariesToUpdate = sheet
         .getElements()
         .stream()
-        .filter(ImportedElement::isSelected)
+        .filter(ImportedElement::getSelected)
         .map(ImportedElement::getValue)
         .collect(Collectors.toList());
 
