@@ -79,6 +79,7 @@ abstract class AbstractBaseRest<
 
     companion object {
         const val GEAR_MENU = "GEAR"
+        const val CLASSIC_VERSION_MENU = "CLASSIC"
         const val CREATE_MENU = "CREATE"
     }
 
@@ -180,6 +181,12 @@ abstract class AbstractBaseRest<
         layout.addTranslations("reset")
         return layout
     }
+
+    /**
+     * If given, a link to this url is shown on the list page. This is used for accessing the classical Wicket-version
+     * of the current page during migration phase.
+     */
+    open val classicsLinkListUrl: String? = null
 
     /**
      * Relative rest path (without leading /rs
@@ -290,6 +297,9 @@ abstract class AbstractBaseRest<
         layout.add(LayoutListFilterUtils.createNamedContainer(this, lc))
         layout.postProcessPageMenu()
         layout.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Const.REACT_APP_PATH}${getCategory()}/edit"), 0)
+        if (classicsLinkListUrl != null) {
+            layout.add(MenuItem(CLASSIC_VERSION_MENU, title = "*", url = classicsLinkListUrl, tooltip = translate("goreact.menu.classics")), 0)
+        }
         return InitialListData(ui = layout,
                 standardEditPage = "${Const.REACT_APP_PATH}${getCategory()}/edit/:id",
                 quickSelectUrl = quickSelectUrl,
