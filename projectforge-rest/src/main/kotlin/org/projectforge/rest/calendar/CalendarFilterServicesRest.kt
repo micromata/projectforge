@@ -182,6 +182,7 @@ class CalendarFilterServicesRest {
                 "calendar.navigation.today",
                 "calendar.option.gridSize",
                 "calendar.option.timesheets",
+                "calendar.showMore",
                 "calendar.title",
                 "calendar.view.agenda",
                 "calendar.view.day",
