@@ -23,6 +23,8 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.user.service.UserService
+import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 class User(id: Int? = null,
@@ -37,5 +39,38 @@ class User(id: Int? = null,
     override fun copyFromMinimal(src: PFUserDO) {
         super.copyFromMinimal(src)
         this.username = src.username
+    }
+
+    companion object {
+        /**
+         * Converts csv of user ids to list of user (only with id and displayName = "???", no other content).
+         */
+        fun toUserList(str: String?): List<User>? {
+            if (str.isNullOrBlank()) return null
+            return toIntArray(str)?.map {  User(it, "???") }
+        }
+
+        /**
+         * Converts csv of user ids to list of user id's.
+         */
+        fun toIntArray(str: String?): IntArray? {
+            if (str.isNullOrBlank()) return null
+            return StringHelper.splitToInts(str, ",", false)
+        }
+
+        /**
+         * Converts user list to ints (of format supported by [toUserList]).
+         */
+        fun toIntList(users: List<User>?): String? {
+            return users?.joinToString { "${it.id}" }
+        }
+
+        /**
+         * Set display names of any existing user in the given list.
+         * @see UserService.getUser
+         */
+        fun restoreDisplayNames(users: List<User>?, userService: UserService) {
+            users?.forEach { it.displayName = userService.getUser(it.id)?.displayName }
+        }
     }
 }

@@ -127,7 +127,7 @@ class AddressRest()
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         elements.add(UIFilterElement("myFavorites", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.myFavorites")))
-        elements.add(UIFilterElement("doublets",  UIFilterElement.FilterType.BOOLEAN,translate("address.filter.doublets")))
+        elements.add(UIFilterElement("doublets", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.doublets")))
     }
 
     /**
@@ -231,7 +231,7 @@ class AddressRest()
         return LayoutUtils.processListPage(layout, this)
     }
 
-    override val autoCompleteSearchFields = arrayOf("name", "firstName")
+    override val autoCompleteSearchFields = arrayOf("name", "firstName", "organization", "city", "privateCity")
 
     override fun addVariablesForListPage(): Map<String, Any>? {
         return mutableMapOf(
@@ -260,13 +260,10 @@ class AddressRest()
                                                         .add(UICol(lgLength = 6)
                                                                 .add(lc, "contactStatus"))))
                                         .add(UICol(mdLength = 6)
-                                                .add(createFavoriteRow(UISelect<Int>("addressbookList", lc,
-                                                        multi = true,
-                                                        autoCompletion = AutoCompletion<Int>(url = "addressBook/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=",
-                                                                type = AutoCompletion.Type.USER.name),
-                                                        labelProperty = "displayName",
-                                                        valueProperty = "id"),
-                                                        "isFavoriteCard"))))))
+                                                .add(createFavoriteRow("isFavoriteCard",
+                                                        UISelect<Int>("addressbookList", lc,
+                                                                multi = true,
+                                                                autoCompletion = AutoCompletion<Int>(url = AutoCompletion.getAutoCompletionUrl("addressBook"), type = AutoCompletion.Type.USER.name))))))))
                 .add(UIRow()
                         .add(UIFieldset(mdLength = 6, lgLength = 4)
                                 .add(lc, "name", "firstName", "form", "title", "email", "privateEmail"))
@@ -276,16 +273,16 @@ class AddressRest()
                                 .add(UIInput("organization", lc).enableAutoCompletion(this))
                                 .add(lc, "division", "positionText", "website"))
                         .add(UIFieldset(mdLength = 6, lgLength = 4)
-                                .add(createFavoriteRow(UIInput("businessPhone", lc),
-                                        "isFavoriteBusinessPhone"))
-                                .add(createFavoriteRow(UIInput("mobilePhone", lc),
-                                        "isFavoriteMobilePhone"))
-                                .add(createFavoriteRow(UIInput("fax", lc),
-                                        "isFavoriteFax"))
-                                .add(createFavoriteRow(UIInput("privatePhone", lc),
-                                        "isFavoritePrivatePhone"))
-                                .add(createFavoriteRow(UIInput("privateMobilePhone", lc),
-                                        "isFavoritePrivateMobilePhone"))))
+                                .add(createFavoriteRow("isFavoriteBusinessPhone",
+                                        UIInput("businessPhone", lc)))
+                                .add(createFavoriteRow("isFavoriteMobilePhone",
+                                        UIInput("mobilePhone", lc)))
+                                .add(createFavoriteRow("isFavoriteFax",
+                                        UIInput("fax", lc)))
+                                .add(createFavoriteRow("isFavoritePrivatePhone",
+                                        UIInput("privatePhone", lc)))
+                                .add(createFavoriteRow("isFavoritePrivateMobilePhone",
+                                        UIInput("privateMobilePhone", lc)))))
                 .add(UIRow()
                         .add(UIFieldset(mdLength = 6, lgLength = 4, title = "address.heading.businessAddress")
                                 .add(UIInput("addressText", lc, ignoreAdditionalLabel = true).enableAutoCompletion(this))
@@ -367,7 +364,7 @@ class AddressRest()
         return ResultSet(newList, newList.size)
     }
 
-    private fun createFavoriteRow(inputElement: UIElement, id: String): UIRow {
+    private fun createFavoriteRow(id: String, inputElement: UIElement): UIRow {
         return UIRow()
                 .add(UICol(length = 9)
                         .add(inputElement))

@@ -33,6 +33,7 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 
 @RestController
@@ -103,10 +104,11 @@ class UserRest
 
     override val autoCompleteSearchFields = arrayOf("username", "firstname", "lastname", "email")
 
-    override fun queryAutocompleteObjects(filter: BaseSearchFilter): MutableList<PFUserDO> {
-        val list = super.queryAutocompleteObjects(filter)
-        if (filter.searchString.isNullOrBlank()) {
-            list.removeIf { it.deactivated } // Remove deactivated users when returning all. Show deactivated users only if search string is given.
+    override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<PFUserDO> {
+        var list = super.queryAutocompleteObjects(request, filter)
+        if (filter.searchString.isNullOrBlank() || request.getParameter(AutoCompletion.SHOW_ALL_PARAM) != "true") {
+            // Show deactivated users only if search string is given or param SHOW_ALL_PARAM is true:
+            return list.filter { !it.deactivated } // Remove deactivated users when returning all.
         }
         return list
     }

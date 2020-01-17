@@ -289,7 +289,7 @@ abstract class AbstractBaseRest<
                         "nothingFound")
         layout.add(LayoutListFilterUtils.createNamedContainer(this, lc))
         layout.postProcessPageMenu()
-        layout.add(MenuItem(CREATE_MENU, title = "+", url = "${Const.REACT_APP_PATH}${getCategory()}/edit"), 0)
+        layout.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Const.REACT_APP_PATH}${getCategory()}/edit"), 0)
         return InitialListData(ui = layout,
                 standardEditPage = "${Const.REACT_APP_PATH}${getCategory()}/edit/:id",
                 quickSelectUrl = quickSelectUrl,
@@ -302,7 +302,7 @@ abstract class AbstractBaseRest<
      * At standard, quickSelectUrl is only given, if the doClass implements DisplayObject and autoCompleteSearchFields are given.
      */
     protected open val quickSelectUrl: String?
-        get() = if (!autoCompleteSearchFields.isNullOrEmpty() && DisplayObject::class.java.isAssignableFrom(baseDao.doClass)) "${getRestPath()}/${AutoCompletion.AUTOCOMPLETE_OBJECT}?maxResults=30&search=:search" else null
+        get() = if (!autoCompleteSearchFields.isNullOrEmpty() && DisplayNameCapable::class.java.isAssignableFrom(baseDao.doClass)) "${getRestPath()}/${AutoCompletion.AUTOCOMPLETE_OBJECT}?maxResults=30&search=:search" else null
 
     /**
      * Add customized magic filter element in addition to the automatically detected elements.
@@ -596,20 +596,27 @@ abstract class AbstractBaseRest<
      * @return list of found objects.
      */
     @GetMapping(AutoCompletion.AUTOCOMPLETE_OBJECT)
-    open fun getAutoCompleteObjects(@RequestParam("search") searchString: String?, @RequestParam("maxResults") maxResults: Int?): List<DisplayObject> {
+    open fun getAutoCompleteObjects(request: HttpServletRequest, @RequestParam("search") searchString: String?, @RequestParam("maxResults") maxResults: Int?): List<DisplayObject> {
         if (autoCompleteSearchFields.isNullOrEmpty()) {
             throw RuntimeException("Can't call getAutoCompletion without property, because no autoCompleteSearchFields are configured by the developers for this entity.")
         }
-        val filter = BaseSearchFilter()
+        val filter = createAutoCompleteObjectsFilter(request)
         val modifiedSearchString = searchString?.split(' ', '\t', '\n')?.joinToString(" ") { "+$it*" }
         filter.searchString = modifiedSearchString
         filter.setSearchFields(*autoCompleteSearchFields!!)
         maxResults?.let { filter.setMaxRows(it) }
-        val list = queryAutocompleteObjects(filter)
+        val list = queryAutocompleteObjects(request, filter)
         return list.map { DisplayObject(it.id, if (it is DisplayNameCapable) it.displayName else it.toString()) }
     }
 
-    protected open fun queryAutocompleteObjects(filter: BaseSearchFilter): MutableList<O> {
+    /**
+     * Will create a new BaseSearchFilter. If you want to use an DO specific filter, override this method.
+     */
+    open fun createAutoCompleteObjectsFilter(request: HttpServletRequest): BaseSearchFilter {
+        return BaseSearchFilter()
+    }
+
+    protected open fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<O> {
         return baseDao.getList(filter)
     }
 

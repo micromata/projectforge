@@ -30,7 +30,6 @@ import org.projectforge.business.calendar.CalendarView
 import org.projectforge.business.calendar.TeamCalendar
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPrefService
-import org.projectforge.business.vacation.VacationCache
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
@@ -72,13 +71,13 @@ class CalendarServicesRest {
     private lateinit var addressDao: AddressDao
 
     @Autowired
-    private lateinit var vacationCache: VacationCache
-
-    @Autowired
     private lateinit var teamCalEventsProvider: TeamCalEventsProvider
 
     @Autowired
     private lateinit var calendarEventsProvider: CalEventsProvider
+
+    @Autowired
+    private lateinit var vacationProvider: VacationProvider
 
     @Autowired
     private lateinit var timesheetsProvider: TimesheetEventsProvider
@@ -203,7 +202,7 @@ class CalendarServicesRest {
                             ProjectForgeGroup.HR_GROUP,
                             ProjectForgeGroup.ORGA_TEAM))
         }
-        VacationProvider.addEvents(vacationCache, range.start, range.end!!, events, filter.vacationGroupIds, filter.vacationUserIds)
+        vacationProvider.addEvents(range.start, range.end!!, events, filter.vacationGroupIds, filter.vacationUserIds)
 
         val specialDays = HolidayAndWeekendProvider.getSpecialDayInfos(range.start, range.end!!)
         var counter = 0

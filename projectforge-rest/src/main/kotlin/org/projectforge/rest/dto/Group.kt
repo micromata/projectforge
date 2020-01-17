@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.group.service.GroupService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
@@ -34,5 +35,37 @@ class Group(id: Int? = null,
     override fun copyFromMinimal(src: GroupDO) {
         super.copyFromMinimal(src)
         name = src.name
+    }
+
+    companion object {
+        /**
+         * Converts csv of group ids to list of groups (only with id and displayName = "???", no other content).
+         */
+        fun toGroupList(str: String?): List<Group>? {
+            if (str.isNullOrBlank()) return null
+            return toIntArray(str)?.map {  Group(it, "???") }
+        }
+
+        /**
+         * Converts csv of group ids to list of user id's.
+         */
+        fun toIntArray(str: String?): IntArray? {
+            return User.toIntArray(str)
+        }
+
+        /**
+         * Converts group list to ints (of format supported by [toGroupList]).
+         */
+        fun toIntList(groups: List<Group>?): String? {
+            return groups?.joinToString { "${it.id}" }
+        }
+
+        /**
+         * Set display names of any existing group in the given list.
+         * @see GroupService.getDisplayName
+         */
+        fun restoreDisplayNames(groups: List<Group>?, groupService: GroupService) {
+            groups?.forEach { it.displayName = groupService.getDisplayName(it.id) }
+        }
     }
 }

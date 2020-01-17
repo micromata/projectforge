@@ -237,8 +237,8 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
         return VacationValidator.validate(this, vacation, dbVal, throwException)
     }
 
-    open fun getOpenLeaveApplicationsForUser(user: PFUserDO): BigDecimal {
-        val employee = employeeService.getEmployeeByUserId(user.id) ?: return BigDecimal.ZERO
+    open fun getOpenLeaveApplicationsForUser(user: PFUserDO): Int {
+        val employee = employeeService.getEmployeeByUserId(user.id) ?: return 0
         return vacationDao.getOpenLeaveApplicationsForEmployee(employee)
     }
 

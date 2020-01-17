@@ -391,11 +391,16 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
     return this.dateTime.getYear();
   }
 
-  /**
-   * @return 0 - January, 11 - December (0-based)
-   */
   public Month getMonth() {
     return this.dateTime.getMonth();
+  }
+
+
+  /**
+   * @return 1 - January, 12 - December (1-based)
+   */
+  public int getMonthValue() {
+    return this.dateTime.getMonthValue();
   }
 
   /**

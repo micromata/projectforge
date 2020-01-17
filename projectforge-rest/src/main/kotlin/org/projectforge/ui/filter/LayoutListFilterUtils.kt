@@ -45,10 +45,7 @@ class LayoutListFilterUtils {
             val elements = mutableListOf<UILabelledElement>()
             elements.add(UIFilterObjectElement(MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName,
                     label = translate(MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.i18nKey),
-                    autoCompletion = AutoCompletion<Int>(2,
-                            //recent = listOf(AutoCompletion.Entry(42,"Fin Reinhard"), AutoCompletion.Entry(43, "Kai Reinhard")),
-                            type = AutoCompletion.Type.USER.name,
-                            url = "user/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=:search")))
+                    autoCompletion = AutoCompletion.getAutoCompletion4Users()))
             elements.add(UIFilterTimestampElement(MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName,
                     label = translate(MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.i18nKey),
                     openInterval = true,

@@ -46,7 +46,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
@@ -200,8 +199,7 @@ public class VacationDao extends BaseDao<VacationDO> {
             tenantService.getDefaultTenant();
   }
 
-  public BigDecimal getOpenLeaveApplicationsForEmployee(EmployeeDO employee) {
-    BigDecimal result = BigDecimal.ZERO;
+  public int getOpenLeaveApplicationsForEmployee(EmployeeDO employee) {
     final List<VacationDO> resultList = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.manager = :employee AND v.status = :status";
       List<VacationDO> dbResultList = emgr
@@ -210,8 +208,8 @@ public class VacationDao extends BaseDao<VacationDO> {
       return dbResultList;
     });
     if (resultList != null) {
-      result = new BigDecimal(resultList.size());
+      return resultList.size();
     }
-    return result;
+    return 0;
   }
 }

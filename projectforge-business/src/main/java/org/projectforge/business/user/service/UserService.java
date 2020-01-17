@@ -351,7 +351,7 @@ public class UserService implements UserChangedListener {
     if (user.getPassword() != null) {
       user.setStayLoggedInKey(createStayLoggedInKey());
       if (createHistoryEntry) {
-        HistoryBaseDaoAdapter.wrappHistoryUpdate(user, () -> {
+        HistoryBaseDaoAdapter.wrapHistoryUpdate(user, () -> {
           user.setLastPasswordChange(new Date());
           return ModificationStatus.MAJOR;
         });
@@ -366,7 +366,7 @@ public class UserService implements UserChangedListener {
 
   public void onWlanPasswordChange(final PFUserDO user, final boolean createHistoryEntry) {
     if (createHistoryEntry) {
-      HistoryBaseDaoAdapter.wrappHistoryUpdate(user, () -> {
+      HistoryBaseDaoAdapter.wrapHistoryUpdate(user, () -> {
         user.setLastWlanPasswordChange(new Date());
         return ModificationStatus.MAJOR;
       });

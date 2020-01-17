@@ -147,15 +147,15 @@ open class ForecastExport { // open needed by Wicket.
         val forecastTemplate = applicationContext.getResource("classpath:officeTemplates/ForecastTemplate.xlsx")
 
         val workbook = ExcelWorkbook(forecastTemplate.inputStream, "ForecastTemplate.xlsx")
-        val forecastSheet = workbook.getSheet(Sheet.FORECAST.title)
+        val forecastSheet = workbook.getSheet(Sheet.FORECAST.title)!!
         ForecastCol.values().forEach { forecastSheet.registerColumn(it.header) }
         MonthCol.values().forEach { forecastSheet.registerColumn(it.header) }
 
-        val invoicesSheet = workbook.getSheet(Sheet.INVOICES.title)
+        val invoicesSheet = workbook.getSheet(Sheet.INVOICES.title)!!
         InvoicesCol.values().forEach { invoicesSheet.registerColumn(it.header) }
         MonthCol.values().forEach { invoicesSheet.registerColumn(it.header) }
 
-        val invoicesPriorYearSheet = workbook.getSheet(Sheet.INVOICES_PREV_YEAR.title)
+        val invoicesPriorYearSheet = workbook.getSheet(Sheet.INVOICES_PREV_YEAR.title)!!
         InvoicesCol.values().forEach { invoicesPriorYearSheet.registerColumn(it.header) }
         MonthCol.values().forEach { invoicesPriorYearSheet.registerColumn(it.header) }
 
@@ -189,18 +189,18 @@ open class ForecastExport { // open needed by Wicket.
 
         // Now: evaluate the formulars:
         for (row in 1..7) {
-            val excelRow = forecastSheet.getRow(row)
+            val excelRow = forecastSheet.getRow(row)!!
             MonthCol.values().forEach {
-                val cell = excelRow.getCell(forecastSheet.getColumnDef(it.header))
-                cell.evaluateFormularCell()
+                val cell = excelRow.getCell(forecastSheet.getColumnDef(it.header)!!)
+                cell?.evaluateFormularCell()
             }
         }
-        val revenueSheet = workbook.getSheet("Umsatz kumuliert")
+        val revenueSheet = workbook.getSheet("Umsatz kumuliert")!!
         for (row in 0..8) {
-            val excelRow = revenueSheet.getRow(row)
+            val excelRow = revenueSheet.getRow(row)!!
             for (col in 1..12) {
                 val cell = excelRow.getCell(col)
-                cell.evaluateFormularCell()
+                cell?.evaluateFormularCell()
             }
         }
 
@@ -210,7 +210,7 @@ open class ForecastExport { // open needed by Wicket.
     }
 
     private fun fillInvoices(ctx: Context) {
-        val firstMonthCol = ctx.invoicesSheet.getColumnDef(MonthCol.MONTH1.header).columnNumber
+        val firstMonthCol = ctx.invoicesSheet.getColumnDef(MonthCol.MONTH1.header)!!.columnNumber
         for (invoice in ctx.invoices) {
             for (pos in invoice.positionen ?: continue) {
                 val orderPos = pos.auftragsPosition ?: continue
@@ -252,8 +252,8 @@ open class ForecastExport { // open needed by Wicket.
     private fun replaceMonthDatesInHeaderRow(sheet: ExcelSheet, baseDate: PFDay) { // Adding month columns
         var currentMonth = baseDate
         MonthCol.values().forEach {
-            val cell = sheet.headRow.getCell(sheet.getColumnDef(it.header))
-            cell.setCellValue(formatMonthHeader(currentMonth))
+            val cell = sheet.headRow!!.getCell(sheet.getColumnDef(it.header)!!)
+            cell?.setCellValue(formatMonthHeader(currentMonth))
             currentMonth = currentMonth.plusMonths(1)
         }
     }
@@ -295,7 +295,7 @@ open class ForecastExport { // open needed by Wicket.
 
         val invoicePositions = rechnungCache.getRechnungsPositionVOSetByAuftragsPositionId(pos.id)
         sheet.setStringValue(row, ForecastCol.DEBITOREN_RECHNUNGEN.header, ForecastUtils.getInvoices(invoicePositions))
-        val leistungsZeitraumColDef = sheet.getColumnDef(ForecastCol.LEISTUNGSZEITRAUM.header)
+        val leistungsZeitraumColDef = sheet.getColumnDef(ForecastCol.LEISTUNGSZEITRAUM.header)!!
         if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) { // use "own" period -> from pos
 
             sheet.setDateValue(row, leistungsZeitraumColDef, PFDay(pos.periodOfPerformanceBegin!!).utilDate, ctx.excelDateFormat)
@@ -354,7 +354,7 @@ open class ForecastExport { // open needed by Wicket.
             AuftragsPositionsPaymentType.FESTPREISPAKET -> { // fill reset at end of project time
                 val indexEnd = getMonthIndex(ctx, ForecastUtils.getEndLeistungszeitraum(order, pos)) + 1 // Will be invoiced 1 month later (+1)
                 if (indexEnd in 0..11) {
-                    val firstMonthCol = ctx.forecastSheet.getColumnDef(MonthCol.MONTH1.header).columnNumber
+                    val firstMonthCol = ctx.forecastSheet.getColumnDef(MonthCol.MONTH1.header)!!.columnNumber
                     ctx.forecastSheet.setBigDecimalValue(row, firstMonthCol + indexEnd, diff).cellStyle = ctx.currencyCellStyle
                 }
             }
@@ -382,7 +382,7 @@ open class ForecastExport { // open needed by Wicket.
                     }
                 }
                 if (sum != BigDecimal.ZERO) {
-                    val columnDef = ctx.forecastSheet.getColumnDef(it.header)
+                    val columnDef = ctx.forecastSheet.getColumnDef(it.header)!!
                     val cell = ctx.forecastSheet.setBigDecimalValue(row, columnDef, sum.setScale(2, RoundingMode.HALF_UP))
                     cell.cellStyle = ctx.currencyCellStyle
                     if (sum < BigDecimal.ZERO) {
@@ -394,7 +394,7 @@ open class ForecastExport { // open needed by Wicket.
     }
 
     private fun highlightErrorCell(ctx: Context, rowNumber: Int, colNumber: Int, comment: String? = null) {
-        val excelRow = ctx.forecastSheet.getRow(rowNumber)
+        val excelRow = ctx.forecastSheet.getRow(rowNumber)!!
         val excelCell = excelRow.getCell(colNumber)
         ctx.writerContext.cellHighlighter.highlightErrorCell(excelCell, ctx.writerContext, ctx.forecastSheet, ctx.forecastSheet.getColumnDef(0), excelRow)
         if (comment != null)

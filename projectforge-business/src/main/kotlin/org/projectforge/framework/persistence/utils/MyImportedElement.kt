@@ -21,45 +21,26 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.utils;
+package org.projectforge.framework.persistence.utils
 
-import org.projectforge.common.i18n.I18nEnum;
+import de.micromata.genome.util.strings.ShortDisplayable
+import de.micromata.merlin.excel.importer.ImportedElement
+import de.micromata.merlin.excel.importer.ImportedSheet
+import org.projectforge.framework.DisplayNameCapable
 
+open class MyImportedElement<T>(importedSheet: ImportedSheet<T>,
+                                row: Int,
+                                clazz: Class<T>,
+                                vararg diffProperties: String)
+    : ImportedElement<T>(importedSheet, row, clazz, *diffProperties) {
 
-/**
- */
-public enum ImportStatus implements I18nEnum
-{
-  NOT_RECONCILED("notReconciled"), RECONCILED("reconciled"), HAS_ERRORS("hasErrors"), IMPORTED("imported"), NOTHING_TODO("nothingToDo");
-
-  private String key;
-
-  @Override
-  public String getI18nKey()
-  {
-    return "common.import.status." + key;
-  }
-
-  /**
-   * The key will be used e. g. for i18n.
-   * @return
-   */
-  public String getKey()
-  {
-    return key;
-  }
-
-  ImportStatus(String key)
-  {
-    this.key = key;
-  }
-  
-  public boolean isIn(ImportStatus... status) {
-    for (ImportStatus st : status) {
-      if (this == st) {
-        return true;
-      }
+    override fun valueAsString(value: Any?): String? {
+        if (value == null)
+            return null
+        return when (value) {
+            is ShortDisplayable -> value.toShortString()
+            is DisplayNameCapable -> value.displayName
+            else -> value.toString()
+        }
     }
-    return false;
-  }
 }

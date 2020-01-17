@@ -46,5 +46,5 @@
     <logger name="org.apache.wicket.Localizer" level="ERROR" />
     <!--logger name="org.projectforge.framework.persistence.api.impl" level="DEBUG" /-->
     <!--logger name="org.hibernate.cache" level="DEBUG" /-->
-
+    <!--logger name="de.micromata.merlin.excel" level="DEBUG" /-->
 </configuration>

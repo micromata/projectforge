@@ -29,14 +29,14 @@
     <system>Jenkins</system>
     <url>https://www.projectforge.org</url>
   </ciManagement>
-  <!-- Only needed e. g. for new mgc releases, they're might be available on mvnrepository one day later: -->
-  <!-- repositories>
+  <!-- Only needed e. g. for new mgc and merlin releases, they're might be available on mvnrepository one day later: -->
+  <repositories>
     <repository>
       <id>oss-sonatype</id>
       <name>oss-sonatype</name>
       <url>https://oss.sonatype.org/content/repositories/public/</url>
     </repository>
-  </repositories-->
+  </repositories>
   <scm>
     <url>https://github.com/micromata/projectforge</url>
     <connection>scm:git:git://github.com/micromata/projectforge.git</connection>
@@ -265,7 +265,7 @@
     <poi.version>4.1.1</poi.version>
     <spring.version>5.2.1.RELEASE</spring.version> <!-- Should match spring boot's parent pom -->
     <wicket.version>7.15.0</wicket.version>
-    <micromata.merlin-core.version>1.1.2</micromata.merlin-core.version>
+    <micromata.merlin-core.version>1.1.3</micromata.merlin-core.version>
 
     <javax.jsp-api.version>2.3.3</javax.jsp-api.version>
     <javax.servlet-api.version>3.1.0</javax.servlet-api.version>

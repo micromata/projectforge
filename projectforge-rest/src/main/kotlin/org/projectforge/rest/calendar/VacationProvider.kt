@@ -24,42 +24,55 @@
 package org.projectforge.rest.calendar
 
 import org.projectforge.business.vacation.VacationCache
-import org.projectforge.framework.calendar.Holidays
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
 /**
  * Provides the vacation days of the employees. You may filter the vacation by ProjectForge groups.
  */
-object VacationProvider {
-    private val log = org.slf4j.LoggerFactory.getLogger(VacationProvider::class.java)
-    private val holidays = Holidays.instance
+@Component
+open class VacationProvider {
+    @Autowired
+    private lateinit var vacationCache: VacationCache
 
-    fun addEvents(vacationCache: VacationCache,
-                  start: PFDateTime,
-                  end: PFDateTime,
-                  events: MutableList<BigCalendarEvent>,
-                  /**
-                   * Vacation days will only be displayed for employees (users) who are member of at least one of the following groups:
-                   */
-                  groupIds: Set<Int>?,
-                  userIds: Set<Int>?) {
+    open fun addEvents(start: PFDateTime,
+                       end: PFDateTime,
+                       events: MutableList<BigCalendarEvent>,
+                       /**
+                        * Vacation days will only be displayed for employees (users) who are member of at least one of the following groups:
+                        */
+                       groupIds: Set<Int>?,
+                       userIds: Set<Int>?,
+                       bgColor: String? = null,
+                       fgColor: String? = null) {
         if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
             return // Nothing to do
         }
-        val vacations = vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
-        vacations.forEach {
-            val bgColor= "#ffa500"
-            val fgColor= "#ffffff"
+        val background = bgColor ?: "#ffa500"
+        val foreground = fgColor ?: "#ffffff"
 
-            events.add(BigCalendarEvent(
-                    title = it.employee?.user?.getFullname(),
-                    start = it.startDate!!,
-                    end = it.endDate!!,
-                    allDay = true,
-                    category = "vacation",
-                    bgColor = bgColor,
-                    fgColor = fgColor,
-                    dbId = it.id))
+        val vacations = vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
+        vacations.forEach { vacation ->
+            val title = "${translate("vacation")}: ${vacation.employee?.user?.getFullname()}"
+            if (!events.any { it.title == title && BigCalendarEvent.samePeriod(it, vacation.startDate, vacation.endDate) }) {
+                // Event doesn't yet exist:
+                events.add(BigCalendarEvent(
+                        title = title,
+                        start = vacation.startDate!!,
+                        end = vacation.endDate!!,
+                        allDay = true,
+                        category = "vacation",
+                        bgColor = background,
+                        fgColor = foreground,
+                        dbId = vacation.id,
+                        readOnly = true))
+            }
         }
+    }
+
+    companion object {
+        private val log = org.slf4j.LoggerFactory.getLogger(VacationProvider::class.java)
     }
 }

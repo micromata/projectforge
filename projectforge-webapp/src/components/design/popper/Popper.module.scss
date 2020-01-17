@@ -19,7 +19,6 @@
 
     .additional {
       opacity: 1;
-      transition: opacity $transitionTime;
     }
   }
 
@@ -44,9 +43,6 @@
     box-shadow: 0 15px 46px -10px rgba(26, 26, 29, 0.3);
     z-index: 99;
     top: 10px;
-
-    // Set height to 0 after the transition is done.
-    transition: opacity $transitionTime, max-height .01s linear $transitionTime;
 
     position: absolute;
 

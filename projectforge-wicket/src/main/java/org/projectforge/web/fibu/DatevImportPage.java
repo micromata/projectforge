@@ -23,6 +23,8 @@
 
 package org.projectforge.web.fibu;
 
+import de.micromata.merlin.excel.importer.ImportedElement;
+import de.micromata.merlin.excel.importer.ImportedSheet;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -33,8 +35,6 @@ import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BusinessAssessment;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
-import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.web.core.importstorage.AbstractImportPage;
 
 import java.io.InputStream;
@@ -65,9 +65,8 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm>
     if (fileUpload != null) {
       doImportWithExcelExceptionHandling(() -> {
         final InputStream is = fileUpload.getInputStream();
-        actionLog.reset();
         final String clientFileName = fileUpload.getClientFileName();
-        setStorage(datevImportDao.importKontenplan(is, clientFileName, actionLog));
+        setStorage(datevImportDao.importKontenplan(is, clientFileName));
         return null;
       });
     }
@@ -80,9 +79,8 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm>
     if (fileUpload != null) {
       doImportWithExcelExceptionHandling(() -> {
         final InputStream is = fileUpload.getInputStream();
-        actionLog.reset();
         final String clientFileName = fileUpload.getClientFileName();
-        setStorage(datevImportDao.importBuchungsdaten(is, clientFileName, actionLog));
+        setStorage(datevImportDao.importBuchungsdaten(is, clientFileName));
         return null;
       });
     }
