@@ -102,7 +102,6 @@ class NavigationAction extends React.Component {
                     </React.Fragment>
                 );
             case 'DOWNLOAD':
-                console.log(tooltip, id, content)
                 return (
                     <React.Fragment>
                         <NavLink id={id} href={getServiceURL(url)} target="_blank" rel="noopener noreferrer">
