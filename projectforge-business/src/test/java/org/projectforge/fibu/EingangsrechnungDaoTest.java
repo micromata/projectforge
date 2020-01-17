@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
 import java.sql.Date;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -46,9 +47,9 @@ public class EingangsrechnungDaoTest extends AbstractTestBase {
   public void checkAccess() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     EingangsrechnungDO eingangsrechnung = new EingangsrechnungDO();
-    eingangsrechnung.setDatum(new Date(System.currentTimeMillis()));
+    eingangsrechnung.setDatum(LocalDate.now());
     eingangsrechnung.addPosition(new EingangsrechnungsPositionDO());
-    eingangsrechnung.setFaelligkeit(new Date(System.currentTimeMillis()));
+    eingangsrechnung.setFaelligkeit(LocalDate.now());
     Serializable id = eingangsrechnungDao.save(eingangsrechnung);
     eingangsrechnung = eingangsrechnungDao.getById(id);
 
@@ -106,7 +107,7 @@ public class EingangsrechnungDaoTest extends AbstractTestBase {
   private void checkNoWriteAccess(Serializable id, EingangsrechnungDO eingangsrechnung, String who) {
     try {
       EingangsrechnungDO re = new EingangsrechnungDO();
-      re.setDatum(new Date(System.currentTimeMillis()));
+      re.setDatum(LocalDate.now());
       eingangsrechnungDao.save(re);
       fail("AccessException expected: " + who + " users should not have save access to invoices.");
     } catch (AccessException ex) {

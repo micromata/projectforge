@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -242,7 +243,7 @@ public class BuchungssatzExcelImporter {
     satz.setBeleg(row.beleg);
     satz.setBetrag(row.betrag);
     satz.setSH(row.sh);
-    satz.setDatum(row.datum);
+    satz.setDatum(row.datum.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
     satz.setSatznr(row.satzNr);
     satz.setText(StringUtils.replace(row.text, "^", ""));
     satz.setMenge(row.menge);

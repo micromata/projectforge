@@ -198,7 +198,7 @@ public class TimesheetTestFork extends AbstractTestBase {
     task = initTestDB.addTask("tpt.1.1", "tpt.1");
     task = initTestDB.addTask("tpt.2", "tpt");
     date = date.withDate(2008, Month.OCTOBER, 31, 0, 0, 0);
-    task.setProtectTimesheetsUntil(date.getUtilDate());
+    task.setProtectTimesheetsUntil(date.getLocalDate());
     taskDao.internalUpdate(task); // Without check access.
     task = initTestDB.addTask("tpt.2.1", "tpt.2");
     TimesheetDO sheet = new TimesheetDO();
@@ -232,7 +232,7 @@ public class TimesheetTestFork extends AbstractTestBase {
     }
     task = getTask("tpt.2");
     date.withDate(2008, Month.NOVEMBER, 30, 0, 0, 0); // Change protection date, so time sheet is now protected.
-    task.setProtectTimesheetsUntil(date.getUtilDate());
+    task.setProtectTimesheetsUntil(date.getLocalDate());
     taskDao.internalUpdate(task); // Without check access.
     sheet = timesheetDao.getById(id);
     sheet.setDescription("Hurzel"); // Should work, because start and stop time is not modified.

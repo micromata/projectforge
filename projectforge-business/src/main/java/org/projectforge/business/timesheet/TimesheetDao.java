@@ -59,6 +59,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.*;
 
 /**
@@ -639,7 +640,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     final List<TaskNode> list = taskNode.getPathToRoot();
     list.add(0, taskTree.getRootTaskNode());
     for (final TaskNode node : list) {
-      final Date date = node.getTask().getProtectTimesheetsUntil();
+      final LocalDate date = node.getTask().getProtectTimesheetsUntil();
       if (date == null) {
         continue;
       }

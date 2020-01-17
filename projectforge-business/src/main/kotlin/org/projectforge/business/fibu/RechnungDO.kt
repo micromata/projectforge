@@ -32,7 +32,7 @@ import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import java.math.BigDecimal
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -120,13 +120,13 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_begin")
-    open var periodOfPerformanceBegin: Date? = null
+    open var periodOfPerformanceBegin: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_end")
-    open var periodOfPerformanceEnd: Date? = null
+    open var periodOfPerformanceEnd: LocalDate? = null
 
     /**
      * (this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null)

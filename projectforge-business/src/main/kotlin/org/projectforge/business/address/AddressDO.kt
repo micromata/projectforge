@@ -314,12 +314,10 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     val mailingAddressText: String?
         @Transient
-        get() = if (hasPostalAddress() == true) {
-            postalAddressText
-        } else if (hasDefaultAddress() == true) {
-            addressText
-        } else {
-            privateAddressText
+        get() = when {
+            hasPostalAddress() -> postalAddressText
+            hasDefaultAddress() -> addressText
+            else -> privateAddressText
         }
 
     /**
@@ -329,12 +327,10 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     val mailingZipCode: String?
         @Transient
-        get() = if (hasPostalAddress() == true) {
-            postalZipCode
-        } else if (hasDefaultAddress() == true) {
-            zipCode
-        } else {
-            privateZipCode
+        get() = when {
+            hasPostalAddress() -> postalZipCode
+            hasDefaultAddress() -> zipCode
+            else -> privateZipCode
         }
 
     /**
@@ -344,12 +340,10 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     val mailingCity: String?
         @Transient
-        get() = if (hasPostalAddress() == true) {
-            postalCity
-        } else if (hasDefaultAddress() == true) {
-            city
-        } else {
-            privateCity
+        get() = when {
+            hasPostalAddress() -> postalCity
+            hasDefaultAddress() -> city
+            else -> privateCity
         }
 
     /**
@@ -359,12 +353,10 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     val mailingCountry: String?
         @Transient
-        get() = if (hasPostalAddress() == true) {
-            postalCountry
-        } else if (hasDefaultAddress() == true) {
-            country
-        } else {
-            privateCountry
+        get() = when {
+            hasPostalAddress() -> postalCountry
+            hasDefaultAddress() -> country
+            else -> privateCountry
         }
 
     /**
@@ -374,12 +366,10 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     val mailingState: String?
         @Transient
-        get() = if (hasPostalAddress()) {
-            postalState
-        } else if (hasDefaultAddress()) {
-            state
-        } else {
-            privateState
+        get() = when {
+            hasPostalAddress() -> postalState
+            hasDefaultAddress() -> state
+            else -> privateState
         }
 
     /**
@@ -568,7 +558,7 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
                 }
                 buf.append(lv.label).append("=").append(lv.value)
             }
-            return if (first == true) {
+            return if (first) {
                 null // No entry was written.
             } else buf.toString()
         }

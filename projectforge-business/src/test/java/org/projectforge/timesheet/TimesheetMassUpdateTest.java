@@ -282,7 +282,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase {
     projektDao.setTask(projekt2, t2.getId());
     projektDao.update(projekt2);
     final PFDateTime dateTime = PFDateTime.withDate(2009, Month.DECEMBER, 31);
-    t2.setProtectTimesheetsUntil(dateTime.getUtilDate());
+    t2.setProtectTimesheetsUntil(dateTime.getLocalDate());
     taskDao.update(t2);
     initTestDB.addTask(prefix + "2.1", prefix + "2");
     initTestDB.addTask(prefix + "2.2", prefix + "2");

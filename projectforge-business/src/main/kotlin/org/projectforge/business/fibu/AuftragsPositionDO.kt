@@ -35,7 +35,7 @@ import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -125,11 +125,11 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
 
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_begin")
-    open var periodOfPerformanceBegin: Date? = null
+    open var periodOfPerformanceBegin: LocalDate? = null
 
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_end")
-    open var periodOfPerformanceEnd: Date? = null
+    open var periodOfPerformanceEnd: LocalDate? = null
 
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "mode_of_payment_type", length = 13)

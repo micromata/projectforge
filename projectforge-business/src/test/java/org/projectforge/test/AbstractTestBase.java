@@ -68,6 +68,7 @@ import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 import java.io.File;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.Month;
 import java.util.Date;
 import java.util.Locale;
@@ -411,8 +412,7 @@ public abstract class AbstractTestBase {
   }
 
   protected void assertUTCDate(final Date date, final int year, final Month month, final int day, final int hour,
-                               final int minute,
-                               final int second) {
+                               final int minute, final int second) {
     PFDateTime dateTime = PFDateTime.from(date, false, DateHelper.UTC);
     assertEquals(year, dateTime.getYear());
     assertEquals(month, dateTime.getMonth());
@@ -420,5 +420,11 @@ public abstract class AbstractTestBase {
     assertEquals(hour, dateTime.getHour());
     assertEquals(minute, dateTime.getMinute());
     assertEquals(second, dateTime.getSecond());
+  }
+
+  protected void assertLocalDate(final LocalDate date, final int year, final Month month, final int day) {
+    assertEquals(year, date.getYear());
+    assertEquals(month, date.getMonth());
+    assertEquals(day, date.getDayOfMonth());
   }
 }

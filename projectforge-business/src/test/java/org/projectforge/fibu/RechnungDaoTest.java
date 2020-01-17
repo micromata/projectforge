@@ -33,9 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class RechnungDaoTest extends AbstractTestBase {
   @Autowired
@@ -47,13 +47,14 @@ public class RechnungDaoTest extends AbstractTestBase {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     final RechnungDO rechnung1 = new RechnungDO();
     int number = rechnungDao.getNextNumber(rechnung1);
-    rechnung1.setDatum(new Date(System.currentTimeMillis()));
-    rechnung1.setFaelligkeit(new Date(System.currentTimeMillis()));
+    rechnung1.setDatum(LocalDate.now());
+    rechnung1.setFaelligkeit(LocalDate.now());
     rechnung1.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
     try {
       rechnungDao.save(rechnung1);
       fail("Exception with wrong number should be thrown (no number given).");
     } catch (UserException ex) {
+
     }
     rechnung1.setNummer(number);
     rechnung1.addPosition(createPosition(1, "50.00", "0", "test"));
@@ -62,21 +63,23 @@ public class RechnungDaoTest extends AbstractTestBase {
     assertEquals(dbNumber++, rechnung1FromDb.getNummer().intValue());
 
     final RechnungDO rechnung2 = new RechnungDO();
-    rechnung2.setDatum(new Date(System.currentTimeMillis()));
+    rechnung2.setDatum(LocalDate.now());
     rechnung2.setNummer(number);
     try {
       rechnungDao.save(rechnung2);
       fail("Exception with wrong number should be thrown (does already exists).");
     } catch (UserException ex) {
+
     }
     number = rechnungDao.getNextNumber(rechnung2);
     rechnung2.setNummer(number + 1);
-    rechnung2.setFaelligkeit(new Date(System.currentTimeMillis()));
+    rechnung2.setFaelligkeit(LocalDate.now());
     rechnung2.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
     try {
       rechnungDao.save(rechnung2);
       fail("Exception with wrong number should be thrown (not continuously).");
     } catch (UserException ex) {
+      ex.printStackTrace();
     }
     rechnung2.setNummer(number);
     rechnung2.addPosition(createPosition(1, "50.00", "0", "test"));
@@ -85,14 +88,14 @@ public class RechnungDaoTest extends AbstractTestBase {
     assertEquals(dbNumber++, rechnung2FromDb.getNummer().intValue());
 
     final RechnungDO rechnung3 = new RechnungDO();
-    rechnung3.setDatum(new Date(System.currentTimeMillis()));
+    rechnung3.setDatum(LocalDate.now());
     rechnung3.setTyp(RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN);
     rechnung3.addPosition(createPosition(1, "50.00", "0", "test"));
-    rechnung3.setFaelligkeit(new Date(System.currentTimeMillis()));
+    rechnung3.setFaelligkeit(LocalDate.now());
     rechnung3.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
     id = rechnungDao.save(rechnung3);
     final RechnungDO rechnung3FromDb = rechnungDao.getById(id);
-    assertEquals(null, rechnung3FromDb.getNummer());
+    assertNull(rechnung3FromDb.getNummer());
     dbNumber++; // Needed for getNextNumber test;
   }
 
@@ -102,8 +105,8 @@ public class RechnungDaoTest extends AbstractTestBase {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     RechnungDO rechnung = new RechnungDO();
     int number = rechnungDao.getNextNumber(rechnung);
-    rechnung.setDatum(new Date(System.currentTimeMillis()));
-    rechnung.setFaelligkeit(new Date(System.currentTimeMillis()));
+    rechnung.setDatum(LocalDate.now());
+    rechnung.setFaelligkeit(LocalDate.now());
     rechnung.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
     rechnung.setNummer(number);
 
@@ -147,16 +150,14 @@ public class RechnungDaoTest extends AbstractTestBase {
   }
 
   private void checkNoHistoryAccess(Serializable id, RechnungDO rechnung, String who) {
-    assertEquals(rechnungDao.hasLoggedInUserHistoryAccess(false), false,
-            who + " users should not have select access to history of invoices.");
+    assertFalse(rechnungDao.hasLoggedInUserHistoryAccess(false), who + " users should not have select access to history of invoices.");
     try {
       rechnungDao.hasLoggedInUserHistoryAccess(true);
       fail("AccessException expected: " + who + " users should not have select access to history of invoices.");
     } catch (AccessException ex) {
       // OK
     }
-    assertEquals(rechnungDao.hasLoggedInUserHistoryAccess(rechnung, false), false,
-            who + " users should not have select access to history of invoices.");
+    assertFalse(rechnungDao.hasLoggedInUserHistoryAccess(rechnung, false), who + " users should not have select access to history of invoices.");
     try {
       rechnungDao.hasLoggedInUserHistoryAccess(rechnung, true);
       fail("AccessException expected: " + who + " users should not have select access to history of invoices.");
@@ -169,7 +170,7 @@ public class RechnungDaoTest extends AbstractTestBase {
     try {
       RechnungDO re = new RechnungDO();
       int number = rechnungDao.getNextNumber(re);
-      re.setDatum(new Date(System.currentTimeMillis()));
+      re.setDatum(LocalDate.now());
       re.setNummer(number);
       rechnungDao.save(re);
       fail("AccessException expected: " + who + " users should not have save access to invoices.");

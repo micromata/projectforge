@@ -34,7 +34,7 @@ import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal
-import java.sql.Date
+import java.time.LocalDate
 import java.util.*
 
 object AuftragAndRechnungDaoHelper {
@@ -68,8 +68,8 @@ object AuftragAndRechnungDaoHelper {
         val dateName = "datum"
         val from = myFilter.getFromDate()
         val to = myFilter.getToDate()
-        val fromDate = if (from is Date) from else PFDay.from(from)?.sqlDate
-        val toDate = if (to is Date) to else PFDay.from(to)?.sqlDate
+        val fromDate = if (from is LocalDate) from else PFDay.from(from)?.localDate
+        val toDate = if (to is LocalDate) to else PFDay.from(to)?.localDate
         val queryFilter = QueryFilter(myFilter)
         if (fromDate != null && toDate != null) {
             queryFilter.add(between(dateName, fromDate, toDate))
@@ -92,11 +92,11 @@ object AuftragAndRechnungDaoHelper {
     private fun checkAndCalculateFaelligkeit(rechnung: AbstractRechnungDO) {
         val zahlungsZiel = rechnung.zahlungsZielInTagen
         if (rechnung.faelligkeit == null && zahlungsZiel != null) {
-            val rechnungsDatum: java.util.Date? = rechnung.datum
+            val rechnungsDatum: LocalDate? = rechnung.datum
             if (rechnungsDatum != null) {
                 var day = PFDateTime.from(rechnungsDatum)
                 day = day!!.plusDays(zahlungsZiel.toLong())
-                rechnung.faelligkeit = day.sqlDate
+                rechnung.faelligkeit = day.localDate
             }
         }
     }
@@ -104,7 +104,7 @@ object AuftragAndRechnungDaoHelper {
     private fun checkAndCalculateDiscountMaturity(rechnung: AbstractRechnungDO) {
         val discountZahlungsZiel = rechnung.discountZahlungsZielInTagen
         if (rechnung.discountMaturity == null && discountZahlungsZiel != null) {
-            val rechnungsDatum: java.util.Date? = rechnung.datum
+            val rechnungsDatum: LocalDate? = rechnung.datum
             if (rechnungsDatum != null) {
                 var day = PFDateTime.from(rechnungsDatum)
                 day = day!!.plusDays(discountZahlungsZiel.toLong())
@@ -120,7 +120,7 @@ object AuftragAndRechnungDaoHelper {
     }
 
     private fun validateBezahlDatumAndZahlBetrag(rechnung: AbstractRechnungDO) {
-        val bezahlDatum: java.util.Date? = rechnung.bezahlDatum
+        val bezahlDatum: LocalDate? = rechnung.bezahlDatum
         val zahlBetrag = rechnung.zahlBetrag
         val zahlBetragExists = zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0
         if (bezahlDatum != null && !zahlBetragExists) {

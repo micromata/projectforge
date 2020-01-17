@@ -52,6 +52,8 @@ import javax.persistence.Tuple;
 import javax.persistence.criteria.JoinType;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -492,14 +494,16 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
     final List<Short> positionsWithDatesNotWithinPop = new ArrayList<>();
     for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
-      final Date periodOfPerformanceBegin = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceBegin() : auftrag.getPeriodOfPerformanceBegin();
-      final Date periodOfPerformanceEnd = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceEnd() : auftrag.getPeriodOfPerformanceEnd();
+      final LocalDate periodOfPerformanceBegin = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceBegin() : auftrag.getPeriodOfPerformanceBegin();
+      final LocalDate periodOfPerformanceEnd = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceEnd() : auftrag.getPeriodOfPerformanceEnd();
 
       final boolean hasDateNotInRange = paymentSchedules.stream()
               .filter(payment -> payment.getPositionNumber() == pos.getNumber())
               .map(PaymentScheduleDO::getScheduleDate)
               .filter(Objects::nonNull)
-              .anyMatch(date -> date.before(periodOfPerformanceBegin) || date.after(periodOfPerformanceEnd));
+              .anyMatch(date -> date.before(Date.from(periodOfPerformanceBegin.atStartOfDay()
+                  .atZone(ZoneId.systemDefault()).toInstant())) || date.after(Date.from(periodOfPerformanceEnd.atStartOfDay()
+                  .atZone(ZoneId.systemDefault()).toInstant())));
 
       if (hasDateNotInRange) {
         positionsWithDatesNotWithinPop.add(pos.getNumber());
