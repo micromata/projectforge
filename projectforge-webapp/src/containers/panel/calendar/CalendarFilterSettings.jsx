@@ -215,7 +215,7 @@ class CalendarFilterSettings extends Component {
                                         />
                                     ) : (
                                         <CheckBox
-                                            label={translations['calendar.option.timesheeets']}
+                                            label={translations['calendar.option.timesheets']}
                                             id="showTimesheets"
                                             onChange={this.handleCheckBoxChange}
                                             checked={timesheetUser && timesheetUser.id > 0}
