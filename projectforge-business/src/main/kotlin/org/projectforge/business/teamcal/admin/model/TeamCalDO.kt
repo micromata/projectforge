@@ -140,6 +140,7 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
      */
     // Slash after domain found
     // Shorten http://www.projectforge.org/cal/... -> http://www.projectforge.org
+    @get:PropertyInfo(i18nKey = "plugins.teamcal.externalsubscription.label")
     val externalSubscriptionUrlAnonymized: String
         @Transient
         get() {
