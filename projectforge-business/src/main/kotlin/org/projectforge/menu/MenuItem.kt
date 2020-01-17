@@ -55,6 +55,10 @@ class MenuItem(var id: String? = null,
         }
     }
 
+    init {
+        id = id?.replace('.', '_') // period character not allowed for dom model.
+    }
+
     var subMenu: MutableList<MenuItem>? = null
 
     fun isLeaf(): Boolean {
