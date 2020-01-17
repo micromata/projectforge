@@ -13,11 +13,11 @@ function CalendarEditExternalSubscription({ values }) {
         === data.externalSubscriptionUpdateInterval) || values.intervals[0];
 
     const handleInputChange = (event) => {
-        setData({ reminderDuration: event.target.value });
+        setData({ externalSubscriptionUrl: event.target.value });
     };
 
     const onIntervalChange = (option) => {
-        setData({ externalSubscriptionUpdateInterval: option.value });
+        setData({ externalSubscriptionUpdateInterval: option.id });
     };
 
     const handleCheckBoxChange = (event) => {
