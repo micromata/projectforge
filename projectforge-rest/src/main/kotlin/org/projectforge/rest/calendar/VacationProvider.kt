@@ -38,30 +38,37 @@ open class VacationProvider {
     private lateinit var vacationCache: VacationCache
 
     open fun addEvents(start: PFDateTime,
-                  end: PFDateTime,
-                  events: MutableList<BigCalendarEvent>,
-                  /**
-                   * Vacation days will only be displayed for employees (users) who are member of at least one of the following groups:
-                   */
-                  groupIds: Set<Int>?,
-                  userIds: Set<Int>?) {
+                       end: PFDateTime,
+                       events: MutableList<BigCalendarEvent>,
+                       /**
+                        * Vacation days will only be displayed for employees (users) who are member of at least one of the following groups:
+                        */
+                       groupIds: Set<Int>?,
+                       userIds: Set<Int>?,
+                       bgColor: String? = null,
+                       fgColor: String? = null) {
         if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
             return // Nothing to do
         }
-        val vacations = vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
-        vacations.forEach {
-            val bgColor= "#ffa500"
-            val fgColor= "#ffffff"
+        val background = bgColor ?: "#ffa500"
+        val foreground = fgColor ?: "#ffffff"
 
-            events.add(BigCalendarEvent(
-                    title = "${translate("vacation")}: ${it.employee?.user?.getFullname()}",
-                    start = it.startDate!!,
-                    end = it.endDate!!,
-                    allDay = true,
-                    category = "vacation",
-                    bgColor = bgColor,
-                    fgColor = fgColor,
-                    dbId = it.id))
+        val vacations = vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
+        vacations.forEach { vacation ->
+            val title = "${translate("vacation")}: ${vacation.employee?.user?.getFullname()}"
+            if (!events.any { it.title == title && BigCalendarEvent.samePeriod(it, vacation.startDate, vacation.endDate) }) {
+                // Event doesn't yet exist:
+                events.add(BigCalendarEvent(
+                        title = title,
+                        start = vacation.startDate!!,
+                        end = vacation.endDate!!,
+                        allDay = true,
+                        category = "vacation",
+                        bgColor = background,
+                        fgColor = foreground,
+                        dbId = vacation.id,
+                        readOnly = true))
+            }
         }
     }
 

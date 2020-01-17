@@ -108,7 +108,8 @@ open class TeamCalEventsProvider() {
             }
             val userIds = User.toIntArray(cal.includeLeaveDaysForUsers)?.toSet()
             val groupIds = Group.toIntArray(cal.includeLeaveDaysForGroups)?.toSet()
-            vacationProvider.addEvents(start, end, events, groupIds, userIds)
+            val style = styleMap.get(calId)
+            vacationProvider.addEvents(start, end, events, groupIds, userIds, style?.bgColor, style?.fgColor)
         }
     }
 }
