@@ -179,8 +179,10 @@ class AddressRest()
         personalAddress.isFavoriteFax = dto.isFavoriteFax
         personalAddressDao.setOwner(personalAddress, getUserId()) // Set current logged in user as owner.
         personalAddressDao.saveOrUpdate(personalAddress)
-        //return null
     }
+
+    override val classicsLinkListUrl: String?
+        get() = "wa/addressList"
 
     /**
      * LAYOUT List page
