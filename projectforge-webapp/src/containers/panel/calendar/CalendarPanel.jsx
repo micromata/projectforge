@@ -332,6 +332,7 @@ class CalendarPanel extends React.Component {
                         minHeight: 500,
                         height: `calc(100vh - ${topHeight})`,
                     }}
+                    popup
                     localizer={localizer}
                     events={events}
                     step={gridSize}
