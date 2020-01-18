@@ -54,12 +54,12 @@ class BarcodeServicesRest {
 
     @GetMapping(value = ["qrcode.png"], produces = [MediaType.IMAGE_PNG_VALUE])
     @ResponseBody
-    fun getQrCode(@RequestParam("width") width: Int = 250,
-                  @RequestParam("height") height: Int = 250,
-                  @RequestParam("text") url: String)
+    fun getQrCode(@RequestParam("width") width: Int?,
+                  @RequestParam("height") height: Int?,
+                  @RequestParam("text") text: String?)
             : ByteArray {
         val qrCodeWriter = QRCodeWriter()
-        val bitMatrix = qrCodeWriter.encode(url, BarcodeFormat.QR_CODE, width, height)
+        val bitMatrix = qrCodeWriter.encode(text ?: "", BarcodeFormat.QR_CODE, width ?: 250, height ?: 250)
         val pngOutputStream = ByteArrayOutputStream()
         MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream)
         return pngOutputStream.toByteArray()

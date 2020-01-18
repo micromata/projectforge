@@ -32,7 +32,7 @@ import org.projectforge.business.teamcal.service.CalendarFeedService
  */
 class CalendarSubscriptionInfo(val headline: String?,
                                val accessStatus: CalendarAccessStatus? = null,
-                               val barcodeUrl: String? = BarcodeServicesRest.POST_URL,
+                               val barcodeUrl: String? = BarcodeServicesRest.GET_URL,
                                val securityAdviseHeadline: String? = null,
                                val securityAdvise: String? = null) {
     /**

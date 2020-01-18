@@ -9,7 +9,9 @@ import ReactSelect from '../../../../../design/ReactSelect';
 function CalendarEditExternalSubscription({ values }) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
-    const defaultInterval = values.intervals.find(element => element.id
+    const { intervals } = values;
+
+    const defaultInterval = intervals.find(element => element.id
         === data.externalSubscriptionUpdateInterval) || values.intervals[0];
 
     const handleInputChange = (event) => {
