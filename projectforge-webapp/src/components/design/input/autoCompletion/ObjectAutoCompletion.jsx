@@ -21,6 +21,16 @@ function ObjectAutoCompletion(
     }, [value.displayName]);
 
     const handleChange = ({ target }) => setSearch(target.value);
+    const handleBlur = () => {
+        if (search === '') {
+            onSelect(null);
+            return;
+        }
+
+        if (search !== value.displayName) {
+            setSearch(value.displayName);
+        }
+    };
 
     return (
         <AutoCompletion
@@ -30,6 +40,7 @@ function ObjectAutoCompletion(
                     id={inputId}
                     {...otherInputsProps}
                     {...inputProps}
+                    onBlur={handleBlur}
                     onChange={handleChange}
                 />
             )}
