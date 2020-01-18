@@ -28,11 +28,13 @@ import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.admin.right.TeamCalRight
 import org.projectforge.business.teamcal.externalsubscription.SubscriptionUpdateInterval
+import org.projectforge.business.teamcal.service.CalendarFeedService
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.rest.calendar.CalendarSubscriptionInfo
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.Group
@@ -46,6 +48,9 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("${Rest.URL}/teamCal")
 class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::class.java, "plugins.teamcal.title") {
+
+    @Autowired
+    private lateinit var calendarFeedService: CalendarFeedService
 
     @Autowired
     private lateinit var groupService: GroupService
@@ -120,6 +125,11 @@ class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::
      */
     override fun createEditLayout(dto: TeamCal, userAccess: UILayout.UserAccess): UILayout {
         val intervals = SubscriptionUpdateInterval.values().map { DisplayObject(it.interval, translate(it.i18nKey)) }
+        val subscriptionInfo = CalendarSubscriptionInfo(translate("plugins.teamcal.subscription"),
+                dto.accessStatus,
+                securityAdviseHeadline = translate("securityAdvice"),
+                securityAdvise = translate("calendar.icsExport.securityAdvice"))
+        subscriptionInfo.initUrls(calendarFeedService, dto.id)
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIFieldset(mdLength = 12, lgLength = 12)
                         .add(UIRow()
@@ -147,11 +157,18 @@ class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::
                                         .add(UISelect.creatUserSelect(lc, "includeLeaveDaysForUsers", true)))
                                 .add(UICol()
                                         .add(UISelect.createGroupSelect(lc, "includeLeaveDaysForGroups", true)))))
+                .add(UIFieldset(mdLength = 12, lgLength = 12)
+                        .add(UIRow()
+                                .add(UICol()
+                                        .add(UICustomized("calendar.subscriptionInfo",
+                                                values = mutableMapOf("subscriptionInfo" to subscriptionInfo))))))
         layout.addTranslations("plugins.teamcal.externalsubscription.label",
                 "plugins.teamcal.externalsubscription.label",
                 "plugins.teamcal.externalsubscription.url.tooltip",
                 "plugins.teamcal.externalsubscription.url",
-                "plugins.teamcal.externalsubscription.updateInterval")
+                "plugins.teamcal.externalsubscription.updateInterval",
+                "plugins.teamcal.export.reminder.checkbox",
+                "plugins.teamcal.export.reminder.checkbox.tooltip")
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
