@@ -131,6 +131,8 @@ function EditPage({ match, location }) {
                                 setDataState(json.variables.data);
                                 setUI(json.variables.ui);
                                 break;
+                            case 'NOTHING':
+                                break;
                             default:
                                 throw Error(`Target Type ${json.targetType} not implemented`);
                         }
