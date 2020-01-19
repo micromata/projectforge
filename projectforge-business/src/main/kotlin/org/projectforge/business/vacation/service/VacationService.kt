@@ -391,12 +391,20 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
             if (numberOfWorkingDays > BigDecimal.ZERO) {
                 if (useHalfDayBegin) {
                     val workingHours = PFDayUtils.getNumberOfWorkingDays(from, from)
-                    numberOfWorkingDays -= workingHours * HALF_DAY
+                    if (workingHours == BigDecimal.ONE) {
+                        numberOfWorkingDays -= HALF_DAY
+                    } else {
+                        log.warn("User tried to get an half day-off at $from, but this date is not a full working day (${VacationStats.format(numberOfWorkingDays)}. Ignoring half-day switch.")
+                    }
                 }
                 if (useHalfDayEnd && (!useHalfDayBegin || from != until)) {
                     // Don't reduce working days if halfDayBegin and halfDayEnd is given for same date.
                     val workingHours = PFDayUtils.getNumberOfWorkingDays(until, until)
-                    numberOfWorkingDays -= workingHours * HALF_DAY
+                    if (workingHours == BigDecimal.ONE) {
+                        numberOfWorkingDays -= HALF_DAY
+                    } else {
+                        log.warn("User tried to get an half day-off at $until, but this date is not a full working day (${VacationStats.format(numberOfWorkingDays)}. Ignoring half-day switch.")
+                    }
                 }
             }
             return numberOfWorkingDays

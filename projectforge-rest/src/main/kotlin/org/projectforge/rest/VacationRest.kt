@@ -75,7 +75,9 @@ class VacationRest : AbstractDTORest<VacationDO, Vacation, VacationDao>(Vacation
      */
     override fun createEditLayout(dto: Vacation, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
-                .add(lc, "TODO")
+                .add(lc, "employee", "startDate", "halfDayBegin", "endDate", "halfDayEnd", "special", "replacement", "manager", "status", "comment")
+        layout.watchFields.add("startDate")
+        layout.watchFields.add("endDate")
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
