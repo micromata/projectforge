@@ -60,7 +60,7 @@ class NavigationAction extends React.Component {
         if (id === 'CLASSIC') {
             displayTitle = <FontAwesomeIcon icon={faHistory} />;
         }
-        let content = <div id={id}>{displayTitle}</div>;
+        let content = displayTitle;
 
         if (badge && badge.counter && entryKey) {
             content = (
