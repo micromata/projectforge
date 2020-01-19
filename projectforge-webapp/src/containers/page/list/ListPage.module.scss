@@ -17,16 +17,17 @@
   display: flex;
   flex-direction: column;
   @media (min-width: 768px) {
-    flex-direction: row;
+    flex-direction: row-reverse;
   }
 
   .container, .searchContainer {
     margin: 1em 1em .25em 1em;
-    align-self: center;
+    align-self: flex-start;
     position: relative;
 
     @media (min-width: 768px) {
       margin-right: 0;
+      align-self: center;
     }
   }
 
