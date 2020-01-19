@@ -104,6 +104,10 @@ class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::
     override fun validate(validationErrors: MutableList<ValidationError>, dto: TeamCal) {
     }
 
+    override val classicsLinkListUrl: String?
+        get() = "wa/wicket/bookmarkable/org.projectforge.web.teamcal.admin.TeamCalListPage"
+
+
     /**
      * LAYOUT List page
      */
@@ -111,12 +115,29 @@ class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(lc, "title", "externalSubscriptionUrlAnonymized", "description", "owner",
-                                "accessStatusString", "lastUpdate", "externalSubscription"))
+                                "accessStatusString", "lastUpdate"))//, "externalSubscription"))
         layout.getTableColumnById("owner").formatter = Formatter.USER
         layout.getTableColumnById("lastUpdate").formatter = Formatter.TIMESTAMP_MINUTES
         layout.getTableColumnById("accessStatusString").title = "access.title.heading"
         LayoutUtils.addListFilterContainer(layout, "longFormat", "recursive",
                 filterClass = TimesheetFilter::class.java)
+
+        /* TODO
+        val exportMenu = MenuItem("calendar.export", i18nKey = "export")
+        exportMenu.add(MenuItem("calendar.exportTimesheets",
+                i18nKey = "plugins.teamcal.export.timesheets",
+                url = "wa/sendSms"))
+        exportMenu.add(MenuItem("calendar.exportWeekOfYears",
+                i18nKey = "plugins.teamcal.export.weekOfYears",
+                tooltip = "plugins.teamcal.export.weekOfYears.tooltip",
+                type = MenuItemTargetType.REDIRECT,
+                url = "wa/sendSms"))
+        exportMenu.add(MenuItem("calendar.exportHolidays",
+                i18nKey = "plugins.teamcal.export.holidays",
+                tooltip = "plugins.teamcal.export.holidays.tooltip",
+                url = "wa/sendSms"))
+        layout.add(exportMenu, 0)
+        */
         return LayoutUtils.processListPage(layout, this)
     }
 
@@ -144,13 +165,13 @@ class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::
                                         .add(lc, "owner")))
                         .add(UIRow()
                                 .add(UICol()
-                                        .add(UISelect.creatUserSelect(lc, "fullAccessUsers", true,"plugins.teamcal.fullAccess", "access.users"))
+                                        .add(UISelect.creatUserSelect(lc, "fullAccessUsers", true, "plugins.teamcal.fullAccess", "access.users"))
                                         .add(UISelect.creatUserSelect(lc, "readonlyAccessUsers", true, "plugins.teamcal.readonlyAccess", "access.users"))
                                         .add(UISelect.creatUserSelect(lc, "minimalAccessUsers", true, "plugins.teamcal.minimalAccess", "access.users", "plugins.teamcal.minimalAccess.users.hint")))
                                 .add(UICol()
-                                        .add(UISelect.createGroupSelect(lc, "fullAccessGroups", true,"plugins.teamcal.fullAccess", "access.groups"))
-                                        .add(UISelect.createGroupSelect(lc, "readonlyAccessGroups", true,"plugins.teamcal.readonlyAccess", "access.groups"))
-                                        .add(UISelect.createGroupSelect(lc, "minimalAccessGroups", true,"plugins.teamcal.minimalAccess", "access.groups", "plugins.teamcal.minimalAccess.groups.hint")))))
+                                        .add(UISelect.createGroupSelect(lc, "fullAccessGroups", true, "plugins.teamcal.fullAccess", "access.groups"))
+                                        .add(UISelect.createGroupSelect(lc, "readonlyAccessGroups", true, "plugins.teamcal.readonlyAccess", "access.groups"))
+                                        .add(UISelect.createGroupSelect(lc, "minimalAccessGroups", true, "plugins.teamcal.minimalAccess", "access.groups", "plugins.teamcal.minimalAccess.groups.hint")))))
                 .add(UIFieldset(mdLength = 12, lgLength = 12, title = "vacation")
                         .add(UIRow()
                                 .add(UICol()

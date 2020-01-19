@@ -44,7 +44,6 @@ import org.projectforge.web.scripting.ScriptingPage;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
 import org.projectforge.web.statistics.SystemStatisticsPage;
 import org.projectforge.web.task.TaskTreePage;
-import org.projectforge.web.teamcal.admin.TeamCalListPage;
 import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.user.*;
@@ -87,7 +86,6 @@ public class MenuItemRegistry implements Serializable {
    */
   private void initialize(final MenuItemRegistry reg) {
     register(MenuItemDefId.CALENDAR, TeamCalCalendarPage.class);
-    register(MenuItemDefId.TEAMCALENDAR, TeamCalListPage.class);
     register(MenuItemDefId.VACATION, VacationListPage.class);
     // createdMenuEntry.setNewCounterModel(new MenuNewCounterVacation());
 
