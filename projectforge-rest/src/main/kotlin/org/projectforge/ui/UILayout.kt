@@ -75,6 +75,8 @@ class UILayout {
 
     val pageMenu = mutableListOf<MenuItem>()
 
+    val watchFields = mutableListOf<String>()
+
     /**
      * All required translations for the frontend dependent on the logged-in-user's language.
      */
