@@ -40,6 +40,7 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.BaseDTO
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -697,11 +698,11 @@ abstract class AbstractBaseRest<
      * You may define watch fields in layout.
      */
     @PostMapping(RestPaths.WATCH_FIELDS)
-    fun watchFields(request: HttpServletRequest, @Valid @RequestBody dto: DTO): ResponseAction {
-        return onWatchFieldsUpdate(request, dto)
+    fun watchFields(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseAction {
+        return onWatchFieldsUpdate(request, postData.data, postData.watchFieldsTriggered)
     }
 
-    open protected fun onWatchFieldsUpdate(request: HttpServletRequest, dto: DTO): ResponseAction {
+    open protected fun onWatchFieldsUpdate(request: HttpServletRequest, dto: DTO, watchFieldsTriggered: Array<String>?): ResponseAction {
         return ResponseAction(targetType = TargetType.NOTHING)
     }
 
@@ -709,18 +710,18 @@ abstract class AbstractBaseRest<
      * Use this service for adding new items as well as updating existing items (id isn't null).
      */
     @PutMapping(RestPaths.SAVE_OR_UDATE)
-    fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody dto: DTO): ResponseEntity<ResponseAction> {
-        val dbObj = transformForDB(dto)
-        return saveOrUpdate(request, baseDao, dbObj, dto, this, validate(dbObj, dto))
+    fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
+        val dbObj = transformForDB(postData.data)
+        return saveOrUpdate(request, baseDao, dbObj, postData.data, this, validate(dbObj, postData.data))
     }
 
     /**
      * The given object (marked as deleted before) will be undeleted.
      */
     @PutMapping(RestPaths.UNDELETE)
-    fun undelete(request: HttpServletRequest, @Valid @RequestBody dto: DTO): ResponseEntity<ResponseAction> {
-        val dbObj = transformForDB(dto)
-        return undelete(request, baseDao, dbObj, dto, this, validate(dbObj, dto))
+    fun undelete(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
+        val dbObj = transformForDB(postData.data)
+        return undelete(request, baseDao, dbObj, postData.data, this, validate(dbObj, postData.data))
     }
 
     /**
@@ -728,9 +729,9 @@ abstract class AbstractBaseRest<
      * Please note, if you try to delete a historizable data base object, an exception will be thrown.
      */
     @DeleteMapping(RestPaths.MARK_AS_DELETED)
-    fun markAsDeleted(request: HttpServletRequest, @Valid @RequestBody dto: DTO): ResponseEntity<ResponseAction> {
-        val dbObj = transformForDB(dto)
-        return markAsDeleted(request, baseDao, dbObj, dto, this, validate(dbObj, dto))
+    fun markAsDeleted(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
+        val dbObj = transformForDB(postData.data)
+        return markAsDeleted(request, baseDao, dbObj, postData.data, this, validate(dbObj, postData.data))
     }
 
     /**
@@ -738,9 +739,9 @@ abstract class AbstractBaseRest<
      * Please note, if you try to mark a non-historizable data base object, an exception will be thrown.
      */
     @DeleteMapping(RestPaths.DELETE)
-    fun delete(request: HttpServletRequest, @Valid @RequestBody dto: DTO): ResponseEntity<ResponseAction> {
-        val dbObj = transformForDB(dto)
-        return delete(request, baseDao, dbObj, dto, this, validate(dbObj, dto))
+    fun delete(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
+        val dbObj = transformForDB(postData.data)
+        return delete(request, baseDao, dbObj, postData.data, this, validate(dbObj, postData.data))
     }
 
     /**
@@ -749,9 +750,9 @@ abstract class AbstractBaseRest<
      * @return ResponseAction
      */
     @PostMapping(RestPaths.CANCEL)
-    fun cancelEdit(request: HttpServletRequest, @RequestBody dto: DTO): ResponseAction {
-        val dbObj = transformForDB(dto)
-        return cancelEdit(request, dbObj, dto, getRestPath())
+    fun cancelEdit(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseAction {
+        val dbObj = transformForDB(postData.data)
+        return cancelEdit(request, dbObj, postData.data, getRestPath())
     }
 
     /**
