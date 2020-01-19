@@ -29,9 +29,9 @@ import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
-import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
@@ -383,17 +383,19 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
     val isVollstaendigFakturiert: Boolean
         @Transient
         get() {
-            if (positionen == null || auftragsStatus != AuftragsStatus.ABGESCHLOSSEN) {
+            if (auftragsStatus != AuftragsStatus.ABGESCHLOSSEN) {
                 return false
             }
-            for (position in positionen!!) {
-                if (position.isDeleted) {
-                    continue
+            positionen?.let {positionen ->
+                for (position in positionen) {
+                    if (position.isDeleted) {
+                        continue
+                    }
+                    if (position.vollstaendigFakturiert != true && (position.status == null || !position.status!!.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT))) {
+                        return false
+                    }
                 }
-                if (position.vollstaendigFakturiert != true && (position.status == null || !position.status!!.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT))) {
-                    return false
-                }
-            }
+            } ?: return false
             return true
         }
 
