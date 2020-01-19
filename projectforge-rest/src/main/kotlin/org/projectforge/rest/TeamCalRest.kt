@@ -129,17 +129,17 @@ class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::
         exportMenu.add(MenuItem("calendar.exportTimesheets",
                 i18nKey = "plugins.teamcal.export.timesheets",
                 type = MenuItemTargetType.REDIRECT,
-                url = "react/teamCal"))
+                url = "react/dynamic/calendarSubscription?timesheetuser=${ThreadLocalUserContext.getUserId()}"))
         exportMenu.add(MenuItem("calendar.exportWeekOfYears",
                 i18nKey = "plugins.teamcal.export.weekOfYears",
                 tooltip = "plugins.teamcal.export.weekOfYears.tooltip",
                 type = MenuItemTargetType.REDIRECT,
-                url = "react/teamCal"))
+                url = "react/dynamic/calendarSubscription?type=WEEK_OF_YEAR"))
         exportMenu.add(MenuItem("calendar.exportHolidays",
                 i18nKey = "plugins.teamcal.export.holidays",
                 tooltip = "plugins.teamcal.export.holidays.tooltip",
                 type = MenuItemTargetType.REDIRECT,
-                url = "react/teamCal"))
+                url = "react/dynamic/calendarSubscription?type=HOLIDAY"))
         layout.add(exportMenu, 0)
 
         return LayoutUtils.processListPage(layout, this)
