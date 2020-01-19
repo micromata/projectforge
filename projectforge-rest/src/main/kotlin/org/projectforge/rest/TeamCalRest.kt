@@ -34,6 +34,8 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.calendar.CalendarSubscriptionInfo
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
@@ -122,22 +124,24 @@ class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::
         LayoutUtils.addListFilterContainer(layout, "longFormat", "recursive",
                 filterClass = TimesheetFilter::class.java)
 
-        /* TODO
+        // TODO
         val exportMenu = MenuItem("calendar.export", i18nKey = "export")
         exportMenu.add(MenuItem("calendar.exportTimesheets",
                 i18nKey = "plugins.teamcal.export.timesheets",
-                url = "wa/sendSms"))
+                type = MenuItemTargetType.REDIRECT,
+                url = "react/teamCal"))
         exportMenu.add(MenuItem("calendar.exportWeekOfYears",
                 i18nKey = "plugins.teamcal.export.weekOfYears",
                 tooltip = "plugins.teamcal.export.weekOfYears.tooltip",
                 type = MenuItemTargetType.REDIRECT,
-                url = "wa/sendSms"))
+                url = "react/teamCal"))
         exportMenu.add(MenuItem("calendar.exportHolidays",
                 i18nKey = "plugins.teamcal.export.holidays",
                 tooltip = "plugins.teamcal.export.holidays.tooltip",
-                url = "wa/sendSms"))
+                type = MenuItemTargetType.REDIRECT,
+                url = "react/teamCal"))
         layout.add(exportMenu, 0)
-        */
+
         return LayoutUtils.processListPage(layout, this)
     }
 
