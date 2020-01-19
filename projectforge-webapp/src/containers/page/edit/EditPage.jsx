@@ -16,6 +16,7 @@ function EditPage({ match, location }) {
 
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState(undefined);
+    const [watchFieldsTriggered, setWatchFieldsTriggered] = React.useState(false);
 
     const [data, setDataState] = React.useState({});
     const [ui, setUI] = React.useState({});
@@ -146,9 +147,25 @@ function EditPage({ match, location }) {
     };
 
     const setData = async (newData, callback) => {
+        // Block Data Changing while loading
+        if (loading) {
+            return data;
+        }
+
+        const computedNewData = typeof newData === 'function' ? newData(data) : newData;
+
+        if (
+            ui.watchFields
+            && Object.keys(computedNewData)
+                .find(key => ui.watchFields.includes(key))
+        ) {
+            setLoading(true);
+            setWatchFieldsTriggered(true);
+        }
+
         const computedData = {
             ...data,
-            ...(typeof newData === 'function' ? newData(data) : newData),
+            ...computedNewData,
         };
 
         setDataState(computedData);
@@ -159,6 +176,19 @@ function EditPage({ match, location }) {
 
         return computedData;
     };
+
+    React.useEffect(() => {
+        if (watchFieldsTriggered) {
+            callAction({
+                responseAction: {
+                    url: `${category}/watchFields`,
+                    targetType: 'POST',
+                },
+            });
+
+            setWatchFieldsTriggered(false);
+        }
+    }, [watchFieldsTriggered]);
 
     React.useEffect(() => {
         if (location.state && location.state.noReload && Object.entries(data).length !== 0) {
