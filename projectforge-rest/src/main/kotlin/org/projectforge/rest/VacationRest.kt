@@ -26,7 +26,8 @@ package org.projectforge.rest
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDORest
+import org.projectforge.rest.core.AbstractDTORest
+import org.projectforge.rest.dto.Vacation
 import org.projectforge.ui.Formatter
 import org.projectforge.ui.LayoutUtils
 import org.projectforge.ui.UILayout
@@ -36,7 +37,19 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/vacation")
-class VacationRest : AbstractDORest<VacationDO, VacationDao>(VacationDao::class.java, "vacation.title") {
+class VacationRest : AbstractDTORest<VacationDO, Vacation, VacationDao>(VacationDao::class.java, "vacation.title") {
+
+    override fun transformForDB(dto: Vacation): VacationDO {
+        val vacationDO = VacationDO()
+        dto.copyFrom(vacationDO)
+        return vacationDO
+    }
+
+    override fun transformFromDB(obj: VacationDO, editMode: Boolean): Vacation {
+        val vacation = Vacation()
+        vacation.copyFrom(obj)
+        return vacation
+    }
 
     /**
      * LAYOUT List page
@@ -44,17 +57,20 @@ class VacationRest : AbstractDORest<VacationDO, VacationDao>(VacationDao::class.
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(lc, "employee", "startDate", "endDate", "assignment", "status", "workingDays",
+                        .add(lc, "employee", "startDate", "endDate", "vacationmode", "status", "workingDays",
                                 "specialLeave", "manager", "substitution"))
+        layout.getTableColumnById("employee").formatter = Formatter.EMPLOYEE
         layout.getTableColumnById("startDate").formatter = Formatter.DATE
         layout.getTableColumnById("endDate").formatter = Formatter.DATE
+        layout.getTableColumnById("manager").formatter = Formatter.USER
+        layout.getTableColumnById("substitution").formatter = Formatter.USER
         return LayoutUtils.processListPage(layout, this)
     }
 
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: VacationDO, userAccess: UILayout.UserAccess): UILayout {
+    override fun createEditLayout(dto: Vacation, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "TODO")
         return LayoutUtils.processEditPage(layout, dto, this)
