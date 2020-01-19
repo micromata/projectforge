@@ -79,8 +79,18 @@ class VacationRest : AbstractDTORest<VacationDO, Vacation, VacationDao>(Vacation
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-    override fun onWatchFieldsUpdate(request: HttpServletRequest, dto: Vacation): ResponseAction {
-        //dto.endDate = dto.startDate
+    override fun onWatchFieldsUpdate(request: HttpServletRequest, dto: Vacation, watchFieldsTriggered: Array<String>?): ResponseAction {
+        var startDate = dto.startDate
+        var endDate = dto.endDate
+        if (watchFieldsTriggered?.contains("startDate") == true && startDate != null) {
+            if (endDate == null || endDate.isBefore(startDate)) {
+                dto.endDate = startDate
+            }
+        } else if (watchFieldsTriggered?.contains("endDate") == true && endDate != null) {
+            if (startDate == null || endDate.isBefore(startDate)) {
+                dto.startDate = dto.endDate
+            }
+        }
         return ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
     }
 
