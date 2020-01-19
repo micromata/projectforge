@@ -161,7 +161,7 @@ class CalendarSubscriptionServiceRest {
             generator.exportVEventAlarm("true" == params[PARAM_EXPORT_REMINDER])
             // read events
             val processCalendars = readEventsFromCalendars(generator, params)
-            val processedTimesheetUser = readTimesheets(generator, timesheetUser)
+            readTimesheets(generator, timesheetUser)
             val holidaysProecessed = readHolidays(generator, params)
             val weeksOfYearProcessed = readWeeksOfYear(generator, params)
             // setup event is needed for empty calendars
@@ -273,9 +273,9 @@ class CalendarSubscriptionServiceRest {
     /**
      * @return processed time sheet user (for creating filename of export) or null if no time sheet user was given.
      */
-    private fun readTimesheets(generator: ICalGenerator, timesheetUser: PFUserDO?): PFUserDO? {
+    private fun readTimesheets(generator: ICalGenerator, timesheetUser: PFUserDO?) {
         if (timesheetUser == null) {
-            return null
+            return
         }
         val dt = PFDateTime.now()
         // initializes timesheet filter
@@ -300,7 +300,6 @@ class CalendarSubscriptionServiceRest {
             }
             generator.addEvent(vEvent)
         }
-        return timesheetUser
     }
 
     /**
