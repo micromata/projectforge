@@ -16,7 +16,7 @@ function EditPage({ match, location }) {
 
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState(undefined);
-    const [watchFieldsTriggered, setWatchFieldsTriggered] = React.useState(false);
+    const [watchFieldsTriggered, setWatchFieldsTriggered] = React.useState([]);
 
     const [data, setDataState] = React.useState({});
     const [ui, setUI] = React.useState({});
@@ -24,8 +24,9 @@ function EditPage({ match, location }) {
     const [variables, setVariablesState] = React.useState({});
 
     const loadPage = () => {
-        setLoading(false);
+        setLoading(true);
         setError(undefined);
+        setWatchFieldsTriggered([]);
         setUI({});
         setDataState({});
         setValidationErrors([]);
@@ -100,7 +101,10 @@ function EditPage({ match, location }) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(data),
+                body: JSON.stringify({
+                    data,
+                    watchFieldsTriggered,
+                }),
             },
         )
             .then((response) => {
@@ -156,13 +160,13 @@ function EditPage({ match, location }) {
 
         const computedNewData = typeof newData === 'function' ? newData(data) : newData;
 
-        if (
-            ui.watchFields
-            && Object.keys(computedNewData)
-                .find(key => ui.watchFields.includes(key))
-        ) {
-            setLoading(true);
-            setWatchFieldsTriggered(true);
+        if (ui.watchFields) {
+            const triggered = Object.keys(computedNewData)
+                .filter(key => ui.watchFields.includes(key));
+
+            if (triggered.length > 0) {
+                setWatchFieldsTriggered(triggered);
+            }
         }
 
         const computedData = {
@@ -180,7 +184,7 @@ function EditPage({ match, location }) {
     };
 
     React.useEffect(() => {
-        if (watchFieldsTriggered) {
+        if (watchFieldsTriggered.length > 0) {
             callAction({
                 responseAction: {
                     url: `${category}/watchFields`,
@@ -188,7 +192,7 @@ function EditPage({ match, location }) {
                 },
             });
 
-            setWatchFieldsTriggered(false);
+            setWatchFieldsTriggered([]);
         }
     }, [watchFieldsTriggered]);
 
