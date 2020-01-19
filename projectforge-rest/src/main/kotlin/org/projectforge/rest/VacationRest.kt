@@ -28,12 +28,10 @@ import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.Vacation
-import org.projectforge.ui.Formatter
-import org.projectforge.ui.LayoutUtils
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.UITable
+import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/vacation")
@@ -81,5 +79,9 @@ class VacationRest : AbstractDTORest<VacationDO, Vacation, VacationDao>(Vacation
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
+    override fun onWatchFieldsUpdate(request: HttpServletRequest, dto: Vacation): ResponseAction {
+        //dto.endDate = dto.startDate
+        return ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
+    }
 
 }

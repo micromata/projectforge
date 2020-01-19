@@ -105,7 +105,7 @@ open class JacksonConfiguration {
             registerAllowedUnknownProperties(KundeDO::class.java, "id")
             // reminderDuration* will be there after function switchToTimesheet is used:
             registerAllowedUnknownProperties(TimesheetDO::class.java, "reminderDuration", "reminderDurationUnit")
-            registerAllowedUnknownProperties(Kost2DO::class.java,  "nummernkreis", "teilbereich", "bereich", "endziffer")
+            registerAllowedUnknownProperties(Kost2DO::class.java,  "nummernkreis", "teilbereich", "bereich", "endziffer", "formattedNumber")
         }
     }
 
