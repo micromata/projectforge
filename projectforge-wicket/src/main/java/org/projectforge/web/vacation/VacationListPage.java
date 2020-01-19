@@ -128,8 +128,7 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
             cellItemListener));
 
     columns.add(new CellItemListenerLambdaColumn<>(new ResourceModel("vacation.workingdays"),
-        rowModel -> vacationService.getVacationDays(rowModel.getObject().getStartDate(), rowModel.getObject().getEndDate(), rowModel.getObject().getHalfDayBegin()),
-        cellItemListener)
+        rowModel -> vacationService.getVacationDays(rowModel.getObject()), cellItemListener)
     );
 
     columns
