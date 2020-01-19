@@ -57,13 +57,16 @@ class VacationRest : AbstractDTORest<VacationDO, Vacation, VacationDao>(Vacation
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(lc, "employee", "startDate", "endDate", "vacationmode", "status", "workingDays",
-                                "specialLeave", "manager", "substitution"))
+                        .add(lc, "employee", "startDate", "endDate", "vacationModeString", "statusString", "workingDaysFormatted",
+                                "special", "replacement", "manager", "comment"))
         layout.getTableColumnById("employee").formatter = Formatter.EMPLOYEE
         layout.getTableColumnById("startDate").formatter = Formatter.DATE
         layout.getTableColumnById("endDate").formatter = Formatter.DATE
+        layout.getTableColumnById("vacationModeString").title = "vacation.vacationmode"
+        layout.getTableColumnById("statusString").title = "vacation.status"
+        layout.getTableColumnById("replacement").formatter = Formatter.USER
         layout.getTableColumnById("manager").formatter = Formatter.USER
-        layout.getTableColumnById("substitution").formatter = Formatter.USER
+        layout.getTableColumnById("workingDaysFormatted").title = "vacation.Days"
         return LayoutUtils.processListPage(layout, this)
     }
 
