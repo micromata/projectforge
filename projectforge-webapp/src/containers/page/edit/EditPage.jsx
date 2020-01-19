@@ -127,13 +127,17 @@ function EditPage({ match, location }) {
                                 history.push(json.url, json.variables);
                                 break;
                             case 'UPDATE':
-                                history.push(`${json.url}`, { noReload: true });
-                                window.scrollTo(0, 0);
+                                if (json.url) {
+                                    history.push(`${json.url}`, { noReload: true });
+                                    window.scrollTo(0, 0);
+                                }
                                 if (json.variables.variables) {
                                     setVariables(json.variables.variables);
                                 }
                                 setDataState(json.variables.data);
-                                setUI(json.variables.ui);
+                                if (json.variables.ui) {
+                                    setUI(json.variables.ui);
+                                }
                                 break;
                             case 'NOTHING':
                                 break;
