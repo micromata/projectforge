@@ -23,9 +23,9 @@
 
 package org.projectforge.rest.core
 
+import de.micromata.merlin.utils.ReplaceUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.projectforge.common.ReplaceUtils
 
 class ReplaceUtilsTest {
     @Test
@@ -57,7 +57,7 @@ class ReplaceUtilsTest {
 
     @Test
     fun replaceGermanUmlauteAndAccents() {
-        assertEquals("untitled", ReplaceUtils.replaceGermanUmlauteAndAccents(null))
+        assertEquals(null, ReplaceUtils.replaceGermanUmlauteAndAccents(null))
         assertEquals("", ReplaceUtils.replaceGermanUmlauteAndAccents(""))
         assertEquals("AGOOacAeaeOeoeUeuessnormal_ .", ReplaceUtils.replaceGermanUmlauteAndAccents("ĂĠÒǬåçÄäÖöÜüßnormal_ ."))
     }
