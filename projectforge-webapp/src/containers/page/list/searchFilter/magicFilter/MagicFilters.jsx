@@ -110,8 +110,9 @@ function MagicFilters(
                                 />
                             ))}
                             {filteredSearchFilters.length === 0 && (
-                                <span
-                                    className={styles.errorMessage}>???No Entries found???</span>
+                                <span className={styles.errorMessage}>
+                                    {translations['datatable.no-records-found'] || '???No Entries found???'}
+                                </span>
                             )}
                         </ul>
                     </AdvancedPopper>
