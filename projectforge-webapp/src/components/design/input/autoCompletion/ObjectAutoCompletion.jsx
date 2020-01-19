@@ -15,13 +15,14 @@ function ObjectAutoCompletion(
         ...props
     },
 ) {
-    const [search, setSearch] = React.useState('');
+    const displayName = value ? value.displayName : '';
+    const [search, setSearch] = React.useState(displayName);
 
     React.useEffect(() => {
-        if (search !== value.displayName) {
-            setSearch(value.displayName);
+        if (search !== displayName) {
+            setSearch(displayName);
         }
-    }, [value.displayName]);
+    }, [displayName]);
 
     const handleChange = ({ target }) => setSearch(target.value);
     const handleBlur = () => {
@@ -30,8 +31,8 @@ function ObjectAutoCompletion(
             return;
         }
 
-        if (search !== value.displayName) {
-            setSearch(value.displayName);
+        if (search !== displayName) {
+            setSearch(displayName);
         }
     };
 
@@ -53,7 +54,7 @@ function ObjectAutoCompletion(
                     onBlur={handleBlur}
                     onChange={handleChange}
                 >
-                    {search !== '' && (
+                    {search && (
                         <FontAwesomeIcon
                             onClick={handleDelete}
                             icon={faTimes}
