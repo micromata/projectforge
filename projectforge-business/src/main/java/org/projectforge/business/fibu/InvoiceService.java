@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu;
 
+import de.micromata.merlin.utils.ReplaceUtils;
 import de.micromata.merlin.word.RunsProcessor;
 import de.micromata.merlin.word.WordDocument;
 import de.micromata.merlin.word.templating.Variables;
@@ -33,7 +34,6 @@ import org.apache.xmlbeans.XmlException;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRow;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
-import org.projectforge.common.ReplaceUtils;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateTimeFormatter;
@@ -222,7 +222,7 @@ public class InvoiceService {
     final String subject = invoice.getBetreff() != null ? "_" + invoice.getBetreff() : "";
     final String invoiceDate = "_" + DateTimeFormatter.instance().getFormattedDate(invoice.getDatum());
     String filename = StringUtils.abbreviate(
-            ReplaceUtils.INSTANCE.encodeFilename(number + customer + project + subject + invoiceDate, true),
+            ReplaceUtils.encodeFilename(number + customer + project + subject + invoiceDate, true),
             "...", FILENAME_MAXLENGTH) + suffix;
     return filename;
   }
