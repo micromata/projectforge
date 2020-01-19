@@ -23,23 +23,59 @@
 
 package org.projectforge.rest.calendar
 
+import org.projectforge.business.teamcal.service.CalendarFeedService
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
-import org.projectforge.ui.UILabel
-import org.projectforge.ui.UILayout
+import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/calendarSubscription")
 class CalendarSubscriptionInfoRest {
 
+    @Autowired
+    private lateinit var calendarFeedService: CalendarFeedService
+
     @GetMapping("layout")
-    fun getLayout(): UILayout {
-        val layout = UILayout("administration.setup.title")
-        layout
-                .addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
-        layout.add(UILabel("hurzel"))
+    fun getLayout(@RequestParam("type") type: String?): UILayout {
+        val subscriptionInfo = CalendarSubscriptionInfo()
+        if (type == "HOLIDAYS") {
+            subscriptionInfo.url = calendarFeedService.fullUrl4Holidays
+            subscriptionInfo.headline = translate("holidays")
+        } else if (type == "WEEK_OF_YEAR") {
+            subscriptionInfo.url = calendarFeedService.fullUrl4WeekOfYears
+            subscriptionInfo.headline = translate("weekOfYear")
+        } else {
+            val timesheetUserId = ThreadLocalUserContext.getUserId()
+            subscriptionInfo.url = calendarFeedService.getFullUrl4Timesheets(timesheetUserId)
+            subscriptionInfo.headline = translate("timesheet.timesheets")
+        }
+        val layout = UILayout("plugins.teamcal.subscription")
+        layout.addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
+        layout.add(UIFieldset(mdLength = 12, lgLength = 12)
+                .add(UIRow()
+                        .add(UICol()
+                                .add(UICustomized("calendar.subscriptionInfo",
+                                        values = mutableMapOf("subscriptionInfo" to subscriptionInfo))))))
         return layout
+    }
+
+    companion object {
+        fun getTimesheetUserUrl(): String {
+            return "react/dynamic/calendarSubscription?type=TIMESHEETS"
+        }
+
+        fun getHolidaysUrl(): String {
+            return "react/dynamic/calendarSubscription?type=HOLIDAYS"
+        }
+
+        fun getWeekOfYearUrl(): String {
+            return "react/dynamic/calendarSubscription?type=WEEK_OF_YEAR"
+        }
     }
 }

@@ -37,6 +37,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.calendar.CalendarSubscriptionInfo
+import org.projectforge.rest.calendar.CalendarSubscriptionInfoRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.Group
@@ -129,7 +130,7 @@ class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::
         exportMenu.add(MenuItem("calendar.exportTimesheets",
                 i18nKey = "plugins.teamcal.export.timesheets",
                 type = MenuItemTargetType.REDIRECT,
-                url = "react/dynamic/calendarSubscription?timesheetuser=${ThreadLocalUserContext.getUserId()}"))
+                url = CalendarSubscriptionInfoRest.getTimesheetUserUrl()))
         exportMenu.add(MenuItem("calendar.exportWeekOfYears",
                 i18nKey = "plugins.teamcal.export.weekOfYears",
                 tooltip = "plugins.teamcal.export.weekOfYears.tooltip",
@@ -139,7 +140,7 @@ class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::
                 i18nKey = "plugins.teamcal.export.holidays",
                 tooltip = "plugins.teamcal.export.holidays.tooltip",
                 type = MenuItemTargetType.REDIRECT,
-                url = "react/dynamic/calendarSubscription?type=HOLIDAY"))
+                url = CalendarSubscriptionInfoRest.getHolidaysUrl()))
         layout.add(exportMenu, 0)
 
         return LayoutUtils.processListPage(layout, this)
@@ -150,10 +151,7 @@ class TeamCalRest : AbstractDTORest<TeamCalDO, TeamCal, TeamCalDao>(TeamCalDao::
      */
     override fun createEditLayout(dto: TeamCal, userAccess: UILayout.UserAccess): UILayout {
         val intervals = SubscriptionUpdateInterval.values().map { DisplayObject(it.interval, translate(it.i18nKey)) }
-        val subscriptionInfo = CalendarSubscriptionInfo(translate("plugins.teamcal.subscription"),
-                dto.accessStatus,
-                securityAdviseHeadline = translate("securityAdvice"),
-                securityAdvise = translate("calendar.icsExport.securityAdvice"))
+        val subscriptionInfo = CalendarSubscriptionInfo(translate("plugins.teamcal.subscription"), dto.accessStatus)
         subscriptionInfo.initUrls(calendarFeedService, dto.id)
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIFieldset(mdLength = 12, lgLength = 12)
