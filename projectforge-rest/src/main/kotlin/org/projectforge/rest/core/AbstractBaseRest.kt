@@ -296,10 +296,11 @@ abstract class AbstractBaseRest<
                         "nothingFound")
         layout.add(LayoutListFilterUtils.createNamedContainer(this, lc))
         layout.postProcessPageMenu()
-        layout.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Const.REACT_APP_PATH}${getCategory()}/edit"), 0)
         if (classicsLinkListUrl != null) {
-            layout.add(MenuItem(CLASSIC_VERSION_MENU, title = "*", url = classicsLinkListUrl, tooltip = translate("goreact.menu.classics")), 1)
+            layout.add(MenuItem(CLASSIC_VERSION_MENU, title = "*", url = classicsLinkListUrl, tooltip = translate("goreact.menu.classics")), 0)
         }
+        layout.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Const.REACT_APP_PATH}${getCategory()}/edit"))
+
         return InitialListData(ui = layout,
                 standardEditPage = "${Const.REACT_APP_PATH}${getCategory()}/edit/:id",
                 quickSelectUrl = quickSelectUrl,

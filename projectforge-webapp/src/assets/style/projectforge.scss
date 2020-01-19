@@ -404,3 +404,17 @@ span.mm-select {
 .card {
   margin-bottom: 15px;
 }
+
+// Add Button in List Page Navigation
+#CREATE {
+  $color: #009BA3;
+
+  border: 1px solid $color;
+  color: $color !important;
+  line-height: 17px;
+
+  &:hover {
+    background-color: $color;
+    color: #fff !important;
+  }
+}
