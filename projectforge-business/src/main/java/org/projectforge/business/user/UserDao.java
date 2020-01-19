@@ -61,6 +61,13 @@ public class UserDao extends BaseDao<PFUserDO> {
 
   private static final short AUTHENTICATION_TOKEN_LENGTH = 20;
 
+  private static final List<SortProperty> DEFAULT_SORT_PROPERTIES = new ArrayList<SortProperty>();
+
+  static {
+    DEFAULT_SORT_PROPERTIES.add(new SortProperty("firstname"));
+    DEFAULT_SORT_PROPERTIES.add(new SortProperty("lastname"));
+  }
+
   private final List<UserChangedListener> userChangedListeners = new LinkedList<>();
 
   @Autowired
@@ -108,6 +115,11 @@ public class UserDao extends BaseDao<PFUserDO> {
   }
 
   @Override
+  public List<SortProperty> getDefaultSortProperties() {
+    return DEFAULT_SORT_PROPERTIES;
+  }
+
+  @Override
   public List<PFUserDO> getList(final BaseSearchFilter filter) {
     final PFUserFilter myFilter;
     if (filter instanceof PFUserFilter) {
@@ -132,7 +144,6 @@ public class UserDao extends BaseDao<PFUserDO> {
     if (myFilter.getHrPlanning() != null) {
       queryFilter.add(QueryFilter.eq("hrPlanning", myFilter.getHrPlanning()));
     }
-    queryFilter.addOrder(SortProperty.asc("username"));
     List<PFUserDO> list = getList(queryFilter);
     if (myFilter.getIsAdminUser() != null) {
       final List<PFUserDO> origList = list;
