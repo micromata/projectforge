@@ -25,16 +25,17 @@ package org.projectforge.rest.calendar
 
 import org.projectforge.business.teamcal.CalendarAccessStatus
 import org.projectforge.business.teamcal.service.CalendarFeedService
+import org.projectforge.framework.i18n.translate
 
 /**
  * Information for subscription of ProjectForge's calendars or time sheets in
  * external calendar apps or for downloading.
  */
-class CalendarSubscriptionInfo(val headline: String?,
+class CalendarSubscriptionInfo(var headline: String? = null,
                                val accessStatus: CalendarAccessStatus? = null,
                                val barcodeUrl: String? = BarcodeServicesRest.GET_URL,
-                               val securityAdviseHeadline: String? = null,
-                               val securityAdvise: String? = null) {
+                               val securityAdviseHeadline: String? = translate("securityAdvice"),
+                               val securityAdvise: String? = translate("calendar.icsExport.securityAdvice")) {
     /**
      * For owners the url with reminders is used as default. Might be used
      * in frontend for a checkbox for switching reminders in export on and off.
@@ -43,11 +44,11 @@ class CalendarSubscriptionInfo(val headline: String?,
 
     var urlWithoutExportedReminders: String? = null
 
-    var urlWithExportedReminders: String? = null
+    var url: String? = null
 
     fun initUrls(calendarFeedService: CalendarFeedService, teamCalId: Int?) {
         teamCalId ?: return
-        urlWithExportedReminders = calendarFeedService.getFullUrl(teamCalId, true)
+        url = calendarFeedService.getFullUrl(teamCalId, true)
         urlWithoutExportedReminders = calendarFeedService.getFullUrl(teamCalId, false)
     }
 

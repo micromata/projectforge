@@ -58,6 +58,14 @@ public class CalendarFeedService {
    * @return The url for downloading timesheets (including context), e. g.
    * /ProjectForge/export/ProjectForge.ics?user=....
    */
+  public String getFullUrl4Timesheets(final Integer timesheetUserId) {
+    return getFullUrl("&" + CalendarFeedConst.PARAM_NAME_TIMESHEET_USER + "=" + timesheetUserId);
+  }
+
+  /**
+   * @return The url for downloading timesheets (including context), e. g.
+   * /ProjectForge/export/ProjectForge.ics?user=....
+   */
   public String getUrl4Holidays() {
     return getUrl("&" + CalendarFeedConst.PARAM_NAME_HOLIDAYS + "=true");
   }
@@ -66,8 +74,24 @@ public class CalendarFeedService {
    * @return The url for downloading timesheets (including context), e. g.
    * /ProjectForge/export/ProjectForge.ics?user=....
    */
+  public String getFullUrl4Holidays() {
+    return getFullUrl("&" + CalendarFeedConst.PARAM_NAME_HOLIDAYS + "=true");
+  }
+
+  /**
+   * @return The url for downloading timesheets (including context), e. g.
+   * /ProjectForge/export/ProjectForge.ics?user=....
+   */
   public String getUrl4WeekOfYears() {
     return getUrl("&" + CalendarFeedConst.PARAM_NAME_WEEK_OF_YEARS + "=true");
+  }
+
+  /**
+   * @return The url for downloading timesheets (including context), e. g.
+   * /ProjectForge/export/ProjectForge.ics?user=....
+   */
+  public String getFullUrl4WeekOfYears() {
+    return getFullUrl("&" + CalendarFeedConst.PARAM_NAME_WEEK_OF_YEARS + "=true");
   }
 
   /**
