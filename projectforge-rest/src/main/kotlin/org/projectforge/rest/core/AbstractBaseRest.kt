@@ -689,16 +689,16 @@ abstract class AbstractBaseRest<
         return dto
     }
 
-    //class PostData<DTO: Any>(dto: DTO, modfiedFields: Array<String>?)
+    //class PostData<DTO: Any>(data: DTO, watchFieldsTriggered: Array<String>?)
 
     /**
      * Will be called for watched fields from client, if any of the watched fields was modified.
      * This method may be used for updating model after modification of any watch field.
      * You may define watch fields in layout.
      */
-    @PutMapping(RestPaths.WATCH_FIELDS)
-    fun watchFields(request: HttpServletRequest, @Valid @RequestBody dto: DTO): ResponseEntity<ResponseAction> {
-        return ResponseEntity(onWatchFieldsUpdate(request, dto), HttpStatus.OK)
+    @PostMapping(RestPaths.WATCH_FIELDS)
+    fun watchFields(request: HttpServletRequest, @Valid @RequestBody dto: DTO): ResponseAction {
+        return onWatchFieldsUpdate(request, dto)
     }
 
     open protected fun onWatchFieldsUpdate(request: HttpServletRequest, dto: DTO): ResponseAction {
