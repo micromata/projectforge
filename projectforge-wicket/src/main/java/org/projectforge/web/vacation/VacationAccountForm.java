@@ -272,8 +272,7 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
     });
     columns.add(new CellItemListenerPropertyColumn<>(VacationDO.class, "status", "status", cellItemListener));
     columns.add(new CellItemListenerLambdaColumn<>(new ResourceModel("vacation.workingdays"),
-            rowModel -> vacationService.getVacationDays(rowModel.getObject().getStartDate(), rowModel.getObject().getEndDate(), rowModel.getObject().getHalfDayBegin()),
-            cellItemListener)
+            rowModel -> VacationService.getVacationDays(rowModel.getObject()), cellItemListener)
     );
 
     columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "special", "special", cellItemListener) {
