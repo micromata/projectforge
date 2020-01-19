@@ -80,7 +80,7 @@ class VacationRest : AbstractDTORest<VacationDO, Vacation, VacationDao>(Vacation
     }
 
     override fun onWatchFieldsUpdate(request: HttpServletRequest, dto: Vacation): ResponseAction {
-        dto.endDate = dto.startDate
+        //dto.endDate = dto.startDate
         return ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
     }
 
