@@ -22,6 +22,7 @@ import AdvancedPopperAction from '../../../../components/design/popper/AdvancedP
 import FavoritesPanel from '../../../panel/favorite/FavoritesPanel';
 import styles from '../ListPage.module.scss';
 import MagicFilters from './magicFilter/MagicFilters';
+import classNames from 'classnames';
 
 function SearchFilter(props) {
     const {
@@ -88,7 +89,7 @@ function SearchFilter(props) {
                     />
                     {isFetching && <Spinner className={styles.loadingSpinner} />}
                 </div>
-                <div className={styles.container}>
+                <div className={classNames(styles.container, styles.flex)}>
                     {/* Render the menu if it's loaded. */}
                     {ui && ui.pageMenu && (
                         <Col>
