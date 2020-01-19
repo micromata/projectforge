@@ -1,6 +1,9 @@
+import { faTimes, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import AdvancedPopperInput from '../../popper/AdvancedPopperInput';
+import styles from './AutoCompletion.module.scss';
 import AutoCompletion from './index';
 
 function ObjectAutoCompletion(
@@ -32,6 +35,13 @@ function ObjectAutoCompletion(
         }
     };
 
+    const handleDelete = (event) => {
+        event.stopPropagation();
+
+        setSearch('');
+        onSelect(null);
+    };
+
     return (
         <AutoCompletion
             input={({ ref, ...otherInputsProps }) => (
@@ -42,7 +52,15 @@ function ObjectAutoCompletion(
                     {...inputProps}
                     onBlur={handleBlur}
                     onChange={handleChange}
-                />
+                >
+                    {search !== '' && (
+                        <FontAwesomeIcon
+                            onClick={handleDelete}
+                            icon={faTimes}
+                            className={styles.deleteIcon}
+                        />
+                    )}
+                </AdvancedPopperInput>
             )}
             onSelect={onSelect}
             search={search}
