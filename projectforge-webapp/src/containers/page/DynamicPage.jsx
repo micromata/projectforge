@@ -15,7 +15,13 @@ function DynamicPage({ match }) {
         setLoading(true);
         setError(undefined);
 
-        fetch(getRestURL(`${match.params.page}/layout`, match))
+        fetch(
+            getRestURL(`${match.params.page}/layout`, match),
+            {
+                method: 'GET',
+                credentials: 'include',
+            },
+        )
             .then((response) => {
                 setLoading(false);
                 return response;
