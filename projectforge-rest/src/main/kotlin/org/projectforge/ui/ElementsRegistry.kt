@@ -84,11 +84,13 @@ object ElementsRegistry {
                                 UIInput(property, maxLength = elementInfo.maxLength, required = elementInfo.required, layoutContext = lc)
                             }
                         }
-                        Boolean::class.java -> UICheckbox(property)
+                        Boolean::class.java, java.lang.Boolean::class.java -> UICheckbox(property)
+
                         Date::class.java,
                         LocalDate::class.java,
                         java.sql.Date::class.java,
                         java.sql.Timestamp::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+
                         PFUserDO::class.java, EmployeeDO::class.java, TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
                         Integer::class.java, BigDecimal::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
                         Locale::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
