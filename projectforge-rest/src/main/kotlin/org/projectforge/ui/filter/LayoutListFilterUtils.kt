@@ -56,6 +56,7 @@ class LayoutListFilterUtils {
                             UIFilterTimestampElement.QuickSelector.UNTIL_NOW)))
             elements.add(UIFilterElement(MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.fieldName,
                     label = translate(MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.i18nKey)))
+            elements.add(UIFilterElement("deleted", UIFilterElement.FilterType.BOOLEAN, translate("deleted")))
 
             val baseDao = restService.baseDao
             val searchFields = baseDao.searchFields
