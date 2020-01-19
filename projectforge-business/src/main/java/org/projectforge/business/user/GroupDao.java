@@ -52,6 +52,12 @@ public class GroupDao extends BaseDao<GroupDO> {
           "assignedUsers.firstname",
           "assignedUsers.lastname"};
 
+  private static final List<SortProperty> DEFAULT_SORT_PROPERTIES = new ArrayList<SortProperty>();
+
+  static {
+    DEFAULT_SORT_PROPERTIES.add(new SortProperty("name"));
+  }
+
   @Autowired
   private UserDao userDao;
 
@@ -62,6 +68,11 @@ public class GroupDao extends BaseDao<GroupDO> {
   public GroupDao() {
     super(GroupDO.class);
     this.supportAfterUpdate = true;
+  }
+
+  @Override
+  public List<SortProperty> getDefaultSortProperties() {
+    return DEFAULT_SORT_PROPERTIES;
   }
 
   @Override
@@ -80,7 +91,6 @@ public class GroupDao extends BaseDao<GroupDO> {
         queryFilter.add(QueryFilter.eq("localGroup", myFilter.getLocalGroup()));
       }
     }
-    queryFilter.addOrder(SortProperty.asc("name"));
     return getList(queryFilter);
   }
 
