@@ -52,11 +52,7 @@ public class GroupDao extends BaseDao<GroupDO> {
           "assignedUsers.firstname",
           "assignedUsers.lastname"};
 
-  private static final List<SortProperty> DEFAULT_SORT_PROPERTIES = new ArrayList<SortProperty>();
-
-  static {
-    DEFAULT_SORT_PROPERTIES.add(new SortProperty("name"));
-  }
+  private static final SortProperty[] DEFAULT_SORT_PROPERTIES = new SortProperty[]{new SortProperty("name")};
 
   @Autowired
   private UserDao userDao;
@@ -71,7 +67,7 @@ public class GroupDao extends BaseDao<GroupDO> {
   }
 
   @Override
-  public List<SortProperty> getDefaultSortProperties() {
+  public SortProperty[] getDefaultSortProperties() {
     return DEFAULT_SORT_PROPERTIES;
   }
 
