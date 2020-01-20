@@ -23,12 +23,17 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.fibu.api.EmployeeService
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationDO
+import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTORest
 import org.projectforge.rest.dto.Vacation
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
@@ -36,6 +41,12 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/vacation")
 class VacationRest : AbstractDTORest<VacationDO, Vacation, VacationDao>(VacationDao::class.java, "vacation.title") {
+
+    @Autowired
+    private lateinit var employeeService: EmployeeService
+
+    @Autowired
+    private lateinit var userPrefService: UserPrefService
 
     override fun transformForDB(dto: Vacation): VacationDO {
         val vacationDO = VacationDO()
@@ -46,6 +57,16 @@ class VacationRest : AbstractDTORest<VacationDO, Vacation, VacationDao>(Vacation
     override fun transformFromDB(obj: VacationDO, editMode: Boolean): Vacation {
         val vacation = Vacation()
         vacation.copyFrom(obj)
+        vacation.status = VacationStatus.IN_PROGRESS
+        return vacation
+    }
+
+    override fun newBaseDO(request: HttpServletRequest?): VacationDO {
+        val vacation = getUserPref()
+        val result = VacationDO()
+        result.employee = vacation.employee
+        result.manager = vacation.manager
+        result.replacement = vacation.replacement
         return vacation
     }
 
@@ -73,7 +94,31 @@ class VacationRest : AbstractDTORest<VacationDO, Vacation, VacationDao>(Vacation
      */
     override fun createEditLayout(dto: Vacation, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
-                .add(lc, "employee", "startDate", "halfDayBegin", "endDate", "halfDayEnd", "special", "replacement", "manager", "status", "comment")
+                .add(UIRow()
+                        .add(UICol(6)
+                                .add(lc, "employee")))
+                .add(UIRow()
+                        .add(UICol(6)
+                                .add(lc, "startDate"))
+                        .add(UICol(6)
+                                .add(lc, "halfDayBegin")))
+                .add(UIRow()
+                        .add(UICol(6)
+                                .add(lc, "endDate"))
+                        .add(UICol(6)
+                                .add(lc, "halfDayEnd")))
+                .add(UIRow()
+                        .add(UICol(6)
+                                .add(lc, "replacement"))
+                        .add(UICol(6)
+                                .add(lc, "status")))
+                .add(UIRow()
+                        .add(UICol(6)
+                                .add(lc, "manager"))
+                        .add(UICol(6)
+                                .add(lc, "special")))
+                .add(lc, "comment")
+
         layout.watchFields.add("startDate")
         layout.watchFields.add("endDate")
         return LayoutUtils.processEditPage(layout, dto, this)
@@ -94,4 +139,11 @@ class VacationRest : AbstractDTORest<VacationDO, Vacation, VacationDao>(Vacation
         return ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
     }
 
+    private fun getUserPref(): VacationDO {
+        val vacation = userPrefService.ensureEntry("vacation", "newEntry", VacationDO())
+        if (vacation.employee == null) {
+            vacation.employee = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId())
+        }
+        return vacation
+    }
 }

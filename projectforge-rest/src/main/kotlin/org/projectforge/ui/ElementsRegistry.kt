@@ -121,7 +121,7 @@ object ElementsRegistry {
     private fun getDataType(elementInfo: ElementInfo): UIDataType? {
         return when (elementInfo.propertyType) {
             String::class.java -> UIDataType.STRING
-            Boolean::class.java -> UIDataType.BOOLEAN
+            Boolean::class.java, java.lang.Boolean::class.java -> UIDataType.BOOLEAN
             Date::class.java -> UIDataType.TIMESTAMP
             LocalDate::class.java,
             java.sql.Date::class.java -> UIDataType.DATE
@@ -198,8 +198,11 @@ object ElementsRegistry {
         val colinfo = getColumnMetadata(clazz, property)
         if (colinfo != null) {
             elementInfo.maxLength = colinfo.maxLength
-            if (!(colinfo.isNullable) || propertyInfo.required)
-                elementInfo.required = true
+            if ((!(colinfo.isNullable) || propertyInfo.required)) {
+                if (elementInfo.propertyType != Boolean::class.java && elementInfo.propertyType !=java.lang.Boolean::class.java) {
+                    elementInfo.required = true
+                }
+            }
         }
         elementInfo.i18nKey = getNullIfEmpty(propertyInfo.i18nKey)
         elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo.additionalI18nKey)
