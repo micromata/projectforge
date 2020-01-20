@@ -61,12 +61,7 @@ public class UserDao extends BaseDao<PFUserDO> {
 
   private static final short AUTHENTICATION_TOKEN_LENGTH = 20;
 
-  private static final List<SortProperty> DEFAULT_SORT_PROPERTIES = new ArrayList<SortProperty>();
-
-  static {
-    DEFAULT_SORT_PROPERTIES.add(new SortProperty("firstname"));
-    DEFAULT_SORT_PROPERTIES.add(new SortProperty("lastname"));
-  }
+  private static final SortProperty[] DEFAULT_SORT_PROPERTIES = new SortProperty[]{new SortProperty("firstname"), new SortProperty("lastname")};
 
   private final List<UserChangedListener> userChangedListeners = new LinkedList<>();
 
@@ -115,7 +110,7 @@ public class UserDao extends BaseDao<PFUserDO> {
   }
 
   @Override
-  public List<SortProperty> getDefaultSortProperties() {
+  public SortProperty[] getDefaultSortProperties() {
     return DEFAULT_SORT_PROPERTIES;
   }
 

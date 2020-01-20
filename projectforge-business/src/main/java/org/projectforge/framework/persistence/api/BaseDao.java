@@ -166,7 +166,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Overwrite this method for having a standard sort of result lists (supported by {@link BaseDao#getList(QueryFilter)}.
    */
-  public List<SortProperty> getDefaultSortProperties() {
+  public SortProperty[] getDefaultSortProperties() {
     return null;
   }
 
