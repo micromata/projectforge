@@ -64,7 +64,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         return ADDITIONAL_SEARCH_FIELDS
     }
 
-    override fun getDefaultSortProperties(): List<SortProperty> {
+    override fun getDefaultSortProperties(): Array<SortProperty> {
         return DEFAULT_SORT_PROPERTIES
     }
 
@@ -210,7 +210,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf("user.firstname", "user.lastname", "user.username",
                 "user.description",
                 "user.organization")
-        private val DEFAULT_SORT_PROPERTIES = listOf(SortProperty("user.firstname"), SortProperty("user.lastname"))
+        private val DEFAULT_SORT_PROPERTIES = arrayOf(SortProperty("user.firstname"), SortProperty("user.lastname"))
         private const val META_SQL = " AND e.deleted = :deleted AND e.tenant = :tenant"
     }
 }
