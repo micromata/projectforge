@@ -46,8 +46,10 @@ class Vacation(var employee: Employee? = null,
                var special: Boolean? = null,
                var halfDayBegin: Boolean? = null,
                var halfDayEnd: Boolean? = null,
-               var comment: String? = null
-) : BaseDTO<VacationDO>() {
+               var comment: String? = null,
+               var vacationDaysLeftInYear: BigDecimal? = null,
+               var vacationDaysLeftInYearString: String? = null
+               ) : BaseDTO<VacationDO>() {
     override fun copyFrom(src: VacationDO) {
         super.copyFrom(src)
         workingDays = VacationService.getVacationDays(src)
