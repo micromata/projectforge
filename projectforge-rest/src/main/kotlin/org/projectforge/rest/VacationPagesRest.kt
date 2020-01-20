@@ -28,6 +28,8 @@ import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.business.vacation.service.VacationService
+import org.projectforge.business.vacation.service.VacationStats
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -36,6 +38,7 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.Year
 import javax.servlet.http.HttpServletRequest
 
 @RestController
@@ -47,6 +50,9 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
 
     @Autowired
     private lateinit var userPrefService: UserPrefService
+
+    @Autowired
+    private lateinit var vacationService: VacationService
 
     override fun transformForDB(dto: Vacation): VacationDO {
         val vacationDO = VacationDO()
@@ -118,9 +124,10 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
                         .add(UICol(6)
                                 .add(lc, "special")))
                 .add(lc, "comment")
+                .add(lc, "workingDaysFormatted", "vacationDaysLeftInYearString")
 
-        layout.watchFields.add("startDate")
-        layout.watchFields.add("endDate")
+        layout.watchFields.addAll(arrayOf("startDate", "endDate", "halfDayBegin", "halfDayEnd"))
+        updateStats(dto)
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
@@ -136,7 +143,23 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
                 dto.startDate = dto.endDate
             }
         }
+        updateStats(dto)
         return ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
+    }
+
+    private fun updateStats(dto: Vacation) {
+        dto.employee?.let { employee ->
+            val employeeDO = employeeService.getById(employee.id)
+            val vacationStats = vacationService.getVacationStats(employeeDO, dto.startDate?.year ?: Year.now().value)
+            dto.vacationDaysLeftInYear = vacationStats.vacationDaysLeftInYear
+            dto.vacationDaysLeftInYearString = VacationStats.format(vacationStats.vacationDaysLeftInYear)
+        }
+        val startDate = dto.startDate
+        val endDate = dto.endDate
+        if (startDate != null && endDate != null) {
+            dto.workingDays = VacationService.getVacationDays(startDate, endDate, dto.halfDayBegin, dto.halfDayEnd)
+            dto.workingDaysFormatted = VacationStats.format(dto.workingDays)
+        }
     }
 
     private fun getUserPref(): VacationDO {
