@@ -56,7 +56,7 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
 
     override fun transformForDB(dto: Vacation): VacationDO {
         val vacationDO = VacationDO()
-        dto.copyFrom(vacationDO)
+        dto.copyTo(vacationDO)
         return vacationDO
     }
 
@@ -103,8 +103,9 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
                 .add(UIRow()
                         .add(UICol(6)
                                 .add(lc, "employee"))
-                        .add(UICol(6)
-                                .add(UIReadOnlyField("workingDaysFormatted", lc, UIDataType.STRING, "vacation.workingdays"))
+                        .add(UICol(3)
+                                .add(UIReadOnlyField("workingDaysFormatted", lc, UIDataType.STRING, "vacation.workingdays")))
+                        .add(UICol(3)
                                 .add(UIReadOnlyField("vacationDaysLeftInYearString", lc, UIDataType.STRING, "vacation.availabledays"))))
                 .add(UIRow()
                         .add(UICol(6)
@@ -120,12 +121,12 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
                         .add(UICol(6)
                                 .add(lc, "replacement"))
                         .add(UICol(6)
-                                .add(lc, "status")))
+                                .add(lc, "special")))
                 .add(UIRow()
                         .add(UICol(6)
                                 .add(lc, "manager"))
                         .add(UICol(6)
-                                .add(lc, "special")))
+                                .add(lc, "status")))
                 .add(lc, "comment")
 
         layout.watchFields.addAll(arrayOf("startDate", "endDate", "halfDayBegin", "halfDayEnd"))

@@ -35,7 +35,7 @@ import java.io.IOException
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-internal val jsonDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+internal val jsonDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
 /**
  * Serialization of dates in ISO format and UTC time-zone.
@@ -49,7 +49,7 @@ class LocalDateSerializer : StdSerializer<LocalDate>(LocalDate::class.java) {
             jgen.writeNull()
             return
         }
-        val dateFormatAsString = jsonDateTimeFormatter.format(value)
+        val dateFormatAsString = jsonDateFormatter.format(value)
         jgen.writeString(dateFormatAsString)
     }
 }
@@ -65,7 +65,7 @@ class LocalDateDeserializer : StdDeserializer<LocalDate>(LocalDate::class.java) 
         if (StringUtils.isBlank(date)) {
             return null
         }
-        return LocalDate.parse(date, jsonDateTimeFormatter)
+        return LocalDate.parse(date, jsonDateFormatter)
     }
 }
 

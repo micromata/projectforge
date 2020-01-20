@@ -27,7 +27,6 @@ import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.time.LocalDatePeriod
-import org.projectforge.framework.time.PFDayUtils
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -118,9 +117,9 @@ object VacationValidator {
             // Any other entry exist with overlapping time period.
             return returnOrThrow(Error.COLLISION, throwException)
         }
-        val numberOfWorkingDays = PFDayUtils.getNumberOfWorkingDays(startDate, endDate)
+        val numberOfWorkingDays = VacationService.getVacationDays(vacation)
         //vacationdays <= 0 days
-        if (vacation.halfDayBegin == true && numberOfWorkingDays <= BigDecimal.ZERO) {
+        if (numberOfWorkingDays <= BigDecimal.ZERO) {
             return returnOrThrow(Error.ZERO_NUMBER_OF_DAYS, throwException)
         }
         if (vacation.special == true) {
@@ -135,14 +134,15 @@ object VacationValidator {
                 allVacationEntriesOfYear = allVacationEntriesOfYear.filter { it.id != dbVacation.id }
             }
             val stats = vacationService.getVacationStats(employee, year, vacationEntries = allVacationEntriesOfYear)
-            if (numberOfWorkingDays  > stats.vacationDaysLeftInYearWithoutCarry) {
+            if (numberOfWorkingDays > stats.vacationDaysLeftInYearWithoutCarry) {
                 val endOfVacationYear = vacationService.getEndOfCarryVacationOfPreviousYear(year)
                 var enoughDaysLeft = false
                 if (startDate.isBefore(endOfVacationYear)) {
-                    val overlapDays = if (endDate > endOfVacationYear)
-                        PFDayUtils.getNumberOfWorkingDays(startDate, endOfVacationYear)
-                    else
-                        PFDayUtils.getNumberOfWorkingDays(startDate, endDate)
+                    val overlapDays = if (endDate > endOfVacationYear) {
+                        VacationService.getVacationDays(startDate, endOfVacationYear, halfDayBegin = vacation.halfDayBegin)
+                    } else {
+                        VacationService.getVacationDays(startDate, endDate, halfDayBegin = vacation.halfDayBegin, halfDayEnd = vacation.halfDayEnd)
+                    }
                     val additionalCarryDays = maxOf(stats.remainingLeaveFromPreviousYearUnused!! - overlapDays, BigDecimal.ZERO)
                     if (numberOfWorkingDays  <= stats.vacationDaysLeftInYearWithoutCarry!! + additionalCarryDays) {
                         // Including unused carry days, it's now enough:
