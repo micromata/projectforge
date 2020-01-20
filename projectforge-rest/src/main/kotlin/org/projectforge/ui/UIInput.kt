@@ -24,7 +24,7 @@
 package org.projectforge.ui
 
 import org.projectforge.framework.i18n.InternalErrorException
-import org.projectforge.rest.core.AbstractBaseRest
+import org.projectforge.rest.core.AbstractPagesRest
 import org.springframework.util.ClassUtils
 
 data class UIInput(val id: String,
@@ -49,7 +49,7 @@ data class UIInput(val id: String,
      * @return this for chaining.
      * @see BaseDao.isAutocompletionPropertyEnabled
      */
-    fun enableAutoCompletion(services: AbstractBaseRest<*, *, *>):UIInput {
+    fun enableAutoCompletion(services: AbstractPagesRest<*, *, *>):UIInput {
         if (!services.isAutocompletionPropertyEnabled(id)) {
             throw InternalErrorException("Development error: You must enable autocompletion properties explicit in '${ClassUtils.getUserClass(services.baseDao).simpleName}.isAutocompletionPropertyEnabled(String)' for property '$id' for security resasons first.")
         }

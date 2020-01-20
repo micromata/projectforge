@@ -66,7 +66,7 @@ class AddressServicesRest() {
     private lateinit var addressDao: AddressDao
 
     @Autowired
-    private lateinit var addressRest: AddressRest
+    private lateinit var addressRest: AddressPagesRest
 
     @Autowired
     private lateinit var addressExport: AddressExport
