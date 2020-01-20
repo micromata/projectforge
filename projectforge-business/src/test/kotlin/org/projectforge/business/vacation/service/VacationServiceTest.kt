@@ -38,7 +38,6 @@ import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
@@ -294,18 +293,42 @@ class VacationServiceTest : AbstractTestBase() {
         vacationDao.update(lastStoredVacation!!) // Manger is allowed to approve this vacation.
     }
 
+    @Test
+    fun checkHalfDays() {
+        val employee = createEmployee("half-day", LocalDate.of(2010, Month.MAY, 1))
+        logon(employee.user)
+        assertBigDecimal(0.5, VacationService.getVacationDays(LocalDate.of(2019, Month.DECEMBER, 24), LocalDate.of(2019, Month.DECEMBER, 24)), "days off expected.")
+        assertBigDecimal(1.5, VacationService.getVacationDays(LocalDate.of(2019, Month.DECEMBER, 24), LocalDate.of(2019, Month.DECEMBER, 27)), "days off expected.")
+        assertBigDecimal(3.0, VacationService.getVacationDays(LocalDate.of(2019, Month.DECEMBER, 24), LocalDate.of(2019, Month.DECEMBER, 31)), "days off expected.")
+        Assertions.assertEquals(1.5, addVacations(employee, 2019, Month.DECEMBER, 24, Month.DECEMBER, 27), "days off expected.")
+        Assertions.assertEquals(1.0, addVacations(employee, 2018, Month.DECEMBER, 24, Month.DECEMBER, 27, halfDayBegin = true, halfDayEnd = true), "24.12. is already an half day, so 0.5+0.5 expected.")
+        Assertions.assertEquals(1.0, addVacations(employee, 2015, Month.DECEMBER, 23, Month.DECEMBER, 24, halfDayBegin = true, halfDayEnd = true), "24.12. is already an half day, so 0.5+0.5 expected.")
+
+        Assertions.assertEquals(.5, addVacations(employee, 2020, Month.JANUARY, 20, Month.JANUARY, 20, halfDayBegin = true, halfDayEnd = true), "days off expected.")
+
+        Assertions.assertEquals(.5, addVacations(employee, 2020, Month.JANUARY, 21, Month.JANUARY, 21, halfDayBegin = true), "days off expected.")
+        Assertions.assertEquals(.5, addVacations(employee, 2020, Month.JANUARY, 22, Month.JANUARY, 22, halfDayEnd = true), "days off expected.")
+
+        Assertions.assertEquals(2.5, addVacations(employee, 2020, Month.JANUARY, 27, Month.JANUARY, 29, halfDayEnd = true), "days off expected.")
+
+        Assertions.assertEquals(2.5, addVacations(employee, 2020, Month.FEBRUARY, 3, Month.FEBRUARY, 5, halfDayBegin = true), "days off expected.")
+        Assertions.assertEquals(3.0, addVacations(employee, 2020, Month.FEBRUARY, 10, Month.FEBRUARY, 13, halfDayBegin = true, halfDayEnd = true), "days off expected.")
+    }
+
     /**
      * If endMonth is before startMonth, the next year will be used as endYear.
      * @return Number of vacation days (equals to working days between startDate and endDate)
      */
     private fun addVacations(employee: EmployeeDO, startYear: Int, startMonth: Month, startDay: Int, endMonth: Month, endDay: Int,
                              special: Boolean = false, replacement: EmployeeDO = employee, manager: EmployeeDO = employee,
-                             status: VacationStatus = VacationStatus.APPROVED): Double {
+                             status: VacationStatus = VacationStatus.APPROVED,
+                             halfDayBegin: Boolean = false,
+                             halfDayEnd: Boolean = false): Double {
         val endYear = if (startMonth > endMonth)
             startYear + 1 // Vacations over years.
         else
             startYear
-        return addVacations(employee, LocalDate.of(startYear, startMonth, startDay), LocalDate.of(endYear, endMonth, endDay), special, replacement, manager, status)
+        return addVacations(employee, LocalDate.of(startYear, startMonth, startDay), LocalDate.of(endYear, endMonth, endDay), special, replacement, manager, status, halfDayBegin, halfDayEnd)
     }
 
     /**
@@ -314,14 +337,17 @@ class VacationServiceTest : AbstractTestBase() {
      */
     private fun addVacations(employee: EmployeeDO, startDate: LocalDate, endDate: LocalDate,
                              special: Boolean = false, replacement: EmployeeDO = employee, manager: EmployeeDO = employee,
-                             status: VacationStatus = VacationStatus.APPROVED): Double {
+                             status: VacationStatus = VacationStatus.APPROVED,
+                             halfDayBegin: Boolean = false,
+                             halfDayEnd: Boolean = false): Double {
         if (endDate.isBefore(employee.eintrittsDatum))
             return 0.0
         val vacation = VacationDO()
         vacation.employee = employee
         vacation.startDate = if (startDate.isBefore(employee.eintrittsDatum)) employee.eintrittsDatum else startDate
         vacation.endDate = endDate
-        vacation.halfDayBegin = false
+        vacation.halfDayBegin = halfDayBegin
+        vacation.halfDayEnd = halfDayEnd
         vacation.special = false
         vacation.status = status
         vacation.manager = manager
@@ -329,7 +355,7 @@ class VacationServiceTest : AbstractTestBase() {
         vacation.special = special
         vacationDao.save(vacation)
         lastStoredVacation = vacation
-        return PFDayUtils.getNumberOfWorkingDays(startDate, endDate).toDouble()
+        return VacationService.getVacationDays(vacation).toDouble()
     }
 
     private fun createEmployee(name: String, joinDate: LocalDate?, leaveDate: LocalDate? = null, annualLeaveDays: Int = 30, annualLeaveDayEntries: Array<AnnualLeaveDays>? = null): EmployeeDO {
@@ -387,6 +413,10 @@ class VacationServiceTest : AbstractTestBase() {
         } else {
             Assertions.assertEquals(expected, actual?.toDouble(), "$msg: $stats")
         }
+    }
+
+    private fun assertBigDecimal(expected: Double, actual: BigDecimal, msg: String = "") {
+        Assertions.assertEquals(expected, actual.toDouble(), msg)
     }
 
     class AnnualLeaveDays(val year: Int, val value: Int)
