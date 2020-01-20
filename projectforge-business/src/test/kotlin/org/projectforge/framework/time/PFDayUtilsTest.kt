@@ -23,14 +23,24 @@
 
 package org.projectforge.framework.time
 
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.projectforge.test.TestSetup
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
 
 class PFDayUtilsTest {
+
+    @Test
+    fun numberOfWorkingDaysTest() {
+        assertBigDecimal(0.5, PFDayUtils.getNumberOfWorkingDays(LocalDate.of(2019, Month.DECEMBER, 24), LocalDate.of(2019, Month.DECEMBER, 24)))
+        assertBigDecimal(0.5, PFDayUtils.getNumberOfWorkingDays(LocalDate.of(2019, Month.DECEMBER, 31), LocalDate.of(2019, Month.DECEMBER, 31)))
+        assertBigDecimal(1.0, PFDayUtils.getNumberOfWorkingDays(LocalDate.of(2019, Month.DECEMBER, 30), LocalDate.of(2019, Month.DECEMBER, 30)))
+        assertBigDecimal(3.0, PFDayUtils.getNumberOfWorkingDays(LocalDate.of(2019, Month.DECEMBER, 24), LocalDate.of(2019, Month.DECEMBER, 31)))
+    }
 
     @Test
     fun nextWorkingDayTest() {
@@ -49,6 +59,10 @@ class PFDayUtilsTest {
         assertEquals(year, date.year, "Year check failed.")
         assertEquals(month, date.month, "Month check failed.")
         assertEquals(dayOfMonth, date.dayOfMonth, "Day check failed.")
+    }
+
+    private fun assertBigDecimal(expected: Double, actual: BigDecimal, msg: String = "") {
+        Assertions.assertEquals(expected, actual.toDouble(), msg)
     }
 
     companion object {
