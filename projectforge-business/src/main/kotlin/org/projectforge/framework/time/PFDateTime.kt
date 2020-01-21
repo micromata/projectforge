@@ -277,6 +277,10 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         return daysBetween(from(date)!!)
     }
 
+    fun daysBetween(date: LocalDate): Long {
+        return daysBetween(from(date)!!)
+    }
+
     override fun daysBetween(other: PFDateTime): Long {
         return ChronoUnit.DAYS.between(dateTime, other.dateTime)
     }

@@ -52,6 +52,7 @@ import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.jpa.PfEmgr;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +61,7 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -372,15 +374,15 @@ public class BaseDaoJpaAdapter {
           } else {
             log.error("Can't get id though can't copy the BaseDO (see error message above about HHH-3502).");
           }
-        } else if (srcFieldValue instanceof java.sql.Date) {
+        } else if (srcFieldValue instanceof LocalDate) {
           if (destFieldValue == null) {
             field.set(dest, srcFieldValue);
             modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
           } else {
-            final DayHolder srcDay = new DayHolder((Date) srcFieldValue);
-            final DayHolder destDay = new DayHolder((Date) destFieldValue);
+            final DayHolder srcDay = new DayHolder(PFDay.from((LocalDate) srcFieldValue).getUtilDate());
+            final DayHolder destDay = new DayHolder(PFDay.from((LocalDate) destFieldValue).getUtilDate());
             if (!srcDay.isSameDay(destDay)) {
-              field.set(dest, srcDay.getSqlDate());
+              field.set(dest, srcDay.getLocalDate());
               modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
             }
           }

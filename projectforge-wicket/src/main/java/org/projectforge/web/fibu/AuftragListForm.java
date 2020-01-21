@@ -77,12 +77,14 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     final AuftragFilter filter = getSearchFilter();
 
     // time period for erfassungsdatum
+    // TODO: What to do here?
     addTimePeriodPanel("fibu.auftrag.erfassung.datum",
         LambdaModel.of(filter::getStartDate, filter::setStartDate),
         LambdaModel.of(filter::getEndDate, filter::setEndDate)
     );
 
     // time period for period of performance
+    // TODO: What to do here?
     addTimePeriodPanel("fibu.periodOfPerformance",
         LambdaModel.of(filter::getPeriodOfPerformanceStartDate, filter::setPeriodOfPerformanceStartDate),
         LambdaModel.of(filter::getPeriodOfPerformanceEndDate, filter::setPeriodOfPerformanceEndDate)

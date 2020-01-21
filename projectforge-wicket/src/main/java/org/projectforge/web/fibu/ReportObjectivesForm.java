@@ -155,9 +155,9 @@ public class ReportObjectivesForm extends AbstractStandardForm<ReportObjectivesF
     filter = new ReportObjectivesFilter();
     final DateHolder day = new DateHolder();
     day.setBeginOfYear();
-    filter.setFromDate(day.getDate());
+    filter.setFromDate(day.getUtilDate());
     day.setEndOfYear();
-    filter.setToDate(day.getDate());
+    filter.setToDate(day.getUtilDate());
     parentPage.putUserPrefEntry(KEY_REPORT_FILTER, filter, true);
     return filter;
   }

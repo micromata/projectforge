@@ -50,7 +50,7 @@ public class ReportObjectivesFilter implements Serializable
     }
     final DateHolder day = new DateHolder(from);
     day.setBeginOfMonth();
-    this.from = day.getDate();
+    this.from = day.getUtilDate();
   }
 
   public Date getFromDate()
@@ -70,7 +70,7 @@ public class ReportObjectivesFilter implements Serializable
     }
     final DateHolder day = new DateHolder(to);
     day.setEndOfMonth();
-    this.to = day.getDate();
+    this.to = day.getUtilDate();
   }
 
   public Date getToDate()

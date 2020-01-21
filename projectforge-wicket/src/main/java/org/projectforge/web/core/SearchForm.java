@@ -214,10 +214,10 @@ public class SearchForm extends AbstractStandardForm<SearchPageFilter, SearchPag
           }
           final DateHolder dh = new DateHolder(new Date(), DatePrecision.MILLISECOND);
           dh.setEndOfDay();
-          filter.setStopTimeOfModification(dh.getDate());
+          filter.setStopTimeOfModification(dh.getUtilDate());
           dh.setBeginOfDay();
           dh.add(Calendar.DAY_OF_YEAR, -newSelection);
-          filter.setStartTimeOfModification(dh.getDate());
+          filter.setStartTimeOfModification(dh.getUtilDate());
           filter.setLastDays(null);
           modifiedStartDatePanel.markModelAsChanged();
           modifiedStopDatePanel.markModelAsChanged();

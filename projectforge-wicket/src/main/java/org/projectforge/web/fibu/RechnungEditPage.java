@@ -64,9 +64,9 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
   {
     super(parameters, "fibu.rechnung");
     init();
-    if (isNew() == true) {
+    if (isNew()) {
       final DayHolder day = new DayHolder();
-      getData().setDatum(day.getSqlDate());
+      getData().setDatum(day.getLocalDate());
       getData().setStatus(RechnungStatus.GESTELLT);
       getData().setTyp(RechnungTyp.RECHNUNG);
     } else {
@@ -101,8 +101,8 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
   @Override
   public AbstractSecuredBasePage onSaveOrUpdate()
   {
-    if (isNew() == true && getData().getNummer() == null && getData().getTyp() != RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN
-        && RechnungStatus.GEPLANT.equals(getData().getStatus()) == false) {
+    if (isNew() && getData().getNummer() == null && getData().getTyp() != RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN
+        && !RechnungStatus.GEPLANT.equals(getData().getStatus())) {
       getData().setNummer(rechnungDao.getNextNumber(getData()));
     }
     return null;
@@ -138,18 +138,18 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
 
     final Integer zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
     final DayHolder dayZahlungsziel = new DayHolder();
-    rechnung.setDatum(dayZahlungsziel.getSqlDate());
+    rechnung.setDatum(dayZahlungsziel.getLocalDate());
     if (zahlungsZielInTagen != null) {
       dayZahlungsziel.add(Calendar.DAY_OF_MONTH, zahlungsZielInTagen);
     }
-    rechnung.setFaelligkeit(dayZahlungsziel.getSqlDate());
+    rechnung.setFaelligkeit(dayZahlungsziel.getLocalDate());
 
     final Integer skontoInTagen = rechnung.getDiscountZahlungsZielInTagen();
     final DayHolder daySkonto = new DayHolder();
     if (skontoInTagen != null) {
       daySkonto.add(Calendar.DAY_OF_MONTH, skontoInTagen);
     }
-    rechnung.setDiscountMaturity(daySkonto.getSqlDate());
+    rechnung.setDiscountMaturity(daySkonto.getLocalDate());
 
     rechnung.setZahlBetrag(null);
     rechnung.setBezahlDatum(null);
@@ -158,7 +158,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
     if (positionen != null) {
       rechnung.setPositionen(new ArrayList<>());
       for (final RechnungsPositionDO origPosition : positionen) {
-        final RechnungsPositionDO position = (RechnungsPositionDO) origPosition.newClone();
+        final RechnungsPositionDO position = origPosition.newClone();
         rechnung.addPosition(position);
       }
     }
@@ -174,13 +174,13 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
   @Override
   public void select(final String property, final Object selectedValue)
   {
-    if ("projektId".equals(property) == true) {
+    if ("projektId".equals(property)) {
       rechnungDao.setProjekt(getData(), (Integer) selectedValue);
       form.projektSelectPanel.getTextField().modelChanged();
       if (getData().getProjektId() != null
           && getData().getProjektId() >= 0
           && getData().getKundeId() == null
-          && StringUtils.isBlank(getData().getKundeText()) == true) {
+          && StringUtils.isBlank(getData().getKundeText())) {
         // User has selected a project and the kunde is not set:
         final ProjektDO projekt = projektDao.getById(getData().getProjektId());
         if (projekt != null) {
@@ -188,7 +188,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
           form.customerSelectPanel.getTextField().modelChanged();
         }
       }
-    } else if ("kundeId".equals(property) == true) {
+    } else if ("kundeId".equals(property)) {
       rechnungDao.setKunde(getData(), (Integer) selectedValue);
       form.customerSelectPanel.getTextField().modelChanged();
     } else {
@@ -199,10 +199,10 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
   @Override
   public void unselect(final String property)
   {
-    if ("projektId".equals(property) == true) {
+    if ("projektId".equals(property)) {
       getData().setProjekt(null);
       form.projektSelectPanel.getTextField().modelChanged();
-    } else if ("kundeId".equals(property) == true) {
+    } else if ("kundeId".equals(property)) {
       getData().setKunde(null);
       form.customerSelectPanel.getTextField().modelChanged();
     } else {

@@ -51,7 +51,6 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.Tuple;
 import javax.persistence.criteria.JoinType;
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
@@ -501,9 +500,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
               .filter(payment -> payment.getPositionNumber() == pos.getNumber())
               .map(PaymentScheduleDO::getScheduleDate)
               .filter(Objects::nonNull)
-              .anyMatch(date -> date.before(Date.from(periodOfPerformanceBegin.atStartOfDay()
-                  .atZone(ZoneId.systemDefault()).toInstant())) || date.after(Date.from(periodOfPerformanceEnd.atStartOfDay()
-                  .atZone(ZoneId.systemDefault()).toInstant())));
+              .anyMatch(date -> date.isBefore(periodOfPerformanceBegin) || date.isAfter(periodOfPerformanceEnd));
 
       if (hasDateNotInRange) {
         positionsWithDatesNotWithinPop.add(pos.getNumber());

@@ -74,7 +74,7 @@ public class QuickSelectWeekPanel extends AbstractSelectPanel<Date>
           final DateHolder dateHolder = new DateHolder(getModelObject());
           dateHolder.add(Calendar.WEEK_OF_YEAR, -1);
           dateHolder.setBeginOfWeek();
-          beginOfWeek = dateHolder.getDate();
+          beginOfWeek = dateHolder.getUtilDate();
           caller.select(selectProperty, beginOfWeek);
         };
       };
@@ -90,7 +90,7 @@ public class QuickSelectWeekPanel extends AbstractSelectPanel<Date>
         {
           final DateHolder dateHolder = new DateHolder();
           dateHolder.setBeginOfWeek();
-          beginOfWeek = dateHolder.getDate();
+          beginOfWeek = dateHolder.getUtilDate();
           caller.select(selectProperty, beginOfWeek);
         };
       };
@@ -106,7 +106,7 @@ public class QuickSelectWeekPanel extends AbstractSelectPanel<Date>
         {
           final DateHolder dateHolder = new DateHolder(getModelObject());
           dateHolder.add(Calendar.WEEK_OF_YEAR, +1);
-          beginOfWeek = dateHolder.getDate();
+          beginOfWeek = dateHolder.getUtilDate();
           caller.select(selectProperty, beginOfWeek);
         };
       };

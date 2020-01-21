@@ -47,6 +47,7 @@ import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 
 import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -245,7 +246,7 @@ public class LiquidityEntryListPage
   private LiquidityForecast getForecast()
   {
     // Consider only invoices of the last year:
-    final java.sql.Date fromDate = PFDateTime.now().minusYears(1).getSqlDate();
+    final LocalDate fromDate = LocalDate.now().minusYears(1);
     {
       final List<RechnungDO> paidInvoices = rechnungDao.getList(new RechnungFilter().setShowBezahlt().setFromDate(fromDate));
       forecast.calculateExpectedTimeOfPayments(paidInvoices);

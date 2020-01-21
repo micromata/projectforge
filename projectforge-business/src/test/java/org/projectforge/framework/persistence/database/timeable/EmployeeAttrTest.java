@@ -32,7 +32,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.sql.Timestamp;
 import java.util.Date;
 
 /**
@@ -66,7 +65,7 @@ public class EmployeeAttrTest extends AbstractTestBase
     e.setComment("EmployeeAttrTest");
     final EmployeeTimedDO et = employeeDao.newEmployeeTimeAttrRow(e);
     et.setGroupName("PERIOD");
-    et.setStartTime(new Timestamp(new Date().getTime()));
+    et.setStartTime(new Date());
     et.putAttribute("hollydays", 42);
     et.putAttribute("longValue", longValue);
     et.putAttribute("longValue2", longValue);

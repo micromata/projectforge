@@ -24,7 +24,7 @@
 package org.projectforge.web.fibu;
 
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -74,7 +74,7 @@ public class InvoicePositionsPanel extends Panel
       }
       boolean first = true;
       Integer invoiceId = null;
-      Date invoiceDate = null;
+      LocalDate invoiceDate = null;
       for (final Integer invoiceNumber : invoiceNumbers) {
         BigDecimal netSum = BigDecimal.ZERO;
         for (final RechnungsPositionVO invoicePosition : invoicePositionsByOrderPositionId) {
@@ -89,7 +89,7 @@ public class InvoicePositionsPanel extends Panel
         final WebMarkupContainer item = new WebMarkupContainer(positionsRepeater.newChildId());
         positionsRepeater.add(item);
         final Label separatorLabel = new Label("separator", ", ");
-        if (first == true) {
+        if (first) {
           separatorLabel.setVisible(false); // Invisible for first entry.
           first = false;
         }
@@ -110,7 +110,7 @@ public class InvoicePositionsPanel extends Panel
         final Component label = new Label("label", invoiceNumber);
         item.add(label);
         final String tooltip = DateTimeFormatter.instance().getFormattedDate(invoiceDate) + ": " + CurrencyFormatter.format(netSum);
-        if (rechnungDao.hasLoggedInUserSelectAccess(false) == true) {
+        if (rechnungDao.hasLoggedInUserSelectAccess(false)) {
           link.add(new Label("label", invoiceNumber));
           WicketUtils.addTooltip(link, tooltip);
           label.setVisible(false);
@@ -157,7 +157,7 @@ public class InvoicePositionsPanel extends Panel
       // final String invoiceNumber = String.valueOf(invoicePosition.getRechnungNummer());
       // final Component label = new Label("label", invoiceNumber);
       // item.add(label);
-      // final String tooltip = DateTimeFormatter.instance().getFormattedDate(invoicePosition.getDate())
+      // final String tooltip = DateTimeFormatter.instance().getFormattedDate(invoicePosition.getUtilDate())
       // + ": "
       // + CurrencyFormatter.format(netSum);
       // if (rechnungDao.hasLoggedInUserSelectAccess(false) == true) {

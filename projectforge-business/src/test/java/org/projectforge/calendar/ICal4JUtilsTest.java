@@ -62,7 +62,7 @@ public class ICal4JUtilsTest
   @Test
   public void testSqlDate()
   {
-    final net.fortuna.ical4j.model.Date date = ICal4JUtils.getICal4jDate(
+    final net.fortuna.ical4j.model.Date date = ICal4JUtils.getICal4jDateTime(
         DateHelper.parseIsoDate("2012-12-22", DateHelper.EUROPE_BERLIN),
         DateHelper.EUROPE_BERLIN);
     Assertions.assertEquals("20121222", date.toString());
@@ -82,7 +82,7 @@ public class ICal4JUtilsTest
   private net.fortuna.ical4j.model.Date getDate(final String dateString, final TimeZone timeZone)
   {
     final java.util.Date date = DateHelper.parseIsoDate(dateString, timeZone);
-    return ICal4JUtils.getICal4jDate(date, timeZone);
+    return ICal4JUtils.getICal4jDateTime(date, timeZone);
   }
 
   @Test

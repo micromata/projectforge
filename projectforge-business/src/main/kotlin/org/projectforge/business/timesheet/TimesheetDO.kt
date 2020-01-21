@@ -33,7 +33,6 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.*
-import java.sql.Timestamp
 import java.util.*
 import javax.persistence.*
 
@@ -81,13 +80,13 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column(name = "start_time", nullable = false)
-    open var startTime: Timestamp? = null
+    open var startTime: Date? = null
 
     @PropertyInfo(i18nKey = "timesheet.stopTime")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column(name = "stop_time", nullable = false)
-    open var stopTime: Timestamp? = null
+    open var stopTime: Date? = null
 
     @PropertyInfo(i18nKey = "timesheet.location")
     @UserPrefParameter(i18nKey = "timesheet.location")
@@ -228,7 +227,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
 
     @Transient
     fun setStopDate(millis: Long): TimesheetDO {
-        stopTime = Timestamp(millis)
+        stopTime = Date(millis)
         return this
     }
 

@@ -23,7 +23,6 @@
 
 package org.projectforge.web.wicket.components;
 
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -39,7 +38,6 @@ import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
-import java.sql.Timestamp;
 import java.util.Date;
 
 /**
@@ -62,11 +60,11 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
   private static final LabelValueChoiceRenderer<Integer> MINUTES_15_RENDERER;
 
   static {
-    HOURS_OF_DAY_RENDERER_24 = new LabelValueChoiceRenderer<Integer>();
+    HOURS_OF_DAY_RENDERER_24 = new LabelValueChoiceRenderer<>();
     for (int i = 0; i <= 23; i++) {
       HOURS_OF_DAY_RENDERER_24.addValue(i, StringHelper.format2DigitNumber(i));
     }
-    HOURS_OF_DAY_RENDERER_12 = new LabelValueChoiceRenderer<Integer>();
+    HOURS_OF_DAY_RENDERER_12 = new LabelValueChoiceRenderer<>();
     HOURS_OF_DAY_RENDERER_12.addValue(0, "12 AM");
     for (int i = 1; i <= 11; i++) {
       HOURS_OF_DAY_RENDERER_12.addValue(i, StringHelper.format2DigitNumber(i) + " AM");
@@ -75,16 +73,16 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
     for (int i = 1; i <= 12; i++) {
       HOURS_OF_DAY_RENDERER_12.addValue(i + 12, StringHelper.format2DigitNumber(i) + " PM");
     }
-    MINUTES_1_RENDERER = new LabelValueChoiceRenderer<Integer>();
+    MINUTES_1_RENDERER = new LabelValueChoiceRenderer<>();
     for (int i = 0; i <= 59; i++) {
       MINUTES_1_RENDERER.addValue(i, StringHelper.format2DigitNumber(i));
     }
-    MINUTES_15_RENDERER = new LabelValueChoiceRenderer<Integer>();
+    MINUTES_15_RENDERER = new LabelValueChoiceRenderer<>();
     MINUTES_15_RENDERER.addValue(0, "00");
     MINUTES_15_RENDERER.addValue(15, "15");
     MINUTES_15_RENDERER.addValue(30, "30");
     MINUTES_15_RENDERER.addValue(45, "45");
-    MINUTES_5_RENDERER = new LabelValueChoiceRenderer<Integer>();
+    MINUTES_5_RENDERER = new LabelValueChoiceRenderer<>();
     for (int i = 0; i <= 55; i += 5) {
       MINUTES_5_RENDERER.addValue(i, StringHelper.format2DigitNumber(i));
     }
@@ -143,15 +141,15 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
     this.settings = settings;
     setType(settings.targetType);
     dateHolder = new DateHolder(model.getObject(), precision);
-    final PropertyModel<Date> dateFieldModel = new PropertyModel<Date>(this, "date");
+    final PropertyModel<Date> dateFieldModel = new PropertyModel<>(this, "date");
     add(datePanel = new DatePanel("date", dateFieldModel, settings));
     datePanel.setRequired(settings.required);
-    hourOfDayDropDownChoice = new DropDownChoice<Integer>("hourOfDay", new PropertyModel<Integer>(this, "hourOfDay"),
+    hourOfDayDropDownChoice = new DropDownChoice<>("hourOfDay", new PropertyModel<>(this, "hourOfDay"),
         getHourOfDayRenderer().getValues(), getHourOfDayRenderer());
     hourOfDayDropDownChoice.setNullValid(!settings.required);
     hourOfDayDropDownChoice.setRequired(settings.required);
     timeContainer.add(hourOfDayDropDownChoice);
-    minuteDropDownChoice = new DropDownChoice<Integer>("minute", new PropertyModel<Integer>(this, "minute"), getMinutesRenderer(
+    minuteDropDownChoice = new DropDownChoice<>("minute", new PropertyModel<>(this, "minute"), getMinutesRenderer(
         dateHolder.getPrecision()).getValues(), getMinutesRenderer(dateHolder.getPrecision()));
     minuteDropDownChoice.setNullValid(!settings.required);
     minuteDropDownChoice.setRequired(settings.required);
@@ -192,7 +190,7 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
 
   public void setDate(final Date date)
   {
-    if (date == null && settings.required == false) {
+    if (date == null && !settings.required) {
       isNull = true;
     } else {
       this.dateHolder.setDate(date);
@@ -211,23 +209,15 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
 
   public Date getDate()
   {
-    if (isNull == true) {
+    if (isNull) {
       return null;
     }
-    return dateHolder.getDate();
-  }
-
-  public Timestamp getTimestamp()
-  {
-    if (isNull == true) {
-      return null;
-    }
-    return this.dateHolder.getTimestamp();
+    return dateHolder.getUtilDate();
   }
 
   public Integer getHourOfDay()
   {
-    if (isNull == true) {
+    if (isNull) {
       return null;
     }
     return dateHolder.getHourOfDay();
@@ -242,7 +232,7 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
 
   public Integer getMinute()
   {
-    if (isNull == true) {
+    if (isNull) {
       return null;
     }
     return dateHolder.getMinute();
@@ -287,10 +277,10 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
     if (date != null) {
       dateHolder.setDate(date);
       isNull = false;
-    } else if (settings.required == false) {
+    } else if (!settings.required) {
       isNull = true;
     }
-    if (modelMarkedAsChanged == true) {
+    if (modelMarkedAsChanged) {
       hourOfDayDropDownChoice.modelChanged();
       minuteDropDownChoice.modelChanged();
       modelMarkedAsChanged = false;
@@ -313,12 +303,8 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
       if (minutes != null) {
         dateHolder.setMinute(minutes);
       }
-      if (ClassUtils.isAssignable(getType(), Timestamp.class) == true) {
-        setConvertedInput(dateHolder.getTimestamp());
-      } else {
-        setConvertedInput(dateHolder.getDate());
-      }
-    } else if (settings.required == false) {
+      setConvertedInput(dateHolder.getUtilDate());
+    } else if (!settings.required) {
       isNull = true;
       setConvertedInput(null);
     }
@@ -327,10 +313,10 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
   @Override
   public String toString()
   {
-    if (isNull == true) {
+    if (isNull) {
       return null;
     }
-    return dateHolder.getDate().toString();
+    return dateHolder.getUtilDate().toString();
   }
 
   /**

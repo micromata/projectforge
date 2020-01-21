@@ -116,7 +116,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     Validate.notNull(event);
     Validate.notNull(recurrencyChangeType);
     // event contains the new start and/or stop date if modified.
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("TeamEvent is: newStartDate="
           + newStartDate
           + ", newEndDate="
@@ -169,7 +169,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   protected void init(final TeamEventDO data)
   {
     super.init(data);
-    if (isNew() == false) {
+    if (!isNew()) {
       @SuppressWarnings("serial")
       final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
           new Link<Void>(ContentMenuEntryPanel.LINK_ID)
@@ -184,7 +184,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
               final StringBuffer buf = new StringBuffer();
               buf.append(getData().getSubject());
               final String note = getData().getNote();
-              if (StringUtils.isNotBlank(note) == true) {
+              if (StringUtils.isNotBlank(note)) {
                 buf.append("\n").append(note);
               }
               timesheet.setDescription(buf.toString());
@@ -197,7 +197,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
           }, getString("plugins.teamcal.event.convert2Timesheet"));
       addContentMenuEntry(menu);
     }
-    if (isNew() == true) {
+    if (isNew()) {
       @SuppressWarnings("serial")
       final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new SubmitLink(
           ContentMenuEntryPanel.LINK_ID, form)

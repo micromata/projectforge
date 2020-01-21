@@ -29,7 +29,6 @@ import org.projectforge.framework.time.TimePeriod;
 import java.io.Serializable;
 import java.util.Date;
 
-
 /**
  * 
  * @author Mario Groß (m.gross@micromata.de)

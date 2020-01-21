@@ -57,6 +57,7 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
 
     // time period for Rechnungsdatum
     final F filter = getSearchFilter();
+    // TODO: What to do here?
     addTimePeriodPanel("fibu.rechnung.datum",
         LambdaModel.of(filter::getFromDate, filter::setFromDate),
         LambdaModel.of(filter::getToDate, filter::setToDate)

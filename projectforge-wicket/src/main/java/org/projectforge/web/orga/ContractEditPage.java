@@ -48,7 +48,7 @@ public class ContractEditPage extends AbstractEditPage<ContractDO, ContractEditF
     super(parameters, "legalAffaires.contract");
     init();
     if (isNew() == true) {
-      getData().setDate(new DayHolder().getSqlDate());
+      getData().setDate(new DayHolder().getLocalDate());
     }
   }
 
@@ -70,7 +70,7 @@ public class ContractEditPage extends AbstractEditPage<ContractDO, ContractEditF
     super.cloneData();
     final ContractDO contract = getData();
     contract.setNumber(null);
-    contract.setDate(new DayHolder().getSqlDate());
+    contract.setDate(new DayHolder().getLocalDate());
     form.numberField.modelChanged();
   }
 

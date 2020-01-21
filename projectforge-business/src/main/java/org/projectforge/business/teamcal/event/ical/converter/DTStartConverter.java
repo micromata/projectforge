@@ -58,7 +58,7 @@ public class DTStartConverter extends PropertyConverter {
     }
 
     event.setAllDay(this.isAllDay(vEvent));
-    event.setStartDate(ICal4JUtils.getSqlTimestamp(dtStart.getDate()));
+    event.setStartDate(ICal4JUtils.getUtilDate(dtStart.getDate()));
 
     return true;
   }

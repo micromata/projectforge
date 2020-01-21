@@ -111,7 +111,7 @@ object BirthdaysProvider {
             }
             day = day.plusDays(1)
             if (++paranoiaCounter > 1000) {
-                log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of getDate.")
+                log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of getUtilDate.")
                 break
             }
         } while (!day.isAfter(end))

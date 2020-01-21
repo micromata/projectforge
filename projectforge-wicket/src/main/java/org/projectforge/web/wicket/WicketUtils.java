@@ -719,7 +719,7 @@ public class WicketUtils
       return "";
     }
     final DateHolder dh = new DateHolder(date);
-    return DateHelper.TECHNICAL_ISO_UTC.get().format(dh.getDate());
+    return DateHelper.TECHNICAL_ISO_UTC.get().format(dh.getUtilDate());
   }
 
   /**
@@ -733,7 +733,7 @@ public class WicketUtils
       return label + ":";
     }
     final DateHolder dh = new DateHolder(date);
-    return label + ": " + DateHelper.TECHNICAL_ISO_UTC.get().format(dh.getDate());
+    return label + ": " + DateHelper.TECHNICAL_ISO_UTC.get().format(dh.getUtilDate());
   }
 
   /**
@@ -760,13 +760,13 @@ public class WicketUtils
     final DateHolder start = startTime != null ? new DateHolder(startTime) : null;
     final DateHolder stop = stopTime != null ? new DateHolder(stopTime) : null;
     if (start != null) {
-      buf.append(DateHelper.TECHNICAL_ISO_UTC.get().format(start.getDate()));
+      buf.append(DateHelper.TECHNICAL_ISO_UTC.get().format(start.getUtilDate()));
       if (stop != null) {
         buf.append(" - ");
       }
     }
     if (stop != null) {
-      buf.append(DateHelper.TECHNICAL_ISO_UTC.get().format(stop.getDate()));
+      buf.append(DateHelper.TECHNICAL_ISO_UTC.get().format(stop.getUtilDate()));
     }
     return buf.toString();
   }
@@ -777,8 +777,8 @@ public class WicketUtils
     for (int i = 0; i > -lastNDays; i--) {
       final DayHolder day = new DayHolder();
       day.add(Calendar.DAY_OF_YEAR, i);
-      datumChoiceRenderer.addValue(day.getSqlDate().getTime(),
-          DateTimeFormatter.instance().getFormattedDate(day.getSqlDate(),
+      datumChoiceRenderer.addValue(day.getUtilDate().getTime(),
+          DateTimeFormatter.instance().getFormattedDate(day.getLocalDate(),
               DateFormats.getFormatString(DateFormatType.DATE)));
     }
     return datumChoiceRenderer;

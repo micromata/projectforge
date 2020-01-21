@@ -291,7 +291,7 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
       } else {
         log.error("Property '" + property + "' not supported for selection.");
       }
-      form.getSearchFilter().setStopTime(dateHolder.getDate());
+      form.getSearchFilter().setStopTime(dateHolder.getUtilDate());
       form.startDate.markModelAsChanged();
       form.stopDate.markModelAsChanged();
       refresh();

@@ -41,7 +41,6 @@ import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Time;
-import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -350,7 +349,6 @@ public class DeltaSetCalculator
       log.debug("One or the other were null (but not both)");
       return false;
     } else if ((Date.class.isAssignableFrom(obj1.getClass()))
-        || (Timestamp.class.isAssignableFrom(obj1.getClass()))
         || (java.sql.Date.class.isAssignableFrom(obj1.getClass()))
         || (Time.class.isAssignableFrom(obj1.getClass()))) {
       Date d1 = (Date) obj1;

@@ -37,7 +37,6 @@ import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.DayHolder
 import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal
-import java.sql.Date
 import java.time.LocalDate
 import java.util.*
 import javax.persistence.*
@@ -366,10 +365,10 @@ open class HRPlanningDO : DefaultBaseDO() {
          * first working day of the week.
          * @see DayHolder.setBeginOfWeek
          */
-        fun getFirstDayOfWeek(date: java.util.Date): Date {
+        fun getFirstDayOfWeek(date: Date): Date {
             val day = DayHolder(date, DateHelper.UTC)
             day.setBeginOfWeek()
-            return day.sqlDate
+            return day.utilDate
         }
     }
 }

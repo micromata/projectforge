@@ -25,13 +25,13 @@ package org.projectforge.plugins.liquidityplanning;
 
 import org.projectforge.business.fibu.*;
 import org.projectforge.framework.time.DayHolder;
-import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.statistics.IntAggregatedValues;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.*;
 
 /**
@@ -150,8 +150,8 @@ public class LiquidityForecast implements Serializable
       return this;
     }
     for (final RechnungDO invoice : list) {
-      final DayHolder date = new DayHolder(invoice.getDatum());
-      final DayHolder dateOfPayment = new DayHolder(invoice.getBezahlDatum());
+      final DayHolder date = new DayHolder(PFDay.from(invoice.getDatum()).getUtilDate());
+      final DayHolder dateOfPayment = new DayHolder(PFDay.from(invoice.getBezahlDatum()).getUtilDate());
       if (date == null || dateOfPayment == null) {
         continue;
       }
@@ -186,9 +186,9 @@ public class LiquidityForecast implements Serializable
 
   private void setExpectedTimeOfPayment(final LiquidityEntry entry, final RechnungDO invoice)
   {
-    Date dateOfInvoice = invoice.getDatum();
+    LocalDate dateOfInvoice = invoice.getDatum();
     if (dateOfInvoice == null) {
-      dateOfInvoice = new DayHolder().getSqlDate();
+      dateOfInvoice = new DayHolder().getLocalDate();
     }
     final ProjektDO project = invoice.getProjekt();
     if (project != null
@@ -223,7 +223,7 @@ public class LiquidityForecast implements Serializable
     }
   }
 
-  private boolean setExpectedDateOfPayment(final LiquidityEntry entry, final Date dateOfInvoice, final String mapKey,
+  private boolean setExpectedDateOfPayment(final LiquidityEntry entry, final LocalDate dateOfInvoice, final String mapKey,
       final String area)
   {
     final IntAggregatedValues values = aggregatedDebitorInvoicesValuesMap.get(mapKey);
@@ -265,8 +265,8 @@ public class LiquidityForecast implements Serializable
       return this;
     }
     for (final EingangsrechnungDO invoice : list) {
-      final DayHolder date = new DayHolder(invoice.getDatum());
-      final DayHolder dateOfPayment = new DayHolder(invoice.getBezahlDatum());
+      final DayHolder date = new DayHolder(PFDay.from(invoice.getDatum()).getUtilDate());
+      final DayHolder dateOfPayment = new DayHolder(PFDay.from(invoice.getBezahlDatum()).getUtilDate());
       if (date == null || dateOfPayment == null) {
         continue;
       }
@@ -292,9 +292,9 @@ public class LiquidityForecast implements Serializable
 
   private void setExpectedTimeOfPayment(final LiquidityEntry entry, final EingangsrechnungDO invoice)
   {
-    Date dateOfInvoice = invoice.getDatum();
+    LocalDate dateOfInvoice = invoice.getDatum();
     if (dateOfInvoice == null) {
-      dateOfInvoice = new DayHolder().getSqlDate();
+      dateOfInvoice = new DayHolder().getLocalDate();
     }
     final KontoDO account = invoice.getKonto();
     if (account != null
@@ -318,7 +318,7 @@ public class LiquidityForecast implements Serializable
     }
   }
 
-  private boolean setExpectedDateOfCreditorPayment(final LiquidityEntry entry, final Date dateOfInvoice,
+  private boolean setExpectedDateOfCreditorPayment(final LiquidityEntry entry, final LocalDate dateOfInvoice,
       final String mapKey,
       final String area)
   {
@@ -349,10 +349,10 @@ public class LiquidityForecast implements Serializable
     values.add(timeForPayment, amount);
   }
 
-  private Date getDate(final Date date, final int timeOfPayment)
+  private LocalDate getDate(final LocalDate date, final int timeOfPayment)
   {
-    final PFDateTime day = PFDateTime.from(date).plusDays(timeOfPayment);
-    return day.getSqlDate();
+    final PFDay day = PFDay.from(date).plusDays(timeOfPayment);
+    return day.getLocalDate();
   }
 
   /**

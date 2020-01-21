@@ -62,9 +62,9 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
     super(parameters, "hr.planning");
     final Integer userId = WicketUtils.getAsInteger(parameters, WebConstants.PARAMETER_USER_ID);
     final Long millis = WicketUtils.getAsLong(parameters, WebConstants.PARAMETER_DATE);
-    final java.sql.Date week;
+    final LocalDate week;
     if (millis != null) {
-      week = new DayHolder(new Date(millis)).getSqlDate();
+      week = new DayHolder(new Date(millis)).getLocalDate();
     } else {
       week = null;
     }
@@ -82,13 +82,13 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
       getBaseDao().setUser(getData(), userId);
     }
     if (week != null) {
-      getData().setWeek(week.toLocalDate());
+      getData().setWeek(week);
     }
     if (getData().getWeek() != null) {
       final DateHolder date = new DateHolder(java.sql.Date.valueOf(getData().getWeek()), ConfigurationServiceAccessor.get().getDefaultLocale());
       if (!date.isBeginOfWeek()) {
         date.setBeginOfWeek();
-        getData().setWeek(date.getSQLDate().toLocalDate());
+        getData().setWeek(date.getLocalDate());
       }
     } else {
       // Get week of last edited entry as default.
@@ -114,7 +114,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
   @Override
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
-    putUserPrefEntry(SESSION_KEY_RECENT_WEEK, getData().getWeek().toEpochDay(), true); // Store as recent date.
+    putUserPrefEntry(SESSION_KEY_RECENT_WEEK, getData().getWeek(), true); // Store as recent date.
     return null;
   }
 
@@ -124,7 +124,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
   @Override
   public void select(final String property, final Object selectedValue)
   {
-    if (property.startsWith("projektId:") == true) {
+    if (property.startsWith("projektId:")) {
       try {
         final Integer idx = NumberHelper.parseInteger(property.split(":")[1]);
         final Integer uiId = NumberHelper.parseInteger(property.split(":")[2]);
@@ -134,7 +134,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
       } catch (final IndexOutOfBoundsException ex) {
         log.error("Oups, idx not supported: " + ex.getMessage(), ex);
       }
-    } else if ("userId".equals(property) == true) {
+    } else if ("userId".equals(property)) {
       getBaseDao().setUser(getData(), (Integer) selectedValue);
       form.refresh();
     } else {
@@ -148,7 +148,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
   @Override
   public void unselect(final String property)
   {
-    if (property.startsWith("projektId:") == true) {
+    if (property.startsWith("projektId:")) {
       final Integer idx = NumberHelper.parseInteger(property.split(":")[1]);
       final HRPlanningEntryDO entry = getData().getEntry(idx);
       entry.setProjekt(null);

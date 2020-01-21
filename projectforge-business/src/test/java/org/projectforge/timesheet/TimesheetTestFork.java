@@ -38,7 +38,6 @@ import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.time.Month;
 import java.util.Date;
 import java.util.Locale;
@@ -73,8 +72,8 @@ public class TimesheetTestFork extends AbstractTestBase {
         ts.setUser(getUser("ts-hasSelectAccess-user"));
         ts.setLocation("Office");
         ts.setDescription("A lot of stuff done and more.");
-        ts.setStartTime(new Timestamp(current));
-        ts.setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
+        ts.setStartTime(new Date(current));
+        ts.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
         id[0] = timesheetDao.internalSave(ts);
         timesheetDao.internalSave(ts);
         return null;
@@ -102,8 +101,8 @@ public class TimesheetTestFork extends AbstractTestBase {
     initTestDB.addUser("saveAndModify-user");
     final TimesheetDO ts1 = new TimesheetDO();
     final long current = System.currentTimeMillis();
-    ts1.setStartTime(new Timestamp(current));
-    ts1.setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
+    ts1.setStartTime(new Date(current));
+    ts1.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
     try {
       timesheetDao.internalSave(ts1);
       fail("timesheet without task and/or user should not be possible.");
@@ -123,8 +122,8 @@ public class TimesheetTestFork extends AbstractTestBase {
     } catch (final Exception ex) {
     }
     ts1.setTask(getTask("saveAndModify-task"));
-    ts1.setStartTime(new Timestamp(current));
-    ts1.setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
+    ts1.setStartTime(new Date(current));
+    ts1.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
     timesheetDao.internalSave(ts1);
     // ToDo: Check onSaveOrUpdate: kost2Id vs. task!
   }

@@ -51,7 +51,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.sql.Timestamp;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -266,10 +265,10 @@ public class TeamEventDaoRest
 
     TeamEventDO eventDO = new TeamEventDO();
 
-    eventDO.setEndDate(new Timestamp(src.getEndDate().getTime()));
+    eventDO.setEndDate(new Date(src.getEndDate().getTime()));
     eventDO.setLocation(src.getLocation());
     eventDO.setNote(src.getNote());
-    eventDO.setStartDate(new Timestamp(src.getStartDate().getTime()));
+    eventDO.setStartDate(new Date(src.getStartDate().getTime()));
     eventDO.setSubject(src.getSubject());
     eventDO.setUid(src.getUid());
     eventDO.setAllDay(src.getAllDay());

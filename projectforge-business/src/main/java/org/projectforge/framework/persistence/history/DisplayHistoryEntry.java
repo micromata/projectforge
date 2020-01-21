@@ -44,7 +44,6 @@ import org.projectforge.framework.utils.NumberHelper;
 
 import javax.persistence.EntityManager;
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -146,7 +145,7 @@ public class DisplayHistoryEntry implements Serializable {
   }
 
   private String objectValueToDisplay(Object value) {
-    if (value instanceof Date || value instanceof java.sql.Date || value instanceof Timestamp) {
+    if (value instanceof Date || value instanceof java.sql.Date) {
       return formatDate(value);
     }
 

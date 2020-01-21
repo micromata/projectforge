@@ -241,7 +241,7 @@ open class ForecastExport { // open needed by Wicket.
                 sheet.setDateValue(rowNumber, InvoicesCol.DATE_OF_PAYMENT.header, PFDay(invoice.bezahlDatum!!).utilDate, ctx.excelDateFormat)
                 val leistungsZeitraumColDef = sheet.getColumnDef(InvoicesCol.LEISTUNGSZEITRAUM.header)
                 sheet.setDateValue(rowNumber, leistungsZeitraumColDef, PFDay(invoice.periodOfPerformanceBegin!!).utilDate, ctx.excelDateFormat)
-                sheet.setDateValue(rowNumber, leistungsZeitraumColDef.columnNumber + 1, PFDay(invoice.periodOfPerformanceEnd!!).utilDate, ctx.excelDateFormat)
+                sheet.setDateValue(rowNumber, leistungsZeitraumColDef!!.columnNumber + 1, PFDay(invoice.periodOfPerformanceEnd!!).utilDate, ctx.excelDateFormat)
                 sheet.setStringValue(rowNumber, InvoicesCol.ORDER.header, "${order.nummer}.${orderPos.number}")
                 sheet.setBigDecimalValue(rowNumber, InvoicesCol.NETSUM.header, pos.netSum).cellStyle = ctx.currencyCellStyle
                 sheet.setBigDecimalValue(rowNumber, firstMonthCol + monthIndex, pos.netSum).cellStyle = ctx.currencyCellStyle
@@ -331,7 +331,7 @@ open class ForecastExport { // open needed by Wicket.
                     continue
                 val amount = schedule.amount!!.multiply(probability)
                 sum += amount
-                if (beginDistribute.isBefore(schedule.scheduleDate!!)) {
+                if (beginDistribute.isBefore(PFDay.from(schedule.scheduleDate!!)!!)) {
                     beginDistribute = PFDay.from(schedule.scheduleDate)!!
                 }
                 if (first) first = false else sb.append(", ")

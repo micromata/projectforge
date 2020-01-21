@@ -25,19 +25,16 @@ package org.projectforge.fibu;
 
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.*;
-import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.time.LocalDate;
 import java.util.Iterator;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RechnungCacheTest extends AbstractTestBase {
   @Autowired

@@ -34,7 +34,6 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.xstream.XmlObjectReader
 import java.math.BigDecimal
-import java.sql.Date
 import java.time.LocalDate
 import javax.persistence.*
 
@@ -112,7 +111,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "fibu.rechnung.discountMaturity")
     @get:Column
-    open var discountMaturity: Date? = null
+    open var discountMaturity: LocalDate? = null
 
     @get:Transient
     abstract val abstractPositionen: List<AbstractRechnungsPositionDO>?

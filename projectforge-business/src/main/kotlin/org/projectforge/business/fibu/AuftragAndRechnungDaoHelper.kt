@@ -106,9 +106,9 @@ object AuftragAndRechnungDaoHelper {
         if (rechnung.discountMaturity == null && discountZahlungsZiel != null) {
             val rechnungsDatum: LocalDate? = rechnung.datum
             if (rechnungsDatum != null) {
-                var day = PFDateTime.from(rechnungsDatum)
+                var day = PFDay.from(rechnungsDatum)
                 day = day!!.plusDays(discountZahlungsZiel.toLong())
-                rechnung.discountMaturity = day.sqlDate
+                rechnung.discountMaturity = day.localDate
             }
         }
     }
