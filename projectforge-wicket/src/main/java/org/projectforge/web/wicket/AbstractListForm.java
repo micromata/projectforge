@@ -23,14 +23,8 @@
 
 package org.projectforge.web.wicket;
 
-import java.text.NumberFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -57,16 +51,14 @@ import org.projectforge.web.wicket.components.DateTimePanel;
 import org.projectforge.web.wicket.components.DateTimePanelSettings;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.FieldSetIconPosition;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.HiddenInputPanel;
-import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
-import org.projectforge.web.wicket.flowlayout.IconPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
+
+import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public abstract class AbstractListForm<F extends BaseSearchFilter, P extends AbstractListPage<?, ?, ?>> extends
     AbstractSecuredForm<F, P>
@@ -454,7 +446,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
     WicketUtils.addTooltip(field, getString("search.string.info.title"), getParentPage().getSearchToolTip(), false);
   }
 
-  protected void addTimePeriodPanel(final String labelI18nKey, final IModel<Date> startDateModel, final IModel<Date> endDateModel)
+  protected void addTimePeriodPanel(final String labelI18nKey, final IModel<LocalDate> startDateModel, final IModel<LocalDate> endDateModel)
   {
     gridBuilder.newSplitPanel(GridSize.COL50);
     final FieldsetPanel fs = gridBuilder.newFieldset(getString(labelI18nKey));
