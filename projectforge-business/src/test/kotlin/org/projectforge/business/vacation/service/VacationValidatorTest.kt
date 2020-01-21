@@ -77,7 +77,7 @@ class VacationValidatorTest : AbstractTestBase() {
 
         vacation.startDate = LocalDate.now().with(Month.DECEMBER).withDayOfMonth(24)
         vacation.endDate = vacation.startDate!!.plusMonths(1).withDayOfMonth(6)
-        Assertions.assertEquals(VacationValidator.Error.VACATION_IN_2YEARS, vacationService.validate(vacation))
+        Assertions.assertNull(vacationService.validate(vacation))
 
         // Collisions and check of enough left vacation days is tested in VacationServiceTest.
     }

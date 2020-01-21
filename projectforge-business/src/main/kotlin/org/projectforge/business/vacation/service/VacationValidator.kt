@@ -27,8 +27,10 @@ import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.time.LocalDatePeriod
+import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.Month
 
 /**
  * Validates vacation entries. Use this functionality through [VacationService.validate].
@@ -53,10 +55,6 @@ object VacationValidator {
          * Another vacation with conflicting date period already exists.
          */
         COLLISION("vacation.validate.leaveapplicationexists"),
-        /**
-         * Vacation entries over New Years Eve are not yet supported.
-         */
-        VACATION_IN_2YEARS("vacation.validate.vacationIn2Years"),
         /**
          * Not enough vacation days left in the year for the validated vacations entry.
          */
@@ -104,9 +102,6 @@ object VacationValidator {
             return returnOrThrow(Error.START_DATE_BEFORE_NOW, throwException)
         }
 
-        if (startDate.year != endDate.year) {
-            return returnOrThrow(Error.VACATION_IN_2YEARS, throwException)
-        }
         val status = vacation.status
                 ?: throw IllegalStateException("Status of vacation data is required for validation, but not given.")
         if (vacation.isDeleted || !CHECK_VACATION_STATUS_LIST.contains(status)) {
@@ -117,7 +112,7 @@ object VacationValidator {
             // Any other entry exist with overlapping time period.
             return returnOrThrow(Error.COLLISION, throwException)
         }
-        val numberOfWorkingDays = VacationService.getVacationDays(vacation)
+        var numberOfWorkingDays = VacationService.getVacationDays(vacation)
         //vacationdays <= 0 days
         if (numberOfWorkingDays <= BigDecimal.ZERO) {
             return returnOrThrow(Error.ZERO_NUMBER_OF_DAYS, throwException)
@@ -127,30 +122,51 @@ object VacationValidator {
         } else {
             // Check of available days:
 
-            val yearPeriod = LocalDatePeriod.wholeYear(year)
-            var allVacationEntriesOfYear = vacationService.getVacationsListForPeriod(employee, yearPeriod.begin, yearPeriod.end, false)
+            val yearPeriod = LocalDatePeriod.wholeYears(startDate, endDate)
+            var allVacationEntries = vacationService.getVacationsListForPeriod(employee, yearPeriod.begin, yearPeriod.end, false)
             if (dbVacation != null) {
                 // Remove old entry from list to get statistics without this entry. Otherwise this entry would count twice.
-                allVacationEntriesOfYear = allVacationEntriesOfYear.filter { it.id != dbVacation.id }
+                allVacationEntries = allVacationEntries.filter { it.id != dbVacation.id }
             }
-            val stats = vacationService.getVacationStats(employee, year, vacationEntries = allVacationEntriesOfYear)
+            var stats = vacationService.getVacationStats(employee, year, vacationEntries = allVacationEntries)
             if (numberOfWorkingDays > stats.vacationDaysLeftInYearWithoutCarry) {
-                val endOfVacationYear = vacationService.getEndOfCarryVacationOfPreviousYear(year)
                 var enoughDaysLeft = false
-                if (startDate.isBefore(endOfVacationYear)) {
+                var modifiedStartDate: LocalDate = startDate
+
+                if (year != endDate.year) { // Leave days over at least 2 years...
+                    if (endDate.year > year + 1) {
+                        // more than one year leave days, can't be enough days left.
+                        return returnOrThrow(Error.NOT_ENOUGH_DAYS_LEFT, throwException)
+                    }
+                    val startDay = PFDay.from(startDate)!!
+                    val numberOfWorkingDaysInStartDate = VacationService.getVacationDays(vacation, startDay.beginOfYear.localDate, startDay.endOfYear.localDate)
+                    if (numberOfWorkingDaysInStartDate > stats.vacationDaysLeftInYearWithoutCarry) {
+                        // Not enough days left in year of start date:
+                        return returnOrThrow(Error.NOT_ENOUGH_DAYS_LEFT, throwException)
+                    }
+                    // Process only with leave days in new year (modifiedStartDate and reduced numberOfWorkingDays):
+                    modifiedStartDate = LocalDate.of(endDate.year, Month.JANUARY, 1)
+                    val endDay = PFDay.from(endDate)!!
+                    numberOfWorkingDays = VacationService.getVacationDays(vacation, endDay.beginOfYear.localDate, endDay.endOfYear.localDate)
+                    stats = vacationService.getVacationStats(employee, endDate.year, vacationEntries = allVacationEntries)
+                }
+
+                val endOfVacationYear = vacationService.getEndOfCarryVacationOfPreviousYear(endDate.year)
+                if (modifiedStartDate.isBefore(endOfVacationYear)) {
                     val overlapDays = if (endDate > endOfVacationYear) {
-                        VacationService.getVacationDays(startDate, endOfVacationYear, halfDayBegin = vacation.halfDayBegin)
+                        VacationService.getVacationDays(modifiedStartDate, endOfVacationYear, halfDayBegin = vacation.halfDayBegin)
                     } else {
-                        VacationService.getVacationDays(startDate, endDate, halfDayBegin = vacation.halfDayBegin, halfDayEnd = vacation.halfDayEnd)
+                        VacationService.getVacationDays(modifiedStartDate, endDate, halfDayBegin = vacation.halfDayBegin, halfDayEnd = vacation.halfDayEnd)
                     }
                     val additionalCarryDays = maxOf(stats.remainingLeaveFromPreviousYearUnused!! - overlapDays, BigDecimal.ZERO)
-                    if (numberOfWorkingDays  <= stats.vacationDaysLeftInYearWithoutCarry!! + additionalCarryDays) {
+                    if (numberOfWorkingDays <= stats.vacationDaysLeftInYearWithoutCarry!! + additionalCarryDays) {
                         // Including unused carry days, it's now enough:
                         enoughDaysLeft = true
                     }
                 }
-                if (!enoughDaysLeft)
+                if (!enoughDaysLeft) {
                     return returnOrThrow(Error.NOT_ENOUGH_DAYS_LEFT, throwException)
+                }
             }
         }
         return null // No validation error.

@@ -110,7 +110,6 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
         // Get employee from database if not initialized (user not given).
         val employeeDO = if (employee.userId == null) employeeDao.internalGetById(employee.id) else employee
         stats.vacationDaysInYearFromContract = getAnnualLeaveDays(employeeDO, year)
-        stats.remainingLeaveFromPreviousYear = remainingLeaveDao.getRemainingLeaveFromPreviousYear(employee.id, year)
         stats.endOfVacationYear = getEndOfCarryVacationOfPreviousYear(year)
         // If date of joining not given, assume 1900...
         val dateOfJoining = employeeDO.eintrittsDatum ?: LocalDate.of(1900, Month.JANUARY, 1)
@@ -333,12 +332,16 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
                 if (vacationStart == null || vacationEnd == null) {
                     log.warn("Illegal state of vacation entry of employee ${it.employee?.id}: start ($vacationStart) and end date ($vacationEnd) must be given.")
                 } else {
-                    if (vacationStart.isBefore(periodBegin))
-                        vacationStart = periodBegin
-                    if (vacationEnd.isAfter(periodEnd))
-                        vacationEnd = periodEnd
-                    val numberOfDays = getVacationDays(vacationStart, vacationEnd, it.halfDayBegin, it.halfDayEnd, periodBegin, periodEnd)
-                    sum += numberOfDays
+                    if (vacationEnd.isBefore(periodBegin) || vacationStart.isAfter(periodEnd)) {
+                        // Ignore entry out of period.
+                    } else {
+                        if (vacationStart.isBefore(periodBegin))
+                            vacationStart = periodBegin
+                        if (vacationEnd.isAfter(periodEnd))
+                            vacationEnd = periodEnd
+                        val numberOfDays = getVacationDays(vacationStart, vacationEnd, it.halfDayBegin, it.halfDayEnd, periodBegin, periodEnd)
+                        sum += numberOfDays
+                    }
                 }
             }
         }
