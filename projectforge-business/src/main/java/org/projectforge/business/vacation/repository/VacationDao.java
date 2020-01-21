@@ -106,6 +106,11 @@ public class VacationDao extends BaseDao<VacationDO> {
       // User is HR staff member or assigned manager.
       return true;
     }
+    if (operationType == OperationType.SELECT) {
+      if (obj.getEmployee() != null && accessChecker.areUsersInSameGroup(user, obj.getEmployee().getUser())) {
+        return true;
+      }
+    }
     EmployeeDO employee = obj.getEmployee();
     if (employee == null || !Objects.equals(employee.getUserId(), user.getId())) {
       // User is not allowed to modify entries of other users.
