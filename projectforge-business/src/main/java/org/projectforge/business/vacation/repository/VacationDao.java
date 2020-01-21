@@ -196,7 +196,7 @@ public class VacationDao extends BaseDao<VacationDO> {
     final LocalDate startYear = LocalDate.of(year, Month.JANUARY, 1);
     final LocalDate endYear = LocalDate.of(year, Month.DECEMBER, 31);
     final List<VacationDO> result = emgrFactory.runRoTrans(emgr -> {
-      String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate";
+      String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.endDate >= :startDate AND v.startDate <= :endDate";
       List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee,
               "startDate", startYear, "endDate", endYear,
               "deleted", false, "tenant", getTenant());
