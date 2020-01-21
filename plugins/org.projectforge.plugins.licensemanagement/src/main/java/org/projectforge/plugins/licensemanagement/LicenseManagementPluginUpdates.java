@@ -37,7 +37,7 @@ import java.util.List;
  */
 public class LicenseManagementPluginUpdates
 {
-  static DatabaseService dao;
+  static DatabaseService databaseService;
 
   @SuppressWarnings("serial")
   public static List<UpdateEntry> getUpdateEntries()
@@ -55,7 +55,7 @@ public class LicenseManagementPluginUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         // Does the data-base table already exist?
-        if (dao.doTableAttributesExist(LicenseDO.class, newAttributes)) {
+        if (databaseService.doTableAttributesExist(LicenseDO.class, newAttributes)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
@@ -65,8 +65,8 @@ public class LicenseManagementPluginUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (!dao.doTableAttributesExist(LicenseDO.class, newAttributes)) {
-          dao.addTableAttributes(LicenseDO.class, newAttributes);
+        if (!databaseService.doTableAttributesExist(LicenseDO.class, newAttributes)) {
+          databaseService.addTableAttributes(LicenseDO.class, newAttributes);
         }
         return UpdateRunningStatus.DONE;
       }
@@ -84,7 +84,7 @@ public class LicenseManagementPluginUpdates
       {
         // Does the data-base table already exist?
         // Check only the oldest table.
-        if (dao.doTablesExist(LicenseDO.class)) {
+        if (databaseService.doTablesExist(LicenseDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           // The oldest table doesn't exist, therefore the plugin has to initialized completely.
@@ -96,10 +96,10 @@ public class LicenseManagementPluginUpdates
       public UpdateRunningStatus runUpdate()
       {
         // Create initial data-base table:
-        final SchemaGenerator schemaGenerator = new SchemaGenerator(dao);
+        final SchemaGenerator schemaGenerator = new SchemaGenerator(databaseService);
         schemaGenerator.add(LicenseDO.class);
         schemaGenerator.createSchema();
-        dao.createMissingIndices();
+        databaseService.createMissingIndices();
         return UpdateRunningStatus.DONE;
       }
     };

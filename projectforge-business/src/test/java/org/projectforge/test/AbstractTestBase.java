@@ -170,7 +170,7 @@ public abstract class AbstractTestBase {
   private ConfigurationService configurationService;
 
   @Autowired
-  private DatabaseService initDatabaseDao;
+  private DatabaseService databaseService;
 
   @PostConstruct
   private void postConstruct() {
@@ -248,7 +248,7 @@ public abstract class AbstractTestBase {
     }
 
     clearDatabase();
-    initDatabaseDao.insertDefaultTenant();
+    databaseService.insertDefaultTenant();
 
     GlobalConfiguration.createConfiguration(configurationService);
     TenantRegistryMap tenantRegistryMap = TenantRegistryMap.getInstance();

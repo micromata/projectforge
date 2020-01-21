@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class ImportTestDataTest extends AbstractTestBase {
   @Autowired
-  private DatabaseService initDatabaseDao;
+  private DatabaseService databaseService;
 
   @Autowired
   private InitTestDB initTestDB;
@@ -61,9 +61,9 @@ public class ImportTestDataTest extends AbstractTestBase {
   @Test
   public void testImport() {
     clearDatabase();
-    initDatabaseDao.insertDefaultTenant();
+    databaseService.insertDefaultTenant();
     PFUserDO admin = initTestDB.addUser(AbstractTestBase.ADMIN);
-    initDatabaseDao.insertGlobalAddressbook(admin);
+    databaseService.insertGlobalAddressbook(admin);
     jpaXmlDumpService.createTestDatabase();
   }
 

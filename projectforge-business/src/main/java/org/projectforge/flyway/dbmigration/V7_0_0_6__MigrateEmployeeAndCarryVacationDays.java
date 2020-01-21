@@ -81,7 +81,7 @@ public class V7_0_0_6__MigrateEmployeeAndCarryVacationDays extends BaseJavaMigra
       Integer employeeId = rs.getInt("pk");
       Integer tenantId = rs.getInt("tenant");
       BigDecimal value = rs.getBigDecimal("value");
-      int year = LocalDateTime.ofInstant(modifiedat.toInstant(), PFDateTimeUtils.ZONE_UTC).getYear();
+      int year = LocalDateTime.ofInstant(modifiedat.toInstant(), ZoneId.of("UTC")).getYear();
       if (year > release7InstalledOnYear) {
         year = release7InstalledOnYear; // Vacations were modified, but the attribute 'previousyearleave' is not of the current year.
       }
@@ -126,7 +126,7 @@ public class V7_0_0_6__MigrateEmployeeAndCarryVacationDays extends BaseJavaMigra
         Timestamp austrittOrg = rs.getTimestamp("austritt");
         Timestamp birtdayOrig = rs.getTimestamp("birthday");
 
-        LocalDate birthday = ensureMidnigt(birtdayOrig, PFDateTimeUtils.ZONE_UTC); // Birthdays were stored as UTC
+        LocalDate birthday = ensureMidnigt(birtdayOrig, ZoneId.of("UTC")); // Birthdays were stored as UTC
         LocalDate eintritt = ensureMidnigt(eintrittOrig, zoneId);
         LocalDate austritt = ensureMidnigt(austrittOrg, zoneId);
 

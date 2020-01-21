@@ -795,7 +795,7 @@ public class DatabaseCoreUpdates
     return list;
   }
 
-  private static void uniqueConstraintWorkaround(final DatabaseService dus, final PfEmgrFactory emf)
+  private static void uniqueConstraintWorkaround(final DatabaseService databaseService, final PfEmgrFactory emf)
   {
     EntityMetadata pce;
 
@@ -806,14 +806,14 @@ public class DatabaseCoreUpdates
       pce = null;
     }
 
-    if (!dus.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "uid") && pce != null) {
+    if (!databaseService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "uid") && pce != null) {
       // required workaround, because null values are not accepted
-      final String type = dus.getAttribute(pce.getJavaType(), "uid");
+      final String type = databaseService.getAttribute(pce.getJavaType(), "uid");
       final String command1 = String.format("ALTER TABLE T_PLUGIN_CALENDAR_EVENT ADD COLUMN UID %s DEFAULT 'default value'", type);
 
-      dus.execute(command1);
-      dus.execute("ALTER TABLE T_PLUGIN_CALENDAR_EVENT ALTER COLUMN UID SET NOT NULL");
-      dus.execute("ALTER TABLE T_PLUGIN_CALENDAR_EVENT ALTER COLUMN UID DROP DEFAULT");
+      databaseService.execute(command1);
+      databaseService.execute("ALTER TABLE T_PLUGIN_CALENDAR_EVENT ALTER COLUMN UID SET NOT NULL");
+      databaseService.execute("ALTER TABLE T_PLUGIN_CALENDAR_EVENT ALTER COLUMN UID DROP DEFAULT");
     }
   }
 

@@ -53,7 +53,7 @@ public class TenantDao extends BaseDao<TenantDO> {
           "assignedUsers.lastname"};
   private static Boolean tenantTableExists = null;
   @Autowired
-  private DatabaseService initDatabaseDao;
+  private DatabaseService databaseService;
   @Autowired
   private JdbcTemplate jdbc;
 
@@ -148,7 +148,7 @@ public class TenantDao extends BaseDao<TenantDO> {
     final PFUserDO adminUser = ThreadLocalUserContext.getUser();
     if (!tenant.isDefault()) {
       // The groups do already exist for the default tenant.
-      initDatabaseDao.internalCreateProjectForgeGroups(tenant, adminUser);
+      databaseService.internalCreateProjectForgeGroups(tenant, adminUser);
     } else {
       // Clear the dummy entry:
       TenantRegistryMap.getInstance().clear();

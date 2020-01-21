@@ -84,7 +84,7 @@ public class ProjectForgeApp {
 
   private ApplicationContext applicationContext;
 
-  private DatabaseService databaseUpdater;
+  private DatabaseService databaseService;
 
   private DomainService domainService;
 
@@ -98,14 +98,14 @@ public class ProjectForgeApp {
 
   @Autowired
   ProjectForgeApp(ApplicationContext applicationContext,
-                  DatabaseService databaseUpdater,
+                  DatabaseService databaseService,
                   DomainService domainService,
                   Environment environment,
                   UserXmlPreferencesCache userXmlPreferencesCache,
                   SystemInfoCache systemInfoCache,
                   SystemStatus systemStatus) {
     this.applicationContext = applicationContext;
-    this.databaseUpdater = databaseUpdater;
+    this.databaseService = databaseService;
     this.domainService = domainService;
     this.environment = environment;
     this.userXmlPreferencesCache = userXmlPreferencesCache;
@@ -189,7 +189,7 @@ public class ProjectForgeApp {
               .__internalCreateWithSpecialUser(DatabaseService
                       .__internalGetSystemAdminPseudoUser(), getUserGroupCache());
       ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
-      databaseUpdater.shutdownDatabase();
+      databaseService.shutdownDatabase();
     } finally {
       ThreadLocalUserContext.clear();
     }
