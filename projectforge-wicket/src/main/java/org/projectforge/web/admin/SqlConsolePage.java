@@ -45,7 +45,7 @@ public class SqlConsolePage extends AbstractStandardFormPage
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SqlConsolePage.class);
 
   @SpringBean
-  private DatabaseService myDatabaseUpdater;
+  private DatabaseService databaseService;
 
   @SpringBean
   private ConfigurationService configurationService;
@@ -77,7 +77,7 @@ public class SqlConsolePage extends AbstractStandardFormPage
     try {
       final StringBuilder sb = new StringBuilder();
       if (sql.trim().toLowerCase().startsWith("select") == true) {
-        final List<DatabaseResultRow> result = myDatabaseUpdater.query(sql);
+        final List<DatabaseResultRow> result = databaseService.query(sql);
         if (result != null && result.size() > 0) {
           final DatabaseResultRow firstRow = result.get(0);
           final List<DatabaseResultRowEntry> entries = firstRow.getEntries();
@@ -100,7 +100,7 @@ public class SqlConsolePage extends AbstractStandardFormPage
         }
         form.setResultString(sb.toString());
       } else {
-        myDatabaseUpdater.execute(sql);
+        databaseService.execute(sql);
         form.setResultString("Statement executed. See log files for further information.");
       }
     } catch (final Exception ex) {

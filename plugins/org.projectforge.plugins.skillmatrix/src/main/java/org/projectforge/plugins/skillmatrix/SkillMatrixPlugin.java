@@ -98,7 +98,7 @@ public class SkillMatrixPlugin extends AbstractPlugin {
   @Override
   protected void initialize() {
     // DatabaseUpdateDao is needed by the updater:
-    SkillMatrixPluginUpdates.dao = myDatabaseUpdater;
+    SkillMatrixPluginUpdates.databaseService = databaseService;
     register(ID_SKILL_RATING, SkillRatingDao.class, skillRatingDao, I18N_KEY_SKILLMATRIX_PREFIX);
     register(ID_SKILL, SkillDao.class, skillDao, I18N_KEY_SKILLMATRIX_PREFIX);
     register(ID_SKILL_TRAINING, TrainingDao.class, trainingDao, I18N_KEY_SKILLMATRIX_PREFIX);

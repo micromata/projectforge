@@ -63,7 +63,7 @@ public class LicenseManagementPlugin extends AbstractPlugin {
   @Override
   protected void initialize() {
     // DatabaseUpdateDao is needed by the updater:
-    LicenseManagementPluginUpdates.dao = myDatabaseUpdater;
+    LicenseManagementPluginUpdates.databaseService = databaseService;
     final RegistryEntry entry = new RegistryEntry(ID, LicenseDao.class, licenseDao,
             "plugins.licensemanagement");
     // The LicenseDao is automatically available by the scripting engine!

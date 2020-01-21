@@ -36,7 +36,7 @@ import org.projectforge.framework.persistence.database.DatabaseService;
  */
 public class BankingPluginUpdates
 {
-  static DatabaseService dao;
+  static DatabaseService databaseService;
 
   final static Class<?>[] doClasses = new Class<?>[] { //
       BankAccountDO.class, BankAccountBalanceDO.class, BankAccountRecordDO.class };
@@ -50,7 +50,7 @@ public class BankingPluginUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         // Does the data-base table already exist?
-        if (dao.doTablesExist(BankAccountDO.class)) {
+        if (databaseService.doTablesExist(BankAccountDO.class)) {
           // Check only the oldest table.
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
@@ -63,8 +63,8 @@ public class BankingPluginUpdates
       public UpdateRunningStatus runUpdate()
       {
         // Create initial data-base table:
-        new SchemaGenerator(dao).add(doClasses).createSchema();
-        dao.createMissingIndices();
+        new SchemaGenerator(databaseService).add(doClasses).createSchema();
+        databaseService.createMissingIndices();
         return UpdateRunningStatus.DONE;
       }
     };
