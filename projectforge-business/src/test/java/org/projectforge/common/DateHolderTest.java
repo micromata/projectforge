@@ -62,18 +62,6 @@ public class DateHolderTest
   }
 
   @Test
-  public void getLocalDate()
-  {
-    final Calendar cal = Calendar.getInstance(DateHelper.EUROPE_BERLIN);
-    cal.set(2008, Calendar.MARCH, 5, 0, 0, 0);
-    cal.set(Calendar.MILLISECOND, 0);
-    final DateHolder date = new DateHolder(cal.getTime(), DateHelper.EUROPE_BERLIN);
-    assertEquals("2008-03-04 23:00:00.000", DateHelper.FOR_TESTCASE_OUTPUT_FORMATTER.get().format(date.getUtilDate()));
-    final LocalDate localDate = date.getLocalDate();
-    assertEquals("2008-03-05", localDate.toString());
-  }
-
-  @Test
   public void daysBetween()
   {
     final DateHolder date1 = new DateHolder(DatePrecision.DAY, Locale.GERMAN);
