@@ -29,7 +29,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.rest.core.AbstractBaseRest
+import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.ui.*
 
 /**
@@ -39,7 +39,7 @@ class LayoutListFilterUtils {
     companion object {
         internal val log = org.slf4j.LoggerFactory.getLogger(LayoutListFilterUtils::class.java)
 
-        fun createNamedContainer(restService: AbstractBaseRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>,
+        fun createNamedContainer(pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>,
                                  lc: LayoutContext): UINamedContainer {
             val container = UINamedContainer("searchFilter")
             val elements = mutableListOf<UILabelledElement>()
@@ -56,8 +56,9 @@ class LayoutListFilterUtils {
                             UIFilterTimestampElement.QuickSelector.UNTIL_NOW)))
             elements.add(UIFilterElement(MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.fieldName,
                     label = translate(MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.i18nKey)))
+            elements.add(UIFilterElement("deleted", UIFilterElement.FilterType.BOOLEAN, translate("deleted")))
 
-            val baseDao = restService.baseDao
+            val baseDao = pagesRest.baseDao
             val searchFields = baseDao.searchFields
             searchFields.forEach {
                 val elInfo = ElementsRegistry.getElementInfo(lc, it)
@@ -82,7 +83,7 @@ class LayoutListFilterUtils {
                     elements.add(element)
                 }
             }
-            restService.addMagicFilterElements(elements)
+            pagesRest.addMagicFilterElements(elements)
 
             elements.sortWith(compareBy(ThreadLocalUserContext.getLocaleComparator()) { it.label })
             elements.forEach { container.add(it as UIElement) }

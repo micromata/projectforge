@@ -52,6 +52,7 @@ import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.business.vacation.service.VacationStats;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.framework.time.LocalDatePeriod;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.fibu.EmployeeSelectPanel;
@@ -212,7 +213,7 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
             I18nHelper.getLocalizedMessage("vacation.title.list") + " " + stats.getYear()));
     TablePanel tablePanel = new TablePanel(sectionBottom.newChildId());
     sectionBottom.add(tablePanel);
-    final DataTable<VacationDO, String> dataTable = createDataTable(createColumns(), "startDate", SortOrder.ASCENDING,
+    final DataTable<VacationDO, String> dataTable = createDataTable(createColumns(stats), "startDate", SortOrder.ASCENDING,
             currentEmployee, stats.getYear());
     tablePanel.add(dataTable);
     if (CollectionUtils.isNotEmpty(stats.getLeaveAccountEntries())) {
@@ -236,8 +237,10 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
     return new VacationViewPageSortableDataProvider<VacationDO>(sortParam, vacationService, employee, year);
   }
 
-  private List<IColumn<VacationDO, String>> createColumns() {
+  private List<IColumn<VacationDO, String>> createColumns(VacationStats stats) {
     final List<IColumn<VacationDO, String>> columns = new ArrayList<IColumn<VacationDO, String>>();
+
+    final LocalDatePeriod yearPeriod = LocalDatePeriod.wholeYear(stats.getYear());
 
     final CellItemListener<VacationDO> cellItemListener = new CellItemListener<VacationDO>() {
       private static final long serialVersionUID = 1L;
@@ -253,8 +256,12 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
       public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
                                final IModel<VacationDO> rowModel) {
         final VacationDO vacation = rowModel.getObject();
+        LocalDate startDate = vacation.getStartDate();
+        if (startDate.getYear() < stats.getYear()) {
+          startDate = PFDay.from(vacation.getEndDate()).getBeginOfYear().getLocalDate();
+        }
         item.add(new ListSelectActionPanel(componentId, rowModel, VacationEditPage.class, vacation.getId(),
-                VacationAccountPage.class, DateTimeFormatter.instance().getFormattedDate(vacation.getStartDate()), "employeeId", String.valueOf(vacation.getEmployeeId())));
+                VacationAccountPage.class, DateTimeFormatter.instance().getFormattedDate(startDate), "employeeId", String.valueOf(vacation.getEmployeeId())));
         cellItemListener.populateItem(item, componentId, rowModel);
         final Item<?> row = (item.findParent(Item.class));
         WicketUtils.addRowClick(row);
@@ -266,14 +273,17 @@ public class VacationAccountForm extends AbstractStandardForm<VacationAccountFor
       public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
                                final IModel<VacationDO> rowModel) {
         final VacationDO vacation = rowModel.getObject();
-        item.add(new TextPanel(componentId, DateTimeFormatter.instance().getFormattedDate(vacation.getEndDate())));
+        LocalDate endDate = vacation.getEndDate();
+        if (endDate.getYear() > stats.getYear()) {
+          endDate = PFDay.from(vacation.getStartDate()).getEndOfYear().getLocalDate();
+        }
+        item.add(new TextPanel(componentId, DateTimeFormatter.instance().getFormattedDate(endDate)));
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
     columns.add(new CellItemListenerPropertyColumn<>(VacationDO.class, "status", "status", cellItemListener));
     columns.add(new CellItemListenerLambdaColumn<>(new ResourceModel("vacation.workingdays"),
-            rowModel -> vacationService.getVacationDays(rowModel.getObject().getStartDate(), rowModel.getObject().getEndDate(), rowModel.getObject().getHalfDayBegin()),
-            cellItemListener)
+            rowModel -> VacationService.getVacationDays(rowModel.getObject(), yearPeriod.getBegin(), yearPeriod.getEnd()), cellItemListener)
     );
 
     columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "special", "special", cellItemListener) {

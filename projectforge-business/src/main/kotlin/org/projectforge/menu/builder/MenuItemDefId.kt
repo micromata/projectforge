@@ -40,7 +40,6 @@ enum class MenuItemDefId private constructor(private val i18nKey: String) {
     ACCOUNTING_RECORD_LIST("fibu.buchungssaetze"), //
     ADDRESSBOOK_LIST("addressbookList"), //
     ADDRESS_LIST("addressList"), //
-    ADDRESS_LIST_CLASSICS("addressListClassics"), //
     BANK_ACCOUNT_LIST("finance.bankAccounts"), //
     BOOK_LIST("bookList"), //
     CALENDAR("calendar"), //

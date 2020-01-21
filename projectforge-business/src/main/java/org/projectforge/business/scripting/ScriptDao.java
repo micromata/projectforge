@@ -23,6 +23,7 @@
 
 package org.projectforge.business.scripting;
 
+import de.micromata.merlin.utils.ReplaceUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.AppVersion;
@@ -30,7 +31,6 @@ import org.projectforge.business.fibu.kost.reporting.ReportGeneratorList;
 import org.projectforge.business.task.ScriptingTaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.common.ReplaceUtils;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -77,7 +77,7 @@ public class ScriptDao extends BaseDao<ScriptDO>
   {
     if (!Arrays.equals(dbObj.getScript(), obj.getScript())) {
       obj.setScriptBackup(dbObj.getScript());
-      final String filename = ReplaceUtils.encodeFilename(dbObj.getName() + "_" + PFDateTime.now().getIsoStringSeconds() + ".groovy");
+      final String filename = ReplaceUtils.encodeFilename(dbObj.getName() + "_" + PFDateTime.now().getIsoStringSeconds() + ".groovy", true);
       final File backupDir = new File(ConfigXml.getInstance().getBackupDirectory(), "scripts");
       ConfigXml.ensureDir(backupDir);
       final File file = new File(backupDir, filename);

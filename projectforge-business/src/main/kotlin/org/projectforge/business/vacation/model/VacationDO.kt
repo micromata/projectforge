@@ -98,14 +98,15 @@ open class VacationDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "vacation.vacationmode")
     private val vacationmode: VacationMode? = null
 
-    @PropertyInfo(i18nKey = "vacation.special")
+    @PropertyInfo(i18nKey = "vacation.special", tooltip = "vacation.special.tooltip")
     @get:Column(name = "is_special", nullable = false)
     open var special: Boolean? = null
 
-    @PropertyInfo(i18nKey = "vacation.isHalfDay")
+    @PropertyInfo(i18nKey = "vacation.halfDayBegin", tooltip = "vacation.halfDayBegin.tooltip")
     @get:Column(name = "is_half_day_begin")
     open var halfDayBegin: Boolean? = null
 
+    @PropertyInfo(i18nKey = "vacation.halfDayEnd", tooltip = "vacation.halfDayEnd.tooltip")
     @get:Column(name = "is_half_day_end")
     open var halfDayEnd: Boolean? = null
 

@@ -192,7 +192,6 @@ class MenuCreator {
                 .add(MenuItemDef(MenuItemDefId.BOOK_LIST, "${REACT_PREFIX}book"))
                 .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST, "${REACT_PREFIX}addressBook"))
                 .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST, "${REACT_PREFIX}address"))
-                .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST_CLASSICS, "wa/addressList"))
         if (configurationService.telephoneSystemUrl.isNotEmpty())
             commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL, "wa/phoneCall"))
         if (smsSenderConfig.isSmsConfigured())

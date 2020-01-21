@@ -34,10 +34,7 @@ import org.projectforge.business.vacation.service.VacationValidator;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.api.QueryFilter;
-import org.projectforge.framework.persistence.api.SortProperty;
+import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -67,6 +64,11 @@ public class VacationDao extends BaseDao<VacationDO> {
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(VacationDao.class);
 
+  private static final SortProperty[] DEFAULT_SORT_PROPERTIES = new SortProperty[]{
+          new SortProperty("employee.user.firstname"),
+          new SortProperty("employee.user.lastname"),
+          new SortProperty("startDate", SortOrder.DESCENDING)};
+
   @Autowired
   private AccessChecker accessChecker;
 
@@ -85,6 +87,10 @@ public class VacationDao extends BaseDao<VacationDO> {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
+  @Override
+  public SortProperty[] getDefaultSortProperties() {
+    return DEFAULT_SORT_PROPERTIES;
+  }
 
   @Override
   public VacationDO newInstance() {
@@ -122,6 +128,12 @@ public class VacationDao extends BaseDao<VacationDO> {
 
   public boolean hasLoggedInUserHRVacationAccess() {
     return accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE);
+  }
+
+  @Override
+  protected void onSaveOrModify(VacationDO obj) {
+    super.onSaveOrModify(obj);
+    obj.setSpecial(obj.getSpecial() == true); // Avoid null value of special.
   }
 
   @Override
@@ -184,7 +196,7 @@ public class VacationDao extends BaseDao<VacationDO> {
     final LocalDate startYear = LocalDate.of(year, Month.JANUARY, 1);
     final LocalDate endYear = LocalDate.of(year, Month.DECEMBER, 31);
     final List<VacationDO> result = emgrFactory.runRoTrans(emgr -> {
-      String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate";
+      String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.endDate >= :startDate AND v.startDate <= :endDate";
       List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee,
               "startDate", startYear, "endDate", endYear,
               "deleted", false, "tenant", getTenant());

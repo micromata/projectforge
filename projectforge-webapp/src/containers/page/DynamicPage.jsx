@@ -6,7 +6,7 @@ import { getServiceURL, handleHTTPErrors } from '../../utilities/rest';
 
 const getRestURL = (url, match) => getServiceURL(`${match && match.params.restPrefix === 'public' ? '../rsPublic/' : ''}${url}`);
 
-function DynamicPage({ match }) {
+function DynamicPage({ match, location }) {
     const [ui, setUI] = React.useState({});
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState(undefined);
@@ -15,7 +15,13 @@ function DynamicPage({ match }) {
         setLoading(true);
         setError(undefined);
 
-        fetch(getRestURL(`${match.params.page}/layout`, match))
+        fetch(
+            getRestURL(`${match.params.page}/layout${location.search || ''}`, match),
+            {
+                method: 'GET',
+                credentials: 'include',
+            },
+        )
             .then((response) => {
                 setLoading(false);
                 return response;
@@ -45,6 +51,9 @@ DynamicPage.propTypes = {
             page: PropTypes.string.isRequired,
             restPrefix: PropTypes.string,
         }).isRequired,
+    }).isRequired,
+    location: PropTypes.shape({
+        search: PropTypes.string,
     }).isRequired,
 };
 

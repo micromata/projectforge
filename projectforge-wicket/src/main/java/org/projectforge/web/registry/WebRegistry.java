@@ -61,7 +61,6 @@ import org.projectforge.web.statistics.SystemStatisticsPage;
 import org.projectforge.web.task.TaskEditPage;
 import org.projectforge.web.task.TaskListPage;
 import org.projectforge.web.task.TaskTreePage;
-import org.projectforge.web.teamcal.admin.TeamCalListPage;
 import org.projectforge.web.teamcal.event.TeamEventListPage;
 import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
 import org.projectforge.web.timesheet.TimesheetEditPage;
@@ -349,7 +348,6 @@ public class WebRegistry
     addMountPage("taskTree", TaskTreePage.class);
     addMountPage("tutorial", TutorialPage.class);
 
-    register("teamCal", TeamCalListPage.class);
     register("teamEvent", TeamEventListPage.class);
     addMountPage("teamCalendar", TeamCalCalendarPage.class);
   }

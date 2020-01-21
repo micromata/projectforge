@@ -23,13 +23,13 @@
 
 package org.projectforge.rest
 
+import de.micromata.merlin.utils.ReplaceUtils
 import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.io.IOUtils
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressExport
 import org.projectforge.business.address.PersonalAddressDao
-import org.projectforge.common.ReplaceUtils
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.LanguageService
@@ -66,7 +66,7 @@ class AddressServicesRest() {
     private lateinit var addressDao: AddressDao
 
     @Autowired
-    private lateinit var addressRest: AddressRest
+    private lateinit var addressRest: AddressPagesRest
 
     @Autowired
     private lateinit var addressExport: AddressExport
@@ -175,7 +175,7 @@ class AddressServicesRest() {
     @GetMapping("exportVCard/{id}")
     fun exportVCard(@PathVariable("id") id: Int?): ResponseEntity<Any> {
         val address = addressDao.getById(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        val filename = ("ProjectForge-" + ReplaceUtils.encodeFilename(address.fullName) + "_"
+        val filename = ("ProjectForge-" + ReplaceUtils.encodeFilename(address.fullName, true) + "_"
                 + DateHelper.getDateAsFilenameSuffix(Date()) + ".vcf")
         val writer = StringWriter()
         addressDao.exportVCard(PrintWriter(writer), address)

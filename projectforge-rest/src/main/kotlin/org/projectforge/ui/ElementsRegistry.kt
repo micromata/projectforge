@@ -84,11 +84,13 @@ object ElementsRegistry {
                                 UIInput(property, maxLength = elementInfo.maxLength, required = elementInfo.required, layoutContext = lc)
                             }
                         }
-                        Boolean::class.java -> UICheckbox(property)
+                        Boolean::class.java, java.lang.Boolean::class.java -> UICheckbox(property)
+
                         Date::class.java,
                         LocalDate::class.java,
                         java.sql.Date::class.java,
                         java.sql.Timestamp::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+
                         PFUserDO::class.java, EmployeeDO::class.java, TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
                         Integer::class.java, BigDecimal::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
                         Locale::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
@@ -119,7 +121,7 @@ object ElementsRegistry {
     private fun getDataType(elementInfo: ElementInfo): UIDataType? {
         return when (elementInfo.propertyType) {
             String::class.java -> UIDataType.STRING
-            Boolean::class.java -> UIDataType.BOOLEAN
+            Boolean::class.java, java.lang.Boolean::class.java -> UIDataType.BOOLEAN
             Date::class.java -> UIDataType.TIMESTAMP
             LocalDate::class.java,
             java.sql.Date::class.java -> UIDataType.DATE
@@ -196,8 +198,11 @@ object ElementsRegistry {
         val colinfo = getColumnMetadata(clazz, property)
         if (colinfo != null) {
             elementInfo.maxLength = colinfo.maxLength
-            if (!(colinfo.isNullable) || propertyInfo.required)
-                elementInfo.required = true
+            if ((!(colinfo.isNullable) || propertyInfo.required)) {
+                if (elementInfo.propertyType != Boolean::class.java && elementInfo.propertyType !=java.lang.Boolean::class.java) {
+                    elementInfo.required = true
+                }
+            }
         }
         elementInfo.i18nKey = getNullIfEmpty(propertyInfo.i18nKey)
         elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo.additionalI18nKey)

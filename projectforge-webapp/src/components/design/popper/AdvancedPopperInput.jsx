@@ -6,6 +6,7 @@ import styles from './Popper.module.scss';
 
 function AdvancedPopperInput(
     {
+        children,
         dark,
         // Extract 'dispatch' so it's not passed to the input tag
         dispatch,
@@ -37,6 +38,7 @@ function AdvancedPopperInput(
                 {...props}
                 onKeyDown={handleKeyDown}
             />
+            {children}
         </div>
     );
 }
@@ -44,6 +46,7 @@ function AdvancedPopperInput(
 AdvancedPopperInput.propTypes = {
     id: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
+    children: PropTypes.node,
     dark: PropTypes.bool,
     dispatch: PropTypes.func,
     forwardRef: PropTypes.shape({}),
@@ -55,6 +58,7 @@ AdvancedPopperInput.propTypes = {
 };
 
 AdvancedPopperInput.defaultProps = {
+    children: undefined,
     dark: false,
     dispatch: undefined,
     forwardRef: undefined,

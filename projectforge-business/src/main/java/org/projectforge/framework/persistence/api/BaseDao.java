@@ -163,6 +163,13 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     return null;
   }
 
+  /**
+   * Overwrite this method for having a standard sort of result lists (supported by {@link BaseDao#getList(QueryFilter)}.
+   */
+  public SortProperty[] getDefaultSortProperties() {
+    return null;
+  }
+
   public Class<O> getDOClass() {
     return this.clazz;
   }
@@ -655,6 +662,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Bulk update.
+   *
    * @param col Entries to save or update without check access.
    */
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -664,7 +672,8 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Bulk update.
-   * @param col Entries to save or update without check access.
+   *
+   * @param col       Entries to save or update without check access.
    * @param blockSize The block size of commit blocks.
    */
   @Transactional(propagation = Propagation.NOT_SUPPORTED)

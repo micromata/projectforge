@@ -77,7 +77,7 @@ function Formatter(
                 break;
             case ADDRESSBOOK_FORMATTER:
                 result = value
-                    .map(({ title }) => title)
+                    .map(({ displayName }) => displayName)
                     .join(', ');
                 break;
             default:
