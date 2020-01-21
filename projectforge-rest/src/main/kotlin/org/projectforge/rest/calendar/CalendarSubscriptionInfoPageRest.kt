@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/calendarSubscription")
-class CalendarSubscriptionInfoRest {
+class CalendarSubscriptionInfoPageRest {
 
     @Autowired
     private lateinit var calendarFeedService: CalendarFeedService
