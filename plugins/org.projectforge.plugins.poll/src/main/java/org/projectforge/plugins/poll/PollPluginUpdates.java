@@ -35,7 +35,7 @@ import org.projectforge.plugins.poll.result.PollResultDO;
  */
 public class PollPluginUpdates
 {
-  static DatabaseService dao;
+  static DatabaseService databaseService;
 
   final static Class<?>[] doClasses = new Class<?>[] { //
       PollDO.class, PollEventDO.class, PollAttendeeDO.class, PollResultDO.class };
@@ -50,7 +50,7 @@ public class PollPluginUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         // Check only the oldest table.
-        if (!dao.doTablesExist(PollDO.class)) {
+        if (!databaseService.doTablesExist(PollDO.class)) {
           // The oldest table doesn't exist, therefore the plug-in has to initialized completely.
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
@@ -60,8 +60,8 @@ public class PollPluginUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        new SchemaGenerator(dao).add(doClasses).createSchema();
-        dao.createMissingIndices();
+        new SchemaGenerator(databaseService).add(doClasses).createSchema();
+        databaseService.createMissingIndices();
         return UpdateRunningStatus.DONE;
       }
     };

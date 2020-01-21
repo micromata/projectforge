@@ -58,7 +58,7 @@ public class PluginAdminServiceImpl implements PluginAdminService
   private ApplicationContext applicationContext;
 
   @Autowired
-  private DatabaseService myDatabaseUpdater;
+  private DatabaseService databaseService;
 
   private List<PluginCallback> afterCreatedActivePluginsCallback = new ArrayList<>();
 
@@ -173,7 +173,7 @@ public class PluginAdminServiceImpl implements PluginAdminService
 
   private void setSystemUpdater(AbstractPlugin plugin)
   {
-    SystemUpdater systemUpdater = myDatabaseUpdater.getSystemUpdater();
+    SystemUpdater systemUpdater = databaseService.getSystemUpdater();
     final UpdateEntry updateEntry = plugin.getInitializationUpdateEntry();
     if (updateEntry != null) {
       if (!updateEntry.isInitial()) {

@@ -108,7 +108,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
   private ApplicationContext applicationContext;
 
   @Autowired
-  private DatabaseService databaseUpdater;
+  private DatabaseService databaseService;
 
   @Autowired
   private PluginAdminService pluginAdminService;
@@ -353,7 +353,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
           .__internalCreateWithSpecialUser(DatabaseService.__internalGetSystemAdminPseudoUser(),
               getUserGroupCache());
       ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
-      if (databaseUpdater.getSystemUpdater().isUpdated() == false) {
+      if (databaseService.getSystemUpdater().isUpdated() == false) {
         // Force redirection to update page:
         UserFilter.setUpdateRequiredFirst(true);
       }

@@ -40,13 +40,13 @@ public class SchemaGenerator
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SchemaGenerator.class);
 
-  private final DatabaseService dao;
+  private final DatabaseService databaseService;
 
   private final List<Table> tables = new LinkedList<>();
 
-  public SchemaGenerator(final DatabaseService dao)
+  public SchemaGenerator(final DatabaseService databaseService)
   {
-    this.dao = dao;
+    this.databaseService = databaseService;
   }
 
   /**
@@ -69,12 +69,12 @@ public class SchemaGenerator
     for (final Table table : tables) {
       final Table superTable = table.getSuperTable();
       if (superTable != null) {
-        if (dao.doExist(superTable)) {
+        if (databaseService.doExist(superTable)) {
           continue;
         }
-        dao.createTable(superTable);
-      } else if (!dao.doExist(table)) {
-        dao.createTable(table);
+        databaseService.createTable(superTable);
+      } else if (!databaseService.doExist(table)) {
+        databaseService.createTable(table);
       }
     }
     return this;

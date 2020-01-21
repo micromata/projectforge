@@ -71,7 +71,7 @@ public class InitTestDB {
   private AccessDao accessDao;
 
   @Autowired
-  private DatabaseService initDatabaseDao;
+  private DatabaseService databaseService;
 
   @Autowired
   private TenantService tenantService;
@@ -261,7 +261,7 @@ public class InitTestDB {
     ThreadLocalUserContext.setUser(getUserGroupCache(), initUser);
     initConfiguration();
     initUsers();
-    initDatabaseDao.insertGlobalAddressbook(AbstractTestBase.ADMIN_USER);
+    databaseService.insertGlobalAddressbook(AbstractTestBase.ADMIN_USER);
     initGroups();
     initTaskTree();
     initAccess();

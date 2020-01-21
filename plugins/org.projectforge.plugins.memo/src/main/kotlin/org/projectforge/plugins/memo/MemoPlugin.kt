@@ -52,7 +52,7 @@ class MemoPlugin : AbstractPlugin() {
 
     override fun initialize() {
         // DatabaseUpdateDao is needed by the updater:
-        MemoPluginUpdates.dao = myDatabaseUpdater
+        MemoPluginUpdates.databaseService = databaseService
         memoDao = applicationContext.getBean("memoDao") as MemoDao
         // Register it:
         register(ID, MemoDao::class.java, memoDao, "plugins.memo")

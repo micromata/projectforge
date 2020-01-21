@@ -78,7 +78,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   private SystemService systemService;
 
   @SpringBean
-  private DatabaseService myDatabaseUpdater;
+  private DatabaseService databaseService;
 
   @SpringBean
   private HibernateSearchReindexer hibernateSearchReindexer;
@@ -564,7 +564,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void createMissingDatabaseIndices() {
     log.info("Administration: create missing data base indices.");
     accessChecker.checkRestrictedOrDemoUser();
-    final int counter = myDatabaseUpdater.createMissingIndices();
+    final int counter = databaseService.createMissingIndices();
     setResponsePage(new MessagePage("administration.missingDatabaseIndicesCreated", String.valueOf(counter)));
   }
 
@@ -579,7 +579,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     final List<BookDO> list = new ArrayList<BookDO>();
     int number = 1;
-    while (myDatabaseUpdater
+    while (databaseService
             .queryForInt("select count(*) from t_book where title like 'title." + number + ".%'") > 0) {
       number++;
     }
