@@ -135,9 +135,9 @@ public abstract class MyAbstractDateConverter extends DateConverter
     }
     // Step 3: If we successfully parsed, return a date, otherwise send back an error
     if (date != null) {
-      if (ClassUtils.isAssignable(targetType, java.sql.Date.class) == true) {
+      if (ClassUtils.isAssignable(targetType, Date.class)) {
         final DayHolder day = new DayHolder(date);
-        return day.getSqlDate();
+        return day.getUtilDate();
       }
       return date;
     } else {

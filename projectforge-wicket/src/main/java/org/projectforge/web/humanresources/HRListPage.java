@@ -366,9 +366,9 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
     if (property.equals("week") == true) {
       final Date date = (Date) selectedValue;
       final DateHolder dateHolder = new DateHolder(date);
-      form.getSearchFilter().setStartTime(dateHolder.getDate());
+      form.getSearchFilter().setStartTime(dateHolder.getUtilDate());
       dateHolder.setEndOfWeek();
-      form.getSearchFilter().setStopTime(dateHolder.getDate());
+      form.getSearchFilter().setStopTime(dateHolder.getUtilDate());
       form.startDate.markModelAsChanged();
       form.stopDate.markModelAsChanged();
       refresh();

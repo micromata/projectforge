@@ -46,7 +46,6 @@ import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.RecurrenceFrequency
 import org.projectforge.framework.time.TimePeriod
-import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.persistence.*
@@ -95,22 +94,22 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column(name = "start_date")
-    override var startDate: Timestamp? = null
+    override var startDate: Date? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.event.endDate")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column(name = "end_date")
-    override var endDate: Timestamp? = null
+    override var endDate: Date? = null
 
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.SECOND, encoding = EncodingType.STRING)
     @field:NoHistory
     @get:Column(name = "last_email")
-    open var lastEmail: Timestamp? = null
+    open var lastEmail: Date? = null
 
     @get:Column(name = "dt_stamp")
-    open var dtStamp: Timestamp? = null
+    open var dtStamp: Date? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.calendar")
     @IndexedEmbedded(depth = 1)

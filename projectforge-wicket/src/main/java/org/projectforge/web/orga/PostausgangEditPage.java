@@ -48,8 +48,8 @@ public class PostausgangEditPage extends AbstractEditPage<PostausgangDO, Postaus
   {
     super(parameters, "orga.postausgang");
     init();
-    if (isNew() == true) {
-      getData().setDatum(new DayHolder().getSqlDate().toLocalDate());
+    if (isNew()) {
+      getData().setDatum(new DayHolder().getLocalDate());
       getData().setType(PostType.BRIEF);
     }
   }

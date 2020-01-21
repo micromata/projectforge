@@ -74,7 +74,7 @@ public class QuickSelectMonthPanel extends AbstractSelectPanel<Date>
           final DateHolder dateHolder = new DateHolder(getModelObject());
           dateHolder.add(Calendar.MONTH, -1);
           dateHolder.setBeginOfMonth();
-          beginOfMonth = dateHolder.getDate();
+          beginOfMonth = dateHolder.getUtilDate();
           caller.select(selectProperty, beginOfMonth);
         };
       };
@@ -90,7 +90,7 @@ public class QuickSelectMonthPanel extends AbstractSelectPanel<Date>
         {
           final DateHolder dateHolder = new DateHolder();
           dateHolder.setBeginOfMonth();
-          beginOfMonth = dateHolder.getDate();
+          beginOfMonth = dateHolder.getUtilDate();
           caller.select(selectProperty, beginOfMonth);
         };
       };
@@ -106,7 +106,7 @@ public class QuickSelectMonthPanel extends AbstractSelectPanel<Date>
         {
           final DateHolder dateHolder = new DateHolder(getModelObject());
           dateHolder.add(Calendar.MONTH, +1);
-          beginOfMonth = dateHolder.getDate();
+          beginOfMonth = dateHolder.getUtilDate();
           caller.select(selectProperty, beginOfMonth);
         };
       };

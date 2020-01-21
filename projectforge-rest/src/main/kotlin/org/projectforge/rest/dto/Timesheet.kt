@@ -25,16 +25,16 @@ package org.projectforge.rest.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.projectforge.business.timesheet.TimesheetDO
-import java.sql.Timestamp
+import java.util.*
 
-@JsonIgnoreProperties(value = arrayOf("reminderDuration", "reminderDurationUnit"))
+@JsonIgnoreProperties(value = ["reminderDuration", "reminderDurationUnit"])
 class Timesheet(var task: Task? = null,
                 var location: String? = null,
                 var description: String? = null,
                 var user: User? = null,
                 var kost2: Kost2? = null,
-                var startTime: Timestamp? = null,
-                var stopTime: Timestamp? = null,
+                var startTime: Date? = null,
+                var stopTime: Date? = null,
                 /**
                  * An hash key built of location, description, kost2 and user, if needed by React frontend.
                  */

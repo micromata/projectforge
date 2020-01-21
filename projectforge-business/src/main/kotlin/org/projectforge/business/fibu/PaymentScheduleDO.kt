@@ -30,7 +30,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -62,10 +62,9 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column
     open var number: Short = 0
 
-    // TODO: Replace this?
     @PropertyInfo(i18nKey = "date")
     @get:Column(name = "schedule_date")
-    open var scheduleDate: Date? = null
+    open var scheduleDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.common.betrag")
     @get:Column(scale = 2, precision = 12)

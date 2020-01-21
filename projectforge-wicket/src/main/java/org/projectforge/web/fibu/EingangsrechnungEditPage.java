@@ -35,6 +35,7 @@ import org.projectforge.common.props.PropUtils;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.EditPage;
@@ -96,7 +97,7 @@ public class EingangsrechnungEditPage
     try {
       SEPATransferResult result = this.SEPATransferGenerator.format(this.getData());
 
-      if (result.isSuccessful() == false) {
+      if (!result.isSuccessful()) {
         if (result.getErrors().isEmpty()) {
           // unknown error
           this.log.error("Oups, xml has zero size. Filename: " + filename);
@@ -170,15 +171,15 @@ public class EingangsrechnungEditPage
     super.cloneData();
     final EingangsrechnungDO rechnung = getData();
     final int zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
-    final DayHolder day = new DayHolder();
-    rechnung.setDatum(day.getSqlDate());
-    day.add(Calendar.DAY_OF_MONTH, zahlungsZielInTagen);
-    rechnung.setFaelligkeit(day.getSqlDate());
+    PFDay day = PFDay.now();
+    rechnung.setDatum(day.getLocalDate());
+    day = day.plusDays(zahlungsZielInTagen);
+    rechnung.setFaelligkeit(day.getLocalDate());
     rechnung.setBezahlDatum(null);
     rechnung.setZahlBetrag(null);
     final List<EingangsrechnungsPositionDO> positionen = getData().getPositionen();
     if (positionen != null) {
-      rechnung.setPositionen(new ArrayList<EingangsrechnungsPositionDO>());
+      rechnung.setPositionen(new ArrayList<>());
       for (final EingangsrechnungsPositionDO origPosition : positionen) {
         final EingangsrechnungsPositionDO position = origPosition.newClone();
         rechnung.addPosition(position);

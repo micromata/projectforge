@@ -49,7 +49,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -373,7 +372,7 @@ public class UserDao extends BaseDao<PFUserDO> {
     PfEmgrFactory.get().runInTrans((emgr) -> {
       CriteriaUpdate<PFUserDO> cu = CriteriaUpdate.createUpdate(PFUserDO.class);
       cu
-              .set("lastLogin", new Timestamp(new Date().getTime()))
+              .set("lastLogin", new Date(new Date().getTime()))
               .set("loginFailures", 0)
               .addWhere(Clauses.equal("id", user.getId()));
       return emgr.update(cu);

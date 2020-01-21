@@ -38,11 +38,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Month;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -118,8 +115,7 @@ public class OrderExportTest extends AbstractTestBase
     schedule1.setReached(true);
     schedule1.setComment("SCHEDULE1");
     schedule1.setAmount(new BigDecimal(111));
-    schedule1.setScheduleDate(
-        new Date(LocalDateTime.of(2020, Month.OCTOBER, 2, 0, 0).toInstant(ZoneOffset.UTC).toEpochMilli()));
+    schedule1.setScheduleDate(LocalDate.of(2020, Month.OCTOBER, 2));
     schedule1.setNumber((short) 1);
     schedule1.setVollstaendigFakturiert(true);
 
@@ -128,8 +124,7 @@ public class OrderExportTest extends AbstractTestBase
     schedule2.setReached(false);
     schedule2.setComment("SCHEDULE2");
     schedule2.setAmount(new BigDecimal(222));
-    schedule2.setScheduleDate(
-        new Date(LocalDateTime.of(2030, Month.OCTOBER, 2, 0, 0).toInstant(ZoneOffset.UTC).toEpochMilli()));
+    schedule2.setScheduleDate(LocalDate.of(2030, Month.OCTOBER, 2));
     schedule2.setNumber((short) 2);
     schedule2.setVollstaendigFakturiert(false);
     paymentSchedules.add(schedule1);

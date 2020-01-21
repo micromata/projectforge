@@ -170,7 +170,7 @@ public class TimePeriodPanel extends FormComponentPanel<TimePeriod> implements I
       } else {
         log.error("Property '" + property + "' not supported for selection.");
       }
-      endDateModel.setObject(endDateHolder.getDate());
+      endDateModel.setObject(endDateHolder.getUtilDate());
 
       refreshPage();
     }

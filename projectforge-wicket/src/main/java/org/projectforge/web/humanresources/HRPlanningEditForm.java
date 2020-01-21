@@ -44,6 +44,7 @@ import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.fibu.NewProjektSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
@@ -56,7 +57,6 @@ import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -113,7 +113,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
       @Override
       public void validate(final Form<?> form)
       {
-        if (hrPlanningDao.doesEntryAlreadyExist(data.getId(), data.getUserId(), java.sql.Date.valueOf(data.getWeek())) == true) {
+        if (hrPlanningDao.doesEntryAlreadyExist(data.getId(), data.getUserId(), data.getWeek()) == true) {
           error(getString("hr.planning.entry.error.entryDoesAlreadyExistForUserAndWeekOfYear"));
         }
       }
@@ -432,9 +432,9 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
       final Integer userId = data.getUserId();
       if (userId != null) {
         // Get the entry from the predecessor week:
-        final DayHolder dh = new DayHolder(java.sql.Date.valueOf(getData().getWeek()));
-        dh.add(Calendar.WEEK_OF_YEAR, -1);
-        predecessor = hrPlanningDao.getEntry(userId, dh.getSqlDate());
+        PFDay dh = PFDay.from(getData().getWeek());
+        dh = dh.minusWeeks(1);
+        predecessor = hrPlanningDao.getEntry(userId, dh.getLocalDate());
       }
       predecessorUpdToDate = true;
     }

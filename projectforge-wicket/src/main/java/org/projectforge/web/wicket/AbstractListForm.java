@@ -540,7 +540,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
         dateHolder.add(Calendar.DAY_OF_YEAR, -number);
         dateHolder.setBeginOfDay();
       }
-      searchFilter.setStartTimeOfModification(dateHolder.getDate());
+      searchFilter.setStartTimeOfModification(dateHolder.getUtilDate());
       startDateTimePanel.markModelAsChanged();
       searchFilter.setStopTimeOfModification(null);
       stopDateTimePanel.markModelAsChanged();

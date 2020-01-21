@@ -39,7 +39,6 @@ import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -54,7 +53,7 @@ public class UserPrefTest extends AbstractTestBase {
     Locale locale;
     TimeZone timeZone;
     Date lastPasswordChange;
-    Timestamp lastLogin;
+    Date lastLogin;
 
     static User createTestUser() {
       User user = new User();

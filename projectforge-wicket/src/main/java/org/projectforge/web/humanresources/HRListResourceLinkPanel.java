@@ -73,7 +73,7 @@ public class HRListResourceLinkPanel extends Panel
     userRepeater.removeAll();
     final List<PFUserDO> unplannedUsers = hrViewDao.getUnplannedResources(hrViewData);
     for (final PFUserDO user : unplannedUsers) {
-      if (user.getHrPlanning() == false || user.hasSystemAccess() == false) {
+      if (!user.getHrPlanning() || !user.hasSystemAccess()) {
         continue;
       }
       final WebMarkupContainer container = new WebMarkupContainer(userRepeater.newChildId());
@@ -84,10 +84,10 @@ public class HRListResourceLinkPanel extends Panel
         public void onClick()
         {
           final DateHolder date = new DateHolder(startTime);
-          final Long millis = date.getSQLDate().getTime();
+          final long millis = date.getTimeInMillis();
           final PageParameters pageParams = new PageParameters();
           pageParams.add(WebConstants.PARAMETER_USER_ID, String.valueOf(user.getId()));
-          pageParams.add(WebConstants.PARAMETER_DATE, millis.toString());
+          pageParams.add(WebConstants.PARAMETER_DATE, Long.toString(millis));
           final HRPlanningEditPage page = new HRPlanningEditPage(pageParams);
           page.setReturnToPage(hrListPage);
           setResponsePage(page);

@@ -34,7 +34,6 @@ import org.joda.time.DateTime;
 import org.projectforge.plugins.poll.PollDO;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
-import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -108,8 +107,8 @@ public class PollEventEventsProvider extends MyFullCalendarEventsProvider
   {
     final PollEventDO newEvent = new PollEventDO();
     newEvent.setPoll(poll);
-    newEvent.setStartDate(new Timestamp(range.getStart().getMillis()));
-    newEvent.setEndDate(new Timestamp(range.getEnd().getMillis()));
+    newEvent.setStartDate(range.getStart().toDate());
+    newEvent.setEndDate(range.getEnd().toDate());
     pollEventCache.put(newEvent, null);
     clearSelection(response);
   }

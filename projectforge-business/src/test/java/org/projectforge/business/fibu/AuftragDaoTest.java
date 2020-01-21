@@ -427,31 +427,31 @@ public class AuftragDaoTest extends AbstractTestBase
 
     PaymentScheduleDO paymentSchedule = new PaymentScheduleDO();
     paymentSchedule.setPositionNumber((short) 1);
-    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 1)));
+    paymentSchedule.setScheduleDate(LocalDate.of(2017, 5, 1));
 
     paymentSchedules.add(paymentSchedule);
 
     paymentSchedule = new PaymentScheduleDO();
     paymentSchedule.setPositionNumber((short) 1);
-    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 20)));
+    paymentSchedule.setScheduleDate(LocalDate.of(2017, 5, 20));
 
     paymentSchedules.add(paymentSchedule);
 
     paymentSchedule = new PaymentScheduleDO();
     paymentSchedule.setPositionNumber((short) 1);
-    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 6, 30)));
+    paymentSchedule.setScheduleDate(LocalDate.of(2017, 6, 30));
 
     paymentSchedules.add(paymentSchedule);
 
     paymentSchedule = new PaymentScheduleDO();
     paymentSchedule.setPositionNumber((short) 2);
-    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 24)));
+    paymentSchedule.setScheduleDate(LocalDate.of(2017, 5, 24));
 
     paymentSchedules.add(paymentSchedule);
 
     paymentSchedule = new PaymentScheduleDO();
     paymentSchedule.setPositionNumber((short) 2);
-    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 25)));
+    paymentSchedule.setScheduleDate(LocalDate.of(2017, 5, 25));
 
     paymentSchedules.add(paymentSchedule);
 
@@ -465,13 +465,13 @@ public class AuftragDaoTest extends AbstractTestBase
 
     paymentSchedule = new PaymentScheduleDO();
     paymentSchedule.setPositionNumber((short) 1);
-    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 4, 30)));
+    paymentSchedule.setScheduleDate(LocalDate.of(2017, 4, 30));
 
     paymentSchedules.add(paymentSchedule);
 
     paymentSchedule = new PaymentScheduleDO();
     paymentSchedule.setPositionNumber((short) 2);
-    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 26)));
+    paymentSchedule.setScheduleDate(LocalDate.of(2017, 5, 26));
 
     paymentSchedules.add(paymentSchedule);
 

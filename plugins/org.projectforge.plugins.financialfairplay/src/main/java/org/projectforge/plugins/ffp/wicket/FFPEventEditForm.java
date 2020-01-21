@@ -46,6 +46,7 @@ import org.projectforge.business.user.PFUserFilter;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.UserException;
+import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.IdObject;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -154,12 +155,8 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       final FieldsetPanel fs = gridBuilder.newFieldset(FFPEventDO.class, "eventDate");
       final FieldProperties<LocalDate> props = getEventDateProperties();
       LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
-      DatePanel eventDate = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "eventDate"),
-          DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
-      eventDate.setRequired(true);
-      eventDate.setMarkupId("eventDate").setOutputMarkupId(true);
-      eventDate.setEnabled(!getData().getFinished());
-      fs.add(eventDate);
+      components.getFormComponent().setRequired(true).setMarkupId("eventDate").setOutputMarkupId(true).setEnabled(!getData().getFinished());
+      fs.add(components);
     }
     {
       // Division
@@ -175,16 +172,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       // ATTENDEES
       final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("plugins.ffp.attendees"));
       assignAttendeesListHelper = new MultiChoiceListHelper<PFUserDO>()
-          .setComparator(new Comparator<PFUserDO>()
-          {
-
-            @Override
-            public int compare(PFUserDO o1, PFUserDO o2)
-            {
-              return o1.getPk().compareTo(o2.getPk());
-            }
-
-          }).setFullList(userDao.getList(new PFUserFilter().setDeactivatedUser(false)));
+          .setComparator(Comparator.comparing(BaseDO::getPk)).setFullList(userDao.getList(new PFUserFilter().setDeactivatedUser(false)));
 
       if (this.data.getAttendeeList() != null && this.data.getAttendeeList().size() > 0) {
         for (final PFUserDO attendee : this.data.getAttendeeList()) {

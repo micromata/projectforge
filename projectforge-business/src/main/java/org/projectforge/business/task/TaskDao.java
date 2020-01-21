@@ -47,11 +47,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -147,8 +143,8 @@ public class TaskDao extends BaseDao<TaskDO> {
       Integer currentTaskId = null;
       long totalDuration = 0;
       for (final Tuple oa : result) {
-        final Timestamp startTime = (Timestamp) oa.get(0);
-        final Timestamp stopTime = (Timestamp) oa.get(1);
+        final Date startTime = (Date) oa.get(0);
+        final Date stopTime = (Date) oa.get(1);
         final Integer taskId = (Integer) oa.get(2);
         final long duration = (stopTime.getTime() - startTime.getTime()) / 1000;
         if (currentTaskId == null || !currentTaskId.equals(taskId)) {
@@ -194,8 +190,8 @@ public class TaskDao extends BaseDao<TaskDO> {
     }
     long totalDuration = 0;
     for (final Tuple oa : result) {
-      final Timestamp startTime = (Timestamp) oa.get(0);
-      final Timestamp stopTime = (Timestamp) oa.get(1);
+      final Date startTime = (Date) oa.get(0);
+      final Date stopTime = (Date) oa.get(1);
       final long duration = stopTime.getTime() - startTime.getTime();
       totalDuration += duration;
     }

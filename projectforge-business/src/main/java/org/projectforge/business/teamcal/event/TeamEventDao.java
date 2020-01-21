@@ -58,7 +58,6 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
-import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -241,7 +240,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
       }
 
       if (obj.getDtStamp() == null || obj.getDtStamp().equals(dbObj.getDtStamp())) {
-        obj.setDtStamp(new Timestamp(System.currentTimeMillis()));
+        obj.setDtStamp(new Date(System.currentTimeMillis()));
       }
     }
   }
@@ -332,7 +331,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
 
     // set DTSTAMP if empty
     if (event.getDtStamp() == null) {
-      event.setDtStamp(new Timestamp(event.getCreated().getTime()));
+      event.setDtStamp(new Date(event.getCreated().getTime()));
     }
 
     // create uid if empty

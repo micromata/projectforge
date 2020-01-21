@@ -216,8 +216,8 @@ public class HRPlanningTest extends AbstractTestBase {
     assertBigDecimal(weekend, entry.getWeekendHours());
   }
 
-  private java.sql.Date createDate(final int year, final Month month, final int day, final int hour, final int minute,
+  private LocalDate createDate(final int year, final Month month, final int day, final int hour, final int minute,
                                    final int second, final int millisecond) {
-    return PFDateTime.withDate(year, month, day, hour, minute, second, millisecond, ZoneId.of("UTC"), Locale.GERMAN).getSqlDate();
+    return PFDateTime.withDate(year, month, day, hour, minute, second, millisecond, ZoneId.of("UTC"), Locale.GERMAN).getLocalDate();
   }
 }

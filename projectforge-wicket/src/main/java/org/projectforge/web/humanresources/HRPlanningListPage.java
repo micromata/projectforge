@@ -312,7 +312,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
       } else {
         log.error("Property '" + property + "' not supported for selection.");
       }
-      form.getSearchFilter().setStopTime(dateHolder.getDate());
+      form.getSearchFilter().setStopTime(dateHolder.getUtilDate());
       refresh();
     } else {
       log.error("Property '" + property + "' not supported for selection.");
@@ -337,8 +337,8 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
   @Override
   public void refresh()
   {
-    // form.getSearchFilter().setStartTime(new DateHolder(form.getSearchFilter().getStartTime()).setBeginOfWeek().getDate());
-    // form.getSearchFilter().setStopDate(new DateHolder(form.getSearchFilter().getStopTime()).setEndOfWeek().getDate());
+    // form.getSearchFilter().setStartTime(new DateHolder(form.getSearchFilter().getStartTime()).setBeginOfWeek().getUtilDate());
+    // form.getSearchFilter().setStopDate(new DateHolder(form.getSearchFilter().getStopTime()).setEndOfWeek().getUtilDate());
     form.startDate.markModelAsChanged();
     form.stopDate.markModelAsChanged();
     super.refresh();

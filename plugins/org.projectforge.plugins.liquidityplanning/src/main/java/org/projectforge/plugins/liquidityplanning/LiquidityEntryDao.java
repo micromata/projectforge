@@ -32,7 +32,7 @@ import org.projectforge.framework.time.PFDateTime;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,11 +97,11 @@ public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO>
         }
       }
       if (myFilter.getNextDays() > 0) {
-        Date dateOfPayment = entry.getDateOfPayment();
+        LocalDate dateOfPayment = entry.getDateOfPayment();
         if (dateOfPayment == null) {
-          dateOfPayment = today.getSqlDate();
+          dateOfPayment = today.getLocalDate();
         }
-        if (dateOfPayment.before(today.getUtilDate())) {
+        if (dateOfPayment.isBefore(today.getLocalDate())) {
           // Entry is before today:
           if (myFilter.getPaymentStatus() == PaymentStatus.PAID || entry.getPaid()) {
             // Ignore entries of the past if they were paid. Also ignore unpaid entries of the past if the user wants to filter only paid

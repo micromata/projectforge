@@ -34,7 +34,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -134,13 +134,13 @@ open class ToDoDO : DefaultBaseDO() {
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "due_date")
-    open var dueDate: Date? = null
+    open var dueDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "resubmissionOnDate")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
-    open var resubmission: Date? = null
+    open var resubmission: LocalDate? = null
 
     val reporterId: Int?
         @Transient
