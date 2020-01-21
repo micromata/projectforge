@@ -34,7 +34,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -112,7 +111,7 @@ public class ExportMSProject {
       Holidays holidays = Holidays.getInstance();
       if (!holidays.isWorkingDay(dt.getDateTime()) && holidays.isHoliday(dt) && !dt.isWeekend()) {
         // Add this holiday to the calendar:
-        final Date date = dt.getUtilDate();
+        final Date date = dt.getSqlDate();
         calendar.addCalendarException(date, date);
         if (log.isDebugEnabled()) {
           log.debug("Add holiday: " + date);
