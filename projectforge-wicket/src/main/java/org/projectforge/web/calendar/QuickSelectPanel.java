@@ -23,24 +23,24 @@
 
 package org.projectforge.web.calendar;
 
-import java.util.Date;
-
 import org.apache.wicket.model.Model;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractSelectPanel;
-import org.projectforge.web.wicket.components.DatePanel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
+
+import java.util.Date;
 
 
 /**
  * This panel combines QuickSelectMonthPanel and QuickSelectWeekPanel.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class QuickSelectPanel extends AbstractSelectPanel<Date>
 {
   private static final long serialVersionUID = 8334141505387689261L;
 
-  private final DatePanel datePanel;
+  private final LocalDatePanel datePanel;
 
   private final ISelectCallerPage caller;
 
@@ -50,7 +50,7 @@ public class QuickSelectPanel extends AbstractSelectPanel<Date>
    * @param caller
    * @param selectProperty Results int two select properties: selectProperty + ".month" and selectProperty + ".week".
    */
-  public QuickSelectPanel(final String id, final ISelectCallerPage caller, final String selectProperty, final DatePanel datePanel)
+  public QuickSelectPanel(final String id, final ISelectCallerPage caller, final String selectProperty, final LocalDatePanel datePanel)
   {
     super(id, new Model<Date>(), caller, selectProperty);
     this.caller = caller;

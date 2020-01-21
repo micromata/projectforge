@@ -39,8 +39,6 @@ import org.projectforge.business.fibu.*;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.framework.time.PFDay;
-import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
@@ -49,7 +47,6 @@ import org.projectforge.web.wicket.flowlayout.IconType;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -96,7 +93,7 @@ public class LiquidityEntryListPage
   public List<IColumn<LiquidityEntryDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
     final List<IColumn<LiquidityEntryDO, String>> columns = new ArrayList<>();
-    final Date today = PFDay.now().getUtilDate();
+    final LocalDate today = LocalDate.now();
     final CellItemListener<LiquidityEntryDO> cellItemListener = new CellItemListener<LiquidityEntryDO>()
     {
       @Override
@@ -109,7 +106,7 @@ public class LiquidityEntryListPage
           // Do nothing further
         } else {
           if (!liquidityEntry.getPaid()) {
-            if (liquidityEntry.getDateOfPayment() == null || liquidityEntry.getDateOfPayment().before(today)) {
+            if (liquidityEntry.getDateOfPayment() == null || liquidityEntry.getDateOfPayment().isBefore(today)) {
               appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
             } else {
               appendCssClasses(item, RowCssClass.BLUE);

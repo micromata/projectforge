@@ -32,18 +32,18 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import org.apache.commons.lang3.StringUtils
 import java.io.IOException
+import java.sql.Timestamp
 import java.time.ZoneOffset
-import java.util.*
 
 /**
  * Serialization of dates in ISO format and UTC time-zone.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class TimestampSerializer(private val format: UtilDateFormat) : StdSerializer<Date>(Date::class.java) {
+class TimestampSerializer(private val format: UtilDateFormat) : StdSerializer<Timestamp>(Timestamp::class.java) {
 
     @Throws(IOException::class, JsonProcessingException::class)
-    override fun serialize(value: Date?, jgen: JsonGenerator, provider: SerializerProvider) {
+    override fun serialize(value: Timestamp?, jgen: JsonGenerator, provider: SerializerProvider) {
         if (value == null) {
             jgen.writeNull()
             return
@@ -58,17 +58,17 @@ class TimestampSerializer(private val format: UtilDateFormat) : StdSerializer<Da
  * @param format If given, only the given format will be tried for deserialization. If null, all formats will be tried (recommended).
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class TimestampDeserializer(private val format: UtilDateFormat? = null) : StdDeserializer<Date>(Date::class.java) {
+class TimestampDeserializer(private val format: UtilDateFormat? = null) : StdDeserializer<Timestamp>(Timestamp::class.java) {
 
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Date? {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Timestamp? {
         val dateString = p.text
         if (StringUtils.isBlank(dateString)) {
             return null
         }
         if (StringUtils.isNumeric(dateString)) {
-            return Date(dateString.toLong())
+            return Timestamp(dateString.toLong())
         }
         val date = UtilDateDeserializer.parseDate(format, dateString, p)
-        return Date.from(date.toInstant(ZoneOffset.UTC))
+        return Timestamp.from(date.toInstant(ZoneOffset.UTC))
     }
 }
