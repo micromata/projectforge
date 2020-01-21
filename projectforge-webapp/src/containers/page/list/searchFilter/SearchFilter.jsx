@@ -1,4 +1,5 @@
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
@@ -50,6 +51,37 @@ function SearchFilter(props) {
     return (
         <React.Fragment>
             <div className={styles.searchRow}>
+                {/* FLEX-BOX IS SET TO REVERSE ON BIG SCREENS */}
+                <div className={classNames(styles.container, styles.flex)}>
+                    {/* Render the menu if it's loaded. */}
+                    {ui && ui.pageMenu && (
+                        <Col>
+                            <Navbar>
+                                <Navigation
+                                    entries={ui.pageMenu}
+                                    // Let the menu float to the right.
+                                    className="ml-auto"
+                                />
+                            </Navbar>
+                        </Col>
+                    )}
+                </div>
+                <div className={styles.container}>
+                    <FavoritesPanel
+                        onFavoriteCreate={onFavoriteCreate}
+                        onFavoriteDelete={onFavoriteDelete}
+                        onFavoriteRename={onFavoriteRename}
+                        onFavoriteSelect={onFavoriteSelect}
+                        onFavoriteUpdate={onFavoriteUpdate}
+                        favorites={filterFavorites}
+                        currentFavoriteId={filter.id}
+                        isModified
+                        closeOnSelect={false}
+                        translations={ui.translations}
+                        htmlId="searchFilterFavoritesPopover"
+                    />
+                    {isFetching && <Spinner className={styles.loadingSpinner} />}
+                </div>
                 <TextAutoCompletion
                     actions={(
                         <AdvancedPopperAction
@@ -72,36 +104,6 @@ function SearchFilter(props) {
                     url={quickSelectUrl}
                     value={filter.searchString}
                 />
-                <div className={styles.container}>
-                    <FavoritesPanel
-                        onFavoriteCreate={onFavoriteCreate}
-                        onFavoriteDelete={onFavoriteDelete}
-                        onFavoriteRename={onFavoriteRename}
-                        onFavoriteSelect={onFavoriteSelect}
-                        onFavoriteUpdate={onFavoriteUpdate}
-                        favorites={filterFavorites}
-                        currentFavoriteId={filter.id}
-                        isModified
-                        closeOnSelect={false}
-                        translations={ui.translations}
-                        htmlId="searchFilterFavoritesPopover"
-                    />
-                    {isFetching && <Spinner className={styles.loadingSpinner} />}
-                </div>
-                <div className={styles.container}>
-                    {/* Render the menu if it's loaded. */}
-                    {ui && ui.pageMenu && (
-                        <Col>
-                            <Navbar>
-                                <Navigation
-                                    entries={ui.pageMenu}
-                                    // Let the menu float to the right.
-                                    className="ml-auto"
-                                />
-                            </Navbar>
-                        </Col>
-                    )}
-                </div>
             </div>
             <MagicFilters />
             <hr />

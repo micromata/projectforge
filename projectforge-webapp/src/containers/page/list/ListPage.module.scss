@@ -15,33 +15,50 @@
 
 .searchRow {
   display: flex;
-
-  .container, .searchContainer {
-    margin: 1em 0 .25em 1em;
-    flex: 1;
-    align-self: center;
-    position: relative;
+  flex-direction: column;
+  @media (min-width: 768px) {
+    flex-direction: row-reverse;
   }
 
-  .searchContainer .completions {
-    top: .8em;
+  .container, .searchContainer {
+    margin: 1em 1em .25em 1em;
+    align-self: flex-start;
+    position: relative;
 
-    .entries {
-      margin: 0;
-      padding: 0;
+    @media (min-width: 768px) {
+      margin-right: 0;
+      align-self: center;
+    }
+  }
 
-      .entry {
-        position: relative;
-        padding: 1em 1.5em;
-        cursor: default;
+  .searchContainer, .container.flex {
+    flex: 1;
+    align-self: stretch;
+  }
 
-        &:hover {
-          background-color: #eee;
-        }
+  .searchContainer {
+    max-width: 512px;
 
-        .icon {
-          right: 1em;
-          position: absolute;
+    .completions {
+      top: .8em;
+
+      .entries {
+        margin: 0;
+        padding: 0;
+
+        .entry {
+          position: relative;
+          padding: 1em 1.5em;
+          cursor: default;
+
+          &:hover {
+            background-color: #eee;
+          }
+
+          .icon {
+            right: 1em;
+            position: absolute;
+          }
         }
       }
     }

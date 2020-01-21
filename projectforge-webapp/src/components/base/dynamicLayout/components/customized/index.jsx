@@ -10,6 +10,8 @@ import DayRange from './components/DayRange';
 import TimesheetEditTaskAndKost2 from './components/timesheet/TimesheetEditTaskAndKost2';
 import TimesheetTemplatesAndRecents from './components/timesheet/TimesheetTemplatesAndRecents';
 import CalendarEventReminder from './components/CalendarEventReminder';
+import CalendarEditExternalSubscription from './components/CalendarEditExternalSubscription';
+import CalendarSubscriptionInfo from './components/CalendarSubscriptionInfo';
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;
@@ -32,6 +34,12 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'calendar.reminder':
             Tag = CalendarEventReminder;
+            break;
+        case 'calendar.editExternalSubscription':
+            Tag = CalendarEditExternalSubscription;
+            break;
+        case 'calendar.subscriptionInfo':
+            Tag = CalendarSubscriptionInfo;
             break;
         case 'dayRange':
             Tag = DayRange;

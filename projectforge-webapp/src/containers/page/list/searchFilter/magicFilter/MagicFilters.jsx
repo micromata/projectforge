@@ -69,37 +69,37 @@ function MagicFilters(
                         {...entry}
                     />
                 ))}
-            <div className={styles.magicFilter}>
-                <AdvancedPopper
-                    setIsOpen={setIsOpen}
-                    isOpen={allFiltersAreOpen}
-                    basic={translations.searchFilter || ''}
-                    className={styles.allFilters}
-                    contentClassName={classNames(
-                        styles.pill,
-                        { [styles.marked]: allFiltersAreOpen },
-                    )}
-                    actions={(
-                        <AdvancedPopperAction
-                            type="delete"
-                            disabled={!(filterEntries.length || searchString)}
-                            onClick={handleAllFiltersDelete}
-                        >
-                            {translations.reset || '???Zurücksetzen???'}
-                        </AdvancedPopperAction>
-                    )}
-                >
-                    <AdvancedPopperInput
-                        forwardRef={searchRef}
-                        dark
-                        id="magicFiltersSearch"
-                        icon={faSearch}
-                        onCancel={() => setIsOpen(false)}
-                        onChange={handleSearchChange}
-                        value={search}
-                        placeholder={translations.search || ''}
-                    />
-                    {searchFilter && (
+            {searchFilter && (
+                <div className={styles.magicFilter}>
+                    <AdvancedPopper
+                        setIsOpen={setIsOpen}
+                        isOpen={allFiltersAreOpen}
+                        basic={translations.searchFilter || ''}
+                        className={styles.allFilters}
+                        contentClassName={classNames(
+                            styles.pill,
+                            { [styles.marked]: allFiltersAreOpen },
+                        )}
+                        actions={(
+                            <AdvancedPopperAction
+                                type="delete"
+                                disabled={!(filterEntries.length || searchString)}
+                                onClick={handleAllFiltersDelete}
+                            >
+                                {translations.reset || '???Zurücksetzen???'}
+                            </AdvancedPopperAction>
+                        )}
+                    >
+                        <AdvancedPopperInput
+                            forwardRef={searchRef}
+                            dark
+                            id="magicFiltersSearch"
+                            icon={faSearch}
+                            onCancel={() => setIsOpen(false)}
+                            onChange={handleSearchChange}
+                            value={search}
+                            placeholder={translations.search || ''}
+                        />
                         <ul className={styles.filterList}>
                             {filteredSearchFilters.map(({ id, label }) => (
                                 <FilterListEntry
@@ -110,12 +110,14 @@ function MagicFilters(
                                 />
                             ))}
                             {filteredSearchFilters.length === 0 && (
-                                <span className={styles.errorMessage}>???No Entries found???</span>
+                                <span className={styles.errorMessage}>
+                                    {translations['datatable.no-records-found'] || '???No Entries found???'}
+                                </span>
                             )}
                         </ul>
-                    )}
-                </AdvancedPopper>
-            </div>
+                    </AdvancedPopper>
+                </div>
+            )}
         </div>
     );
 }

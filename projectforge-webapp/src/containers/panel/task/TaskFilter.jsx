@@ -1,7 +1,7 @@
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { CheckBox, Col, Input, Row } from '../../../components/design';
+import { CheckBox, Col, Row } from '../../../components/design';
 import AdvancedPopper from '../../../components/design/popper/AdvancedPopper';
 import AdvancedPopperInput from '../../../components/design/popper/AdvancedPopperInput';
 import TaskTreeContext from './TaskTreeContext';

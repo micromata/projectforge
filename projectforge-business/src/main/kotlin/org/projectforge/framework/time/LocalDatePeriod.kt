@@ -36,5 +36,11 @@ class LocalDatePeriod(val begin: LocalDate, val end: LocalDate) {
             val beginOfYear = LocalDate.of(year, Month.JANUARY, 1)
             return LocalDatePeriod(beginOfYear, PFDay.from(beginOfYear)!!.endOfYear.date)
         }
+
+        @JvmStatic
+        fun wholeYears(begin: LocalDate, end: LocalDate): LocalDatePeriod {
+            val beginOfYear = LocalDate.of(begin.year, Month.JANUARY, 1)
+            return LocalDatePeriod(beginOfYear, PFDay.from(end)!!.endOfYear.date)
+        }
     }
 }

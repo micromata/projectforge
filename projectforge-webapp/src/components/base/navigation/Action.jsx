@@ -1,9 +1,11 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHistory } from '@fortawesome/free-solid-svg-icons';
 import history from '../../../utilities/history';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
-import { NavLink } from '../../design';
+import { NavLink, UncontrolledTooltip } from '../../design';
 import MenuBadge from './categories-dropdown/MenuBadge';
 
 class NavigationAction extends React.Component {
@@ -48,16 +50,22 @@ class NavigationAction extends React.Component {
             badge,
             badgeIsFlying,
             entryKey,
+            id,
             title,
+            tooltip,
             type,
             url,
         } = this.props;
-        let content = title;
+        let displayTitle = title;
+        if (id === 'CLASSIC') {
+            displayTitle = <FontAwesomeIcon icon={faHistory} />;
+        }
+        let content = displayTitle;
 
         if (badge && badge.counter && entryKey) {
             content = (
                 <div style={{ position: 'relative' }}>
-                    {title}
+                    {displayTitle}
                     <MenuBadge
                         elementKey={entryKey}
                         color="danger"
@@ -69,34 +77,52 @@ class NavigationAction extends React.Component {
                 </div>
             );
         }
+        let tooltipElement;
+        if (tooltip) {
+            tooltipElement = (
+                <UncontrolledTooltip placement="left" target={id}>
+                    {tooltip}
+                </UncontrolledTooltip>
+            );
+        }
 
         switch (type) {
             case 'RESTCALL':
                 return (
-                    <NavLink
-                        onClick={this.handleClick}
-                        onKeyPress={() => {
-                        }}
-                    >
-                        {content}
-                    </NavLink>
+                    <React.Fragment>
+                        <NavLink
+                            id={id}
+                            onClick={this.handleClick}
+                            onKeyPress={() => {
+                            }}
+                        >
+                            {content}
+                        </NavLink>
+                        {tooltipElement}
+                    </React.Fragment>
                 );
             case 'DOWNLOAD':
                 return (
-                    <NavLink href={getServiceURL(url)} target="_blank" rel="noopener noreferrer">
-                        {content}
-                    </NavLink>
+                    <React.Fragment>
+                        <NavLink id={id} href={getServiceURL(url)} target="_blank" rel="noopener noreferrer">
+                            {content}
+                        </NavLink>
+                        {tooltipElement}
+                    </React.Fragment>
                 );
             case 'LINK':
             case 'REDIRECT':
                 return (
-                    <NavLink tag={Link} to={`/${url}`}>
-                        {content}
-                    </NavLink>
+                    <React.Fragment>
+                        <NavLink id={id} tag={Link} to={`/${url}`}>
+                            {content}
+                        </NavLink>
+                        {tooltipElement}
+                    </React.Fragment>
                 );
             case 'TEXT':
             default:
-                return <span className="nav-link">{content}</span>;
+                return <span className="nav-link" id={id}>{content}{tooltipElement}</span>;
         }
     }
 }
@@ -108,6 +134,7 @@ NavigationAction.propTypes = {
     }),
     badgeIsFlying: PropTypes.bool,
     entryKey: PropTypes.string,
+    id: PropTypes.string,
     type: PropTypes.oneOf([
         'REDIRECT',
         'RESTCALL',
@@ -116,14 +143,17 @@ NavigationAction.propTypes = {
         'TEXT',
     ]),
     url: PropTypes.string,
+    tooltip: PropTypes.string,
 };
 
 NavigationAction.defaultProps = {
     badge: undefined,
     badgeIsFlying: true,
     entryKey: undefined,
+    id: undefined,
     type: 'LINK',
     url: '',
+    tooltip: undefined,
 };
 
 export default NavigationAction;

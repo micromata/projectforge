@@ -47,7 +47,7 @@ class BookServicesRest() {
     private lateinit var bookDao: BookDao
 
     @Autowired
-    private lateinit var bookRest: BookRest
+    private lateinit var bookRest: BookPagesRest
 
     /**
      * Lends the given book out by the logged-in user.

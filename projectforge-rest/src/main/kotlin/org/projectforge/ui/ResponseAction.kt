@@ -117,5 +117,9 @@ enum class TargetType {
     /**
      * The client should call the given url with http method DELETE.
      */
-    DELETE
+    DELETE,
+    /**
+     * No action by the client required.
+     */
+    NOTHING
 }

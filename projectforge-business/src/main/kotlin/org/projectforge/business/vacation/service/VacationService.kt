@@ -107,15 +107,16 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
                               baseDate: LocalDate = LocalDate.now(),
                               vacationEntries: List<VacationDO>? = null): VacationStats {
         val stats = VacationStats(employee, year, baseDate)
-        stats.vacationDaysInYearFromContract = getAnnualLeaveDays(employee, year)
-        stats.remainingLeaveFromPreviousYear = remainingLeaveDao.getRemainingLeaveFromPreviousYear(employee.id, year)
+        // Get employee from database if not initialized (user not given).
+        val employeeDO = if (employee.userId == null) employeeDao.internalGetById(employee.id) else employee
+        stats.vacationDaysInYearFromContract = getAnnualLeaveDays(employeeDO, year)
         stats.endOfVacationYear = getEndOfCarryVacationOfPreviousYear(year)
         // If date of joining not given, assume 1900...
-        val dateOfJoining = employee.eintrittsDatum ?: LocalDate.of(1900, Month.JANUARY, 1)
+        val dateOfJoining = employeeDO.eintrittsDatum ?: LocalDate.of(1900, Month.JANUARY, 1)
         // Calculate remaining vacation days from previous year:
         val yearPeriod = LocalDatePeriod.wholeYear(year)
         val allVacationsOfYear = vacationEntries
-                ?: getVacationsListForPeriod(employee, yearPeriod.begin, yearPeriod.end, true)
+                ?: getVacationsListForPeriod(employeeDO, yearPeriod.begin, yearPeriod.end, true)
         stats.vacationDaysInProgressAndApproved = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false)
         stats.vacationDaysInProgress = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false, VacationStatus.IN_PROGRESS)
         stats.vacationDaysApproved = sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, false, VacationStatus.APPROVED)
@@ -133,11 +134,11 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
                 stats.remainingLeaveFromPreviousYear = BigDecimal.ZERO
             } else if (year == baseDate.year) {
                 // Carry of holidays from last year weren't yet calculated, do it now:
-                stats.lastYearStats = getVacationStats(employee, baseDate.year - 1, false)
+                stats.lastYearStats = getVacationStats(employeeDO, baseDate.year - 1, false)
                 stats.remainingLeaveFromPreviousYear = stats.lastYearStats!!.vacationDaysLeftInYear
                         ?: BigDecimal.ZERO
                 log.info("Calculation of carry for employee: $stats")
-                remainingLeaveDao.internalSaveOrUpdate(employee, year, stats.remainingLeaveFromPreviousYear)
+                remainingLeaveDao.internalSaveOrUpdate(employeeDO, year, stats.remainingLeaveFromPreviousYear)
             } else {
                 // Calculate last year
                 stats.remainingLeaveFromPreviousYear = remainingLeaveDao.getRemainingLeaveFromPreviousYear(employee.id, year)
@@ -331,40 +332,20 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
                 if (vacationStart == null || vacationEnd == null) {
                     log.warn("Illegal state of vacation entry of employee ${it.employee?.id}: start ($vacationStart) and end date ($vacationEnd) must be given.")
                 } else {
-                    if (vacationStart.isBefore(periodBegin))
-                        vacationStart = periodBegin
-                    if (vacationEnd.isAfter(periodEnd))
-                        vacationEnd = periodEnd
-                    val numberOfDays = getVacationDays(vacationStart, vacationEnd, it.halfDayBegin, periodBegin, periodEnd)
-                    if (numberOfDays != null)
+                    if (vacationEnd.isBefore(periodBegin) || vacationStart.isAfter(periodEnd)) {
+                        // Ignore entry out of period.
+                    } else {
+                        if (vacationStart.isBefore(periodBegin))
+                            vacationStart = periodBegin
+                        if (vacationEnd.isAfter(periodEnd))
+                            vacationEnd = periodEnd
+                        val numberOfDays = getVacationDays(vacationStart, vacationEnd, it.halfDayBegin, it.halfDayEnd, periodBegin, periodEnd)
                         sum += numberOfDays
+                    }
                 }
             }
         }
         return sum
-    }
-
-    /**
-     * @param vacationStart
-     * @param vacationEnd
-     * @param isHalfDayVacation If number of vacation days is 1 or less and halfDay is chosen, 0.5 will be returned. Default is false.
-     * @param periodBegin Optional value to detect number of vacation days inside a specified period (e. g. vacation days in overlap period).
-     * @param periodEnd Optional value to detect number of vacation days inside a specified period (e. g. vacation days in overlap period).
-     * @return The number of vacation days for the given period (will call [PFDayUtils.getNumberOfWorkingDays].
-     */
-    @JvmOverloads
-    open fun getVacationDays(vacationStart: LocalDate?, vacationEnd: LocalDate?, isHalfDayVacation: Boolean? = false, periodBegin: LocalDate? = null, periodEnd: LocalDate? = null): BigDecimal? {
-        if (vacationStart == null || vacationEnd == null) {
-            log.warn("from=$vacationStart, to=$vacationEnd. Both mustn't be null!")
-            return null
-        }
-        val from = if (periodBegin != null && vacationStart.isBefore(periodBegin)) periodBegin else vacationStart
-        val until = if (periodEnd != null && vacationEnd.isAfter(periodEnd)) periodEnd else vacationEnd
-        val numberOfWorkingDays = PFDayUtils.getNumberOfWorkingDays(from, until)
-        // don't return HALF_DAY if there is no working day
-        return if (numberOfWorkingDays > BigDecimal.ZERO && java.lang.Boolean.TRUE == isHalfDayVacation) // null evaluates to false
-            HALF_DAY
-        else numberOfWorkingDays
     }
 
     companion object {
@@ -372,6 +353,67 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
         private val HALF_DAY = BigDecimal(0.5)
         private val TWELVE = BigDecimal(12)
         private val DEFAULT_VACATION_STATUS_LIST = arrayOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)
+
+        @JvmStatic
+        @JvmOverloads
+        fun getVacationDays(vacation: VacationDO, periodBegin: LocalDate? = null, periodEnd: LocalDate? = null): BigDecimal {
+            val startDate = vacation.startDate
+            val endDate = vacation.endDate
+            if (startDate == null || endDate == null) {
+                /// log.warn("from=${startDate}, to=${endDate}. Both mustn't be null!")
+                return BigDecimal.ZERO
+            }
+            return getVacationDays(startDate, endDate, vacation.halfDayBegin, vacation.halfDayEnd, periodBegin, periodEnd)
+        }
+
+        /**
+         * @param vacationStart
+         * @param vacationEnd
+         * @param halfDayBegin Should the first day (if working day) counted as half day?
+         * @param halfDayEnd Should the last day (if working day) counted as half day?
+         * @param periodBegin Optional value to detect number of vacation days inside a specified period (e. g. vacation days in overlap period).
+         * @param periodEnd Optional value to detect number of vacation days inside a specified period (e. g. vacation days in overlap period).
+         * @return The number of vacation days for the given period (will call [PFDayUtils.getNumberOfWorkingDays].
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun getVacationDays(startDate: LocalDate, endDate: LocalDate, halfDayBegin: Boolean? = false, halfDayEnd: Boolean? = false, periodBegin: LocalDate? = null, periodEnd: LocalDate? = null): BigDecimal {
+            var useHalfDayBegin = halfDayBegin == true
+            var useHalfDayEnd = halfDayEnd == true
+            val from = if (periodBegin != null && startDate.isBefore(periodBegin)) {
+                useHalfDayBegin = false // begin is outside of period, can't be counted as half day anymore.
+                periodBegin
+            } else {
+                startDate
+            }
+            val until = if (periodEnd != null && endDate.isAfter(periodEnd)) {
+                useHalfDayEnd = false // end is outside of period, can't be counted as half day anymore.
+                periodEnd
+            } else {
+                endDate
+            }
+            var numberOfWorkingDays = PFDayUtils.getNumberOfWorkingDays(from, until)
+            if (numberOfWorkingDays > BigDecimal.ZERO) {
+                if (useHalfDayBegin) {
+                    val workingHours = PFDayUtils.getNumberOfWorkingDays(from, from)
+                    if (workingHours == BigDecimal.ONE) {
+                        numberOfWorkingDays -= HALF_DAY
+                    } else {
+                        log.warn("User tried to get an half day-off at $from, but this date is not a full working day (${VacationStats.format(numberOfWorkingDays)}. Ignoring half-day switch.")
+                    }
+                }
+                if (useHalfDayEnd && (!useHalfDayBegin || from != until)) {
+                    // Don't reduce working days if halfDayBegin and halfDayEnd is given for same date.
+                    val workingHours = PFDayUtils.getNumberOfWorkingDays(until, until)
+                    if (workingHours == BigDecimal.ONE) {
+                        numberOfWorkingDays -= HALF_DAY
+                    } else {
+                        log.warn("User tried to get an half day-off at $until, but this date is not a full working day (${VacationStats.format(numberOfWorkingDays)}. Ignoring half-day switch.")
+                    }
+                }
+            }
+            return numberOfWorkingDays
+        }
     }
 
 

@@ -31,6 +31,7 @@ import org.projectforge.business.user.UserRightId
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants
 import org.projectforge.framework.persistence.jpa.PfEmgr
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -61,6 +62,10 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
 
     override fun getAdditionalSearchFields(): Array<String> {
         return ADDITIONAL_SEARCH_FIELDS
+    }
+
+    override fun getDefaultSortProperties(): Array<SortProperty> {
+        return DEFAULT_SORT_PROPERTIES
     }
 
     open fun findByUserId(userId: Int?): EmployeeDO? {
@@ -195,16 +200,17 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         return result
     }
 
+    init {
+        userRightId = USER_RIGHT_ID
+    }
+
     companion object {
         val USER_RIGHT_ID = UserRightId.HR_EMPLOYEE
         private val log = LoggerFactory.getLogger(EmployeeDao::class.java)
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf("user.firstname", "user.lastname", "user.username",
                 "user.description",
                 "user.organization")
+        private val DEFAULT_SORT_PROPERTIES = arrayOf(SortProperty("user.firstname"), SortProperty("user.lastname"))
         private const val META_SQL = " AND e.deleted = :deleted AND e.tenant = :tenant"
-    }
-
-    init {
-        userRightId = USER_RIGHT_ID
     }
 }

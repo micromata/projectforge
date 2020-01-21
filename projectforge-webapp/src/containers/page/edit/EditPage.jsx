@@ -16,6 +16,7 @@ function EditPage({ match, location }) {
 
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState(undefined);
+    const [watchFieldsTriggered, setWatchFieldsTriggered] = React.useState([]);
 
     const [data, setDataState] = React.useState({});
     const [ui, setUI] = React.useState({});
@@ -23,8 +24,9 @@ function EditPage({ match, location }) {
     const [variables, setVariablesState] = React.useState({});
 
     const loadPage = () => {
-        setLoading(false);
+        setLoading(true);
         setError(undefined);
+        setWatchFieldsTriggered([]);
         setUI({});
         setDataState({});
         setValidationErrors([]);
@@ -99,7 +101,10 @@ function EditPage({ match, location }) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(data),
+                body: JSON.stringify({
+                    data,
+                    watchFieldsTriggered,
+                }),
             },
         )
             .then((response) => {
@@ -122,13 +127,19 @@ function EditPage({ match, location }) {
                                 history.push(json.url, json.variables);
                                 break;
                             case 'UPDATE':
-                                history.push(`${json.url}`, { noReload: true });
-                                window.scrollTo(0, 0);
+                                if (json.url) {
+                                    history.push(`${json.url}`, { noReload: true });
+                                    window.scrollTo(0, 0);
+                                }
                                 if (json.variables.variables) {
                                     setVariables(json.variables.variables);
                                 }
                                 setDataState(json.variables.data);
-                                setUI(json.variables.ui);
+                                if (json.variables.ui) {
+                                    setUI(json.variables.ui);
+                                }
+                                break;
+                            case 'NOTHING':
                                 break;
                             default:
                                 throw Error(`Target Type ${json.targetType} not implemented`);
@@ -146,9 +157,25 @@ function EditPage({ match, location }) {
     };
 
     const setData = async (newData, callback) => {
+        // Block Data Changing while loading
+        if (loading) {
+            return data;
+        }
+
+        const computedNewData = typeof newData === 'function' ? newData(data) : newData;
+
+        if (ui.watchFields) {
+            const triggered = Object.keys(computedNewData)
+                .filter(key => ui.watchFields.includes(key));
+
+            if (triggered.length > 0) {
+                setWatchFieldsTriggered(triggered);
+            }
+        }
+
         const computedData = {
             ...data,
-            ...(typeof newData === 'function' ? newData(data) : newData),
+            ...computedNewData,
         };
 
         setDataState(computedData);
@@ -159,6 +186,19 @@ function EditPage({ match, location }) {
 
         return computedData;
     };
+
+    React.useEffect(() => {
+        if (watchFieldsTriggered.length > 0) {
+            callAction({
+                responseAction: {
+                    url: `${category}/watchFields`,
+                    targetType: 'POST',
+                },
+            });
+
+            setWatchFieldsTriggered([]);
+        }
+    }, [watchFieldsTriggered]);
 
     React.useEffect(() => {
         if (location.state && location.state.noReload && Object.entries(data).length !== 0) {

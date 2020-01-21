@@ -28,18 +28,18 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.projectforge.business.book.BookDO
 import org.projectforge.framework.json.JsonValidator
-import org.projectforge.rest.AddressRest
-import org.projectforge.rest.BookRest
+import org.projectforge.rest.AddressPagesRest
+import org.projectforge.rest.BookPagesRest
 import org.projectforge.rest.dto.Address
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
 class UILayoutTest : AbstractTestBase() {
     @Autowired
-    lateinit var bookRest: BookRest
+    lateinit var bookRest: BookPagesRest
 
     @Autowired
-    lateinit var addressRest: AddressRest
+    lateinit var addressRest: AddressPagesRest
 
     @Test
     fun testAddressEditLayout() {

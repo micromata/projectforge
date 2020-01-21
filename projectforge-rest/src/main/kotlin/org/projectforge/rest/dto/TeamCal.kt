@@ -23,12 +23,21 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.teamcal.CalendarAccessStatus
+import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
+import org.projectforge.business.teamcal.admin.right.TeamCalRight
+import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.configuration.ApplicationContextProvider
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 class TeamCal(var title: String? = null,
               var owner: PFUserDO? = null,
               var description: String? = null,
+              var accessStatus: CalendarAccessStatus? = null,
+              var accessStatusString: String? = null,
               var fullAccessGroups: List<Group>? = null,
               var fullAccessUsers: List<User>? = null,
               var readonlyAccessGroups: List<Group>? = null,
@@ -39,6 +48,9 @@ class TeamCal(var title: String? = null,
               var includeLeaveDaysForGroups: List<Group>? = null,
               var externalSubscription: Boolean = false,
               var externalSubscriptionUrl: String? = null,
+              /**
+               * In seconds.
+               */
               var externalSubscriptionUpdateInterval: Int? = null,
               var externalSubscriptionUrlAnonymized: String? = null,
               var vacation4Groups: List<Int>? = null,
@@ -56,6 +68,20 @@ class TeamCal(var title: String? = null,
 
         includeLeaveDaysForGroups = Group.toGroupList(src.includeLeaveDaysForGroups)
         includeLeaveDaysForUsers = User.toUserList(src.includeLeaveDaysForUsers)
+
+        val teamCalDao = ApplicationContextProvider.getApplicationContext().getBean(TeamCalDao::class.java)
+        val accessChecker = ApplicationContextProvider.getApplicationContext().getBean(AccessChecker::class.java)
+        val right = teamCalDao.userRight as TeamCalRight
+        val loggedInUserId = ThreadLocalUserContext.getUserId()
+        accessStatus = when {
+            right.isOwner(loggedInUserId, src) -> CalendarAccessStatus.OWNER
+            right.hasFullAccess(src, loggedInUserId) -> CalendarAccessStatus.FULL_ACCESS
+            right.hasReadonlyAccess(src, loggedInUserId) -> CalendarAccessStatus.READONLY_ACCESS
+            right.hasMinimalAccess(src, loggedInUserId) -> CalendarAccessStatus.MINIMAL_ACCESS
+            accessChecker.isLoggedInUserMemberOfAdminGroup -> CalendarAccessStatus.ADMIN_ACCESS
+            else -> null
+        }
+        accessStatus?.let { accessStatusString = translate(it.i18nKey) }
     }
 
     // The user and group ids are stored as csv list of integers in the data base.
