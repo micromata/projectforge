@@ -240,7 +240,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
       }
 
       if (obj.getDtStamp() == null || obj.getDtStamp().equals(dbObj.getDtStamp())) {
-        obj.setDtStamp(new Date(System.currentTimeMillis()));
+        obj.setDtStamp(new Date());
       }
     }
   }
