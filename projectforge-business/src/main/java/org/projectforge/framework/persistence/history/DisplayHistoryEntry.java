@@ -145,7 +145,7 @@ public class DisplayHistoryEntry implements Serializable {
   }
 
   private String objectValueToDisplay(Object value) {
-    if (value instanceof Date || value instanceof java.sql.Date) {
+    if (value instanceof Date || value instanceof java.sql.Date || value instanceof java.sql.Timestamp) {
       return formatDate(value);
     }
 
