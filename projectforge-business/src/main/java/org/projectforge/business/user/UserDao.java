@@ -372,7 +372,7 @@ public class UserDao extends BaseDao<PFUserDO> {
     PfEmgrFactory.get().runInTrans((emgr) -> {
       CriteriaUpdate<PFUserDO> cu = CriteriaUpdate.createUpdate(PFUserDO.class);
       cu
-              .set("lastLogin", new Date(new Date().getTime()))
+              .set("lastLogin", new Date())
               .set("loginFailures", 0)
               .addWhere(Clauses.equal("id", user.getId()));
       return emgr.update(cu);
