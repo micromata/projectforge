@@ -31,7 +31,7 @@ public class XmlDumpTestFork extends AbstractTestBase
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XmlDumpTestFork.class);
 
   @Autowired
-  private DatabaseService initDatabaseDao;
+  private DatabaseService databaseService;
 
   @Autowired
   private XmlDump xmlDump;

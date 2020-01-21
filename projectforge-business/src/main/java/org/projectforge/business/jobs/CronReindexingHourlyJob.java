@@ -43,7 +43,7 @@ public class CronReindexingHourlyJob {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CronReindexingHourlyJob.class);
 
   @Autowired
-  private DatabaseService databaseUpdateDao;
+  private DatabaseService databaseService;
 
   @Autowired
   private HibernateSearchReindexer hibernateSearchReindexer;
