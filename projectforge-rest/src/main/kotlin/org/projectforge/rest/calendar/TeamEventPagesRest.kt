@@ -32,7 +32,6 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
-import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
@@ -41,13 +40,16 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.TimesheetPagesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.TeamEvent
+import org.projectforge.rest.dto.Timesheet
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
+import javax.validation.Valid
 
 @Deprecated("Will be replaced by CalendarEventsRest.")
 @RestController
@@ -195,12 +197,12 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
      * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
      */
     @RequestMapping("switch2Timesheet")
-    fun switch2Timesheet(request: HttpServletRequest, @RequestBody teamEvent: TeamEvent)
+    fun switch2Timesheet(request: HttpServletRequest, @Valid @RequestBody postData: PostData<TeamEvent>)
             : ResponseAction {
-        return timesheetRest.cloneFromTeamEvent(request, teamEvent)
+        return timesheetRest.cloneFromTeamEvent(request, postData.data)
     }
 
-    fun cloneFromTimesheet(request: HttpServletRequest, timesheet: TimesheetDO): ResponseAction {
+    fun cloneFromTimesheet(request: HttpServletRequest, timesheet: Timesheet): ResponseAction {
         val teamEvent = TeamEvent()
         teamEvent.startDate = timesheet.startTime
         teamEvent.endDate = timesheet.stopTime

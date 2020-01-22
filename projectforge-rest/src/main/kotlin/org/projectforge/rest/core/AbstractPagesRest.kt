@@ -112,11 +112,6 @@ abstract class AbstractPagesRest<
 
     private var _baseDao: B? = null
 
-    /**
-     * e. g. /rs/address (/rs/{category}
-     */
-    private var restPath: String? = null
-
     private var category: String? = null
 
     private val userPrefArea = getCategory()
@@ -169,14 +164,14 @@ abstract class AbstractPagesRest<
                 i18nKey = "menu.reindexNewestDatabaseEntries",
                 tooltip = "menu.reindexNewestDatabaseEntries.tooltip.content",
                 tooltipTitle = "menu.reindexNewestDatabaseEntries.tooltip.title",
-                url = "${getRestPath()}/reindexNewest",
+                url = getRestPath("reindexNewest"),
                 type = MenuItemTargetType.RESTCALL))
         if (accessChecker.isLoggedInUserMemberOfAdminGroup)
             gearMenu.add(MenuItem("reindexAllDatabaseEntries",
                     i18nKey = "menu.reindexAllDatabaseEntries",
                     tooltip = "menu.reindexAllDatabaseEntries.tooltip.content",
                     tooltipTitle = "menu.reindexAllDatabaseEntries.tooltip.title",
-                    url = "${getRestPath()}/reindexFull",
+                    url = getRestPath("reindexFull"),
                     type = MenuItemTargetType.RESTCALL))
         layout.add(gearMenu)
         layout.addTranslations("reset", "datatable.no-records-found")
@@ -193,19 +188,14 @@ abstract class AbstractPagesRest<
      * Relative rest path (without leading /rs
      */
     fun getRestPath(subPath: String? = null): String {
-        if (restPath == null) {
-            val requestMapping = this::class.annotations.find { it is RequestMapping } as? RequestMapping
-            val url = requestMapping?.value?.joinToString("/") { it } ?: "/"
-            restPath = url.substringAfter("${Rest.URL}/")
-        }
-        return if (subPath != null) "${restPath!!}/$subPath" else restPath!!
+        return RestResolver.getRestUrl(this::class.java, subPath,true)
     }
 
     /**
      * Relative rest path (without leading /rs
      */
     fun getRestRootPath(subPath: String? = null): String {
-        return "/${getRestPath(subPath)}"
+        return "${getRestPath(subPath)}"
     }
 
     private fun getCategory(): String {
@@ -314,7 +304,7 @@ abstract class AbstractPagesRest<
      * At standard, quickSelectUrl is only given, if the doClass implements DisplayObject and autoCompleteSearchFields are given.
      */
     protected open val quickSelectUrl: String?
-        get() = if (!autoCompleteSearchFields.isNullOrEmpty() && DisplayNameCapable::class.java.isAssignableFrom(baseDao.doClass)) "${getRestPath()}/${AutoCompletion.AUTOCOMPLETE_OBJECT}?maxResults=30&search=:search" else null
+        get() = if (!autoCompleteSearchFields.isNullOrEmpty() && DisplayNameCapable::class.java.isAssignableFrom(baseDao.doClass)) "${getRestPath(AutoCompletion.AUTOCOMPLETE_OBJECT)}?maxResults=30&search=:search" else null
 
     /**
      * Add customized magic filter element in addition to the automatically detected elements.
@@ -650,12 +640,12 @@ abstract class AbstractPagesRest<
      * Will be called by clone button. Sets the id of the form data object to null and deleted to false.
      * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
      */
-    @RequestMapping(RestPaths.CLONE)
-    fun clone(request: HttpServletRequest, @RequestBody dto: DTO)
+    @PostMapping(RestPaths.CLONE)
+    fun clone(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>)
             : ResponseAction {
-        val item = prepareClone(dto)
+        val item = prepareClone(postData.data)
         val editLayoutData = getItemAndLayout(request, item, UILayout.UserAccess(false, true))
-        return ResponseAction(url = getRestEditPath(), targetType = TargetType.UPDATE)
+        return ResponseAction(targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)
                 .addVariable("variables", editLayoutData.variables)
@@ -665,7 +655,7 @@ abstract class AbstractPagesRest<
      * Might be modified e. g. for edit pages handled in modals (timesheets and calendar events).
      */
     open protected fun getRestEditPath(): String {
-        return getRestRootPath(RestPaths.EDIT)
+        return PagesResolver.getEditPageUrl(this::class.java)
     }
 
     /**

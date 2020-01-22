@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import javax.sql.DataSource;
@@ -37,6 +38,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Year;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
@@ -50,7 +52,7 @@ public class V7_0_0_6__MigrateEmployeeAndCarryVacationDays extends BaseJavaMigra
 
   @Override
   public void migrate(Context context) {
-    DataSource ds = context.getConfiguration().getDataSource();
+    DataSource ds = new SingleConnectionDataSource(context.getConnection(), true);
     migrateEmployeesCarryVacationDays(ds);
     migrateEmployeeTable(ds);
   }
@@ -61,8 +63,13 @@ public class V7_0_0_6__MigrateEmployeeAndCarryVacationDays extends BaseJavaMigra
 
     // After installation of version 7 (snapshot), the cronjob for updating remaining vacation days yearly failed due to a bug in EmployeeAttrDO.parent (Kotlin-NPE)
     // So get the installation year:
-    Timestamp release7InstalledOn = jdbc.queryForObject("select installed_on from t_flyway_schema_version where version='7.0.0'", Timestamp.class);
-    int release7InstalledOnYear = LocalDateTime.ofInstant(release7InstalledOn.toInstant(), PFDateTimeUtils.ZONE_UTC).getYear();
+    int release7InstalledOnYear = Year.now().getValue();
+    try {
+      Timestamp release7InstalledOn = jdbc.queryForObject("select installed_on from t_flyway_schema_version where version='7.0.0'", Timestamp.class);
+      release7InstalledOnYear = LocalDateTime.ofInstant(release7InstalledOn.toInstant(), PFDateTimeUtils.ZONE_UTC).getYear();
+    } catch (Exception ex) {
+      // OK, database seems to be empty.
+    }
 
     SqlRowSet rs = jdbc.queryForRowSet("select p.modifiedat as modifiedat,p.value as value,e.pk as pk,e.tenant_id as tenant from t_fibu_employee_attr as p inner join t_fibu_employee as e on p.parent=e.pk where propertyname = 'previousyearleave' order by pk");
     int counter = 0;
@@ -74,7 +81,7 @@ public class V7_0_0_6__MigrateEmployeeAndCarryVacationDays extends BaseJavaMigra
       Integer employeeId = rs.getInt("pk");
       Integer tenantId = rs.getInt("tenant");
       BigDecimal value = rs.getBigDecimal("value");
-      int year = LocalDateTime.ofInstant(modifiedat.toInstant(), PFDateTimeUtils.ZONE_UTC).getYear();
+      int year = LocalDateTime.ofInstant(modifiedat.toInstant(), ZoneId.of("UTC")).getYear();
       if (year > release7InstalledOnYear) {
         year = release7InstalledOnYear; // Vacations were modified, but the attribute 'previousyearleave' is not of the current year.
       }
@@ -98,7 +105,12 @@ public class V7_0_0_6__MigrateEmployeeAndCarryVacationDays extends BaseJavaMigra
 
   private void migrateEmployeeTable(DataSource ds) {
     JdbcTemplate jdbc = new JdbcTemplate(ds);
-    String defaultTimeZoneString = jdbc.queryForObject("select stringvalue from t_configuration where parameter = 'timezone'", String.class);
+    String defaultTimeZoneString = null;
+    try {
+      defaultTimeZoneString = jdbc.queryForObject("select stringvalue from t_configuration where parameter = 'timezone'", String.class);
+    } catch (Exception ex) {
+      // OK, database seems to be empty.
+    }
     ZoneId zoneId;
     if (defaultTimeZoneString == null) {
       zoneId = ZoneId.systemDefault();
@@ -114,7 +126,7 @@ public class V7_0_0_6__MigrateEmployeeAndCarryVacationDays extends BaseJavaMigra
         Timestamp austrittOrg = rs.getTimestamp("austritt");
         Timestamp birtdayOrig = rs.getTimestamp("birthday");
 
-        LocalDate birthday = ensureMidnigt(birtdayOrig, PFDateTimeUtils.ZONE_UTC); // Birthdays were stored as UTC
+        LocalDate birthday = ensureMidnigt(birtdayOrig, ZoneId.of("UTC")); // Birthdays were stored as UTC
         LocalDate eintritt = ensureMidnigt(eintrittOrig, zoneId);
         LocalDate austritt = ensureMidnigt(austrittOrg, zoneId);
 

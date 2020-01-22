@@ -58,7 +58,7 @@ public abstract class AbstractPlugin
   protected ApplicationContext applicationContext;
 
   @Autowired
-  protected DatabaseService myDatabaseUpdater;
+  protected DatabaseService databaseService;
 
   @Autowired
   protected UserXmlPreferencesDao userXmlPreferencesDao;
