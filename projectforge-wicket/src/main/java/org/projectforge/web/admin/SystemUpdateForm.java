@@ -139,14 +139,14 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
 
   protected void updateEntryRows()
   {
-    if (parentPage.myDatabaseUpdater.getSystemUpdater().isUpdating()) {
+    if (parentPage.databaseService.getSystemUpdater().isUpdating()) {
       log.info("Update is still running.");
       return;
     }
     scripts.removeAll();
     final RepeatingView scriptRows = new RepeatingView("scriptRows");
     scripts.add(scriptRows);
-    final SortedSet<UpdateEntry> updateEntries = parentPage.myDatabaseUpdater.getSystemUpdater().getUpdateEntries();
+    final SortedSet<UpdateEntry> updateEntries = parentPage.databaseService.getSystemUpdater().getUpdateEntries();
     if (updateEntries == null) {
       return;
     }

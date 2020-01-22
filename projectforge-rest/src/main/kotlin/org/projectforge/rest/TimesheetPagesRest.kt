@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
+import org.projectforge.framework.time.DatePrecision
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
@@ -46,7 +47,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.calendar.CalEventPagesRest
 import org.projectforge.rest.calendar.TeamEventPagesRest
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDOPagesRest
+import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.*
@@ -58,10 +59,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
+import javax.validation.Valid
 
 @RestController
 @RequestMapping("${Rest.URL}/timesheet")
-class TimesheetPagesRest : AbstractDOPagesRest<TimesheetDO, TimesheetDao>(TimesheetDao::class.java, "timesheet.title",
+class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, TimesheetDao>(TimesheetDao::class.java, "timesheet.title",
         cloneSupported = true) {
 
     companion object {
@@ -99,7 +101,7 @@ class TimesheetPagesRest : AbstractDOPagesRest<TimesheetDO, TimesheetDao>(Timesh
     /**
      * For exporting list of timesheets.
      */
-    private class Timesheet4ListExport(val timesheet: TimesheetDO,
+    private class Timesheet4ListExport(val timesheet: Timesheet,
                                        val id: Int, // Needed for history Service
                                        val weekOfYear: String,
                                        val dayName: String,
@@ -112,6 +114,19 @@ class TimesheetPagesRest : AbstractDOPagesRest<TimesheetDO, TimesheetDao>(Timesh
     class RecentTimesheets(val timesheets: List<Timesheet>,
                            val cost2Visible: Boolean)
 
+    override fun transformFromDB(obj: TimesheetDO, editMode: Boolean): Timesheet {
+        val timesheet = Timesheet()
+        timesheet.copyFrom(obj)
+        return timesheet
+    }
+
+    override fun transformForDB(dto: Timesheet): TimesheetDO {
+        val timesheetDO = TimesheetDO()
+        dto.copyTo(timesheetDO)
+        return timesheetDO
+    }
+
+
     override fun getInitialList(request: HttpServletRequest): InitialListData {
         val taskId = NumberHelper.parseInteger(request.getParameter("taskId")) ?: return super.getInitialList(request)
         val filter = MagicFilter()
@@ -119,11 +134,8 @@ class TimesheetPagesRest : AbstractDOPagesRest<TimesheetDO, TimesheetDao>(Timesh
         return super.getInitialList(filter)
     }
 
-    /**
-     * Initializes new timesheets for adding.
-     */
-    override fun newBaseDO(request: HttpServletRequest?): TimesheetDO {
-        val sheet = super.newBaseDO(request)
+    override fun newBaseDTO(request: HttpServletRequest?): Timesheet {
+        val sheet = Timesheet()
         val startTimeEpochSeconds = RestHelper.parseLong(request, "start")
         val endTimeEpochSeconds = RestHelper.parseLong(request, "end")
         if (startTimeEpochSeconds != null) {
@@ -134,31 +146,30 @@ class TimesheetPagesRest : AbstractDOPagesRest<TimesheetDO, TimesheetDao>(Timesh
             val stop = PFDateTime.from(endTimeEpochSeconds, nowIfNull = true)!!
             sheet.stopTime = stop.sqlTimestamp
         }
-        val userId: Int? = null // Optional parameter given to edit page
-        if (userId != null) {
-            baseDao.setUser(sheet, userId)
-        }
+        val userId = RestHelper.parseInt(request, "userId") // Optional parameter given to edit page
+        sheet.user = User.getUser(userId)
         val pref = getTimesheetPrefData()
         val entry = pref.recentEntry
         if (entry != null) {
             if (entry.taskId != null) {
-                baseDao.setTask(sheet, entry.taskId)
+                sheet.task = Task.getTask(entry.taskId, ThreadLocalUserContext.getUser())
                 if (entry.kost2Id != null) {
-                    baseDao.setKost2(sheet, entry.kost2Id)
+                    sheet.kost2 = Kost2.getkost2(entry.kost2Id)
                 }
             }
             sheet.location = entry.location
             sheet.description = entry.description
+            if (sheet.user == null && entry.userId != null) {
+                sheet.user = User.getUser(entry.userId)
+            }
         }
-        if (entry?.userId != null) {
-            baseDao.setUser(sheet, entry.userId)
-        } else {
-            baseDao.setUser(sheet, ThreadLocalUserContext.getUserId()) // Use current user.
+        if (sheet.user == null) {
+            sheet.user = User.getUser(ThreadLocalUserContext.getUserId()) // Use current user.
         }
         return sheet
     }
 
-    override fun afterEdit(obj: TimesheetDO, dto: TimesheetDO): ResponseAction {
+    override fun afterEdit(obj: TimesheetDO, dto: Timesheet): ResponseAction {
         return ResponseAction("/${Const.REACT_APP_PATH}calendar")
                 .addVariable("date", obj.startTime)
                 .addVariable("id", obj.id ?: -1)
@@ -166,7 +177,9 @@ class TimesheetPagesRest : AbstractDOPagesRest<TimesheetDO, TimesheetDao>(Timesh
 
     override fun processResultSetBeforeExport(resultSet: ResultSet<TimesheetDO>): ResultSet<*> {
         val list: List<Timesheet4ListExport> = resultSet.resultSet.map {
-            Timesheet4ListExport(it,
+            val timesheet = Timesheet()
+            timesheet.copyFrom(it)
+            Timesheet4ListExport(timesheet,
                     id = it.id,
                     weekOfYear = DateTimeFormatter.formatWeekOfYear(it.startTime),
                     dayName = dateTimeFormatter.getFormattedDate(it.startTime,
@@ -217,7 +230,7 @@ class TimesheetPagesRest : AbstractDOPagesRest<TimesheetDO, TimesheetDao>(Timesh
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: TimesheetDO, userAccess: UILayout.UserAccess): UILayout {
+    override fun createEditLayout(dto: Timesheet, userAccess: UILayout.UserAccess): UILayout {
         val dayRange = UICustomized("dayRange")
         dayRange.add("startDateId", "startTime")
         dayRange.add("endDateId", "stopTime")
@@ -292,10 +305,10 @@ class TimesheetPagesRest : AbstractDOPagesRest<TimesheetDO, TimesheetDao>(Timesh
      * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
      */
     @RequestMapping("switch2CalendarEvent")
-    fun switch2CalendarEvent(request: HttpServletRequest, @RequestBody timesheet: TimesheetDO)
+    fun switch2CalendarEvent(request: HttpServletRequest, @Valid @RequestBody postData: PostData<Timesheet>)
             : ResponseAction {
-        return if (useNewCalendarEvents) calendarEventRest.cloneFromTimesheet(request, timesheet)
-        else teamEventRest.cloneFromTimesheet(request, timesheet)
+        return if (useNewCalendarEvents) calendarEventRest.cloneFromTimesheet(request, postData.data)
+        else teamEventRest.cloneFromTimesheet(request, postData.data)
     }
 
     override fun getRestEditPath(): String {
@@ -313,7 +326,7 @@ class TimesheetPagesRest : AbstractDOPagesRest<TimesheetDO, TimesheetDao>(Timesh
     }
 
     fun cloneFromCalendarEvent(request: HttpServletRequest, calendarEvent: CalEvent): ResponseAction {
-        val timesheet = newBaseDO(request)
+        val timesheet = newBaseDTO(request)
         timesheet.startTime = calendarEvent.startDate
         timesheet.stopTime = calendarEvent.endDate
         if (!calendarEvent.location.isNullOrBlank())
@@ -327,11 +340,17 @@ class TimesheetPagesRest : AbstractDOPagesRest<TimesheetDO, TimesheetDao>(Timesh
                 .addVariable("variables", editLayoutData.variables)
     }
 
-    override fun onGetItemAndLayout(request: HttpServletRequest, dto: TimesheetDO, editLayoutData: EditLayoutData) {
+    override fun onGetItemAndLayout(request: HttpServletRequest, dto: Timesheet, editLayoutData: EditLayoutData) {
         val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
-        if (startDateAsSeconds != null) dto.setStartDate(startDateAsSeconds * 1000)
+        if (startDateAsSeconds != null)  {
+            val date = PFDateTime.from(startDateAsSeconds)!!.withPrecision(DatePrecision.MINUTE_15)
+            dto.startTime = date.sqlTimestamp
+        }
         val endDateSeconds = NumberHelper.parseLong(request.getParameter("endDate"))
-        if (endDateSeconds != null) dto.setStopDate(endDateSeconds * 1000)
+        if (endDateSeconds != null) {
+            val date = PFDateTime.from(endDateSeconds)!!.withPrecision(DatePrecision.MINUTE_15)
+            dto.stopTime = date.sqlTimestamp
+        }
         super.onGetItemAndLayout(request, dto, editLayoutData)
     }
 
@@ -339,8 +358,8 @@ class TimesheetPagesRest : AbstractDOPagesRest<TimesheetDO, TimesheetDao>(Timesh
      * Puts the task information such as path, consumption etc. as additional variable for the client, because the
      * origin task of the timesheet is of type TaskDO and doesn't contain such data.
      */
-    override fun addVariablesForEditPage(dto: TimesheetDO): MutableMap<String, Any>? {
-        val task = TaskServicesRest.createTask(dto.taskId) ?: return null
+    override fun addVariablesForEditPage(dto: Timesheet): MutableMap<String, Any>? {
+        val task = TaskServicesRest.createTask(dto.task?.id) ?: return null
         return mutableMapOf("task" to task,
                 "timesheetFavorites" to timesheetFavoritesService.getList())
     }

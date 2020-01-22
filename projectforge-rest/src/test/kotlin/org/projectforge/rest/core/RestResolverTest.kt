@@ -21,26 +21,22 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.database;
+package org.projectforge.rest.core
 
-import org.projectforge.test.AbstractTestBase;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import org.projectforge.rest.AddressPagesRest
 
-public class XmlDumpTestFork extends AbstractTestBase
-{
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XmlDumpTestFork.class);
+class RestResolverTest {
+    @Test
+    fun resolveTest() {
+        assertEquals("/rs/address", RestResolver.getRestUrl(AddressPagesRest::class.java))
+        assertEquals("address", RestResolver.getRestUrl(AddressPagesRest::class.java, null, true))
 
-  @Autowired
-  private DatabaseService databaseService;
+        assertEquals("/rs/address/edit", RestResolver.getRestUrl(AddressPagesRest::class.java, "edit"))
+        assertEquals("address/edit", RestResolver.getRestUrl(AddressPagesRest::class.java, "edit", true))
 
-  @Autowired
-  private XmlDump xmlDump;
-
-  @Override
-  protected void initDb()
-  {
-    // no intial entities.
-    init(false);
-  }
-
+        assertEquals("/rs/address/edit", RestResolver.getRestUrl(AddressPagesRest::class.java, "/edit"))
+        assertEquals("address/edit", RestResolver.getRestUrl(AddressPagesRest::class.java, "/edit", true))
+    }
 }

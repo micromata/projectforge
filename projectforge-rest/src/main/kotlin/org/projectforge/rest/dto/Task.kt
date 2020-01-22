@@ -26,9 +26,11 @@ package org.projectforge.rest.dto
 import org.projectforge.business.gantt.GanttObjectType
 import org.projectforge.business.gantt.GanttRelationType
 import org.projectforge.business.task.TaskDO
+import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.common.task.TimesheetBookingStatus
+import org.projectforge.framework.persistence.api.BaseDO
 import java.math.BigDecimal
 
 class Task(id: Int? = null,
@@ -64,6 +66,23 @@ class Task(id: Int? = null,
         if (src.parentTask != null) {
             parentTask = Task()
             parentTask?.copyFromMinimal(src.parentTask!!)
+        }
+    }
+
+    companion object {
+        /**
+         * @param dbObj Needed to get the right tenant.
+         */
+        fun getTask(taskId: Int?, doObj: BaseDO<*>, minimal: Boolean = true): Task? {
+            taskId ?: return null
+            val taskDO = TaskTreeHelper.getTaskTree(doObj).getTaskById(taskId)
+            val task = Task()
+            if (minimal) {
+                task.copyFromMinimal(taskDO)
+            } else {
+                task.copyFrom(taskDO)
+            }
+            return task
         }
     }
 }

@@ -34,7 +34,7 @@ import org.projectforge.framework.persistence.database.DatabaseService;
  */
 public class ToDoPluginUpdates
 {
-  static DatabaseService dao;
+  static DatabaseService databaseService;
 
   @SuppressWarnings("serial")
   public static UpdateEntry getInitializationUpdateEntry()
@@ -46,7 +46,7 @@ public class ToDoPluginUpdates
       {
         // Does the data-base table already exist?
         // Check only the oldest table.
-        if (dao.doTablesExist(ToDoDO.class)) {
+        if (databaseService.doTablesExist(ToDoDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           // The oldest table doesn't exist, therefore the plug-in has to initialized completely.
@@ -58,8 +58,8 @@ public class ToDoPluginUpdates
       public UpdateRunningStatus runUpdate()
       {
         // Create initial data-base table:
-        new SchemaGenerator(dao).add(ToDoDO.class).createSchema();
-        dao.createMissingIndices();
+        new SchemaGenerator(databaseService).add(ToDoDO.class).createSchema();
+        databaseService.createMissingIndices();
         return UpdateRunningStatus.DONE;
       }
     };

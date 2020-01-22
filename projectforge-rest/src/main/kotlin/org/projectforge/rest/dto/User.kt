@@ -23,8 +23,10 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.StringHelper
+import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 class User(id: Int? = null,
@@ -42,6 +44,20 @@ class User(id: Int? = null,
     }
 
     companion object {
+        private val userDao = ApplicationContextProvider.getApplicationContext().getBean(UserDao::class.java)
+
+        fun getUser(userId: Int?, minimal: Boolean = true): User? {
+            userId ?: return null
+            val userDO = userDao.getOrLoad(userId) ?: return null
+            val user = User()
+            if (minimal) {
+                user.copyFromMinimal(userDO)
+            } else {
+                user.copyFrom(userDO)
+            }
+            return user
+        }
+
         /**
          * Converts csv of user ids to list of user (only with id and displayName = "???", no other content).
          */

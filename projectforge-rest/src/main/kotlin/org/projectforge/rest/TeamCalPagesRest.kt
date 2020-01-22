@@ -37,7 +37,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.calendar.CalendarSubscriptionInfo
-import org.projectforge.rest.calendar.CalendarSubscriptionInfoRest
+import org.projectforge.rest.calendar.CalendarSubscriptionInfoPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Group
@@ -136,7 +136,7 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
         exportMenu.add(MenuItem("calendar.exportTimesheets",
                 i18nKey = "plugins.teamcal.export.timesheets",
                 type = MenuItemTargetType.REDIRECT,
-                url = CalendarSubscriptionInfoRest.getTimesheetUserUrl()))
+                url = CalendarSubscriptionInfoPageRest.getTimesheetUserUrl()))
         exportMenu.add(MenuItem("calendar.exportWeekOfYears",
                 i18nKey = "plugins.teamcal.export.weekOfYears",
                 tooltip = "plugins.teamcal.export.weekOfYears.tooltip",
@@ -146,7 +146,7 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
                 i18nKey = "plugins.teamcal.export.holidays",
                 tooltip = "plugins.teamcal.export.holidays.tooltip",
                 type = MenuItemTargetType.REDIRECT,
-                url = CalendarSubscriptionInfoRest.getHolidaysUrl()))
+                url = CalendarSubscriptionInfoPageRest.getHolidaysUrl()))
         layout.add(exportMenu, 0)
 
         return LayoutUtils.processListPage(layout, this)

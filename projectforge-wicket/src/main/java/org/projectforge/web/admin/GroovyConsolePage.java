@@ -48,7 +48,7 @@ public class GroovyConsolePage extends AbstractStandardFormPage
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroovyConsolePage.class);
 
   @SpringBean
-  private DatabaseService myDatabaseUpdater;
+  private DatabaseService databaseService;
 
   @SpringBean
   private ConfigurationService configurationService;

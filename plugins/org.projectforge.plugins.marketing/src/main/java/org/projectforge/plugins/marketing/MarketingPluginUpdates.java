@@ -39,7 +39,7 @@ import java.util.List;
  */
 public class MarketingPluginUpdates
 {
-  static DatabaseService dao;
+  static DatabaseService databaseService;
 
   final static Class<?>[] doClasses = new Class<?>[] { //
       AddressCampaignDO.class, AddressCampaignValueDO.class };
@@ -62,7 +62,7 @@ public class MarketingPluginUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         // Does the data-base table already exist?
-        if (dao.doTableAttributesExist(AddressCampaignDO.class, "values")) {
+        if (databaseService.doTableAttributesExist(AddressCampaignDO.class, "values")) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
@@ -72,8 +72,8 @@ public class MarketingPluginUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (!dao.doTableAttributesExist(AddressCampaignDO.class, "values")) {
-          dao.renameTableAttribute(new Table(AddressCampaignDO.class).getName(), "values", "s_values");
+        if (!databaseService.doTableAttributesExist(AddressCampaignDO.class, "values")) {
+          databaseService.renameTableAttribute(new Table(AddressCampaignDO.class).getName(), "values", "s_values");
         }
         return UpdateRunningStatus.DONE;
       }
@@ -92,7 +92,7 @@ public class MarketingPluginUpdates
       {
         // Does the data-base table already exist?
         // Check only the oldest table.
-        if (dao.doTablesExist(AddressCampaignDO.class)) {
+        if (databaseService.doTablesExist(AddressCampaignDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           // The oldest table doesn't exist, therefore the plug-in has to initialized completely.
@@ -104,8 +104,8 @@ public class MarketingPluginUpdates
       public UpdateRunningStatus runUpdate()
       {
         // Create initial data-base table:
-        new SchemaGenerator(dao).add(doClasses).createSchema();
-        dao.createMissingIndices();
+        new SchemaGenerator(databaseService).add(doClasses).createSchema();
+        databaseService.createMissingIndices();
         return UpdateRunningStatus.DONE;
       }
     };

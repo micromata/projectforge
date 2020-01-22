@@ -49,7 +49,7 @@ public class SystemUpdatePage extends AbstractSecuredPage
   private static final long serialVersionUID = -7624191773850329338L;
 
   @SpringBean
-  protected DatabaseService myDatabaseUpdater;
+  protected DatabaseService databaseService;
 
   private final SystemUpdateForm form;
 
@@ -57,7 +57,7 @@ public class SystemUpdatePage extends AbstractSecuredPage
   public SystemUpdatePage(final PageParameters parameters)
   {
     super(parameters);
-    myDatabaseUpdater.getSystemUpdater().runAllPreChecks();
+    databaseService.getSystemUpdater().runAllPreChecks();
     form = new SystemUpdateForm(this);
     body.add(form);
     form.init();
@@ -68,7 +68,7 @@ public class SystemUpdatePage extends AbstractSecuredPage
           public void onClick()
           {
             checkAdminUser();
-            final List<DatabaseUpdateDO> updateEntries = myDatabaseUpdater.getUpdateHistory();
+            final List<DatabaseUpdateDO> updateEntries = databaseService.getUpdateHistory();
             final ExportWorkbook workbook = new ExportWorkbook();
             final ExportSheet sheet = workbook.addSheet("Update history");
             sheet.getContentProvider().setColWidths(new int[] { 20, 10, 20, 15, 50, 20 });
@@ -103,14 +103,14 @@ public class SystemUpdatePage extends AbstractSecuredPage
   {
     checkAdminUser();
     accessChecker.checkRestrictedOrDemoUser();
-    myDatabaseUpdater.getSystemUpdater().update(updateEntry);
+    databaseService.getSystemUpdater().update(updateEntry);
     refresh();
   }
 
   protected void refresh()
   {
     checkAdminUser();
-    myDatabaseUpdater.getSystemUpdater().runAllPreChecks();
+    databaseService.getSystemUpdater().runAllPreChecks();
     form.updateEntryRows();
   }
 
