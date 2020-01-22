@@ -650,10 +650,10 @@ abstract class AbstractPagesRest<
      * Will be called by clone button. Sets the id of the form data object to null and deleted to false.
      * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
      */
-    @RequestMapping(RestPaths.CLONE)
-    fun clone(request: HttpServletRequest, @RequestBody dto: DTO)
+    @PostMapping(RestPaths.CLONE)
+    fun clone(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>)
             : ResponseAction {
-        val item = prepareClone(dto)
+        val item = prepareClone(postData.data)
         val editLayoutData = getItemAndLayout(request, item, UILayout.UserAccess(false, true))
         return ResponseAction(url = getRestEditPath(), targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
