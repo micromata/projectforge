@@ -41,9 +41,9 @@ public class BaseDaoTest
         HibernateSearchFilterUtils.modifySearchString("email:k.reinhard@projectforge"));
     assertEquals("hallo", HibernateSearchFilterUtils.modifySearchString("'hallo"));
     assertEquals("title:hallo", HibernateSearchFilterUtils.modifySearchString("'title:hallo"));
-    assertEquals("hallo* AND test* NOT hurz* OR test*",
+    assertEquals("(hallo* AND test* NOT hurz* OR test*)",
         HibernateSearchFilterUtils.modifySearchString("hallo AND test NOT hurz OR test"));
-    assertEquals("hallo* AND 2008-11-21 NOT hurz* OR test*",
+    assertEquals("(hallo* AND 2008-11-21 NOT hurz* OR test*)",
         HibernateSearchFilterUtils.modifySearchString("hallo AND 2008-11-21 NOT hurz OR test"));
     assertEquals("-hallo", HibernateSearchFilterUtils.modifySearchString("-hallo"));
     assertEquals("+hallo", HibernateSearchFilterUtils.modifySearchString("+hallo"));
