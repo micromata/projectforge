@@ -27,6 +27,7 @@ import org.projectforge.business.teamcal.service.CalendarFeedService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -67,15 +68,15 @@ class CalendarSubscriptionInfoPageRest {
 
     companion object {
         fun getTimesheetUserUrl(): String {
-            return "react/dynamic/calendarSubscription?type=TIMESHEETS"
+            return PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, mapOf("type" to "TIMESHEETS"))
         }
 
         fun getHolidaysUrl(): String {
-            return "react/dynamic/calendarSubscription?type=HOLIDAYS"
+            return PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, mapOf("type" to "HOLIDAYS"))
         }
 
         fun getWeekOfYearUrl(): String {
-            return "react/dynamic/calendarSubscription?type=WEEK_OF_YEAR"
+            return PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, mapOf("type" to "WEEK_OF_YEAR"))
         }
     }
 }
