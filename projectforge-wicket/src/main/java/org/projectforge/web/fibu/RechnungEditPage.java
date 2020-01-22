@@ -26,13 +26,10 @@ package org.projectforge.web.fibu;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.SubmitLink;
-import org.apache.wicket.protocol.http.WebSession;
-import org.apache.wicket.protocol.http.request.WebClientInfo;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.*;
 import org.projectforge.framework.time.DayHolder;
-import org.projectforge.web.session.UserAgentBrowser;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.DownloadUtils;
@@ -45,8 +42,7 @@ import java.util.Calendar;
 import java.util.List;
 
 @EditPage(defaultReturnPage = RechnungListPage.class)
-public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditForm, RechnungDao> implements ISelectCallerPage
-{
+public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditForm, RechnungDao> implements ISelectCallerPage {
   private static final long serialVersionUID = 2561721641251015056L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RechnungEditPage.class);
@@ -60,8 +56,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
   @SpringBean
   private InvoiceService invoiceService;
 
-  public RechnungEditPage(final PageParameters parameters)
-  {
+  public RechnungEditPage(final PageParameters parameters) {
     super(parameters, "fibu.rechnung");
     init();
     if (isNew() == true) {
@@ -70,59 +65,57 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
       getData().setStatus(RechnungStatus.GESTELLT);
       getData().setTyp(RechnungTyp.RECHNUNG);
     } else {
-      final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new SubmitLink(
-          ContentMenuEntryPanel.LINK_ID, form)
-      {
-        @Override
-        public void onSubmit()
-        {
-          log.debug("Export invoice.");
-          ByteArrayOutputStream baos = invoiceService.getInvoiceWordDocument(getData());
-          if (baos != null) {
-            UserAgentBrowser browser = UserAgentBrowser.UNKNOWN;
-            WebClientInfo clientInfo = WebSession.get().getClientInfo();
-            if (clientInfo != null) {
-              String userAgent = clientInfo.getUserAgent();
-              if (StringUtils.isNotEmpty(userAgent)) {
-                browser = UserAgentBrowser.getBrowserFromUserAgentString(userAgent);
-              }
-            }
-            String filename = invoiceService.getInvoiceFilename(getData(), browser);
-            DownloadUtils.setDownloadTarget(baos.toByteArray(), filename);
-          }
+      final ContentMenuEntryPanel exportMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(), getString("fibu.rechnung.exportInvoice"));
+      addContentMenuEntry(exportMenu);
+      for (String lang : invoiceService.getSupportedLanguages()) {
+        String langTitle;
+        if (StringUtils.isNotBlank(lang)) {
+          langTitle = getString("locale." + lang);
+        } else {
+          langTitle = getString("default");
         }
+        String title = getString("fibu.rechnung.exportInvoice") + " (" + langTitle + ")";
+        final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new SubmitLink(
+                ContentMenuEntryPanel.LINK_ID, form) {
+          @Override
+          public void onSubmit() {
+            log.debug("Export invoice.");
+            ByteArrayOutputStream baos = invoiceService.getInvoiceWordDocument(getData(), lang);
+            if (baos != null) {
+              String filename = invoiceService.getInvoiceFilename(getData());
+              DownloadUtils.setDownloadTarget(baos.toByteArray(), filename);
+            }
+          }
 
-      }.setDefaultFormProcessing(false), getString("fibu.rechnung.exportInvoice"));
-      addContentMenuEntry(menu);
+        }.setDefaultFormProcessing(false), title);
+        exportMenu.addSubMenuEntry(menu);
+        exportMenu.addSubMenuEntry(menu);
+      }
     }
     getData().recalculate(); // Muss immer gemacht werden, damit das Zahlungsziel in Tagen berechnet wird.
   }
 
   @Override
-  public AbstractSecuredBasePage onSaveOrUpdate()
-  {
+  public AbstractSecuredBasePage onSaveOrUpdate() {
     if (isNew() == true && getData().getNummer() == null && getData().getTyp() != RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN
-        && RechnungStatus.GEPLANT.equals(getData().getStatus()) == false) {
+            && RechnungStatus.GEPLANT.equals(getData().getStatus()) == false) {
       getData().setNummer(rechnungDao.getNextNumber(getData()));
     }
     return null;
   }
 
   @Override
-  protected RechnungDao getBaseDao()
-  {
+  protected RechnungDao getBaseDao() {
     return rechnungDao;
   }
 
   @Override
-  protected RechnungEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final RechnungDO data)
-  {
+  protected RechnungEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final RechnungDO data) {
     return new RechnungEditForm(this, data);
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 
@@ -130,8 +123,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
    * @see org.projectforge.web.wicket.AbstractEditPage#cloneData()
    */
   @Override
-  protected void cloneData()
-  {
+  protected void cloneData() {
     super.cloneData();
     final RechnungDO rechnung = getData();
     rechnung.setNummer(null);
@@ -166,21 +158,19 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
   }
 
   @Override
-  public void cancelSelection(final String property)
-  {
+  public void cancelSelection(final String property) {
     // Do nothing.
   }
 
   @Override
-  public void select(final String property, final Object selectedValue)
-  {
+  public void select(final String property, final Object selectedValue) {
     if ("projektId".equals(property) == true) {
       rechnungDao.setProjekt(getData(), (Integer) selectedValue);
       form.projektSelectPanel.getTextField().modelChanged();
       if (getData().getProjektId() != null
-          && getData().getProjektId() >= 0
-          && getData().getKundeId() == null
-          && StringUtils.isBlank(getData().getKundeText()) == true) {
+              && getData().getProjektId() >= 0
+              && getData().getKundeId() == null
+              && StringUtils.isBlank(getData().getKundeText()) == true) {
         // User has selected a project and the kunde is not set:
         final ProjektDO projekt = projektDao.getById(getData().getProjektId());
         if (projekt != null) {
@@ -197,8 +187,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
   }
 
   @Override
-  public void unselect(final String property)
-  {
+  public void unselect(final String property) {
     if ("projektId".equals(property) == true) {
       getData().setProjekt(null);
       form.projektSelectPanel.getTextField().modelChanged();
