@@ -203,7 +203,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
 
     @Transient
     fun setStartDate(millis: Long): TimesheetDO {
-        startTime = Timestamp(millis)
+        startTime = Date(millis)
         return this
     }
 
