@@ -24,7 +24,9 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.kost.Kost2DO
+import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostentraegerStatus
+import org.projectforge.framework.configuration.ApplicationContextProvider
 
 class Kost2(
         id: Int? = null,
@@ -53,5 +55,21 @@ class Kost2(
         super.copyFrom(src)
         endziffer = src.kost2Art?.id ?: 0
         formattedNumber = src.formattedNumber
+    }
+
+    companion object {
+        private val kost2Dao = ApplicationContextProvider.getApplicationContext().getBean(Kost2Dao::class.java)
+
+        fun getkost2(kost2Id: Int?, minimal: Boolean = true): Kost2? {
+            kost2Id ?: return null
+            val kost2DO = kost2Dao.getOrLoad(kost2Id) ?: return null
+            val kost2 = Kost2()
+            if (minimal) {
+                kost2.copyFromMinimal(kost2DO)
+            } else {
+                kost2.copyFrom(kost2DO)
+            }
+            return kost2
+        }
     }
 }

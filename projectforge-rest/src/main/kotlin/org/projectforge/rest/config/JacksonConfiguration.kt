@@ -44,6 +44,7 @@ import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.timesheet.TimesheetDO
+import org.projectforge.common.BeanHelper
 import org.projectforge.framework.json.*
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -52,6 +53,8 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.calendar.ICalendarEventDeserializer
 import org.projectforge.rest.calendar.TeamCalDOSerializer
 import org.projectforge.rest.config.JacksonConfiguration.Companion.registerAllowedUnknownProperties
+import org.projectforge.rest.dto.CalEvent
+import org.projectforge.rest.dto.TeamEvent
 import org.projectforge.rest.json.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -73,6 +76,8 @@ open class JacksonConfiguration {
         private val allowedUnknownProperties = mutableMapOf<Class<*>, MutableSet<String>>()
 
         private val allowedUnknownGlobalProperties = mutableSetOf<String>()
+
+        private val globalPropertiesBlackList = mutableMapOf<Class<*>, MutableSet<String>>()
 
         /**
          * Properties (field) sent by any client and unknown by the server will result in an exception and BAD_REQUEST.
@@ -106,6 +111,8 @@ open class JacksonConfiguration {
             // reminderDuration* will be there after function switchToTimesheet is used:
             registerAllowedUnknownProperties(TimesheetDO::class.java, "reminderDuration", "reminderDurationUnit")
             registerAllowedUnknownProperties(Kost2DO::class.java,  "nummernkreis", "teilbereich", "bereich", "endziffer", "formattedNumber")
+            registerAllowedUnknownProperties(TeamEvent::class.java,  "task") // Switch from time sheet.
+            registerAllowedUnknownProperties(CalEvent::class.java,  "task") // Switch from time sheet.
         }
     }
 
@@ -140,7 +147,10 @@ open class JacksonConfiguration {
                         if (beanOrClass == null)
                             return false
                         val clazz = if (beanOrClass is Class<*>) beanOrClass else beanOrClass.javaClass
-                        return allowedUnknownGlobalProperties.contains(propertyName) || allowedUnknownProperties[clazz]?.contains(propertyName) ?: false
+                        if (allowedUnknownGlobalProperties.contains(propertyName)) {
+                            return BeanHelper.determineSetter(clazz, propertyName) == null // Don't ignore global properties if setter is available.
+                        }
+                        return allowedUnknownProperties[clazz]?.contains(propertyName) ?: false
                     }
                 })
             }

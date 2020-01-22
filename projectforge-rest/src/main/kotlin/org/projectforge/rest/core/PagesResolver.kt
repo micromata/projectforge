@@ -46,14 +46,32 @@ object PagesResolver {
             map.putAll(params)
             map
         }
-        return "$path/edit${getQueryString(parameters)}"
+        if (path.startsWith('/')) {
+            return "$path/edit${getQueryString(parameters)}"
+        }
+        return "/$path/edit${getQueryString(parameters)}"
     }
 
-    fun getListPageUrl(pagesRestClass: Class<out AbstractPagesRest<*, *, *>>, params: Map<String, Any?>? = null): String {
+
+    /**
+     * @return Path of react page.
+     */
+    fun getBasePageUrl(pagesRestClass: Class<out AbstractPagesRest<*, *, *>>, subPath: String? = null, params: Map<String, Any?>? = null): String {
         val path = getRequestMappingPath(pagesRestClass) ?: return "NOT_FOUND"
-        return "$path${getQueryString(params)}"
+        val subPathString = if (subPath != null) "/subPath" else ""
+        return "$path$subPathString${getQueryString(params)}"
     }
 
+    /**
+     * @return Path of react page.
+     */
+    fun getListPageUrl(pagesRestClass: Class<out AbstractPagesRest<*, *, *>>, params: Map<String, Any?>? = null): String {
+        return getBasePageUrl(pagesRestClass, null, params)
+    }
+
+    /**
+     * @return Path of react page.
+     */
     fun getDynamicPageUrl(pageRestClass: Class<*>, params: Map<String, Any?>? = null): String {
         val path = getRequestMappingPath(pageRestClass, "/dynamic") ?: return "NOT_FOUND"
         return "$path${getQueryString(params)}"
