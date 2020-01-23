@@ -16,15 +16,15 @@ function DynamicDateInput(props) {
         additionalLabel,
         focus,
         id,
-        // jsDateFormat,
+        jsDateFormat,
         label,
-        // locale,
+        locale,
         required,
         // timeZone,
     } = props;
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
     const value = Object.getByString(data, id);
-    const format = 'YYYY-MM-DD';
+    const format = jsDateFormat; // 'YYYY-MM-DD';
 
     // Might be not work in if time zone of browser differs from PF-Users timezone:
     // moment.tz.setDefault(timeZone);
@@ -46,12 +46,12 @@ function DynamicDateInput(props) {
                         value={value}
                         onDayChange={handleDayChange}
                         dayPickerProps={{
-                            // locale,
+                            locale,
                             localeUtils: MomentLocaleUtils,
                             todayButton: ui.translations['calendar.today'],
                         }}
                         month={value}
-                        placeholder={format}
+                        placeholder={`${formatDate(new Date(), format, locale)}`}
                         required={required}
                     />
                     <AdditionalLabel title={additionalLabel} />
@@ -63,24 +63,24 @@ function DynamicDateInput(props) {
 
 DynamicDateInput.propTypes = {
     id: PropTypes.string.isRequired,
-    // jsDateFormat: PropTypes.string.isRequired,
+    jsDateFormat: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     additionalLabel: PropTypes.string,
     focus: PropTypes.bool,
-    // locale: PropTypes.string,
+    locale: PropTypes.string,
     required: PropTypes.bool,
 };
 
 DynamicDateInput.defaultProps = {
     additionalLabel: undefined,
     focus: false,
-    // locale: 'en',
+    locale: 'en',
     required: false,
 };
 
 const mapStateToProps = ({ authentication }) => ({
-    // jsDateFormat: authentication.user.jsDateFormat,
-    // locale: authentication.user.locale,
+    jsDateFormat: authentication.user.jsDateFormat,
+    locale: authentication.user.locale,
     // timeZone: authentication.user.timeZone,
 });
 

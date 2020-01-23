@@ -325,6 +325,6 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
             return ThreadLocalUserContext.getLocale()
         }
 
-        private val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        internal val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     }
 }

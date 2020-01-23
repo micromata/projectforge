@@ -24,6 +24,7 @@
 package org.projectforge.framework.time
 
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.common.DateFormatType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.withDate
@@ -191,6 +192,14 @@ class PFDateTimeUtils {
                 val ldt = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
                 PFDateTime.isoDateTimeFormatterMilli.format(ldt)
             }
+        }
+
+        /**
+         * Creates DateTimeFormatter with user's date format and user's locale.
+         */
+        @JvmStatic
+        fun ensureUsersDateTimeFormat(dateFormatType: DateFormatType) : DateTimeFormatter {
+            return DateTimeFormatter.ofPattern(DateFormats.getFormatString(dateFormatType), ThreadLocalUserContext.getLocale())
         }
 
         /**
