@@ -25,9 +25,14 @@ package org.projectforge.rest
 
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.service.VacationService
+import org.projectforge.common.DateFormatType
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.dto.Employee
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -38,6 +43,7 @@ import java.time.Year
 @RestController
 @RequestMapping("${Rest.URL}/vacationAccount")
 class VacationAccountPageRest {
+    class Data(var employee: Employee? = null)
 
     @Autowired
     private lateinit var employeeService: EmployeeService
@@ -51,16 +57,29 @@ class VacationAccountPageRest {
     @GetMapping("layout")
     fun getLayout(): UILayout {
         val layout = UILayout("vacation.leaveaccount.title")
-        layout.addTranslations("employee")
+        val lc = LayoutContext(VacationDO::class.java)
+        layout.addTranslations("employee",
+                "vacation.leaveaccount.title",
+                "vacation.annualleave",
+                "vacation.previousyearleave",
+                "vacation.subtotal",
+                "menu.vacation.leaveAccountEntry")
+        val endOfYear = vacationService.getEndOfCarryVacationOfPreviousYear(Year.now().value)
+        val endOfYearString = PFDateTimeUtils.ensureUsersDateTimeFormat(DateFormatType.DATE_WITHOUT_YEAR).format(endOfYear)
+        layout.addTranslation("vacation.previousyearleaveunused", translateMsg("vacation.previousyearleaveunused", endOfYearString))
+
         val userPref = getUserPref()
-        userPref.employeeId ?: ThreadLocalUserContext.getUserContext().employeeId
-        val employee = employeeService.getById(userPref.employeeId)
+        var employeeId = userPref.employeeId ?: ThreadLocalUserContext.getUserContext().employeeId
+        val employee = employeeService.getById(employeeId)
         val statistics = mutableMapOf<String, Any>()
         if (employee != null) {
-            statistics["statistics.currentYear"] = vacationService.getVacationStats(employee, Year.now().value)
-            statistics["statistics.previousYear"] = vacationService.getVacationStats(employee, Year.now().value - 1)
+            statistics["statisticsCurrentYear"] = vacationService.getVacationStats(employee, Year.now().value)
+            statistics["statisticsPreviousYear"] = vacationService.getVacationStats(employee, Year.now().value - 1)
         }
         layout.add(UIFieldset(length = 12)
+                .add(UIRow()
+                        .add(UICol(length = 6)
+                                .add(lc, "employee")))
                 .add(UIRow()
                         .add(UICol(length = 6)
                                 .add(UICustomized("vacation.statistics",
