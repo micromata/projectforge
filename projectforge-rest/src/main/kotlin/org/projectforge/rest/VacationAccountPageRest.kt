@@ -27,6 +27,7 @@ import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.service.VacationService
+import org.projectforge.business.vacation.service.VacationStatsFormatted
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -63,7 +64,12 @@ class VacationAccountPageRest {
                 "vacation.annualleave",
                 "vacation.previousyearleave",
                 "vacation.subtotal",
-                "menu.vacation.leaveAccountEntry")
+                "menu.vacation.leaveAccountEntry",
+                "vacation.vacationApproved",
+                "vacation.vacationInProgress",
+                "vacation.availablevacation",
+                "vacation.specialApproved",
+                "vacation.specialInProgress")
         val endOfYear = vacationService.getEndOfCarryVacationOfPreviousYear(Year.now().value)
         val endOfYearString = PFDateTimeUtils.ensureUsersDateTimeFormat(DateFormatType.DATE_WITHOUT_YEAR).format(endOfYear)
         layout.addTranslation("vacation.previousyearleaveunused", translateMsg("vacation.previousyearleaveunused", endOfYearString))
@@ -73,8 +79,8 @@ class VacationAccountPageRest {
         val employee = employeeService.getById(employeeId)
         val statistics = mutableMapOf<String, Any>()
         if (employee != null) {
-            statistics["statisticsCurrentYear"] = vacationService.getVacationStats(employee, Year.now().value)
-            statistics["statisticsPreviousYear"] = vacationService.getVacationStats(employee, Year.now().value - 1)
+            statistics["statisticsCurrentYear"] = VacationStatsFormatted(vacationService.getVacationStats(employee, Year.now().value))
+            statistics["statisticsPreviousYear"] = VacationStatsFormatted(vacationService.getVacationStats(employee, Year.now().value - 1))
         }
         layout.add(UIFieldset(length = 12)
                 .add(UIRow()
