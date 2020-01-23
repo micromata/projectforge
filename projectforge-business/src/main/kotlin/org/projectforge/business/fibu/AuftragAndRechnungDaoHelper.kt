@@ -42,8 +42,8 @@ object AuftragAndRechnungDaoHelper {
     fun createCriterionForPeriodOfPerformance(myFilter: SearchFilterWithPeriodOfPerformance): Optional<DBPredicate> {
         val popBeginName = "periodOfPerformanceBegin"
         val popEndName = "periodOfPerformanceEnd"
-        val startDate = PFDay.from(myFilter.periodOfPerformanceStartDate)?.sqlDate
-        val endDate = PFDay.from(myFilter.periodOfPerformanceEndDate)?.sqlDate
+        val startDate = myFilter.periodOfPerformanceStartDate
+        val endDate = myFilter.periodOfPerformanceEndDate
         if (startDate != null && endDate != null) {
             return Optional.of(
                     and(ge(popEndName, startDate),

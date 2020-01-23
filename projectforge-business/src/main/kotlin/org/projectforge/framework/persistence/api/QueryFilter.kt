@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.time.Month
 import javax.persistence.criteria.JoinType
 
@@ -182,16 +183,16 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
      */
     fun setYearAndMonth(dateField: String, year: Int, month: Int) {
         if (year > 0) {
-            val lo: java.sql.Date
-            val hi: java.sql.Date
+            val lo: LocalDate
+            val hi: LocalDate
             if (month > 0) {
                 val date = PFDay.withDate(year, month, 1)
-                lo = date.beginOfMonth.sqlDate
-                hi = date.endOfMonth.sqlDate
+                lo = date.beginOfMonth.localDate
+                hi = date.endOfMonth.localDate
             } else {
                 val date = PFDay.withDate(year, Month.JANUARY, 1)
-                lo = date.beginOfYear.sqlDate
-                hi = date.endOfYear.sqlDate
+                lo = date.beginOfYear.localDate
+                hi = date.endOfYear.localDate
             }
             add(between(dateField, lo, hi))
         }

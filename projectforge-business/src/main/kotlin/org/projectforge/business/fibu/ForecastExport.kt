@@ -45,9 +45,7 @@ import org.springframework.stereotype.Service
 import java.io.IOException
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 /**
  * Forcast excel export.
@@ -238,10 +236,16 @@ open class ForecastExport { // open needed by Wicket.
                 sheet.setStringValue(rowNumber, InvoicesCol.PROJECT.header, invoice.projekt?.name)
                 sheet.setStringValue(rowNumber, InvoicesCol.SUBJECT.header, invoice.betreff)
                 sheet.setStringValue(rowNumber, InvoicesCol.POS_TEXT.header, pos.text)
-                sheet.setDateValue(rowNumber, InvoicesCol.DATE_OF_PAYMENT.header, PFDay(invoice.bezahlDatum!!).utilDate, ctx.excelDateFormat)
+                invoice.bezahlDatum?.let {
+                    sheet.setDateValue(rowNumber, InvoicesCol.DATE_OF_PAYMENT.header, PFDay(it).utilDate, ctx.excelDateFormat)
+                }
                 val leistungsZeitraumColDef = sheet.getColumnDef(InvoicesCol.LEISTUNGSZEITRAUM.header)
-                sheet.setDateValue(rowNumber, leistungsZeitraumColDef, PFDay(invoice.periodOfPerformanceBegin!!).utilDate, ctx.excelDateFormat)
-                sheet.setDateValue(rowNumber, leistungsZeitraumColDef!!.columnNumber + 1, PFDay(invoice.periodOfPerformanceEnd!!).utilDate, ctx.excelDateFormat)
+                invoice.periodOfPerformanceBegin?.let {
+                    sheet.setDateValue(rowNumber, leistungsZeitraumColDef, PFDay(it).utilDate, ctx.excelDateFormat)
+                }
+                invoice.periodOfPerformanceEnd?.let {
+                    sheet.setDateValue(rowNumber, leistungsZeitraumColDef!!.columnNumber + 1, PFDay(it).utilDate, ctx.excelDateFormat)
+                }
                 sheet.setStringValue(rowNumber, InvoicesCol.ORDER.header, "${order.nummer}.${orderPos.number}")
                 sheet.setBigDecimalValue(rowNumber, InvoicesCol.NETSUM.header, pos.netSum).cellStyle = ctx.currencyCellStyle
                 sheet.setBigDecimalValue(rowNumber, firstMonthCol + monthIndex, pos.netSum).cellStyle = ctx.currencyCellStyle
@@ -262,9 +266,15 @@ open class ForecastExport { // open needed by Wicket.
         val sheet = ctx.forecastSheet
         sheet.setIntValue(row, ForecastCol.ORDER_NR.header, order.nummer)
         sheet.setStringValue(row, ForecastCol.POS_NR.header, "#${pos.number}")
-        sheet.setDateValue(row, ForecastCol.DATE_OF_OFFER.header, PFDay(order.angebotsDatum!!).utilDate, ctx.excelDateFormat)
-        sheet.setDateValue(row, ForecastCol.DATE.header, PFDay(order.erfassungsDatum!!).utilDate, ctx.excelDateFormat)
-        sheet.setDateValue(row, ForecastCol.DATE_OF_DECISION.header, PFDay(ForecastUtils.ensureErfassungsDatum(order)!!).utilDate, ctx.excelDateFormat)
+        order.angebotsDatum?.let {
+            sheet.setDateValue(row, ForecastCol.DATE_OF_OFFER.header, PFDay(it).utilDate, ctx.excelDateFormat)
+        }
+        ForecastUtils.ensureErfassungsDatum(order)?.let {
+            sheet.setDateValue(row, ForecastCol.DATE.header, PFDay(it).utilDate, ctx.excelDateFormat)
+        }
+        order.entscheidungsDatum?.let {
+            sheet.setDateValue(row, ForecastCol.DATE_OF_DECISION.header, PFDay(it).utilDate, ctx.excelDateFormat)
+        }
         sheet.setStringValue(row, ForecastCol.HEAD.header, order.headOfBusinessManager?.getFullname())
         sheet.setStringValue(row, ForecastCol.CUSTOMER.header, order.kundeAsString)
         sheet.setStringValue(row, ForecastCol.PROJECT.header, order.projektAsString)
