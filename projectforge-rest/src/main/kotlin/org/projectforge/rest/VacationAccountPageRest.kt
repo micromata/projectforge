@@ -125,17 +125,16 @@ class VacationAccountPageRest {
         layout.add(UIFieldset(length = 12)
                 .add(UIRow()
                         .add(UICol(length = 6)
-                                .add(lc, "employee")))
-                .add(UIRow()
-                        .add(UICol(length = 12)
+                                .add(lc, "employee"))
+                        .add(UICol(length = 6)
                                 .add(UICustomized("vacation.statistics",
-                                        values = statistics)))))
+                                        values = statistics))))
                 .add(UIRow().add(buttonCol))
                 .add(UIFieldset(length = 12)
                         .add(UIRow()
                                 .add(UICol(length = 12)
                                         .add(UICustomized("vacation.entries",
-                                                values = vacations)))))
+                                                values = vacations))))))
         return layout
     }
 
