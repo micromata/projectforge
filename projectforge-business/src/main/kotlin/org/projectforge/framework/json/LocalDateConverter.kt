@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
-import org.apache.commons.lang3.StringUtils
+import org.projectforge.framework.time.PFDayUtils
 import java.io.IOException
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -55,17 +55,13 @@ class LocalDateSerializer : StdSerializer<LocalDate>(LocalDate::class.java) {
 }
 
 /**
- * Deserialization for dates in ISO format and UTC time-zone.
+ * Deserialization for dates in ISO format as well as from users date format.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class LocalDateDeserializer : StdDeserializer<LocalDate>(LocalDate::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): LocalDate? {
-        val date = p.getText()
-        if (StringUtils.isBlank(date)) {
-            return null
-        }
-        return LocalDate.parse(date, jsonDateFormatter)
+        return PFDayUtils.parseDate(p.text)
     }
 }
 

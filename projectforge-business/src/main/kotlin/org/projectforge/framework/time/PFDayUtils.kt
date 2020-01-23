@@ -23,18 +23,20 @@
 
 package org.projectforge.framework.time
 
-import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
+import org.projectforge.common.DateFormatType
 import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.math.BigDecimal
-import java.time.*
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.Month
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
-import java.util.*
 import kotlin.math.absoluteValue
 
 class PFDayUtils {
@@ -241,7 +243,7 @@ class PFDayUtils {
         /**
          * @return The given date, if already a working day, otherwise the first working day after given date.
          */
-        fun <T : IPFDate<T>>  getNextWorkingDay(date: T): T {
+        fun <T : IPFDate<T>> getNextWorkingDay(date: T): T {
             var nextWorkingDay = date
             while (!isWorkingDay(nextWorkingDay)) {
                 nextWorkingDay = nextWorkingDay.plusDays(1)
@@ -257,51 +259,36 @@ class PFDayUtils {
         }
 
         /**
-         * Parses the given date as UTC and converts it to the user's zoned date time.
+         * Parses the given date.
          * @throws DateTimeParseException if the text cannot be parsed
          */
         @JvmStatic
         @JvmOverloads
-        fun parseUTCDate(str: String?, dateTimeFormatter: DateTimeFormatter, zoneId: ZoneId = PFDateTime.getUsersZoneId(), locale: Locale = PFDateTime.getUsersLocale()): PFDateTime? {
+        fun parseDate(str: String?): LocalDate? {
             if (str.isNullOrBlank())
                 return null
-            val local = LocalDateTime.parse(str, dateTimeFormatter) // Parses UTC as local date.
-            val utcZoned = ZonedDateTime.of(local, ZoneId.of("UTC"))
-            val userZoned = utcZoned.withZoneSameInstant(zoneId)
-            return PFDateTime(userZoned, locale, null)
+            val dateString = str.trim()
+            var date = parseDate(dateString, PFDay.isoDateFormatter) // Parses iso date.
+            if (date != null) {
+                return date
+            }
+            date = parseDate(dateString, PFDateTimeUtils.ensureUsersDateTimeFormat(DateFormatType.DATE))
+            if (date != null) {
+                return date
+            }
+            return parseDate(dateString, PFDateTimeUtils.ensureUsersDateTimeFormat(DateFormatType.DATE_SHORT))
         }
 
-        /**
-         * Parses the given date as UTC and converts it to the user's zoned date time.
-         * Tries the following formatters:
-         *
-         * number (epoch in seconds), "yyyy-MM-dd HH:mm", "yyyy-MM-dd'T'HH:mm:ss.SSS.'Z'"
-         * @throws DateTimeException if the text cannot be parsed
-         */
-        @JvmStatic
-        @JvmOverloads
-        fun parseUTCDate(str: String?, zoneId: ZoneId = PFDateTime.getUsersZoneId(), locale: Locale = PFDateTime.getUsersLocale()): PFDateTime? {
-            if (str.isNullOrBlank())
+        fun parseDate(str: String?, dateTimeFormatter: DateTimeFormatter): LocalDate? {
+            str ?: return null
+            try {
+                return LocalDate.parse(str, dateTimeFormatter)
+            } catch (ex: DateTimeParseException) {
+                // OK
                 return null
-            if (StringUtils.isNumeric(str)) {
-                return PFDateTime.from(str.toLong())
-            }
-            if (str.contains("T")) { // yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
-                return parseUTCDate(str, PFDateTime.jsDateTimeFormatter)
-            }
-            val colonPos = str.indexOf(':')
-            return when {
-                colonPos < 0 -> {
-                    throw DateTimeException("Can't parse date string '$str'. Supported formats are 'yyyy-MM-dd HH:mm', 'yyyy-MM-dd HH:mm:ss', 'yyyy-MM-dd'T'HH:mm:ss.SSS'Z'' and numbers as epoch seconds.")
-                }
-                str.indexOf(':', colonPos + 1) < 0 -> { // yyyy-MM-dd HH:mm
-                    parseUTCDate(str, PFDateTime.isoDateTimeFormatterMinutes, zoneId, locale)
-                }
-                else -> { // yyyy-MM-dd HH:mm:ss
-                    parseUTCDate(str, PFDateTime.isoDateTimeFormatterSeconds, zoneId, locale)
-                }
             }
         }
+
 
         /**
          * return year of given LocalDate or -1 if LocalDate is null.
