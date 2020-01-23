@@ -133,7 +133,7 @@ public class HRPlanningTest extends AbstractTestBase {
   @Test
   public void getFirstDayOfWeek() {
     final LocalDate date = LocalDate.of(2010, Month.JANUARY, 9);
-    assertEquals("2010-01-09", HRPlanningDO.Companion.getFirstDayOfWeek(date).toString());
+    assertEquals("2010-01-04", HRPlanningDO.Companion.getFirstDayOfWeek(date).toString());
   }
 
   @Test
@@ -141,12 +141,11 @@ public class HRPlanningTest extends AbstractTestBase {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     HRPlanningDO planning = new HRPlanningDO();
     final LocalDate date = LocalDate.of(2010, Month.JANUARY, 9);
-    final PFDay firstDayOfWeek = PFDay.withDate(2010, Month.JANUARY, 4);
     planning.setFirstDayOfWeek(date);
     assertEquals("2010-01-04", planning.getWeek().toString());
-    // planning.setWeek(date);
+    planning.setWeek(date);
     planning.setUser(getUser(AbstractTestBase.TEST_USER));
-    assertEquals("2010-01-04", planning.getWeek().toString());
+    assertEquals("2010-01-09", planning.getWeek().toString());
     final Serializable id = hrPlanningDao.save(planning);
     planning = hrPlanningDao.getById(id);
     assertEquals("2010-01-04", planning.getWeek().toString());
@@ -176,7 +175,7 @@ public class HRPlanningTest extends AbstractTestBase {
     // Check saved planning
     planning = hrPlanningDao.getById(id);
     PFDay day = new PFDay(planning.getWeek());
-    assertUTCDate(day.getUtilDate(), 2010, Month.JANUARY, 11, 0, 0, 0);
+    assertLocalDate(day.getLocalDate(), 2010, Month.JANUARY, 11);
     assertEquals(3, planning.getEntries().size());
     assertHours(planning.getProjectEntry(projekt1), 1, 2, 3, 4, 5, 6);
     assertHours(planning.getProjectEntry(projekt2), 6, 5, 4, 3, 2, 1);
