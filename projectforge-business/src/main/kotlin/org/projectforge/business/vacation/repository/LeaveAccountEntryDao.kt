@@ -52,10 +52,15 @@ open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntry
     open fun getList(employeeId: Int, year: Int): List<LeaveAccountEntryDO>? {
         val beginOfYear = LocalDate.of(year, Month.JANUARY, 1)
         val endOfYear = PFDayUtils.getEndOfYear(beginOfYear)
+        return getList(employeeId, beginOfYear, endOfYear)
+    }
+
+    // Open needed or proxying.
+    open fun getList(employeeId: Int, periodBegin: LocalDate, periodEnd: LocalDate): List<LeaveAccountEntryDO>? {
         return em.createNamedQuery(LeaveAccountEntryDO.FIND_BY_EMPLOYEE_ID_AND_DATEPERIOD, LeaveAccountEntryDO::class.java)
                 .setParameter("employeeId", employeeId)
-                .setParameter("fromDate", beginOfYear)
-                .setParameter("toDate", endOfYear).resultList
+                .setParameter("fromDate", periodBegin)
+                .setParameter("toDate", periodEnd).resultList
     }
 
     override fun getList(filter: BaseSearchFilter): List<LeaveAccountEntryDO?>? {

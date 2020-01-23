@@ -3,7 +3,7 @@ import React from 'react';
 import 'react-rrule-generator/build/styles.css';
 import { Col, Row, Table } from 'reactstrap';
 import { DynamicLayoutContext } from '../../../context';
-import style from './VacationStatistics.module.scss';
+import style from './Vacation.module.scss';
 
 function VacationStatistics({ values }) {
     const { ui } = React.useContext(DynamicLayoutContext);
@@ -17,7 +17,7 @@ function VacationStatistics({ values }) {
             <React.Fragment>
                 <Row>
                     <Col sm={12}>
-                        <Table striped>
+                        <Table striped className={style.statistics}>
                             <thead>
                             <tr className={style.borderBottom}>
                                 <th>{ui.translations['vacation.leaveaccount.title']}</th>
