@@ -12,6 +12,7 @@ import TimesheetTemplatesAndRecents from './components/timesheet/TimesheetTempla
 import CalendarEventReminder from './components/CalendarEventReminder';
 import CalendarEditExternalSubscription from './components/CalendarEditExternalSubscription';
 import CalendarSubscriptionInfo from './components/CalendarSubscriptionInfo';
+import VacationEntries from './components/VacationEntries';
 import VacationStatistics from './components/VacationStatistics';
 
 function DynamicCustomized({ id, ...props }) {
@@ -53,6 +54,9 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'timesheet.edit.templatesAndRecents':
             Tag = TimesheetTemplatesAndRecents;
+            break;
+        case 'vacation.entries':
+            Tag = VacationEntries;
             break;
         case 'vacation.statistics':
             Tag = VacationStatistics;
