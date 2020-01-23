@@ -24,6 +24,7 @@
 package org.projectforge.business.vacation.service
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.vacation.model.LeaveAccountEntryDO
 import org.projectforge.framework.ToStringUtil
@@ -68,6 +69,7 @@ class VacationStats(
      * The number of vacation days left from the previous year and not allocated (used). They might be lost after end of
      * vacation year ([remainingLeaveFromPreviousYear] - [allocatedDaysInOverlapPeriod]).
      */
+    @get:JsonProperty
     val remainingLeaveFromPreviousYearUnused: BigDecimal?
         get() {
             val total = remainingLeaveFromPreviousYear
@@ -78,11 +80,23 @@ class VacationStats(
                 return BigDecimal.ZERO
             return maxOf(total - allocated, BigDecimal.ZERO)
         }
+    @get:JsonProperty
+    val remainingLeaveFromPreviousYearUnusedString: String?
+        get() {
+            val remaining = remainingLeaveFromPreviousYearUnused ?: return ""
+            return if (remaining == BigDecimal.ZERO || endOfVactionYearExceeded) {
+                format(remaining)
+            } else {
+                "(${format(remaining)})"
+            }
+        }
     /**
      * @return true, if [baseDate] is after [endOfVacationYear] and the unused remaining days from the previous year is lost.
      */
+    @get:JsonProperty
     val endOfVactionYearExceeded: Boolean
         get() = baseDate.isAfter(endOfVacationYear)
+    @get:JsonProperty
     val totalLeaveIncludingCarry: BigDecimal?
         get() {
             var subTotal = vacationDaysInYearFromContract ?: BigDecimal.ZERO
@@ -141,6 +155,7 @@ class VacationStats(
      * @see LeaveAccountEntryDO
      */
     var leaveAccountEntries: List<LeaveAccountEntryDO>? = null
+    @get:JsonProperty
     val leaveAccountEntriesSum: BigDecimal
         get() {
             var result = BigDecimal.ZERO
