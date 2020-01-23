@@ -12,6 +12,7 @@ import TimesheetTemplatesAndRecents from './components/timesheet/TimesheetTempla
 import CalendarEventReminder from './components/CalendarEventReminder';
 import CalendarEditExternalSubscription from './components/CalendarEditExternalSubscription';
 import CalendarSubscriptionInfo from './components/CalendarSubscriptionInfo';
+import VacationStatistics from './components/VacationStatistics';
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;
@@ -52,6 +53,9 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'timesheet.edit.templatesAndRecents':
             Tag = TimesheetTemplatesAndRecents;
+            break;
+        case 'vacation.statistics':
+            Tag = VacationStatistics;
             break;
         default:
             return <span>{`Customized field '${id}' not found!`}</span>;

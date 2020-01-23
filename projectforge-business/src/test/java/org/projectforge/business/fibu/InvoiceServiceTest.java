@@ -40,7 +40,7 @@ public class InvoiceServiceTest extends AbstractTestBase {
   @Test
   public void invoiceFilenameEmptyTest() {
     RechnungDO data = new RechnungDO();
-    String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
+    String filename = invoiceService.getInvoiceFilename(data);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
     assertEquals("_.docx", filename);
@@ -60,7 +60,7 @@ public class InvoiceServiceTest extends AbstractTestBase {
     LocalDate date = LocalDate.of(2017, Month.AUGUST, 4);
     data.setDatum(date);
 
-    String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
+    String filename = invoiceService.getInvoiceFilename(data);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
     assertEquals("12345_Kunde_Projekt_Betreff_04_08_2017.docx", filename);
@@ -80,7 +80,7 @@ public class InvoiceServiceTest extends AbstractTestBase {
     LocalDate date = LocalDate.of(2017, Month.AUGUST, 4);
     data.setDatum(date);
     logon(TEST_USER);
-    String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
+    String filename = invoiceService.getInvoiceFilename(data);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
     assertEquals("12345_Kunde___Kunde_Projekt-Titel_Betreff_Aenderung__04_08_2017.docx", filename);
@@ -100,7 +100,7 @@ public class InvoiceServiceTest extends AbstractTestBase {
     for (int i = 1; i < 85; i++) {
       data.setBetreff((data.getBetreff() != null ? data.getBetreff() : "") + character);
     }
-    String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
+    String filename = invoiceService.getInvoiceFilename(data);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
     assertEquals("12345_Kunde_Koenig_Projekt____webapp_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc....docx",

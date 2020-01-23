@@ -523,7 +523,7 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
 
         private val log = org.slf4j.LoggerFactory.getLogger(PFDateTime::class.java)
 
-        internal val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC)
+        internal val isoDateFormatter = PFDay.isoDateFormatter
         internal val isoDateTimeFormatterMinutes = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneOffset.UTC)
         internal val isoDateTimeFormatterSeconds = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC)
         internal val isoDateTimeFormatterMilli = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneOffset.UTC)

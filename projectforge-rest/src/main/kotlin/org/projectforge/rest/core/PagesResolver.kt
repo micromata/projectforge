@@ -49,7 +49,7 @@ object PagesResolver {
         if (path.startsWith('/')) {
             return "$path/edit${getQueryString(parameters)}"
         }
-        return "/$path/edit${getQueryString(parameters)}"
+        return "$path/edit${getQueryString(parameters)}"
     }
 
 
@@ -84,7 +84,7 @@ object PagesResolver {
             return null
         }
         val subpath = requestMapping.value[0].removePrefix("${Rest.URL}")
-        return "$REACT_PATH$prefix$subpath"
+        return "/$REACT_PATH$prefix$subpath"
     }
 
     private fun getQueryString(params: Map<String, Any?>? = null): String {
