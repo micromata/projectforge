@@ -5,50 +5,24 @@ import { Col, Row, Table } from 'reactstrap';
 import { DynamicLayoutContext } from '../../../context';
 import style from './Vacation.module.scss';
 
-function VacationEntriesTable(vacationEntries, translations, year) {
+function VacationEntriesTable(vacationEntries) {
     return (
         <React.Fragment>
             {vacationEntries && vacationEntries.length > 0
                 ? (
-                    <Row>
-                        <Col sm={12}>
-                            <h4>
-                                {translations['vacation.title.list']}
-                                {' '}
-                                {year}
-                            </h4>
-                            <Table striped>
-                                <thead>
-                                <tr>
-                                    <th>{translations['vacation.startdate']}</th>
-                                    <th>{translations['vacation.enddate']}</th>
-                                    <th>{translations['vacation.status']}</th>
-                                    <th className={style.number}>{translations['vacation.Days']}</th>
-                                    <th>{translations['vacation.special']}</th>
-                                    <th>{translations['vacation.replacement']}</th>
-                                    <th>{translations['vacation.manager']}</th>
-                                    <th>{translations['vacation.vacationmode']}</th>
-                                    <th>{translations.comment}</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {vacationEntries.map(entry => (
-                                    <tr key={entry.id}>
-                                        <td>{entry.startDateFormatted}</td>
-                                        <td>{entry.endDateFormatted}</td>
-                                        <td>{entry.statusString}</td>
-                                        <td className={style.number}>{entry.workingDaysFormatted}</td>
-                                        <td>{entry.specialFormatted}</td>
-                                        <td>{entry.replacement.displayName}</td>
-                                        <td>{entry.manager.displayName}</td>
-                                        <td>{entry.vacationModeString}</td>
-                                        <td>{entry.comment}</td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </Table>
-                        </Col>
-                    </Row>
+                    vacationEntries.map((entry, index) => (
+                        <tr key={entry.id} className={index === 0 ? style.borderTop : undefined}>
+                            <td>{entry.startDateFormatted}</td>
+                            <td>{entry.endDateFormatted}</td>
+                            <td>{entry.statusString}</td>
+                            <td className={style.number}>{entry.workingDaysFormatted}</td>
+                            <td>{entry.specialFormatted}</td>
+                            <td>{entry.replacement.displayName}</td>
+                            <td>{entry.manager.displayName}</td>
+                            <td>{entry.vacationModeString}</td>
+                            <td>{entry.comment}</td>
+                        </tr>
+                    ))
                 ) : undefined
             }
         </React.Fragment>
@@ -105,8 +79,30 @@ function VacationEntries({ values }) {
     return React.useMemo(
         () => (
             <React.Fragment>
-                {VacationEntriesTable(vacationsCurrentYear, ui.translations, yearCurrent)}
-                {VacationEntriesTable(vacationsPreviousYear, ui.translations, yearPrevious)}
+                <Row>
+                    <Col sm={12}>
+                        <h4>{ui.translations['vacation.title.list']}</h4>
+                        <Table striped>
+                            <thead>
+                            <tr>
+                                <th>{ui.translations['vacation.startdate']}</th>
+                                <th>{ui.translations['vacation.enddate']}</th>
+                                <th>{ui.translations['vacation.status']}</th>
+                                <th className={style.number}>{ui.translations['vacation.Days']}</th>
+                                <th>{ui.translations['vacation.special']}</th>
+                                <th>{ui.translations['vacation.replacement']}</th>
+                                <th>{ui.translations['vacation.manager']}</th>
+                                <th>{ui.translations['vacation.vacationmode']}</th>
+                                <th>{ui.translations.comment}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {VacationEntriesTable(vacationsCurrentYear)}
+                            {VacationEntriesTable(vacationsPreviousYear)}
+                            </tbody>
+                        </Table>
+                    </Col>
+                </Row>
                 {LeaveAccountEntriesTable(leaveAccountEntries, ui.translations)}
             </React.Fragment>
         ),
