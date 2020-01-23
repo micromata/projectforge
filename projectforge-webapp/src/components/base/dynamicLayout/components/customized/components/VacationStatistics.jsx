@@ -21,8 +21,8 @@ function VacationStatistics({ values }) {
                             <thead>
                             <tr className={style.borderBottom}>
                                 <th>{ui.translations['vacation.leaveaccount.title']}</th>
-                                <th>{current.year}</th>
-                                <th>{prev.year}</th>
+                                <th className={style.number}>{current.year}</th>
+                                <th className={style.number}>{prev.year}</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -31,26 +31,60 @@ function VacationStatistics({ values }) {
                                 <td className={style.number}>{current.vacationDaysInYearFromContract}</td>
                                 <td className={style.number}>{prev.vacationDaysInYearFromContract}</td>
                             </tr>
-                            <tr className={style.borderBottom}>
+                            <tr>
                                 <td>{ui.translations['vacation.previousyearleave']}</td>
                                 <td className={style.number}>{current.remainingLeaveFromPreviousYear}</td>
                                 <td className={style.number}>{prev.remainingLeaveFromPreviousYear}</td>
                             </tr>
-                            <tr>
+                            <tr className={style.borderTop}>
                                 <th scope="row">{ui.translations['vacation.subtotal']}</th>
                                 <td className={style.mumberBold}>{current.totalLeaveIncludingCarry}</td>
                                 <td className={style.mumberBold}>{prev.totalLeaveIncludingCarry}</td>
                             </tr>
                             <tr>
                                 <td>{ui.translations['vacation.previousyearleaveunused']}</td>
-                                <td className={style.number}>{current.remainingLeaveFromPreviousYearUnusedString}</td>
-                                <td className={style.number}>{prev.remainingLeaveFromPreviousYearUnusedString}</td>
+                                <td className={style.number}>{current.remainingLeaveFromPreviousYearUnused}</td>
+                                <td className={style.number}>{prev.remainingLeaveFromPreviousYearUnused}</td>
                             </tr>
                             <tr>
                                 <td>{ui.translations['menu.vacation.leaveAccountEntry']}</td>
                                 <td className={style.number}>{current.leaveAccountEntriesSum}</td>
                                 <td className={style.number}>{prev.leaveAccountEntriesSum}</td>
                             </tr>
+                            <tr>
+                                <td>{ui.translations['vacation.vacationApproved']}</td>
+                                <td className={style.number}>{current.vacationDaysApproved}</td>
+                                <td className={style.number}>{prev.vacationDaysApproved}</td>
+                            </tr>
+                            {current.hasVacationDaysInProgress || prev.hasVacationDaysInProgress
+                                ? (
+                                    <tr>
+                                        <td>{ui.translations['vacation.vacationInProgress']}</td>
+                                        <td className={style.number}>{current.vacationDaysInProgress}</td>
+                                        <td className={style.number}>{prev.vacationDaysInProgress}</td>
+                                    </tr>
+                                ) : undefined}
+                            <tr className={style.borderTop}>
+                                <th scope="row">{ui.translations['vacation.availablevacation']}</th>
+                                <td className={style.mumberBold}>{current.vacationDaysLeftInYear}</td>
+                                <td className={style.mumberBold}>{prev.vacationDaysLeftInYear}</td>
+                            </tr>
+                            {current.hasSpecialVacationDaysApproved || prev.hasSpecialVacationDaysApproved
+                                ? (
+                                    <tr>
+                                        <td>{ui.translations['vacation.specialApproved']}</td>
+                                        <td className={style.number}>{current.specialVacationDaysApproved}</td>
+                                        <td className={style.number}>{prev.specialVacationDaysApproved}</td>
+                                    </tr>
+                                ) : undefined}
+                            {current.hasSpecialVacationDaysInProgress || prev.hasSpecialVacationDaysInProgress
+                                ? (
+                                    <tr>
+                                        <td>{ui.translations['vacation.specialInProgress']}</td>
+                                        <td className={style.number}>{current.specialVacationDaysInProgress}</td>
+                                        <td className={style.number}>{prev.specialVacationDaysInProgress}</td>
+                                    </tr>
+                                ) : undefined}
                             </tbody>
                         </Table>
                     </Col>
