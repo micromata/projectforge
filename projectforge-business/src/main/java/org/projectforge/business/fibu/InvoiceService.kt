@@ -72,22 +72,24 @@ open class InvoiceService {
      * InvoiceTemplate.docx, InvoiceTemplate_en.docx results in ["", "en"].
      */
     open fun getSupportedLanguages(): Array<String> {
-        customInvoiceTemplateName?.let { templateName ->
-            val resourceDir = configurationService.resourceDir
-            val baseDir = File("$resourceDir/officeTemplates")
-            val langs = mutableListOf<String>()
-            baseDir.list().filter { it.startsWith(templateName) }.forEach {
-                val lang = it.removePrefix(templateName).removeSuffix(".docx")
-                if (lang.isBlank()) {
-                    langs.add("")
-                } else if (lang.matches("""_[a-z]{1,3}""".toRegex())) {
-                    langs.add(lang.substring(1))
-                } else {
-                    log.warn("Language of invoice template '$it' not supported. Should be of form '$templateName.docx' or '${templateName}_en.docx'.")
-                }
+        val templateName = customInvoiceTemplateName
+        if (templateName.isNullOrBlank()) {
+            return arrayOf("")
+        }
+        val resourceDir = configurationService.resourceDir
+        val baseDir = File("$resourceDir/officeTemplates")
+        val langs = mutableListOf<String>()
+        baseDir.list().filter { it.startsWith(templateName) }.forEach {
+            val lang = it.removePrefix(templateName).removeSuffix(".docx")
+            if (lang.isBlank()) {
+                langs.add("")
+            } else if (lang.matches("""_[a-z]{1,3}""".toRegex())) {
+                langs.add(lang.substring(1))
+            } else {
+                log.warn("Language of invoice template '$it' not supported. Should be of form '$templateName.docx' or '${templateName}_en.docx'.")
             }
-            return langs.toTypedArray()
-        } ?: return arrayOf("")
+        }
+        return langs.toTypedArray()
     }
 
     open fun getInvoiceWordDocument(data: RechnungDO, lang: String?): ByteArrayOutputStream? {
@@ -187,7 +189,7 @@ open class InvoiceService {
         var posTbl: XWPFTable? = null
         for (tbl in templateDocument.tables) {
             val cell = tbl.getRow(0).getCell(0)
-            cell.paragraphs?.let {paragraphs ->
+            cell.paragraphs?.let { paragraphs ->
                 for (paragraph in paragraphs) {
                     val runsProcessor = RunsProcessor(paragraph)
                     if (runsProcessor.text.contains("\${table}")) {
