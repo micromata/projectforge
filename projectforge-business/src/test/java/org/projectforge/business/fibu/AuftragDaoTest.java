@@ -33,7 +33,6 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
-import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,7 +134,7 @@ public class AuftragDaoTest extends AbstractTestBase
     auftragDao.getById(id2);
     try {
       auftragDao.getById(id3);
-      fail("AccessException expected: Projectmanager should not have access to 2 years old orders.");
+      fail("AccessException expected: Projectmanager should not have access to older orders than " + AuftragRight.MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER + " days.");
     } catch (final AccessException ex) {
       // OK
     }
