@@ -51,7 +51,7 @@ function DynamicDateInput(props) {
                             todayButton: ui.translations['calendar.today'],
                         }}
                         month={value}
-                        placeholder={`${formatDate(new Date(), format, locale)}`}
+                        placeholder=""
                         required={required}
                     />
                     <AdditionalLabel title={additionalLabel} />
