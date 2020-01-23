@@ -1,3 +1,7 @@
+table.statistics {
+  max-width: 400px;
+}
+
 tr.borderTop td, tr.borderTop th {
   border-top: 1pt solid black;
 }
@@ -18,3 +22,8 @@ td.mumberBold {
   text-align: right;
   font-weight: bold;
 }
+
+th.fullWidth {
+  width: 100%;
+}
+

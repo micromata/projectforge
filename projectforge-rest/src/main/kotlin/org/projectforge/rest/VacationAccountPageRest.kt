@@ -26,6 +26,7 @@ package org.projectforge.rest
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationDO
+import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStatsFormatted
 import org.projectforge.common.DateFormatType
@@ -36,6 +37,7 @@ import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.Employee
+import org.projectforge.rest.dto.LeaveAccountEntry
 import org.projectforge.rest.dto.Vacation
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,6 +54,9 @@ class VacationAccountPageRest {
 
     @Autowired
     private lateinit var employeeService: EmployeeService
+
+    @Autowired
+    private lateinit var leaveAccountEntryDao: LeaveAccountEntryDao
 
     @Autowired
     private lateinit var userPrefService: UserPrefService
@@ -77,14 +82,18 @@ class VacationAccountPageRest {
                 "vacation.title.list",
                 "vacation.startdate",
                 "vacation.enddate",
-                "vacation.workingdays",
+                "vacation.Days",
                 "vacation.replacement",
                 "vacation.manager",
                 "vacation.status",
                 "vacation.vacationmode",
                 "vacation.special",
-                "comment"
-                )
+                "comment",
+                "vacation.leaveAccountEntry.title.heading",
+                "date",
+                "vacation.leaveAccountEntry.amount",
+                "description"
+        )
         val endOfYear = vacationService.getEndOfCarryVacationOfPreviousYear(Year.now().value)
         val endOfYearString = PFDateTimeUtils.ensureUsersDateTimeFormat(DateFormatType.DATE_WITHOUT_YEAR).format(endOfYear)
         layout.addTranslation("vacation.previousyearleaveunused", translateMsg("vacation.previousyearleaveunused", endOfYearString))
@@ -101,6 +110,11 @@ class VacationAccountPageRest {
             statistics["statisticsPreviousYear"] = VacationStatsFormatted(prevStats)
             readVacations(vacations, "Current", employeeId, currentStats.year)
             readVacations(vacations, "Previous", employeeId, prevStats.year)
+            val periodBegin = PFDay.of(prevStats.year, Month.JANUARY, 1).localDate
+            val periodEnd = PFDay.of(currentStats.year, Month.JANUARY, 1).endOfYear.localDate
+            leaveAccountEntryDao.getList(employeeId, periodBegin, periodEnd)?.let { list ->
+                vacations["leaveAccountEntries"] = list.map { LeaveAccountEntry(it) }.sortedByDescending { it.date }
+            }
         }
         val buttonCol = UICol(length = 6)
         buttonCol.add(UIButton("add", "add", UIColor.SUCCESS, responseAction = ResponseAction("http://localhost:3000/react/vacation/edit")))
@@ -127,7 +141,7 @@ class VacationAccountPageRest {
 
     private fun readVacations(variables: MutableMap<String, Any>, id: String, employeeId: Int, year: Int) {
         val yearDate = PFDay.of(year, Month.JANUARY, 1)
-        val dbList = vacationService.getVacationsListForPeriod(employeeId, yearDate.localDate, yearDate.endOfYear.localDate, true)
+        val dbList = vacationService.getVacationsListForPeriod(employeeId, yearDate.localDate, yearDate.endOfYear.localDate, true, true)
         val list = dbList.map { Vacation(it) }
         variables["vacations${id}Year"] = list
         variables["year$id"] = year
