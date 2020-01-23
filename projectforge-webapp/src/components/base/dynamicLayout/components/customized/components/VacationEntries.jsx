@@ -2,8 +2,18 @@
 import React from 'react';
 import 'react-rrule-generator/build/styles.css';
 import { Col, Row, Table } from 'reactstrap';
+import prefix from '../../../../../../utilities/prefix';
+import history from '../../../../../../utilities/history';
 import { DynamicLayoutContext } from '../../../context';
 import style from './Vacation.module.scss';
+
+function handleVacationRowClick(event, id) {
+    history.push(`${prefix}vacation/edit/${id}`);
+}
+
+function handleLeaveEntryRowClick(event, id) {
+    history.push(`${prefix}leaveAccountEntry/edit/${id}`);
+}
 
 function VacationEntriesTable(vacationEntries) {
     return (
@@ -11,7 +21,11 @@ function VacationEntriesTable(vacationEntries) {
             {vacationEntries && vacationEntries.length > 0
                 ? (
                     vacationEntries.map((entry, index) => (
-                        <tr key={entry.id} className={index === 0 ? style.borderTop : undefined}>
+                        <tr
+                            key={entry.id}
+                            className={index === 0 ? style.borderTop : undefined}
+                            onClick={event => handleVacationRowClick(event, entry.id)}
+                        >
                             <td>{entry.startDateFormatted}</td>
                             <td>{entry.endDateFormatted}</td>
                             <td>{entry.statusString}</td>
@@ -39,7 +53,7 @@ function LeaveAccountEntriesTable(leaveAccountEntries, translations) {
                             <h4>
                                 {translations['vacation.leaveAccountEntry.title.heading']}
                             </h4>
-                            <Table striped>
+                            <Table striped hover>
                                 <thead>
                                 <tr>
                                     <th>{translations.date}</th>
@@ -49,7 +63,10 @@ function LeaveAccountEntriesTable(leaveAccountEntries, translations) {
                                 </thead>
                                 <tbody>
                                 {leaveAccountEntries.map(entry => (
-                                    <tr key={entry.id}>
+                                    <tr
+                                        key={entry.id}
+                                        onClick={event => handleLeaveEntryRowClick(event, entry.id)}
+                                    >
                                         <td>{entry.dateFormatted}</td>
                                         <td className={style.number}>{entry.amount}</td>
                                         <td>{entry.description}</td>
@@ -72,8 +89,6 @@ function VacationEntries({ values }) {
         vacationsCurrentYear,
         vacationsPreviousYear,
         leaveAccountEntries,
-        yearCurrent,
-        yearPrevious,
     } = values;
 
     return React.useMemo(
@@ -82,7 +97,7 @@ function VacationEntries({ values }) {
                 <Row>
                     <Col sm={12}>
                         <h4>{ui.translations['vacation.title.list']}</h4>
-                        <Table striped>
+                        <Table striped hover>
                             <thead>
                             <tr>
                                 <th>{ui.translations['vacation.startdate']}</th>
