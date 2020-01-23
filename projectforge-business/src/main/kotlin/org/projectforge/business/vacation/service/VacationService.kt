@@ -153,7 +153,13 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
     @JvmOverloads
     open fun getVacationsListForPeriod(employee: EmployeeDO, periodBegin: LocalDate, periodEnd: LocalDate, withSpecial: Boolean = false, vararg status: VacationStatus)
             : List<VacationDO> {
-        val result = vacationDao.getVacationForPeriod(employee, periodBegin, periodEnd, withSpecial)
+        return getVacationsListForPeriod(employee.id, periodBegin, periodEnd, withSpecial, *status)
+    }
+
+    @JvmOverloads
+    open fun getVacationsListForPeriod(employeeId: Int, periodBegin: LocalDate, periodEnd: LocalDate, withSpecial: Boolean = false, vararg status: VacationStatus)
+            : List<VacationDO> {
+        val result = vacationDao.getVacationForPeriod(employeeId, periodBegin, periodEnd, withSpecial)
         if (status.isNotEmpty()) {
             return result.filter { VacationStatus.values().contains(it.status) }
         }

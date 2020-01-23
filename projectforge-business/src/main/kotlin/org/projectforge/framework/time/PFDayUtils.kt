@@ -288,6 +288,9 @@ class PFDayUtils {
             }
         }
 
+        fun format(date: LocalDate?, dateTimeFormat: DateFormatType): String? {
+            return PFDateTimeUtils.ensureUsersDateTimeFormat(dateTimeFormat).format(date)
+        }
 
         /**
          * return year of given LocalDate or -1 if LocalDate is null.

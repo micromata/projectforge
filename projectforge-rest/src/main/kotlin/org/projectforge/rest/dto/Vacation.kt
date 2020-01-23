@@ -28,13 +28,17 @@ import org.projectforge.business.vacation.model.VacationMode
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStats
+import org.projectforge.common.DateFormatType
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.time.PFDayUtils
 import java.math.BigDecimal
 import java.time.LocalDate
 
 class Vacation(var employee: Employee? = null,
                var startDate: LocalDate? = null,
+               var startDateFormatted: String? = null,
                var endDate: LocalDate? = null,
+               var endDateFormatted: String? = null,
                var workingDays: BigDecimal? = null,
                var workingDaysFormatted: String? = null,
                var status: VacationStatus? = null,
@@ -44,12 +48,17 @@ class Vacation(var employee: Employee? = null,
                var replacement: Employee? = null,
                var manager: Employee? = null,
                var special: Boolean? = null,
+               var specialFormatted: String? = null,
                var halfDayBegin: Boolean? = null,
                var halfDayEnd: Boolean? = null,
                var comment: String? = null,
                var vacationDaysLeftInYear: BigDecimal? = null,
                var vacationDaysLeftInYearString: String? = null
-               ) : BaseDTO<VacationDO>() {
+) : BaseDTO<VacationDO>() {
+    constructor(src: VacationDO) : this() {
+        this.copyFrom(src)
+    }
+
     override fun copyFrom(src: VacationDO) {
         super.copyFrom(src)
         workingDays = VacationService.getVacationDays(src)
@@ -57,6 +66,17 @@ class Vacation(var employee: Employee? = null,
         status?.let { statusString = translate(it.i18nKey) }
         vacationMode = src.getVacationmode()
         vacationMode?.let { vacationModeString = translate(it.i18nKey) }
+        specialFormatted = if (special == true) {
+            translate("yes")
+        } else {
+            translate("no")
+        }
+        startDate?.let {
+            startDateFormatted = PFDayUtils.format(it, DateFormatType.DATE)
+        }
+        endDate?.let {
+            endDateFormatted = PFDayUtils.format(it, DateFormatType.DATE)
+        }
     }
 
     override fun copyTo(dest: VacationDO) {
