@@ -263,7 +263,6 @@ class PFDayUtils {
          * @throws DateTimeParseException if the text cannot be parsed
          */
         @JvmStatic
-        @JvmOverloads
         fun parseDate(str: String?): LocalDate? {
             if (str.isNullOrBlank())
                 return null
