@@ -139,11 +139,11 @@ public class OrderExportTest extends AbstractTestBase
     ExcelImport excelImport = new ExcelImport(new ByteArrayInputStream(export));
     for (Row row : excelImport.getWorkbook().getSheetAt(2)) {
       for (Cell cell : row) {
-        if (cell.toString().equals("02-Oct-2020")) {
+        if (cell.toString().equals("2020-10-02")) {
           hasFirstScheduleDate = true;
         }
 
-        if (cell.toString().equals("02-Oct-2030")) {
+        if (cell.toString().equals("2030-10-02")) {
           hasSecondScheduleDate = true;
         }
 

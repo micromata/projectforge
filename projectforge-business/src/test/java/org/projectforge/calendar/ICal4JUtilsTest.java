@@ -65,7 +65,7 @@ public class ICal4JUtilsTest
     final net.fortuna.ical4j.model.Date date = ICal4JUtils.getICal4jDateTime(
         DateHelper.parseIsoDate("2012-12-22", DateHelper.EUROPE_BERLIN),
         DateHelper.EUROPE_BERLIN);
-    Assertions.assertEquals("20121222", date.toString());
+    Assertions.assertEquals("20121222T000000", date.toString());
   }
 
   @Test
