@@ -194,7 +194,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
      */
     @PropertyInfo(i18nKey = "fibu.auftrag.beauftragungsdatum")
     @get:Column(name = "beauftragungs_datum")
-    open var beauftragungsDatum: Date? = null
+    open var beauftragungsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.fakturiert")
     @get:Transient

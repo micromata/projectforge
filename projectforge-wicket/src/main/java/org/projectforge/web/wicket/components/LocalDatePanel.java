@@ -123,24 +123,20 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
     dateField.add(AttributeModifier.replace("size", "10"));
     dateField.setOutputMarkupId(true);
     add(dateField);
-    if (settings.required == true) {
+    if (settings.required) {
       this.required = true;
     }
     if (settings.tabIndex != null) {
       dateField.add(AttributeModifier.replace("tabindex", String.valueOf(settings.tabIndex)));
     }
-    dateField.add(new IValidator<Date>() {
-
-      @Override
-      public void validate(final IValidatable<Date> validatable) {
-        final Date date = validatable.getValue();
-        if (date != null) {
-          final PFDay day = PFDay.from(date, false, settings.timeZone);
-          final int year = day.getYear();
-          if (year < minYear || year > maxYear) {
-            validatable.error(new ValidationError().addKey("error.date.yearOutOfRange").setVariable("minimumYear", minYear)
-                    .setVariable("maximumYear", maxYear));
-          }
+    dateField.add((IValidator<Date>) validatable -> {
+      final Date date = validatable.getValue();
+      if (date != null) {
+        final PFDay day = PFDay.from(date, false, settings.timeZone);
+        final int year = day.getYear();
+        if (year < minYear || year > maxYear) {
+          validatable.error(new ValidationError().addKey("error.date.yearOutOfRange").setVariable("minimumYear", minYear)
+                  .setVariable("maximumYear", maxYear));
         }
       }
     });
@@ -215,7 +211,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
   @Override
   protected void onBeforeRender() {
     date = (Date) getDefaultModelObject(); // copy the value from the outer model to the dateField's model
-    if (modelMarkedAsChanged == true) {
+    if (modelMarkedAsChanged) {
       dateField.modelChanged();
       modelMarkedAsChanged = false;
     }
@@ -232,7 +228,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
    */
   @Override
   public void updateModel() {
-    if (modelMarkedAsChanged == true) {
+    if (modelMarkedAsChanged) {
       // Work-around: update model only if not marked as changed. Prevent overwriting the model by the user's input.
       modelMarkedAsChanged = false;
     } else {
@@ -271,7 +267,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
   }
 
   public LocalDate getConvertedInputAsLocalDate() {
-    Date newDate = null;
+    Date newDate;
     if (isEnabled()) {
       newDate = getConvertedInput();
     } else {
