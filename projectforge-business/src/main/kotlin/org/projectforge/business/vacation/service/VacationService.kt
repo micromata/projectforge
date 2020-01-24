@@ -151,7 +151,7 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
     }
 
     @JvmOverloads
-    open fun getVacationsListForPeriod(employee: EmployeeDO, periodBegin: LocalDate, periodEnd: LocalDate, trimVacations: Boolean = false, withSpecial: Boolean = false, vararg status: VacationStatus)
+    open fun getVacationsListForPeriod(employee: EmployeeDO, periodBegin: LocalDate, periodEnd: LocalDate, withSpecial: Boolean = false, trimVacations: Boolean = false, vararg status: VacationStatus)
             : List<VacationDO> {
         return getVacationsListForPeriod(employee.id, periodBegin, periodEnd, withSpecial, trimVacations, *status)
     }
