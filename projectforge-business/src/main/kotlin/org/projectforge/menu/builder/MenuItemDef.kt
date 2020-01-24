@@ -66,7 +66,6 @@ class MenuItemDef(
      * @param checkAccess Dynamic check access for the logged in user. The menu is visible if [checkAccess] is null or returns true.
      */
     constructor(defId: MenuItemDefId,
-                url: String? = null,
                 badgeCounter: (() -> Int?)? = null,
                 badgeTooltipKey: String? = null,
                 checkAccess: (() -> Boolean)? = null,
@@ -77,8 +76,8 @@ class MenuItemDef(
                 vararg requiredGroups: ProjectForgeGroup)
             : this(
             defId.id,
-            defId.getI18nKey(),
-            url = url,
+            defId.i18nKey,
+            url = defId.url,
             badgeCounter = badgeCounter,
             badgeTooltipKey = badgeTooltipKey,
             visibleForRestrictedUsers = visibleForRestrictedUsers,
