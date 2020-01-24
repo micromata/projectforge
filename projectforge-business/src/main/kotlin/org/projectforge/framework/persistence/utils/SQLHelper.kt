@@ -59,7 +59,7 @@ object SQLHelper {
     @JvmStatic
     fun getYears(min: Int?, max: Int?): IntArray {
         if (min == null || max == null) {
-            return intArrayOf(Calendar.getInstance().get(Calendar.YEAR))
+            return intArrayOf(Year.now().value)
         }
         val res = IntArray(max - min + 1)
         var i = 0
