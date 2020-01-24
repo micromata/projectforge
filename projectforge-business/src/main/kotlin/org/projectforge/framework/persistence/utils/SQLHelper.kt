@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.utils
 
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.i18n.InternalErrorException
+import java.time.LocalDate
 import java.util.*
 import javax.persistence.TypedQuery
 
@@ -57,6 +58,14 @@ object SQLHelper {
         cal.time = max
         to = cal.get(Calendar.YEAR)
         return getYears(from, to)
+    }
+
+    @JvmStatic
+    fun getYears(min: LocalDate?, max: LocalDate?): IntArray {
+        if (min == null || max == null) {
+            return intArrayOf(LocalDate.now().year)
+        }
+        return getYears(min.year, max.year)
     }
 
     @JvmStatic

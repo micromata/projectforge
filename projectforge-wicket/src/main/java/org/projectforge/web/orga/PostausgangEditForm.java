@@ -23,9 +23,6 @@
 
 package org.projectforge.web.orga;
 
-import java.util.Date;
-import java.util.List;
-
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidator;
@@ -33,61 +30,53 @@ import org.apache.wicket.validation.ValidationError;
 import org.projectforge.business.orga.PostType;
 import org.projectforge.business.orga.PostausgangDO;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
+import org.projectforge.web.wicket.flowlayout.FieldProperties;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.slf4j.Logger;
 
-public class PostausgangEditForm extends AbstractEditForm<PostausgangDO, PostausgangEditPage>
-{
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.List;
+
+public class PostausgangEditForm extends AbstractEditForm<PostausgangDO, PostausgangEditPage> {
   private static final long serialVersionUID = -2138017238114715368L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PostausgangEditForm.class);
 
-  public PostausgangEditForm(final PostausgangEditPage parentPage, final PostausgangDO data)
-  {
+  public PostausgangEditForm(final PostausgangEditPage parentPage, final PostausgangDO data) {
     super(parentPage, data);
   }
 
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // Date
+      final FieldProperties<LocalDate> props = getDateProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("date"));
-      final DatePanel datumPanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "datum"), DatePanelSettings.get()
-          .withTargetType(java.sql.Date.class).withSelectProperty("datum"));
-      datumPanel.setRequired(true);
-      datumPanel.add((IValidator<Date>) validatable -> {
-        final Date value = validatable.getValue();
-        if (value == null) {
-          return;
-        }
-        final DayHolder today = new DayHolder();
-        final DayHolder date = new DayHolder(value);
-        if (today.before(date) == true) { // No dates in the future accepted.
-          validatable.error(new ValidationError().addKey("error.dateInFuture"));
-        }
-      });
-      fs.add(datumPanel);
+      LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+      components.setRequired(true);
+      fs.add(components);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // Status drop down box:
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("orga.post.type"));
-      final LabelValueChoiceRenderer<PostType> typeChoiceRenderer = new LabelValueChoiceRenderer<PostType>(fs, PostType.values());
-      final DropDownChoice<PostType> typeChoice = new DropDownChoice<PostType>(fs.getDropDownChoiceId(), new PropertyModel<PostType>(data,
+      final LabelValueChoiceRenderer<PostType> typeChoiceRenderer = new LabelValueChoiceRenderer<>(fs, PostType.values());
+      final DropDownChoice<PostType> typeChoice = new DropDownChoice<>(fs.getDropDownChoiceId(), new PropertyModel<>(data,
           "type"), typeChoiceRenderer.getValues(), typeChoiceRenderer);
       typeChoice.setNullValid(false);
       typeChoice.setRequired(true);
@@ -98,11 +87,9 @@ public class PostausgangEditForm extends AbstractEditForm<PostausgangDO, Postaus
       // Receiver
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("orga.postausgang.empfaenger"));
       final PFAutoCompleteMaxLengthTextField empfaengerTextField = new PFAutoCompleteMaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<String>(data, "empfaenger"))
-      {
+          new PropertyModel<>(data, "empfaenger")) {
         @Override
-        protected List<String> getChoices(final String input)
-        {
+        protected List<String> getChoices(final String input) {
           return getBaseDao().getAutocompletion("empfaenger", input);
         }
       };
@@ -115,11 +102,9 @@ public class PostausgangEditForm extends AbstractEditForm<PostausgangDO, Postaus
       // Person
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("orga.postausgang.person"));
       final PFAutoCompleteMaxLengthTextField personTextField = new PFAutoCompleteMaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<String>(data, "person"))
-      {
+          new PropertyModel<String>(data, "person")) {
         @Override
-        protected List<String> getChoices(final String input)
-        {
+        protected List<String> getChoices(final String input) {
           return getBaseDao().getAutocompletion("person", input);
         }
       };
@@ -130,11 +115,9 @@ public class PostausgangEditForm extends AbstractEditForm<PostausgangDO, Postaus
       // Content
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("orga.post.inhalt"));
       final PFAutoCompleteMaxLengthTextField inhaltTextField = new PFAutoCompleteMaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<String>(data, "inhalt"))
-      {
+          new PropertyModel<String>(data, "inhalt")) {
         @Override
-        protected List<String> getChoices(final String input)
-        {
+        protected List<String> getChoices(final String input) {
           return getBaseDao().getAutocompletion("inhalt", input);
         }
       };
@@ -145,13 +128,16 @@ public class PostausgangEditForm extends AbstractEditForm<PostausgangDO, Postaus
     {
       // Comment
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("comment"));
-      fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(data, "bemerkung")), true);
+      fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "bemerkung")), true);
     }
   }
 
+  private FieldProperties<LocalDate> getDateProperties() {
+    return new FieldProperties<>("date", new PropertyModel<>(super.data, "datum"));
+  }
+
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 }

@@ -24,6 +24,7 @@
 package org.projectforge.web.fibu;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -71,24 +72,9 @@ import org.projectforge.web.wicket.AbstractUnsecureBasePage;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
-import org.projectforge.web.wicket.components.SingleButtonPanel;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.converter.CurrencyConverter;
-import org.projectforge.web.wicket.flowlayout.ButtonType;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
-import org.projectforge.web.wicket.flowlayout.TextStyle;
-import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel.ToggleStatus;
 import org.slf4j.Logger;
 
@@ -283,10 +269,9 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     gridBuilder.newSplitPanel(GridSize.SPAN2);
     {
       // erfassungsDatum
+      final FieldProperties<LocalDate> props = getErfassungsDatumProperties();
       final FieldsetPanel fsEntryDate = gridBuilder.newFieldset(getString("fibu.auftrag.erfassung.datum"));
-      final DatePanel erfassungsDatumPanel = new DatePanel(fsEntryDate.newChildId(),
-          new PropertyModel<Date>(data, "erfassungsDatum"),
-          DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
+      LocalDatePanel erfassungsDatumPanel = new LocalDatePanel(fsEntryDate.newChildId(), new LocalDateModel(props.getModel()));
       erfassungsDatumPanel.setRequired(true);
       erfassungsDatumPanel.setEnabled(false);
       fsEntryDate.add(erfassungsDatumPanel);
@@ -294,29 +279,26 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     gridBuilder.newSplitPanel(GridSize.SPAN2);
     {
       // angebotsDatum
+      final FieldProperties<LocalDate> props = getAngebotsDatumProperties();
       final FieldsetPanel fsOrderDate = gridBuilder.newFieldset(getString("fibu.auftrag.angebot.datum"));
-      final DatePanel angebotsDatumPanel = new DatePanel(fsOrderDate.newChildId(),
-          new PropertyModel<Date>(data, "angebotsDatum"), DatePanelSettings
-          .get().withTargetType(java.sql.Date.class), true);
+      LocalDatePanel angebotsDatumPanel = new LocalDatePanel(fsOrderDate.newChildId(), new LocalDateModel(props.getModel()));
       angebotsDatumPanel.setRequired(true);
       fsOrderDate.add(angebotsDatumPanel);
     }
     gridBuilder.newSplitPanel(GridSize.SPAN2);
     {
       // entscheidungsDatum
+      final FieldProperties<LocalDate> props = getEntscheidungsDatumProperties();
       final FieldsetPanel fsOrderDate = gridBuilder.newFieldset(getString("fibu.auftrag.entscheidung.datum"));
-      final DatePanel angebotsDatumPanel = new DatePanel(fsOrderDate.newChildId(),
-          new PropertyModel<Date>(data, "entscheidungsDatum"), DatePanelSettings
-          .get().withTargetType(java.sql.Date.class), true);
+      LocalDatePanel angebotsDatumPanel = new LocalDatePanel(fsOrderDate.newChildId(), new LocalDateModel(props.getModel()));
       fsOrderDate.add(angebotsDatumPanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // Bindungsfrist
+      final FieldProperties<LocalDate> props = getBindungsfristProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.auftrag.bindungsFrist"));
-      final DatePanel bindungsFristPanel = new DatePanel(fs.newChildId(),
-          new PropertyModel<Date>(data, "bindungsFrist"), DatePanelSettings
-          .get().withTargetType(java.sql.Date.class), true);
+      LocalDatePanel bindungsFristPanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
       fs.add(bindungsFristPanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -334,10 +316,9 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // Beauftragungsdatum
+      final FieldProperties<LocalDate> props = getBeauftragungsDatumProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.auftrag.beauftragungsdatum"));
-      final DatePanel beauftragungsDatumPanel = new DatePanel(fs.newChildId(),
-          new PropertyModel<Date>(data, "beauftragungsDatum"),
-          DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
+      LocalDatePanel beauftragungsDatumPanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
       fs.add(beauftragungsDatumPanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -447,6 +428,26 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     add(periodOfPerformanceHelper.createValidator());
 
     setKundePmHobmAndSmIfEmpty(getData().getProjekt(), null);
+  }
+
+  private FieldProperties<LocalDate> getErfassungsDatumProperties() {
+    return new FieldProperties<>("fibu.auftrag.angebot.datum", new PropertyModel<>(super.data, "angebotsDatum"));
+  }
+
+  private FieldProperties<LocalDate> getAngebotsDatumProperties() {
+    return new FieldProperties<>("fibu.auftrag.erfassung.datum", new PropertyModel<>(super.data, "erfassungsDatum"));
+  }
+
+  private FieldProperties<LocalDate> getEntscheidungsDatumProperties() {
+    return new FieldProperties<>("fibu.auftrag.entscheidung.datum", new PropertyModel<>(super.data, "entscheidungsDatum"));
+  }
+
+  private FieldProperties<LocalDate> getBindungsfristProperties() {
+    return new FieldProperties<>("fibu.auftrag.bindungsFrist", new PropertyModel<>(super.data, "bindungsFrist"));
+  }
+
+  private FieldProperties<LocalDate> getBeauftragungsDatumProperties() {
+    return new FieldProperties<>("fibu.auftrag.beauftragungsdatum", new PropertyModel<>(super.data, "beauftragungsDatum"));
   }
 
   void setKundePmHobmAndSmIfEmpty(final ProjektDO project, final AjaxRequestTarget target)
