@@ -64,7 +64,7 @@ open class FavoritesMenuCreator {
             return menu
         menu = Menu()
         if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
-            val adminMenu = MenuItem(MenuItemDefId.ADMINISTRATION.id, translate(MenuItemDefId.ADMINISTRATION.getI18nKey()))
+            val adminMenu = MenuItem(MenuItemDefId.ADMINISTRATION.id, translate(MenuItemDefId.ADMINISTRATION.i18nKey))
             menu.add(adminMenu)
             adminMenu.add(menuCreator.findById(MenuItemDefId.ACCESS_LIST))
             adminMenu.add(menuCreator.findById(MenuItemDefId.USER_LIST))
@@ -76,7 +76,7 @@ open class FavoritesMenuCreator {
             val adminMenu = MenuItem(menuCreator.findById(MenuItemDefId.CHANGE_PASSWORD))
             menu.add(adminMenu)
         } else {
-            val projectManagementMenu = MenuItem(MenuItemDefId.PROJECT_MANAGEMENT.id, translate(MenuItemDefId.PROJECT_MANAGEMENT.getI18nKey()))
+            val projectManagementMenu = MenuItem(MenuItemDefId.PROJECT_MANAGEMENT.id, translate(MenuItemDefId.PROJECT_MANAGEMENT.i18nKey))
             menu.add(projectManagementMenu)
             projectManagementMenu.add(menuCreator.findById(MenuItemDefId.MONTHLY_EMPLOYEE_REPORT))
             projectManagementMenu.add(menuCreator.findById(MenuItemDefId.TIMESHEET_LIST))
