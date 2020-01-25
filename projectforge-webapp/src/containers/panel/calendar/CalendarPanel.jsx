@@ -64,8 +64,11 @@ class CalendarPanel extends React.Component {
         moment.updateLocale(locale || 'en',
             {
                 week: {
-                    dow: firstDayOfWeek, // First day of week (got from UserStatus).
-                    doy: 1, // First day of year (not yet supported).
+                    dow: firstDayOfWeek, // First day of week, 0 - Sunday, 1 - Monday, ....
+                    doy: 4, // Europe: First week of year must contain 4 January (7 + 1 - 4)
+                    // doy: 6  // Canada: First week of year must contain 1 January (7 + 0 - 1)
+                    // doy: 12 // Arab: First week of year must contain 1 January (7 + 6 - 1)
+                    // doy: 7  // Also common: First week of year must contain 1 January (7 + 1 - 1)
                 },
             });
 
@@ -220,7 +223,6 @@ class CalendarPanel extends React.Component {
 
     fetchAction(action, startDate, endDate, calendar, allDay, event) {
         const { match } = this.props;
-
         fetchJsonGet('calendar/action',
             {
                 action,
@@ -418,7 +420,7 @@ CalendarPanel.defaultProps = {
 };
 
 const mapStateToProps = ({ authentication }) => ({
-    firstDayOfWeek: authentication.user.firstDayOfWeekNo,
+    firstDayOfWeek: authentication.user.firstDayOfWeekSunday1,
     timeZone: authentication.user.timeZone,
     locale: authentication.user.locale,
 });

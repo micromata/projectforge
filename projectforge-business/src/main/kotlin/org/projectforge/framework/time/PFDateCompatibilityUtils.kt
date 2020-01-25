@@ -72,14 +72,19 @@ class PFDateCompatibilityUtils {
         }
 
         /**
-         * monthNumber 0-based: 0 - January, ..., 11 - December
+         * @return 1, Sunday, 2 - Monday, ...
          */
         @JvmStatic
-        fun getCompatibilityMonth(monthNumber: Int?): Month? {
-            return if (monthNumber != null) {
-                Month.of(monthNumber + 1)
-            } else {
-                null
+        fun getCompatibilityDayOfWeekSunday1Value(dayOfWeek: DayOfWeek?): Int? {
+            return when (dayOfWeek) {
+                DayOfWeek.SUNDAY -> 1
+                DayOfWeek.MONDAY -> 2
+                DayOfWeek.TUESDAY -> 3
+                DayOfWeek.WEDNESDAY -> 4
+                DayOfWeek.THURSDAY -> 5
+                DayOfWeek.FRIDAY -> 6
+                DayOfWeek.SATURDAY -> 7
+                else -> null
             }
         }
 
