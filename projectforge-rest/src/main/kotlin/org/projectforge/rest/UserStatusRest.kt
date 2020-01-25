@@ -23,12 +23,15 @@
 
 package org.projectforge.rest
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.SystemAlertMessage
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
+import org.projectforge.framework.time.PFDateCompatibilityUtils
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.pub.SystemStatusRest
@@ -38,6 +41,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.DayOfWeek
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
@@ -47,9 +51,6 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/userStatus")
 open class UserStatusRest {
-    companion object {
-        internal val WEEKDAYS = arrayOf("-", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY")
-    }
 
     @Autowired
     private lateinit var systemStatusRest: SystemStatusRest
@@ -75,9 +76,22 @@ open class UserStatusRest {
                         var jsDateFormatShort: String? = null,
                         var jsTimestampFormatMinutes: String? = null,
                         var jsTimestampFormatSeconds: String? = null,
-                        var firstDayOfWeekNo: Int? = null,
-                        var firstDayOfWeek: String? = null,
-                        var timeNotation: TimeNotation? = null)
+                        var firstDayOfWeek: DayOfWeek? = null,
+                        var timeNotation: TimeNotation? = null) {
+        /**
+         * 0 - Sunday, 1 - Monday, ...
+         */
+        @get:JsonProperty
+        val firstDayOfWeekSunday0: Int?
+            get() = PFDateCompatibilityUtils.getCompatibilityDayOfWeekSunday0Value(firstDayOfWeek)
+        /**
+         * 1 - Monday, ..., 7 - Sunday
+         */
+        @get:JsonProperty
+        val isoFirstDayOfWeekNo: Int?
+        get() = PFDayUtils.getISODayOfWeekValue(firstDayOfWeek)
+
+    }
 
     data class Result(val userData: UserData,
                       val systemData: SystemStatusRest.SystemData,
@@ -93,7 +107,7 @@ open class UserStatusRest {
             employeeId = employeeDao.getEmployeeIdByByUserId(user.id) ?: -1
             user.setTransientAttribute("employeeId", employeeId) // Avoid multiple calls of db
         }
-        val firstDayOfWeekNo = ThreadLocalUserContext.getFirstDayOfWeekValue() // Mon - 1, Tue - 2, ..., Sun - 7
+        val firstDayOfWeek = ThreadLocalUserContext.getFirstDayOfWeek()
         val userData = UserData(username = user.username,
                 organization = user.organization,
                 fullname = user.getFullname(),
@@ -109,8 +123,7 @@ open class UserStatusRest {
                 timestampFormatMinutes = DateFormats.getFormatString(DateFormatType.DATE_TIME_MINUTES),
                 timestampFormatSeconds = DateFormats.getFormatString(DateFormatType.DATE_TIME_SECONDS),
                 timestampFormatMillis = DateFormats.getFormatString(DateFormatType.DATE_TIME_MILLIS),
-                firstDayOfWeekNo = firstDayOfWeekNo,
-                firstDayOfWeek = WEEKDAYS[firstDayOfWeekNo])
+                firstDayOfWeek = firstDayOfWeek)
         userData.jsDateFormat = convertToJavascriptFormat(userData.dateFormat)
         userData.jsDateFormatShort = convertToJavascriptFormat(userData.dateFormatShort)
         userData.jsTimestampFormatMinutes = convertToJavascriptFormat(userData.timestampFormatMinutes)

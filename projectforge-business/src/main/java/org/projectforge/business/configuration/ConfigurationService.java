@@ -34,6 +34,7 @@ import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.mail.SendMailConfig;
 
 import javax.net.ssl.SSLSocketFactory;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
@@ -96,11 +97,9 @@ public interface ConfigurationService {
   TimeNotation getDefaultTimeNotation();
 
   /**
-   * The default first day of week (1 - Sunday, 2 - Monday, ...)
-   *
    * @return the firstDayOfWeek
    */
-  int getDefaultFirstDayOfWeek();
+  DayOfWeek getDefaultFirstDayOfWeek();
 
 
   String getPfSupportMailAddress();
