@@ -30,4 +30,13 @@ class PostData<DTO: Any>(var data: DTO,
                          /**
                           * Used for watched fields by the client.
                           */
-                         var watchFieldsTriggered: Array<String>?)
+                         var watchFieldsTriggered: Array<String>?,
+                         /**
+                          * If given, after editing/finishing the current page, the frontend should redirect to this caller.
+                          */
+                         var returnToCaller: String?,
+                         /**
+                          * If given, after editing/finishing the current page, the frontend should redirect to the caller
+                          * specified by [returnToCaller] with this query params.
+                          */
+                         var returnToCallerParams: Map<String, String>?)

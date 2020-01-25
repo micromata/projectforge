@@ -117,16 +117,16 @@ class VacationAccountPageRest {
             }
         }
         val buttonCol = UICol(length = 6)
-        buttonCol.add(UIButton("add", "add", UIColor.SUCCESS, responseAction = ResponseAction("http://localhost:3000/react/vacation/edit")))
+        buttonCol.add(UIButton("add", "add", UIColor.SUCCESS, responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java))))
         if (currentStats.remainingLeaveFromPreviousYear != prevStats.vacationDaysLeftInYear) {
             buttonCol.add(UIButton("recalculate", "vacation.recalculateRemainingLeave", UIColor.DANGER,
                     responseAction = ResponseAction(PagesResolver.getDynamicPageUrl(this.javaClass, mapOf<String, Any>("recalculate" to true)))))
         }
         layout.add(UIFieldset(length = 12)
                 .add(UIRow()
-                        .add(UICol(length = 6)
+                        .add(UICol(mdLength = 6, smLength = 12)
                                 .add(lc, "employee"))
-                        .add(UICol(length = 6)
+                        .add(UICol(mdLength = 6, smLength = 12)
                                 .add(UICustomized("vacation.statistics",
                                         values = statistics))))
                 .add(UIRow().add(buttonCol))

@@ -39,6 +39,7 @@ import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.LanguageService
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.Address
+import org.projectforge.rest.dto.PostData
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterElement
@@ -146,7 +147,7 @@ class AddressPagesRest()
         }
     }
 
-    override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: AddressDO, dto: Address) {
+    override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: AddressDO, postData: PostData<Address>) {
         val session = request.session
         val bytes = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
         if (bytes != null && bytes is ByteArray) {
@@ -164,7 +165,8 @@ class AddressPagesRest()
         }
     }
 
-    override fun afterSaveOrUpdate(obj: AddressDO, dto: Address) {
+    override fun afterSaveOrUpdate(obj: AddressDO, postData: PostData<Address>) {
+        val dto = postData.data
         val address = baseDao.getOrLoad(obj.id)
         val personalAddress = PersonalAddressDO()
         personalAddress.address = address
