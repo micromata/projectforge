@@ -45,6 +45,11 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
                                       val precision: DatePrecision?)
     : IPFDate<PFDateTime> {
 
+    /**
+     * For parsing dates from long values: how to interpret the number?
+     */
+    enum class NumberFormat { EPOCH_SECONDS, EPOCH_MILLIS }
+
     override val year: Int
         get() = dateTime.year
 
@@ -407,10 +412,19 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
          */
         @JvmStatic
         @JvmOverloads
-        fun from(epochSeconds: Long?, nowIfNull: Boolean = false, zoneId: ZoneId = getUsersZoneId(), locale: Locale = getUsersLocale()): PFDateTime? {
-            if (epochSeconds == null)
+        fun from(value: Long?,
+                 nowIfNull: Boolean = false,
+                 zoneId: ZoneId = getUsersZoneId(),
+                 locale: Locale = getUsersLocale(),
+                 numberFormat: NumberFormat? = NumberFormat.EPOCH_MILLIS)
+                : PFDateTime? {
+            if (value == null)
                 return if (nowIfNull) now() else null
-            return from(Instant.ofEpochSecond(epochSeconds), zoneId, locale)
+            return if (numberFormat == NumberFormat.EPOCH_SECONDS) {
+                from(Instant.ofEpochSecond(value), zoneId, locale)
+            } else {
+                from(Instant.ofEpochMilli(value), zoneId, locale)
+            }
         }
 
         /**

@@ -40,6 +40,23 @@ class PFDateTimeUtilsTest {
         Assertions.assertEquals("2012-12-22 23:00:00.000", from(testDate.utilDate)!!.beginOfDay.isoStringMilli)
     }
 
+    @Test
+    fun parseUTCDateTest() {
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate( "2020-01-25T22:12:00.000Z"))
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate( "2020-01-25T23:12:00.000+01:00"))
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate( "2020-01-25T21:12:00.000-01:00"))
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate( "2020-01-25T23:12:00+01:00"))
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate( "2020-01-25 22:12:00"))
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate( "2020-01-25 23:12:00+01:00"))
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate( "2020-01-25 22:12"))
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate( "1579990320"))
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate( "1579990320000", PFDateTime.NumberFormat.EPOCH_MILLIS))
+    }
+
+    private fun parseDate(text: String?, numberFormat: PFDateTime.NumberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS): String? {
+        return PFDateTimeUtils.parseUTCDate(text, PFDateTimeUtils.ZONE_UTC, numberFormat = numberFormat)!!.isoStringMilli
+    }
+
     companion object {
         @BeforeAll
         @JvmStatic
