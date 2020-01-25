@@ -57,14 +57,13 @@ class CalendarPanel extends React.Component {
             firstDayOfWeek,
             locale,
             location,
-            timeZone,
+            // timeZone,
         } = this.props;
-
-        moment.tz.setDefault(timeZone);
+        // Doesn't work: moment.tz.setDefault(timeZone); Bug: shifts day selection 1 day!!!
         moment.updateLocale(locale || 'en',
             {
                 week: {
-                    dow: firstDayOfWeek, // First day of week, 0 - Sunday, 1 - Monday, ....
+                    dow: firstDayOfWeek, // First day of week, 1 - Sunday, 2 - Monday, ....
                     doy: 4, // Europe: First week of year must contain 4 January (7 + 1 - 4)
                     // doy: 6  // Canada: First week of year must contain 1 January (7 + 0 - 1)
                     // doy: 12 // Arab: First week of year must contain 1 January (7 + 6 - 1)
@@ -394,7 +393,7 @@ CalendarPanel.propTypes = {
     vacationGroups: PropTypes.arrayOf(PropTypes.shape({})),
     vacationUsers: PropTypes.arrayOf(PropTypes.shape({})),
     firstDayOfWeek: PropTypes.number.isRequired,
-    timeZone: PropTypes.string.isRequired,
+    // timeZone: PropTypes.string.isRequired,
     locale: PropTypes.string,
     topHeight: PropTypes.string,
     defaultDate: PropTypes.instanceOf(Date),
@@ -421,7 +420,7 @@ CalendarPanel.defaultProps = {
 
 const mapStateToProps = ({ authentication }) => ({
     firstDayOfWeek: authentication.user.firstDayOfWeekSunday1,
-    timeZone: authentication.user.timeZone,
+    // timeZone: authentication.user.timeZone,
     locale: authentication.user.locale,
 });
 
