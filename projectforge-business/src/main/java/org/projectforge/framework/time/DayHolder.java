@@ -249,7 +249,7 @@ public class DayHolder {
    * @param amount
    */
   public DayHolder add(final int field, final int amount) {
-    this.date = this.date.plus(amount, PFDateCompabilityUtils.getCompabilityFields(field));
+    this.date = this.date.plus(amount, PFDateCompatibilityUtils.getCompatibilityFields(field));
     return this;
   }
 

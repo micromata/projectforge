@@ -39,8 +39,8 @@ import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.time.PFDateCompabilityUtils
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.time.TimeNotation
 import java.io.Serializable
 import java.sql.Timestamp
@@ -289,16 +289,16 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     open var excelDateFormat: String? = null
 
     /**
-     * 1 - sunday, 2 - monday etc.
+     * 1 - monday, ..., 6 - saturday, 7 - sunday
      */
     @get:Column(name = "first_day_of_week")
-    open var firstDayOfWeekCompabilityValue: Int? = null
+    open var firstDayOfWeekValue: Int? = null
 
     open var firstDayOfWeek: DayOfWeek?
         @Transient
-        get() = PFDateCompabilityUtils.getCompabilityDayOfWeek(firstDayOfWeekCompabilityValue)
+        get() = PFDayUtils.getISODayOfWeek(firstDayOfWeekValue)
         set(value) {
-            firstDayOfWeekCompabilityValue = PFDateCompabilityUtils.getCompabilityDayOfWeekValue(value)
+            firstDayOfWeekValue = PFDayUtils.getISODayOfWeekValue(value)
         }
 
     @PropertyInfo(i18nKey = "timeNotation")

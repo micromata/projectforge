@@ -91,41 +91,33 @@ class PFDayUtils {
         }
 
         /**
-         * dayNumber 1 - Monday, 2 - Tuesday, ..., 7 - Sunday
+         * dayNumber 0 - Sunday,  1 - Monday, 2 - Tuesday, ..., 7 - Sunday
          */
         @JvmStatic
-        fun getDayOfWeek(dayNumber: Int): DayOfWeek? {
-            if (dayNumber in 1..7) {
-                return when (dayNumber) {
-                    1 -> DayOfWeek.MONDAY
-                    2 -> DayOfWeek.TUESDAY
-                    3 -> DayOfWeek.WEDNESDAY
-                    4 -> DayOfWeek.THURSDAY
-                    5 -> DayOfWeek.FRIDAY
-                    6 -> DayOfWeek.SATURDAY
-                    7 -> DayOfWeek.SUNDAY
-                    else -> null
+        fun getISODayOfWeek(dayNumber: Int?): DayOfWeek? {
+            return when (dayNumber) {
+                null -> {
+                    null
                 }
-            } else {
-                throw IllegalArgumentException("getDayOfWeek accepts only day of weeks from 1 (first day of week) to 7 (last day of week), but $dayNumber was given.")
+                in 1..7 -> {
+                    DayOfWeek.of(dayNumber)
+                }
+                0 -> {
+                    DayOfWeek.SUNDAY
+                }
+                else -> {
+                    throw IllegalArgumentException("getDayOfWeek accepts only day of weeks from 1 (first day of week) to 7 (last day of week), but $dayNumber was given.")
+                }
             }
         }
 
         /**
+         * ISO-8601 standard
          * @return 1 - Monday, 2 - Tuesday, ..., 7 - Sunday
          */
         @JvmStatic
-        fun getDayOfWeekValue(dayOfWeek: DayOfWeek?): Int? {
-            return when (dayOfWeek) {
-                DayOfWeek.MONDAY -> 1
-                DayOfWeek.TUESDAY -> 2
-                DayOfWeek.WEDNESDAY -> 3
-                DayOfWeek.THURSDAY -> 4
-                DayOfWeek.FRIDAY -> 5
-                DayOfWeek.SATURDAY -> 6
-                DayOfWeek.SUNDAY -> 7
-                else -> null
-            }
+        fun getISODayOfWeekValue(dayOfWeek: DayOfWeek?): Int? {
+            return dayOfWeek?.value
         }
 
         /**
