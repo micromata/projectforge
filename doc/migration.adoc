@@ -15,6 +15,10 @@ link:index{outfilesuffix}[Top]
 
 === Version 6.x to version 7
 
+. Configurationparameters changed
+.. `config.xml:holiday.month` is now 1-based (1 - January, ..., 12 - December), was 0-based.
+.. `projectforge.properties:projectforge.defaultFirstDayOfWeek=MONDAY` (full name of weekday: SUNDAY, ...)
+
 . Configuration parameters moved from `config.xml` to `projectforge.properties`
    .. `config.xml:currencySymbol` -> `projectforge.properties:projectforge.currencySymbol=€`
    .. `config.xml:defaultLocale` -> `projectforge.properties:projectforge.defaultLocale=en`
