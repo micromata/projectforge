@@ -33,7 +33,7 @@ open class UICol(
          */
         val smLength: Int? = null,
         /**
-         * Length for small screens (1-12)
+         * Length for middle sized screens (1-12)
          */
         val mdLength: Int? = null,
         /**

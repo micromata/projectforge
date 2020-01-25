@@ -139,7 +139,7 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
         if (endDateSeconds != null) dto.endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp
     }
 
-    override fun beforeDatabaseAction(request: HttpServletRequest, obj: CalEventDO, dto: CalEvent, operation: OperationType) {
+    override fun beforeDatabaseAction(request: HttpServletRequest, obj: CalEventDO, postData: PostData<CalEvent>, operation: OperationType) {
         if (obj.calendar?.id != null) {
             // Calendar from client has only id and title. Get the calendar object from the data base (e. g. owner
             // is needed by the access checker.
@@ -147,9 +147,9 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
         }
     }
 
-    override fun afterEdit(obj: CalEventDO, dto: CalEvent): ResponseAction {
+    override fun afterEdit(obj: CalEventDO, postData: PostData<CalEvent>): ResponseAction {
         return ResponseAction("/${Const.REACT_APP_PATH}calendar")
-                .addVariable("date", dto.startDate)
+                .addVariable("date", postData.data.startDate)
                 .addVariable("id", obj.id ?: -1)
     }
 

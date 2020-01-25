@@ -131,7 +131,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
         if (endDateSeconds != null) dto.endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp
     }
 
-    override fun beforeDatabaseAction(request: HttpServletRequest, obj: TeamEventDO, dto: TeamEvent, operation: OperationType) {
+    override fun beforeDatabaseAction(request: HttpServletRequest, obj: TeamEventDO, postData: PostData<TeamEvent>, operation: OperationType) {
         if (obj.calendarId != null) {
             // Calendar from client has only id and title. Get the calendar object from the data base (e. g. owner
             // is needed by the access checker.
@@ -139,9 +139,9 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
         }
     }
 
-    override fun afterEdit(obj: TeamEventDO, dto: TeamEvent): ResponseAction {
+    override fun afterEdit(obj: TeamEventDO, postData: PostData<TeamEvent>): ResponseAction {
         return ResponseAction("/${Const.REACT_APP_PATH}calendar")
-                .addVariable("date", dto.startDate)
+                .addVariable("date", postData.data.startDate)
                 .addVariable("id", obj.id ?: -1)
     }
 

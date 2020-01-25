@@ -169,7 +169,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         return sheet
     }
 
-    override fun afterEdit(obj: TimesheetDO, dto: Timesheet): ResponseAction {
+    override fun afterEdit(obj: TimesheetDO, postData: PostData<Timesheet>): ResponseAction {
         return ResponseAction("/${Const.REACT_APP_PATH}calendar")
                 .addVariable("date", obj.startTime)
                 .addVariable("id", obj.id ?: -1)

@@ -1,10 +1,11 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
+import moment from 'moment';
 import { Button } from '../../../../../design';
 import { DynamicLayoutContext } from '../../../context';
 
-function CustomizedBookLendOutComponent({ user }) {
+function CustomizedBookLendOutComponent({ user, jsTimestampFormatMinutes }) {
     const { data, ui, callAction } = React.useContext(DynamicLayoutContext);
 
     const lendOut = () => callAction({
@@ -27,7 +28,7 @@ function CustomizedBookLendOutComponent({ user }) {
                     ? (
                         <React.Fragment>
                             <span className="mr-4">
-                                {`${data.lendOutBy.fullname}, ${data.lendOutDate}`}
+                                {`${data.lendOutBy.displayName}, ${moment(data.lendOutDate).format(jsTimestampFormatMinutes)}`}
                             </span>
                             {user.username === data.lendOutBy.username
                                 ? (
@@ -55,8 +56,9 @@ CustomizedBookLendOutComponent.propTypes = {
 CustomizedBookLendOutComponent.defaultProps = {
 };
 
-const mapStateToProps = state => ({
-    user: state.authentication.user,
+const mapStateToProps = ({ authentication }) => ({
+    user: authentication.user,
+    jsTimestampFormatMinutes: authentication.user.jsTimestampFormatMinutes,
 });
 
 

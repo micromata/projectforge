@@ -30,6 +30,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterProcessor
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.ValidationError
 import org.springframework.http.HttpStatus
@@ -56,7 +57,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
         saveOrUpdate(request: HttpServletRequest,
                      baseDao: BaseDao<O>,
                      obj: O,
-                     dto: DTO,
+                     postData: PostData<DTO>,
                      pagesRest: AbstractPagesRest<O, DTO, B>,
                      validationErrorsList: List<ValidationError>?)
         : ResponseEntity<ResponseAction> {
@@ -66,9 +67,9 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
         return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
     }
     val isNew = obj.id == null || obj.created == null // obj.created is needed for KundeDO (id isn't null for inserting new customers).
-    pagesRest.beforeSaveOrUpdate(request, obj, dto)
+    pagesRest.beforeSaveOrUpdate(request, obj, postData)
     try {
-        pagesRest.beforeDatabaseAction(request, obj, dto, if (obj.id != null) OperationType.UPDATE else OperationType.INSERT)
+        pagesRest.beforeDatabaseAction(request, obj, postData, if (obj.id != null) OperationType.UPDATE else OperationType.INSERT)
         baseDao.saveOrUpdate(obj) ?: obj.id
     } catch (ex: UserException) {
         log.error("Error while trying to save/update object '${obj::class.java}' with id #${obj.id}: message=${ex.i18nKey}, params='${ex.msgParams?.joinToString() { it.toString() }}'")
@@ -77,11 +78,11 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
         val errors = listOf(error)
         return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)
     }
-    pagesRest.afterSaveOrUpdate(obj, dto)
+    pagesRest.afterSaveOrUpdate(obj, postData)
     if (isNew) {
-        return ResponseEntity(pagesRest.afterSave(obj, dto), HttpStatus.OK)
+        return ResponseEntity(pagesRest.afterSave(obj, postData), HttpStatus.OK)
     } else {
-        return ResponseEntity(pagesRest.afterUpdate(obj, dto), HttpStatus.OK)
+        return ResponseEntity(pagesRest.afterUpdate(obj, postData), HttpStatus.OK)
     }
 }
 
@@ -89,15 +90,15 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
         undelete(request: HttpServletRequest,
                  baseDao: BaseDao<O>,
                  obj: O,
-                 dto: DTO,
+                 postData: PostData<DTO>,
                  pagesRest: AbstractPagesRest<O, DTO, B>,
                  validationErrorsList: List<ValidationError>?)
         : ResponseEntity<ResponseAction> {
     if (validationErrorsList.isNullOrEmpty()) {
-        pagesRest.beforeDatabaseAction(request, obj, dto, OperationType.UNDELETE)
-        pagesRest.beforeUndelete(request, obj, dto)
+        pagesRest.beforeDatabaseAction(request, obj, postData, OperationType.UNDELETE)
+        pagesRest.beforeUndelete(request, obj, postData)
         baseDao.undelete(obj)
-        return ResponseEntity(pagesRest.afterUndelete(obj, dto), HttpStatus.OK)
+        return ResponseEntity(pagesRest.afterUndelete(obj, postData), HttpStatus.OK)
     }
     // Validation error occurred:
     return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
@@ -107,15 +108,15 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
         markAsDeleted(request: HttpServletRequest,
                       baseDao: BaseDao<O>,
                       obj: O,
-                      dto: DTO,
+                      postData: PostData<DTO>,
                       pagesRest: AbstractPagesRest<O, DTO, B>,
                       validationErrorsList: List<ValidationError>?)
         : ResponseEntity<ResponseAction> {
     if (validationErrorsList.isNullOrEmpty()) {
-        pagesRest.beforeDatabaseAction(request, obj, dto, OperationType.DELETE)
-        pagesRest.beforeMarkAsDeleted(request, obj, dto)
+        pagesRest.beforeDatabaseAction(request, obj, postData, OperationType.DELETE)
+        pagesRest.beforeMarkAsDeleted(request, obj, postData)
         baseDao.markAsDeleted(obj)
-        return ResponseEntity(pagesRest.afterMarkAsDeleted(obj, dto), HttpStatus.OK)
+        return ResponseEntity(pagesRest.afterMarkAsDeleted(obj, postData), HttpStatus.OK)
     }
     // Validation error occurred:
     return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
@@ -125,15 +126,15 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
         delete(request: HttpServletRequest,
                baseDao: BaseDao<O>,
                obj: O,
-               dto: DTO,
+               postData: PostData<DTO>,
                pagesRest: AbstractPagesRest<O, DTO, B>,
                validationErrorsList: List<ValidationError>?)
         : ResponseEntity<ResponseAction> {
     if (validationErrorsList.isNullOrEmpty()) {
-        pagesRest.beforeDatabaseAction(request, obj, dto, OperationType.DELETE)
-        pagesRest.beforeDelete(request, obj, dto)
+        pagesRest.beforeDatabaseAction(request, obj, postData, OperationType.DELETE)
+        pagesRest.beforeDelete(request, obj, postData)
         baseDao.delete(obj)
-        return ResponseEntity(pagesRest.afterDelete(obj, dto), HttpStatus.OK)
+        return ResponseEntity(pagesRest.afterDelete(obj, postData), HttpStatus.OK)
     }
     // Validation error occurred:
     return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
