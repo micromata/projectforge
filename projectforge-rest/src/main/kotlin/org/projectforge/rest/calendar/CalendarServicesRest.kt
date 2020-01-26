@@ -32,6 +32,7 @@ import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestHelper
@@ -102,6 +103,10 @@ class CalendarServicesRest {
 
     /**
      * The users selected a slot in the calendar.
+     *
+     * Supports different date formats: long number of epoch seconds
+     * or iso date time including any time zone offset.
+     *
      * @param action slotSelected, resize, drop
      * @param startDateParam startDate timestamp of event (after resize or drag&drop)
      * @param endDateParam endDate timestamp of event (after resize or drag&drop)
@@ -111,6 +116,8 @@ class CalendarServicesRest {
      * @param uidParam Uid of event, if given.
      * @param origStartDateParam For resizing or moving events of series, the origin startDate date is required.
      * @param origEndDateParam For resizing or moving events of series, the origin endDate date is required.
+     *
+     * @see PFDateTimeUtils.parse for supported date formats.
      */
     @GetMapping("action")
     fun action(@RequestParam("action") action: String?,

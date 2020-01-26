@@ -225,14 +225,14 @@ class CalendarPanel extends React.Component {
         fetchJsonGet('calendar/action',
             {
                 action,
-                startDate: startDate ? startDate.toJSON() : '',
-                endDate: endDate ? endDate.toJSON() : '',
+                startDate: startDate ? startDate.toISOString() : '',
+                endDate: endDate ? endDate.toISOString() : '',
                 allDay,
                 category: event ? event.category || '' : '',
                 dbId: event ? event.dbId || '' : '',
                 uid: event ? event.uid || '' : '',
-                origStartDate: event ? event.start.toJSON() : '',
-                origEndDate: event ? event.end.toJSON() : '',
+                origStartDate: event ? event.start.toISOString() : '',
+                origEndDate: event ? event.end.toISOString() : '',
             },
             (json) => {
                 const { url } = json;
