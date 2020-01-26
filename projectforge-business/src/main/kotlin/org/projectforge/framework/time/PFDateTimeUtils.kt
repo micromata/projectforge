@@ -151,7 +151,7 @@ class PFDateTimeUtils {
         @JvmStatic
         @JvmOverloads
         fun parseAndCreateDateTime(str: String?,
-                                   parseWithZoneId: ZoneId = ZONE_UTC,
+                                   parseWithZoneId: ZoneId? = null,
                                    zoneId: ZoneId = PFDateTime.getUsersZoneId(),
                                    locale: Locale = PFDateTime.getUsersLocale(),
                                    numberFormat: PFDateTime.NumberFormat? = PFDateTime.NumberFormat.EPOCH_SECONDS)
@@ -182,7 +182,7 @@ class PFDateTimeUtils {
          */
         @JvmOverloads
         fun parse(str: String?,
-                  defaultZoneId: ZoneId = ZONE_UTC,
+                  defaultZoneId: ZoneId? = null,
                   numberFormat: PFDateTime.NumberFormat? = PFDateTime.NumberFormat.EPOCH_SECONDS,
                   locale: Locale = PFDateTime.getUsersLocale())
                 : PFDateTime? {
@@ -194,7 +194,12 @@ class PFDateTimeUtils {
                 } else {
                     Instant.ofEpochMilli(str.toLong())
                 }
-                return PFDateTime(ZonedDateTime.ofInstant(instant, ZONE_UTC), locale, null).withZoneSameInstant(defaultZoneId)
+                val dateTime = PFDateTime(ZonedDateTime.ofInstant(instant, ZONE_UTC), locale, null)
+                return if (defaultZoneId != null) {
+                    dateTime.withZoneSameInstant(defaultZoneId)
+                } else {
+                    dateTime
+                }
             }
             var trimmedString = str.trim()
             if (trimmedString.startsWith('"') && trimmedString.endsWith('"')) {
@@ -210,7 +215,11 @@ class PFDateTimeUtils {
                 return PFDateTime(dateTime, locale, null)
             }
             // yyyy-MM-dd'T'HH:mm:ss.SSS'
-            val formatter = DateTimeFormatter.ISO_DATE_TIME.withZone(defaultZoneId)
+            val formatter = if (defaultZoneId != null) {
+                DateTimeFormatter.ISO_DATE_TIME.withZone(defaultZoneId)
+            } else {
+                DateTimeFormatter.ISO_DATE_TIME
+            }
             val dateTime = ZonedDateTime.parse(trimmedString, formatter) // Parses with given time zone.
             return PFDateTime(dateTime, locale = locale, precision = null)
         }
