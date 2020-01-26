@@ -79,11 +79,11 @@ open class UserStatusRest {
                         var firstDayOfWeek: DayOfWeek? = null,
                         var timeNotation: TimeNotation? = null) {
         /**
-         * 1 - Sunday, 2 - Monday, ...
+         * 0 - Sunday, 1 - Monday, ...
          */
         @get:JsonProperty
-        val firstDayOfWeekSunday1: Int?
-            get() = PFDateCompatibilityUtils.getCompatibilityDayOfWeekSunday1Value(firstDayOfWeek)
+        val firstDayOfWeekSunday0: Int?
+            get() = PFDateCompatibilityUtils.getCompatibilityDayOfWeekSunday0Value(firstDayOfWeek)
         /**
          * 1 - Monday, ..., 7 - Sunday
          */
