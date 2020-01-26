@@ -40,7 +40,7 @@ import java.util.*
  * Immutable holder of [ZonedDateTime] for transforming to [java.util.Date] (once) if used several times.
  * Zone date times will be generated automatically with the context user's time zone.
  */
-class PFDateTime internal constructor(val dateTime: ZonedDateTime,
+open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
                                       val locale: Locale,
                                       val precision: DatePrecision?)
     : IPFDate<PFDateTime> {
@@ -210,6 +210,10 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
 
     fun withNano(nanoOfSecond: Int): PFDateTime {
         return PFDateTime(dateTime.withNano(nanoOfSecond), locale, precision)
+    }
+
+    open fun withZoneSameInstant(zone: ZoneId): PFDateTime {
+        return PFDateTime(dateTime.withZoneSameInstant(zone), locale, precision)
     }
 
     val epochSeconds: Long
@@ -406,6 +410,9 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
             return _localDate!!
         }
 
+    val localDateTime: LocalDateTime?
+        get() = dateTime.toLocalDateTime()
+
     companion object {
         /**
          * Sets the user's time zone.
@@ -443,7 +450,8 @@ class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         }
 
         /**
-         * Sets the user's time zone.
+         * @param zoneId The zone id of the given local date time. If not given, the context user's default time zone is used.
+         * @param locale The created and returned [PFDateTime] will initialized with this locale. If not given, the context user's default local is used.
          */
         @JvmStatic
         @JvmOverloads

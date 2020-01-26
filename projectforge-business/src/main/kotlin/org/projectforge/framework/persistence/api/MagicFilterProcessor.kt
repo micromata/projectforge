@@ -66,8 +66,8 @@ object MagicFilterProcessor {
         val field = magicFilterEntry.field!!
         if (isHistoryEntry(field)) {
             if (isModifiedInterval(field)) {
-                queryFilter.modifiedFrom = PFDateTimeUtils.parseUTCDate(magicFilterEntry.value.fromValue)
-                queryFilter.modifiedTo = PFDateTimeUtils.parseUTCDate(magicFilterEntry.value.toValue)
+                queryFilter.modifiedFrom = PFDateTimeUtils.parseAndCreateDateTime(magicFilterEntry.value.fromValue)
+                queryFilter.modifiedTo = PFDateTimeUtils.parseAndCreateDateTime(magicFilterEntry.value.toValue)
             } else if (isModifiedByUserId(field)) {
                 queryFilter.modifiedByUserId = magicFilterEntry.value.value?.toIntOrNull()
             }
@@ -81,9 +81,9 @@ object MagicFilterProcessor {
             return
         }
         if (fieldType == Date::class.java) {
-            val valueDate = PFDateTimeUtils.parseUTCDate(magicFilterEntry.value.value)?.utilDate
-            val fromDate = PFDateTimeUtils.parseUTCDate(magicFilterEntry.value.fromValue)?.utilDate
-            val toDate = PFDateTimeUtils.parseUTCDate(magicFilterEntry.value.toValue)?.utilDate
+            val valueDate = PFDateTimeUtils.parseAndCreateDateTime(magicFilterEntry.value.value)?.utilDate
+            val fromDate = PFDateTimeUtils.parseAndCreateDateTime(magicFilterEntry.value.fromValue)?.utilDate
+            val toDate = PFDateTimeUtils.parseAndCreateDateTime(magicFilterEntry.value.toValue)?.utilDate
             if (fromDate != null || toDate != null) {
                 queryFilter.add(QueryFilter.interval(field, fromDate, toDate))
             } else if (valueDate != null) {

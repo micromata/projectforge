@@ -31,10 +31,10 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
-import org.apache.commons.lang3.StringUtils
+import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.time.PFDayUtils
 import java.io.IOException
 import java.text.ParseException
-import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
@@ -64,19 +64,10 @@ class SqlDateSerializer : StdSerializer<java.sql.Date>(java.sql.Date::class.java
 class SqlDateDeserializer : StdDeserializer<java.sql.Date>(java.sql.Date::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): java.sql.Date? {
-        val dateString = p.getText()
-        if (StringUtils.isBlank(dateString)) {
-            return null
-        }
-        if (StringUtils.isNumeric(dateString)) {
-            val date = java.sql.Date(dateString.toLong())
-            return date;
-        }
         try {
-            val date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-            return java.sql.Date.valueOf(date)
+            return PFDay.from(PFDayUtils.parseDate(p.text))?.sqlDate
         } catch (e: ParseException) {
-            throw JsonParseException(p, dateString, e);
+            throw JsonParseException(p, p.text, e);
         }
     }
 }
