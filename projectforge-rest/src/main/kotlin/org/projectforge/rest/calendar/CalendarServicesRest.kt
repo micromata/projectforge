@@ -216,7 +216,7 @@ class CalendarServicesRest {
         events.forEach {
             it.key = "e-${counter++}"
         }
-        return CalendarData(range.start.dateTime.toLocalDate(), events, specialDays)
+        return CalendarData(range.start.localDate, events, specialDays)
     }
 
     /**
