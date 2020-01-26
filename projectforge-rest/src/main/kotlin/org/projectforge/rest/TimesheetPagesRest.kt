@@ -38,10 +38,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.time.DateFormats
-import org.projectforge.framework.time.DatePrecision
-import org.projectforge.framework.time.DateTimeFormatter
-import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.*
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.calendar.CalEventPagesRest
@@ -340,16 +337,21 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 .addVariable("variables", editLayoutData.variables)
     }
 
+    /**
+     * Supports request parameters startDate and endDate for creating new time sheet entries.
+     *
+     * Supports different date formats: long number of epoch seconds
+     * or iso date time including any time zone offset.
+     * @see PFDateTimeUtils.parse for supported date formats.
+     */
     override fun onGetItemAndLayout(request: HttpServletRequest, dto: Timesheet, editLayoutData: EditLayoutData) {
-        val startDateAsSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
-        if (startDateAsSeconds != null)  {
-            val date = PFDateTime.from(startDateAsSeconds)!!.withPrecision(DatePrecision.MINUTE_15)
-            dto.startTime = date.sqlTimestamp
+        val startTime = PFDateTimeUtils.parseAndCreateDateTime(request.getParameter("startDate"), numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS)
+        if (startTime != null)  {
+            dto.startTime = startTime.withPrecision(DatePrecision.MINUTE_15).sqlTimestamp
         }
-        val endDateSeconds = NumberHelper.parseLong(request.getParameter("endDate"))
-        if (endDateSeconds != null) {
-            val date = PFDateTime.from(endDateSeconds)!!.withPrecision(DatePrecision.MINUTE_15)
-            dto.stopTime = date.sqlTimestamp
+        val stopTime = PFDateTimeUtils.parseAndCreateDateTime(request.getParameter("endDate"), numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS)
+        if (stopTime != null) {
+            dto.stopTime = stopTime.withPrecision(DatePrecision.MINUTE_15).sqlTimestamp
         }
         super.onGetItemAndLayout(request, dto, editLayoutData)
     }

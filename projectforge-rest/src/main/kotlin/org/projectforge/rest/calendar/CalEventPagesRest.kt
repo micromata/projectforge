@@ -34,6 +34,7 @@ import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalS
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.TimesheetPagesRest
@@ -41,6 +42,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.CalEvent
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.TeamEvent
 import org.projectforge.rest.dto.Timesheet
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -110,22 +112,26 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
 
     /**
      * Params startDate and endDate for creating new events with preset dates.
-     * For events of a series, startDate as param selects the event of the series.
+     * For events of a series, origStartDate and origEndDate as params selects the event of the series.
+     *
+     * Supports different date formats: long number of epoch seconds
+     * or iso date time including any time zone offset.
+     * @see PFDateTimeUtils.parse for supported date formats.
      */
     override fun onBeforeGetItemAndLayout(request: HttpServletRequest, dto: CalEvent, userAccess: UILayout.UserAccess) {
-        val startDateSeconds = NumberHelper.parseLong(request.getParameter("startDate"))
-        val endDateSeconds = NumberHelper.parseLong(request.getParameter("endDate"))
-        var origStartDateSeconds = NumberHelper.parseLong(request.getParameter("origStartDate"))
-        var origEndDateSeconds = NumberHelper.parseLong(request.getParameter("origEndDate"))
-        if (origStartDateSeconds == null)
-            origStartDateSeconds = startDateSeconds
-        if (origEndDateSeconds == null)
-            origEndDateSeconds = endDateSeconds
+        val startDate = PFDateTimeUtils.parseAndCreateDateTime(request.getParameter("startDate"), numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS)
+        val endDate = PFDateTimeUtils.parseAndCreateDateTime(request.getParameter("endDate"), numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS)
+        var origStartDate = PFDateTimeUtils.parseAndCreateDateTime(request.getParameter("origStartDate"), numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS)
+        var origEndDate = PFDateTimeUtils.parseAndCreateDateTime(request.getParameter("origEndDate"), numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS)
+        if (origStartDate == null)
+            origStartDate = startDate
+        if (origEndDate == null)
+            origEndDate = endDate
         if (dto.id != null) {
-            if (origStartDateSeconds != null && origEndDateSeconds != null && dto.hasRecurrence) {
+            if (origStartDate != null && origEndDate != null && dto.hasRecurrence) {
                 // Seems to be a event of a series:
-                dto.selectedSeriesEvent = CalEvent(startDate = PFDateTime.from(origStartDateSeconds)!!.sqlTimestamp,
-                        endDate = PFDateTime.from(origEndDateSeconds)!!.sqlTimestamp,
+                dto.selectedSeriesEvent = TeamEvent(startDate = origStartDate.sqlTimestamp,
+                        endDate = origEndDate.sqlTimestamp,
                         allDay = dto.allDay,
                         sequence = dto.sequence)
             }
@@ -135,8 +141,8 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
                 dto.calendar = teamCalDao.getById(calendarId)
             }
         }
-        if (startDateSeconds != null) dto.startDate = PFDateTime.from(startDateSeconds)!!.sqlTimestamp
-        if (endDateSeconds != null) dto.endDate = PFDateTime.from(endDateSeconds)!!.sqlTimestamp
+        if (startDate != null) dto.startDate = startDate.sqlTimestamp
+        if (endDate != null) dto.endDate = endDate.sqlTimestamp
     }
 
     override fun beforeDatabaseAction(request: HttpServletRequest, obj: CalEventDO, postData: PostData<CalEvent>, operation: OperationType) {
@@ -258,7 +264,7 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
         if (dto.hasRecurrence && !userAccess.onlySelectAccess()) {
             val masterEvent = baseDao.getById(dto.id)
             val radioButtonGroup = UIGroup()
-            if (masterEvent?.startDate?.before(dto.selectedSeriesEvent?.startDate) ?: true) {
+            if (masterEvent?.startDate?.before(dto.selectedSeriesEvent?.startDate) != false) {
                 radioButtonGroup.add(UIRadioButton("seriesModificationMode", SeriesModificationMode.FUTURE, label = "plugins.teamcal.event.recurrence.change.future"))
             } else {
                 radioButtonGroup.add(UIRadioButton("seriesModificationMode", SeriesModificationMode.ALL, label = "plugins.teamcal.event.recurrence.change.all"))
