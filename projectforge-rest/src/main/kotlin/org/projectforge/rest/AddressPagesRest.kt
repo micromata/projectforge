@@ -62,6 +62,7 @@ class AddressPagesRest()
      */
     private class ListAddress(val address: AddressDO,
                               val id: Int, // Needed for history Service
+                              val deleted: Boolean,
                               var imageUrl: String? = null,
                               var previewImageUrl: String? = null)
 
@@ -355,6 +356,7 @@ class AddressPagesRest()
         val newList = resultSet.resultSet.map {
             ListAddress(it,
                     id = it.id,
+                    deleted = it.isDeleted,
                     imageUrl = if (it.imageData != null) "address/image/${it.id}" else null,
                     previewImageUrl = if (it.imageDataPreview != null) "address/imagePreview/${it.id}" else null)
         }

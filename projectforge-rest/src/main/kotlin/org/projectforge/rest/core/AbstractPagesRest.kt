@@ -82,6 +82,7 @@ abstract class AbstractPagesRest<
         const val GEAR_MENU = "GEAR"
         const val CLASSIC_VERSION_MENU = "CLASSIC"
         const val CREATE_MENU = "CREATE"
+        const val USER_PREF_PARAM_HIGHLIGHT_ROW = "highlightedRow"
     }
 
     class DisplayObject(val id: Any, override val displayName: String?) : DisplayNameCapable
@@ -188,7 +189,7 @@ abstract class AbstractPagesRest<
      * Relative rest path (without leading /rs
      */
     fun getRestPath(subPath: String? = null): String {
-        return RestResolver.getRestUrl(this::class.java, subPath,true)
+        return RestResolver.getRestUrl(this::class.java, subPath, true)
     }
 
     /**
@@ -281,6 +282,7 @@ abstract class AbstractPagesRest<
     protected fun getInitialList(filter: MagicFilter): InitialListData {
         val favorites = getFilterFavorites()
         val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter))
+        resultSet.highlightRowId = userPrefService.getEntry(getCategory(), USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
         val layout = createListLayout()
                 .addTranslations("table.showing",
                         "searchFilter",
@@ -328,6 +330,7 @@ abstract class AbstractPagesRest<
         val list = getList(this, baseDao, filter)
         saveCurrentFilter(filter)
         val resultSet = processResultSetBeforeExport(list)
+        resultSet.highlightRowId = userPrefService.getEntry(getCategory(), USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
         return resultSet
     }
 
@@ -838,6 +841,9 @@ abstract class AbstractPagesRest<
      * @return ResponseAction with the url of the standard list page.
      */
     internal open fun afterEdit(obj: O, postData: PostData<DTO>): ResponseAction {
+        obj.id?.let {
+            userPrefService.putEntry(getCategory(), USER_PREF_PARAM_HIGHLIGHT_ROW, it, false)
+        }
         return ResponseAction("/${Const.REACT_APP_PATH}${getCategory()}").addVariable("id", obj.id ?: -1)
     }
 
