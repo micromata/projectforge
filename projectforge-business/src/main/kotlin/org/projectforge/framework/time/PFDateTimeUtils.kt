@@ -218,7 +218,7 @@ class PFDateTimeUtils {
             val formatter = if (defaultZoneId != null) {
                 DateTimeFormatter.ISO_DATE_TIME.withZone(defaultZoneId)
             } else {
-                DateTimeFormatter.ISO_DATE_TIME
+                DateTimeFormatter.ISO_DATE_TIME.withZone(ZONE_UTC)
             }
             val dateTime = ZonedDateTime.parse(trimmedString, formatter) // Parses with given time zone.
             return PFDateTime(dateTime, locale = locale, precision = null)
