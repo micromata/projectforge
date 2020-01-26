@@ -63,7 +63,7 @@ class CalendarPanel extends React.Component {
         moment.updateLocale(locale || 'en',
             {
                 week: {
-                    dow: firstDayOfWeek, // First day of week, 0 - Sunday, 1 - Monday, ....
+                    dow: firstDayOfWeek, // First day of week, 1 - Sunday, 2 - Monday, ....
                     doy: 4, // Europe: First week of year must contain 4 January (7 + 1 - 4)
                     // doy: 6  // Canada: First week of year must contain 1 January (7 + 0 - 1)
                     // doy: 12 // Arab: First week of year must contain 1 January (7 + 6 - 1)
@@ -231,8 +231,11 @@ class CalendarPanel extends React.Component {
                 category: event ? event.category || '' : '',
                 dbId: event ? event.dbId || '' : '',
                 uid: event ? event.uid || '' : '',
-                origStartDate: event ? event.start.toISOString() : '',
-                origEndDate: event ? event.end.toISOString() : '',
+                origStartDate: event && event.start ? event.start.toISOString() : '',
+                origEndDate: (event && event.end) ? event.end.toISOString() : '',
+                // Browsers time zone may differ from user's time zone:
+                // timeZone: Intl.DateTimeFormat()
+                //    .resolvedOptions().timeZone,
             },
             (json) => {
                 const { url } = json;

@@ -57,7 +57,7 @@ class CalendarServicesRest {
 
     internal class CalendarData(val date: LocalDate,
                                 @Suppress("unused") val events: List<BigCalendarEvent>,
-                                @Suppress("unused") val specialDays: Map<String, HolidayAndWeekendProvider.SpecialDayInfo>)
+                                @Suppress("unused") val specialDays: Map<LocalDate, HolidayAndWeekendProvider.SpecialDayInfo>)
 
     private class DateTimeRange(var start: PFDateTime,
                                 var end: PFDateTime? = null)
@@ -133,8 +133,8 @@ class CalendarServicesRest {
         if (action.isNullOrBlank()) {
             return ResponseEntity("Action not given, 'slotSelected', 'resize' or 'dragAndDrop' expected.", HttpStatus.BAD_REQUEST)
         }
-        val startDate = if (startDateParam != null) RestHelper.parseJSDateTime(startDateParam)?.epochSeconds else null
-        val endDate = if (endDateParam != null) RestHelper.parseJSDateTime(endDateParam)?.epochSeconds else null
+        val startDate = if (startDateParam != null) RestHelper.parseJSDateTime(startDateParam)?.javaScriptString else null
+        val endDate = if (endDateParam != null) RestHelper.parseJSDateTime(endDateParam)?.javaScriptString else null
         var url: String
         var category: String? = categoryParam
         if (action == "slotSelected") {
@@ -149,8 +149,8 @@ class CalendarServicesRest {
                 url = "$url&calendar=$defaultCalendarId"
             }
         } else if (action == "resize" || action == "dragAndDrop") {
-            val origStartDate = if (startDate != null) RestHelper.parseJSDateTime(origStartDateParam)?.epochSeconds else null
-            val origEndDate = if (endDate != null) RestHelper.parseJSDateTime(origEndDateParam)?.epochSeconds else null
+            val origStartDate = if (startDate != null) RestHelper.parseJSDateTime(origStartDateParam)?.javaScriptString else null
+            val origEndDate = if (endDate != null) RestHelper.parseJSDateTime(origEndDateParam)?.javaScriptString else null
             val dbId = NumberHelper.parseInteger(dbIdParam)
             val dbIdString = if (dbId != null && dbId >= 0) "$dbId" else ""
             val uidString = if (uidParam.isNullOrBlank()) "" else URLEncoder.encode(uidParam, "UTF-8")
@@ -212,6 +212,23 @@ class CalendarServicesRest {
         vacationProvider.addEvents(range.start, range.end!!, events, filter.vacationGroupIds, filter.vacationUserIds)
 
         val specialDays = HolidayAndWeekendProvider.getSpecialDayInfos(range.start, range.end!!)
+        if (view != CalendarView.MONTH) {
+            specialDays.forEach { entry ->
+                val date = entry.key
+                val specialDay = entry.value
+                if (specialDay.holidayTitle.isNotBlank()) {
+                    val dateTime = PFDateTime.from(date)!!
+                    events.add(BigCalendarEvent(
+                            title = specialDay.holidayTitle,
+                            start = dateTime.beginOfDay.utilDate,
+                            end = dateTime.endOfDay.utilDate,
+                            allDay = true,
+                            category = "holiday",
+                            cssClass = "holiday-event",
+                            readOnly = true))
+                }
+            }
+        }
         var counter = 0
         events.forEach {
             it.key = "e-${counter++}"
