@@ -102,6 +102,9 @@ object MagicFilterProcessor {
             } else {
                 queryFilter.add(QueryFilter.isNull(field))
             }
+        } else if (fieldType == Boolean::class.java) {
+            val valueBoolean = magicFilterEntry.value.value == "true"
+            queryFilter.add(QueryFilter.eq(field, valueBoolean))
         } else if (TaskDO::class.java.isAssignableFrom(fieldType)) {
             val valueInt = magicFilterEntry.value.value?.toIntOrNull()
             queryFilter.add(QueryFilter.taskSearch(field, valueInt, true))

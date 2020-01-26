@@ -1,6 +1,7 @@
 import React from 'react';
 import MagicInputNotImplemented from './MagicInputNotImplemented';
 import MagicObjectInput from './MagicObjectInput';
+import MagicCheckboxInput from './MagicCheckboxInput';
 import MagicSelectInput from './MagicSelectInput';
 import MagicStringInput from './MagicStringInput';
 import MagicTimeStampInput from './MagicTimeStampInput';
@@ -23,6 +24,9 @@ const useMagicInput = (type) => {
                 break;
             case 'OBJECT':
                 tag = MagicObjectInput;
+                break;
+            case 'BOOLEAN':
+                tag = MagicCheckboxInput;
                 break;
             default:
                 tag = MagicInputNotImplemented;
