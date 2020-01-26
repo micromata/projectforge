@@ -22,6 +22,7 @@ function DynamicTableRow(
             className={classNames(
                 style.clickable,
                 { [style.highlighted]: highlightRow === row.id },
+                { [style.deleted]: row.deleted === true },
             )}
         >
             {columns.map((
