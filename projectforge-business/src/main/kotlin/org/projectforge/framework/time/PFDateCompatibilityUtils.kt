@@ -55,7 +55,7 @@ class PFDateCompatibilityUtils {
         }
 
         /**
-         * @return 0, Sunday, 1 - Monday, ...
+         * @return 0 - Sunday, 1 - Monday, ...
          */
         @JvmStatic
         fun getCompatibilityDayOfWeekSunday0Value(dayOfWeek: DayOfWeek?): Int? {
