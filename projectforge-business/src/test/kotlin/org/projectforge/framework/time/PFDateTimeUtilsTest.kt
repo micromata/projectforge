@@ -54,7 +54,7 @@ class PFDateTimeUtilsTest {
     }
 
     private fun parseDate(text: String?, numberFormat: PFDateTime.NumberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS): String? {
-        return PFDateTimeUtils.parseUTCDate(text, PFDateTimeUtils.ZONE_UTC, numberFormat = numberFormat)!!.isoStringMilli
+        return PFDateTimeUtils.parseAndCreateDateTime(text, PFDateTimeUtils.ZONE_UTC, numberFormat = numberFormat)!!.isoStringMilli
     }
 
     companion object {

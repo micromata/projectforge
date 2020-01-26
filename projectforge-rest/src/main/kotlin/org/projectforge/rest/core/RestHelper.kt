@@ -27,7 +27,6 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.rest.converter.DateTimeFormat
 import java.net.URI
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import javax.servlet.http.HttpServletRequest
@@ -46,26 +45,11 @@ object RestHelper {
         return if (portNumber != 80 && portNumber != 443) "$serverName:$portNumber" else serverName
     }
 
+    /**
+     * Simply call [PFDateTimeUtils.parseAndCreateDateTime]
+     */
     fun parseJSDateTime(jsString: String?): PFDateTime? {
-        if (jsString.isNullOrBlank())
-            return null
-        try {
-            val length = jsString.length
-            val formatter =
-                    when {
-                        length > 19 -> jsonDateTimeFormatter
-                        length > 16 -> jsonDateTimeSecondsFormatter
-                        length > 10 -> jsonDateTimeMinutesFormatter
-                        else -> jsonDateFormatter
-                    }
-            if (formatter != jsonDateFormatter)
-                return PFDateTimeUtils.parseUTCDate(jsString, formatter)
-            val local = LocalDate.parse(jsString, jsonDateFormatter) // Parses UTC as local date.
-            return PFDateTime.from(local)
-        } catch (ex: DateTimeParseException) {
-            log.error("Error while parsing date '$jsString': ${ex.message}.")
-            return null
-        }
+        return PFDateTimeUtils.parseAndCreateDateTime(jsString)
     }
 
     fun parseLong(request: HttpServletRequest?, parameter: String): Long? {

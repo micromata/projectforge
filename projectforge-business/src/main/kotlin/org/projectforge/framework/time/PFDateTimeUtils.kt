@@ -29,12 +29,8 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.withDate
 import java.sql.Timestamp
-import java.time.DateTimeException
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
+import java.time.*
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
@@ -139,26 +135,28 @@ class PFDateTimeUtils {
         }
 
         /**
-         * Parses the given date as UTC and converts it to the user's zoned date time.
-         * @throws DateTimeParseException if the text cannot be parsed
+         * Calls [parse] first.
+         * @param str The string to parse.
+         * @param zoneId The user's zone id for the created [PFDateTime] (not used for parsing!). If not given, [PFDateTime.getUsersZoneId] is used.
+         * @param locale The user's locale for the created [PFDateTime] (not used for parsing!). If not given, [PFDateTime.getUsersLocale] is used.
+         * @param numberFormat If str is a number (long/int value), the value is interpreted as epoch seconds or millis. Epoch seconds is used as default.
+         * @return The parsed [PFDateTime] with the given zone id and locale, or null, if given string was null or blank.
+         * @throws DateTimeException if the text cannot be parsed
+         * @see parse
          */
         @JvmStatic
         @JvmOverloads
-        fun parseUTCDate(str: String?,
-                         dateTimeFormatter: DateTimeFormatter,
-                         zoneId: ZoneId = PFDateTime.getUsersZoneId(),
-                         locale: Locale = PFDateTime.getUsersLocale())
+        fun parseAndCreateDateTime(str: String?,
+                                   zoneId: ZoneId = PFDateTime.getUsersZoneId(),
+                                   locale: Locale = PFDateTime.getUsersLocale(),
+                                   numberFormat: PFDateTime.NumberFormat? = PFDateTime.NumberFormat.EPOCH_SECONDS)
                 : PFDateTime? {
-            if (str.isNullOrBlank())
-                return null
-            val local = LocalDateTime.parse(str, dateTimeFormatter) // Parses UTC as local date.
-            val utcZoned = ZonedDateTime.of(local, ZONE_UTC)
-            val userZoned = utcZoned.withZoneSameInstant(zoneId)
-            return PFDateTime(userZoned, locale, null)
+            val utcDateTime = parse(str, numberFormat, locale) ?: return null
+            return utcDateTime.withZoneSameInstant(zoneId)
         }
 
         /**
-         * Parses the given date as UTC and converts it to the user's zoned date time.
+         * Parses the given date and returns the LocalDateTime in UTC.
          * Tries the following formatters:
          * ### Supported formats
          * + number (epoch in millis or seconds, @see [numberFormat]),
@@ -166,40 +164,43 @@ class PFDateTimeUtils {
          * + "yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.SSS" (UTC),
          * + "yyyy-MM-dd'T'HH:mm'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'" "yyyy-MM-dd'T'HH:mm:ss.SSS.'Z'" (UTC)
          * + "yyyy-MM-dd'T'HH:mm+01:30", "yyyy-MM-dd'T'HH:mm:ss-05:30", "yyyy-MM-dd'T'HH:mm:ss.SSS+01:00" (with given offset),
-         * @param str The string to parse.
-         * @param zoneId The user's zone id for the returned [PFDateTime] (not used for parsing!). If not given, [PFDateTime.getUsersZoneId] is used.
-         * @param locale The user's locale for the returned [PFDateTime] (not used for parsing!). If not given, [PFDateTime.getUsersLocale] is used.
+         * @param str The date string to parse. If no time zone or offset is given in the dat string, UTC is assumed.
+         *
+         * ### Examples
+         * + "2020-01-25 18:00:00+01:00" (UTC+1) -> "2020-01-25 19:00:00" (UTC)
+         * + "2020-01-25 18:00:00" (UTC) -> "2020-01-25 18:00:00" (UTC)
+         *
          * @param numberFormat If str is a number (long/int value), the value is interpreted as epoch seconds or millis. Epoch seconds is used as default.
-         * @return The parsed [PFDateTime] with the given zone id and locale, or null, if given string was null or blank.
+         * @return The parsed [LocalDateTime] representation of the given string in UTC or null, if given string was null or blank.
          * @throws DateTimeException if the text cannot be parsed
          */
-        @JvmStatic
         @JvmOverloads
-        fun parseUTCDate(str: String?,
-                         zoneId: ZoneId = PFDateTime.getUsersZoneId(),
-                         locale: Locale = PFDateTime.getUsersLocale(),
-                         numberFormat: PFDateTime.NumberFormat? = PFDateTime.NumberFormat.EPOCH_SECONDS)
-                : PFDateTime? {
+        fun parse(str: String?,
+                  numberFormat: PFDateTime.NumberFormat? = PFDateTime.NumberFormat.EPOCH_SECONDS,
+                  locale: Locale = PFDateTime.getUsersLocale())
+                : PFUTCDateTime? {
             if (str.isNullOrBlank())
                 return null
             if (StringUtils.isNumeric(str)) {
-                return from(str.toLong(), false, zoneId, locale, numberFormat)
+                val instant = if (numberFormat == PFDateTime.NumberFormat.EPOCH_SECONDS) {
+                    Instant.ofEpochSecond(str.toLong(), 0)
+                } else {
+                    Instant.ofEpochMilli(str.toLong())
+                }
+                return PFUTCDateTime.from(LocalDateTime.ofInstant(instant, ZoneOffset.UTC), locale)
             }
             var trimmedString = str.trim()
             if (trimmedString.matches("[\\d]{4}-[\\d]{2}-[\\d]{2} .*".toRegex())) {
                 trimmedString = trimmedString.replaceFirst(' ', 'T')
             }
-            val utcZoned = if (trimmedString.contains('Z') || trimmedString.matches(".*[+-][\\d]{2}:[\\d]{2}".toRegex())) {
+            val localTime = if (trimmedString.contains('Z') || trimmedString.matches(".*[+-][\\d]{2}:[\\d]{2}".toRegex())) {
                 // yyyy-MM-dd'T'HH:mm:ss.SSS+01:00'
-                val dateTime = ZonedDateTime.parse(trimmedString, DateTimeFormatter.ISO_DATE_TIME) // Parses UTC as local date.
-                dateTime.withZoneSameInstant(ZONE_UTC)
+                ZonedDateTime.parse(trimmedString, DateTimeFormatter.ISO_DATE_TIME).withZoneSameInstant(ZONE_UTC).toLocalDateTime() // Parses UTC as local date.
             } else {
                 // yyyy-MM-dd'T'HH:mm:ss.SSS'
-                val localTime = LocalDateTime.parse(trimmedString, DateTimeFormatter.ISO_LOCAL_DATE_TIME) // Parses UTC as local date.
-                ZonedDateTime.of(localTime, ZONE_UTC)
+                LocalDateTime.parse(trimmedString, DateTimeFormatter.ISO_DATE_TIME) // Parses UTC as local date.
             }
-            val userZoned = utcZoned.withZoneSameInstant(zoneId)
-            return PFDateTime(userZoned, locale, null)
+            return PFUTCDateTime.from(localTime, locale)
         }
 
         @JvmStatic

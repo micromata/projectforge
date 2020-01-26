@@ -31,7 +31,8 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
-import org.apache.commons.lang3.StringUtils
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDateTimeUtils
 import java.io.IOException
 import java.text.ParseException
 import java.time.LocalDateTime
@@ -77,29 +78,14 @@ class UtilDateSerializer(private val format: UtilDateFormat) : StdSerializer<jav
 class UtilDateDeserializer(private val format: UtilDateFormat? = null) : StdDeserializer<java.util.Date>(java.util.Date::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): java.util.Date? {
-        val dateString = p.text
-        if (StringUtils.isBlank(dateString)) {
-            return null
-        }
-        if (StringUtils.isNumeric(dateString)) {
-            return java.util.Date(dateString.toLong())
-        }
-        val date = parseDate(format, dateString, p)
-        return java.util.Date.from(date.toInstant(ZoneOffset.UTC))
+        val date = parseDate(format,  p.text, p) ?: return null
+        return PFDateTime.from(date, false, PFDateTimeUtils.ZONE_UTC)?.utilDate
     }
 
     companion object {
-        fun parseDate(format: UtilDateFormat?, dateString: String, p: JsonParser): LocalDateTime {
+        fun parseDate(format: UtilDateFormat?, dateString: String, p: JsonParser): LocalDateTime? {
             try {
-                return if (format != null) {
-                    LocalDateTime.parse(dateString, format.formatter)
-                } else if (dateString.contains('T')) {
-                    LocalDateTime.parse(dateString, UtilDateFormat.JS_DATE_TIME_MILLIS.formatter)
-                } else if (dateString.contains('.')) {
-                    LocalDateTime.parse(dateString, UtilDateFormat.ISO_DATE_TIME_MILLIS.formatter)
-                } else {
-                    LocalDateTime.parse(dateString, UtilDateFormat.ISO_DATE_TIME_SECONDS.formatter)
-                }
+                return PFDateTimeUtils.parse(dateString)?.localDateTime
             } catch (e: ParseException) {
                 throw JsonParseException(p, dateString, e)
             }

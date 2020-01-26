@@ -66,7 +66,7 @@ class PFDateTimeDeserializer : StdDeserializer<PFDateTime>(PFDateTime::class.jav
             return null
         }
         try {
-            return PFDateTimeUtils.parseUTCDate(dateString)
+            return PFDateTimeUtils.parseAndCreateDateTime(dateString)
         } catch (e: ParseException) {
             throw JsonParseException(p, dateString, e)
         }

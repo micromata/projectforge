@@ -69,7 +69,7 @@ class PFDayTest {
         assertEquals(Month.FEBRUARY, date.month)
         assertEquals(28, date.dayOfMonth)
 
-        val dateTime = PFDateTimeUtils.parseUTCDate("2019-11-30 23:00")!!
+        val dateTime = PFDateTimeUtils.parseAndCreateDateTime("2019-11-30 23:00")!!
         date = PFDay.from(dateTime.utilDate)!!
         assertEquals(2019, date.year)
         assertEquals(Month.DECEMBER, date.month)
