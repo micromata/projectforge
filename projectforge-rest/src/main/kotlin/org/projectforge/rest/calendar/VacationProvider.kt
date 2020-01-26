@@ -50,8 +50,6 @@ open class VacationProvider {
         if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
             return // Nothing to do
         }
-        val background = bgColor ?: "#ffa500"
-        val foreground = fgColor ?: "#ffffff"
 
         val vacations = vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
         vacations.forEach { vacation ->
@@ -64,8 +62,7 @@ open class VacationProvider {
                         end = vacation.endDate!!,
                         allDay = true,
                         category = "vacation",
-                        bgColor = background,
-                        fgColor = foreground,
+                        cssClass = "vacation-event",
                         dbId = vacation.id,
                         readOnly = true))
             }

@@ -27,6 +27,7 @@ import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
 import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 object HolidayAndWeekendProvider {
@@ -35,8 +36,11 @@ object HolidayAndWeekendProvider {
 
     class SpecialDayInfo(val weekend: Boolean, val holiday: Boolean, val holidayTitle: String, val workingDay: Boolean)
 
-    fun getSpecialDayInfos(start: PFDateTime, end: PFDateTime): Map<String, SpecialDayInfo> {
-        val result = mutableMapOf<String, SpecialDayInfo>()
+    /**
+     * @return Map of special days. Key is the localDate.
+     */
+    fun getSpecialDayInfos(start: PFDateTime, end: PFDateTime): Map<LocalDate, SpecialDayInfo> {
+        val result = mutableMapOf<LocalDate, SpecialDayInfo>()
         var day = start.beginOfDay
         do {
             var paranoiaCounter = 0
@@ -55,7 +59,7 @@ object HolidayAndWeekendProvider {
                 }
                 val dayInfo = SpecialDayInfo(weekend, holiday, holidayInfo, workingDay)
                 val localDate = day.localDate
-                result.put(isoDateFormatter.format(localDate), dayInfo)
+                result.put(localDate, dayInfo)
             }
             day = day.plusDays(1)
         } while (!day.isAfter(end))
