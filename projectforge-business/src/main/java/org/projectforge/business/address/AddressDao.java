@@ -26,7 +26,6 @@ package org.projectforge.business.address;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.UserRightId;
@@ -120,7 +119,7 @@ public class AddressDao extends BaseDao<AddressDO> {
       filters.add(new DoubletsResultFilter());
     }
     if (filter.getExtendedBooleanValue("favorites") == true) {
-      filters.add(new FavoritesResultFilter());
+      filters.add(new FavoritesResultFilter(personalAddressDao));
     }
     return super.getList(filter, filters);
   }
@@ -354,7 +353,7 @@ public class AddressDao extends BaseDao<AddressDO> {
     TenantRegistryMap.getCache(BirthdayCache.class).setExpired();
   }
 
-  private String getNormalizedFullname(final AddressDO address) {
+  protected static String getNormalizedFullname(final AddressDO address) {
     final StringBuilder builder = new StringBuilder();
     if (address.getFirstName() != null) {
       builder.append(address.getFirstName().toLowerCase().trim());
@@ -687,48 +686,5 @@ public class AddressDao extends BaseDao<AddressDO> {
       return buf.toString();
     }
     return null;
-  }
-
-  class FavoritesResultFilter implements CustomResultFilter<AddressDO> {
-    List<Integer> favoriteAddressIds;
-
-    FavoritesResultFilter() {
-      favoriteAddressIds = personalAddressDao.getFavoriteAddressIdList();
-    }
-
-    @Override
-    public boolean match(@NotNull List<AddressDO> list, @NotNull AddressDO element) {
-      return favoriteAddressIds.contains(element.getId());
-    }
-  }
-
-  class DoubletsResultFilter implements CustomResultFilter<AddressDO> {
-    final Set<String> fullnames = new HashSet<>();
-    final Set<String> doubletFullnames = new HashSet<>();
-    final List<AddressDO> all = new ArrayList<>(); // Already processed addresses to add doublets.
-    final Set<Integer> addedDoublets = new HashSet<>();
-
-    @Override
-    public boolean match(@NotNull List<AddressDO> list, @NotNull AddressDO element) {
-      if (element.isDeleted()) {
-        return false;
-      }
-      final String fullname = getNormalizedFullname(element);
-      if (fullnames.contains(fullname)) {
-        doubletFullnames.add(fullname);
-        for (final AddressDO adr : all) {
-          if (addedDoublets.contains(adr.getId())) {
-            continue; // Already added.
-          } else if (doubletFullnames.contains(getNormalizedFullname(adr))) {
-            list.add(adr);
-            addedDoublets.add(adr.getId()); // Mark this address as already added.
-          }
-        }
-        return true;
-      }
-      all.add(element);
-      fullnames.add(fullname);
-      return false;
-    }
   }
 }

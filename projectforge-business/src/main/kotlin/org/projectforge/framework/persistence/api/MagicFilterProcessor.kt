@@ -33,8 +33,7 @@ import java.util.*
 
 /** Transforms MagicFilterEntries to DBFilterExpressions. */
 object MagicFilterProcessor {
-    fun doIt(entityClass: Class<*>, magicFilter: MagicFilter): QueryFilter {
-        val queryFilter = QueryFilter()
+    fun doIt(entityClass: Class<*>, magicFilter: MagicFilter, queryFilter: QueryFilter = QueryFilter()): QueryFilter {
         queryFilter.deleted = magicFilter.deleted
         queryFilter.maxRows = magicFilter.maxRows
         queryFilter.searchHistory = magicFilter.searchHistory

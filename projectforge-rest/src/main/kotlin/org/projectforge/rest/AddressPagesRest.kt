@@ -25,10 +25,15 @@ package org.projectforge.rest
 
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.*
+import org.projectforge.business.address.DoubletsResultFilter
+import org.projectforge.business.address.FavoritesResultFilter
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -127,6 +132,20 @@ class AddressPagesRest()
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         elements.add(UIFilterElement("myFavorites", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.myFavorites")))
         elements.add(UIFilterElement("doublets", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.doublets")))
+    }
+
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<AddressDO>>? {
+        val doubletFilterEntry = source.entries.find { it.field == "doublets" }
+        val myFavoritesFilterEntry = source.entries.find { it.field == "myFavorites" }
+        val filters = mutableListOf<CustomResultFilter<AddressDO>>()
+        if (doubletFilterEntry?.value?.value == "true") {
+            filters.add(DoubletsResultFilter())
+        }
+        if (myFavoritesFilterEntry?.value?.value == "true") {
+            filters.add(FavoritesResultFilter(personalAddressDao))
+        }
+        source.entries.removeIf { arrayOf("doublets", "myFavorites").contains(it.field) }
+        return filters
     }
 
     /**

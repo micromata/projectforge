@@ -35,6 +35,7 @@ import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.*
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
@@ -316,8 +317,18 @@ abstract class AbstractPagesRest<
 
     /**
      * For specific creation of QueryFilter from MagicFilter, especially for extended settings.
+     * This will be called with a new QueryFilter before calling [MagicFilterProcessor.doIt].
+     * @return Customized result filters to apply or null, if no such filters should be applied.
      */
-    open fun processMagicFilter(target: QueryFilter, source: MagicFilter) {
+    open fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<O>>? {
+        return null
+    }
+
+    /**
+     * For specific creation of QueryFilter from MagicFilter, especially for extended settings.
+     * This will be called after calling [MagicFilterProcessor.doIt].
+     */
+    open fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
     }
 
     /**
