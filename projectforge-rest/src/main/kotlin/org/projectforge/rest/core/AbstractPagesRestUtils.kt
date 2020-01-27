@@ -26,10 +26,7 @@ package org.projectforge.rest.core
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.framework.persistence.api.MagicFilterProcessor
+import org.projectforge.framework.persistence.api.*
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.ValidationError
@@ -46,9 +43,11 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
                 magicFilter: MagicFilter)
         : ResultSet<O> {
     magicFilter.sortAndLimitMaxRowsWhileSelect = true
-    val dbFilter = MagicFilterProcessor.doIt(baseDao.doClass, magicFilter)
-    pagesRest.processMagicFilter(dbFilter, magicFilter)
-    val list = baseDao.getList(dbFilter)
+    val queryFilter = QueryFilter()
+    val customResultFilters = pagesRest.preProcessMagicFilter(queryFilter, magicFilter)
+    MagicFilterProcessor.doIt(baseDao.doClass, magicFilter, queryFilter)
+    pagesRest.postProcessMagicFilter(queryFilter, magicFilter)
+    val list = baseDao.getList(queryFilter, customResultFilters)
     val resultSet = ResultSet(pagesRest.filterList(list, magicFilter), list.size)
     return resultSet
 }
