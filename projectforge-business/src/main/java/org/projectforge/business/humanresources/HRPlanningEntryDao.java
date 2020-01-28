@@ -88,7 +88,7 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
     final HRPlanningFilter myFilter = (HRPlanningFilter) filter;
     if (myFilter.getStopTime() != null) {
       final PFDateTime date = PFDateTime.from(myFilter.getStopTime()).getEndOfDay();
-      myFilter.setStopTime(date.getUtilDate());
+      myFilter.setStopTime(date.getLocalDate());
     }
     final QueryFilter queryFilter = buildQueryFilter(myFilter);
     myFilter.setIgnoreDeleted(true); // Ignore deleted flag of HRPlanningEntryDOs, use instead:

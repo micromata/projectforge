@@ -24,6 +24,7 @@
 package org.projectforge.web.humanresources;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +35,7 @@ import org.projectforge.business.humanresources.HRPlanningEntryDO;
 import org.projectforge.business.humanresources.HRPlanningFilter;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
@@ -85,8 +87,12 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
       timesheetUserId = ThreadLocalUserContext.getUserId();
     }
     filter.setUserId(timesheetUserId);
-    filter.setStartTime(start.toDate());
-    filter.setStopTime(end.toDate());
+
+    PFDay startDay = PFDay.from(start.toDate());
+    PFDay endDay = PFDay.from(end.toDate());
+
+    filter.setStartTime(startDay.getLocalDate());
+    filter.setStopTime(endDay.getLocalDate());
     final List<HRPlanningDO> list = hrPlanningDao.getList(filter);
     if (list == null) {
       return;
