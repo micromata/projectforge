@@ -13,4 +13,8 @@ tbody tr.clickable {
   &.highlighted {
     background-color: #f4d5cb;
   }
+
+  &.deleted {
+    text-decoration: line-through;
+  }
 }

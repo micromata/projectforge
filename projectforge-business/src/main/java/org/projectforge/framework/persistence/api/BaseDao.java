@@ -295,7 +295,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * Gets the list filtered by the given filter.
    */
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  protected List<O> getList(final QueryFilter filter, List<CustomResultFilter<O>> customResultFilters) throws AccessException {
+  public List<O> getList(final QueryFilter filter, List<CustomResultFilter<O>> customResultFilters) throws AccessException {
     return dbQuery.getList(this, filter, customResultFilters, true, filter.getIgnoreTenant());
   }
 

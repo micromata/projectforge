@@ -151,13 +151,34 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
     }
 
     @JvmOverloads
-    open fun getVacationsListForPeriod(employee: EmployeeDO, periodBegin: LocalDate, periodEnd: LocalDate, withSpecial: Boolean = false, vararg status: VacationStatus)
+    open fun getVacationsListForPeriod(employee: EmployeeDO, periodBegin: LocalDate, periodEnd: LocalDate, withSpecial: Boolean = false, trimVacations: Boolean = false, vararg status: VacationStatus)
             : List<VacationDO> {
-        val result = vacationDao.getVacationForPeriod(employee, periodBegin, periodEnd, withSpecial)
-        if (status.isNotEmpty()) {
-            return result.filter { VacationStatus.values().contains(it.status) }
+        return getVacationsListForPeriod(employee.id, periodBegin, periodEnd, withSpecial, trimVacations, *status)
+    }
+
+    /**
+     * @param trimVacations If true, than vacation entries will be reduced for not extending given period.
+     */
+    @JvmOverloads
+    open fun getVacationsListForPeriod(employeeId: Int, periodBegin: LocalDate, periodEnd: LocalDate, withSpecial: Boolean = false, trimVacations: Boolean = false, vararg status: VacationStatus)
+            : List<VacationDO> {
+        var result = vacationDao.getVacationForPeriod(employeeId, periodBegin, periodEnd, withSpecial)
+        result = if (status.isNotEmpty()) {
+            result.filter { VacationStatus.values().contains(it.status) }
+        } else {
+            result.filter { DEFAULT_VACATION_STATUS_LIST.contains(it.status) }
         }
-        return result.filter { DEFAULT_VACATION_STATUS_LIST.contains(it.status) }
+        if (trimVacations){
+            result.forEach {
+                if (periodBegin.isAfter(it.startDate)) {
+                    it.startDate = periodBegin
+                }
+                if (periodEnd.isBefore(it.endDate)) {
+                    it.endDate = periodEnd
+                }
+            }
+        }
+        return result
     }
 
     /**

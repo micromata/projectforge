@@ -1,10 +1,6 @@
-const getBackgroundColor = (data) => {
-    return data.style ? data.style.bgColor || '#eee' : '#eee';
-};
+const getBackgroundColor = ({ style }) => ((style && style.bgColor) ? style.bgColor : '#eee');
 
-const getForegroundColor = (data) => {
-    return data.style ? data.style.fgColor || '#222' : '#222';
-};
+const getForegroundColor = ({ style }) => ((style && style.fgColor) ? style.fgColor : '#222');
 
 export const customStyles = {
     control: styles => ({
@@ -31,13 +27,11 @@ export const customStyles = {
         };
     },
     // Selected value in input field:
-    multiValue: (styles, { data }) => {
-        return {
-            ...styles,
-            backgroundColor: getBackgroundColor(data),
-            opacity: (!data.visible) ? '0.5' : undefined,
-        };
-    },
+    multiValue: (styles, { data }) => ({
+        ...styles,
+        backgroundColor: getBackgroundColor(data),
+        opacity: (!data.visible) ? '0.5' : undefined,
+    }),
     // Selected value in input field (label):
     multiValueLabel: (styles, { data }) => ({
         ...styles,

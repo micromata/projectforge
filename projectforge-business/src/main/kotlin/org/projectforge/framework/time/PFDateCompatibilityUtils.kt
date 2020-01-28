@@ -28,7 +28,7 @@ import java.time.Month
 import java.time.temporal.ChronoUnit
 import java.util.*
 
-class PFDateCompabilityUtils {
+class PFDateCompatibilityUtils {
     companion object {
         @JvmStatic
         fun convertToLocalDate(dateMidnight: org.joda.time.DateMidnight?): java.time.LocalDate? {
@@ -38,35 +38,35 @@ class PFDateCompabilityUtils {
         }
 
         /**
-         * dayNumber 1 - Sunday, 2 - Monday, ..., 7 - Saturday
+         * dayNumber 0 - Sunday, 1 - Monday, ..., 6 - Saturday, 7 - Sunday.
          */
         @JvmStatic
-        fun getCompabilityDayOfWeek(dayNumber: Int?): DayOfWeek? {
+        fun getCompatibilityDayOfWeekSunday0(dayNumber: Int?): DayOfWeek? {
             return when (dayNumber) {
-                1 -> DayOfWeek.SUNDAY
-                2 -> DayOfWeek.MONDAY
-                3 -> DayOfWeek.TUESDAY
-                4 -> DayOfWeek.WEDNESDAY
-                5 -> DayOfWeek.THURSDAY
-                6 -> DayOfWeek.FRIDAY
-                7 -> DayOfWeek.SATURDAY
+                0, 7 -> DayOfWeek.SUNDAY
+                1 -> DayOfWeek.MONDAY
+                2 -> DayOfWeek.TUESDAY
+                3 -> DayOfWeek.WEDNESDAY
+                4 -> DayOfWeek.THURSDAY
+                5 -> DayOfWeek.FRIDAY
+                6 -> DayOfWeek.SATURDAY
                 else -> null
             }
         }
 
         /**
-         * @return 1 - Sunday, 2 - Monday, ..., 7 - Saturday
+         * @return 0 - Sunday, 1 - Monday, ...
          */
         @JvmStatic
-        fun getCompabilityDayOfWeekValue(dayOfWeek: DayOfWeek?): Int? {
+        fun getCompatibilityDayOfWeekSunday0Value(dayOfWeek: DayOfWeek?): Int? {
             return when (dayOfWeek) {
-                DayOfWeek.SUNDAY -> 1
-                DayOfWeek.MONDAY -> 2
-                DayOfWeek.TUESDAY -> 3
-                DayOfWeek.WEDNESDAY -> 4
-                DayOfWeek.THURSDAY -> 5
-                DayOfWeek.FRIDAY -> 6
-                DayOfWeek.SATURDAY -> 7
+                DayOfWeek.SUNDAY -> 0
+                DayOfWeek.MONDAY -> 1
+                DayOfWeek.TUESDAY -> 2
+                DayOfWeek.WEDNESDAY -> 3
+                DayOfWeek.THURSDAY -> 4
+                DayOfWeek.FRIDAY -> 5
+                DayOfWeek.SATURDAY -> 6
                 else -> null
             }
         }
@@ -75,19 +75,7 @@ class PFDateCompabilityUtils {
          * monthNumber 0-based: 0 - January, ..., 11 - December
          */
         @JvmStatic
-        fun getCompabilityMonth(monthNumber: Int?): Month? {
-            return if (monthNumber != null) {
-                Month.of(monthNumber + 1)
-            } else {
-                null
-            }
-        }
-
-        /**
-         * monthNumber 0-based: 0 - January, ..., 11 - December
-         */
-        @JvmStatic
-        fun getCompabilityMonthValue(month: Month?): Int? {
+        fun getCompatibilityMonthValue(month: Month?): Int? {
             return if (month != null) {
                 month.ordinal
             } else {
@@ -98,7 +86,7 @@ class PFDateCompabilityUtils {
         /**
          */
         @JvmStatic
-        fun getCompabilityFields(calendarField: Int): ChronoUnit {
+        fun getCompatibilityFields(calendarField: Int): ChronoUnit {
             return when (calendarField) {
                 Calendar.DAY_OF_YEAR -> ChronoUnit.DAYS
                 Calendar.DAY_OF_MONTH -> ChronoUnit.DAYS

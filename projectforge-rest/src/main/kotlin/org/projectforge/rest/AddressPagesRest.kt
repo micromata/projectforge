@@ -25,10 +25,15 @@ package org.projectforge.rest
 
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.*
+import org.projectforge.business.address.DoubletsResultFilter
+import org.projectforge.business.address.FavoritesResultFilter
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -39,6 +44,7 @@ import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.LanguageService
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.Address
+import org.projectforge.rest.dto.PostData
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterElement
@@ -61,6 +67,7 @@ class AddressPagesRest()
      */
     private class ListAddress(val address: AddressDO,
                               val id: Int, // Needed for history Service
+                              val deleted: Boolean,
                               var imageUrl: String? = null,
                               var previewImageUrl: String? = null)
 
@@ -127,6 +134,20 @@ class AddressPagesRest()
         elements.add(UIFilterElement("doublets", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.doublets")))
     }
 
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<AddressDO>>? {
+        val doubletFilterEntry = source.entries.find { it.field == "doublets" }
+        val myFavoritesFilterEntry = source.entries.find { it.field == "myFavorites" }
+        val filters = mutableListOf<CustomResultFilter<AddressDO>>()
+        if (doubletFilterEntry?.value?.value == "true") {
+            filters.add(DoubletsResultFilter())
+        }
+        if (myFavoritesFilterEntry?.value?.value == "true") {
+            filters.add(FavoritesResultFilter(personalAddressDao))
+        }
+        source.entries.removeIf { arrayOf("doublets", "myFavorites").contains(it.field) }
+        return filters
+    }
+
     /**
      * Sets also uid to null.
      */
@@ -146,7 +167,7 @@ class AddressPagesRest()
         }
     }
 
-    override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: AddressDO, dto: Address) {
+    override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: AddressDO, postData: PostData<Address>) {
         val session = request.session
         val bytes = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
         if (bytes != null && bytes is ByteArray) {
@@ -164,7 +185,8 @@ class AddressPagesRest()
         }
     }
 
-    override fun afterSaveOrUpdate(obj: AddressDO, dto: Address) {
+    override fun afterSaveOrUpdate(obj: AddressDO, postData: PostData<Address>) {
+        val dto = postData.data
         val address = baseDao.getOrLoad(obj.id)
         val personalAddress = PersonalAddressDO()
         personalAddress.address = address
@@ -353,6 +375,7 @@ class AddressPagesRest()
         val newList = resultSet.resultSet.map {
             ListAddress(it,
                     id = it.id,
+                    deleted = it.isDeleted,
                     imageUrl = if (it.imageData != null) "address/image/${it.id}" else null,
                     previewImageUrl = if (it.imageDataPreview != null) "address/imagePreview/${it.id}" else null)
         }

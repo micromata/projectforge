@@ -519,7 +519,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @param amount
    */
   public DateHolder add(final int field, final int amount) {
-    this.dateTime = this.dateTime.plus(amount, PFDateCompabilityUtils.getCompabilityFields(field));
+    this.dateTime = this.dateTime.plus(amount, PFDateCompatibilityUtils.getCompatibilityFields(field));
     return this;
   }
 

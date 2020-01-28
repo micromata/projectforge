@@ -21,7 +21,8 @@ function DynamicTableRow(
             onClick={handleRowClick}
             className={classNames(
                 style.clickable,
-                { [style.highlighted]: highlightRow === row.id },
+                { [style.highlighted]: highlightRow === true },
+                { [style.deleted]: row.deleted === true },
             )}
         >
             {columns.map((
@@ -54,15 +55,15 @@ DynamicTableRow.propTypes = {
     row: PropTypes.shape({
         id: PropTypes.number.isRequired,
     }).isRequired,
-    highlightRow: PropTypes.number,
+    highlightRow: PropTypes.bool,
 };
 
 DynamicTableRow.defaultProps = {
-    highlightRow: -1,
+    highlightRow: false,
 };
 
 const mapStateToProps = ({ list }) => ({
-    highlightRow: list.categories[list.currentCategory].highlightRow,
+    test: list.categories[list.currentCategory],
 });
 
 const actions = (dispatch, { row }) => ({

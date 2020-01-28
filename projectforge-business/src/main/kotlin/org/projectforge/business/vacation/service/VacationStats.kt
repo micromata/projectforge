@@ -80,16 +80,6 @@ class VacationStats(
                 return BigDecimal.ZERO
             return maxOf(total - allocated, BigDecimal.ZERO)
         }
-    @get:JsonProperty
-    val remainingLeaveFromPreviousYearUnusedString: String?
-        get() {
-            val remaining = remainingLeaveFromPreviousYearUnused ?: return ""
-            return if (remaining == BigDecimal.ZERO || endOfVactionYearExceeded) {
-                format(remaining)
-            } else {
-                "(${format(remaining)})"
-            }
-        }
     /**
      * @return true, if [baseDate] is after [endOfVacationYear] and the unused remaining days from the previous year is lost.
      */
@@ -189,15 +179,23 @@ class VacationStats(
     companion object {
         @JvmStatic
         @JvmOverloads
-        fun format(value: Number?, negate: Boolean = false): String {
+        fun format(value: Number?, negate: Boolean = false, emptyStringIfZero: Boolean = false, inBraces: Boolean = false): String {
             value ?: return ""
-            if (!negate) {
-                return NumberFormatter.format(value, 1)
+            if (emptyStringIfZero && value == BigDecimal.ZERO) {
+                return ""
             }
-            if (value is BigDecimal) {
-                return NumberFormatter.format(value.negate(), 1)
+            val str = if (!negate) {
+                NumberFormatter.format(value, 1)
+            } else if (value is BigDecimal) {
+                NumberFormatter.format(value.negate(), 1)
+            } else {
+                NumberFormatter.format((0.0 - value.toDouble()), 1)
             }
-            return NumberFormatter.format((0.0 - value.toDouble()), 1)
+            if (inBraces) {
+                return "($str)"
+            } else {
+                return str
+            }
         }
     }
 }

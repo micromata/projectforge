@@ -35,6 +35,7 @@ import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.*
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
@@ -82,6 +83,7 @@ abstract class AbstractPagesRest<
         const val GEAR_MENU = "GEAR"
         const val CLASSIC_VERSION_MENU = "CLASSIC"
         const val CREATE_MENU = "CREATE"
+        const val USER_PREF_PARAM_HIGHLIGHT_ROW = "highlightedRow"
     }
 
     class DisplayObject(val id: Any, override val displayName: String?) : DisplayNameCapable
@@ -90,7 +92,7 @@ abstract class AbstractPagesRest<
      * Contains the layout data returned for the frontend regarding edit pages.
      * @param variables Additional variables / data provided for the edit page.
      */
-    class EditLayoutData(val data: Any?, val ui: UILayout?, var variables: Map<String, Any>? = null)
+    class EditLayoutData(val data: Any?, val ui: UILayout?, var inOutVariables: Map<String, Any>? = null, var variables: Map<String, Any>? = null)
 
     /**
      * Contains the data, layout and filter settings served by [getInitialList].
@@ -188,7 +190,7 @@ abstract class AbstractPagesRest<
      * Relative rest path (without leading /rs
      */
     fun getRestPath(subPath: String? = null): String {
-        return RestResolver.getRestUrl(this::class.java, subPath,true)
+        return RestResolver.getRestUrl(this::class.java, subPath, true)
     }
 
     /**
@@ -281,6 +283,7 @@ abstract class AbstractPagesRest<
     protected fun getInitialList(filter: MagicFilter): InitialListData {
         val favorites = getFilterFavorites()
         val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter))
+        resultSet.highlightRowId = userPrefService.getEntry(getCategory(), USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
         val layout = createListLayout()
                 .addTranslations("table.showing",
                         "searchFilter",
@@ -314,8 +317,18 @@ abstract class AbstractPagesRest<
 
     /**
      * For specific creation of QueryFilter from MagicFilter, especially for extended settings.
+     * This will be called with a new QueryFilter before calling [MagicFilterProcessor.doIt].
+     * @return Customized result filters to apply or null, if no such filters should be applied.
      */
-    open fun processMagicFilter(target: QueryFilter, source: MagicFilter) {
+    open fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<O>>? {
+        return null
+    }
+
+    /**
+     * For specific creation of QueryFilter from MagicFilter, especially for extended settings.
+     * This will be called after calling [MagicFilterProcessor.doIt].
+     */
+    open fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
     }
 
     /**
@@ -328,6 +341,7 @@ abstract class AbstractPagesRest<
         val list = getList(this, baseDao, filter)
         saveCurrentFilter(filter)
         val resultSet = processResultSetBeforeExport(list)
+        resultSet.highlightRowId = userPrefService.getEntry(getCategory(), USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
         return resultSet
     }
 
@@ -702,7 +716,7 @@ abstract class AbstractPagesRest<
     @PutMapping(RestPaths.SAVE_OR_UDATE)
     fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(postData.data)
-        return saveOrUpdate(request, baseDao, dbObj, postData.data, this, validate(dbObj, postData.data))
+        return saveOrUpdate(request, baseDao, dbObj, postData, this, validate(dbObj, postData.data))
     }
 
     /**
@@ -711,7 +725,7 @@ abstract class AbstractPagesRest<
     @PutMapping(RestPaths.UNDELETE)
     fun undelete(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(postData.data)
-        return undelete(request, baseDao, dbObj, postData.data, this, validate(dbObj, postData.data))
+        return undelete(request, baseDao, dbObj, postData, this, validate(dbObj, postData.data))
     }
 
     /**
@@ -721,7 +735,7 @@ abstract class AbstractPagesRest<
     @DeleteMapping(RestPaths.MARK_AS_DELETED)
     fun markAsDeleted(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(postData.data)
-        return markAsDeleted(request, baseDao, dbObj, postData.data, this, validate(dbObj, postData.data))
+        return markAsDeleted(request, baseDao, dbObj, postData, this, validate(dbObj, postData.data))
     }
 
     /**
@@ -731,7 +745,7 @@ abstract class AbstractPagesRest<
     @DeleteMapping(RestPaths.DELETE)
     fun delete(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(postData.data)
-        return delete(request, baseDao, dbObj, postData.data, this, validate(dbObj, postData.data))
+        return delete(request, baseDao, dbObj, postData, this, validate(dbObj, postData.data))
     }
 
     /**
@@ -742,7 +756,7 @@ abstract class AbstractPagesRest<
     @PostMapping(RestPaths.CANCEL)
     fun cancelEdit(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseAction {
         val dbObj = transformForDB(postData.data)
-        return cancelEdit(request, dbObj, postData.data, getRestPath())
+        return cancelEdit(request, dbObj, postData, getRestPath())
     }
 
     /**
@@ -758,86 +772,89 @@ abstract class AbstractPagesRest<
     /**
      * Called before save, update, delete, markAsDeleted and undelete.
      */
-    internal open fun beforeDatabaseAction(request: HttpServletRequest, obj: O, dto: DTO, operation: OperationType) {
+    internal open fun beforeDatabaseAction(request: HttpServletRequest, obj: O, postData: PostData<DTO>, operation: OperationType) {
     }
 
     /**
      * Called before save and update.
      */
-    internal open fun beforeSaveOrUpdate(request: HttpServletRequest, obj: O, dto: DTO) {
+    internal open fun beforeSaveOrUpdate(request: HttpServletRequest, obj: O, postData: PostData<DTO>) {
     }
 
     /**
      * Called after save and update.
      */
-    internal open fun afterSaveOrUpdate(obj: O, dto: DTO) {
+    internal open fun afterSaveOrUpdate(obj: O, postData: PostData<DTO>) {
     }
 
     /**
      * Will only be called on success. Simply call [afterEdit].
      */
-    internal open fun afterSave(obj: O, dto: DTO): ResponseAction {
-        return afterEdit(obj, dto)
+    internal open fun afterSave(obj: O, postData: PostData<DTO>): ResponseAction {
+        return afterEdit(obj, postData)
     }
 
     /**
      * Will only be called on success. Simply call [afterEdit].
      */
-    internal open fun afterUpdate(obj: O, dto: DTO): ResponseAction {
-        return afterEdit(obj, dto)
+    internal open fun afterUpdate(obj: O, postData: PostData<DTO>): ResponseAction {
+        return afterEdit(obj, postData)
     }
 
     /**
      * Called before delete (not markAsDeleted!).
      */
-    internal open fun beforeDelete(request: HttpServletRequest, obj: O, dto: DTO) {
+    internal open fun beforeDelete(request: HttpServletRequest, obj: O, postData: PostData<DTO>) {
     }
 
     /**
      * Will only be called on success. Simply call [afterEdit].
      */
-    internal open fun afterDelete(obj: O, dto: DTO): ResponseAction {
-        return afterEdit(obj, dto)
+    internal open fun afterDelete(obj: O, postData: PostData<DTO>): ResponseAction {
+        return afterEdit(obj, postData)
     }
 
     /**
      * Called before markAsDeleted.
      */
-    internal open fun beforeMarkAsDeleted(request: HttpServletRequest, obj: O, dto: DTO) {
+    internal open fun beforeMarkAsDeleted(request: HttpServletRequest, obj: O, postData: PostData<DTO>) {
     }
 
     /**
      * Will only be called on success. Simply call [afterEdit].
      */
-    internal open fun afterMarkAsDeleted(obj: O, dto: DTO): ResponseAction {
-        return afterEdit(obj, dto)
+    internal open fun afterMarkAsDeleted(obj: O, postData: PostData<DTO>): ResponseAction {
+        return afterEdit(obj, postData)
     }
 
     /**
      * Called before undelete.
      */
-    internal open fun beforeUndelete(request: HttpServletRequest, obj: O, dto: DTO) {
+    internal open fun beforeUndelete(request: HttpServletRequest, obj: O, postData: PostData<DTO>) {
     }
 
     /**
      * Will only be called on success. Simply call [afterEdit].
      */
-    internal open fun afterUndelete(obj: O, dto: DTO): ResponseAction {
-        return afterEdit(obj, dto)
+    internal open fun afterUndelete(obj: O, postData: PostData<DTO>): ResponseAction {
+        return afterEdit(obj, postData)
     }
 
     /**
      * Will only be called on success. Simply call [afterEdit].
      */
-    internal open fun cancelEdit(request: HttpServletRequest, obj: O, dto: DTO, restPath: String): ResponseAction {
-        return afterEdit(obj, dto)
+    internal open fun cancelEdit(request: HttpServletRequest, obj: O, postData: PostData<DTO>, restPath: String): ResponseAction {
+        return afterEdit(obj, postData)
     }
 
     /**
      * Will be called after create, update, delete, markAsDeleted, undelete and cancel.
      * @return ResponseAction with the url of the standard list page.
      */
-    internal open fun afterEdit(obj: O, dto: DTO): ResponseAction {
+    internal open fun afterEdit(obj: O, postData: PostData<DTO>): ResponseAction {
+        obj.id?.let {
+            userPrefService.putEntry(getCategory(), USER_PREF_PARAM_HIGHLIGHT_ROW, it, false)
+        }
         return ResponseAction("/${Const.REACT_APP_PATH}${getCategory()}").addVariable("id", obj.id ?: -1)
     }
 

@@ -30,10 +30,10 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
-import org.apache.commons.lang3.StringUtils
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDateTimeUtils
 import java.io.IOException
 import java.sql.Timestamp
-import java.time.ZoneOffset
 
 /**
  * Serialization of dates in ISO format and UTC time-zone.
@@ -61,14 +61,7 @@ class TimestampSerializer(private val format: UtilDateFormat) : StdSerializer<Ti
 class TimestampDeserializer(private val format: UtilDateFormat? = null) : StdDeserializer<Timestamp>(Timestamp::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Timestamp? {
-        val dateString = p.text
-        if (StringUtils.isBlank(dateString)) {
-            return null
-        }
-        if (StringUtils.isNumeric(dateString)) {
-            return Timestamp(dateString.toLong())
-        }
-        val date = UtilDateDeserializer.parseDate(format, dateString, p)
-        return Timestamp.from(date.toInstant(ZoneOffset.UTC))
+        val date = UtilDateDeserializer.parseDate(format, p.text, p) ?: return null
+        return PFDateTime.from(date, false, PFDateTimeUtils.ZONE_UTC)?.sqlTimestamp
     }
 }

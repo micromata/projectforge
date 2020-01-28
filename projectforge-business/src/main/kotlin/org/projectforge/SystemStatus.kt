@@ -28,6 +28,7 @@ import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
@@ -52,7 +53,8 @@ class SystemStatus {
     var logoFile: String? = null
         private set
     val copyRightYears = ProjectForgeVersion.COPYRIGHT_YEARS
-    var developmentMode: Boolean? = null
+    @Value("\${projectforge.development.mode}")
+    var developmentMode: Boolean = false
         private set
     var setupRequiredFirst: Boolean? = null
     var updateRequiredFirst: Boolean? = null

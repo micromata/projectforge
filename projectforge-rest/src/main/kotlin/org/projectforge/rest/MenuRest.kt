@@ -23,14 +23,12 @@
 
 package org.projectforge.rest
 
+import org.projectforge.SystemStatus
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
-import org.projectforge.menu.builder.FavoritesMenuCreator
-import org.projectforge.menu.builder.MenuCreator
-import org.projectforge.menu.builder.MenuCreatorContext
-import org.projectforge.menu.builder.MenuItemDef
+import org.projectforge.menu.builder.*
 import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -49,21 +47,29 @@ class MenuRest {
     @Autowired
     private lateinit var favoritesMenuCreator: FavoritesMenuCreator
 
+    @Autowired
+    private lateinit var systemStatus: SystemStatus;
+
     @GetMapping
     fun getMenu(): Menus {
         val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.getUser()))
         val favoritesMenu = favoritesMenuCreator.getFavoriteMenu()
-        val goClassicsMenu = MenuItemDef("GoClassics", "goreact.menu.classics")
-        goClassicsMenu.url = "wa"
+        val goClassicsMenu = MenuItemDef(MenuItemDefId.GO_CLASSIC)
         favoritesMenu.add(goClassicsMenu)
 
         val myAccountMenu = Menu()
         val item = MenuItem("username", ThreadLocalUserContext.getUser()?.getFullname())
         myAccountMenu.add(item)
-        item.add(MenuItem("SendFeedback", i18nKey = "menu.gear.feedback", url = "wa/feedback"))
-        item.add(MenuItem("MyAccount", i18nKey = "menu.myAccount", url = "wa/myAccount"))
-        item.add(MenuItem("MyLeaveAccount", i18nKey = "menu.vacation.leaveaccount", url = "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationAccountPage"))
-        item.add(MenuItem("Logout", i18nKey = "menu.logout", url = "logout", type = MenuItemTargetType.RESTCALL))
+        item.add(MenuItem(MenuItemDefId.FEEDBACK))
+        item.add(MenuItem(MenuItemDefId.MY_ACCOUNT))
+        if (systemStatus.developmentMode == true) {
+            val vacationAccountItem = MenuItem(MenuItemDefId.VACATION_ACCOUNT)
+            vacationAccountItem.url = "${PREFIX}dynamic/vacationAccount"
+            item.add(vacationAccountItem)
+        } else {
+            item.add(MenuItem(MenuItemDefId.VACATION_ACCOUNT))
+        }
+        item.add(MenuItem(MenuItemDefId.LOGOUT, type = MenuItemTargetType.RESTCALL))
         item.subMenu?.forEach { it.postProcess() }
         return Menus(mainMenu, favoritesMenu, myAccountMenu)
     }

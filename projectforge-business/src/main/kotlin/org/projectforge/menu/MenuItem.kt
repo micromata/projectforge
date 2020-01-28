@@ -26,6 +26,7 @@ package org.projectforge.menu
 import org.projectforge.framework.i18n.autoTranslate
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.builder.MenuItemDef
+import org.projectforge.menu.builder.MenuItemDefId
 
 class MenuItem(var id: String? = null,
                var title: String? = null,
@@ -53,6 +54,16 @@ class MenuItem(var id: String? = null,
         if (menuItemDef.badgeCounter != null) {
             badge = MenuBadge(counter = menuItemDef.badgeCounter?.invoke())
         }
+    }
+
+    constructor(menuItemDefId: MenuItemDefId, badge: MenuBadge? = null, type: MenuItemTargetType? = null) : this() {
+        this.id = menuItemDefId.id
+        this.title = translate(menuItemDefId.i18nKey)
+        this.i18nKey = menuItemDefId.i18nKey
+        this.key = menuItemDefId.id
+        this.url = menuItemDefId.url
+        this.badge = badge
+        this.type = type
     }
 
     init {
