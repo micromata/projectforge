@@ -63,7 +63,6 @@ import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel.ToggleStatus;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T extends AbstractRechnungsPositionDO, P extends AbstractEditPage<?, ?, ?>>

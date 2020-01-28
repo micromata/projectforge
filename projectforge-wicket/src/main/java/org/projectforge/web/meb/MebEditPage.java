@@ -23,8 +23,6 @@
 
 package org.projectforge.web.meb;
 
-import java.util.Date;
-
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.meb.MebDao;
@@ -36,6 +34,8 @@ import org.projectforge.web.timesheet.TimesheetEditPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
+
+import java.util.Date;
 
 @EditPage(defaultReturnPage = MebListPage.class)
 public class MebEditPage extends AbstractEditPage<MebEntryDO, MebEditForm, MebDao> implements ISelectCallerPage

@@ -23,8 +23,6 @@
 
 package org.projectforge.web.wicket.flowlayout;
 
-import java.io.Serializable;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -35,6 +33,8 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.projectforge.web.wicket.WicketUtils;
+
+import java.io.Serializable;
 
 /**
  * Panel containing only one check-box. <br/>

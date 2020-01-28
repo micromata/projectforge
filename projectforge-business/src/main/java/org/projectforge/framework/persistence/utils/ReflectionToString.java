@@ -26,9 +26,9 @@ package org.projectforge.framework.persistence.utils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.hibernate.Hibernate;
+import org.projectforge.framework.DisplayNameCapable;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.HibernateUtils;
-import org.projectforge.framework.DisplayNameCapable;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;

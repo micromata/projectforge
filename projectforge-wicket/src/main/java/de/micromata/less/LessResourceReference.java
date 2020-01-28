@@ -23,13 +23,13 @@
 
 package de.micromata.less;
 
-import java.io.File;
-
 import org.apache.wicket.request.resource.IResource;
 import org.apache.wicket.request.resource.PackageResource;
 import org.apache.wicket.request.resource.ResourceReference;
 import org.apache.wicket.util.resource.FileResourceStream;
 import org.apache.wicket.util.resource.IResourceStream;
+
+import java.io.File;
 
 /**
  * Wicket adaption of LESS resource reference

@@ -23,10 +23,9 @@
 
 package org.projectforge.web.fibu;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.projectforge.business.fibu.kost.BuchungssatzFilter;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
-
-import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias("AccountingRecordFilter")
 public class AccountingRecordListFilter extends BuchungssatzFilter

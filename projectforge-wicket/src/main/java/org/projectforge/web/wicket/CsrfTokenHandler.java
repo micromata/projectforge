@@ -23,8 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import java.io.Serializable;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.markup.html.form.Form;
@@ -32,6 +30,8 @@ import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.framework.i18n.InternalErrorException;
 import org.projectforge.web.session.MySession;
+
+import java.io.Serializable;
 
 /**
  * Every form should use this handler for preventing cross site request forgery attacks.

@@ -31,8 +31,8 @@ import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.search.annotations.*
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.time.LocalDate

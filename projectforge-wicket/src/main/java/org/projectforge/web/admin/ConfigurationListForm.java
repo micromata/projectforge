@@ -23,9 +23,9 @@
 
 package org.projectforge.web.admin;
 
-import org.slf4j.Logger;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.slf4j.Logger;
 
 
 public class ConfigurationListForm extends AbstractListForm<BaseSearchFilter, ConfigurationListPage>

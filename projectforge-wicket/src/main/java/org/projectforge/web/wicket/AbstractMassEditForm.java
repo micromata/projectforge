@@ -23,8 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import java.io.Serializable;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
@@ -32,6 +30,8 @@ import org.apache.wicket.model.Model;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
+
+import java.io.Serializable;
 
 public abstract class AbstractMassEditForm<O extends Serializable, P extends AbstractMassEditPage> extends AbstractSecuredForm<O, P>
 {

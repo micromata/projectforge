@@ -23,12 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -43,20 +37,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.business.fibu.AuftragDO;
-import org.projectforge.business.fibu.AuftragDao;
-import org.projectforge.business.fibu.AuftragsPositionDO;
-import org.projectforge.business.fibu.AuftragsPositionsArt;
-import org.projectforge.business.fibu.AuftragsPositionsPaymentType;
-import org.projectforge.business.fibu.AuftragsPositionsStatus;
-import org.projectforge.business.fibu.AuftragsStatus;
-import org.projectforge.business.fibu.KundeDO;
-import org.projectforge.business.fibu.ModeOfPaymentType;
-import org.projectforge.business.fibu.PaymentScheduleDO;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.RechnungCache;
-import org.projectforge.business.fibu.RechnungDao;
-import org.projectforge.business.fibu.RechnungsPositionVO;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.utils.CurrencyFormatter;
@@ -77,6 +58,11 @@ import org.projectforge.web.wicket.converter.CurrencyConverter;
 import org.projectforge.web.wicket.flowlayout.*;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel.ToggleStatus;
 import org.slf4j.Logger;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Set;
 
 public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage>
 {

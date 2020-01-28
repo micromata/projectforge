@@ -23,14 +23,13 @@
 
 package org.projectforge.web.teamcal.event;
 
+import net.ftlines.wicket.fullcalendar.Event;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Duration;
 import org.joda.time.Period;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.WebConfiguration;
-
-import net.ftlines.wicket.fullcalendar.Event;
 
 public class MyWicketEvent extends Event
 {

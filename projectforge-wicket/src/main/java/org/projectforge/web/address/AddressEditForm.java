@@ -23,23 +23,15 @@
 
 package org.projectforge.web.address;
 
-import org.slf4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.address.AddressDO;
-import org.projectforge.business.address.AddressDao;
-import org.projectforge.business.address.AddressbookDO;
-import org.projectforge.business.address.AddressbookDao;
-import org.projectforge.business.address.PersonalAddressDao;
+import org.projectforge.business.address.*;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.web.address.AddressPageSupport.AddressParameters;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.FieldType;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.ImageUploadPanel;
-import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage>

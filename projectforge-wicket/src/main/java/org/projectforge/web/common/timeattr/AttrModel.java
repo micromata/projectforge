@@ -23,9 +23,8 @@
 
 package org.projectforge.web.common.timeattr;
 
-import org.apache.wicket.model.IObjectClassAwareModel;
-
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
+import org.apache.wicket.model.IObjectClassAwareModel;
 
 /**
  * Wrapps an Model for an Attr.

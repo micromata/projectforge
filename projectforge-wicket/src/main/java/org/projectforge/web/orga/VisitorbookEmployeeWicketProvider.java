@@ -23,16 +23,16 @@
 
 package org.projectforge.web.orga;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
-
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.orga.VisitorbookDO;
 import org.projectforge.web.AbstractEmployeeWicketProvider;
 import org.wicketstuff.select2.Response;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 
 public class VisitorbookEmployeeWicketProvider extends AbstractEmployeeWicketProvider
 {

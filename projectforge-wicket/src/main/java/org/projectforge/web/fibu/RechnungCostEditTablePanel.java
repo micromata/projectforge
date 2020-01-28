@@ -23,10 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
@@ -40,16 +36,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.business.fibu.AbstractRechnungsPositionDO;
-import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.RechnungDO;
-import org.projectforge.business.fibu.RechnungsPositionDO;
-import org.projectforge.business.fibu.kost.Kost1DO;
-import org.projectforge.business.fibu.kost.Kost2DO;
-import org.projectforge.business.fibu.kost.Kost2Dao;
-import org.projectforge.business.fibu.kost.KostZuweisungDO;
-import org.projectforge.business.fibu.kost.KostZuweisungenCopyHelper;
+import org.projectforge.business.fibu.*;
+import org.projectforge.business.fibu.kost.*;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.utils.Constants;
 import org.projectforge.framework.utils.NumberFormatter;
@@ -64,6 +52,10 @@ import org.projectforge.web.wicket.flowlayout.ButtonPanel;
 import org.projectforge.web.wicket.flowlayout.IconButtonPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 import org.projectforge.web.wicket.flowlayout.MyAjaxComponentHolder;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

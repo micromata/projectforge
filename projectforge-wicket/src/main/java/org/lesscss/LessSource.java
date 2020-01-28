@@ -16,7 +16,9 @@ package org.lesscss;
 
 // If less.js 1.3.3 is supported again, remove this package and re-activate the pom.xml entry.
 
-import static java.util.regex.Pattern.MULTILINE;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.jfree.util.Log;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,9 +29,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.jfree.util.Log;
+import static java.util.regex.Pattern.MULTILINE;
 
 /**
  * Represents the metadata and content of a LESS source.

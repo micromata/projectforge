@@ -23,11 +23,7 @@
 
 package org.projectforge.framework.persistence.attr.impl;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Optional;
-import java.util.function.Function;
-
+import de.micromata.genome.db.jpa.tabattr.api.*;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -43,14 +39,10 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
-import de.micromata.genome.db.jpa.tabattr.api.AttrSchema;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Interface to handle with Attrs.

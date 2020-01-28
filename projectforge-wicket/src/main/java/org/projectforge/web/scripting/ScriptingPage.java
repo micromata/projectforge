@@ -23,14 +23,6 @@
 
 package org.projectforge.web.scripting;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -58,6 +50,10 @@ import org.projectforge.web.fibu.ReportObjectivesPage;
 import org.projectforge.web.fibu.ReportScriptingStorage;
 import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.JFreeChartImage;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.*;
 
 public class ScriptingPage extends AbstractScriptingPage
 {

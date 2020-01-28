@@ -23,11 +23,6 @@
 
 package org.projectforge.web.admin;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.SortedSet;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -55,6 +50,11 @@ import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.ImagePanel;
 import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.SortedSet;
 
 public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdatePage>
 {

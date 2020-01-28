@@ -23,10 +23,10 @@
 
 package org.projectforge.web;
 
-import java.util.Locale;
-
 import org.projectforge.framework.xstream.XmlField;
 import org.projectforge.framework.xstream.XmlObject;
+
+import java.util.Locale;
 
 /**
  * For configuring translations e. g. in the config.xml file.

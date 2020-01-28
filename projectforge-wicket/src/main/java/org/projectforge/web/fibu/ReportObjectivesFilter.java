@@ -23,13 +23,12 @@
 
 package org.projectforge.web.fibu;
 
-import java.io.Serializable;
-import java.util.Date;
-
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.framework.time.DateHolder;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
+import java.io.Serializable;
+import java.util.Date;
 
 @XStreamAlias("ReportObjectivesFilter")
 public class ReportObjectivesFilter implements Serializable

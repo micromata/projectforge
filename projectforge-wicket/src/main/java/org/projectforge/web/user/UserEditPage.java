@@ -23,12 +23,7 @@
 
 package org.projectforge.web.user;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.ldap.PFUserDOConverter;
@@ -46,6 +41,11 @@ import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @EditPage(defaultReturnPage = UserListPage.class)
 public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserDao>

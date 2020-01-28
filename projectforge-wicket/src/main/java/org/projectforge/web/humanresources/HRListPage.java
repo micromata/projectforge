@@ -23,11 +23,6 @@
 
 package org.projectforge.web.humanresources;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -41,13 +36,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.humanresources.HRViewDao;
-import org.projectforge.business.humanresources.HRFilter;
-import org.projectforge.business.humanresources.HRPlanningDO;
-import org.projectforge.business.humanresources.HRPlanningEntryDO;
-import org.projectforge.business.humanresources.HRViewData;
-import org.projectforge.business.humanresources.HRViewUserData;
-import org.projectforge.business.humanresources.HRViewUserEntryData;
+import org.projectforge.business.humanresources.*;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseDao;
@@ -57,14 +46,13 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.user.UserPropertyColumn;
-import org.projectforge.web.wicket.AbstractEditPage;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.WebConstants;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  *

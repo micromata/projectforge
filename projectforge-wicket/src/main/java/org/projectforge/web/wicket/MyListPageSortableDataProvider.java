@@ -23,14 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -42,6 +34,9 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.IdObject;
 import org.projectforge.framework.utils.MyBeanComparator;
 import org.projectforge.web.common.timeattr.AttrComperator;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Stores list of result sets (id's) for pagination and provides iterator of data-base objects on demand.

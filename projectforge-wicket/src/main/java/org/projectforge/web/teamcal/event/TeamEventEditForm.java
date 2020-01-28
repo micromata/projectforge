@@ -60,7 +60,6 @@ import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
 
-import java.util.Date;
 import java.util.List;
 
 /**

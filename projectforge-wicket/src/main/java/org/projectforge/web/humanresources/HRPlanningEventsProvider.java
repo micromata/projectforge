@@ -23,10 +23,7 @@
 
 package org.projectforge.web.humanresources;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-
+import net.ftlines.wicket.fullcalendar.Event;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.projectforge.business.humanresources.HRPlanningDO;
@@ -39,7 +36,8 @@ import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
-import net.ftlines.wicket.fullcalendar.Event;
+import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Creates events corresponding to the hr planning entries.

@@ -23,8 +23,6 @@
 
 package org.projectforge.web.admin;
 
-import java.util.List;
-
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.model.Model;
 import org.projectforge.plugins.core.AvailablePlugin;
@@ -34,6 +32,8 @@ import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
+
+import java.util.List;
 
 /**
  * 

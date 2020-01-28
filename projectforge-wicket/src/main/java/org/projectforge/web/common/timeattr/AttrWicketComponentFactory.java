@@ -23,12 +23,11 @@
 
 package org.projectforge.web.common.timeattr;
 
-import org.apache.wicket.Component;
-import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
-
 import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
 import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
+import org.apache.wicket.Component;
+import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
 /**
  * A factory, which creates edit components for Attr Values.

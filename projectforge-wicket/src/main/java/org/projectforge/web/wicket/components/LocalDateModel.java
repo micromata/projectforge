@@ -26,8 +26,8 @@ package org.projectforge.web.wicket.components;
 import org.apache.wicket.model.IModel;
 import org.projectforge.framework.time.PFDay;
 
-import java.util.Date;
 import java.time.LocalDate;
+import java.util.Date;
 
 /**
  * https://stackoverflow.com/questions/39162334/how-can-i-bring-wicket-7-to-work-with-java-time-from-java-8

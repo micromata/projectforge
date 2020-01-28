@@ -23,9 +23,6 @@
 
 package org.projectforge.web.admin;
 
-import java.util.Date;
-import java.util.List;
-
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -43,6 +40,9 @@ import org.projectforge.framework.time.DateHelper;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+
+import java.util.Date;
+import java.util.List;
 
 public class SystemUpdatePage extends AbstractSecuredPage
 {

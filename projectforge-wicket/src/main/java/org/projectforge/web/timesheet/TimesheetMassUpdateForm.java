@@ -23,8 +23,6 @@
 
 package org.projectforge.web.timesheet;
 
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
@@ -39,6 +37,8 @@ import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.wicket.AbstractMassEditForm;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+
+import java.util.List;
 
 public class TimesheetMassUpdateForm extends AbstractMassEditForm<TimesheetDO, TimesheetMassUpdatePage>
 {

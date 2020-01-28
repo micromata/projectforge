@@ -25,12 +25,8 @@ package org.projectforge.web.orga;
 
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.validation.IValidator;
-import org.apache.wicket.validation.ValidationError;
 import org.projectforge.business.orga.PostType;
 import org.projectforge.business.orga.PostausgangDO;
-import org.projectforge.framework.time.DayHolder;
-import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextField;
@@ -46,7 +42,6 @@ import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.slf4j.Logger;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 
 public class PostausgangEditForm extends AbstractEditForm<PostausgangDO, PostausgangEditPage> {
