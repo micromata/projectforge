@@ -33,7 +33,6 @@ import java.text.SimpleDateFormat
 import java.time.DateTimeException
 import java.time.Month
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 class PFDateTimeTest {
@@ -41,7 +40,7 @@ class PFDateTimeTest {
     @Test
     fun beginAndEndOfIntervalsTest() {
         // User's time zone is "Europe/Berlin": "UTC+2". Therefore local date should be 2019-04-01 00:00:00
-        val date = PFDateTimeUtils.parseUTCDate("2019-03-31 22:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))!!
+        val date = PFDateTimeUtils.parseAndCreateDateTime("2019-03-31 22:00:00")!!
         checkDate(date.dateTime, 2019, Month.APRIL, 1, false)
 
         val beginOfDay = date.beginOfDay.dateTime
@@ -63,7 +62,7 @@ class PFDateTimeTest {
     @Test
     fun convertTest() {
         // User's time zone is "Europe/Berlin": "UTC+2". Therefore local date should be 2019-04-01 00:00:00
-        var date = PFDateTimeUtils.parseUTCDate("2019-03-31 22:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))!!
+        var date = PFDateTimeUtils.parseAndCreateDateTime("2019-03-31 22:00:00")!!
 
         var localDate = date.localDate
         assertEquals(2019, localDate.year)
@@ -76,7 +75,7 @@ class PFDateTimeTest {
         assertEquals("2019-03-31 22:00:00 +0000", formatter.format(utilDate))
         assertEquals(1554069600000, utilDate.time)
 
-        date = PFDateTimeUtils.parseUTCDate("2019-04-01 15:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))!!
+        date = PFDateTimeUtils.parseAndCreateDateTime("2019-04-01 15:00:00")!!
 
         localDate = date.localDate
         assertEquals(2019, localDate.year)
@@ -86,12 +85,12 @@ class PFDateTimeTest {
 
     @Test
     fun parseTest() {
-        assertEquals("2019-03-31 22:00", PFDateTimeUtils.parseUTCDate("1554069600")!!.isoString)
-        assertEquals("2019-03-31 22:00", PFDateTimeUtils.parseUTCDate("2019-03-31 22:00:00")!!.isoString)
-        assertEquals("2019-03-31 22:00", PFDateTimeUtils.parseUTCDate("2019-03-31 22:00")!!.isoString)
-        assertEquals("2019-03-31 22:00", PFDateTimeUtils.parseUTCDate("2019-03-31T22:00:00.000Z")!!.isoString)
+        assertEquals("2019-03-31 22:00", PFDateTimeUtils.parseAndCreateDateTime("1554069600")!!.isoString)
+        assertEquals("2019-03-31 22:00", PFDateTimeUtils.parseAndCreateDateTime("2019-03-31 22:00:00")!!.isoString)
+        assertEquals("2019-03-31 22:00", PFDateTimeUtils.parseAndCreateDateTime("2019-03-31 22:00")!!.isoString)
+        assertEquals("2019-03-31 22:00", PFDateTimeUtils.parseAndCreateDateTime("2019-03-31T22:00:00.000Z")!!.isoString)
         try {
-            PFDateTimeUtils.parseUTCDate("2019-03-31")
+            PFDateTimeUtils.parseAndCreateDateTime("2019-03-31")
             fail("Exception expected, because 2019-03-31 isn't parseable due to missing time of day.")
         } catch (ex: DateTimeException) {
             // OK
@@ -100,22 +99,22 @@ class PFDateTimeTest {
 
     @Test
     fun daysOfYearTest() {
-        var dateTime = PFDateTimeUtils.parseUTCDate("2020-01-10 10:00")
+        var dateTime = PFDateTimeUtils.parseAndCreateDateTime("2020-01-10 10:00")
         assertEquals(366, dateTime!!.numberOfDaysInYear)
-        dateTime = PFDateTimeUtils.parseUTCDate("2019-12-31 23:00")
+        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2019-12-31 23:00")
         assertEquals(366, dateTime!!.numberOfDaysInYear, "Europe-Berlin: 2020! UTC: ${dateTime.isoString}")
-        dateTime = PFDateTimeUtils.parseUTCDate("2019-12-31 22:00")
+        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2019-12-31 22:00")
         assertEquals(365, dateTime!!.numberOfDaysInYear, "Europe-Berlin: 2020! UTC: ${dateTime.isoString}")
     }
 
     @Test
     fun sqlDateTest() {
-        var sqlDate = PFDateTimeUtils.parseUTCDate("2019-12-06 23:30")!!.sqlDate
+        var sqlDate = PFDateTimeUtils.parseAndCreateDateTime("2019-12-06 23:30")!!.sqlDate
         var localDate = sqlDate.toLocalDate()
         assertEquals(2019, localDate.year)
         assertEquals(Month.DECEMBER, localDate.month)
         assertEquals(7, localDate.dayOfMonth)
-        sqlDate = PFDateTimeUtils.parseUTCDate("2019-12-06 22:30")!!.sqlDate
+        sqlDate = PFDateTimeUtils.parseAndCreateDateTime("2019-12-06 22:30")!!.sqlDate
         localDate = sqlDate.toLocalDate()
         assertEquals(2019, localDate.year)
         assertEquals(Month.DECEMBER, localDate.month)
@@ -127,30 +126,30 @@ class PFDateTimeTest {
         val storedDefaultLocale = ConfigurationServiceAccessor.get().defaultLocale
         ConfigurationServiceAccessor.internalSetLocaleForJunitTests(Locale("de", "DE"))
         // German weeks:
-        var dateTime = PFDateTimeUtils.parseUTCDate("2020-12-31 10:00")
+        var dateTime = PFDateTimeUtils.parseAndCreateDateTime("2020-12-31 10:00")
         assertEquals(53, dateTime!!.weekOfYear)
-        dateTime = PFDateTimeUtils.parseUTCDate("2021-01-02 10:00")
+        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2021-01-02 10:00")
         assertEquals(53, dateTime!!.weekOfYear)
-        dateTime = PFDateTimeUtils.parseUTCDate("2021-01-04 10:00")
+        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2021-01-04 10:00")
         assertEquals(1, dateTime!!.weekOfYear)
 
-        dateTime = PFDateTimeUtils.parseUTCDate("2019-12-31 10:00")
+        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2019-12-31 10:00")
         assertEquals(1, dateTime!!.weekOfYear)
-        dateTime = PFDateTimeUtils.parseUTCDate("2020-01-02 10:00")
+        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2020-01-02 10:00")
         assertEquals(1, dateTime!!.weekOfYear)
 
         ConfigurationServiceAccessor.internalSetLocaleForJunitTests(Locale("en", "US"))
         // US weeks:
-        dateTime = PFDateTimeUtils.parseUTCDate("2020-12-31 10:00")
+        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2020-12-31 10:00")
         assertEquals(1, dateTime!!.weekOfYear)
-        dateTime = PFDateTimeUtils.parseUTCDate("2021-01-02 10:00")
+        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2021-01-02 10:00")
         assertEquals(1, dateTime!!.weekOfYear)
-        dateTime = PFDateTimeUtils.parseUTCDate("2021-01-04 10:00")
+        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2021-01-04 10:00")
         assertEquals(2, dateTime!!.weekOfYear)
 
-        dateTime = PFDateTimeUtils.parseUTCDate("2019-12-31 10:00")
+        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2019-12-31 10:00")
         assertEquals(1, dateTime!!.weekOfYear)
-        dateTime = PFDateTimeUtils.parseUTCDate("2020-01-02 10:00")
+        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2020-01-02 10:00")
         assertEquals(1, dateTime!!.weekOfYear)
 
         ConfigurationServiceAccessor.internalSetLocaleForJunitTests(storedDefaultLocale)
@@ -189,7 +188,7 @@ class PFDateTimeTest {
     }
 
     private fun assertPrecision(expected: String, dateString: String, precision: DatePrecision) {
-        val dt = PFDateTimeUtils.parseUTCDate(dateString)!!.withNano(123456).withPrecision(precision)
+        val dt = PFDateTimeUtils.parseAndCreateDateTime(dateString)!!.withNano(123456).withPrecision(precision)
         if (precision == DatePrecision.MILLISECOND) {
             assertEquals(123000, dt.nano)
         } else {

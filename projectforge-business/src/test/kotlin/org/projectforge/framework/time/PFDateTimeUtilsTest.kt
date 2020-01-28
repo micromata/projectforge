@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.test.TestSetup
 import java.time.Month
+import java.time.ZoneId
 
 class PFDateTimeUtilsTest {
     @Test
@@ -38,6 +39,58 @@ class PFDateTimeUtilsTest {
         val utcDate: PFDateTime = PFDateTimeUtils.getUTCBeginOfDay(testDate.utilDate, timeZone)
         Assertions.assertEquals("2012-12-23 00:00:00.000", utcDate.isoStringMilli)
         Assertions.assertEquals("2012-12-22 23:00:00.000", from(testDate.utilDate)!!.beginOfDay.isoStringMilli)
+    }
+
+    @Test
+    fun parseUTCDateTest() {
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate("2020-01-25T22:12:00.000Z"))
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate("2020-01-25T23:12:00.000+01:00"))
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate("2020-01-25T21:12:00.000-01:00"))
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate("2020-01-25T23:12:00+01:00"))
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate("2020-01-25 22:12:00"))
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate("2020-01-25 23:12:00+01:00"))
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate("2020-01-25 22:12"))
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate("1579990320"))
+        Assertions.assertEquals("2020-01-25 22:12:00.000", parseDate("1579990320000", PFDateTime.NumberFormat.EPOCH_MILLIS))
+    }
+
+    @Test
+    fun parseDateTest() {
+        // Timezone is ignored, because time zone is given in string to parse:
+        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("Z"), "2020-01-25T22:12:00.000Z", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
+
+        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("+01:00"), "2020-01-25T23:12:00.000+01:00", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
+        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("+01:00"), "2020-01-25T23:12:00.000+01:00")
+
+        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("-01:00"), "2020-01-25T21:12:00.000-01:00", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
+        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("-01:00"), "2020-01-25T21:12:00.000-01:00")
+
+        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("+01:00"), "2020-01-25T23:12:00+01:00", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
+        parseAndCheck("2020-01-25 22:12:00.000", ZoneId.of("+01:00"), "2020-01-25 23:12:00+01:00", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
+
+        // Timezone should be used:
+        parseAndCheck("2020-01-25 21:12:00.000", PFDateTimeUtils.ZONE_EUROPE_BERLIN, "2020-01-25 22:12:00", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
+        parseAndCheck("2020-01-25 21:12:00.000", PFDateTimeUtils.ZONE_EUROPE_BERLIN, "2020-01-25 22:12", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
+        parseAndCheck("2020-01-25 22:12:00.000", PFDateTimeUtils.ZONE_EUROPE_BERLIN, "1579990320", PFDateTimeUtils.ZONE_EUROPE_BERLIN)
+        parseAndCheck("2020-01-25 22:12:00.000", PFDateTimeUtils.ZONE_EUROPE_BERLIN, "1579990320000", PFDateTimeUtils.ZONE_EUROPE_BERLIN, PFDateTime.NumberFormat.EPOCH_MILLIS)
+    }
+
+    private fun parseDate(text: String?, numberFormat: PFDateTime.NumberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS): String? {
+        return PFDateTimeUtils.parseAndCreateDateTime(text, PFDateTimeUtils.ZONE_UTC, numberFormat = numberFormat)!!.isoStringMilli
+    }
+
+    private fun parseAndCheck(expectedDate: String, expectedZoneId: ZoneId, text: String, zoneId: ZoneId? = null, numberFormat: PFDateTime.NumberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS) {
+        var dateTime = PFDateTimeUtils.parse(text, zoneId, numberFormat)
+        Assertions.assertEquals(expectedDate, dateTime!!.isoStringMilli)
+        Assertions.assertEquals(expectedZoneId, dateTime.zone)
+
+        dateTime = PFDateTimeUtils.parseAndCreateDateTime(text, zoneId, numberFormat = numberFormat)
+        Assertions.assertEquals(expectedDate, dateTime!!.isoStringMilli)
+        if (zoneId != null) {
+            Assertions.assertEquals(zoneId, dateTime.zone, "Independent of date string, the zone id is expected as user's zoneId.")
+        } else {
+            Assertions.assertEquals(PFDateTimeUtils.ZONE_EUROPE_BERLIN, dateTime.zone, "Independent of date string, the zone id is expected as user's zoneId.")
+        }
     }
 
     companion object {

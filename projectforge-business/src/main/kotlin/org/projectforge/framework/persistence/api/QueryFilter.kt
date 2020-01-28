@@ -200,7 +200,8 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
 
     fun createDBFilter(): DBFilter {
         val dbFilter = DBFilter(sortAndLimitMaxRowsWhileSelect, maxRows, fullTextSearchFields)
-        if (deleted != null) {
+        if (predicates.none { it.field == "deleted" } && deleted != null) {
+            // Adds deleted flag, if not already exist in predicates:
             dbFilter.predicates.add(DBPredicate.Equal("deleted", deleted == true))
         }
         predicates.forEach {

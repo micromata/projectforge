@@ -21,34 +21,22 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.configuration;
+package org.projectforge.business.address;
 
-import java.time.DayOfWeek;
-import java.util.Locale;
+import org.jetbrains.annotations.NotNull;
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter;
 
-/**
- * For accessing ConfigurationService without Spring context.
- */
-public class ConfigurationServiceAccessor {
-  private static ConfigurationService configurationService;
+import java.util.List;
 
-  public static void internalInitJunitTestMode() {
-    ConfigurationServiceImpl cfg = new ConfigurationServiceImpl();
-    cfg.setDefaultLocale(Locale.ENGLISH);
-    cfg.setDefaultFirstDayOfWeek(DayOfWeek.MONDAY);
-    cfg.setCurrencySymbol("€");
-    configurationService = cfg;
+public class FavoritesResultFilter implements CustomResultFilter<AddressDO> {
+  List<Integer> favoriteAddressIds;
+
+  public FavoritesResultFilter(PersonalAddressDao personalAddressDao) {
+    favoriteAddressIds = personalAddressDao.getFavoriteAddressIdList();
   }
 
-  public static void internalSetLocaleForJunitTests(Locale defaultLocale) {
-    ((ConfigurationServiceImpl)get()).setDefaultLocale(defaultLocale);
-  }
-
-  public static ConfigurationService get() {
-    return configurationService;
-  }
-
-  static void setConfigurationService(ConfigurationService configurationService) {
-    ConfigurationServiceAccessor.configurationService = configurationService;
+  @Override
+  public boolean match(@NotNull List<AddressDO> list, @NotNull AddressDO element) {
+    return favoriteAddressIds.contains(element.getId());
   }
 }

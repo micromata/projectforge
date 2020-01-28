@@ -57,15 +57,17 @@ class CalendarPanel extends React.Component {
             firstDayOfWeek,
             locale,
             location,
-            timeZone,
+            // timeZone,
         } = this.props;
-
-        moment.tz.setDefault(timeZone);
+        // Doesn't work: moment.tz.setDefault(timeZone); Bug: shifts day selection 1 day!!!
         moment.updateLocale(locale || 'en',
             {
                 week: {
-                    dow: firstDayOfWeek, // First day of week (got from UserStatus).
-                    doy: 1, // First day of year (not yet supported).
+                    dow: firstDayOfWeek, // First day of week, 1 - Sunday, 2 - Monday, ....
+                    doy: 4, // Europe: First week of year must contain 4 January (7 + 1 - 4)
+                    // doy: 6  // Canada: First week of year must contain 1 January (7 + 0 - 1)
+                    // doy: 12 // Arab: First week of year must contain 1 January (7 + 6 - 1)
+                    // doy: 7  // Also common: First week of year must contain 1 January (7 + 1 - 1)
                 },
             });
 
@@ -220,18 +222,20 @@ class CalendarPanel extends React.Component {
 
     fetchAction(action, startDate, endDate, calendar, allDay, event) {
         const { match } = this.props;
-
         fetchJsonGet('calendar/action',
             {
                 action,
-                startDate: startDate ? startDate.toJSON() : '',
-                endDate: endDate ? endDate.toJSON() : '',
+                startDate: startDate ? startDate.toISOString() : '',
+                endDate: endDate ? endDate.toISOString() : '',
                 allDay,
                 category: event ? event.category || '' : '',
                 dbId: event ? event.dbId || '' : '',
                 uid: event ? event.uid || '' : '',
-                origStartDate: event ? event.start.toJSON() : '',
-                origEndDate: event ? event.end.toJSON() : '',
+                origStartDate: event && event.start ? event.start.toISOString() : '',
+                origEndDate: (event && event.end) ? event.end.toISOString() : '',
+                // Browsers time zone may differ from user's time zone:
+                // timeZone: Intl.DateTimeFormat()
+                //    .resolvedOptions().timeZone,
             },
             (json) => {
                 const { url } = json;
@@ -392,7 +396,7 @@ CalendarPanel.propTypes = {
     vacationGroups: PropTypes.arrayOf(PropTypes.shape({})),
     vacationUsers: PropTypes.arrayOf(PropTypes.shape({})),
     firstDayOfWeek: PropTypes.number.isRequired,
-    timeZone: PropTypes.string.isRequired,
+    // timeZone: PropTypes.string.isRequired,
     locale: PropTypes.string,
     topHeight: PropTypes.string,
     defaultDate: PropTypes.instanceOf(Date),
@@ -418,8 +422,8 @@ CalendarPanel.defaultProps = {
 };
 
 const mapStateToProps = ({ authentication }) => ({
-    firstDayOfWeek: authentication.user.firstDayOfWeekNo,
-    timeZone: authentication.user.timeZone,
+    firstDayOfWeek: authentication.user.firstDayOfWeekSunday0,
+    // timeZone: authentication.user.timeZone,
     locale: authentication.user.locale,
 });
 

@@ -34,6 +34,7 @@ function DynamicTable({ columns, id }) {
                             key={`table-body-row-${row.id}`}
                             columns={columns}
                             row={row}
+                            highlightRow={data.highlightRowId === row.id}
                         />
                     ))}
                 </tbody>

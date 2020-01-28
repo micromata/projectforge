@@ -45,6 +45,7 @@ import javax.net.ssl.*;
 import java.io.*;
 import java.net.URL;
 import java.security.KeyStore;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.*;
@@ -131,7 +132,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   private TimeNotation defaultTimeNotation;
 
   @Value("${projectforge.defaultFirstDayOfWeek}")
-  private int defaultFirstDayOfWeek;
+  private DayOfWeek defaultFirstDayOfWeek;
 
   @Value("${projectforge.excelPaperSize}")
   private String excelPaperSize;
@@ -553,7 +554,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @Override
-  public int getDefaultFirstDayOfWeek() {
+  public DayOfWeek getDefaultFirstDayOfWeek() {
     return defaultFirstDayOfWeek;
   }
 
@@ -686,7 +687,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     this.defaultLocale = defaultLocale;
   }
 
-  void setDefaultFirstDayOfWeek(int defaultFirstDayOfWeek) {
+  void setDefaultFirstDayOfWeek(DayOfWeek defaultFirstDayOfWeek) {
     this.defaultFirstDayOfWeek = defaultFirstDayOfWeek;
   }
 

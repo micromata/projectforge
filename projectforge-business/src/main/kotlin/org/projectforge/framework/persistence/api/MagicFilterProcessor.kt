@@ -35,8 +35,7 @@ import java.util.*
 
 /** Transforms MagicFilterEntries to DBFilterExpressions. */
 object MagicFilterProcessor {
-    fun doIt(entityClass: Class<*>, magicFilter: MagicFilter): QueryFilter {
-        val queryFilter = QueryFilter()
+    fun doIt(entityClass: Class<*>, magicFilter: MagicFilter, queryFilter: QueryFilter = QueryFilter()): QueryFilter {
         queryFilter.deleted = magicFilter.deleted
         queryFilter.maxRows = magicFilter.maxRows
         queryFilter.searchHistory = magicFilter.searchHistory
@@ -68,8 +67,8 @@ object MagicFilterProcessor {
         val field = magicFilterEntry.field!!
         if (isHistoryEntry(field)) {
             if (isModifiedInterval(field)) {
-                queryFilter.modifiedFrom = PFDateTimeUtils.parseUTCDate(magicFilterEntry.value.fromValue)
-                queryFilter.modifiedTo = PFDateTimeUtils.parseUTCDate(magicFilterEntry.value.toValue)
+                queryFilter.modifiedFrom = PFDateTimeUtils.parseAndCreateDateTime(magicFilterEntry.value.fromValue)
+                queryFilter.modifiedTo = PFDateTimeUtils.parseAndCreateDateTime(magicFilterEntry.value.toValue)
             } else if (isModifiedByUserId(field)) {
                 queryFilter.modifiedByUserId = magicFilterEntry.value.value?.toIntOrNull()
             }
@@ -83,9 +82,9 @@ object MagicFilterProcessor {
             return
         }
         if (fieldType == Date::class.java) {
-            val valueDate = PFDateTimeUtils.parseUTCDate(magicFilterEntry.value.value)?.utilDate
-            val fromDate = PFDateTimeUtils.parseUTCDate(magicFilterEntry.value.fromValue)?.utilDate
-            val toDate = PFDateTimeUtils.parseUTCDate(magicFilterEntry.value.toValue)?.utilDate
+            val valueDate = PFDateTimeUtils.parseAndCreateDateTime(magicFilterEntry.value.value)?.utilDate
+            val fromDate = PFDateTimeUtils.parseAndCreateDateTime(magicFilterEntry.value.fromValue)?.utilDate
+            val toDate = PFDateTimeUtils.parseAndCreateDateTime(magicFilterEntry.value.toValue)?.utilDate
             if (fromDate != null || toDate != null) {
                 queryFilter.add(QueryFilter.interval(field, fromDate, toDate))
             } else if (valueDate != null) {
@@ -115,6 +114,9 @@ object MagicFilterProcessor {
             } else {
                 queryFilter.add(QueryFilter.isNull(field))
             }
+        } else if (fieldType == Boolean::class.java) {
+            val valueBoolean = magicFilterEntry.value.value == "true"
+            queryFilter.add(QueryFilter.eq(field, valueBoolean))
         } else if (TaskDO::class.java.isAssignableFrom(fieldType)) {
             val valueInt = magicFilterEntry.value.value?.toIntOrNull()
             queryFilter.add(QueryFilter.taskSearch(field, valueInt, true))
