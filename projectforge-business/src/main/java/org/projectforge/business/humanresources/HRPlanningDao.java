@@ -173,8 +173,8 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
   public List<HRPlanningDO> getList(final BaseSearchFilter filter) {
     final HRPlanningFilter myFilter = (HRPlanningFilter) filter;
     if (myFilter.getStopTime() != null) {
-      PFDateTime dateTime = PFDateTime.from(myFilter.getStopTime(), false, DateHelper.UTC, Locale.GERMANY).getEndOfDay();
-      myFilter.setStopTime(dateTime.getUtilDate());
+      PFDateTime dateTime = PFDateTime.from(myFilter.getStopTime(), true).getEndOfDay();
+      myFilter.setStopTime(dateTime.getLocalDate());
     }
     final QueryFilter queryFilter = buildQueryFilter(myFilter);
     final List<HRPlanningDO> result = getList(queryFilter);

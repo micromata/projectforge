@@ -85,7 +85,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
       getData().setWeek(week);
     }
     if (getData().getWeek() != null) {
-      final DateHolder date = new DateHolder(java.sql.Date.valueOf(getData().getWeek()), ConfigurationServiceAccessor.get().getDefaultLocale());
+      final DateHolder date = new DateHolder(getData().getWeek(), ConfigurationServiceAccessor.get().getDefaultLocale());
       if (!date.isBeginOfWeek()) {
         date.setBeginOfWeek();
         getData().setWeek(date.getLocalDate());

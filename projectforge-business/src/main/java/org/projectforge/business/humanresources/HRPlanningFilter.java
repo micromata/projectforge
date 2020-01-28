@@ -24,9 +24,11 @@
 package org.projectforge.business.humanresources;
 
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
+import org.projectforge.framework.time.LocalDatePeriod;
 import org.projectforge.framework.time.TimePeriod;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.Date;
 
 /**
@@ -73,43 +75,43 @@ public class HRPlanningFilter extends BaseSearchFilter implements Serializable
   /**
    * @return the startTime
    */
-  public Date getStartTime()
+  public LocalDate getStartTime()
   {
-    return getTimePeriod().getFromDate();
+    return getTimePeriod().getFromDay();
   }
 
   /**
    * @param startTime the startTime to set
    */
-  public void setStartTime(Date startTime)
+  public void setStartTime(LocalDate startTime)
   {
-    getTimePeriod().setFromDate(startTime);
+    getTimePeriod().setFromDay(startTime);
   }
 
   /**
    * @return the stopTime
    */
-  public Date getStopTime()
+  public LocalDate getStopTime()
   {
-    return getTimePeriod().getToDate();
+    return getTimePeriod().getToDay();
   }
 
   /**
    * @param stopTime the stopTime to set
    */
-  public void setStopTime(Date stopTime)
+  public void setStopTime(LocalDate stopTime)
   {
-    getTimePeriod().setToDate(stopTime);
+    getTimePeriod().setToDay(stopTime);
   }
 
   /**
    * Gets start and stop time from timePeriod.
    * @param timePeriod
    */
-  public void setTimePeriod(final TimePeriod timePeriod)
+  public void setTimePeriod(final LocalDatePeriod timePeriod)
   {
-    setStartTime(timePeriod.getFromDate());
-    setStopTime(timePeriod.getToDate());
+    setStartTime(timePeriod.getBegin());
+    setStopTime(timePeriod.getEnd());
   }
 
   private TimePeriod getTimePeriod()

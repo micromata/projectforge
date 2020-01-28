@@ -57,6 +57,7 @@ import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -161,9 +162,9 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // Start Date
+      final FieldProperties<LocalDate> props = getWeekProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.startTime"));
-      final DatePanel weekDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "week"), DateTimePanelSettings.get()
-          .withSelectStartStopTime(false).withTargetType(java.sql.Date.class));
+      LocalDatePanel weekDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
       weekDatePanel.setRequired(true);
       weekDatePanel.add((IValidator<Date>) iValidatable -> {
         final Date date = iValidatable.getValue();
@@ -278,6 +279,10 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
       panel.add(addPositionButtonPanel);
     }
     WicketUtils.addShowDeleteRowQuestionDialog(this, hrPlanningEntryDao);
+  }
+
+  private FieldProperties<LocalDate> getWeekProperties() {
+    return new FieldProperties<>("week", new PropertyModel<>(super.data, "week"));
   }
 
   @SuppressWarnings("serial")
