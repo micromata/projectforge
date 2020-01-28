@@ -23,7 +23,6 @@
 
 package org.projectforge.web.access;
 
-import org.slf4j.Logger;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -41,6 +40,7 @@ import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 public class AccessListForm extends AbstractListForm<AccessFilter, AccessListPage>
 {

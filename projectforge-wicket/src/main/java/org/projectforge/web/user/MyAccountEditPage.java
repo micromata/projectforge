@@ -23,11 +23,6 @@
 
 package org.projectforge.web.user;
 
-import java.util.Collection;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.slf4j.Logger;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -48,6 +43,10 @@ import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.MessagePage;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+import org.slf4j.Logger;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 
 public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditForm, UserDao>
 {

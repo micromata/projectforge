@@ -23,14 +23,6 @@
 
 package org.projectforge.web.task;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Date;
-import java.util.List;
-
-import org.projectforge.web.wicket.components.*;
-import org.projectforge.web.wicket.flowlayout.*;
-import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -41,7 +33,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.convert.IConverter;
 import org.hibernate.Hibernate;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.gantt.GanttObjectType;
@@ -61,9 +52,17 @@ import org.projectforge.web.fibu.Kost2ListPage;
 import org.projectforge.web.fibu.Kost2SelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.converter.IntegerPercentConverter;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
 
 public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
 {

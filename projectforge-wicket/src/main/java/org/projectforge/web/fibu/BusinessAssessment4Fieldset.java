@@ -23,9 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -34,12 +31,10 @@ import org.projectforge.business.fibu.kost.BusinessAssessment;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.IconPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
-import org.projectforge.web.wicket.flowlayout.TextStyle;
+import org.projectforge.web.wicket.flowlayout.*;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
 
 public abstract class BusinessAssessment4Fieldset implements Serializable
 {

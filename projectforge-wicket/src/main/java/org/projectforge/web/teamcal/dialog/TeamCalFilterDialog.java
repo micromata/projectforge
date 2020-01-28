@@ -23,13 +23,7 @@
 
 package org.projectforge.web.teamcal.dialog;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
+import de.micromata.wicket.ajax.AjaxCallback;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -74,7 +68,7 @@ import org.projectforge.web.wicket.flowlayout.Heading3Panel;
 import org.projectforge.web.wicket.flowlayout.SelectPanel;
 import org.wicketstuff.select2.Select2MultiChoice;
 
-import de.micromata.wicket.ajax.AjaxCallback;
+import java.util.*;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)

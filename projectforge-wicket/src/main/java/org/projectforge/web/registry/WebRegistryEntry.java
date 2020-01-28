@@ -23,8 +23,6 @@
 
 package org.projectforge.web.registry;
 
-import java.io.Serializable;
-
 import org.apache.commons.lang3.Validate;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -32,6 +30,8 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.registry.Registry;
 import org.projectforge.registry.RegistryEntry;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
+
+import java.io.Serializable;
 
 /**
  * Contains more information than a RegistryEntry. This is e. g. needed by general search page.

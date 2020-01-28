@@ -23,8 +23,6 @@
 
 package org.projectforge.web.scripting;
 
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
@@ -40,12 +38,10 @@ import org.projectforge.web.fibu.ReportScriptingStorage;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.components.AceEditorPanel;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
-import org.projectforge.web.wicket.flowlayout.Heading1Panel;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.springframework.util.CollectionUtils;
+
+import java.util.List;
 
 public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
 {

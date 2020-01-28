@@ -23,17 +23,16 @@
 
 package org.projectforge.web.calendar;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
+import net.ftlines.wicket.fullcalendar.Event;
+import net.ftlines.wicket.fullcalendar.EventNotFoundException;
+import net.ftlines.wicket.fullcalendar.EventProvider;
 import org.joda.time.DateTime;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 
-import net.ftlines.wicket.fullcalendar.Event;
-import net.ftlines.wicket.fullcalendar.EventNotFoundException;
-import net.ftlines.wicket.fullcalendar.EventProvider;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Creates events for FullCalendar.

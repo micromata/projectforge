@@ -25,8 +25,8 @@ package org.projectforge.framework.persistence.utils
 
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.i18n.InternalErrorException
-import java.time.LocalDate
 import org.projectforge.framework.time.PFDateTime
+import java.time.LocalDate
 import java.time.Year
 import java.util.*
 import javax.persistence.TypedQuery

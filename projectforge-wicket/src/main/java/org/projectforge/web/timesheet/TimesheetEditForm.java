@@ -23,13 +23,8 @@
 
 package org.projectforge.web.timesheet;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -72,18 +67,13 @@ import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.AutoCompleteIgnoreForm;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextField;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
-import org.projectforge.web.wicket.components.ConsumptionBarPanel;
-import org.projectforge.web.wicket.components.DateTimePanel;
-import org.projectforge.web.wicket.components.DateTimePanelSettings;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.flowlayout.AbstractFieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.projectforge.web.wicket.components.*;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEditPage>
     implements AutoCompleteIgnoreForm

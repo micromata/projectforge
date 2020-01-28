@@ -23,13 +23,12 @@
 
 package org.projectforge.web.common.timeattr;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup.DayMonthGranularity;
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import de.micromata.genome.util.types.DateUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -61,12 +60,12 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup.DayMonthGranularity;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
-import de.micromata.genome.util.types.DateUtils;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttrRow<PK>> extends BaseAttributePanel
 {

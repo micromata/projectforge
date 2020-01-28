@@ -23,11 +23,6 @@
 
 package org.projectforge.web.task;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -62,16 +57,14 @@ import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.fibu.OrderPositionsPanel;
 import org.projectforge.web.user.UserPrefListPage;
 import org.projectforge.web.user.UserPropertyColumn;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.DatePropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ConsumptionBarPanel;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * This page is shown when the user searches in the task tree. The task will be displayed as list.

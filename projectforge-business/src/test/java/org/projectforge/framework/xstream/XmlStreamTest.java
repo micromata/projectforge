@@ -35,7 +35,10 @@ import org.projectforge.test.AbstractTestBase;
 
 import java.lang.reflect.Field;
 import java.time.Month;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
 
 import static org.junit.jupiter.api.Assertions.*;
 

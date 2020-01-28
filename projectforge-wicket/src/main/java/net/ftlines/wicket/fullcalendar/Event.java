@@ -35,9 +35,9 @@
 
 package net.ftlines.wicket.fullcalendar;
 
-import java.io.Serializable;
-
 import org.joda.time.DateTime;
+
+import java.io.Serializable;
 
 public class Event implements Serializable {
 

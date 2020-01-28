@@ -23,8 +23,6 @@
 
 package org.projectforge.web.teamcal.integration;
 
-import java.util.Set;
-
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
@@ -37,6 +35,8 @@ import org.projectforge.business.teamcal.filter.TemplateEntry;
 import org.projectforge.web.calendar.CalendarForm;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.calendar.CalendarPanel;
+
+import java.util.Set;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)

@@ -23,16 +23,16 @@
 
 package org.projectforge.web.user;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class GroupsWicketProvider extends ChoiceProvider<GroupDO>
 {

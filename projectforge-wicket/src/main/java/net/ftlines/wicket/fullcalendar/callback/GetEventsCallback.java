@@ -37,7 +37,6 @@ package net.ftlines.wicket.fullcalendar.callback;
 
 import net.ftlines.wicket.fullcalendar.EventProvider;
 import net.ftlines.wicket.fullcalendar.EventSource;
-
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.handler.TextRequestHandler;
 import org.apache.wicket.util.collections.MicroMap;

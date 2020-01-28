@@ -23,13 +23,6 @@
 
 package org.projectforge.web.humanresources;
 
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import net.sf.cglib.core.Local;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -46,19 +39,16 @@ import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.framework.time.PFDay;
 import org.projectforge.jira.JiraUtils;
 import org.projectforge.web.core.PriorityFormatter;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.user.UserPropertyColumn;
-import org.projectforge.web.wicket.AbstractEditPage;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.NumberPropertyColumn;
-import org.projectforge.web.wicket.WebConstants;
+import org.projectforge.web.wicket.*;
+
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *

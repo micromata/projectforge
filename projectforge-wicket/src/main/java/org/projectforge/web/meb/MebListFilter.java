@@ -23,9 +23,8 @@
 
 package org.projectforge.web.meb;
 
-import org.projectforge.business.fibu.kost.KostFilter;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.projectforge.business.fibu.kost.KostFilter;
 
 
 /**

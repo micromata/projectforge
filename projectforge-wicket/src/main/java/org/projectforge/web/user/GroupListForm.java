@@ -23,7 +23,6 @@
 
 package org.projectforge.web.user;
 
-import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.login.Login;
@@ -32,6 +31,7 @@ import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 public class GroupListForm extends AbstractListForm<GroupFilter, GroupListPage>
 {

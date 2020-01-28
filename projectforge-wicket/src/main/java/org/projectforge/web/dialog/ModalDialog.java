@@ -23,6 +23,8 @@
 
 package org.projectforge.web.dialog;
 
+import de.micromata.wicket.ajax.AjaxCallback;
+import de.micromata.wicket.ajax.AjaxFormSubmitCallback;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -39,15 +41,12 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.core.NavTopPanel;
 import org.projectforge.web.wicket.CsrfTokenHandler;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
-
-import de.micromata.wicket.ajax.AjaxCallback;
-import de.micromata.wicket.ajax.AjaxFormSubmitCallback;
 
 /**
  * Base component for the ProjectForge modal dialogs.<br/>

@@ -23,8 +23,9 @@
 
 package org.projectforge.web.common.timeattr;
 
-import java.util.function.Consumer;
-
+import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -37,9 +38,7 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
+import java.util.function.Consumer;
 
 public abstract class BaseAttributePanel extends Panel
 {

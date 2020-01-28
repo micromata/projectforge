@@ -35,10 +35,10 @@
 
 package net.ftlines.wicket.fullcalendar;
 
-import java.util.Date;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.util.string.Strings;
+
+import java.util.Date;
 
 public class CalendarResponse {
 	private final FullCalendar calendar;

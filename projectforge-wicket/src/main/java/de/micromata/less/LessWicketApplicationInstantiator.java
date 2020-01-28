@@ -23,11 +23,6 @@
 
 package de.micromata.less;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.Serializable;
-
 import org.apache.wicket.markup.head.CssReferenceHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.util.listener.IChangeListener;
@@ -38,6 +33,11 @@ import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.wicket.WicketApplication;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StringUtils;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.Serializable;
 
 /**
  * Compiler utility class for less resource files

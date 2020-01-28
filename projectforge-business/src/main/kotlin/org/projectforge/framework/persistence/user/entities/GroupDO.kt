@@ -31,8 +31,8 @@ import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.util.*
 import javax.persistence.*

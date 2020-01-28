@@ -1,23 +1,23 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { connect } from 'react-redux';
-import { Route, Router, Switch } from 'react-router-dom';
-import { loadUserStatus, loginUser } from '../actions';
+import {connect} from 'react-redux';
+import {Route, Router, Switch} from 'react-router-dom';
+import {loadUserStatus, loginUser} from '../actions';
 import LoginView from '../components/authentication/LoginView';
 import Footer from '../components/base/footer';
 import GlobalNavigation from '../components/base/navigation/GlobalNavigation';
 import TopBar from '../components/base/topbar';
-import { Alert } from '../components/design';
+import {Alert} from '../components/design';
 import history from '../utilities/history';
 import prefix from '../utilities/prefix';
-import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
+import {getServiceURL, handleHTTPErrors} from '../utilities/rest';
 import CalendarPage from './page/calendar/CalendarPage';
 import DynamicPage from './page/DynamicPage';
 import EditPage from './page/edit/EditPage';
 import IndexPage from './page/IndexPage';
 import ListPage from './page/list/ListPage';
 import TaskTreePage from './page/TaskTreePage';
-import { SystemStatusContext, systemStatusContextDefaultValues } from './SystemStatusContext';
+import {SystemStatusContext, systemStatusContextDefaultValues} from './SystemStatusContext';
 
 function ProjectForge(
     {

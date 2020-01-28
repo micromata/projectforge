@@ -24,7 +24,6 @@
 package org.projectforge.web.user;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.ldap.GroupDOConverter;
@@ -35,6 +34,7 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.WicketUtils;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = GroupListPage.class)
 public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, GroupDao>

@@ -23,8 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.Date;
-
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -42,6 +40,8 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
+
+import java.util.Date;
 
 public class ReportObjectivesForm extends AbstractStandardForm<ReportObjectivesFilter, ReportObjectivesPage>
 {

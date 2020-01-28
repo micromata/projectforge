@@ -35,11 +35,11 @@
 
 package net.ftlines.wicket.fullcalendar.callback;
 
-import java.util.UUID;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxCallListener;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+
+import java.util.UUID;
 
 abstract class AbstractAjaxCallbackWithClientsideRevert extends AbstractAjaxCallback
 {

@@ -23,13 +23,13 @@
 
 package org.projectforge.web.wicket.tree;
 
+import org.projectforge.framework.persistence.api.IdObject;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-
-import org.projectforge.framework.persistence.api.IdObject;
 
 /**
  * Memorizes the open state of the tree nodes.

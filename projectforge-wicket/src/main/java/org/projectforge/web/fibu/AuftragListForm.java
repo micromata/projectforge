@@ -23,18 +23,10 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.fibu.AuftragDao;
-import org.projectforge.business.fibu.AuftragFakturiertFilterStatus;
-import org.projectforge.business.fibu.AuftragFilter;
-import org.projectforge.business.fibu.AuftragsPositionsArt;
-import org.projectforge.business.fibu.AuftragsPositionsPaymentType;
-import org.projectforge.business.fibu.AuftragsStatistik;
-import org.projectforge.business.fibu.AuftragsStatus;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.common.I18nEnumChoiceProvider;
@@ -43,14 +35,11 @@ import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
-import org.projectforge.web.wicket.flowlayout.TextStyle;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
+
+import java.math.BigDecimal;
 
 public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragListPage>
 {

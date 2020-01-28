@@ -23,9 +23,8 @@
 
 package org.projectforge.web.user;
 
-import org.projectforge.business.user.UserRightFilter;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.projectforge.business.user.UserRightFilter;
 
 
 @XStreamAlias("UserRightListFilter")

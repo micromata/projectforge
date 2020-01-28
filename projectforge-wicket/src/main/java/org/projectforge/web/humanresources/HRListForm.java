@@ -23,8 +23,6 @@
 
 package org.projectforge.web.humanresources;
 
-import java.util.Date;
-
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.humanresources.HRFilter;
@@ -38,6 +36,8 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
 import org.slf4j.Logger;
+
+import java.util.Date;
 
 /**
  * 

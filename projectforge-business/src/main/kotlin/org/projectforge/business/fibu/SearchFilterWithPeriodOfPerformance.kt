@@ -24,7 +24,6 @@
 package org.projectforge.business.fibu
 
 import java.time.LocalDate
-import java.util.Date
 
 interface SearchFilterWithPeriodOfPerformance {
     val periodOfPerformanceStartDate: LocalDate?

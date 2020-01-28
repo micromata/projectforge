@@ -23,11 +23,6 @@
 
 package org.projectforge.web.task;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -71,14 +66,15 @@ import org.projectforge.web.core.PriorityFormatter;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.fibu.OrderPositionsPanel;
 import org.projectforge.web.user.UserPropertyColumn;
-import org.projectforge.web.wicket.AbstractSecuredPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.DatePropertyColumn;
-import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

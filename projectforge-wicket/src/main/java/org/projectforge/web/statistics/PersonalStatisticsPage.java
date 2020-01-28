@@ -23,8 +23,6 @@
 
 package org.projectforge.web.statistics;
 
-import java.text.NumberFormat;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -38,6 +36,8 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.statistics.TimesheetDisciplineChartBuilder;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.JFreeChartImage;
+
+import java.text.NumberFormat;
 
 public class PersonalStatisticsPage extends AbstractSecuredPage
 {

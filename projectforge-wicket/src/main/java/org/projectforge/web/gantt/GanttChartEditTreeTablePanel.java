@@ -23,17 +23,6 @@
 
 package org.projectforge.web.gantt;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -50,21 +39,11 @@ import org.apache.wicket.markup.repeater.RefreshingView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.markup.repeater.ReuseIfModelsEqualStrategy;
 import org.apache.wicket.markup.repeater.util.ModelIteratorAdapter;
-import org.apache.wicket.model.CompoundPropertyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.ResourceModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.business.gantt.GanttChartDO;
-import org.projectforge.business.gantt.GanttChartData;
-import org.projectforge.business.gantt.GanttObjectType;
-import org.projectforge.business.gantt.GanttRelationType;
-import org.projectforge.business.gantt.GanttTask;
-import org.projectforge.business.gantt.GanttTaskImpl;
-import org.projectforge.business.gantt.Task2GanttTaskConverter;
+import org.projectforge.business.gantt.*;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskTree;
@@ -81,29 +60,16 @@ import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.task.TaskEditForm;
 import org.projectforge.web.task.TaskEditPage;
 import org.projectforge.web.task.TaskTreePage;
-import org.projectforge.web.tree.DefaultTreeTablePanel;
-import org.projectforge.web.tree.TreeIconsActionPanel;
-import org.projectforge.web.tree.TreeTable;
-import org.projectforge.web.tree.TreeTableFilter;
-import org.projectforge.web.tree.TreeTableNode;
-import org.projectforge.web.wicket.AbstractEditPage;
-import org.projectforge.web.wicket.AbstractSecuredPage;
-import org.projectforge.web.wicket.AbstractUnsecureBasePage;
-import org.projectforge.web.wicket.EqualsDecorator;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.PresizedImage;
-import org.projectforge.web.wicket.WebConstants;
-import org.projectforge.web.wicket.WicketUtils;
-import org.projectforge.web.wicket.components.AjaxRequiredMaxLengthEditableLabel;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.ImageSubmitLinkPanel;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.components.SingleImagePanel;
+import org.projectforge.web.tree.*;
+import org.projectforge.web.wicket.*;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.converter.IntegerPercentConverter;
 import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.*;
 
 public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTreeTableNode> implements ISelectCallerPage
 {

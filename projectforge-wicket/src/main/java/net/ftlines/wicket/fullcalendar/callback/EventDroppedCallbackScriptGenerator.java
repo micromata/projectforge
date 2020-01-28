@@ -23,11 +23,11 @@
 
 package net.ftlines.wicket.fullcalendar.callback;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.util.template.PackageTextTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Just the Javascript generator helper class to provide the event dropped javascript
