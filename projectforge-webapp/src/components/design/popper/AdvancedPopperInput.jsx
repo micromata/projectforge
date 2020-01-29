@@ -34,7 +34,7 @@ function AdvancedPopperInput(
                 icon={icon}
                 className={styles.container}
                 autoComplete="off"
-                noLine
+                noStyle
                 {...props}
                 onKeyDown={handleKeyDown}
             />
