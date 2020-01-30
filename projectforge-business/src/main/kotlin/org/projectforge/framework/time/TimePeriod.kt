@@ -40,22 +40,22 @@ class TimePeriod @JvmOverloads constructor(var fromDate: Date? = null, var toDat
                                             */
                                            var marker: Boolean = false) : Serializable {
     var fromDay: LocalDate?
-        get() = PFDay.from(fromDate)?.localDate
+        get() = PFDay.fromOrNull(fromDate)?.localDate
         set(value) {
             if (value == null) {
                 fromDate = null
             } else {
-                fromDate = PFDateTime.from(value)!!.beginOfDay.utilDate
+                fromDate = PFDateTime.from(value).beginOfDay.utilDate
             }
         }
 
     var toDay: LocalDate?
-        get() = PFDay.from(toDate)?.localDate
+        get() = PFDay.fromOrNull(toDate)?.localDate
         set(value) {
             if (value == null) {
                 toDate = null
             } else {
-                toDate = PFDateTime.from(value)!!.endOfDay.utilDate
+                toDate = PFDateTime.from(value).endOfDay.utilDate
             }
         }
 

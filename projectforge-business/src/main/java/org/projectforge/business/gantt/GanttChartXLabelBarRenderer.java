@@ -214,8 +214,8 @@ public class GanttChartXLabelBarRenderer
     }
     final Element ticks = SVGHelper.createElement(doc, "g", "stroke", SVGColor.BLACK.getName(), "stroke-width", "1", "transform", "translate(0,10)");
     g1.appendChild(ticks);
-    PFDateTime day = PFDateTime.from(fromDate);
-    PFDateTime toDay = PFDateTime.from(toDate);
+    PFDateTime day = PFDateTime.from(fromDate); // not null
+    PFDateTime toDay = PFDateTime.from(toDate); // not null
     int dayCounter = 0;
     int weekCounter = 0;
     int monthCounter = 0;
@@ -326,8 +326,8 @@ public class GanttChartXLabelBarRenderer
     if (g == null) {
       return;
     }
-    PFDateTime dt = PFDateTime.from(day);
-    PFDateTime dtTo = PFDateTime.from(toDate);
+    PFDateTime dt = PFDateTime.from(day); // not null
+    PFDateTime dtTo = PFDateTime.from(toDate); // not null
     final double x1 = getXValue(day);
     for (int i = 0; i < 100; i++) { // End-less loop protection.
       dt = dt.plusDays(1);
@@ -359,7 +359,7 @@ public class GanttChartXLabelBarRenderer
     if (date == null) {
       return 0.0;
     }
-    final PFDateTime dt = PFDateTime.from(fromDate);
+    final PFDateTime dt = PFDateTime.from(fromDate); // not null
     final int days = (int) dt.daysBetween(date);
     final int fromToDays = getFromToDays();
     if (fromToDays == 0) {
@@ -371,7 +371,7 @@ public class GanttChartXLabelBarRenderer
   private int getFromToDays()
   {
     if (fromToDays < 0) {
-      final PFDateTime dt = PFDateTime.from(fromDate);
+      final PFDateTime dt = PFDateTime.from(fromDate); // not null
       fromToDays = (int) dt.daysBetween(toDate);
     }
     return fromToDays;

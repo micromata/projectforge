@@ -87,11 +87,11 @@ public class DayHolder {
    * @param date
    */
   public DayHolder(final Date date) {
-    this.date = PFDay.from(date, true);
+    this.date = PFDay.fromOrNow(date);
   }
 
   public DayHolder(final Date date, final TimeZone timeZone) {
-    this.date = PFDay.from(date, true, timeZone);
+    this.date = PFDay.fromOrNow(date, timeZone);
   }
 
   public DayHolder(final DayHolder dateHolder) {
@@ -141,7 +141,7 @@ public class DayHolder {
    * @return other.days - this.days.
    */
   public long daysBetween(final Date other) {
-    PFDay otherDay = PFDay.from(other);
+    PFDay otherDay = PFDay.from(other); // not null
     return this.date.daysBetween(otherDay);
   }
 
@@ -176,7 +176,7 @@ public class DayHolder {
   }
 
   public boolean isSameDay(Date other) {
-    return date.isSameDay(PFDay.from(other));
+    return date.isSameDay(PFDay.from(other)); // not null
   }
 
   public boolean isSameDay(DayHolder other) {

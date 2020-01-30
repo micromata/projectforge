@@ -34,7 +34,7 @@ import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.framework.persistence.utils.MyImportedElement
-import org.projectforge.framework.time.PFDay.Companion.from
+import org.projectforge.framework.time.PFDay
 import org.slf4j.LoggerFactory
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -127,7 +127,7 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
             val satz = BuchungssatzDO()
             element.value = satz
             ImportHelper.fillBean(satz, excelSheet, row.rowNum)
-            val day = from(dateValidator.getDate(excelSheet.getCell(row, Cols.DATUM)))
+            val day = PFDay.fromOrNull(dateValidator.getDate(excelSheet.getCell(row, Cols.DATUM)))
             if (day != null) {
                 satz.datum = day.localDate
                 if (year == 0) {

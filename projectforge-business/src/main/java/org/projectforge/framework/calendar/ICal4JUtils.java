@@ -90,7 +90,7 @@ public class ICal4JUtils {
       final Date startUtc = PFDateTimeUtils.getUTCBeginOfDay(startDate);
       final Date endUtc = PFDateTimeUtils.getUTCBeginOfDay(endDate);
       final net.fortuna.ical4j.model.Date fortunaStartDate = new net.fortuna.ical4j.model.Date(startUtc);
-      final PFDateTime dateTime = PFDateTime.from(endUtc);
+      final PFDateTime dateTime = PFDateTime.from(endUtc); // not null
       // requires plus 1 because one day will be omitted by calendar.
       final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(dateTime.plusDays(1).getUtilDate());
       vEvent = new VEvent(fortunaStartDate, fortunaEndDate, summary);

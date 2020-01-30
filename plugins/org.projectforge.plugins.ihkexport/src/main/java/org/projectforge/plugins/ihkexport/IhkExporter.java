@@ -58,7 +58,7 @@ class IhkExporter
     }
     ExportWorkbook workbook;
 
-    PFDateTime date = PFDateTime.from(timesheets.get(0).getStartTime());
+    PFDateTime date = PFDateTime.from(timesheets.get(0).getStartTime()); // not null
     PFDateTime mondayDate = date.getBeginOfWeek();
     PFDateTime sundayDate = date.getEndOfWeek();
 

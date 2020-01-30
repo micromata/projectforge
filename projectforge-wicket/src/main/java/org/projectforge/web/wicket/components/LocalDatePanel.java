@@ -131,7 +131,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
     dateField.add((IValidator<Date>) validatable -> {
       final Date date = validatable.getValue();
       if (date != null) {
-        final PFDay day = PFDay.from(date, false, settings.timeZone);
+        final PFDay day = PFDay.from(date, settings.timeZone); // not null
         final int year = day.getYear();
         if (year < minYear || year > maxYear) {
           validatable.error(new ValidationError().addKey("error.date.yearOutOfRange").setVariable("minimumYear", minYear)
@@ -275,6 +275,6 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
     if (newDate == null) {
       return null;
     }
-    return PFDay.from(newDate, false, settings.timeZone).getDate();
+    return PFDay.from(newDate, settings.timeZone).getDate();
   }
 }

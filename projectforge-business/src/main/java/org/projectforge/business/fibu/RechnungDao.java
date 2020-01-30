@@ -127,7 +127,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
     if (rechnung.getDatum() == null) {
       return null;
     }
-    PFDateTime dateTime = PFDateTime.from(rechnung.getDatum());
+    PFDateTime dateTime = PFDateTime.from(rechnung.getDatum()); // not null
     dateTime = dateTime.plusDays(days);
     return dateTime.getUtilDate();
   }

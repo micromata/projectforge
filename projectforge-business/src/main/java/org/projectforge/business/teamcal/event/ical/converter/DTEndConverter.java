@@ -43,7 +43,7 @@ public class DTEndConverter extends PropertyConverter {
 
     if (event.getAllDay()) {
       final Date endUtc = PFDateTimeUtils.getUTCBeginOfDay(event.getEndDate());
-      final PFDateTime dateTime = PFDateTime.from(endUtc);
+      final PFDateTime dateTime = PFDateTime.from(endUtc); // not null
       // TODO sn should not be done
       // requires plus 1 because one day will be omitted by calendar.
       final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(dateTime.plusDays(1).getUtilDate());
@@ -66,7 +66,7 @@ public class DTEndConverter extends PropertyConverter {
 
     if (isAllDay) {
       // TODO sn change behaviour to iCal standard
-      final PFDateTime dateTime = PFDateTime.from(vEvent.getEndDate().getDate());
+      final PFDateTime dateTime = PFDateTime.from(vEvent.getEndDate().getDate()); // not null
       final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(dateTime.plusDays(-1).getUtilDate());
       event.setEndDate(new Date(fortunaEndDate.getTime()));
     } else {

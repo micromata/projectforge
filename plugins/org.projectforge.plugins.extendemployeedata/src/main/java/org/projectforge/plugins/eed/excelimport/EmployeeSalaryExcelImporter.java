@@ -137,7 +137,7 @@ public class EmployeeSalaryExcelImporter
   private ImportedElement<EmployeeSalaryDO> convertRowToDo(final ImportedSheet<EmployeeSalaryDO> importedSheet, final EmployeeSalaryExcelRow row)
   {
     final MyImportedElement<EmployeeSalaryDO> element = new MyImportedElement<>(importedSheet, -1, EmployeeSalaryDO.class, DIFF_PROPERTIES);
-    PFDateTime selectedDateTime = PFDateTime.from(this.dateToSelectAttrRow);
+    PFDateTime selectedDateTime = PFDateTime.fromOrNull(this.dateToSelectAttrRow);
     EmployeeDO employee;
     EmployeeSalaryDO employeeSalary = null;
     if (row.getStaffnumber() != null) {

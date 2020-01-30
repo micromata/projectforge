@@ -146,11 +146,11 @@ object ForecastUtils { // open needed by Wicket.
         var result = PFDay.now()
         if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) {
             if (posDate != null) {
-                result = PFDay.from(posDate)!!
+                result = PFDay.from(posDate) // not null
             }
         } else {
             if (orderDate != null) {
-                result = PFDay.from(orderDate)!!
+                result = PFDay.from(orderDate) // not null
             }
         }
         return result
@@ -172,8 +172,8 @@ object ForecastUtils { // open needed by Wicket.
 
     @JvmStatic
     fun getMonthCount(start: LocalDate, end: LocalDate): BigDecimal {
-        val startDate = PFDay.from(start)!!
-        val endDate = PFDay.from(end)!!
+        val startDate = PFDay.from(start) // not null
+        val endDate = PFDay.from(end) // not null
         val diffYear = endDate.year - startDate.year
         val diffMonth = diffYear * 12 + endDate.monthValue - startDate.monthValue + 1
         return BigDecimal.valueOf(diffMonth.toLong())
@@ -198,7 +198,7 @@ object ForecastUtils { // open needed by Wicket.
         if (order.erfassungsDatum != null)
             return order.erfassungsDatum
         if (order.created != null)
-            return PFDay.from(order.created)!!.localDate
+            return PFDay.from(order.created).localDate
         if (order.angebotsDatum != null)
             return order.angebotsDatum
         return PFDay.now().localDate

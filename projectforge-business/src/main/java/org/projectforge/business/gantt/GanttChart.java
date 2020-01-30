@@ -592,7 +592,7 @@ public class GanttChart {
     if (date == null) {
       return 0.0;
     }
-    final PFDateTime dt = PFDateTime.from(fromDate);
+    final PFDateTime dt = PFDateTime.from(fromDate); // not null
     final int days = (int) dt.daysBetween(date);
     final int fromToDays = getFromToDays();
     if (fromToDays == 0) {
@@ -604,7 +604,7 @@ public class GanttChart {
 
   private int getFromToDays() {
     if (fromToDays < 0) {
-      final PFDateTime dt = PFDateTime.from(fromDate);
+      final PFDateTime dt = PFDateTime.from(fromDate); // not null
       fromToDays = (int) dt.daysBetween(toDate);
     }
     return fromToDays;
