@@ -56,7 +56,7 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
     if (address.getBirthday() == null) {
       throw new UnsupportedOperationException("Birthday not given!");
     }
-    final PFDateTime day = PFDateTime.from(address.getBirthday());
+    final PFDateTime day = PFDateTime.from(address.getBirthday()); // not null
     month = day.getMonth();
     dayOfMonth = day.getDayOfMonth();
     dateOfYear = getDateOfYear(month, dayOfMonth);
@@ -95,8 +95,8 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
   /** Sets and gets the age of the person at the given date. */
   public int setAge(final Date date)
   {
-    final PFDateTime dt = PFDateTime.from(date);
-    final PFDateTime birthday = PFDateTime.from(address.getBirthday());
+    final PFDateTime dt = PFDateTime.from(date); // not null
+    final PFDateTime birthday = PFDateTime.from(address.getBirthday());  // not null
     age = dt.getYear() - birthday.getYear();
     return age;
   }
@@ -166,7 +166,7 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
     if (date == null) {
       throw new UnsupportedOperationException("Date not given!");
     }
-    final PFDateTime dt = PFDateTime.from(date);
+    final PFDateTime dt = PFDateTime.from(date); // not null
     return getDateOfYear(dt.getMonth(), dt.getDayOfMonth());
   }
 

@@ -129,7 +129,7 @@ class CalendarFilterServicesRest {
         initial.teamCalendars = StyledTeamCalendar.map(calendars, styleMap) // Add the styles of the styleMap to the exported calendars.
 
         val state = getFilterState()
-        initial.date = PFDateTime.from(state.startDate)
+        initial.date = PFDateTime.fromOrNow(state.startDate)
         initial.view = state.view
 
         initial.activeCalendars = getActiveCalendars(currentFilter, calendars, styleMap)

@@ -182,8 +182,8 @@ public class TimesheetExport
       mapping.add(Col.WEEK_OF_YEAR, timesheet.getFormattedWeekOfYear());
       mapping.add(Col.DAY_OF_WEEK, dateTimeFormatter.getFormattedDate(timesheet.getStartTime(), DateFormats
           .getFormatString(DateFormatType.DAY_OF_WEEK_SHORT)));
-      PFDateTime startTime = PFDateTime.from(timesheet.getStartTime());
-      PFDateTime stopTime = PFDateTime.from(timesheet.getStopTime());
+      PFDateTime startTime = PFDateTime.from(timesheet.getStartTime()); // not null
+      PFDateTime stopTime = PFDateTime.from(timesheet.getStopTime()); // not null
       mapping.add(Col.START_TIME, startTime.getUtilDate());
       mapping.add(Col.STOP_TIME, stopTime.getUtilDate());
       final BigDecimal seconds = new BigDecimal(timesheet.getDuration() / 1000); // Seconds

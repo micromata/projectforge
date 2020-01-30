@@ -50,7 +50,7 @@ class PostausgangPagesRest() : AbstractDOPagesRest<PostausgangDO, PostausgangDao
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: PostausgangDO) {
-        val date = PFDay.from(dto.datum)
+        val date = PFDay.fromOrNull(dto.datum)
         if (date != null && PFDay.now().isBefore(date)) { // No dates in the future accepted.
             validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "datum"))
         }

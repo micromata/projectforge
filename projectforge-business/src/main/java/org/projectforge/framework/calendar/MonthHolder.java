@@ -62,7 +62,7 @@ public class MonthHolder {
   }
 
   public MonthHolder(final PFDateTime dateTime) {
-    calculate(PFDay.from(dateTime));
+    calculate(PFDay.fromOrNow(dateTime));
   }
 
 
@@ -83,7 +83,7 @@ public class MonthHolder {
   }
 
   public MonthHolder(final Date date) {
-    calculate(PFDay.from(date));
+    calculate(PFDay.fromOrNow(date));
   }
 
   public MonthHolder(final int year, final Month month) {

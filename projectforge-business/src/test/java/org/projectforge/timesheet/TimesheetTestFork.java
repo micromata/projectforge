@@ -45,6 +45,7 @@ import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+
 public class TimesheetTestFork extends AbstractTestBase {
   // private static final Logger log = Logger.getLogger(TaskTest.class);
   @Autowired
@@ -57,42 +58,42 @@ public class TimesheetTestFork extends AbstractTestBase {
 
   @BeforeEach
   public void setUp() {
-    date = PFDateTime.from(new Date(), false, null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE_15);
+    date = PFDateTime.from(new Date(), null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE_15);
   }
 
   @Test
   public void hasSelectAccess() {
     final Serializable[] id = new Serializable[1];
     emf.runInTrans(emgr -> {
-        initTestDB.addTask("ts-hasSelectAccess-task", "root");
-        initTestDB.addUser("ts-hasSelectAccess-user");
-        final TimesheetDO ts = new TimesheetDO();
-        final long current = System.currentTimeMillis();
+      initTestDB.addTask("ts-hasSelectAccess-task", "root");
+      initTestDB.addUser("ts-hasSelectAccess-user");
+      final TimesheetDO ts = new TimesheetDO();
+      final long current = System.currentTimeMillis();
 
-        ts.setTask(initTestDB.getTask("ts-hasSelectAccess-task"));
-        ts.setUser(getUser("ts-hasSelectAccess-user"));
-        ts.setLocation("Office");
-        ts.setDescription("A lot of stuff done and more.");
-        ts.setStartTime(new Timestamp(current));
-        ts.setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
-        id[0] = timesheetDao.internalSave(ts);
-        timesheetDao.internalSave(ts);
-        return null;
+      ts.setTask(initTestDB.getTask("ts-hasSelectAccess-task"));
+      ts.setUser(getUser("ts-hasSelectAccess-user"));
+      ts.setLocation("Office");
+      ts.setDescription("A lot of stuff done and more.");
+      ts.setStartTime(new Timestamp(current));
+      ts.setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
+      id[0] = timesheetDao.internalSave(ts);
+      timesheetDao.internalSave(ts);
+      return null;
     });
     emf.runInTrans(emgr -> {
-        logon(getUser("ts-hasSelectAccess-user"));
-        final TimesheetDO ts = timesheetDao.getById(id[0]); // Has no access, but is owner of this timesheet
-        assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getShortDescription());
-        assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getDescription());
-        assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getLocation());
-        return null;
+      logon(getUser("ts-hasSelectAccess-user"));
+      final TimesheetDO ts = timesheetDao.getById(id[0]); // Has no access, but is owner of this timesheet
+      assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getShortDescription());
+      assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getDescription());
+      assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getLocation());
+      return null;
     });
     emf.runInTrans(emgr -> {
-        final TimesheetDO ts = timesheetDao.internalGetById(id[0]);
-        assertEquals("Field should not be overwritten", "A lot of stuff done and more.", ts.getShortDescription());
-        assertEquals("Field should not be overwritten", "A lot of stuff done and more.", ts.getDescription());
-        assertEquals("Field should not be overwritten", "Office", ts.getLocation());
-        return null;
+      final TimesheetDO ts = timesheetDao.internalGetById(id[0]);
+      assertEquals("Field should not be overwritten", "A lot of stuff done and more.", ts.getShortDescription());
+      assertEquals("Field should not be overwritten", "A lot of stuff done and more.", ts.getDescription());
+      assertEquals("Field should not be overwritten", "Office", ts.getLocation());
+      return null;
     });
   }
 
@@ -172,9 +173,9 @@ public class TimesheetTestFork extends AbstractTestBase {
       assertEquals("timesheet.error.timeperiodOverlapDetection", ex.getI18nKey());
     }
     emf.runInTrans(emgr -> {
-        final TimesheetDO t = timesheetDao.internalGetById(id2);
-        timesheetDao.markAsDeleted(t); // Delete conflicting time sheet
-        return null;
+      final TimesheetDO t = timesheetDao.internalGetById(id2);
+      timesheetDao.markAsDeleted(t); // Delete conflicting time sheet
+      return null;
     });
     id = timesheetDao.save(ts3); // No overlap, OK.
     ts3 = timesheetDao.getById(id);

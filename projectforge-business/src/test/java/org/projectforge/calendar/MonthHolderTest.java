@@ -29,8 +29,8 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.calendar.WeekHolder;
 import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.TestSetup;
 
@@ -51,7 +51,7 @@ public class MonthHolderTest {
 
   @Test
   public void testMonthHolder() {
-    final PFDateTime dateTime = PFDateTime.from(new Date(), true, null, Locale.GERMAN)
+    final PFDateTime dateTime = PFDateTime.from(new Date(), null, Locale.GERMAN)
             .withPrecision(DatePrecision.DAY).withDate(1970, Month.NOVEMBER, 21, 0, 0, 0);
     final MonthHolder month = new MonthHolder(dateTime);
     assertEquals(6, month.getWeeks().size());
@@ -71,7 +71,7 @@ public class MonthHolderTest {
 
   @Test
   public void testNumberOfWorkingDays() {
-    final PFDateTime dateTime = PFDateTime.from(new Date(), true, null, Locale.GERMAN)
+    final PFDateTime dateTime = PFDateTime.from(new Date(), null, Locale.GERMAN)
             .withPrecision(DatePrecision.DAY).withDate(2009, Month.JANUARY, 16, 0, 0, 0);
     MonthHolder month = new MonthHolder(dateTime.getUtilDate());
     AbstractTestBase.assertBigDecimal(21, month.getNumberOfWorkingDays());

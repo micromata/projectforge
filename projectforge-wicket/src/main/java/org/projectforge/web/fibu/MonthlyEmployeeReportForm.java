@@ -169,7 +169,7 @@ public class MonthlyEmployeeReportForm
 
   void setDate(final Date date)
   {
-    PFDateTime dt = PFDateTime.from(date);
+    PFDateTime dt = PFDateTime.from(date); // not null
     filter.setYear(dt.getYear());
     filter.setMonth(dt.getMonthValue());
     yearChoice.modelChanged();

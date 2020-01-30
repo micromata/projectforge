@@ -48,7 +48,7 @@ class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(Contrac
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: ContractDO) {
-        val date = PFDay.from(dto.date)
+        val date = PFDay.fromOrNull(dto.date)
         if (date != null && PFDay.now().isBefore(date)) { // No dates in the future accepted.
             validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "date"))
         }
