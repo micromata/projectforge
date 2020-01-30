@@ -356,7 +356,7 @@ public class AddressImportForm extends AbstractEditForm<AddressDO, AddressImport
   {
     if (property != null) {
       long millis = DateTime.parse(property.getValue()).getMillis();
-      address.setBirthday(PFDateTime.fromMilli(millis).getLocalDate());
+      address.setBirthday(PFDateTime.from(millis).getLocalDate());
     }
   }
 

@@ -159,7 +159,7 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
   }
 
   private void assertDate(final String message, final int year, final int month, final int dayOfMonth, final Date date) {
-    final PFDateTime dt = PFDateTime.from(date);
+    final PFDateTime dt = PFDateTime.from(date); // not null
     assertEquals(year, dt.getYear(), message);
     assertEquals(month, dt.getMonthValue(), message);
     assertEquals(dayOfMonth, dt.getDayOfMonth(), message);

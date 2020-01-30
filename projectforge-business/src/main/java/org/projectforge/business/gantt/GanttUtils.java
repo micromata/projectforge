@@ -249,7 +249,7 @@ public class GanttUtils {
   }
 
   private static Date calculateDate(final Date date, final int workingDayOffset) {
-    PFDateTime dt = PFDateTime.from(date);
+    PFDateTime dt = PFDateTime.from(date); // not null
     dt = PFDayUtils.addWorkingDays(dt, workingDayOffset);
     return dt.getUtilDate();
   }

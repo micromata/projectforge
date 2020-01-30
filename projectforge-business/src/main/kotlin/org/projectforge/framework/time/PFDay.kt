@@ -135,7 +135,7 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
     }
 
     fun isBefore(other: java.sql.Date): Boolean {
-        return isBefore(from(other)!!)
+        return isBefore(from(other))
     }
 
     override fun isAfter(other: PFDay): Boolean {
@@ -229,7 +229,7 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
     override val utilDate: Date
         get() {
             if (_utilDate == null) {
-                _utilDate = PFDateTime.from(date)!!.utilDate
+                _utilDate = PFDateTime.from(date).utilDate
             }
             return _utilDate!!
         }
@@ -249,45 +249,105 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
 
     companion object {
         /**
-         * Creates mindnight [LocalDate] from given [LocalDate].
+         * @param localDate Date to use (not null).
+         * @return PFDay from given value...
+         * @throws java.lang.IllegalStateException if date is null.
          */
         @JvmStatic
-        @JvmOverloads
-        fun from(localDate: LocalDate?, nowIfNull: Boolean = false): PFDay? {
-            if (localDate == null)
-                return if (nowIfNull) now() else null
+        fun from(localDate: LocalDate): PFDay {
             return PFDay(localDate)
         }
 
         /**
-         * @param date Date of type java.util.Date or java.sql.Date.
-         * @param nowIfNull If date is null: If true now is returned, otherwise null.
+         * @param localDate Date to use (or null).
+         * @return PFDay from given value or today if [localDate] is null...
+         */
+        @JvmStatic
+        fun fromOrNow(localDate: LocalDate?): PFDay {
+            localDate ?: return now()
+            return PFDay(localDate)
+        }
+
+        /**
+         * @param localDate Date to use (or null).
+         * @return PFDay from given value or null if [localDate] is null...
+         */
+        @JvmStatic
+        fun fromOrNull(localDate: LocalDate?): PFDay? {
+            localDate ?: return null
+            return PFDay(localDate)
+        }
+
+        /**
+         * @param date Date of type java.util.Date or java.sql.Date (not null).
          * @param timeZone If not given, the context user's time zone will be used.
-         * Creates mindnight [LocalDate] from given [date].
+         * @return PFDay (midnight) from given value...
+         * @throws java.lang.IllegalStateException if date is null.
          */
         @JvmStatic
         @JvmOverloads
-        fun from(date: Date?, nowIfNull: Boolean = false, timeZone: TimeZone? = PFDateTime.getUsersTimeZone()): PFDay? {
-            if (date == null)
-                return if (nowIfNull) now() else null
+        fun from(date: Date, timeZone: TimeZone? = null): PFDay {
             if (date is java.sql.Date) {
                 return PFDay(date.toLocalDate())
             }
-            val dateTime = PFDateTime.from(date, false, timeZone)!!
+            val dateTime = PFDateTime.from(date, timeZone)
+            val localDate = LocalDate.of(dateTime.year, dateTime.month, dateTime.dayOfMonth)
+            return PFDay(localDate)
+        }
+
+            /**
+         * @param date Date of type java.util.Date or java.sql.Date (or null).
+         * @param timeZone If not given, the context user's time zone will be used.
+         * @return PFDay (midnight) from given value or now if [localDate] is null...
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun fromOrNow(date: Date?, timeZone: TimeZone? = null): PFDay {
+            date ?: return now()
+            return from(date, timeZone)
+        }
+
+        /**
+         * @param date Date of type java.util.Date or java.sql.Date (or null).
+         * @param timeZone If not given, the context user's time zone will be used.
+         * @return PFDay (midnight) from given value or null if [localDate] is null...
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun fromOrNull(date: Date?, timeZone: TimeZone? = null): PFDay? {
+            date ?: return null
+            return from(date, timeZone)
+        }
+
+        /**
+         * @param dateTime Date to convert (not null).
+         * @return PFDay (midnight) from given value...
+         * @throws java.lang.IllegalStateException if date is null.
+         */
+        @JvmStatic
+        fun from(dateTime: PFDateTime): PFDay {
             val localDate = LocalDate.of(dateTime.year, dateTime.month, dateTime.dayOfMonth)
             return PFDay(localDate)
         }
 
         /**
-         * @param dateTime Date of type [Date] or [java.sql.Date].
-         * Creates mindnight [LocalDate] from given [date].
+         * @param dateTime Date to convert (or null).
+         * @return PFDay (midnight) from given value or now if [dateTime] is null...
          */
         @JvmStatic
-        fun from(dateTime: PFDateTime?): PFDay? {
-            if (dateTime == null)
-                return null
-            val localDate = LocalDate.of(dateTime.year, dateTime.month, dateTime.dayOfMonth)
-            return PFDay(localDate)
+        fun fromOrNow(dateTime: PFDateTime?): PFDay {
+            dateTime ?: return now()
+            return from(dateTime)
+        }
+
+        /**
+         * @param dateTime Date to convert (or null).
+         * @return PFDay (midnight) from given value or null if [dateTime] is null...
+         */
+        @JvmStatic
+        fun fromOrNull(dateTime: PFDateTime?): PFDay? {
+            dateTime ?: return null
+            return from(dateTime)
         }
 
         @JvmStatic

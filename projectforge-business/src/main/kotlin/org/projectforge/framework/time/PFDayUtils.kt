@@ -166,7 +166,7 @@ class PFDayUtils {
          */
         @JvmStatic
         fun getNumberOfWorkingDays(from: LocalDate, to: LocalDate): BigDecimal {
-            return getNumberOfWorkingDays(PFDay.from(from)!!, PFDay.from(to)!!)
+            return getNumberOfWorkingDays(PFDay.from(from), PFDay.from(to))
         }
 
         /**

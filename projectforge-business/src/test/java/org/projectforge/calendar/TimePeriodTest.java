@@ -47,7 +47,7 @@ public class TimePeriodTest {
 
   @Test
   public void testTimePeriod() {
-    final PFDateTime dateTime1 = PFDateTime.from(new Date(), true, null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE).withDate(1970, Month.NOVEMBER, 21, 0, 0, 0);
+    final PFDateTime dateTime1 = PFDateTime.from(new Date(), null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE).withDate(1970, Month.NOVEMBER, 21, 0, 0, 0);
 
     PFDateTime dateTime2 = dateTime1.withHour(10);
 

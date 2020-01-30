@@ -61,7 +61,7 @@ public class CalendarHelper
   public static int getCalenderData(final Date date, int calendarData)
   {
     if(date != null) {
-      PFDateTime tmp_date = PFDateTime.from(date);
+      PFDateTime tmp_date = PFDateTime.from(date); // not null
       return tmp_date.getCalendar().get(calendarData);
     } else {
       return -1;
