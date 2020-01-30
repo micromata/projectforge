@@ -28,6 +28,7 @@ import de.micromata.genome.logging.GenomeLogCategory;
 import de.micromata.genome.logging.ValMessageLogAttribute;
 import de.micromata.genome.util.validation.ValContext;
 import de.micromata.mgc.email.MailReceiverLocalSettingsConfigModel;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.MailAccount;
 import org.projectforge.mail.MailFilter;
@@ -180,7 +181,8 @@ public class MebMailClient
       int counter = 0;
       for (final Mail mail : mails) {
         final MebEntryDO entry = new MebEntryDO();
-        entry.setDate(mail.getDate());
+        PFDay mailDate = PFDay.from(mail.getDate());
+        entry.setDate(mailDate.getLocalDate());
         final String content = mail.getContent();
         final BufferedReader reader = new BufferedReader(new StringReader(content.trim()));
         try {
@@ -193,8 +195,8 @@ public class MebMailClient
             if (line.startsWith("date=")) {
               if (line.length() > 5) {
                 final String dateString = line.substring(5);
-                final Date date = MebDao.parseDate(dateString);
-                entry.setDate(date);
+                PFDay date = PFDay.from(MebDao.parseDate(dateString));
+                entry.setDate(date.getLocalDate());
               }
             } else if (line.startsWith("sender=")) {
               if (line.length() > 7) {

@@ -32,6 +32,7 @@ import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,7 +54,7 @@ public class MebDaoTest extends AbstractTestBase
   public void testMebDaoAccess()
   {
     MebEntryDO entry = new MebEntryDO();
-    entry.setDate(new Date());
+    entry.setDate(LocalDate.now());
     entry.setSender("1234567890");
     entry.setStatus(MebEntryStatus.RECENT);
     logon(AbstractTestBase.TEST_USER);
@@ -67,7 +68,7 @@ public class MebDaoTest extends AbstractTestBase
     mebDao.save(entry); // Allowed for admins
     logon(AbstractTestBase.TEST_USER);
     entry = new MebEntryDO();
-    entry.setDate(new Date());
+    entry.setDate(LocalDate.now());
     entry.setSender("1234567890");
     entry.setStatus(MebEntryStatus.RECENT);
     entry.setOwner(getUser(AbstractTestBase.TEST_USER));
@@ -81,7 +82,7 @@ public class MebDaoTest extends AbstractTestBase
       // OK.
     }
     entry = new MebEntryDO();
-    entry.setDate(new Date());
+    entry.setDate(LocalDate.now());
     entry.setOwner(getUser(AbstractTestBase.TEST_USER));
     entry.setSender("1234567890");
     entry.setStatus(MebEntryStatus.RECENT);
@@ -95,7 +96,7 @@ public class MebDaoTest extends AbstractTestBase
     mebDao.save(entry);
     logon(AbstractTestBase.ADMIN);
     entry = new MebEntryDO();
-    entry.setDate(new Date());
+    entry.setDate(LocalDate.now());
     entry.setSender("1234567890");
     entry.setStatus(MebEntryStatus.RECENT);
     id = mebDao.save(entry);
