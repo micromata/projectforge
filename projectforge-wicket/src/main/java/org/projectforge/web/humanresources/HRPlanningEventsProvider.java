@@ -86,8 +86,8 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
     }
     filter.setUserId(timesheetUserId);
 
-    PFDay startDay = PFDay.from(start.toDate());
-    PFDay endDay = PFDay.from(end.toDate());
+    PFDay startDay = PFDay.from(start.toDate(), true);
+    PFDay endDay = PFDay.from(end.toDate(), true);
 
     filter.setStartTime(startDay.getLocalDate());
     filter.setStopTime(endDay.getLocalDate());
