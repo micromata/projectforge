@@ -35,6 +35,7 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @EditPage(defaultReturnPage = MebListPage.class)
@@ -52,7 +53,7 @@ public class MebEditPage extends AbstractEditPage<MebEntryDO, MebEditForm, MebDa
     super(parameters, "meb");
     super.init();
     if (isNew() == true) {
-      getData().setDate(new Date());
+      getData().setDate(LocalDate.now());
       mebDao.setOwner(getData(), getUserId());
       getData().setSender("");
       getData().setStatus(MebEntryStatus.OPEN);
@@ -125,7 +126,7 @@ public class MebEditPage extends AbstractEditPage<MebEntryDO, MebEditForm, MebDa
   protected void createTimesheet()
   {
     final PageParameters parameters = new PageParameters();
-    parameters.add(TimesheetEditPage.PARAMETER_KEY_START_DATE_IN_MILLIS, getData().getDate().getTime());
+    parameters.add(TimesheetEditPage.PARAMETER_KEY_START_DATE_IN_MILLIS, getData().getDate());
     parameters.add(TimesheetEditPage.PARAMETER_KEY_DESCRIPTION, getData().getMessage() != null ? getData().getMessage() : "");
     final TimesheetEditPage timesheetEditPage = new TimesheetEditPage(parameters);
     timesheetEditPage.setReturnToPage(this);

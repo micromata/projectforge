@@ -37,6 +37,7 @@ import org.projectforge.business.meb.MebEntryDO;
 import org.projectforge.business.meb.MebEntryStatus;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.user.UserPropertyColumn;
 import org.projectforge.web.wicket.*;
 
@@ -99,9 +100,8 @@ public class MebListPage extends AbstractListPage<MebListForm, MebDao, MebEntryD
           final IModel<MebEntryDO> rowModel)
       {
         final MebEntryDO meb = rowModel.getObject();
-        item.add(new ListSelectActionPanel(componentId, rowModel, MebEditPage.class, meb.getId(), MebListPage.this,
-            DateTimeFormatter
-                .instance().getFormattedDateTime(meb.getDate())));
+        PFDay mebDate = PFDay.from(meb.getDate());
+        item.add(new ListSelectActionPanel(componentId, rowModel, MebEditPage.class, meb.getId(), MebListPage.this, DateTimeFormatter.instance().getFormattedDateTime(mebDate.getUtilDate())));
         cellItemListener.populateItem(item, componentId, rowModel);
         cellItemListener.populateItem(item, componentId, rowModel);
         addRowClick(item);

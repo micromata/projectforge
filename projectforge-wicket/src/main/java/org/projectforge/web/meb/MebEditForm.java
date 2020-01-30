@@ -39,6 +39,7 @@ import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.jira.JiraConfig;
 import org.projectforge.jira.JiraIssueType;
 import org.projectforge.jira.JiraProject;
@@ -88,7 +89,8 @@ public class MebEditForm extends AbstractEditForm<MebEntryDO, MebEditPage>
     {
       // Date
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("date")).suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), DateTimeFormatter.instance().getFormattedDateTime(data.getDate())));
+      PFDay mebDate = PFDay.from(data.getDate());
+      fs.add(new DivTextPanel(fs.newChildId(), DateTimeFormatter.instance().getFormattedDateTime(mebDate.getUtilDate())));
     }
     {
       // Owner

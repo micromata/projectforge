@@ -27,7 +27,7 @@ import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import java.util.*
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -60,7 +60,7 @@ class MebEntryDO : AbstractBaseDO<Int>() {
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(nullable = false)
-    var date: Date? = null
+    var date: LocalDate? = null
 
     @PropertyInfo(i18nKey = "status")
     @get:Enumerated(EnumType.STRING)
