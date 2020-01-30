@@ -80,7 +80,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
       getData().setWeek(week);
     }
     if (getData().getWeek() != null) {
-      final PFDay day = PFDay.from(getData().getWeek(), true);
+      final PFDay day = PFDay.fromOrNow(getData().getWeek());
       if (!day.isFirstDayOfWeek()) {
         getData().setWeek(day.getBeginOfWeek().getLocalDate());
       }

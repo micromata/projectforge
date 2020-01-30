@@ -537,14 +537,14 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
       // Check date match:
       if (startDate != null && eventEndDate.before(startDate)) {
         // Check same day (eventEndDate in UTC and startDate of filter in user's time zone):
-        final PFDateTime startDateUserTimeZone = PFDateTime.from(startDate);
-        final PFDateTime eventEndDateUTC = PFDateTime.from(eventEndDate, false, PFDateTimeUtils.TIMEZONE_UTC);
+        final PFDateTime startDateUserTimeZone = PFDateTime.from(startDate); // not null
+        final PFDateTime eventEndDateUTC = PFDateTime.from(eventEndDate, PFDateTimeUtils.TIMEZONE_UTC);
         return startDateUserTimeZone.isSameDay(eventEndDateUTC);
       }
       if (endDate != null && eventStartDate.after(endDate)) {
         // Check same day (eventStartDate in UTC and endDate of filter in user's time zone):
-        final PFDateTime endDateUserTimeZone = PFDateTime.from(endDate);
-        final PFDateTime eventStartDateUTC = PFDateTime.from(eventStartDate, false, PFDateTimeUtils.TIMEZONE_UTC);
+        final PFDateTime endDateUserTimeZone = PFDateTime.from(endDate); // not null
+        final PFDateTime eventStartDateUTC = PFDateTime.from(eventStartDate, PFDateTimeUtils.TIMEZONE_UTC); // not null
         return endDateUserTimeZone.isSameDay(eventStartDateUTC);
       }
       return true;
@@ -767,7 +767,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
           col.add(event);
         } else {
           // Now we need this event as date with the user's time-zone.
-          final PFDateTime date = PFDateTime.fromMilli(dateTime.getTime(), false, timeZone.toZoneId());
+          final PFDateTime date = PFDateTime.from(dateTime.getTime(), timeZone.toZoneId(), null, PFDateTime.NumberFormat.EPOCH_MILLIS);
           final TeamRecurrenceEvent recurEvent = new TeamRecurrenceEvent(event, date);
           col.add(recurEvent);
         }

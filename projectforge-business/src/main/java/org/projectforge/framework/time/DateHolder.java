@@ -101,7 +101,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @param precision
    */
   public DateHolder(final Date date, final DatePrecision precision) {
-    this.dateTime = PFDateTime.from(date, true);
+    this.dateTime = PFDateTime.fromOrNow(date);
     setPrecision(precision);
   }
 
@@ -111,7 +111,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @param date
    */
   public DateHolder(final Date date, final DatePrecision precision, final Locale locale) {
-    this.dateTime = PFDateTime.from(date, true, ThreadLocalUserContext.getTimeZone(), locale);
+    this.dateTime = PFDateTime.fromOrNow(date, ThreadLocalUserContext.getTimeZone(), locale);
     setPrecision(precision);
   }
 
@@ -119,7 +119,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Ensures the precision.
    */
   public DateHolder(final Date date, final DatePrecision precision, final TimeZone timeZone, final Locale locale) {
-    this.dateTime = PFDateTime.from(date, true, timeZone, locale);
+    this.dateTime = PFDateTime.fromOrNow(date, timeZone, locale);
     setPrecision(precision);
   }
 
@@ -127,7 +127,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Ensures the precision.
    */
   public DateHolder(final Date date) {
-    this.dateTime = PFDateTime.from(date, true);
+    this.dateTime = PFDateTime.fromOrNow(date);
     ensurePrecision();
   }
 
@@ -135,12 +135,12 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Initializes calendar with given date and uses the given time zone and the locale of the ContextUser if exists.
    */
   public DateHolder(final Date date, final TimeZone timeZone) {
-    this.dateTime = PFDateTime.from(date, true, timeZone);
+    this.dateTime = PFDateTime.fromOrNow(date, timeZone);
     ensurePrecision();
   }
 
   public DateHolder(final Date date, final TimeZone timeZone, final Locale locale) {
-    this.dateTime = PFDateTime.from(date, true, timeZone, locale);
+    this.dateTime = PFDateTime.fromOrNow(date, timeZone, locale);
     ensurePrecision();
   }
 
@@ -156,7 +156,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Ensures the precision.
    */
   public DateHolder(final Date date, final Locale locale) {
-    this.dateTime = PFDateTime.from(date, true, ThreadLocalUserContext.getTimeZone(), locale);
+    this.dateTime = PFDateTime.fromOrNow(date, ThreadLocalUserContext.getTimeZone(), locale);
     ensurePrecision();
   }
 
@@ -203,7 +203,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
     if (date == null) {
       return this;
     }
-    this.dateTime = PFDateTime.from(date, false, dateTime.getTimeZone(), dateTime.getLocale());
+    this.dateTime = PFDateTime.from(date, dateTime.getTimeZone(), dateTime.getLocale());
     ensurePrecision();
     return this;
   }
@@ -214,7 +214,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @param millis UTC millis
    */
   public DateHolder setDate(final long millis) {
-    this.dateTime = PFDateTime.from(millis, false, dateTime.getZone(), dateTime.getLocale());
+    this.dateTime = PFDateTime.from(millis, dateTime.getZone(), dateTime.getLocale());
     ensurePrecision();
     return this;
   }
@@ -262,7 +262,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @return
    */
   public boolean isSameDay(final Date date) {
-    final PFDateTime other = PFDateTime.from(date, false, this.dateTime.getTimeZone(), this.dateTime.getLocale());
+    final PFDateTime other = PFDateTime.from(date, this.dateTime.getTimeZone(), this.dateTime.getLocale());
     return this.dateTime.isSameDay(other);
   }
 
@@ -500,7 +500,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @return other.days - this.days.
    */
   public long daysBetween(final Date other) {
-    PFDateTime otherDay = PFDateTime.from(other, false, this.dateTime.getTimeZone(), this.dateTime.getLocale());
+    PFDateTime otherDay = PFDateTime.fromOrNull(other, this.dateTime.getTimeZone(), this.dateTime.getLocale());
     return this.dateTime.daysBetween(otherDay);
   }
 

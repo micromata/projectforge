@@ -174,8 +174,8 @@ class CalendarServicesRest {
         if (filter.updateState == true) {
             calendarFilterServicesRest.updateCalendarFilter(filter.start, view, filter)
         }
-        val range = DateTimeRange(PFDateTime.from(filter.start, timeZone = timeZone)!!,
-                PFDateTime.from(filter.end, timeZone = timeZone))
+        val range = DateTimeRange(PFDateTime.fromOrNow(filter.start, timeZone = timeZone),
+                PFDateTime.fromOrNull(filter.end, timeZone = timeZone))
         adjustRange(range, view)
         timesheetsProvider.addTimesheetEvents(range.start, range.end!!, filter.timesheetUserId, events)
         var visibleCalendarIds = filter.activeCalendarIds
@@ -217,7 +217,7 @@ class CalendarServicesRest {
                 val date = entry.key
                 val specialDay = entry.value
                 if (specialDay.holidayTitle.isNotBlank()) {
-                    val dateTime = PFDateTime.from(date)!!
+                    val dateTime = PFDateTime.from(date) // not null
                     events.add(BigCalendarEvent(
                             title = specialDay.holidayTitle,
                             start = dateTime.beginOfDay.utilDate,

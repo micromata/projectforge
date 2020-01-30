@@ -136,11 +136,11 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         val startTimeEpochSeconds = RestHelper.parseLong(request, "start")
         val endTimeEpochSeconds = RestHelper.parseLong(request, "end")
         if (startTimeEpochSeconds != null) {
-            val start = PFDateTime.from(startTimeEpochSeconds, nowIfNull = true)!!
+            val start = PFDateTime.fromOrNow(startTimeEpochSeconds)
             sheet.startTime = start.sqlTimestamp
         }
         if (endTimeEpochSeconds != null) {
-            val stop = PFDateTime.from(endTimeEpochSeconds, nowIfNull = true)!!
+            val stop = PFDateTime.fromOrNow(endTimeEpochSeconds)
             sheet.stopTime = stop.sqlTimestamp
         }
         val userId = RestHelper.parseInt(request, "userId") // Optional parameter given to edit page

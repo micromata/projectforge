@@ -105,7 +105,7 @@ public class ExportMSProject {
     final ProjectCalendar calendar = file.addDefaultBaseCalendar();
     calendar.setWorkingDay(Day.SATURDAY, false);
     calendar.setWorkingDay(Day.SUNDAY, false);
-    PFDateTime dt = PFDateTime.from(ganttChart.getCalculatedStartDate());
+    PFDateTime dt = PFDateTime.from(ganttChart.getCalculatedStartDate()); // not null
     for (int i = 0; i < 3000; i++) { // Endless loop protection (paranoia)
       dt = dt.plusDays(1);
       Holidays holidays = Holidays.getInstance();
@@ -117,7 +117,7 @@ public class ExportMSProject {
           log.debug("Add holiday: " + date);
         }
       }
-      PFDateTime dtEnd = PFDateTime.from(ganttChart.getCalculatedEndDate());
+      PFDateTime dtEnd = PFDateTime.from(ganttChart.getCalculatedEndDate()); // not null
       if (!dt.isBefore(dtEnd)) {
         break;
       }

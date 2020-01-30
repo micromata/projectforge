@@ -44,6 +44,7 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
+import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
 import org.slf4j.Logger;
@@ -51,6 +52,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import javax.ws.rs.HEAD;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -171,7 +173,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
   public List<HRPlanningDO> getList(final BaseSearchFilter filter) {
     final HRPlanningFilter myFilter = (HRPlanningFilter) filter;
     if (myFilter.getStopTime() != null) {
-      PFDateTime dateTime = PFDateTime.from(myFilter.getStopTime(), true).getEndOfDay();
+      PFDateTime dateTime = PFDateTime.fromOrNow(myFilter.getStopTime()).getEndOfDay();
       myFilter.setStopTime(dateTime.getLocalDate());
     }
     final QueryFilter queryFilter = buildQueryFilter(myFilter);
@@ -228,7 +230,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
    */
   @Override
   protected void onSaveOrModify(final HRPlanningDO obj) {
-    PFDay day = PFDay.from(obj.getWeek(), false);
+    PFDay day = PFDay.from(obj.getWeek());
     if (!day.isBeginOfWeek()) {
       log.error("Date is not begin of week, try to change date: " + day.getIsoString());
       day = day.getBeginOfWeek();

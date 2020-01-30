@@ -95,7 +95,7 @@ public class ExportWorkbookTest {
   }
 
   private PFDateTime getDateTime() {
-    return PFDateTime.from(getDate(), false, DateHelper.UTC);
+    return PFDateTime.from(getDate(), DateHelper.UTC);
   }
 
   private Date getDate() {

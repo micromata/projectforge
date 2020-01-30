@@ -303,7 +303,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   }
 
   /**
-   * 
+   *
    * @see org.projectforge.business.gantt.GanttTask#addChild(org.projectforge.business.gantt.GanttTask)
    */
   @Override
@@ -336,8 +336,8 @@ public class GanttTaskImpl implements GanttTask, Serializable
   public boolean hasDuration()
   {
     if (getCalculatedStartDate() != null && getCalculatedEndDate() != null) {
-      final PFDateTime dt = PFDateTime.from(this.calculatedStartDate);
-      return !dt.isSameDay(PFDateTime.from(getCalculatedEndDate()));
+      final PFDateTime dt = PFDateTime.from(this.calculatedStartDate); // not null
+      return !dt.isSameDay(PFDateTime.from(getCalculatedEndDate())); // not null
     }
     return !NumberHelper.isZeroOrNull(this.duration);
   }
@@ -366,7 +366,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   }
 
   /**
-   * 
+   *
    * @see org.projectforge.business.gantt.GanttTask#getCalculatedEndDate()
    */
   @Override

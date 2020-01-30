@@ -84,7 +84,7 @@ class TaskServicesRest {
                var consumption: Consumption? = null,
                var orderList: MutableList<Order>? = null) {
         constructor(node: TaskNode) : this(id = node.task.id, title = node.task.title, shortDescription = node.task.shortDescription,
-                protectTimesheetsUntil = PFDay.from(node.task.protectTimesheetsUntil), reference = node.task.reference,
+                protectTimesheetsUntil = PFDay.fromOrNull(node.task.protectTimesheetsUntil), reference = node.task.reference,
                 priority = node.task.priority, status = node.task.status, responsibleUser = node.task.responsibleUser)
     }
 

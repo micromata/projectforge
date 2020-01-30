@@ -73,7 +73,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase {
 
   @BeforeEach
   public void setUp() {
-    date = PFDateTime.from(new Date(), false, null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE_15);
+    date = PFDateTime.from(new Date(), null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE_15);
   }
 
   @Test

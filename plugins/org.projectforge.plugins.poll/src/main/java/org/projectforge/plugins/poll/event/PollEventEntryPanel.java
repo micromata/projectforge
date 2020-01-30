@@ -48,8 +48,8 @@ public abstract class PollEventEntryPanel extends Panel
   {
     super(id);
 
-    final PFDateTime start = PFDateTime.from(poll.getStartDate());
-    final PFDateTime end = PFDateTime.from(poll.getEndDate());
+    final PFDateTime start = PFDateTime.from(poll.getStartDate()); // not null
+    final PFDateTime end = PFDateTime.from(poll.getEndDate()); // not null
 
     final String pattern = DateFormats.getFormatString(DateFormatType.DATE_TIME_MINUTES);
     add(new Label("startDate", "Start: " + DateFormatUtils.format(start.getEpochMilli(), pattern)));

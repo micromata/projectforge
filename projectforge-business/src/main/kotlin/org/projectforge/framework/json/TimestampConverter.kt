@@ -62,6 +62,6 @@ class TimestampDeserializer(private val format: UtilDateFormat? = null) : StdDes
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Timestamp? {
         val date = UtilDateDeserializer.parseDate(format, p.text, p) ?: return null
-        return PFDateTime.from(date, false, PFDateTimeUtils.ZONE_UTC)?.sqlTimestamp
+        return PFDateTime.fromOrNull(date, PFDateTimeUtils.ZONE_UTC)?.sqlTimestamp
     }
 }

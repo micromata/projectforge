@@ -37,7 +37,7 @@ public class ISODateConverter extends DateConverter
     if (obj == null) {
       return null;
     }
-    final PFDateTime dateTime = PFDateTime.from((Date) obj);
+    final PFDateTime dateTime = PFDateTime.from((Date) obj); // not null
     final String format;
     if (dateTime.getMilliSecond() == 0) {
       if (dateTime.getSecond() == 0) {

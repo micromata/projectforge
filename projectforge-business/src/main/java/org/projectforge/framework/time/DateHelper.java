@@ -402,7 +402,10 @@ public class DateHelper implements Serializable {
    * hours, minutes etc.
    */
   public static boolean isSameDay(final Date d1, final Date d2) {
-    return isSameDay(PFDateTime.from(d1, true), PFDateTime.from(d2, true));
+    if (d1 == null || d2 == null) {
+      return false;
+    }
+    return isSameDay(PFDateTime.fromOrNull(d1), PFDateTime.fromOrNull(d2));
   }
 
   /**

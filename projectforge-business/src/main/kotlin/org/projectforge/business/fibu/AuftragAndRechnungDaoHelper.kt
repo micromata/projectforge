@@ -68,8 +68,8 @@ object AuftragAndRechnungDaoHelper {
         val dateName = "datum"
         val from = myFilter.getFromDate()
         val to = myFilter.getToDate()
-        val fromDate = if (from is LocalDate) from else PFDay.from(from)?.localDate
-        val toDate = if (to is LocalDate) to else PFDay.from(to)?.localDate
+        val fromDate = if (from == null || from is LocalDate) from else PFDay.from(from).localDate
+        val toDate = if (to == null || to is LocalDate) to else PFDay.from(to).localDate
         val queryFilter = QueryFilter(myFilter)
         if (fromDate != null && toDate != null) {
             queryFilter.add(between(dateName, fromDate, toDate))
@@ -94,8 +94,8 @@ object AuftragAndRechnungDaoHelper {
         if (rechnung.faelligkeit == null && zahlungsZiel != null) {
             val rechnungsDatum: LocalDate? = rechnung.datum
             if (rechnungsDatum != null) {
-                var day = PFDateTime.from(rechnungsDatum)
-                day = day!!.plusDays(zahlungsZiel.toLong())
+                var day = PFDateTime.from(rechnungsDatum) // not null
+                day = day.plusDays(zahlungsZiel.toLong())
                 rechnung.faelligkeit = day.localDate
             }
         }
@@ -107,7 +107,7 @@ object AuftragAndRechnungDaoHelper {
             val rechnungsDatum: LocalDate? = rechnung.datum
             if (rechnungsDatum != null) {
                 var day = PFDay.from(rechnungsDatum)
-                day = day!!.plusDays(discountZahlungsZiel.toLong())
+                day = day.plusDays(discountZahlungsZiel.toLong())
                 rechnung.discountMaturity = day.localDate
             }
         }

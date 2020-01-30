@@ -78,8 +78,8 @@ class UtilDateSerializer(private val format: UtilDateFormat) : StdSerializer<jav
 class UtilDateDeserializer(private val format: UtilDateFormat? = null) : StdDeserializer<java.util.Date>(java.util.Date::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): java.util.Date? {
-        val date = parseDate(format,  p.text, p) ?: return null
-        return PFDateTime.from(date, false, PFDateTimeUtils.ZONE_UTC)?.utilDate
+        val date = parseDate(format, p.text, p) ?: return null
+        return PFDateTime.fromOrNull(date, PFDateTimeUtils.ZONE_UTC)?.utilDate
     }
 
     companion object {

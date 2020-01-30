@@ -74,7 +74,7 @@ public class IhkExportPage extends AbstractStandardFormPage implements ISelectCa
       final Date date = (Date) selectedValue;
 
       form.getTimePeriod().setFromDate(date);
-      PFDateTime dateTime = PFDateTime.from(date);
+      PFDateTime dateTime = PFDateTime.from(date); // not null
       if (property.endsWith(".week")) {
         dateTime = dateTime.getBeginOfWeek();
       }
@@ -119,7 +119,7 @@ public class IhkExportPage extends AbstractStandardFormPage implements ISelectCa
   {
     final TimeZone usersTimeZone = ThreadLocalUserContext.getTimeZone();
     final Date fromDate = form.getTimePeriod().getFromDate();
-    final PFDateTime startDate = PFDateTime.from(fromDate, true, usersTimeZone).withDayOfWeek(DayOfWeek.MONDAY.getValue());
+    final PFDateTime startDate = PFDateTime.fromOrNow(fromDate, usersTimeZone).withDayOfWeek(DayOfWeek.MONDAY.getValue());
     final TimesheetFilter tf = new TimesheetFilter();
     //ASC = Montag bis Sonntag
     tf.setOrderType(OrderDirection.ASC);
