@@ -4,8 +4,6 @@ import React from 'react';
 import { colorPropType } from '../../../utilities/propTypes';
 import AdditionalLabel from './AdditionalLabel';
 import style from './Input.module.scss';
-import DynamicValidationManager
-    from '../../base/dynamicLayout/components/input/DynamicValidationManager';
 
 /**
  * ReadonlyField text (with label and optional toolip)
@@ -30,7 +28,7 @@ function ReadonlyField(
                 className={style.textArea}
                 {...props}
             >
-                {label} {value}
+                {`${label} ${value}`}
             </div>
             <AdditionalLabel title={additionalLabel} />
         </div>
