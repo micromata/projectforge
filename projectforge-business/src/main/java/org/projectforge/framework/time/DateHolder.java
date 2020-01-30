@@ -132,14 +132,6 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
   }
 
   /**
-   * Ensures the precision.
-   */
-  public DateHolder(final LocalDate date) {
-    this.dateTime = PFDateTime.from(date, true);
-    ensurePrecision();
-  }
-
-  /**
    * Initializes calendar with given date and uses the given time zone and the locale of the ContextUser if exists.
    */
   public DateHolder(final Date date, final TimeZone timeZone) {
@@ -165,14 +157,6 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    */
   public DateHolder(final Date date, final Locale locale) {
     this.dateTime = PFDateTime.from(date, true, ThreadLocalUserContext.getTimeZone(), locale);
-    ensurePrecision();
-  }
-
-  /**
-   * Ensures the precision.
-   */
-  public DateHolder(final LocalDate date, final Locale locale) {
-    this.dateTime = PFDateTime.from(date, true, ThreadLocalUserContext.getTimeZone().toZoneId(), locale);
     ensurePrecision();
   }
 

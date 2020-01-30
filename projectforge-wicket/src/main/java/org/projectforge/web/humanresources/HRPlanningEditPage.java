@@ -25,12 +25,11 @@ package org.projectforge.web.humanresources;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.business.humanresources.HRPlanningDO;
 import org.projectforge.business.humanresources.HRPlanningDao;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.*;
@@ -40,14 +39,11 @@ import java.sql.Date;
 import java.time.LocalDate;
 
 /**
- *
  * @author Mario Groß (m.gross@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @EditPage(defaultReturnPage = HRPlanningListPage.class)
-public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlanningEditForm, HRPlanningDao> implements ISelectCallerPage
-{
+public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlanningEditForm, HRPlanningDao> implements ISelectCallerPage {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRPlanningEditPage.class);
 
   private static final long serialVersionUID = -8192471994161712577L;
@@ -57,8 +53,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
   @SpringBean
   private HRPlanningDao hrPlanningDao;
 
-  public HRPlanningEditPage(final PageParameters parameters)
-  {
+  public HRPlanningEditPage(final PageParameters parameters) {
     super(parameters, "hr.planning");
     final Integer userId = WicketUtils.getAsInteger(parameters, WebConstants.PARAMETER_USER_ID);
     final Long millis = WicketUtils.getAsLong(parameters, WebConstants.PARAMETER_DATE);
@@ -85,10 +80,9 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
       getData().setWeek(week);
     }
     if (getData().getWeek() != null) {
-      final DateHolder date = new DateHolder(getData().getWeek(), ConfigurationServiceAccessor.get().getDefaultLocale());
-      if (!date.isBeginOfWeek()) {
-        date.setBeginOfWeek();
-        getData().setWeek(date.getLocalDate());
+      final PFDay day = PFDay.from(getData().getWeek(), true);
+      if (!day.isFirstDayOfWeek()) {
+        getData().setWeek(day.getBeginOfWeek().getLocalDate());
       }
     } else {
       // Get week of last edited entry as default.
@@ -100,20 +94,17 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
   }
 
   @Override
-  protected HRPlanningDao getBaseDao()
-  {
+  protected HRPlanningDao getBaseDao() {
     return hrPlanningDao;
   }
 
   @Override
-  protected HRPlanningEditForm newEditForm(final AbstractEditPage< ? , ? , ? > parentPage, final HRPlanningDO data)
-  {
+  protected HRPlanningEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final HRPlanningDO data) {
     return new HRPlanningEditForm(this, data);
   }
 
   @Override
-  public AbstractSecuredBasePage afterSaveOrUpdate()
-  {
+  public AbstractSecuredBasePage afterSaveOrUpdate() {
     putUserPrefEntry(SESSION_KEY_RECENT_WEEK, getData().getWeek(), true); // Store as recent date.
     return null;
   }
@@ -122,8 +113,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
    * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
    */
   @Override
-  public void select(final String property, final Object selectedValue)
-  {
+  public void select(final String property, final Object selectedValue) {
     if (property.startsWith("projektId:")) {
       try {
         final Integer idx = NumberHelper.parseInteger(property.split(":")[1]);
@@ -146,8 +136,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
   @Override
-  public void unselect(final String property)
-  {
+  public void unselect(final String property) {
     if (property.startsWith("projektId:")) {
       final Integer idx = NumberHelper.parseInteger(property.split(":")[1]);
       final HRPlanningEntryDO entry = getData().getEntry(idx);
@@ -163,14 +152,12 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
    * @see org.projectforge.web.fibu.ISelectCallerPage#cancelSelection(java.lang.String)
    */
   @Override
-  public void cancelSelection(final String property)
-  {
+  public void cancelSelection(final String property) {
     // Do nothing.
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 }

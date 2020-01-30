@@ -37,8 +37,8 @@ import org.projectforge.business.humanresources.HRPlanningEntryDO;
 import org.projectforge.business.humanresources.HRPlanningEntryDao;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.HtmlHelper;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.jira.JiraUtils;
 import org.projectforge.web.core.PriorityFormatter;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -299,15 +299,15 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
     } else if (property.startsWith("quickSelect.")) { // month".equals(property) == true) {
       final LocalDate date = (LocalDate) selectedValue;
       form.getSearchFilter().setStartTime(date);
-      final DateHolder dateHolder = new DateHolder(date);
+       PFDay day = PFDay.from(date, true);
       if (property.endsWith(".month")) {
-        dateHolder.setEndOfMonth();
+        day = day.getEndOfMonth();
       } else if (property.endsWith(".week")) {
-        dateHolder.setEndOfWeek();
+        day = day.getEndOfWeek();
       } else {
         log.error("Property '" + property + "' not supported for selection.");
       }
-      form.getSearchFilter().setStopTime(dateHolder.getLocalDate());
+      form.getSearchFilter().setStopTime(day.getLocalDate());
       refresh();
     } else {
       log.error("Property '" + property + "' not supported for selection.");
