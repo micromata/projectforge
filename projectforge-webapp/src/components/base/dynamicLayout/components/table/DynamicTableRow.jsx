@@ -62,9 +62,7 @@ DynamicTableRow.defaultProps = {
     highlightRow: false,
 };
 
-const mapStateToProps = ({ list }) => ({
-    test: list.categories[list.currentCategory],
-});
+const mapStateToProps = undefined;
 
 const actions = (dispatch, { row }) => ({
     handleRowClick: () => dispatch(openEditPage(row.id)),
