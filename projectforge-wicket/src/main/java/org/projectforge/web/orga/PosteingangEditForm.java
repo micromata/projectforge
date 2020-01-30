@@ -65,9 +65,23 @@ public class PosteingangEditForm extends AbstractEditForm<PosteingangDO, Postein
       // Date
       final FieldProperties<LocalDate> props = getDateProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("date"));
-      LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
-      components.setRequired(true);
-      fs.add(components);
+      LocalDatePanel datumPanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+      datumPanel.setRequired(true);
+      /*
+      datumPanel.add((IValidator) validatable -> {
+        // TODO: Jan: Du hast das gelöscht, bitte Rücksprache. Ist aber OK, weil wir diese Wicket-Seite bald löschen:
+        final LocalDate value = (LocalDate)validatable.getValue();
+        if (value == null) {
+          return;
+        }
+        final PFDay today = PFDay.now();
+        final PFDay date = PFDay.from(value);
+        if (today.isBefore(date) == true) { // No dates in the future accepted.
+          validatable.error(new ValidationError().addKey("error.dateInFuture"));
+        }
+      });
+       */
+      fs.add(datumPanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
