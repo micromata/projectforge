@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,13 @@
 
 package org.projectforge.business.user;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 /**
  * User preferences contains a Map used by UserXmlPreferencesCache for storing user data application wide. Also
@@ -56,7 +56,7 @@ public class UserXmlPreferencesMap
   {
     synchronized (this) {
       if (persistentData == null) {
-        persistentData = new HashMap<String, Object>();
+        persistentData = new HashMap<>();
       }
     }
     return persistentData;
@@ -66,7 +66,7 @@ public class UserXmlPreferencesMap
   {
     synchronized (this) {
       if (volatileData == null) {
-        volatileData = new HashMap<String, Object>();
+        volatileData = new HashMap<>();
       }
     }
     return volatileData;
@@ -76,7 +76,7 @@ public class UserXmlPreferencesMap
   {
     synchronized (this) {
       if (modifiedObjects == null) {
-        modifiedObjects = new HashSet<String>();
+        modifiedObjects = new HashSet<>();
       }
     }
     return modifiedObjects;
@@ -89,7 +89,7 @@ public class UserXmlPreferencesMap
    */
   public void putEntry(String key, Object value, boolean persistent)
   {
-    if (persistent == true) {
+    if (persistent) {
       setModified(key, true);
       getPersistentData().put(key, value);
     } else {
@@ -144,12 +144,12 @@ public class UserXmlPreferencesMap
 
   public boolean isModified()
   {
-    return getModifiedObjects().isEmpty() == false;
+    return !getModifiedObjects().isEmpty();
   }
 
   protected void setModified(String key, boolean isModified)
   {
-    if (isModified == true) {
+    if (isModified) {
       getModifiedObjects().add(key);
     } else {
       getModifiedObjects().remove(key);

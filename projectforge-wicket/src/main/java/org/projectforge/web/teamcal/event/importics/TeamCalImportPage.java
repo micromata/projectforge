@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,22 +23,21 @@
 
 package org.projectforge.web.teamcal.event.importics;
 
-import java.io.InputStream;
-import java.util.List;
-
+import de.micromata.merlin.excel.importer.ImportStorage;
+import de.micromata.merlin.excel.importer.ImportedSheet;
+import net.fortuna.ical4j.data.CalendarBuilder;
+import net.fortuna.ical4j.model.Calendar;
+import net.fortuna.ical4j.model.component.VEvent;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.framework.persistence.utils.ImportStorage;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.web.core.importstorage.AbstractImportPage;
 import org.projectforge.web.wicket.WicketUtils;
 
-import net.fortuna.ical4j.data.CalendarBuilder;
-import net.fortuna.ical4j.model.Calendar;
-import net.fortuna.ical4j.model.component.VEvent;
+import java.io.InputStream;
+import java.util.List;
 
 public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
 {
@@ -69,7 +68,7 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
   public void setEventsToImport(final List<VEvent> events)
   {
     checkAccess();
-    final ImportStorage<TeamEventDO> storage = teamCalImportDao.importEvents(events, actionLog);
+    final ImportStorage<TeamEventDO> storage = teamCalImportDao.importEvents(events);
     setStorage(storage);
   }
 
@@ -80,11 +79,10 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
     if (fileUpload != null) {
       try {
         final InputStream is = fileUpload.getInputStream();
-        actionLog.reset();
         final String clientFilename = fileUpload.getClientFileName();
         final CalendarBuilder builder = new CalendarBuilder();
         final Calendar calendar = builder.build(is);
-        final ImportStorage<TeamEventDO> storage = teamCalImportDao.importEvents(calendar, clientFilename, actionLog);
+        final ImportStorage<TeamEventDO> storage = teamCalImportDao.importEvents(calendar, clientFilename);
         setStorage(storage);
       } catch (final Exception ex) {
         log.error(ex.getMessage(), ex);
@@ -104,7 +102,7 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
     }
     @SuppressWarnings("unchecked")
     final ImportedSheet<TeamEventDO> sheet = (ImportedSheet<TeamEventDO>) getStorage().getNamedSheet(name);
-    if (sheet == null || sheet.isReconciled() == false) {
+    if (sheet == null || !sheet.isReconciled()) {
       return;
     }
     reconcile(teamCalImportDao.getSheetName());

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -72,7 +72,7 @@ public class SkillTreeTableNode extends TreeTableNode
   @Override
   public String toString()
   {
-    final StringBuffer sb = new StringBuffer("SkillTreeTableNode[skillName=");
+    final StringBuilder sb = new StringBuilder("SkillTreeTableNode[skillName=");
     sb.append(getSkillTitle());
     sb.append(",id=");
     sb.append(getId());

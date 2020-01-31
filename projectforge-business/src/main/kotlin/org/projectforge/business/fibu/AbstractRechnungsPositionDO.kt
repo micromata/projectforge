@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,44 +23,43 @@
 
 package org.projectforge.business.fibu
 
-import org.apache.commons.collections.CollectionUtils
-import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.projectforge.business.fibu.kost.KostZuweisungDO
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.utils.CurrencyHelper
 import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
 import javax.persistence.Column
 import javax.persistence.MappedSuperclass
 import javax.persistence.Transient
 
-/**
- * Repräsentiert eine Position innerhalb eine Rechnung.
- *
- * @author Kai Reinhard (k.reinhard@micromata.de)
- */
 @MappedSuperclass
-abstract class AbstractRechnungsPositionDO: DefaultBaseDO(), ShortDisplayNameCapable {
+abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable {
 
-    private val log = org.slf4j.LoggerFactory
-            .getLogger(AbstractRechnungsPositionDO::class.java)
+    override val displayName: String
+        @Transient
+        get() = "$number"
 
+    @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
     @get:Column
-    var number: Short = 0
+    open var number: Short = 0
 
+    @PropertyInfo(i18nKey = "fibu.rechnung.text")
     @get:Column(name = "s_text", length = 1000)
-    var text: String? = null
+    open var text: String? = null
 
+    @PropertyInfo(i18nKey = "fibu.rechnung.menge")
     @get:Column(scale = 5, precision = 18)
-    var menge: BigDecimal? = null
+    open var menge: BigDecimal? = null
 
+    @PropertyInfo(i18nKey = "fibu.rechnung.position.einzelNetto")
     @get:Column(name = "einzel_netto", scale = 2, precision = 18)
-    var einzelNetto: BigDecimal? = null
+    open var einzelNetto: BigDecimal? = null
 
+    @PropertyInfo(i18nKey = "fibu.rechnung.mehrwertSteuerSatz")
     @get:Column(scale = 5, precision = 10)
-    var vat: BigDecimal? = null
+    open var vat: BigDecimal? = null
 
     @get:Transient
     abstract var kostZuweisungen: MutableList<KostZuweisungDO>?
@@ -68,199 +67,85 @@ abstract class AbstractRechnungsPositionDO: DefaultBaseDO(), ShortDisplayNameCap
     @get:Transient
     abstract val rechnungId: Int?
 
-    val netSum: BigDecimal
-        @Transient
-        get() = if (this.menge != null) {
-            if (this.einzelNetto != null) {
-                CurrencyHelper.multiply(this.menge, this.einzelNetto)
-            } else {
-                BigDecimal.ZERO
-            }
-        } else {
-            (if (this.einzelNetto != null) this.einzelNetto else BigDecimal.ZERO)!!
-        }
-
-    val bruttoSum: BigDecimal
-        @Transient
-        get() {
-            val netSum = netSum
-            return if (vat != null) {
-                netSum.add(CurrencyHelper.multiply(netSum, vat))
-            } else {
-                netSum
-            }
-        }
-
-    val vatAmount: BigDecimal
-        @Transient
-        get() {
-            val netSum = netSum
-            return if (vat != null) {
-                CurrencyHelper.multiply(netSum, vat)
-            } else {
-                BigDecimal.ZERO
-            }
-        }
-
-    /**
-     * @return The total net sum of all assigned cost entries multiplied with the vat of this position.
-     */
-    val kostZuweisungGrossSum: BigDecimal
-        @Transient
-        get() = CurrencyHelper.getGrossAmount(kostZuweisungsNetSum, vat)
-
-    /**
-     * @return The net value as sum of all cost assignements.
-     */
-    val kostZuweisungsNetSum: BigDecimal
-        @Transient
-        get() {
-            var sum = BigDecimal.ZERO
-            if (CollectionUtils.isNotEmpty(this.kostZuweisungen)) {
-                for (zuweisung in this.kostZuweisungen!!) {
-                    sum = NumberHelper.add(sum, zuweisung.netto)
-                }
-            }
-            return sum
-        }
-
-    val kostZuweisungNetFehlbetrag: BigDecimal
-        @Transient
-        get() = kostZuweisungsNetSum.subtract(netSum)
-
-    val isEmpty: Boolean
-        @Transient
-        get() = if (!StringUtils.isBlank(text)) {
-            false
-        } else !NumberHelper.isNotZero(einzelNetto)
-
-    /**
-     * @param index Index of the cost assignment not index of collection.
-     * @return KostZuweisungDO with given index or null, if not exist.
-     */
-    fun getKostZuweisung(index: Int): KostZuweisungDO? {
-        if (kostZuweisungen == null) {
-            log.error("Can't get cost assignment with index $index because no cost assignments given.")
-            return null
-        }
-        for (zuweisung in kostZuweisungen!!) {
-            if (index == zuweisung.index.toInt()) {
-                return zuweisung
-            }
-        }
-        log.error("Can't found cost assignment with index $index")
-        return null
+    fun getKostZuweisung(idx: Int): KostZuweisungDO? {
+        return kostZuweisungen?.getOrNull(idx)
     }
 
-    fun addKostZuweisung(kostZuweisung: KostZuweisungDO): AbstractRechnungsPositionDO {
-        ensureAndGetKostzuweisungen()
-        var index: Short = 0
-        for (zuweisung in kostZuweisungen!!) {
-            if (zuweisung.index >= index) {
-                index = zuweisung.index
-                index++
-            }
-        }
-        kostZuweisung.index = index
-        setThis(kostZuweisung)
-        this.kostZuweisungen!!.add(kostZuweisung)
-        return this
+    fun addKostZuweisung(kostZuweisung: KostZuweisungDO) {
+        val zuweisungen = this.ensureAndGetKostzuweisungen()
+        // Get the highest used number + 1 or take 0 for the first position.
+        val nextIndex = zuweisungen.maxBy { it.index }?.index?.plus(1)?.toShort() ?: 0
+        kostZuweisung.index = nextIndex
+        kostZuweisung.setRechnungsPosition(this)
+        zuweisungen.add(kostZuweisung)
     }
 
-    /**
-     * kostZuweisung.setEingangsrechnungsPosition(this);
-     *
-     * @param kostZuweisung
-     */
-    abstract fun setThis(kostZuweisung: KostZuweisungDO)
-
-    abstract fun newInstance(): AbstractRechnungsPositionDO
-
-    /**
-     * Does only work for not already persisted entries (meaning entries without an id / pk) and only the last entry of
-     * the list. Otherwise this method logs an error message and do nothing else.
-     *
-     * @param idx
-     * @see .isKostZuweisungDeletable
-     */
-    fun deleteKostZuweisung(idx: Int): AbstractRechnungsPositionDO {
-        val zuweisung = getKostZuweisung(idx) ?: return this
+    fun deleteKostZuweisung(idx: Int) {
+        val zuweisung = getKostZuweisung(idx) ?: return
         if (!isKostZuweisungDeletable(zuweisung)) {
-            log
-                    .error(
-                            "Deleting of cost assignements which are already persisted (a id / pk already exists) or not are not the last entry is not supported. Do nothing.")
-            return this
+            log.error("Deleting of cost assignements which are already persisted (a id / pk already exists) or not are not the last entry is not supported. Do nothing.")
+            return
         }
         this.kostZuweisungen!!.remove(zuweisung)
-        return this
     }
 
-    /**
-     * Only the last entry of cost assignments is deletable if not already persisted (no id/pk given).
-     *
-     * @param zuweisung
-     * @return
-     */
+    fun ensureAndGetKostzuweisungen(): MutableList<KostZuweisungDO> {
+        if (this.kostZuweisungen == null)
+            kostZuweisungen = mutableListOf()
+        return kostZuweisungen!!
+    }
+
     fun isKostZuweisungDeletable(zuweisung: KostZuweisungDO?): Boolean {
-        if (zuweisung == null) {
+        if (zuweisung == null)
             return false
-        }
-        if (this is EingangsrechnungsPositionDO && zuweisung.eingangsrechnungsPositionId != this.id || this is RechnungsPositionDO && zuweisung.rechnungsPositionId != this.id) {
+        if (!checkKostZuweisungId(zuweisung)) {
             log.error("Oups, given cost assignment is not assigned to this invoice position.")
             return false
         }
         return zuweisung.id == null
-        // if (zuweisung.getIndex() + 1 < this.kostZuweisungen.size()) {
-        // return false;
-        // }
     }
 
-    fun ensureAndGetKostzuweisungen(): List<KostZuweisungDO>? {
-        if (this.kostZuweisungen == null) {
-            kostZuweisungen = ArrayList()
-        }
-        return kostZuweisungen
-    }
+    abstract protected fun checkKostZuweisungId(zuweisung: KostZuweisungDO): Boolean
 
-    /**
-     * Clones this including cost assignments and order position (without id's).
-     *
-     * @return
-     */
-    fun newClone(): AbstractRechnungsPositionDO {
-        val rechnungsPosition = newInstance()
-        rechnungsPosition.copyValuesFrom(this, "id", "kostZuweisungen")
-        if (this.kostZuweisungen != null) {
-            for (origKostZuweisung in this.kostZuweisungen!!) {
-                val kostZuweisung = origKostZuweisung.newClone()
-                rechnungsPosition.addKostZuweisung(kostZuweisung)
-            }
-        }
-        return rechnungsPosition
-    }
+    @get:PropertyInfo(i18nKey = "fibu.common.netto")
+    val netSum: BigDecimal
+        @Transient
+        get() = RechnungCalculator.calculateNetSum(this)
+
+    val vatAmount: BigDecimal
+        @Transient
+        get() = RechnungCalculator.calculateVatAmountSum(this)
+
+    val bruttoSum: BigDecimal
+        @Transient
+        get() = RechnungCalculator.calculateGrossSum(this)
+
+    val kostZuweisungNetSum: BigDecimal
+        @Transient
+        get() = RechnungCalculator.kostZuweisungenNetSum(this)
+
+    val kostZuweisungNetFehlbetrag: BigDecimal
+        @Transient
+        get() = RechnungCalculator.kostZuweisungenNetFehlbetrag(this)
+
+    val kostZuweisungGrossSum: BigDecimal
+        @Transient
+        get() = RechnungCalculator.kostZuweisungenGrossSum(this)
+
+    val isEmpty: Boolean
+        @Transient
+        get() = text.isNullOrEmpty() && NumberHelper.isZeroOrNull(einzelNetto)
 
     override fun equals(other: Any?): Boolean {
-        if (other is AbstractRechnungsPositionDO) {
-            val o = other as AbstractRechnungsPositionDO?
-            if (this.number != o!!.number) {
-                return false
-            }
-            return this.rechnungId == o.rechnungId
-        }
-        return false
+        if (other == null || other !is AbstractRechnungsPositionDO) return false
+        return this.number == other.number && this.rechnungId == other.rechnungId
     }
 
     override fun hashCode(): Int {
-        val hcb = HashCodeBuilder()
-        hcb.append(number)
-        if (rechnungId != null) {
-            hcb.append(rechnungId!!)
-        }
-        return hcb.toHashCode()
+        return HashCodeBuilder().append(number).append(rechnungId).toHashCode()
     }
 
-    @Transient
-    override fun getShortDisplayName(): String {
-        return number.toString()
+    companion object {
+        private val log = org.slf4j.LoggerFactory.getLogger(AbstractRechnungsPositionDO::class.java)
     }
 }

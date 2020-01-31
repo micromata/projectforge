@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,12 @@
 
 package org.projectforge.business.ldap;
 
+import org.springframework.stereotype.Service;
+
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.directory.Attributes;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.BasicAttributes;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.SearchControls;
-
-import org.springframework.stereotype.Service;
+import javax.naming.directory.*;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -64,7 +60,7 @@ public class LdapOrganizationalUnitDao
       protected Object call() throws NameNotFoundException, Exception
       {
         final String path = LdapUtils.getOu(ou, organizationalUnits);
-        if (doesExist(ctx, ou, organizationalUnits) == true) {
+        if (doesExist(ctx, ou, organizationalUnits)) {
           log.info(OBJECT_CLASS + " does already exist (OK): " + path);
           return null;
         }
@@ -89,7 +85,7 @@ public class LdapOrganizationalUnitDao
       protected Object call() throws NameNotFoundException, Exception
       {
         final String path = LdapUtils.getOu(ou, organizationalUnits);
-        if (doesExist(ctx, ou, organizationalUnits) == false) {
+        if (!doesExist(ctx, ou, organizationalUnits)) {
           log.info(OBJECT_CLASS + " doesn't exist and can't delete it (OK): " + path);
           return null;
         }
@@ -102,12 +98,12 @@ public class LdapOrganizationalUnitDao
 
   private boolean doesExist(final DirContext ctx, final String ou, final String... organizationalUnits) throws NamingException
   {
-    NamingEnumeration< ? > results = null;
+    NamingEnumeration< ? > results;
     final SearchControls controls = new SearchControls();
     controls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
     final String searchBase = LdapUtils.getOu(organizationalUnits);
     results = ctx.search(searchBase, "(&(objectClass=" + OBJECT_CLASS + ")(" + LdapUtils.getOu(ou) + "))", controls);
-    return results.hasMore() == true;
+    return results.hasMore();
   }
 
   public void setLdapConnector(final LdapConnector ldapConnector)

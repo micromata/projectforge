@@ -1,7 +1,5 @@
-import java.lang.reflect.*
-import java.lang.Integer
+import java.lang.reflect.Method
 import java.text.SimpleDateFormat
-
 
 // an Kai übergeben um in Projectforge bereit gestellt zu werden
 

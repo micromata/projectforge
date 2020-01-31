@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,17 @@
 
 package org.projectforge.framework.persistence.database.timeable;
 
-import java.sql.Timestamp;
-import java.util.Date;
-
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * Test of persistence of attributes.
@@ -76,7 +75,7 @@ public class EmployeeAttrTest extends AbstractTestBase
 
     EmployeeDO luser = employeeDao.getById(e.getId());
     final String comment = luser.getComment();
-    Assertions.assertTrue(luser.getTimeableAttributes().isEmpty() == false);
+    Assertions.assertTrue(!luser.getTimeableAttributes().isEmpty());
     Assertions.assertTrue(luser.getTimeableAttributes().size() == 1);
 
     EmployeeTimedDO row = luser.getTimeableAttributes().get(0);

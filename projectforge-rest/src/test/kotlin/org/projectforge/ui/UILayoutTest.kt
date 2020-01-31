@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,27 +27,27 @@ import com.google.gson.GsonBuilder
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.projectforge.business.book.BookDO
-import org.projectforge.framework.JsonValidator
-import org.projectforge.rest.AddressRest
-import org.projectforge.rest.BookRest
+import org.projectforge.framework.json.JsonValidator
+import org.projectforge.rest.AddressPagesRest
+import org.projectforge.rest.BookPagesRest
 import org.projectforge.rest.dto.Address
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
 class UILayoutTest : AbstractTestBase() {
     @Autowired
-    lateinit var bookRest: BookRest
+    lateinit var bookRest: BookPagesRest
 
     @Autowired
-    lateinit var addressRest: AddressRest
+    lateinit var addressRest: AddressPagesRest
 
     @Test
     fun testAddressEditLayout() {
         logon(TEST_ADMIN_USER) // Needed for getting address books.
         val gson = GsonBuilder().create()
         val address = Address()
-        var jsonString = gson.toJson(addressRest.createEditLayout(address))
-        var jsonValidator = JsonValidator(jsonString)
+        val jsonString = gson.toJson(addressRest.createEditLayout(address, UILayout.UserAccess(true, true, true, true)))
+        val jsonValidator = JsonValidator(jsonString)
 
         var map = jsonValidator.findParentMap("id", "addressStatus")
         assertEquals(true, map!!["required"] as Boolean)
@@ -59,16 +59,16 @@ class UILayoutTest : AbstractTestBase() {
     @Test
     fun testEditBookActionButtons() {
         val gson = GsonBuilder().create()
-
+        val userAccess = UILayout.UserAccess(true, true, true, true)
         val book = BookDO()
-        var jsonString = gson.toJson(bookRest.createEditLayout(book))
+        var jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
         var jsonValidator = JsonValidator(jsonString)
         assertEquals("cancel", jsonValidator.get("actions[0].id"))
         assertEquals("create", jsonValidator.get("actions[1].id"))
         assertEquals(2, jsonValidator.getList("actions")?.size)
 
         book.pk = 42
-        jsonString = gson.toJson(bookRest.createEditLayout(book))
+        jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
         jsonValidator = JsonValidator(jsonString)
         assertEquals("cancel", jsonValidator.get("actions[0].id"))
         assertEquals("markAsDeleted", jsonValidator.get("actions[1].id"))
@@ -76,7 +76,7 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals(3, jsonValidator.getList("actions")?.size)
 
         book.isDeleted = true
-        jsonString = gson.toJson(bookRest.createEditLayout(book))
+        jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
         jsonValidator = JsonValidator(jsonString)
         assertEquals("cancel", jsonValidator.get("actions[0].id"))
         assertEquals("undelete", jsonValidator.get("actions[1].id"))
@@ -87,32 +87,33 @@ class UILayoutTest : AbstractTestBase() {
     fun testEditBookLayout() {
         val gson = GsonBuilder().create()
         val book = BookDO()
+        val userAccess = UILayout.UserAccess(true, true, true, true)
         book.id = 42 // So lend-out component will be visible (only in edit mode)
-        var jsonString = gson.toJson(bookRest.createEditLayout(book))
-        var jsonValidator = JsonValidator(jsonString)
+        val jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
+        val jsonValidator = JsonValidator(jsonString)
 
         assertEquals("???book.title.edit???", jsonValidator.get("title")) // translations not available in test.
-        val title = jsonValidator.findParentMap("id", "title", "layout[0]");
-        assertField(title, "title", 255.0, "STRING", "???book.title???", type = "INPUT", key = "el-3")
+        val title = jsonValidator.getMap("layout[0]")
+        assertField(title, "title", 255.0, "STRING", "???book.title???", type = "INPUT", key = "el-1")
         assertEquals(true, title!!["focus"])
 
-        val authors = jsonValidator.findParentMap("id", "authors", "layout[1]")
-        assertField(authors, "authors", 1000.0, null, "???book.authors???", type = "TEXTAREA", key = "el-6")
+        val authors = jsonValidator.getMap("layout[1]")
+        assertField(authors, "authors", 1000.0, null, "???book.authors???", type = "TEXTAREA", key = "el-2")
         assertNull(jsonValidator.getBoolean("layout[1].focus"))
 
         assertEquals("ROW", jsonValidator.get("layout[2].type"))
-        assertEquals("el-7", jsonValidator.get("layout[2].key"))
+        assertEquals("el-3", jsonValidator.get("layout[2].key"))
 
         assertEquals(6.0, jsonValidator.getDouble("layout[2].content[0].length"))
         assertEquals("COL", jsonValidator.get("layout[2].content[0].type"))
-        assertEquals("el-8", jsonValidator.get("layout[2].content[0].key"))
+        assertEquals("el-4", jsonValidator.get("layout[2].content[0].key"))
     }
 
     @Test
     fun testBookListLayout() {
         val gson = GsonBuilder().create()
-        var jsonString = gson.toJson(bookRest.createListLayout())
-        var jsonValidator = JsonValidator(jsonString)
+        val jsonString = gson.toJson(bookRest.createListLayout())
+        val jsonValidator = JsonValidator(jsonString)
 
         assertEquals("resultSet", jsonValidator.get("layout[0].id"))
         assertEquals("TABLE", jsonValidator.get("layout[0].type"))
@@ -142,29 +143,24 @@ class UILayoutTest : AbstractTestBase() {
 
         assertEquals(1, jsonValidator.getList("namedContainers[0].content")?.size)
 
-        assertEquals(5, jsonValidator.getList("namedContainers[0].content[0].content")?.size)
-        assertEquals("present", jsonValidator.get("namedContainers[0].content[0].content[0].id"))
-        assertEquals("???book.status.present???", jsonValidator.get("namedContainers[0].content[0].content[0].label"))
-        assertEquals("CHECKBOX", jsonValidator.get("namedContainers[0].content[0].content[0].type"))
-        assertEquals("el-10", jsonValidator.get("namedContainers[0].content[0].content[0].key"))
+        assertEquals(1, jsonValidator.getList("namedContainers[0].content[0].content")?.size)
 
-        assertEquals("deleted", jsonValidator.get("namedContainers[0].content[0].content[3].id"))
-        assertEquals("???onlyDeleted.tooltip???", jsonValidator.get("namedContainers[0].content[0].content[3].tooltip"))
+        assertEquals("deleted", jsonValidator.get("namedContainers[0].content[0].content[0].id"))
+        assertEquals("???onlyDeleted.tooltip???", jsonValidator.get("namedContainers[0].content[0].content[0].tooltip"))
 
         assertEquals(2, jsonValidator.getList("actions")?.size)
         assertEquals("reset", jsonValidator.get("actions[0].id"))
         assertEquals("???reset???", jsonValidator.get("actions[0].title"))
-        assertEquals("DANGER", jsonValidator.get("actions[0].style")) // Gson doesn't know JsonProperty of Jacskon (DANGER -> danger.)
+        assertEquals("SECONDARY", jsonValidator.get("actions[0].color")) // Gson doesn't know JsonProperty of Jacskon (DANGER -> danger.)
         assertEquals("BUTTON", jsonValidator.get("actions[0].type"))
-        assertEquals("el-15", jsonValidator.get("actions[0].key"))
+        assertEquals("el-11", jsonValidator.get("actions[0].key"))
 
-        assertEquals("PRIMARY", jsonValidator.get("actions[1].style")) // Gson doesn't know JsonProperty of Jacskon.
+        assertEquals("PRIMARY", jsonValidator.get("actions[1].color")) // Gson doesn't know JsonProperty of Jacskon.
     }
 
     private fun assertField(element: Map<String, *>?, id: String, maxLength: Double, dataType: String?, label: String, type: String, key: String) {
         assertNotNull(element)
-        if (element == null) return // Only for compiler: shouldn't occur due to previous assertNotNull statement.
-        assertEquals(id, element.get("id"))
+        assertEquals(id, element!!.get("id"))
         assertEquals(maxLength, element.get("maxLength"))
         if (dataType != null)
             assertEquals(dataType, element.get("dataType"))

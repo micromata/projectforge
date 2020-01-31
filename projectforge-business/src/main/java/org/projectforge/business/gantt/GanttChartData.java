@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,11 @@
 
 package org.projectforge.business.gantt;
 
+import org.projectforge.business.task.TaskDO;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-
-import org.projectforge.business.task.TaskDO;
 
 public class GanttChartData implements Serializable
 {
@@ -66,7 +66,7 @@ public class GanttChartData implements Serializable
       return null;
     }
     if (externalObjects == null) {
-      externalObjects = new ArrayList<GanttTask>();
+      externalObjects = new ArrayList<>();
     }
     GanttTask ganttTask = getExternalObject(task.getId());
     if (ganttTask == null) {
@@ -106,7 +106,7 @@ public class GanttChartData implements Serializable
       return null;
     }
     for (final GanttTask task : externalObjects) {
-      if (id.equals(task.getId()) == true) {
+      if (id.equals(task.getId())) {
         return task;
       }
     }

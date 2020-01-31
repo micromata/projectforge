@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,19 +23,14 @@
 
 package org.projectforge.business.teamcal.filter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+
+import java.util.*;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
+ *
  */
 public class TeamCalCalendarFilter extends AbstractCalendarFilter
 {
@@ -45,7 +40,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
 
   public static final String DEFAULT_COLOR = "#FAAF26";
 
-  private static final Set<Integer> EMPTY_INT_SET = new HashSet<Integer>();
+  private static final Set<Integer> EMPTY_INT_SET = new HashSet<>();
 
   private final List<TemplateEntry> templateEntries;
 
@@ -56,13 +51,13 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
   public TeamCalCalendarFilter()
   {
     super();
-    templateEntries = new ArrayList<TemplateEntry>();
+    templateEntries = new ArrayList<>();
   }
 
   /**
    * Try to find a previous used color for the given calendar in any entry of this filter. If found multiple ones, the
    * newest one is used.
-   * 
+   *
    * @param calId Id of the calendar to search for.
    * @return Previous used color for the given calendar or DEFAULT_COLOR if not found.
    */
@@ -78,7 +73,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
     // intelligent color choose
     for (final TemplateEntry entry : templateEntries) {
       for (final TemplateCalendarProperties props : entry.getCalendarProperties()) {
-        if (calId.equals(props.getCalId()) == true) {
+        if (calId.equals(props.getCalId())) {
           if (props.getMillisOfLastChange() > lastCalendarEntry) {
             lastCalendarEntry = props.getMillisOfLastChange();
             lastCalendarColor = props.getColorCode();
@@ -106,7 +101,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
 
   /**
    * Adds new entry and sets the new entry as active entry.
-   * 
+   *
    * @param entry
    */
   public void add(final TemplateEntry entry)
@@ -183,7 +178,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
   {
     int i = 0;
     for (final TemplateEntry entry : this.templateEntries) {
-      if (entry.equals(activeTemplateEntry) == true) {
+      if (entry.equals(activeTemplateEntry)) {
         this.activeTemplateEntryIndex = i;
         this.activeTemplateEntry = entry;
         this.activeTemplateEntry.setDirty();
@@ -199,7 +194,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
     if (getActiveTemplateEntry() != null) {
       return this.activeTemplateEntry.getVisibleCalendarIds();
     } else {
-      if (EMPTY_INT_SET.isEmpty() == false) {
+      if (!EMPTY_INT_SET.isEmpty()) {
         log.error(
             "************** Oups, dear developers, don't add entries to the empty HashSet returned by this method!!!!");
         EMPTY_INT_SET.clear();
@@ -211,7 +206,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
   /**
    * Copies all template entries (active template and list) of the given source to this. This method is used to make a
    * backup copy for undoing changes in TeamCalDialog.
-   * 
+   *
    * @param src
    */
   public TeamCalCalendarFilter copyValuesFrom(final TeamCalCalendarFilter src)
@@ -231,7 +226,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
 
   /**
    * For avoiding reload of Calendar if no changes are detected. (Was für'n Aufwand für so'n kleines Feature...)
-   * 
+   *
    * @param other
    * @return
    */
@@ -248,10 +243,10 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
     }
     final Iterator<TemplateEntry> it1 = this.templateEntries.iterator();
     final Iterator<TemplateEntry> it2 = other.templateEntries.iterator();
-    while (it1.hasNext() == true) {
+    while (it1.hasNext()) {
       final TemplateEntry entry1 = it1.next();
       final TemplateEntry entry2 = it2.next();
-      if (entry1.isModified(entry2) == true) {
+      if (entry1.isModified(entry2)) {
         return true;
       }
     }
@@ -266,7 +261,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
     String current = prefix;
     for (int i = 1; i <= 10; i++) {
       for (final TemplateEntry entry : templateEntries) {
-        if (current.equals(entry.getName()) == true) {
+        if (current.equals(entry.getName())) {
           if (i == 10) {
             // Don't try to get prefix + " 11", giving up:
             return null;

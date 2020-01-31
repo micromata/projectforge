@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,24 +23,18 @@
 
 package org.projectforge.business.teamcal.event.ical;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import net.fortuna.ical4j.model.property.Method;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
-import net.fortuna.ical4j.model.property.Method;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.*;
 
 public class ICalHandler
 {
@@ -80,7 +74,7 @@ public class ICalHandler
     // parse iCal
     boolean result = parser.parse(iCalReader);
 
-    if (result == false) {
+    if (!result) {
       log.warn("ICal file could not be parsed");
       return false;
     }
@@ -127,13 +121,13 @@ public class ICalHandler
 
     for (EventHandle eventHandle : singleEventHandles) {
       this.validate(eventHandle);
-      error = error || (eventHandle.getErrors().isEmpty() == false);
+      error = error || (!eventHandle.getErrors().isEmpty());
     }
 
     // TODO improve handling of recurring events!!!!
     for (RecurringEventHandle eventHandle : recurringHandles.values()) {
       this.validate(eventHandle);
-      error = error || (eventHandle.getErrors().isEmpty() == false);
+      error = error || (!eventHandle.getErrors().isEmpty());
 
       // TODO additional events should be exdates or similar of the main event!
       for (EventHandle additionalEvent : eventHandle.getRelatedEvents()) {
@@ -142,7 +136,7 @@ public class ICalHandler
       }
     }
 
-    return error == false;
+    return !error;
   }
 
   public void persist(final boolean ignoreWarnings)
@@ -231,7 +225,7 @@ public class ICalHandler
   private void persist(final EventHandle eventHandle, final boolean ignoreWarnings)
   {
     // persist is not possible if errors exists
-    if (eventHandle.isValid(ignoreWarnings) == false) {
+    if (!eventHandle.isValid(ignoreWarnings)) {
       return;
     }
 
@@ -369,7 +363,7 @@ public class ICalHandler
       return null;
     }
 
-    if (this.singleEventHandles.isEmpty() == false) {
+    if (!this.singleEventHandles.isEmpty()) {
       return this.singleEventHandles.get(0).getEvent();
     } else {
       return this.recurringHandles.values().iterator().next().getEvent();

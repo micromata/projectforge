@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -45,18 +45,18 @@ public enum ContactStatus implements I18nEnum
 
   public static ContactStatus get(String s)
   {
-    if (StringUtils.isEmpty(s) == true) {
+    if (StringUtils.isEmpty(s)) {
       return null;
     }
-    if ("ACTIVE".equals(s) == true) {
+    if ("ACTIVE".equals(s)) {
       return ACTIVE;
-    } else if ("NON_ACTIVE".equals(s) == true) {
+    } else if ("NON_ACTIVE".equals(s)) {
       return NON_ACTIVE;
-    } else if ("UNINTERESTING".equals(s) == true) {
+    } else if ("UNINTERESTING".equals(s)) {
       return UNINTERESTING;
-    } else if ("DEPARTED".equals(s) == true) {
+    } else if ("DEPARTED".equals(s)) {
       return DEPARTED;
-    } else if ("PERSONA_INGRATA".equals(s) == true) {
+    } else if ("PERSONA_INGRATA".equals(s)) {
       return PERSONA_INGRATA;
     }
     throw new UnsupportedOperationException("Unknown ContactStatus: '" + s + "'");

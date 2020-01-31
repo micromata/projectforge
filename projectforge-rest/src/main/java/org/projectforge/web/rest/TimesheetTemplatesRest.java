@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,6 @@
 
 package org.projectforge.web.rest;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.user.UserPrefDao;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
@@ -42,6 +33,14 @@ import org.projectforge.rest.JsonUtils;
 import org.projectforge.web.rest.converter.TimesheetTemplateConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * REST-Schnittstelle für {@link TaskDao}
@@ -64,7 +63,7 @@ public class TimesheetTemplatesRest
   public Response getList()
   {
     final List<UserPrefDO> list = userPrefDao.getUserPrefs(UserPrefArea.TIMESHEET_TEMPLATE);
-    final List<TimesheetTemplateObject> result = new ArrayList<TimesheetTemplateObject>();
+    final List<TimesheetTemplateObject> result = new ArrayList<>();
     if (list != null) {
       for (final UserPrefDO userPref : list) {
         final TimesheetTemplateObject template = timesheetTemplateConverter.getTimesheetTemplateObject(userPref);

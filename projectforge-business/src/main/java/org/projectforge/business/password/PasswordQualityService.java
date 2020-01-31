@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.business.password;
 
-import java.util.List;
-
 import org.projectforge.framework.i18n.I18nKeyAndParams;
 
+import java.util.List;
+
 /**
- * Interface holding password quality check functions in Projectforge.
+ * Interface holding password quality check functions in ProjectForge.
  *
  * @author Matthias Altmann (m.altmann@micromata.de)
  */

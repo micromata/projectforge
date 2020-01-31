@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,37 +38,43 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_ORGA_POSTAUSGANG",
         indexes = [javax.persistence.Index(name = "idx_fk_t_orga_postausgang_tenant_id", columnList = "tenant_id")])
-class PostausgangDO : DefaultBaseDO() {
+@NamedQueries(
+        NamedQuery(name = PostausgangDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from PostausgangDO"))
+open class PostausgangDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "date")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(nullable = false)
-    var datum: Date? = null
+    open var datum: Date? = null
 
     @PropertyInfo(i18nKey = "orga.postausgang.empfaenger")
     @Field
     @get:Column(length = 1000, nullable = false)
-    var empfaenger: String? = null
+    open var empfaenger: String? = null
 
     @PropertyInfo(i18nKey = "orga.postausgang.person")
     @Field
     @get:Column(length = 1000)
-    var person: String? = null
+    open var person: String? = null
 
     @PropertyInfo(i18nKey = "orga.post.inhalt", required = true)
     @Field
     @get:Column(length = 1000)
-    var inhalt: String? = null
+    open var inhalt: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = 4000)
-    var bemerkung: String? = null
+    open var bemerkung: String? = null
 
     @PropertyInfo(i18nKey = "orga.post.type")
     @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "post_type", length = 100, nullable = false)
-    var type: PostType? = null
+    open var type: PostType? = null
+
+    companion object {
+        internal const val SELECT_MIN_MAX_DATE = "PostausgangDO_SelectMinMaxDate"
+    }
 }

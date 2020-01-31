@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,6 +29,7 @@ import org.projectforge.framework.time.DayHolder;
 import org.projectforge.test.TestSetup;
 
 import java.math.BigDecimal;
+import java.time.Month;
 import java.util.Calendar;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -48,13 +49,13 @@ public class GanttTaskImplTest2 {
     task.setDuration(BigDecimal.TEN);
     assertTrue(task.hasDuration(), "duration should be 10.");
     final DayHolder day = new DayHolder();
-    day.setDate(2010, Calendar.AUGUST, 13);
-    task.setStartDate(day.getDate());
+    day.setDate(2010, Month.AUGUST, 13);
+    task.setStartDate(day.getUtilDate());
     assertTrue(task.hasDuration(), "duration should be 10.");
     task.setDuration(null);
     assertFalse(task.hasDuration(), "duration should be null.");
     day.add(Calendar.DAY_OF_MONTH, 1);
-    task.setEndDate(day.getDate());
+    task.setEndDate(day.getUtilDate());
     assertTrue(task.hasDuration(), "duration expected.");
   }
 }

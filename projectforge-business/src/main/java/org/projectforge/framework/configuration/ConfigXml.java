@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,6 @@
 
 package org.projectforge.framework.configuration;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -41,23 +31,25 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.dom4j.Element;
-import org.projectforge.business.excel.ExportConfig;
+import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.orga.ContractType;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.calendar.ConfigureHoliday;
-import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.framework.utils.FileHelper;
-import org.projectforge.framework.xstream.AliasMap;
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlHelper;
-import org.projectforge.framework.xstream.XmlObject;
-import org.projectforge.framework.xstream.XmlObjectReader;
-import org.projectforge.framework.xstream.XmlObjectWriter;
+import org.projectforge.framework.xstream.*;
 import org.projectforge.jira.JiraConfig;
 import org.projectforge.jira.JiraIssueType;
 import org.projectforge.storage.StorageConfig;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Configure ProjectForge via config.xml in the application's base dir.<br/>
@@ -66,15 +58,17 @@ import org.projectforge.storage.StorageConfig;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @XmlObject(alias = "config")
-public class ConfigXml
-{
+public class ConfigXml {
   private static final String SECRET_PROPERTY_STRING = "******";
+
+  public static final String CLASSPATH_INITIAL_CONFIG_XML_FILE = "initialConfig.xml";
+  public static final String CONFIG_XML_FILE = "config.xml";
 
   private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ConfigXml.class);
 
   private static transient ConfigXml instance;
 
-  private transient final List<ConfigurationListener> listeners = new ArrayList<ConfigurationListener>();
+  private transient final List<ConfigurationListener> listeners = new ArrayList<>();
 
   private String applicationHomeDir;
 
@@ -86,29 +80,19 @@ public class ConfigXml
 
   private String telephoneSystemOperatorPanelUrl;
 
-  private String currencySymbol;
-
-  @XmlField(asElement = true)
-  private Locale defaultLocale;
-
-  @XmlField(asElement = true)
-  private TimeNotation defaultTimeNotation;
-
-  @XmlField(asElement = true)
-  private int firstDayOfWeek = Calendar.MONDAY;
-
-  @XmlField(asElement = true)
-  private String excelDefaultPaperSize;
-
   private List<ConfigureHoliday> holidays;
 
   private transient File configFile;
 
   private String databaseDirectory;
 
+  private String ehcacheDirectory;
+
   private String loggingDirectory;
 
   private String workingDirectory;
+
+  private String backupDirectory;
 
   private String tempDirectory;
 
@@ -132,51 +116,43 @@ public class ConfigXml
 
   private static final String PLUGIN_CONFIGS_FIELD_NAME = "plugins";
 
-  public static ConfigXml getInstance()
-  {
+  public static ConfigXml getInstance() {
     if (instance == null) {
       throw new IllegalStateException("Configuration is not yet configured");
     }
     return instance;
   }
 
-  public static boolean isInitialized()
-  {
+  public static boolean isInitialized() {
     return instance != null;
   }
 
-  private void reset()
-  {
+  private void reset() {
     jiraConfig = null;
     jiraBrowseBaseUrl = null;
     telephoneSystemOperatorPanelUrl = null;
-    currencySymbol = "€";
-    defaultLocale = Locale.ENGLISH;
-    defaultTimeNotation = null;
-    firstDayOfWeek = Calendar.MONDAY;
-    setExcelDefaultPaperSize("DINA4");
     holidays = null;
     databaseDirectory = "database";
+    ehcacheDirectory = "ehcache";
     loggingDirectory = "logs";
     workingDirectory = "work";
+    backupDirectory = "backup";
     tempDirectory = "tmp";
     accountingConfig = new AccountingConfig();
     accountingConfig.reset();
     contractTypes = null;
   }
 
-  protected ConfigXml()
-  {
+  protected ConfigXml() {
     reset();
   }
 
-  private boolean ensureDir(final File dir)
-  {
-    if (dir.exists() == false) {
+  public static boolean ensureDir(final File dir) {
+    if (!dir.exists()) {
       log.info("Creating directory " + dir);
       dir.mkdir();
     }
-    if (dir.canRead() == false) {
+    if (!dir.canRead()) {
       log.error("Can't create directory: " + dir);
       return false;
     }
@@ -187,21 +163,25 @@ public class ConfigXml
    * Loads the configuration file config.xml from the application's home dir if given, otherwise the default values will
    * be assumed. Constructor is used by Spring instantiation.
    */
-  public ConfigXml(final String applicationHomeDir)
-  {
+  public ConfigXml(final String applicationHomeDir) {
     this.applicationHomeDir = applicationHomeDir;
     log.info("Using application home dir: " + applicationHomeDir);
     //    System.setProperty("base.dir", applicationHomeDir); // Needed by log4j
     final File dir = new File(this.applicationHomeDir);
     final boolean status = ensureDir(dir);
-    if (status == true) {
+    if (status) {
       readConfiguration();
       this.databaseDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.databaseDirectory);
       ensureDir(new File(databaseDirectory));
+      this.ehcacheDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.ehcacheDirectory);
+      ensureDir(new File(ehcacheDirectory));
       this.loggingDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.loggingDirectory);
+      System.setProperty("projectforge.ehcache.dir", ehcacheDirectory);
       ensureDir(new File(loggingDirectory));
       this.workingDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.workingDirectory);
       ensureDir(new File(workingDirectory));
+      this.backupDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.backupDirectory);
+      ensureDir(new File(backupDirectory));
       this.tempDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.tempDirectory);
       ensureDir(new File(tempDirectory));
     }
@@ -211,22 +191,22 @@ public class ConfigXml
     instance = this;
   }
 
-  public void register(final ConfigurationListener listener)
-  {
+  public void register(final ConfigurationListener listener) {
     listeners.add(listener);
   }
 
   /**
    * Reads the configuration file (can be called after any modification of the config file).
    */
-  public String readConfiguration()
-  {
+  public String readConfiguration() {
     reset();
-    configFile = new File(applicationHomeDir, "config.xml");
+    configFile = new File(applicationHomeDir, CONFIG_XML_FILE);
     String msg = "";
-    if (configFile.canRead() == false) {
-      msg = "Cannot read from config file: '" + getConfigFilePath() + "'. OK, assuming default values.";
-      log.info(msg);
+    if (!configFile.canRead()) {
+      if (!ProjectForgeApp.ensureInitialConfigFile(CLASSPATH_INITIAL_CONFIG_XML_FILE, CONFIG_XML_FILE)) {
+        msg = "Cannot read from config file: '" + getConfigFilePath() + "'. OK, assuming default values.";
+        log.info(msg);
+      }
     } else {
       final XmlObjectReader reader = getReader();
       String xml = null;
@@ -241,10 +221,7 @@ public class ConfigXml
           final ConfigXml cfg = (ConfigXml) reader.read(xml);
           final String warnings = reader.getWarnings();
           copyDeclaredFields(null, this.getClass(), cfg, this);
-          if (this.excelDefaultPaperSize != null) {
-            setExcelDefaultPaperSize(excelDefaultPaperSize);
-          }
-          if (CollectionUtils.isNotEmpty(cfg.plugins) == true) {
+          if (CollectionUtils.isNotEmpty(cfg.plugins)) {
             for (final ConfigurationData srcData : cfg.plugins) {
               final ConfigurationData destData = this.getPluginConfig(srcData.getClass());
               copyDeclaredFields(destData.getClass().getName() + ".", srcData.getClass(), srcData, destData);
@@ -267,15 +244,12 @@ public class ConfigXml
     return msg;
   }
 
-  public String exportConfiguration()
-  {
-    final XmlObjectWriter writer = new XmlObjectWriter()
-    {
+  public String exportConfiguration() {
+    final XmlObjectWriter writer = new XmlObjectWriter() {
       @Override
-      protected boolean ignoreField(final Object obj, final Field field)
-      {
-        if (field.getDeclaringClass().isAssignableFrom(ConfigXml.class) == true
-            && StringHelper.isIn(field.getName(), "expireTime", "timeOfLastRefresh") == true) {
+      protected boolean ignoreField(final Object obj, final Field field) {
+        if (field.getDeclaringClass().isAssignableFrom(ConfigXml.class)
+                && StringHelper.isIn(field.getName(), "expireTime", "timeOfLastRefresh")) {
           return true;
         }
         return super.ignoreField(obj, field);
@@ -287,10 +261,9 @@ public class ConfigXml
        */
       @Override
       protected void writeField(final Field field, final Object obj, final Object fieldValue, final XmlField annotation,
-          final Element element)
-      {
+                                final Element element) {
         if (field != null) {
-          if (field.isAnnotationPresent(ConfigXmlSecretField.class) == true) {
+          if (field.isAnnotationPresent(ConfigXmlSecretField.class)) {
             super.writeField(field, obj, SECRET_PROPERTY_STRING, annotation, element);
             return;
           }
@@ -302,8 +275,7 @@ public class ConfigXml
     return XmlHelper.XML_HEADER + xml;
   }
 
-  private static XmlObjectReader getReader()
-  {
+  private static XmlObjectReader getReader() {
     final XmlObjectReader reader = new XmlObjectReader();
     final AliasMap aliasMap = new AliasMap();
     reader.setAliasMap(aliasMap);
@@ -320,8 +292,7 @@ public class ConfigXml
    *
    * @param config
    */
-  static void internalSetInstance(final String config)
-  {
+  static void internalSetInstance(final String config) {
     final XmlObjectReader reader = getReader();
     final ConfigXml cfg = (ConfigXml) reader.read(config);
     instance = new ConfigXml();
@@ -332,13 +303,12 @@ public class ConfigXml
    * Copies only not null values of the configuration.
    */
   private static void copyDeclaredFields(final String prefix, final Class<?> srcClazz, final Object src,
-      final Object dest,
-      final String... ignoreFields)
-  {
+                                         final Object dest,
+                                         final String... ignoreFields) {
     final Field[] fields = srcClazz.getDeclaredFields();
     AccessibleObject.setAccessible(fields, true);
     for (final Field field : fields) {
-      if (ignoreFields != null && ArrayUtils.contains(ignoreFields, field.getName()) == false && accept(field)) {
+      if (ignoreFields != null && !ArrayUtils.contains(ignoreFields, field.getName()) && accept(field)) {
         try {
           final Object srcFieldValue = field.get(src);
           if (srcFieldValue == null) {
@@ -346,7 +316,7 @@ public class ConfigXml
           } else if (srcFieldValue instanceof ConfigurationData) {
             final Object destFieldValue = field.get(dest);
             Validate.notNull(destFieldValue);
-            final StringBuffer buf = new StringBuffer();
+            final StringBuilder buf = new StringBuilder();
             if (prefix != null) {
               buf.append(prefix);
             }
@@ -364,11 +334,11 @@ public class ConfigXml
             }
             buf.append(".");
             copyDeclaredFields(buf.toString(), srcFieldValue.getClass(), srcFieldValue, destFieldValue, ignoreFields);
-          } else if (PLUGIN_CONFIGS_FIELD_NAME.equals(field.getName()) == true) {
+          } else if (PLUGIN_CONFIGS_FIELD_NAME.equals(field.getName())) {
             // Do nothing.
           } else {
             field.set(dest, srcFieldValue);
-            if (field.isAnnotationPresent(ConfigXmlSecretField.class) == true) {
+            if (field.isAnnotationPresent(ConfigXmlSecretField.class)) {
               log.info(StringUtils.defaultString(prefix) + field.getName() + " = " + SECRET_PROPERTY_STRING);
             } else {
               log.info(StringUtils.defaultString(prefix) + field.getName() + " = " + srcFieldValue);
@@ -396,17 +366,16 @@ public class ConfigXml
    * @param field The Field to test.
    * @return Whether or not to consider the given <code>Field</code>.
    */
-  protected static boolean accept(final Field field)
-  {
+  protected static boolean accept(final Field field) {
     if (field.getName().indexOf(ClassUtils.INNER_CLASS_SEPARATOR_CHAR) != -1) {
       // Reject field from inner class.
       return false;
     }
-    if (Modifier.isTransient(field.getModifiers()) == true) {
+    if (Modifier.isTransient(field.getModifiers())) {
       // transients.
       return false;
     }
-    if (Modifier.isStatic(field.getModifiers()) == true) {
+    if (Modifier.isStatic(field.getModifiers())) {
       // transients.
       return false;
     }
@@ -421,8 +390,7 @@ public class ConfigXml
    * Example: https://jira.acme.com/jira/browse/ (don't forget closing '/'). <br/>
    * If null then no text input will be parsed and no JIRA link will be displayed.
    */
-  public String getJiraBrowseBaseUrl()
-  {
+  public String getJiraBrowseBaseUrl() {
     return jiraBrowseBaseUrl;
   }
 
@@ -431,104 +399,44 @@ public class ConfigXml
    *
    * @param jiraBrowseBaseUrl
    */
-  public void setJiraBrowseBaseUrl(final String jiraBrowseBaseUrl)
-  {
+  public void setJiraBrowseBaseUrl(final String jiraBrowseBaseUrl) {
     this.jiraBrowseBaseUrl = jiraBrowseBaseUrl;
   }
 
-  public JiraConfig getJiraConfig()
-  {
+  public JiraConfig getJiraConfig() {
     return jiraConfig;
   }
 
   /**
    * @return true if a JIRA browse base url is given.
    */
-  public final boolean isJIRAConfigured()
-  {
+  public final boolean isJIRAConfigured() {
     return StringUtils.isNotBlank(getJiraBrowseBaseUrl());
   }
 
   /**
    * @return the storageConfig
    */
-  public StorageConfig getStorageConfig()
-  {
+  public StorageConfig getStorageConfig() {
     return storageConfig;
   }
 
-  public boolean isStorageConfigured()
-  {
+  public boolean isStorageConfigured() {
     return storageConfig != null && StringUtils.isNotBlank(storageConfig.getAuthenticationToken());
   }
 
-  public String getTelephoneSystemOperatorPanelUrl()
-  {
+  public String getTelephoneSystemOperatorPanelUrl() {
     return telephoneSystemOperatorPanelUrl;
   }
 
-  public List<ContractType> getContractTypes()
-  {
+  public List<ContractType> getContractTypes() {
     return contractTypes;
-  }
-
-  /**
-   * The currency symbol of ProjectForge. ProjectForge supports currently one currency for the whole application. <br/>
-   * Please note: The deprecated stripes action only works with "€".
-   *
-   * @return the application wide currency symbol, e. g. "€".
-   */
-  public String getCurrencySymbol()
-  {
-    return currencySymbol;
-  }
-
-  /**
-   * The default locale is currently used for getting the week of year in Calendar.
-   */
-  public Locale getDefaultLocale()
-  {
-    return defaultLocale;
-  }
-
-  /**
-   * The default time notation (12-hour or 24-hour). This notation is used, if the user has not chosen his personal time
-   * notation. Default is 24-hour for locales starting with "de" (German), otherwise 12-hour.
-   */
-  public TimeNotation getDefaultTimeNotation()
-  {
-    return defaultTimeNotation;
-  }
-
-  /**
-   * The default first day of week (1 - Sunday, 2 - Monday, ...)
-   *
-   * @return the firstDayOfWeek
-   */
-  public int getFirstDayOfWeek()
-  {
-    return firstDayOfWeek;
-  }
-
-  public void setExcelDefaultPaperSize(final String excelDefaultPaperSize)
-  {
-    this.excelDefaultPaperSize = excelDefaultPaperSize;
-    ExportConfig.getInstance().setDefaultPaperSize(excelDefaultPaperSize);
-  }
-
-  /**
-   * ProjectForges home dir (for resources, images, configuration etc.).
-   */
-  public String getApplicationHomeDir()
-  {
-    return applicationHomeDir;
   }
 
   /**
    * @return the databaseDirectory
    */
-  public String getDatabaseDirectory()
-  {
+  public String getDatabaseDirectory() {
     return databaseDirectory;
   }
 
@@ -536,16 +444,14 @@ public class ConfigXml
    * @param databaseDirectory the databaseDirectory to set absolute or relative to the application's home dir.
    * @return this for chaining.
    */
-  public void setDatabaseDirectory(final String databaseDirectory)
-  {
+  public void setDatabaseDirectory(final String databaseDirectory) {
     this.databaseDirectory = databaseDirectory;
   }
 
   /**
    * @return the loggingDirectory
    */
-  public String getLoggingDirectory()
-  {
+  public String getLoggingDirectory() {
     return loggingDirectory;
   }
 
@@ -553,8 +459,7 @@ public class ConfigXml
    * @param loggingDirectory the loggingDirectory to set absolute or relative to the application's home dir.
    * @return this for chaining.
    */
-  public void setLoggingDirectory(final String loggingDirectory)
-  {
+  public void setLoggingDirectory(final String loggingDirectory) {
     this.loggingDirectory = loggingDirectory;
   }
 
@@ -564,8 +469,7 @@ public class ConfigXml
    *
    * @see #setWorkingDirectory(String)
    */
-  public String getWorkingDirectory()
-  {
+  public String getWorkingDirectory() {
     return workingDirectory;
   }
 
@@ -574,9 +478,12 @@ public class ConfigXml
    *
    * @param workingDirectory
    */
-  public void setWorkingDirectory(final String workingDirectory)
-  {
+  public void setWorkingDirectory(final String workingDirectory) {
     this.workingDirectory = workingDirectory;
+  }
+
+  public String getBackupDirectory() {
+    return backupDirectory;
   }
 
   /**
@@ -585,8 +492,7 @@ public class ConfigXml
    *
    * @see #setWorkingDirectory(String)
    */
-  public String getTempDirectory()
-  {
+  public String getTempDirectory() {
     return tempDirectory;
   }
 
@@ -596,18 +502,15 @@ public class ConfigXml
    *
    * @param tempDirectory
    */
-  public void setTempDirectory(final String tempDirectory)
-  {
+  public void setTempDirectory(final String tempDirectory) {
     this.tempDirectory = tempDirectory;
   }
 
-  public String getConfigFilePath()
-  {
+  public String getConfigFilePath() {
     return configFile.getPath();
   }
 
-  public List<ConfigureHoliday> getHolidays()
-  {
+  public List<ConfigureHoliday> getHolidays() {
     return holidays;
   }
 
@@ -617,8 +520,7 @@ public class ConfigXml
    *
    * @return
    */
-  public String[] getPluginMainClasses()
-  {
+  public String[] getPluginMainClasses() {
     return StringUtils.split(pluginMainClasses, " \r\n\t,");
   }
 
@@ -627,13 +529,12 @@ public class ConfigXml
    *
    * @return the pluginConfigs
    */
-  public ConfigurationData getPluginConfig(final Class<? extends ConfigurationData> configClass)
-  {
+  public ConfigurationData getPluginConfig(final Class<? extends ConfigurationData> configClass) {
     if (plugins == null) {
-      plugins = new ArrayList<ConfigurationData>();
+      plugins = new ArrayList<>();
     } else {
       for (final ConfigurationData configData : plugins) {
-        if (configData != null && configClass.isAssignableFrom(configData.getClass()) == true) {
+        if (configData != null && configClass.isAssignableFrom(configData.getClass())) {
           return configData;
         }
       }
@@ -673,16 +574,14 @@ public class ConfigXml
   /**
    * Experimental and undocumented setting.
    */
-  public boolean isPortletMode()
-  {
+  public boolean isPortletMode() {
     return portletMode;
   }
 
   /**
    * @return the accountingConfig
    */
-  public AccountingConfig getAccountingConfig()
-  {
+  public AccountingConfig getAccountingConfig() {
     return accountingConfig;
   }
 
@@ -693,14 +592,11 @@ public class ConfigXml
    * @return String representation of the given object.
    * @see ReflectionToStringBuilder#ReflectionToStringBuilder(Object)
    */
-  public static String toString(final Object configObject)
-  {
-    return new ReflectionToStringBuilder(configObject)
-    {
+  public static String toString(final Object configObject) {
+    return new ReflectionToStringBuilder(configObject) {
       @Override
-      protected Object getValue(final Field field) throws IllegalArgumentException, IllegalAccessException
-      {
-        if (field.isAnnotationPresent(ConfigXmlSecretField.class) == true) {
+      protected Object getValue(final Field field) throws IllegalArgumentException, IllegalAccessException {
+        if (field.isAnnotationPresent(ConfigXmlSecretField.class)) {
           return SECRET_PROPERTY_STRING;
         }
         return super.getValue(field);

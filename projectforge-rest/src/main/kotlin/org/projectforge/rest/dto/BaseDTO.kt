@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,6 +24,7 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.common.BeanHelper
+import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
@@ -36,23 +37,35 @@ import java.util.*
  * DTO to  AbstractHistorizableBaseDO<Int> and vice versa.
  */
 open class BaseDTO<T : ExtendedBaseDO<Int>>(var id: Int? = null,
-                                            var isDeleted: Boolean = false,
+                                            var deleted: Boolean = false,
                                             var created: Date? = null,
                                             var lastUpdate: Date? = null,
-                                            var tenantId: Int? = null) {
+                                            var tenant: Tenant? = null) {
 
     /**
      * Full and deep copy of the object. Should be extended by inherited classes.
      */
     open fun copyFrom(src: T) {
         copy(src, this)
-        this.tenantId = src.tenantId
+        this.tenant = createTenant(src.tenantId)
+    }
+
+    /**
+     * Full and deep copy of any other object, if needed.
+     */
+    open fun copyFromAny(src: Any) {
+        copy(src, this)
+        if (src is BaseDO<*>) {
+            this.tenant = createTenant(src.tenantId)
+        }
     }
 
     /**
      * Full and deep copy of the object. Should be extended by inherited classes.
      */
     open fun copyTo(dest: T) {
+
+        val tenantId = tenant?.id
         if (tenantId != null) {
             dest.tenant = TenantDO()
             dest.tenant.id = tenantId
@@ -65,6 +78,7 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(var id: Int? = null,
      */
     open fun copyFromMinimal(src: T) {
         id = src.id
+        deleted = src.isDeleted
     }
 
     private fun _copyFromMinimal(src: Any?) {
@@ -74,6 +88,15 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(var id: Int? = null,
         }
         @Suppress("UNCHECKED_CAST")
         copyFromMinimal(src as T)
+    }
+
+    private fun createTenant(id: Int?) : Tenant? {
+        if (id == null) {
+            return null
+        }
+        val tenant = Tenant()
+        tenant.id = id
+        return tenant
     }
 
     companion object {
@@ -118,17 +141,16 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(var id: Int? = null,
                                         destField.isAccessible = true
                                         destField.set(dest, instance)
                                     }
-                                } else if (AbstractHistorizableBaseDO::class.java.isAssignableFrom(destType) && BaseDTO::class.java.isAssignableFrom(srcField.type)) {
+                                } else if (BaseDO::class.java.isAssignableFrom(destType) && BaseDTO::class.java.isAssignableFrom(srcField.type)) {
                                     // Copy BaseObject -> AbstractHistorizableBaseDO
                                     srcField.isAccessible = true
                                     val srcValue = srcField.get(src)
                                     if (srcValue != null) {
                                         val instance = destType.newInstance()
-                                        (instance as AbstractHistorizableBaseDO<*>).id = (srcValue as BaseDTO<*>).id
+                                        (instance as BaseDO<*>).id = (srcValue as BaseDTO<*>).id
                                         destField.isAccessible = true
                                         destField.set(dest, instance)
                                     }
-
                                 } else {
                                     if (srcField.type.isPrimitive) { // boolean, ....
                                         var value: Any? = null
@@ -158,5 +180,4 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(var id: Int? = null,
             }
         }
     }
-
 }

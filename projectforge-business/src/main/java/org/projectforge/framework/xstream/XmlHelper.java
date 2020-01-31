@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,21 +23,6 @@
 
 package org.projectforge.framework.xstream;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -46,6 +31,14 @@ import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
 import org.projectforge.framework.i18n.InternalErrorException;
+
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 
 public class XmlHelper
 {
@@ -67,7 +60,7 @@ public class XmlHelper
 
   public static Element fromString(final String str)
   {
-    if (StringUtils.isBlank(str) == true) {
+    if (StringUtils.isBlank(str)) {
       return null;
     }
     try {
@@ -91,7 +84,7 @@ public class XmlHelper
     }
     final StringWriter out = new StringWriter();
     final OutputFormat format = new OutputFormat();
-    if (prettyFormat == true) {
+    if (prettyFormat) {
       format.setNewlines(true);
       format.setIndentSize(2);
     }
@@ -117,7 +110,7 @@ public class XmlHelper
       log.error("Exception encountered while transcoding org.w3c.dom.Document to a string: " + ex.getMessage(), ex);
       throw new InternalErrorException("Exception encountered while transcoding org.w3c.dom.Document to a string: " + ex.getMessage());
     }
-    if (prettyFormat == true) {
+    if (prettyFormat) {
       transformer.setOutputProperty(OutputKeys.INDENT, "yes");
       transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
     }

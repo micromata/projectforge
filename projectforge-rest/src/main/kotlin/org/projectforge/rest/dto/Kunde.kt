@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,11 +26,14 @@ package org.projectforge.rest.dto
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeStatus
 
-class Kunde(var nummer: Int? = null,
+class Kunde(id: Int? = null,
+            displayName: String? = null,
             var name: String? = null,
             var identifier: String? = null,
             var division: String? = null,
             var status: KundeStatus? = null,
             var description: String? = null,
             var konto: Konto? = null
-) : BaseDTO<KundeDO>()
+) : BaseDTODisplayObject<KundeDO>(id, displayName = displayName) {
+    var nummer: Int? = id
+}

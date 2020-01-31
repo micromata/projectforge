@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,20 +23,10 @@
 
 package org.projectforge.business.fibu
 
-import javax.persistence.Column
-import javax.persistence.DiscriminatorColumn
-import javax.persistence.DiscriminatorType
-import javax.persistence.DiscriminatorValue
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.Id
-import javax.persistence.Inheritance
-import javax.persistence.InheritanceType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
-
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
+import javax.persistence.*
 
 /**
  * @author Roger Kommer (r.kommer.extern@micromata.de)
@@ -46,6 +36,7 @@ import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "withdata", discriminatorType = DiscriminatorType.CHAR)
 @DiscriminatorValue("0")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "pk")
 open class EmployeeTimedAttrDO : JpaTabAttrBaseDO<EmployeeTimedDO, Int> {
     constructor() : super()
 
@@ -54,9 +45,6 @@ open class EmployeeTimedAttrDO : JpaTabAttrBaseDO<EmployeeTimedDO, Int> {
 
     constructor(parent: EmployeeTimedDO) : super(parent)
 
-    /**
-     * @see org.projectforge.framework.persistence.attr.entities.DeprAttrBaseDO.createData
-     */
     override fun createData(data: String): EmployeeTimedAttrDataDO {
         return EmployeeTimedAttrDataDO(this, data)
 

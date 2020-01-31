@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -299,7 +299,7 @@ public abstract class DefaultTreeTablePanel<T extends TreeTableNode> extends Pan
     if (event == TreeTableEvent.OPEN || event == TreeTableEvent.EXPLORE) {
       final StringBuffer prependJavascriptBuf = new StringBuffer();
       {
-        // Add all childs
+        // Add all children
         final Component row = getTreeRowAfter(node.getHashId());
         refresh(); // Force to rebuild tree list.
         for (final T child : getTreeTable().getDescendants(getTreeList(), (T) node)) {
@@ -323,7 +323,7 @@ public abstract class DefaultTreeTablePanel<T extends TreeTableNode> extends Pan
       }
       target.appendJavaScript("updateEvenOdd();");
     } else {
-      // Remove all childs
+      // Remove all children
       final StringBuffer prependJavascriptBuf = new StringBuffer();
       final Iterator<Component> it = rowRepeater.iterator();
       final List<Component> toRemove = new ArrayList<Component>();

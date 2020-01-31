@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.ffp.wicket;
 
-import java.util.HashSet;
-
-import org.slf4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
@@ -34,6 +31,9 @@ import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
+
+import java.util.HashSet;
 
 @EditPage(defaultReturnPage = FFPEventListPage.class)
 public class FFPEventEditPage extends AbstractEditPage<FFPEventDO, FFPEventEditForm, FFPEventService>
@@ -97,7 +97,7 @@ public class FFPEventEditPage extends AbstractEditPage<FFPEventDO, FFPEventEditF
   @Override
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
-    if (getData().getFinished() == true && eventService.debtExists(getData()) == false) {
+    if (getData().getFinished() && !eventService.debtExists(getData())) {
       eventService.createDept(getData());
     }
     return null;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,7 @@
 
 package org.projectforge.business.meb;
 
-import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.UserGroupsRight;
-import org.projectforge.business.user.UserRightAccessCheck;
-import org.projectforge.business.user.UserRightCategory;
-import org.projectforge.business.user.UserRightId;
-import org.projectforge.business.user.UserRightValue;
+import org.projectforge.business.user.*;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -100,7 +95,7 @@ public class MebRight extends UserRightAccessCheck<MebEntryDO>
   @Override
   public boolean hasUpdateAccess(final PFUserDO user, MebEntryDO obj, MebEntryDO oldObj)
   {
-    if (oldObj != null && accessChecker.isUserMemberOfAdminGroup(user) == true
+    if (oldObj != null && accessChecker.isUserMemberOfAdminGroup(user)
         && oldObj.getOwner() == null) {
       // Otherwise an admin couldn't assign unassigned entries:
       return true;

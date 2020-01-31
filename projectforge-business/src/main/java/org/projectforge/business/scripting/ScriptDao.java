@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,8 @@
 
 package org.projectforge.business.scripting;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import de.micromata.merlin.utils.ReplaceUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.AppVersion;
 import org.projectforge.business.fibu.kost.reporting.ReportGeneratorList;
@@ -35,12 +32,22 @@ import org.projectforge.business.task.ScriptingTaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.OperationType;
+import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.api.BaseDao;
+import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.registry.Registry;
 import org.projectforge.registry.RegistryEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -48,6 +55,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class ScriptDao extends BaseDao<ScriptDO>
 {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ScriptDao.class);
+
   @Autowired
   private GroovyExecutor groovyExecutor;
 
@@ -61,21 +70,30 @@ public class ScriptDao extends BaseDao<ScriptDO>
   /**
    * Copy old script as script backup if modified.
    *
-   * @see org.projectforge.framework.persistence.api.BaseDao#onChange(org.projectforge.core.ExtendedBaseDO,
-   * org.projectforge.core.ExtendedBaseDO)
+   * @see org.projectforge.framework.persistence.api.BaseDao#onChange(ExtendedBaseDO, ExtendedBaseDO)
    */
   @Override
   protected void onChange(final ScriptDO obj, final ScriptDO dbObj)
   {
-    if (Arrays.equals(dbObj.getScript(), obj.getScript()) == false) {
+    if (!Arrays.equals(dbObj.getScript(), obj.getScript())) {
       obj.setScriptBackup(dbObj.getScript());
+      final String filename = ReplaceUtils.encodeFilename(dbObj.getName() + "_" + PFDateTime.now().getIsoStringSeconds() + ".groovy", true);
+      final File backupDir = new File(ConfigXml.getInstance().getBackupDirectory(), "scripts");
+      ConfigXml.ensureDir(backupDir);
+      final File file = new File(backupDir, filename);
+      try {
+        log.info("Writing backup of script to: " + file.getAbsolutePath());
+        FileUtils.writeStringToFile(file, dbObj.getScriptAsString());
+      }catch (IOException ex) {
+        log.error("Error while trying to save backup file of script '" + file.getAbsolutePath() + "': " + ex.getMessage(), ex);
+      }
     }
   }
 
   /**
    * User must be member of group controlling or finance.
    *
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
+   * @see org.projectforge.framework.persistence.api.BaseDao#hasDeleteAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, boolean)
    */
   @Override
   public boolean hasAccess(final PFUserDO user, final ScriptDO obj, final ScriptDO oldObj,
@@ -96,7 +114,7 @@ public class ScriptDao extends BaseDao<ScriptDO>
   {
     hasLoggedInUserSelectAccess(script, true);
     final ReportGeneratorList reportGeneratorList = new ReportGeneratorList();
-    final Map<String, Object> scriptVariables = new HashMap<String, Object>();
+    final Map<String, Object> scriptVariables = new HashMap<>();
 
     addScriptVariables(scriptVariables);
     scriptVariables.put("reportList", reportGeneratorList);
@@ -106,7 +124,7 @@ public class ScriptDao extends BaseDao<ScriptDO>
       }
     }
     if (script.getFile() != null) {
-      final Map<String, Object> scriptVars = new HashMap<String, Object>();
+      final Map<String, Object> scriptVars = new HashMap<>();
       scriptVariables.put("script", scriptVars);
       scriptVars.put("file", script.getFile());
       scriptVars.put("filename", script.getFilename());

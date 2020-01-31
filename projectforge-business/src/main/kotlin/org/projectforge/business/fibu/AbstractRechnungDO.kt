@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,15 +25,13 @@ package org.projectforge.business.fibu
 
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
-import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.kost.Kost2ArtDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.time.DateHolder
-import org.projectforge.framework.time.DayHolder
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.xstream.XmlObjectReader
 import java.math.BigDecimal
 import java.sql.Date
@@ -41,8 +39,7 @@ import javax.persistence.*
 
 @MappedSuperclass
 @JpaXmlPersist(beforePersistListener = [AbstractRechnungXmlBeforePersistListener::class], persistAfter = [Kost2ArtDO::class])
-abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBaseDO() {
-
+abstract class AbstractRechnungDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "fibu.rechnung.datum")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
@@ -82,7 +79,6 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
      * Wird nur zur Berechnung benutzt und kann für die Anzeige aufgerufen werden. Vorher sollte recalculate aufgerufen
      * werden.
      */
-    @Field(analyze = Analyze.NO)
     @get:Transient
     open var discountZahlungsZielInTagen: Int? = null
 
@@ -93,7 +89,7 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
     open var bezahlDatum: Date? = null
 
     /**
-     * Bruttobetrag, den der Kunde bezahlt hat.
+     * Bruttobetrag, der tatsächlich bezahlt wurde.
      */
     @PropertyInfo(i18nKey = "fibu.rechnung.zahlBetrag", type = PropertyType.CURRENCY)
     @get:Column(name = "zahl_betrag", scale = 2, precision = 12)
@@ -114,28 +110,11 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
     open var discountPercent: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.discountMaturity")
-    @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
     open var discountMaturity: Date? = null
 
-    @PropertyInfo(i18nKey = "fibu.rechnung.receiver")
-    @Field
-    @get:Column
-    open var receiver: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.rechnung.iban")
-    @Field
-    @get:Column(length = 50)
-    open var iban: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.rechnung.bic")
-    @Field
-    @get:Column(length = 11)
-    open var bic: String? = null
-
     @get:Transient
-    abstract var positionen: MutableList<T>?
+    abstract val abstractPositionen: List<AbstractRechnungsPositionDO>?
 
     /**
      * The user interface status of an invoice. The [RechnungUIStatus] is stored as XML.
@@ -145,7 +124,7 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
     open var uiStatusAsXml: String? = null
 
     @field:NoHistory
-    open val uiStatus: RechnungUIStatus? = null
+    val uiStatus: RechnungUIStatus? = null
         @Transient
         get() {
             if (field == null && StringUtils.isEmpty(uiStatusAsXml)) {
@@ -158,42 +137,23 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
             return field
         }
 
+    @get:PropertyInfo(i18nKey = "fibu.common.brutto")
     val grossSum: BigDecimal
         @Transient
-        get() {
-            var brutto = BigDecimal.ZERO
-            if (this.positionen != null) {
-                for (position in this.positionen!!) {
-                    brutto = brutto.add(position.bruttoSum)
-                }
-            }
-            return brutto
-        }
+        get() = RechnungCalculator.calculateGrossSum(this)
 
+    @get:PropertyInfo(i18nKey = "fibu.common.netto")
     val netSum: BigDecimal
         @Transient
-        get() {
-            var netto = BigDecimal.ZERO
-            if (this.positionen != null) {
-                for (position in this.positionen!!) {
-                    netto = netto.add(position.netSum)
-                }
-            }
-            return netto
-        }
+        get() = RechnungCalculator.calculateNetSum(this)
 
     val vatAmountSum: BigDecimal
         @Transient
-        get() {
-            var vatAmount = BigDecimal.ZERO
-            if (this.positionen != null) {
-                for (position in this.positionen!!) {
-                    vatAmount = vatAmount.add(position.vatAmount)
-                }
-            }
-            return vatAmount
-        }
+        get() = RechnungCalculator.calculateVatAmountSum(this)
 
+    /**
+     * (this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null)
+     */
     @get:Transient
     abstract val isBezahlt: Boolean
 
@@ -203,101 +163,68 @@ abstract class AbstractRechnungDO<T : AbstractRechnungsPositionDO> : DefaultBase
             if (isBezahlt) {
                 return false
             }
-            val today = DayHolder()
-            return this.faelligkeit?.before(today.date) ?: false
+            val today = PFDateTime.now()
+            return this.faelligkeit?.before(today.utilDate) ?: false
         }
 
     val kontoId: Int?
         @Transient
-        get() = if (konto != null) konto!!.id else null
+        get() = konto?.id
 
     /**
      * @return The total sum of all cost assignment net amounts of all positions.
      */
     val kostZuweisungenNetSum: BigDecimal
         @Transient
-        get() {
-            if (this.positionen == null) {
-                return BigDecimal.ZERO
-            }
-            var netSum = BigDecimal.ZERO
-            for (pos in this.positionen!!) {
-                if (CollectionUtils.isNotEmpty(pos.kostZuweisungen)) {
-                    for (zuweisung in pos.kostZuweisungen!!) {
-                        if (zuweisung.netto != null) {
-                            netSum = netSum.add(zuweisung.netto)
-                        }
-                    }
-                }
-            }
-            return netSum
-        }
+        get() = RechnungCalculator.kostZuweisungenNetSum(this)
 
     val kostZuweisungFehlbetrag: BigDecimal
         @Transient
         get() = kostZuweisungenNetSum.subtract(netSum)
 
     override fun recalculate() {
+        val date = PFDateTime.fromOrNull(this.datum)
         // recalculate the transient fields
-        if (this.datum == null) {
+        if (date == null) {
             this.zahlungsZielInTagen = null
             this.discountZahlungsZielInTagen = null
             return
         }
-
-        val date = DateHolder(this.datum)
-        this.zahlungsZielInTagen = if (this.faelligkeit == null) null else date.daysBetween(this.faelligkeit)
-        this.discountZahlungsZielInTagen = if (this.discountMaturity == null) null else date.daysBetween(this.discountMaturity)
+        val dueDate = this.faelligkeit
+        this.zahlungsZielInTagen = if (dueDate == null) null else date.daysBetween(dueDate).toInt()
+        val discount = this.discountMaturity
+        this.discountZahlungsZielInTagen = if (discount == null) null else date.daysBetween(discount).toInt()
     }
 
     /**
      * @param idx
      * @return PositionDO with given index or null, if not exist.
      */
-    fun getPosition(idx: Int): T? {
-        if (positionen == null) {
-            return null
-        }
-        return if (idx >= positionen!!.size) { // Index out of bounds.
-            null
-        } else positionen!![idx]
+    fun getAbstractPosition(idx: Int): AbstractRechnungsPositionDO? {
+        return abstractPositionen?.getOrNull(idx)
     }
 
-    fun addPosition(position: T): AbstractRechnungDO<T> {
+    fun addPosition(position: AbstractRechnungsPositionDO) {
         ensureAndGetPositionen()
-        var number: Short = 1
-        for (pos in positionen!!) {
-            if (pos.number >= number) {
-                number = pos.number
-                number++
-            }
-        }
-        position.number = number
+        // Get the highest used number + 1 or take 1 for the first position.
+        val nextNumber = abstractPositionen!!.maxBy { it.number }?.number?.plus(1)?.toShort() ?: 1
+        position.number = nextNumber
         setRechnung(position)
-        this.positionen!!.add(position)
-        return this
+        addPositionWithoutCheck(position)
     }
 
-    abstract fun setRechnung(position : T)
+    abstract protected fun addPositionWithoutCheck(position: AbstractRechnungsPositionDO)
 
-    fun ensureAndGetPositionen(): List<T> {
-        run {
-            if (this.positionen == null) {
-                positionen = mutableListOf()
-            }
-            return positionen as MutableList<T>
-        }
-    }
+    abstract fun setRechnung(position: AbstractRechnungsPositionDO)
 
+    abstract fun ensureAndGetPositionen(): MutableList<out AbstractRechnungsPositionDO>
+
+    /**
+     * Gibt es mindestens eine Kostzuweisung?
+     */
     fun hasKostZuweisungen(): Boolean {
-        if (this.positionen == null) {
-            return false
-        }
-        for (pos in this.positionen!!) {
-            if (CollectionUtils.isNotEmpty(pos.kostZuweisungen)) {
-                return true
-            }
-        }
-        return false
+        return abstractPositionen?.any {
+            !it.kostZuweisungen.isNullOrEmpty()
+        } ?: false
     }
 }

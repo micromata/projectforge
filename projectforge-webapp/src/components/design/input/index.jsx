@@ -1,67 +1,111 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { colorPropType } from '../../../utilities/propTypes';
-import AdditionalLabel from './AdditionalLabel';
-import style from './Input.module.scss';
+import styles from './Input.module.scss';
 
-function Input(
+const Input = React.forwardRef((
     {
         additionalLabel,
         className,
         color,
+        icon,
+        iconProps,
         id,
         label,
-        type,
+        onBlur,
+        onFocus,
+        noLine,
         value,
         ...props
     },
-) {
-    // Use new React Hook Feature
-    // https://reactjs.org/docs/hooks-intro.html
-    const [active, setActive] = React.useState(false);
+    ref,
+) => {
+    const [isActive, setIsActive] = React.useState(false);
+
+    const handleBlur = (event) => {
+        if (onBlur) {
+            onBlur(event);
+        }
+
+        setIsActive(false);
+    };
+
+    const handleFocus = (event) => {
+        if (onFocus) {
+            onFocus(event);
+        }
+
+        setIsActive(true);
+    };
 
     return (
-        <div className={classNames(style.formGroup, 'form-group', className)}>
+        <div
+            className={classNames(
+                styles.inputField,
+                className,
+                { [styles.noLabel]: !label },
+            )}
+        >
+            {icon && (
+                <FontAwesomeIcon
+                    icon={icon}
+                    {...iconProps}
+                    className={classNames(styles.icon, iconProps && iconProps.className)}
+                />
+            )}
             <label
                 className={classNames(
-                    style.label,
-                    { [style.active]: value || active },
-                    style[color],
+                    {
+                        [styles.isActive]: value || isActive,
+                        [styles.noLine]: noLine,
+                    },
+                    styles[color],
                 )}
                 htmlFor={id}
             >
                 <input
-                    className={style.input}
-                    type={type}
+                    ref={ref}
                     id={id}
                     {...props}
-                    onFocus={() => setActive(true)}
-                    onBlur={event => setActive(event.target.value !== '')}
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
                     value={value}
                 />
-                <span className={style.text}>{label}</span>
+                <span className={styles.labelText}>{label}</span>
             </label>
-            <AdditionalLabel title={additionalLabel} />
+            {additionalLabel && (
+                <span className={styles.additionalLabel}>{additionalLabel}</span>
+            )}
         </div>
     );
-}
+});
 
 Input.propTypes = {
     id: PropTypes.string.isRequired,
-    label: PropTypes.string.isRequired,
     additionalLabel: PropTypes.string,
     className: PropTypes.string,
     color: colorPropType,
-    type: PropTypes.string,
-    value: PropTypes.string,
+    icon: PropTypes.shape({}),
+    iconProps: PropTypes.shape({}),
+    label: PropTypes.string,
+    onBlur: PropTypes.func,
+    onFocus: PropTypes.func,
+    noLine: PropTypes.bool,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 Input.defaultProps = {
     additionalLabel: undefined,
     className: undefined,
     color: undefined,
-    type: 'text',
+    icon: undefined,
+    iconProps: undefined,
+    label: undefined,
+    onBlur: undefined,
+    onFocus: undefined,
+    noLine: false,
     value: undefined,
 };
 

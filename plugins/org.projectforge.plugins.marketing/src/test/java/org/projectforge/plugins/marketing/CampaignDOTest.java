@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -47,7 +47,7 @@ public class CampaignDOTest
     final AddressCampaignDO campaign = new AddressCampaignDO();
     campaign.setValues(values);
     final String[] result = campaign.getValuesArray();
-    assertArrayEquals(result, AddressCampaignDO.getValuesArray(campaign.getValues()));
+    assertArrayEquals(result, AddressCampaignDO.Companion.getValuesArray(campaign.getValues()));
     return result;
   }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,39 +23,18 @@
 
 package org.projectforge.business.fibu.kost
 
-import java.math.BigDecimal
-import java.math.RoundingMode
-import java.util.Date
-
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
-
+import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.DateBridge
-import org.hibernate.search.annotations.EncodingType
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Index
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
-import org.hibernate.search.annotations.Resolution
-import org.hibernate.search.annotations.Store
+import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.common.StringHelper
-import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-
-import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.time.PFDayUtils
+import org.slf4j.LoggerFactory
+import java.math.BigDecimal
+import java.math.RoundingMode
+import javax.persistence.*
 
 /**
  * Repräsentiert einen importierten Datev-Buchungssatz. Die Buchungssätze bilden die Grundlage für
@@ -65,10 +44,10 @@ import org.projectforge.common.anots.PropertyInfo
 @Indexed
 @Table(name = "t_fibu_buchungssatz", uniqueConstraints = [UniqueConstraint(columnNames = ["year", "month", "satznr", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_gegenkonto_id", columnList = "gegenkonto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_konto_id", columnList = "konto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_kost1_id", columnList = "kost1_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_kost2_id", columnList = "kost2_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_tenant_id", columnList = "tenant_id")])
 @WithHistory
-class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
-
-    private val log = LoggerFactory.getLogger(BuchungssatzDO::class.java)
-
+@NamedQueries(
+        NamedQuery(name = BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
+                query = "from BuchungssatzDO where year=:year and month=:month and satznr=:satznr"))
+open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     /**
      * Jahr zu der die Buchung gehört.
      *
@@ -76,93 +55,99 @@ class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
      */
     @Field(analyze = Analyze.NO)
     @get:Column(nullable = false)
-    var year: Int? = null
+    open var year: Int? = null
 
     /**
+     * 1-based: 1 - January, ..., 12 - December
      * Monat zu der die Buchung gehört.
      *
      * @return
      */
-    @Field(index = Index.NO, analyze = Analyze.NO)
+    @Field(analyze = Analyze.NO)
     @get:Column(nullable = false)
-    var month: Int? = null
+    open var month: Int? = null
+        set(value) {
+            field = PFDayUtils.validateMonthValue(value)
+        }
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.satznr")
-    @Field(index = Index.NO, analyze = Analyze.NO)
+    @Field(analyze = Analyze.NO)
     @get:Column(nullable = false)
-    var satznr: Int? = null
+    open var satznr: Int? = null
 
     @PropertyInfo(i18nKey = "fibu.common.betrag")
     @get:Column(nullable = false, scale = 2, precision = 18)
-    var betrag: BigDecimal? = null
+    open var betrag: BigDecimal? = null
         set(betrag) {
             field = betrag?.setScale(2, RoundingMode.HALF_UP)
         }
 
-    @Field(index = Index.NO, analyze = Analyze.NO)
+    @PropertyInfo(i18nKey = "finance.accountingRecord.dc")
+    @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 7, nullable = false)
-    var sh: SHType? = null
+    open var sh: SHType? = null
 
     @get:Transient
-    var isIgnore = false
+    open var isIgnore = false
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.konto")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "konto_id", nullable = false)
-    var konto: KontoDO? = null
+    open var konto: KontoDO? = null
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.gegenKonto")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "gegenkonto_id", nullable = false)
-    var gegenKonto: KontoDO? = null
+    open var gegenKonto: KontoDO? = null
 
-    @Field(index = Index.YES, analyze = Analyze.NO)
+    @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(nullable = false)
-    var datum: Date? = null
+    open var datum: java.sql.Date? = null
 
     /** Je nach Buchungssatz: Belegnummer / Referenznummer / Rechnungsnummer.  */
     @PropertyInfo(i18nKey = "fibu.buchungssatz.beleg")
     @Field
     @get:Column(length = 255)
-    var beleg: String? = null
+    open var beleg: String? = null
 
     /** Der Buchungstext.  */
     @PropertyInfo(i18nKey = "fibu.buchungssatz.text")
     @Field
     @get:Column(length = 255, name = "buchungstext")
-    var text: String? = null
+    open var text: String? = null
 
+    @PropertyInfo(i18nKey = "fibu.buchungssatz.menge")
     @Field
     @get:Column(length = 255)
-    var menge: String? = null
+    open var menge: String? = null
 
     @PropertyInfo(i18nKey = "fibu.kost1")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kost1_id", nullable = false)
-    var kost1: Kost1DO? = null
+    open var kost1: Kost1DO? = null
 
     @PropertyInfo(i18nKey = "fibu.kost2")
     @IndexedEmbedded(depth = 3)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kost2_id", nullable = false)
-    var kost2: Kost2DO? = null
+    open var kost2: Kost2DO? = null
 
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = 4000)
-    var comment: String? = null
+    open var comment: String? = null
 
     /**
      * In form yyyy-mm-###
      */
     val formattedSatzNummer: String
         @Transient
-        get() = year.toString() + '-'.toString() + StringHelper.format2DigitNumber(month!! + 1) + '-'.toString() + formatSatzNr()
+        get() = year.toString() + '-'.toString() + StringHelper.format2DigitNumber(month!!) + '-'.toString() + formatSatzNr()
 
     val kontoId: Int?
         @Transient
@@ -190,24 +175,26 @@ class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
      * Führt nach der Datev-/Steffi-Logik Betrachtungen durch, ob dieser Datensatz berücksichtigt werden muss bzw. ob die
      * Betrag im Haben oder im Soll anzuwenden ist.
      */
-    fun calculate() {
+    @JvmOverloads
+    fun calculate(suppressWarning: Boolean = false) {
         if (konto == null || kost2 == null) {
-            log.warn(
-                    "Can't calculate Buchungssatz, because konto or kost2 is not given (for import it will be detected, OK): $this")
+            if (!suppressWarning)
+                log.warn(
+                        "Can't calculate Buchungssatz, because konto or kost2 is not given (for import it will be detected, OK): $this")
             return
         }
         val kto = konto!!.nummer!!
         val sollHaben = sh
-        if (kto >= 4400 && kto <= 4499) {
+        if (kto in 4400..4499) {
             // Konto 4400 - 4499 werden im Haben gebucht: Umsatz.
         }
-        if (kto >= 5900 && kto <= 5999) {
+        if (kto in 5900..5999) {
             // Fremdleistungen
         }
         if (sollHaben == SHType.SOLL) {
             betrag = betrag!!.negate()
         }
-        if (kost2!!.isEqual(1, 0, 0, 0) == true && kto >= 6000 && kto <= 6299) { // "1.000.00.00"
+        if (kost2!!.isEqual(1, 0, 0, 0) && kto >= 6000 && kto <= 6299) { // "1.000.00.00"
             // Bei diesen Buchungen handelt es sich um Kontrollbuchungen mit dem Gegenkonto 3790, was wir hier nochmals prüfen:
             if (gegenKonto!!.nummer != 3790) {
                 // log.error("Bei dieser Buchung ist das Gegenkonto nicht 3790, wie von der Buchhaltung mitgeteilt "
@@ -219,14 +206,14 @@ class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     }
 
     fun setSH(value: String) {
-        if ("S" == value) {
-            sh = SHType.SOLL
-        } else if ("H" == value) {
-            sh = SHType.HABEN
-        } else {
-            val msg = "Haben / Soll-Wert ist undefiniert: $this"
-            log.error(msg)
-            throw RuntimeException(msg)
+        sh = when (value) {
+            "S" -> SHType.SOLL
+            "H" -> SHType.HABEN
+            else -> {
+                val msg = "Haben / Soll-Wert ist undefiniert: $this"
+                log.error(msg)
+                throw RuntimeException(msg)
+            }
         }
     }
 
@@ -239,5 +226,11 @@ class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
         return if (r != 0) {
             r
         } else this.satznr!!.compareTo(other.satznr!!)
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(BuchungssatzDO::class.java)
+
+        internal const val FIND_BY_YEAR_MONTH_SATZNR = "BuchungssatzDO_FindByYearMonthSatznr"
     }
 }

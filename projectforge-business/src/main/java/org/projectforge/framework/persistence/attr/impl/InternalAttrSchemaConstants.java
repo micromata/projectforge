@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,6 +29,10 @@ package org.projectforge.framework.persistence.attr.impl;
 public final class InternalAttrSchemaConstants
 {
   public static final String EMPLOYEE_STATUS_GROUP_NAME = "employeestatus";
+
+  public static final String EMPLOYEE_ANNUAL_LEAVEDAYS_GROUP_NAME = "employeeannualleave";
+
+  public static final String EMPLOYEE_ANNUAL_LEAVEDAYS_PROP_NAME = "employeeannualleavedays";
 
   public static final String EMPLOYEE_STATUS_DESC_NAME = "status";
 }

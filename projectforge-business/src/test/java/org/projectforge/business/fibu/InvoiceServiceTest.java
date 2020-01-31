@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -40,10 +40,10 @@ public class InvoiceServiceTest extends AbstractTestBase {
   @Test
   public void invoiceFilenameEmptyTest() {
     RechnungDO data = new RechnungDO();
-    String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
+    String filename = invoiceService.getInvoiceFilename(data);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals(".docx", filename);
+    assertEquals("_.docx", filename);
   }
 
   @Test
@@ -60,10 +60,10 @@ public class InvoiceServiceTest extends AbstractTestBase {
     LocalDate date = LocalDate.of(2017, Month.AUGUST, 4);
     data.setDatum(java.sql.Date.valueOf(date));
 
-    String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
+    String filename = invoiceService.getInvoiceFilename(data);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals("12345_Kunde_Projekt_Betreff_08_04_2017.docx", filename);
+    assertEquals("12345_Kunde_Projekt_Betreff_04_08_2017.docx", filename);
   }
 
   @Test
@@ -79,11 +79,11 @@ public class InvoiceServiceTest extends AbstractTestBase {
     data.setBetreff("Betreff/Änderung?");
     LocalDate date = LocalDate.of(2017, Month.AUGUST, 4);
     data.setDatum(java.sql.Date.valueOf(date));
-
-    String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
+    logon(TEST_USER);
+    String filename = invoiceService.getInvoiceFilename(data);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals("12345_Kunde_Kunde_Projekt_Titel_Betreff_nderung__08_04_2017.docx", filename);
+    assertEquals("12345_Kunde___Kunde_Projekt-Titel_Betreff_Aenderung__04_08_2017.docx", filename);
   }
 
   @Test
@@ -91,20 +91,19 @@ public class InvoiceServiceTest extends AbstractTestBase {
     RechnungDO data = new RechnungDO();
     data.setNummer(12345);
     KundeDO kunde = new KundeDO();
-    kunde.setName("Kunde");
+    kunde.setName("Kunde König");
     data.setKunde(kunde);
     ProjektDO projekt = new ProjektDO();
-    projekt.setName("Projekt");
+    projekt.setName("Projekt: $§webapp");
     data.setProjekt(projekt);
     String character = "abc";
     for (int i = 1; i < 85; i++) {
       data.setBetreff((data.getBetreff() != null ? data.getBetreff() : "") + character);
     }
-    String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
+    String filename = invoiceService.getInvoiceFilename(data);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals("12345_Kunde_Projekt_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabca[more].docx",
+    assertEquals("12345_Kunde_Koenig_Projekt____webapp_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc....docx",
             filename, "Assertions.equals is dependent from property projectforge.domain!");
   }
-
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,6 @@
 
 package org.projectforge.humanresources;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeDao;
@@ -38,16 +37,16 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.Month;
+import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Locale;
-import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -130,7 +129,7 @@ public class HRPlanningTest extends AbstractTestBase {
 
   @Test
   public void getFirstDayOfWeek() {
-    final java.sql.Date date = createDate(2010, Calendar.JANUARY, 9, 1, 10, 57, 456);
+    final java.sql.Date date = createDate(2010, Month.JANUARY, 9, 1, 10, 57, 456);
     assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(HRPlanningDO.Companion.getFirstDayOfWeek(date)));
   }
 
@@ -138,10 +137,9 @@ public class HRPlanningTest extends AbstractTestBase {
   public void testBeginOfWeek() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     HRPlanningDO planning = new HRPlanningDO();
-    final java.sql.Date date = createDate(2010, Calendar.JANUARY, 9, 1, 10, 57, 456);
-    final DateHolder firstDayOfWeek = new DateHolder(DateHelper.UTC);
-    firstDayOfWeek.setDate(2010, Calendar.JANUARY, 4, 0, 0, 0, 0);
-    final long millis = firstDayOfWeek.getTimeInMillis();
+    final java.sql.Date date = createDate(2010, Month.JANUARY, 9, 1, 10, 57, 456);
+    final PFDateTime firstDayOfWeek = PFDateTime.withDate(2010, Month.JANUARY, 4, 0, 0, 0, 0, ZoneId.of("UTC"));
+    final long millis = firstDayOfWeek.getEpochMilli();
     planning.setFirstDayOfWeek(date);
     assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(planning.getWeek()));
     assertEquals(millis, planning.getWeek().getTime());
@@ -159,8 +157,8 @@ public class HRPlanningTest extends AbstractTestBase {
     // Create planning:
     HRPlanningDO planning = new HRPlanningDO();
     planning.setUser(getUser(AbstractTestBase.TEST_USER));
-    planning.setWeek(createDate(2010, Calendar.JANUARY, 11, 0, 0, 0, 0));
-    assertUTCDate(planning.getWeek(), 2010, Calendar.JANUARY, 11, 0, 0, 0);
+    planning.setWeek(createDate(2010, Month.JANUARY, 11, 0, 0, 0, 0));
+    assertUTCDate(planning.getWeek(), 2010, Month.JANUARY, 11, 0, 0, 0);
     HRPlanningEntryDO entry = new HRPlanningEntryDO();
     setHours(entry, 1, 2, 3, 4, 5, 6);
     entry.setProjekt(projekt1);
@@ -176,7 +174,7 @@ public class HRPlanningTest extends AbstractTestBase {
     final Serializable id = hrPlanningDao.save(planning);
     // Check saved planning
     planning = hrPlanningDao.getById(id);
-    assertUTCDate(planning.getWeek(), 2010, Calendar.JANUARY, 11, 0, 0, 0);
+    assertUTCDate(planning.getWeek(), 2010, Month.JANUARY, 11, 0, 0, 0);
     assertEquals(3, planning.getEntries().size());
     assertHours(planning.getProjectEntry(projekt1), 1, 2, 3, 4, 5, 6);
     assertHours(planning.getProjectEntry(projekt2), 6, 5, 4, 3, 2, 1);
@@ -216,16 +214,8 @@ public class HRPlanningTest extends AbstractTestBase {
     assertBigDecimal(weekend, entry.getWeekendHours());
   }
 
-  private java.sql.Date createDate(final int year, final int month, final int day, final int hour, final int minute,
+  private java.sql.Date createDate(final int year, final Month month, final int day, final int hour, final int minute,
                                    final int second, final int millisecond) {
-    final Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.GERMAN);
-    cal.set(Calendar.YEAR, year);
-    cal.set(Calendar.MONTH, month);
-    cal.set(Calendar.DAY_OF_MONTH, day);
-    cal.set(Calendar.HOUR_OF_DAY, hour);
-    cal.set(Calendar.MINUTE, minute);
-    cal.set(Calendar.SECOND, second);
-    cal.set(Calendar.MILLISECOND, millisecond);
-    return new java.sql.Date(cal.getTimeInMillis());
+    return PFDateTime.withDate(year, month, day, hour, minute, second, millisecond, ZoneId.of("UTC"), Locale.GERMAN).getSqlDate();
   }
 }

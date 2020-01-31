@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,10 +24,6 @@
 package org.projectforge.framework.xstream;
 
 import java.util.Date;
-
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlObject;
-import org.projectforge.framework.xstream.XmlOmitField;
 
 @XmlObject(alias = "test")
 public class TestObject implements TestObjectIFace

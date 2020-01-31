@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.marketing;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -36,12 +33,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The controller of the list page. Most functionality such as search etc. is done by the super class.
@@ -67,7 +62,7 @@ public class AddressCampaignListPage
   @SuppressWarnings("serial")
   public List<IColumn<AddressCampaignDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final List<IColumn<AddressCampaignDO, String>> columns = new ArrayList<IColumn<AddressCampaignDO, String>>();
+    final List<IColumn<AddressCampaignDO, String>> columns = new ArrayList<>();
     final CellItemListener<AddressCampaignDO> cellItemListener = new CellItemListener<AddressCampaignDO>()
     {
       public void populateItem(final Item<ICellPopulator<AddressCampaignDO>> item, final String componentId,
@@ -78,7 +73,7 @@ public class AddressCampaignListPage
       }
     };
 
-    columns.add(new CellItemListenerPropertyColumn<AddressCampaignDO>(new Model<String>(getString("created")),
+    columns.add(new CellItemListenerPropertyColumn<AddressCampaignDO>(new Model<>(getString("created")),
         getSortable("created",
             sortable),
         "created", cellItemListener)
@@ -99,17 +94,17 @@ public class AddressCampaignListPage
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<AddressCampaignDO>(getString("modified"),
+    columns.add(new CellItemListenerPropertyColumn<>(getString("modified"),
         getSortable("lastUpdate", sortable),
         "lastUpdate", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<AddressCampaignDO>(new Model<String>(getString("title")),
+    columns.add(new CellItemListenerPropertyColumn<>(new Model<>(getString("title")),
         getSortable("title", sortable), "title", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<AddressCampaignDO>(new Model<String>(getString("values")),
+    columns.add(new CellItemListenerPropertyColumn<>(new Model<>(getString("values")),
         getSortable("values",
             sortable),
         "values", cellItemListener));
     columns.add(
-        new CellItemListenerPropertyColumn<AddressCampaignDO>(new Model<String>(getString("comment")), null, "comment",
+        new CellItemListenerPropertyColumn<>(new Model<>(getString("comment")), null, "comment",
             cellItemListener));
     return columns;
   }

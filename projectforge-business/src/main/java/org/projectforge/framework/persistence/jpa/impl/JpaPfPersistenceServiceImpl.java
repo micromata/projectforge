@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,27 +23,21 @@
 
 package org.projectforge.framework.persistence.jpa.impl;
 
-import java.io.Serializable;
-import java.util.List;
-
+import de.micromata.genome.jpa.DbRecord;
+import de.micromata.genome.jpa.EntityCopyStatus;
+import de.micromata.genome.jpa.MarkDeletableRecord;
+import de.micromata.genome.util.runtime.ClassUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.framework.access.AccessException;
-import org.projectforge.framework.persistence.api.AUserRightId;
-import org.projectforge.framework.persistence.api.BaseDO;
-import org.projectforge.framework.persistence.api.IUserRightId;
-import org.projectforge.framework.persistence.api.JpaPfGenericPersistenceService;
-import org.projectforge.framework.persistence.api.ModificationStatus;
-import org.projectforge.framework.persistence.api.UserRightService;
+import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import de.micromata.genome.jpa.DbRecord;
-import de.micromata.genome.jpa.EntityCopyStatus;
-import de.micromata.genome.jpa.MarkDeletableRecord;
-import de.micromata.genome.util.runtime.ClassUtils;
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * JPA base implementation.
@@ -95,7 +89,7 @@ public class JpaPfPersistenceServiceImpl implements JpaPfGenericPersistenceServi
   public IUserRightId getUserRight(BaseDO<?> baseDo)
   {
     List<AUserRightId> annots = ClassUtils.findClassAnnotations(baseDo.getClass(), AUserRightId.class);
-    if (annots.isEmpty() == true) {
+    if (annots.isEmpty()) {
       LOG.warn("Cannot find anot UserRightAnot on " + baseDo.getClass().getName());
       throw new IllegalArgumentException("Cannot find anot UserRightAnot on " + baseDo.getClass().getName());
     }

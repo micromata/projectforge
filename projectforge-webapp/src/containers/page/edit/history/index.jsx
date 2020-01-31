@@ -12,13 +12,36 @@ class EditHistory extends React.Component {
         this.state = {
             loading: true,
             history: [],
+            initialized: false,
         };
 
         this.loadHistory = this.loadHistory.bind(this);
     }
 
     componentDidMount() {
-        this.loadHistory();
+        const { visible } = this.props;
+        if (visible) {
+            // History page of edit page is opened first (user hits reload button on this tab or
+            // used the history url directly: {category}/edit/{id}/history
+            this.loadHistory();
+        }
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        const { initialized } = nextState;
+        if (initialized) {
+            // Do not load, if already initialized.
+            return true;
+        }
+        const { visible: nextVisible } = nextProps;
+        const { visible } = this.props;
+        if (!visible && nextVisible) {
+            // Component wasn't visible, but will be visible.
+            this.setState({ initialized: true }, this.loadHistory);
+            // Don't render component, will be rendered after state changed to initialized.
+            return false;
+        }
+        return true; // Render component.
     }
 
     loadHistory() {
@@ -26,6 +49,7 @@ class EditHistory extends React.Component {
 
         this.setState({
             loading: true,
+            initialized: true,
             error: undefined,
         });
 
@@ -78,6 +102,7 @@ class EditHistory extends React.Component {
 EditHistory.propTypes = {
     category: PropTypes.string.isRequired,
     id: PropTypes.string.isRequired,
+    visible: PropTypes.bool,
     translations: PropTypes.shape({
         changes: PropTypes.string,
     }),
@@ -85,6 +110,7 @@ EditHistory.propTypes = {
 
 EditHistory.defaultProps = {
     translations: undefined,
+    visible: false,
 };
 
 export default EditHistory;

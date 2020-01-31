@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -68,7 +68,7 @@ public class TrainingAttendeeRight extends UserRightAccessCheck<TrainingAttendee
   public boolean hasAccess(final PFUserDO user, final TrainingAttendeeDO obj, final TrainingAttendeeDO oldObj,
       final OperationType operationType)
   {
-    if (accessChecker.isUserMemberOfAdminGroup(user) == true) {
+    if (accessChecker.isUserMemberOfAdminGroup(user)) {
       return true;
     }
 
@@ -78,9 +78,9 @@ public class TrainingAttendeeRight extends UserRightAccessCheck<TrainingAttendee
     }
     if (operationType == OperationType.SELECT) {
       return (hasAccess(StringHelper.splitToIntegers(attendee.getTraining().getReadOnlyAccessGroupIds(), ","),
-          user.getId()) == true)
+          user.getId()))
           || (hasAccess(StringHelper.splitToIntegers(attendee.getTraining().getFullAccessGroupIds(), ","),
-              user.getId()) == true)
+          user.getId()))
           || (user.getId() == attendee.getAttendeeId());
     }
     return hasAccess(StringHelper.splitToIntegers(attendee.getTraining().getFullAccessGroupIds(), ","), user.getId());
@@ -88,7 +88,7 @@ public class TrainingAttendeeRight extends UserRightAccessCheck<TrainingAttendee
 
   private boolean hasAccess(final Integer[] groupIds, final Integer userId)
   {
-    if (getUserGroupCache().isUserMemberOfAtLeastOneGroup(userId, groupIds) == true) {
+    if (getUserGroupCache().isUserMemberOfAtLeastOneGroup(userId, groupIds)) {
       return true;
     }
     return false;

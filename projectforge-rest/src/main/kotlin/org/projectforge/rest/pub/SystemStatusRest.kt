@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,44 +23,67 @@
 
 package org.projectforge.rest.pub
 
-import org.projectforge.ProjectForgeVersion
-import org.projectforge.framework.configuration.ConfigurationParam
-import org.projectforge.framework.configuration.GlobalConfiguration
+import org.projectforge.SystemStatus
 import org.projectforge.rest.config.Rest
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.*
 
 
 /**
  * This rest service should be available without login (public).
  */
 @RestController
-@RequestMapping("${Rest.PUBLIC_URL}")
+@RequestMapping(Rest.PUBLIC_URL)
 class SystemStatusRest {
-    data class SystemData(var appname: String? = null,
-                          var version: String? = null,
-                          var releaseTimestamp: String? = null,
-                          var releaseDate: String? = null,
+    data class SystemData(var appname: String,
+                          var version: String,
+                          var releaseTimestamp: String,
+                          var releaseDate: String,
+                          var releaseYear: String,
                           var messageOfTheDay: String? = null,
-                          var logoUrl: String? = null)
+                          var copyRightYears: String,
+                          var logoUrl: String? = null,
+                          /**
+                           * If given, the client should redirect to this url.
+                           */
+                          var setupRedirectUrl: String? = null,
+                          var startTimeUTC: Date? = null)
+
+    private var _systemData: SystemData? = null
+
+    val systemData: SystemData
+        get() =
+            if (_systemData == null) {
+                // Must be initialized on demand, LogServiceRest is not available on @PostConstruct in test cases.
+                _systemData = SystemData(appname = systemStatus.appname,
+                        version = systemStatus.version,
+                        releaseTimestamp = systemStatus.releaseTimestamp,
+                        releaseDate = systemStatus.releaseDate,
+                        releaseYear = systemStatus.releaseYear,
+                        messageOfTheDay = systemStatus.messageOfTheDay,
+                        copyRightYears = systemStatus.copyRightYears,
+                        logoUrl = LogoServiceRest.logoUrl,
+                        setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
+                        startTimeUTC = Date(systemStatus.startTimeMillis))
+                _systemData!!
+            } else {
+                _systemData!!
+            }
+
+    @Autowired
+    private lateinit var systemStatus: SystemStatus
 
     @GetMapping("systemStatus")
-    fun loginTest(): SystemData {
-        return getSystemData()
-    }
-
-    companion object {
-        fun getSystemData(): SystemStatusRest.SystemData {
-
-            val systemStatus = SystemStatusRest.SystemData(appname = ProjectForgeVersion.APP_ID,
-                    version = ProjectForgeVersion.VERSION_STRING,
-                    releaseTimestamp = ProjectForgeVersion.RELEASE_TIMESTAMP,
-                    releaseDate = ProjectForgeVersion.RELEASE_DATE,
-                    logoUrl = LogoServiceRest.logoUrl)
-            systemStatus.messageOfTheDay = GlobalConfiguration.getInstance()
-                    .getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
-            return systemStatus
+    fun getSystemStatus(): SystemData {
+        if (systemData.setupRedirectUrl != null
+                && systemStatus.setupRequiredFirst != true
+                && systemStatus.updateRequiredFirst != true) {
+            // Setup was already done:
+            systemData.setupRedirectUrl = null
         }
+        return systemData
     }
 }

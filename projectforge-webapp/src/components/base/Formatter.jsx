@@ -1,18 +1,20 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import moment from 'moment';
+import PropTypes from 'prop-types';
+import React from 'react';
 import { connect } from 'react-redux';
 
-const DATE_FORMATTER = 'DATE';
+const AUFTRAGPOSITION_FORMATTER = 'AUFTRAG_POSITION';
+const ADDRESSBOOK_FORMATTER = 'ADDRESS_BOOK';
 const COST1_FORMATTER = 'COST1';
 const COST2_FORMATTER = 'COST2';
 const CUSTOMER_FORMATTER = 'CUSTOMER';
+const DATE_FORMATTER = 'DATE';
+const EMPLOYEE_FORMATTER = 'EMPLOYEE';
 const KONTO_FORMATTER = 'KONTO';
 const PROJECT_FORMATTER = 'PROJECT';
 const USER_FORMATTER = 'USER';
 const TASK_FORMATTER = 'TASK_PATH';
 const TIMESTAMP_MINUTES_FORMATTER = 'TIMESTAMP_MINUTES';
-const AUFTRAGPOSITION_FORMATTER = "AUFTRAG_POSITION";
 const GROUP_FORMATTER = 'GROUP';
 
 function Formatter(
@@ -27,10 +29,13 @@ function Formatter(
 ) {
     const value = Object.getByString(data, id);
     if (!value) {
-        return <React.Fragment />;
+        return <React.Fragment/>;
     }
+
+    let result = value;
+
+    // TODO FORMAT NUMBERS RIGHT ALIGNED
     if (formatter) {
-        let result;
         switch (formatter) {
             case COST1_FORMATTER:
                 result = value.formattedNumber;
@@ -59,7 +64,10 @@ function Formatter(
                     .format(timestampFormatMinutes);
                 break;
             case USER_FORMATTER:
-                result = value.fullname;
+                result = value.displayName || value.fullname || value.username;
+                break;
+            case EMPLOYEE_FORMATTER:
+                result = value.displayName;
                 break;
             case AUFTRAGPOSITION_FORMATTER:
                 result = value.number;
@@ -67,18 +75,19 @@ function Formatter(
             case GROUP_FORMATTER:
                 result = value.name;
                 break;
+            case ADDRESSBOOK_FORMATTER:
+                result = value
+                    .map(({ displayName }) => displayName)
+                    .join(', ');
+                break;
             default:
-                result = value;
         }
-        return <React.Fragment>{result}</React.Fragment>;
+    } else if (dataType === 'DATE') {
+        result = moment(value)
+            .format(timestampFormatMinutes);
     }
-    let result = value;
-    if (dataType) {
-        if (dataType === 'DATE') {
-            result = moment(value).format(timestampFormatMinutes);
-        }
-    }
-    return <React.Fragment>{result}</React.Fragment>;
+
+    return result;
 }
 
 Formatter.propTypes = {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.business.multitenancy;
 
-import java.io.Serializable;
-
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.persistence.api.BaseDO;
@@ -35,6 +33,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.Serializable;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -62,7 +62,7 @@ public class TenantChecker implements Serializable
    */
   public boolean isPartOfTenant(final TenantDO tenant, final BaseDO<?> obj)
   {
-    if (tenantService.isMultiTenancyAvailable() == false) {
+    if (!tenantService.isMultiTenancyAvailable()) {
       return true;
     }
     if (tenant == null) {
@@ -73,7 +73,7 @@ public class TenantChecker implements Serializable
 
   public boolean isPartOfTenant(final Integer tenantId, final BaseDO<?> obj)
   {
-    if (tenantService.isMultiTenancyAvailable() == false) {
+    if (!tenantService.isMultiTenancyAvailable()) {
       return true;
     }
     if (obj == null) {
@@ -96,13 +96,13 @@ public class TenantChecker implements Serializable
    */
   public boolean isPartOfCurrentTenant(final BaseDO<?> obj)
   {
-    if (tenantService.isMultiTenancyAvailable() == false) {
+    if (!tenantService.isMultiTenancyAvailable()) {
       return true;
     }
     if (obj == null) {
       return false;
     }
-    if (obj instanceof TenantDO && isSuperAdmin(ThreadLocalUserContext.getUser()) == true) {
+    if (obj instanceof TenantDO && isSuperAdmin(ThreadLocalUserContext.getUser())) {
       return true;
     }
     final TenantDO currentTenant = getCurrentTenant();
@@ -125,7 +125,7 @@ public class TenantChecker implements Serializable
    */
   public void setCurrentTenant(final BaseDO<?> obj)
   {
-    if (tenantService.isMultiTenancyAvailable() == false) {
+    if (!tenantService.isMultiTenancyAvailable()) {
       return;
     }
     TenantDO currentTenant = getCurrentTenant();
@@ -137,10 +137,10 @@ public class TenantChecker implements Serializable
 
   public void checkPartOfCurrentTenant(final BaseDO<?> obj)
   {
-    if (tenantService.isMultiTenancyAvailable() == false) {
+    if (!tenantService.isMultiTenancyAvailable()) {
       return;
     }
-    if (isPartOfCurrentTenant(obj) == false) {
+    if (!isPartOfCurrentTenant(obj)) {
       final TenantDO currentTenant = getCurrentTenant();
       final String currentTenantString = currentTenant != null ? currentTenant.getName() : ThreadLocalUserContext
           .getLocalizedString("multitenancy.defaultTenant");
@@ -156,7 +156,7 @@ public class TenantChecker implements Serializable
 
   public boolean isPartOfTenant(final TenantDO tenant, final PFUserDO user)
   {
-    if (tenantService.isMultiTenancyAvailable() == false) {
+    if (!tenantService.isMultiTenancyAvailable()) {
       return true;
     }
     if (tenant == null || user == null || tenant.getAssignedUsers() == null) {
@@ -175,7 +175,7 @@ public class TenantChecker implements Serializable
     if (user == null) {
       return false;
     }
-    return GlobalConfiguration.getInstance().isMultiTenancyConfigured() == true && user.getSuperAdmin() == true;
+    return GlobalConfiguration.getInstance().isMultiTenancyConfigured() && user.getSuperAdmin();
   }
 
   public void isTenantSet(final BaseDO obj, final boolean setTenantIfNotExist)

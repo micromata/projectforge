@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -155,7 +155,7 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
       final GridBuilder tabContainer = tabPanel.getOrCreateTab(group.getI18nKeySubmenu());
       final DivPanel divPanel = tabContainer.getPanel();
 
-      if (!divPanel.hasChilds()) {
+      if (!divPanel.hasChildren()) {
         // this panel is fresh, we have to add our css class
         addHtmlClass(divPanel);
       }

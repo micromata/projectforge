@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,11 @@
 
 package org.projectforge.business.teamcal.event.ical.converter;
 
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
-
 import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Uid;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
 public class UidConverter extends PropertyConverter
 {
@@ -45,7 +44,7 @@ public class UidConverter extends PropertyConverter
   @Override
   public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent)
   {
-    if (vEvent.getUid() != null && StringUtils.isEmpty(vEvent.getUid().getValue()) == false) {
+    if (vEvent.getUid() != null && !StringUtils.isEmpty(vEvent.getUid().getValue())) {
       event.setUid(vEvent.getUid().getValue());
       return true;
     }

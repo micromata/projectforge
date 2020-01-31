@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,7 +38,7 @@ public class AddressDOConverter
     address.setName(person.getSurname());
     address.setFirstName(person.getGivenName());
     final String uid = person.getUid();
-    if (uid != null && uid.startsWith(UID_PREFIX) == true && uid.length() > UID_PREFIX.length()) {
+    if (uid != null && uid.startsWith(UID_PREFIX) && uid.length() > UID_PREFIX.length()) {
       final String id = uid.substring(UID_PREFIX.length());
       address.setId(NumberHelper.parseInteger(id));
     }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -44,6 +44,6 @@ public enum TeamEventField
   LAST_MAIL,
   SEQUENCE,
   REMINDER_DURATION,
-  REMINDER_DURATION_TYPE,
+  REMINDER_DURATION_UNIT,
   REMINDER_ACTION_TYPE
 }

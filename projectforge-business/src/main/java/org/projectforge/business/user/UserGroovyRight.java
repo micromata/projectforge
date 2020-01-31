@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,12 @@
 
 package org.projectforge.business.user;
 
-import java.io.Serializable;
-
+import groovy.lang.Binding;
+import groovy.lang.Script;
 import org.projectforge.business.scripting.GroovyExecutor;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
-import groovy.lang.Binding;
-import groovy.lang.Script;
+import java.io.Serializable;
 
 /**
  * Rights which can be implemented dynamically with Groovy scripts.<br/>

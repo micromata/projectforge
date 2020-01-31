@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,18 @@
 
 package org.projectforge.storage;
 
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
+import org.projectforge.framework.configuration.ConfigXml;
+import org.projectforge.framework.configuration.ConfigurationListener;
+import org.projectforge.shared.storage.StorageConstants;
+import org.springframework.stereotype.Component;
+
 import javax.annotation.PostConstruct;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.configuration.ConfigurationListener;
-import org.projectforge.shared.storage.StorageConstants;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -57,7 +58,7 @@ public class StorageClient implements ConfigurationListener
   private void checkInitialized()
   {
     synchronized (this) {
-      if (initialized == true) {
+      if (initialized) {
         return;
       }
       this.config = ConfigXml.getInstance().getStorageConfig();
@@ -68,7 +69,7 @@ public class StorageClient implements ConfigurationListener
       final Client client = ClientBuilder.newClient();
       WebTarget webResource = client.target(getUrl("/initialization"))//
           .queryParam(StorageConstants.PARAM_AUTHENTICATION_TOKEN, this.config.getAuthenticationToken())//
-          .queryParam(StorageConstants.PARAM_BASE_DIR, ConfigXml.getInstance().getApplicationHomeDir());
+          .queryParam(StorageConstants.PARAM_BASE_DIR, ConfigurationServiceAccessor.get().getApplicationHomeDir());
       Response response = webResource.request(MediaType.TEXT_PLAIN).get();
       if (response.getStatus() != Response.Status.OK.getStatusCode()) {
         throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
@@ -77,7 +78,7 @@ public class StorageClient implements ConfigurationListener
       if (response.getEntity() instanceof String) {
         output = (String) response.getEntity();
       }
-      if ("OK".equals(output) == false) {
+      if (!"OK".equals(output)) {
         throw new RuntimeException("Initialization of ProjectForge's storage failed: " + output);
       }
       webResource = client.target(getUrl("/securityCheck"));
@@ -96,7 +97,7 @@ public class StorageClient implements ConfigurationListener
       if (response.getEntity() instanceof String) {
         output = (String) response.getEntity();
       }
-      if (output.equals("authenticated") == false) {
+      if (!output.equals("authenticated")) {
         final String message = "Authentication didn't work. Storage isn't available.";
         log.error(message);
         throw new RuntimeException(message);

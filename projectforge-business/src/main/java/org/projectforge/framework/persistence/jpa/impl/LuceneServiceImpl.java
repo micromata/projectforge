@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,12 @@
 
 package org.projectforge.framework.persistence.jpa.impl;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.apache.commons.text.StringEscapeUtils;
+import de.micromata.genome.jpa.metainf.ColumnMetadata;
+import de.micromata.genome.util.runtime.RuntimeIOException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.lucene.analysis.standard.ClassicAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
@@ -53,8 +49,11 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import de.micromata.genome.jpa.metainf.ColumnMetadata;
-import de.micromata.genome.util.runtime.RuntimeIOException;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Debug utilities for Hibernate Search.
@@ -127,7 +126,7 @@ public class LuceneServiceImpl
       FullTextEntityManager femg = emgr.getFullTextEntityManager();
       SearchFactory sf = femg.getSearchFactory();
       String[] searchFields;
-      if (StringUtils.isNotBlank(fieldList) == true) {
+      if (StringUtils.isNotBlank(fieldList)) {
         searchFields = splitFieldList(fieldList);
       } else {
         searchFields = getSearchFieldsForEntity(entityClass);

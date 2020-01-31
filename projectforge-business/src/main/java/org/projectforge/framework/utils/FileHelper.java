@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.framework.utils;
 
+import org.projectforge.framework.time.DateHelper;
+
 import java.io.File;
 import java.util.Date;
-
-import org.projectforge.framework.time.DateHelper;
 
 /**
  * Some helper methods ...
@@ -49,7 +49,7 @@ public class FileHelper
   public static String getAbsolutePath(String parent, String path)
   {
     File file = new File(path);
-    if (file.isAbsolute() == true) {
+    if (file.isAbsolute()) {
       return path;
     }
     file = new File(parent, path);
@@ -79,7 +79,7 @@ public class FileHelper
    */
   public static String createSafeFilename(final String str, final String suffix, final int maxlength, final boolean appendTimestamp)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean escaped = false;
     int count = 0;
     for (int i = 0; i < str.length() && count < maxlength; i++) {
@@ -101,13 +101,13 @@ public class FileHelper
         count += substitution.length();
         escaped = false;
         continue;
-      } else if (escaped == false) {
+      } else if (!escaped) {
         buf.append("_");
         count++;
         escaped = true;
       }
     }
-    if (appendTimestamp == true) {
+    if (appendTimestamp) {
       buf.append('_').append(DateHelper.getDateAsFilenameSuffix(new Date()));
     }
     if (suffix != null) {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Kost2Test
 {
-  private Map<Integer, Kost2ArtDO> map = new HashMap<Integer, Kost2ArtDO>();
+  private Map<Integer, Kost2ArtDO> map = new HashMap<>();
 
   @Test
   public void testGetNummer()

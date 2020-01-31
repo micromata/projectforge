@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -48,11 +48,11 @@ public enum ScriptParameterType implements I18nEnum
 
   public static ScriptParameterType get(String s)
   {
-    if (StringUtils.isEmpty(s) == true) {
+    if (StringUtils.isEmpty(s)) {
       return null;
     }
     for (final ScriptParameterType type : ScriptParameterType.values()) {
-      if (s.equals(type.name()) == true) {
+      if (s.equals(type.name())) {
         return type;
       }
     }

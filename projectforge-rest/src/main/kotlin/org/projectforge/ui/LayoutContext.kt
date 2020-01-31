@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,8 +29,24 @@ data class LayoutContext(
          */
         val dataObjectClazz: Class<*>?,
         var idPrefix: String? = null) {
+    private val log = org.slf4j.LoggerFactory.getLogger(ElementsRegistry::class.java)
+
+    private val listElements = mutableMapOf<String, ElementInfo>()
 
     constructor(layoutContext: LayoutContext) : this(layoutContext.dataObjectClazz) {
         idPrefix = layoutContext.idPrefix
+    }
+
+    fun registerListElement(varName: String, idPath: String) {
+        val elInfo = ElementsRegistry.getElementInfo(this, idPath)
+        if (elInfo == null) {
+            log.warn("Can't register list element '$idPath'. It won't be available under varname '$varName'")
+        } else {
+            listElements[varName] = elInfo
+        }
+    }
+
+    fun getListElementInfo(varName: String): ElementInfo? {
+        return listElements[varName]
     }
 }

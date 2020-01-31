@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.io.Serializable;
-
 import de.micromata.genome.jpa.impl.AbstractParentChildTableTruncater;
 
+import java.io.Serializable;
+
 /**
- * Skill has reference to itself, so order of delete has to be childs first.
+ * Skill has reference to itself, so order of delete has to be children first.
  * 
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,6 +32,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.filter.UserFilter;
+import org.projectforge.common.DatabaseDialect;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
@@ -43,8 +44,8 @@ import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.web.LoginPage;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.AbstractUnsecureBasePage;
 import org.projectforge.web.wicket.MessagePage;
@@ -76,13 +77,11 @@ public class SetupPage extends AbstractUnsecureBasePage
 
   private final SetupImportForm importForm;
 
-  @SpringBean
-  private MenuCreator menuCreator;
-
   public SetupPage(final PageParameters parameters)
   {
     super(parameters);
     checkAccess();
+    WicketSupport.getMenuCreator().refresh();
     setupForm = new SetupForm(this);
     body.add(setupForm);
     setupForm.init();
@@ -111,6 +110,10 @@ public class SetupPage extends AbstractUnsecureBasePage
       try {
         ScriptUtils.executeSqlScript(databaseService.getDataSource().getConnection(),
             configurationDao.getApplicationContext().getResource("classpath:data/pfTestdata.sql"));
+        if (databaseService.getDialect() == DatabaseDialect.PostgreSQL) {
+          ScriptUtils.executeSqlScript(databaseService.getDataSource().getConnection(),
+                  configurationDao.getApplicationContext().getResource("classpath:data/pfTestdataPostgres.sql"));
+        }
       } catch (Exception e) {
         log.error("Exception occured while running test data insert script. Message: " + e.getMessage());
       }
@@ -119,9 +122,10 @@ public class SetupPage extends AbstractUnsecureBasePage
       databaseService.afterCreatedTestDb(false);
       message = "administration.setup.message.testdata";
       // refreshes the visibility of the costConfigured dependent menu items:
-      menuCreator.refresh();
+      WicketSupport.getMenuCreator().refresh();
     }
 
+    WicketSupport.getSystemStatus().setSetupRequiredFirst(false);
     loginAdminUser(adminUser);
 
     configurationDao.checkAndUpdateDatabaseEntries();

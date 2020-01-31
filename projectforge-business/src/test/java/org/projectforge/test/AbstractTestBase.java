@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,6 +29,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.LoginDefaultHandler;
@@ -50,19 +51,26 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.registry.Registry;
+import org.projectforge.web.WicketSupport;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.orm.hibernate5.HibernateTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
+import java.io.File;
 import java.math.BigDecimal;
-import java.util.Calendar;
+import java.time.Month;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -70,11 +78,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Every test should finish with a valid database with test cases. If not, the test should call recreateDatabase() on afterAll!
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {TestConfiguration.class})
-//@SpringJUnitConfig(TestConfiguration.class)
+//@Transactional
+@Component
 public abstract class AbstractTestBase {
   protected static final org.slf4j.Logger log = org.slf4j.LoggerFactory
           .getLogger(AbstractTestBase.class);
@@ -138,8 +148,8 @@ public abstract class AbstractTestBase {
 
   public static PFUserDO ADMIN_USER;
 
-  @Autowired
-  protected HibernateTemplate hibernateTemplate;
+  @PersistenceContext
+  protected EntityManager em;
 
   @Autowired
   protected UserService userService;
@@ -151,7 +161,7 @@ public abstract class AbstractTestBase {
   protected InitTestDB initTestDB;
 
   @Autowired
-  private PfEmgrFactory emf;
+  protected PfEmgrFactory emf;
 
   @Autowired
   private DataSource dataSource;
@@ -160,7 +170,12 @@ public abstract class AbstractTestBase {
   private ConfigurationService configurationService;
 
   @Autowired
-  private DatabaseService initDatabaseDao;
+  private DatabaseService databaseService;
+
+  @PostConstruct
+  private void postConstruct() {
+    WicketSupport.register(applicationContext);
+  }
 
   protected int mCount = 0;
 
@@ -168,8 +183,13 @@ public abstract class AbstractTestBase {
 
   private static AbstractTestBase instance = null;
 
+  protected AbstractTestBase() {
+    System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, new File("target", "ProjectForgeTest").getAbsolutePath());
+  }
+
   @BeforeAll
   public static void _beforeAll() {
+    ProjectForgeApp.internalSetJunitTestMode();
     initialized = false;
   }
 
@@ -218,6 +238,7 @@ public abstract class AbstractTestBase {
   public void recreateDataBase() {
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
+    Locale.setDefault(Locale.ENGLISH);
     log.info("user.timezone is: " + System.getProperty("user.timezone"));
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
     try {
@@ -227,7 +248,7 @@ public abstract class AbstractTestBase {
     }
 
     clearDatabase();
-    initDatabaseDao.insertDefaultTenant();
+    databaseService.insertDefaultTenant();
 
     GlobalConfiguration.createConfiguration(configurationService);
     TenantRegistryMap tenantRegistryMap = TenantRegistryMap.getInstance();
@@ -255,7 +276,7 @@ public abstract class AbstractTestBase {
     final LoginDefaultHandler loginHandler = applicationContext.getBean(LoginDefaultHandler.class);
     loginHandler.initialize();
     Login.getInstance().setLoginHandler(loginHandler);
-    if (createTestData == true) {
+    if (createTestData) {
       initTestDB.initDatabase();
     }
   }
@@ -273,6 +294,7 @@ public abstract class AbstractTestBase {
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired();
     getUserGroupCache().setExpired();
     TenantRegistryMap.getInstance().clear();
+    initTestDB.clearUsers();
   }
 
   public PFUserDO logon(final String username) {
@@ -385,29 +407,18 @@ public abstract class AbstractTestBase {
   }
 
   public static void assertBigDecimal(final BigDecimal v1, final BigDecimal v2) {
-    assertTrue(v1.compareTo(v2) == 0, "BigDecimal values are not equal.");
+    assertTrue(v1.compareTo(v2) == 0, "BigDecimal values are not equal: " + v1 + " != " + v2);
   }
 
-  protected Calendar assertUTCDate(final Date date, final int year, final int month, final int day, final int hour,
-                                   final int minute,
-                                   final int second) {
-    final Calendar cal = Calendar.getInstance(DateHelper.UTC);
-    cal.setTime(date);
-    assertEquals(year, cal.get(Calendar.YEAR));
-    assertEquals(month, cal.get(Calendar.MONTH));
-    assertEquals(day, cal.get(Calendar.DAY_OF_MONTH));
-    assertEquals(hour, cal.get(Calendar.HOUR_OF_DAY));
-    assertEquals(minute, cal.get(Calendar.MINUTE));
-    assertEquals(second, cal.get(Calendar.SECOND));
-    return cal;
+  protected void assertUTCDate(final Date date, final int year, final Month month, final int day, final int hour,
+                               final int minute,
+                               final int second) {
+    PFDateTime dateTime = PFDateTime.from(date, DateHelper.UTC);
+    assertEquals(year, dateTime.getYear());
+    assertEquals(month, dateTime.getMonth());
+    assertEquals(day, dateTime.getDayOfMonth());
+    assertEquals(hour, dateTime.getHour());
+    assertEquals(minute, dateTime.getMinute());
+    assertEquals(second, dateTime.getSecond());
   }
-
-  protected Calendar assertUTCDate(final Date date, final int year, final int month, final int day, final int hour,
-                                   final int minute,
-                                   final int second, final int millis) {
-    final Calendar cal = assertUTCDate(date, year, month, day, hour, minute, second);
-    assertEquals(millis, cal.get(Calendar.MILLISECOND));
-    return cal;
-  }
-
 }

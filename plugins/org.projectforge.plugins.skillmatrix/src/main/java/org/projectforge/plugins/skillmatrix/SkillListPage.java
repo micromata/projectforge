@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -36,12 +33,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
@@ -83,7 +78,7 @@ public class SkillListPage extends AbstractListPage<SkillListForm, SkillDao, Ski
   @Override
   public List<IColumn<SkillDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final List<IColumn<SkillDO, String>> columns = new ArrayList<IColumn<SkillDO, String>>();
+    final List<IColumn<SkillDO, String>> columns = new ArrayList<>();
     final CellItemListener<SkillDO> cellItemListener = new CellItemListener<SkillDO>()
     {
       private static final long serialVersionUID = 3628573642359696336L;
@@ -97,7 +92,7 @@ public class SkillListPage extends AbstractListPage<SkillListForm, SkillDao, Ski
     };
 
     final CellItemListenerPropertyColumn<SkillDO> created = new CellItemListenerPropertyColumn<SkillDO>(
-        new Model<String>(
+        new Model<>(
             getString("created")),
         getSortable("created", sortable), "created", cellItemListener)
     {
@@ -114,31 +109,31 @@ public class SkillListPage extends AbstractListPage<SkillListForm, SkillDao, Ski
       }
     };
 
-    final CellItemListenerPropertyColumn<SkillDO> lastUpdate = new CellItemListenerPropertyColumn<SkillDO>(
+    final CellItemListenerPropertyColumn<SkillDO> lastUpdate = new CellItemListenerPropertyColumn<>(
         getString("lastUpdate"),
         getSortable("lastUpdate", sortable), "lastUpdate", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillDO> title = new CellItemListenerPropertyColumn<SkillDO>(SkillDO.class,
+    final CellItemListenerPropertyColumn<SkillDO> title = new CellItemListenerPropertyColumn<>(SkillDO.class,
         getSortable("title",
             sortable),
         "title", cellItemListener);
 
     // TODO: Workaround with get (hardcoded I18N), needs a better solution.
-    final CellItemListenerPropertyColumn<SkillDO> parentTitle = new CellItemListenerPropertyColumn<SkillDO>(
+    final CellItemListenerPropertyColumn<SkillDO> parentTitle = new CellItemListenerPropertyColumn<>(
         getString("plugins.skillmatrix.skill.parent"), getSortable("parent.title", sortable), "parent.title",
         cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillDO> description = new CellItemListenerPropertyColumn<SkillDO>(
+    final CellItemListenerPropertyColumn<SkillDO> description = new CellItemListenerPropertyColumn<>(
         SkillDO.class, getSortable(
-            "description", sortable),
+        "description", sortable),
         "description", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillDO> comment = new CellItemListenerPropertyColumn<SkillDO>(SkillDO.class,
+    final CellItemListenerPropertyColumn<SkillDO> comment = new CellItemListenerPropertyColumn<>(SkillDO.class,
         getSortable(
             "comment", sortable),
         "comment", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillDO> rateable = new CellItemListenerPropertyColumn<SkillDO>(SkillDO.class,
+    final CellItemListenerPropertyColumn<SkillDO> rateable = new CellItemListenerPropertyColumn<>(SkillDO.class,
         getSortable(
             "rateable", sortable),
         "rateable", cellItemListener);

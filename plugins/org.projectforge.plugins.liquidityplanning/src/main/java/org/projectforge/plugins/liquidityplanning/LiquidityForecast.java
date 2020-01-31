@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,33 +23,20 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import java.io.Serializable;
-import java.sql.Date;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import org.projectforge.business.fibu.EingangsrechnungDO;
-import org.projectforge.business.fibu.KontoCache;
-import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.KundeDO;
-import org.projectforge.business.fibu.KundeFormatter;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.ProjektFormatter;
-import org.projectforge.business.fibu.RechnungDO;
+import org.projectforge.business.fibu.*;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.statistics.IntAggregatedValues;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
+import java.sql.Date;
+import java.util.*;
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @Service
 public class LiquidityForecast implements Serializable
@@ -59,7 +46,7 @@ public class LiquidityForecast implements Serializable
   @Autowired
   KontoCache accountCache;
 
-  private final List<LiquidityEntry> entries = new LinkedList<LiquidityEntry>();
+  private final List<LiquidityEntry> entries = new LinkedList<>();
 
   private Collection<LiquidityEntry> liquiEntries;
 
@@ -70,12 +57,12 @@ public class LiquidityForecast implements Serializable
   /**
    * Used for calculating the expected date of payment for future invoices.
    */
-  private final Map<String, IntAggregatedValues> aggregatedDebitorInvoicesValuesMap = new HashMap<String, IntAggregatedValues>();
+  private final Map<String, IntAggregatedValues> aggregatedDebitorInvoicesValuesMap = new HashMap<>();
 
   /**
    * Used for calculating the expected date of payment for future invoices.
    */
-  private final Map<String, IntAggregatedValues> aggregatedCreditorInvoicesValuesMap = new HashMap<String, IntAggregatedValues>();
+  private final Map<String, IntAggregatedValues> aggregatedCreditorInvoicesValuesMap = new HashMap<>();
 
   private Collection<EingangsrechnungDO> creditorInvoices;
 
@@ -83,7 +70,7 @@ public class LiquidityForecast implements Serializable
 
   /**
    * Refresh forecast from stored liqui-entries, invoices and creditor invoices and sort the entries.
-   * 
+   *
    * @return this for chaining.
    * @see #sort()
    */
@@ -102,11 +89,9 @@ public class LiquidityForecast implements Serializable
    */
   private LiquidityForecast sort()
   {
-    Collections.sort(entries, new Comparator<LiquidityEntry>()
-    {
+    entries.sort(new Comparator<LiquidityEntry>() {
       @Override
-      public int compare(final LiquidityEntry o1, final LiquidityEntry o2)
-      {
+      public int compare(final LiquidityEntry o1, final LiquidityEntry o2) {
         if (o1.getDateOfPayment() == null) {
           if (o2.getDateOfPayment() != null) {
             return -1;
@@ -137,7 +122,7 @@ public class LiquidityForecast implements Serializable
 
   public LiquidityForecast set(final Collection<LiquidityEntryDO> list)
   {
-    this.liquiEntries = new LinkedList<LiquidityEntry>();
+    this.liquiEntries = new LinkedList<>();
     if (list == null) {
       return this;
     }
@@ -156,7 +141,7 @@ public class LiquidityForecast implements Serializable
   /**
    * For calculating the expected date of payment of future invoices. <br/>
    * Should be called before {@link #setInvoices(Collection)}!
-   * 
+   *
    * @param list
    */
   public LiquidityForecast calculateExpectedTimeOfPayments(final Collection<RechnungDO> list)
@@ -170,7 +155,7 @@ public class LiquidityForecast implements Serializable
       if (date == null || dateOfPayment == null) {
         continue;
       }
-      final int timeForPayment = date.daysBetween(dateOfPayment);
+      final int timeForPayment = (int)date.daysBetween(dateOfPayment);
       final int amount = invoice.getGrossSum().intValue();
       // Store values for different groups:
       final Integer projectId = invoice.getProjektId();
@@ -203,36 +188,36 @@ public class LiquidityForecast implements Serializable
   {
     Date dateOfInvoice = invoice.getDatum();
     if (dateOfInvoice == null) {
-      dateOfInvoice = new DayHolder().getSQLDate();
+      dateOfInvoice = new DayHolder().getSqlDate();
     }
     final ProjektDO project = invoice.getProjekt();
     if (project != null
         && setExpectedDateOfPayment(entry, dateOfInvoice, "project#" + project.getId(),
-            ProjektFormatter.formatProjektKundeAsString(project, null, null)) == true) {
+        ProjektFormatter.formatProjektKundeAsString(project, null, null))) {
       return;
     }
     final KundeDO customer = invoice.getKunde();
     if (customer != null
         && setExpectedDateOfPayment(entry, dateOfInvoice, "customer#" + customer.getId(),
-            KundeFormatter.formatKundeAsString(customer, null)) == true) {
+        KundeFormatter.formatKundeAsString(customer, null))) {
       return;
     }
     final KontoDO account = accountCache.getKonto(invoice);
     if (account != null
         && setExpectedDateOfPayment(entry, dateOfInvoice, "account#" + account.getId(),
-            "" + account.getNummer() + " - " + account.getBezeichnung()) == true) {
+        "" + account.getNummer() + " - " + account.getBezeichnung())) {
       return;
     }
     String customerText = invoice.getKundeText();
     if (customerText != null) {
       customerText = customerText.toLowerCase();
-      if (setExpectedDateOfPayment(entry, dateOfInvoice, "customer:" + customerText, customerText) == true) {
+      if (setExpectedDateOfPayment(entry, dateOfInvoice, "customer:" + customerText, customerText)) {
         return;
       }
       if (customerText.length() > 5) {
         customerText = customerText.substring(0, 5);
       }
-      if (setExpectedDateOfPayment(entry, dateOfInvoice, "shortCustomer:" + customerText, customerText) == true) {
+      if (setExpectedDateOfPayment(entry, dateOfInvoice, "shortCustomer:" + customerText, customerText)) {
         return;
       }
     }
@@ -271,7 +256,7 @@ public class LiquidityForecast implements Serializable
   /**
    * For calculating the expected date of payment of future invoices. <br/>
    * Should be called before {@link #setInvoices(Collection)}!
-   * 
+   *
    * @param list
    */
   public LiquidityForecast calculateExpectedTimeOfCreditorPayments(final Collection<EingangsrechnungDO> list)
@@ -285,7 +270,7 @@ public class LiquidityForecast implements Serializable
       if (date == null || dateOfPayment == null) {
         continue;
       }
-      final int timeForPayment = date.daysBetween(dateOfPayment);
+      final int timeForPayment = (int)date.daysBetween(dateOfPayment);
       final int amount = invoice.getGrossSum().intValue();
       final KontoDO account = invoice.getKonto();
       final Integer accountId = account != null ? account.getId() : null;
@@ -309,25 +294,25 @@ public class LiquidityForecast implements Serializable
   {
     Date dateOfInvoice = invoice.getDatum();
     if (dateOfInvoice == null) {
-      dateOfInvoice = new DayHolder().getSQLDate();
+      dateOfInvoice = new DayHolder().getSqlDate();
     }
     final KontoDO account = invoice.getKonto();
     if (account != null
         && setExpectedDateOfCreditorPayment(entry, dateOfInvoice, "account#" + account.getId(),
-            "" + account.getNummer() + " - " + account.getBezeichnung()) == true) {
+        "" + account.getNummer() + " - " + account.getBezeichnung())) {
       return;
     }
     String creditorText = invoice.getKreditor();
     if (creditorText != null) {
       creditorText = creditorText.toLowerCase();
-      if (setExpectedDateOfCreditorPayment(entry, dateOfInvoice, "creditor:" + creditorText, creditorText) == true) {
+      if (setExpectedDateOfCreditorPayment(entry, dateOfInvoice, "creditor:" + creditorText, creditorText)) {
         return;
       }
       if (creditorText.length() > 5) {
         creditorText = creditorText.substring(0, 5);
       }
       if (setExpectedDateOfCreditorPayment(entry, dateOfInvoice, "shortCreditor:" + creditorText,
-          creditorText) == true) {
+          creditorText)) {
         return;
       }
     }
@@ -366,21 +351,20 @@ public class LiquidityForecast implements Serializable
 
   private Date getDate(final Date date, final int timeOfPayment)
   {
-    final DayHolder day = new DayHolder(date);
-    day.add(Calendar.DAY_OF_YEAR, timeOfPayment);
-    return day.getSQLDate();
+    final PFDateTime day = PFDateTime.from(date).plusDays(timeOfPayment);
+    return day.getSqlDate();
   }
 
   /**
    * Should be called after {@link #calculateExpectedTimeOfPayments(Collection)}-
-   * 
+   *
    * @param list
    * @return
    */
   public LiquidityForecast setInvoices(final Collection<RechnungDO> list)
   {
     this.invoices = list;
-    this.invoicesLiquidityEntries = new LinkedList<LiquidityEntry>();
+    this.invoicesLiquidityEntries = new LinkedList<>();
     if (list == null) {
       return this;
     }
@@ -404,7 +388,7 @@ public class LiquidityForecast implements Serializable
   public LiquidityForecast setCreditorInvoices(final Collection<EingangsrechnungDO> list)
   {
     this.creditorInvoices = list;
-    this.creditorInvoicesLiquidityEntries = new LinkedList<LiquidityEntry>();
+    this.creditorInvoicesLiquidityEntries = new LinkedList<>();
     if (list == null) {
       return this;
     }

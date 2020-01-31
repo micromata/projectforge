@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -112,7 +112,7 @@ public abstract class UpdateEntry implements Comparable<UpdateEntry>
   @Override
   public String toString()
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(this.getClass()).append("=[");
     if (getRegionId() != null) {
       buf.append("regionId=[").append(getRegionId()).append("]");

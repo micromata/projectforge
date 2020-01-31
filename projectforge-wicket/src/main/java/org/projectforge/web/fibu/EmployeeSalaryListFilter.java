@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,8 +37,8 @@ public class EmployeeSalaryListFilter extends EmployeeSalaryFilter
   public EmployeeSalaryListFilter reset()
   {
     super.reset();
-    year = -1;
-    month = -1;
+    setYear(null);
+    setMonth(null);
     searchString = "";
     return this;
   }

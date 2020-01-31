@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,20 +23,20 @@
 
 package org.projectforge.plugins.eed.wicket;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.eed.service.LBExporterService;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.DownloadUtils;
+
+import java.util.GregorianCalendar;
+import java.util.List;
 
 public class ExportDataPage extends AbstractStandardFormPage implements ISelectCallerPage
 {
@@ -92,8 +92,9 @@ public class ExportDataPage extends AbstractStandardFormPage implements ISelectC
     final String filename = "Liste-PF-"
         + form.selectedMonth + "-" + form.selectedYear
         + ".xls";
-    Calendar cal = new GregorianCalendar(form.selectedYear, form.selectedMonth - 1, 1);
-    byte[] xls = exporterService.getExcel(employeeList, cal);
+    PFDateTime dt = PFDateTime.from(new GregorianCalendar(form.selectedYear, form.selectedMonth - 1, 1)
+        .getTime());
+    byte[] xls = exporterService.getExcel(employeeList, dt);
     if (xls == null || xls.length == 0) {
       log.error("Oups, xls has zero size. Filename: " + filename);
       return;

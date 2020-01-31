@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,9 @@
 
 package org.projectforge.framework.xstream.converter;
 
-import java.util.TimeZone;
-
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.TimeZone;
 
 public class TimeZoneConverter extends AbstractValueConverter<TimeZone>
 {
@@ -41,7 +41,7 @@ public class TimeZoneConverter extends AbstractValueConverter<TimeZone>
   @Override
   public TimeZone fromString(final String str)
   {
-    if (StringUtils.isBlank(str) == true) {
+    if (StringUtils.isBlank(str)) {
       return null;
     }
     return TimeZone.getTimeZone(str);

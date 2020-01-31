@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -47,7 +47,7 @@ public class TenantRegistryMap extends AbstractCache {
 
   private static final long EXPIRE_TIME = AbstractCache.TICKS_PER_DAY;
 
-  private final Map<Integer, TenantRegistry> tenantRegistryMap = new HashMap<Integer, TenantRegistry>();
+  private final Map<Integer, TenantRegistry> tenantRegistryMap = new HashMap<>();
 
   private TenantRegistry singleTenantRegistry;
 
@@ -94,7 +94,7 @@ public class TenantRegistryMap extends AbstractCache {
 
   public TenantRegistry getTenantRegistry(TenantDO tenant) {
     checkRefresh();
-    if (tenantService.isMultiTenancyAvailable() == false) {
+    if (!tenantService.isMultiTenancyAvailable()) {
       if (tenant != null && !tenant.isDefault()) {
         log.warn("Oups, why call getTenantRegistry with tenant " + tenant.getId()
                 + " if ProjectForge is running in single tenant mode?");
@@ -133,7 +133,7 @@ public class TenantRegistryMap extends AbstractCache {
   }
 
   public TenantRegistry getTenantRegistry() {
-    if (tenantService.isMultiTenancyAvailable() == false) {
+    if (!tenantService.isMultiTenancyAvailable()) {
       return getSingleTenantRegistry();
     }
     final TenantDO tenant = tenantChecker.getCurrentTenant();
@@ -170,8 +170,10 @@ public class TenantRegistryMap extends AbstractCache {
 
   private void createDummyTenantRegistry() {
     synchronized (this) {
-      final TenantDO dummyTenant = new TenantDO().setName("Dummy tenant").setShortName("Dummy tenant")
-              .setDescription("This tenant is only a technical tenant, if no default tenant is given.");
+      final TenantDO dummyTenant = new TenantDO();
+      dummyTenant.setName("Dummy tenant");
+      dummyTenant.setShortName("Dummy tenant");
+      dummyTenant.setDescription("This tenant is only a technical tenant, if no default tenant is given.");
       dummyTenant.setId(-1);
       dummyTenantRegistry = new TenantRegistry(dummyTenant, applicationContext);
     }
@@ -192,10 +194,10 @@ public class TenantRegistryMap extends AbstractCache {
   protected void refresh() {
     log.info("Refreshing " + TenantRegistry.class.getName() + "...");
     final Iterator<Map.Entry<Integer, TenantRegistry>> it = tenantRegistryMap.entrySet().iterator();
-    while (it.hasNext() == true) {
+    while (it.hasNext()) {
       final Map.Entry<Integer, TenantRegistry> entry = it.next();
       final TenantRegistry registry = entry.getValue();
-      if (registry.isOutdated() == true) {
+      if (registry.isOutdated()) {
         final TenantDO tenant = registry.getTenant();
         log.info("Detaching caches of tenant '"
                 + (tenant != null ? tenant.getShortName() : "null")

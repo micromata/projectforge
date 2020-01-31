@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.rest;
 
-import java.util.Locale;
-
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.rest.converter.DateTimeFormat;
+
+import java.util.Locale;
 
 /**
  * ConnectionSettings is used for configuring single rest calls. This class also stores a connection settings object in
@@ -41,7 +41,7 @@ public class ConnectionSettings
 
   private static final DateTimeFormat DEFAULT_DATE_TIME_FORMAT = DateTimeFormat.ISO_DATE_TIME_MILLIS;
 
-  private static ThreadLocal<ConnectionSettings> context = new ThreadLocal<ConnectionSettings>();
+  private static ThreadLocal<ConnectionSettings> context = new ThreadLocal<>();
 
   private DateTimeFormat dateTimeFormat = DEFAULT_DATE_TIME_FORMAT;
 
@@ -72,7 +72,7 @@ public class ConnectionSettings
    */
   public final static void set(final ConnectionSettings settings)
   {
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("set connection settings: " + settings);
     }
     context.set(settings);

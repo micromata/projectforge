@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,8 @@
 
 package org.projectforge.timesheet;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.timesheet.TimesheetDO;
@@ -32,23 +32,20 @@ import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.common.task.TaskStatus;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.Calendar;
+import java.time.Month;
 import java.util.Date;
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
 public class TimesheetTestFork extends AbstractTestBase {
   // private static final Logger log = Logger.getLogger(TaskTest.class);
   @Autowired
@@ -57,55 +54,46 @@ public class TimesheetTestFork extends AbstractTestBase {
   @Autowired
   TaskDao taskDao;
 
-  @Autowired
-  private TransactionTemplate txTemplate;
-
-  DateHolder date;
+  PFDateTime date;
 
   @BeforeEach
   public void setUp() {
-    date = new DateHolder(new Date(), DatePrecision.MINUTE_15, Locale.GERMAN);
+    date = PFDateTime.from(new Date(), null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE_15);
   }
 
   @Test
   public void hasSelectAccess() {
     final Serializable[] id = new Serializable[1];
-    txTemplate.execute(new TransactionCallback() {
-      public Object doInTransaction(final TransactionStatus status) {
-        initTestDB.addTask("ts-hasSelectAccess-task", "root");
-        initTestDB.addUser("ts-hasSelectAccess-user");
-        final TimesheetDO ts = new TimesheetDO();
-        final long current = System.currentTimeMillis();
+    emf.runInTrans(emgr -> {
+      initTestDB.addTask("ts-hasSelectAccess-task", "root");
+      initTestDB.addUser("ts-hasSelectAccess-user");
+      final TimesheetDO ts = new TimesheetDO();
+      final long current = System.currentTimeMillis();
 
-        ts.setTask(initTestDB.getTask("ts-hasSelectAccess-task"));
-        ts.setUser(getUser("ts-hasSelectAccess-user"));
-        ts.setLocation("Office");
-        ts.setDescription("A lot of stuff done and more.");
-        ts.setStartTime(new Timestamp(current));
-        ts.setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
-        id[0] = timesheetDao.internalSave(ts);
-        timesheetDao.internalSave(ts);
-        return null;
-      }
+      ts.setTask(initTestDB.getTask("ts-hasSelectAccess-task"));
+      ts.setUser(getUser("ts-hasSelectAccess-user"));
+      ts.setLocation("Office");
+      ts.setDescription("A lot of stuff done and more.");
+      ts.setStartTime(new Timestamp(current));
+      ts.setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
+      id[0] = timesheetDao.internalSave(ts);
+      timesheetDao.internalSave(ts);
+      return null;
     });
-    txTemplate.execute(new TransactionCallback() {
-      public Object doInTransaction(final TransactionStatus status) {
-        logon(getUser("ts-hasSelectAccess-user"));
-        final TimesheetDO ts = timesheetDao.getById(id[0]); // Has no access, but is owner of this timesheet
-        assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getShortDescription());
-        assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getDescription());
-        assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getLocation());
-        return null;
-      }
+    emf.runInTrans(emgr -> {
+      logon(getUser("ts-hasSelectAccess-user"));
+      final TimesheetDO ts = timesheetDao.getById(id[0]); // Has no access, but is owner of this timesheet
+      assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getShortDescription());
+      assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getDescription());
+      assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getLocation());
+      return null;
     });
-    txTemplate.execute(new TransactionCallback() {
-      public Object doInTransaction(final TransactionStatus status) {
-        final TimesheetDO ts = timesheetDao.internalGetById(id[0]);
-        assertEquals("Field should not be overwritten", "A lot of stuff done and more.", ts.getShortDescription());
-        assertEquals("Field should not be overwritten", "A lot of stuff done and more.", ts.getDescription());
-        assertEquals("Field should not be overwritten", "Office", ts.getLocation());
-        return null;
-      }
+    emf.runInTrans(emgr -> {
+      final TimesheetDO ts = timesheetDao.internalGetById(id[0]);
+      assertEquals("Field should not be overwritten", "A lot of stuff done and more.", ts.getShortDescription());
+      assertEquals("Field should not be overwritten", "A lot of stuff done and more.", ts.getDescription());
+      assertEquals("Field should not be overwritten", "Office", ts.getLocation());
+      return null;
     });
   }
 
@@ -184,12 +172,10 @@ public class TimesheetTestFork extends AbstractTestBase {
     } catch (final UserException ex) {
       assertEquals("timesheet.error.timeperiodOverlapDetection", ex.getI18nKey());
     }
-    txTemplate.execute(new TransactionCallback() {
-      public Object doInTransaction(final TransactionStatus status) {
-        final TimesheetDO t = timesheetDao.internalGetById(id2);
-        timesheetDao.markAsDeleted(t); // Delete conflicting time sheet
-        return null;
-      }
+    emf.runInTrans(emgr -> {
+      final TimesheetDO t = timesheetDao.internalGetById(id2);
+      timesheetDao.markAsDeleted(t); // Delete conflicting time sheet
+      return null;
     });
     id = timesheetDao.save(ts3); // No overlap, OK.
     ts3 = timesheetDao.getById(id);
@@ -212,33 +198,33 @@ public class TimesheetTestFork extends AbstractTestBase {
     task = initTestDB.addTask("tpt.1", "tpt");
     task = initTestDB.addTask("tpt.1.1", "tpt.1");
     task = initTestDB.addTask("tpt.2", "tpt");
-    date.setDate(2008, Calendar.OCTOBER, 31, 0, 0, 0);
-    task.setProtectTimesheetsUntil(date.getDate());
+    date = date.withDate(2008, Month.OCTOBER, 31, 0, 0, 0);
+    task.setProtectTimesheetsUntil(date.getUtilDate());
     taskDao.internalUpdate(task); // Without check access.
     task = initTestDB.addTask("tpt.2.1", "tpt.2");
     TimesheetDO sheet = new TimesheetDO();
     sheet.setUser(getUser("tpt-user"));
     System.out.println(sheet.getUserId());
     sheet.setTask(getTask("tpt.2.1"));
-    setTimeperiod(sheet, 2008, Calendar.OCTOBER, 01, 7, 0, 21, 8, 15); // 10/01 from 07:00 to 08:15
+    setTimeperiod(sheet, 2008, Month.OCTOBER, 1, 7, 0, 21, 8, 15); // 10/01 from 07:00 to 08:15
     try {
       timesheetDao.save(sheet);
       fail("AccessException caused by time sheet violation expected.");
     } catch (final AccessException ex) {
       // OK
     }
-    setTimeperiod(sheet, 2008, Calendar.OCTOBER, 31, 23, 45, 31, 0, 15); // 10/30 from 23:45 to 00:15
+    setTimeperiod(sheet, 2008, Month.OCTOBER, 31, 23, 45, 31, 0, 15); // 10/30 from 23:45 to 00:15
     try {
       timesheetDao.save(sheet);
       fail("AccessException caused by time sheet violation expected.");
     } catch (final AccessException ex) {
       // OK
     }
-    setTimeperiod(sheet, 2008, Calendar.NOVEMBER, 1, 0, 0, 1, 2, 15); // 11/01 from 00:00 to 02:15
+    setTimeperiod(sheet, 2008, Month.NOVEMBER, 1, 0, 0, 1, 2, 15); // 11/01 from 00:00 to 02:15
     final Serializable id = timesheetDao.save(sheet);
     sheet = timesheetDao.getById(id);
-    date.setDate(2008, Calendar.OCTOBER, 31, 23, 45, 0);
-    sheet.setStartTime(date.getTimestamp());
+    date = date.withDate(2008, Month.OCTOBER, 31, 23, 45, 0);
+    sheet.setStartTime(date.getSqlTimestamp());
     try {
       timesheetDao.update(sheet);
       fail("AccessException caused by time sheet violation expected.");
@@ -246,15 +232,15 @@ public class TimesheetTestFork extends AbstractTestBase {
       // OK
     }
     task = getTask("tpt.2");
-    date.setDate(2008, Calendar.NOVEMBER, 30, 0, 0, 0); // Change protection date, so time sheet is now protected.
-    task.setProtectTimesheetsUntil(date.getDate());
+    date.withDate(2008, Month.NOVEMBER, 30, 0, 0, 0); // Change protection date, so time sheet is now protected.
+    task.setProtectTimesheetsUntil(date.getUtilDate());
     taskDao.internalUpdate(task); // Without check access.
     sheet = timesheetDao.getById(id);
     sheet.setDescription("Hurzel"); // Should work, because start and stop time is not modified.
     timesheetDao.update(sheet);
-    date.setDate(2008, Calendar.NOVEMBER, 1, 2, 0, 0);
+    date.withDate(2008, Month.NOVEMBER, 1, 2, 0, 0);
     sheet = timesheetDao.getById(id);
-    sheet.setStopTime(date.getTimestamp());
+    sheet.setStopTime(date.getSqlTimestamp());
     try {
       timesheetDao.update(sheet);
       fail("AccessException caused by time sheet violation expected.");
@@ -280,7 +266,7 @@ public class TimesheetTestFork extends AbstractTestBase {
     TimesheetDO sheet = new TimesheetDO();
     sheet.setUser(getUser("ttb-user"));
     sheet.setTask(getTask("dB.1.1"));
-    setTimeperiod(sheet, 2009, Calendar.OCTOBER, 01, 7, 0, 01, 8, 15); // 10/01 from 07:00 to 08:15
+    setTimeperiod(sheet, 2009, Month.OCTOBER, 1, 7, 0, 1, 8, 15); // 10/01 from 07:00 to 08:15
     timesheetDao.save(sheet);
     task1.setStatus(TaskStatus.C);
     taskDao.internalUpdate(task1);
@@ -289,7 +275,7 @@ public class TimesheetTestFork extends AbstractTestBase {
     sheet = new TimesheetDO();
     sheet.setUser(getUser("ttb-user"));
     sheet.setTask(getTask("dB.1.1"));
-    setTimeperiod(sheet, 2009, Calendar.OCTOBER, 02, 7, 0, 02, 8, 15); // 10/02 from 07:00 to 08:15
+    setTimeperiod(sheet, 2009, Month.OCTOBER, 2, 7, 0, 2, 8, 15); // 10/02 from 07:00 to 08:15
     try {
       timesheetDao.save(sheet);
       fail("Exception expected: Task should not be bookable because parent task is closed.");
@@ -307,15 +293,15 @@ public class TimesheetTestFork extends AbstractTestBase {
 
   private void setTimeperiod(final TimesheetDO timesheet, final int fromDay, final int fromHour, final int fromMinute,
                              final int toDay, final int toHour, final int toMinute) {
-    setTimeperiod(timesheet, 1970, Calendar.NOVEMBER, fromDay, fromHour, fromMinute, toDay, toHour, toMinute);
+    setTimeperiod(timesheet, 1970, Month.NOVEMBER, fromDay, fromHour, fromMinute, toDay, toHour, toMinute);
   }
 
-  private void setTimeperiod(final TimesheetDO timesheet, final int year, final int month, final int fromDay,
+  private void setTimeperiod(final TimesheetDO timesheet, final int year, final Month month, final int fromDay,
                              final int fromHour, final int fromMinute, final int toDay, final int toHour,
                              final int toMinute) {
-    date.setDate(year, month, fromDay, fromHour, fromMinute, 0);
-    timesheet.setStartTime(date.getTimestamp());
-    date.setDate(year, month, toDay, toHour, toMinute, 0);
-    timesheet.setStopTime(date.getTimestamp());
+    date.withDate(year, month, fromDay, fromHour, fromMinute, 0);
+    timesheet.setStartTime(date.getSqlTimestamp());
+    date.withDate(year, month, toDay, toHour, toMinute, 0);
+    timesheet.setStopTime(date.getSqlTimestamp());
   }
 }

@@ -5,9 +5,11 @@ import React from 'react';
 import { menuItemPropType } from '../../../utilities/propTypes';
 import { DropdownItem, DropdownMenu, DropdownToggle, UncontrolledDropdown, } from '../../design';
 import NavigationAction from './Action';
+import MenuBadge from './categories-dropdown/MenuBadge';
 
 function NavigationDropdown(
     {
+        badge,
         entryKey,
         title,
         subMenu,
@@ -24,6 +26,11 @@ function NavigationDropdown(
         <UncontrolledDropdown nav>
             <DropdownToggle nav>
                 {displayTitle}
+                {badge && badge.counter && entryKey && (
+                    <MenuBadge elementKey={entryKey} isFlying color={badge.style || 'danger'}>
+                        {badge.counter}
+                    </MenuBadge>
+                )}
                 <FontAwesomeIcon icon={faChevronDown} />
             </DropdownToggle>
             <DropdownMenu>
@@ -31,7 +38,11 @@ function NavigationDropdown(
                     <DropdownItem
                         key={`entry-item-${entryKey || id}-${item.key || item.id}`}
                     >
-                        <NavigationAction {...item} />
+                        <NavigationAction
+                            badgeIsFlying={false}
+                            entryKey={item.key}
+                            {...item}
+                        />
                     </DropdownItem>
                 ))}
             </DropdownMenu>
@@ -42,11 +53,15 @@ function NavigationDropdown(
 NavigationDropdown.propTypes = {
     title: PropTypes.string.isRequired,
     subMenu: PropTypes.arrayOf(menuItemPropType).isRequired,
+    badge: PropTypes.shape({
+        counter: PropTypes.number,
+    }),
     entryKey: PropTypes.string,
     id: PropTypes.string,
 };
 
 NavigationDropdown.defaultProps = {
+    badge: undefined,
     id: undefined,
     entryKey: undefined,
 };

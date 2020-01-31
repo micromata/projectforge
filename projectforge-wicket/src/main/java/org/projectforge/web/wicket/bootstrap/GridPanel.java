@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -75,18 +75,18 @@ public class GridPanel extends Panel
    * @see org.apache.wicket.MarkupContainer#add(org.apache.wicket.Component[])
    */
   @Override
-  public GridPanel add(final Component... childs)
+  public GridPanel add(final Component... children)
   {
     if (repeater == null) {
       if (childAdded == true) {
         throw new IllegalArgumentException("You can't add multiple children, please call newChildId instead for using a RepeatingView.");
       }
       childAdded = true;
-      div.add(childs);
+      div.add(children);
       return this;
     } else {
       childAdded = true;
-      repeater.add(childs);
+      repeater.add(children);
       return this;
     }
   }
@@ -116,7 +116,7 @@ public class GridPanel extends Panel
     return this;
   }
 
-  public boolean hasChilds()
+  public boolean hasChildren()
   {
     return childAdded;
   }

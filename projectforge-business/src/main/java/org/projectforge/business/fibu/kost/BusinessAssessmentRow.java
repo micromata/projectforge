@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,15 @@
 
 package org.projectforge.business.fibu.kost;
 
+import groovy.lang.Script;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
+import org.projectforge.business.scripting.GroovyExecutor;
+import org.projectforge.business.scripting.GroovyResult;
+import org.projectforge.business.utils.CurrencyFormatter;
+import org.projectforge.common.i18n.Priority;
+import org.projectforge.framework.utils.IntRanges;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -31,22 +40,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.scripting.GroovyExecutor;
-import org.projectforge.business.scripting.GroovyResult;
-import org.projectforge.business.utils.CurrencyFormatter;
-import org.projectforge.common.i18n.Priority;
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.utils.IntRanges;
-
-import groovy.lang.Script;
-
 /**
  * Used in config.xml for the definition of the used business assessment schema. This object represents a single row of the business
  * assessment.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class BusinessAssessmentRow implements Serializable
 {
@@ -84,8 +83,8 @@ public class BusinessAssessmentRow implements Serializable
    */
   public void setStoreAccountRecords(final boolean value)
   {
-    if (value == true) {
-      this.accountRecords = new ArrayList<BuchungssatzDO>();
+    if (value) {
+      this.accountRecords = new ArrayList<>();
     } else {
       this.accountRecords = null;
     }
@@ -190,7 +189,7 @@ public class BusinessAssessmentRow implements Serializable
    */
   public String getUnit()
   {
-    return config.getUnit() != null ? config.getUnit() : ConfigXml.getInstance().getCurrencySymbol();
+    return config.getUnit() != null ? config.getUnit() : ConfigurationServiceAccessor.get().getCurrencySymbol();
   }
 
   /**
@@ -203,7 +202,7 @@ public class BusinessAssessmentRow implements Serializable
 
   void recalculate()
   {
-    if (accountRecordsExist == true) {
+    if (accountRecordsExist) {
       // Nothing to do.
       return;
     }
@@ -213,7 +212,7 @@ public class BusinessAssessmentRow implements Serializable
       return;
     }
     amount = BigDecimal.ZERO;
-    final Map<String, Object> vars = new HashMap<String, Object>();
+    final Map<String, Object> vars = new HashMap<>();
     BusinessAssessment.putBusinessAssessmentRows(vars, businessAssessment);
     final GroovyResult result = new GroovyExecutor().execute(groovyScript, vars);
     final Object rval = result.getResult();

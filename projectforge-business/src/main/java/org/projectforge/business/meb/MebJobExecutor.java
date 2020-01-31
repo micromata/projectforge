@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -56,13 +56,13 @@ public class MebJobExecutor
     if (mebMailClient == null) {
       log.error("Job not configured, aborting.");
     }
-    if (configurationService.isMebMailAccountConfigured() == false) {
+    if (!configurationService.isMebMailAccountConfigured()) {
       return;
     }
     synchronized (mebMailClient) {
-      log.info("MEB job started in '" + (importAllMails == true ? "read-all" : "read-recent") + "' mode.");
+      log.info("MEB job started in '" + (importAllMails ? "read-all" : "read-recent") + "' mode.");
       int counter;
-      if (importAllMails == true) {
+      if (importAllMails) {
         counter = mebMailClient.getNewMessages(false, false);
       } else {
         counter = mebMailClient.getNewMessages(true, true);

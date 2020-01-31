@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class RowHolder
 {
-  private List<CellHolder> cells = new ArrayList<CellHolder>();
+  private List<CellHolder> cells = new ArrayList<>();
   
   public void addCell(CellHolder cell) {
     cells.add(cell);

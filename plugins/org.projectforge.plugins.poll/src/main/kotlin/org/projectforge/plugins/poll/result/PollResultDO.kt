@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,13 +28,7 @@ import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.plugins.poll.attendee.PollAttendeeDO
 import org.projectforge.plugins.poll.event.PollEventDO
-
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
+import javax.persistence.*
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
@@ -42,18 +36,18 @@ import javax.persistence.Table
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_POLL_RESULT", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_poll_result_tenant_id", columnList = "tenant_id")])
-class PollResultDO : DefaultBaseDO() {
+open class PollResultDO : DefaultBaseDO() {
 
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "poll_event_fk")
-    var pollEvent: PollEventDO? = null
+    open var pollEvent: PollEventDO? = null
 
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "poll_attendee_fk")
-    var pollAttendee: PollAttendeeDO? = null
+    open var pollAttendee: PollAttendeeDO? = null
 
     @get:Column
-    var result: Boolean = false
+    open var result: Boolean = false
 }

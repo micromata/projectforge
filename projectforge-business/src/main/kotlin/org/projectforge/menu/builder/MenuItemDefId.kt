@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,89 +23,93 @@
 
 package org.projectforge.menu.builder
 
-enum class MenuItemDefId private constructor(private val i18nKey: String) {
+import org.projectforge.Const
+
+const val PREFIX = Const.REACT_APP_PATH
+
+enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = null) {
     // Main menus in alphabetical order
-    ADMINISTRATION("administration"), //
-    COMMON("common"), //
-    COST("fibu.kost"), //
-    FIBU("fibu"), //
-    MISC("misc"), //
-    ORGA("orga"), //
-    PROJECT_MANAGEMENT("projectmanagement"), //
-    REPORTING("reporting"), //
+    ADMINISTRATION("menu.administration"), //
+    COMMON("menu.common"), //
+    COST("menu.fibu.kost"), //
+    FIBU("menu.fibu"), //
+    HR("menu.hr"), //
+    MISC("menu.misc"), //
+    ORGA("menu.orga"), //
+    PROJECT_MANAGEMENT("menu.projectmanagement"), //
+    REPORTING("menu.reporting"), //
+
+    GO_CLASSIC("goreact.menu.classics", "wa"), //
 
     // Sub menus in alphabetical order:
-    ACCESS_LIST("accessList"), //
-    ACCOUNT_LIST("fibu.konten"), //
-    ACCOUNTING_RECORD_LIST("fibu.buchungssaetze"), //
-    ADDRESSBOOK_LIST("addressbookList"), //
-    ADDRESS_LIST("addressList"), //
-    BANK_ACCOUNT_LIST("finance.bankAccounts"), //
-    BOOK_LIST("bookList"), //
-    CALENDAR("calendar"), //
-    TEAMCALENDAR("plugins.teamcal"), //
-    CHANGE_PASSWORD("changePassword"), //
-    CHANGE_WLAN_PASSWORD("changeWlanPassword"), //
-    CONFIGURATION("configuration"), //
-    CONTACT_LIST("contactList"), //
-    CONTRACTS("contracts"), //
-    COST1_LIST("fibu.kost1"), //
-    COST2_LIST("fibu.kost2"), //
-    COST2_TYPE_LIST("fibu.kost2arten"), //
-    CUSTOMER_LIST("fibu.kunden"), //
-    DATEV_IMPORT("fibu.datevImport"), //
-    DOCUMENTATION("documentation"), //
-    EMPLOYEE_LIST("fibu.employees"), //
-    EMPLOYEE_SALARY_LIST("fibu.employeeSalaries"), //
-    GANTT("gantt"), //
-    GROUP_LIST("groupList"), //
-    HR_PLANNING_LIST("hrPlanningList"), //
-    HR_VIEW("hrList"), //
-    IMAGE_CROPPER("imageCropper"), //
-    INBOX_LIST("orga.posteingang"), //
-    VISITORBOOK("orga.visitorbook"), //
-    INCOMING_INVOICE_LIST("fibu.eingangsrechnungen"), //
-    MEB("meb"), //
-    MONTHLY_EMPLOYEE_REPORT("monthlyEmployeeReport"), //
-    TENANT_LIST("multiTenancy"), //
-    MY_ACCOUNT("myAccount"), //
-    VACATION_VIEW("vacation.leaveaccount"), //
-    MY_PREFERENCES("myPreferences"), //
-    REPORT_OBJECTIVES("fibu.reporting.reportObjectives"), //
-    ORDER_LIST("fibu.orderbook"), //
-    OUTBOX_LIST("orga.postausgang"), //
-    OUTGOING_INVOICE_LIST("fibu.rechnungen"), //
-    PERSONAL_STATISTICS("personalStatistics"), //
-    PHONE_CALL("phoneCall"), //
-    PROJECT_LIST("fibu.projekte"), //
-    SEND_SMS("sendSms"), //
-    SCRIPT_LIST("scriptList"), //
-    SCRIPTING("scripting"), //
-    SEARCH("search"), //
-    SPACE_LIST("spaceList"), //
-    SQL_CONSOLE("sqlConsole"), //
-    GROOVY_CONSOLE("groovyConsole"), //
-    LUCENE_CONSOLE("luceneConsole"), //
-    PLUGIN_ADMIN("pluginAdmin"), //
-    SYSTEM("system"), //
-    SYSTEM_STATISTICS("systemStatistics"), //
-    SYSTEM_UPDATE("systemUpdate"), //
-    TASK_TREE("taskTree"), //
-    TIMESHEET_LIST("timesheetList"), //
-    USER_LIST("userList"), //
-    HR("hr"), //
-    VACATION("vacation");
+    ACCESS_LIST("menu.accessList", "wa/accessList"), //
+    ACCOUNT_LIST("menu.fibu.konten", "${PREFIX}konto"), //
+    ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", "wa/accountingRecordList"), //
+    ADDRESSBOOK_LIST("menu.addressbookList", "$PREFIX}addressBook"), //
+    ADDRESS_LIST("menu.addressList", "${PREFIX}address"), //
+    BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
+    BOOK_LIST("menu.bookList", "${PREFIX}book"), //
+    CALENDAR("menu.calendar", "${PREFIX}calendar"), //
+    TEAMCALENDAR("menu.plugins.teamcal", "${PREFIX}teamCal"), //
+    CHANGE_PASSWORD("menu.changePassword", "wa/changePassword"), //
+    CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", "wa/wicket/bookmarkable/org.projectforge.web.user.ChangeWlanPasswordPage"), //
+    CONFIGURATION("menu.configuration", "wa/configuration"), //
+    CONTACT_LIST("menu.contactList"), //
+    CONTRACTS("menu.contracts", "${PREFIX}contract"), //
+    COST1_LIST("menu.fibu.kost1", "${PREFIX}kost1"), //
+    COST2_LIST("menu.fibu.kost2", "wa/cost2List"), //
+    COST2_TYPE_LIST("menu.fibu.kost2arten", "wa/cost2TypeList"), //
+    CUSTOMER_LIST("menu.fibu.kunden", "wa/customerList"), //
+    DATEV_IMPORT("menu.fibu.datevImport", "wa/datevImport"), //
+    DOCUMENTATION("menu.documentation"), //
+    EMPLOYEE_LIST("menu.fibu.employees", "wa/employeeList"), //
+    EMPLOYEE_SALARY_LIST("menu.fibu.employeeSalaries", "wa/employeeSalaryList"), //
+    EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", "${PREFIX}leaveAccountEntry"), //
+    FEEDBACK("menu.gear.feedback", url = "wa/feedback"), //
+    GANTT("menu.gantt", "wa/ganttList"), //
+    GROUP_LIST("menu.groupList", "wa/groupList"), //
+    HR_PLANNING_LIST("menu.hrPlanningList", "wa/hrPlanningList"), //
+    HR_VIEW("menu.hrList", "wa/hrList"), //
+    IMAGE_CROPPER("menu.imageCropper"), //
+    INBOX_LIST("menu.orga.posteingang", "${PREFIX}incomingMail"), //
+    INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", "wa/incomingInvoiceList"), //
+    LOGOUT("menu.logout", url = "logout"), //
+    MEB("menu.meb", "wa/mebList"), //
+    MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "wa/monthlyEmployeeReport"), //
+    MY_ACCOUNT("menu.myAccount", "wa/myAccount"), //
+    MY_PREFERENCES("menu.myPreferences", "wa/userPrefList"), //
+    ORDER_LIST("menu.fibu.orderbook", "wa/orderBookList"), //
+    OUTBOX_LIST("menu.orga.postausgang", "${PREFIX}outgoingMail"), //
+    OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", "wa/outgoingInvoiceList"), //
+    PERSONAL_STATISTICS("menu.personalStatistics", "wa/personalStatistics"), //
+    PHONE_CALL("menu.phoneCall", "wa/phoneCall"), //
+    PROJECT_LIST("menu.fibu.projekte", "wa/projectList"), //
+    REPORT_OBJECTIVES("menu.fibu.reporting.reportObjectives", "wa/reportObjectives"), //
+    SEND_SMS("menu.sendSms", "wa/sendSms"), //
+    SCRIPT_LIST("menu.scriptList", "wa/scriptList"), //
+    SCRIPTING("menu.scripting", "wa/scripting"), //
+    SEARCH("menu.search", "wa/search"), //
+    TASK_TREE("menu.taskTree", "wa/taskTree"), //
+    TIMESHEET_LIST("menu.timesheetList", "wa/timesheetList"), //
+    USER_LIST("menu.userList", "wa/userList"), //
+    VACATION("menu.vacation", "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationListPage"), //
+    VACATION_ACCOUNT("menu.vacation.leaveaccount", "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationAccountPage"), //
+    VISITORBOOK("menu.orga.visitorbook", "wa/wicket/bookmarkable/org.projectforge.web.orga.VisitorbookListPage"), //
+
+    SPACE_LIST("menu.spaceList"), //
+    SQL_CONSOLE("menu.sqlConsole", "wa/wicket/bookmarkable/org.projectforge.web.admin.SqlConsolePage"), //
+    GROOVY_CONSOLE("menu.groovyConsole", "wa/wicket/bookmarkable/org.projectforge.web.admin.GroovyConsolePage"), //
+    LUCENE_CONSOLE("menu.luceneConsole", "wa/wicket/bookmarkable/org.projectforge.web.admin.LuceneConsolePage"), //
+    PLUGIN_ADMIN("menu.pluginAdmin", "wa/wicket/bookmarkable/org.projectforge.web.admin.PluginListPage"), //
+    SYSTEM("menu.system", "wa/admin"), //
+    SYSTEM_STATISTICS("menu.systemStatistics", "wa/systemStatistics"), //
+    SYSTEM_UPDATE("menu.systemUpdate", "wa/systemUpdate"), //
+    TENANT_LIST("menu.multiTenancy");
+
 
     /**
      * @return name().
      */
     val id: String
         get() = name
-
-    /**
-     * @return The i18n key ("menu.*").
-     */
-    fun getI18nKey(): String {
-        return "menu.$i18nKey"
-    }
 }

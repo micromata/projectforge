@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,7 +25,6 @@ package org.projectforge.messaging;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -97,15 +96,15 @@ public class SmsSender {
       HttpResponseCode responseCode = null;
       if (response == null || responseNumber != 200) {
         responseCode = HttpResponseCode.UNKNOWN_ERROR;
-      } else if (matches(response, config.getSmsReturnPatternNumberError()) == true) {
+      } else if (matches(response, config.getSmsReturnPatternNumberError())) {
         responseCode = HttpResponseCode.NUMBER_ERROR;
-      } else if (matches(response, config.getSmsReturnPatternMessageToLargeError()) == true) {
+      } else if (matches(response, config.getSmsReturnPatternMessageToLargeError())) {
         responseCode = HttpResponseCode.MESSAGE_TO_LARGE;
-      } else if (matches(response, config.getSmsReturnPatternMessageError()) == true) {
+      } else if (matches(response, config.getSmsReturnPatternMessageError())) {
         responseCode = HttpResponseCode.MESSAGE_ERROR;
-      } else if (matches(response, config.getSmsReturnPatternError()) == true) {
+      } else if (matches(response, config.getSmsReturnPatternError())) {
         responseCode = HttpResponseCode.UNKNOWN_ERROR;
-      } else if (matches(response, config.getSmsReturnPatternSuccess()) == true) {
+      } else if (matches(response, config.getSmsReturnPatternSuccess())) {
         responseCode = HttpResponseCode.SUCCESS;
       } else {
         responseCode = HttpResponseCode.UNKNOWN_ERROR;
@@ -114,11 +113,6 @@ public class SmsSender {
         log.error("Unexpected response from sms gateway: " + responseNumber + ": " + response + " (if this call was successful, did you configured projectforge.sms.returnCodePattern.success?).");
       }
       return responseCode;
-    } catch (final HttpException ex) {
-      String errorKey = "Call failed. Please contact administrator.";
-      log.error(errorKey + ": " + proceededUrl
-              + StringHelper.hideStringEnding(String.valueOf(phoneNumber), 'x', 3));
-      throw new RuntimeException(ex);
     } catch (final IOException ex) {
       String errorKey = "Call failed. Please contact administrator.";
       log.error(errorKey + ": " + proceededUrl

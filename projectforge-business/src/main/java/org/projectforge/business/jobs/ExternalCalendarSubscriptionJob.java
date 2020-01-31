@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -45,7 +45,7 @@ public class ExternalCalendarSubscriptionJob
     try {
       teamEventExternalSubscriptionCache.updateCache();
     } catch (final Throwable ex) {
-      log.error("Exception while executing ExternalCalendarSubscriptionJob: " + ex.getMessage(), ex);
+      log.error("Exception while executing ExternalCalendarSubscriptionJob: " + ex.getMessage());
     }
     log.info("External calendar subscriptions job finished.");
   }

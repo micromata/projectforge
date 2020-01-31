@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,10 @@
 
 package org.projectforge.continuousdb.jdbc;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
-import javax.sql.DataSource;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -63,7 +62,7 @@ public abstract class JdbcExecutor
         result = execute(stmt);
         return result;
       } catch (final SQLException e) {
-        if (ignoreErrors == false) {
+        if (!ignoreErrors) {
           throw new RuntimeException(e);
         }
         log.error("Exception encountered " + e, e);
@@ -87,7 +86,7 @@ public abstract class JdbcExecutor
           log.error("Exception encountered " + e, e);
         }
       }
-      if (hasErrors == true) {
+      if (hasErrors) {
         throw new RuntimeException();
       }
     }

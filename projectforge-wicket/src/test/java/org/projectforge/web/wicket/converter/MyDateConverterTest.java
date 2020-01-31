@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,9 +24,7 @@
 package org.projectforge.web.wicket.converter;
 
 import org.apache.wicket.util.convert.ConversionException;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.test.TestSetup;
@@ -39,10 +37,7 @@ import java.util.TimeZone;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class MyDateConverterTest {
-  @BeforeAll
-  static void setup() {
-    TestSetup.init();
-  }
+  private static PFUserDO contextUser = TestSetup.init();
 
   @Test
   public void preProcessInput() {
@@ -106,24 +101,21 @@ public class MyDateConverterTest {
   @Test
   public void convertToString() {
     final MyDateConverter conv = new MyDateConverter();
-    PFUserDO user = new PFUserDO();
-    user.setTimeZone(DateHelper.EUROPE_BERLIN);
-    user.setLocale(Locale.GERMAN);
-    user.setDateFormat("dd.MM.yyyy");
-    ThreadLocalUserContext.setUser(null, user);
-    user = ThreadLocalUserContext.getUser(); // ThreadLocalUserContext made a copy!
+    contextUser.setTimeZone(DateHelper.EUROPE_BERLIN);
+    contextUser.setLocale(Locale.GERMAN);
+    contextUser.setDateFormat("dd.MM.yyyy");
     Date testDate = createDate(1970, 10, 21, 0, 0, 0, 0, DateHelper.EUROPE_BERLIN);
     assertEquals("21.11.1970", conv.convertToString(testDate, Locale.GERMAN));
-    user.setLocale(Locale.ENGLISH);
-    user.setDateFormat("MM/dd/yyyy");
+    contextUser.setLocale(Locale.ENGLISH);
+    contextUser.setDateFormat("MM/dd/yyyy");
     assertEquals("11/21/1970", conv.convertToString(testDate, Locale.GERMAN));
 
-    user.setLocale(Locale.GERMAN);
-    user.setDateFormat("dd.MM.yyyy");
+    contextUser.setLocale(Locale.GERMAN);
+    contextUser.setDateFormat("dd.MM.yyyy");
     testDate = createDate(2009, 1, 1, 0, 0, 0, 0, DateHelper.EUROPE_BERLIN);
     assertEquals("01.02.2009", conv.convertToString(testDate, Locale.GERMAN));
-    user.setLocale(Locale.ENGLISH);
-    user.setDateFormat("MM/dd/yyyy");
+    contextUser.setLocale(Locale.ENGLISH);
+    contextUser.setDateFormat("MM/dd/yyyy");
     assertEquals("02/01/2009", conv.convertToString(testDate, Locale.GERMAN));
   }
 
@@ -131,10 +123,8 @@ public class MyDateConverterTest {
     final MyDateConverter conv = new MyDateConverter();
     assertNull(conv.convertToObject("", Locale.GERMAN));
 
-    final PFUserDO user = new PFUserDO();
-    user.setTimeZone(timeZone);
-    user.setDateFormat("dd.MM.yyyy");
-    ThreadLocalUserContext.setUser(null, user);
+    contextUser.setTimeZone(timeZone);
+    contextUser.setDateFormat("dd.MM.yyyy");
     Date testDate = createDate(1970, 9, 21, 0, 0, 0, 0, timeZone);
     Date date = conv.convertToObject("21.10.1970", Locale.GERMAN);
     assertDates(testDate, date);
@@ -193,10 +183,8 @@ public class MyDateConverterTest {
 
   private void convertToObjectEnglish(final TimeZone timeZone) {
     final MyDateConverter conv = new MyDateConverter();
-    final PFUserDO user = new PFUserDO();
-    user.setTimeZone(timeZone);
-    user.setDateFormat("MM/dd/yyyy");
-    ThreadLocalUserContext.setUser(null, user);
+    contextUser.setTimeZone(timeZone);
+    contextUser.setDateFormat("MM/dd/yyyy");
     Date testDate = createDate(1970, 9, 21, 0, 0, 0, 0, timeZone);
     Date date = conv.convertToObject("10/21/1970", Locale.ENGLISH);
     assertDates(testDate, date);

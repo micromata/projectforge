@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,11 @@
 
 package org.projectforge.business.timesheet;
 
-import java.util.Objects;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.Objects;
 
 /**
  * 
@@ -119,16 +119,16 @@ public class TimesheetPrefEntry
   {
     if (obj instanceof TimesheetPrefEntry) {
       TimesheetPrefEntry other = (TimesheetPrefEntry)obj;
-      if (Objects.equals(this.taskId, other.taskId) == false) {
+      if (!Objects.equals(this.taskId, other.taskId)) {
         return false;
       }
-      if (Objects.equals(this.kost2Id, other.kost2Id) == false) {
+      if (!Objects.equals(this.kost2Id, other.kost2Id)) {
         return false;
       }
-      if (Objects.equals(this.location, other.location) == false) {
+      if (!Objects.equals(this.location, other.location)) {
         return false;
       }
-      if (Objects.equals(this.description, other.description) == false) {
+      if (!Objects.equals(this.description, other.description)) {
         return false;
       }
       return true;

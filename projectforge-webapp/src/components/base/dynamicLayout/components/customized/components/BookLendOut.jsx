@@ -1,18 +1,25 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { lendOutBook, returnBook } from '../../../../../../actions/customized';
+import moment from 'moment';
 import { Button } from '../../../../../design';
 import { DynamicLayoutContext } from '../../../context';
 
-function CustomizedBookLendOutComponent(
-    {
-        handBack,
-        lendOut,
-        user,
-    },
-) {
-    const { data, ui } = React.useContext(DynamicLayoutContext);
+function CustomizedBookLendOutComponent({ user, jsTimestampFormatMinutes }) {
+    const { data, ui, callAction } = React.useContext(DynamicLayoutContext);
+
+    const lendOut = () => callAction({
+        responseAction: {
+            url: 'book/lendOut',
+            targetType: 'POST',
+        },
+    });
+    const handBack = () => callAction({
+        responseAction: {
+            url: 'book/returnBook',
+            targetType: 'POST',
+        },
+    });
 
     return React.useMemo(
         () => (
@@ -21,7 +28,7 @@ function CustomizedBookLendOutComponent(
                     ? (
                         <React.Fragment>
                             <span className="mr-4">
-                                {`${data.lendOutBy.fullname}, ${data.lendOutDate}`}
+                                {`${data.lendOutBy.displayName}, ${moment(data.lendOutDate).format(jsTimestampFormatMinutes)}`}
                             </span>
                             {user.username === data.lendOutBy.username
                                 ? (
@@ -43,21 +50,16 @@ function CustomizedBookLendOutComponent(
 }
 
 CustomizedBookLendOutComponent.propTypes = {
-    handBack: PropTypes.func.isRequired,
-    lendOut: PropTypes.func.isRequired,
     user: PropTypes.shape({}).isRequired,
 };
 
 CustomizedBookLendOutComponent.defaultProps = {
 };
 
-const mapStateToProps = state => ({
-    user: state.authentication.user,
+const mapStateToProps = ({ authentication }) => ({
+    user: authentication.user,
+    jsTimestampFormatMinutes: authentication.user.jsTimestampFormatMinutes,
 });
 
-const actions = {
-    handBack: returnBook,
-    lendOut: lendOutBook,
-};
 
-export default connect(mapStateToProps, actions)(CustomizedBookLendOutComponent);
+export default connect(mapStateToProps)(CustomizedBookLendOutComponent);

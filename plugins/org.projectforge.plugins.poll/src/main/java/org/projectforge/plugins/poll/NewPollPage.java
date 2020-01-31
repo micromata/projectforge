@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.plugins.poll;
 
-import java.util.List;
-
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.flow.RedirectToUrlException;
@@ -35,6 +33,8 @@ import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+
+import java.util.List;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
@@ -71,14 +71,14 @@ public class NewPollPage extends PollBasePage
 
     final FieldsetPanel fsTitle = gridBuilder.newFieldset(getString("plugins.poll.new.title"));
     final MaxLengthTextField titleField = new MaxLengthTextField(fsTitle.getTextFieldId(),
-        new PropertyModel<String>(model.getPollDo(), "title"));
+        new PropertyModel<>(model.getPollDo(), "title"));
     titleField.setRequired(true);
     fsTitle.add(titleField);
 
     final FieldsetPanel fsLocation = gridBuilder.newFieldset(getString("plugins.poll.new.location"));
     final PFAutoCompleteMaxLengthTextField locationTextField = new PFAutoCompleteMaxLengthTextField(
         fsLocation.getTextFieldId(),
-        new PropertyModel<String>(model.getPollDo(), "location"))
+        new PropertyModel<>(model.getPollDo(), "location"))
     {
       private static final long serialVersionUID = 2008897410054999896L;
 
@@ -92,7 +92,7 @@ public class NewPollPage extends PollBasePage
 
     final FieldsetPanel fsDescription = gridBuilder.newFieldset(getString("plugins.poll.new.description"));
     final MaxLengthTextArea descriptionField = new MaxLengthTextArea(fsDescription.getTextAreaId(),
-        new PropertyModel<String>(
+        new PropertyModel<>(
             model.getPollDo(), "description"));
     fsDescription.add(descriptionField);
 

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,13 +26,13 @@ package org.projectforge.rest.dto
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.KostentraegerStatus
 
-class Kost1(
-        id: Int? = null,
-        var nummernkreis: Int = 0,
-        var bereich: Int = 0,
-        var teilbereich: Int = 0,
-        var endziffer: Int = 0,
-        var kostentraegerStatus: KostentraegerStatus? = null,
-        var description: String? = null,
-        var formattedNumber: String? = null
-) : BaseDTO<Kost1DO>(id)
+class Kost1(id: Int? = null,
+            displayName: String? = null,
+            var nummernkreis: Int = 0,
+            var bereich: Int = 0,
+            var teilbereich: Int = 0,
+            var endziffer: Int = 0,
+            var kostentraegerStatus: KostentraegerStatus? = null,
+            var description: String? = null,
+            var formattedNumber: String? = null
+) : BaseDTODisplayObject<Kost1DO>(id, displayName = displayName)

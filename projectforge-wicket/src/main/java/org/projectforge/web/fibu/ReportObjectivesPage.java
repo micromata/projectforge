@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.io.InputStream;
-
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -32,8 +30,10 @@ import org.projectforge.business.fibu.kost.reporting.Report;
 import org.projectforge.business.fibu.kost.reporting.ReportDao;
 import org.projectforge.business.fibu.kost.reporting.ReportStorage;
 import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
+
+import java.io.InputStream;
 
 public class ReportObjectivesPage extends AbstractStandardFormPage
 {
@@ -95,14 +95,15 @@ public class ReportObjectivesPage extends AbstractStandardFormPage
     final ReportStorage storage = getReportStorage();
     final Report report = storage.getRoot();
     final String currentReportId = storage.getCurrentReport().getId(); // Store current report id.
-    final DateHolder day = new DateHolder(filter.getFromDate());
-    report.setFrom(day.getYear(), day.getMonth());
+    final PFDay day = PFDay.from(filter.getFromDate()); // not null
+    report.setFrom(day.getYear(), day.getMonthValue());
+    PFDay untilDay;
     if (filter.getToDate() != null) {
-      day.setDate(filter.getToDate());
+      untilDay = PFDay.from(filter.getToDate()); // not null
     } else {
-      day.setEndOfMonth();
+      untilDay = day.getEndOfMonth();
     }
-    report.setTo(day.getYear(), day.getMonth());
+    report.setTo(untilDay.getYear(), untilDay.getMonthValue());
     reportDao.loadReport(report);
     storage.setCurrentReport(currentReportId); // Select previous current report.
   }

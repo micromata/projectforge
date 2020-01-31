@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,11 @@
 
 package org.projectforge.framework.utils;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
 
 /**
  * For storing recent entries for selecting as templates by the user (recent time sheets, task etc.)
@@ -57,7 +57,7 @@ public class RecentQueue<T> implements Serializable
    */
   public T get(Integer pos)
   {
-    if (CollectionUtils.isEmpty(recents) == true) {
+    if (CollectionUtils.isEmpty(recents)) {
       return null;
     }
     if (pos == null) {
@@ -76,7 +76,7 @@ public class RecentQueue<T> implements Serializable
   {
     synchronized (this) {
       if (recents == null) {
-        recents = new ArrayList<T>();
+        recents = new ArrayList<>();
       }
     }
     if (recents.indexOf(entry) == -1) {
@@ -88,7 +88,7 @@ public class RecentQueue<T> implements Serializable
   {
     synchronized (this) {
       if (recents == null) {
-        recents = new ArrayList<T>();
+        recents = new ArrayList<>();
       }
     }
     int idx = recents.indexOf(entry);

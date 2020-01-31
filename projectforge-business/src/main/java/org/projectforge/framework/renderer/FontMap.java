@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,16 @@
 
 package org.projectforge.framework.renderer;
 
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.pdf.BaseFont;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.FileUtils;
-
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.pdf.BaseFont;
 
 /**
  * Contains all additional load fonts from the font base directory (FOP). Original code from Wolfgang Jung from Micromata's SvgCombine.
@@ -43,21 +42,18 @@ public class FontMap
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FontMap.class);
   
-  private Map<String, BaseFont> fontMap = new HashMap<String, BaseFont>();
+  private Map<String, BaseFont> fontMap = new HashMap<>();
 
   public void loadFonts(File fontDir)
   {
     @SuppressWarnings("unchecked")
     final Collection<File> files = FileUtils.listFiles(fontDir, new String[] { "afm"}, true); // Read all afm files recursively.
-    if (CollectionUtils.isNotEmpty(files) == true) {
+    if (CollectionUtils.isNotEmpty(files)) {
       for (File file : files) {
-        BaseFont font = null;
+        BaseFont font;
         try {
           font = BaseFont.createFont(file.getAbsolutePath(), BaseFont.CP1252, BaseFont.EMBEDDED);
-        } catch (DocumentException ex) {
-          log.error("Error while loading font '" + file.getAbsolutePath() + "': " + ex.getMessage(), ex);
-          continue;
-        } catch (IOException ex) {
+        } catch (DocumentException | IOException ex) {
           log.error("Error while loading font '" + file.getAbsolutePath() + "': " + ex.getMessage(), ex);
           continue;
         }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -22,9 +22,6 @@
 /////////////////////////////////////////////////////////////////////////////
 
 package org.projectforge.plugins.skillmatrix;
-
-import java.util.List;
-import java.util.ListIterator;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -49,6 +46,9 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
@@ -90,7 +90,7 @@ public class SkillSelectPanel extends AbstractSelectPanel<SkillDO> implements Co
     this.fieldsetPanel = fieldsetPanel;
     fieldsetPanel.getFieldset().setOutputMarkupId(true).setOutputMarkupPlaceholderTag(true);
     SkillDO skill = model.getObject();
-    if (Hibernate.isInitialized(skill) == false) {
+    if (!Hibernate.isInitialized(skill)) {
       skill = getSkillTree().getSkillById(skill.getId());
       model.setObject(skill);
     }
@@ -105,7 +105,7 @@ public class SkillSelectPanel extends AbstractSelectPanel<SkillDO> implements Co
       public boolean isVisible()
       {
         // display only, if we are not in ajax skill select mode
-        return ajaxSkillSelectMode == false;
+        return !ajaxSkillSelectMode;
       }
     };
     divContainer.setOutputMarkupId(true);
@@ -128,12 +128,12 @@ public class SkillSelectPanel extends AbstractSelectPanel<SkillDO> implements Co
       return;
     }
     currentSkillId = skillId;
-    if (showPath == true && skill != null) {
+    if (showPath && skill != null) {
       ancestorRepeater.removeAll();
       final SkillNode skillNode = getSkillTree().getSkillNodeById(skill.getId());
       final List<Integer> ancestorIds = skillNode.getAncestorIds();
       final ListIterator<Integer> it = ancestorIds.listIterator(ancestorIds.size());
-      while (it.hasPrevious() == true) {
+      while (it.hasPrevious()) {
         final Integer ancestorId = it.previous();
         final SkillDO ancestorSkill = getSkillTree().getSkillById(ancestorId);
         if (ancestorSkill.getParent() == null) {
@@ -229,7 +229,7 @@ public class SkillSelectPanel extends AbstractSelectPanel<SkillDO> implements Co
       @Override
       public boolean isVisible()
       {
-        return isRequired() == false && getModelObject() != null;
+        return !isRequired() && getModelObject() != null;
       }
     };
     unselectButton.setDefaultFormProcessing(false);
@@ -256,7 +256,7 @@ public class SkillSelectPanel extends AbstractSelectPanel<SkillDO> implements Co
       public boolean isVisible()
       {
         // only show if we are in ajax select skill mode
-        return ajaxSkillSelectMode == true;
+        return ajaxSkillSelectMode;
       }
     };
     add(userselectContainer);

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -49,13 +49,13 @@ public class LoginProtectionMap
   /**
    * Number of failed logins per IP address/user id.
    */
-  private final Map<String, Integer> loginFailedAttemptsMap = new HashMap<String, Integer>();
+  private final Map<String, Integer> loginFailedAttemptsMap = new HashMap<>();
 
   /**
    * Time stamp of last failed login per IP address/user Id in ms since 01/01/1970.
    * @see System#currentTimeMillis()
    */
-  private final Map<String, Long> lastFailedLoginMap = new HashMap<String, Long>();
+  private final Map<String, Long> lastFailedLoginMap = new HashMap<>();
 
   /**
    * Call this before checking the login credentials. If a long > 0 is returned please don't proceed the login-procedure. Please display a
@@ -98,7 +98,7 @@ public class LoginProtectionMap
     final long currentTimeInMillis = System.currentTimeMillis();
     Integer numberOfFailedLogins = this.loginFailedAttemptsMap.get(id);
     if (numberOfFailedLogins == null) {
-      if (increment == false) {
+      if (!increment) {
         return 0;
       }
       numberOfFailedLogins = 0;
@@ -107,13 +107,13 @@ public class LoginProtectionMap
       if (lastFailedLoginInMs != null && currentTimeInMillis - lastFailedLoginInMs > loginOffsetExpiresAfterMs) {
         // Last failed login entry is to old, so we'll ignore and clear it:
         clearLoginTimeOffset(id);
-        if (increment == false) {
+        if (!increment) {
           return 0;
         }
         numberOfFailedLogins = 0;
       }
     }
-    if (increment == true) {
+    if (increment) {
       synchronized (this) {
         this.loginFailedAttemptsMap.put(id, ++numberOfFailedLogins);
         this.lastFailedLoginMap.put(id, currentTimeInMillis);
@@ -142,7 +142,7 @@ public class LoginProtectionMap
     final long currentTimeInMillis = System.currentTimeMillis();
     synchronized (this) {
       final Iterator<String> it = this.lastFailedLoginMap.keySet().iterator();
-      while (it.hasNext() == true) {
+      while (it.hasNext()) {
         final String key = it.next();
         final Long lastFailedLoginInMs = this.lastFailedLoginMap.get(key);
         if (lastFailedLoginInMs != null && currentTimeInMillis - lastFailedLoginInMs > loginOffsetExpiresAfterMs) {

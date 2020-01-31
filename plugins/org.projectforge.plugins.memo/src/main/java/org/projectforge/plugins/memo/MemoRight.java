@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,14 @@
 
 package org.projectforge.plugins.memo;
 
-import java.util.Objects;
 import org.projectforge.business.user.UserRightAccessCheck;
 import org.projectforge.business.user.UserRightCategory;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.Objects;
 
 /**
  * Define the access rights. In this example every user has access to memo functionality but only read and write access
@@ -57,6 +58,6 @@ public class MemoRight extends UserRightAccessCheck<MemoDO>
     if (memo == null) {
       return true; // General insert and select access given by default.
     }
-    return (Objects.equals(user.getId(), memo.getOwnerId()) == true);
+    return (Objects.equals(user.getId(), memo.getOwnerId()));
   }
 }

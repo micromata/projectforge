@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,6 @@
 
 package org.projectforge.business.teamcal.event.right;
 
-import java.util.Objects;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -34,12 +33,14 @@ import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
+import java.util.Objects;
+
 /**
  * Every user has access to own to-do's or to-do's he's assigned to. All other users have access if the to-do is
  * assigned to a task and the user has the task access.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@me.de)
- * 
+ *
  */
 public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
 {
@@ -56,7 +57,7 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
 
   /**
    * General select access.
-   * 
+   *
    * @return true
    * @see org.projectforge.business.user.UserRightAccessCheck#hasSelectAccess(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
@@ -78,15 +79,15 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
     if (calendar == null) {
       return false;
     }
-    if (Objects.equals(user.getId(), calendar.getOwnerId()) == true) {
+    if (Objects.equals(user.getId(), calendar.getOwnerId())) {
       // User has full access to it's own calendars.
       return true;
     }
     final Integer userId = user.getId();
-    if (teamCalRight.hasFullAccess(calendar, userId) == true
-        || teamCalRight.hasReadonlyAccess(calendar, userId) == true) {
+    if (teamCalRight.hasFullAccess(calendar, userId)
+        || teamCalRight.hasReadonlyAccess(calendar, userId)) {
       return true;
-    } else if (teamCalRight.hasMinimalAccess(calendar, userId) == true) {
+    } else if (teamCalRight.hasMinimalAccess(calendar, userId)) {
       // Clear fields for users with minimal access.
       obj.clearFields();
       return true;
@@ -96,7 +97,7 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
 
   /**
    * General insert access.
-   * 
+   *
    * @return true
    * @see org.projectforge.business.user.UserRightAccessCheck#hasInsertAccess(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
@@ -108,7 +109,7 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
 
   /**
    * Same as {@link #hasUpdateAccess(PFUserDO, TeamEventDO, TeamEventDO)}
-   * 
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasInsertAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
    *      java.lang.Object)
    */
@@ -120,7 +121,7 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
 
   /**
    * Same as {@link #hasUpdateAccess(PFUserDO, TeamEventDO, TeamEventDO)}
-   * 
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasDeleteAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
    *      java.lang.Object, java.lang.Object)
    */
@@ -132,7 +133,7 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
 
   /**
    * Owners of the given calendar and users with full access hav update access to the given calendar: obj.getCalendar().
-   * 
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasUpdateAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
    *      java.lang.Object, java.lang.Object)
    */
@@ -151,15 +152,15 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
 
   public boolean hasUpdateAccess(final PFUserDO user, final TeamCalDO calendar)
   {
-    if (calendar != null && calendar.getExternalSubscription() == true) {
+    if (calendar != null && calendar.getExternalSubscription()) {
       return false;
     }
-    if (Objects.equals(user.getId(), calendar.getOwnerId()) == true) {
+    if (Objects.equals(user.getId(), calendar.getOwnerId())) {
       // User has full access to it's own calendars.
       return true;
     }
     final Integer userId = user.getId();
-    if (teamCalRight.hasFullAccess(calendar, userId) == true || accessChecker.isDemoUser() == true) {
+    if (teamCalRight.hasFullAccess(calendar, userId) || accessChecker.isDemoUser()) {
       return true;
     }
     return false;
@@ -168,7 +169,7 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
   /**
    * Owners of the given calendar and users with full and read-only access have update access to the given calendar:
    * obj.getCalendar().
-   * 
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasHistoryAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
    *      java.lang.Object)
    */
@@ -182,13 +183,13 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
     if (calendar == null) {
       return false;
     }
-    if (Objects.equals(user.getId(), calendar.getOwnerId()) == true) {
+    if (Objects.equals(user.getId(), calendar.getOwnerId())) {
       // User has full access to it's own calendars.
       return true;
     }
     final Integer userId = user.getId();
-    if (teamCalRight.hasFullAccess(calendar, userId) == true
-        || teamCalRight.hasReadonlyAccess(calendar, userId) == true) {
+    if (teamCalRight.hasFullAccess(calendar, userId)
+        || teamCalRight.hasReadonlyAccess(calendar, userId)) {
       return true;
     }
     return false;

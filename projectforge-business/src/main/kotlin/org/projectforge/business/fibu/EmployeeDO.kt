@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,8 @@
 
 package org.projectforge.business.fibu
 
-import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.HistoryProperty
 import de.micromata.genome.db.jpa.history.impl.TabAttrHistoryPropertyConverter
 import de.micromata.genome.db.jpa.history.impl.TimependingHistoryPropertyConverter
@@ -42,6 +43,7 @@ import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.anots.StringAlphanumericSort
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ModificationStatus
@@ -51,10 +53,9 @@ import org.projectforge.framework.persistence.history.ToStringFieldBridge
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.Constants
-import org.slf4j.LoggerFactory
 import java.io.Serializable
 import java.math.BigDecimal
-import java.util.*
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -68,18 +69,21 @@ import javax.persistence.*
 @HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "employee")
 @Table(name = "t_fibu_employee", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_employee_kost1_id", columnList = "kost1_id"), javax.persistence.Index(name = "idx_fk_t_fibu_employee_user_id", columnList = "user_id"), javax.persistence.Index(name = "idx_fk_t_fibu_employee_tenant_id", columnList = "tenant_id")])
 @AUserRightId("HR_EMPLOYEE")
-open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr, Comparable<Any> {
+@NamedQueries(
+        NamedQuery(name = EmployeeDO.FIND_BY_USER_ID, query = "from EmployeeDO where user.id=:userId and tenant.id=:tenantId"),
+        NamedQuery(name = EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID, query = "select id from EmployeeDO where user.id=:userId and tenant.id=:tenantId"),
+        NamedQuery(name = EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME, query = "from EmployeeDO where user.lastname=:lastname and user.firstname=:firstname"))
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
+open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr, Comparable<Any>,
+        DisplayNameCapable {
     // The class must be declared as open for mocking in VacationServiceTest.
 
-    private val LOG = LoggerFactory.getLogger(EmployeeDO::class.java)
+    override val displayName: String
+        @Transient
+        get() = "${user?.getFullname()}"
 
     /**
      * The ProjectForge user assigned to this employee.
-     *
-     * @return the user
-     */
-    /**
-     * @param user the user to set
      */
     @PropertyInfo(i18nKey = "fibu.employee.user")
     @IndexedEmbedded(depth = 1, includePaths = ["firstname", "lastname", "description", "organization"])
@@ -112,13 +116,13 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "eintritt")
-    open var eintrittsDatum: Date? = null
+    open var eintrittsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.austrittsdatum")
     @Field
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "austritt")
-    open var austrittsDatum: Date? = null
+    open var austrittsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.division")
     @Field
@@ -131,17 +135,10 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @get:Column(length = 255)
     open var staffNumber: String? = null
 
-    @PropertyInfo(i18nKey = "fibu.employee.urlaubstage")
-    @Field(analyze = Analyze.NO)
-    @FieldBridge(impl = ToStringFieldBridge::class)
-    @get:Column
-    open var urlaubstage: Int? = null // Open needed for mocking in VacationServiceTest
-
-    @JsonBackReference
     @Field(store = Store.YES)
     @FieldBridge(impl = TimeableListFieldBridge::class)
     @IndexedEmbedded(depth = 2)
-    private var timeableAttributes: MutableList<EmployeeTimedDO> = ArrayList()
+    private var timeableAttributes = mutableListOf<EmployeeTimedDO>()
 
     @PropertyInfo(i18nKey = "fibu.employee.wochenstunden")
     @Field(analyze = Analyze.NO)
@@ -153,7 +150,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
-    open var birthday: Date? = null
+    open var birthday: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.accountHolder")
     @Field
@@ -246,7 +243,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     // unfortunatelly this does work. Date is not valid for order (only integral types)
     //  @OrderColumn(name = "startTime")
     @HistoryProperty(converter = TimependingHistoryPropertyConverter::class)
-    override fun getTimeableAttributes(): List<EmployeeTimedDO> {
+    override fun getTimeableAttributes(): MutableList<EmployeeTimedDO> {
         return timeableAttributes
     }
 
@@ -313,5 +310,11 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
             result = StringUtils.compare(u1.firstname, u2.firstname)
         }
         return result
+    }
+
+    companion object {
+        internal const val FIND_BY_USER_ID = "EmployeeDO_FindByUserId"
+        internal const val GET_EMPLOYEE_ID_BY_USER_ID = "EmployeeDO_GetEmployeeIdByUserId"
+        internal const val FIND_BY_LASTNAME_AND_FIRST_NAME = "EmployeeDO_FindByLastnameAndFirstname"
     }
 }

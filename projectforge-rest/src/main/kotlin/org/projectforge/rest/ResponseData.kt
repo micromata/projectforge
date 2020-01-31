@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,7 +25,7 @@ package org.projectforge.rest
 
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.ui.UIStyle
+import org.projectforge.ui.UIColor
 
 /**
  * Contains response information for the client, such as the result info an information for displaying e. g. in a
@@ -40,7 +40,7 @@ class ResponseData(
         /** The (technical) message. */
         var technicalMessage: String? = null,
         var messageType: MessageType = MessageType.TEXT,
-        var style: UIStyle? = null,
+        var color: UIColor? = null,
         vararg messageParams: String) {
     init {
         if (message == null && i18nKey != null) {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,6 @@
 
 package org.projectforge.business.fibu.kost.reporting;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
@@ -37,11 +30,13 @@ import org.projectforge.business.fibu.kost.BusinessAssessment;
 import org.projectforge.reporting.Buchungssatz;
 import org.projectforge.reporting.impl.BuchungssatzImpl;
 
+import java.util.*;
+
 public class ReportGenerator
 {
   private String jasperReportId;
 
-  private Map<String, Object> parameters = new HashMap<String, Object>();
+  private Map<String, Object> parameters = new HashMap<>();
 
   private ReportOutputType outputType = ReportOutputType.PDF;
 
@@ -123,13 +118,13 @@ public class ReportGenerator
    */
   public void setBeanCollection(final Collection< ? > beanCollection)
   {
-    if (CollectionUtils.isEmpty(beanCollection) == true) {
+    if (CollectionUtils.isEmpty(beanCollection)) {
       this.beanCollection = beanCollection;
       return;
     }
     final Iterator< ? > it = beanCollection.iterator();
-    if (it.next() instanceof BuchungssatzDO == true) {
-      final List<Buchungssatz> list = new ArrayList<Buchungssatz>();
+    if (it.next() instanceof BuchungssatzDO) {
+      final List<Buchungssatz> list = new ArrayList<>();
       @SuppressWarnings("unchecked")
       final
       Collection<BuchungssatzDO> col = (Collection<BuchungssatzDO>)beanCollection;

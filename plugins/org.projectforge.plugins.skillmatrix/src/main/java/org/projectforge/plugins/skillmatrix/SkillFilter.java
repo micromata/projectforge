@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,13 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.util.HashMap;
-import java.util.HashSet;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
@@ -60,8 +60,8 @@ public class SkillFilter extends BaseSearchFilter
 
   public void resetMatch()
   {
-    skillVisibility = new HashMap<Integer, Boolean>();
-    skillsMatched = new HashSet<Integer>();
+    skillVisibility = new HashMap<>();
+    skillsMatched = new HashSet<>();
   }
 
   /**
@@ -80,10 +80,10 @@ public class SkillFilter extends BaseSearchFilter
       resetMatch();
     }
     final SkillDO skill = node.getSkill();
-    if (StringUtils.isBlank(this.searchString) == true) {
+    if (StringUtils.isBlank(this.searchString)) {
       return isVisibleByDelete(skill);
     } else {
-      if (isVisibleBySearchString(node, skill, skillDao, user) == true) {
+      if (isVisibleBySearchString(node, skill, skillDao, user)) {
         return isVisibleByDelete(skill);
       } else {
         if (isAncestorVisible(node)) {
@@ -96,12 +96,12 @@ public class SkillFilter extends BaseSearchFilter
   }
 
   private boolean isAncestorVisible(final SkillNode node) {
-    return (node.getParent() != null && node.getParent().isRootNode() == false && isAncestorVisibleBySearchString(node.getParent()) == true);
+    return (node.getParent() != null && !node.getParent().isRootNode() && isAncestorVisibleBySearchString(node.getParent()));
   }
 
   private boolean isAncestorVisibleBySearchString(final SkillNode node)
   {
-    if (skillsMatched.contains(node.getId()) == true) {
+    if (skillsMatched.contains(node.getId())) {
       return true;
     } else if (node.getParent() != null) {
       return isAncestorVisibleBySearchString(node.getParent());
@@ -120,16 +120,16 @@ public class SkillFilter extends BaseSearchFilter
     if (cachedVisibility != null) {
       return cachedVisibility;
     }
-    if (StringUtils.containsIgnoreCase(skill.getTitle(), this.searchString) == true
-        || StringUtils.containsIgnoreCase(skill.getDescription(), this.searchString) == true
-        || StringUtils.containsIgnoreCase(skill.getComment(), this.searchString) == true ) {
+    if (StringUtils.containsIgnoreCase(skill.getTitle(), this.searchString)
+        || StringUtils.containsIgnoreCase(skill.getDescription(), this.searchString)
+        || StringUtils.containsIgnoreCase(skill.getComment(), this.searchString)) {
       skillVisibility.put(skill.getId(), true);
       skillsMatched.add(skill.getId());
       return true;
-    } else if (node.hasChilds() == true && node.isRootNode() == false) {
-      for (final SkillNode childNode : node.getChilds()) {
+    } else if (node.hasChildren() && !node.isRootNode()) {
+      for (final SkillNode childNode : node.getChildren()) {
         final SkillDO childSkill = childNode.getSkill();
-        if (isVisibleBySearchString(childNode, childSkill, skillDao, user) == true) {
+        if (isVisibleBySearchString(childNode, childSkill, skillDao, user)) {
           skillVisibility.put(childSkill.getId(), true);
           return true;
         }
@@ -145,7 +145,7 @@ public class SkillFilter extends BaseSearchFilter
    * @return true if skill is not deleted or deleted skills are visible
    */
   private boolean isVisibleByDelete(final SkillDO skill) {
-    if(isDeleted() == false && skill.isDeleted() == true) {
+    if(!isDeleted() && skill.isDeleted()) {
       return false;
     }
     return true;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,22 +23,6 @@
 
 package de.micromata.hibernate.history.delta;
 
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
@@ -50,6 +34,15 @@ import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.type.CollectionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.util.*;
 
 /**
  * Legacy used for XML persistence of DB.
@@ -116,15 +109,15 @@ public class DeltaSetCalculator
     Class<?> propertyType = null;
     for (int i = 0; i < propertyNames.length; i++) {
       String property = propertyNames[i];
-      if (validPropertyNames != null && validPropertyNames.contains(property) == false) {
+      if (validPropertyNames != null && !validPropertyNames.contains(property)) {
         log.debug("ignoring not valid property [" + property + "]");
         continue;
       }
-      if (invalidPropertyNames != null && invalidPropertyNames.contains(property) == true) {
+      if (invalidPropertyNames != null && invalidPropertyNames.contains(property)) {
         log.debug("ignoring invalid property [" + property + "]");
         continue;
       }
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("Starting property [" + property + "]");
       }
       propertyType = null;
@@ -180,9 +173,9 @@ public class DeltaSetCalculator
       BeanInfo beanInfo = Introspector.getBeanInfo(obj1.getClass(), Object.class);
       PropertyDescriptor[] pds = beanInfo.getPropertyDescriptors();
 
-      for (int i = 0; i < pds.length; i++) {
-        final String propertyName = pds[i].getName();
-        final Class<?> propertyType = pds[i].getPropertyType();
+      for (PropertyDescriptor pd : pds) {
+        final String propertyName = pd.getName();
+        final Class<?> propertyType = pd.getPropertyType();
         final Object oldValue = PropertyUtils.getProperty(obj1, propertyName);
         final Object newValue = PropertyUtils.getProperty(obj2, propertyName);
 
@@ -262,7 +255,7 @@ public class DeltaSetCalculator
     if (coll == null) {
       return Collections.EMPTY_SET;
     }
-    List<Object> convList = new ArrayList<Object>(coll.size());
+    List<Object> convList = new ArrayList<>(coll.size());
     for (Object o : coll) {
       convList.add(convertElement(factory, o));
     }
@@ -327,10 +320,10 @@ public class DeltaSetCalculator
             .getPropertyType(propertyName);
         returnedClass = propertyType2.getElementType(factory).getReturnedClass();
       } catch (QueryException ex) {
-        if (oldCollectionValue != null && oldCollectionValue.isEmpty() == false) {
+        if (oldCollectionValue != null && !oldCollectionValue.isEmpty()) {
           returnedClass = oldCollectionValue.iterator().next().getClass();
         }
-        if (newCollectionValue != null && newCollectionValue.isEmpty() == false) {
+        if (newCollectionValue != null && !newCollectionValue.isEmpty()) {
           returnedClass = newCollectionValue.iterator().next().getClass();
         }
       }
@@ -363,7 +356,7 @@ public class DeltaSetCalculator
       Date d1 = (Date) obj1;
       Date d2 = (Date) obj2;
       return d1.equals(d2) || d2.equals(d1);
-    } else if (BigDecimal.class.isAssignableFrom(obj1.getClass()) == true) {
+    } else if (BigDecimal.class.isAssignableFrom(obj1.getClass())) {
       // Use compareTo instead of equals (for ignoring the scale):
       return ((BigDecimal) obj1).compareTo((BigDecimal) obj2) == 0;
     } else {
@@ -384,9 +377,9 @@ public class DeltaSetCalculator
       // compare the database identifier
       ClassMetadata clazz = sf.getClassMetadata(obj1.getClass());
       if (clazz != null) {
-        if (clazz.hasIdentifierProperty() == true) {
+        if (clazz.hasIdentifierProperty()) {
           if (clazz.getIdentifier(obj1/* , EntityMode.POJO */)
-              .equals(clazz.getIdentifier(obj2/* , EntityMode.POJO */)) == true) {
+              .equals(clazz.getIdentifier(obj2/* , EntityMode.POJO */))) {
             return true;
           }
         }

@@ -1,0 +1,146 @@
+// Use :global(...) to force css-modules to not convert #searchFilter.
+:global(#searchString), :global(#magicFiltersSearch) {
+  top: -2px;
+}
+
+.errorMessage {
+  display: block;
+  margin: 0;
+  padding: 1em;
+}
+
+.alert {
+  margin: 0 1em 1em 1em;
+}
+
+.searchRow {
+  display: flex;
+  flex-direction: column;
+  @media (min-width: 768px) {
+    flex-direction: row-reverse;
+  }
+
+  .container, .searchContainer {
+    margin: 1em 1em .25em 1em;
+    align-self: flex-start;
+    position: relative;
+
+    @media (min-width: 768px) {
+      margin-right: 0;
+      align-self: center;
+    }
+  }
+
+  .searchContainer, .container.flex {
+    flex: 1;
+    align-self: stretch;
+  }
+
+  .searchContainer {
+    max-width: 512px;
+
+    .completions {
+      top: .8em;
+
+      .entries {
+        margin: 0;
+        padding: 0;
+
+        .entry {
+          position: relative;
+          padding: 1em 1.5em;
+          cursor: default;
+
+          &:hover {
+            background-color: #eee;
+          }
+
+          .icon {
+            right: 1em;
+            position: absolute;
+          }
+        }
+      }
+    }
+  }
+
+  .loadingSpinner {
+    position: absolute;
+    top: 1px;
+    margin-left: .5em;
+    display: inline-block;
+  }
+}
+
+.magicFilters {
+  display: flex;
+  margin: .8em 0 0 1em;
+  flex-wrap: wrap;
+
+  .magicFilter {
+    margin-right: .8em;
+    margin-bottom: .5em;
+
+    .pill {
+      $transitionTime: .3s;
+
+      padding: .2em .8em;
+      outline: none;
+      transition: $transitionTime border-color, $transitionTime background-color;
+      cursor: default;
+      border-radius: 15px;
+
+      &:hover, &:focus {
+        border-color: #666;
+      }
+
+      &.marked {
+        border-color: #333;
+        background-color: #f8f8f8;
+      }
+
+      .deleteIcon {
+        margin-left: .5em;
+        cursor: pointer;
+      }
+    }
+
+    .title {
+      background-color: #333;
+      color: #fff;
+      padding: 5px 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .content {
+      padding: 10px 15px;
+    }
+  }
+
+  .allFilters {
+    .filterList {
+      width: 35em;
+      margin: 0;
+      padding: 0;
+
+      .filter {
+        padding: 1em;
+        cursor: default;
+        color: #333;
+
+        &:hover {
+          background-color: #eee;
+        }
+
+        &.isSelected {
+          font-weight: 600;
+          cursor: not-allowed;
+
+          &:hover {
+            background-color: #f9f9f9;
+          }
+        }
+      }
+    }
+  }
+}

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -58,8 +58,8 @@ class Consumption(
 
     companion object {
         fun create(node: TaskNode): Consumption? {
-            var maxHours = node.getTask().getMaxHours()
-            var finished = node.isFinished()
+            var maxHours = node.task.maxHours
+            var finished = node.isFinished
             val taskTree = TaskTreeHelper.getTaskTree()
             val maxDays: BigDecimal?
             if (maxHours != null && maxHours.toInt() == 0) {
@@ -90,7 +90,7 @@ class Consumption(
                         Status.PROGRESS_80
                     } else if (percentage <= 100) {
                         Status.PROGRESS_90
-                    } else if (finished == true && percentage <= 110) {
+                    } else if (finished && percentage <= 110) {
                         Status.OVERBOOKED_MIN
                     } else {
                         Status.OVERBOOKED
@@ -107,7 +107,7 @@ class Consumption(
                     } else {
                         ""
                     }
-            val title = "$usageStr$unitStr${maxValueStr}"
+            val title = "$usageStr$unitStr$maxValueStr"
             return Consumption(title, status, "$width%", node.taskId)
         }
     }

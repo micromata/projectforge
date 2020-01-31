@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.business.user;
 
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
@@ -36,6 +34,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
 import org.projectforge.framework.persistence.xstream.XStreamSavingConverter;
+
+import java.util.Set;
 
 /**
  * 
@@ -60,20 +60,20 @@ public class UserPrefDOXmlDumpHook implements XmlDumpHook
         return;
       }
       for (final UserPrefEntryDO entry : entries) {
-        if ("task".equals(entry.getParameter()) == true) {
+        if ("task".equals(entry.getParameter())) {
           updateEntryValue(xstreamSavingConverter, entry, TaskDO.class);
-        } else if ("user".equals(entry.getParameter()) == true || //
-            "reporter".equals(entry.getParameter()) == true // Of ToDo's
-            || "assignee".equals(entry.getParameter()) == true // Of ToDo's
+        } else if ("user".equals(entry.getParameter()) || //
+            "reporter".equals(entry.getParameter()) // Of ToDo's
+            || "assignee".equals(entry.getParameter()) // Of ToDo's
         ) {
           updateEntryValue(xstreamSavingConverter, entry, PFUserDO.class);
-        } else if ("group".equals(entry.getParameter()) == true) {
+        } else if ("group".equals(entry.getParameter())) {
           updateEntryValue(xstreamSavingConverter, entry, GroupDO.class);
-        } else if ("kost2".equals(entry.getParameter()) == true) {
+        } else if ("kost2".equals(entry.getParameter())) {
           updateEntryValue(xstreamSavingConverter, entry, Kost2DO.class);
-        } else if ("kunde".equals(entry.getParameter()) == true) {
+        } else if ("kunde".equals(entry.getParameter())) {
           updateEntryValue(xstreamSavingConverter, entry, KundeDO.class);
-        } else if ("projekt".equals(entry.getParameter()) == true) {
+        } else if ("projekt".equals(entry.getParameter())) {
           updateEntryValue(xstreamSavingConverter, entry, ProjektDO.class);
         }
       }
@@ -84,7 +84,7 @@ public class UserPrefDOXmlDumpHook implements XmlDumpHook
   private void updateEntryValue(final XStreamSavingConverter xstreamSavingConverter, final UserPrefEntryDO entry,
       final Class<?> entityClass)
   {
-    if (StringUtils.isEmpty(entry.getValue()) == true || "null".equals(entry.getValue()) == true) {
+    if (StringUtils.isEmpty(entry.getValue()) || "null".equals(entry.getValue())) {
       return;
     }
     final Integer oldId = entry.getValueAsInteger();

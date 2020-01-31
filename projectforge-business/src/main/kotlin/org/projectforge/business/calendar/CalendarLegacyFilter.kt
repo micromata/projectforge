@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -21,13 +21,15 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+@file:Suppress("DEPRECATION")
+
 package org.projectforge.business.calendar
 
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
 import org.projectforge.business.teamcal.filter.ViewType
-import org.projectforge.business.user.service.UserPreferencesService
+import org.projectforge.business.user.service.UserXmlPreferencesService
 import org.projectforge.favorites.Favorites
-import org.projectforge.framework.time.PFDateTimeUtils
+import org.projectforge.framework.time.PFDateCompatibilityUtils
 
 /**
  * For re-using legacy filters (from ProjectForge version up to 6, Wicket-Calendar).
@@ -36,7 +38,7 @@ import org.projectforge.framework.time.PFDateTimeUtils
  *
  * select key, serializedSettings from t_user_xml_prefs where user_id=2 and key like 'calendar.%';
  *
- * delete from t_user_xml_prefs where user_id=2 and key  like 'calendar.%';
+ * delete from t_user_pref where user_fk=2 and area='calendar';
  *
  * You may extract settings by using AdminRest.main
  */
@@ -51,9 +53,9 @@ class CalendarLegacyFilter(val state: CalendarFilterState,
         /**
          * For re-using legacy filters (from ProjectForge version up to 6, Wicket-Calendar).
          */
-        fun migrate(userPreferenceService: UserPreferencesService): CalendarLegacyFilter? {
+        fun migrate(userXmlPreferenceService: UserXmlPreferencesService): CalendarLegacyFilter? {
             // No current user filters available. Try the old one (from release 6.* / Wicket Calendarpage):
-            val oldFilter = userPreferenceService.getEntry(TeamCalCalendarFilter::class.java, OLD_USERPREF_KEY)
+            val oldFilter = userXmlPreferenceService.getEntry(TeamCalCalendarFilter::class.java, OLD_USERPREF_KEY)
                     ?: return null
 
             val state = CalendarFilterState()
@@ -62,12 +64,13 @@ class CalendarLegacyFilter(val state: CalendarFilterState,
             val currentFilter = CalendarFilter.copyFrom(oldFilter.activeTemplateEntry)
             //firstHour = oldFilter.firstHour
             //slot30 = oldFilter.isSlot30
-            state.startDate = PFDateTimeUtils.convertToLocalDate(oldFilter.startDate)
+            state.startDate = PFDateCompatibilityUtils.convertToLocalDate(oldFilter.startDate)
             state.view = convert(oldFilter.viewType)
             oldFilter.templateEntries?.forEach { templateEntry ->
                 val filter = CalendarFilter.copyFrom(templateEntry)
                 filterList.add(filter)
             }
+            currentFilter.id = filterList.get(currentFilter.name)?.id
             oldFilter.templateEntries?.forEach { templateEntry ->
                 templateEntry.calendarProperties?.forEach {
                     if (!styleMap.contains(it.calId)) {

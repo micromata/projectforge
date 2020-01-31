@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,18 @@
 
 package org.projectforge.framework.configuration;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.cache.AbstractCache;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.xstream.XmlObject;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This class also provides the configuration of the parameters which are stored via ConfigurationDao. Those parameters
@@ -133,7 +133,7 @@ public abstract class AbstractConfiguration extends AbstractCache
   protected void refresh()
   {
     final String identifier = getIdentifier4LogMessage();
-    final Map<ConfigurationParam, Object> newMap = new HashMap<ConfigurationParam, Object>();
+    final Map<ConfigurationParam, Object> newMap = new HashMap<>();
     log.info("Initializing " + identifier + " (ConfigurationDO parameters) ...");
     if (configurationService == null) {
       // Do nothing.
@@ -148,7 +148,7 @@ public abstract class AbstractConfiguration extends AbstractCache
           "******* Exception while getting configuration parameters from data-base (only OK for migration from older versions): "
               + ex.getMessage(),
           ex);
-      list = new ArrayList<ConfigurationDO>();
+      list = new ArrayList<>();
     }
     for (final ConfigurationParam param : ConfigurationParam.values()) {
       if (param.isGlobal() != global) {
@@ -156,7 +156,7 @@ public abstract class AbstractConfiguration extends AbstractCache
       }
       ConfigurationDO configuration = null;
       for (final ConfigurationDO entry : list) {
-        if (StringUtils.equals(param.getKey(), entry.getParameter()) == true) {
+        if (StringUtils.equals(param.getKey(), entry.getParameter())) {
           configuration = entry;
           break;
         }

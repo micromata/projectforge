@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,6 @@
 
 package org.projectforge.web.teamcal.event;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -44,17 +39,16 @@ import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.web.teamcal.admin.TeamCalsProvider;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @ListPage(editPage = TeamEventEditPage.class)
 public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamEventDao, TeamEventDO> implements
@@ -73,7 +67,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
   TeamCalCache teamCalCache;
 
   /**
-   * 
+   *
    */
   public TeamEventListPage(final PageParameters parameters)
   {
@@ -159,7 +153,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
           final IModel<TeamEventDO> rowModel)
       {
         final TeamEventDO event = rowModel.getObject();
-        item.add(WicketUtils.createBooleanLabel(getRequestCycle(), componentId, event.isAllDay() == true));
+        item.add(WicketUtils.createBooleanLabel(getRequestCycle(), componentId, event.getAllDay() == true));
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });

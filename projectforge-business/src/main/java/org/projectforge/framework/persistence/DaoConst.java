@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,7 +33,7 @@ public class DaoConst
 
   public static final String ADDRESS = "address";
 
-  public static final String ADDRESSKAT = "addressKat";
+  public static final String ADDRESSBOOK = "addressbook";
 
   public static final String BOOK = "book";
 

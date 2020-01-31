@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,25 +23,15 @@
 
 package org.projectforge.config;
 
-import org.springframework.boot.web.server.ErrorPage;
-import org.springframework.boot.web.server.WebServerFactoryCustomizer;
-import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
-import org.springframework.context.annotation.Bean;
+import org.projectforge.Const;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebApplicationConfig implements WebMvcConfigurer {
-
   @Override
   public void addViewControllers(ViewControllerRegistry registry) {
-    registry.addViewController("/notFound").setViewName("forward:/index.html");
-  }
-
-  @Bean
-  public WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> containerCustomizer() {
-    return container -> container.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND, "/notFound"));
+    registry.addViewController("/" + Const.REACT_APP_PATH + "**").setViewName("forward:/react-app.html");
   }
 }

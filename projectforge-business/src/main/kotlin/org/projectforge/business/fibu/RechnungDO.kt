@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,8 @@
 
 package org.projectforge.business.fibu
 
-import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.annotations.*
@@ -32,7 +33,6 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import java.math.BigDecimal
 import java.sql.Date
-import java.util.*
 import javax.persistence.*
 
 /**
@@ -42,6 +42,9 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
+//@Cacheable
+//@Cache(region = "invoices", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+//@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Table(name = "t_fibu_rechnung",
         uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "tenant_id"])],
         indexes = [
@@ -52,21 +55,25 @@ import javax.persistence.*
         ])
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"],
         nestedEntities = [RechnungsPositionDO::class])
-class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<RechnungDO> {
+@NamedQueries(
+        NamedQuery(name = RechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from RechnungDO"),
+        NamedQuery(name = RechnungDO.FIND_OTHER_BY_NUMMER, query = "from RechnungDO where nummer=:nummer and id!=:id"))
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
+open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
 
     @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column(nullable = true)
-    var nummer: Int? = null
+    open var nummer: Int? = null
 
     /**
      * Rechnungsempfänger. Dieser Kunde kann vom Kunden, der mit dem Projekt verbunden ist abweichen.
      */
     @PropertyInfo(i18nKey = "fibu.kunde")
     @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "kunde_id", nullable = true)
-    var kunde: KundeDO? = null
+    open var kunde: KundeDO? = null
 
     /**
      * Freitextfeld, falls Kunde nicht aus Liste gewählt werden kann bzw. für Rückwärtskompatibilität mit alten Kunden.
@@ -74,64 +81,52 @@ class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<Rechnun
     @PropertyInfo(i18nKey = "fibu.kunde")
     @Field
     @get:Column(name = "kunde_text")
-    var kundeText: String? = null
+    open var kundeText: String? = null
 
     @PropertyInfo(i18nKey = "fibu.projekt")
     @IndexedEmbedded(depth = 2)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projekt_id", nullable = true)
-    var projekt: ProjektDO? = null
+    open var projekt: ProjektDO? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.status")
     @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 30)
-    var status: RechnungStatus? = null
+    open var status: RechnungStatus? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.typ")
     @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 40)
-    var typ: RechnungTyp? = null
+    open var typ: RechnungTyp? = null
 
     @PropertyInfo(i18nKey = "fibu.customerref1")
     @Field
     @get:Column(name = "customerref1")
-    var customerref1: String? = null
+    open var customerref1: String? = null
 
     @PropertyInfo(i18nKey = "fibu.attachment")
     @Field
     @get:Column(name = "attachment")
-    var attachment: String? = null
+    open var attachment: String? = null
 
     @PropertyInfo(i18nKey = "fibu.customer.address")
     @Field
     @get:Column(name = "customeraddress")
-    var customerAddress: String? = null
+    open var customerAddress: String? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_begin")
-    var periodOfPerformanceBegin: Date? = null
+    open var periodOfPerformanceBegin: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_end")
-    var periodOfPerformanceEnd: Date? = null
-
-    val kundeId: Int?
-        @Transient
-        get() = if (this.kunde == null) {
-            null
-        } else kunde!!.id
-
-    val projektId: Int?
-        @Transient
-        get() = if (this.projekt == null) {
-            null
-        } else projekt!!.id
+    open var periodOfPerformanceEnd: Date? = null
 
     /**
      * (this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null)
@@ -142,29 +137,59 @@ class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<Rechnun
             true
         } else this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null
 
+
+    val kundeId: Int?
+        @Transient
+        get() = if (this.kunde == null) {
+            null
+        } else kunde!!.nummer
+
+    val projektId: Int?
+        @Transient
+        get() = if (this.projekt == null) {
+            null
+        } else projekt!!.id
+
+
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
-    @JsonBackReference
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, mappedBy = "rechnung", targetEntity = RechnungsPositionDO::class)
+    @IndexedEmbedded(depth = 3)
+    @get:OneToMany(cascade = [CascadeType.MERGE], fetch = FetchType.EAGER, mappedBy = "rechnung", targetEntity = RechnungsPositionDO::class)
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
-    override var positionen: MutableList<RechnungsPositionDO>? = null
+    open var positionen: MutableList<RechnungsPositionDO>? = null
+
+    override val abstractPositionen: List<AbstractRechnungsPositionDO>?
+        @Transient
+        get() = positionen
+
+    override fun ensureAndGetPositionen(): MutableList<out AbstractRechnungsPositionDO> {
+        if (this.positionen == null) {
+            positionen = mutableListOf()
+        }
+        return positionen!!
+    }
+
+    override fun addPositionWithoutCheck(position: AbstractRechnungsPositionDO) {
+        position as RechnungsPositionDO
+        this.positionen!!.add(position)
+        position.rechnung = this
+    }
+
+    override fun setRechnung(position: AbstractRechnungsPositionDO) {
+        position as RechnungsPositionDO
+        position.rechnung = this
+    }
 
     val auftragsPositionVOs: Set<AuftragsPositionVO>?
         @Transient
         get() {
-            if (this.positionen == null) {
-                return null
+            val result = mutableSetOf<AuftragsPositionVO>()
+            this.positionen?.forEach {
+                val auftragsPosition = it.auftragsPosition
+                if (auftragsPosition != null)
+                    result.add(AuftragsPositionVO(auftragsPosition))
             }
-            var set: MutableSet<AuftragsPositionVO>? = null
-            for (pos in this.positionen!!) {
-                if (pos.auftragsPosition == null) {
-                    continue
-                } else if (set == null) {
-                    set = TreeSet()
-                }
-                set.add(AuftragsPositionVO(pos.auftragsPosition))
-            }
-            return set
+            return result
         }
 
     /**
@@ -174,23 +199,18 @@ class RechnungDO : AbstractRechnungDO<RechnungsPositionDO>(), Comparable<Rechnun
         @Transient
         get() = KundeFormatter.formatKundeAsString(this.kunde, this.kundeText)
 
-    override fun setRechnung(position: RechnungsPositionDO) {
+    fun setRechnung(position: RechnungsPositionDO) {
         position.rechnung = this
     }
 
     override fun compareTo(other: RechnungDO): Int {
-        if (this.datum != null && other.datum != null) {
-            val r = other.datum!!.compareTo(this.datum!!)
-            if (r != 0) {
-                return r
-            }
+        val cmp = compareValues(this.datum, other.datum)
+        if (cmp != 0) return cmp
+        return compareValues(this.nummer, other.nummer)
+    }
 
-        }
-        if (this.nummer == null) {
-            return if (other.nummer == null) 0 else 1
-        }
-        return if (other.nummer == null) {
-            -1
-        } else this.nummer!!.compareTo(other.nummer!!)
+    companion object {
+        internal const val SELECT_MIN_MAX_DATE = "RechnungDO_SelectMinMaxDate"
+        internal const val FIND_OTHER_BY_NUMMER = "RechnungDO_FindOtherByNummer"
     }
 }

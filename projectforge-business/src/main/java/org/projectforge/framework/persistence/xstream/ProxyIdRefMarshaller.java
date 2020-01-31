@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.framework.persistence.xstream;
 
-import org.springframework.cglib.proxy.Enhancer;
-
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.ConverterLookup;
 import com.thoughtworks.xstream.core.ReferenceByIdMarshaller;
@@ -32,6 +30,7 @@ import com.thoughtworks.xstream.core.SequenceGenerator;
 import com.thoughtworks.xstream.core.util.ObjectIdDictionary;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.mapper.Mapper;
+import org.springframework.cglib.proxy.Enhancer;
 
 
 public class ProxyIdRefMarshaller extends ReferenceByIdMarshaller
@@ -62,7 +61,7 @@ public class ProxyIdRefMarshaller extends ReferenceByIdMarshaller
   public void convertAnother(Object item)
   {
     Class<?> targetClass = item.getClass();
-    while (Enhancer.isEnhanced(targetClass) == true) {
+    while (Enhancer.isEnhanced(targetClass)) {
       targetClass = targetClass.getSuperclass();
     }
 

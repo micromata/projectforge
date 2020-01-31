@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>org.projectforge.plugins</artifactId>
-    <version>6.26.0-SNAPSHOT</version><!-- projectforge.version -->
+    <version>7.0-SNAPSHOT</version><!-- projectforge.version -->
   </parent>
   <artifactId>org.projectforge.plugins.liquidityplanning</artifactId>
   <packaging>jar</packaging>
@@ -26,6 +26,12 @@
       <artifactId>postgresql</artifactId>
       <version>${postgresql.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>projectforge-rest</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
   <build>
@@ -77,7 +83,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>${maven-compile-plugin-version}</version>
         <executions>
           <!-- Replacing default-compile as it is treated specially by maven -->
           <execution>

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,10 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -46,9 +44,6 @@ public class KontoDao extends BaseDao<KontoDO>
     userRightId = USER_RIGHT_ID;
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterSaveOrModify(org.projectforge.core.ExtendedBaseDO)
-   */
   @Override
   protected void afterSaveOrModify(final KontoDO obj)
   {
@@ -61,12 +56,9 @@ public class KontoDao extends BaseDao<KontoDO>
     if (kontonummer == null) {
       return null;
     }
-    final List<KontoDO> list = (List<KontoDO>) getHibernateTemplate().find("from KontoDO u where u.nummer = ?",
-        kontonummer);
-    if (CollectionUtils.isEmpty(list) == true) {
-      return null;
-    }
-    return list.get(0);
+    return SQLHelper.ensureUniqueResult(em
+            .createNamedQuery(KontoDO.FIND_BY_NUMMER, KontoDO.class)
+            .setParameter("nummer", kontonummer));
   }
 
   @Override
@@ -89,7 +81,7 @@ public class KontoDao extends BaseDao<KontoDO>
     if (obj.getNummer() != null && obj.getNummer() > 0) {
       KontoDO existingAccount = getKonto(obj.getNummer());
       //Insert case
-      if (existingAccount != null && (obj.getId() == null || obj.getId().equals(existingAccount.getId()) == false)) {
+      if (existingAccount != null && (obj.getId() == null || !obj.getId().equals(existingAccount.getId()))) {
         throw new UserException("fibu.konto.validate.duplicate");
       }
     }

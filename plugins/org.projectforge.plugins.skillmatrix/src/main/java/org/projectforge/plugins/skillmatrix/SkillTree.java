@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,6 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
@@ -40,6 +33,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Holds the complete skill list as a tree. It will be initialized by the values read from the database. Any changes
@@ -54,7 +50,7 @@ public class SkillTree extends AbstractCache implements Serializable
 
   private static final Logger log = LoggerFactory.getLogger(SkillTree.class);
 
-  private static final List<SkillNode> EMPTY_LIST = new ArrayList<SkillNode>();
+  private static final List<SkillNode> EMPTY_LIST = new ArrayList<>();
 
   @Autowired
   private PfEmgrFactory emgrFactory;
@@ -106,7 +102,7 @@ public class SkillTree extends AbstractCache implements Serializable
     final SkillNode parent = getSkillNodeById(skill.getParentId());
     if (parent != null) {
       node.setParent(parent);
-    } else if (node.getId().equals(root.getId()) == false) {
+    } else if (!node.getId().equals(root.getId())) {
       // This node is not the root node:
       node.setParent(root);
     }
@@ -194,8 +190,8 @@ public class SkillTree extends AbstractCache implements Serializable
       return addSkillNode(skill);
     }
     node.setSkill(skill);
-    if (skill.getParentId() != null && skill.getParentId().equals(node.getParent().getId()) == false) {
-      if (log.isDebugEnabled() == true) {
+    if (skill.getParentId() != null && !skill.getParentId().equals(node.getParent().getId())) {
+      if (log.isDebugEnabled()) {
         log.debug("Skill hierarchy was changed for skill: " + skill);
       }
       final SkillNode oldParent = node.getParent();
@@ -258,7 +254,7 @@ public class SkillTree extends AbstractCache implements Serializable
   {
     log.info("Initializing skill tree ...");
     SkillNode newRoot = null;
-    skillMap = new HashMap<Integer, SkillNode>();
+    skillMap = new HashMap<>();
     final List<SkillDO> skillList = emgrFactory.runRoTrans(emgr -> {
       return emgr.select(SkillDO.class, "SELECT s FROM SkillDO s");
     });
@@ -268,12 +264,12 @@ public class SkillTree extends AbstractCache implements Serializable
       node = new SkillNode();
       node.setSkill(skill);
       skillMap.put(node.getId(), node);
-      if (node.isRootNode() == true) {
+      if (node.isRootNode()) {
         if (newRoot != null) {
           log.error("Duplicate root node found: " + newRoot.getId() + " and " + node.getId());
           node.setParent(newRoot); // Set the second root skill as child skill of first read root skill.
         } else {
-          if (log.isDebugEnabled() == true) {
+          if (log.isDebugEnabled()) {
             log.debug("Root note found: " + node);
           }
           newRoot = node;
@@ -287,7 +283,7 @@ public class SkillTree extends AbstractCache implements Serializable
       skillMap.put(newRoot.getId(), newRoot);
     }
     this.root = newRoot;
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("Creating tree for " + skillList.size() + " skills ...");
     }
     for (final SkillDO skill : skillList) {
@@ -307,10 +303,10 @@ public class SkillTree extends AbstractCache implements Serializable
       }
     }
 
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.error(this.root.toString());
     }
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug(this.toString());
     }
     log.info("Initializing skill tree done.");
@@ -352,7 +348,9 @@ public class SkillTree extends AbstractCache implements Serializable
       rootSkill.setRateable(false);
       final String s = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
           .getGroup(ProjectForgeGroup.ADMIN_GROUP).getId().toString();
-      rootSkill.setFullAccessGroupIds(s).setReadOnlyAccessGroupIds(s).setTrainingAccessGroupIds(s);
+      rootSkill.setFullAccessGroupIds(s);
+      rootSkill.setReadOnlyAccessGroupIds(s);
+      rootSkill.setTrainingGroupsIds(s);
       Integer rootId = emgr.insert(rootSkill);
       return emgr.selectByPk(SkillDO.class, rootId);
     });

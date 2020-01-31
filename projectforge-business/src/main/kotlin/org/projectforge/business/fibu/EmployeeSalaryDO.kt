@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,29 +23,17 @@
 
 package org.projectforge.business.fibu
 
-import java.math.BigDecimal
-
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
-
 import org.hibernate.search.annotations.Analyze
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Index
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
-import org.hibernate.search.annotations.Store
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.Constants
+import java.math.BigDecimal
+import javax.persistence.*
 
 /**
  * Das monatliche Gehalt eines festangestellten Mitarbeiters.
@@ -54,8 +42,13 @@ import org.projectforge.framework.utils.Constants
  */
 @Entity
 @Indexed
-@Table(name = "T_FIBU_EMPLOYEE_SALARY", uniqueConstraints = [UniqueConstraint(columnNames = ["employee_id", "year", "month"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_employee_salary_employee_id", columnList = "employee_id"), javax.persistence.Index(name = "idx_fk_t_fibu_employee_salary_tenant_id", columnList = "tenant_id")])
-class EmployeeSalaryDO : DefaultBaseDO() {
+@Table(name = "T_FIBU_EMPLOYEE_SALARY",
+        uniqueConstraints = [UniqueConstraint(columnNames = ["employee_id", "year", "month"])],
+        indexes = [Index(name = "idx_fk_t_fibu_employee_salary_employee_id", columnList = "employee_id"),
+            Index(name = "idx_fk_t_fibu_employee_salary_tenant_id", columnList = "tenant_id")])
+@NamedQueries(
+        NamedQuery(name = EmployeeSalaryDO.SELECT_MIN_MAX_YEAR, query = "select min(year), max(year) from EmployeeSalaryDO"))
+open class EmployeeSalaryDO : DefaultBaseDO() {
 
     /**
      * @return Zugehöriger Mitarbeiter.
@@ -65,7 +58,7 @@ class EmployeeSalaryDO : DefaultBaseDO() {
     @IndexedEmbedded(depth = 2)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "employee_id", nullable = false)
-    var employee: EmployeeDO? = null
+    open var employee: EmployeeDO? = null
 
     /**
      * @return Abrechnungsjahr.
@@ -73,32 +66,36 @@ class EmployeeSalaryDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "calendar.year")
     @Field(analyze = Analyze.NO)
     @get:Column
-    var year: Int? = null
+    open var year: Int? = null
 
     /**
+     * 1-based: 1 - January, 12 - December
      * @return Abrechnungsmonat.
      */
     @PropertyInfo(i18nKey = "calendar.month")
     @Field(analyze = Analyze.NO)
     @get:Column
-    var month: Int? = null
+    open var month: Int? = null
+        set(value) {
+            field = PFDayUtils.validateMonthValue(value)
+        }
 
     /**
      * Die Bruttoauszahlung an den Arbeitnehmer (inklusive AG-Anteil Sozialversicherungen).
      */
     @PropertyInfo(i18nKey = "fibu.employee.salary.bruttoMitAgAnteil")
     @get:Column(name = "brutto_mit_ag_anteil", scale = 2, precision = 12)
-    var bruttoMitAgAnteil: BigDecimal? = null
+    open var bruttoMitAgAnteil: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = Constants.COMMENT_LENGTH)
-    var comment: String? = null
+    open var comment: String? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.salary.type")
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
-    var type: EmployeeSalaryType? = null
+    open var type: EmployeeSalaryType? = null
 
     val employeeId: Int?
         @Transient
@@ -106,13 +103,13 @@ class EmployeeSalaryDO : DefaultBaseDO() {
 
     val formattedMonth: String
         @Transient
-        get() = StringHelper.format2DigitNumber(month!! + 1)
+        get() = StringHelper.format2DigitNumber(month!!)
 
     val formattedYearAndMonth: String
         @Transient
-        get() = year.toString() + "-" + StringHelper.format2DigitNumber(month!! + 1)
+        get() = year.toString() + "-" + StringHelper.format2DigitNumber(month!!)
 
     companion object {
-        private val serialVersionUID = -6854150096887750382L
+        internal const val SELECT_MIN_MAX_YEAR = "EmployeeSalaryDO_SelectMinMaxYear"
     }
 }

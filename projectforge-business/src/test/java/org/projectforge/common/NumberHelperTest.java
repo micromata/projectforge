@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -41,11 +41,11 @@ public class NumberHelperTest extends AbstractTestBase
   @Test
   public void greaterZero()
   {
-    assertEquals(false, NumberHelper.greaterZero((Integer) null));
-    assertEquals(false, NumberHelper.greaterZero(-1));
-    assertEquals(false, NumberHelper.greaterZero(0));
-    assertEquals(true, NumberHelper.greaterZero(1));
-    assertEquals(true, NumberHelper.greaterZero(100));
+    assertFalse(NumberHelper.greaterZero((Integer) null));
+    assertFalse(NumberHelper.greaterZero(-1));
+    assertFalse(NumberHelper.greaterZero(0));
+    assertTrue(NumberHelper.greaterZero(1));
+    assertTrue(NumberHelper.greaterZero(100));
   }
 
   @Test
@@ -60,7 +60,7 @@ public class NumberHelperTest extends AbstractTestBase
   @Test
   public void extractPhonenumber()
   {
-    assertEquals(null, NumberHelper.extractPhonenumber(null, null));
+    assertNull(NumberHelper.extractPhonenumber(null, null));
     assertEquals("", NumberHelper.extractPhonenumber("", "+49"));
     assertEquals("", NumberHelper.extractPhonenumber("+", "+49"));
     assertEquals("4", NumberHelper.extractPhonenumber("+4", "+49"));
@@ -73,6 +73,17 @@ public class NumberHelperTest extends AbstractTestBase
     assertEquals("00445613167930", NumberHelper.extractPhonenumber("+44 561 / 31:6793-0", "+49"));
     assertEquals("00445613167930", NumberHelper.extractPhonenumber("+44 561 / 31 h6793-0", "+49"));
     assertEquals("1234567890", NumberHelper.extractPhonenumber("\u202D1234567890\u202C")); // Apple white spaces from contacts.
+  }
+
+  @Test
+  void matchesPhoneNumberTest() {
+    assertTrue(NumberHelper.matchesPhoneNumber("0561 316793-0"));
+    assertTrue(NumberHelper.matchesPhoneNumber("+49 561 316793-0"));
+    assertTrue(NumberHelper.matchesPhoneNumber("(0049) 561 316793-0"));
+    assertTrue(NumberHelper.matchesPhoneNumber("0561 316793/0"));
+    assertFalse(NumberHelper.matchesPhoneNumber("test 0561 316793/0"));
+    assertFalse(NumberHelper.matchesPhoneNumber("+ ( ) / -"));
+    assertTrue(NumberHelper.matchesPhoneNumber("+ ( ) / 5 -"));
   }
 
   @Test
@@ -98,50 +109,49 @@ public class NumberHelperTest extends AbstractTestBase
   @Test
   public void isBigDecimalEqual()
   {
-    assertEquals(true, NumberHelper.isEqual((BigDecimal) null, (BigDecimal) null));
-    assertEquals(false, NumberHelper.isEqual(null, BigDecimal.ZERO));
-    assertEquals(false, NumberHelper.isEqual(BigDecimal.ZERO, null));
-    assertEquals(true, NumberHelper.isEqual(BigDecimal.ZERO, new BigDecimal("0.0")));
-    assertEquals(true, NumberHelper.isEqual(new BigDecimal("1.5").setScale(1), new BigDecimal("1.50").setScale(2)));
-    assertEquals(true,
-        NumberHelper.isEqual(new BigDecimal("-891.5").setScale(1), new BigDecimal("-891.50").setScale(2)));
+    assertTrue(NumberHelper.isEqual((BigDecimal) null, (BigDecimal) null));
+    assertFalse(NumberHelper.isEqual(null, BigDecimal.ZERO));
+    assertFalse(NumberHelper.isEqual(BigDecimal.ZERO, null));
+    assertTrue(NumberHelper.isEqual(BigDecimal.ZERO, new BigDecimal("0.0")));
+    assertTrue(NumberHelper.isEqual(new BigDecimal("1.5").setScale(1), new BigDecimal("1.50").setScale(2)));
+    assertTrue(NumberHelper.isEqual(new BigDecimal("-891.5").setScale(1), new BigDecimal("-891.50").setScale(2)));
   }
 
   @Test
   public void isIntegerNotZero()
   {
-    assertEquals(false, NumberHelper.isNotZero((Integer) null));
-    assertEquals(false, NumberHelper.isNotZero(0));
-    assertEquals(true, NumberHelper.isNotZero(1));
+    assertFalse(NumberHelper.isNotZero((Integer) null));
+    assertFalse(NumberHelper.isNotZero(0));
+    assertTrue(NumberHelper.isNotZero(1));
   }
 
   @Test
   public void isBigDecimalNotZero()
   {
-    assertEquals(false, NumberHelper.isNotZero((BigDecimal) null));
-    assertEquals(false, NumberHelper.isNotZero(BigDecimal.ZERO));
-    assertEquals(false, NumberHelper.isNotZero(new BigDecimal("0").setScale(3)));
-    assertEquals(true, NumberHelper.isNotZero(new BigDecimal("1")));
+    assertFalse(NumberHelper.isNotZero((BigDecimal) null));
+    assertFalse(NumberHelper.isNotZero(BigDecimal.ZERO));
+    assertFalse(NumberHelper.isNotZero(new BigDecimal("0").setScale(3)));
+    assertTrue(NumberHelper.isNotZero(new BigDecimal("1")));
   }
 
   @Test
   public void isBigDecimalZeroOrNull()
   {
-    assertEquals(true, NumberHelper.isZeroOrNull((BigDecimal) null));
-    assertEquals(true, NumberHelper.isZeroOrNull(BigDecimal.ZERO));
-    assertEquals(true, NumberHelper.isZeroOrNull(new BigDecimal("0").setScale(3)));
-    assertEquals(false, NumberHelper.isZeroOrNull(new BigDecimal("1")));
+    assertTrue(NumberHelper.isZeroOrNull((BigDecimal) null));
+    assertTrue(NumberHelper.isZeroOrNull(BigDecimal.ZERO));
+    assertTrue(NumberHelper.isZeroOrNull(new BigDecimal("0").setScale(3)));
+    assertFalse(NumberHelper.isZeroOrNull(new BigDecimal("1")));
   }
 
   @Test
   public void isIntegerEqual()
   {
-    assertEquals(true, NumberHelper.isEqual((Integer) null, (Integer) null));
-    assertEquals(false, NumberHelper.isEqual(null, 0));
-    assertEquals(false, NumberHelper.isEqual(0, null));
-    assertEquals(true, NumberHelper.isEqual(0, 0));
-    assertEquals(true, NumberHelper.isEqual(new Integer(42), 42));
-    assertEquals(true, NumberHelper.isEqual(-891, new Integer("-891")));
+    assertTrue(NumberHelper.isEqual((Integer) null, (Integer) null));
+    assertFalse(NumberHelper.isEqual(null, 0));
+    assertFalse(NumberHelper.isEqual(0, null));
+    assertTrue(NumberHelper.isEqual(0, 0));
+    assertTrue(NumberHelper.isEqual(new Integer(42), 42));
+    assertTrue(NumberHelper.isEqual(-891, new Integer("-891")));
   }
 
   @Test

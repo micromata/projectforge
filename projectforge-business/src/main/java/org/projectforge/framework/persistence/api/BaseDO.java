@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -91,6 +91,8 @@ public interface BaseDO<I extends Serializable>
    * @return
    */
   public Object getTransientAttribute(String key);
+
+  public Object removeTransientAttribute(String key);
 
   public void setTransientAttribute(String key, Object value);
 

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,12 @@
 
 package org.projectforge.business.teamcal.filter;
 
-import java.util.Date;
-
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import org.projectforge.Const;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import java.util.Date;
 
 /**
  * Some settings for the SelectDateAction stored in the flow scope (configurable by the caller).
@@ -149,7 +148,7 @@ public class CalendarFilter extends AbstractCalendarFilter
   @Override
   public CalendarFilter setShowTimesheets(final boolean showTimesheets)
   {
-    if (showTimesheets == true) {
+    if (showTimesheets) {
       this.timesheetUserId = ThreadLocalUserContext.getUserId();
     } else {
       this.timesheetUserId = null;

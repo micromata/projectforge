@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,17 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.List;
-
-import org.hibernate.criterion.Order;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public class KundeDao extends BaseDao<KundeDO>
@@ -44,23 +44,22 @@ public class KundeDao extends BaseDao<KundeDO>
   {
     super(KundeDO.class);
     avoidNullIdCheckBeforeSave = true;
+    this.idProperty = "nummer";
   }
 
   @Override
   public List<KundeDO> getList(final BaseSearchFilter filter)
   {
     final QueryFilter queryFilter = new QueryFilter(filter);
-    queryFilter.addOrder(Order.asc("id"));
+    queryFilter.addOrder(SortProperty.asc("nummer"));
     return getList(queryFilter);
   }
 
   /**
    * return Always true, no generic select access needed for address objects.
-   * 
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException)
+  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException)
   {
     return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP,
         ProjectForgeGroup.CONTROLLING_GROUP,
@@ -68,25 +67,25 @@ public class KundeDao extends BaseDao<KundeDO>
   }
 
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final KundeDO obj, final boolean throwException)
+  public boolean hasUserSelectAccess(final PFUserDO user, final KundeDO obj, final boolean throwException)
   {
     if (obj == null) {
       return true;
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP,
-        ProjectForgeGroup.CONTROLLING_GROUP) == true) {
+        ProjectForgeGroup.CONTROLLING_GROUP)) {
       return true;
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.PROJECT_MANAGER,
-        ProjectForgeGroup.PROJECT_ASSISTANT) == true) {
+        ProjectForgeGroup.PROJECT_ASSISTANT)) {
       if (obj.getStatus() != null
-          && obj.getStatus().isIn(KundeStatus.ENDED, KundeStatus.NONACTIVE, KundeStatus.NONEXISTENT) == false
-          && obj.isDeleted() == false) {
+          && !obj.getStatus().isIn(KundeStatus.ENDED, KundeStatus.NONACTIVE, KundeStatus.NONEXISTENT)
+          && !obj.isDeleted()) {
         // Ein Projektleiter sieht keine nicht mehr aktiven oder gelöschten Kunden.
         return true;
       }
     }
-    if (throwException == true) {
+    if (throwException) {
       accessChecker.checkIsUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP);
       log.error("Should not occur! An exception should be thrown.");
     }

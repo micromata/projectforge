@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -55,7 +55,7 @@ public class SkillListForm extends AbstractListForm<SkillFilter, SkillListPage>
   protected void init()
   {
     super.init();
-    final Button skillTreeButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("treeView"))
+    final Button skillTreeButton = new Button(SingleButtonPanel.WICKET_ID, new Model<>("treeView"))
     {
       private static final long serialVersionUID = -8763718088111525575L;
 

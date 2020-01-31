@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -57,10 +57,10 @@ import org.projectforge.web.wicket.NumberPropertyColumn;
 import org.projectforge.web.wicket.WebConstants;
 
 /**
- * 
+ *
  * @author Mario Groß (m.gross@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @ListPage(editPage = HRPlanningEditPage.class)
 public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRPlanningEntryDao, HRPlanningEntryDO>
@@ -246,7 +246,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
 
   /**
    * Get the current date (start date) and preset this date for the edit page.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractListPage#onNewEntryClick(org.apache.wicket.PageParameters)
    */
   @Override

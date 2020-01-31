@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,7 @@
 
 package org.projectforge.web.teamcal.integration;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import net.fortuna.ical4j.model.component.VEvent;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.model.IModel;
@@ -58,13 +55,11 @@ import org.projectforge.web.teamcal.event.TeamEventListPage;
 import org.projectforge.web.teamcal.event.importics.DropIcsPanel;
 import org.projectforge.web.teamcal.event.importics.TeamCalImportPage;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.flowlayout.AjaxIconButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivType;
-import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
-import org.projectforge.web.wicket.flowlayout.IconButtonPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
+import org.projectforge.web.wicket.flowlayout.*;
 
-import net.fortuna.ical4j.model.component.VEvent;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)

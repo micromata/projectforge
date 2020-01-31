@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,7 +31,7 @@ import org.hibernate.search.annotations.FieldBridge
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.util.*
 import javax.persistence.*
@@ -40,33 +40,37 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_FIBU_KONTO", uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_konto_tenant_id", columnList = "tenant_id")])
 @WithHistory
-class KontoDO : DefaultBaseDO(), ShortDisplayNameCapable {
+@NamedQueries(
+        NamedQuery(name = KontoDO.FIND_BY_NUMMER, query = "from KontoDO where nummer=:nummer"))
+open class KontoDO : DefaultBaseDO(), DisplayNameCapable {
+
+    override val displayName: String
+        @Transient
+        get() = "$nummer"
 
     @PropertyInfo(i18nKey = "fibu.konto.nummer")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column(name = "nummer", nullable = false)
-    var nummer: Int? = null
+    open var nummer: Int? = null
 
     @PropertyInfo(i18nKey = "fibu.konto.bezeichnung")
     @Field
     @get:Column(length = 255, nullable = false)
-    var bezeichnung: String? = null
+    open var bezeichnung: String? = null
 
     @PropertyInfo(i18nKey = "description")
     @Field
     @get:Column(name = "description", length = 4000, nullable = true)
-    var description: String? = null
+    open var description: String? = null
 
     @PropertyInfo(i18nKey = "status")
     @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 10)
-    var status: KontoStatus? = null
+    open var status: KontoStatus? = null
 
     /**
      * Formats the account as string: "[nummer] [title]", e. g. "11000 Micromata GmbH"
-     *
-     * @param konto
      */
     fun formatKonto(): String {
         return formatKonto(this)
@@ -88,13 +92,8 @@ class KontoDO : DefaultBaseDO(), ShortDisplayNameCapable {
         return hcb.toHashCode()
     }
 
-    @Transient
-    override fun getShortDisplayName(): String {
-        return nummer.toString()
-    }
-
     companion object {
-        private val serialVersionUID = -7468158838560608225L
+        internal const val FIND_BY_NUMMER = "KontoDO_FindByNummer"
 
         /**
          * Formats the account as string: "[nummer] [title]", e. g. "11000 Micromata GmbH"

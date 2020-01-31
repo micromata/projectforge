@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,13 @@
 
 package org.projectforge.framework.persistence.database;
 
-import java.io.File;
-
+import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService;
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.junit.jupiter.api.Test;
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService;
+import java.io.File;
 
 public class ConvertOldDumpToNew extends AbstractTestBase
 {

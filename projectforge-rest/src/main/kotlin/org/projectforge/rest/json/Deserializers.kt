@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -81,5 +81,27 @@ class BigDecimalDeserializer : StdDeserializer<BigDecimal>(BigDecimal::class.jav
         } catch (ex: NumberFormatException) {
             throw ctxt.weirdStringException(str, BigDecimal::class.java, "Can't parse decimal number.")
         }
+    }
+}
+
+/**
+ * Remove non-printable chars:
+ * - ASCII control characters: \p{Cntrl}&&[^\r\n\t]
+ * - non-printable characters from Unicode: \p{C}
+ *
+ * \p{C} removes non-printable characters from Unicode, especially Apple controls chars e. g. included when
+ * copying values from Apple address book, refer http://www.unicode.org/reports/tr18/ for more.
+ */
+class TextDeserializer : StdDeserializer<String>(String::class.java) {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): String? {
+        var text = p.getText() ?: return null
+
+        // erases all the ASCII control characters
+        text = text.replace("[\\p{Cntrl}&&[^\r\n\t]]".toRegex(), "")
+
+        // removes non-printable characters from Unicode
+        text = text.replace("\\p{C}".toRegex(), "")
+
+        return text.trim { it <= ' ' }
     }
 }

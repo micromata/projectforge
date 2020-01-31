@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,6 @@
 
 package org.projectforge.business.multitenancy;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.cache.AbstractCache;
@@ -42,8 +33,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import java.util.*;
 
 /**
  * Caches the tenants.
@@ -51,8 +45,7 @@ import org.springframework.stereotype.Component;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class TenantsCache extends AbstractCache
-{
+public class TenantsCache extends AbstractCache {
   private static final long serialVersionUID = 8692234056373706543L;
 
   private static Logger log = LoggerFactory.getLogger(TenantsCache.class);
@@ -61,10 +54,10 @@ public class TenantsCache extends AbstractCache
   private ApplicationContext applicationContext;
 
   @Autowired
-  private HibernateTemplate hibernateTemplate;
+  private ConfigurationService configService;
 
   @Autowired
-  private ConfigurationService configService;
+  private EntityManager em;
 
   /**
    * Collection of all tenants (without deleted ones).
@@ -79,20 +72,17 @@ public class TenantsCache extends AbstractCache
   private Map<Integer, Set<TenantDO>> userTenantMap;
 
   @PostConstruct
-  public void init()
-  {
+  public void init() {
     TenantRegistryMap tenantRegistryMap = TenantRegistryMap.getInstance();
     tenantRegistryMap.setApplicationContext(applicationContext);
   }
 
-  public boolean isEmpty()
-  {
+  public boolean isEmpty() {
     checkRefresh();
     return CollectionUtils.isEmpty(tenants);
   }
 
-  public String getLogName(final TenantDO tenant)
-  {
+  public String getLogName(final TenantDO tenant) {
     final TenantDO t = getTenant(tenant.getId());
     return "#" + t.getId() + " '" + t.getShortName() + "'";
   }
@@ -100,14 +90,12 @@ public class TenantsCache extends AbstractCache
   /**
    * @return the defaultTenant
    */
-  public TenantDO getDefaultTenant()
-  {
+  public TenantDO getDefaultTenant() {
     checkRefresh();
     return defaultTenant;
   }
 
-  public TenantDO getTenant(final Integer id)
-  {
+  public TenantDO getTenant(final Integer id) {
     if (id == null) {
       return null;
     }
@@ -116,7 +104,7 @@ public class TenantsCache extends AbstractCache
       return null;
     }
     for (final TenantDO tenant : tenants) {
-      if (id.equals(tenant.getId()) == true) {
+      if (id.equals(tenant.getId())) {
         return tenant;
       }
     }
@@ -126,14 +114,12 @@ public class TenantsCache extends AbstractCache
   /**
    * @return the tenants
    */
-  public Collection<TenantDO> getTenants()
-  {
+  public Collection<TenantDO> getTenants() {
     checkRefresh();
     return tenants;
   }
 
-  public boolean hasTenants()
-  {
+  public boolean hasTenants() {
     checkRefresh();
     return tenants != null && tenants.size() > 0;
   }
@@ -141,8 +127,7 @@ public class TenantsCache extends AbstractCache
   /**
    * @return the tenants
    */
-  public Collection<TenantDO> getTenantsOfLoggedInUser()
-  {
+  public Collection<TenantDO> getTenantsOfLoggedInUser() {
     return getTenantsOfUser(ThreadLocalUserContext.getUserId());
   }
 
@@ -150,14 +135,12 @@ public class TenantsCache extends AbstractCache
    * @param userId
    * @return the tenants
    */
-  public Collection<TenantDO> getTenantsOfUser(final Integer userId)
-  {
+  public Collection<TenantDO> getTenantsOfUser(final Integer userId) {
     checkRefresh();
     return userTenantMap.get(userId);
   }
 
-  public boolean isUserAssignedToTenant(final Integer tenantId, final Integer userId)
-  {
+  public boolean isUserAssignedToTenant(final Integer tenantId, final Integer userId) {
     if (tenantId == null || userId == null) {
       return false;
     }
@@ -165,10 +148,9 @@ public class TenantsCache extends AbstractCache
     return isUserAssignedToTenant(tenant, userId);
   }
 
-  public boolean isMultiTenancyAvailable()
-  {
-    return configService.isMultiTenancyConfigured() == true
-        && hasTenants() == true;
+  public boolean isMultiTenancyAvailable() {
+    return configService.isMultiTenancyConfigured()
+            && hasTenants();
   }
 
   /**
@@ -177,8 +159,7 @@ public class TenantsCache extends AbstractCache
    * @return true if tenant is not null and not deleted and the given user is assigned to the given tenant. Otherwise
    * false.
    */
-  public boolean isUserAssignedToTenant(final TenantDO tenant, final Integer userId)
-  {
+  public boolean isUserAssignedToTenant(final TenantDO tenant, final Integer userId) {
     if (tenant == null || tenant.getId() == null) {
       return false;
     }
@@ -188,7 +169,7 @@ public class TenantsCache extends AbstractCache
       return false;
     }
     for (final TenantDO assignedTenant : assignedTenants) {
-      if (tenant.getId().equals(assignedTenant.getId()) == true) {
+      if (tenant.getId().equals(assignedTenant.getId())) {
         return true;
       }
     }
@@ -200,24 +181,23 @@ public class TenantsCache extends AbstractCache
    */
   @Override
   @SuppressWarnings("unchecked")
-  protected void refresh()
-  {
+  protected void refresh() {
     log.info("Initializing TenantsCache ...");
     // This method must not be synchronized because it works with a new copy of maps.
-    final List<TenantDO> list = (List<TenantDO>) hibernateTemplate
-        .find("from TenantDO as tenant left join fetch tenant.assignedUsers where tenant.deleted=false");
-    final Map<Integer, Set<TenantDO>> map = new HashMap<Integer, Set<TenantDO>>();
+    final List<TenantDO> list = em.createQuery("from TenantDO as tenant left join fetch tenant.assignedUsers where tenant.deleted=false", TenantDO.class)
+            .getResultList();
+    final Map<Integer, Set<TenantDO>> map = new HashMap<>();
     final Collection<PFUserDO> users = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
-        .getAllUsers();
+            .getAllUsers();
     for (final PFUserDO user : users) {
-      if (user.isDeleted() == true) {
+      if (user.isDeleted()) {
         continue;
       }
       final boolean superAdmin = TenantChecker.isSuperAdmin(user);
       if (list != null) {
-        final Set<TenantDO> set = new TreeSet<TenantDO>(new TenantsComparator());
+        final Set<TenantDO> set = new TreeSet<>(new TenantsComparator());
         for (final TenantDO tenant : list) {
-          if (superAdmin == true) {
+          if (superAdmin) {
             set.add(tenant);
           }
           final Collection<PFUserDO> assignedUsers = tenant.getAssignedUsers();
@@ -225,21 +205,21 @@ public class TenantsCache extends AbstractCache
             continue;
           }
           for (final PFUserDO assignedUser : assignedUsers) {
-            if (user.getId().equals(assignedUser.getId()) == true) {
+            if (user.getId().equals(assignedUser.getId())) {
               // User is assigned to the given tenant.
               set.add(tenant);
               continue;
             }
           }
         }
-        if (set.isEmpty() == false) {
+        if (!set.isEmpty()) {
           map.put(user.getId(), set);
         }
       }
     }
     if (list != null) {
       for (final TenantDO tenant : list) {
-        if (tenant.isDefault() == true) {
+        if (tenant.isDefault()) {
           this.defaultTenant = tenant;
         }
       }

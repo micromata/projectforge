@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,6 +29,7 @@ import org.dom4j.DocumentException
 import org.dom4j.DocumentHelper
 import org.dom4j.Element
 import org.projectforge.business.user.UserXmlPreferencesDO
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.user.service.UserPreferencesHelper
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.menu.Menu
@@ -54,6 +55,7 @@ class FavoritesMenuReaderWriter {
 
         fun storeAsUserPref(menu: Menu?) {
             if (menu == null || menu.menuItems.isNullOrEmpty()) {
+                val userPrefService = UserPrefService()
                 UserPreferencesHelper.putEntry(FavoritesMenuCreator.USER_PREF_FAVORITES_MENU_ENTRIES_KEY, "", true)
                 UserPreferencesHelper.removeEntry(FavoritesMenuCreator.USER_PREF_FAVORITES_MENU_KEY)
                 return
@@ -77,12 +79,12 @@ class FavoritesMenuReaderWriter {
                 : Menu {
             if (favMenuAsString.isNullOrBlank())
                 return Menu()
-            if (favMenuAsString.contains("<root>") == false) {
+            if (!favMenuAsString.contains("<root>")) {
                 // CSV format (old)
-                return FavoritesMenuReaderWriter.buildFromOldUserPrefFormat(menuCreator, favMenuAsString);
+                return buildFromOldUserPrefFormat(menuCreator, favMenuAsString);
             } else {
                 // XML format
-                return FavoritesMenuReaderWriter.readFromXml(menuCreator, favMenuAsString)
+                return readFromXml(menuCreator, favMenuAsString)
             }
         }
 
@@ -104,11 +106,11 @@ class FavoritesMenuReaderWriter {
          * XML format.
          */
         private fun readFromXml(menuCreator: MenuCreator, menuAsXml: String): Menu {
-            if (log.isDebugEnabled == true) {
+            if (log.isDebugEnabled) {
                 log.debug("readFromXml: $menuAsXml")
             }
             val menu = Menu()
-            var document: Document?
+            val document: Document?
             try {
                 document = DocumentHelper.parseText(menuAsXml)
             } catch (ex: DocumentException) {
@@ -117,7 +119,7 @@ class FavoritesMenuReaderWriter {
             }
             val root = document!!.rootElement
             val it = root.elementIterator("item")
-            var keyCounter = KeyCounter()
+            val keyCounter = KeyCounter()
 
             while (it.hasNext()) {
                 val item = it.next() as Element
@@ -138,7 +140,7 @@ class FavoritesMenuReaderWriter {
             }
             var id: String? = item.attributeValue("id")
             var menuItemDef: MenuItemDef? = null
-            if (id != null && id.startsWith("c-") == true) {
+            if (id != null && id.startsWith("c-")) {
                 id = id.substring(2)
             }
             if (id != null) {
@@ -148,7 +150,7 @@ class FavoritesMenuReaderWriter {
                     menuItemDef = menuCreator.findById(id)
                 }
             }
-            var menuItem: MenuItem?
+            val menuItem: MenuItem?
             if (menuItemDef != null) {
                 menuItem = MenuItem(menuItemDef)
             } else {
@@ -156,7 +158,7 @@ class FavoritesMenuReaderWriter {
                 val trimmedTitle = item.textTrim
                 if (trimmedTitle != null) {
                     // menuEntry.setName(StringEscapeUtils.escapeXml(trimmedTitle));
-                    if (StringUtils.isBlank(trimmedTitle) == true)
+                    if (StringUtils.isBlank(trimmedTitle))
                         menuItem.title = "???"
                     else
                         menuItem.title = trimmedTitle
@@ -186,7 +188,7 @@ class FavoritesMenuReaderWriter {
             val tokenizer = StringTokenizer(userPrefEntry, ",")
             while (tokenizer.hasMoreTokens()) {
                 var token = tokenizer.nextToken()
-                if (token.startsWith("M_") == true) {
+                if (token.startsWith("M_")) {
                     token = token.substring(2)
                 }
                 try {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -42,6 +42,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Holds and updates events of a subscribed calendar.
@@ -55,6 +56,8 @@ public class TeamEventSubscription implements Serializable
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventSubscription.class);
 
   private Integer teamCalId;
+
+  private boolean initialized = false;
 
   private SubscriptionHolder subscription;
 
@@ -107,6 +110,7 @@ public class TeamEventSubscription implements Serializable
     this.teamCalId = teamCalDO.getId();
     currentInitializedHash = null;
     lastUpdated = null;
+    this.initialized = true;
     String url = teamCalDO.getExternalSubscriptionUrl();
     if (!teamCalDO.getExternalSubscription() || StringUtils.isEmpty(url)) {
       // No external subscription.
@@ -141,7 +145,7 @@ public class TeamEventSubscription implements Serializable
       bytes = IOUtils.toByteArray(stream);
 
       final String md5 = calcHexHash(md.digest(bytes));
-      if (StringUtils.equals(md5, teamCalDO.getExternalSubscriptionHash()) == false) {
+      if (!StringUtils.equals(md5, teamCalDO.getExternalSubscriptionHash())) {
         teamCalDO.setExternalSubscriptionHash(md5);
         teamCalDO.setExternalSubscriptionCalendarBinary(bytes);
         teamCalDO.setMinorChange(true); // Don't need to re-index (failed).
@@ -155,7 +159,7 @@ public class TeamEventSubscription implements Serializable
           + " information, using database from url '"
           + displayUrl
           + "': "
-          + e.getMessage(), e);
+          + e.getMessage());
     }
     if (bytes == null) {
       error("Unable to use database subscription calendar #" + teamCalDO.getId() + " information, quit from url '"
@@ -164,7 +168,7 @@ public class TeamEventSubscription implements Serializable
       return;
     }
     if (currentInitializedHash != null
-        && StringUtils.equals(currentInitializedHash, teamCalDO.getExternalSubscriptionHash()) == true) {
+        && StringUtils.equals(currentInitializedHash, teamCalDO.getExternalSubscriptionHash())) {
       // nothing to do here if the hashes are equal
       log.info("No modification of subscribed calendar #" + teamCalDO.getId() + " found from: " + displayUrl
           + " (OK, nothing to be done).");
@@ -188,7 +192,7 @@ public class TeamEventSubscription implements Serializable
         event.setId(startId);
         event.setCalendar(teamCalDO);
 
-        if (event.hasRecurrence() == true) {
+        if (event.hasRecurrence()) {
           // special treatment for recurrence events ..
           newRecurrenceEvents.add(event);
         } else {
@@ -220,6 +224,11 @@ public class TeamEventSubscription implements Serializable
     this.lastErrorMessage = null;
     this.lastFailedUpdate = null;
     this.numberOfFailedUpdates = 0;
+    this.initialized = true;
+  }
+
+  private void error(final String errorMessage) {
+    error(errorMessage, null);
   }
 
   private void error(final String errorMessage, final Exception ex)
@@ -258,16 +267,27 @@ public class TeamEventSubscription implements Serializable
 
   public TeamEventDO getEvent(final String uid)
   {
-    if (subscription == null) {
+    if (StringUtils.isEmpty(uid)) {
       return null;
     }
-    return subscription.getEvent(uid);
+    if (subscription == null && recurrenceEvents == null) {
+      return null;
+    }
+    TeamEventDO teamEvent = subscription.getEvent(uid);
+    if (teamEvent != null) {
+      return teamEvent;
+    }
+    for (final TeamEventDO teamEventDO : recurrenceEvents) {
+      if (teamEventDO.getUid() != null && Objects.equals(uid, teamEventDO.getUid()))
+        return teamEventDO;
+    }
+    return null;
   }
 
   public List<TeamEventDO> getEvents(final Long startTime, final Long endTime, final boolean minimalAccess)
   {
     if (subscription == null) {
-      return new ArrayList<TeamEventDO>();
+      return new ArrayList<>();
     }
     // final Long perfStart = System.currentTimeMillis();
     final List<TeamEventDO> result = subscription.getResultList(startTime, endTime, minimalAccess);
@@ -300,5 +320,13 @@ public class TeamEventSubscription implements Serializable
   public List<TeamEventDO> getRecurrenceEvents()
   {
     return recurrenceEvents;
+  }
+
+  public boolean isInitialized() {
+    return initialized;
+  }
+
+  public void setInitialized(boolean initialized) {
+    this.initialized = initialized;
   }
 }

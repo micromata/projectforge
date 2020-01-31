@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,23 +23,7 @@
 
 package org.projectforge.web.rest;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.TaskDao;
-import org.projectforge.business.task.TaskFilter;
-import org.projectforge.business.task.TaskNode;
-import org.projectforge.business.task.TaskTree;
+import org.projectforge.business.task.*;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.TaskObject;
@@ -47,6 +31,17 @@ import org.projectforge.rest.JsonUtils;
 import org.projectforge.web.rest.converter.TaskDOConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * REST-Schnittstelle für {@link TaskDao}
@@ -82,7 +77,7 @@ public class TaskDaoRest
       @QueryParam("deleted") final Boolean deleted)
   {
     final List<TaskDO> list = queryList(searchTerm, notOpened, opened, closed, deleted);
-    final List<TaskObject> result = new ArrayList<TaskObject>();
+    final List<TaskObject> result = new ArrayList<>();
     if (list != null) {
       for (final TaskDO task : list) {
         result.add(createRTask(task));
@@ -119,16 +114,16 @@ public class TaskDaoRest
   {
     final TaskFilter filter = new TaskFilter();
     if (closed != null) {
-      filter.setClosed(closed.booleanValue());
+      filter.setClosed(closed);
     }
     if (deleted != null) {
-      filter.setDeleted(deleted.booleanValue());
+      filter.setDeleted(deleted);
     }
     if (opened != null) {
-      filter.setOpened(opened.booleanValue());
+      filter.setOpened(opened);
     }
     if (notOpened != null) {
-      filter.setNotOpened(notOpened.booleanValue());
+      filter.setNotOpened(notOpened);
     }
     filter.setSearchString(searchTerm);
     final List<TaskDO> list = taskDao.getList(filter);
@@ -143,12 +138,12 @@ public class TaskDaoRest
    */
   private List<TaskObject> convertTasks(final List<TaskDO> tasks)
   {
-    final List<TaskObject> topLevelTasks = new ArrayList<TaskObject>();
-    if (tasks == null || tasks.isEmpty() == true) {
+    final List<TaskObject> topLevelTasks = new ArrayList<>();
+    if (tasks == null || tasks.isEmpty()) {
       return topLevelTasks;
     }
     final TaskTree taskTree = taskDao.getTaskTree();
-    final Map<Integer, TaskObject> rtaskMap = new HashMap<Integer, TaskObject>();
+    final Map<Integer, TaskObject> rtaskMap = new HashMap<>();
     for (final TaskDO task : tasks) {
       final TaskObject rtask = createRTask(task);
       rtaskMap.put(task.getId(), rtask);
@@ -165,7 +160,7 @@ public class TaskDaoRest
     TaskObject rtask = rtaskMap.get(task.getId());
     if (rtask == null) {
       // ancestor task not part of the result list, create it:
-      if (taskDao.hasSelectAccess(ThreadLocalUserContext.getUser(), task, false) == false) {
+      if (!taskDao.hasUserSelectAccess(ThreadLocalUserContext.getUser(), task, false)) {
         // User has no access, ignore this part of the task tree.
         return null;
       }
@@ -177,7 +172,7 @@ public class TaskDaoRest
       // this is the root node, ignore it:
       return null;
     }
-    if (taskTree.isRootNode(parent) == true) {
+    if (taskTree.isRootNode(parent)) {
       topLevelTasks.add(rtask);
       return rtask;
     }

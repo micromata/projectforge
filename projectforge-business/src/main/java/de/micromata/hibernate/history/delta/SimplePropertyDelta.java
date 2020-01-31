@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,17 @@
 
 package de.micromata.hibernate.history.delta;
 
+import org.apache.commons.beanutils.ConvertUtils;
+import org.hibernate.Session;
+
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-
-import org.apache.commons.beanutils.ConvertUtils;
-import org.hibernate.Session;
 
 /**
  * @author Wolfgang Jung (w.jung@micromata.de)
@@ -114,19 +113,17 @@ public class SimplePropertyDelta extends PropertyDelta
       return null;
     }
     try {
-      if ("java.sql.Date".equals(propertyType) == true) {
+      if ("java.sql.Date".equals(propertyType)) {
         return new java.sql.Date(SDF_DATE.get().parse(value).getTime());
-      } else if ("java.sql.Time".equals(propertyType) == true) {
+      } else if ("java.sql.Time".equals(propertyType)) {
         return new Time(SDF_TIMEDATE.get().parse(value).getTime());
-      } else if ("java.sql.Timestamp".equals(propertyType) == true) {
+      } else if ("java.sql.Timestamp".equals(propertyType)) {
         return new Timestamp(SDF_TIMEDATE.get().parse(value).getTime());
-      } else if ("java.util.Date".equals(propertyType) == true) {
+      } else if ("java.util.Date".equals(propertyType)) {
         return SDF_TIMEDATE.get().parse(value);
       }
       return ConvertUtils.convert(value, Class.forName(propertyType));
-    } catch (ClassNotFoundException ex) {
-      return value;
-    } catch (ParseException e) {
+    } catch (ClassNotFoundException | ParseException ex) {
       return value;
     }
   }

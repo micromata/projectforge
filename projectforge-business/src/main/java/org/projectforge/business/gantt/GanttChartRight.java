@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,11 +27,7 @@ import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
-import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.UserRightAccessCheck;
-import org.projectforge.business.user.UserRightCategory;
-import org.projectforge.business.user.UserRightId;
+import org.projectforge.business.user.*;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
@@ -108,7 +104,7 @@ public class GanttChartRight extends UserRightAccessCheck<GanttChartDO>
 
   private boolean hasAccess(final PFUserDO user, final GanttChartDO obj, final GanttAccess access)
   {
-    if (accessChecker.userEqualsToContextUser(obj.getOwner()) == true) {
+    if (accessChecker.userEqualsToContextUser(obj.getOwner())) {
       // Owner has always access:
       return true;
     }
@@ -116,13 +112,13 @@ public class GanttChartRight extends UserRightAccessCheck<GanttChartDO>
       // No access defined, so only owner has access:
       return false;
     }
-    if (access.isIn(GanttAccess.ALL, GanttAccess.PROJECT_MANAGER) == true) {
+    if (access.isIn(GanttAccess.ALL, GanttAccess.PROJECT_MANAGER)) {
       if (obj.getTask() == null) {
         // Task needed for these GanttAccess types, so no access:
         return false;
       }
-      if (accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASKS, OperationType.SELECT,
-          false) == false) {
+      if (!accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASKS, OperationType.SELECT,
+          false)) {
         // User has no task access:
         return false;
       }

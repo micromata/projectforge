@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,6 +28,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
+import org.projectforge.plugins.ffp.repository.FFPDeptCounterCache;
 import org.projectforge.plugins.ffp.repository.FFPEventDao;
 import org.projectforge.plugins.ffp.repository.FFPEventService;
 import org.projectforge.plugins.ffp.wicket.FFPDebtListPage;
@@ -61,6 +62,9 @@ public class FinancialFairPlayPlugin extends AbstractPlugin {
   @Autowired
   private FFPEventService eventService;
 
+  @Autowired
+  private FFPDeptCounterCache ffpDeptCounterCache;
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
@@ -79,7 +83,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin {
 
     MenuItemDef menu = MenuItemDef.create("financialfairplay_dept", "plugins.ffp.submenu.financialfairplay.dept");
     menu.setBadgeCounter(() -> {
-      return eventService.getOpenDebts(ThreadLocalUserContext.getUser());
+      return ffpDeptCounterCache.getOpenDebts(ThreadLocalUserContext.getUser());
     });
     pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, menu, FFPDebtListPage.class);
 

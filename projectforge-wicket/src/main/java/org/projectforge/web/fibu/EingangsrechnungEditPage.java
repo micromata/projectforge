@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,19 +23,14 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EingangsrechnungDao;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
-import org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator;
-import org.projectforge.business.fibu.kost.reporting.SEPATransferResult;
+import org.projectforge.business.fibu.SEPATransferGenerator;
+import org.projectforge.business.fibu.SEPATransferResult;
 import org.projectforge.common.props.PropUtils;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
@@ -45,6 +40,11 @@ import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 @EditPage(defaultReturnPage = EingangsrechnungListPage.class)
 public class EingangsrechnungEditPage
@@ -107,7 +107,7 @@ public class EingangsrechnungEditPage
         List<String> missingFields = new ArrayList<>();
 
         // check invoice
-        for (org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator.SEPATransferError error : result.getErrors().get(invoice)) {
+        for (org.projectforge.business.fibu.SEPATransferGenerator.SEPATransferError error : result.getErrors().get(invoice)) {
           switch (error) {
             case SUM:
               missingFields.add(this.getString("fibu.common.brutto"));
@@ -171,16 +171,16 @@ public class EingangsrechnungEditPage
     final EingangsrechnungDO rechnung = getData();
     final int zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
     final DayHolder day = new DayHolder();
-    rechnung.setDatum(day.getSQLDate());
+    rechnung.setDatum(day.getSqlDate());
     day.add(Calendar.DAY_OF_MONTH, zahlungsZielInTagen);
-    rechnung.setFaelligkeit(day.getSQLDate());
+    rechnung.setFaelligkeit(day.getSqlDate());
     rechnung.setBezahlDatum(null);
     rechnung.setZahlBetrag(null);
     final List<EingangsrechnungsPositionDO> positionen = getData().getPositionen();
     if (positionen != null) {
       rechnung.setPositionen(new ArrayList<EingangsrechnungsPositionDO>());
       for (final EingangsrechnungsPositionDO origPosition : positionen) {
-        final EingangsrechnungsPositionDO position = (EingangsrechnungsPositionDO) origPosition.newClone();
+        final EingangsrechnungsPositionDO position = origPosition.newClone();
         rechnung.addPosition(position);
       }
     }

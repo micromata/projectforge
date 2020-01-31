@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,7 +27,7 @@ import java.util.*
 
 class UIDataTypeUtils {
     companion object {
-        internal fun getDataType(elementInfo: ElementsRegistry.ElementInfo?): UIDataType {
+        internal fun getDataType(elementInfo: ElementInfo?): UIDataType {
             if (elementInfo == null)
                 return UIDataType.STRING
             return when (elementInfo.propertyType) {

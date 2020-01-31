@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,13 @@
 
 package org.projectforge.ui.filter
 
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.MagicFilterEntry
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.ui.*
 
 /**
@@ -33,37 +39,79 @@ class LayoutListFilterUtils {
     companion object {
         internal val log = org.slf4j.LoggerFactory.getLogger(LayoutListFilterUtils::class.java)
 
-        fun createNamedContainer(baseDao: BaseDao<*>, lc: LayoutContext): UINamedContainer {
+        fun createNamedContainer(pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>,
+                                 lc: LayoutContext): UINamedContainer {
             val container = UINamedContainer("searchFilter")
-            container.add(UIFilterObjectElement("modifiedByUser",
-                    autoCompletion = AutoCompletion<Int>(2,
-                            //recent = listOf(AutoCompletion.Entry(42,"Fin Reinhard"), AutoCompletion.Entry(43, "Kai Reinhard")),
-                            url = "user/ac")))
-            container.add(UIFilterTimestampElement("modifiedInterval",
-                    true,
-                    listOf(UIFilterTimestampElement.QuickSelector.YEAR,
+            val elements = mutableListOf<UILabelledElement>()
+            elements.add(UIFilterObjectElement(MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName,
+                    label = translate(MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.i18nKey),
+                    autoCompletion = AutoCompletion.getAutoCompletion4Users()))
+            elements.add(UIFilterTimestampElement(MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName,
+                    label = translate(MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.i18nKey),
+                    openInterval = true,
+                    selectors = listOf(UIFilterTimestampElement.QuickSelector.YEAR,
                             UIFilterTimestampElement.QuickSelector.MONTH,
                             UIFilterTimestampElement.QuickSelector.WEEK,
                             UIFilterTimestampElement.QuickSelector.DAY,
                             UIFilterTimestampElement.QuickSelector.UNTIL_NOW)))
+            elements.add(UIFilterElement(MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.fieldName,
+                    label = translate(MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.i18nKey)))
+            elements.add(UIFilterElement("deleted", UIFilterElement.FilterType.BOOLEAN, translate("deleted")))
+
+            val baseDao = pagesRest.baseDao
             val searchFields = baseDao.searchFields
             searchFields.forEach {
                 val elInfo = ElementsRegistry.getElementInfo(lc, it)
                 if (elInfo == null) {
                     log.warn("Search field '${baseDao.doClass}.$it' not found. Ignoring it.")
                 } else {
+                    val element: UIElement
                     if (elInfo.propertyType.isEnum) {
                         @Suppress("UNCHECKED_CAST")
-                        val element = UISelect<String>(it, required = elInfo.required, layoutContext = lc,
-                                multi = true)
+                        element = UIFilterListElement(it)
                                 .buildValues(i18nEnum = elInfo.propertyType as Class<out Enum<*>>)
-                        container.add(element)
+                        element.label = element.id // Default label if no translation will be found below.
                     } else {
-                        container.add(UIFilterElement(it))
+                        element = UIFilterElement(it)
+                        element.label = element.id // Default label if no translation will be found below.
+                        if (BaseDO::class.java.isAssignableFrom(elInfo.propertyType)) {
+                            element.filterType = UIFilterElement.FilterType.OBJECT
+                        }
                     }
+                    element as UILabelledElement
+                    element.label = getLabel(elInfo)
+                    elements.add(element)
                 }
             }
+            pagesRest.addMagicFilterElements(elements)
+
+            elements.sortWith(compareBy(ThreadLocalUserContext.getLocaleComparator()) { it.label })
+            elements.forEach { container.add(it as UIElement) }
             return container
+        }
+
+        fun getLabel(elInfo: ElementInfo): String {
+            val sb = StringBuilder()
+            addLabel(sb, elInfo)
+            return sb.toString()
+        }
+
+        private fun addLabel(sb: StringBuilder, elInfo: ElementInfo?) {
+            if (elInfo == null) return
+            if (sb.length > 1000) { // Paranoia test for endless loops
+                log.error("Oups, paranoia test detects endless loop in ElementInfo.parent '$sb'!")
+                return
+            }
+            addLabel(sb, elInfo.parent)
+            if (elInfo.parent != null) sb.append(" - ")
+            if (!elInfo.i18nKey.isNullOrBlank()) {
+                sb.append(translate(elInfo.i18nKey))
+            } else {
+                sb.append(elInfo.simplePropertyName)
+            }
+            if (!elInfo.additionalI18nKey.isNullOrBlank()) {
+                sb.append(" (").append(translate(elInfo.additionalI18nKey)).append(")")
+            }
         }
     }
 }

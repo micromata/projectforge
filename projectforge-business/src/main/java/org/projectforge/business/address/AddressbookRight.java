@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -51,7 +51,7 @@ public class AddressbookRight extends BaseUserGroupRight<AddressbookDO> {
   public boolean hasSelectAccess(final PFUserDO user, final AddressbookDO obj) {
     return super.hasSelectAccess(user, obj)
             || checkGlobal(obj)
-            || accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.ORGA_TEAM);
+            || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ORGA_TEAM);
   }
 
   /**
@@ -64,7 +64,7 @@ public class AddressbookRight extends BaseUserGroupRight<AddressbookDO> {
   public boolean hasInsertAccess(final PFUserDO user, final AddressbookDO obj) {
     return super.hasInsertAccess(user, obj)
             || checkGlobal(obj)
-            || accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.ORGA_TEAM)
+            || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ORGA_TEAM)
             || hasFullAccess(obj, user.getId());
   }
 }

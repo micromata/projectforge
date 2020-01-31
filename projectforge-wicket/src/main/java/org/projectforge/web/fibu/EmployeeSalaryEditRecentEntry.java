@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,10 @@
 
 package org.projectforge.web.fibu;
 
-import java.io.Serializable;
-
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.projectforge.business.fibu.EmployeeSalaryType;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
+import java.io.Serializable;
 
 /**
  * Stores the last added salary entry. Year and month will be persisted for pre-filling on adding next entry.
@@ -39,8 +38,8 @@ public class EmployeeSalaryEditRecentEntry implements Serializable
 
   private int year;
 
-  private int month;
-  
+  private Integer month;
+
   private EmployeeSalaryType type;
 
   public int getYear()
@@ -53,21 +52,27 @@ public class EmployeeSalaryEditRecentEntry implements Serializable
     this.year = year;
   }
 
-  public int getMonth()
+  /**
+   * 1-January, ..., 12-December.
+   */
+  public Integer getMonth()
   {
     return month;
   }
 
-  public void setMonth(int month)
+  /**
+   * 1-January, ..., 12-December.
+   */
+  public void setMonth(Integer month)
   {
     this.month = month;
   }
-  
+
   public EmployeeSalaryType getType()
   {
     return type;
   }
-  
+
   public void setType(EmployeeSalaryType type)
   {
     this.type = type;

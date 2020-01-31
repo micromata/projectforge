@@ -1,17 +1,20 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import React from 'react';
+import { SystemStatusContext } from '../../../containers/SystemStatusContext';
+import { getServiceURL } from '../../../utilities/rest';
 import logoTopRight from './logo-top-right.png';
 import style from './TopBar.module.scss';
 
-function TopBar({ logo }) {
+function TopBar() {
+    const { logoUrl } = React.useContext(SystemStatusContext);
+
     return (
         <div className={style.topbar}>
-            {logo
+            {logoUrl
                 ? (
                     <img
                         className={classNames(style.logo, style.left)}
-                        src={logo}
+                        src={getServiceURL(`../rsPublic/${logoUrl}`)}
                         alt="Company Logo"
                     />
                 )
@@ -25,12 +28,8 @@ function TopBar({ logo }) {
     );
 }
 
-TopBar.propTypes = {
-    logo: PropTypes.string,
-};
+TopBar.propTypes = {};
 
-TopBar.defaultProps = {
-    logo: null,
-};
+TopBar.defaultProps = {};
 
 export default TopBar;

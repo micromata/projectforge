@@ -111,7 +111,7 @@ function DayRange(
                 <AdditionalLabel title={additionalLabel} />
             </React.Fragment>
         );
-    }, [startDate, endDate]);
+    }, [startDate, endDate, setData]);
 }
 
 DayRange.propTypes = {

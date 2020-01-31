@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,8 +24,8 @@
 package org.projectforge.rest.pub
 
 import org.apache.commons.io.FileUtils
-import org.aspectj.weaver.tools.cache.SimpleCacheFactory.path
 import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,7 +42,7 @@ import java.io.IOException
  * This rest service should be available without login (public).
  */
 @RestController
-@RequestMapping("${Rest.PUBLIC_URL}")
+@RequestMapping(Rest.PUBLIC_URL)
 class LogoServiceRest {
     @Autowired
     private lateinit var configurationService: ConfigurationService
@@ -76,7 +76,7 @@ class LogoServiceRest {
         try {
             return FileUtils.readFileToByteArray(logoFile)
         } catch(ex: IOException) {
-            log.error("Error while reading logo file '${logoFile?.absolutePath}': ${ex.message}")
+            log.error("Error while reading logo file '${CanonicalFileUtils.absolutePath(logoFile)}': ${ex.message}")
             throw ex
         }
     }
@@ -92,7 +92,7 @@ class LogoServiceRest {
                     val configuredFile = configurationService.logoFile
                     _logoUrl = createBaseUrl(configuredFile)
                     if (!_logoUrl.isNullOrBlank() && !isLogoFileValid()) {
-                        log.error("Logo file configured but not readable: '${logoFile?.absolutePath}'.")
+                        log.error("Logo file configured but not readable: '${CanonicalFileUtils.absolutePath(logoFile)}'.")
                     }
                     logoUrlInitialized = true
                 }
@@ -128,7 +128,7 @@ class LogoServiceRest {
                 null
             } else if (logoPath.endsWith(".png")) {
                 "logo.png"
-            } else if (logoPath.endsWith(".jpg") || path.endsWith(".jpeg")) {
+            } else if (logoPath.endsWith(".jpg") || logoPath.endsWith(".jpeg")) {
                 "logo.jpg"
             } else {
                 "logo.gif"

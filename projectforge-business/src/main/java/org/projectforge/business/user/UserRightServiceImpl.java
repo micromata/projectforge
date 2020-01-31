@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,6 @@
 
 package org.projectforge.business.user;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ServiceLoader;
-
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.collections.list.UnmodifiableList;
 import org.jfree.util.Log;
 import org.projectforge.business.address.AddressbookRight;
@@ -43,6 +34,7 @@ import org.projectforge.business.meb.MebRight;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.multitenancy.TenantRight;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
+import org.projectforge.business.teamcal.event.right.CalEventRight;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.api.IUserRightId;
@@ -50,6 +42,10 @@ import org.projectforge.framework.persistence.api.RightRightIdProviderService;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import java.io.Serializable;
+import java.util.*;
 
 @Service
 public class UserRightServiceImpl implements UserRightService, Serializable
@@ -64,11 +60,11 @@ public class UserRightServiceImpl implements UserRightService, Serializable
   @Autowired
   TenantChecker tenantChecker;
 
-  private final Map<IUserRightId, UserRight> rights = new HashMap<IUserRightId, UserRight>();
+  private final Map<IUserRightId, UserRight> rights = new HashMap<>();
 
-  private final Map<String, IUserRightId> rightIds = new HashMap<String, IUserRightId>();
+  private final Map<String, IUserRightId> rightIds = new HashMap<>();
 
-  private final List<UserRight> orderedRights = new ArrayList<UserRight>();
+  private final List<UserRight> orderedRights = new ArrayList<>();
   /**
    * The user rights ids.
    */
@@ -145,6 +141,7 @@ public class UserRightServiceImpl implements UserRightService, Serializable
     addRight(new HRPlanningRight(accessChecker));
     addRight(new TeamCalRight(accessChecker));
     addRight(new TeamEventRight(accessChecker));
+    addRight(new CalEventRight(accessChecker));
     addRight(new AddressbookRight(accessChecker));
 
     addRight(UserRightCategory.ADMIN, UserRightId.ADMIN_CORE, FALSE_READONLY_READWRITE, ProjectForgeGroup.ADMIN_GROUP);
@@ -158,7 +155,7 @@ public class UserRightServiceImpl implements UserRightService, Serializable
     for (RightRightIdProviderService service : serviceLoader) {
       String cname = service.getClass().getName();
       for (IUserRightId uid : service.getUserRightIds()) {
-        if (userRightIds.containsKey(uid.getId()) == true) {
+        if (userRightIds.containsKey(uid.getId())) {
           Log.error("Duplicated UserId: " + uid.getId());
         }
         userRightIds.put(uid.getId(), uid);

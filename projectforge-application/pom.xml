@@ -9,7 +9,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.26.0-SNAPSHOT</version><!-- projectforge.version -->
+    <version>7.0-SNAPSHOT</version><!-- projectforge.version -->
   </parent>
   <licenses>
     <license>
@@ -48,7 +48,7 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- PF 'Plugins' -->
+    <!-- BuildIn PF 'Plugins' -->
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>org.projectforge.plugins.extendemployeedata</artifactId>
@@ -64,6 +64,12 @@
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>org.projectforge.plugins.ihkexport</artifactId>
+      <version>${project.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.ihk</artifactId>
       <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
@@ -103,6 +109,19 @@
       <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
+
+    <!-- https://mvnrepository.com/artifact/com.googlecode.lanterna/lanterna -->
+    <!-- For graphical user dialogs based on the terminal: -->
+    <dependency>
+      <groupId>com.googlecode.lanterna</groupId>
+      <artifactId>lanterna</artifactId>
+      <version>3.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-stdlib</artifactId>
+      <version>${kotlin.version}</version>
+    </dependency>
   </dependencies>
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>
@@ -123,7 +142,78 @@
           <layout>ZIP</layout>
           <!-- UNCOMMENT IF WANT TO BUILD WAR FILE-->
           <!--<layout>WAR</layout>-->
+          <excludes>
+            <exclude>
+              <groupId>org.projectforge</groupId>
+              <artifactId>org.projectforge.plugins.banking</artifactId>
+            </exclude>
+            <exclude>
+              <groupId>org.projectforge</groupId>
+              <artifactId>org.projectforge.plugins.plugintemplate</artifactId>
+            </exclude>
+            <exclude>
+              <groupId>org.projectforge</groupId>
+              <artifactId>org.projectforge.plugins.poll</artifactId>
+            </exclude>
+          </excludes>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jetbrains.kotlin</groupId>
+        <artifactId>kotlin-maven-plugin</artifactId>
+        <version>${kotlin.version}</version>
+        <executions>
+          <execution>
+            <id>compile</id>
+            <goals> <goal>compile</goal> </goals>
+            <configuration>
+              <sourceDirs>
+                <sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
+                <sourceDir>${project.basedir}/src/main/java</sourceDir>
+              </sourceDirs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>test-compile</id>
+            <goals> <goal>test-compile</goal> </goals>
+            <configuration>
+              <sourceDirs>
+                <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
+                <sourceDir>${project.basedir}/src/test/java</sourceDir>
+              </sourceDirs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <executions>
+          <!-- Replacing default-compile as it is treated specially by maven -->
+          <execution>
+            <id>default-compile</id>
+            <phase>none</phase>
+          </execution>
+          <!-- Replacing default-testCompile as it is treated specially by maven -->
+          <execution>
+            <id>default-testCompile</id>
+            <phase>none</phase>
+          </execution>
+          <execution>
+            <id>java-compile</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>java-test-compile</id>
+            <phase>test-compile</phase>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

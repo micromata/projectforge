@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,7 +29,7 @@ data class UICustomized(val id: String,
         if (values == null) {
             values = mutableMapOf()
         }
-        values?.put(property, value);
+        values?.put(property, value)
         return this
     }
 }

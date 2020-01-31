@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,27 +28,22 @@ import org.springframework.stereotype.Repository;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
  */
 @Repository
-public class PollDao extends BaseDao<PollDO>
-{
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "location", "description", "title",
-      "owner.username", "owner.firstname",
-      "owner.lastname" };
+public class PollDao extends BaseDao<PollDO> {
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"owner.username", "owner.firstname",
+          "owner.lastname"};
 
   /**
    * @param clazz
    */
-  protected PollDao()
-  {
+  protected PollDao() {
     super(PollDO.class);
     userRightId = PollPluginUserRightId.PLUGIN_POLL;
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
@@ -56,8 +51,7 @@ public class PollDao extends BaseDao<PollDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#newInstance()
    */
   @Override
-  public PollDO newInstance()
-  {
+  public PollDO newInstance() {
     return new PollDO();
   }
 

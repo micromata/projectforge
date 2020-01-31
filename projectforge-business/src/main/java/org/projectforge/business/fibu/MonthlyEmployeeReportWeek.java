@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,87 +23,79 @@
 
 package org.projectforge.business.fibu;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
  * Repräsentiert einen Wochenbericht eines Mitarbeiters. Diese Wochenberichte sind dem MonthlyEmployeeReport zugeordnet.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class MonthlyEmployeeReportWeek implements Serializable
-{
+public class MonthlyEmployeeReportWeek implements Serializable {
   private static final long serialVersionUID = 6075755848054540114L;
 
-  private Date fromDate;
+  private PFDateTime fromDate;
 
-  private int fromDayOfMonth;
-
-  private Date toDate;
-
-  private int toDayOfMonth;
-
-  private int weekOfYear;
+  private PFDateTime toDate;
 
   private long totalDuration = 0;
 
   /**
    * Key is kost2 id.
    */
-  private Map<Integer, MonthlyEmployeeReportEntry> kost2Entries = new HashMap<Integer, MonthlyEmployeeReportEntry>();
+  private Map<Integer, MonthlyEmployeeReportEntry> kost2Entries = new HashMap<>();
 
   /**
    * Key is task id.
    */
-  private Map<Integer, MonthlyEmployeeReportEntry> taskEntries = new HashMap<Integer, MonthlyEmployeeReportEntry>();
+  private Map<Integer, MonthlyEmployeeReportEntry> taskEntries = new HashMap<>();
 
   /**
+   * FromDate will be set to the begin of week but not before first day of month.
    * ToDate will be set to end of week but not after the last day of month.
-   * @param fromDate
+   *
+   * @param date
    */
-  public MonthlyEmployeeReportWeek(Date fromDate)
-  {
-    Validate.notNull(fromDate);
-    this.fromDate = fromDate;
-    DateHolder d1 = new DateHolder(fromDate);
-    this.fromDayOfMonth = d1.getDayOfMonth();
-    this.weekOfYear = d1.getWeekOfYear();
-    d1.setEndOfMonth();
-    DateHolder d2 = new DateHolder(fromDate);
-    d2.setEndOfWeek();
-    if (d1.getDate().before(d2.getDate()) == true) {
-      this.toDate = d1.getDate();
-      this.toDayOfMonth = d1.getDayOfMonth();
-    } else {
-      this.toDate = d2.getDate();
-      this.toDayOfMonth = d2.getDayOfMonth();
+  public MonthlyEmployeeReportWeek(PFDateTime date) {
+    Validate.notNull(date);
+    this.fromDate = date.getBeginOfWeek();
+    if (this.fromDate.getMonth() != date.getMonth()) {
+      this.fromDate = date.getBeginOfMonth();
+    }
+    this.toDate = fromDate.getEndOfWeek();
+    if (this.toDate.getMonth() != this.fromDate.getMonth()) {
+      this.toDate = this.fromDate.getEndOfMonth();
     }
   }
 
   /**
    * Start time of sheet must be fromDate or later and before toDate.
+   *
    * @param sheet
    */
-  public boolean matchWeek(TimesheetDO sheet)
-  {
-    return sheet.getStartTime().before(fromDate) == false && sheet.getStartTime().before(toDate) == true;
+  public boolean matchWeek(TimesheetDO sheet) {
+    return !sheet.getStartTime().before(fromDate.getUtilDate()) && sheet.getStartTime().before(toDate.getUtilDate());
   }
 
-  void addEntry(TimesheetDO sheet)
-  {
-    if (matchWeek(sheet) == false) {
+  void addEntry(TimesheetDO sheet, final boolean hasSelectAccess) {
+    if (!matchWeek(sheet)) {
       throw new RuntimeException("Oups, given time sheet is not inside the week represented by this week object.");
     }
     MonthlyEmployeeReportEntry entry;
-    if (sheet.getKost2Id() != null) {
+    if (!hasSelectAccess) {
+      entry = taskEntries.get(MonthlyEmployeeReport.MAGIC_PSEUDO_TASK_ID); // -42 represents timesheets without access.
+      if (entry == null) {
+        entry = new MonthlyEmployeeReportEntry(MonthlyEmployeeReport.createPseudoTask());
+        taskEntries.put(MonthlyEmployeeReport.MAGIC_PSEUDO_TASK_ID, entry);
+      }
+    } else if (sheet.getKost2Id() != null) {
       entry = kost2Entries.get(sheet.getKost2Id());
       if (entry == null) {
         entry = new MonthlyEmployeeReportEntry(sheet.getKost2());
@@ -121,73 +113,46 @@ public class MonthlyEmployeeReportWeek implements Serializable
     totalDuration += duration;
   }
 
-  public Date getFromDate()
-  {
-    return fromDate;
-  }
-
-  public Date getToDate()
-  {
-    return toDate;
-  }
-
-  public int getWeekOfYear()
-  {
-    return weekOfYear;
-  }
-
-  public int getFromDayOfMonth()
-  {
-    return fromDayOfMonth;
+  /**
+   * @see StringHelper#format2DigitNumber(int)
+   */
+  public String getFormattedFromDayOfMonth() {
+    return StringHelper.format2DigitNumber(fromDate.getDayOfMonth());
   }
 
   /**
    * @see StringHelper#format2DigitNumber(int)
    */
-  public String getFormattedFromDayOfMonth()
-  {
-    return StringHelper.format2DigitNumber(fromDayOfMonth);
-  }
-
-  public int getToDayOfMonth()
-  {
-    return toDayOfMonth;
+  public String getFormattedToDayOfMonth() {
+    return StringHelper.format2DigitNumber(toDate.getDayOfMonth());
   }
 
   /**
-   * @see StringHelper#format2DigitNumber(int)
+   * Summe aller Stunden der Woche in Millis.
    */
-  public String getFormattedToDayOfMonth()
-  {
-    return StringHelper.format2DigitNumber(toDayOfMonth);
-  }
-
-  /** Summe aller Stunden der Woche in Millis. */
-  public long getTotalDuration()
-  {
+  public long getTotalDuration() {
     return totalDuration;
   }
 
-  public String getFormattedTotalDuration()
-  {
+  public String getFormattedTotalDuration() {
     return MonthlyEmployeeReport.getFormattedDuration(totalDuration);
   }
 
   /**
    * Return the hours assigned to the different Kost2's. The key of the map is the kost2 id.
+   *
    * @return
    */
-  public Map<Integer, MonthlyEmployeeReportEntry> getKost2Entries()
-  {
+  public Map<Integer, MonthlyEmployeeReportEntry> getKost2Entries() {
     return kost2Entries;
   }
 
   /**
    * Return the hours assigned to the different tasks which do not have a kost2-id. The key of the map is the task id.
+   *
    * @return
    */
-  public Map<Integer, MonthlyEmployeeReportEntry> getTaskEntries()
-  {
+  public Map<Integer, MonthlyEmployeeReportEntry> getTaskEntries() {
     return taskEntries;
   }
 }

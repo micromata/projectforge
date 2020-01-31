@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.utils;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -33,8 +34,6 @@ public class ListHelper
 {
   public static <T> void addAll(final List<T> list, final T... elements)
   {
-    for (final T element : elements) {
-      list.add(element);
-    }
+    list.addAll(Arrays.asList(elements));
   }
 }

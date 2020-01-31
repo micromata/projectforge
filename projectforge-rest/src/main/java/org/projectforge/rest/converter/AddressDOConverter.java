@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,14 @@
 
 package org.projectforge.rest.converter;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.address.AddressDO;
-import org.projectforge.business.address.AddressDao;
-import org.projectforge.business.address.AddressStatus;
-import org.projectforge.business.address.ContactStatus;
-import org.projectforge.business.address.FormOfAddress;
+import org.projectforge.business.address.*;
 import org.projectforge.business.converter.DOConverter;
 import org.projectforge.model.rest.AddressObject;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 /**
  * For conversion of TaskDO to task object.
@@ -88,10 +84,10 @@ public class AddressDOConverter
     address.setTitle(addressDO.getTitle());
     address.setWebsite(addressDO.getWebsite());
     address.setZipCode(addressDO.getZipCode());
-    if (disableImageData == false) {
+    if (!disableImageData) {
       address.setImage(Base64.encodeBase64String(addressDO.getImageData()));
     }
-    if (disableVCard == false) {
+    if (!disableVCard) {
       final StringWriter writer = new StringWriter();
       addressDao.exportVCard(new PrintWriter(writer), addressDO);
       address.setVCardData(Base64.encodeBase64String(writer.toString().getBytes()));
@@ -144,7 +140,7 @@ public class AddressDOConverter
     address.setTitle(addressObject.getTitle());
     address.setWebsite(addressObject.getWebsite());
     address.setZipCode(addressObject.getZipCode());
-    if (StringUtils.isEmpty(addressObject.getImage()) == false) {
+    if (!StringUtils.isEmpty(addressObject.getImage())) {
       address.setImageData(Base64.decodeBase64(addressObject.getImage()));
     }
     return address;

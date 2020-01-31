@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -143,19 +143,19 @@ public class ToDoListForm extends AbstractListForm<ToDoFilter, ToDoListPage>
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
   {
     optionsCheckBoxesPanel
-        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(
+        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(
             getSearchFilter(), "opened"), getString(ToDoStatus.OPENED.getI18nKey())));
     optionsCheckBoxesPanel
-        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(
+        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(
             getSearchFilter(), "reopened"), getString(ToDoStatus.RE_OPENED.getI18nKey())));
     optionsCheckBoxesPanel
-        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(
+        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(
             getSearchFilter(), "inprogress"), getString(ToDoStatus.IN_PROGRESS.getI18nKey())));
     optionsCheckBoxesPanel
-        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(
+        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(
             getSearchFilter(), "closed"), getString(ToDoStatus.CLOSED.getI18nKey())));
     optionsCheckBoxesPanel
-        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(
+        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(
             getSearchFilter(), "postponed"), getString(ToDoStatus.POSTPONED.getI18nKey())));
 
     optionsCheckBoxesPanel.add(createCheckBoxButton(

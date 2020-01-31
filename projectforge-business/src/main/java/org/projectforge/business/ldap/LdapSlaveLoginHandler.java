@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -99,9 +99,9 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   public void initialize()
   {
     super.initialize();
-    if (StringUtils.isBlank(ldapConfig.getManagerUser()) == true) {
+    if (StringUtils.isBlank(ldapConfig.getManagerUser())) {
       mode = Mode.SIMPLE;
-    } else if (StringUtils.isNotBlank(ldapConfig.getGroupBase()) == true) {
+    } else if (StringUtils.isNotBlank(ldapConfig.getGroupBase())) {
       mode = Mode.USERS;// Mode.USER_GROUPS;
       log.warn("Groups aren't yet supported by this LDAP handler.");
     } else {
@@ -133,7 +133,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   public LoginResult checkLogin(final String username, final String password)
   {
     PFUserDO user = userService.getByUsername(username);
-    if (user != null && user.getLocalUser() == true) {
+    if (user != null && user.getLocalUser()) {
       return loginDefaultHandler.checkLogin(username, password);
     }
     final LoginResult loginResult = new LoginResult();
@@ -149,19 +149,19 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
       log.info("LDAP user '" + username + "' doesn't yet exist in ProjectForge's data base. Creating new user...");
       user = pfUserDOConverter.convert(ldapUser);
       user.setId(null); // Force new id.
-      if (mode == Mode.SIMPLE || ldapConfig.isStorePasswords() == false) {
+      if (mode == Mode.SIMPLE || !ldapConfig.isStorePasswords()) {
         user.setNoPassword();
       } else {
         userService.createEncryptedPassword(user, password);
       }
-      userService.save(user);
+      userDao.internalSave(user);
     } else if (mode != Mode.SIMPLE) {
       PFUserDOConverter.copyUserFields(pfUserDOConverter.convert(ldapUser), user);
-      if (ldapConfig.isStorePasswords() == true) {
+      if (ldapConfig.isStorePasswords()) {
         userService.createEncryptedPassword(user, password);
       }
-      userService.update(user);
-      if (user.hasSystemAccess() == false) {
+      userDao.internalUpdate(user);
+      if (!user.hasSystemAccess()) {
         log.info("User has no system access (is deleted/deactivated): " + user.getUserDisplayName());
         return loginResult.setLoginResultStatus(LoginResultStatus.LOGIN_EXPIRED);
       }
@@ -205,7 +205,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
       return null;
     }
     for (final PFUserDO user : col) {
-      if (username.equals(user.getUsername()) == true) {
+      if (username.equals(user.getUsername())) {
         return user;
       }
     }
@@ -236,7 +236,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   @Override
   public void afterUserGroupCacheRefresh(final Collection<PFUserDO> users, final Collection<GroupDO> groups)
   {
-    if (mode == Mode.SIMPLE || refreshInProgress == true) {
+    if (mode == Mode.SIMPLE || refreshInProgress) {
       return;
     }
     new Thread()
@@ -245,7 +245,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
       public void run()
       {
         synchronized (LdapSlaveLoginHandler.this) {
-          if (refreshInProgress == true) {
+          if (refreshInProgress) {
             return;
           }
           try {
@@ -278,7 +278,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
         log.info("Updating LDAP...");
         final List<LdapUser> ldapUsers = getAllLdapUsers(ctx);
         final List<PFUserDO> dbUsers = userService.internalLoadAll();
-        final List<PFUserDO> users = new ArrayList<PFUserDO>(ldapUsers.size());
+        final List<PFUserDO> users = new ArrayList<>(ldapUsers.size());
         int error = 0, unmodified = 0, created = 0, updated = 0, deleted = 0, undeleted = 0, ignoredLocalUsers = 0,
             localUsers = 0;
         for (final LdapUser ldapUser : ldapUsers) {
@@ -291,7 +291,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
               dbUser = userService.getByUsername(user.getUsername());
             }
             if (dbUser != null) {
-              if (dbUser.getLocalUser() == true) {
+              if (dbUser.getLocalUser()) {
                 // Ignore local users.
                 log.warn("Please note: the user '"
                     + dbUser.getUsername()
@@ -300,11 +300,11 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
                 continue;
               }
               PFUserDOConverter.copyUserFields(user, dbUser);
-              if (dbUser.isDeleted() == true) {
-                userService.undelete(dbUser);
+              if (dbUser.isDeleted()) {
+                userDao.internalUndelete(dbUser);
                 ++undeleted;
               }
-              final ModificationStatus modificationStatus = userService.update(dbUser);
+              final ModificationStatus modificationStatus = userDao.internalUpdate(dbUser);
               if (modificationStatus != ModificationStatus.NONE) {
                 ++updated;
               } else {
@@ -313,7 +313,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
             } else {
               // New user:
               user.setId(null);
-              userService.save(user);
+              userDao.internalSave(user);
               ++created;
             }
           } catch (final Exception ex) {
@@ -323,16 +323,16 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
         }
         for (final PFUserDO dbUser : dbUsers) {
           try {
-            if (dbUser.getLocalUser() == true) {
+            if (dbUser.getLocalUser()) {
               // Ignore local users.
               ++localUsers;
               continue;
             }
             final PFUserDO user = getUser(users, dbUser.getUsername());
             if (user == null) {
-              if (dbUser.isDeleted() == false) {
+              if (!dbUser.isDeleted()) {
                 // User isn't available in LDAP, therefore mark the db user as deleted.
-                userService.markAsDeleted(dbUser);
+                userDao.internalMarkAsDeleted(dbUser);
                 ++deleted;
               } else {
                 ++unmodified;

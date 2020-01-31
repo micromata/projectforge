@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,13 +37,17 @@ class AutoCompletion<T>(
          */
         var values: List<Entry<T>>? = null,
         /**
-         * The recent entries, if given, will be shown at the top of the drop down for quick select.
+         * Type of autocompletion values as information for the clients (e. g. user).
          */
-        var recent: List<Entry<T>>? = null,
+        var type: String? = null,
         /**
          * If given, the url will be called for getting the auto-completion values.
          */
         var url: String? = null) {
+    /**
+     * Pre-defined types of autocompletion objects as information for the clients.
+     */
+    enum class Type { USER, GROUP }
     class Entry<T>(val value: T,
                    /**
                     * The title to display.
@@ -70,6 +74,34 @@ class AutoCompletion<T>(
                 minChars = null
                 url = null
             }
+        }
+    }
+
+    companion object {
+        const val AUTOCOMPLETE_TEXT = "autocomplete"
+        const val AUTOCOMPLETE_OBJECT = "autosearch"
+        const val SHOW_ALL_PARAM = "showAll"
+
+        /**
+         * @return category/autosearch?search=:search)
+         */
+        fun getAutoCompletionUrl(category: String, additionalParamString: String = ""): String {
+            return "$category/${AutoCompletion.AUTOCOMPLETE_OBJECT}?${additionalParamString}search=" // :search"
+        }
+
+        /**
+         * @return category/autosearch?search=
+         */
+        fun getAutoCompletion4Users(showOnlyActiveUsers: Boolean = true): AutoCompletion<Int> {
+            val additionalParamString = if (showOnlyActiveUsers) "" else "$SHOW_ALL_PARAM=true&"
+            return AutoCompletion<Int>(url = getAutoCompletionUrl("user", additionalParamString), type = AutoCompletion.Type.USER.name)
+        }
+
+        /**
+         * @return category/autosearch?search=
+         */
+        fun getAutoCompletion4Groups(): AutoCompletion<Int> {
+            return AutoCompletion<Int>(url = getAutoCompletionUrl("group"), type = AutoCompletion.Type.GROUP.name)
         }
     }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.ihkexport;
 
-import java.util.Objects;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.user.UserRightAccessCheck;
 import org.projectforge.business.user.UserRightCategory;
@@ -31,6 +30,8 @@ import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.Objects;
 
 public class IhkExportRight extends UserRightAccessCheck<TimesheetDO>
 {
@@ -50,6 +51,6 @@ public class IhkExportRight extends UserRightAccessCheck<TimesheetDO>
     if (timesheet == null) {
       return true; // General insert and select access given by default.
     }
-    return (Objects.equals(user.getId(), timesheet.getUserId()) == true);
+    return (Objects.equals(user.getId(), timesheet.getUserId()));
   }
 }

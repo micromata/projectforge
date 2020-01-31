@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,8 @@
 
 package org.projectforge.business.fibu
 
-import com.fasterxml.jackson.annotation.JsonManagedReference
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
@@ -32,9 +33,8 @@ import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.IdObject
-
-import javax.persistence.*
 import java.io.Serializable
+import javax.persistence.*
 
 /**
  *
@@ -45,12 +45,12 @@ import java.io.Serializable
 @Entity
 @Indexed
 @Table(name = "t_fibu_employee_timed", uniqueConstraints = [UniqueConstraint(columnNames = ["employee_id", "group_name", "start_time"])], indexes = [Index(name = "idx_fibu_employee_timed_start_time", columnList = "start_time")])
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "pk")
 class EmployeeTimedDO : TimeableBaseDO<EmployeeTimedDO, Int>(), TimeableAttrRow<Int>, IdObject<Int> {
 
     /**
      * @return Zugehöriger Mitarbeiter.
      */
-    @JsonManagedReference
     @PropertyInfo(i18nKey = "fibu.employee")
     @IndexedEmbedded(depth = 2)
     @get:ManyToOne(fetch = FetchType.LAZY)

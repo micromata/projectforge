@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,15 +24,11 @@
 package org.projectforge.web;
 
 import org.apache.wicket.Page;
-import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.web.access.AccessListPage;
-import org.projectforge.web.address.AddressListPage;
-import org.projectforge.web.address.AddressbookListPage;
 import org.projectforge.web.address.PhoneCallPage;
 import org.projectforge.web.address.SendSmsPage;
 import org.projectforge.web.admin.*;
-import org.projectforge.web.book.BookListPage;
 import org.projectforge.web.core.SearchPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartListPage;
@@ -48,13 +44,11 @@ import org.projectforge.web.scripting.ScriptingPage;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
 import org.projectforge.web.statistics.SystemStatisticsPage;
 import org.projectforge.web.task.TaskTreePage;
-import org.projectforge.web.teamcal.admin.TeamCalListPage;
 import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.user.*;
+import org.projectforge.web.vacation.VacationAccountPage;
 import org.projectforge.web.vacation.VacationListPage;
-import org.projectforge.web.vacation.VacationViewPage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -78,10 +72,6 @@ public class MenuItemRegistry implements Serializable {
 
   private final Map<String, Class<? extends Page>> wicketClassesMap = new HashMap<>();
 
-
-  @Autowired
-  private MenuCreator menuCreator;
-
   @PostConstruct
   public void init() {
     initialize(this);
@@ -96,13 +86,9 @@ public class MenuItemRegistry implements Serializable {
    */
   private void initialize(final MenuItemRegistry reg) {
     register(MenuItemDefId.CALENDAR, TeamCalCalendarPage.class);
-    register(MenuItemDefId.TEAMCALENDAR, TeamCalListPage.class);
     register(MenuItemDefId.VACATION, VacationListPage.class);
     // createdMenuEntry.setNewCounterModel(new MenuNewCounterVacation());
 
-    register(MenuItemDefId.BOOK_LIST, BookListPage.class);
-    register(MenuItemDefId.ADDRESSBOOK_LIST, AddressbookListPage.class);
-    register(MenuItemDefId.ADDRESS_LIST, AddressListPage.class);
     register(MenuItemDefId.PHONE_CALL, PhoneCallPage.class);
     register(MenuItemDefId.SEND_SMS, SendSmsPage.class);
     register(MenuItemDefId.MEB, MebListPage.class);
@@ -138,7 +124,7 @@ public class MenuItemRegistry implements Serializable {
     register(MenuItemDefId.CONTRACTS, ContractListPage.class);
     register(MenuItemDefId.VISITORBOOK, VisitorbookListPage.class);
     register(MenuItemDefId.MY_ACCOUNT, MyAccountEditPage.class);
-    register(MenuItemDefId.VACATION_VIEW, VacationViewPage.class);
+    register(MenuItemDefId.VACATION_ACCOUNT, VacationAccountPage.class);
     register(MenuItemDefId.MY_PREFERENCES, UserPrefListPage.class);
     register(MenuItemDefId.CHANGE_PASSWORD, ChangePasswordPage.class);
     register(MenuItemDefId.CHANGE_WLAN_PASSWORD, ChangeWlanPasswordPage.class);

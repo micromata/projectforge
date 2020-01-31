@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.marketing;
 
-import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidator;
@@ -31,6 +30,7 @@ import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 /**
  * This is the edit formular page.
@@ -58,17 +58,17 @@ public class AddressCampaignEditForm extends AbstractEditForm<AddressCampaignDO,
     {
       // Title
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("title"));
-      fs.add(new RequiredMaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(data, "title")));
+      fs.add(new RequiredMaxLengthTextField(fs.getTextFieldId(), new PropertyModel<>(data, "title")));
     }
     {
       // Values
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("values"));
-      valuesField = new RequiredMaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(data, "values"));
+      valuesField = new RequiredMaxLengthTextField(fs.getTextFieldId(), new PropertyModel<>(data, "values"));
       fs.addHelpIcon(getString("plugins.marketing.addressCampaign.values.format"));
       fs.add(valuesField);
       fs.addAlertIcon(getString("plugins.marketing.addressCampaign.edit.warning.doNotChangeValues"));
       valuesField.add((IValidator<String>) validatable -> {
-        if (AddressCampaignDO.getValuesArray(validatable.getValue()) == null) {
+        if (AddressCampaignDO.Companion.getValuesArray(validatable.getValue()) == null) {
           valuesField.error(getString("plugins.marketing.addressCampaign.values.invalidFormat"));
         }
       });
@@ -76,7 +76,7 @@ public class AddressCampaignEditForm extends AbstractEditForm<AddressCampaignDO,
     {
       // Text description
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("comment"));
-      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<String>(data, "comment")));
+      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "comment")));
     }
   }
 

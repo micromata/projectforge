@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,16 +39,17 @@ import java.util.Map;
 public class JsonUtils {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JsonUtils.class);
 
-  private static Map<Class<?>, Object> typeAdapterMap = new HashMap<Class<?>, Object>();
+  private static Map<Class<?>, Object> typeAdapterMap = new HashMap<>();
+
+  private static ObjectMapper objectMapper;
 
   public static void add(final Class<?> cls, final Object typeAdapter) {
     typeAdapterMap.put(cls, typeAdapter);
   }
 
   public static String toJson(final Object obj) {
-    ObjectMapper mapper = createMapper();
     try {
-      return mapper.writeValueAsString(obj);
+      return getObjectMapper().writeValueAsString(obj);
     } catch (JsonProcessingException ex) {
       log.error(ex.getMessage(), ex);
       return "";
@@ -56,21 +57,15 @@ public class JsonUtils {
   }
 
   public static <T> T fromJson(final String json, final Class<T> classOfT) throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
-    return mapper.readValue(json, classOfT);
+    return getObjectMapper().readValue(json, classOfT);
   }
 
-  private static ObjectMapper createMapper() {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.registerModule(new KotlinModule());
-    return mapper;
-/*    mapper.re
-    final GsonBuilder builder = new GsonBuilder()//
-            .registerTypeAdapter(java.sql.Date.class, new DateTypeAdapter())//
-            .registerTypeAdapter(java.util.Date.class, new DateTimeTypeAdapter());
-    for (final Map.Entry<Class<?>, Object> entry : typeAdapterMap.entrySet()) {
-      builder.registerTypeHierarchyAdapter(entry.getKey(), entry.getValue());
+  private static ObjectMapper getObjectMapper() {
+    if (objectMapper == null) {
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.registerModule(new KotlinModule());
+      objectMapper = mapper;
     }
-    return builder.create();*/
+    return objectMapper;
   }
 }

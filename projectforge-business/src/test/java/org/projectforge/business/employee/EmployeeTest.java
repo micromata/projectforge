@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,8 +34,8 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -85,13 +85,13 @@ public class EmployeeTest extends AbstractTestBase
     log.info("Employee history entry size: " + historyEntries.size());
 
     //Update employee
-    Calendar birthday = new GregorianCalendar(1985, Calendar.DECEMBER, 17);
-    e.setBirthday(birthday.getTime());
+    LocalDate birthday = LocalDate.of(1985, Month.DECEMBER, 17);
+    e.setBirthday(birthday);
     employeeDao.update(e);
 
     //Check updates
     EmployeeDO updatdEmployee = employeeDao.getById(e.getId());
-    assertEquals(updatdEmployee.getBirthday().getTime(), e.getBirthday().getTime());
+    assertEquals(updatdEmployee.getBirthday(), e.getBirthday());
 
     // test history
     List<DisplayHistoryEntry> updatedHistoryEntries = employeeDao.getDisplayHistoryEntries(e);

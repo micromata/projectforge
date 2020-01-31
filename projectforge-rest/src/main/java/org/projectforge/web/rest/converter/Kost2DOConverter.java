@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -51,7 +51,7 @@ public class Kost2DOConverter
     if (kost2DO == null) {
       return null;
     }
-    if (Hibernate.isInitialized(kost2DO) == false) {
+    if (!Hibernate.isInitialized(kost2DO)) {
       final Integer kost2Id = kost2DO.getId();
       kost2DO = kost2Dao.internalGetById(kost2Id);
       if (kost2DO == null) {
@@ -66,7 +66,7 @@ public class Kost2DOConverter
       cost2.setType(kost2DO.getKost2Art().getName());
     }
     final ProjektDO projektDO = kost2DO.getProjekt();
-    KundeDO kundeDO = null;
+    KundeDO kundeDO;
     if (projektDO != null) {
       cost2.setProject(projektDO.getName());
       kundeDO = projektDO.getKunde();

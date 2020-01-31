@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -373,9 +373,9 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
         .withTaskTree(taskTree));
     if (systemInfoCache.isCost2EntriesExists() == true) {
       columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("fibu.kost2"),
-          getSortable("kost2.shortDisplayName",
+          getSortable("kost2.displayName",
               sortable),
-          "kost2.shortDisplayName", cellItemListener));
+          "kost2.displayName", cellItemListener));
     }
     columns.add(
         new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("calendar.weekOfYearShortLabel"), getSortable(

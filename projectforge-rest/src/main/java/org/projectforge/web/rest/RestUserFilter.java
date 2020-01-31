@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,6 +35,7 @@ import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.rest.Authentication;
+import org.projectforge.rest.AuthenticationOld;
 import org.projectforge.rest.ConnectionSettings;
 import org.projectforge.rest.converter.DateTimeFormat;
 import org.slf4j.MDC;
@@ -93,13 +94,13 @@ public class RestUserFilter implements Filter {
   public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
           throws IOException,
           ServletException {
-    if (UserFilter.isUpdateRequiredFirst() == true) {
+    if (UserFilter.isUpdateRequiredFirst()) {
       log.warn("Update of the system is required first. Login via Rest not available. Administrators login required.");
       return;
     }
     HttpServletRequest req = (HttpServletRequest) request;
     HttpServletResponse resp = (HttpServletResponse) response;
-    String userString = getAttribute(req, Authentication.AUTHENTICATION_USER_ID);
+    String userString = getAttribute(req, Authentication.AUTHENTICATION_USER_ID, AuthenticationOld.AUTHENTICATION_USER_ID);
     final LoginProtection loginProtection = LoginProtection.instance();
     final String clientIpAddress = request.getRemoteAddr();
     PFUserDO user = null;
@@ -112,7 +113,7 @@ public class RestUserFilter implements Filter {
 
       final Integer userId = NumberHelper.parseInteger(userString);
       if (userId != null) {
-        final String authenticationToken = getAttribute(req, Authentication.AUTHENTICATION_TOKEN);
+        final String authenticationToken = getAttribute(req, Authentication.AUTHENTICATION_TOKEN, AuthenticationOld.AUTHENTICATION_TOKEN);
         if (userService.checkAuthenticationToken(userId,
                 authenticationToken,
                 Authentication.AUTHENTICATION_USER_ID,
@@ -123,12 +124,12 @@ public class RestUserFilter implements Filter {
         log.error(Authentication.AUTHENTICATION_USER_ID + " is not an integer: '" + userString + "'. Rest call forbidden.");
       }
     } else {
-      userString = getAttribute(req, Authentication.AUTHENTICATION_USERNAME);
+      userString = getAttribute(req, Authentication.AUTHENTICATION_USERNAME, AuthenticationOld.AUTHENTICATION_USERNAME);
       if (checkLoginProtection((HttpServletResponse) response, userString, loginProtection, clientIpAddress)) {
         // access denied
         return;
       }
-      final String password = getAttribute(req, Authentication.AUTHENTICATION_PASSWORD);
+      final String password = getAttribute(req, Authentication.AUTHENTICATION_PASSWORD, AuthenticationOld.AUTHENTICATION_PASSWORD);
       if (userString != null && password != null) {
         user = userService.authenticateUser(userString, password);
         if (user == null) {
@@ -144,7 +145,7 @@ public class RestUserFilter implements Filter {
         if (user == null) {
           UserContext userContext = cookieService.checkStayLoggedIn(req, resp);
           if (userContext != null) {
-            if (log.isDebugEnabled() == true) {
+            if (log.isDebugEnabled()) {
               log.debug("User's stay logged-in cookie found: " + req.getRequestURI());
             }
             executeLogin(req, userContext);
@@ -233,12 +234,26 @@ public class RestUserFilter implements Filter {
     return settings;
   }
 
-  private String getAttribute(final HttpServletRequest req, final String key) {
-    String value = req.getHeader(key);
-    if (value == null) {
-      value = req.getParameter(key);
+  /**
+   * @param req
+   * @param keys Name of the parameter key. Additional keys may be given as alternative keys if first key isn't found.
+   *             Might be used for backwards compatibility.
+   * @return
+   */
+  private String getAttribute(final HttpServletRequest req, final String... keys) {
+    if (keys == null) {
+      return null;
     }
-    return value;
+    for (String key : keys) {
+      String value = req.getHeader(key);
+      if (value == null) {
+        value = req.getParameter(key);
+      }
+      if (value != null) {
+        return value;
+      }
+    }
+    return null;
   }
 
   @Override

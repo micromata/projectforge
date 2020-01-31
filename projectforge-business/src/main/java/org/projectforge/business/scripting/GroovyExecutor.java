@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,6 @@
 
 package org.projectforge.business.scripting;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.codehaus.groovy.control.CompilationFailedException;
-import org.projectforge.business.refactoring.RefactoringService;
-import org.projectforge.framework.access.AccessException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
@@ -42,6 +30,16 @@ import groovy.lang.Writable;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
 import groovy.text.TemplateEngine;
+import org.apache.commons.lang3.StringUtils;
+import org.codehaus.groovy.control.CompilationFailedException;
+import org.projectforge.business.refactoring.RefactoringService;
+import org.projectforge.framework.access.AccessException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Map;
 
 /**
  * Executes groovy templates. For more functionality please refer GroovyEngine.
@@ -100,17 +98,11 @@ public class GroovyExecutor
       final StringWriter writer = new StringWriter();
       writable.writeTo(writer);
       writer.flush();
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug(writer.toString());
       }
       return writer.toString();
-    } catch (final CompilationFailedException ex) {
-      log.error(ex.getMessage() + " while executing template: " + template, ex);
-    } catch (final FileNotFoundException ex) {
-      log.error(ex.getMessage() + " while executing template: " + template, ex);
-    } catch (final ClassNotFoundException ex) {
-      log.error(ex.getMessage() + " while executing template: " + template, ex);
-    } catch (final IOException ex) {
+    } catch (final CompilationFailedException | IOException | ClassNotFoundException ex) {
       log.error(ex.getMessage() + " while executing template: " + template, ex);
     }
     return null;
@@ -162,7 +154,7 @@ public class GroovyExecutor
       }
     };
 
-    Class<?> groovyClass = null;
+    Class<?> groovyClass;
     try {
       groovyClass = gcl.parseClass(script);
     } catch (final CompilationFailedException ex) {
@@ -172,23 +164,17 @@ public class GroovyExecutor
       }
       return null;
     }
-    Script groovyObject = null;
+    Script groovyObject;
     try {
       groovyObject = (Script) groovyClass.newInstance();
-    } catch (final InstantiationException ex) {
-      log.error(ex.getMessage(), ex);
-      if (result != null) {
-        result.setException(ex);
-      }
-      return null;
-    } catch (final IllegalAccessException ex) {
+    } catch (final InstantiationException | IllegalAccessException ex) {
       log.error(ex.getMessage(), ex);
       if (result != null) {
         result.setException(ex);
       }
       return null;
     }
-    if (bindScriptResult == true) {
+    if (bindScriptResult) {
       final Binding binding = groovyObject.getBinding();
       final GroovyResult scriptResult = new GroovyResult();
       binding.setVariable("scriptResult", scriptResult);
@@ -203,7 +189,7 @@ public class GroovyExecutor
 
   public GroovyResult execute(final Script groovyScript, final Map<String, Object> variables)
   {
-    return execute((GroovyResult) null, groovyScript, variables);
+    return execute(null, groovyScript, variables);
   }
 
   public GroovyResult execute(GroovyResult result, final Script groovyScript, final Map<String, Object> variables)
@@ -217,7 +203,7 @@ public class GroovyExecutor
     if (result == null) {
       result = new GroovyResult();
     }
-    Object res = null;
+    Object res;
     try {
       res = groovyScript.run();
     } catch (final Exception ex) {
@@ -237,7 +223,7 @@ public class GroovyExecutor
   {
     final String[] forbiddenKeyWords = { "__baseDao", "__baseObject", "System.ex" };
     for (final String forbiddenKeyWord : forbiddenKeyWords) {
-      if (StringUtils.contains(script, forbiddenKeyWord) == true) {
+      if (StringUtils.contains(script, forbiddenKeyWord)) {
         throw new AccessException("access.exception.violation", forbiddenKeyWord);
       }
     }

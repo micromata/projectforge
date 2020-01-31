@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -36,10 +36,10 @@ class ListFilterService {
     private val log = org.slf4j.LoggerFactory.getLogger(ListFilterService::class.java)
 
     @Autowired
-    private lateinit var userXmlPreferencesService: RestUserXmlPreferencesService
+    private lateinit var userPrefRestService: UserPrefRestService
 
     fun getSearchFilter(session: HttpSession, filterClazz: Class<out BaseSearchFilter>): BaseSearchFilter {
-        val filter = userXmlPreferencesService.getEntry(session, filterClazz.name + ":Filter")
+        val filter = userPrefRestService.getEntry(session, PREF_AREA, filterClazz.name)
         if (filter != null) {
             if (filter.javaClass == filterClazz) {
                 try {
@@ -58,7 +58,11 @@ class ListFilterService {
         }
         val result = filterClazz.newInstance()
         result.reset()
-        userXmlPreferencesService.putEntry(session, filterClazz.name + ":Filter", result, true)
+        userPrefRestService.putEntry(session, PREF_AREA, filterClazz.name, result, true)
         return result
+    }
+
+    companion object {
+        private const val PREF_AREA = "listFilter"
     }
 }

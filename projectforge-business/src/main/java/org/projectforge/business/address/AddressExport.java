@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,30 +23,21 @@
 
 package org.projectforge.business.address;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.projectforge.business.converter.LanguageConverter;
-import org.projectforge.business.excel.CellFormat;
-import org.projectforge.business.excel.ContentProvider;
-import org.projectforge.business.excel.ExportCell;
-import org.projectforge.business.excel.ExportColumn;
-import org.projectforge.business.excel.ExportRow;
-import org.projectforge.business.excel.ExportSheet;
-import org.projectforge.business.excel.ExportWorkbook;
-import org.projectforge.business.excel.I18nExportColumn;
-import org.projectforge.business.excel.PropertyMapping;
-import org.projectforge.business.excel.XlsContentProvider;
+import org.projectforge.business.excel.*;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * For excel export.
@@ -71,19 +62,19 @@ public class AddressExport
     {
       for (final ExportCell cell : row.getCells()) {
         final CellFormat format = cell.ensureAndGetCellFormat();
-        format.setFillForegroundColor(HSSFColor.WHITE.index);
+        format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
         switch (row.getRowNum()) {
           case 0:
             format.setFont(FONT_HEADER);
             break;
           case 1:
             format.setFont(FONT_NORMAL_BOLD);
-            format.setFillForegroundColor(HSSFColor.YELLOW.index);
+            format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.YELLOW.getIndex());
             break;
           default:
             format.setFont(FONT_NORMAL);
             if (row.getRowNum() % 2 == 0) {
-              format.setFillForegroundColor(HSSFColor.GREY_25_PERCENT.index);
+              format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.GREY_25_PERCENT.getIndex());
             }
             break;
         }
@@ -243,17 +234,16 @@ public class AddressExport
     log.info("Exporting address list.");
     final ExportColumn[] columns = createColumns();
 
-    final List<AddressDO> list = new ArrayList<AddressDO>();
+    final List<AddressDO> list = new ArrayList<>();
     for (final AddressDO address : origList) {
-      if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
-          ProjectForgeGroup.MARKETING_GROUP) == true) {
+      if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.MARKETING_GROUP)) {
         // Add all addresses for users of finance group:
         list.add(address);
-      } else if (personalAddressMap.containsKey(address.getId()) == true)
+      } else if (personalAddressMap.containsKey(address.getId()))
         // For others only those which are personal:
         list.add(address);
     }
-    if (CollectionUtils.isEmpty(list) == true) {
+    if (CollectionUtils.isEmpty(list)) {
       return null;
     }
     final ExportWorkbook xls = new ExportWorkbook();
@@ -281,7 +271,7 @@ public class AddressExport
       addAddressMapping(mapping, address, params);
       sheet.addRow(mapping.getMapping(), 0);
     }
-    sheet.setZoom(3, 4); // 75%
+    sheet.setZoom(75); // 75%
     return xls.getAsByteArray();
   }
 

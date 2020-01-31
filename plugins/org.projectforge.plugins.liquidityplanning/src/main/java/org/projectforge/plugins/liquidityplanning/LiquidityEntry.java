@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,14 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.sql.Date;
-
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.common.props.PropertyType;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.sql.Date;
 
 /**
  * Represents entities of {@link LiquidityEntryDO}, {@link RechnungDO} and {@link EingangsrechnungDO}.

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,13 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.user.UserPrefCache
 import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.rest.config.Rest
-import org.projectforge.ui.UIStyle
+import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -49,15 +51,20 @@ open class LogoutRest {
     @Autowired
     private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache
 
+    @Autowired
+    private lateinit var userPrefCache: UserPrefCache
+
     @GetMapping
     fun logout(request: HttpServletRequest,
                response: HttpServletResponse)
-            : ResponseData {
+            : ResponseAction {
         val stayLoggedInCookie = cookieService.getStayLoggedInCookie(request)
         val user = UserFilter.getUser(request)
         if (user != null) {
-            userXmlPreferencesCache.flushToDB(user.getId())
-            userXmlPreferencesCache.clear(user.getId())
+            userXmlPreferencesCache.flushToDB(user.id)
+            userXmlPreferencesCache.clear(user.id)
+            userPrefCache.flushToDB(user.id)
+            userPrefCache.clear(user.id)
         }
         UserFilter.logout(request)
         if (stayLoggedInCookie != null) {
@@ -68,7 +75,6 @@ open class LogoutRest {
         if (stayLoggedInCookie != null) {
             response.addCookie(stayLoggedInCookie)
         }
-        return ResponseData("logout.successful", messageType = MessageType.TOAST, style = UIStyle.SUCCESS)
-        //Response.temporaryRedirect(restHelper.buildUri(request, "login")).build()
+        return ResponseAction(url = "/wa/login", targetType = TargetType.REDIRECT)
     }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,6 @@
 
 package org.projectforge.business.multitenancy;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -35,6 +30,11 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class TenantServiceImpl implements TenantService
@@ -61,9 +61,9 @@ public class TenantServiceImpl implements TenantService
   @Override
   public boolean isMultiTenancyAvailable()
   {
-    return tenantDao.tenantTableExists() == true
-        && GlobalConfiguration.getInstance().isMultiTenancyConfigured() == true
-        && hasTenants() == true;
+    return tenantDao.tenantTableExists()
+        && GlobalConfiguration.getInstance().isMultiTenancyConfigured()
+        && hasTenants();
   }
 
   @Override
@@ -88,7 +88,7 @@ public class TenantServiceImpl implements TenantService
     if (tenant.getAssignedUsers() == null) {
       return "";
     }
-    final List<String> list = new ArrayList<String>();
+    final List<String> list = new ArrayList<>();
     for (final PFUserDO user : tenant.getAssignedUsers()) {
       if (user != null) {
         list.add(user.getUsername());
@@ -181,7 +181,7 @@ public class TenantServiceImpl implements TenantService
   @Override
   public boolean hasSelectAccess(PFUserDO loggedInUser, TenantDO tenant, boolean b)
   {
-    return tenantDao.hasSelectAccess(loggedInUser, tenant, b);
+    return tenantDao.hasUserSelectAccess(loggedInUser, tenant, b);
   }
 
   @Override

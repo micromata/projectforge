@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,13 @@
 
 package org.projectforge.framework.persistence.api;
 
-import java.util.Date;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDateTime;
+
+import java.util.Date;
 
 public class SearchFilter extends BaseSearchFilter
 {
@@ -56,9 +56,8 @@ public class SearchFilter extends BaseSearchFilter
       super.setStartTimeOfModification(null);
       return this;
     }
-    final DateHolder dh = new DateHolder(startTimeOfLastModification, DatePrecision.MILLISECOND);
-    dh.setBeginOfDay();
-    super.setStartTimeOfModification(dh.getDate());
+    final PFDateTime dateTime = PFDateTime.from(startTimeOfLastModification).withPrecision(DatePrecision.MILLISECOND).getBeginOfDay();
+    super.setStartTimeOfModification(dateTime.getUtilDate());
     return this;
   }
 
@@ -69,9 +68,9 @@ public class SearchFilter extends BaseSearchFilter
       super.setStopTimeOfModification(null);
       return this;
     }
-    final DateHolder dh = new DateHolder(stopTimeOfLastModification, DatePrecision.MILLISECOND);
-    dh.setEndOfDay();
-    super.setStopTimeOfModification(dh.getDate());
+    final PFDateTime dateTime = PFDateTime.from(stopTimeOfLastModification).withPrecision(DatePrecision.MILLISECOND)
+        .getEndOfDay();
+    super.setStopTimeOfModification(dateTime.getUtilDate());
     return this;
   }
 
@@ -106,7 +105,7 @@ public class SearchFilter extends BaseSearchFilter
    */
   public boolean isEmpty()
   {
-    return StringUtils.isEmpty(searchString) == true
+    return StringUtils.isEmpty(searchString)
         && modifiedByUserId == null
         && startTimeOfModification == null
         && stopTimeOfModification == null;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,7 @@
 
 package org.projectforge.business.user;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-
-import java.util.Objects;
+import com.thoughtworks.xstream.XStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.multitenancy.TenantDao;
@@ -49,16 +43,15 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.GZIPHelper;
 import org.projectforge.framework.xstream.XStreamHelper;
-import org.projectforge.framework.xstream.converter.JodaDateMidnightConverter;
-import org.projectforge.framework.xstream.converter.JodaDateTimeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.thoughtworks.xstream.XStream;
+import javax.annotation.PostConstruct;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Stores all user persistent objects such as filter settings, personal settings and persists them to the database as
@@ -67,41 +60,29 @@ import com.thoughtworks.xstream.XStream;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class UserXmlPreferencesDao
-{
+public class UserXmlPreferencesDao {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserXmlPreferencesDao.class);
-
+  private final XStream xstream = XStreamHelper.createXStream();
   @Autowired
   private AccessChecker accessChecker;
-
   @Autowired
   private UserDao userDao;
-
   @Autowired
   private ApplicationContext applicationContext;
-
   @Autowired
   private RefactoringService refService;
-
   @Autowired
   private TenantDao tenantDao;
-
   @Autowired
   private PfEmgrFactory emgrFactory;
 
-  private final XStream xstream = XStreamHelper.createXStream();
-
   @PostConstruct
-  private void init()
-  {
-    xstream.processAnnotations(new Class<?>[] { UserXmlPreferencesMap.class, TaskFilter.class, TimesheetPrefData.class,
-        ScriptCallData.class, RecentScriptCalls.class });
+  private void init() {
+    xstream.processAnnotations(new Class<?>[]{UserXmlPreferencesMap.class, TaskFilter.class, TimesheetPrefData.class,
+            ScriptCallData.class, RecentScriptCalls.class});
     registerConverter(UserDao.class, PFUserDO.class, 20);
     registerConverter(GroupDao.class, GroupDO.class, 19);
     registerConverter(TaskDao.class, TaskDO.class, 18);
-    xstream.registerConverter(new JodaDateTimeConverter());
-    xstream.registerConverter(new JodaDateMidnightConverter());
   }
 
   /**
@@ -109,8 +90,7 @@ public class UserXmlPreferencesDao
    *
    * @param classes
    */
-  public void processAnnotations(final Class<?>... classes)
-  {
+  public void processAnnotations(final Class<?>... classes) {
     xstream.processAnnotations(classes);
   }
 
@@ -123,10 +103,9 @@ public class UserXmlPreferencesDao
    * @see UserXmlPreferencesBaseDOSingleValueConverter#UserXmlPreferencesBaseDOSingleValueConverter(Class, Class)
    */
   public void registerConverter(final Class<? extends BaseDao<?>> daoClass, final Class<? extends BaseDO<?>> doClass,
-      final int priority)
-  {
+                                final int priority) {
     xstream.registerConverter(new UserXmlPreferencesBaseDOSingleValueConverter(applicationContext, daoClass, doClass),
-        priority);
+            priority);
   }
 
   /**
@@ -136,15 +115,14 @@ public class UserXmlPreferencesDao
    * @param userId
    */
   public UserXmlPreferencesDO getUserPreferencesByUserId(final Integer userId, final String key,
-      final boolean checkAccess)
-  {
-    if (checkAccess == true) {
+                                                         final boolean checkAccess) {
+    if (checkAccess) {
       checkAccess(userId);
     }
     final List<UserXmlPreferencesDO> list = emgrFactory.runInTrans((emgr) -> {
       return emgr.selectAttached(UserXmlPreferencesDO.class,
-          "select u from UserXmlPreferencesDO u where u.user.id = :userid and u.key = :key",
-          "userid", userId, "key", key);
+              "select u from UserXmlPreferencesDO u where u.user.id = :userid and u.key = :key",
+              "userid", userId, "key", key);
     });
     Validate.isTrue(list.size() <= 1);
     if (list.size() == 1) {
@@ -153,8 +131,7 @@ public class UserXmlPreferencesDao
       return null;
   }
 
-  public <T> T getDeserializedUserPreferencesByUserId(final Integer userId, final String key, final Class<T> returnClass)
-  {
+  public <T> T getDeserializedUserPreferencesByUserId(final Integer userId, final String key, final Class<T> returnClass) {
     return (T) deserialize(userId, getUserPreferencesByUserId(userId, key, true), false);
   }
 
@@ -164,13 +141,11 @@ public class UserXmlPreferencesDao
    *
    * @param userId
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public List<UserXmlPreferencesDO> getUserPreferencesByUserId(final Integer userId)
-  {
+  public List<UserXmlPreferencesDO> getUserPreferencesByUserId(final Integer userId) {
     checkAccess(userId);
     return PfEmgrFactory.get().runInTrans((emgr) -> {
       return emgr.select(UserXmlPreferencesDO.class, "select u from UserXmlPreferencesDO u where u.user.id = :userid",
-          "userid", userId);
+              "userid", userId);
     });
   }
 
@@ -180,11 +155,10 @@ public class UserXmlPreferencesDao
    *
    * @param userId
    */
-  public void checkAccess(final Integer userId)
-  {
+  public void checkAccess(final Integer userId) {
     Validate.notNull(userId);
     final PFUserDO user = ThreadLocalUserContext.getUser();
-    if (Objects.equals(userId, user.getId()) == false) {
+    if (!Objects.equals(userId, user.getId())) {
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
     }
   }
@@ -196,8 +170,7 @@ public class UserXmlPreferencesDao
    * @param userPrefs
    * @param logError
    */
-  public Object deserialize(Integer userId, final UserXmlPreferencesDO userPrefs, final boolean logError)
-  {
+  public Object deserialize(Integer userId, final UserXmlPreferencesDO userPrefs, final boolean logError) {
     String xml = null;
     try {
       UserXmlPreferencesMigrationDao.migrate(userPrefs);
@@ -205,7 +178,7 @@ public class UserXmlPreferencesDao
       if (xml == null || xml.length() == 0) {
         return null;
       }
-      if (xml.startsWith("!") == true) {
+      if (xml.startsWith("!")) {
         // Uncompress value:
         final String uncompressed = GZIPHelper.uncompress(xml.substring(1));
         xml = uncompressed;
@@ -228,22 +201,21 @@ public class UserXmlPreferencesDao
       }
       return value;
     } catch (final Throwable ex) {
-      if (logError == true) {
+      if (logError) {
         log.warn("Can't deserialize user preferences: "
-            + ex.getMessage()
-            + " for user: "
-            + userPrefs.getUserId()
-            + ":"
-            + userPrefs.getKey()
-            + " (may-be ok after a new ProjectForge release). xml="
-            + xml);
+                + ex.getMessage()
+                + " for user: "
+                + userPrefs.getUserId()
+                + ":"
+                + userPrefs.getKey()
+                + " (may-be ok after a new ProjectForge release). xml="
+                + xml);
       }
       return null;
     }
   }
 
-  private String getSourceClassName(String xml)
-  {
+  private String getSourceClassName(String xml) {
     String[] elements = xml.split("\n");
     if (elements.length > 0) {
       String result = elements[0].replace("<", "").replace(">", "");
@@ -254,8 +226,7 @@ public class UserXmlPreferencesDao
     return null;
   }
 
-  public String serialize(final UserXmlPreferencesDO userPrefs, final Object value)
-  {
+  public String serialize(final UserXmlPreferencesDO userPrefs, final Object value) {
     final String xml = XStreamHelper.toXml(xstream, value);
 
     if (xml.length() > 1000) {
@@ -269,12 +240,10 @@ public class UserXmlPreferencesDao
   }
 
   // REQUIRES_NEW needed for avoiding a lot of new data base connections from HibernateFilter.
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
-  public void saveOrUpdateUserEntries(final Integer userId, final UserXmlPreferencesMap data, final boolean checkAccess)
-  {
+  public void saveOrUpdateUserEntries(final Integer userId, final UserXmlPreferencesMap data, final boolean checkAccess) {
     for (final Map.Entry<String, Object> prefEntry : data.getPersistentData().entrySet()) {
       final String key = prefEntry.getKey();
-      if (data.isModified(key) == true) {
+      if (data.isModified(key)) {
         try {
           saveOrUpdate(userId, key, prefEntry.getValue(), checkAccess);
         } catch (final Throwable ex) {
@@ -286,20 +255,16 @@ public class UserXmlPreferencesDao
   }
 
   /**
-   * @param sheet
    * @param userId If null, then user will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setUser(final UserXmlPreferencesDO userPrefs, final Integer userId)
-  {
+  public void setUser(final UserXmlPreferencesDO userPrefs, final Integer userId) {
     final PFUserDO user = userDao.getOrLoad(userId);
     userPrefs.setUser(user);
   }
 
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
-  public void saveOrUpdate(final Integer userId, final String key, final Object entry, final boolean checkAccess)
-  {
-    if (accessChecker.isDemoUser(userId) == true) {
+  public void saveOrUpdate(final Integer userId, final String key, final Object entry, final boolean checkAccess) {
+    if (accessChecker.isDemoUser(userId)) {
       // Do nothing.
       return;
     }
@@ -321,8 +286,8 @@ public class UserXmlPreferencesDao
     userPrefs.setLastUpdate(date);
     userPrefs.setVersion();
     final UserXmlPreferencesDO userPrefsForDB = userPrefs;
-    if (isNew == true) {
-      if (log.isDebugEnabled() == true) {
+    if (isNew) {
+      if (log.isDebugEnabled()) {
         log.debug("Storing new user preference for user '" + userId + "': " + xml);
       }
       emgrFactory.runInTrans(emgr -> {
@@ -330,7 +295,7 @@ public class UserXmlPreferencesDao
         return null;
       });
     } else {
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("Updating user preference for user '" + userPrefs.getUserId() + "': " + xml);
       }
       emgrFactory.runInTrans(emgr -> {
@@ -346,10 +311,8 @@ public class UserXmlPreferencesDao
     }
   }
 
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
-  public void remove(final Integer userId, final String key)
-  {
-    if (accessChecker.isDemoUser(userId) == true) {
+  public void remove(final Integer userId, final String key) {
+    if (accessChecker.isDemoUser(userId)) {
       // Do nothing.
       return;
     }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,58 @@
 
 package org.projectforge.ui
 
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
+
 /**
  * Given as response of a rest call to inform the client on how to proceed.
  */
 class ResponseAction(val url: String? = null,
-                     val targetType: TargetType? = null,
-                     val validationErrors : List<ValidationError>? = null) {
-    internal var variables: MutableMap<String, Any>? = null
+                     /**
+                      * Default value is [TargetType.REDIRECT] for given url, otherwise null.
+                      */
+                     var targetType: TargetType? = null,
+                     val validationErrors: List<ValidationError>? = null,
+                     val message: Message? = null,
+                     variables: MutableMap<String, Any>? = null) {
+    class Message(val i18nKey: String? = null,
+                  /**
+                   * The message to display for the user.
+                   */
+                  var message: String? = null,
+                  /** The (technical) message. */
+                  var technicalMessage: String? = null,
+                  var color: UIColor? = null,
+                  vararg messageParams: String) {
+        init {
+            if (message == null && i18nKey != null) {
+                if (messageParams.isNotEmpty())
+                    message = translateMsg(i18nKey, messageParams)
+                else
+                    message = translate(i18nKey)
+            }
+        }
+    }
 
     /**
+     * Variables sent to the client.
+     */
+    private var variables: MutableMap<String, Any>? = null
+
+    init {
+        this.variables = variables
+        if (message != null && targetType == null) {
+            targetType = TargetType.TOAST
+        } else if (!url.isNullOrEmpty() && targetType == null) {
+            targetType = TargetType.REDIRECT
+        }
+    }
+
+    /**
+     * Adds a variable sent to the client.
      * @return this for chaining.
      */
-    fun addVariable(variable: String, value: Any?) :ResponseAction {
+    fun addVariable(variable: String, value: Any?): ResponseAction {
         if (value != null) {
             if (variables == null) {
                 variables = mutableMapOf()
@@ -55,7 +95,31 @@ enum class TargetType {
      */
     DOWNLOAD,
     /**
-     * The client calls the rest service with the given url and will receive a response.
+     * Show the result message as toast message.
      */
-    RESTCALL
+    TOAST,
+    /**
+     * The client should update all values / states. The values to update are given as variable.
+     */
+    UPDATE,
+    /**
+     * The client should call the given url with http method GET.
+     */
+    GET,
+    /**
+     * The client should call the given url with http method PUT.
+     */
+    PUT,
+    /**
+     * The client should call the given url with http method POST.
+     */
+    POST,
+    /**
+     * The client should call the given url with http method DELETE.
+     */
+    DELETE,
+    /**
+     * No action by the client required.
+     */
+    NOTHING
 }

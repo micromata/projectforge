@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,11 @@
 
 package org.projectforge.export;
 
-import java.util.Locale;
-
-import org.projectforge.business.excel.ContentProvider;
-import org.projectforge.business.excel.ExcelDateFormats;
-import org.projectforge.business.excel.ExportConfig;
-import org.projectforge.business.excel.ExportContext;
-import org.projectforge.business.excel.ExportWorkbook;
+import org.projectforge.business.excel.*;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.Locale;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -42,7 +38,7 @@ public class MyXlsExportContext implements ExportContext
 
   public MyXlsExportContext()
   {
-    if (initialized == false) {
+    if (!initialized) {
       initialized = true;
       ExportConfig.setInstance(new ExportConfig()
       {

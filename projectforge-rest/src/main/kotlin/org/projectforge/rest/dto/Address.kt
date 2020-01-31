@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,7 +25,7 @@ package org.projectforge.rest.dto
 
 import org.projectforge.business.address.*
 import org.projectforge.framework.utils.LabelValueBean
-import java.sql.Date
+import java.time.LocalDate
 import java.util.*
 
 class Address(var contactStatus: ContactStatus? = null,
@@ -65,7 +65,7 @@ class Address(var contactStatus: ContactStatus? = null,
               var publicKey: String? = null,
               var fingerprint: String? = null,
               var comment: String? = null,
-              var birthday: Date? = null,
+              var birthday: LocalDate? = null,
               var imageData: ByteArray? = null,
               var instantMessaging: MutableList<LabelValueBean<InstantMessagingType, String>>? = null,
               var addressbookList: MutableSet<Addressbook>? = null,

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,10 @@
 
 package org.projectforge.business.systeminfo;
 
-import java.io.File;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.AppVersion;
+import org.projectforge.business.address.BirthdayCache;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.fibu.kost.KostCache;
@@ -50,8 +42,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.*;
 
 /**
  * Provides some system routines.
@@ -59,9 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Kai Reinhard (k.reinhard@micromata.de), Florian Blumenstein
  */
 @Service
-@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-public class SystemService
-{
+public class SystemService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SystemService.class);
 
   @Autowired
@@ -92,22 +85,23 @@ public class SystemService
   @Autowired
   private RestCallService restCallService;
 
-  public VersionCheck getVersionCheckInformations()
-  {
+  public VersionCheck getVersionCheckInformations() {
     Locale locale = ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getLocale() != null ?
-        ThreadLocalUserContext.getUser().getLocale() :
-        ThreadLocalUserContext.getLocale();
+            ThreadLocalUserContext.getUser().getLocale() :
+            ThreadLocalUserContext.getLocale();
     TimeZone timeZone = ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getTimeZone() != null ?
-        TimeZone.getTimeZone(ThreadLocalUserContext.getUser().getTimeZone()) :
-        ThreadLocalUserContext.getTimeZone();
+            TimeZone.getTimeZone(ThreadLocalUserContext.getUser().getTimeZone()) :
+            ThreadLocalUserContext.getTimeZone();
     VersionCheck versionCheck = new VersionCheck(AppVersion.VERSION.toString(), locale, timeZone);
-    versionCheck = restCallService.callRestInterfaceForUrl(versionCheckUrl, HttpMethod.POST, VersionCheck.class, versionCheck);
+    try {
+      versionCheck = restCallService.callRestInterfaceForUrl(versionCheckUrl, HttpMethod.POST, VersionCheck.class, versionCheck);
+    } catch (Exception ex) {
+      // System offline?
+    }
     return versionCheck;
   }
 
-  @Transactional(propagation = Propagation.SUPPORTS)
-  public boolean isNewPFVersionAvailable()
-  {
+  public boolean isNewPFVersionAvailable() {
     LocalDate now = LocalDate.now();
     if (lastVersionCheckDate == null) {
       lastVersionCheckDate = LocalDate.now().minusDays(1);
@@ -118,7 +112,7 @@ public class SystemService
       try {
         VersionCheck versionCheckInformations = getVersionCheckInformations();
         if (versionCheckInformations != null && StringUtils.isNotEmpty(versionCheckInformations.getSourceVersion()) && StringUtils
-            .isNotEmpty(versionCheckInformations.getTargetVersion())) {
+                .isNotEmpty(versionCheckInformations.getTargetVersion())) {
           String[] sourceVersionPartsWithoutMinus = versionCheckInformations.getSourceVersion().split("-");
           String[] targetVersionPartsWithoutMinus = versionCheckInformations.getTargetVersion().split("-");
           if (sourceVersionPartsWithoutMinus.length > 0 && targetVersionPartsWithoutMinus.length > 0) {
@@ -147,8 +141,7 @@ public class SystemService
     return newPFVersionAvailable;
   }
 
-  private int[] getIntegerVersionArray(final String[] sourceVersionParts)
-  {
+  private int[] getIntegerVersionArray(final String[] sourceVersionParts) {
     int[] result = new int[4];
     for (int i = 0; i < 4; i++) {
       try {
@@ -160,13 +153,11 @@ public class SystemService
     return result;
   }
 
-  public void setLastVersionCheckDate(LocalDate newDateValue)
-  {
+  public void setLastVersionCheckDate(LocalDate newDateValue) {
     lastVersionCheckDate = newDateValue;
   }
 
-  public String exportSchema()
-  {
+  public String exportSchema() {
     final SchemaExport exp = new SchemaExport();
     File file;
     try {
@@ -192,9 +183,8 @@ public class SystemService
    *
    * @return
    */
-  public String checkSystemIntegrity()
-  {
-    final StringBuffer buf = new StringBuffer();
+  public String checkSystemIntegrity() {
+    final StringBuilder buf = new StringBuilder();
     buf.append("ProjectForge system integrity check.\n\n");
     buf.append("------------------------------------\n");
     buf.append("|                                  |\n");
@@ -203,7 +193,7 @@ public class SystemService
     buf.append("------------------------------------\n");
     final List<TaskDO> tasks = taskDao.internalLoadAll();
     buf.append("Found " + tasks.size() + " tasks.\n");
-    final Map<Integer, TaskDO> taskMap = new HashMap<Integer, TaskDO>();
+    final Map<Integer, TaskDO> taskMap = new HashMap<>();
     for (final TaskDO task : tasks) {
       taskMap.put(task.getId(), task);
     }
@@ -211,7 +201,7 @@ public class SystemService
     boolean abandonedTasks = false;
     for (final TaskDO task : tasks) {
       if (task.getParentTask() == null) {
-        if (rootTask == true) {
+        if (rootTask) {
           buf.append("\n*** Error: Found another root task:\n " + task + "\n");
         } else {
           buf.append("\nFound root task:\n " + task + "\n");
@@ -231,7 +221,7 @@ public class SystemService
           }
           ancestor = taskMap.get(ancestor.getParentTaskId());
         }
-        if (rootTaskFound == false) {
+        if (!rootTaskFound) {
           buf.append("\n*** Error: Found abandoned task (cyclic tasks without path to root):\n " + task + "\n");
           abandonedTasks = true;
         } else {
@@ -240,7 +230,7 @@ public class SystemService
       }
       taskMap.put(task.getId(), task);
     }
-    if (abandonedTasks == false) {
+    if (!abandonedTasks) {
       buf.append("\n\nTest OK, no abandoned tasks detected.");
     } else {
       buf.append("\n\n*** Test FAILED, abandoned tasks detected.");
@@ -253,8 +243,7 @@ public class SystemService
    *
    * @return the name of the refreshed caches.
    */
-  public String refreshCaches()
-  {
+  public String refreshCaches() {
     final TenantRegistry tenantRegistry = TenantRegistryMap.getInstance().getTenantRegistry();
     tenantRegistry.getUserGroupCache().forceReload();
     tenantRegistry.getTaskTree().forceReload();
@@ -262,11 +251,11 @@ public class SystemService
     kostCache.forceReload();
     rechnungCache.forceReload();
     systemInfoCache.forceReload();
-    return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, SystemInfoCache";
+    TenantRegistryMap.getCache(BirthdayCache.class).forceReload();
+    return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, SystemInfoCache, BirthdayCache";
   }
 
-  public void setEnableVersionCheck(final boolean enableVersionCheck)
-  {
+  public void setEnableVersionCheck(final boolean enableVersionCheck) {
     this.enableVersionCheck = enableVersionCheck;
   }
 }

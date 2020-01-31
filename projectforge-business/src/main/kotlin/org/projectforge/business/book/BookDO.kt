@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,20 +23,21 @@
 
 package org.projectforge.business.book
 
-import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import org.hibernate.search.annotations.*
 import org.hibernate.search.annotations.Index
-import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 import javax.persistence.*
 
 /**
+ * For managing libraries including lend-out functionality.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
@@ -46,94 +47,93 @@ import javax.persistence.*
         indexes = [javax.persistence.Index(name = "idx_fk_t_book_lend_out_by",
                 columnList = "lend_out_by"), javax.persistence.Index(name = "idx_fk_t_book_tenant_id",
                 columnList = "tenant_id"), javax.persistence.Index(name = "t_book_pkey", columnList = "pk")])
-class BookDO : DefaultBaseDO() {
+@NamedQueries(
+        NamedQuery(name = BookDO.FIND_BY_SIGNATURE, query = "from BookDO where signature=:signature"),
+        NamedQuery(name = BookDO.FIND_OTHER_BY_SIGNATURE, query = "from BookDO where signature=:signature and id<>:id"))
+open class BookDO : DefaultBaseDO(), DisplayNameCapable {
+    override val displayName: String
+        @Transient
+        get() = "$authors: $title"
 
     @PropertyInfo(i18nKey = "book.title", required = true)
     @Field
     @get:Column(length = 255)
-    var title: String? = null
+    open var title: String? = null
 
     @PropertyInfo(i18nKey = "book.keywords")
     @Field
     @get:Column(length = 1024)
-    var keywords: String? = null
+    open var keywords: String? = null
 
     @PropertyInfo(i18nKey = "book.lendOutBy")
     @IndexedEmbedded(depth = 1, includePaths = ["username", "firstname", "lastname"])
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:Fetch(FetchMode.SELECT)
     @get:JoinColumn(name = "lend_out_by")
-    var lendOutBy: PFUserDO? = null
+    open var lendOutBy: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "date")
     @Field(index = Index.YES, analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "lend_out_date")
-    var lendOutDate: Date? = null
+    open var lendOutDate: Date? = null
 
     @PropertyInfo(i18nKey = "book.lendOutNote")
     @Field
     @get:Column(name = "lend_out_comment", length = 1024)
-    var lendOutComment: String? = null
+    open var lendOutComment: String? = null
 
     @PropertyInfo(i18nKey = "book.isbn")
     @Field
     @get:Column(length = 255)
-    var isbn: String? = null
+    open var isbn: String? = null
 
     @PropertyInfo(i18nKey = "book.signature")
     @Field
     @get:Column(length = 255)
-    var signature: String? = null
+    open var signature: String? = null
 
     @PropertyInfo(i18nKey = "book.publisher")
     @Field
     @get:Column(length = 255)
-    var publisher: String? = null
+    open var publisher: String? = null
 
     @PropertyInfo(i18nKey = "book.editor")
     @Field
     @get:Column(length = 255)
-    var editor: String? = null
+    open var editor: String? = null
 
     @PropertyInfo(i18nKey = "book.yearOfPublishing")
     @Field(index = Index.YES, store = Store.NO, name = "year")
     @get:Column(name = "year_of_publishing", length = 4)
-    var yearOfPublishing: String? = null
+    open var yearOfPublishing: String? = null
 
     @PropertyInfo(i18nKey = "book.authors")
     @Field
     @get:Column(length = 1000)
-    var authors: String? = null
+    open var authors: String? = null
 
     @PropertyInfo(i18nKey = "book.abstract")
     @Field(index = Index.YES, store = Store.NO, name = "abstract")
     @get:Column(name = "abstract_text", length = 4000)
-    var abstractText: String? = null
+    open var abstractText: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = 1000)
-    var comment: String? = null
+    open var comment: String? = null
 
     @PropertyInfo(i18nKey = "status")
     @Field(index = Index.YES, analyze = Analyze.NO, store = Store.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20, nullable = false)
-    var status: BookStatus? = null
+    open var status: BookStatus? = null
 
     @PropertyInfo(i18nKey = "book.type")
     @Field(index = Index.YES, analyze = Analyze.NO, store = Store.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "book_type", length = 20, nullable = true)
-    var type: BookType? = null
-
-    @Deprecated("This field will be removed from the data-base. Is not in use anymore and will be automatically set to ProjectForge's root task.")
-    @field:NoHistory
-    @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "task_id", nullable = false)
-    @Transient
-    var task : TaskDO? = null
+    open var type: BookType? = null
 
     /**
      * Converts numbers in signature for alphanumeric sorting in 5-digit form. For example: "WT-145a" -&gt; "WT-00145a".
@@ -148,8 +148,8 @@ class BookDO : DefaultBaseDO() {
             var no: StringBuffer? = null
             for (i in 0 until this.signature!!.length) {
                 val ch = this.signature!![i]
-                if (Character.isDigit(ch) == false) {
-                    if (no != null && no.length > 0) {
+                if (!Character.isDigit(ch)) {
+                    if (no != null && no.isNotEmpty()) {
                         buf.append(StringUtils.leftPad(no.toString(), 5, '0'))
                         no = null
                     }
@@ -161,13 +161,15 @@ class BookDO : DefaultBaseDO() {
                     no.append(ch)
                 }
             }
-            if (no != null && no.length > 0) {
+            if (no != null && no.isNotEmpty()) {
                 buf.append(StringUtils.leftPad(no.toString(), 5, '0'))
             }
             return buf.toString()
         }
 
     companion object {
-        private val serialVersionUID = 8036741307214351813L
+        internal const val FIND_BY_SIGNATURE = "BookDO_FindBySignature"
+
+        internal const val FIND_OTHER_BY_SIGNATURE = "BookDO_FindOtherBySignature"
     }
 }

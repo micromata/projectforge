@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,7 @@
 
 package org.projectforge.plugins.todo;
 
-import org.projectforge.continuousdb.SchemaGenerator;
-import org.projectforge.continuousdb.UpdateEntry;
-import org.projectforge.continuousdb.UpdateEntryImpl;
-import org.projectforge.continuousdb.UpdatePreCheckStatus;
-import org.projectforge.continuousdb.UpdateRunningStatus;
+import org.projectforge.continuousdb.*;
 import org.projectforge.framework.persistence.database.DatabaseService;
 
 /**
@@ -38,7 +34,7 @@ import org.projectforge.framework.persistence.database.DatabaseService;
  */
 public class ToDoPluginUpdates
 {
-  static DatabaseService dao;
+  static DatabaseService databaseService;
 
   @SuppressWarnings("serial")
   public static UpdateEntry getInitializationUpdateEntry()
@@ -50,7 +46,7 @@ public class ToDoPluginUpdates
       {
         // Does the data-base table already exist?
         // Check only the oldest table.
-        if (dao.doTablesExist(ToDoDO.class) == true) {
+        if (databaseService.doTablesExist(ToDoDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           // The oldest table doesn't exist, therefore the plug-in has to initialized completely.
@@ -62,8 +58,8 @@ public class ToDoPluginUpdates
       public UpdateRunningStatus runUpdate()
       {
         // Create initial data-base table:
-        new SchemaGenerator(dao).add(ToDoDO.class).createSchema();
-        dao.createMissingIndices();
+        new SchemaGenerator(databaseService).add(ToDoDO.class).createSchema();
+        databaseService.createMissingIndices();
         return UpdateRunningStatus.DONE;
       }
     };

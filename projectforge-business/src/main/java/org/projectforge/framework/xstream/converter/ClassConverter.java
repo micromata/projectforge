@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,7 +29,7 @@ import org.projectforge.framework.xstream.XmlConstants;
 /**
  * Class names are stored as full qualified strings such as "org.projectforge.web.calendar.CalendarPage".
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class ClassConverter implements IConverter<Class< ? >>
 {
@@ -43,7 +43,7 @@ public class ClassConverter implements IConverter<Class< ? >>
   @Override
   public Class< ? > fromString(final String str)
   {
-    if (StringUtils.isBlank(str) == true || XmlConstants.NULL_IDENTIFIER.equals(str) == true) {
+    if (StringUtils.isBlank(str) || XmlConstants.NULL_IDENTIFIER.equals(str)) {
       return null;
     }
     try {

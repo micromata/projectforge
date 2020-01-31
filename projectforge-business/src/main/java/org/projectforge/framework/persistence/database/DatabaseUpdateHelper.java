@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -98,10 +98,10 @@ public class DatabaseUpdateHelper
    */
   private static Integer[] indexOf(final String str, final String searchString)
   {
-    if (str == null || str.indexOf(searchString) < 0) {
+    if (str == null || !str.contains(searchString)) {
       return null;
     }
-    final List<Integer> list = new ArrayList<Integer>();
+    final List<Integer> list = new ArrayList<>();
     int pos = -1;
     final int length = str.length();
     for (int i = 0; i < 100; i++) {
@@ -118,12 +118,12 @@ public class DatabaseUpdateHelper
           if (ch == ',' || ch == '[') {
             break;
           }
-          if (Character.isWhitespace(ch) == false) {
+          if (!Character.isWhitespace(ch)) {
             syntax = false;
             break;
           }
         }
-        if (syntax == true) {
+        if (syntax) {
           list.add(pos);
         }
       } else {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,10 @@
 
 package org.projectforge.continuousdb;
 
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.common.BeanHelper;
+
+import javax.persistence.*;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
@@ -30,15 +34,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.persistence.DiscriminatorColumn;
-import javax.persistence.DiscriminatorType;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.UniqueConstraint;
-
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.common.BeanHelper;
 
 /**
  * Represents one attribute of a table (e. g. for creation).
@@ -59,7 +54,7 @@ public class Table implements Serializable
 
   private UniqueConstraint[] uniqueConstraints;
 
-  private final List<TableAttribute> attributes = new ArrayList<TableAttribute>();
+  private final List<TableAttribute> attributes = new ArrayList<>();
 
   private Table superTable;
 
@@ -74,7 +69,7 @@ public class Table implements Serializable
       log.info("Unsupported class (@Entity expected): " + entityClass);
       return;
     }
-    if (table != null && StringUtils.isNotEmpty(table.name()) == true) {
+    if (table != null && StringUtils.isNotEmpty(table.name())) {
       this.name = table.name();
       uniqueConstraints = table.uniqueConstraints();
     } else if (discriminatorValue != null) {
@@ -106,7 +101,7 @@ public class Table implements Serializable
   public TableAttribute getAttributeByProperty(final String property)
   {
     for (final TableAttribute attr : attributes) {
-      if (property.equals(attr.getProperty()) == true) {
+      if (property.equals(attr.getProperty())) {
         return attr;
       }
     }
@@ -120,7 +115,7 @@ public class Table implements Serializable
     }
     final String lowerCase = name.toLowerCase();
     for (final TableAttribute attr : attributes) {
-      if (lowerCase.equals(attr.getName().toLowerCase()) == true) {
+      if (lowerCase.equals(attr.getName().toLowerCase())) {
         return attr;
       }
     }
@@ -137,7 +132,7 @@ public class Table implements Serializable
    */
   public String getName()
   {
-    if (StringUtils.isEmpty(this.name) == true && this.superTable != null) {
+    if (StringUtils.isEmpty(this.name) && this.superTable != null) {
       return this.superTable.getName();
     }
     return name;
@@ -177,7 +172,7 @@ public class Table implements Serializable
   public TableAttribute getPrimaryKey()
   {
     for (final TableAttribute attr : attributes) {
-      if (attr.isPrimaryKey() == true) {
+      if (attr.isPrimaryKey()) {
         return attr;
       }
     }
@@ -266,7 +261,7 @@ public class Table implements Serializable
         continue;
       }
       final String fieldName = field.getName();
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug(name + "." + fieldName);
       }
       addTableAttribute(fieldName, annotations);
@@ -276,7 +271,7 @@ public class Table implements Serializable
       if (annotations == null) {
         continue;
       }
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug(name + "." + method.getName());
       }
       final String property = BeanHelper.getProperty(method);

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,7 @@ import org.projectforge.common.i18n.I18nEnum;
  */
 public enum VacationMode implements I18nEnum
 {
-  OWN("own"), SUBSTITUTION("substitution"), MANAGER("manager"), OTHER("other");
+  OWN("own"), REPLACEMENT("replacement"), MANAGER("manager"), OTHER("other");
 
   private String key;
 

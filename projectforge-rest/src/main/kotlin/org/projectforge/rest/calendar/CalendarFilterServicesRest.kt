@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,18 +25,20 @@ package org.projectforge.rest.calendar
 
 import org.projectforge.business.calendar.*
 import org.projectforge.business.teamcal.admin.TeamCalCache
-import org.projectforge.business.user.service.UserPreferencesService
+import org.projectforge.business.timesheet.TimesheetDao
+import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.dto.Group
+import org.projectforge.rest.dto.User
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.util.*
 
@@ -47,11 +49,18 @@ import java.util.*
 @RequestMapping("${Rest.URL}/calendar")
 class CalendarFilterServicesRest {
     class CalendarInit(var date: PFDateTime? = null,
-                       @Suppress("unused") var view: CalendarView? = CalendarView.WEEK,
+                       @Suppress("unused")
+                       var view: CalendarView? = CalendarView.WEEK,
                        var teamCalendars: List<StyledTeamCalendar>? = null,
                        var filterFavorites: List<Favorites.FavoriteIdTitle>? = null,
-                       var currentFilter: CalendarFilter? = null,
+                       /**
+                        * The current filter.
+                        */
+                       var filter: CalendarFilter? = null,
+                       var timesheetUser: User? = null,
                        var activeCalendars: MutableList<StyledTeamCalendar>? = null,
+                       var vacationGroups: List<Group>? = null,
+                       var vacationUsers: List<User>? = null,
                        /**
                         * This is the list of possible default calendars (with full access). The user may choose one which is
                         * used as default if creating a new event. The pseudo calendar -1 for own time sheets is
@@ -59,26 +68,135 @@ class CalendarFilterServicesRest {
                         */
                        var listOfDefaultCalendars: List<TeamCalendar>? = null,
                        var styleMap: CalendarStyleMap? = null,
-                       var translations: Map<String, String>? = null)
+                       var translations: Map<String, String>? = null,
+                       /**
+                        * If true, the client should provide an save button for syncing the current filter to the data base.
+                        */
+                       var isFilterModified: Boolean = false)
 
     companion object {
-        private const val PREF_KEY_FAV_LIST = "calendar.favorite.list"
-        internal const val PREF_KEY_CURRENT_FAV = "calendar.favorite.current"
-        private const val PREF_KEY_STATE = "calendar.state"
-        private const val PREF_KEY_STYLES = "calendar.styles"
+        private val log = org.slf4j.LoggerFactory.getLogger(CalendarFilterServicesRest::class.java)
+
+        private const val PREF_AREA = "calendar"
+        private const val PREF_NAME_STATE = "state"
+        private const val PREF_NAME_STYLES = "styles"
+
+        internal fun getCurrentFilter(userPrefService: UserPrefService): CalendarFilter? {
+            return userPrefService.getEntry(PREF_AREA, Favorites.PREF_NAME_CURRENT, CalendarFilter::class.java)
+                    ?: migrateFromLegacyFilter(userPrefService)?.current
+        }
+
+        private fun migrateFromLegacyFilter(userPrefService: UserPrefService): CalendarLegacyFilter? {
+            val legacyFilter = CalendarLegacyFilter.migrate(userPrefService.userXmlPreferencesService) ?: return null
+            log.info("User's legacy calendar filter migrated.")
+            userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_LIST, legacyFilter.list)
+            userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_CURRENT, legacyFilter.current)
+            // Filter state is now separately stored:
+            userPrefService.putEntry(PREF_AREA, PREF_NAME_STATE, legacyFilter.state)
+            // Filter styles are now separately stored:
+            userPrefService.putEntry(PREF_AREA, PREF_NAME_STYLES, legacyFilter.styleMap)
+            return legacyFilter
+        }
     }
 
-    private val log = org.slf4j.LoggerFactory.getLogger(CalendarFilterServicesRest::class.java)
+    @Autowired
+    private lateinit var userPrefService: UserPrefService
 
     @Autowired
     private lateinit var teamCalCache: TeamCalCache
 
     @Autowired
-    private lateinit var userPreferenceService: UserPreferencesService
+    private lateinit var timesheetDao: TimesheetDao
 
     @GetMapping("initial")
     fun getInitialCalendar(): CalendarInit {
+        val userGroupCache = UserGroupCache.tenantInstance
         val initial = CalendarInit()
+        val calendars = getCalendars()
+        val currentFilter = getCurrentFilter()
+        initial.filter = currentFilter
+
+        currentFilter.otherTimesheetUsersEnabled = timesheetDao.showTimesheetsOfOtherUsers()
+        val timesheetUser = userGroupCache.getUser(currentFilter.timesheetUserId)
+        if (timesheetUser != null) {
+            initial.timesheetUser = User()
+            initial.timesheetUser!!.copyFromMinimal(timesheetUser)
+        }
+
+        val styleMap = getStyleMap()
+        initial.styleMap = styleMap
+
+        initial.teamCalendars = StyledTeamCalendar.map(calendars, styleMap) // Add the styles of the styleMap to the exported calendars.
+
+        val state = getFilterState()
+        initial.date = PFDateTime.fromOrNow(state.startDate)
+        initial.view = state.view
+
+        initial.activeCalendars = getActiveCalendars(currentFilter, calendars, styleMap)
+        initial.vacationGroups = currentFilter.vacationGroupIds?.map {
+            val group = Group()
+            val dbGroup = userGroupCache.getGroup(it)
+            if (dbGroup != null) {
+                group.copyFromMinimal(dbGroup)
+            }
+            group
+        }?.filter { it.id != null }
+        initial.vacationUsers = currentFilter.vacationUserIds?.map {
+            val user = User()
+            val dbUser = userGroupCache.getUser(it)
+            if (dbUser != null) {
+                user.copyFromMinimal(dbUser)
+            }
+            user
+        }?.filter { it.id != null }
+
+        val favorites = getFilterFavorites()
+        initial.filterFavorites = favorites.idTitleList
+
+        initial.isFilterModified = isCurrentFilterModified(currentFilter, favorites.get(currentFilter.id))
+
+        val listOfDefaultCalendars = mutableListOf<TeamCalendar>()
+        initial.activeCalendars?.forEach { activeCal ->
+            val cal = calendars.find { it.id == activeCal.id }
+            if (cal != null && (cal.access == TeamCalendar.ACCESS.OWNER || cal.access == TeamCalendar.ACCESS.FULL)
+                    && !cal.externalSubscription) {
+                // Calendar with full access:
+                listOfDefaultCalendars.add(TeamCalendar(id = cal.id, title = cal.title))
+            }
+        }
+
+        listOfDefaultCalendars.sortBy { it.title?.toLowerCase() }
+        listOfDefaultCalendars.add(0, TeamCalendar(id = -1, title = translate("calendar.option.timesheets"))) // prepend time sheet pseudo calendar
+        initial.listOfDefaultCalendars = listOfDefaultCalendars
+
+        val translations = addTranslations(
+                "select.placeholder",
+                "calendar.filter.dialog.title",
+                "calendar.filter.vacation.groups",
+                "calendar.filter.vacation.groups.tooltip",
+                "calendar.filter.vacation.users",
+                "calendar.filter.vacation.users.tooltip",
+                "calendar.filter.visible",
+                "calendar.defaultCalendar",
+                "calendar.defaultCalendar.tooltip",
+                "calendar.navigation.today",
+                "calendar.option.gridSize",
+                "calendar.option.timesheets",
+                "calendar.showMore",
+                "calendar.title",
+                "calendar.view.agenda",
+                "calendar.view.day",
+                "calendar.view.month",
+                "calendar.view.week",
+                "calendar.view.workWeek",
+                "settings",
+                "tooltip.selectMe")
+        Favorites.addTranslations(translations)
+        initial.translations = translations
+        return initial
+    }
+
+    private fun getCalendars(): MutableList<TeamCalendar> {
         val list = teamCalCache.allAccessibleCalendars
         val userId = ThreadLocalUserContext.getUserId()
         val calendars = list.map { teamCalDO ->
@@ -88,67 +206,36 @@ class CalendarFilterServicesRest {
 
         calendars.add(0, TeamCalendar.createFavoritesBirthdaysPseudoCalendar())
         calendars.add(0, TeamCalendar.createAllBirthdaysPseudoCalendar())
+        return calendars
+    }
 
-        val currentFilter = getCurrentFilter()
-        initial.currentFilter = currentFilter
-
-        val styleMap = getStyleMap()
-        initial.styleMap = styleMap
-
-        initial.teamCalendars = StyledTeamCalendar.map(calendars, styleMap) // Add the styles of the styleMap to the exported calendars.
-
-        val state = getFilterState()
-        initial.date = PFDateTime.from(state.startDate)
-        initial.view = state.view
-
-        initial.activeCalendars = currentFilter.calendarIds.map { id ->
+    private fun getActiveCalendars(currentFilter: CalendarFilter, calendars: List<TeamCalendar>, styleMap: CalendarStyleMap): MutableList<StyledTeamCalendar> {
+        val activeCalendars = currentFilter.calendarIds.map { id ->
             StyledTeamCalendar(calendars.find { it.id == id }, // Might be not accessible / null, see below.
                     style = styleMap.get(id), // Add the styles of the styleMap to the exported calendar.
                     visible = currentFilter.isVisible(id)
             )
         }.toMutableList()
+        activeCalendars.removeIf { it.id == null } // Access to this calendars is not given (anymore).
 
-        initial.activeCalendars?.removeIf { it.id == null } // Access to this calendars is not given (anymore).
+        activeCalendars.sortWith(compareBy(ThreadLocalUserContext.getLocaleComparator()) { it.title })
+        return activeCalendars
+    }
 
-        initial.activeCalendars?.sortWith(compareBy(ThreadLocalUserContext.getLocaleComparator()) { it.title })
+    private fun isCurrentFilterModified(currentFilter: CalendarFilter): Boolean {
+        val favorite = getFilterFavorites().get(currentFilter.id)
+        return isCurrentFilterModified(currentFilter, favorite)
+    }
 
-        val favorites = getFilterFavorites()
-        initial.filterFavorites = favorites.idTitleList
-
-        val listOfDefaultCalendars = mutableListOf<TeamCalendar>()
-        initial.activeCalendars?.forEach { activeCal ->
-            val cal = calendars.find { it.id == activeCal.id }
-            if (cal != null && (cal.access == TeamCalendar.ACCESS.OWNER || cal.access == TeamCalendar.ACCESS.FULL)) {
-                // Calendar with full access:
-                listOfDefaultCalendars.add(TeamCalendar(id = cal.id, title = cal.title))
-            }
-        }
-        listOfDefaultCalendars.sortBy { it.title?.toLowerCase() }
-        listOfDefaultCalendars.add(0, TeamCalendar(id = -1, title = translate("calendar.option.timesheeets"))) // prepend time sheet pseudo calendar
-        initial.listOfDefaultCalendars = listOfDefaultCalendars
-
-        initial.translations = addTranslations(
-                "select.placeholder",
-                "calendar.filter.dialog.title",
-                "calendar.filter.visible",
-                "calendar.defaultCalendar",
-                "calendar.defaultCalendar.tooltip",
-                "calendar.navigation.today",
-                "calendar.view.agenda",
-                "calendar.view.day",
-                "calendar.view.month",
-                "calendar.view.week",
-                "calendar.view.workWeek",
-                "favorites",
-                "delete",
-                "rename",
-                "save")
-        return initial
+    private fun isCurrentFilterModified(currentFilter: CalendarFilter, favoriteFilter: CalendarFilter?): Boolean {
+        if (favoriteFilter == null)
+            return false
+        return currentFilter.isModified(favoriteFilter)
     }
 
     @GetMapping("changeStyle")
     fun changeCalendarStyle(@RequestParam("calendarId", required = true) calendarId: Int,
-                            @RequestParam("bgColor") bgColor: String?) {
+                            @RequestParam("bgColor") bgColor: String?): Map<String, Any> {
         var style = getStyleMap().get(calendarId)
         if (style == null) {
             style = CalendarStyle()
@@ -161,75 +248,174 @@ class CalendarFilterServicesRest {
                 throw IllegalArgumentException("Hex code of color doesn't fit '#a1b' or '#a1b2c3', can't change background color: '$bgColor'.")
             }
         }
+        val calendars = getCalendars()
+        val styleMap = getStyleMap()
+        return mapOf(
+                "activeCalendars" to getActiveCalendars(getCurrentFilter(), calendars, styleMap),
+                "teamCalendars" to StyledTeamCalendar.map(calendars, styleMap),
+                "styleMap" to styleMap)
     }
 
+    /**
+     * @return The currentFilter with changed set of invisibleCalendars.
+     */
     @GetMapping("setVisibility")
     fun setVisibility(@RequestParam("calendarId", required = true) calendarId: Int,
-                      @RequestParam("visible", required = true) visible: Boolean) {
+                      @RequestParam("visible", required = true) visible: Boolean): Map<String, Any> {
         val currentFilter = getCurrentFilter()
         currentFilter.setVisibility(calendarId, visible)
+        val calendars = getCalendars()
+        val styleMap = getStyleMap()
+        return mapOf(
+                "filter" to currentFilter,
+                "activeCalendars" to getActiveCalendars(currentFilter, calendars, styleMap),
+                "isFilterModified" to isCurrentFilterModified(currentFilter))
     }
 
+    @GetMapping("changeDefaultCalendar")
+    fun changeDefaultCalendar(@RequestParam("id", required = true) id: String): Map<String, Any> {
+        val currentFilter = getCurrentFilter()
+        currentFilter.defaultCalendarId = NumberHelper.parseInteger(id)
+        return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+    }
+
+    @GetMapping("changeTimesheetUser")
+    fun changeTimesheetUser(@RequestParam("userId", required = true) userIdString: String): Map<String, Any> {
+        val currentFilter = getCurrentFilter()
+        val userId = NumberHelper.parseInteger(userIdString)
+        if (timesheetDao.showTimesheetsOfOtherUsers()) {
+            currentFilter.timesheetUserId = userId
+        } else {
+            currentFilter.timesheetUserId = if (userId != null && userId >= 0) {
+                ThreadLocalUserContext.getUserId()
+            } else {
+                null
+            }
+        }
+        return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+    }
+
+    @PostMapping("changeVacationGroups")
+    fun changeVacationGroups(@RequestBody groupIds: Set<Int>?): Map<String, Any> {
+        val currentFilter = getCurrentFilter()
+        currentFilter.vacationGroupIds = groupIds
+        return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+    }
+
+    @PostMapping("changeVacationUsers")
+    fun changeVacationUsers(@RequestBody userIds: Set<Int>?): Map<String, Any> {
+        val currentFilter = getCurrentFilter()
+        currentFilter.vacationUserIds = userIds
+        return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+    }
+
+    @GetMapping("changeGridSizer")
+    fun changeGridSizer(@RequestParam("size", required = true) sizeString: String): Map<String, Any> {
+        val currentFilter = getCurrentFilter()
+        val size = NumberHelper.parseInteger(sizeString)
+        if (size != null && size in intArrayOf(5, 10, 15, 30, 60)) {
+            currentFilter.gridSize = size
+        }
+        return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+    }
+
+    /**
+     * @return The currentFilter with changed name and defaultCalendarId and the new list of filterFavorites (id's with titles).
+     */
     @GetMapping("createNewFilter")
-    fun createNewFilter(@RequestParam("newFilterName", required = true) newFilterName: String) {
+    fun createFavoriteFilter(@RequestParam("newFilterName", required = true) newFilterName: String): Map<String, Any> {
         val currentFilter = getCurrentFilter()
         currentFilter.name = newFilterName
         val favorites = getFilterFavorites()
-        favorites.add(currentFilter)
+        val newFavorite = CalendarFilter().copyFrom(currentFilter)
+        favorites.add(newFavorite) // Favorite must be a copy of current filter (new instance).
+        currentFilter.id = newFavorite.id // Id is set by function favorites.add
+        return mapOf(
+                "filter" to currentFilter,
+                "filterFavorites" to favorites.idTitleList,
+                "isFilterModified" to false)
     }
 
+    /**
+     * Updates the named Filter with the values of the current filter.
+     * @return The current filter with flag modified=false.
+     */
+    @GetMapping("updateFilter")
+    fun updateFavoriteFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
+        val currentFilter = getCurrentFilter()
+        getFilterFavorites().get(id)?.copyFrom(currentFilter)
+        return mapOf("isFilterModified" to false)
+    }
+
+    /**
+     * @return The new list of filterFavorites (id's with titles) without the deleted filter.
+     */
     @GetMapping("deleteFilter")
-    fun removeFilter(@RequestParam("id", required = true) id: Int) {
+    fun deleteFavoriteFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
         val favorites = getFilterFavorites()
         favorites.remove(id)
+        return mapOf("filterFavorites" to getFilterFavorites().idTitleList)
     }
 
     @GetMapping("selectFilter")
-    fun selectFilter(@RequestParam("id", required = true) id: Int) {
+    fun selectFilter(@RequestParam("id", required = true) id: Int): CalendarInit {
         val favorites = getFilterFavorites()
         val currentFilter = favorites.get(id)
         if (currentFilter != null)
-            userPreferenceService.putEntry(PREF_KEY_CURRENT_FAV, currentFilter, true)
+        // Puts a deep copy of the current filter. Without copying, the favorite filter of the list will
+        // be synchronized with the current filter.
+            userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_CURRENT, CalendarFilter().copyFrom(currentFilter))
         else
             log.warn("Can't select filter $id, because it's not found in favorites list.")
+        return getInitialCalendar()
     }
+
+    /**
+     * @return new filterFavorites
+     */
+    @GetMapping("renameFilter")
+    fun renameFavoriteFilter(@RequestParam("id", required = true) id: Int, @RequestParam("newName", required = true) newName: String): Map<String, Any> {
+        val favorites = getFilterFavorites()
+        favorites.rename(id, newName)
+        return mapOf("filterFavorites" to favorites.idTitleList)
+    }
+
 
     // Ensures filter list (stored one, restored from legacy filter or a empty new one).
     private fun getFilterFavorites(): Favorites<CalendarFilter> {
-        var filterList: Favorites<CalendarFilter>? = null
+        var favorites: Favorites<CalendarFilter>? = null
         try {
             @Suppress("UNCHECKED_CAST", "USELESS_ELVIS")
-            filterList = userPreferenceService.getEntry(Favorites::class.java, PREF_KEY_FAV_LIST) as Favorites<CalendarFilter>
-                    ?: migrateFromLegacyFilter()?.list
+            favorites = userPrefService.getEntry(PREF_AREA, Favorites.PREF_NAME_LIST, Favorites::class.java) as? Favorites<CalendarFilter>
+                    ?: migrateFromLegacyFilter(userPrefService)?.list
         } catch (ex: Exception) {
-            log.error("Exception while getting user preferenced favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
+            log.error("Exception while getting user preferred favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
         }
-        if (filterList == null) {
+        if (favorites == null) {
             // Creating empty filter list (user has no filter list yet):
-            filterList = Favorites<CalendarFilter>()
-            userPreferenceService.putEntry(PREF_KEY_FAV_LIST, filterList, true)
+            favorites = Favorites()
+            userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_LIST, favorites)
         }
-        return filterList
+        return favorites
     }
 
-    private fun getCurrentFilter(): CalendarFilter {
-        var currentFilter = userPreferenceService.getEntry(CalendarFilter::class.java, PREF_KEY_CURRENT_FAV)
-                ?: migrateFromLegacyFilter()?.current
+    internal fun getCurrentFilter(): CalendarFilter {
+        var currentFilter = Companion.getCurrentFilter(userPrefService)
         if (currentFilter == null) {
             // Creating empty filter (user has no filter list yet):
             currentFilter = CalendarFilter()
-            userPreferenceService.putEntry(PREF_KEY_CURRENT_FAV, currentFilter, true)
+            userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_CURRENT, currentFilter)
         }
         currentFilter.afterDeserialization()
         return currentFilter
     }
 
     private fun getFilterState(): CalendarFilterState {
-        var state = userPreferenceService.getEntry(CalendarFilterState::class.java, PREF_KEY_STATE)
-                ?: migrateFromLegacyFilter()?.state
+        var state = userPrefService.getEntry(PREF_AREA, PREF_NAME_STATE, CalendarFilterState::class.java)
+                ?: migrateFromLegacyFilter(userPrefService)?.state
         if (state == null) {
             state = CalendarFilterState()
-            userPreferenceService.putEntry(PREF_KEY_STATE, state, true)
+            userPrefService.putEntry(PREF_AREA, PREF_NAME_STATE, state)
         }
         if (state.startDate == null)
             state.startDate = LocalDate.now()
@@ -240,34 +426,27 @@ class CalendarFilterServicesRest {
 
 
     internal fun getStyleMap(): CalendarStyleMap {
-        var styleMap = userPreferenceService.getEntry(CalendarStyleMap::class.java, PREF_KEY_STYLES)
-                ?: migrateFromLegacyFilter()?.styleMap
+        var styleMap = userPrefService.getEntry(PREF_AREA, PREF_NAME_STYLES, CalendarStyleMap::class.java)
+                ?: migrateFromLegacyFilter(userPrefService)?.styleMap
         if (styleMap == null) {
             styleMap = CalendarStyleMap()
-            userPreferenceService.putEntry(PREF_KEY_STYLES, styleMap, true)
+            userPrefService.putEntry(PREF_AREA, PREF_NAME_STYLES, styleMap)
         }
         return styleMap
     }
 
-    private fun migrateFromLegacyFilter(): CalendarLegacyFilter? {
-        val legacyFilter = CalendarLegacyFilter.migrate(userPreferenceService) ?: return null
-        log.info("User's legacy calendar filter migrated.")
-        userPreferenceService.putEntry(PREF_KEY_FAV_LIST, legacyFilter.list, true)
-        userPreferenceService.putEntry(PREF_KEY_CURRENT_FAV, legacyFilter.current, true)
-        // Filter state is now separately stored:
-        userPreferenceService.putEntry(PREF_KEY_STATE, legacyFilter.state, true)
-        // Filter styles are now separately stored:
-        userPreferenceService.putEntry(PREF_KEY_STYLES, legacyFilter.styleMap, true)
-        return legacyFilter
-    }
-
     internal fun updateCalendarFilter(startDate: Date?,
                                       view: CalendarView?,
-                                      activeCalendarIds: Set<Int>?) {
+                                      restFilter: CalendarRestFilter) {
         getFilterState().updateCalendarFilter(startDate, view)
+        val currentFilter = getCurrentFilter()
+        val activeCalendarIds = restFilter.activeCalendarIds
         if (!activeCalendarIds.isNullOrEmpty()) {
-            getCurrentFilter().calendarIds = activeCalendarIds.toMutableSet()
+            currentFilter.calendarIds = activeCalendarIds.toMutableSet()
         }
+        //currentFilter.showVacations = restFilter.showVacations
+        currentFilter.vacationGroupIds = restFilter.vacationGroupIds
+        currentFilter.vacationUserIds = restFilter.vacationUserIds
     }
 }
 

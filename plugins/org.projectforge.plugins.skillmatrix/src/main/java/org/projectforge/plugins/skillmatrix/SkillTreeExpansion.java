@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.util.Set;
-
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.projectforge.business.user.service.UserPreferencesHelper;
 import org.projectforge.web.wicket.tree.TableTreeExpansion;
+
+import java.util.Set;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)

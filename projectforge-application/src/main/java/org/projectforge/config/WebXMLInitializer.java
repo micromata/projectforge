@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,7 +25,9 @@ package org.projectforge.config;
 
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.apache.wicket.spring.SpringWebApplicationFactory;
+import org.projectforge.Const;
 import org.projectforge.business.user.filter.UserFilter;
+import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.config.CORSFilter;
 import org.projectforge.security.SecurityHeaderFilter;
@@ -37,7 +39,6 @@ import org.projectforge.web.rest.RestUserFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
 
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
@@ -70,11 +71,7 @@ public class WebXMLInitializer implements ServletContextInitializer {
     boolean filterAfterInternal = false;
     userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/secure/*");
     userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
-
-    final FilterRegistration hibernateFilter = sc.addFilter("HibernateFilter", OpenSessionInViewFilter.class);
-    hibernateFilter.setInitParameter("sessionFactoryBeanName", "sessionFactory");
-    hibernateFilter.setInitParameter("singleSession", "false");
-    hibernateFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
+    userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/" + Const.REACT_APP_PATH + "*");
 
     final FilterRegistration springContext = sc.addFilter("springContext", SpringThreadLocalFilter.class);
     springContext.addMappingForUrlPatterns(null, filterAfterInternal, "/secure/*");
@@ -87,15 +84,14 @@ public class WebXMLInitializer implements ServletContextInitializer {
     wicketApp.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
 
     if (webDevelopmentEnableCORSFilter) {
-      log.warn("*********************************");
-      log.warn("***********            **********");
-      log.warn("*********** ATTENTION! **********");
-      log.warn("***********            **********");
-      log.warn("*********** Running in **********");
-      log.warn("*********** dev mode!  **********");
-      log.warn("***********            **********");
-      log.warn("*********************************");
-      log.warn("Don't deliver this app in dev mode due to security reasons (cross origin allowed)!");
+      new EmphasizedLogSupport(log)
+              .log("ATTENTION!")
+              .log("")
+              .log("Running in dev mode!")
+              .log("")
+              .log("Don't deliver this app in dev mode due to security reasons!")
+              .log("(cross origin allowed)")
+              .logEnd();
       sc.addFilter("cors", new CORSFilter()).addMappingForUrlPatterns(null, false,
               "/" + RestPaths.REST_WEB_APP + "/*",
               "/" + RestPaths.REST_WEB_APP_PUBLIC + "/*"); // Needed for login service.

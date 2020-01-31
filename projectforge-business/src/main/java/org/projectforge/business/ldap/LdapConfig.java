@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -72,12 +72,12 @@ public class LdapConfig
    */
   public String getCompleteServerUrl()
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(this.server);
     if (port != null) {
       buf.append(':').append(port);
     }
-    if (StringUtils.isBlank(this.baseDN) == false) {
+    if (!StringUtils.isBlank(this.baseDN)) {
       buf.append('/').append(this.baseDN);
     }
     return buf.toString();

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,13 @@
 
 package org.projectforge.test;
 
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
-import java.util.Calendar;
+import java.time.DayOfWeek;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -40,16 +41,19 @@ public class TestSetup {
    * Puts a context user in ThreadLocaleUserContext and creates a minimal ConfigXml configuration.
    * This is use-full for tests needing the user's locale, timezone etc, but not the time consuming
    * database and Spring setup.
+   * @return created user in ThreadLocalUserContext.
    */
-  public static void init() {
+  public static PFUserDO init() {
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     PFUserDO user = new PFUserDO();
     user.setTimeZone(TimeZone.getTimeZone("Europe/Berlin"));
     user.setExcelDateFormat("YYYY-MM-DD");
     user.setDateFormat("dd.MM.yyyy");
-    user.setLocale(Locale.GERMAN);
-    user.setFirstDayOfWeek(Calendar.MONDAY);
-    ThreadLocalUserContext.setUserContext(new UserContext(user, null));
+    user.setLocale(new Locale("de", "DE"));
+    user.setFirstDayOfWeek(DayOfWeek.MONDAY);
+    ThreadLocalUserContext.setUserContext(UserContext.createTestInstance(user));
     ConfigXmlTest.createTestConfiguration();
+    ConfigurationServiceAccessor.internalInitJunitTestMode();
+    return user;
   }
 }

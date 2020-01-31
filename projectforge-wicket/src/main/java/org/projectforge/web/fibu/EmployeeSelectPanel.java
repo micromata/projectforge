@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -40,13 +35,18 @@ import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.service.UserPreferencesService;
+import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * This panel shows the actual employee and buttons for select/unselect employee.
@@ -63,7 +63,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
   private EmployeeDao employeeDao;
 
   @SpringBean
-  private UserPreferencesService userPreferencesService;
+  private UserXmlPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentEmployees;
 
@@ -229,7 +229,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
     final List<EmployeeDO> list = employeeDao.getList(filter);
     List<EmployeeDO> resultList = new ArrayList<>(list);
     for (EmployeeDO employeeDO : list) {
-      if (employeeDO.getAustrittsDatum() != null && new Date().after(employeeDO.getAustrittsDatum())) {
+      if (employeeDO.getAustrittsDatum() != null && LocalDate.now().isAfter(employeeDO.getAustrittsDatum())) {
         resultList.remove(resultList.indexOf(employeeDO));
       }
     }

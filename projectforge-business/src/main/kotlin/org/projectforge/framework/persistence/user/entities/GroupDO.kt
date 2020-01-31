@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,7 +32,7 @@ import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.util.*
 import javax.persistence.*
@@ -44,15 +44,22 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_GROUP", uniqueConstraints = [UniqueConstraint(columnNames = ["name", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_group_tenant_id", columnList = "tenant_id")])
 @AUserRightId("ADMIN_CORE")
-class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
+@NamedQueries(
+        NamedQuery(name = GroupDO.FIND_BY_NAME, query = "from GroupDO where name=:name"),
+        NamedQuery(name = GroupDO.FIND_OTHER_GROUP_BY_NAME, query = "from GroupDO where name=:name and id<>:id"))
+open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
+
+    override val displayName: String
+        @Transient
+        get() = "$name"
 
     @PropertyInfo(i18nKey = "name")
     @Field
     @get:Column(length = 100)
-    var name: String? = null
+    open var name: String? = null
 
     @get:Column(name = "local_group", nullable = false)
-    var localGroup: Boolean = false
+    open var localGroup: Boolean = false
 
     // private boolean nestedGroupsAllowed = true;
 
@@ -101,27 +108,27 @@ class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "organization")
     @Field
     @get:Column(length = 100)
-    var organization: String? = null
+    open var organization: String? = null
 
     @PropertyInfo(i18nKey = "description")
     @Field
     @get:Column(length = 1000)
-    var description: String? = null
+    open var description: String? = null
 
     private var usernames: String? = null
 
     @PropertyInfo(i18nKey = "ldap")
     @Field
     @get:Column(name = "ldap_values", length = 4000)
-    var ldapValues: String? = null
+    open var ldapValues: String? = null
 
     // TODO: Type Set not yet supported
     @PropertyInfo(i18nKey = "group.assignedUsers")
     @ContainedIn
     @IndexedEmbedded(depth = 1)
-    @get:ManyToMany(targetEntity = PFUserDO::class, cascade = [CascadeType.PERSIST, CascadeType.MERGE], fetch = FetchType.EAGER)
+    @get:ManyToMany(targetEntity = PFUserDO::class, cascade = [CascadeType.MERGE], fetch = FetchType.EAGER)
     @get:JoinTable(name = "T_GROUP_USER", joinColumns = [JoinColumn(name = "GROUP_ID")], inverseJoinColumns = [JoinColumn(name = "USER_ID")], indexes = [javax.persistence.Index(name = "idx_fk_t_group_user_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_group_user_user_id", columnList = "user_id")])
-    var assignedUsers: MutableSet<PFUserDO>? = null
+    open var assignedUsers: MutableSet<PFUserDO>? = null
 
     /**
      * Returns the collection of assigned users only if initialized. Avoids a LazyInitializationException.
@@ -130,7 +137,7 @@ class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
      */
     val safeAssignedUsers: Set<PFUserDO>?
         @Transient
-        get() = if (this.assignedUsers == null || Hibernate.isInitialized(this.assignedUsers) == false) {
+        get() = if (this.assignedUsers == null || !Hibernate.isInitialized(this.assignedUsers)) {
             null
         } else this.assignedUsers
 
@@ -173,13 +180,11 @@ class GroupDO : DefaultBaseDO(), ShortDisplayNameCapable {
         return hcb.toHashCode()
     }
 
-    @Transient
-    override fun getShortDisplayName(): String? {
-        return this.name
-    }
-
     companion object {
-        // private static final Logger log = Logger.getLogger(GroupDO.class);
-        private val serialVersionUID = 5044537226571167954L
+        internal const val FIND_BY_NAME = "GroupDO_FindByName"
+        /**
+         * For detecting other groups with same groupname.
+         */
+        internal const val FIND_OTHER_GROUP_BY_NAME = "GroupDO_FindOtherGroupByName"
     }
 }

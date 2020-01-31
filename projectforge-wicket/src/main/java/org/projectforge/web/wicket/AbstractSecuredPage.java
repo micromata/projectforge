@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import java.util.Random;
-
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -32,10 +30,14 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.component.IRequestablePage;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.Const;
+import org.projectforge.SystemAlertMessage;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.core.MenuBarPanel;
@@ -45,13 +47,20 @@ import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 
+import java.util.Random;
+
 /**
  * All pages with required login should be derived from this page.
  */
 public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
 {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractSecuredPage.class);
+
   @SpringBean
   private ConfigurationService configurationService;
+
+  @SpringBean
+  private DomainService domainService;
 
   private static final long serialVersionUID = -8721451198050398835L;
 
@@ -62,12 +71,24 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
    */
   protected WebPage returnToPage;
 
+  /**
+   * If set then return after save, update or cancel to this page. If not given then return to given list page.
+   */
+  protected Class<? extends IRequestablePage> returnToPageClass;
+
+  protected PageParameters returnToPageParameters;
+
   private final RepeatingView modalDialogs;
 
   @SuppressWarnings("serial")
   public AbstractSecuredPage(final PageParameters parameters)
   {
     super(parameters);
+    if (ThreadLocalUserContext.getUser() == null) {
+      log.warn("AbstractSecuredPage called without logged-in user: " + this.getPageAsLink(parameters));
+      // Shouldn't occur, but safe is safe:
+      throw new RedirectToUrlException("/");
+    }
     modalDialogs = new RepeatingView("modalDialogs");
     body.add(modalDialogs);
     if (UserFilter.isUpdateRequiredFirst() == false) {
@@ -84,10 +105,10 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
       @Override
       public String getObject()
       {
-        if (WicketApplication.getAlertMessage() == null) {
+        if (SystemAlertMessage.INSTANCE.getAlertMessage() == null) {
           return "neverDisplayed";
         }
-        return WicketApplication.getAlertMessage();
+        return SystemAlertMessage.INSTANCE.getAlertMessage();
       }
     };
     final WebMarkupContainer alertMessageContainer = new WebMarkupContainer("alertMessageContainer")
@@ -95,7 +116,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
       @Override
       public boolean isVisible()
       {
-        return (WicketApplication.getAlertMessage() != null);
+        return (SystemAlertMessage.INSTANCE.getAlertMessage() != null);
       }
     };
     body.add(alertMessageContainer);
@@ -190,6 +211,18 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
     return returnToPage;
   }
 
+  /**
+   * If set then return after save, update or cancel to this page. If not given then return to given list page. As an
+   * alternative you can set the returnToPage as a page parameter (if supported by the derived page).
+   */
+  public AbstractSecuredPage setReturnToPage(final Class returnToPageClass, PageParameters returnToPageParameters)
+  {
+    this.returnToPageClass = returnToPageClass;
+    this.returnToPageParameters = returnToPageParameters;
+    return this;
+  }
+
+
   public void addContentMenuEntry(final ContentMenuEntryPanel panel)
   {
     this.contentMenuBarPanel.addMenuEntry(panel);
@@ -220,7 +253,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
       relativeUrl = relativeUrl.replace("../", "");
     }
 
-    String baseUrl = configurationService.getPfBaseUrl() + "/" + Const.WICKET_APPLICATION_PATH;
+    String baseUrl = domainService.getDomainWithContextPath() + "/" + Const.WICKET_APPLICATION_PATH;
 
     return WicketUtils.toAbsolutePath(baseUrl, relativeUrl);
   }

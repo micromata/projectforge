@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,12 @@
 
 package org.projectforge.business.excel;
 
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.PrintSetup;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.util.CellRangeAddress;
 
 public class ExportSheet
 {
@@ -69,7 +65,7 @@ public class ExportSheet
     this.contentProvider = contentProvider;
     this.name = name;
     this.poiSheet = poiSheet;
-    this.rows = new ArrayList<ExportRow>();
+    this.rows = new ArrayList<>();
     initRowList();
     final PrintSetup printSetup = getPrintSetup();
     printSetup.setPaperSize(ExportConfig.getInstance().getDefaultPaperSizeId());
@@ -283,13 +279,12 @@ public class ExportSheet
   }
 
   /**
-   * @param x
-   * @param y
-   * @see Sheet#setZoom(int, int)
+   * @param scale
+   * @see Sheet#setZoom(int)
    */
-  public void setZoom(final int x, final int y)
+  public void setZoom(final int scale)
   {
-    poiSheet.setZoom(x, y);
+    poiSheet.setZoom(scale);
   }
 
   /**
@@ -351,7 +346,7 @@ public class ExportSheet
     //Save the text of any formula before they are altered by row shifting
     String[] formulasArray = new String[sourceRow.getLastCellNum()];
     for (int i = 0; i < sourceRow.getLastCellNum(); i++) {
-      if (sourceRow.getCell(i) != null && sourceRow.getCell(i).getCellType() == Cell.CELL_TYPE_FORMULA)
+      if (sourceRow.getCell(i) != null && sourceRow.getCell(i).getCellTypeEnum() == CellType.FORMULA)
         formulasArray[i] = sourceRow.getCell(i).getCellFormula();
     }
 
@@ -389,25 +384,25 @@ public class ExportSheet
       }
 
       // Set the cell data type
-      newCell.setCellType(oldCell.getCellType());
+      newCell.setCellType(oldCell.getCellTypeEnum());
 
       // Set the cell data value
-      switch (oldCell.getCellType()) {
-        case Cell.CELL_TYPE_BLANK:
+      switch (oldCell.getCellTypeEnum()) {
+        case BLANK:
           break;
-        case Cell.CELL_TYPE_BOOLEAN:
+        case BOOLEAN:
           newCell.setCellValue(oldCell.getBooleanCellValue());
           break;
-        case Cell.CELL_TYPE_ERROR:
+        case ERROR:
           newCell.setCellErrorValue(oldCell.getErrorCellValue());
           break;
-        case Cell.CELL_TYPE_FORMULA:
+        case FORMULA:
           newCell.setCellFormula(formulasArray[i]);
           break;
-        case Cell.CELL_TYPE_NUMERIC:
+        case NUMERIC:
           newCell.setCellValue(oldCell.getNumericCellValue());
           break;
-        case Cell.CELL_TYPE_STRING:
+        case STRING:
           newCell.setCellValue(oldCell.getRichStringCellValue());
           break;
         default:

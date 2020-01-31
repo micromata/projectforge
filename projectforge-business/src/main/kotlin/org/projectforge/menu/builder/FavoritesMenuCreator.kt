@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -21,9 +21,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+@file:Suppress("DEPRECATION")
+
 package org.projectforge.menu.builder
 
-import org.projectforge.business.user.service.UserPreferencesService
+import org.projectforge.business.user.service.UserXmlPreferencesService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.Menu
@@ -38,7 +40,7 @@ import org.springframework.stereotype.Component
 @Component
 open class FavoritesMenuCreator {
     @Autowired
-    private lateinit var userPreferencesService: UserPreferencesService
+    private lateinit var userXmlPreferencesService: UserXmlPreferencesService
 
     @Autowired
     private lateinit var menuCreator: MenuCreator
@@ -49,30 +51,32 @@ open class FavoritesMenuCreator {
     /**
      * Builds the standard favorite menu, if the use hasn't one yet.
      */
-    fun getDefaultFavoriteMenu(): Menu {
-        val favMenuAsUserPrefString = userPreferencesService.getEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY) as String?
-        return getDefaultFavoriteMenu(favMenuAsUserPrefString)
+    fun getFavoriteMenu(): Menu {
+        val favMenuAsUserPrefString = userXmlPreferencesService.getEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY) as String?
+        val menu = getFavoriteMenu(favMenuAsUserPrefString)
+        menu.postProcess() // Build badges of top menus.
+        return menu
     }
 
-    internal fun getDefaultFavoriteMenu(favMenuAsUserPrefString: String?): Menu {
+    internal fun getFavoriteMenu(favMenuAsUserPrefString: String?): Menu {
         var menu = FavoritesMenuReaderWriter.read(menuCreator, favMenuAsUserPrefString)
         if (!menu.menuItems.isNullOrEmpty())
             return menu
         menu = Menu()
-        if (accessChecker.isLoggedInUserMemberOfAdminGroup()) {
-            val adminMenu = MenuItem(MenuItemDefId.ADMINISTRATION.id, translate(MenuItemDefId.ADMINISTRATION.getI18nKey()))
+        if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
+            val adminMenu = MenuItem(MenuItemDefId.ADMINISTRATION.id, translate(MenuItemDefId.ADMINISTRATION.i18nKey))
             menu.add(adminMenu)
             adminMenu.add(menuCreator.findById(MenuItemDefId.ACCESS_LIST))
             adminMenu.add(menuCreator.findById(MenuItemDefId.USER_LIST))
             adminMenu.add(menuCreator.findById(MenuItemDefId.GROUP_LIST))
             adminMenu.add(menuCreator.findById(MenuItemDefId.SYSTEM))
         }
-        if (accessChecker.isRestrictedUser()) {
+        if (accessChecker.isRestrictedUser) {
             // Restricted users see only the change password menu entry (as favorite).
             val adminMenu = MenuItem(menuCreator.findById(MenuItemDefId.CHANGE_PASSWORD))
             menu.add(adminMenu)
         } else {
-            val projectManagementMenu = MenuItem(MenuItemDefId.PROJECT_MANAGEMENT.id, translate(MenuItemDefId.PROJECT_MANAGEMENT.getI18nKey()))
+            val projectManagementMenu = MenuItem(MenuItemDefId.PROJECT_MANAGEMENT.id, translate(MenuItemDefId.PROJECT_MANAGEMENT.i18nKey))
             menu.add(projectManagementMenu)
             projectManagementMenu.add(menuCreator.findById(MenuItemDefId.MONTHLY_EMPLOYEE_REPORT))
             projectManagementMenu.add(menuCreator.findById(MenuItemDefId.TIMESHEET_LIST))
@@ -91,8 +95,8 @@ open class FavoritesMenuCreator {
     }
 
     companion object {
-        val USER_PREF_FAVORITES_MENU_KEY = "usersFavoritesMenu"
+        const val USER_PREF_FAVORITES_MENU_KEY = "usersFavoritesMenu"
 
-        internal val USER_PREF_FAVORITES_MENU_ENTRIES_KEY = "usersFavoriteMenuEntries"
+        internal const val USER_PREF_FAVORITES_MENU_ENTRIES_KEY = "usersFavoriteMenuEntries"
     }
 }

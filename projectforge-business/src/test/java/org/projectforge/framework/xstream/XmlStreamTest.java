@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,11 +29,12 @@ import org.dom4j.Element;
 import org.junit.jupiter.api.Test;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.xstream.converter.ISODateConverter;
 import org.projectforge.test.AbstractTestBase;
 
 import java.lang.reflect.Field;
+import java.time.Month;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -95,23 +96,23 @@ public class XmlStreamTest extends AbstractTestBase {
     TestObject obj = new TestObject();
     obj.b1 = obj.b2 = obj.b3 = false;
     String xml = XmlObjectWriter.writeAsXml(obj);
-    assertTrue(xml.indexOf("b1") < 0, "b1 shouldn't be present.");
-    assertTrue(xml.indexOf("b2=\"false\"") >= 0, "b1 shouldn't be present.");
-    assertTrue(xml.indexOf("b3") < 0, "b3 shouldn't be present.");
+    assertTrue(!xml.contains("b1"), "b1 shouldn't be present.");
+    assertTrue(xml.contains("b2=\"false\""), "b1 shouldn't be present.");
+    assertTrue(!xml.contains("b3"), "b3 shouldn't be present.");
     obj = (TestObject) reader.read(xml);
-    assertEquals(false, obj.b1, "b1");
-    assertEquals(false, obj.b2, "b2");
-    assertEquals(false, obj.b3, "b3");
+    assertFalse(obj.b1, "b1");
+    assertFalse(obj.b2, "b2");
+    assertFalse(obj.b3, "b3");
 
     obj.b1 = obj.b2 = obj.b3 = true;
     xml = XmlObjectWriter.writeAsXml(obj);
-    assertTrue(xml.indexOf("b1=\"true\"") >= 0, "b1 should be present.");
-    assertTrue(xml.indexOf("b2") < 0, "b2 shouldn't be present.");
-    assertTrue(xml.indexOf("b3=\"true\"") >= 0, "b3 should be present.");
+    assertTrue(xml.contains("b1=\"true\""), "b1 should be present.");
+    assertTrue(!xml.contains("b2"), "b2 shouldn't be present.");
+    assertTrue(xml.contains("b3=\"true\""), "b3 should be present.");
     obj = (TestObject) reader.read(xml);
-    assertEquals(true, obj.b1, "b1");
-    assertEquals(true, obj.b2, "b2");
-    assertEquals(true, obj.b3, "b3");
+    assertTrue(obj.b1, "b1");
+    assertTrue(obj.b2, "b2");
+    assertTrue(obj.b3, "b3");
 
     obj = (TestObject) reader.read("<test />");
     assertFalse(obj.b1);
@@ -127,12 +128,11 @@ public class XmlStreamTest extends AbstractTestBase {
     String xml = XmlObjectWriter.writeAsXml(obj);
     obj = (TestObject) reader.read(xml);
     assertNull(obj.date, "date should be null.");
-    final DateHolder dh = new DateHolder();
-    dh.setDate(2010, Calendar.AUGUST, 3, 0, 0, 0, 0);
-    obj.date = dh.getDate();
+    final PFDateTime dateTime = PFDateTime.withDate(2010, Month.AUGUST, 3);
+    obj.date = dateTime.getUtilDate();
     xml = XmlObjectWriter.writeAsXml(obj);
     obj = (TestObject) reader.read(xml);
-    assertEquals(dh.getTimeInMillis(), obj.date.getTime(), "date");
+    assertEquals(dateTime.getEpochMilli(), obj.date.getTime(), "date");
   }
 
   @Test
@@ -152,7 +152,7 @@ public class XmlStreamTest extends AbstractTestBase {
     Element el2 = el.element("testObject");
     assertEquals("ds", el2.attribute("s1").getText(), "s1");
 
-    testObject2.list = new ArrayList<TestObject>();
+    testObject2.list = new ArrayList<>();
     el = writer.write(root, testObject2);
     containsElements(el, "testObject", "list");
     el2 = el.element("list");
@@ -217,7 +217,7 @@ public class XmlStreamTest extends AbstractTestBase {
     o2 = (TestObject2) reader.read(el);
     assertEquals("ds", o2.testObject.s1);
     assertNull(o2.list);
-    testObject2.list = new ArrayList<TestObject>();
+    testObject2.list = new ArrayList<>();
     el = writer.write(root, testObject2);
     o2 = (TestObject2) reader.read(el);
     assertEquals("ds", o2.testObject.s1);
@@ -244,8 +244,8 @@ public class XmlStreamTest extends AbstractTestBase {
     obj2 = (TestObject2) reader.read(xml);
     assertNull(obj2.set);
     assertNull(obj2.intSet);
-    obj2.set = new HashSet<TestObject>();
-    obj2.intSet = new HashSet<Integer>();
+    obj2.set = new HashSet<>();
+    obj2.intSet = new HashSet<>();
     xml = XmlObjectWriter.writeAsXml(obj2);
     obj2 = (TestObject2) reader.read(xml);
     assertEquals(0, obj2.set.size(), "Set should be empty.");
@@ -282,8 +282,8 @@ public class XmlStreamTest extends AbstractTestBase {
     obj2 = (TestObject2) reader.read(xml);
     assertNull(obj2.set);
     assertNull(obj2.intSet);
-    obj2.set = new HashSet<TestObject>();
-    obj2.intSet = new HashSet<Integer>();
+    obj2.set = new HashSet<>();
+    obj2.intSet = new HashSet<>();
     xml = XmlObjectWriter.writeAsXml(obj2);
     obj2 = (TestObject2) reader.read(xml);
     assertEquals(0, obj2.set.size(), "Set should be empty.");
@@ -325,7 +325,7 @@ public class XmlStreamTest extends AbstractTestBase {
     final XmlObjectWriter writer = new XmlObjectWriter() {
       @Override
       protected boolean ignoreField(final Object obj, final Field field) {
-        if (obj instanceof TestObject && field.getName().equals("s1") == true) {
+        if (obj instanceof TestObject && field.getName().equals("s1")) {
           return true;
         }
         return super.ignoreField(obj, field);
@@ -370,7 +370,7 @@ public class XmlStreamTest extends AbstractTestBase {
     TestObject2 obj2 = new TestObject2();
     obj2.testObject = obj;
     obj2.testObjectIFace = obj;
-    obj2.list = new ArrayList<TestObject>();
+    obj2.list = new ArrayList<>();
     obj2.list.add(obj);
     obj = new TestObject();
     obj.s1 = "Fin";
@@ -402,9 +402,8 @@ public class XmlStreamTest extends AbstractTestBase {
     obj.s1 = "hurzel";
     MyRootElement root = new MyRootElement();
     root.testObject = obj;
-    final DateHolder dh = new DateHolder();
-    dh.setDate(2010, Calendar.AUGUST, 30, 9, 18, 57);
-    root.setCreated(dh.getDate());
+    final PFDateTime dateTime = PFDateTime.withDate(2010, Month.AUGUST, 30, 9, 18, 57);
+    root.setCreated(dateTime.getUtilDate());
     final XmlObjectWriter writer = new XmlObjectWriter();
     final XmlRegistry xmlRegistry = new XmlRegistry();
     xmlRegistry.registerConverter(Date.class, new ISODateConverter());
@@ -418,7 +417,7 @@ public class XmlStreamTest extends AbstractTestBase {
       @Override
       protected Object newInstance(final Class<?> clazz, final Element el, final String attrName,
                                    final String attrValue) {
-        if (MyRootElement.class.isAssignableFrom(clazz) == true) {
+        if (MyRootElement.class.isAssignableFrom(clazz)) {
           return new MyRootElement();
         }
         return null;
@@ -427,7 +426,7 @@ public class XmlStreamTest extends AbstractTestBase {
     reader.initialize(MyRootElement.class);
     root = (MyRootElement) reader.read(xml);
     assertEquals(DateHelper.EUROPE_BERLIN.getID(), root.getTimeZone().getID());
-    assertEquals(dh.getDate(), root.getCreated());
+    assertEquals(dateTime.getUtilDate(), root.getCreated());
     assertEquals("hurzel", (root.testObject).s1);
   }
 
@@ -488,25 +487,25 @@ public class XmlStreamTest extends AbstractTestBase {
 
   private void containsAttrs(final Element el, final String... attrNames) {
     for (final String attr : attrNames) {
-      assertTrue(el.attribute(attr) != null, "Element should contain attribute '" + attr + "': " + el);
+      assertNotNull(el.attribute(attr), "Element should contain attribute '" + attr + "': " + el);
     }
   }
 
   private void containsNotAttrs(final Element el, final String... attrNames) {
     for (final String attr : attrNames) {
-      assertTrue(el.attribute(attr) == null, "Element shouldn't contain attribute '" + attr + "': " + el);
+      assertNull(el.attribute(attr), "Element shouldn't contain attribute '" + attr + "': " + el);
     }
   }
 
   private void containsElements(final Element el, final String... elementNames) {
     for (final String name : elementNames) {
-      assertTrue(el.element(name) != null, "Element should contain element '" + name + "': " + el);
+      assertNotNull(el.element(name), "Element should contain element '" + name + "': " + el);
     }
   }
 
   private void containsNotElements(final Element el, final String... elementNames) {
     for (final String name : elementNames) {
-      assertTrue(el.element(name) == null, "Element shouldn't contain element '" + name + "': " + el);
+      assertNull(el.element(name), "Element shouldn't contain element '" + name + "': " + el);
     }
   }
 }

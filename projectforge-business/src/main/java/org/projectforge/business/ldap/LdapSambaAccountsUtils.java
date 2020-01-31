@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,15 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.Collection;
-
-import java.util.Objects;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.Objects;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -58,7 +58,7 @@ public class LdapSambaAccountsUtils
         continue;
       }
       if (ldapUserValues.getSambaSIDNumber() != null
-          && ldapUserValues.getSambaSIDNumber().intValue() > currentMaxNumber) {
+          && ldapUserValues.getSambaSIDNumber() > currentMaxNumber) {
         currentMaxNumber = ldapUserValues.getUidNumber();
       }
     }
@@ -82,7 +82,7 @@ public class LdapSambaAccountsUtils
     final Collection<PFUserDO> allUsers = getUserGroupCache().getAllUsers();
     for (final PFUserDO user : allUsers) {
       final LdapUserValues ldapUserValues = PFUserDOConverter.readLdapUserValues(user.getLdapValues());
-      if (Objects.equals(user.getId(), currentUser.getId()) == true) {
+      if (Objects.equals(user.getId(), currentUser.getId())) {
         // The current user may have the given sambaSIDNumber already, so ignore this entry.
         continue;
       }
@@ -110,7 +110,7 @@ public class LdapSambaAccountsUtils
     if (ldapSambaAccountsConfig == null) {
       ldapSambaAccountsConfig = new LdapSambaAccountsConfig();
     }
-    if (ldapUserValues.getUidNumber() != null && isGivenNumberFree(user, ldapUserValues.getUidNumber()) == true) {
+    if (ldapUserValues.getUidNumber() != null && isGivenNumberFree(user, ldapUserValues.getUidNumber())) {
       ldapUserValues.setSambaSIDNumber(ldapUserValues.getUidNumber());
     } else {
       ldapUserValues.setSambaSIDNumber(getNextFreeSambaSIDNumber());

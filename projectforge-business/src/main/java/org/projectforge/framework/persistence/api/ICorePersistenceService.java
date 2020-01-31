@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,11 @@
 
 package org.projectforge.framework.persistence.api;
 
-import java.io.Serializable;
-
-import org.projectforge.framework.access.AccessException;
-
 import de.micromata.genome.jpa.MarkDeletableRecord;
 import de.micromata.genome.util.bean.PrivateBeanUtils;
+import org.projectforge.framework.access.AccessException;
+
+import java.io.Serializable;
 
 /**
  * 

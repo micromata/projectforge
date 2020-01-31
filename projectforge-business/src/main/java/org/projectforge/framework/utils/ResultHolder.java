@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,9 @@
 
 package org.projectforge.framework.utils;
 
-import java.util.ArrayList;
-
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+
+import java.util.ArrayList;
 
 /**
  * Stores messages in an array. Used by methods as return value.
@@ -36,7 +36,7 @@ public class ResultHolder
 {
   private ResultHolderStatus status;
 
-  private final ArrayList<IMessage> messages = new ArrayList<IMessage>();
+  private final ArrayList<IMessage> messages = new ArrayList<>();
 
   public interface IMessage
   {

@@ -2,43 +2,9 @@ export {
     USER_LOGIN_BEGIN,
     USER_LOGIN_SUCCESS,
     USER_LOGIN_FAILURE,
-    USER_LOGOUT,
     login as loginUser,
-    logout as logoutUser,
     loadUserStatus,
 } from './authentication';
-
-export {
-    EDIT_PAGE_LOAD_BEGIN,
-    EDIT_PAGE_LOAD_SUCCESS,
-    EDIT_PAGE_LOAD_FAILURE,
-    EDIT_PAGE_FIELD_CHANGE,
-    EDIT_PAGE_UPDATE_BEGIN,
-    EDIT_PAGE_UPDATE_FAILURE,
-    loadEdit as loadEditPage,
-    changeField as changeEditFormField,
-    updatePageData as updateEditPageData,
-    abort as abortEditPage,
-    deleteIt,
-    markAsDeleted,
-    undelete,
-    clone,
-} from './editPage';
-
-export {
-    LIST_PAGE_LOAD_BEGIN,
-    LIST_PAGE_LOAD_SUCCESS,
-    LIST_PAGE_LOAD_FAILURE,
-    LIST_PAGE_FILTER_SET,
-    LIST_PAGE_FILTER_RESET_BEGIN,
-    LIST_PAGE_FILTER_RESET_SUCCESS,
-    LIST_PAGE_DATA_UPDATE_BEGIN,
-    LIST_PAGE_DATA_UPDATE_SUCCESS,
-    loadList,
-    setFilter as setListFilter,
-    resetFilter as resetListFilter,
-    updateData as updateList,
-} from './listPage';
 
 export {
     MENU_LOAD_BEGIN,
@@ -48,6 +14,32 @@ export {
 } from './menu';
 
 export {
-    REST_ADD_TOAST,
-    performGetCall,
-} from './rest';
+    LIST_DISMISS_ERROR,
+    LIST_SWITCH_CATEGORY,
+    LIST_INITIAL_CALL_BEGIN,
+    LIST_FETCH_DATA_BEGIN,
+    LIST_CALL_SUCCESS,
+    LIST_FETCH_FAILURE,
+    dismissCurrentError,
+    loadList,
+    fetchCurrentList,
+    openEditPage,
+} from './list';
+
+export {
+    LIST_FILTER_ADD,
+    LIST_FILTER_REMOVE,
+    LIST_FILTER_RESET,
+    LIST_FILTER_SEARCH_STRING_CHANGED,
+    LIST_FILTER_SET,
+    LIST_FILTER_SORT,
+} from './list/filter';
+
+export {
+    LIST_FAVORITES_RECEIVED,
+    createFavorite as createListFavorite,
+    deleteFavorite as deleteListFavorite,
+    renameFavorite as renameListFavorite,
+    selectFavorite as selectListFavorite,
+    updateFavorite as updateListFavorite,
+} from './list/favorites';

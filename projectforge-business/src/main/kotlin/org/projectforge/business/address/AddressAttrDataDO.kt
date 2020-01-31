@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,8 @@
 
 package org.projectforge.business.address
 
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.Id
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
-
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
+import javax.persistence.*
 
 /**
  * @author Roger Kommer (r.kommer.extern@micromata.de)
@@ -39,11 +32,11 @@ import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
 @Entity
 @Table(name = "t_address_attrdata")
 class AddressAttrDataDO : JpaTabAttrDataBaseDO<AddressAttrDO, Int> {
-    constructor() : super() {}
+    constructor() : super()
 
-    constructor(parent: AddressAttrDO, value: String) : super(parent, value) {}
+    constructor(parent: AddressAttrDO, value: String) : super(parent, value)
 
-    constructor(parent: AddressAttrDO) : super(parent) {}
+    constructor(parent: AddressAttrDO) : super(parent)
 
     @Id
     @GeneratedValue

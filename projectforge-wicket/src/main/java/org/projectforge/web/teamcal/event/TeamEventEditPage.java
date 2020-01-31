@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -41,7 +41,7 @@ import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.ical.ICalGenerator;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.timesheet.TimesheetDO;
@@ -77,7 +77,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   /**
    * Only given if called by recurrence dialog.
    */
-  private TeamEvent eventOfCaller;
+  private ICalendarEvent eventOfCaller;
 
   /**
    * Used for recurrence events in {@link #onSaveOrUpdate()} and {@link #afterSaveOrUpdate()}
@@ -109,8 +109,8 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   /**
    * @param parameters
    */
-  public TeamEventEditPage(final PageParameters parameters, final TeamEvent event, final Timestamp newStartDate,
-      final Timestamp newEndDate, final RecurrencyChangeType recurrencyChangeType)
+  public TeamEventEditPage(final PageParameters parameters, final ICalendarEvent event, final Timestamp newStartDate,
+                           final Timestamp newEndDate, final RecurrencyChangeType recurrencyChangeType)
   {
     super(parameters, "plugins.teamcal.event");
     Validate.notNull(event);

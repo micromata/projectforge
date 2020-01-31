@@ -1,15 +1,21 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
+import AdditionalLabel from './AdditionalLabel';
 
 // Automatically validate the input fields nested inside. (Only first level)
 function ValidationManager({ children, customValidation }) {
+    let extraLabel = <React.Fragment />;
+
     return (
         <React.Fragment>
             {React.Children.map(children, (child) => {
-                const { props: childProps } = child;
+                if (!child) {
+                    return child;
+                }
+                const { props: childProps, type } = child;
                 const {
                     checked,
-                    id,
                     required,
                     maxLength,
                     value,
@@ -26,16 +32,20 @@ function ValidationManager({ children, customValidation }) {
                     valid = false;
                 }
 
-                // Load the custom validation message for the given child.
-                if (customValidation && customValidation[id]) {
+                // Check for a custom validation.
+                if (customValidation) {
                     valid = false;
 
                     if (additionalLabel) {
                         // Add the validation message to the additional label if existing
-                        additionalLabel += ` - ${customValidation[id]}`;
+                        additionalLabel += ` - ${customValidation.message}`;
                     } else {
                         // or else set the additional label to the validation message.
-                        additionalLabel = customValidation[id];
+                        additionalLabel = customValidation.message;
+                    }
+
+                    if (type === DayPickerInput) {
+                        extraLabel = <AdditionalLabel title={additionalLabel} />;
                     }
                 }
 
@@ -49,17 +59,20 @@ function ValidationManager({ children, customValidation }) {
                     },
                 };
             })}
+            {extraLabel}
         </React.Fragment>
     );
 }
 
 ValidationManager.propTypes = {
     children: PropTypes.node.isRequired,
-    customValidation: PropTypes.shape({}),
+    customValidation: PropTypes.shape({
+        message: PropTypes.string,
+    }),
 };
 
 ValidationManager.defaultProps = {
-    customValidation: {},
+    customValidation: undefined,
 };
 
 export default ValidationManager;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,6 @@
 
 package org.projectforge.web.core;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseAtInterceptPageException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,14 +31,11 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -51,8 +47,6 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
-import org.projectforge.menu.builder.FavoritesMenuCreator;
-import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.web.*;
 import org.projectforge.web.core.menuconfig.MenuConfig;
 import org.projectforge.web.dialog.ModalDialog;
@@ -60,11 +54,10 @@ import org.projectforge.web.doc.DocumentationPage;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.user.ChangePasswordPage;
 import org.projectforge.web.user.MyAccountEditPage;
-import org.projectforge.web.vacation.VacationViewPage;
+import org.projectforge.web.vacation.VacationAccountPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.FeedbackPage;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 import java.util.Collection;
@@ -81,15 +74,9 @@ public class NavTopPanel extends NavAbstractPanel {
   private static final long serialVersionUID = -7858806882044188339L;
 
   @SpringBean
-  private FavoritesMenuCreator favoritesMenuCreator;
-
-  @SpringBean
   private UserXmlPreferencesCache userXmlPreferencesCache;
 
   private BookmarkDialog bookmarkDialog;
-
-  @SpringBean
-  private MenuCreator menuCreator;
 
   @SpringBean
   private AccessChecker accessChecker;
@@ -121,28 +108,6 @@ public class NavTopPanel extends NavAbstractPanel {
     getMenu();
     favoritesMenu = menuBuilder.getFavoriteMenu();
     add(new MenuConfig("menuconfig", getMenu()));
-    final Form<String> searchForm = new Form<String>("searchForm") {
-      private String searchString;
-
-      /**
-       * @see org.apache.wicket.markup.html.form.Form#onSubmit()
-       */
-      @Override
-      protected void onSubmit() {
-        csrfTokenHandler.onSubmit();
-        if (StringUtils.isNotBlank(searchString) == true) {
-          final SearchPage searchPage = new SearchPage(new PageParameters(), searchString);
-          setResponsePage(searchPage);
-        }
-        super.onSubmit();
-      }
-    };
-    csrfTokenHandler = new CsrfTokenHandler(searchForm);
-    add(searchForm);
-    final TextField<String> searchField = new TextField<String>("searchField",
-            new PropertyModel<>(searchForm, "searchString"));
-    WicketUtils.setPlaceHolderAttribute(searchField, getString("search.search"));
-    searchForm.add(searchField);
     add(new BookmarkablePageLink<Void>("feedbackLink", FeedbackPage.class));
     {
       final AjaxLink<Void> showBookmarkLink = new AjaxLink<Void>("showBookmarkLink") {
@@ -217,7 +182,8 @@ public class NavTopPanel extends NavAbstractPanel {
       final Link<Void> logoutLink = new Link<Void>("logoutLink") {
         @Override
         public void onClick() {
-          loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(), userXmlPreferencesCache);
+          loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(),
+                  userXmlPreferencesCache, WicketSupport.getUserPrefCache());
           setResponsePage(LoginPage.class);
         }
 
@@ -230,10 +196,10 @@ public class NavTopPanel extends NavAbstractPanel {
 
   private void addVacationViewLink() {
     final BookmarkablePageLink<Void> vacationViewLink = new BookmarkablePageLink<Void>("vacationViewLink",
-            VacationViewPage.class) {
+            VacationAccountPage.class) {
       @Override
       public boolean isVisible() {
-        return vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), false);
+        return vacationService.hasAccessToVacationService(ThreadLocalUserContext.getUser(), false);
       }
     };
     add(vacationViewLink);

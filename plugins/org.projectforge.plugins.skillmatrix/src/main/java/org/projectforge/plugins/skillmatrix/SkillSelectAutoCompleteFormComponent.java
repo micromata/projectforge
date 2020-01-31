@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -38,6 +35,9 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
+
+import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
@@ -57,7 +57,7 @@ public abstract class SkillSelectAutoCompleteFormComponent extends PFAutoComplet
   public SkillSelectAutoCompleteFormComponent(final String id)
   {
     this(id, null);
-    setModel(new PropertyModel<SkillDO>(this, "skill"));
+    setModel(new PropertyModel<>(this, "skill"));
   }
 
   /**
@@ -123,7 +123,7 @@ public abstract class SkillSelectAutoCompleteFormComponent extends PFAutoComplet
   {
     final StringBuilder builder = new StringBuilder();
     final List<SkillNode> nodeList = getSkillTree().getPathToRoot(skillId);
-    if (CollectionUtils.isEmpty(nodeList) == true) {
+    if (CollectionUtils.isEmpty(nodeList)) {
       return getString("task.path.rootTask");
     }
     final String pipeSeparator = " | ";
@@ -171,7 +171,7 @@ public abstract class SkillSelectAutoCompleteFormComponent extends PFAutoComplet
       @Override
       public Object convertToObject(final String value, final Locale locale)
       {
-        if (StringUtils.isEmpty(value) == true) {
+        if (StringUtils.isEmpty(value)) {
           getModel().setObject(null);
           return null;
         }

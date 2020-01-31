@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,6 +35,21 @@ class CalendarRestFilter(var start: Date? = null,
                          /** Will be ignored if end is given. */
                          var view: String? = null,
                          var timesheetUserId: Int? = null,
+                         /**
+                          * Check box for enabling and disabling vacation entries of employees.
+                          */
+                         //var showVacations: Boolean = false,
+
+                         /**
+                          * All vacations of any employee assigned to at least one of this
+                          * vacationGroups will be displayed.
+                          */
+                         var vacationGroupIds: MutableSet<Int>? = null,
+
+                         /**
+                          * All vacations of the given employees (by user) will be displayed.
+                          */
+                         var vacationUserIds: MutableSet<Int>? = null,
                          /** The team calendarIds to display. */
                          var activeCalendarIds: MutableSet<Int>? = null,
                          /**
@@ -49,13 +64,19 @@ class CalendarRestFilter(var start: Date? = null,
                           * Default is false (all active calendars are displayed).
                           * This flag is only used by the React client for hiding active calendars.
                           */
-                         var useVisibilityState: Boolean? = false) {
+                         var useVisibilityState: Boolean? = false,
+                         /**
+                          * The browsers time zone is needed for BigCalendar if the user's timezone of the server
+                          * differs from the browsers timezone. BigCalendar doesn't support the setting of a timezone.
+                          */
+                         var timeZone: String? = null) {
     /**
      * The set [activeCalendarIds] may contain a null value after deserialization. This will be removed by calling this
      * function.
      */
     fun afterDeserialization() {
-        val nullValue: Int? = null
-        activeCalendarIds?.remove(nullValue)
+        activeCalendarIds?.remove(null as Int?)
+        vacationGroupIds?.remove(null as Int?)
+        vacationUserIds?.remove(null as Int?)
     }
 }

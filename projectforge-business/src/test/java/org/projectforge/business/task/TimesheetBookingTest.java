@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,12 +33,12 @@ import org.projectforge.common.task.TaskStatus;
 import org.projectforge.common.task.TimesheetBookingStatus;
 import org.projectforge.framework.access.*;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Calendar;
+import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -56,37 +56,59 @@ public class TimesheetBookingTest extends AbstractTestBase {
   @Autowired
   private AuftragDao auftragDao;
 
-  private static DateHolder date;
+  private static PFDateTime dateTime;
 
   @Override
   protected void beforeAll() {
-    date = new DateHolder(DatePrecision.MINUTE_15);
+    dateTime = PFDateTime.now().withPrecision(DatePrecision.MINUTE_15);
     logon(getUser(AbstractTestBase.TEST_ADMIN_USER));
     TaskDO task;
     task = initTestDB.addTask("TimesheetBookingTest", "root");
-    final GroupTaskAccessDO access = new GroupTaskAccessDO().setGroup(initTestDB.addGroup("TBT", AbstractTestBase.TEST_USER))
-            .addAccessEntry(
-                    new AccessEntryDO(AccessType.OWN_TIMESHEETS, true, true, true, true))
-            .setTask(task);
+    final GroupTaskAccessDO access = new GroupTaskAccessDO();
+    access.setGroup(initTestDB.addGroup("TBT", AbstractTestBase.TEST_USER));
+    access.addAccessEntry(
+        new AccessEntryDO(AccessType.OWN_TIMESHEETS, true, true, true, true)).setTask(task);
     accessDao.save(access);
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     taskDao.update(initTestDB.addTask("TBT-1", "TimesheetBookingTest"));
-    taskDao.update(initTestDB.addTask("TBT-1.1", "TBT-1").setStatus(TaskStatus.C));
+
+    task = initTestDB.addTask("TBT-1.1", "TBT-1");
+    task.setStatus(TaskStatus.C);
+
+    taskDao.update(task);
     taskDao.markAsDeleted(initTestDB.addTask("TBT-1.2", "TBT-1"));
     taskDao.update(initTestDB.addTask("TBT-1.2.1", "TBT-1.2"));
-    taskDao.update(initTestDB.addTask("TBT-2", "TimesheetBookingTest")
-            .setTimesheetBookingStatus(TimesheetBookingStatus.TREE_CLOSED));
-    taskDao.update(initTestDB.addTask("TBT-2.1", "TBT-2").setTimesheetBookingStatus(TimesheetBookingStatus.OPENED));
-    taskDao.update(initTestDB.addTask("TBT-3", "TimesheetBookingTest")
-            .setTimesheetBookingStatus(TimesheetBookingStatus.ONLY_LEAFS));
+
+    task = initTestDB.addTask("TBT-2", "TimesheetBookingTest");
+    task.setTimesheetBookingStatus(TimesheetBookingStatus.TREE_CLOSED);
+
+    taskDao.update(task);
+
+    task = initTestDB.addTask("TBT-2.1", "TBT-2");
+    task.setTimesheetBookingStatus(TimesheetBookingStatus.OPENED);
+
+    taskDao.update(task);
+
+    task = initTestDB.addTask("TBT-3", "TimesheetBookingTest");
+    task.setTimesheetBookingStatus(TimesheetBookingStatus.ONLY_LEAFS);
+    taskDao.update(task);
     initTestDB.addTask("TBT-3.1", "TBT-3");
     initTestDB.addTask("TBT-3.1.1", "TBT-3.1");
     initTestDB.addTask("TBT-3.1.2", "TBT-3.1");
     initTestDB.addTask("TBT-3.2", "TBT-3");
-    taskDao.update(initTestDB.addTask("TBT-4", "TimesheetBookingTest")
-            .setTimesheetBookingStatus(TimesheetBookingStatus.NO_BOOKING));
-    taskDao.update(initTestDB.addTask("TBT-4.1", "TBT-4").setTimesheetBookingStatus(TimesheetBookingStatus.INHERIT));
-    taskDao.update(initTestDB.addTask("TBT-4.1.1", "TBT-4.1").setTimesheetBookingStatus(TimesheetBookingStatus.OPENED));
+
+    task = initTestDB.addTask("TBT-4", "TimesheetBookingTest");
+    task.setTimesheetBookingStatus(TimesheetBookingStatus.NO_BOOKING);
+    taskDao.update(task);
+
+    task = initTestDB.addTask("TBT-4.1", "TBT-4");
+    task.setTimesheetBookingStatus(TimesheetBookingStatus.INHERIT);
+    taskDao.update(task);
+
+    task = initTestDB.addTask("TBT-4.1.1", "TBT-4.1");
+    task.setTimesheetBookingStatus(TimesheetBookingStatus.OPENED);
+    taskDao.update(task);
+
     initTestDB.addTask("TBT-5", "TimesheetBookingTest");
     initTestDB.addTask("TBT-5.1", "TBT-5");
     initTestDB.addTask("TBT-5.1.1", "TBT-5.1");
@@ -179,8 +201,9 @@ public class TimesheetBookingTest extends AbstractTestBase {
   private TimesheetDO createNewSheet() {
     TimesheetDO sheet = new TimesheetDO();
     sheet.setUser(getUser(AbstractTestBase.TEST_USER));
-    sheet.setStartDate(date.getDate());
-    sheet.setStopDate(date.add(Calendar.HOUR, 1).getDate());
+    sheet.setStartDate(dateTime.getUtilDate());
+    dateTime = dateTime.plus(1, ChronoUnit.HOURS);
+    sheet.setStopDate(dateTime.getUtilDate());
     return sheet;
   }
 

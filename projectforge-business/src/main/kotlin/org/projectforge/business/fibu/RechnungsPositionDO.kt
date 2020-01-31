@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,13 @@
 
 package org.projectforge.business.fibu
 
-import com.fasterxml.jackson.annotation.JsonManagedReference
+import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.kost.KostZuweisungDO
+import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import java.sql.Date
 import javax.persistence.*
 
@@ -37,45 +41,66 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "t_fibu_rechnung_position", uniqueConstraints = [UniqueConstraint(columnNames = ["rechnung_fk", "number"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_position_auftrags_position_fk", columnList = "auftrags_position_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_position_rechnung_fk", columnList = "rechnung_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_position_tenant_id", columnList = "tenant_id")])
-class RechnungsPositionDO : AbstractRechnungsPositionDO() {
-
-    @get:JsonManagedReference
-    @get:ManyToOne(fetch = FetchType.EAGER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
+open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "rechnung_fk", nullable = false)
-    var rechnung : RechnungDO? = null
-
-    @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(fetch = FetchType.EAGER)
-    @get:JoinColumn(name = "auftrags_position_fk")
-    var auftragsPosition: AuftragsPositionDO? = null
-
-    @get:Enumerated(EnumType.STRING)
-    @get:Column(name = "period_of_performance_type", length = 10)
-    var periodOfPerformanceType: PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE
-
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
-    @get:Column(name = "period_of_performance_begin")
-    var periodOfPerformanceBegin: Date? = null
-
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
-    @get:Column(name = "period_of_performance_end")
-    var periodOfPerformanceEnd: Date? = null
-
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "rechnungs_pos_fk")
-    @get:OrderColumn(name = "index")
-    override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
+    open var rechnung: RechnungDO? = null
 
     override val rechnungId: Int?
         @Transient
         get() = rechnung?.id
 
-    @Transient
-    override fun setThis(kostZuweisung: KostZuweisungDO) {
-        kostZuweisung.rechnungsPosition = this
+    @PropertyInfo(i18nKey = "fibu.auftrag.position")
+    @IndexedEmbedded(depth = 1)
+    @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "auftrags_position_fk")
+    open var auftragsPosition: AuftragsPositionDO? = null
+
+    @PropertyInfo(i18nKey = "fibu.periodOfPerformance.type")
+    @get:Enumerated(EnumType.STRING)
+    @get:Column(name = "period_of_performance_type", length = 10)
+    open var periodOfPerformanceType: PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE
+
+    @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
+    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @get:Column(name = "period_of_performance_begin")
+    open var periodOfPerformanceBegin: Date? = null
+
+    @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
+    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @get:Column(name = "period_of_performance_end")
+    open var periodOfPerformanceEnd: Date? = null
+
+    @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
+    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "rechnungs_pos_fk")
+    @get:OrderColumn(name = "index")
+    @JsonBackReference
+    override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
+
+    override fun checkKostZuweisungId(zuweisung: KostZuweisungDO): Boolean {
+        return zuweisung.rechnungsPositionId == this.id
     }
 
-    override fun newInstance(): AbstractRechnungsPositionDO {
+    /**
+     * Clones this including cost assignments and order position (without id's).
+     *
+     * @return
+     */
+    fun newClone(): RechnungsPositionDO {
+        val rechnungsPosition = newInstance()
+        rechnungsPosition.copyValuesFrom(this, "id", "kostZuweisungen")
+        if (this.kostZuweisungen != null) {
+            for (origKostZuweisung in this.kostZuweisungen!!) {
+                val kostZuweisung = origKostZuweisung.newClone()
+                rechnungsPosition.addKostZuweisung(kostZuweisung)
+            }
+        }
+        return rechnungsPosition
+    }
+
+    fun newInstance(): RechnungsPositionDO {
         return RechnungsPositionDO()
     }
 }

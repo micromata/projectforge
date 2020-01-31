@@ -12,7 +12,7 @@
         <file>${LOG_HOME}ProjectForge.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover -->
-            <fileNamePattern>${LOG_HOME}ProjectForge.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_HOME}ProjectForge.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
         </rollingPolicy>
     </appender>
 
@@ -23,8 +23,8 @@
         </encoder>
         <file>${LOG_HOME}/pfVersionCheck/PFVersionCheck.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- daily rollover -->
-            <fileNamePattern>${LOG_HOME}/pfVersionCheck/PFVersionCheck.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- monthly rollover -->
+            <fileNamePattern>${LOG_HOME}/pfVersionCheck/PFVersionCheck.%d{yyyy-MM}.log.gz</fileNamePattern>
         </rollingPolicy>
         <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
             <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
@@ -41,4 +41,10 @@
         <appender-ref ref="ROLLING-FILE-ONLY_VC"/>
     </root>
 
+    <!-- custom logging levels -->
+    <logger name="de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner" level="WARN" />
+    <logger name="org.apache.wicket.Localizer" level="ERROR" />
+    <!--logger name="org.projectforge.framework.persistence.api.impl" level="DEBUG" /-->
+    <!--logger name="org.hibernate.cache" level="DEBUG" /-->
+    <!--logger name="de.micromata.merlin.excel" level="DEBUG" /-->
 </configuration>

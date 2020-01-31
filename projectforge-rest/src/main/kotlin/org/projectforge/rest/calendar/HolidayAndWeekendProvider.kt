@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,16 +27,20 @@ import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
 import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 object HolidayAndWeekendProvider {
     private val log = org.slf4j.LoggerFactory.getLogger(HolidayAndWeekendProvider::class.java)
-    private val holidays = Holidays.getInstance()
+    private val holidays = Holidays.instance
 
-    class SpecialDayInfo(val weekend: Boolean = false, val holiday: Boolean = false, val holidayTitle: String? = null, val workingDay: Boolean = false)
+    class SpecialDayInfo(val weekend: Boolean, val holiday: Boolean, val holidayTitle: String, val workingDay: Boolean)
 
-    fun getSpecialDayInfos(start: PFDateTime, end: PFDateTime): Map<String, SpecialDayInfo> {
-        val result = mutableMapOf<String, SpecialDayInfo>()
+    /**
+     * @return Map of special days. Key is the localDate.
+     */
+    fun getSpecialDayInfos(start: PFDateTime, end: PFDateTime): Map<LocalDate, SpecialDayInfo> {
+        val result = mutableMapOf<LocalDate, SpecialDayInfo>()
         var day = start.beginOfDay
         do {
             var paranoiaCounter = 0
@@ -50,15 +54,12 @@ object HolidayAndWeekendProvider {
             if (holiday || weekend) {
                 val workingDay = holidays.isWorkingDay(dateTime)
                 var holidayInfo = holidays.getHolidayInfo(dateTime.year, dateTime.dayOfYear)
-                if (holidayInfo.isNullOrBlank()) {
-                    holidayInfo = null
-                } else
-                    if (holidayInfo.startsWith("calendar.holiday.")) {
-                        holidayInfo = translate(holidayInfo)
-                    }
+                if (holidayInfo.startsWith("calendar.holiday.")) {
+                    holidayInfo = translate(holidayInfo)
+                }
                 val dayInfo = SpecialDayInfo(weekend, holiday, holidayInfo, workingDay)
                 val localDate = day.localDate
-                result.put(isoDateFormatter.format(localDate), dayInfo)
+                result.put(localDate, dayInfo)
             }
             day = day.plusDays(1)
         } while (!day.isAfter(end))

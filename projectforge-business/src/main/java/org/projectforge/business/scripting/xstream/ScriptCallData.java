@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,13 @@
 
 package org.projectforge.business.scripting.xstream;
 
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.scripting.ScriptParameter;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.scripting.ScriptParameter;
+
+import java.util.List;
 
 /**
  * For storing the user's last script calls. The parameters will be stored per script.

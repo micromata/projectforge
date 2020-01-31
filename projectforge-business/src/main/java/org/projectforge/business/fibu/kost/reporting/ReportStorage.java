@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -36,7 +36,7 @@ public class ReportStorage
   
   private String fileName;
 
-  private Set<String> openReports = new HashSet<String>();
+  private Set<String> openReports = new HashSet<>();
   
   public ReportStorage(Report root)
   {
@@ -79,14 +79,14 @@ public class ReportStorage
   /** Set report only as open, if the report has child reports. */
   public void setOpen(boolean opened)
   {
-    if (currentReport.hasChilds() == false) {
-      log.info("Try to open a report without childs, ignoring this operation for " + currentReport.getId());
+    if (!currentReport.hasChildren()) {
+      log.info("Try to open a report without children, ignoring this operation for " + currentReport.getId());
       return;
     }
-    if (opened == true) {
+    if (opened) {
       this.openReports.add(currentReport.getId());
     } else {
-      if (this.openReports.contains(currentReport.getId()) == true) {
+      if (this.openReports.contains(currentReport.getId())) {
         this.openReports.remove(currentReport.getId());
       }
     }

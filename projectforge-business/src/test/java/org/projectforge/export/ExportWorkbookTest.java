@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,9 +31,8 @@ import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.TestSetup;
 import org.projectforge.test.WorkFileHelper;
 
@@ -78,14 +77,14 @@ public class ExportWorkbookTest {
     sheet.getContentProvider().setColWidths(20, 20, 20);
     sheet.addRow().setValues("Type", "Precision", "result");
     sheet.addRow().setValues("Java output", ".", "Tue Sep 28 00:27:10 UTC 2010");
-    sheet.addRow().setValues("DateHolder", "DAY", getDateHolder().setPrecision(DatePrecision.DAY));
-    sheet.addRow().setValues("DateHolder", "HOUR_OF_DAY", getDateHolder().setPrecision(DatePrecision.HOUR_OF_DAY));
-    sheet.addRow().setValues("DateHolder", "MINUTE_15", getDateHolder().setPrecision(DatePrecision.MINUTE_15));
-    sheet.addRow().setValues("DateHolder", "MINUTE", getDateHolder().setPrecision(DatePrecision.MINUTE));
-    sheet.addRow().setValues("DateHolder", "SECOND", getDateHolder().setPrecision(DatePrecision.SECOND));
-    sheet.addRow().setValues("DateHolder", "MILLISECOND", getDateHolder().setPrecision(DatePrecision.MILLISECOND));
-    sheet.addRow().setValues("DateHolder", "-", getDateHolder());
-    sheet.addRow().setValues("DayHolder", "-", new DayHolder(getDate()));
+    sheet.addRow().setValues("DateTime", "DAY", getDateTime().withPrecision(DatePrecision.DAY));
+    sheet.addRow().setValues("DateTime", "HOUR_OF_DAY", getDateTime().withPrecision(DatePrecision.HOUR_OF_DAY));
+    sheet.addRow().setValues("DateTime", "MINUTE_15", getDateTime().withPrecision(DatePrecision.MINUTE_15));
+    sheet.addRow().setValues("DateTime", "MINUTE", getDateTime().withPrecision(DatePrecision.MINUTE));
+    sheet.addRow().setValues("DateTime", "SECOND", getDateTime().withPrecision(DatePrecision.SECOND));
+    sheet.addRow().setValues("DateTime", "MILLISECOND", getDateTime().withPrecision(DatePrecision.MILLISECOND));
+    sheet.addRow().setValues("DateTime", "-", getDateTime());
+    sheet.addRow().setValues("DayHolder", "-", PFDateTime.from(getDate()));
     sheet.addRow().setValues("java.util.Date", "-", getDate());
     sheet.addRow().setValues("java.sql.Timestamp", "-", new Timestamp(getDate().getTime()));
     sheet.addRow().setValues("int", "-", 1234);
@@ -95,8 +94,8 @@ public class ExportWorkbookTest {
     workbook.write(new FileOutputStream(file));
   }
 
-  private DateHolder getDateHolder() {
-    return new DateHolder(getDate(), DateHelper.UTC);
+  private PFDateTime getDateTime() {
+    return PFDateTime.from(getDate(), DateHelper.UTC);
   }
 
   private Date getDate() {

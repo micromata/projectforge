@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,67 +25,61 @@ package org.projectforge.calendar;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.test.TestSetup;
 
-import java.util.Calendar;
+import java.time.Month;
 import java.util.Date;
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class TimePeriodTest
-{
+public class TimePeriodTest {
   //private final static Logger log = Logger.getLogger(WeekHolderTest.class);
 
   @BeforeAll
-  public static void setUp()
-  {
+  public static void setUp() {
     // Needed if this tests runs before the ConfigurationTest.
     TestSetup.init();
   }
 
   @Test
-  public void testTimePeriod()
-  {
-    final DateHolder date1 = new DateHolder(new Date(), DatePrecision.MINUTE, Locale.GERMAN);
-    date1.setDate(1970, Calendar.NOVEMBER, 21, 0, 0, 0);
+  public void testTimePeriod() {
+    final PFDateTime dateTime1 = PFDateTime.from(new Date(), null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE).withDate(1970, Month.NOVEMBER, 21, 0, 0, 0);
 
-    final DateHolder date2 = new DateHolder(new Date(), DatePrecision.MINUTE, Locale.GERMAN);
-    date2.setDate(1970, Calendar.NOVEMBER, 21, 10, 0, 0);
+    PFDateTime dateTime2 = dateTime1.withHour(10);
 
-    TimePeriod timePeriod = new TimePeriod(date1.getDate(), date2.getDate());
-    assertResultArray(new int[] { 0, 10, 0 }, timePeriod.getDurationFields());
-    assertResultArray(new int[] { 1, 2, 0 }, timePeriod.getDurationFields(8));
+    TimePeriod timePeriod = new TimePeriod(dateTime1.getUtilDate(), dateTime2.getUtilDate());
+    assertResultArray(new int[]{0, 10, 0}, timePeriod.getDurationFields());
+    assertResultArray(new int[]{1, 2, 0}, timePeriod.getDurationFields(8));
 
-    date2.setDate(1970, Calendar.NOVEMBER, 22, 0, 0, 0);
-    timePeriod = new TimePeriod(date1.getDate(), date2.getDate());
-    assertResultArray(new int[] { 1, 0, 0 }, timePeriod.getDurationFields());
-    assertResultArray(new int[] { 3, 0, 0 }, timePeriod.getDurationFields(8));
-    assertResultArray(new int[] { 0, 24, 0 }, timePeriod.getDurationFields(8, 25));
-    assertResultArray(new int[] { 3, 0, 0 }, timePeriod.getDurationFields(8, 24));
+    dateTime2 = dateTime2.withDayOfMonth(22).withHour(0);
+    timePeriod = new TimePeriod(dateTime1.getUtilDate(), dateTime2.getUtilDate());
+    assertResultArray(new int[]{1, 0, 0}, timePeriod.getDurationFields());
+    assertResultArray(new int[]{3, 0, 0}, timePeriod.getDurationFields(8));
+    assertResultArray(new int[]{0, 24, 0}, timePeriod.getDurationFields(8, 25));
+    assertResultArray(new int[]{3, 0, 0}, timePeriod.getDurationFields(8, 24));
 
-    date2.setDate(1970, Calendar.NOVEMBER, 21, 23, 59, 59);
-    timePeriod = new TimePeriod(date1.getDate(), date2.getDate());
-    assertResultArray(new int[] { 0, 23, 59 }, timePeriod.getDurationFields());
-    assertResultArray(new int[] { 2, 7, 59 }, timePeriod.getDurationFields(8));
-    assertResultArray(new int[] { 0, 23, 59 }, timePeriod.getDurationFields(8, 24));
-    assertResultArray(new int[] { 2, 7, 59 }, timePeriod.getDurationFields(8, 22));
+    dateTime2 = dateTime2.withDayOfMonth(21).withHour(23).withMinute(59).withSecond(59);
+    timePeriod = new TimePeriod(dateTime1.getUtilDate(), dateTime2.getUtilDate());
+    assertResultArray(new int[]{0, 23, 59}, timePeriod.getDurationFields());
+    assertResultArray(new int[]{2, 7, 59}, timePeriod.getDurationFields(8));
+    assertResultArray(new int[]{0, 23, 59}, timePeriod.getDurationFields(8, 24));
+    assertResultArray(new int[]{2, 7, 59}, timePeriod.getDurationFields(8, 22));
 
-    date2.setDate(1970, Calendar.NOVEMBER, 23, 5, 30, 0);
-    timePeriod = new TimePeriod(date1.getDate(), date2.getDate());
-    assertResultArray(new int[] { 2, 5, 30 }, timePeriod.getDurationFields());
-    assertResultArray(new int[] { 6, 5, 30 }, timePeriod.getDurationFields(8));
-    assertResultArray(new int[] { 0, 53, 30 }, timePeriod.getDurationFields(8, 54));
-    assertResultArray(new int[] { 6, 5, 30 }, timePeriod.getDurationFields(8, 53));
+    dateTime2 = dateTime2.withDayOfMonth(23).withHour(5).withMinute(30).withSecond(0);
+    timePeriod = new TimePeriod(dateTime1.getUtilDate(), dateTime2.getUtilDate());
+    assertResultArray(new int[]{2, 5, 30}, timePeriod.getDurationFields());
+    assertResultArray(new int[]{6, 5, 30}, timePeriod.getDurationFields(8));
+    assertResultArray(new int[]{0, 53, 30}, timePeriod.getDurationFields(8, 54));
+    assertResultArray(new int[]{6, 5, 30}, timePeriod.getDurationFields(8, 53));
   }
 
-  private void assertResultArray(final int[] required, final int[] result)
-  {
-    assertEquals( required[0], result[0],"days");
-    assertEquals( required[1], result[1],"hours");
-    assertEquals( required[2], result[2],"minutes");
+  private void assertResultArray(final int[] required, final int[] result) {
+    assertEquals(required[0], result[0], "days");
+    assertEquals(required[1], result[1], "hours");
+    assertEquals(required[2], result[2], "minutes");
   }
 }

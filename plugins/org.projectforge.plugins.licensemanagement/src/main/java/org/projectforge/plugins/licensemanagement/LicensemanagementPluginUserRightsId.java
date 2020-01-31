@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,11 @@
 
 package org.projectforge.plugins.licensemanagement;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.RightRightIdProviderService;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 public enum LicensemanagementPluginUserRightsId implements IUserRightId
 {
@@ -53,7 +53,7 @@ public enum LicensemanagementPluginUserRightsId implements IUserRightId
    * @param orderString For displaying the rights in e. g. UserEditPage in the correct order.
    * @param i18nKey
    */
-  private LicensemanagementPluginUserRightsId(final String id, final String orderString, final String i18nKey)
+  LicensemanagementPluginUserRightsId(final String id, final String orderString, final String i18nKey)
   {
     this.id = id;
     this.orderString = orderString;

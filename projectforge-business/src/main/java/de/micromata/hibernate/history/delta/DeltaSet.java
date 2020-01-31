@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,11 +24,7 @@
 package de.micromata.hibernate.history.delta;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Wolfgang Jung (w.jung@micromata.de)
@@ -41,13 +37,13 @@ public class DeltaSet implements java.io.Serializable
    */
   private static final long serialVersionUID = 3887433882538488773L;
 
-  private List<PropertyDelta> deltas = new ArrayList<PropertyDelta>();
+  private List<PropertyDelta> deltas = new ArrayList<>();
 
   private Class<?> entity;
 
   private Serializable id;
 
-  private transient Set<String> deltaPropertyNames = new HashSet<String>();
+  private transient Set<String> deltaPropertyNames = new HashSet<>();
 
   public void addDelta(PropertyDelta delta)
   {

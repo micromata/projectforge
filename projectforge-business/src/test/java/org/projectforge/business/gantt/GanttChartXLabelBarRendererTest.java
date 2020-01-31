@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,17 +28,16 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.export.SVGHelper;
 import org.projectforge.framework.renderer.BatikImageRenderer;
 import org.projectforge.framework.renderer.ImageFormat;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.TestSetup;
 import org.projectforge.test.WorkFileHelper;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Calendar;
+import java.time.Month;
 import java.util.Date;
 
 public class GanttChartXLabelBarRendererTest
@@ -62,14 +61,14 @@ public class GanttChartXLabelBarRendererTest
     final Document doc = SVGHelper.createDocument(style.getWidth(), height);
     final Element root = doc.getDocumentElement();
     int row = -2;
-    drawBothLabelBars(doc, root, row += 2, date(2010, Calendar.JANUARY, 1), date(2010, Calendar.JANUARY, 31), style);
-    drawBothLabelBars(doc, root, row += 2, date(2010, Calendar.JANUARY, 1), date(2010, Calendar.MAY, 31), style);
-    drawBothLabelBars(doc, root, row += 2, date(2010, Calendar.JANUARY, 1), date(2010, Calendar.JULY, 31), style);
-    drawBothLabelBars(doc, root, row += 2, date(2010, Calendar.JANUARY, 1), date(2010, Calendar.OCTOBER, 31), style);
-    drawBothLabelBars(doc, root, row += 2, date(2010, Calendar.JANUARY, 1), date(2010, Calendar.DECEMBER, 31), style);
-    drawBothLabelBars(doc, root, row += 2, date(2010, Calendar.JANUARY, 1), date(2012, Calendar.DECEMBER, 31), style);
-    drawBothLabelBars(doc, root, row += 2, date(2010, Calendar.JANUARY, 1), date(2015, Calendar.DECEMBER, 31), style);
-    drawBothLabelBars(doc, root, row += 2, date(2010, Calendar.JANUARY, 1), date(2018, Calendar.DECEMBER, 31), style);
+    drawBothLabelBars(doc, root, row += 2, date(2010, Month.JANUARY.getValue(), 1), date(2010, Month.JANUARY.getValue(), 31), style);
+    drawBothLabelBars(doc, root, row += 2, date(2010, Month.JANUARY.getValue(), 1), date(2010, Month.MAY.getValue(), 31), style);
+    drawBothLabelBars(doc, root, row += 2, date(2010, Month.JANUARY.getValue(), 1), date(2010, Month.JULY.getValue(), 31), style);
+    drawBothLabelBars(doc, root, row += 2, date(2010, Month.JANUARY.getValue(), 1), date(2010, Month.OCTOBER.getValue(), 31), style);
+    drawBothLabelBars(doc, root, row += 2, date(2010, Month.JANUARY.getValue(), 1), date(2010, Month.DECEMBER.getValue(), 31), style);
+    drawBothLabelBars(doc, root, row += 2, date(2010, Month.JANUARY.getValue(), 1), date(2012, Month.DECEMBER.getValue(), 31), style);
+    drawBothLabelBars(doc, root, row += 2, date(2010, Month.JANUARY.getValue(), 1), date(2015, Month.DECEMBER.getValue(), 31), style);
+    drawBothLabelBars(doc, root, row += 2, date(2010, Month.JANUARY.getValue(), 1), date(2018, Month.DECEMBER.getValue(), 31), style);
     final byte[] ba = BatikImageRenderer.getByteArray(doc, style.getWidth(), ImageFormat.PNG);
     final File file = WorkFileHelper.getWorkFile("ganttXBarTest.png");
     log.info("Writing Gantt test image to work directory: " + file.getAbsolutePath());
@@ -77,8 +76,6 @@ public class GanttChartXLabelBarRendererTest
       final FileOutputStream out = new FileOutputStream(file);
       out.write(ba);
       out.close();
-    } catch (final FileNotFoundException ex) {
-      log.error("Exception encountered " + ex, ex);
     } catch (final IOException ex) {
       log.error("Exception encountered " + ex, ex);
     }
@@ -118,9 +115,7 @@ public class GanttChartXLabelBarRendererTest
 
   private Date date(final int year, final int month, final int dayOfMonth)
   {
-    final DayHolder day = new DayHolder();
-    day.setDate(year, month, dayOfMonth);
-    return day.getDate();
+    return PFDateTime.now().withYear(year).withMonth(month).withDayOfMonth(dayOfMonth).getUtilDate();
   }
 
 }

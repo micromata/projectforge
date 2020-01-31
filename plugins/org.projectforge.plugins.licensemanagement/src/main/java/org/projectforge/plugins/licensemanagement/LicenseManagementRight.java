@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -63,11 +63,11 @@ public class LicenseManagementRight extends UserRightAccessCheck<LicenseDO>
       // Visible for new objects (created by current user):
       return true;
     }
-    if (accessChecker.isLoggedInUserMemberOfAdminGroup() == true) {
+    if (accessChecker.isLoggedInUserMemberOfAdminGroup()) {
       // Administrators have always access:
       return true;
     }
-    if (StringUtils.isBlank(license.getOwnerIds()) == true) {
+    if (StringUtils.isBlank(license.getOwnerIds())) {
       // No owners defined.
       return false;
     }

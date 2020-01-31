@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,12 +26,12 @@ package org.projectforge.business.gantt;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
-import java.util.Calendar;
+import java.time.Month;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,18 +62,37 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
     initTestDB.addTask(prefix + "2.1", prefix + "2");
     initTestDB.addTask(prefix + "2.2", prefix + "2");
     initTestDB.addTask(prefix + "2.3", prefix + "2");
-    final DayHolder day = new DayHolder();
-    day.setDate(2010, Calendar.AUGUST, 16);
-    taskDao.update(getTask(prefix + "2.1").setStartDate(day.getDate()).setDuration(BigDecimal.TEN));
-    taskDao.update(getTask(prefix + "2.2").setGanttPredecessor(getTask(prefix + "2.1")).setDuration(BigDecimal.TEN));
+    final PFDateTime day = PFDateTime.withDate(2010, Month.AUGUST, 16);
 
-    taskDao.update(getTask(prefix + "1.1.1").setGanttPredecessor(getTask(prefix + "2.1")).setDuration(BigDecimal.TEN));
-    taskDao
-            .update(getTask(prefix + "1.1.2").setGanttPredecessor(getTask(prefix + "1.1.1")).setDuration(BigDecimal.TEN));
+    TaskDO task = getTask(prefix + "2.1");
+    task.setStartDate(day.getUtilDate());
+    task.setDuration(BigDecimal.TEN);
+    taskDao.update(task);
 
-    taskDao.update(getTask(prefix + "1.2.1").setGanttPredecessor(getTask(prefix + "2.2")).setDuration(BigDecimal.TEN));
-    taskDao
-            .update(getTask(prefix + "1.2.2").setGanttPredecessor(getTask(prefix + "1.2.1")).setDuration(BigDecimal.TEN));
+    task = getTask(prefix + "2.2");
+    task.setGanttPredecessor(getTask(prefix + "2.1"));
+    task.setDuration(BigDecimal.TEN);
+    taskDao.update(task);
+
+    task = getTask(prefix + "1.1.1");
+    task.setGanttPredecessor(getTask(prefix + "2.1"));
+    task.setDuration(BigDecimal.TEN);
+    taskDao.update(task);
+
+    task = getTask(prefix + "1.1.2");
+    task.setGanttPredecessor(getTask(prefix + "1.1.1"));
+    task.setDuration(BigDecimal.TEN);
+    taskDao.update(task);
+
+    task = getTask(prefix + "1.2.1");
+    task.setGanttPredecessor(getTask(prefix + "2.2"));
+    task.setDuration(BigDecimal.TEN);
+    taskDao.update(task);
+
+    task = getTask(prefix + "1.2.2");
+    task.setGanttPredecessor(getTask(prefix + "1.2.1"));
+    task.setDuration(BigDecimal.TEN);
+    taskDao.update(task);
 
     final GanttChartData ganttChartData = Task2GanttTaskConverter.convertToGanttObjectTree(taskDao.getTaskTree(),
             getTask(prefix + "1"));
@@ -128,22 +147,22 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
   private void assertExternalTasks(final GanttChartData ganttChartData, final String prefix) {
     GanttTask externalGanttTask = ganttChartData.getExternalObject(getTaskId(prefix + "2.1"));
     assertNull(externalGanttTask.getPredecessor(), "Predecessor should be null.");
-    assertDate("Start date unmodified.", 2010, Calendar.AUGUST, 16, externalGanttTask.getStartDate());
-    assertDate("End date should have been calculated and set.", 2010, Calendar.AUGUST, 30,
+    assertDate("Start date unmodified.", 2010, Month.AUGUST.getValue(), 16, externalGanttTask.getStartDate());
+    assertDate("End date should have been calculated and set.", 2010, Month.AUGUST.getValue(), 30,
             externalGanttTask.getEndDate());
     externalGanttTask = ganttChartData.getExternalObject(getTaskId(prefix + "2.2"));
     assertNull(externalGanttTask.getPredecessor(), "Predecessor should be null.");
-    assertDate("Start date should have been calculated and set.", 2010, Calendar.AUGUST, 30,
+    assertDate("Start date should have been calculated and set.", 2010, Month.AUGUST.getValue(), 30,
             externalGanttTask.getStartDate());
-    assertDate("End date should have been calculated and set.", 2010, Calendar.SEPTEMBER, 13,
+    assertDate("End date should have been calculated and set.", 2010, Month.SEPTEMBER.getValue(), 13,
             externalGanttTask.getEndDate());
   }
 
   private void assertDate(final String message, final int year, final int month, final int dayOfMonth, final Date date) {
-    final DayHolder dh = new DayHolder(date);
-    assertEquals(year, dh.getYear(), message);
-    assertEquals(month, dh.getMonth(), message);
-    assertEquals(dayOfMonth, dh.getDayOfMonth(), message);
+    final PFDateTime dt = PFDateTime.from(date); // not null
+    assertEquals(year, dt.getYear(), message);
+    assertEquals(month, dt.getMonthValue(), message);
+    assertEquals(dayOfMonth, dt.getDayOfMonth(), message);
   }
 
   private Integer getTaskId(final String taskName) {

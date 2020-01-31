@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,11 @@
 
 package org.projectforge.plugins.marketing;
 
+import org.projectforge.continuousdb.*;
+import org.projectforge.framework.persistence.database.DatabaseService;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.projectforge.continuousdb.SchemaGenerator;
-import org.projectforge.continuousdb.Table;
-import org.projectforge.continuousdb.UpdateEntry;
-import org.projectforge.continuousdb.UpdateEntryImpl;
-import org.projectforge.continuousdb.UpdatePreCheckStatus;
-import org.projectforge.continuousdb.UpdateRunningStatus;
-import org.projectforge.framework.persistence.database.DatabaseService;
 
 /**
  * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are
@@ -44,7 +39,7 @@ import org.projectforge.framework.persistence.database.DatabaseService;
  */
 public class MarketingPluginUpdates
 {
-  static DatabaseService dao;
+  static DatabaseService databaseService;
 
   final static Class<?>[] doClasses = new Class<?>[] { //
       AddressCampaignDO.class, AddressCampaignValueDO.class };
@@ -52,7 +47,7 @@ public class MarketingPluginUpdates
   @SuppressWarnings("serial")
   public static List<UpdateEntry> getUpdateEntries()
   {
-    final List<UpdateEntry> list = new ArrayList<UpdateEntry>();
+    final List<UpdateEntry> list = new ArrayList<>();
     // /////////////////////////////////////////////////////////////////
     // 5.1
     // /////////////////////////////////////////////////////////////////
@@ -67,7 +62,7 @@ public class MarketingPluginUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         // Does the data-base table already exist?
-        if (dao.doTableAttributesExist(AddressCampaignDO.class, "values") == true) {
+        if (databaseService.doTableAttributesExist(AddressCampaignDO.class, "values")) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
@@ -77,8 +72,8 @@ public class MarketingPluginUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (dao.doTableAttributesExist(AddressCampaignDO.class, "values") == false) {
-          dao.renameTableAttribute(new Table(AddressCampaignDO.class).getName(), "values", "s_values");
+        if (!databaseService.doTableAttributesExist(AddressCampaignDO.class, "values")) {
+          databaseService.renameTableAttribute(new Table(AddressCampaignDO.class).getName(), "values", "s_values");
         }
         return UpdateRunningStatus.DONE;
       }
@@ -97,7 +92,7 @@ public class MarketingPluginUpdates
       {
         // Does the data-base table already exist?
         // Check only the oldest table.
-        if (dao.doTablesExist(AddressCampaignDO.class) == true) {
+        if (databaseService.doTablesExist(AddressCampaignDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           // The oldest table doesn't exist, therefore the plug-in has to initialized completely.
@@ -109,8 +104,8 @@ public class MarketingPluginUpdates
       public UpdateRunningStatus runUpdate()
       {
         // Create initial data-base table:
-        new SchemaGenerator(dao).add(doClasses).createSchema();
-        dao.createMissingIndices();
+        new SchemaGenerator(databaseService).add(doClasses).createSchema();
+        databaseService.createMissingIndices();
         return UpdateRunningStatus.DONE;
       }
     };

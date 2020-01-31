@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,15 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Some useful helper methods. That are used in groovy scripts. The static methods are used here because groovy scripts
@@ -70,13 +70,13 @@ public class ProjectUtils
    */
   public static Collection<ProjektDO> getProjectsOfManager(final PFUserDO user)
   {
-    final Collection<ProjektDO> result = new LinkedList<ProjektDO>();
+    final Collection<ProjektDO> result = new LinkedList<>();
     final ProjektFilter filter = new ProjektFilter();
     if (projektDao == null) {
       projektDao = ApplicationContextProvider.getApplicationContext().getBean(ProjektDao.class);
     }
     final List<ProjektDO> projects = projektDao.getList(filter);
-    if (CollectionUtils.isEmpty(projects) == true) {
+    if (CollectionUtils.isEmpty(projects)) {
       return result;
     }
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
@@ -86,7 +86,7 @@ public class ProjectUtils
         // No manager group defined.
         continue;
       }
-      if (userGroupCache.isUserMemberOfGroup(user, groupId) == false) {
+      if (!userGroupCache.isUserMemberOfGroup(user, groupId)) {
         continue;
       }
       result.add(project);

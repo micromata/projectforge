@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,17 @@
 
 package org.projectforge.framework.calendar;
 
-import java.math.BigDecimal;
-
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.framework.xstream.XmlField;
 import org.projectforge.framework.xstream.XmlObject;
 
+import java.math.BigDecimal;
+
 /**
  * Used in config.xml for (re-)definition of holidays.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @XmlObject(alias = "holiday")
 public class ConfigureHoliday
@@ -90,7 +90,8 @@ public class ConfigureHoliday
   }
 
   /**
-   * @return Month of year (January = 0, December = 11)
+   * Since 7.0 (X-mas), month values are 1 based (were 0-based before).
+   * @return Month of year (January = 1, December = 12)
    */
   public Integer getMonth()
   {

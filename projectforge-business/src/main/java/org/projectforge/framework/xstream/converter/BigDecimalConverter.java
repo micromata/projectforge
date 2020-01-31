@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.framework.xstream.converter;
 
-import java.math.BigDecimal;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.xstream.XmlConstants;
+
+import java.math.BigDecimal;
 
 public class BigDecimalConverter extends AbstractValueConverter<BigDecimal>
 {
@@ -36,7 +36,7 @@ public class BigDecimalConverter extends AbstractValueConverter<BigDecimal>
   public BigDecimal fromString(final String str)
   {
     try {
-      if (StringUtils.isEmpty(str) == true || XmlConstants.NULL_IDENTIFIER.equals(str) == true) {
+      if (StringUtils.isEmpty(str) || XmlConstants.NULL_IDENTIFIER.equals(str)) {
         return null;
       }
       return new BigDecimal(str);

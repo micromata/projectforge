@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,11 @@
 
 package de.micromata.hibernate.history.delta;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
+
+import java.util.*;
 
 /**
  * Legacy used for XML persistence of DB.
@@ -42,9 +38,9 @@ import org.hibernate.Session;
 public class CollectionPropertyDelta extends PropertyDelta
 {
 
-  private transient Set<Object> additions = new HashSet<Object>();
+  private transient Set<Object> additions = new HashSet<>();
 
-  private transient Set<Object> removals = new HashSet<Object>();
+  private transient Set<Object> removals = new HashSet<>();
 
   protected CollectionPropertyDelta()
   {
@@ -96,8 +92,8 @@ public class CollectionPropertyDelta extends PropertyDelta
 
   private List<Object> splitElements(final String keyList, final Session session)
   {
-    List<Object> entityList = new ArrayList<Object>();
-    if (StringUtils.isEmpty(keyList) == false) {
+    List<Object> entityList = new ArrayList<>();
+    if (!StringUtils.isEmpty(keyList)) {
       for (String key : keyList.split(",")) {
         if (StringUtils.isEmpty(key)) {
           continue;

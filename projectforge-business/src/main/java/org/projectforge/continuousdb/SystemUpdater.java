@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,12 @@
 
 package org.projectforge.continuousdb;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
+
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Checks whether the database is up-to-date or not.
@@ -71,7 +67,7 @@ public class SystemUpdater
   void testRegister(final UpdateEntry updateEntry)
   {
     if (this.updateEntries == null) {
-      this.updateEntries = new TreeSet<UpdateEntry>();
+      this.updateEntries = new TreeSet<>();
     }
     this.updateEntries.add(updateEntry);
   }
@@ -92,9 +88,9 @@ public class SystemUpdater
   public boolean isUpdated()
   {
     log.info("Checking for database updates...");
-    final Set<String> checkedRegions = new HashSet<String>();
+    final Set<String> checkedRegions = new HashSet<>();
     for (final UpdateEntry updateEntry : getUpdateEntries()) {
-      if (updateEntry.isInitial() == false && checkedRegions.contains(updateEntry.getRegionId()) == true) {
+      if (!updateEntry.isInitial() && checkedRegions.contains(updateEntry.getRegionId())) {
         // Check only the newest update entry.
         continue;
       }

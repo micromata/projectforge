@@ -1,0 +1,21 @@
+[
+  {
+    "field": "name",
+    "value": "Reinhard"
+  },
+  {
+    "field": "firstName",
+    "value": "*in"
+  },
+  {
+    "field": "date",
+    "value": {
+      "from": "01.01.2019 00:00",
+      "to": "04.04.2019 00:00"
+    }
+  },
+  {
+    "field": "user",
+    "value": 15
+  }
+]

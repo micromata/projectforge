@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -58,13 +58,13 @@ public class TenantRight extends UserRightAccessCheck<TenantDO>
   public boolean hasAccess(final PFUserDO user, final TenantDO obj, final TenantDO oldObj,
       final OperationType operationType)
   {
-    if (GlobalConfiguration.getInstance().isMultiTenancyConfigured() == false) {
+    if (!GlobalConfiguration.getInstance().isMultiTenancyConfigured()) {
       return false;
     }
-    if (user.getSuperAdmin() == true) {
+    if (user.getSuperAdmin()) {
       return true;
     }
-    if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ADMIN_GROUP) == false) {
+    if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ADMIN_GROUP)) {
       return false;
     }
     if (operationType == OperationType.SELECT) {

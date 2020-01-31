@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -70,7 +70,7 @@ public class TaskFormatter extends AbstractFormatter
     if (n == null) {
       return null;
     }
-    if (showCurrentTask == false) {
+    if (!showCurrentTask) {
       n = n.getParent();
       if (n == null) {
         return null;
@@ -78,10 +78,10 @@ public class TaskFormatter extends AbstractFormatter
       taskId = n.getTaskId();
     }
     final List<TaskNode> list = taskTree.getPath(taskId, ancestorTaskId);
-    if (CollectionUtils.isEmpty(list) == true) {
+    if (CollectionUtils.isEmpty(list)) {
       return "";
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     int i = 0;
     for (final TaskNode node : list) {
       final TaskDO task = node.getTask();

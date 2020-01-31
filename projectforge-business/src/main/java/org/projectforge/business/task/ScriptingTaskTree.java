@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,13 @@
 
 package org.projectforge.business.task;
 
+import org.projectforge.business.fibu.AuftragsPositionVO;
+import org.projectforge.business.fibu.ProjektDO;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import org.projectforge.business.fibu.AuftragsPositionVO;
-import org.projectforge.business.fibu.ProjektDO;
 
 
 /**
@@ -45,7 +45,7 @@ public class ScriptingTaskTree
     if (list == null) {
       return null;
     }
-    final List<ScriptingTaskNode> result = new ArrayList<ScriptingTaskNode>(list.size());
+    final List<ScriptingTaskNode> result = new ArrayList<>(list.size());
     for (final TaskNode node : list) {
       result.add(new ScriptingTaskNode(node));
     }

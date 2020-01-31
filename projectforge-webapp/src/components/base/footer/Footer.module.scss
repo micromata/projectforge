@@ -1,12 +1,11 @@
 @import '../../../assets/style/mixins';
 
 .footer {
+  position: absolute;
+  margin-top: -20px;
   height: 2em;
   min-height: 2em;
-  //text-shadow: 0 1px 0 #000;
-  //@include linear-gradient-background(to bottom, #4c5766, #313841);
   border-top: 1px solid rgba(0,0,0,.1);
-  //position: fixed;
   bottom: 0;
   color: #aaaaaa;
   width: 100%;
@@ -16,7 +15,8 @@
 
   a {
     color: #7c8495;
-    font-size: 0.75em;
+    font-size: 12px;
+    padding: 5px;
 
     &:hover {
       color: #000;

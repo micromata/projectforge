@@ -2,7 +2,6 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { colorPropType } from '../../../../utilities/propTypes';
-import revisedRandomId from '../../../../utilities/revisedRandomId';
 import { UncontrolledTooltip } from '../../../design';
 import style from '../Navigation.module.scss';
 
@@ -10,17 +9,20 @@ function MenuBadge(
     {
         children,
         color,
-        flying,
+        isFlying,
+        elementKey,
         tooltip,
+        ...props
     },
 ) {
-    const id = `menu-badge-${revisedRandomId()}`;
+    const id = `menu-badge-${elementKey}`;
 
     return (
         <React.Fragment>
             <span
-                className={classNames(style.badge, { [style.flying]: flying }, style[color])}
+                className={classNames(style.badge, { [style.isFlying]: isFlying }, style[color])}
                 id={id}
+                {...props}
             >
                 {children}
             </span>
@@ -40,14 +42,15 @@ MenuBadge.propTypes = {
         PropTypes.string,
         PropTypes.number,
     ]).isRequired,
+    elementKey: PropTypes.string.isRequired,
     color: colorPropType,
-    flying: PropTypes.bool,
+    isFlying: PropTypes.bool,
     tooltip: PropTypes.string,
 };
 
 MenuBadge.defaultProps = {
     color: undefined,
-    flying: false,
+    isFlying: false,
     tooltip: undefined,
 };
 

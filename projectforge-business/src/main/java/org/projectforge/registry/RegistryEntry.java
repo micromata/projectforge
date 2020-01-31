@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,13 @@
 
 package org.projectforge.registry;
 
-import java.io.Serializable;
-
 import org.projectforge.business.scripting.ScriptingDao;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.database.DatabaseDao;
+
+import java.io.Serializable;
 
 /**
  * For registering a dao object and its scripting dao (optional).
@@ -107,7 +107,7 @@ public class RegistryEntry implements Serializable
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public ScriptingDao<?> getScriptingDao()
   {
-    if (this.supressScriptingDao == true) {
+    if (this.supressScriptingDao) {
       return null;
     }
     if (this.scriptingDao == null) {

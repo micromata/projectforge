@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,7 @@
 
 package org.projectforge.business.teamcal.filter;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
-import java.util.Objects;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.Const;
@@ -40,14 +32,15 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Persist the settings of one named filter entry.
- * 
+ *
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author K. Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, Cloneable
 {
@@ -55,7 +48,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
 
   private static final long serialVersionUID = 409057949195992116L;
 
-  private final Set<TemplateCalendarProperties> calendarProperties = new TreeSet<TemplateCalendarProperties>();
+  private final Set<TemplateCalendarProperties> calendarProperties = new TreeSet<>();
 
   private Set<Integer> visibleCalendarIds;
 
@@ -142,7 +135,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
       return null;
     }
     for (final TemplateCalendarProperties props : calendarProperties) {
-      if (calendarId.equals(props.getCalId()) == true) {
+      if (calendarId.equals(props.getCalId())) {
         return props;
       }
     }
@@ -166,9 +159,9 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
   public Set<Integer> getVisibleCalendarIds()
   {
     if (this.visibleCalendarIds == null) {
-      this.visibleCalendarIds = new HashSet<Integer>();
+      this.visibleCalendarIds = new HashSet<>();
       for (final TemplateCalendarProperties props : this.calendarProperties) {
-        if (props.isVisible() == true) {
+        if (props.isVisible()) {
           this.visibleCalendarIds.add(props.getCalId());
         }
       }
@@ -181,7 +174,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
    */
   public List<TeamCalDO> getCalendars()
   {
-    final List<TeamCalDO> result = new ArrayList<TeamCalDO>();
+    final List<TeamCalDO> result = new ArrayList<>();
     for (final TemplateCalendarProperties props : this.calendarProperties) {
       final TeamCalDO cal = getTeamCalCache().getCalendar(props.getCalId());
       if (cal != null) {
@@ -198,7 +191,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
    */
   public Set<Integer> getCalendarIds()
   {
-    final Set<Integer> result = new HashSet<Integer>();
+    final Set<Integer> result = new HashSet<>();
     for (final TemplateCalendarProperties props : this.calendarProperties) {
       result.add(props.getCalId());
     }
@@ -288,32 +281,32 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
 
   /**
    * For avoiding reload of Calendar if no changes are detected. (Was für'n Aufwand für so'n kleines Feature...)
-   * 
+   *
    * @param filter
    * @return
    */
   public boolean isModified(final TemplateEntry other)
   {
-    if (StringUtils.equals(this.name, other.name) == false) {
+    if (!StringUtils.equals(this.name, other.name)) {
       return true;
     }
     if (calendarProperties.size() != other.calendarProperties.size()) {
       return true;
     }
-    if (Objects.equals(defaultCalendarId, other.defaultCalendarId) == false //
-        || Objects.equals(showBirthdays, other.showBirthdays) == false //
-        || Objects.equals(showBreaks, other.showBreaks) == false
-        || Objects.equals(showPlanning, other.showPlanning) == false
-        || Objects.equals(showStatistics, other.showStatistics) == false
-        || Objects.equals(timesheetUserId, other.timesheetUserId) == false) {
+    if (!Objects.equals(defaultCalendarId, other.defaultCalendarId) //
+        || !Objects.equals(showBirthdays, other.showBirthdays) //
+        || !Objects.equals(showBreaks, other.showBreaks)
+        || !Objects.equals(showPlanning, other.showPlanning)
+        || !Objects.equals(showStatistics, other.showStatistics)
+        || !Objects.equals(timesheetUserId, other.timesheetUserId)) {
       return true;
     }
     final Iterator<TemplateCalendarProperties> it1 = this.calendarProperties.iterator();
     final Iterator<TemplateCalendarProperties> it2 = other.calendarProperties.iterator();
-    while (it1.hasNext() == true) {
+    while (it1.hasNext()) {
       final TemplateCalendarProperties entry1 = it1.next();
       final TemplateCalendarProperties entry2 = it2.next();
-      if (entry1.isModified(entry2) == true) {
+      if (entry1.isModified(entry2)) {
         return true;
       }
     }
@@ -420,7 +413,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
 
   /**
    * Used for users with access to display own and other time-sheets.
-   * 
+   *
    * @param timesheetUserId the timesheetUserId to set
    * @return this for chaining.
    */

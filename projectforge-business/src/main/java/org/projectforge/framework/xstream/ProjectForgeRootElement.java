@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,11 @@
 
 package org.projectforge.framework.xstream;
 
+import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDateTime;
+
 import java.util.Date;
 import java.util.TimeZone;
-
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DatePrecision;
 
 /**
  * For export and import it's usefull to use an instance of this object to define for example the time zone, version etc.
@@ -56,8 +56,8 @@ public abstract class ProjectForgeRootElement
    */
   public ProjectForgeRootElement setCreated()
   {
-    final DateHolder dh = new DateHolder(DatePrecision.SECOND);
-    created = dh.getDate();
+    final PFDateTime dateTime = PFDateTime.now().withPrecision(DatePrecision.SECOND);
+    created = dateTime.getUtilDate();
     return this;
   }
 

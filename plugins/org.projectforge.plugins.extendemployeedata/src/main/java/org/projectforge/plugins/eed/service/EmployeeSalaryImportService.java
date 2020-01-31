@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,25 +23,25 @@
 
 package org.projectforge.plugins.eed.service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import de.micromata.merlin.excel.importer.ImportStatus;
+import de.micromata.merlin.excel.importer.ImportStorage;
+import de.micromata.merlin.excel.importer.ImportedElement;
+import de.micromata.merlin.excel.importer.ImportedSheet;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.excel.ExcelImportException;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
 import org.projectforge.business.fibu.api.EmployeeSalaryService;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.utils.ImportStatus;
-import org.projectforge.framework.persistence.utils.ImportStorage;
-import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.plugins.eed.excelimport.EmployeeSalaryExcelImporter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class EmployeeSalaryImportService
@@ -115,13 +115,13 @@ public class EmployeeSalaryImportService
     final List<EmployeeSalaryDO> employeeSalariesToUpdate = sheet
         .getElements()
         .stream()
-        .filter(ImportedElement::isSelected)
+        .filter(ImportedElement::getSelected)
         .map(ImportedElement::getValue)
         .collect(Collectors.toList());
 
     employeeSalariesToUpdate.forEach(sal -> {
       //Correct view to db
-      sal.setMonth(sal.getMonth() - 1);
+      sal.setMonth(sal.getMonth());
       employeeSalaryService.saveOrUpdate(sal);
     });
 

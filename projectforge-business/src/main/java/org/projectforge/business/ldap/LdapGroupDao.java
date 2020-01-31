@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,16 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.List;
+import org.apache.commons.collections.CollectionUtils;
+import org.projectforge.framework.utils.NumberHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.ModificationItem;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.projectforge.framework.utils.NumberHelper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -67,7 +66,7 @@ public class LdapGroupDao extends LdapDao<String, LdapGroup>
     if (group.getMembers().size() > 1) {
       return true;
     }
-    return group.getMembers().iterator().next().startsWith(NONE_UNIQUE_MEMBER_ID) == false;
+    return !group.getMembers().iterator().next().startsWith(NONE_UNIQUE_MEMBER_ID);
   }
 
   /**
@@ -94,9 +93,9 @@ public class LdapGroupDao extends LdapDao<String, LdapGroup>
   @Override
   protected String[] getAdditionalObjectClasses(final LdapGroup obj)
   {
-    final boolean posixAccount = ldapUserDao.isPosixAccountsConfigured() == true
-        && groupDOConverter.isPosixAccountValuesEmpty(obj) == false;
-    if (posixAccount == true) {
+    final boolean posixAccount = ldapUserDao.isPosixAccountsConfigured()
+        && !groupDOConverter.isPosixAccountValuesEmpty(obj);
+    if (posixAccount) {
       return ADDITIONAL_OBJECT_CLASSES_WITH_POSIX_SUPPORT;
     }
     return ADDITIONAL_OBJECT_CLASSES;
@@ -133,26 +132,26 @@ public class LdapGroupDao extends LdapDao<String, LdapGroup>
     createAndAddModificationItems(list, "businessCategory", group.getBusinessCategory());
     createAndAddModificationItems(list, "o", group.getOrganization());
     createAndAddModificationItems(list, "description", group.getDescription());
-    if (CollectionUtils.isNotEmpty(group.getMembers()) == true) {
+    if (CollectionUtils.isNotEmpty(group.getMembers())) {
       createAndAddModificationItems(list, "uniqueMember", group.getMembers());
     } else {
       createAndAddModificationItems(list, "uniqueMember", NONE_UNIQUE_MEMBER_ID);
     }
-    final boolean modifyPosixAccount = ldapUserDao.isPosixAccountsConfigured() == true
-        && groupDOConverter.isPosixAccountValuesEmpty(group) == false;
-    if (modifyPosixAccount == true) {
+    final boolean modifyPosixAccount = ldapUserDao.isPosixAccountsConfigured()
+        && !groupDOConverter.isPosixAccountValuesEmpty(group);
+    if (modifyPosixAccount) {
       if (group.getObjectClasses() != null) {
         final List<String> missedObjectClasses = LdapUtils.getMissedObjectClasses(getAdditionalObjectClasses(group),
             getObjectClass(),
             group.getObjectClasses());
-        if (CollectionUtils.isNotEmpty(missedObjectClasses) == true) {
+        if (CollectionUtils.isNotEmpty(missedObjectClasses)) {
           for (final String missedObjectClass : missedObjectClasses) {
             list.add(createModificationItem(DirContext.ADD_ATTRIBUTE, "objectClass", missedObjectClass));
           }
         }
       }
     }
-    if (modifyPosixAccount == true) {
+    if (modifyPosixAccount) {
       createAndAddModificationItems(list, "gidNumber", String.valueOf(group.getGidNumber()));
     }
     return list;
@@ -175,7 +174,7 @@ public class LdapGroupDao extends LdapDao<String, LdapGroup>
       }
     }
     final boolean posixAccountsConfigured = ldapUserDao.isPosixAccountsConfigured();
-    if (posixAccountsConfigured == true) {
+    if (posixAccountsConfigured) {
       final String no = LdapUtils.getAttributeStringValue(attributes, "gidNumber");
       group.setGidNumber(NumberHelper.parseInteger(no));
     }
@@ -191,7 +190,7 @@ public class LdapGroupDao extends LdapDao<String, LdapGroup>
     if (id == null) {
       return null;
     }
-    if (id instanceof String && ((String) id).startsWith(GroupDOConverter.ID_PREFIX) == true) {
+    if (id instanceof String && ((String) id).startsWith(GroupDOConverter.ID_PREFIX)) {
       return String.valueOf(id);
     }
     return GroupDOConverter.ID_PREFIX + id;

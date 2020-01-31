@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.poll;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -34,12 +31,10 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 
@@ -72,7 +67,7 @@ public class PollListPage extends AbstractListPage<PollListForm, PollDao, PollDO
   @Override
   public List<IColumn<PollDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final List<IColumn<PollDO, String>> columns = new ArrayList<IColumn<PollDO, String>>();
+    final List<IColumn<PollDO, String>> columns = new ArrayList<>();
 
     final CellItemListener<PollDO> cellItemListener = new CellItemListener<PollDO>()
     {
@@ -104,16 +99,16 @@ public class PollListPage extends AbstractListPage<PollListForm, PollDao, PollDO
         addRowClick(item);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<PollDO>(getString("plugins.poll.new.description"),
+    columns.add(new CellItemListenerPropertyColumn<>(getString("plugins.poll.new.description"),
         getSortable("description", sortable),
         "description", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<PollDO>(getString("plugins.poll.new.location"),
+    columns.add(new CellItemListenerPropertyColumn<>(getString("plugins.poll.new.location"),
         getSortable("location", sortable),
         "location", cellItemListener));
     columns.add(
-        new CellItemListenerPropertyColumn<PollDO>(getString("plugins.teamcal.owner"), getSortable("owner", sortable),
+        new CellItemListenerPropertyColumn<>(getString("plugins.teamcal.owner"), getSortable("owner", sortable),
             "owner.username", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<PollDO>(getString("lastUpdate"), getSortable("lastUpdate", sortable),
+    columns.add(new CellItemListenerPropertyColumn<>(getString("lastUpdate"), getSortable("lastUpdate", sortable),
         "lastUpdate",
         cellItemListener));
     return columns;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,14 @@
 
 package org.projectforge.business.fibu;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.statistics.IntAggregatedValues;
 
-public class AbstractRechnungsStatistik<T extends AbstractRechnungDO<?>> implements Serializable
+import java.io.Serializable;
+import java.math.BigDecimal;
+
+public class AbstractRechnungsStatistik<T extends AbstractRechnungDO> implements Serializable
 {
   private static final long serialVersionUID = 3695426728243488756L;
 
@@ -74,7 +74,7 @@ public class AbstractRechnungsStatistik<T extends AbstractRechnungDO<?>> impleme
       }
     } else {
       offenSum = NumberHelper.add(offenSum, brutto);
-      if (rechnung.isUeberfaellig() == true) {
+      if (rechnung.isUeberfaellig()) {
         ueberfaelligSum = NumberHelper.add(ueberfaelligSum, brutto);
       }
     }
@@ -83,7 +83,7 @@ public class AbstractRechnungsStatistik<T extends AbstractRechnungDO<?>> impleme
     zahlungsZielSum += datum.daysBetween(faelligDatum);
     if (rechnung.getBezahlDatum() != null) {
       final DayHolder bezahlDatum = new DayHolder(rechnung.getBezahlDatum());
-      tatsaechlichesZahlungsZiel.add(datum.daysBetween(bezahlDatum), brutto.intValue());
+      tatsaechlichesZahlungsZiel.add((int)datum.daysBetween(bezahlDatum), brutto.intValue());
       counterBezahlt++;
     }
     counter++;

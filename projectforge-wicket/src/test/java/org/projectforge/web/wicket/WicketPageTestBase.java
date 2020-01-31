@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -40,7 +40,6 @@ import org.apache.wicket.util.tester.FormTester;
 import org.apache.wicket.util.tester.WicketTester;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
-import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.plugins.core.AbstractPlugin;
@@ -48,6 +47,7 @@ import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.web.LoginPage;
 import org.projectforge.web.LoginService;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,6 +79,8 @@ public class WicketPageTestBase extends AbstractTestBase {
    */
   private static ResourceSettings resourceSettings;
 
+  private static boolean initialized = false;
+
   private class WicketTestApplication extends WebApplication implements WicketApplicationInterface {
 
     @Override
@@ -86,13 +88,13 @@ public class WicketPageTestBase extends AbstractTestBase {
       log.info("Init WicketTestApplication");
       super.init();
       getComponentInstantiationListeners().add(new SpringComponentInjector(this, applicationContext));
-      if (ProjectForgeApp.getInstance() == null || ProjectForgeApp.getInstance().isInitialized() == false) {
+      if (!initialized) {
         // Only on first initialization.
         log.info("Init resource loader");
         addResourceBundle(WicketApplication.RESOURCE_BUNDLE_NAME);
         resourceSettings = getResourceSettings();
-        ProjectForgeApp.init(applicationContext, isDevelopmentSystem());
         addPluginResources();
+        initialized = true;
       } else {
         log.info("Restore resource settings from last initialization");
         setResourceSettings(resourceSettings);
@@ -297,7 +299,6 @@ public class WicketPageTestBase extends AbstractTestBase {
   /**
    * @param tester        WicketTester with the last rendered page.
    * @param containerPath path of the container to search in.
-   * @param label
    * @see #findComponentByLabel(MarkupContainer, String)
    */
   public Component findComponentByAccessKey(final WicketTester tester, final String containerPath, final char accessKey) {
@@ -309,7 +310,8 @@ public class WicketPageTestBase extends AbstractTestBase {
    * Logs out any current logged-in user and calls log-in page.
    */
   protected void logout() {
-    loginService.logout((MySession) tester.getSession(), tester.getRequest(), tester.getResponse(), userXmlPreferencesCache);
+    loginService.logout((MySession) tester.getSession(), tester.getRequest(), tester.getResponse(),
+            userXmlPreferencesCache, WicketSupport.getUserPrefCache());
     tester.startPage(LoginPage.class);
     tester.assertRenderedPage(LoginPage.class);
   }

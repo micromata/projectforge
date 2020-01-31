@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -102,11 +102,11 @@ public abstract class AbstractCache implements Serializable
    */
   protected synchronized void checkRefresh()
   {
-    if (refreshInProgress == true) {
+    if (refreshInProgress) {
       // Do nothing because refreshing is already in progress.
       return;
     }
-    if (this.isExpired == true || System.currentTimeMillis() - this.timeOfLastRefresh > this.expireTime) {
+    if (this.isExpired || System.currentTimeMillis() - this.timeOfLastRefresh > this.expireTime) {
       try {
         refreshInProgress = true;
         this.timeOfLastRefresh = System.currentTimeMillis();

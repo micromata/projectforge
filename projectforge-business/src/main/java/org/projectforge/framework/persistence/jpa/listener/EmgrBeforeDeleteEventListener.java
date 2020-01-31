@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,9 @@
 
 package org.projectforge.framework.persistence.jpa.listener;
 
+import de.micromata.genome.jpa.DbRecord;
+import de.micromata.genome.jpa.events.EmgrBeforeDeleteEvent;
+import de.micromata.genome.jpa.events.EmgrEventHandler;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
@@ -31,10 +34,6 @@ import org.projectforge.framework.persistence.api.JpaPfGenericPersistenceService
 import org.projectforge.framework.persistence.jpa.PfEmgr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import de.micromata.genome.jpa.DbRecord;
-import de.micromata.genome.jpa.events.EmgrBeforeDeleteEvent;
-import de.micromata.genome.jpa.events.EmgrEventHandler;
 
 /**
  * Before marked delete or delete an event.
@@ -56,11 +55,11 @@ public class EmgrBeforeDeleteEventListener implements EmgrEventHandler<EmgrBefor
   public void onEvent(EmgrBeforeDeleteEvent event)
   {
     DbRecord<?> obj = event.getRecord();
-    if ((obj instanceof BaseDO) == false) {
+    if (!(obj instanceof BaseDO)) {
       return;
     }
     PfEmgr emgr = (PfEmgr) event.getEmgr();
-    if (emgr.isCheckAccess() == false) {
+    if (!emgr.isCheckAccess()) {
       return;
     }
     BaseDO<?> dbObject = (BaseDO<?>) obj;

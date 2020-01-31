@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,25 +23,28 @@
 
 package org.projectforge.framework.persistence.user.entities
 
-import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.jpa.metainf.EntityDependencies
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
-import org.joda.time.DateTimeZone
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.ModificationStatus
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.time.TimeNotation
 import java.io.Serializable
 import java.sql.Timestamp
+import java.time.DayOfWeek
 import java.util.*
 import javax.persistence.*
 
@@ -52,7 +55,23 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_PF_USER", uniqueConstraints = [UniqueConstraint(columnNames = ["username"])], indexes = [Index(name = "idx_fk_t_pf_user_tenant_id", columnList = "tenant_id")])
 @EntityDependencies(referencedBy = [TenantDO::class])
-class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
+@NamedQueries(
+        NamedQuery(name = PFUserDO.FIND_BY_USERNAME_AND_STAYLOGGEDINKEY,
+                query = "from PFUserDO where username=:username and stayLoggedInKey=:stayLoggedInKey"),
+        NamedQuery(name = PFUserDO.FIND_BY_USERNAME,
+                query = "from PFUserDO where username=:username"),
+        NamedQuery(name = PFUserDO.FIND_OTHER_USER_BY_USERNAME,
+                query = "from PFUserDO where username=:username and id<>:id"),
+        NamedQuery(name = PFUserDO.FIND_BY_USERID_AND_AUTHENTICATIONTOKEN,
+                query = "from PFUserDO where id=:id and authenticationToken=:authenticationToken"),
+        NamedQuery(name = PFUserDO.SELECT_ID_MEB_MOBILE_NUMBERS,
+                query = "select id, personalMebMobileNumbers from PFUserDO where deleted=false and personalMebMobileNumbers is not null"))
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
+open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
+
+    override val displayName: String
+        @Transient
+        get() = "${getFullname()}"
 
     @Transient
     private var attributeMap: MutableMap<String, Any>? = null
@@ -63,7 +82,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "user.username")
     @Field
     @get:Column(length = 255, nullable = false)
-    var username: String? = null
+    open var username: String? = null
 
     /**
      * JIRA user name (if differ from the ProjectForge's user name) is used e. g. in MEB for creating new issues.
@@ -71,7 +90,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "user.jiraUsername")
     @Field
     @get:Column(name = "jira_username", length = 100)
-    var jiraUsername: String? = null
+    open var jiraUsername: String? = null
 
     /**
      * Encoded password of the user (SHA-1).
@@ -80,23 +99,23 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @JsonIgnore
     @field:NoHistory
     @get:Column(length = 50)
-    var password: String? = null
+    open var password: String? = null
 
     /**
      * Timesamp of the lastPasswordChange.
      */
     @get:Column(name = "last_password_change")
-    var lastPasswordChange: Date? = null
+    open var lastPasswordChange: Date? = null
 
     @get:Column(name = "last_wlan_password_change")
-    var lastWlanPasswordChange: Date? = null
+    open var lastWlanPasswordChange: Date? = null
 
     /**
      * A local user will not be synchronized with any external user management system.
      */
     @PropertyInfo(i18nKey = "user.localUser")
     @get:Column(name = "local_user", nullable = false)
-    var localUser: Boolean = false
+    open var localUser: Boolean = false
 
     /**
      * A restricted user has only the ability to log-in and to change his password. This is useful if ProjectForge runs in
@@ -104,14 +123,14 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * change password in the ProjectForge system itself.
      */
     @get:Column(name = "restricted_user", nullable = false)
-    var restrictedUser: Boolean = false
+    open var restrictedUser: Boolean = false
 
     /**
      * A deactivated user has no more system access.
      */
     @PropertyInfo(i18nKey = "user.activated")
     @get:Column(nullable = false)
-    var deactivated: Boolean = false
+    open var deactivated: Boolean = false
 
     /**
      * A super admin is able to administer tenants. For tenants the user must be assigned to PF_Admin if he should be an
@@ -119,17 +138,17 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * tenants itself.
      */
     @get:Column(name = "super_admin", nullable = false, columnDefinition = "boolean DEFAULT false")
-    var superAdmin: Boolean = false
+    open var superAdmin: Boolean = false
 
     @PropertyInfo(i18nKey = "firstName")
     @Field
     @get:Column(length = 255)
-    var firstname: String? = null
+    open var firstname: String? = null
 
     @PropertyInfo(i18nKey = "name")
     @Field
     @get:Column(length = 255)
-    var lastname: String? = null
+    open var lastname: String? = null
 
     /**
      * Optional description of the user.
@@ -137,7 +156,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "description")
     @Field
     @get:Column(length = 255)
-    var description: String? = null
+    open var description: String? = null
 
     /**
      * Die E-Mail Adresse des Benutzers, falls vorhanden.
@@ -145,7 +164,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "email")
     @Field
     @get:Column(length = 255)
-    var email: String? = null
+    open var email: String? = null
 
     /**
      * Key stored in the cookies for the functionality of stay logged in.
@@ -153,7 +172,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @JsonIgnore
     @field:NoHistory
     @get:Column(name = "stay_logged_in_key", length = 255)
-    var stayLoggedInKey: String? = null
+    open var stayLoggedInKey: String? = null
 
     /**
      * The authentication token is usable for download links of the user (without further login). This is used e. g. for
@@ -163,7 +182,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @JsonIgnore
     @field:NoHistory
     @get:Column(name = "authentication_token", length = 100)
-    var authenticationToken: String? = null
+    open var authenticationToken: String? = null
 
     /**
      * The saltString for giving salt to hashed password.
@@ -171,7 +190,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @JsonIgnore
     @field:NoHistory
     @get:Column(name = "password_salt", length = 40)
-    var passwordSalt: String? = null
+    open var passwordSalt: String? = null
 
     /**
      * Zeitstempel des letzten erfolgreichen Logins.
@@ -179,21 +198,21 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "login.lastLogin")
     @field:NoHistory
     @get:Column
-    var lastLogin: Timestamp? = null
+    open var lastLogin: Timestamp? = null
 
     /**
      * Die Anzahl der erfolglosen Logins. Dieser Wert wird bei dem nächsten erfolgreichen Login auf 0 zurück gesetzt.
      */
     @field:NoHistory
     @get:Column
-    var loginFailures: Int = 0
+    open var loginFailures: Int = 0
 
     @get:Column
-    var locale: Locale? = null
+    open var locale: Locale? = null
 
     /**
      * Ensures time zone. If no time zone is given for the user, the configured default time zone is returned.
-     * @see Configuration.getInstance.defaultTimeZone
+     * @see Configuration.getDefaultTimeZone
      */
     @PropertyInfo(i18nKey = "timezone")
     private var _timeZoneObject: TimeZone? = null
@@ -207,11 +226,11 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * For example "Europe/Berlin" if time zone is given otherwise empty string.
      */
     @Column(name = "time_zone")
-    fun getTimeZone(): String? {
+    open fun getTimeZone(): String? {
         return _timeZoneObject?.id
     }
 
-    fun setTimeZone(timeZoneId: String?) {
+    open fun setTimeZone(timeZoneId: String?) {
         if (!timeZoneId.isNullOrBlank()) {
             _timeZoneObject = TimeZone.getTimeZone(timeZoneId)
         } else {
@@ -234,9 +253,9 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
         @Transient
         get() = timeZoneObject.displayName
 
-    val dateTimeZone: DateTimeZone
+    val dateTimeZone: PFDateTime
         @Transient
-        get() = DateTimeZone.forID(timeZoneObject.id)
+        get() = PFDateTime.now()
 
     /**
      * The locale given from the client (e. g. from the browser by the http request). This locale is needed by
@@ -244,7 +263,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * available.
      */
     @get:Transient
-    var clientLocale: Locale? = null
+    open var clientLocale: Locale? = null
 
     /**
      * Default date format for the user. Examples:
@@ -255,9 +274,8 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      *  * MM/dd/yyyy: 02/21/2011, American format (month first)
      */
     @PropertyInfo(i18nKey = "dateformat")
-    @Field
     @get:Column(name = "date_format", length = 20)
-    var dateFormat: String? = null
+    open var dateFormat: String? = null
 
     /**
      * Default excel date format for the user. Examples:
@@ -267,35 +285,39 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      *  * MM/DD/YYYY: 02/21/2011, American format (month first)
      */
     @PropertyInfo(i18nKey = "dateformat.xls")
-    @Field
     @get:Column(name = "excel_date_format", length = 20)
-    var excelDateFormat: String? = null
+    open var excelDateFormat: String? = null
 
     /**
-     * 0 - sunday, 1 - monday etc.
+     * 1 - monday, ..., 6 - saturday, 7 - sunday
      */
     @get:Column(name = "first_day_of_week")
-    var firstDayOfWeek: Int? = null
+    open var firstDayOfWeekValue: Int? = null
+
+    open var firstDayOfWeek: DayOfWeek?
+        @Transient
+        get() = PFDayUtils.getISODayOfWeek(firstDayOfWeekValue)
+        set(value) {
+            firstDayOfWeekValue = PFDayUtils.getISODayOfWeekValue(value)
+        }
 
     @PropertyInfo(i18nKey = "timeNotation")
-    @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "time_notation", length = 6)
-    var timeNotation: TimeNotation? = null
+    open var timeNotation: TimeNotation? = null
 
     @PropertyInfo(i18nKey = "organization")
     @Field
     @get:Column(length = 255)
-    var organization: String? = null
+    open var organization: String? = null
 
     /**
      * Eine kommaseparierte Liste mit den Kennungen des/der Telefon(e) des Mitarbeiters an der unterstützten
      * Telefonanlage,  zur Direktwahl aus ProjectForge heraus.
      */
     @PropertyInfo(i18nKey = "user.personalPhoneIdentifiers")
-    @Field
     @get:Column(name = "personal_phone_identifiers", length = 255)
-    var personalPhoneIdentifiers: String? = null
+    open var personalPhoneIdentifiers: String? = null
 
     /**
      * A comma separated list of all personal mobile numbers from which SMS can be send. Those SMS will be assigned to
@@ -303,14 +325,12 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * This is a feature from the Mobile Enterprise Blogging.
      */
     @PropertyInfo(i18nKey = "user.personalMebMobileNumbers")
-    @Field
     @get:Column(name = "personal_meb_identifiers", length = 255)
-    var personalMebMobileNumbers: String? = null
+    open var personalMebMobileNumbers: String? = null
 
     @PropertyInfo(i18nKey = "access.rights")
-    @JsonBackReference
     @get:OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "user")
-    var rights: MutableSet<UserRightDO>? = HashSet()
+    open var rights: MutableSet<UserRightDO>? = HashSet()
 
     /**
      * If true (default) then the user is highlighted in the human resource planning page if not planned for the actual
@@ -318,7 +338,7 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      */
     @PropertyInfo(i18nKey = "user.hrPlanningEnabled")
     @get:Column(name = "hr_planning", nullable = false)
-    var hrPlanning = true
+    open var hrPlanning = true
 
     /**
      * LDAP values as key-value-pairs, e. g. gidNumber=1000,uidNumber=1001,homeDirectory="/home/kai",shell="/bin/bash".
@@ -326,17 +346,15 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
      * ldap package and has no further effect in ProjectForge's core package.
      */
     @PropertyInfo(i18nKey = "user.ldapValues")
-    @Field
     @get:Column(name = "ldap_values", length = 4000)
-    var ldapValues: String? = null
+    open var ldapValues: String? = null
 
     /**
      * The user's sshPublicKey, if any.
      */
     @PropertyInfo(i18nKey = "user.sshPublicKey")
-    @Field
     @get:Column(name = "ssh_public_key", length = 4096)
-    var sshPublicKey: String? = null
+    open var sshPublicKey: String? = null
 
     /**
      * Gibt den Vor- und Nachnamen zurück, falls gegeben. Vor- und Nachname sind durch ein Leerzeichen getrennt.
@@ -357,14 +375,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
     }
 
     /**
-     * This setter does nothing. It's only a nop method for deserialization (do not fail on PFUserDO.fullname).
-     * @param ignore
-     */
-    @Suppress("unused")
-    fun setFullname(@Suppress("UNUSED_PARAMETER") ignore: String?) {
-    }
-
-    /**
      * @return The JIRA user name or if not given the user name (assuming that the JIRA user name is same as ProjectForge
      * user name).
      */
@@ -381,11 +391,6 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
             else
                 "$str (${this.username})"
         }
-
-    @Transient
-    override fun getShortDisplayName(): String? {
-        return this.username
-    }
 
     /**
      * PLEASE NOTE: Be very careful of modifying this method and don't remove this method! Otherwise
@@ -528,6 +533,18 @@ class PFUserDO : DefaultBaseDO(), ShortDisplayNameCapable {
         private val log = org.slf4j.LoggerFactory.getLogger(PFUserDO::class.java)
 
         private const val NOPASSWORD = "--- none ---"
+
+        internal const val FIND_BY_USERNAME_AND_STAYLOGGEDINKEY = "PFUserDO_FindByUsernameAndStayLoggedInKey"
+
+        const val FIND_BY_USERNAME = "PFUserDO_FindByUsername"
+
+        internal const val FIND_BY_USERID_AND_AUTHENTICATIONTOKEN = "PFUserDO_FindByUserIdAndAuthenticationToken"
+
+        const val SELECT_ID_MEB_MOBILE_NUMBERS = "PFUserDO_SelectIdMebMobilenumbers"
+        /**
+         * For detecting the existing of given username in the database for other user than given. Avoids duplicate usernames.
+         */
+        internal const val FIND_OTHER_USER_BY_USERNAME = "PFUserDO_FindOtherUserByUsername"
 
         /**
          * @return A copy of the given user without copying the secret fields (password, passwordSalt, stayLoggedInKey or

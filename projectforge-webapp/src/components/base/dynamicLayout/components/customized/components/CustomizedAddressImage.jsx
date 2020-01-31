@@ -113,7 +113,7 @@ function CustomizedAddressImage() {
                 </LoadingContainer>
             );
         },
-        [data.id, data.imageData, data.firstName, data.name, data.organization],
+        [data.id, data.imageData, data.firstName, data.name, data.organization, setData, loading],
     );
 }
 

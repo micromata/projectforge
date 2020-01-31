@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,7 @@
 
 package org.projectforge.business.fibu.kost;
 
-import java.io.Serializable;
-
+import groovy.lang.Script;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.business.scripting.GroovyExecutor;
@@ -34,7 +33,7 @@ import org.projectforge.framework.xstream.XmlField;
 import org.projectforge.framework.xstream.XmlObject;
 import org.projectforge.framework.xstream.XmlOmitField;
 
-import groovy.lang.Script;
+import java.io.Serializable;
 
 /**
  * Used in config.xml for the definition of the used business assessment schema. This object represents a single row of the business
@@ -130,9 +129,9 @@ public class BusinessAssessmentRowConfig implements Serializable
    */
   Script getValueScript()
   {
-    if (valueScript == null && StringUtils.isBlank(this.valueConfig) == false) {
+    if (valueScript == null && !StringUtils.isBlank(this.valueConfig)) {
       String scr = this.valueConfig.trim();
-      if (scr.startsWith("=") == true) {
+      if (scr.startsWith("=")) {
         scr = "return " + scr.substring(1);
       }
       this.valueScript = new GroovyExecutor().compileGroovy(scr, false);
@@ -209,7 +208,7 @@ public class BusinessAssessmentRowConfig implements Serializable
    */
   private synchronized void initialize()
   {
-    if (initialized == true) {
+    if (initialized) {
       return;
     }
     try {

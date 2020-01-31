@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,8 +30,7 @@ import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Created by blumenstein on 19.12.16.
@@ -46,37 +45,37 @@ public class TeamEventAttendeeDOTest
 
     TeamEventAttendeeDO first = new TeamEventAttendeeDO();
     TeamEventAttendeeDO second = new TeamEventAttendeeDO();
-    assertTrue(first.equals(second));
-    assertTrue(first.hashCode() == second.hashCode());
+    assertEquals(first, second);
+    assertEquals(first.hashCode(), second.hashCode());
 
     first.setUrl("test@test.de");
-    assertFalse(first.equals(second));
+    assertNotEquals(first, second);
     assertFalse(first.hashCode() == second.hashCode());
     second.setUrl("test@test.de");
-    assertTrue(first.equals(second));
-    assertTrue(first.hashCode() == second.hashCode());
+    assertEquals(first, second);
+    assertEquals(first.hashCode(), second.hashCode());
 
     first.setPk(4711);
-    assertTrue(first.equals(second));
-    assertTrue(first.hashCode() == second.hashCode());
+    assertEquals(first, second);
+    assertEquals(first.hashCode(), second.hashCode());
     second.setPk(4711);
-    assertTrue(first.equals(second));
-    assertTrue(first.hashCode() == second.hashCode());
+    assertEquals(first, second);
+    assertEquals(first.hashCode(), second.hashCode());
 
     first.setUrl(null);
-    assertTrue(first.equals(second));
+    assertEquals(first, second);
     //Equals/HashCode contract is broken
     assertFalse(first.hashCode() == second.hashCode());
 
     first.setPk(null);
     first.setAddress(exampleAddress);
-    assertFalse(first.equals(second));
+    assertNotEquals(first, second);
     assertFalse(first.hashCode() == second.hashCode());
 
     second.setUrl(null);
     second.setAddress(exampleAddress);
-    assertTrue(first.equals(second));
-    assertTrue(first.hashCode() == second.hashCode());
+    assertEquals(first, second);
+    assertEquals(first.hashCode(), second.hashCode());
 
   }
 

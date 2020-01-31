@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,9 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)

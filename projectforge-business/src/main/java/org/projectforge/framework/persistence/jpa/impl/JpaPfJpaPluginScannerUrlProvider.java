@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,14 @@
 
 package org.projectforge.framework.persistence.jpa.impl;
 
+import de.micromata.genome.jpa.impl.JpaExtScannerUrlProvider;
+import de.micromata.genome.util.matcher.CommonMatchers;
+import de.micromata.genome.util.matcher.Matcher;
+import de.micromata.genome.util.matcher.StringMatchers;
+import org.projectforge.plugins.core.PFPluginService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
@@ -30,18 +38,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
 
-import org.projectforge.plugins.core.ProjectforgePluginService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import de.micromata.genome.jpa.impl.JpaExtScannerUrlProvider;
-import de.micromata.genome.util.matcher.CommonMatchers;
-import de.micromata.genome.util.matcher.Matcher;
-import de.micromata.genome.util.matcher.StringMatchers;
-
 /**
  * URLs to plugins.
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  */
@@ -57,15 +56,15 @@ public class JpaPfJpaPluginScannerUrlProvider implements JpaExtScannerUrlProvide
         StringMatchers.containsString("/target/"),
         StringMatchers.containsString("/plugins/"),
         StringMatchers.containsString("org.projectforge"));
-    ServiceLoader<ProjectforgePluginService> ls = ServiceLoader.load(ProjectforgePluginService.class);
-    for (ProjectforgePluginService ps : ls) {
-      Class<? extends ProjectforgePluginService> clazz = ps.getClass();
+    ServiceLoader<PFPluginService> ls = ServiceLoader.load(PFPluginService.class);
+    for (PFPluginService ps : ls) {
+      Class<? extends PFPluginService> clazz = ps.getClass();
       ClassLoader cls = ps.getClass().getClassLoader();
       if (cls instanceof URLClassLoader) {
         URLClassLoader urlcls = (URLClassLoader) cls;
         URL[] urls = urlcls.getURLs();
         for (URL url : urls) {
-          if (urlMatcher.match(url.toString()) == true) {
+          if (urlMatcher.match(url.toString())) {
             ret.put(url.toString(), url);
           }
         }

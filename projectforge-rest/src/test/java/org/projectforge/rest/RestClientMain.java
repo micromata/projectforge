@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,7 +33,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
@@ -106,7 +105,7 @@ public class RestClientMain
       return webResource;
     }
     WebTarget res = webResource;
-    if (settings.isDefaultDateTimeFormat() == false) {
+    if (!settings.isDefaultDateTimeFormat()) {
       res = webResource.queryParam(ConnectionSettings.DATE_TIME_FORMAT, settings.getDateTimeFormat().toString());
     }
     return res;
@@ -143,15 +142,13 @@ public class RestClientMain
       return;
     }
     final String filename = System.getProperty("user.home") + "/ProjectForge/restauthentification.properties";
-    Properties prop = null;
+    Properties prop;
     FileReader reader = null;
     {
       try {
         reader = new FileReader(filename);
         prop = new Properties();
         prop.load(reader);
-      } catch (final FileNotFoundException ex) {
-        prop = null;
       } catch (final IOException ex) {
         prop = null;
       } finally {

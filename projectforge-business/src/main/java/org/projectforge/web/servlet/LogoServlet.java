@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,21 +23,20 @@
 
 package org.projectforge.web.servlet;
 
-import java.io.File;
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.ConfigurationListener;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Servlet for displaying a customizable logo image (see config.xml).
@@ -69,11 +68,11 @@ public class LogoServlet extends HttpServlet implements ConfigurationListener
   public static String getBaseUrl()
   {
     final String filename = getConfigService().getLogoFile();
-    if (StringUtils.isEmpty(filename) == true) {
+    if (StringUtils.isEmpty(filename)) {
       return null;
-    } else if (filename.endsWith(".png") == true) {
+    } else if (filename.endsWith(".png")) {
       return BASE_URL + ".png";
-    } else if (filename.endsWith(".jpg") == true || filename.endsWith(".jpeg") == true) {
+    } else if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) {
       return BASE_URL + ".jpg";
     } else {
       return BASE_URL + ".gif";
@@ -85,19 +84,19 @@ public class LogoServlet extends HttpServlet implements ConfigurationListener
       throws ServletException, IOException
   {
     log.debug("Start doPost");
-    if (initialized == false) {
+    if (!initialized) {
       configService = getConfigService();
       // Synchronization not really needed, multiple initialization works.
       final String logo = configService.getLogoFile();
       if (logo != null) {
         final String logoPath;
-        if (new File(logo).isAbsolute() == true) {
+        if (new File(logo).isAbsolute()) {
           logoPath = logo;
         } else {
           logoPath = configService.getResourceDir() + "/images/" + logo;
         }
         final File file = new File(logoPath);
-        if (file.canRead() == true) {
+        if (file.canRead()) {
           logoFile = file;
           log.info("Use configured logo: " + logoPath);
         } else {

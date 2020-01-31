@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,13 @@
 
 package org.projectforge.framework.utils;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.StringHelper;
 import org.springframework.util.CollectionUtils;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Holds number ranges, such as "10,20-25,30-35,50" (comma separated ranges and values).
@@ -65,11 +65,11 @@ public abstract class Ranges<T extends Comparable<T>> implements Serializable
     if (value == null) {
       return false;
     }
-    if (CollectionUtils.isEmpty(ranges) == true && CollectionUtils.isEmpty(values) == true) {
+    if (CollectionUtils.isEmpty(ranges) && CollectionUtils.isEmpty(values)) {
       return nullRangeMatchesAlways;
     }
     for (final Range<T> range : ranges) {
-      if (range.doesMatch(value) == true) {
+      if (range.doesMatch(value)) {
         return true;
       }
     }
@@ -89,15 +89,15 @@ public abstract class Ranges<T extends Comparable<T>> implements Serializable
    */
   public Ranges<T> setRanges(final String rangesString)
   {
-    ranges = new ArrayList<Range<T>>();
-    values = new ArrayList<T>();
-    if (StringUtils.isBlank(rangesString) == true) {
+    ranges = new ArrayList<>();
+    values = new ArrayList<>();
+    if (StringUtils.isBlank(rangesString)) {
       // No ranges given.
       return this;
     }
     final String[] rangeStrings = StringUtils.split(rangesString, separatorChars);
     for (final String rangeString : rangeStrings) {
-      if (StringUtils.isBlank(rangeString) == true) {
+      if (StringUtils.isBlank(rangeString)) {
         // No range given.
         continue;
       }
@@ -110,7 +110,7 @@ public abstract class Ranges<T extends Comparable<T>> implements Serializable
         final String from = str.substring(0, pos);
         final String to = str.substring(pos + 1);
         try {
-          final Range<T> range = new Range<T>(parseValue(from.trim()), parseValue(to.trim()));
+          final Range<T> range = new Range<>(parseValue(from.trim()), parseValue(to.trim()));
           ranges.add(range);
         } catch (final NumberFormatException ex) {
           throw new IllegalArgumentException("Couldn't parse range: '" + rangesString + "'." + ex.getMessage(), ex);

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,16 @@
 
 package org.projectforge.continuousdb.jdbc;
 
+import org.projectforge.continuousdb.DatabaseExecutor;
+import org.projectforge.continuousdb.DatabaseResultRow;
+
+import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
-
-import javax.sql.DataSource;
-
-import org.projectforge.continuousdb.DatabaseExecutor;
-import org.projectforge.continuousdb.DatabaseResultRow;
 
 /**
  * Using plain jdbc for executing jdbc commands. DON'T USE THIS CLASS FOR PRODUCTION! This class is only for
@@ -91,11 +90,11 @@ public class DatabaseExecutorImpl implements DatabaseExecutor
       @Override
       protected Object execute(final PreparedStatement stmt) throws SQLException
       {
-        final List<DatabaseResultRow> list = new LinkedList<DatabaseResultRow>();
+        final List<DatabaseResultRow> list = new LinkedList<>();
         ResultSet rs = null;
         try {
           rs = stmt.executeQuery();
-          while (rs.next() == true) {
+          while (rs.next()) {
             final DatabaseResultRow row = new DatabaseResultRowImpl();
             list.add(row);
             final ResultSetMetaData metaData = rs.getMetaData();
@@ -130,7 +129,7 @@ public class DatabaseExecutorImpl implements DatabaseExecutor
         ResultSet rs = null;
         try {
           rs = stmt.executeQuery();
-          if (rs.next() == false) {
+          if (!rs.next()) {
             throw new RuntimeException("No result set: " + sql);
           }
           return rs.getInt(1);

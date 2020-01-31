@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.business.group.service;
 
+import org.projectforge.framework.persistence.user.entities.GroupDO;
+
 import java.util.Collection;
 import java.util.List;
-
-import org.projectforge.framework.persistence.user.entities.GroupDO;
 
 public interface GroupService
 {
@@ -44,6 +44,8 @@ public interface GroupService
   GroupDO getGroup(Integer groupId);
 
   String getGroupname(Integer groupId);
+
+  String getDisplayName(Integer groupId);
 
   String getGroupnames(Integer userId);
 

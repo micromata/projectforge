@@ -1,21 +1,22 @@
-import { faStar } from '@fortawesome/free-regular-svg-icons';
 import { faStream } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
+import FavoritesPanel from '../../../../../../containers/panel/favorite/FavoritesPanel';
 import TaskTreePanel from '../../../../../../containers/panel/task/TaskTreePanel';
+import { useClickOutsideHandler } from '../../../../../../utilities/hooks';
 import { getServiceURL, handleHTTPErrors } from '../../../../../../utilities/rest';
-import { Button, Collapse, Modal, ModalBody, ModalHeader } from '../../../../../design';
+import { Button, Collapse } from '../../../../../design';
 import inputStyle from '../../../../../design/input/Input.module.scss';
 import { DynamicLayoutContext } from '../../../context';
 import TaskPath from './TaskPath';
+import taskStyle from './TaskSelect.module.scss';
 
 function DynamicTaskSelect(
     {
         id,
         label,
         onKost2Changed,
-        showInline,
         showRootForAdmins,
     },
 ) {
@@ -24,165 +25,175 @@ function DynamicTaskSelect(
     const [panelVisible, setPanelVisible] = React.useState(false);
     const [modalHighlight, setModalHighlight] = React.useState(undefined);
     const [task, setStateTask] = React.useState(undefined);
+    const [favorites, setFavorites] = React.useState(undefined);
     const panelRef = React.useRef(null);
 
-    // Handle mouse events
+    // Handling Mouse Events
+    useClickOutsideHandler(panelRef, () => setPanelVisible(false), panelVisible);
+
+    const fetchFavorites = (action, params = {}, callback = setFavorites) => fetch(
+        getServiceURL(`task/favorites/${action}`, params),
+        {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json',
+            },
+        },
+    )
+        .then(handleHTTPErrors)
+        .then(response => response.json())
+        .then(callback)
+        .catch(error => alert(`Internal error: ${error}`));
+
+    // Initial Fetch
     React.useEffect(() => {
-        const handleClickOutside = ({ target }) => {
-            if (panelRef.current && !panelRef.current.contains(target)) {
-                setPanelVisible(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-
-        setStateTask(variables.task);
-
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        fetchFavorites('list');
     }, []);
 
-    const setTask = (taskId, selectedTask) => {
-        if (selectedTask) {
-            setPanelVisible(false);
+    React.useEffect(() => {
+        if (variables.task) {
+            setStateTask(variables.task);
         }
+    }, [variables]);
 
-        if (!taskId) {
-            setStateTask(undefined);
-            setData({ [id]: undefined });
-
-            // Emit onKost2Changed handler if defined.
-            if (onKost2Changed) {
-                onKost2Changed();
+    return React.useMemo(() => {
+        const setTask = (taskId, selectedTask) => {
+            if (selectedTask) {
+                setPanelVisible(false);
             }
 
-            setModalHighlight(undefined);
+            if (!taskId) {
+                setStateTask(undefined);
+                setData({ [id]: undefined });
 
-            return;
-        }
-
-        fetch(
-            getServiceURL(`task/info/${taskId}`),
-            {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    Accept: 'application/json',
-                },
-            },
-        )
-            .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then((json) => {
-                setStateTask(json);
-
-                if (json) {
-                    setData({ [id]: { id: json.id } });
-
-                    if (onKost2Changed) {
-                        onKost2Changed(json.kost2List);
-                    }
-
-                    setStateTask(json);
+                // Emit onKost2Changed handler if defined.
+                if (onKost2Changed) {
+                    onKost2Changed();
                 }
-            });
-    };
 
-    const toggleModal = () => {
-        setPanelVisible(!panelVisible);
-        setModalHighlight(undefined); // Reset to highlight current task.
-    };
+                setModalHighlight(undefined);
 
-    // Opens the task tree modal dialog with the given task highlighted.
-    const openModal = (taskId) => {
-        setPanelVisible(true);
-        setModalHighlight(taskId); // Highlight selected ancestor task.
-    };
+                return;
+            }
 
-    const treePanel = (
-        <TaskTreePanel
-            highlightTaskId={modalHighlight || (task ? task.id : undefined)}
-            onTaskSelect={setTask}
-            shortForm
-            showRootForAdmins={showRootForAdmins}
-            visible={panelVisible}
-        />
-    );
+            fetch(
+                getServiceURL(`task/info/${taskId}`),
+                {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        Accept: 'application/json',
+                    },
+                },
+            )
+                .then(handleHTTPErrors)
+                .then(response => response.json())
+                .then((json) => {
+                    setStateTask(json);
 
-    return (
-        <div>
-            {task
-                ? (
-                    <TaskPath
-                        path={[...task.path, task]}
-                        openModal={openModal}
-                        setTask={setTask}
+                    if (json) {
+                        setData({ [id]: { id: json.id } });
+
+                        if (onKost2Changed) {
+                            onKost2Changed(json.kost2List);
+                        }
+
+                        setStateTask(json);
+                    }
+                });
+        };
+
+        const handleFavoriteCreate = (name) => {
+            if (task) {
+                fetchFavorites('create', {
+                    name,
+                    taskId: task.id,
+                });
+            }
+        };
+        const handleFavoriteDelete = favoriteId => fetchFavorites('delete', { id: favoriteId });
+        const handleFavoriteSelect = favoriteId => fetchFavorites('select', { id: favoriteId }, setTask);
+        const handleFavoriteRename = (favoriteId, newName) => fetchFavorites('rename', {
+            id: favoriteId,
+            newName,
+        });
+
+        const toggleModal = () => {
+            setPanelVisible(!panelVisible);
+            setModalHighlight(undefined); // Reset to highlight current task.
+        };
+
+        // Opens the task tree modal dialog with the given task highlighted.
+        const openModal = (taskId) => {
+            setPanelVisible(true);
+            setModalHighlight(taskId); // Highlight selected ancestor task.
+        };
+
+        return (
+            <div ref={panelRef}>
+                {task && task.path
+                    ? (
+                        <TaskPath
+                            path={[...task.path, task]}
+                            openModal={openModal}
+                            setTask={(taskId) => {
+                                openModal(taskId);
+                                setTask(taskId);
+                            }}
+                        />
+                    )
+                    : (
+                        <span className={inputStyle.text}>
+                            {label || ui.translations['select.placeholder']}
+                        </span>
+                    )}
+                <Button
+                    color="link"
+                    className="selectPanelIconLinks"
+                    onClick={toggleModal}
+                >
+                    <FontAwesomeIcon
+                        icon={faStream}
+                        className={inputStyle.icon}
                     />
-                )
-                : <span className={inputStyle.text}>{label}</span>}
-            <Button
-                color="link"
-                className="selectPanelIconLinks"
-                onClick={toggleModal}
-            >
-                <FontAwesomeIcon
-                    icon={faStream}
-                    className={inputStyle.icon}
+                </Button>
+                <FavoritesPanel
+                    onFavoriteDelete={handleFavoriteDelete}
+                    onFavoriteRename={handleFavoriteRename}
+                    onFavoriteSelect={handleFavoriteSelect}
+                    onFavoriteCreate={handleFavoriteCreate}
+                    favorites={favorites}
+                    translations={ui.translations}
+                    htmlId="taskFavoritesPopover"
                 />
-            </Button>
-            <Button
-                color="link"
-                class="selectPanelIconLinks"
-                onClick={toggleModal}
-                disabled
-            >
-                <FontAwesomeIcon
-                    icon={faStar}
-                    className={inputStyle.icon}
-                />
-            </Button>
-            {showInline
-                ? (
-                    <Collapse
-                        isOpen={panelVisible}
-                        style={{
-                            maxHeight: '600px',
-                            overflow: 'scroll',
-                            scroll: 'auto',
-                        }}
-                    >
-                        {treePanel}
-                    </Collapse>
-                )
-                : (
-                    <Modal
-                        isOpen={panelVisible}
-                        className="modal-xl"
-                        toggle={toggleModal}
-                        fade={false}
-                    >
-                        <ModalHeader toggle={toggleModal}>
-                            {ui.translations['task.title.list.select']}
-                        </ModalHeader>
-                        <ModalBody>
-                            {treePanel}
-                        </ModalBody>
-                    </Modal>
-                )}
-        </div>
-    );
+                <Collapse
+                    isOpen={panelVisible}
+                    className={taskStyle.taskCollapse}
+                >
+                    <TaskTreePanel
+                        highlightTaskId={modalHighlight || (task ? task.id : undefined)}
+                        onTaskSelect={setTask}
+                        shortForm
+                        showRootForAdmins={showRootForAdmins}
+                        visible={panelVisible}
+                    />
+                </Collapse>
+            </div>
+        );
+    }, [panelVisible, modalHighlight, task, panelRef, favorites, setData]);
 }
 
 DynamicTaskSelect.propTypes = {
     id: PropTypes.string.isRequired,
-    label: PropTypes.string.isRequired,
+    label: PropTypes.string,
     onKost2Changed: PropTypes.func,
-    showInline: PropTypes.bool,
     showRootForAdmins: PropTypes.bool,
 };
 
 DynamicTaskSelect.defaultProps = {
+    label: undefined,
     onKost2Changed: undefined,
-    showInline: true,
     showRootForAdmins: false,
 };
 

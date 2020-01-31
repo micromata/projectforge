@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.eed;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.projectforge.business.fibu.EmployeeTimedAttrDataDO;
 import org.projectforge.business.fibu.EmployeeTimedAttrWithDataDO;
 import org.projectforge.continuousdb.UpdateEntry;
@@ -33,12 +30,10 @@ import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
 import org.projectforge.framework.persistence.database.DatabaseService;
-import org.projectforge.plugins.eed.model.EmployeeConfigurationAttrDO;
-import org.projectforge.plugins.eed.model.EmployeeConfigurationAttrDataDO;
-import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
-import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedAttrDO;
-import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedAttrWithDataDO;
-import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedDO;
+import org.projectforge.plugins.eed.model.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ExtendedEmployeeDataPluginUpdates
 {
@@ -47,7 +42,7 @@ public class ExtendedEmployeeDataPluginUpdates
   @SuppressWarnings("serial")
   public static List<UpdateEntry> getUpdateEntries()
   {
-    final List<UpdateEntry> list = new ArrayList<UpdateEntry>();
+    final List<UpdateEntry> list = new ArrayList<>();
     list.add(new UpdateEntryImpl(ExtendEmployeeDataPlugin.ID, "6.5", "2016-11-15",
         "Adds attribute tables for employee configuration page")
     {
@@ -56,7 +51,7 @@ public class ExtendedEmployeeDataPluginUpdates
       {
         // Does the data-base table already exist?
         if (databaseService
-            .doTablesExist(EmployeeConfigurationAttrDO.class, EmployeeConfigurationAttrDataDO.class, EmployeeConfigurationTimedAttrWithDataDO.class) == true) {
+            .doTablesExist(EmployeeConfigurationAttrDO.class, EmployeeConfigurationAttrDataDO.class, EmployeeConfigurationTimedAttrWithDataDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
@@ -66,8 +61,8 @@ public class ExtendedEmployeeDataPluginUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseService
-            .doTablesExist(EmployeeConfigurationAttrDO.class, EmployeeConfigurationAttrDataDO.class, EmployeeConfigurationTimedAttrWithDataDO.class) == false) {
+        if (!databaseService
+            .doTablesExist(EmployeeConfigurationAttrDO.class, EmployeeConfigurationAttrDataDO.class, EmployeeConfigurationTimedAttrWithDataDO.class)) {
           databaseService.updateSchema();
         }
         return UpdateRunningStatus.DONE;
