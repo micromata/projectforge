@@ -53,7 +53,7 @@ object SQLHelper {
             return intArrayOf(Year.now().value)
         }
         if (min is Date || max is Date) {
-            return getYears(min, max)
+            return getYears(min as Date, max as Date)
         }
         return getYears(min as LocalDate, max as LocalDate)
     }
