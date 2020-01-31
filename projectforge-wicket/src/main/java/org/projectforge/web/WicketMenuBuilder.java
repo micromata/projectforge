@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.menu.Menu;
 import org.projectforge.menu.MenuItem;
 import org.projectforge.menu.builder.FavoritesMenuCreator;
-import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.menu.builder.MenuCreatorContext;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,18 +43,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class WicketMenuBuilder {
   @Autowired
-  private MenuCreator menuCreator;
-
-  @Autowired
   private FavoritesMenuCreator favoritesMenuCreator;
 
   @Autowired
   private MenuItemRegistry menuItemRegistry;
 
   public WicketMenu getFavoriteMenu() {
-    Menu menu = favoritesMenuCreator.getDefaultFavoriteMenu();
+    Menu menu = favoritesMenuCreator.getFavoriteMenu();
     MenuItemDef reactMenu = MenuItemDef.create("GoReact", "goreact.menu.new");
-    reactMenu.setUrl("/");
+    reactMenu.setUrl("/react/calendar");
     menu.add(reactMenu);
     return buildMenuTree(menu);
   }
@@ -68,7 +64,7 @@ public class WicketMenuBuilder {
     if (user == null) {
       return null;
     }
-    Menu menu = menuCreator.build(new MenuCreatorContext(user, false));
+    Menu menu = WicketSupport.getMenuCreator().build(new MenuCreatorContext(user, false));
     return buildMenuTree(menu);
   }
 

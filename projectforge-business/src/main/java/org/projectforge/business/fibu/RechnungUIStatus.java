@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,11 @@
 
 package org.projectforge.business.fibu;
 
+import org.projectforge.framework.xstream.XmlObject;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.projectforge.framework.xstream.XmlObject;
 
 /**
  * Stores the user interface status of an invoice (such as opened/closed invoice positions). This class will be marshalled and unmarshalled
@@ -44,7 +44,7 @@ public class RechnungUIStatus implements Serializable
 
   public RechnungUIStatus()
   {
-    closedPositions = new HashSet<Short>();
+    closedPositions = new HashSet<>();
   }
 
   public RechnungUIStatus openPosition(final short pos)

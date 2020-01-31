@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -57,29 +57,29 @@ public class BankAccountEditForm extends AbstractEditForm<BankAccountDO, BankAcc
     {
       // Name
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.banking.account.name"));
-      fs.add(new RequiredMaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(data, "name")));
+      fs.add(new RequiredMaxLengthTextField(fs.getTextFieldId(), new PropertyModel<>(data, "name")));
     }
     {
       // Account number
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.banking.account.number"));
-      fs.add(new RequiredMaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(data, "accountNumber")));
+      fs.add(new RequiredMaxLengthTextField(fs.getTextFieldId(), new PropertyModel<>(data, "accountNumber")));
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // Bank
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.banking.bank"));
-      fs.add(new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(data, "bank")));
+      fs.add(new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<>(data, "bank")));
     }
     {
       // Bank identification code
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.banking.bankIdentificationCode"));
-      fs.add(new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(data, "bankIdentificationCode")));
+      fs.add(new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<>(data, "bankIdentificationCode")));
     }
     gridBuilder.newGridPanel();
     {
       // Text description
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("description"));
-      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<String>(data, "description"))).setAutogrow();
+      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "description"))).setAutogrow();
     }
   }
 

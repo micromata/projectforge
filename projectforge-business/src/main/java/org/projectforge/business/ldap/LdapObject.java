@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,12 @@
 
 package org.projectforge.business.ldap;
 
-import java.io.Serializable;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
+import org.projectforge.framework.ToStringUtil;
+
+import java.io.Serializable;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -145,6 +144,6 @@ public abstract class LdapObject<I extends Serializable>
   @Override
   public String toString()
   {
-    return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
+    return ToStringUtil.toJsonString(this);
   }
 }

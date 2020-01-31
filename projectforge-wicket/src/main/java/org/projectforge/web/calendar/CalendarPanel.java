@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,11 @@
 
 package org.projectforge.web.calendar;
 
-import java.sql.Timestamp;
-
+import net.ftlines.wicket.fullcalendar.CalendarResponse;
+import net.ftlines.wicket.fullcalendar.Event;
+import net.ftlines.wicket.fullcalendar.EventProvider;
+import net.ftlines.wicket.fullcalendar.EventSource;
+import net.ftlines.wicket.fullcalendar.callback.*;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.cycle.RequestCycle;
@@ -54,16 +57,7 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.components.DatePickerUtils;
 import org.projectforge.web.wicket.components.JodaDatePanel;
 
-import net.ftlines.wicket.fullcalendar.CalendarResponse;
-import net.ftlines.wicket.fullcalendar.Event;
-import net.ftlines.wicket.fullcalendar.EventProvider;
-import net.ftlines.wicket.fullcalendar.EventSource;
-import net.ftlines.wicket.fullcalendar.callback.CalendarDropMode;
-import net.ftlines.wicket.fullcalendar.callback.ClickedEvent;
-import net.ftlines.wicket.fullcalendar.callback.DroppedEvent;
-import net.ftlines.wicket.fullcalendar.callback.ResizedEvent;
-import net.ftlines.wicket.fullcalendar.callback.SelectedRange;
-import net.ftlines.wicket.fullcalendar.callback.View;
+import java.sql.Timestamp;
 
 public class CalendarPanel extends Panel
 {
@@ -476,7 +470,7 @@ public class CalendarPanel extends Panel
     OperationType type = isMoveAction ? OperationType.UPDATE : OperationType.INSERT;
     if (timesheetDao.checkTimesheetProtection(loggedInUser, timesheet, dbTimesheet, type, false)) {
       if (timesheetDao.checkTaskBookable(timesheet, dbTimesheet, type, false) == false) {
-        this.error(getString("timesheet.error.taskNotBookable.taskNotOpened").replace("{0}", timesheet.getTask().getShortDisplayName()));
+        this.error(getString("timesheet.error.taskNotBookable.taskNotOpened").replace("{0}", timesheet.getTask().getDisplayName()));
         setResponsePage(getPage());
         return;
       }
@@ -549,9 +543,6 @@ public class CalendarPanel extends Panel
     }
   }
 
-  /**
-   * @see org.projectforge.web.wicket.AbstractSecuredPage#onBeforeRender()
-   */
   @Override
   protected void onBeforeRender()
   {
@@ -559,7 +550,7 @@ public class CalendarPanel extends Panel
     // Restore current date (e. g. on reload or on coming back from callee page).
     final MyFullCalendarConfig config = calendar.getConfig();
     final DateMidnight startDate = filter.getStartDate();
-    if (startDate != null) {
+    if (startDate != null && startDate.getChronology() != null) {
       config.setYear(startDate.getYear());
       config.setMonth(startDate.getMonthOfYear() - 1);
       config.setDate(startDate.getDayOfMonth());

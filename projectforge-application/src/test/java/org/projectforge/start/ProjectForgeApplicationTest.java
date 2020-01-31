@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,9 +32,9 @@ public class ProjectForgeApplicationTest {
   static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeApplicationTest.class);
 
   @Test
-  public void addDefaultAdditionalLocation() {
-    String loc = ProjectForgeApplication.getAddtionalLocationArg();
-    if (ProjectForgeApplication.addDefaultAdditionalLocation(null) == null) {
+  void addDefaultAdditionalLocation() {
+    String loc = ProjectForgeApplication.getAddtionalLocationArg(null);
+    if (ProjectForgeApplication.addDefaultAdditionalLocation(null, null) == null) {
       log.warn("Found application{-default}.properties in current working directory (you should move it to ~/ProjectForge/projectforge.properties). Can't process with this text (OK).");
       return;
     }
@@ -46,7 +46,7 @@ public class ProjectForgeApplicationTest {
   }
 
   private void checkArray(String[] expected, String[] array) {
-    String[] args = ProjectForgeApplication.addDefaultAdditionalLocation(array);
+    String[] args = ProjectForgeApplication.addDefaultAdditionalLocation(null, array);
     assertEquals(expected.length, args.length);
     for (int i = 0; i < expected.length; i++) {
       assertEquals(expected[i], args[i]);

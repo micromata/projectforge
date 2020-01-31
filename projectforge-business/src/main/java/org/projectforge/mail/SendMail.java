@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,28 +23,9 @@
 
 package org.projectforge.mail;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Random;
-import java.util.concurrent.CompletableFuture;
-
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.activation.MimetypesFileTypeMap;
-import javax.mail.Address;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.util.ByteArrayDataSource;
-
+import de.micromata.genome.util.runtime.config.MailSessionLocalSettingsConfigModel;
+import de.micromata.genome.util.validation.ValContext;
+import de.micromata.genome.util.validation.ValMessage;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.scripting.GroovyEngine;
@@ -55,9 +36,17 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import de.micromata.genome.util.runtime.config.MailSessionLocalSettingsConfigModel;
-import de.micromata.genome.util.validation.ValContext;
-import de.micromata.genome.util.validation.ValMessage;
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.MimetypesFileTypeMap;
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Helper class for creating and transporting E-Mails. Groovy script is use-able for e-mail template mechanism.
@@ -113,7 +102,7 @@ public class SendMail
       throw new UserException("mail.error.missingToAddress");
     }
     MailSessionLocalSettingsConfigModel cf = configurationService.createMailSessionLocalSettingsConfigModel();
-    if (cf == null || cf.isEmailEnabled() == false) {
+    if (cf == null || !cf.isEmailEnabled()) {
       log.error("No e-mail host configured. E-Mail not sent: " + composedMessage.toString());
       return false;
     }
@@ -130,13 +119,13 @@ public class SendMail
   private Session getSession()
   {
     MailSessionLocalSettingsConfigModel cf = configurationService.createMailSessionLocalSettingsConfigModel();
-    if (cf.isEmailEnabled() == false) {
+    if (!cf.isEmailEnabled()) {
       log.error("Sending email is not enabled");
       throw new InternalErrorException("mail.error.exception");
     }
     ValContext ctx = new ValContext();
     cf.validate(ctx);
-    if (ctx.hasErrors() == true) {
+    if (ctx.hasErrors()) {
       log.error("SMPT configuration has validation errors");
       for (ValMessage msg : ctx.getMessages()) {
         log.error(msg.toString());
@@ -154,7 +143,7 @@ public class SendMail
   private void sendIt(final Mail composedMessage, final String icalContent,
       final Collection<? extends MailAttachment> attachments)
   {
-    log.info("Start sending em-mail message.");
+    log.info("Start sending e-mail message: " + StringUtils.join(composedMessage.getTo(), ", "));
     try {
       final Session session = getSession();
       final MimeMessage message = new MimeMessage(session);
@@ -170,7 +159,7 @@ public class SendMail
       message.setSubject(subject, sendMailConfig.getCharset());
       message.setSentDate(new Date());
 
-      if (StringUtils.isBlank(icalContent) == true && attachments == null) {
+      if (StringUtils.isBlank(icalContent) && attachments == null) {
         // create message without attachments
         if (composedMessage.getContentType() != null) {
           message.setText(composedMessage.getContent(), composedMessage.getCharset(), composedMessage.getContentType());
@@ -200,7 +189,7 @@ public class SendMail
     // create and fill the first message part
     final MimeBodyPart mbp1 = new MimeBodyPart();
     String type = "text/";
-    if (StringUtils.isNotBlank(composedMessage.getContentType()) == true) {
+    if (StringUtils.isNotBlank(composedMessage.getContentType())) {
       type += composedMessage.getContentType();
       type += "; charset=";
       type += composedMessage.getCharset();
@@ -214,7 +203,7 @@ public class SendMail
     final MimeMultipart mp = new MimeMultipart();
     mp.addBodyPart(mbp1);
 
-    if (StringUtils.isNotBlank(icalContent) == true) {
+    if (StringUtils.isNotBlank(icalContent)) {
       message.addHeaderLine("method=REQUEST");
       message.addHeaderLine("charset=UTF-8");
       message.addHeaderLine("component=VEVENT");
@@ -230,7 +219,7 @@ public class SendMail
       mp.addBodyPart(icalBodyPart);
     }
 
-    if (attachments != null && attachments.isEmpty() == false) {
+    if (attachments != null && !attachments.isEmpty()) {
       // create an Array of message parts for Attachments
       final MimeBodyPart mbp[] = new MimeBodyPart[attachments.size()];
       // remember you can extend this functionality with META-INF/mime.types

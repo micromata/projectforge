@@ -1,11 +1,9 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import { getServiceURL } from '../../../../../../utilities/rest';
-import { DynamicLayoutContext } from '../../../context';
 
-function CustomizedImageDataPreview() {
-    const {
-        data: { previewImageUrl, address },
-    } = React.useContext(DynamicLayoutContext);
+function CustomizedImageDataPreview({ data }) {
+    const { address, previewImageUrl } = data;
 
     return React.useMemo(() => {
         if (!previewImageUrl) {
@@ -21,6 +19,15 @@ function CustomizedImageDataPreview() {
     }, [previewImageUrl, address]);
 }
 
-CustomizedImageDataPreview.propTypes = {};
+CustomizedImageDataPreview.propTypes = {
+    data: PropTypes.shape({
+        previewImageUrl: PropTypes.string,
+        address: PropTypes.shape({
+            firstName: PropTypes.string,
+            name: PropTypes.string,
+            organization: PropTypes.string,
+        }),
+    }).isRequired,
+};
 
 export default CustomizedImageDataPreview;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,9 @@
 
 package org.projectforge.framework.persistence.jpa.listener;
 
+import de.micromata.genome.jpa.DbRecord;
+import de.micromata.genome.jpa.events.EmgrEventHandler;
+import de.micromata.genome.jpa.events.EmgrUpdateCopyFilterEvent;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
@@ -33,10 +36,6 @@ import org.projectforge.framework.persistence.api.JpaPfGenericPersistenceService
 import org.projectforge.framework.persistence.jpa.PfEmgr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import de.micromata.genome.jpa.DbRecord;
-import de.micromata.genome.jpa.events.EmgrEventHandler;
-import de.micromata.genome.jpa.events.EmgrUpdateCopyFilterEvent;
 
 /**
  * Checks if db object can be updated. For other, see BeforeModifyEventHandler.
@@ -60,11 +59,11 @@ public class AccessCheckUpdateCopyFilterListener implements EmgrEventHandler<Emg
   public void onEvent(EmgrUpdateCopyFilterEvent event)
   {
     DbRecord<?> obj = event.getTarget();
-    if ((obj instanceof BaseDO) == false) {
+    if (!(obj instanceof BaseDO)) {
       return;
     }
     PfEmgr emgr = (PfEmgr) event.getEmgr();
-    if (emgr.isCheckAccess() == false) {
+    if (!emgr.isCheckAccess()) {
       event.nextFilter();
       return;
     }
@@ -81,7 +80,7 @@ public class AccessCheckUpdateCopyFilterListener implements EmgrEventHandler<Emg
     accessChecker.checkRestrictedOrDemoUser();
     tenantChecker.checkPartOfCurrentTenant(dbObject);
     AUserRightId aUserRightId = dbObject.getClass().getAnnotation(AUserRightId.class);
-    if (aUserRightId != null && aUserRightId.checkAccess() == false) {
+    if (aUserRightId != null && !aUserRightId.checkAccess()) {
       return;
     }
     IUserRightId rightId = genericPersistenceService.getUserRight(dbObject);

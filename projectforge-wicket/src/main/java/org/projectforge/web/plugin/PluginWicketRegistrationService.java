@@ -1,3 +1,26 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.web.plugin;
 
 import org.apache.commons.lang3.StringUtils;
@@ -8,6 +31,7 @@ import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.registry.Registry;
 import org.projectforge.web.MenuItemRegistry;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.registry.WebRegistry;
 import org.projectforge.web.registry.WebRegistryEntry;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
@@ -18,14 +42,15 @@ import org.springframework.stereotype.Service;
 public class PluginWicketRegistrationService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PluginWicketRegistrationService.class);
 
-  @Autowired
-  public MenuCreator menuCreator;
+  public MenuCreator getMenuCreator() {
+    return WicketSupport.getMenuCreator();
+  }
 
   @Autowired
   public MenuItemRegistry menuItemRegistry;
 
   public MenuItemDef getMenuItemDef(final MenuItemDefId menuItemDefId) {
-    return menuCreator.findById(menuItemDefId);
+    return getMenuCreator().findById(menuItemDefId);
   }
 
   public void registerMenuItem(final MenuItemDefId parentId, final MenuItemDef menuItemDef) {
@@ -46,13 +71,13 @@ public class PluginWicketRegistrationService {
       String url = WebRegistry.getInstance().getMountPoint(pageClass);
       menuItemDef.setUrl(url);
     }
-    menuCreator.add(parentId, menuItemDef);
+    getMenuCreator().add(parentId, menuItemDef);
     if (pageClass != null)
       menuItemRegistry.register(menuItemDef.getId(), pageClass);
   }
 
   public void registerTopLevelMenuItem(final MenuItemDef menuItemDef, Class<? extends Page> pageClass) {
-    menuCreator.addTopLevelMenu(menuItemDef);
+    getMenuCreator().addTopLevelMenu(menuItemDef);
     if (pageClass != null)
       menuItemRegistry.register(menuItemDef.getId(), pageClass);
   }

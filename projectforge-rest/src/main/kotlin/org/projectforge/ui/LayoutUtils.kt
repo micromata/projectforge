@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,14 @@
 
 package org.projectforge.ui
 
+import org.projectforge.favorites.Favorites
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.HibernateUtils
-import org.projectforge.rest.core.AbstractBaseRest
+import org.projectforge.model.rest.RestPaths
+import org.projectforge.rest.core.AbstractPagesRest
 
 /**
  * Utils for the Layout classes for handling auto max-length (get from JPA entities) and translations as well as
@@ -64,7 +65,7 @@ class LayoutUtils {
          * <br>
          * If no named container called "filter-options" is found, it will be attached automatically by calling [addListFilterContainer]
          */
-        fun processListPage(layout: UILayout): UILayout {
+        fun processListPage(layout: UILayout, pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>): UILayout {
             var found = false
             layout.namedContainers.forEach {
                 if (it.id == "filterOptions") {
@@ -75,10 +76,18 @@ class LayoutUtils {
                 addListFilterContainer(layout)
             }
             layout
-                    .addAction(UIButton("reset", style = UIStyle.DANGER))
-                    .addAction(UIButton("search", style = UIStyle.PRIMARY, default = true))
+                    .addAction(UIButton("reset",
+                            color = UIColor.SECONDARY,
+                            outline = true,
+                            responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.FILTER_RESET), targetType = TargetType.GET)))
+                    .addAction(UIButton("search",
+                            color = UIColor.PRIMARY,
+                            default = true,
+                            responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.LIST), targetType = TargetType.POST)))
             process(layout)
+            layout.addTranslations("search")
             addCommonTranslations(layout)
+            Favorites.addTranslations(layout.translations)
             return layout
         }
 
@@ -94,6 +103,12 @@ class LayoutUtils {
                                 val elementInfo = ElementsRegistry.getElementInfo(filterClass, property)
                                 it.label = elementInfo?.i18nKey
                             }
+                        }
+                        /**
+                         * ID must be set as extended to store in extended map of MagicFilter.
+                         */
+                        if (it is UICheckbox) {
+                            it.id = "extended.${it.id}"
                         }
                     }
                     is String -> {
@@ -115,8 +130,8 @@ class LayoutUtils {
          */
         fun addListDefaultOptions(group: UIGroup) {
             group
-                    .add(UICheckbox("deleted", label = "onlyDeleted", tooltip = "onlyDeleted.tooltip"))
-                    .add(UICheckbox("searchHistory", label = "search.searchHistory", tooltip = "search.searchHistory.additional.tooltip"))
+                    .add(UICheckbox("deleted", label = "onlyDeleted", tooltip = "onlyDeleted.tooltip", color = UIColor.DANGER))
+                    //.add(UICheckbox("searchHistory", label = "search.searchHistory", tooltip = "search.searchHistory.additional.tooltip"))
         }
 
         /**
@@ -126,30 +141,59 @@ class LayoutUtils {
          * Calls also fun [process].
          * @see LayoutUtils.process
          */
-        fun processEditPage(layout: UILayout, dto: Any,
-                            restService: AbstractBaseRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>, out BaseSearchFilter>)
+        fun <O : ExtendedBaseDO<Int>> processEditPage(layout: UILayout, dto: Any, pagesRest: AbstractPagesRest<O, *, out BaseDao<O>>)
                 : UILayout {
-            layout.addAction(UIButton("cancel", style = UIStyle.DANGER))
-            if (restService.isHistorizable()) {
+            layout.addAction(UIButton("cancel",
+                    color = UIColor.SECONDARY,
+                    outline = true,
+                    responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.CANCEL), targetType = TargetType.POST)))
+            val userAccess = layout.userAccess
+            if (pagesRest.isHistorizable()) {
                 // 99% of the objects are historizable (undeletable):
-                if (restService.getId(dto) != null) {
-                    if (restService.isDeleted(dto))
-                        layout.addAction(UIButton("undelete", style = UIStyle.WARNING))
-                    else
-                        layout.addAction(UIButton("markAsDeleted", style = UIStyle.WARNING))
+                if (pagesRest.getId(dto) != null) {
+                    if (userAccess.history == true) {
+                        layout.showHistory = true
+                    }
+                    if (pagesRest.isDeleted(dto)) {
+                        if (userAccess.insert == true) {
+                            layout.addAction(UIButton("undelete",
+                                    color = UIColor.PRIMARY,
+                                    responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.UNDELETE), targetType = TargetType.PUT)))
+                        }
+                    } else if (userAccess.delete == true) {
+                        layout.addAction(UIButton("markAsDeleted",
+                                color = UIColor.DANGER,
+                                outline = true,
+                                responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.MARK_AS_DELETED), targetType = TargetType.DELETE)))
+                    }
                 }
-            } else {
+            } else if (userAccess.delete == true) {
                 // MemoDO for example isn't historizable:
-                layout.addAction(UIButton("deleteIt", style = UIStyle.WARNING))
+                layout.addAction(UIButton("deleteIt",
+                        color = UIColor.DANGER,
+                        outline = true,
+                        responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.DELETE), targetType = TargetType.DELETE)))
             }
-            if (restService.cloneSupported) {
-                layout.addAction(UIButton("clone", style = UIStyle.SECONDARY))
-            }
-            if (restService.getId(dto) != null) {
-                if (!restService.isDeleted(dto))
-                    layout.addAction(UIButton("update", style = UIStyle.PRIMARY, default = true))
-            } else {
-                layout.addAction(UIButton("create", style = UIStyle.PRIMARY, default = true))
+            if (pagesRest.getId(dto) != null) {
+                if (pagesRest.cloneSupported) {
+                    layout.addAction(UIButton("clone",
+                            color = UIColor.SECONDARY,
+                            outline = true,
+                            responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.CLONE), targetType = TargetType.POST)))
+                }
+                if (!pagesRest.isDeleted(dto)) {
+                    if (userAccess.insert == true) {
+                        layout.addAction(UIButton("update",
+                                color = UIColor.PRIMARY,
+                                default = true,
+                                responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.PUT)))
+                    }
+                }
+            } else if (userAccess.insert == true) {
+                layout.addAction(UIButton("create",
+                        color = UIColor.SUCCESS,
+                        default = true,
+                        responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.PUT)))
             }
             process(layout)
             layout.addTranslations("label.historyOfChanges")
@@ -185,13 +229,15 @@ class LayoutUtils {
             }
         }
 
-        internal fun setLabels(elementInfo: ElementsRegistry.ElementInfo?, element: UILabelledElement) {
+        internal fun setLabels(elementInfo: ElementInfo?, element: UILabelledElement) {
             if (elementInfo == null)
                 return
             if (!elementInfo.i18nKey.isNullOrEmpty())
                 element.label = elementInfo.i18nKey
-            if (!elementInfo.additionalI18nKey.isNullOrEmpty())
+            if (!elementInfo.additionalI18nKey.isNullOrEmpty() && element.ignoreAdditionalLabel != true)
                 element.additionalLabel = elementInfo.additionalI18nKey
+            if (!elementInfo.tooltipI18nKey.isNullOrEmpty() && element.ignoreTooltip != true)
+                element.tooltip = elementInfo.tooltipI18nKey
         }
 
         /**
@@ -238,6 +284,10 @@ class LayoutUtils {
                             }
                         }
                     }
+                    is UIList -> {
+                        // Translate position label
+                        it.positionLabel = translate(it.positionLabel)
+                    }
                 }
             }
             return elements
@@ -254,6 +304,7 @@ class LayoutUtils {
             return when (element) {
                 is UIInput -> element.id
                 is UICheckbox -> element.id
+                is UIRadioButton -> element.id
                 is UISelect<*> -> element.id
                 is UITextArea -> element.id
                 is UITableColumn -> element.id
@@ -270,6 +321,9 @@ class LayoutUtils {
         internal fun getLabelTransformation(label: String?, labelledElement: UIElement? = null, additionalLabel: Boolean = false): String? {
             if (label == null) {
                 if (labelledElement is UILabelledElement) {
+                    if (additionalLabel && labelledElement.ignoreAdditionalLabel) {
+                        return null
+                    }
                     val layoutSettings = labelledElement.layoutContext
                     if (layoutSettings != null) {
                         val id = getId(labelledElement)

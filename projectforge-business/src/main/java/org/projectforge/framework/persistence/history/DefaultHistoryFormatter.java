@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,21 +23,16 @@
 
 package org.projectforge.framework.persistence.history;
 
-import java.text.SimpleDateFormat;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-import java.util.Set;
-
-import org.apache.commons.text.StringEscapeUtils;
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+import de.micromata.hibernate.history.delta.PropertyDelta;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.hibernate.history.delta.PropertyDelta;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class DefaultHistoryFormatter implements HistoryFormatter
 {
@@ -51,7 +46,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    * Hier werden die keys gespeichert, die nicht gefunden werden konnte. Dies soll ein erneutes Suchen und eine damit
    * verbundene MissingResourceException verhindern. Das Keys nicht gefunden werden, ist normal.
    */
-  private Set<String> missingKeys = new HashSet<String>();
+  private Set<String> missingKeys = new HashSet<>();
 
   private String resourceBundleName;
 
@@ -175,7 +170,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
     ResourceBundle resources = getResourceBundle(locale);
     String s = null;
     String key = changed.getClass().getName() + ".property." + delta.getPropertyName();
-    if (missingKeys.contains(key) == false) {
+    if (!missingKeys.contains(key)) {
       try {
         s = resources.getString(key);
       } catch (MissingResourceException ex) {
@@ -185,7 +180,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
     }
     if (s == null) {
       key = "common.property." + delta.getPropertyName();
-      if (missingKeys.contains(key) == false) {
+      if (!missingKeys.contains(key)) {
         try {
           s = resources.getString(key);
         } catch (MissingResourceException ex) {

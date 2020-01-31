@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,19 @@
 
 package org.projectforge.meb;
 
-import static org.junit.jupiter.api.Assertions.*;
-import java.io.Serializable;
-import java.util.Date;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.meb.MebDao;
 import org.projectforge.business.meb.MebEntryDO;
 import org.projectforge.business.meb.MebEntryStatus;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.junit.jupiter.api.Test;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class MebDaoTest extends AbstractTestBase
 {

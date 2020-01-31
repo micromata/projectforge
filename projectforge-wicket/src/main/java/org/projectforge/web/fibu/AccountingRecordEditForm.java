@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
@@ -36,12 +33,7 @@ import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.I18nEnumAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.components.RequiredMinMaxNumberField;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.converter.CurrencyConverter;
 import org.projectforge.web.wicket.converter.IntegerConverter;
 import org.projectforge.web.wicket.converter.MonthConverter;
@@ -49,6 +41,9 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.slf4j.Logger;
+
+import java.math.BigDecimal;
+import java.util.Date;
 
 public class AccountingRecordEditForm extends AbstractEditForm<BuchungssatzDO, AccountingRecordEditPage>
 {
@@ -82,7 +77,7 @@ public class AccountingRecordEditForm extends AbstractEditForm<BuchungssatzDO, A
       fs.add(yearField);
       WicketUtils.setReadonly(yearField);
       final MinMaxNumberField<Integer> monthField = new RequiredMinMaxNumberField<Integer>(InputPanel.WICKET_ID,
-          new PropertyModel<Integer>(data, "month"), 0, 11).setConverter(new MonthConverter());
+          new PropertyModel<Integer>(data, "month"), 1, 12).setConverter(new MonthConverter());
       fs.add(monthField);
       WicketUtils.setReadonly(monthField);
     }

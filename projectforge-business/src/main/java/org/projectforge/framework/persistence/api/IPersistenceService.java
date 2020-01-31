@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.framework.persistence.api;
 
-import java.util.List;
-
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.database.DatabaseDao;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.List;
 
 /**
  * Legacy Persistence Service.

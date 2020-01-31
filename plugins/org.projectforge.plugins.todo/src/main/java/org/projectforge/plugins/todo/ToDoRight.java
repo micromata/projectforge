@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.todo;
 
-import java.util.Objects;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightAccessCheck;
@@ -33,6 +32,8 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.Objects;
 
 /**
  * Every user has access to own to-do's or to-do's he's assigned to. All other users have access if the to-do is
@@ -115,7 +116,7 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
   public boolean hasAccess(final PFUserDO user, final ToDoDO obj, final ToDoDO oldObj,
       final OperationType operationType)
   {
-    return hasAccess(user, obj, operationType) == true || hasAccess(user, oldObj, operationType) == true;
+    return hasAccess(user, obj, operationType) || hasAccess(user, oldObj, operationType);
   }
 
   private boolean hasAccess(final PFUserDO user, final ToDoDO toDo, final OperationType operationType)
@@ -123,13 +124,13 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
     if (toDo == null) {
       return true;
     }
-    if (Objects.equals(user.getId(), toDo.getAssigneeId()) == true
-        || Objects.equals(user.getId(), toDo.getReporterId()) == true) {
+    if (Objects.equals(user.getId(), toDo.getAssigneeId())
+        || Objects.equals(user.getId(), toDo.getReporterId())) {
       return true;
     }
     if (toDo.getGroup() != null) {
       final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
-      if (userGroupCache.isUserMemberOfGroup(user.getId(), toDo.getGroupId()) == true) {
+      if (userGroupCache.isUserMemberOfGroup(user.getId(), toDo.getGroupId())) {
         return true;
       }
     }

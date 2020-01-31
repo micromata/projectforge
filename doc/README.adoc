@@ -1,0 +1,27 @@
+ProjectForge documentation
+==========================
+Micromata GmbH, Version {version}
+:toc:
+:toclevels: 4
+
+:last-update-label: Copyright (C) 2019, Last updated
+
+ifdef::env-github,env-browser[:outfilesuffix: .adoc]
+
+== Welcome to ProjectForge's world
+
+*_Enjoy ProjectForge!_*
+
+== Documents
+
+Please, refer also https://www.projectforge.org/documentation.html[www.projectforge.org]
+
+[%autowidth, frame="topbot",options="header"]
+|=======
+|Document | Description
+|link:development{outfilesuffix}[Development]|Development docs.
+|link:migration{outfilesuffix}[Migration]|Migration guide.
+|link:installation{outfilesuffix}[Installation]|Installation docs.
+|link:deployment{outfilesuffix}[Deployment]|How to deploy a new release.
+|link:license{outfilesuffix}[License]| GNU GENERAL PUBLIC LICENSE, Version 3
+|=======

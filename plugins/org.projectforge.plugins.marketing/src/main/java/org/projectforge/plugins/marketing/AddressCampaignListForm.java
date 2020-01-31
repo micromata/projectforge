@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,9 @@
 
 package org.projectforge.plugins.marketing;
 
-import org.slf4j.Logger;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.slf4j.Logger;
 
 /**
  * The list formular for the list view (this example has no filter settings). See ToDoListPage for seeing how to use

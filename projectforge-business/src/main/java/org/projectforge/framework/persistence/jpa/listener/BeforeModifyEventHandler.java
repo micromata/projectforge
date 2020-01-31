@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,8 @@
 
 package org.projectforge.framework.persistence.jpa.listener;
 
+import de.micromata.genome.jpa.DbRecord;
+import de.micromata.genome.jpa.events.*;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.framework.access.AccessChecker;
@@ -34,13 +36,6 @@ import org.projectforge.framework.persistence.api.JpaPfGenericPersistenceService
 import org.projectforge.framework.persistence.jpa.PfEmgr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import de.micromata.genome.jpa.DbRecord;
-import de.micromata.genome.jpa.events.EmgrBeforeDeleteEvent;
-import de.micromata.genome.jpa.events.EmgrEventHandler;
-import de.micromata.genome.jpa.events.EmgrInitForInsertEvent;
-import de.micromata.genome.jpa.events.EmgrInitForModEvent;
-import de.micromata.genome.jpa.events.EmgrInitForUpdateEvent;
 
 /**
  * The listener interface for receiving checkPartOfTenantUpdate events. The class that is interested in processing a
@@ -72,17 +67,17 @@ public class BeforeModifyEventHandler implements EmgrEventHandler<EmgrInitForMod
   public void onEvent(EmgrInitForModEvent event)
   {
     DbRecord<?> rec = event.getRecord();
-    if ((rec instanceof BaseDO) == false) {
+    if (!(rec instanceof BaseDO)) {
       return;
     }
     BaseDO baseDo = (BaseDO) rec;
     tenantChecker.isTenantSet(baseDo, true);
     PfEmgr emgr = (PfEmgr) event.getEmgr();
-    if (emgr.isCheckAccess() == false) {
+    if (!emgr.isCheckAccess()) {
       return;
     }
     AUserRightId aUserRightId = rec.getClass().getAnnotation(AUserRightId.class);
-    if (aUserRightId != null && aUserRightId.checkAccess() == false) {
+    if (aUserRightId != null && !aUserRightId.checkAccess()) {
       return; // skip right check
     }
     OperationType operationType;

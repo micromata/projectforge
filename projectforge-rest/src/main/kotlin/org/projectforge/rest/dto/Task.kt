@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,12 +26,16 @@ package org.projectforge.rest.dto
 import org.projectforge.business.gantt.GanttObjectType
 import org.projectforge.business.gantt.GanttRelationType
 import org.projectforge.business.task.TaskDO
+import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.common.task.TimesheetBookingStatus
+import org.projectforge.framework.persistence.api.BaseDO
 import java.math.BigDecimal
 
-class Task(var parentTask: Task? = null,
+class Task(id: Int? = null,
+           displayName: String? = null,
+           var parentTask: Task? = null,
            var title: String? = null,
            var status: TaskStatus? = null,
            var priority: Priority? = null,
@@ -54,14 +58,31 @@ class Task(var parentTask: Task? = null,
            var ganttRelationType: GanttRelationType? = null,
            var ganttObjectType: GanttObjectType? = null,
            var ganttPredecessor: Task? = null
-) : BaseDTO<TaskDO>() {
+) : BaseDTODisplayObject<TaskDO>(id, displayName = displayName) {
 
     override fun copyFromMinimal(src: TaskDO) {
         super.copyFromMinimal(src)
         title = src.title
         if (src.parentTask != null) {
             parentTask = Task()
-            parentTask?.copyFromMinimal(src.parentTask)
+            parentTask?.copyFromMinimal(src.parentTask!!)
+        }
+    }
+
+    companion object {
+        /**
+         * @param dbObj Needed to get the right tenant.
+         */
+        fun getTask(taskId: Int?, doObj: BaseDO<*>, minimal: Boolean = true): Task? {
+            taskId ?: return null
+            val taskDO = TaskTreeHelper.getTaskTree(doObj).getTaskById(taskId)
+            val task = Task()
+            if (minimal) {
+                task.copyFromMinimal(taskDO)
+            } else {
+                task.copyFrom(taskDO)
+            }
+            return task
         }
     }
 }

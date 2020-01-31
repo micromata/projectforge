@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.api;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.projectforge.framework.ToStringUtil;
 
 import javax.persistence.Transient;
 import java.io.Serializable;
@@ -86,6 +87,7 @@ public class BaseSearchFilter implements Serializable {
   }
 
   public void copyBaseSearchFieldsFrom(final BaseSearchFilter filter) {
+    this.searchFields = filter.searchFields;
     this.searchString = filter.searchString;
     this.deleted = filter.deleted;
     this.ignoreDeleted = filter.ignoreDeleted;
@@ -142,7 +144,7 @@ public class BaseSearchFilter implements Serializable {
    *
    * @return
    */
-  public String[] getSearchFields() {
+  public String[] getFullTextSearchFields() {
     return searchFields;
   }
 
@@ -398,5 +400,10 @@ public class BaseSearchFilter implements Serializable {
   public BaseSearchFilter clearErrorMessage() {
     this.errorMessage = null;
     return this;
+  }
+
+  @Override
+  public String toString() {
+    return ToStringUtil.toJsonString(this);
   }
 }

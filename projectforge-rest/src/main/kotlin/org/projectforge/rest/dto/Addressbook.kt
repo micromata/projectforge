@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,46 +24,33 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.address.AddressbookDO
-import org.projectforge.common.StringHelper
 
-class Addressbook(var title: String? = null,
+class Addressbook(id: Int? = null,
+                  displayName: String? = null,
+                  var title: String? = null,
                   var owner: User? = null,
                   var description: String? = null,
-                  var fullAccessGroups: MutableList<Group>? = null,
-                  var fullAccessUsers: MutableList<User>? = null,
-                  var readonlyAccessGroups: MutableList<Group>? = null,
-                  var readonlyAccessUsers: MutableList<User>? = null
-) : BaseDTO<AddressbookDO>() {
+                  var fullAccessGroups: List<Group>? = null,
+                  var fullAccessUsers: List<User>? = null,
+                  var readonlyAccessGroups: List<Group>? = null,
+                  var readonlyAccessUsers: List<User>? = null
+) : BaseDTODisplayObject<AddressbookDO>(id, displayName = displayName) {
 
     // The user and group ids are stored as csv list of integers in the data base.
     override fun copyFrom(src: AddressbookDO) {
         super.copyFrom(src)
-        fullAccessGroups = toGroupList(src.fullAccessGroupIds)
-        fullAccessUsers = toUserList(src.fullAccessUserIds)
-        readonlyAccessGroups = toGroupList(src.readonlyAccessGroupIds)
-        readonlyAccessUsers = toUserList(src.readonlyAccessUserIds)
+        fullAccessGroups = Group.toGroupList(src.fullAccessGroupIds)
+        fullAccessUsers = User.toUserList(src.fullAccessUserIds)
+        readonlyAccessGroups = Group.toGroupList(src.readonlyAccessGroupIds)
+        readonlyAccessUsers = User.toUserList(src.readonlyAccessUserIds)
     }
 
     // The user and group ids are stored as csv list of integers in the data base.
     override fun copyTo(dest: AddressbookDO) {
         super.copyTo(dest)
-        dest.fullAccessGroupIds = fullAccessGroups?.joinToString { "${it.id}" }
-        dest.fullAccessUserIds = fullAccessUsers?.joinToString { "${it.id}" }
-        dest.readonlyAccessGroupIds = readonlyAccessGroups?.joinToString { "${it.id}" }
-        dest.readonlyAccessUserIds = readonlyAccessUsers?.joinToString { "${it.id}" }
-    }
-
-    private fun toUserList(str: String?): MutableList<User>? {
-        if (str.isNullOrBlank()) return null
-        val users = mutableListOf<User>()
-        StringHelper.splitToInts(str, ",", false).forEach { users.add(User(it, fullname = "Kai Reinhard")) }
-        return users
-    }
-
-    private fun toGroupList(str: String?): MutableList<Group>? {
-        if (str.isNullOrBlank()) return null
-        val groups = mutableListOf<Group>()
-        StringHelper.splitToInts(str, ",", false).forEach { groups.add(Group(it, name = "Gruppe")) }
-        return groups
+        dest.fullAccessGroupIds = Group.toIntList(fullAccessGroups)
+        dest.fullAccessUserIds = User.toIntList(fullAccessUsers)
+        dest.readonlyAccessGroupIds = Group.toIntList(readonlyAccessGroups)
+        dest.readonlyAccessUserIds = User.toIntList(readonlyAccessUsers)
     }
 }

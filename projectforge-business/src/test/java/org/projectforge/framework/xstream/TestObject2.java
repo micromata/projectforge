@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,9 +25,6 @@ package org.projectforge.framework.xstream;
 
 import java.util.Collection;
 import java.util.Set;
-
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlObject;
 
 @XmlObject
 public class TestObject2

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,13 @@
 
 package org.projectforge.business.user;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.framework.persistence.database.XmlDumpHook;
 import org.projectforge.framework.persistence.xstream.XStreamSavingConverter;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 
@@ -53,11 +53,11 @@ public class UserXmlPreferencesXmlDumpHook implements XmlDumpHook
   {
     if (obj instanceof UserXmlPreferencesDO) {
       final UserXmlPreferencesDO userPrefs = (UserXmlPreferencesDO) obj;
-      if (TaskTree.USER_PREFS_KEY_OPEN_TASKS.equals(userPrefs.getKey()) == false) {
+      if (!TaskTree.USER_PREFS_KEY_OPEN_TASKS.equals(userPrefs.getKey())) {
         return;
       }
       final Object userPrefsObj = userXmlPreferencesDao.deserialize(null, userPrefs, true);
-      if (userPrefsObj == null || userPrefsObj instanceof Set == false) {
+      if (userPrefsObj == null || !(userPrefsObj instanceof Set)) {
         return;
       }
       Set<Integer> oldIds = null;
@@ -69,7 +69,7 @@ public class UserXmlPreferencesXmlDumpHook implements XmlDumpHook
       if (oldIds.size() == 0) {
         return;
       }
-      final Set<Integer> newIds = new HashSet<Integer>();
+      final Set<Integer> newIds = new HashSet<>();
       for (final Integer oldId : oldIds) {
         final Integer newId = xstreamSavingConverter.getNewIdAsInteger(TaskDO.class, oldId);
         newIds.add(newId);

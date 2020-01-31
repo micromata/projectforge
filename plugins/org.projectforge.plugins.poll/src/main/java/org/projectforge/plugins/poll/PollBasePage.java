@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -147,7 +147,7 @@ public abstract class PollBasePage extends AbstractSecuredPage
         SingleButtonPanel.DEFAULT_SUBMIT);
     deletePanel.setVisible(isDeleteButtonVisible());
 
-    form = new Form<String>("pollForm");
+    form = new Form<>("pollForm");
     body.add(form);
     form.add(cancelPanel);
     form.add(confirmPanel);

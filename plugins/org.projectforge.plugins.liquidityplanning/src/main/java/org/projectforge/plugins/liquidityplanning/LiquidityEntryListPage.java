@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,6 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -41,28 +35,21 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.excel.ContentProvider;
 import org.projectforge.business.excel.ExportColumn;
 import org.projectforge.business.excel.ExportSheet;
-import org.projectforge.business.fibu.EingangsrechnungDO;
-import org.projectforge.business.fibu.EingangsrechnungDao;
-import org.projectforge.business.fibu.InvoicesExcelExport;
-import org.projectforge.business.fibu.PaymentStatus;
-import org.projectforge.business.fibu.RechnungDO;
-import org.projectforge.business.fibu.RechnungDao;
-import org.projectforge.business.fibu.RechnungFilter;
+import org.projectforge.business.fibu.*;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.framework.time.DayHolder;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.CurrencyPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.RowCssClass;
+import org.projectforge.framework.time.PFDay;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * The controller of the list page. Most functionality such as search etc. is done by the super class.
@@ -107,8 +94,8 @@ public class LiquidityEntryListPage
   @SuppressWarnings("serial")
   public List<IColumn<LiquidityEntryDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final List<IColumn<LiquidityEntryDO, String>> columns = new ArrayList<IColumn<LiquidityEntryDO, String>>();
-    final Date today = new DayHolder().getDate();
+    final List<IColumn<LiquidityEntryDO, String>> columns = new ArrayList<>();
+    final Date today = PFDay.now().getUtilDate();
     final CellItemListener<LiquidityEntryDO> cellItemListener = new CellItemListener<LiquidityEntryDO>()
     {
       @Override
@@ -117,11 +104,11 @@ public class LiquidityEntryListPage
       {
         final LiquidityEntryDO liquidityEntry = rowModel.getObject();
         appendCssClasses(item, liquidityEntry.getId(), liquidityEntry.isDeleted());
-        if (liquidityEntry.isDeleted() == true) {
+        if (liquidityEntry.isDeleted()) {
           // Do nothing further
         } else {
-          if (liquidityEntry.getPaid() == false) {
-            if (liquidityEntry.getDateOfPayment() == null || liquidityEntry.getDateOfPayment().before(today) == true) {
+          if (!liquidityEntry.getPaid()) {
+            if (liquidityEntry.getDateOfPayment() == null || liquidityEntry.getDateOfPayment().before(today)) {
               appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
             } else {
               appendCssClasses(item, RowCssClass.BLUE);
@@ -152,7 +139,7 @@ public class LiquidityEntryListPage
       }
     });
     columns.add(
-        new CurrencyPropertyColumn<LiquidityEntryDO>(LiquidityEntryDO.class, getSortable("amount", sortable), "amount",
+        new CurrencyPropertyColumn<>(LiquidityEntryDO.class, getSortable("amount", sortable), "amount",
             cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<LiquidityEntryDO>(LiquidityEntryDO.class,
         getSortable("paid", sortable), "paid",
@@ -163,7 +150,7 @@ public class LiquidityEntryListPage
           final IModel<LiquidityEntryDO> rowModel)
       {
         final LiquidityEntryDO entry = rowModel.getObject();
-        if (entry.getPaid() == true) {
+        if (entry.getPaid()) {
           item.add(new IconPanel(componentId, IconType.ACCEPT));
         } else {
           item.add(createInvisibleDummyComponent(componentId));
@@ -171,10 +158,10 @@ public class LiquidityEntryListPage
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<LiquidityEntryDO>(LiquidityEntryDO.class,
+    columns.add(new CellItemListenerPropertyColumn<>(LiquidityEntryDO.class,
         getSortable("subject", sortable), "subject",
         cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<LiquidityEntryDO>(LiquidityEntryDO.class,
+    columns.add(new CellItemListenerPropertyColumn<>(LiquidityEntryDO.class,
         getSortable("comment", sortable), "comment",
         cellItemListener));
 
@@ -221,13 +208,13 @@ public class LiquidityEntryListPage
           final ExportColumn exportColumn)
       {
         super.putFieldFormat(sheetProvider, field, propInfo, exportColumn);
-        if ("dateOfPayment".equals(field.getName()) == true) {
+        if ("dateOfPayment".equals(field.getName())) {
           exportColumn.setWidth(12);
-        } else if ("paid".equals(field.getName()) == true) {
+        } else if ("paid".equals(field.getName())) {
           exportColumn.setWidth(8);
-        } else if ("subject".equals(field.getName()) == true) {
+        } else if ("subject".equals(field.getName())) {
           exportColumn.setWidth(40);
-        } else if ("comment".equals(field.getName()) == true) {
+        } else if ("comment".equals(field.getName())) {
           exportColumn.setWidth(80);
         }
       }
@@ -258,7 +245,7 @@ public class LiquidityEntryListPage
   private LiquidityForecast getForecast()
   {
     // Consider only invoices of the last year:
-    final java.sql.Date fromDate = new DayHolder().add(Calendar.DAY_OF_YEAR, -365).getSQLDate();
+    final java.sql.Date fromDate = PFDateTime.now().minusYears(1).getSqlDate();
     {
       final List<RechnungDO> paidInvoices = rechnungDao.getList(new RechnungFilter().setShowBezahlt().setFromDate(fromDate));
       forecast.calculateExpectedTimeOfPayments(paidInvoices);

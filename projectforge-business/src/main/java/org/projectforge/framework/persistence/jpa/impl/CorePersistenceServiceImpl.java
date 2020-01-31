@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,21 +23,15 @@
 
 package org.projectforge.framework.persistence.jpa.impl;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
-
+import de.micromata.genome.jpa.EntityCopyStatus;
+import de.micromata.genome.jpa.MarkDeletableRecord;
+import de.micromata.genome.util.bean.PrivateBeanUtils;
+import de.micromata.genome.util.runtime.ClassUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.persistence.api.AUserRightId;
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.api.ICorePersistenceService;
-import org.projectforge.framework.persistence.api.IDao;
-import org.projectforge.framework.persistence.api.IUserRightId;
-import org.projectforge.framework.persistence.api.ModificationStatus;
-import org.projectforge.framework.persistence.api.UserRightService;
+import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -45,13 +39,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import de.micromata.genome.jpa.EntityCopyStatus;
-import de.micromata.genome.jpa.MarkDeletableRecord;
-import de.micromata.genome.util.bean.PrivateBeanUtils;
-import de.micromata.genome.util.runtime.ClassUtils;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  * @param <O>
@@ -166,13 +159,6 @@ public class CorePersistenceServiceImpl<PK extends Serializable, ENT extends Mar
         "Not implemented yet: CorePersistenceServiceImpl.getList(BaseSearchFilter)");
     // TODO Auto-generated method stub
     return Collections.emptyList();
-  }
-
-  @Override
-  public String[] getSearchFields()
-  {
-    String[] searchFields = HibernateSearchFilterUtils.determineSearchFields(getEntityClass(), new String[] {});
-    return searchFields;
   }
 
   @Override

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.business.teamcal.event;
 
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
+
 import java.io.Serializable;
 import java.util.Comparator;
-
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 
 public class AttendeeComparator implements Comparator<TeamEventAttendeeDO>, Serializable
 {

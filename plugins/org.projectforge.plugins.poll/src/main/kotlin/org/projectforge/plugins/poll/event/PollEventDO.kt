@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,22 +35,22 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_POLL_EVENT", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_poll_event_tenant_id", columnList = "tenant_id")])
-class PollEventDO : DefaultBaseDO() {
+open class PollEventDO : DefaultBaseDO() {
 
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "poll_fk")
-    var poll: PollDO? = null
+    open var poll: PollDO? = null
 
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column
-    var startDate: Timestamp? = null
+    open var startDate: Timestamp? = null
 
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column
-    var endDate: Timestamp? = null
+    open var endDate: Timestamp? = null
 
     /**
      * @see java.lang.Object.hashCode
@@ -67,22 +67,21 @@ class PollEventDO : DefaultBaseDO() {
     /**
      * @see java.lang.Object.equals
      */
-    override fun equals(obj: Any?): Boolean {
-        if (this === obj) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) {
             return true
         }
-        if (obj == null) {
+        if (other == null) {
             return false
         }
-        if (javaClass != obj.javaClass) {
+        if (other !is PollEventDO) {
             return false
         }
-        val other = obj as PollEventDO?
         if (endDate == null) {
-            if (other!!.endDate != null) {
+            if (other.endDate != null) {
                 return false
             }
-        } else if (!endDate!!.equals(other!!.endDate)) {
+        } else if (!endDate!!.equals(other.endDate)) {
             return false
         }
         if (poll == null) {

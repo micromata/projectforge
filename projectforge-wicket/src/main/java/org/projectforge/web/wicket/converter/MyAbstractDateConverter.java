@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -137,7 +137,7 @@ public abstract class MyAbstractDateConverter extends DateConverter
     if (date != null) {
       if (ClassUtils.isAssignable(targetType, java.sql.Date.class) == true) {
         final DayHolder day = new DayHolder(date);
-        return day.getSQLDate();
+        return day.getSqlDate();
       }
       return date;
     } else {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -128,7 +128,7 @@ public class UserException extends ProjectForgeException
     }
     Object[] args = new Object[msgParams.length];
     for (int i = 0; i < msgParams.length; i++) {
-      if (msgParams[i].isI18nKey() == true) {
+      if (msgParams[i].isI18nKey()) {
         args[i] = bundle.getString(msgParams[i].getI18nKey());
       } else {
         args[i] = msgParams[i];

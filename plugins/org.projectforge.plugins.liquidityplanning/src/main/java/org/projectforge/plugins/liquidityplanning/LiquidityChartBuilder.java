@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,6 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import java.awt.*;
-import java.util.Calendar;
-import java.util.Date;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
@@ -39,11 +35,14 @@ import org.jfree.data.time.TimeSeriesCollection;
 import org.projectforge.business.scripting.I18n;
 import org.projectforge.charting.XYChartBuilder;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
+
+import java.awt.*;
+import java.util.Date;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class LiquidityChartBuilder
 {
@@ -56,7 +55,7 @@ public class LiquidityChartBuilder
    */
   public JFreeChart createXYPlot(final LiquidityForecast forecast, final LiquidityForecastSettings settings)
   {
-    if ((settings.getNextDays() > 0 && settings.getNextDays() <= LiquidityForecastSettings.MAX_FORECAST_DAYS) == false) {
+    if (!(settings.getNextDays() > 0 && settings.getNextDays() <= LiquidityForecastSettings.MAX_FORECAST_DAYS)) {
       settings.setNextDays(LiquidityForecastSettings.DEFAULT_FORECAST_DAYS);
     }
 
@@ -70,13 +69,13 @@ public class LiquidityChartBuilder
     double accumulated = accumulatedExpected;
     double worstCase = accumulated;
 
-    final DayHolder dh = new DayHolder();
-    final Date lower = dh.getDate();
+    PFDateTime dt = PFDateTime.now();
+    final Date lower = dt.getUtilDate();
     for (int i = 0; i < settings.getNextDays(); i++) {
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("day: " + i + ", credits=" + cashFlow.getCredits()[i] + ", debits=" + cashFlow.getDebits()[i]);
       }
-      final Day day = new Day(dh.getDayOfMonth(), dh.getMonth() + 1, dh.getYear());
+      final Day day = new Day(dt.getDayOfMonth(), dt.getMonthValue(), dt.getYear());
       if (i > 0) {
         accumulated += cashFlow.getDebits()[i - 1].doubleValue() + cashFlow.getCredits()[i - 1].doubleValue();
         accumulatedExpected += cashFlow.getDebitsExpected()[i - 1].doubleValue() + cashFlow.getCreditsExpected()[i - 1].doubleValue();
@@ -85,9 +84,9 @@ public class LiquidityChartBuilder
       accumulatedSeries.add(day, accumulated);
       accumulatedSeriesExpected.add(day, accumulatedExpected);
       worstCaseSeries.add(day, worstCase);
-      dh.add(Calendar.DATE, 1);
+      dt = dt.plusDays(1);
     }
-    dh.add(Calendar.DATE, -1);
+    dt = dt.minusDays(1);
     final XYChartBuilder cb = new XYChartBuilder(null, null, null, null, true);
 
     int counter = 0;
@@ -111,7 +110,7 @@ public class LiquidityChartBuilder
     .setStrongStyle(diffRenderer, false, accumulatedSeriesExpected);
     diffRenderer.setSeriesVisibleInLegend(0, true);
 
-    cb.setDateXAxis(true).setDateXAxisRange(lower, dh.getDate()).setYAxis(true, null);
+    cb.setDateXAxis(true).setDateXAxisRange(lower, dt.getUtilDate()).setYAxis(true, null);
     return cb.getChart();
   }
 
@@ -122,7 +121,7 @@ public class LiquidityChartBuilder
    */
   public JFreeChart createBarChart(final LiquidityForecast forecast, final LiquidityForecastSettings settings)
   {
-    if ((settings.getNextDays() > 0 && settings.getNextDays() <= LiquidityForecastSettings.MAX_FORECAST_DAYS) == false) {
+    if (!(settings.getNextDays() > 0 && settings.getNextDays() <= LiquidityForecastSettings.MAX_FORECAST_DAYS)) {
       settings.setNextDays(LiquidityForecastSettings.DEFAULT_FORECAST_DAYS);
     }
     final LiquidityForecastCashFlow cashFlow = new LiquidityForecastCashFlow(forecast, settings.getNextDays());
@@ -131,19 +130,19 @@ public class LiquidityChartBuilder
     final TimeSeries debitSeries = new TimeSeries(I18n.getString("plugins.liquidityplanning.common.debit"));
     double accumulatedExpected = settings.getStartAmount().doubleValue();
 
-    final DayHolder dh = new DayHolder();
-    final Date lower = dh.getDate();
+    PFDateTime dt = PFDateTime.now();
+    final Date lower = dt.getUtilDate();
     for (int i = 0; i < settings.getNextDays(); i++) {
-      final Day day = new Day(dh.getDayOfMonth(), dh.getMonth() + 1, dh.getYear());
+      final Day day = new Day(dt.getDayOfMonth(), dt.getMonthValue(), dt.getYear());
       if (i > 0) {
         accumulatedExpected += cashFlow.getDebitsExpected()[i - 1].doubleValue() + cashFlow.getCreditsExpected()[i - 1].doubleValue();
       }
       accumulatedSeriesExpected.add(day, accumulatedExpected);
       creditSeries.add(day, cashFlow.getCreditsExpected()[i].doubleValue());
       debitSeries.add(day, cashFlow.getDebitsExpected()[i].doubleValue());
-      dh.add(Calendar.DATE, 1);
+      dt = dt.plusDays(1);
     }
-    dh.add(Calendar.DATE, -1);
+    dt = dt.minusDays(1);
     final XYChartBuilder cb = new XYChartBuilder(ChartFactory.createXYBarChart(null, null, false, null, null, PlotOrientation.VERTICAL,
         false, false, false));
     int counter = 0;
@@ -165,7 +164,7 @@ public class LiquidityChartBuilder
     barRenderer.setShadowVisible(false);
     cb.setRenderer(counter, barRenderer).setDataset(counter++, cashflowSet);
 
-    cb.setDateXAxis(true).setDateXAxisRange(lower, dh.getDate()).setYAxis(true, null);
+    cb.setDateXAxis(true).setDateXAxisRange(lower, dt.getUtilDate()).setYAxis(true, null);
     return cb.getChart();
   }
 }

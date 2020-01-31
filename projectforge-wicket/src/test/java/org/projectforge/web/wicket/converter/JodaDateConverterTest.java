@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,12 +27,9 @@ import org.apache.wicket.util.convert.ConversionException;
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.TestSetup;
 
 import java.util.Calendar;
@@ -42,12 +39,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class JodaDateConverterTest
 {
+  private static PFUserDO contextUser = TestSetup.init();
   private final static DateTimeZone EUROPE_BERLIN = DateTimeZone.forID("Europe/Berlin");
-
-  @BeforeAll
-  static void setup() {
-    TestSetup.init();
-  }
 
   @Test
   public void convertToObject()
@@ -97,37 +90,32 @@ public class JodaDateConverterTest
   @Test
   public void convertToString()
   {
-    PFUserDO user = new PFUserDO();
-    user.setTimeZone(DateHelper.EUROPE_BERLIN);
-    user.setLocale(Locale.GERMAN);
-    user.setDateFormat("dd.MM.yyyy");
-    ThreadLocalUserContext.setUser(null, user);
-    user = ThreadLocalUserContext.getUser(); // ThreadLocalUserContext made a copy!
+    contextUser.setTimeZone(DateHelper.EUROPE_BERLIN);
+    contextUser.setLocale(Locale.GERMAN);
+    contextUser.setDateFormat("dd.MM.yyyy");
     JodaDateConverter conv = new JodaDateConverter();
     DateMidnight testDate = createDate(1970, DateTimeConstants.NOVEMBER, 21, EUROPE_BERLIN);
     assertEquals("21.11.1970", conv.convertToString(testDate, Locale.GERMAN));
-    user.setLocale(Locale.ENGLISH);
-    user.setDateFormat("MM/dd/yyyy");
+    contextUser.setLocale(Locale.ENGLISH);
+    contextUser.setDateFormat("MM/dd/yyyy");
     conv = new JodaDateConverter();
     assertEquals("11/21/1970", conv.convertToString(testDate, Locale.GERMAN)); // User's locale should be used instead.
 
-    user.setLocale(Locale.GERMAN);
-    user.setDateFormat("dd.MM.yyyy");
+    contextUser.setLocale(Locale.GERMAN);
+    contextUser.setDateFormat("dd.MM.yyyy");
     conv = new JodaDateConverter();
     testDate = createDate(2009, DateTimeConstants.FEBRUARY, 1, EUROPE_BERLIN);
     assertEquals("01.02.2009", conv.convertToString(testDate, Locale.GERMAN));
-    user.setLocale(Locale.ENGLISH);
-    user.setDateFormat("MM/dd/yyyy");
+    contextUser.setLocale(Locale.ENGLISH);
+    contextUser.setDateFormat("MM/dd/yyyy");
     conv = new JodaDateConverter();
     assertEquals("02/01/2009", conv.convertToString(testDate, Locale.GERMAN));
   }
 
   private void convertToObjectGerman(final DateTimeZone timeZone)
   {
-    final PFUserDO user = new PFUserDO();
-    user.setTimeZone(timeZone.getID());
-    user.setDateFormat("dd.MM.yyyy");
-    ThreadLocalUserContext.setUser(null, user);
+    contextUser.setTimeZone(timeZone.getID());
+    contextUser.setDateFormat("dd.MM.yyyy");
     final JodaDateConverter conv = new JodaDateConverter();
     assertNull(conv.convertToObject("", Locale.GERMAN));
     DateMidnight testDate = createDate(1970, DateTimeConstants.OCTOBER, 21, timeZone);
@@ -175,10 +163,8 @@ public class JodaDateConverterTest
 
   private void convertToObjectEnglish(final DateTimeZone timeZone)
   {
-    final PFUserDO user = new PFUserDO();
-    user.setTimeZone(timeZone.getID());
-    user.setDateFormat("MM/dd/yyyy");
-    ThreadLocalUserContext.setUser(null, user);
+    contextUser.setTimeZone(timeZone.getID());
+    contextUser.setDateFormat("MM/dd/yyyy");
     final JodaDateConverter conv = new JodaDateConverter();
     DateMidnight testDate = createDate(1970, DateTimeConstants.OCTOBER, 21, timeZone);
     DateMidnight date = conv.convertToObject("10/21/1970", Locale.ENGLISH);

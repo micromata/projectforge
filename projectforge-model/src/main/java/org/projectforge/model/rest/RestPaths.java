@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -81,6 +81,8 @@ public class RestPaths
 
   public static final String CANCEL = "cancel";
 
+  public static final String EDIT = "edit";
+
   public static final String SAVE = "save";
 
   public static final String UPDATE = "update";
@@ -93,6 +95,8 @@ public class RestPaths
 
   public static final String UNDELETE = "undelete";
 
+  public static final String CLONE = "clone";
+
   public static final String TREE = "tree";
 
   public static final String TEAMCAL = "teamcal";
@@ -100,6 +104,8 @@ public class RestPaths
   public static final String TEAMEVENTS = "teamevents";
 
   public static final String VERSION_CHECK = "versionCheck";
+
+  public static final String WATCH_FIELDS = "watchFields";
 
   public static final String FILTER_RESET = "filterReset";
 }

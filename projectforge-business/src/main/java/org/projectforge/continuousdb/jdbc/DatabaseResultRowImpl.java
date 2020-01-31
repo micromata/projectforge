@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,11 @@
 
 package org.projectforge.continuousdb.jdbc;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.projectforge.continuousdb.DatabaseResultRow;
 import org.projectforge.continuousdb.DatabaseResultRowEntry;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -35,7 +35,7 @@ import org.projectforge.continuousdb.DatabaseResultRowEntry;
  */
 public class DatabaseResultRowImpl implements DatabaseResultRow
 {
-  private List<DatabaseResultRowEntry> entries = new LinkedList<DatabaseResultRowEntry>();
+  private List<DatabaseResultRowEntry> entries = new LinkedList<>();
 
   @Override
   public List<DatabaseResultRowEntry> getEntries()
@@ -57,7 +57,7 @@ public class DatabaseResultRowImpl implements DatabaseResultRow
       if (entry.getName() == null) {
         continue;
       }
-      if (lower.equals(entry.getName().toLowerCase()) == true) {
+      if (lower.equals(entry.getName().toLowerCase())) {
         return entry;
       }
     }

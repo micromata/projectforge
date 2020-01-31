@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,11 @@
 
 package org.projectforge.web.address;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
+import net.fortuna.ical4j.vcard.Parameter;
+import net.fortuna.ical4j.vcard.Parameter.Id;
+import net.fortuna.ical4j.vcard.Property;
+import net.fortuna.ical4j.vcard.VCard;
+import net.fortuna.ical4j.vcard.VCardBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
@@ -39,17 +37,18 @@ import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressStatus;
 import org.projectforge.business.address.ContactStatus;
 import org.projectforge.business.address.FormOfAddress;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
 import org.slf4j.Logger;
 
-import net.fortuna.ical4j.vcard.Parameter;
-import net.fortuna.ical4j.vcard.Parameter.Id;
-import net.fortuna.ical4j.vcard.Property;
-import net.fortuna.ical4j.vcard.VCard;
-import net.fortuna.ical4j.vcard.VCardBuilder;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
@@ -355,8 +354,10 @@ public class AddressImportForm extends AbstractEditForm<AddressDO, AddressImport
    */
   private void setBirth(final Property property, final AddressDO address)
   {
-    if (property != null)
-      address.setBirthday(new Date(DateTime.parse(property.getValue()).getMillis()));
+    if (property != null) {
+      long millis = DateTime.parse(property.getValue()).getMillis();
+      address.setBirthday(PFDateTime.from(millis).getLocalDate());
+    }
   }
 
   private void setName(final Property property, final AddressDO address)

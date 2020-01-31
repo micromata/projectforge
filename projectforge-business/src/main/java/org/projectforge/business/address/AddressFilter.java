@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,13 @@
 
 package org.projectforge.business.address;
 
+import org.projectforge.framework.configuration.ApplicationContextProvider;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
-
-import org.projectforge.framework.configuration.ApplicationContextProvider;
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -75,6 +75,7 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
   {
     super(filter);
     reset();
+    copyBaseSearchFieldsFrom(filter);
     if (filter instanceof AddressFilter) {
       AddressFilter obj = (AddressFilter) filter;
       this.uptodate = obj.isUptodate();

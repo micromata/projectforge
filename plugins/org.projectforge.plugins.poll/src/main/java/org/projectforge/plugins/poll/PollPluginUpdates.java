@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,7 @@
 
 package org.projectforge.plugins.poll;
 
-import org.projectforge.continuousdb.SchemaGenerator;
-import org.projectforge.continuousdb.UpdateEntry;
-import org.projectforge.continuousdb.UpdateEntryImpl;
-import org.projectforge.continuousdb.UpdatePreCheckStatus;
-import org.projectforge.continuousdb.UpdateRunningStatus;
+import org.projectforge.continuousdb.*;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.plugins.poll.attendee.PollAttendeeDO;
 import org.projectforge.plugins.poll.event.PollEventDO;
@@ -39,7 +35,7 @@ import org.projectforge.plugins.poll.result.PollResultDO;
  */
 public class PollPluginUpdates
 {
-  static DatabaseService dao;
+  static DatabaseService databaseService;
 
   final static Class<?>[] doClasses = new Class<?>[] { //
       PollDO.class, PollEventDO.class, PollAttendeeDO.class, PollResultDO.class };
@@ -54,7 +50,7 @@ public class PollPluginUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         // Check only the oldest table.
-        if (dao.doTablesExist(PollDO.class) == false) {
+        if (!databaseService.doTablesExist(PollDO.class)) {
           // The oldest table doesn't exist, therefore the plug-in has to initialized completely.
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
@@ -64,8 +60,8 @@ public class PollPluginUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        new SchemaGenerator(dao).add(doClasses).createSchema();
-        dao.createMissingIndices();
+        new SchemaGenerator(databaseService).add(doClasses).createSchema();
+        databaseService.createMissingIndices();
         return UpdateRunningStatus.DONE;
       }
     };

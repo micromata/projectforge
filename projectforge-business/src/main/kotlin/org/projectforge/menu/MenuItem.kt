@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,6 +26,7 @@ package org.projectforge.menu
 import org.projectforge.framework.i18n.autoTranslate
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.builder.MenuItemDef
+import org.projectforge.menu.builder.MenuItemDefId
 
 class MenuItem(var id: String? = null,
                var title: String? = null,
@@ -51,8 +52,22 @@ class MenuItem(var id: String? = null,
         key = menuItemDef.id
         url = menuItemDef.url
         if (menuItemDef.badgeCounter != null) {
-            //badge = MenuBadge(counter = menuItemDef.badgeCounter?.invoke())
+            badge = MenuBadge(counter = menuItemDef.badgeCounter?.invoke())
         }
+    }
+
+    constructor(menuItemDefId: MenuItemDefId, badge: MenuBadge? = null, type: MenuItemTargetType? = null) : this() {
+        this.id = menuItemDefId.id
+        this.title = translate(menuItemDefId.i18nKey)
+        this.i18nKey = menuItemDefId.i18nKey
+        this.key = menuItemDefId.id
+        this.url = menuItemDefId.url
+        this.badge = badge
+        this.type = type
+    }
+
+    init {
+        id = id?.replace('.', '_') // period character not allowed for dom model.
     }
 
     var subMenu: MutableList<MenuItem>? = null

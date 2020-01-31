@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,7 +31,7 @@ import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import javax.persistence.*
 
@@ -40,13 +40,22 @@ import javax.persistence.*
 @ClassBridge(name = "nummer", impl = HibernateSearchKost1Bridge::class)
 @Table(name = "T_FIBU_KOST1", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "endziffer", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_kost1_tenant_id", columnList = "tenant_id")])
 @WithHistory
-class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
+@NamedQueries(
+        NamedQuery(name = Kost1DO.FIND_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,
+                query = "from Kost1DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and endziffer=:endziffer"),
+        NamedQuery(name = Kost1DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,
+                query = "from Kost1DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and endziffer=:endziffer and id!=:id"))
+open class Kost1DO : DefaultBaseDO(), DisplayNameCapable {
+
+    override val displayName: String
+        @Transient
+        get() = KostFormatter.format(this)
 
     @PropertyInfo(i18nKey = "status")
     @Field(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 30)
-    var kostentraegerStatus: KostentraegerStatus? = null
+    open var kostentraegerStatus: KostentraegerStatus? = null
 
     /**
      * Nummernkreis entspricht der ersten Ziffer.
@@ -54,7 +63,7 @@ class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
      * @return
      */
     @get:Column(name = "nummernkreis", length = 1)
-    var nummernkreis: Int = 0
+    open var nummernkreis: Int = 0
 
     /**
      * Bereich entspricht der 2.-4. Ziffer.
@@ -62,7 +71,7 @@ class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
      * @return
      */
     @get:Column(name = "bereich", length = 3)
-    var bereich: Int = 0
+    open var bereich: Int = 0
 
     /**
      * Teilbereich entspricht der 5.-6. Ziffer.
@@ -70,10 +79,10 @@ class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
      * @return
      */
     @get:Column(name = "teilbereich", length = 2)
-    var teilbereich: Int = 0
+    open var teilbereich: Int = 0
 
     @get:Column(name = "endziffer", length = 2)
-    var endziffer: Int = 0
+    open var endziffer: Int = 0
 
     /**
      * Optionale Kommentare zum Kostenträger.
@@ -83,7 +92,7 @@ class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
     @PropertyInfo(i18nKey = "description")
     @Field
     @get:Column(length = 4000)
-    var description: String? = null
+    open var description: String? = null
 
     /**
      * Format: #.###.##.##
@@ -100,11 +109,6 @@ class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
     val nummer: Int?
         @Transient
         get() = KostFormatter.getKostAsInt(nummernkreis, bereich, teilbereich, endziffer)
-
-    @Transient
-    override fun getShortDisplayName(): String {
-        return KostFormatter.format(this)
-    }
 
     /**
      * return true if nummernkreis, bereich, teilbereich and endziffer is equal, otherwise false;
@@ -133,6 +137,7 @@ class Kost1DO : DefaultBaseDO(), ShortDisplayNameCapable {
     }
 
     companion object {
-        private val serialVersionUID = -6534347300453425760L
+        const val FIND_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER = "Kost1DO_FindByNKBereichTeilbereichEndziffer"
+        const val FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER = "Kost1DO_FindOtherByNKBereichTeilbereichEndziffer"
     }
 }

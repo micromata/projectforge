@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,14 @@
 
 package org.projectforge.framework.utils;
 
-import java.lang.annotation.Annotation;
-import java.util.Comparator;
-
 import org.apache.commons.lang3.ClassUtils;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.common.anots.StringAlphanumericSort;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-
 import se.sawano.java.text.AlphanumericComparator;
+
+import java.lang.annotation.Annotation;
+import java.util.Comparator;
 
 public class MyBeanComparator<T> implements Comparator<T>
 {
@@ -86,10 +85,10 @@ public class MyBeanComparator<T> implements Comparator<T>
         if (value2 == null)
           return 0;
         else
-          return (asc == true) ? -1 : 1;
+          return (asc) ? -1 : 1;
       }
       if (value2 == null) {
-        return (asc == true) ? 1 : -1;
+        return (asc) ? 1 : -1;
       }
       if (value1 instanceof String && value2 instanceof String) {
         if (checkAnnotation(BeanHelper.getDeclaredAnnotations(o1.getClass(), prop), StringAlphanumericSort.class)
@@ -101,11 +100,11 @@ public class MyBeanComparator<T> implements Comparator<T>
             return alphanumericComparator.compare((String) value1, (String) value2);
           }
         } else {
-          return StringComparator.getInstance().compare((String) value1, (String) value2, asc);
+          return StringComparator.compare((String) value1, (String) value2, asc);
         }
       }
-      if (ClassUtils.isAssignable(value2.getClass(), value1.getClass()) == true) {
-        if (asc == true) {
+      if (ClassUtils.isAssignable(value2.getClass(), value1.getClass())) {
+        if (asc) {
           return ((Comparable) value1).compareTo(value2);
         } else {
           return -((Comparable) value1).compareTo(value2);
@@ -113,7 +112,7 @@ public class MyBeanComparator<T> implements Comparator<T>
       } else {
         final String sval1 = String.valueOf(value1);
         final String sval2 = String.valueOf(value2);
-        if (asc == true) {
+        if (asc) {
           return sval1.compareTo(sval2);
         } else {
           return -sval1.compareTo(sval2);

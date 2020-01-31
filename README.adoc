@@ -3,8 +3,15 @@
 ProjectForge is a web-based solution for project management including time tracking, team calendar, gantt-charting, financial administration, issue management,
 controlling and managing work-break-down-structures (e. g. together with JIRA as issue management system).
 
-Full documentation on: http://www.projectforge.org/pf-en/Documentation
+== Documentation
+
+=== projectforge.org
+Full documentation on: https://www.projectforge.org/documentation.html
 Please visit: https://www.projectforge.org/documentation/developer-guide.html
+
+=== GitHub
+Further documentation for developers and adminstrators (for a first start), please refer
+https://github.com/micromata/projectforge/tree/develop/doc
 
 == Version 7.0 will be released soon...
 
@@ -20,12 +27,13 @@ ProjectForge will be controlled by a new Rest API for most CRUD operations. Stay
 ====
 You only need the following steps for developing ProjectForge.
 If you just want to run it, please download it from https://sourceforge.net/projects/pforge/
+and simply start it `java -jar projectforge-application-X.X.X.jar`.
 ====
 
-1. Checkout:  
+1. Checkout:
    https://github.com/micromata/projectforge.git
 2. Ensure running *Java 1.8* (*not* 1.9+): `java -version`.
-3. Build ProjectForge:  
+3. Build ProjectForge:
    `mvn clean install -DskipTests`
 4. Run ProjectForge:
    `java -jar projectforge-application/target/projectforge-application-X.X.X.jar`
@@ -34,26 +42,23 @@ If you just want to run it, please download it from https://sourceforge.net/proj
 
 === Configuration of ProjectForge
 
-.Minimal config `$HOME/ProjectForge/projectforge.properties`
-----
-projectforge.base.dir=${user.home}/ProjectForge
-----
+No configuration needed. After starting ProjectForge a first time, a console or desktop based wizard is provided for doing
+a quick setup (choose directory and configure optionally some parameters).
 
-ProjectForge searches automatically for configurations in the following order:
+To configure a different directory you have several options (*choose Your favorite*):
 
-1. Searches for `./config/application.properties` (in current directory).
-2. Searches for `./application.properties` (in current directory).
-3. Searches for `$HOME/ProjectForge/projectforge.properties`.
-
-You may specify another config location: +
-`java -jar target/projectforge-application-X.X.X.jar --spring.config.additional-location=file:/mypath/projectforge.properties`
+. Create `ProjectForge` as top level directory of your home directory: `$HOME/ProjectForge`, *or*
+. Create a directory named `ProjectForge` and put the jar file somewhere in it or in the same directory. ProjectForge detects the folder `ProjectForge` relative to the executed jar, *or*
+. Create a directory and define it as command line parameter: `java -Dhome.dir=yourdirectory -jar projectforge-application-X.X.X.jar`, *or*
+. Create a directory and define it as system environment variable `PROJECTFORGE_HOME`.
 
 === Quickstart with Eclipse and maven
 
 1. Launch eclipse
 2. Import Maven project -> pom.xml in projectforge git root dir
 3. Import Maven project -> pom.xml in projectforge-application dir
-4. Start by simply running main (in `projectforge-application/src/main/java`): +
+4. Run maven clean install for pom.xml in projectforge-webapp (to build React stuff)
+5. Start by simply running main (in `projectforge-application/src/main/java`): +
    `org.projectforge.start.ProjectForgeApplication.java`
 
 
@@ -64,7 +69,10 @@ Please note, that Java version 8 is needed for developing and running ProjectFor
 
 === Quickstart with IntelliJ
 
-Start by simply running main (in `projectforge-application/src/main/java`): +
+1. Launch IntelliJ IDEA
+2. Import new project via pom.xml in git root dir
+3. Run maven clean install for pom.xml in projectforge-webapp (to build React stuff)
+4. Start by simply running main (in `projectforge-application/src/main/java`): +
    `org.projectforge.start.ProjectForgeApplication.java`
 
 == Quickstart with PostgreSQL (optional)
@@ -98,8 +106,9 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 |PSQL|`docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge`
 |Reset passwords (optional)|`update t_pf_user SET password='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null, email='m.developer@acme.com';` +
 password is now `test123`.
-|Clear calendar subscriptions (optional)|`update t_plugin_calendar set ext_subscription=false;` +
-This is useful for avoiding a lot of external calendar calls if your productive data contains a lot of users with calendar subscriptions.
+|Clear calendar subscriptions (optional)|`update t_calendar set ext_subscription=false where owner_fk != ###;` +
+This is useful for avoiding a lot of external calendar calls of foreign users if your productive data contains a lot of users with calendar subscriptions.
+|PSQL|`docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge`
 |Uninstall|`docker rm projectforge-postgres`
 |===
 
@@ -108,31 +117,17 @@ This is useful for avoiding a lot of external calendar calls if your productive 
 
 Please have a lock at all available config parameters: https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties[application.properties]
 
-== Building a new release
+== Documentation
 
-1. Create new release GIT branch (e.g. /release/6.25.0-RELEASE) -> Recommondation: Use Git Flow
-2. `mvn clean site` (Check test results and reports in all modules). If all tests are OK, continue with next step.
-3. Modify NEWS.md with updated release informations
-4. Change version number of all `pom.xml` files: +
-   `export PF_NEW_VERSION=6.26.0` +
-   `find . -name pom.xml | xargs perl -pi -e 's|<version>.*</version><!-- projectforge.version -\->|<version>$ENV{PF_NEW_VERSION}</version><!-- projectforge.version -\->|g'`
-4. Check git-modifications: all `pom.xml` files should have the new ProjectForge-Version.
-5. `mvn clean install`
-6. If all tests are finished successfully and the test of the ProjectForge-Application works for new and existing databases), proceeed:
-7. Copy executable jar file from projectforge-application/target (and plugins) dir to seperate folder
-8. Merge the release branch into the master and develop branch (Git Flow: Finish release)
-9. Tag master branch with version number
-9. Change to develop branch
-10. Create new SNAPSHOT-Release by increasing version number of all `pom.xml`files: +
-   `export PF_NEW_VERSION=6.27.0-SNAPSHOT` +
-   `find . -name pom.xml | xargs perl -pi -e 's|<version>.*</version><!-- projectforge.version -\->|<version>$ENV{PF_NEW_VERSION}</version><!-- projectforge.version -\->|g'`
-11. Commit everything to master and develop branch and push it to Github 
-12. Upload the saved jar files to Github (Create release from taged version) and SourceForge (e.g. as zip (see previous versions as example)).
+Refer
+
+* https://github.com/micromata/projectforge/tree/develop/doc[doc (Github)], or
+* https://www.projectforge.org/documentation.html[www.projectforge.org]
 
 == Adding your own plugins
 ProjectForge support plugins. The existing menu can be modified and own entities and functionalities can be added.
 
-Please note: We're working highly on a new release (will be published soon). Wicket will be replaced by Wicket technology. The implementation of plugins will be changed as well.
+Please note: We're working highly on a new release (will be published soon). Wicket will be replaced by ReactJS and Rest technology. The implementation of plugins will be changed as well.
 
 The menu is customizable (you can add or remove menu entries in the config.xml file).
 Deploy your plugins by adding your jar(s) to the plugin directory next to the jar file. In eclipse you have to add the plugin project to the run configuration classpath. The jars contains both, the Java classes and the web pages (Wicket-pages). Nothing more is needed.

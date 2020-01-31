@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -53,7 +53,7 @@ class MenuItemDef(
 
     var requiredGroups: Array<ProjectForgeGroup>? = null
 
-    internal var childs: MutableList<MenuItemDef>? = null
+    internal var children: MutableList<MenuItemDef>? = null
 
     init {
         this.requiredGroups = arrayOf(*requiredGroups)
@@ -66,7 +66,6 @@ class MenuItemDef(
      * @param checkAccess Dynamic check access for the logged in user. The menu is visible if [checkAccess] is null or returns true.
      */
     constructor(defId: MenuItemDefId,
-                url: String? = null,
                 badgeCounter: (() -> Int?)? = null,
                 badgeTooltipKey: String? = null,
                 checkAccess: (() -> Boolean)? = null,
@@ -77,8 +76,8 @@ class MenuItemDef(
                 vararg requiredGroups: ProjectForgeGroup)
             : this(
             defId.id,
-            defId.getI18nKey(),
-            url = url,
+            defId.i18nKey,
+            url = defId.url,
             badgeCounter = badgeCounter,
             badgeTooltipKey = badgeTooltipKey,
             visibleForRestrictedUsers = visibleForRestrictedUsers,
@@ -90,9 +89,9 @@ class MenuItemDef(
 
     @Synchronized
     internal fun add(item: MenuItemDef): MenuItemDef {
-        if (childs == null)
-            childs = mutableListOf()
-        childs!!.add(item)
+        if (children == null)
+            children = mutableListOf()
+        children!!.add(item)
         return this
     }
 
@@ -100,10 +99,10 @@ class MenuItemDef(
         if (this.id == id.id) {
             return this
         }
-        if (childs == null) {
+        if (children == null) {
             return null
         }
-        childs!!.forEach {
+        children!!.forEach {
             if (it.id == id.id)
                 return it
         }

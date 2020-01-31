@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,5 +35,10 @@ data class UILabel(
         @Transient
         var reference: UIElement? = null,
         override var additionalLabel: String? = null,
-        override var tooltip: String? = null)
+        override var tooltip: String? = null,
+        @Transient
+        override val ignoreAdditionalLabel: Boolean = false,
+        @Transient
+        override val ignoreTooltip: Boolean = false,
+        val dataType: UIDataType? = null)
     : UIElement(UIElementType.LABEL), UILabelledElement

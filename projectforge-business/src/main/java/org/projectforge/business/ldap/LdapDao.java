@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,26 +23,18 @@
 
 package org.projectforge.business.ldap;
 
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.common.StringHelper;
+
+import javax.naming.NameNotFoundException;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.directory.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.BasicAttributes;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.ModificationItem;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.common.StringHelper;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -95,7 +87,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     final String dn = buildDn(ouBase, obj);
     log.info("Create " + getObjectClass() + ": " + dn + ": " + getLogInfo(obj));
     final Attributes attrs = new BasicAttributes();
-    final List<ModificationItem> modificationItems = getModificationItems(new ArrayList<ModificationItem>(), obj);
+    final List<ModificationItem> modificationItems = getModificationItems(new ArrayList<>(), obj);
     modificationItems.add(createModificationItem(DirContext.ADD_ATTRIBUTE, "objectClass", getObjectClass()));
     final String[] additionalObjectClasses = getAdditionalObjectClasses(obj);
     if (additionalObjectClasses != null) {
@@ -152,7 +144,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   public void createOrUpdate(final SetOfAllLdapObjects setOfAllLdapObjects, final String ouBase, final T obj,
       final Object... args)
   {
-    if (setOfAllLdapObjects.contains(obj, buildDn(ouBase, obj)) == true) {
+    if (setOfAllLdapObjects.contains(obj, buildDn(ouBase, obj))) {
       update(ouBase, obj, args);
     } else {
       create(ouBase, obj, args);
@@ -170,7 +162,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
       final T obj,
       final Object... args) throws NamingException
   {
-    if (setOfAllLdapObjects.contains(obj, buildDn(ouBase, obj)) == true) {
+    if (setOfAllLdapObjects.contains(obj, buildDn(ouBase, obj))) {
       update(ctx, ouBase, obj, args);
     } else {
       create(ctx, ouBase, obj, args);
@@ -193,7 +185,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   public void update(final DirContext ctx, final String ouBase, final T obj, final Object... objs)
       throws NamingException
   {
-    modify(ctx, obj, getModificationItems(new ArrayList<ModificationItem>(), obj));
+    modify(ctx, obj, getModificationItems(new ArrayList<>(), obj));
   }
 
   protected abstract List<ModificationItem> getModificationItems(final List<ModificationItem> list, final T obj);
@@ -243,11 +235,11 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     }
     boolean added = false;
     for (final String attrValue : attrValues) {
-      if (StringUtils.isEmpty(attrValue) == true && added == true) {
+      if (StringUtils.isEmpty(attrValue) && added) {
         continue;
       }
-      final String val = StringUtils.isEmpty(attrValue) == true ? null : attrValue;
-      if (added == false) {
+      final String val = StringUtils.isEmpty(attrValue) ? null : attrValue;
+      if (!added) {
         list.add(createModificationItem(DirContext.REPLACE_ATTRIBUTE, attrId, val));
         added = true;
       } else {
@@ -275,11 +267,11 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     }
     boolean added = false;
     for (final String attrValue : attrValues) {
-      if (StringUtils.isEmpty(attrValue) == true && added == true) {
+      if (StringUtils.isEmpty(attrValue) && added) {
         continue;
       }
-      final String val = StringUtils.isEmpty(attrValue) == true ? null : attrValue;
-      if (added == false) {
+      final String val = StringUtils.isEmpty(attrValue) ? null : attrValue;
+      if (!added) {
         list.add(createModificationItem(DirContext.REPLACE_ATTRIBUTE, attrId, val));
         added = true;
       } else {
@@ -362,7 +354,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     }
     final String ou = LdapUtils.getOrganizationalUnit(newOrganizationalUnit);
     final String origOu = LdapUtils.getOu(origObject.getOrganizationalUnit());
-    if (StringUtils.equals(origOu, ou) == false) {
+    if (!StringUtils.equals(origOu, ou)) {
       log.info("Move object with id '" + obj.getId() + "' from '" + origOu + "' to '" + ou);
       final String dnIdentifier = buildDnIdentifier(obj);
       ctx.rename(dnIdentifier + "," + origOu, dnIdentifier + "," + ou);
@@ -373,7 +365,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   {
     final String newDnIdentifier = buildDnIdentifier(obj);
     final String oldDnIdentifier = buildDnIdentifier(oldObj);
-    if (StringUtils.equals(newDnIdentifier, oldDnIdentifier) == true) {
+    if (StringUtils.equals(newDnIdentifier, oldDnIdentifier)) {
       // Nothing to rename.
       return;
     }
@@ -438,7 +430,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 
   public List<T> findAll(final DirContext ctx, final String organizationalUnit) throws NamingException
   {
-    final LinkedList<T> list = new LinkedList<T>();
+    final LinkedList<T> list = new LinkedList<>();
     NamingEnumeration<?> results = null;
     final SearchControls controls = new SearchControls();
     controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -474,13 +466,13 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     final String searchBase = getSearchBase(organizationalUnits);
     final String args = "(&(objectClass=" + getObjectClass() + ")(" + getIdAttrId() + "=" + buildId(id) + "))";
     results = ctx.search(searchBase, args, controls);
-    if (results.hasMore() == false) {
+    if (!results.hasMore()) {
       return null;
     }
     final SearchResult searchResult = (SearchResult) results.next();
     final String dn = searchResult.getName();
     final Attributes attributes = searchResult.getAttributes();
-    if (results.hasMore() == true) {
+    if (results.hasMore()) {
       log.error("Oups, found entries with multiple id's: " + getObjectClass() + "." + id);
     }
     return mapToObject(dn, searchBase, attributes);
@@ -505,7 +497,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     final SetOfAllLdapObjects set = new SetOfAllLdapObjects();
     final List<T> all = findAll(organizationalUnit);
     for (final T obj : all) {
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("Adding: " + obj.getDn());
       }
       set.add(obj);
@@ -524,7 +516,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     final SetOfAllLdapObjects set = new SetOfAllLdapObjects();
     final List<T> all = findAll(ctx, organizationalUnit);
     for (final T obj : all) {
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("Adding: " + obj.getDn());
       }
       set.add(obj);
@@ -571,7 +563,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   protected T mapToObject(final String dn, final String ouBase, final Attributes attributes) throws NamingException
   {
     String fullDn;
-    if (StringUtils.isNotBlank(ouBase) == true) {
+    if (StringUtils.isNotBlank(ouBase)) {
       fullDn = dn + "," + ouBase;
     } else {
       fullDn = dn;
@@ -602,9 +594,9 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   protected String getSearchBase(final String... organizationalUnits)
   {
     String searchBase = LdapUtils.getOu(organizationalUnits);
-    if (StringUtils.isBlank(searchBase) == true) {
+    if (StringUtils.isBlank(searchBase)) {
       searchBase = getOuBase();
-      if (StringUtils.isBlank(searchBase) == true) {
+      if (StringUtils.isBlank(searchBase)) {
         log.warn("Oups, no search-base (ou) given. Searching in whole LDAP tree!");
       }
     }

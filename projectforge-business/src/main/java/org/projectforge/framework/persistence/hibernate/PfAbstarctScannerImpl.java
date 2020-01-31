@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,26 +23,15 @@
 
 package org.projectforge.framework.persistence.hibernate;
 
+import org.hibernate.boot.archive.internal.StandardArchiveDescriptorFactory;
+import org.hibernate.boot.archive.scan.internal.ScanResultCollector;
+import org.hibernate.boot.archive.scan.spi.*;
+import org.hibernate.boot.archive.spi.*;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.hibernate.boot.archive.internal.StandardArchiveDescriptorFactory;
-import org.hibernate.boot.archive.scan.internal.ScanResultCollector;
-import org.hibernate.boot.archive.scan.spi.ClassFileArchiveEntryHandler;
-import org.hibernate.boot.archive.scan.spi.NonClassFileArchiveEntryHandler;
-import org.hibernate.boot.archive.scan.spi.PackageInfoArchiveEntryHandler;
-import org.hibernate.boot.archive.scan.spi.ScanEnvironment;
-import org.hibernate.boot.archive.scan.spi.ScanOptions;
-import org.hibernate.boot.archive.scan.spi.ScanParameters;
-import org.hibernate.boot.archive.scan.spi.ScanResult;
-import org.hibernate.boot.archive.scan.spi.Scanner;
-import org.hibernate.boot.archive.spi.ArchiveContext;
-import org.hibernate.boot.archive.spi.ArchiveDescriptor;
-import org.hibernate.boot.archive.spi.ArchiveDescriptorFactory;
-import org.hibernate.boot.archive.spi.ArchiveEntry;
-import org.hibernate.boot.archive.spi.ArchiveEntryHandler;
 
 /**
  * @author Florian Blumenstein
@@ -54,7 +43,7 @@ public class PfAbstarctScannerImpl implements Scanner
   static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PfAbstarctScannerImpl.class);
 
   private final ArchiveDescriptorFactory archiveDescriptorFactory;
-  private final Map<String, ArchiveDescriptorInfo> archiveDescriptorCache = new HashMap<String, ArchiveDescriptorInfo>();
+  private final Map<String, ArchiveDescriptorInfo> archiveDescriptorCache = new HashMap<>();
 
   public PfAbstarctScannerImpl()
   {

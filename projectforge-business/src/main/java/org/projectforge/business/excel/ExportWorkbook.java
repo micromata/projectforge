@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,26 +23,15 @@
 
 package org.projectforge.business.excel;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.CreationHelper;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
 
 public class ExportWorkbook
 {
@@ -60,11 +49,11 @@ public class ExportWorkbook
 
   private String filename;
 
-  private final Map<String, Short> dataFormats = new HashMap<String, Short>();
+  private final Map<String, Short> dataFormats = new HashMap<>();
 
   public ExportWorkbook()
   {
-    sheets = new ArrayList<ExportSheet>();
+    sheets = new ArrayList<>();
     poiWorkbook = new HSSFWorkbook();
   }
 
@@ -83,7 +72,7 @@ public class ExportWorkbook
     try {
       poiWorkbook = new HSSFWorkbook(is, true);
       final int no = poiWorkbook.getNumberOfSheets();
-      sheets = new ArrayList<ExportSheet>(no);
+      sheets = new ArrayList<>(no);
       for (int i = 0; i < no; i++) {
         final Sheet sh = poiWorkbook.getSheetAt(i);
         final XlsContentProvider cp = (XlsContentProvider) ExportConfig.getInstance().createNewContentProvider(this);
@@ -129,7 +118,7 @@ public class ExportWorkbook
   public void updateStyles()
   {
     for (final ExportSheet sheet : sheets) {
-      if (sheet.isImported() == false) {
+      if (!sheet.isImported()) {
         // Don't update styles from imported files.
         sheet.updateStyles();
       }
@@ -148,7 +137,7 @@ public class ExportWorkbook
     updateStyles();
     try {
       poiWorkbook.write(out);
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.info("Excel sheet exported: number of cell styles="
             + this.numberOfCellStyles
             + ", number of data formats="
@@ -211,7 +200,7 @@ public class ExportWorkbook
   public ExportSheet getSheet(final String name)
   {
     for (final ExportSheet sheet : sheets) {
-      if (StringUtils.equals(sheet.getName(), name) == true) {
+      if (StringUtils.equals(sheet.getName(), name)) {
         return sheet;
       }
     }
@@ -280,7 +269,7 @@ public class ExportWorkbook
 
   public short getDataFormat(final String format)
   {
-    if (dataFormats.containsKey(format) == true) {
+    if (dataFormats.containsKey(format)) {
       return dataFormats.get(format);
     }
     final short value = getCreationHelper().createDataFormat().getFormat(format);

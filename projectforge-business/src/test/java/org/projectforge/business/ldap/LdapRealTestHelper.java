@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.business.ldap;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.kost.AccountingConfig;
@@ -33,6 +30,9 @@ import org.projectforge.framework.xstream.AliasMap;
 import org.projectforge.framework.xstream.XmlObjectReader;
 import org.projectforge.test.JUnitLDAPTestWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Test helper class for do some tests with a real LDAP test system. The LDAP system settings have to be set in
@@ -94,7 +94,7 @@ public class LdapRealTestHelper
       ldapConfig = ldapService.getLdapConfig();
       ldapConnector.ldapService = ldapService;
     }
-    if (isAvailable() == true) {
+    if (isAvailable()) {
       if (ldapOrganizationalUnitDao == null) {
         ldapPersonDao = new LdapPersonDao();
         ldapPersonDao.setLdapConnector(ldapConnector);
@@ -119,7 +119,7 @@ public class LdapRealTestHelper
 
   public void tearDown()
   {
-    if (isAvailable() == true) {
+    if (isAvailable()) {
       ldapOrganizationalUnitDao.deleteIfExists(LdapUserDao.DEACTIVATED_SUB_CONTEXT, getUserPath());
       ldapOrganizationalUnitDao.deleteIfExists(LdapUserDao.RESTRICTED_USER_SUB_CONTEXT, getUserPath());
       ldapOrganizationalUnitDao.deleteIfExists(getUserPath());
@@ -171,7 +171,7 @@ public class LdapRealTestHelper
       return ldapConfig;
     } else {
       final File configFile = new File(CONFIG_FILE);
-      if (configFile.canRead() == false) {
+      if (!configFile.canRead()) {
         return null;
       }
       log.info("Reading LDAP configuration file for test cases: " + configFile.getPath());
@@ -194,7 +194,7 @@ public class LdapRealTestHelper
       try {
         final LdapConfig cfg = (LdapConfig) reader.read(xml);
         final String warnings = reader.getWarnings();
-        if (StringUtils.isNotBlank(warnings) == true) {
+        if (StringUtils.isNotBlank(warnings)) {
           log.error(warnings);
         }
         return cfg;

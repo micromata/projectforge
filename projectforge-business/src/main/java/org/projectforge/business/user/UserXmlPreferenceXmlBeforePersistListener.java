@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,17 @@
 
 package org.projectforge.business.user;
 
-import java.util.HashSet;
-import java.util.Set;
-
+import de.micromata.genome.db.jpa.xmldump.api.JpaXmlBeforePersistListener;
+import de.micromata.genome.db.jpa.xmldump.api.XmlDumpRestoreContext;
+import de.micromata.genome.jpa.metainf.EntityMetadata;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlBeforePersistListener;
-import de.micromata.genome.db.jpa.xmldump.api.XmlDumpRestoreContext;
-import de.micromata.genome.jpa.metainf.EntityMetadata;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Converts the pk references.
@@ -53,11 +52,11 @@ public class UserXmlPreferenceXmlBeforePersistListener implements JpaXmlBeforePe
   public Object preparePersist(EntityMetadata entityMetadata, Object entity, XmlDumpRestoreContext ctx)
   {
     final UserXmlPreferencesDO userPrefs = (UserXmlPreferencesDO) entity;
-    if (TaskTree.USER_PREFS_KEY_OPEN_TASKS.equals(userPrefs.getKey()) == false) {
+    if (!TaskTree.USER_PREFS_KEY_OPEN_TASKS.equals(userPrefs.getKey())) {
       return null;
     }
     final Object userPrefsObj = userXmlPreferencesDao.deserialize(null, userPrefs, true);
-    if (userPrefsObj == null || userPrefsObj instanceof Set == false) {
+    if (userPrefsObj == null || !(userPrefsObj instanceof Set)) {
       return null;
     }
     Set<Integer> oldIds = null;
@@ -69,7 +68,7 @@ public class UserXmlPreferenceXmlBeforePersistListener implements JpaXmlBeforePe
     if (oldIds.size() == 0) {
       return null;
     }
-    final Set<Integer> newIds = new HashSet<Integer>();
+    final Set<Integer> newIds = new HashSet<>();
     EntityMetadata taskem = ctx.getEmgr().getEmgrFactory().getMetadataRepository().getEntityMetadata(TaskDO.class);
     for (final Integer oldId : oldIds) {
       Object task = ctx.findEntityByOldPk(oldId, taskem.getJavaType());

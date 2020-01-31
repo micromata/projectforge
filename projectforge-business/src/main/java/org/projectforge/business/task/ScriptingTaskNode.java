@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,11 @@
 
 package org.projectforge.business.task;
 
-import java.util.List;
-
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.InternalErrorException;
+
+import java.util.List;
 
 /**
  * Proxy of TaskNode for scripting.
@@ -50,7 +50,7 @@ public class ScriptingTaskNode
       task = (TaskDO) node.getTask().clone();
     } catch (CloneNotSupportedException ex) {
       log.error("Exception encountered " + ex, ex);
-      throw new InternalErrorException();
+      throw new InternalErrorException("exception.internalError");
     }
   }
 
@@ -104,14 +104,30 @@ public class ScriptingTaskNode
     return __baseObject.getDescendantIds();
   }
 
+  /**
+   * @deprecated
+   */
   public List<ScriptingTaskNode> getChilds()
   {
-    return ScriptingTaskTree.convert(__baseObject.getChilds());
+    return getChildren();
   }
 
+  public List<ScriptingTaskNode> getChildren()
+  {
+    return ScriptingTaskTree.convert(__baseObject.getChildren());
+  }
+
+  /**
+   * @deprecated
+   */
   public boolean hasChilds()
   {
-    return __baseObject.hasChilds();
+    return hasChildren();
+  }
+
+  public boolean hasChildren()
+  {
+    return __baseObject.hasChildren();
   }
 
   public boolean isParentOf(final ScriptingTaskNode node)

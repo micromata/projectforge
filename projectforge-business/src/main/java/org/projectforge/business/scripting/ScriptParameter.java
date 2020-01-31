@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,15 @@
 
 package org.projectforge.business.scripting;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.Date;
-
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.TimePeriod;
 
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
 
 
 public class ScriptParameter implements Serializable
@@ -232,9 +231,9 @@ public class ScriptParameter implements Serializable
 
   public String getAsString()
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append("[").append(parameterName).append(',').append(type).append(',');
-    if (type.isIn(ScriptParameterType.TASK, ScriptParameterType.USER) == true) {
+    if (type.isIn(ScriptParameterType.TASK, ScriptParameterType.USER)) {
       buf.append(intValue);
     } else {
       buf.append(getValue());
@@ -249,7 +248,7 @@ public class ScriptParameter implements Serializable
     final ToStringBuilder tos = new ToStringBuilder(this);
     tos.append(parameterName);
     tos.append(type);
-    if (type.isIn(ScriptParameterType.TASK, ScriptParameterType.USER) == true) {
+    if (type.isIn(ScriptParameterType.TASK, ScriptParameterType.USER)) {
       tos.append(intValue);
     } else {
       tos.append(getValue());

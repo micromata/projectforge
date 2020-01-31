@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,15 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.util.Date;
-import java.util.List;
-
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.web.tree.TreeTable;
 import org.projectforge.web.tree.TreeTableFilter;
 import org.projectforge.web.tree.TreeTableNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * The implementation of TreeTable for skills. Used for browsing the skills (tree view).
@@ -76,9 +76,9 @@ public class SkillTreeTable extends TreeTable<SkillTreeTableNode>
   protected void addDescendantNodes(final SkillTreeTableNode parent)
   {
     final SkillNode skill = parent.getSkillNode();
-    if (skill.getChilds() != null) {
-      for (final SkillNode node : skill.getChilds()) {
-        if (skillDao.hasSelectAccess(node) == true) {
+    if (skill.getChildren() != null) {
+      for (final SkillNode node : skill.getChildren()) {
+        if (skillDao.hasSelectAccess(node)) {
           // The logged in user has select access, so add this skill node
           // to this tree table:
           final SkillTreeTableNode child = new SkillTreeTableNode(parent, node);

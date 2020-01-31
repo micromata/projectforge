@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,21 +23,23 @@
 
 package org.projectforge.web.teamcal.event;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.framework.time.DateFormats;
+import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDateTime;
 
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.time.Month;
 import java.util.Date;
 import java.util.TimeZone;
 
-import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.framework.time.DateFormats;
-import org.projectforge.framework.time.DateHelper;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class TeamRecurrenceEventTest
 {
@@ -48,13 +50,12 @@ public class TeamRecurrenceEventTest
     final TeamEventDO master = new TeamEventDO();
     master.setStartDate(getTimestamp("2013-01-01 08:00", timeZone));
     master.setEndDate(getTimestamp("2013-01-01 10:30", timeZone));
-    TeamRecurrenceEvent recurEvent = new TeamRecurrenceEvent(master,
-        getCalendar(2013, Calendar.JANUARY, 5, 8, 0, timeZone));
+    TeamRecurrenceEvent recurEvent = new TeamRecurrenceEvent(master, PFDateTime.now(timeZone.toZoneId()).withDate(2013, Month.JANUARY,5, 8, 0));
     assertDateTime("2013-01-05 08:00", recurEvent.getStartDate(), timeZone);
     assertDateTime("2013-01-05 10:30", recurEvent.getEndDate(), timeZone);
 
     master.setEndDate(getTimestamp("2013-01-02 10:30", timeZone));
-    recurEvent = new TeamRecurrenceEvent(master, getCalendar(2013, Calendar.JANUARY, 5, 8, 0, timeZone));
+    recurEvent = new TeamRecurrenceEvent(master, PFDateTime.now(timeZone.toZoneId()).withDate(2013, Month.JANUARY, 5, 8, 0));
     assertDateTime("2013-01-05 08:00", recurEvent.getStartDate(), timeZone);
     assertDateTime("2013-01-06 10:30", recurEvent.getEndDate(), timeZone);
   }
@@ -69,21 +70,6 @@ public class TeamRecurrenceEventTest
       fail("Can't parse date '" + dateString + "': " + ex.getMessage());
       return null;
     }
-  }
-
-  private Calendar getCalendar(final int year, final int month, final int dayOfMonth, final int hourOfDay,
-      final int minutes,
-      final TimeZone timeZone)
-  {
-    final Calendar cal = Calendar.getInstance(timeZone);
-    cal.set(Calendar.YEAR, year);
-    cal.set(Calendar.MONTH, month);
-    cal.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-    cal.set(Calendar.HOUR_OF_DAY, hourOfDay);
-    cal.set(Calendar.MINUTE, minutes);
-    cal.clear(Calendar.SECOND);
-    cal.clear(Calendar.MILLISECOND);
-    return cal;
   }
 
   private void assertDateTime(final String expectedDateTime, final Date date, final TimeZone timeZone)

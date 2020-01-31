@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,8 +33,8 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
-import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -42,7 +42,6 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
 
@@ -50,11 +49,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class AuftragDaoTest extends AbstractTestBase
 {
-  private int dbNumber = AuftragDao.START_NUMBER;
+  private static int dbNumber = 0;
 
   @Override
   protected void beforeAll() {
-    recreateDataBase();
+    dbNumber = auftragDao.getNextNumber();
   }
 
   @Autowired
@@ -116,9 +115,8 @@ public class AuftragDaoTest extends AbstractTestBase
     AuftragDO auftrag3 = new AuftragDO();
     auftrag3.setNummer(auftragDao.getNextNumber(auftrag3));
     auftragDao.setContactPerson(auftrag3, getUserId(AbstractTestBase.TEST_PROJECT_MANAGER_USER));
-    final DateHolder date = new DateHolder();
-    date.add(Calendar.YEAR, -6); // 6 years old.
-    auftrag3.setAngebotsDatum(date.getSQLDate());
+    final PFDateTime dateTime = PFDateTime.now().minusYears(6); // 6 years old.
+    auftrag3.setAngebotsDatum(dateTime.getSqlDate());
     auftrag3.setAuftragsStatus(AuftragsStatus.ABGESCHLOSSEN);
     final AuftragsPositionDO position = new AuftragsPositionDO();
     position.setVollstaendigFakturiert(true);
@@ -598,8 +596,8 @@ public class AuftragDaoTest extends AbstractTestBase
   private void setPeriodOfPerformanceStartDateAndEndDate(final AuftragFilter auftragFilter, final int startYear, final int startMonth, final int startDay,
       final int endYear, final int endMonth, final int endDay)
   {
-    auftragFilter.setPeriodOfPerformanceStartDate(DateHelper.convertLocalDateTimeToDateInUTC(LocalDate.of(startYear, startMonth, startDay).atStartOfDay()));
-    auftragFilter.setPeriodOfPerformanceEndDate(DateHelper.convertLocalDateTimeToDateInUTC(LocalDate.of(endYear, endMonth, endDay).atStartOfDay()));
+    auftragFilter.setPeriodOfPerformanceStartDate(PFDay.withDate(startYear, startMonth, startDay).getSqlDate());
+    auftragFilter.setPeriodOfPerformanceEndDate(PFDay.withDate(endYear, endMonth, endDay).getSqlDate());
   }
 
   private AuftragDO createAuftragWithPeriodOfPerformance(final int beginYear, final int beginMonth, final int beginDay, final int endYear, final int endMonth,

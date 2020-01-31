@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 
-
+// Please note: open class and open vars needed by Wicket's @SpringBean annotation.
 @Configuration
 open class SmsSenderConfig {
     enum class HttpMethodType {
@@ -61,11 +61,11 @@ open class SmsSenderConfig {
     @Value("\${projectforge.sms.smsMaxMessageLength}")
     open var smsMaxMessageLength = 160
 
-    fun isSmsConfigured(): Boolean {
+    open fun isSmsConfigured(): Boolean {
         return StringUtils.isNotBlank(url)
     }
 
-    fun setHttpMethodType(httpMethodType: String): SmsSenderConfig {
+    open fun setHttpMethodType(httpMethodType: String): SmsSenderConfig {
         this.httpMethodType = if (StringUtils.equalsIgnoreCase("get", httpMethodType)) HttpMethodType.GET else HttpMethodType.POST
         return this
     }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,13 @@
 
 package org.projectforge.plugins.eed.wicket;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.eed.service.EEDHelper;
 import org.projectforge.web.core.importstorage.AbstractImportForm;
 import org.projectforge.web.core.importstorage.ImportFilter;
@@ -42,6 +39,9 @@ import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
 
+import java.util.Date;
+import java.util.GregorianCalendar;
+
 public class EmployeeBillingImportForm extends AbstractImportForm<ImportFilter, EmployeeBillingImportPage, EmployeeBillingImportStoragePanel>
 {
   @SpringBean
@@ -49,9 +49,9 @@ public class EmployeeBillingImportForm extends AbstractImportForm<ImportFilter, 
 
   FileUploadField fileUploadField;
 
-  private int selectedMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
+  private int selectedMonth = PFDateTime.now().getMonthValue() + 1;
 
-  private int selectedYear = Calendar.getInstance().get(Calendar.YEAR);
+  private int selectedYear = PFDateTime.now().getYear();
 
   private DropDownChoicePanel<Integer> dropDownMonth;
 

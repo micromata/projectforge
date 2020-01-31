@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,7 @@ class Konto(var nummer: Int? = null,
             var bezeichnung: String? = null,
             var description: String? = null,
             var kontoStatus: KontoStatus? = null
-) : BaseDTO<KontoDO>() {
+) : BaseDTODisplayObject<KontoDO>() {
     override fun copyFromMinimal(src: KontoDO) {
         super.copyFromMinimal(src)
         nummer = src.nummer

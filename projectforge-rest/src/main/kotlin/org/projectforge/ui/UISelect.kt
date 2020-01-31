@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -41,18 +41,30 @@ class UISelect<T>(val id: String,
                   override var label: String? = null,
                   override var additionalLabel: String? = null,
                   override var tooltip: String? = null,
+                  @Transient
+                  override val ignoreAdditionalLabel: Boolean = false,
+                  @Transient
+                  override val ignoreTooltip: Boolean = false,
                   /**
                    * Optional property of value, needed by the client for mapping the data to the value. Default is "value".
                    */
-                  var valueProperty: String = "value",
+                  var valueProperty: String = "id",
                   /**
                    * Optional property of label, needed by the client for mapping the data to the label. Default is "label".
                    */
-                  var labelProperty: String = "label",
+                  var labelProperty: String = "displayName",
+                  /**
+                   * The recent or favorite entries, if given, will be shown as favorites for quick select
+                   * (in rest client as star beside the select input).
+                   */
+                  var favorites: List<Favorite<T>>? = null,
                   var autoCompletion: AutoCompletion<*>? = null,
                   key: String? = null,
                   cssClass: String? = null)
     : UIElement(UIElementType.SELECT, key = key, cssClass = cssClass), UILabelledElement {
+
+    class Favorite<T>(val id: T, val name: String)
+
     @Transient
     private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
 
@@ -65,7 +77,7 @@ class UISelect<T>(val id: String,
                 @Suppress("UNCHECKED_CAST")
                 newvalues.add(UISelectValue(value.name as T, translation))
             } else {
-                log.error("UISelect supports only enums of type I18nEnum, not '${value}': '${this}'")
+                log.error("UISelect supports only enums of type I18nEnum, not '$value': '${this}'")
             }
         }
         values = newvalues
@@ -74,4 +86,27 @@ class UISelect<T>(val id: String,
 
     // fun getEnumValues(enumClass: KClass<out Enum<*>>): Array<out Enum<*>> = enumClass.java.enumConstants
     private fun getEnumValues(enumClass: Class<out Enum<*>>): Array<out Enum<*>> = enumClass.enumConstants
+
+    companion object {
+        fun creatUserSelect(lc: LayoutContext,id:String, multi: Boolean, label: String? = null, additionalLabel: String? = null, tooltip: String? = null,
+                            showOnlyActiveUsers: Boolean = true): UISelect<Int> {
+            return UISelect<Int>(id,
+                    lc,
+                    multi = multi,
+                    label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
+                    additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
+                    autoCompletion = AutoCompletion.getAutoCompletion4Users(showOnlyActiveUsers),
+                    tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey)
+        }
+
+        fun createGroupSelect(lc: LayoutContext,id:String, multi: Boolean, label: String? = null, additionalLabel: String? = null, tooltip: String? = null): UISelect<Int> {
+            return UISelect<Int>(id,
+                    lc,
+                    multi = multi,
+                    label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
+                    additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
+                    autoCompletion = AutoCompletion.getAutoCompletion4Groups(),
+                    tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey)
+        }
+    }
 }

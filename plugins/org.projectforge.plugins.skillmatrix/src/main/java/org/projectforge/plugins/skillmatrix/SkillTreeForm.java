@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,11 +34,7 @@ import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
+import org.projectforge.web.wicket.flowlayout.*;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
@@ -82,8 +78,8 @@ public class SkillTreeForm extends AbstractSecuredForm<SkillFilter, SkillTreePag
     {
       gridBuilder.newSplitPanel(GridSize.COL50);
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("searchFilter"));
-      final TextField<String> searchField = new TextField<String>(InputPanel.WICKET_ID,
-          new PropertyModel<String>(getSearchFilter(),
+      final TextField<String> searchField = new TextField<>(InputPanel.WICKET_ID,
+          new PropertyModel<>(getSearchFilter(),
               "searchString"));
       searchField.add(WicketUtils.setFocus());
       fs.add(new InputPanel(fs.newChildId(), searchField));
@@ -95,16 +91,16 @@ public class SkillTreeForm extends AbstractSecuredForm<SkillFilter, SkillTreePag
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("label.options")).suppressLabelForWarning();
       final DivPanel checkBoxPanel = fs.addNewCheckBoxButtonDiv();
       checkBoxPanel.add(
-          new MyCheckBoxButton(checkBoxPanel.newChildId(), new PropertyModel<Boolean>(getSearchFilter(), "deleted"),
+          new MyCheckBoxButton(checkBoxPanel.newChildId(), new PropertyModel<>(getSearchFilter(), "deleted"),
               getString("deleted")).setWarning());
     }
 
-    actionButtons = new MyComponentsRepeater<Component>("actionButtons");
+    actionButtons = new MyComponentsRepeater<>("actionButtons");
 
     add(actionButtons.getRepeatingView());
     {
       @SuppressWarnings("serial")
-      final Button cancelButton = new Button("button", new Model<String>("cancel"))
+      final Button cancelButton = new Button("button", new Model<>("cancel"))
       {
         @Override
         public final void onSubmit()
@@ -119,7 +115,7 @@ public class SkillTreeForm extends AbstractSecuredForm<SkillFilter, SkillTreePag
     }
     {
       @SuppressWarnings("serial")
-      final Button resetButton = new Button("button", new Model<String>("reset"))
+      final Button resetButton = new Button("button", new Model<>("reset"))
       {
 
         @Override
@@ -135,7 +131,7 @@ public class SkillTreeForm extends AbstractSecuredForm<SkillFilter, SkillTreePag
     }
     {
       @SuppressWarnings("serial")
-      final Button skillListButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("listView"))
+      final Button skillListButton = new Button(SingleButtonPanel.WICKET_ID, new Model<>("listView"))
       {
 
         @Override
@@ -151,7 +147,7 @@ public class SkillTreeForm extends AbstractSecuredForm<SkillFilter, SkillTreePag
     }
     {
       @SuppressWarnings("serial")
-      final Button searchButton = new Button("button", new Model<String>("search"))
+      final Button searchButton = new Button("button", new Model<>("search"))
       {
 
         @Override
@@ -171,7 +167,7 @@ public class SkillTreeForm extends AbstractSecuredForm<SkillFilter, SkillTreePag
 
   protected void setComponentsVisibility()
   {
-    if (parentPage.isSelectMode() == false) {
+    if (!parentPage.isSelectMode()) {
       // Show cancel button only in select mode.
       cancelButtonPanel.setVisible(false);
     }

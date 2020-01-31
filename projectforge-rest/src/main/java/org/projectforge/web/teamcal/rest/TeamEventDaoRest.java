@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,27 +23,9 @@
 
 package org.projectforge.web.teamcal.rest;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.sql.Timestamp;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
@@ -55,17 +37,23 @@ import org.projectforge.business.teamcal.event.ical.HandleMethod;
 import org.projectforge.business.teamcal.event.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.ical.ICalHandler;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.model.rest.CalendarEventObject;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.JsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.sql.Timestamp;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 /**
  * REST interface for {@link TeamEventDao}
@@ -95,15 +83,13 @@ public class TeamEventDaoRest
       @QueryParam("daysInFuture") final Integer daysInFuture)
   {
     log.info("Call rest interface TeamEventDaoRest.getReminderListPastAndFuture - BEGIN");
-    Calendar start = null;
+    PFDateTime start = null;
     if (daysInPast != null && daysInPast > 0) {
-      start = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-      start.add(Calendar.DAY_OF_MONTH, -daysInPast);
+      start = PFDateTime.now().minusDays(daysInPast);
     }
-    Calendar end = null;
+    PFDateTime end = null;
     if (daysInFuture != null && daysInFuture > 0) {
-      end = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-      end.add(Calendar.DAY_OF_MONTH, daysInFuture);
+      end = PFDateTime.now().plusDays(daysInFuture);
     }
 
     final Collection<Integer> cals = getCalendarIds(calendarIds);
@@ -111,17 +97,17 @@ public class TeamEventDaoRest
     if (cals.size() > 0) {
       final TeamEventFilter filter = new TeamEventFilter().setTeamCals(cals);
       if (start != null) {
-        filter.setStartDate(start.getTime());
+        filter.setStartDate(start.getUtilDate());
       }
       if (end != null) {
-        filter.setEndDate(end.getTime());
+        filter.setEndDate(end.getUtilDate());
       }
       final List<TeamEventDO> list = teamEventService.getTeamEventDOList(filter);
       if (list != null && list.size() > 0) {
         list.forEach(event -> result.add(this.getEventObject(event)));
       }
     } else {
-      log.warn("No calendar ids are given, so can't find any events.");
+      log.warn("No dateTime ids are given, so can't find any events.");
     }
     final String json = JsonUtils.toJson(result);
     log.info("Call rest interface TeamEventDaoRest.getReminderList - END");
@@ -142,21 +128,21 @@ public class TeamEventDaoRest
       @QueryParam("modifiedSince") final Integer daysInFuture)
   {
     log.info("Call rest interface TeamEventDaoRest.getReminderListFuture - BEGIN");
-    final DayHolder day = new DayHolder();
+    PFDateTime day = PFDateTime.now();
     int days = daysInFuture != null ? daysInFuture : 30;
     if (days <= 0 || days > 90) {
       days = 90;
     }
-    day.add(Calendar.DAY_OF_YEAR, days);
+    day = day.plusDays(days);
     final Collection<Integer> cals = getCalendarIds(calendarIds);
     final List<CalendarEventObject> result = new LinkedList<>();
     if (cals.size() > 0) {
       final Date now = new Date();
-      final TeamEventFilter filter = new TeamEventFilter().setStartDate(now).setEndDate(day.getDate()).setTeamCals(cals);
-      final List<TeamEvent> list = teamEventService.getEventList(filter, true);
+      final TeamEventFilter filter = new TeamEventFilter().setStartDate(now).setEndDate(day.getUtilDate()).setTeamCals(cals);
+      final List<ICalendarEvent> list = teamEventService.getEventList(filter, true);
       if (list != null && list.size() > 0) {
-        for (final TeamEvent event : list) {
-          if (event.getStartDate().after(now) == true) {
+        for (final ICalendarEvent event : list) {
+          if (event.getStartDate().after(now)) {
             result.add(this.getEventObject(event));
           } else {
             log.info("Start date not in future:" + event.getStartDate() + ", " + event.getSubject());
@@ -201,11 +187,11 @@ public class TeamEventDaoRest
       final ICalHandler handler = this.teamEventService.getEventHandler(teamCalDO);
       final InputStream iCalStream = new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData()));
 
-      if (handler.readICal(iCalStream, HandleMethod.ADD_UPDATE) == false || handler.isEmpty()) {
+      if (!handler.readICal(iCalStream, HandleMethod.ADD_UPDATE) || handler.isEmpty()) {
         return Response.serverError().build();
       }
 
-      if (handler.validate() == false) {
+      if (!handler.validate()) {
         return Response.serverError().build();
       }
 
@@ -233,11 +219,11 @@ public class TeamEventDaoRest
     final ICalHandler handler = this.teamEventService.getEventHandler(teamCalDO);
     final InputStream iCalStream = new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData()));
 
-    if (handler.readICal(iCalStream, HandleMethod.CANCEL) == false || handler.eventCount() != 1) {
+    if (!handler.readICal(iCalStream, HandleMethod.CANCEL) || handler.eventCount() != 1) {
       return Response.serverError().build();
     }
 
-    if (handler.validate() == false) {
+    if (!handler.validate()) {
       return Response.serverError().build();
     }
 
@@ -246,7 +232,7 @@ public class TeamEventDaoRest
     return Response.ok().build();
   }
 
-  private CalendarEventObject getEventObject(final TeamEvent src)
+  private CalendarEventObject getEventObject(final ICalendarEvent src)
   {
     if (src == null) {
       return null;
@@ -286,7 +272,7 @@ public class TeamEventDaoRest
     eventDO.setStartDate(new Timestamp(src.getStartDate().getTime()));
     eventDO.setSubject(src.getSubject());
     eventDO.setUid(src.getUid());
-    eventDO.setAllDay(src.isAllDay());
+    eventDO.setAllDay(src.getAllDay());
 
     generator.addEvent(eventDO);
 
@@ -309,16 +295,16 @@ public class TeamEventDaoRest
       event.setReminderDuration(src.getReminderDuration());
       final ReminderDurationUnit unit = src.getReminderDurationUnit();
       event.setReminderUnit(unit.toString());
-      final DateHolder date = new DateHolder(src.getStartDate());
+      PFDateTime dateTime = PFDateTime.from(src.getStartDate()); // not null
       if (unit == ReminderDurationUnit.MINUTES) {
-        date.add(Calendar.MINUTE, -src.getReminderDuration());
-        event.setReminder(date.getDate());
+        dateTime.minus(src.getReminderDuration(), ChronoUnit.MINUTES);
+        event.setReminder(dateTime.getUtilDate());
       } else if (unit == ReminderDurationUnit.HOURS) {
-        date.add(Calendar.HOUR, -src.getReminderDuration());
-        event.setReminder(date.getDate());
+        dateTime.minus(src.getReminderDuration(), ChronoUnit.HOURS);
+        event.setReminder(dateTime.getUtilDate());
       } else if (unit == ReminderDurationUnit.DAYS) {
-        date.add(Calendar.DAY_OF_YEAR, -src.getReminderDuration());
-        event.setReminder(date.getDate());
+        dateTime.minusDays(src.getReminderDuration());
+        event.setReminder(dateTime.getUtilDate());
       } else {
         log.warn("ReminderDurationUnit '" + src.getReminderDurationUnit() + "' not yet implemented.");
       }
@@ -328,7 +314,7 @@ public class TeamEventDaoRest
   private Collection<Integer> getCalendarIds(String calendarIds)
   {
     final Collection<Integer> cals = new LinkedList<>();
-    if (StringUtils.isBlank(calendarIds) == true) {
+    if (StringUtils.isBlank(calendarIds)) {
       final Collection<TeamCalDO> ownCals = teamCalCache.getAllOwnCalendars();
       if (ownCals != null && ownCals.size() > 0) {
         for (final TeamCalDO cal : ownCals) {

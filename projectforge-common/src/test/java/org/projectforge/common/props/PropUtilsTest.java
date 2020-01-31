@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -58,6 +58,13 @@ public class PropUtilsTest
   }
 
   @Test
+  public void getNestedField()
+  {
+    Assertions.assertNotNull(PropUtils.getField(Timesheet.class, "task.id"));
+    Assertions.assertNull(PropUtils.getField(Timesheet.class, "task.notThere"));
+  }
+
+  @Test
   public void testGetI18NKey()
   {
     Assertions.assertNull(PropUtils.getI18nKey(Integer.class, "class"));
@@ -74,7 +81,6 @@ public class PropUtilsTest
 
   class TestProp
   {
-
     @PropertyInfo(i18nKey = i18nKey)
     private String property;
 
@@ -87,5 +93,11 @@ public class PropUtilsTest
     {
       this.property = property;
     }
+  }
+  class Task {
+    Integer id;
+  }
+  class Timesheet {
+    Task task;
   }
 }

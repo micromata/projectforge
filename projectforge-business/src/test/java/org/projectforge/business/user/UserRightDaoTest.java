@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -46,7 +46,7 @@ public class UserRightDaoTest extends AbstractTestBase {
   public void testUpdateUserRights() {
     logon(AbstractTestBase.ADMIN);
     final PFUserDO user = initTestDB.addUser("testUserRightDaoTest");
-    final Set<GroupDO> groupsToAssign = new HashSet<GroupDO>();
+    final Set<GroupDO> groupsToAssign = new HashSet<>();
     groupsToAssign.add(getGroup(AbstractTestBase.FINANCE_GROUP));
     groupDao.assignGroups(user, groupsToAssign, null);
     List<UserRightVO> list = userRightDao.getUserRights(user);

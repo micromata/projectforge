@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,8 @@
 
 package org.projectforge.business.humanresources
 
-import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.ProjektDO
@@ -47,7 +48,11 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_HR_PLANNING", uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "week", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_hr_planning_user_fk", columnList = "user_fk"), javax.persistence.Index(name = "idx_fk_t_hr_planning_tenant_id", columnList = "tenant_id")])
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [HRPlanningEntryDO::class])
-class HRPlanningDO : DefaultBaseDO() {
+@NamedQueries(
+        NamedQuery(name = HRPlanningDO.FIND_BY_USER_AND_WEEK, query = "from HRPlanningDO where user.id=:userId and week=:week"),
+        NamedQuery(name = HRPlanningDO.FIND_OTHER_BY_USER_AND_WEEK, query = "from HRPlanningDO where user.id=:userId and week=:week and id!=:id"))
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
+open class HRPlanningDO : DefaultBaseDO() {
 
     /**
      * The employee assigned to this planned week.
@@ -56,7 +61,7 @@ class HRPlanningDO : DefaultBaseDO() {
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_fk", nullable = false)
-    var user: PFUserDO? = null
+    open var user: PFUserDO? = null
 
     /**
      * @return The first day of the week.
@@ -64,16 +69,15 @@ class HRPlanningDO : DefaultBaseDO() {
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "week", nullable = false)
-    var week: Date? = null
+    open var week: Date? = null
 
     /**
      * Get the entries for this planned week.
      */
-    @JsonBackReference
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
-    @ContainedIn
+    @get:ContainedIn
     @get:OneToMany(cascade = [CascadeType.ALL], mappedBy = "planning", fetch = FetchType.EAGER, orphanRemoval = true, targetEntity = HRPlanningEntryDO::class)
-    var entries: MutableList<HRPlanningEntryDO>? = null
+    open var entries: MutableList<HRPlanningEntryDO>? = null
 
     val formattedWeekOfYear: String
         @Transient
@@ -338,6 +342,10 @@ class HRPlanningDO : DefaultBaseDO() {
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(HRPlanningDO::class.java)
 
+        internal const val FIND_BY_USER_AND_WEEK = "HrPlanningDO_FindByUserAndWeek"
+
+        internal const val FIND_OTHER_BY_USER_AND_WEEK = "HrPlanningDO_FindOtherByUserAndWeek"
+
         /**
          * @param date
          * @return The first day of week (UTC). The first day of the week is monday (use Locale.GERMAN) because monday is the
@@ -345,7 +353,7 @@ class HRPlanningDO : DefaultBaseDO() {
          * @see DayHolder.setBeginOfWeek
          */
         fun getFirstDayOfWeek(date: Date): Date {
-            val day = DayHolder(date, DateHelper.UTC, Locale.GERMAN)
+            val day = DayHolder(date, DateHelper.UTC)
             day.setBeginOfWeek()
             return day.sqlDate
         }
@@ -357,7 +365,7 @@ class HRPlanningDO : DefaultBaseDO() {
          * @see DayHolder.setBeginOfWeek
          */
         fun getFirstDayOfWeek(date: java.util.Date): Date {
-            val day = DayHolder(date, DateHelper.UTC, Locale.GERMAN)
+            val day = DayHolder(date, DateHelper.UTC)
             day.setBeginOfWeek()
             return day.sqlDate
         }

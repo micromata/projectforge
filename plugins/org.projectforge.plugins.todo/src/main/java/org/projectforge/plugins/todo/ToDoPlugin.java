@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -63,7 +63,7 @@ public class ToDoPlugin extends AbstractPlugin {
   @Override
   protected void initialize() {
     // DatabaseUpdateDao is needed by the updater:
-    ToDoPluginUpdates.dao = myDatabaseUpdater;
+    ToDoPluginUpdates.databaseService = databaseService;
     toDoDao = (ToDoDao) applicationContext.getBean("toDoDao");
     final RegistryEntry entry = new RegistryEntry(ID, ToDoDao.class, toDoDao, "plugins.todo");
     // The ToDoDao is automatically available by the scripting engine!

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,7 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import org.projectforge.continuousdb.SchemaGenerator;
-import org.projectforge.continuousdb.UpdateEntry;
-import org.projectforge.continuousdb.UpdateEntryImpl;
-import org.projectforge.continuousdb.UpdatePreCheckStatus;
-import org.projectforge.continuousdb.UpdateRunningStatus;
+import org.projectforge.continuousdb.*;
 import org.projectforge.framework.persistence.database.DatabaseService;
 
 /**
@@ -38,7 +34,7 @@ import org.projectforge.framework.persistence.database.DatabaseService;
  */
 public class SkillMatrixPluginUpdates
 {
-  static DatabaseService dao;
+  static DatabaseService databaseService;
 
   final static Class<?>[] doClasses = new Class<?>[] { SkillDO.class, SkillRatingDO.class, TrainingDO.class,
       TrainingAttendeeDO.class };
@@ -54,7 +50,7 @@ public class SkillMatrixPluginUpdates
       {
         // Does the data-base tables already exist?
         // Check only the oldest table.
-        if (dao.doTablesExist(doClasses) == false) {
+        if (!databaseService.doTablesExist(doClasses)) {
           // The oldest table doesn't exist, therefore the plugin has to initialized completely.
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
@@ -64,8 +60,8 @@ public class SkillMatrixPluginUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        new SchemaGenerator(dao).add(doClasses).createSchema();
-        dao.createMissingIndices();
+        new SchemaGenerator(databaseService).add(doClasses).createSchema();
+        databaseService.createMissingIndices();
         return UpdateRunningStatus.DONE;
       }
     };

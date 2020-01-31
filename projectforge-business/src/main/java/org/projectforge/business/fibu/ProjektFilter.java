@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,9 @@
 
 package org.projectforge.business.fibu;
 
-import java.io.Serializable;
-
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
+
+import java.io.Serializable;
 
 
 /**
@@ -78,7 +78,7 @@ public class ProjektFilter extends BaseSearchFilter implements Serializable
 
   public void setListType(String listType)
   {
-    if (listType.equals("deleted") == true) {
+    if (listType.equals("deleted")) {
       deleted = true;
     } else {
       deleted = false;

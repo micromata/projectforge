@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,29 +23,30 @@
 
 package org.projectforge.framework.persistence.user.api;
 
-import java.io.Serializable;
-
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.fibu.KundeFavorite;
 import org.projectforge.business.fibu.ProjektFavorite;
-import org.projectforge.business.task.TaskFavorite;
+import org.projectforge.business.task.LegacyTaskFavorite;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.user.UserFavorite;
 import org.projectforge.jira.JiraProject;
 
+import java.io.Serializable;
+
 /**
  * User preferences are supported by different areas. These areas are defined inside this enum.
- * 
- * 
- * TODO DESIGNBUG extrem cyclic.
- * 
+ *
+ * Will be replaced by {@link org.projectforge.favorites.AbstractFavorite}.
+ * See {@link org.projectforge.business.task.TaskFavorite} as an example.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+@Deprecated
 public class UserPrefArea implements Serializable, Comparable<UserPrefArea>
 {
   private static final long serialVersionUID = -6594785391128587090L;
 
-  public static final int MAX_ID_LENGTH = 20;
+  public static final int MAX_ID_LENGTH = 255;
 
   public static final UserPrefArea KUNDE_FAVORITE = new UserPrefArea("KUNDE_FAVORITE", KundeFavorite.class,
       "kunde.favorite");
@@ -53,7 +54,7 @@ public class UserPrefArea implements Serializable, Comparable<UserPrefArea>
   public static final UserPrefArea PROJEKT_FAVORITE = new UserPrefArea("PROJEKT_FAVORITE", ProjektFavorite.class,
       "projekt.favorite");
 
-  public static final UserPrefArea TASK_FAVORITE = new UserPrefArea("TASK_FAVORITE", TaskFavorite.class,
+  public static final UserPrefArea TASK_FAVORITE = new UserPrefArea("TASK_FAVORITE", LegacyTaskFavorite.class,
       "task.favorite");
 
   public static final UserPrefArea TIMESHEET_TEMPLATE = new UserPrefArea("TIMESHEET_TEMPLATE", TimesheetDO.class,
@@ -80,7 +81,7 @@ public class UserPrefArea implements Serializable, Comparable<UserPrefArea>
 
   /**
    * The key will be used e. g. for i18n (only the suffix not the base i18n key).
-   * 
+   *
    * @return
    */
   public String getKey()
@@ -90,7 +91,7 @@ public class UserPrefArea implements Serializable, Comparable<UserPrefArea>
 
   /**
    * Get the whole i18n key.
-   * 
+   *
    * @return
    */
   public String getI18nKey()
@@ -101,7 +102,7 @@ public class UserPrefArea implements Serializable, Comparable<UserPrefArea>
   /**
    * The type corresponding to this UserPrefArea. This is the bean for which the annotated fields are stored as
    * UserPrefParameterDO's.
-   * 
+   *
    * @return
    */
   public Class<?> getBeanType()

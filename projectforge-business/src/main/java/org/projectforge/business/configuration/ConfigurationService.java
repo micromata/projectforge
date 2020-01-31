@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,15 +30,18 @@ import org.projectforge.framework.configuration.IConfigurationParam;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.mail.SendMailConfig;
 
 import javax.net.ssl.SSLSocketFactory;
-import java.util.Calendar;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import java.util.TimeZone;
 
 public interface ConfigurationService {
+
   Object[] getResourceContentAsString(String filename);
 
   Object[] getResourceAsInputStream(String filename);
@@ -61,13 +64,9 @@ public interface ConfigurationService {
 
   SecurityConfig getSecurityConfig();
 
-  String getServletContextPath();
-
   String getLogoFile();
 
-  String getDomain();
-
-  String getPfBaseUrl();
+  String getCurrencySymbol();
 
   String getTelephoneSystemNumber();
 
@@ -91,6 +90,18 @@ public interface ConfigurationService {
 
   TimeZone getTimezone();
 
+  /**
+   * The default time notation (12-hour or 24-hour). This notation is used, if the user has not chosen his personal time
+   * notation. Default is 24-hour for locales starting with "de" (German), otherwise 12-hour.
+   */
+  TimeNotation getDefaultTimeNotation();
+
+  /**
+   * @return the firstDayOfWeek
+   */
+  DayOfWeek getDefaultFirstDayOfWeek();
+
+
   String getPfSupportMailAddress();
 
   MailSessionLocalSettingsConfigModel createMailSessionLocalSettingsConfigModel();
@@ -101,11 +112,35 @@ public interface ConfigurationService {
 
   boolean getCompileCss();
 
+  /**
+   * The default locale is currently used for getting the week of year in Calendar.
+   */
+  Locale getDefaultLocale();
+
+  /**
+   * The paper size for excel exports.
+   */
+  String getExcelPaperSize();
+
   String getLoginHandlerClass();
 
   String getTeamCalCryptPassword();
 
-  Calendar getEndDateVacationFromLastYear();
+  /**
+   * 31.03. of this year if today is after 31.03, otherwise 31.03. of last year.
+   * Example (if 31.03. is configured):
+   * <ul>
+   * <li>Today = 02.01.2020 then this method returns 31.03.2019.</li>
+   * <li>Today = 31.12.2019 then this method returns 31.03.2019 as well.</li>
+   * </ul>
+   */
+  LocalDate getEndDateVacationFromLastYear();
+
+  /**
+   * 31.03. of the given year, if not configured different. This date determine when vacation days of an employee
+   * from the last year will be invalid, if not used.
+   */
+  LocalDate getEndOfCarryVacationOfPreviousYear(int year);
 
   String getHREmailadress();
 

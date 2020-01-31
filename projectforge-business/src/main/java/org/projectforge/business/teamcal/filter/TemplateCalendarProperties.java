@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,17 @@
 
 package org.projectforge.business.teamcal.filter;
 
-import java.io.Serializable;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.utils.NumberHelper;
 
+import java.io.Serializable;
+
 /**
  * Persist the settings of one calendar entry in the filter.
- * 
+ *
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author K. Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TemplateCalendarProperties implements Serializable, Comparable<TemplateCalendarProperties>, Cloneable
 {
@@ -57,7 +57,7 @@ public class TemplateCalendarProperties implements Serializable, Comparable<Temp
 
   /**
    * Only used for evaluating color of latest modified properties.
-   * 
+   *
    * @return
    */
   public Long getMillisOfLastChange()
@@ -102,7 +102,7 @@ public class TemplateCalendarProperties implements Serializable, Comparable<Temp
   /**
    * Please note: Don't forget to call {@link TemplateEntry#setDirty()} after calling this method. Otherwise the set of
    * visible calendars may not up-to-date in the template entry.
-   * 
+   *
    * @param visible
    * @return
    */
@@ -178,16 +178,16 @@ public class TemplateCalendarProperties implements Serializable, Comparable<Temp
 
   /**
    * For avoiding reload of Calendar if no changes are detected. (Was für'n Aufwand für so'n kleines Feature...)
-   * 
+   *
    * @param filter
    * @return
    */
   public boolean isModified(final TemplateCalendarProperties other)
   {
-    if (NumberHelper.isEqual(this.calId, other.calId) == false) {
+    if (!NumberHelper.isEqual(this.calId, other.calId)) {
       return true;
     }
-    if (StringUtils.equals(this.colorCode, other.colorCode) == false) {
+    if (!StringUtils.equals(this.colorCode, other.colorCode)) {
       return true;
     }
     if (this.millisOfLastChange != other.millisOfLastChange) {

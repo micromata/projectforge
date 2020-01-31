@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,6 @@
 
 package org.projectforge.timesheet;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.KundeDO;
@@ -38,12 +37,13 @@ import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -51,8 +51,7 @@ import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TimesheetMassUpdateTest extends AbstractTestBase
-{
+public class TimesheetMassUpdateTest extends AbstractTestBase {
   // private static final Logger log = Logger.getLogger(TaskTest.class);
 
   @Autowired
@@ -70,19 +69,17 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   @Autowired
   private ProjektDao projektDao;
 
-  private DateHolder date;
+  private PFDateTime date;
 
   @BeforeEach
-  public void setUp()
-  {
-    date = new DateHolder(new Date(), DatePrecision.MINUTE_15, Locale.GERMAN);
+  public void setUp() {
+    date = PFDateTime.from(new Date(), null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE_15);
   }
 
   @Test
-  public void massUpdate()
-  {
+  public void massUpdate() {
     final String prefix = "ts-mu1-";
-    final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
+    final List<TimesheetDO> list = new ArrayList<>();
     initTestDB.addTask(prefix + "1", "root");
     initTestDB.addTask(prefix + "1.1", prefix + "1");
     initTestDB.addTask(prefix + "1.2", prefix + "1");
@@ -90,9 +87,9 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     initTestDB.addUser(prefix + "user1");
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     list.add(
-        createTimesheet(prefix, "1.1", "user1", 2009, 10, 21, 3, 0, 3, 15, "Office", "A lot of stuff done and more."));
+            createTimesheet(prefix, "1.1", "user1", 2009, Month.NOVEMBER, 21, 3, 0, 3, 15, "Office", "A lot of stuff done and more."));
     list.add(
-        createTimesheet(prefix, "1.2", "user1", 2009, 10, 21, 3, 15, 3, 30, "Office", "A lot of stuff done and more."));
+            createTimesheet(prefix, "1.2", "user1", 2009, Month.NOVEMBER, 21, 3, 15, 3, 30, "Office", "A lot of stuff done and more."));
     TimesheetDO master = new TimesheetDO();
     master.setTask(initTestDB.getTask(prefix + "2"));
     master.setLocation("Headquarter");
@@ -101,11 +98,10 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   }
 
   @Test
-  public void massUpdateWithKost2Transformation()
-  {
+  public void massUpdateWithKost2Transformation() {
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final String prefix = "ts-mu50-";
-    final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
+    final List<TimesheetDO> list = new ArrayList<>();
     final KundeDO kunde = new KundeDO();
     kunde.setName("ACME");
     kunde.setId(50);
@@ -127,12 +123,12 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     initTestDB.addUser(prefix + "user1");
     logon(getUser(AbstractTestBase.TEST_ADMIN_USER));
 
-    list.add(createTimesheet(prefix, "1.1", "user1", 2009, 10, 21, 3, 0, 3, 15, "Office",
-        "A lot of stuff done and more.", 5, 50, 1, 0));
-    list.add(createTimesheet(prefix, "1.2", "user1", 2009, 10, 21, 3, 15, 3, 30, "Office",
-        "A lot of stuff done and more.", 5, 50, 1, 1));
-    list.add(createTimesheet(prefix, "1.2", "user1", 2009, 10, 21, 3, 30, 3, 45, "Office",
-        "A lot of stuff done and more.", 5, 50, 1, 2));
+    list.add(createTimesheet(prefix, "1.1", "user1", 2009, Month.NOVEMBER, 21, 3, 0, 3, 15, "Office",
+            "A lot of stuff done and more.", 5, 50, 1, 0));
+    list.add(createTimesheet(prefix, "1.2", "user1", 2009, Month.NOVEMBER, 21, 3, 15, 3, 30, "Office",
+            "A lot of stuff done and more.", 5, 50, 1, 1));
+    list.add(createTimesheet(prefix, "1.2", "user1", 2009, Month.NOVEMBER, 21, 3, 30, 3, 45, "Office",
+            "A lot of stuff done and more.", 5, 50, 1, 2));
     final TimesheetDO master = new TimesheetDO();
     master.setTask(initTestDB.getTask(prefix + "2"));
     master.setLocation("Headquarter");
@@ -150,11 +146,10 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   }
 
   @Test
-  public void massUpdateWithKost2()
-  {
+  public void massUpdateWithKost2() {
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final String prefix = "ts-mu51-";
-    final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
+    final List<TimesheetDO> list = new ArrayList<>();
     final KundeDO kunde = new KundeDO();
     kunde.setName("ACME ltd.");
     kunde.setId(51);
@@ -176,12 +171,12 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     initTestDB.addUser(prefix + "user1");
     logon(getUser(AbstractTestBase.TEST_ADMIN_USER));
 
-    list.add(createTimesheet(prefix, "1.1", "user1", 2009, 10, 21, 3, 0, 3, 15, "Office",
-        "A lot of stuff done and more.", 5, 51, 1, 0));
-    list.add(createTimesheet(prefix, "1.2", "user1", 2009, 10, 21, 3, 15, 3, 30, "Office",
-        "A lot of stuff done and more.", 5, 51, 1, 1));
-    list.add(createTimesheet(prefix, "1.2", "user1", 2009, 10, 21, 3, 30, 3, 45, "Office",
-        "A lot of stuff done and more.", 5, 51, 1, 2));
+    list.add(createTimesheet(prefix, "1.1", "user1", 2009, Month.NOVEMBER, 21, 3, 0, 3, 15, "Office",
+            "A lot of stuff done and more.", 5, 51, 1, 0));
+    list.add(createTimesheet(prefix, "1.2", "user1", 2009, Month.NOVEMBER, 21, 3, 15, 3, 30, "Office",
+            "A lot of stuff done and more.", 5, 51, 1, 1));
+    list.add(createTimesheet(prefix, "1.2", "user1", 2009, Month.NOVEMBER, 21, 3, 30, 3, 45, "Office",
+            "A lot of stuff done and more.", 5, 51, 1, 2));
     final TimesheetDO master = new TimesheetDO();
     master.setTask(initTestDB.getTask(prefix + "2"));
     master.setLocation("Headquarter");
@@ -211,11 +206,10 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   }
 
   @Test
-  public void massUpdateMixedKost2()
-  {
+  public void massUpdateMixedKost2() {
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final String prefix = "ts-mu52-";
-    final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
+    final List<TimesheetDO> list = new ArrayList<>();
     final KundeDO kunde = new KundeDO();
     kunde.setName("ACME International");
     kunde.setId(52);
@@ -235,11 +229,11 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     logon(getUser(AbstractTestBase.TEST_ADMIN_USER));
 
     list.add(
-        createTimesheet(prefix, "1.1", "user1", 2009, 10, 21, 3, 0, 3, 15, "Office", "A lot of stuff done and more."));
+            createTimesheet(prefix, "1.1", "user1", 2009, Month.NOVEMBER, 21, 3, 0, 3, 15, "Office", "A lot of stuff done and more."));
     list.add(
-        createTimesheet(prefix, "1.2", "user1", 2009, 10, 21, 3, 15, 3, 30, "Office", "A lot of stuff done and more."));
+            createTimesheet(prefix, "1.2", "user1", 2009, Month.NOVEMBER, 21, 3, 15, 3, 30, "Office", "A lot of stuff done and more."));
     list.add(
-        createTimesheet(prefix, "1.2", "user1", 2009, 10, 21, 3, 30, 3, 45, "Office", "A lot of stuff done and more."));
+            createTimesheet(prefix, "1.2", "user1", 2009, Month.NOVEMBER, 21, 3, 30, 3, 45, "Office", "A lot of stuff done and more."));
     final TimesheetDO master = new TimesheetDO();
     master.setTask(initTestDB.getTask(prefix + "2"));
     master.setLocation("Headquarter");
@@ -266,11 +260,10 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   }
 
   @Test
-  public void checkMassUpdateWithTimesheetProtection()
-  {
+  public void checkMassUpdateWithTimesheetProtection() {
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final String prefix = "ts-mu53-";
-    final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
+    final List<TimesheetDO> list = new ArrayList<>();
     final KundeDO kunde = new KundeDO();
     kunde.setName("ACME ltd.");
     kunde.setId(53);
@@ -288,24 +281,23 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     final TaskDO t2 = initTestDB.addTask(prefix + "2", "root");
     projektDao.setTask(projekt2, t2.getId());
     projektDao.update(projekt2);
-    final DateHolder dh = new DateHolder();
-    dh.setDate(2009, 11, 31);
-    t2.setProtectTimesheetsUntil(dh.getDate());
+    final PFDateTime dateTime = PFDateTime.withDate(2009, Month.DECEMBER, 31);
+    t2.setProtectTimesheetsUntil(dateTime.getUtilDate());
     taskDao.update(t2);
     initTestDB.addTask(prefix + "2.1", prefix + "2");
     initTestDB.addTask(prefix + "2.2", prefix + "2");
     initTestDB.addUser(prefix + "user");
-    final TimesheetDO ts1 = createTimesheet(prefix, "2.1", "user", 2009, 10, 21, 3, 30, 3, 45, "Office",
-        "A lot of stuff done and more.",
-        5, 53, 2, 0);
+    final TimesheetDO ts1 = createTimesheet(prefix, "2.1", "user", 2009, Month.NOVEMBER, 21, 3, 30, 3, 45, "Office",
+            "A lot of stuff done and more.",
+            5, 53, 2, 0);
     list.add(ts1);
-    final TimesheetDO ts2 = createTimesheet(prefix, "1.1", "user", 2009, 10, 21, 3, 0, 3, 15, "Office",
-        "A lot of stuff done and more.", 5,
-        53, 1, 0);
+    final TimesheetDO ts2 = createTimesheet(prefix, "1.1", "user", 2009, Month.NOVEMBER, 21, 3, 0, 3, 15, "Office",
+            "A lot of stuff done and more.", 5,
+            53, 1, 0);
     list.add(ts2);
-    final TimesheetDO ts3 = createTimesheet(prefix, "1.2", "user", 2009, 10, 21, 3, 15, 3, 30, "Office",
-        "A lot of stuff done and more.",
-        5, 53, 1, 1);
+    final TimesheetDO ts3 = createTimesheet(prefix, "1.2", "user", 2009, Month.NOVEMBER, 21, 3, 15, 3, 30, "Office",
+            "A lot of stuff done and more.",
+            5, 53, 1, 1);
     list.add(ts3);
     logon(getUser(AbstractTestBase.TEST_ADMIN_USER));
 
@@ -327,9 +319,8 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   }
 
   @Test
-  public void checkMaxMassUpdateNumber()
-  {
-    final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
+  public void checkMaxMassUpdateNumber() {
+    final List<TimesheetDO> list = new ArrayList<>();
     for (int i = 0; i <= BaseDao.MAX_MASS_UPDATE; i++) {
       list.add(new TimesheetDO());
     }
@@ -343,20 +334,17 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   }
 
   private ProjektDO createProjekt(final KundeDO kunde, final Integer projektNummer, final String projektName,
-      final Integer... kost2ArtIds)
-  {
+                                  final Integer... kost2ArtIds) {
     return initTestDB.addProjekt(kunde, projektNummer, projektName, kost2ArtIds);
   }
 
-  private void assertAll(final List<TimesheetDO> list, final TimesheetDO master)
-  {
+  private void assertAll(final List<TimesheetDO> list, final TimesheetDO master) {
     for (final TimesheetDO sheet : list) {
       assertSheet(sheet, master);
     }
   }
 
-  private void assertSheet(final TimesheetDO sheet, final TimesheetDO master)
-  {
+  private void assertSheet(final TimesheetDO sheet, final TimesheetDO master) {
     if (master.getTaskId() != null) {
       assertEquals(master.getTaskId(), sheet.getTaskId());
     }
@@ -366,8 +354,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   }
 
   private void assertKost2(final TimesheetDO sheet, final int nummernkreis, final int bereich, final int teilbereich,
-      final int art)
-  {
+                           final int art) {
     final Kost2DO kost2 = sheet.getKost2();
     assertNotNull(kost2);
     assertEquals(nummernkreis, kost2.getNummernkreis());
@@ -377,23 +364,14 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   }
 
   private TimesheetDO createTimesheet(final String prefix, final String taskName, final String userName, final int year,
-      final int month,
-      final int day, final int fromHour, final int fromMinute, final int toHour, final int toMinute,
-      final String location,
-      final String description)
-  {
+                                      final Month month, final int day, final int fromHour, final int fromMinute, final int toHour, final int toMinute, final String location, final String description) {
     return createTimesheet(prefix, taskName, userName, year, month, day, fromHour, fromMinute, toHour, toMinute,
-        location, description, 0,
-        0, 0, 0);
+            location, description, 0,
+            0, 0, 0);
   }
 
   private TimesheetDO createTimesheet(final String prefix, final String taskName, final String userName, final int year,
-      final int month,
-      final int day, final int fromHour, final int fromMinute, final int toHour, final int toMinute,
-      final String location,
-      final String description, final int kost2Nummernkreis, final int kost2Bereich, final int kost2Teilbereich,
-      final int kost2Art)
-  {
+                                      final Month month, final int day, final int fromHour, final int fromMinute, final int toHour, final int toMinute, final String location, final String description, final int kost2Nummernkreis, final int kost2Bereich, final int kost2Teilbereich, final int kost2Art) {
     final TimesheetDO ts = new TimesheetDO();
     setTimeperiod(ts, year, month, day, fromHour, fromMinute, day, toHour, toMinute);
     ts.setTask(initTestDB.getTask(prefix + taskName));
@@ -409,13 +387,11 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     return timesheetDao.getById(id);
   }
 
-  private void setTimeperiod(TimesheetDO timesheet, int year, int month, int fromDay, int fromHour, int fromMinute,
-      int toDay, int toHour,
-      int toMinute)
-  {
-    date.setDate(year, month, fromDay, fromHour, fromMinute, 0);
-    timesheet.setStartTime(date.getTimestamp());
-    date.setDate(year, month, toDay, toHour, toMinute, 0);
-    timesheet.setStopTime(date.getTimestamp());
+  private void setTimeperiod(TimesheetDO timesheet, int year, Month month, int fromDay, int fromHour, int fromMinute,
+                             int toDay, int toHour, int toMinute) {
+    date = PFDateTime.withDate(year, month, fromDay, fromHour, fromMinute, 0);
+    timesheet.setStartTime(date.getSqlTimestamp());
+    date = PFDateTime.withDate(year, month, toDay, toHour, toMinute, 0);
+    timesheet.setStopTime(date.getSqlTimestamp());
   }
 }

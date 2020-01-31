@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,13 @@
 
 package org.projectforge.plugins.eed.wicket;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.eed.service.EEDHelper;
 import org.projectforge.web.core.importstorage.AbstractImportForm;
 import org.projectforge.web.core.importstorage.ImportFilter;
@@ -42,6 +38,9 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
+
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 public class EmployeeSalaryImportForm extends AbstractImportForm<ImportFilter, EmployeeSalaryImportPage, EmployeeSalaryImportStoragePanel>
 {
@@ -52,7 +51,7 @@ public class EmployeeSalaryImportForm extends AbstractImportForm<ImportFilter, E
 
   private Integer selectedMonth;
 
-  private Integer selectedYear = Calendar.getInstance(ThreadLocalUserContext.getTimeZone()).get(Calendar.YEAR);
+  private Integer selectedYear = PFDateTime.now().getYear();
 
   private DropDownChoicePanel<Integer> dropDownMonth;
 
@@ -113,7 +112,7 @@ public class EmployeeSalaryImportForm extends AbstractImportForm<ImportFilter, E
     final DivPanel panel = gridBuilder.getPanel();
     storagePanel = new EmployeeSalaryImportStoragePanel(panel.newChildId(), parentPage, importFilter);
     final Date dateToSelectAttrRow = new GregorianCalendar(selectedYear,
-        (selectedMonth != null ? selectedMonth : Calendar.getInstance(ThreadLocalUserContext.getTimeZone()).get(Calendar.MONTH)) - 1, 1, 0, 0).getTime();
+        (selectedMonth != null ? selectedMonth : PFDateTime.now().getMonthValue()) - 1, 1, 0, 0).getTime();
     storagePanel.setDateToSelectAttrRow(dateToSelectAttrRow);
     panel.add(storagePanel);
   }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -68,7 +68,7 @@ public class TableAttributeTest {
     final TableAttribute attr = new TableAttribute(cls, property);
     assertEquals(name, attr.getName(), "Different column name expected.");
     assertEquals(nullable, attr.isNullable(), "Different nullable value expected.");
-    if (primaryKey == true) {
+    if (primaryKey) {
       assertTrue(attr.isPrimaryKey());
       assertFalse(attr.isNullable(), "Primary key should be not nullable.");
     } else {

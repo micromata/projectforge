@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,21 +23,20 @@
 
 package org.projectforge.web.calendar;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import net.ftlines.wicket.fullcalendar.Config;
+import org.apache.wicket.Component;
+import org.apache.wicket.model.Model;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.web.I18nCore;
+
 import java.text.DateFormatSymbols;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-
-import net.ftlines.wicket.fullcalendar.Config;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.model.Model;
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.annotate.JsonRawValue;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.web.I18nCore;
 
 public class MyFullCalendarConfig extends Config
 {
@@ -56,8 +55,9 @@ public class MyFullCalendarConfig extends Config
   private Integer year, month, date;
 
   @JsonProperty
-  private final Map<ColumnFormat, String> titleFormat = new HashMap<Config.ColumnFormat, String>();
+  private final Map<ColumnFormat, String> titleFormat = new HashMap<>();
 
+  @JsonIgnore
   private final Component parent;
 
   /**
@@ -116,9 +116,10 @@ public class MyFullCalendarConfig extends Config
   /**
    * @return the firstDay
    */
+  @JsonProperty
   public int getFirstDay()
   {
-    return ThreadLocalUserContext.getJodaFirstDayOfWeek();
+    return ThreadLocalUserContext.getFirstDayOfWeekValue();
   }
 
   /**

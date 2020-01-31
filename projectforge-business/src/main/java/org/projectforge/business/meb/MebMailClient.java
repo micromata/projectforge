@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,11 @@
 
 package org.projectforge.business.meb;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Date;
-
-import javax.mail.Flags;
-import javax.mail.MessagingException;
-
+import de.micromata.genome.logging.GLog;
+import de.micromata.genome.logging.GenomeLogCategory;
+import de.micromata.genome.logging.ValMessageLogAttribute;
+import de.micromata.genome.util.validation.ValContext;
+import de.micromata.mgc.email.MailReceiverLocalSettingsConfigModel;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.MailAccount;
 import org.projectforge.mail.MailFilter;
@@ -39,11 +36,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 
-import de.micromata.genome.logging.GLog;
-import de.micromata.genome.logging.GenomeLogCategory;
-import de.micromata.genome.logging.ValMessageLogAttribute;
-import de.micromata.genome.util.validation.ValContext;
-import de.micromata.mgc.email.MailReceiverLocalSettingsConfigModel;
+import javax.mail.Flags;
+import javax.mail.MessagingException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Date;
 
 /**
  * Gets the messages from a mail account and assigns them to the MEB user's inboxes.
@@ -111,17 +109,17 @@ public class MebMailClient
     if (mgcMailAccount != null) {
       return mgcMailAccount;
     }
-    if (false && mgcMailAccountDisabled == true) {
+    if (false) {
       return null;
     }
     MailReceiverLocalSettingsConfigModel cfg = createMailReceiverLocalSettingsConfigModel();
-    if (cfg.isEnabled() == false) {
+    if (!cfg.isEnabled()) {
       mgcMailAccountDisabled = true;
       return null;
     }
     ValContext ctx = new ValContext();
     cfg.validate(ctx);
-    if (ctx.hasErrors() == true) {
+    if (ctx.hasErrors()) {
       GLog.warn(GenomeLogCategory.Configuration, "Mail Receiver account not valid",
           new ValMessageLogAttribute(ctx.getMessages()));
       return null;
@@ -162,7 +160,7 @@ public class MebMailClient
   {
 
     final MailFilter filter = new MailFilter();
-    if (onlyRecentMails == true) {
+    if (onlyRecentMails) {
       filter.setOnlyRecent(true);
     }
     de.micromata.mgc.email.MailAccount mcacc = getMailAccount();
@@ -187,23 +185,23 @@ public class MebMailClient
         final BufferedReader reader = new BufferedReader(new StringReader(content.trim()));
         try {
           StringBuffer buf = null;
-          while (reader.ready() == true) {
+          while (reader.ready()) {
             final String line = reader.readLine();
             if (line == null) {
               break;
             }
-            if (line.startsWith("date=") == true) {
+            if (line.startsWith("date=")) {
               if (line.length() > 5) {
                 final String dateString = line.substring(5);
                 final Date date = MebDao.parseDate(dateString);
                 entry.setDate(date);
               }
-            } else if (line.startsWith("sender=") == true) {
+            } else if (line.startsWith("sender=")) {
               if (line.length() > 7) {
                 final String sender = line.substring(7);
                 entry.setSender(sender);
               }
-            } else if (line.startsWith("msg=") == true) {
+            } else if (line.startsWith("msg=")) {
               if (line.length() > 4) {
                 final String msg = line.substring(4);
                 buf = new StringBuffer();
@@ -226,10 +224,10 @@ public class MebMailClient
         } catch (IOException ex) {
           log.error("Exception encountered " + ex, ex);
         }
-        if (mebDao.checkAndAddEntry(entry, "MAIL") == true) {
+        if (mebDao.checkAndAddEntry(entry, "MAIL")) {
           counter++;
         }
-        if (markRecentMailsAsSeen == true) {
+        if (markRecentMailsAsSeen) {
           try {
             mail.getMessage().setFlag(Flags.Flag.SEEN, true);
             //mail.getMessage().saveChanges();

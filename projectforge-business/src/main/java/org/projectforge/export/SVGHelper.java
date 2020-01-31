@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,15 @@
 
 package org.projectforge.export;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-
-import org.apache.batik.dom.svg.SVGDOMImplementation;
+import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.projectforge.business.gantt.GanttRelationType;
 import org.projectforge.common.StringHelper;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 
 public class SVGHelper
 {
@@ -73,7 +73,7 @@ public class SVGHelper
     checkPositiveValues("mixXDist", minXDist);
     final double xHalf = (x2 - x1) / 2;
     final double yHalf = (y2 - y1) / 2;
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append("M ").append(round(x1)).append(" ").append(round(y1)); // (x1, y1)
     if (type == GanttRelationType.FINISH_START || type == null) {
       if (xHalf > minXDist) {
@@ -117,7 +117,7 @@ public class SVGHelper
   {
     checkNonNegativeValues("x, y", x, y);
     checkPositiveValues("size", size);
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     if (direction == ArrowDirection.LEFT) {
       buf.append("M ").append(round(x)).append(" ").append(round(y)); // (x, y)
       buf.append(" L ").append(round(x + size)).append(" ").append(round(y + size)); // (x + size, y + size)
@@ -139,7 +139,7 @@ public class SVGHelper
       throw new IllegalArgumentException("text shouldn't be null.");
     }
     checkNonNegativeValues("x, y", x, y);
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("createText: x=" + x + ", y=" + y + ", text=" + text);
     }
     final Element el = createElement(document, "text", prepend(attributes, "x", round(x), "y", round(y)));
@@ -167,7 +167,7 @@ public class SVGHelper
   {
     checkPositiveValues("width, height", width, height);
     checkNonNegativeValues("x, y", x, y);
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("createRect: x="
           + x
           + ", y="
@@ -208,7 +208,7 @@ public class SVGHelper
       final String... attributes)
   {
     checkNonNegativeValues("x1, y1, x2, y2", x1, y1, x2, y2);
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("createLine: x1="
           + x1
           + ", y1="
@@ -245,7 +245,7 @@ public class SVGHelper
         final String attr = attributes[i];
         final String value = attributes[i + 1];
         final String ns;
-        if ("xlink:href".equals(attr) == true) {
+        if ("xlink:href".equals(attr)) {
           ns = XML_NS;
         } else {
           ns = null;
@@ -285,7 +285,7 @@ public class SVGHelper
   static void checkNonNegativeValues(final String varnames, final double... values)
   {
     for (final double value : values) {
-      if (value < 0 || Double.isNaN(value) == true || Double.isInfinite(value) == true) {
+      if (value < 0 || Double.isNaN(value) || Double.isInfinite(value)) {
         throw new IllegalArgumentException("Values should be positive and valid: {"
             + varnames
             + "}="
@@ -297,7 +297,7 @@ public class SVGHelper
   static void checkPositiveValues(final String varnames, final double... values)
   {
     for (final double value : values) {
-      if (value <= 0 || Double.isNaN(value) == true || Double.isInfinite(value) == true) {
+      if (value <= 0 || Double.isNaN(value) || Double.isInfinite(value)) {
         throw new IllegalArgumentException("Values should be positive or zero and valid: {"
             + varnames
             + "}="

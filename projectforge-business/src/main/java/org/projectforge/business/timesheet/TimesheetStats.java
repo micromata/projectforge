@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.business.timesheet;
 
+import org.projectforge.framework.time.TimePeriod;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.Set;
 import java.util.TreeSet;
-
-import org.projectforge.framework.time.TimePeriod;
 
 /**
  * Stores some statistics of time sheets.
@@ -69,7 +69,7 @@ public class TimesheetStats
     if (earliestStartDate == null) {
       return null;
     }
-    if (earliestStartDate.before(this.period.getFromDate()) == true) {
+    if (earliestStartDate.before(this.period.getFromDate())) {
       return this.period.getFromDate();
     }
     return earliestStartDate;
@@ -101,7 +101,7 @@ public class TimesheetStats
     if (latestStopDate == null) {
       return null;
     }
-    if (latestStopDate.after(this.period.getToDate()) == true) {
+    if (latestStopDate.after(this.period.getToDate())) {
       return this.period.getToDate();
     }
     return latestStopDate;
@@ -167,7 +167,7 @@ public class TimesheetStats
     if (startTime == null || stopTime == null) {
       return this;
     }
-    if (period.getFromDate().before(stopTime) == false || period.getToDate().after(startTime) == false) {
+    if (!period.getFromDate().before(stopTime) || !period.getToDate().after(startTime)) {
       return this;
     }
     if (earliestStartDate == null || earliestStartDate.after(startTime)) {
@@ -177,7 +177,7 @@ public class TimesheetStats
       this.latestStopDate = stopTime;
     }
     if (this.timesheets == null) {
-      this.timesheets = new TreeSet<TimesheetDO>();
+      this.timesheets = new TreeSet<>();
     }
     this.timesheets.add(timesheet);
     totalBreakMillis = totalMillis = null; // Set as dirty.
@@ -194,17 +194,17 @@ public class TimesheetStats
     Date lastStopTime = null;
     for (final TimesheetDO timesheet : timesheets) {
       if (lastStopTime != null) {
-        if (lastStopTime.before(timesheet.getStartTime()) == true) {
+        if (lastStopTime.before(timesheet.getStartTime())) {
           this.totalBreakMillis += timesheet.getStartTime().getTime() - lastStopTime.getTime();
         }
       }
       lastStopTime = timesheet.getStopTime();
       Date startTime = timesheet.getStartTime();
-      if (startTime.before(period.getFromDate()) == true) {
+      if (startTime.before(period.getFromDate())) {
         startTime = period.getFromDate();
       }
       Date stopTime = timesheet.getStopTime();
-      if (stopTime.after(period.getToDate()) == true) {
+      if (stopTime.after(period.getToDate())) {
         stopTime = period.getToDate();
       }
       totalMillis += stopTime.getTime() - startTime.getTime();

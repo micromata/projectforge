@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,26 +23,23 @@
 
 package org.projectforge.business.teamcal.event.ical.converter;
 
-import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.TIMEZONE_REGISTRY;
-
-import java.util.Date;
-
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.framework.calendar.CalendarUtils;
-import org.projectforge.framework.calendar.ICal4JUtils;
-
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.DtStart;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.framework.calendar.ICal4JUtils;
+import org.projectforge.framework.time.PFDateTimeUtils;
 
-public class DTStartConverter extends PropertyConverter
-{
+import java.util.Date;
+
+import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.TIMEZONE_REGISTRY;
+
+public class DTStartConverter extends PropertyConverter {
   @Override
-  public Property toVEvent(final TeamEventDO event)
-  {
-    if (event.isAllDay() == true) {
-      final Date startUtc = CalendarUtils.getUTCMidnightDate(event.getStartDate());
+  public Property toVEvent(final TeamEventDO event) {
+    if (event.getAllDay()) {
+      final Date startUtc = PFDateTimeUtils.getUTCBeginOfDay(event.getStartDate());
       net.fortuna.ical4j.model.Date date = new net.fortuna.ical4j.model.Date(startUtc);
       return new DtStart(date);
     } else {
@@ -53,8 +50,7 @@ public class DTStartConverter extends PropertyConverter
   }
 
   @Override
-  public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent)
-  {
+  public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent) {
     final DtStart dtStart = vEvent.getStartDate();
 
     if (dtStart == null) {

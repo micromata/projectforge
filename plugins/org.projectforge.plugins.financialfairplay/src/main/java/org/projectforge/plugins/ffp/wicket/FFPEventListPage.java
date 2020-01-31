@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.ffp.wicket;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -38,12 +35,10 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
 import org.projectforge.plugins.ffp.repository.FFPEventService;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @ListPage(editPage = FFPEventEditPage.class)
 public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEventService, FFPEventDO> implements
@@ -76,7 +71,7 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
       }
     };
 
-    columns.add(new CellItemListenerPropertyColumn<FFPEventDO>(new ResourceModel("plugins.ffp.eventDate"),
+    columns.add(new CellItemListenerPropertyColumn<>(new ResourceModel("plugins.ffp.eventDate"),
         getSortable("eventDate", sortable),
         "eventDate", cellItemListener));
 
@@ -93,7 +88,7 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
           final IModel<FFPEventDO> rowModel)
       {
         final FFPEventDO event = rowModel.getObject();
-        if (isSelectMode() == false) {
+        if (!isSelectMode()) {
           item.add(new ListSelectActionPanel(componentId, rowModel, FFPEventEditPage.class, event.getId(),
               returnToPage, event.getTitle()));
         } else {
@@ -107,7 +102,7 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
       }
     });
 
-    columns.add(new CellItemListenerPropertyColumn<FFPEventDO>(new ResourceModel("plugins.ffp.status"),
+    columns.add(new CellItemListenerPropertyColumn<>(new ResourceModel("plugins.ffp.status"),
         getSortable("status", sortable), "status", cellItemListener));
 
     return columns;

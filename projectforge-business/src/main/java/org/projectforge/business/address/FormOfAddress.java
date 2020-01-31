@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,18 +34,18 @@ public enum FormOfAddress implements I18nEnum
 
   public static FormOfAddress get(String s)
   {
-    if (StringUtils.isEmpty(s) == true) {
+    if (StringUtils.isEmpty(s)) {
       return null;
     }
-    if ("MISTER".equals(s) == true) {
+    if ("MISTER".equals(s)) {
       return MISTER;
-    } else if ("MISS".equals(s) == true) {
+    } else if ("MISS".equals(s)) {
       return MISS;
-    } else if ("COMPANY".equals(s) == true) {
+    } else if ("COMPANY".equals(s)) {
       return COMPANY;
-    } else if ("MISC".equals(s) == true) {
+    } else if ("MISC".equals(s)) {
       return MISC;
-    } else if ("UNKNOWN".equals(s) == true) {
+    } else if ("UNKNOWN".equals(s)) {
       return UNKNOWN;
     }
     throw new UnsupportedOperationException("Unknown Anrede" + ": '" + s + "'");

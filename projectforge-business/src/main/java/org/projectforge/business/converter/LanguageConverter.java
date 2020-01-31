@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -36,7 +36,7 @@ public class LanguageConverter
    * Contains a map for all used user locales. Each map contains the display name of a locale as key and the locale
    * object as value.
    */
-  private final static Map<Locale, Map<String, Locale>> localeMap = new HashMap<Locale, Map<String, Locale>>();
+  private final static Map<Locale, Map<String, Locale>> localeMap = new HashMap<>();
 
   public static final String getLanguageAsString(final Locale language, final Locale locale)
   {
@@ -49,8 +49,8 @@ public class LanguageConverter
   public static final Locale getLanguage(final String language, final Locale locale)
   {
     synchronized (localeMap) {
-      if (localeMap.containsKey(locale) == false) {
-        final Map<String, Locale> m = new HashMap<String, Locale>();
+      if (!localeMap.containsKey(locale)) {
+        final Map<String, Locale> m = new HashMap<>();
         for (final Locale lc : Locale.getAvailableLocales()) {
           m.put(lc.getDisplayName(locale), lc);
         }

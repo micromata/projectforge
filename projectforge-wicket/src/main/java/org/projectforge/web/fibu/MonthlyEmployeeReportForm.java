@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.ArrayList;
-import java.util.Date;
-
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
@@ -37,6 +34,8 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDayUtils;
 import org.projectforge.web.calendar.QuickSelectMonthPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractStandardForm;
@@ -45,6 +44,9 @@ import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+
+import java.util.ArrayList;
+import java.util.Date;
 
 public class MonthlyEmployeeReportForm
     extends AbstractStandardForm<MonthlyEmployeeReportFilter, MonthlyEmployeeReportPage>
@@ -105,8 +107,8 @@ public class MonthlyEmployeeReportForm
       fs.add(yearChoice);
       // DropDownChoice months
       final LabelValueChoiceRenderer<Integer> monthChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
-      for (int i = 0; i <= 11; i++) {
-        monthChoiceRenderer.addValue(i, StringHelper.format2DigitNumber(i + 1));
+      for (int month = 1; month <= 12; month++) {
+        monthChoiceRenderer.addValue(month, StringHelper.format2DigitNumber(month));
       }
       monthChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new PropertyModel<Integer>(filter, "month"),
           monthChoiceRenderer.getValues(), monthChoiceRenderer)
@@ -130,9 +132,15 @@ public class MonthlyEmployeeReportForm
         @Override
         public Date getObject()
         {
-          final DateHolder dh = new DateHolder();
-          dh.setDate(filter.getYear(), filter.getMonth(), 1, 0, 0, 0);
-          return dh.getDate();
+          Integer year = filter.getYear();
+          Integer month = filter.getMonth();
+          PFDateTime date;
+          if (year == null || month == null) {
+            date = PFDateTime.now().getBeginOfMonth();
+          } else {
+            date = PFDateTime.withDate(filter.getYear(), PFDayUtils.validateMonthValue(filter.getMonth()), 1);
+          }
+          return date.getUtilDate();
         }
 
         /**
@@ -161,9 +169,9 @@ public class MonthlyEmployeeReportForm
 
   void setDate(final Date date)
   {
-    final DateHolder dh = new DateHolder(date);
-    filter.setYear(dh.getYear());
-    filter.setMonth(dh.getMonth());
+    PFDateTime dt = PFDateTime.from(date); // not null
+    filter.setYear(dt.getYear());
+    filter.setMonth(dt.getMonthValue());
     yearChoice.modelChanged();
     monthChoice.modelChanged();
   }

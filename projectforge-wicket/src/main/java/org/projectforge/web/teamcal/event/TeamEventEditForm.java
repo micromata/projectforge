@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,6 @@
 
 package org.projectforge.web.teamcal.event;
 
-import java.util.Date;
-import java.util.List;
-
-import org.slf4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -41,13 +37,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.event.AttendeeComparator;
-import org.projectforge.business.teamcal.event.RecurrenceFrequencyModeOne;
-import org.projectforge.business.teamcal.event.RecurrenceFrequencyModeTwo;
-import org.projectforge.business.teamcal.event.RecurrenceMonthMode;
-import org.projectforge.business.teamcal.event.TeamEventDao;
-import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
-import org.projectforge.business.teamcal.event.TeamEventService;
+import org.projectforge.business.teamcal.event.*;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
@@ -65,23 +55,13 @@ import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextField;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.DateTimePanel;
-import org.projectforge.web.wicket.components.DateTimePanelSettings;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.LabelPanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
-import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
+import org.projectforge.web.wicket.components.*;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * Form to edit team events.
@@ -273,7 +253,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          if (data.isAllDay() == false) {
+          if (data.getAllDay() == false) {
             setDateDropChoiceVisible(true);
           } else {
             setDateDropChoiceVisible(false);
@@ -281,7 +261,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
           target.add(startDateTimePanel.getTimeContainer(), endDateTimePanel.getTimeContainer());
         }
       });
-      setDateDropChoiceVisible(data.isAllDay() == false);
+      setDateDropChoiceVisible(data.getAllDay() == false);
       divPanel.add(checkBox);
       fieldSet.add(divPanel);
       if (access == false)

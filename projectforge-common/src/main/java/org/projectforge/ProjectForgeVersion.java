@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,6 +35,10 @@ public class ProjectForgeVersion
 
   public static final String RELEASE_DATE = RELEASE_TIMESTAMP.split(" ")[0];
 
-  public static final String YEAR = RELEASE_TIMESTAMP.split("-")[0];
+  public static final String YEAR = RELEASE_TIMESTAMP.substring(0, 4);
 
+  /**
+   * From 2001 until year of release timestamp.
+   */
+  public static final String COPYRIGHT_YEARS = "2001-" + YEAR;
 }

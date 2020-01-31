@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.business.timesheet
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.kost.Kost2DO
@@ -31,10 +32,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.DateHolder
-import org.projectforge.framework.time.DatePrecision
-import org.projectforge.framework.time.DateTimeFormatter
-import org.projectforge.framework.time.TimePeriod
+import org.projectforge.framework.time.*
 import java.sql.Timestamp
 import java.util.*
 import javax.persistence.*
@@ -51,61 +49,71 @@ import javax.persistence.*
             javax.persistence.Index(name = "idx_fk_t_timesheet_user_id", columnList = "user_id"),
             javax.persistence.Index(name = "idx_fk_t_timesheet_tenant_id", columnList = "tenant_id"),
             javax.persistence.Index(name = "idx_timesheet_user_time", columnList = "user_id, start_time")])
-class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
+@NamedQueries(
+        NamedQuery(name = TimesheetDO.FIND_START_STOP_BY_TASKID,
+                query = "select startTime, stopTime from TimesheetDO where task.id = :taskId and deleted = false"),
+        NamedQuery(name = TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER,
+                query = "select min(startTime), max(startTime) from TimesheetDO where user.id=:userId and deleted=false"),
+        NamedQuery(name = TimesheetDO.SELECT_USED_LOCATIONS_BY_USER_AND_LOCATION_SEARCHSTRING,
+                query = "select distinct location from TimesheetDO where deleted=false and user.id=:userId and lastUpdate>:lastUpdate and lower(location) like :locationSearch order by location"),
+        NamedQuery(name = TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE,
+                query = "select distinct location from TimesheetDO where deleted=false and user.id=:userId and lastUpdate>:lastUpdate and location!=null and location!='' order by lastUpdate desc"))
+open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
 
     @PropertyInfo(i18nKey = "task")
     @UserPrefParameter(i18nKey = "task", orderString = "2")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "task_id", nullable = false)
-    var task: TaskDO? = null
+    open var task: TaskDO? = null
 
     @PropertyInfo(i18nKey = "user")
     @UserPrefParameter(i18nKey = "user", orderString = "1")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(depth = 1, includeEmbeddedObjectId = true)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_id", nullable = false)
-    var user: PFUserDO? = null
+    open var user: PFUserDO? = null
 
     @get:Column(name = "time_zone", length = 100)
-    var timeZone: String? = null
+    open var timeZone: String? = null
 
     @PropertyInfo(i18nKey = "timesheet.startTime")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column(name = "start_time", nullable = false)
-    var startTime: Timestamp? = null
+    open var startTime: Timestamp? = null
 
     @PropertyInfo(i18nKey = "timesheet.stopTime")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column(name = "stop_time", nullable = false)
-    var stopTime: Timestamp? = null
+    open var stopTime: Timestamp? = null
 
     @PropertyInfo(i18nKey = "timesheet.location")
     @UserPrefParameter(i18nKey = "timesheet.location")
     @Field
     @get:Column(length = 100)
-    var location: String? = null
+    open var location: String? = null
 
     @PropertyInfo(i18nKey = "timesheet.description")
     @UserPrefParameter(i18nKey = "description", multiline = true)
     @Field
     @get:Column(length = 4000)
-    var description: String? = null
+    open var description: String? = null
 
     @PropertyInfo(i18nKey = "fibu.kost2")
     @UserPrefParameter(i18nKey = "fibu.kost2", orderString = "3", dependsOn = "task")
     @IndexedEmbedded(depth = 2)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kost2_id", nullable = true)
-    var kost2: Kost2DO? = null
+    open var kost2: Kost2DO? = null
 
     /**
      * Marker is used to mark this time sheet e. g. as a time sheet with an time period collision.
      */
     @get:Transient
-    var marked: Boolean = false
+    @JsonIgnore
+    open var marked: Boolean = false
 
     /**
      * @return Duration in millis if startTime and stopTime is given and stopTime is after startTime, otherwise 0.
@@ -180,14 +188,14 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     /**
      * Rounds the timestamp to DatePrecision.MINUTE_15 before.
      *
-     * @param startTime the startTime to set
-     * @see DateHolder.DateHolder
+     * @param startDate the startTime to set
+     * @see DateHolder#DateHolder(Date, DatePrecision)
      */
     @Transient
     fun setStartDate(startDate: Date?): TimesheetDO {
         if (startDate != null) {
-            val date = DateHolder(startDate, DatePrecision.MINUTE_15)
-            this.startTime = date.timestamp
+            val date = PFDateTime.from(startDate).withPrecision(DatePrecision.MINUTE_15)
+            this.startTime = date.sqlTimestamp
         } else {
             this.stopTime = null
         }
@@ -196,7 +204,7 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
 
     @Transient
     fun setStartDate(millis: Long): TimesheetDO {
-        setStartDate(Date(millis))
+        startTime = Timestamp(millis)
         return this
     }
 
@@ -205,13 +213,13 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
      *
      * @param stopDate the stopTime to set
      * @return this for chaining.
-     * @see DateHolder.DateHolder
+     * @see DateHolder#DateHolder(Date, DatePrecision)
      */
     @Transient
     fun setStopDate(stopDate: Date?): TimesheetDO {
         if (stopDate != null) {
-            val date = DateHolder(stopDate, DatePrecision.MINUTE_15)
-            this.stopTime = date.timestamp
+            val date = PFDateTime.from(stopDate).withPrecision(DatePrecision.MINUTE_15)
+            this.stopTime = date.sqlTimestamp
         } else {
             this.stopTime = null
         }
@@ -225,6 +233,13 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     }
 
     override fun compareTo(other: TimesheetDO): Int {
-        return startTime?.compareTo(other.startTime) ?: 1;
+        return startTime?.compareTo(other.startTime) ?: 1
+    }
+
+    companion object {
+        const val FIND_START_STOP_BY_TASKID = "TimesheetDO_FindStartStopByTaskId"
+        internal const val SELECT_MIN_MAX_DATE_FOR_USER = "TimesheetDO_SelectMinMaxDateForUser"
+        internal const val SELECT_USED_LOCATIONS_BY_USER_AND_LOCATION_SEARCHSTRING = "TimesheetDO_SelectLocationsByUserAndLocationSearchstring"
+        internal const val SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE = "TimesheetDO_SelectRecentUsedLocationsByUserAndLastUpdate"
     }
 }

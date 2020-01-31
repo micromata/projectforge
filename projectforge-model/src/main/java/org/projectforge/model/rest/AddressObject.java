@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,17 @@
 
 package org.projectforge.model.rest;
 
-import java.sql.Date;
-import java.util.Locale;
-
 import org.projectforge.common.StringHelper;
+
+import java.time.LocalDate;
+import java.util.Locale;
 
 /**
  * For documentation please refer the ProjectForge-API: AddressDO object. AddressObject object for REST,
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class AddressObject extends AbstractBaseObject
-{
+public class AddressObject extends AbstractBaseObject {
   private String uid;
 
   private String contactStatus;
@@ -109,409 +108,332 @@ public class AddressObject extends AbstractBaseObject
 
   private String comment;
 
-  private Date birthday;
+  private LocalDate birthday;
 
   private String image;
 
   private String vCardData;
 
-  public String getUid()
-  {
+  public String getUid() {
     return uid;
   }
 
-  public void setUid(final String uid)
-  {
+  public void setUid(final String uid) {
     this.uid = uid;
   }
 
-  public String getContactStatus()
-  {
+  public String getContactStatus() {
     return contactStatus;
   }
 
-  public AddressObject setContactStatus(final String contactStatus)
-  {
+  public AddressObject setContactStatus(final String contactStatus) {
     this.contactStatus = contactStatus;
     return this;
   }
 
-  public String getAddressStatus()
-  {
+  public String getAddressStatus() {
     return addressStatus;
   }
 
-  public AddressObject setAddressStatus(final String addressStatus)
-  {
+  public AddressObject setAddressStatus(final String addressStatus) {
     this.addressStatus = addressStatus;
     return this;
   }
 
-  public String getBusinessPhone()
-  {
+  public String getBusinessPhone() {
     return businessPhone;
   }
 
-  public AddressObject setBusinessPhone(final String businessPhone)
-  {
+  public AddressObject setBusinessPhone(final String businessPhone) {
     this.businessPhone = businessPhone;
     return this;
   }
 
-  public String getMobilePhone()
-  {
+  public String getMobilePhone() {
     return mobilePhone;
   }
 
-  public AddressObject setMobilePhone(final String mobilePhone)
-  {
+  public AddressObject setMobilePhone(final String mobilePhone) {
     this.mobilePhone = mobilePhone;
     return this;
   }
 
-  public String getFax()
-  {
+  public String getFax() {
     return fax;
   }
 
-  public void setFax(final String fax)
-  {
+  public void setFax(final String fax) {
     this.fax = fax;
   }
 
-  public String getAddressText()
-  {
+  public String getAddressText() {
     return addressText;
   }
 
-  public void setAddressText(final String addressText)
-  {
+  public void setAddressText(final String addressText) {
     this.addressText = addressText;
   }
 
-  public String getZipCode()
-  {
+  public String getZipCode() {
     return zipCode;
   }
 
-  public void setZipCode(final String zipCode)
-  {
+  public void setZipCode(final String zipCode) {
     this.zipCode = zipCode;
   }
 
-  public String getCity()
-  {
+  public String getCity() {
     return city;
   }
 
-  public void setCity(final String city)
-  {
+  public void setCity(final String city) {
     this.city = city;
   }
 
-  public String getCountry()
-  {
+  public String getCountry() {
     return country;
   }
 
-  public void setCountry(final String country)
-  {
+  public void setCountry(final String country) {
     this.country = country;
   }
 
-  public String getState()
-  {
+  public String getState() {
     return state;
   }
 
-  public void setState(final String state)
-  {
+  public void setState(final String state) {
     this.state = state;
   }
 
-  public String getPostalAddressText()
-  {
+  public String getPostalAddressText() {
     return postalAddressText;
   }
 
-  public void setPostalAddressText(final String postalAddressText)
-  {
+  public void setPostalAddressText(final String postalAddressText) {
     this.postalAddressText = postalAddressText;
   }
 
-  public String getPostalZipCode()
-  {
+  public String getPostalZipCode() {
     return postalZipCode;
   }
 
-  public void setPostalZipCode(final String postalZipCode)
-  {
+  public void setPostalZipCode(final String postalZipCode) {
     this.postalZipCode = postalZipCode;
   }
 
-  public String getPostalCity()
-  {
+  public String getPostalCity() {
     return postalCity;
   }
 
-  public void setPostalCity(final String postalCity)
-  {
+  public void setPostalCity(final String postalCity) {
     this.postalCity = postalCity;
   }
 
-  public String getPostalCountry()
-  {
+  public String getPostalCountry() {
     return postalCountry;
   }
 
-  public void setPostalCountry(final String postalCountry)
-  {
+  public void setPostalCountry(final String postalCountry) {
     this.postalCountry = postalCountry;
   }
 
-  public String getPostalState()
-  {
+  public String getPostalState() {
     return postalState;
   }
 
-  public void setPostalState(final String postalState)
-  {
+  public void setPostalState(final String postalState) {
     this.postalState = postalState;
   }
 
-  public Date getBirthday()
-  {
+  public LocalDate getBirthday() {
     return birthday;
   }
 
-  public void setBirthday(final Date birthday)
-  {
+  public void setBirthday(final LocalDate birthday) {
     this.birthday = birthday;
   }
 
-  public String getComment()
-  {
+  public String getComment() {
     return comment;
   }
 
-  public AddressObject setComment(final String comment)
-  {
+  public AddressObject setComment(final String comment) {
     this.comment = comment;
     return this;
   }
 
-  public String getEmail()
-  {
+  public String getEmail() {
     return email;
   }
 
-  public AddressObject setEmail(final String email)
-  {
+  public AddressObject setEmail(final String email) {
     this.email = email;
     return this;
   }
 
-  public String getWebsite()
-  {
+  public String getWebsite() {
     return website;
   }
 
-  public void setWebsite(final String website)
-  {
+  public void setWebsite(final String website) {
     this.website = website;
   }
 
   /**
    * @return The communication will take place in this language.
    */
-  public Locale getCommunicationLanguage()
-  {
+  public Locale getCommunicationLanguage() {
     return communicationLanguage;
   }
 
-  public void setCommunicationLanguage(final Locale communicationLanguage)
-  {
+  public void setCommunicationLanguage(final Locale communicationLanguage) {
     this.communicationLanguage = communicationLanguage;
   }
 
-  public String getFingerprint()
-  {
+  public String getFingerprint() {
     return fingerprint;
   }
 
-  public void setFingerprint(final String fingerprint)
-  {
+  public void setFingerprint(final String fingerprint) {
     this.fingerprint = fingerprint;
   }
 
-  public String getFirstName()
-  {
+  public String getFirstName() {
     return firstName;
   }
 
-  public AddressObject setFirstName(final String firstName)
-  {
+  public AddressObject setFirstName(final String firstName) {
     this.firstName = firstName;
     return this;
   }
 
-  public String getFullName()
-  {
+  public String getFullName() {
     return StringHelper.listToString(", ", name, firstName);
   }
 
-  public String getName()
-  {
+  public String getName() {
     return name;
   }
 
-  public AddressObject setName(final String name)
-  {
+  public AddressObject setName(final String name) {
     this.name = name;
     return this;
   }
 
-  public String getForm()
-  {
+  public String getForm() {
     return form;
   }
 
-  public AddressObject setForm(final String form)
-  {
+  public AddressObject setForm(final String form) {
     this.form = form;
     return this;
   }
 
-  public String getOrganization()
-  {
+  public String getOrganization() {
     return organization;
   }
 
-  public AddressObject setOrganization(final String organization)
-  {
+  public AddressObject setOrganization(final String organization) {
     this.organization = organization;
     return this;
   }
 
-  public String getDivision()
-  {
+  public String getDivision() {
     return division;
   }
 
-  public void setDivision(final String division)
-  {
+  public void setDivision(final String division) {
     this.division = division;
   }
 
-  public String getPositionText()
-  {
+  public String getPositionText() {
     return positionText;
   }
 
-  public void setPositionText(final String positionText)
-  {
+  public void setPositionText(final String positionText) {
     this.positionText = positionText;
   }
 
-  public String getPrivatePhone()
-  {
+  public String getPrivatePhone() {
     return privatePhone;
   }
 
-  public AddressObject setPrivatePhone(final String privatePhone)
-  {
+  public AddressObject setPrivatePhone(final String privatePhone) {
     this.privatePhone = privatePhone;
     return this;
   }
 
-  public String getPrivateMobilePhone()
-  {
+  public String getPrivateMobilePhone() {
     return privateMobilePhone;
   }
 
-  public void setPrivateMobilePhone(final String mobilePhone)
-  {
+  public void setPrivateMobilePhone(final String mobilePhone) {
     this.privateMobilePhone = mobilePhone;
   }
 
-  public String getPrivateAddressText()
-  {
+  public String getPrivateAddressText() {
     return privateAddressText;
   }
 
-  public void setPrivateAddressText(final String privateAddressText)
-  {
+  public void setPrivateAddressText(final String privateAddressText) {
     this.privateAddressText = privateAddressText;
   }
 
-  public String getPrivateZipCode()
-  {
+  public String getPrivateZipCode() {
     return privateZipCode;
   }
 
-  public void setPrivateZipCode(final String zipCode)
-  {
+  public void setPrivateZipCode(final String zipCode) {
     this.privateZipCode = zipCode;
   }
 
-  public String getPrivateCity()
-  {
+  public String getPrivateCity() {
     return privateCity;
   }
 
-  public void setPrivateCity(final String city)
-  {
+  public void setPrivateCity(final String city) {
     this.privateCity = city;
   }
 
-  public String getPrivateCountry()
-  {
+  public String getPrivateCountry() {
     return privateCountry;
   }
 
-  public void setPrivateCountry(final String privateCountry)
-  {
+  public void setPrivateCountry(final String privateCountry) {
     this.privateCountry = privateCountry;
   }
 
-  public String getPrivateState()
-  {
+  public String getPrivateState() {
     return privateState;
   }
 
-  public void setPrivateState(final String privateState)
-  {
+  public void setPrivateState(final String privateState) {
     this.privateState = privateState;
   }
 
-  public String getPrivateEmail()
-  {
+  public String getPrivateEmail() {
     return privateEmail;
   }
 
-  public AddressObject setPrivateEmail(final String email)
-  {
+  public AddressObject setPrivateEmail(final String email) {
     this.privateEmail = email;
     return this;
   }
 
-  public String getPublicKey()
-  {
+  public String getPublicKey() {
     return publicKey;
   }
 
-  public void setPublicKey(final String publicKey)
-  {
+  public void setPublicKey(final String publicKey) {
     this.publicKey = publicKey;
   }
 
-  public String getTitle()
-  {
+  public String getTitle() {
     return title;
   }
 
-  public AddressObject setTitle(final String title)
-  {
+  public AddressObject setTitle(final String title) {
     this.title = title;
     return this;
   }
@@ -521,13 +443,11 @@ public class AddressObject extends AbstractBaseObject
    *
    * @return
    */
-  public String getImage()
-  {
+  public String getImage() {
     return image;
   }
 
-  public void setImage(String image)
-  {
+  public void setImage(String image) {
     this.image = image;
   }
 
@@ -536,13 +456,11 @@ public class AddressObject extends AbstractBaseObject
    *
    * @return
    */
-  public String getVCardData()
-  {
+  public String getVCardData() {
     return vCardData;
   }
 
-  public void setVCardData(String vCardData)
-  {
+  public void setVCardData(String vCardData) {
     this.vCardData = vCardData;
   }
 }

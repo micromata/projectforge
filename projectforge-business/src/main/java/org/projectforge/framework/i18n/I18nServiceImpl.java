@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,26 +23,18 @@
 
 package org.projectforge.framework.i18n;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-
+import de.micromata.genome.util.types.Pair;
 import org.projectforge.Const;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import de.micromata.genome.util.types.Pair;
+import javax.annotation.PostConstruct;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.*;
 
 @Service
 public class I18nServiceImpl implements I18nService
@@ -125,9 +117,9 @@ public class I18nServiceImpl implements I18nService
     for (String resourceBundle : resourceBundles) {
       // the pair searched for
       Pair<Locale, String> localeStringPair = new Pair<>(locale, resourceBundle);
-      if (localeResourceBundleMap.keySet().contains(localeStringPair) == false) {
+      if (!localeResourceBundleMap.keySet().contains(localeStringPair)) {
         for (Pair<Locale, String> iterationPair : localeResourceBundleMap.keySet()) {
-          if (iterationPair.getKey().equals(Locale.ROOT) == false && locale.toString().startsWith(iterationPair.getKey().toString())) {
+          if (!iterationPair.getKey().equals(Locale.ROOT) && locale.toString().startsWith(iterationPair.getKey().toString())) {
             // replace searched for with nearest candidate e.g. for de_de use de
             localeStringPair = iterationPair;
             break;

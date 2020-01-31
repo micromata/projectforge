@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -22,15 +22,6 @@
 /////////////////////////////////////////////////////////////////////////////
 
 package org.projectforge.web.wicket;
-
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
-import java.net.URLEncoder;
-import java.util.Calendar;
-import java.util.Date;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -61,12 +52,7 @@ import org.projectforge.common.DateFormatType;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.time.DateFormats;
-import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.framework.time.DayHolder;
-import org.projectforge.framework.time.TimePeriod;
+import org.projectforge.framework.time.*;
 import org.projectforge.framework.utils.ClassHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.URLHelper;
@@ -77,6 +63,15 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
+import java.net.URLEncoder;
+import java.time.LocalDate;
+import java.util.Calendar;
+import java.util.Date;
 
 public class WicketUtils
 {
@@ -742,6 +737,20 @@ public class WicketUtils
   }
 
   /**
+   * For compability reasons.
+   * @param label Label as prefix
+   * @param date
+   * @return <label>: <date>
+   */
+  public static String getUTCDate(final String label, final LocalDate date)
+  {
+    if (date == null) {
+      return label + ":";
+    }
+    return label + ": " + date;
+  }
+
+  /**
    * @param startTime Start time or null.
    * @param stopTime  Stop time or null.
    */
@@ -768,8 +777,8 @@ public class WicketUtils
     for (int i = 0; i > -lastNDays; i--) {
       final DayHolder day = new DayHolder();
       day.add(Calendar.DAY_OF_YEAR, i);
-      datumChoiceRenderer.addValue(day.getSQLDate().getTime(),
-          DateTimeFormatter.instance().getFormattedDate(day.getSQLDate(),
+      datumChoiceRenderer.addValue(day.getSqlDate().getTime(),
+          DateTimeFormatter.instance().getFormattedDate(day.getSqlDate(),
               DateFormats.getFormatString(DateFormatType.DATE)));
     }
     return datumChoiceRenderer;

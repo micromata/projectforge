@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,6 @@
 
 package org.projectforge.charting;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Shape;
-import java.awt.Stroke;
-import java.awt.geom.Ellipse2D;
-import java.util.Date;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
@@ -43,6 +36,10 @@ import org.jfree.data.general.Series;
 import org.jfree.data.time.DateRange;
 import org.jfree.data.xy.XYDataset;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+
+import java.awt.*;
+import java.awt.geom.Ellipse2D;
+import java.util.Date;
 
 /**
  * Builder class for building JFree charts.
@@ -106,7 +103,7 @@ public class XYChartBuilder
   public XYChartBuilder setYAxis(final boolean showAxisValues, final String valueAxisUnitKey)
   {
     final NumberAxis yAxis;
-    if (showAxisValues == true && valueAxisUnitKey != null) {
+    if (showAxisValues && valueAxisUnitKey != null) {
       yAxis = new NumberAxis(ThreadLocalUserContext.getLocalizedString(valueAxisUnitKey));
     } else {
       yAxis = new NumberAxis();

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,16 @@
 
 package org.projectforge.business.refactoring;
 
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import javax.annotation.PostConstruct;
-
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.stereotype.Service;
 
 @Service
 public class RefactoringServiceImpl implements RefactoringService

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,13 @@
 
 package org.projectforge.framework.utils;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-
-import org.apache.commons.io.IOUtils;
 
 public class GZIPHelper
 {
@@ -73,10 +73,7 @@ public class GZIPHelper
       IOUtils.copy(gzip, out);
       gzip.close();
       return out.toString();
-    } catch (final IOException ex) {
-      log.error("Error while uncompressing string: " + ex.getMessage(), ex);
-      return null;
-    } catch (final ClassNotFoundException ex) {
+    } catch (final IOException | ClassNotFoundException ex) {
       log.error("Error while uncompressing string: " + ex.getMessage(), ex);
       return null;
     }

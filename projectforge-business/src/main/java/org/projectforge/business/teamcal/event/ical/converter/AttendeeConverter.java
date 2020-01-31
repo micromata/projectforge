@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,12 @@
 
 package org.projectforge.business.teamcal.event.ical.converter;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-
+import net.fortuna.ical4j.model.Parameter;
+import net.fortuna.ical4j.model.Property;
+import net.fortuna.ical4j.model.PropertyList;
+import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.parameter.*;
+import net.fortuna.ical4j.model.property.Attendee;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
@@ -35,15 +36,10 @@ import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import net.fortuna.ical4j.model.Parameter;
-import net.fortuna.ical4j.model.PropertyList;
-import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.parameter.Cn;
-import net.fortuna.ical4j.model.parameter.CuType;
-import net.fortuna.ical4j.model.parameter.PartStat;
-import net.fortuna.ical4j.model.parameter.Role;
-import net.fortuna.ical4j.model.parameter.Rsvp;
-import net.fortuna.ical4j.model.property.Attendee;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 public class AttendeeConverter extends PropertyConverter
 {
@@ -96,12 +92,12 @@ public class AttendeeConverter extends PropertyConverter
       return false;
     }
 
-    for (int i = 0; i < eventAttendees.size(); i++) {
-      Attendee attendee = (Attendee) eventAttendees.get(i);
+    for (Property eventAttendee : eventAttendees) {
+      Attendee attendee = (Attendee) eventAttendee;
       URI attendeeUri = attendee.getCalAddress();
       final String email = (attendeeUri != null) ? attendeeUri.getSchemeSpecificPart() : null;
 
-      if (email != null && EmailValidator.getInstance().isValid(email) == false) {
+      if (email != null && !EmailValidator.getInstance().isValid(email)) {
         continue; // TODO maybe validation is not necessary, could also be en url? check rfc
       }
 

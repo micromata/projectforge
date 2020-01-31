@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,8 @@
 
 package org.projectforge.business.address
 
-import javax.persistence.CascadeType
-import javax.persistence.DiscriminatorValue
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.OneToMany
-import javax.persistence.OrderColumn
-
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
+import javax.persistence.*
 
 /**
  * @author Roger Kommer (r.kommer.extern@micromata.de)
@@ -39,11 +33,11 @@ import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
 @DiscriminatorValue("1")
 class AddressAttrWithDataDO : AddressAttrDO {
 
-    constructor() : super() {}
+    constructor() : super()
 
-    constructor(parent: AddressDO, propertyName: String, type: Char, value: String) : super(parent, propertyName, type, value) {}
+    constructor(parent: AddressDO, propertyName: String, type: Char, value: String) : super(parent, propertyName, type, value)
 
-    constructor(parent: AddressDO) : super(parent) {}
+    constructor(parent: AddressDO) : super(parent)
 
     @OneToMany(cascade = [CascadeType.ALL], mappedBy = "parent", targetEntity = AddressAttrDataDO::class, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderColumn(name = "datarow")

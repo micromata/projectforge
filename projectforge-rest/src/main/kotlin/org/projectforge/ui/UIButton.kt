@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,9 +26,14 @@ package org.projectforge.ui
 data class UIButton(val id : String,
                     /** May be null for standard buttons. For standard buttons the title will be set dependent on the id. */
                     var title : String? = null,
-                    val style : UIStyle? = null,
+                    val color : UIColor? = null,
+                    var outline : Boolean? = null,
                     /**
                      * There should be one default button in every form, used if the user hits return.
                      */
-                    val default : Boolean? = null)
+                    val default : Boolean? = null,
+                    /**
+                     * Tell the client of what to do after clicking this button.
+                     */
+                    val responseAction: ResponseAction? = null)
     : UIElement(UIElementType.BUTTON)

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,16 @@
 
 package org.projectforge.business.timesheet;
 
-import java.util.Calendar;
+import org.projectforge.framework.time.PFDateTime;
+
 import java.util.Collection;
 import java.util.Date;
-
-import org.projectforge.framework.time.DateHolder;
+import java.util.Objects;
 
 /**
  * Provides some helper methods.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TimesheetUtils
 {
@@ -45,9 +45,9 @@ public class TimesheetUtils
    */
   public static TimesheetStats getStats(final Collection<TimesheetDO> timesheets, final Date day, final Integer userId)
   {
-    final DateHolder dh = new DateHolder(day).setBeginOfDay();
-    final Date startDate = dh.getDate();
-    final Date stopDate = dh.add(Calendar.DAY_OF_MONTH, 1).getDate();
+    final PFDateTime dt = PFDateTime.from(day).getBeginOfDay();
+    final Date startDate = dt.getUtilDate();
+    final Date stopDate = dt.plusDays(1).getUtilDate();
     return getStats(timesheets, startDate, stopDate, userId);
   }
 
@@ -67,7 +67,7 @@ public class TimesheetUtils
     }
     final TimesheetStats stats = new TimesheetStats(from, to);
     for (final TimesheetDO timesheet : timesheets) {
-      if (userId != timesheet.getUserId()) {
+      if (!Objects.equals(userId, timesheet.getUserId())) {
         continue;
       }
       stats.add(timesheet);

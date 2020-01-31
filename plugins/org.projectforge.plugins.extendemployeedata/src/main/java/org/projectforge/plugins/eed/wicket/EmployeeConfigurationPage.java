@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,15 @@
 
 package org.projectforge.plugins.eed.wicket;
 
-import java.util.List;
-
-import org.slf4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
 import org.projectforge.plugins.eed.service.EmployeeConfigurationService;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
+import org.slf4j.Logger;
+
+import java.util.List;
 
 public class EmployeeConfigurationPage
     extends AbstractEditPage<EmployeeConfigurationDO, EmployeeConfigurationForm, EmployeeConfigurationService>
@@ -46,7 +46,7 @@ public class EmployeeConfigurationPage
   public EmployeeConfigurationPage(PageParameters parameters)
   {
     super(parameters, "plugins.eed.config");
-    if (parameters != null && parameters.get(PARAMETER_KEY_ID).isEmpty() == true) {
+    if (parameters != null && parameters.get(PARAMETER_KEY_ID).isEmpty()) {
       parameters.add(PARAMETER_KEY_ID, employeeConfigurationService.getSingleEmployeeConfigurationDOId());
     }
     init();

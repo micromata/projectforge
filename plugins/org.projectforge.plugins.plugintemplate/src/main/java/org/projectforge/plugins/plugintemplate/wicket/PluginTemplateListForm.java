@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -45,7 +45,7 @@ public class PluginTemplateListForm extends AbstractListForm<PluginTemplateFilte
   {
     PluginTemplateFilter filter = getSearchFilter();
     optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
-        new PropertyModel<Boolean>(filter, "showOnlyEntriesWithValue"), getString("plugins.plugintemplate.filter.options.showOnlyEntriesWithValue")));
+        new PropertyModel<>(filter, "showOnlyEntriesWithValue"), getString("plugins.plugintemplate.filter.options.showOnlyEntriesWithValue")));
   }
 
   @Override

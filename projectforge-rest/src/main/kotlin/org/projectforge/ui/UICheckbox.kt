@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,15 @@
 
 package org.projectforge.ui
 
-data class UICheckbox(val id: String,
+data class UICheckbox(var id: String,
                       @Transient
                       override val layoutContext: LayoutContext? = null,
+                      val color : UIColor? = null,
                       override var tooltip: String? = null,
                       override var label: String? = null,
-                      override var additionalLabel: String? = null)
+                      override var additionalLabel: String? = null,
+                      @Transient
+                      override val ignoreAdditionalLabel: Boolean = false,
+                      @Transient
+                      override val ignoreTooltip: Boolean = false)
     : UIElement(UIElementType.CHECKBOX), UILabelledElement

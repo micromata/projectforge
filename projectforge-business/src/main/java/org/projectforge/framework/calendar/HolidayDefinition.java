@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,34 +23,34 @@
 
 package org.projectforge.framework.calendar;
 
-import java.util.Calendar;
+import java.time.Month;
 
 public enum HolidayDefinition
 {
   /**
    * New year: 01/01
    */
-  NEW_YEAR("calendar.holiday.newYear", Calendar.JANUARY, 1, false),
+  NEW_YEAR("calendar.holiday.newYear", Month.JANUARY.getValue(), 1, false),
 
   /**
    * Xmas eve: 12/24
    */
-  XMAS_EVE("calendar.holiday.xmasEve", Calendar.DECEMBER, 24, true),
+  XMAS_EVE("calendar.holiday.xmasEve", Month.DECEMBER.getValue(), 24, true),
 
   /**
    * First Xmas day: 12/25
    */
-  FIRST_XMAS_DAY("calendar.holiday.firstXmasDay", Calendar.DECEMBER, 25, false),
+  FIRST_XMAS_DAY("calendar.holiday.firstXmasDay", Month.DECEMBER.getValue(), 25, false),
 
   /**
    * Second Xmas day: 12/26
    */
-  SECOND_XMAS_DAY("calendar.holiday.secondXmasDay", Calendar.DECEMBER, 26, false),
+  SECOND_XMAS_DAY("calendar.holiday.secondXmasDay", Month.DECEMBER.getValue(), 26, false),
 
   /**
    * Sylvester: 12/31.
    */
-  SYLVESTER("calendar.holiday.sylvester", Calendar.DECEMBER, 31, true),
+  SYLVESTER("calendar.holiday.sylvester", Month.DECEMBER.getValue(), 31, true),
 
   /**
    * Shrove Monday, 48 days before Easter (Rosenmontag)
@@ -108,7 +108,7 @@ public enum HolidayDefinition
   WHIT_MONDAY("calendar.holiday.whitMonday", +50, false),
 
   /**
-   * Corpus Christi, 60 days after Easter (Fronleichnahm)
+   * Corpus Christi, 60 days after Easter (Fronleichnam)
    */
   CORPUS_CHRISTI("calendar.holiday.corpusChristi", 60, false);
 

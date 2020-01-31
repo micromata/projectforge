@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,15 +24,47 @@
 package org.projectforge.ui
 
 import org.projectforge.framework.i18n.addTranslations
-import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.MenuItem
 
 class UILayout {
+    class UserAccess(
+            /**
+             * The user has access to the object's history, if given.
+             */
+            var history: Boolean? = null,
+            /**
+             * The user has access to insert new objects.
+             */
+            var insert: Boolean? = null,
+            var update: Boolean? = null,
+            var delete: Boolean? = null
+    ) {
+        fun copyFrom(userAccess: UserAccess?) {
+            this.history = userAccess?.history
+            this.insert = userAccess?.insert
+            this.update = userAccess?.update
+            this.delete = userAccess?.delete
+        }
+        fun onlySelectAccess(): Boolean {
+            return (insert != true && update != true && delete != true)
+        }
+    }
+
     constructor(title: String) {
         this.title = LayoutUtils.getLabelTransformation(title)
     }
 
     var title: String?
+    /**
+     * UserAccess only for displaying purposes. The real user access will be definitely checked before persisting any
+     * data.
+     */
+    val userAccess = UserAccess()
+    /**
+     * Should only be true for edit pages, if history entries are supported or given (normally not, if editing new entries).
+     * Show history is only true, if userAccess.history is also true.
+     */
+    var showHistory: Boolean? = null
     val layout: MutableList<UIElement> = mutableListOf()
     val namedContainers: MutableList<UINamedContainer> = mutableListOf()
     /**
@@ -42,10 +74,21 @@ class UILayout {
 
     val pageMenu = mutableListOf<MenuItem>()
 
+    val watchFields = mutableListOf<String>()
+
     /**
      * All required translations for the frontend dependent on the logged-in-user's language.
      */
     val translations = mutableMapOf<String, String>()
+
+    /**
+     * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
+     * @return this for chaining.
+     */
+    fun addTranslations(translations: Map<String, String>): UILayout {
+        this.translations.putAll(translations)
+        return this
+    }
 
     /**
      * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
@@ -61,7 +104,7 @@ class UILayout {
      * @return this for chaining.
      */
     fun addTranslation(i18nKey: String, translation: String): UILayout {
-        translations.put(i18nKey, translate(translation))
+        translations.put(i18nKey, translation)
         return this
     }
 
@@ -98,7 +141,7 @@ class UILayout {
      * Convenient method for adding a bunch of UIInput fields with the given ids.
      * @param createRowCol If true (default), the elements will be surrounded with [UIRow] and [UICol] each, otherwise not.
      */
-    fun add(layoutSettings: LayoutContext, vararg ids: String, createRowCol: Boolean = true): UILayout {
+    fun add(layoutSettings: LayoutContext, vararg ids: String, createRowCol: Boolean = false): UILayout {
         ids.forEach {
             val element = LayoutUtils.buildLabelInputElement(layoutSettings, it)
             if (element != null) {
@@ -135,6 +178,10 @@ class UILayout {
         return getElementById(id) as UITextArea
     }
 
+    fun getLabelledElementById(id: String): UILabelledElement {
+        return getElementById(id) as UILabelledElement
+    }
+
     fun getNamedContainerById(id: String): UINamedContainer? {
         namedContainers.forEach {
             if (it.id == id) {
@@ -163,6 +210,7 @@ class UILayout {
                 is UIRow -> getElementById(id, it.content)
                 is UICol -> getElementById(id, it.content)
                 is UITable -> getElementById(id, it.columns)
+                is UIList -> getElementById(id, it.content)
                 else -> null
             }
             if (element != null)
@@ -191,6 +239,7 @@ class UILayout {
                     values.forEach { list.add(it) }
             }
             is UITable -> element.columns.forEach { list.add(it) }
+            is UIList -> addAllElements(list, element.content)
         }
     }
 }

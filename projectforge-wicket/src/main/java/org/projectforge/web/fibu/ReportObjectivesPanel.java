@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -136,13 +136,13 @@ public class ReportObjectivesPanel extends Panel
     } else {
       path.setVisible(false);
     }
-    final List<Report> childs = currentReport.getChilds();
+    final List<Report> children = currentReport.getChildren();
     childHeadColRepeater.removeAll();
-    if (CollectionUtils.isNotEmpty(childs) == true) {
-      for (final Report childReport : childs) {
+    if (CollectionUtils.isNotEmpty(children) == true) {
+      for (final Report childReport : children) {
         final WebMarkupContainer item = new WebMarkupContainer(childHeadColRepeater.newChildId());
         childHeadColRepeater.add(item);
-        if (childReport.hasChilds() == true) {
+        if (childReport.hasChildren() == true) {
           item.add(createReportLink("actionLink", reportStorage, childReport.getId()));
           item.add(new Label("childId", "[invisible]").setVisible(false));
         } else {

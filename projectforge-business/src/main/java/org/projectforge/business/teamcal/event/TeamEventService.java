@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,16 @@
 
 package org.projectforge.business.teamcal.event;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.ical.ICalHandler;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 public interface TeamEventService
 {
@@ -61,7 +61,7 @@ public interface TeamEventService
 
   void update(TeamEventDO event, boolean checkAccess);
 
-  List<TeamEvent> getEventList(TeamEventFilter filter, boolean calculateRecurrenceEvents);
+  List<ICalendarEvent> getEventList(TeamEventFilter filter, boolean calculateRecurrenceEvents);
 
   List<TeamEventDO> getTeamEventDOList(TeamEventFilter filter);
 

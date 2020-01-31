@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,28 +26,21 @@ package org.projectforge.calendar;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.test.TestSetup;
 
 import java.math.BigDecimal;
+import java.time.Month;
 import java.util.Calendar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Deprecated
 public class DayHolderTest {
   @BeforeAll
   static void beforeAll() {
     TestSetup.init();
-  }
-
-  @Test
-  public void testDayHolder() {
-    final DayHolder day = new DayHolder();
-    assertFields(day);
-    final DateHolder dh = day.clone();
-    assertFields(dh);
   }
 
   @Test
@@ -59,20 +52,20 @@ public class DayHolderTest {
   @Test
   public void testGetNumberOfWorkingDays() {
     final DayHolder fromDay = new DayHolder();
-    fromDay.setDate(2009, Calendar.JANUARY, 1, 0, 0, 0);
+    fromDay.setDate(2009, Month.JANUARY, 1);
     final DayHolder toDay = new DayHolder();
-    toDay.setDate(2009, Calendar.JANUARY, 31, 0, 0, 0);
+    toDay.setDate(2009, Month.JANUARY, 31);
     assertBigDecimal(21, DayHolder.getNumberOfWorkingDays(fromDay, toDay));
-    toDay.setDate(2009, Calendar.FEBRUARY, 28, 0, 0, 0);
+    toDay.setDate(2009, Month.FEBRUARY, 28);
     assertBigDecimal(41, DayHolder.getNumberOfWorkingDays(fromDay, toDay));
   }
 
   @Test
   public void testGetNumberOfWorkingDaysOneDay() {
     final DayHolder fromDay = new DayHolder();
-    fromDay.setDate(2009, Calendar.JANUARY, 5, 0, 0, 0);
+    fromDay.setDate(2009, Month.JANUARY, 5);
     final DayHolder toDay = new DayHolder();
-    toDay.setDate(2009, Calendar.JANUARY, 5, 0, 0, 0);
+    toDay.setDate(2009, Month.JANUARY, 5);
     assertBigDecimal(1, DayHolder.getNumberOfWorkingDays(fromDay, toDay));
   }
 
@@ -81,27 +74,20 @@ public class DayHolderTest {
   @Disabled
   public void testGetNumberOfWorkingDaysChristmas() {
     final DayHolder fromDay = new DayHolder();
-    fromDay.setDate(2009, Calendar.DECEMBER, 24, 0, 0, 0);
+    fromDay.setDate(2009, Month.DECEMBER, 24);
     final DayHolder toDay = new DayHolder();
-    toDay.setDate(2009, Calendar.DECEMBER, 24, 0, 0, 0);
+    toDay.setDate(2009, Month.DECEMBER, 24);
     assertBigDecimal(1.5, DayHolder.getNumberOfWorkingDays(fromDay, toDay));
   }
 
   @Test
   public void testAdd() {
     final DayHolder day = new DayHolder();
-    day.setDate(2008, Calendar.JANUARY, 1, 0, 0, 0);
+    day.setDate(2008, Month.JANUARY, 1);
     day.add(Calendar.DAY_OF_YEAR, -1);
     assertEquals(day.getYear(), 2007);
-    assertEquals(day.getMonth(), Calendar.DECEMBER);
+    assertEquals(day.getMonth(), Month.DECEMBER);
     assertEquals(day.getDayOfMonth(), 31);
-  }
-
-  private void assertFields(final DateHolder day) {
-    assertEquals(0, day.getHourOfDay(), "Hours of day should be 0");
-    assertEquals(0, day.getMinute(), "Minutes should be 0");
-    assertEquals(0, day.getSecond(), "Seconds should be 0");
-    assertEquals(0, day.getMilliSecond(), "Millis should be 0");
   }
 
   private void assertBigDecimal(final double expected, final BigDecimal value) {

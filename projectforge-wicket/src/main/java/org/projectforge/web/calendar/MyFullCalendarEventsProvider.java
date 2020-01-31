@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -45,7 +45,7 @@ public abstract class MyFullCalendarEventsProvider implements EventProvider
 {
   private static final long serialVersionUID = 4530847672654878127L;
 
-  protected final Map<String, Event> events = new HashMap<String, Event>();
+  protected final Map<String, Event> events = new HashMap<>();
 
   protected DateTime lastStart, lastEnd;
 

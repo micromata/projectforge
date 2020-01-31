@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,20 +23,16 @@
 
 package org.projectforge.plugins.plugintemplate;
 
+import java.util.List;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.plugintemplate.repository.PluginTemplateDao;
-import org.projectforge.plugins.plugintemplate.rest.PluginTemplateRest;
 import org.projectforge.plugins.plugintemplate.service.PluginTemplateService;
 import org.projectforge.plugins.plugintemplate.wicket.PluginTemplateListPage;
-import org.projectforge.rest.config.RestPrivateConfiguration;
-import org.projectforge.web.MenuItemRegistry;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
 
 /**
  * @author Florian Blumenstein
@@ -50,13 +46,7 @@ public class PluginTemplatePlugin extends AbstractPlugin {
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
   @Autowired
-  private MenuItemRegistry menuItemRegistry;
-
-  @Autowired
   private PluginTemplateService pluginTemplateService;
-
-  @Autowired
-  private RestPrivateConfiguration jerseyConfiguration;
 
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
@@ -70,9 +60,6 @@ public class PluginTemplatePlugin extends AbstractPlugin {
 
     // Register the web part:
     pluginWicketRegistrationService.registerWeb(ID);
-
-    //Register the Rest Service
-    jerseyConfiguration.register(PluginTemplateRest.class);
 
     pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC,
             MenuItemDef.create("plugintemplate", "plugins.plugintemplate.submenu.plugintemplate.list"),

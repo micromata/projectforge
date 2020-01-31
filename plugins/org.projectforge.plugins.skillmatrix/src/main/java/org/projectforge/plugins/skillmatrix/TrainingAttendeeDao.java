@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,30 +23,28 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.util.List;
-
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * This is the base data access object class. Most functionality such as access checking, select, insert, update, save,
  * delete etc. is implemented by the super class.
- * 
+ *
  * @author Werner Feder (werner.feder@t-online.de)
  */
 @Repository
-public class TrainingAttendeeDao extends BaseDao<TrainingAttendeeDO>
-{
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "trainingAttendee.firstname",
-      "trainingAttendee.lastname", "trainingAttendee.username", "training.title",
-      "training.skill.title", "rating", "certificate" };
+public class TrainingAttendeeDao extends BaseDao<TrainingAttendeeDO> {
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"trainingAttendee.firstname",
+          "trainingAttendee.lastname", "trainingAttendee.username", "training.title",
+          "training.skill.title"};
 
   @Autowired
   private TrainingDao trainingDao;
@@ -54,49 +52,41 @@ public class TrainingAttendeeDao extends BaseDao<TrainingAttendeeDO>
   @Autowired
   private UserDao userDao;
 
-  public TrainingAttendeeDao()
-  {
+  public TrainingAttendeeDao() {
     super(TrainingAttendeeDO.class);
     userRightId = SkillmatrixPluginUserRightId.PLUGIN_SKILL_MATRIX_TRAINING_ATTENDEE;
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
   @Override
-  public TrainingAttendeeDO newInstance()
-  {
+  public TrainingAttendeeDO newInstance() {
     return new TrainingAttendeeDO();
   }
 
-  public TrainingDao getTraingDao()
-  {
+  public TrainingDao getTraingDao() {
     return trainingDao;
   }
 
-  public TrainingAttendeeDao setTraingDao(final TrainingDao trainingDao)
-  {
+  public TrainingAttendeeDao setTraingDao(final TrainingDao trainingDao) {
     this.trainingDao = trainingDao;
     return this;
   }
 
-  public UserDao getUserDao()
-  {
+  public UserDao getUserDao() {
     return userDao;
   }
 
-  public TrainingAttendeeDao setUserDao(final UserDao userDao)
-  {
+  public TrainingAttendeeDao setUserDao(final UserDao userDao) {
     this.userDao = userDao;
     return this;
   }
 
   @Override
-  public List<TrainingAttendeeDO> getList(final BaseSearchFilter filter)
-  {
+  public List<TrainingAttendeeDO> getList(final BaseSearchFilter filter) {
     final TrainingAttendeeFilter myFilter;
     if (filter instanceof TrainingAttendeeFilter) {
       myFilter = (TrainingAttendeeFilter) filter;
@@ -109,14 +99,14 @@ public class TrainingAttendeeDao extends BaseDao<TrainingAttendeeDO>
     if (myFilter.getAttendeeId() != null) {
       final PFUserDO attendee = new PFUserDO();
       attendee.setId(myFilter.getAttendeeId());
-      queryFilter.add(Restrictions.eq("trainingAttendee", attendee));
+      queryFilter.add(QueryFilter.eq("trainingAttendee", attendee));
     }
     if (myFilter.getTrainingId() != null) {
       final TrainingDO training = new TrainingDO();
       training.setId(myFilter.getTrainingId());
-      queryFilter.add(Restrictions.eq("training", training));
+      queryFilter.add(QueryFilter.eq("training", training));
     }
-    queryFilter.addOrder(Order.desc("created"));
+    queryFilter.addOrder(SortProperty.desc("created"));
     final List<TrainingAttendeeDO> list = getList(queryFilter);
     myFilter.setSearchString(searchString); // Restore search string.
     return list;

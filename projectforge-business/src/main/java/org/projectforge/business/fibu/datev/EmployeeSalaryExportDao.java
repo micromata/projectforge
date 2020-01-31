@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,35 +23,12 @@
 
 package org.projectforge.business.fibu.datev;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.poi.hssf.util.HSSFColor;
-import org.projectforge.business.excel.CellFormat;
-import org.projectforge.business.excel.ContentProvider;
-import org.projectforge.business.excel.ExportCell;
-import org.projectforge.business.excel.ExportRow;
-import org.projectforge.business.excel.ExportSheet;
-import org.projectforge.business.excel.ExportWorkbook;
-import org.projectforge.business.excel.PropertyMapping;
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.EmployeeDao;
-import org.projectforge.business.fibu.EmployeeFilter;
-import org.projectforge.business.fibu.EmployeeSalaryDO;
-import org.projectforge.business.fibu.MonthlyEmployeeReport;
+import org.projectforge.business.excel.*;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.MonthlyEmployeeReport.Kost2Row;
-import org.projectforge.business.fibu.MonthlyEmployeeReportDao;
-import org.projectforge.business.fibu.MonthlyEmployeeReportEntry;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.multitenancy.TenantRegistry;
@@ -62,13 +39,18 @@ import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.CurrencyHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Month;
+import java.util.*;
 
 /**
  * For excel export of employee salaries for import in Datev.
@@ -76,128 +58,42 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-@Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
-public class EmployeeSalaryExportDao
-{
+public class EmployeeSalaryExportDao {
   public static final int KONTO = 6000;
 
   public static final int GEGENKONTO = 3791;
-
-  private class MyContentProvider extends MyXlsContentProvider
-  {
-    public MyContentProvider(final ExportWorkbook workbook)
-    {
-      super(workbook);
-    }
-
-    @Override
-    public MyContentProvider updateRowStyle(final ExportRow row)
-    {
-      for (final ExportCell cell : row.getCells()) {
-        final CellFormat format = cell.ensureAndGetCellFormat();
-        format.setFillForegroundColor(HSSFColor.WHITE.index);
-        switch (row.getRowNum()) {
-          case 0:
-            format.setFont(FONT_NORMAL_BOLD);
-            // alignment = CellStyle.ALIGN_CENTER;
-            break;
-          default:
-            format.setFont(FONT_NORMAL);
-            if (row.getRowNum() % 2 == 0) {
-              format.setFillForegroundColor(HSSFColor.GREY_25_PERCENT.index);
-            }
-            break;
-        }
-      }
-      return this;
-    }
-
-    @Override
-    public ContentProvider newInstance()
-    {
-      return new MyContentProvider(this.workbook);
-    }
-  }
-
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeSalaryExportDao.class);
-
   @Autowired
   private MonthlyEmployeeReportDao monthlyEmployeeReportDao;
-
   @Autowired
   private EmployeeDao employeeDao;
-
-  private enum ExcelColumn
-  {
-    KOST1("fibu.kost1", MyXlsContentProvider.LENGTH_KOSTENTRAEGER), MITARBEITER("fibu.employee",
-      MyXlsContentProvider.LENGTH_USER), STUNDEN(
-      "hours", MyXlsContentProvider.LENGTH_DURATION), KOST2("fibu.kost2",
-      MyXlsContentProvider.LENGTH_KOSTENTRAEGER), BRUTTO_MIT_AG(
-      "fibu.employee.salary.bruttoMitAgAnteil",
-      MyXlsContentProvider.LENGTH_CURRENCY), KORREKTUR("fibu.common.korrekturWert",
-      MyXlsContentProvider.LENGTH_CURRENCY), SUMME("sum",
-      MyXlsContentProvider.LENGTH_CURRENCY), BEZEICHNUNG("description",
-      MyXlsContentProvider.LENGTH_EXTRA_LONG), DATUM("date",
-      MyXlsContentProvider.LENGTH_DATE), KONTO("fibu.buchungssatz.konto", 14), GEGENKONTO(
-      "fibu.buchungssatz.gegenKonto", 14);
-
-    final String theTitle;
-
-    final int width;
-
-    final static ExcelColumn START = KOST1;
-
-    final static ExcelColumn END = GEGENKONTO;
-
-    ExcelColumn(final String theTitle, final int width)
-    {
-      this.theTitle = theTitle;
-      this.width = (short) width;
-    }
-  }
 
   /**
    * Exports the filtered list as table with almost all fields.
    */
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
-  public byte[] export(final List<EmployeeSalaryDO> list)
-  {
+  public byte[] export(final List<EmployeeSalaryDO> list) {
     log.info("Exporting employee salary list.");
     Validate.notEmpty(list);
-    Collections.sort(list, new Comparator<EmployeeSalaryDO>()
-    {
-      @Override
-      public int compare(final EmployeeSalaryDO o1, final EmployeeSalaryDO o2)
-      {
-        return (o1.getEmployee().getUser().getFullname()).compareTo(o2.getEmployee().getUser().getFullname());
-      }
-    });
+    list.sort(Comparator.comparing(o2 -> (o2.getEmployee().getUser().getFullname())));
     final EmployeeFilter filter = new EmployeeFilter();
     filter.setShowOnlyActiveEntries(true);
     filter.setDeleted(false);
     final List<EmployeeDO> employees = employeeDao.getList(filter);
-    final List<EmployeeDO> missedEmployees = new ArrayList<EmployeeDO>();
+    final List<EmployeeDO> missedEmployees = new ArrayList<>();
     for (final EmployeeDO employee : employees) {
       boolean found = false;
       for (final EmployeeSalaryDO salary : list) {
-        if (salary.getEmployeeId().equals(employee.getId()) == true) {
+        if (salary.getEmployeeId().equals(employee.getId())) {
           found = true;
           break;
         }
       }
-      if (found == false) {
+      if (!found) {
         missedEmployees.add(employee);
       }
     }
-    if (CollectionUtils.isNotEmpty(missedEmployees) == true) {
-      Collections.sort(missedEmployees, new Comparator<EmployeeDO>()
-      {
-        @Override
-        public int compare(final EmployeeDO o1, final EmployeeDO o2)
-        {
-          return (o1.getUser().getFullname()).compareTo(o2.getUser().getFullname());
-        }
-      });
+    if (CollectionUtils.isNotEmpty(missedEmployees)) {
+      missedEmployees.sort(Comparator.comparing(o -> (o.getUser().getFullname())));
     }
     final ExportWorkbook xls = new ExportWorkbook();
     final ContentProvider contentProvider = new MyContentProvider(xls);
@@ -206,14 +102,13 @@ public class EmployeeSalaryExportDao
 
     final EmployeeSalaryDO first = list.get(0);
     final int year = first.getYear();
-    final int month = first.getMonth();
-    final DayHolder buchungsdatum = new DayHolder();
-    buchungsdatum.setDate(year, month, 1);
-    final MonthHolder monthHolder = new MonthHolder(buchungsdatum.getDate());
+    final Integer month = first.getMonth();
+    PFDay buchungsdatum = PFDay.withDate(year, month, 1);
+    final MonthHolder monthHolder = new MonthHolder(buchungsdatum.getUtilDate());
     final BigDecimal numberOfWorkingDays = monthHolder.getNumberOfWorkingDays();
-    buchungsdatum.setEndOfMonth();
+    buchungsdatum = buchungsdatum.getEndOfMonth();
 
-    final String sheetTitle = DateHelper.formatMonth(year, month);
+    final String sheetTitle = DateHelper.formatMonth(year,month);
     final ExportSheet sheet = xls.addSheet(sheetTitle);
     sheet.createFreezePane(0, 1);
 
@@ -300,9 +195,9 @@ public class EmployeeSalaryExportDao
         mapping.add(ExcelColumn.STUNDEN, duration.divide(new BigDecimal(3600), 2, RoundingMode.HALF_UP));
         mapping.add(ExcelColumn.BEZEICHNUNG, kost2.getToolTip());
         final BigDecimal betrag;
-        if (NumberHelper.isNotZero(netDuration) == true) {
+        if (NumberHelper.isNotZero(netDuration)) {
           betrag = CurrencyHelper.multiply(bruttoMitAGAnteil,
-              new BigDecimal(entry.getMillis()).divide(netDuration, 8, RoundingMode.HALF_UP));
+                  new BigDecimal(entry.getMillis()).divide(netDuration, 8, RoundingMode.HALF_UP));
         } else {
           betrag = BigDecimal.ZERO;
         }
@@ -311,7 +206,7 @@ public class EmployeeSalaryExportDao
           final BigDecimal korrektur = bruttoMitAGAnteil.subtract(sum);
           mapping.add(ExcelColumn.BRUTTO_MIT_AG, betrag.add(korrektur));
           mapping.add(ExcelColumn.KORREKTUR, korrektur);
-          if (NumberHelper.isEqual(sum.add(korrektur), bruttoMitAGAnteil) == true) {
+          if (NumberHelper.isEqual(sum.add(korrektur), bruttoMitAGAnteil)) {
             mapping.add(ExcelColumn.SUMME, bruttoMitAGAnteil);
           } else {
             mapping.add(ExcelColumn.SUMME, "*** " + sum + " != " + bruttoMitAGAnteil);
@@ -321,7 +216,7 @@ public class EmployeeSalaryExportDao
           mapping.add(ExcelColumn.KORREKTUR, "");
           mapping.add(ExcelColumn.SUMME, "");
         }
-        mapping.add(ExcelColumn.DATUM, buchungsdatum.getCalendar()); // Last day of month
+        mapping.add(ExcelColumn.DATUM, buchungsdatum); // Last day of month
         mapping.add(ExcelColumn.KONTO, KONTO); // constant.
         mapping.add(ExcelColumn.GEGENKONTO, GEGENKONTO); // constant.
         sheet.addRow(mapping.getMapping(), 0);
@@ -352,8 +247,7 @@ public class EmployeeSalaryExportDao
   }
 
   private void addEmployeeRow(final ExportSheet sheet, final EmployeeDO employee, final BigDecimal numberOfWorkingDays, final BigDecimal totalDuration,
-      final MonthlyEmployeeReport report)
-  {
+                              final MonthlyEmployeeReport report) {
     final PFUserDO user = getUserGroupCache().getUser(employee.getUserId());
     final ExportRow row = sheet.addRow();
     row.addCell(0, user.getFullname());
@@ -365,7 +259,7 @@ public class EmployeeSalaryExportDao
       wochenstunden = BigDecimal.ZERO;
     }
     final BigDecimal soll = wochenstunden.multiply(numberOfWorkingDays).divide(new BigDecimal(5), 2,
-        RoundingMode.HALF_UP);
+            RoundingMode.HALF_UP);
     row.addCell(2, soll, "STUNDEN");
     // Iststunden
     final BigDecimal total = totalDuration.divide(new BigDecimal(3600000), 2, RoundingMode.HALF_UP);
@@ -377,13 +271,67 @@ public class EmployeeSalaryExportDao
     row.addCell(6, report.getFormattedUnbookedDays());
   }
 
-  public TenantRegistry getTenantRegistry()
-  {
+  public TenantRegistry getTenantRegistry() {
     return TenantRegistryMap.getInstance().getTenantRegistry();
   }
 
-  public UserGroupCache getUserGroupCache()
-  {
+  public UserGroupCache getUserGroupCache() {
     return getTenantRegistry().getUserGroupCache();
+  }
+
+  private enum ExcelColumn {
+    KOST1("fibu.kost1", MyXlsContentProvider.LENGTH_KOSTENTRAEGER), MITARBEITER("fibu.employee",
+            MyXlsContentProvider.LENGTH_USER), STUNDEN(
+            "hours", MyXlsContentProvider.LENGTH_DURATION), KOST2("fibu.kost2",
+            MyXlsContentProvider.LENGTH_KOSTENTRAEGER), BRUTTO_MIT_AG(
+            "fibu.employee.salary.bruttoMitAgAnteil",
+            MyXlsContentProvider.LENGTH_CURRENCY), KORREKTUR("fibu.common.korrekturWert",
+            MyXlsContentProvider.LENGTH_CURRENCY), SUMME("sum",
+            MyXlsContentProvider.LENGTH_CURRENCY), BEZEICHNUNG("description",
+            MyXlsContentProvider.LENGTH_EXTRA_LONG), DATUM("date",
+            MyXlsContentProvider.LENGTH_DATE), KONTO("fibu.buchungssatz.konto", 14), GEGENKONTO(
+            "fibu.buchungssatz.gegenKonto", 14);
+
+    final static ExcelColumn START = KOST1;
+    final static ExcelColumn END = GEGENKONTO;
+    final String theTitle;
+    final int width;
+
+    ExcelColumn(final String theTitle, final int width) {
+      this.theTitle = theTitle;
+      this.width = (short) width;
+    }
+  }
+
+  private class MyContentProvider extends MyXlsContentProvider {
+    public MyContentProvider(final ExportWorkbook workbook) {
+      super(workbook);
+    }
+
+    @Override
+    public MyContentProvider updateRowStyle(final ExportRow row) {
+      for (final ExportCell cell : row.getCells()) {
+        final CellFormat format = cell.ensureAndGetCellFormat();
+        format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
+        switch (row.getRowNum()) {
+          case 0:
+            format.setFont(FONT_NORMAL_BOLD);
+            // alignment = CellStyle.ALIGN_CENTER;
+            break;
+          default:
+            format.setFont(FONT_NORMAL);
+            if (row.getRowNum() % 2 == 0) {
+              format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.GREY_25_PERCENT.getIndex());
+            }
+            break;
+        }
+      }
+      return this;
+    }
+
+    @Override
+    public ContentProvider newInstance() {
+      return new MyContentProvider(this.workbook);
+    }
   }
 }

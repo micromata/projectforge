@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,18 @@
 
 package org.projectforge.export;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.projectforge.Const;
+import org.projectforge.business.excel.ExcelImport;
+import org.projectforge.business.fibu.*;
+import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.test.AbstractTestBase;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -32,20 +44,6 @@ import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.projectforge.business.excel.ExcelImport;
-import org.projectforge.business.fibu.AuftragDO;
-import org.projectforge.business.fibu.AuftragsStatus;
-import org.projectforge.business.fibu.KundeDO;
-import org.projectforge.business.fibu.OrderExport;
-import org.projectforge.business.fibu.PaymentScheduleDO;
-import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.test.AbstractTestBase;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 public class OrderExportTest extends AbstractTestBase
 {
@@ -57,7 +55,7 @@ public class OrderExportTest extends AbstractTestBase
   {
     List<AuftragDO> auftragDOList = new ArrayList<>();
 
-    I18nHelper.addBundleName("I18nResources");
+    I18nHelper.addBundleName(Const.RESOURCE_BUNDLE_NAME);
 
     AuftragDO e = new AuftragDO();
     e.setAngebotsDatum(new Date(new java.util.Date().getTime()));
@@ -78,15 +76,15 @@ public class OrderExportTest extends AbstractTestBase
     ExcelImport excelImport = new ExcelImport(new ByteArrayInputStream(export));
     for (Row row : excelImport.getWorkbook().getSheetAt(0)) {
       for (Cell cell : row) {
-        if (cell.toString().equals("02-Okt-2020")) {
+        if (cell.toString().equals("02-Oct-2020")) {
           hasperformaceBegin = true;
         }
 
-        if (cell.toString().equals("02-Okt-2030")) {
+        if (cell.toString().equals("02-Oct-2030")) {
           hasPerformanceEnd = true;
         }
 
-        if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim()
+        if (cell.getCellTypeEnum() == CellType.STRING && cell.getRichStringCellValue().getString().trim()
             .equals("TESTBESCHREIBUNG")) {
           hasStatusBeschreibung = true;
         }
@@ -102,7 +100,7 @@ public class OrderExportTest extends AbstractTestBase
   {
     List<AuftragDO> auftragDOList = new ArrayList<>();
 
-    I18nHelper.addBundleName("I18nResources");
+    I18nHelper.addBundleName(Const.RESOURCE_BUNDLE_NAME);
 
     AuftragDO e = new AuftragDO();
     e.setAngebotsDatum(new Date(new java.util.Date().getTime()));
@@ -149,40 +147,40 @@ public class OrderExportTest extends AbstractTestBase
     ExcelImport excelImport = new ExcelImport(new ByteArrayInputStream(export));
     for (Row row : excelImport.getWorkbook().getSheetAt(2)) {
       for (Cell cell : row) {
-        if (cell.toString().equals("02-Okt-2020")) {
+        if (cell.toString().equals("02-Oct-2020")) {
           hasFirstScheduleDate = true;
         }
 
-        if (cell.toString().equals("02-Okt-2030")) {
+        if (cell.toString().equals("02-Oct-2030")) {
           hasSecondScheduleDate = true;
         }
 
-        if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim()
+        if (cell.getCellTypeEnum() == CellType.STRING && cell.getRichStringCellValue().getString().trim()
             .equals("SCHEDULE1")) {
           hasCommentfirstSchedule = true;
         }
 
-        if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim()
+        if (cell.getCellTypeEnum() == CellType.STRING && cell.getRichStringCellValue().getString().trim()
             .equals("SCHEDULE2")) {
           hasCommentSecondSchedule = true;
         }
 
-        if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().toString().trim()
+        if (cell.getCellTypeEnum() == CellType.STRING && cell.getRichStringCellValue().toString().trim()
             .equals("#2") && excelImport.getWorkbook().getSheetAt(2).getRow(2) == row) {
           hasScheduleNumber = true;
         }
 
-        if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim()
+        if (cell.getCellTypeEnum() == CellType.STRING && cell.getRichStringCellValue().getString().trim()
             .equals("x")) {
           hasSetBoolean = true;
         }
 
-        if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC && cell.toString().trim()
+        if (cell.getCellTypeEnum() == CellType.NUMERIC && cell.toString().trim()
             .equals("111.0")) {
           hasAmount1 = true;
         }
 
-        if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC && cell.toString().trim()
+        if (cell.getCellTypeEnum() == CellType.NUMERIC && cell.toString().trim()
             .equals("222.0")) {
           hasAmount2 = true;
         }

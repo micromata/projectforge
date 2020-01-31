@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,30 +23,13 @@
 
 package org.projectforge.plugins.ffp.wicket;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DefaultDataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.html.form.Button;
@@ -76,18 +59,14 @@ import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.TablePanel;
+import org.projectforge.web.wicket.components.*;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.*;
 
 public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditPage>
 {
@@ -176,7 +155,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
           DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
       eventDate.setRequired(true);
       eventDate.setMarkupId("eventDate").setOutputMarkupId(true);
-      eventDate.setEnabled(getData().getFinished() == false);
+      eventDate.setEnabled(!getData().getFinished());
       fs.add(eventDate);
     }
     {
@@ -186,7 +165,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
           new PropertyModel<>(data, "title"));
       titel.setRequired(true);
       titel.setMarkupId("eventTitel").setOutputMarkupId(true);
-      titel.setEnabled(getData().getFinished() == false);
+      titel.setEnabled(!getData().getFinished());
       fs.add(titel);
     }
     {
@@ -215,9 +194,9 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
         }
       }
 
-      final Select2MultiChoice<PFUserDO> attendees = new Select2MultiChoice<PFUserDO>(
+      final Select2MultiChoice<PFUserDO> attendees = new Select2MultiChoice<>(
           fieldSet.getSelect2MultiChoiceId(),
-          new PropertyModel<Collection<PFUserDO>>(this.assignAttendeesListHelper, "assignedItems"),
+          new PropertyModel<>(this.assignAttendeesListHelper, "assignedItems"),
           new UsersProvider(userDao));
       attendees.setRequired(true).setMarkupId("attendees").setOutputMarkupId(true);
       attendees.add(new AjaxEventBehavior(OnChangeAjaxBehavior.EVENT_NAME)
@@ -250,7 +229,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
           }
         }
       });
-      attendees.setEnabled(getData().getFinished() == false);
+      attendees.setEnabled(!getData().getFinished());
       formValidator.getDependentFormComponents()[0] = attendees;
       fieldSet.add(attendees);
     }
@@ -259,7 +238,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
     createDataTable(gridBuilder);
 
     {
-      Button finishButton = new Button("button", new Model<String>("plugins.ffp.finishEvent"))
+      Button finishButton = new Button("button", new Model<>("plugins.ffp.finishEvent"))
       {
         @Override
         public final void onSubmit()
@@ -296,7 +275,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
         finishButtonPanel.setVisible(false);
       }
     }
-    if (getData().getFinished() == false && getData().getOrganizer() != null && currentUser != null
+    if (!getData().getFinished() && getData().getOrganizer() != null && currentUser != null
         && getData().getOrganizer().getId().equals(currentUser.getId())) {
       finishButtonPanel.setVisible(true);
     }
@@ -322,7 +301,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       final String sortProperty, final SortOrder sortOrder, final FFPEventDO event)
   {
     final SortParam<String> sortParam = sortProperty != null
-        ? new SortParam<String>(sortProperty, sortOrder == SortOrder.ASCENDING) : null;
+        ? new SortParam<>(sortProperty, sortOrder == SortOrder.ASCENDING) : null;
     DefaultDataTable<FFPAccountingDO, String> localDataTable = new DefaultDataTable<>(TablePanel.TABLE_ID, columns,
         createSortableDataProvider(sortParam, event), 50);
     localDataTable.setOutputMarkupId(true);
@@ -371,7 +350,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
             found = true;
           }
         }
-        if (found == false) {
+        if (!found) {
           toRemove.add(acc);
         }
       });
@@ -393,7 +372,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
   private List<IColumn<FFPAccountingDO, String>> createColumns()
   {
     final List<IColumn<FFPAccountingDO, String>> columns = new ArrayList<>();
-    columns.add(new PropertyColumn<FFPAccountingDO, String>(new ResourceModel("name"), "attendee.fullname"));
+    columns.add(new PropertyColumn<>(new ResourceModel("name"), "attendee.fullname"));
     columns.add(new CellItemListenerPropertyColumn<FFPAccountingDO>(FFPAccountingDO.class, "plugins.ffp.value", "value", null)
     {
       private static final long serialVersionUID = 3672950740712610620L;
@@ -402,12 +381,12 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       public void populateItem(Item<ICellPopulator<FFPAccountingDO>> item, String componentId,
           IModel<FFPAccountingDO> rowModel)
       {
-        MinMaxNumberField<BigDecimal> field = new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
+        MinMaxNumberField<BigDecimal> field = new MinMaxNumberField<>(InputPanel.WICKET_ID,
             new PropertyModel<>(rowModel.getObject(), "value"),
             new BigDecimal(0), new BigDecimal(Integer.MAX_VALUE));
         field.setRequired(true);
         InputPanel input = new InputPanel(componentId, field);
-        input.setEnabled(rowModel.getObject().getEvent().getFinished() == false);
+        input.setEnabled(!rowModel.getObject().getEvent().getFinished());
         item.add(input);
       }
 
@@ -420,12 +399,12 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       public void populateItem(Item<ICellPopulator<FFPAccountingDO>> item, String componentId,
           IModel<FFPAccountingDO> rowModel)
       {
-        MinMaxNumberField field = new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
+        MinMaxNumberField field = new MinMaxNumberField<>(InputPanel.WICKET_ID,
             new PropertyModel<>(rowModel.getObject(), "weighting"),
             new BigDecimal(0), new BigDecimal(Integer.MAX_VALUE));
         field.setRequired(true);
         InputPanel input = new InputPanel(componentId, field);
-        input.setEnabled(rowModel.getObject().getEvent().getFinished() == false);
+        input.setEnabled(!rowModel.getObject().getEvent().getFinished());
         item.add(input);
       }
 
@@ -441,7 +420,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
         InputPanel input = new InputPanel(componentId,
             new MaxLengthTextField(InputPanel.WICKET_ID,
                 new PropertyModel<>(rowModel.getObject(), "comment")));
-        input.setEnabled(rowModel.getObject().getEvent().getFinished() == false);
+        input.setEnabled(!rowModel.getObject().getEvent().getFinished());
         item.add(input);
       }
 
@@ -489,7 +468,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
     public FFPAccountingPageSortableDataProvider<T> setCompleteList(final List<FFPAccountingDO> completeList)
     {
       this.completeList = completeList;
-      this.idList = new LinkedList<Serializable>();
+      this.idList = new LinkedList<>();
       if (this.completeList != null) {
         sortList(this.completeList);
         for (final FFPAccountingDO entry : completeList) {
@@ -506,7 +485,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
         this.completeList = null; // Force to load all elements from data-base (avoid lazy initialization exceptions).
       }
       final SortParam<String> sp = getSort();
-      if (Objects.equals(sortParam, sp) == false) {
+      if (!Objects.equals(sortParam, sp)) {
         // The sort parameters were changed, force reload from data-base:
         reloadList();
       }
@@ -527,7 +506,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
         if (toIndex > idList.size()) {
           toIndex = idList.size();
         }
-        result = new LinkedList<FFPAccountingDO>();
+        result = new LinkedList<>();
         for (final FFPAccountingDO entry : completeList.subList(fromIndex, toIndex)) {
           result.add(entry);
         }
@@ -551,7 +530,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       final boolean ascending = sortParam != null ? sortParam.isAscending() : true;
       final String secondSortProperty = secondSortParam != null ? secondSortParam.getProperty() : null;
       final boolean secondAscending = secondSortParam != null ? secondSortParam.isAscending() : true;
-      return new MyBeanComparator<FFPAccountingDO>(sortProperty, ascending, secondSortProperty, secondAscending);
+      return new MyBeanComparator<>(sortProperty, ascending, secondSortProperty, secondAscending);
     }
 
     /**
@@ -574,12 +553,12 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
     private void sortList(final List<FFPAccountingDO> list)
     {
       final SortParam<String> sp = getSort();
-      if (sp != null && "NOSORT".equals(sp.getProperty()) == false) {
-        if (this.sortParam != null && StringUtils.equals(this.sortParam.getProperty(), sp.getProperty()) == false) {
+      if (sp != null && !"NOSORT".equals(sp.getProperty())) {
+        if (this.sortParam != null && !StringUtils.equals(this.sortParam.getProperty(), sp.getProperty())) {
           this.secondSortParam = this.sortParam;
         }
         final Comparator<FFPAccountingDO> comp = getComparator(sp, secondSortParam);
-        Collections.sort(list, comp);
+        list.sort(comp);
       }
       this.sortParam = sp;
     }
@@ -587,7 +566,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
     @Override
     public IModel<FFPAccountingDO> model(final FFPAccountingDO object)
     {
-      return new Model<FFPAccountingDO>(object);
+      return new Model<>(object);
     }
 
     /**

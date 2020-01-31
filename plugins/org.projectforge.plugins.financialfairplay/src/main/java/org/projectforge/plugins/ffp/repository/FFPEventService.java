@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,13 @@
 
 package org.projectforge.plugins.ffp.repository;
 
-import java.util.List;
-
 import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.IPersistenceService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.ffp.model.FFPDebtDO;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
+
+import java.util.List;
 
 /**
  * Access to ffp event.

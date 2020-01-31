@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,6 +29,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.SystemAlertMessage;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
@@ -47,9 +48,9 @@ import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.web.WebConfiguration;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
@@ -77,7 +78,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   private SystemService systemService;
 
   @SpringBean
-  private DatabaseService myDatabaseUpdater;
+  private DatabaseService databaseService;
 
   @SpringBean
   private HibernateSearchReindexer hibernateSearchReindexer;
@@ -93,9 +94,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 
   @SpringBean
   private PfEmgrFactory emf;
-
-  @SpringBean
-  MenuCreator menuCreator;
 
   @SpringBean
   PluginAdminService pluginAdminService;
@@ -378,7 +376,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     if (result != null) {
       result = result.replaceAll("\n", "<br/>\n");
     }
-    menuCreator.refresh();
+    WicketSupport.getMenuCreator().refresh();
     setResponsePage(new MessagePage("administration.rereadConfiguration", result));
   }
 
@@ -543,14 +541,14 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void setAlertMessage() {
     log.info("Admin user has set the alert message: \"" + form.alertMessage + "\"");
     checkAccess();
-    WicketApplication.setAlertMessage(form.alertMessage);
+    SystemAlertMessage.INSTANCE.setAlertMessage(form.alertMessage);
   }
 
   protected void clearAlertMessage() {
     log.info("Admin user has cleared the alert message.");
     checkAccess();
     form.alertMessage = null;
-    WicketApplication.setAlertMessage(form.alertMessage);
+    SystemAlertMessage.INSTANCE.setAlertMessage(null);
   }
 
   protected void updateUserPrefs() {
@@ -566,7 +564,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void createMissingDatabaseIndices() {
     log.info("Administration: create missing data base indices.");
     accessChecker.checkRestrictedOrDemoUser();
-    final int counter = myDatabaseUpdater.createMissingIndices();
+    final int counter = databaseService.createMissingIndices();
     setResponsePage(new MessagePage("administration.missingDatabaseIndicesCreated", String.valueOf(counter)));
   }
 
@@ -581,7 +579,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     final List<BookDO> list = new ArrayList<BookDO>();
     int number = 1;
-    while (myDatabaseUpdater
+    while (databaseService
             .queryForInt("select count(*) from t_book where title like 'title." + number + ".%'") > 0) {
       number++;
     }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.business.fibu;
 
+import org.projectforge.framework.utils.NumberHelper;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
-
-import org.projectforge.framework.utils.NumberHelper;
 
 public class AuftragsStatistik implements Serializable
 {
@@ -80,22 +80,22 @@ public class AuftragsStatistik implements Serializable
   {
     final BigDecimal netto = auftrag.getNettoSumme();
     if (auftrag.getAuftragsStatus() != null) {
-      if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.POTENZIAL, AuftragsStatus.IN_ERSTELLUNG, AuftragsStatus.GELEGT) == true) {
+      if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.POTENZIAL, AuftragsStatus.IN_ERSTELLUNG, AuftragsStatus.GELEGT)) {
         akquiseSum = NumberHelper.add(akquiseSum, netto);
         counterAkquise++;
-      } else if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.LOI, AuftragsStatus.BEAUFTRAGT, AuftragsStatus.ESKALATION) == true) {
+      } else if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.LOI, AuftragsStatus.BEAUFTRAGT, AuftragsStatus.ESKALATION)) {
         beauftragtSum = NumberHelper.add(beauftragtSum, auftrag.getBeauftragtNettoSumme());
         counterBeauftragt++;
-      } else if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.ABGESCHLOSSEN) == true && auftrag.isVollstaendigFakturiert() == false) {
+      } else if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.ABGESCHLOSSEN) && !auftrag.isVollstaendigFakturiert()) {
         zuFakturierenSum = NumberHelper.add(zuFakturierenSum, auftrag.getZuFakturierenSum());
         counterZuFakturieren++;
       }
     }
     final BigDecimal invoiced = auftrag.getFakturiertSum();
-    if (NumberHelper.isNotZero(invoiced) == true) {
+    if (NumberHelper.isNotZero(invoiced)) {
       fakturiertSum = NumberHelper.add(fakturiertSum, invoiced);
       counterFakturiert++;
-    } else if (auftrag.isVollstaendigFakturiert() == true) {
+    } else if (auftrag.isVollstaendigFakturiert()) {
       counterFakturiert++;
     }
     counter++;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -375,7 +375,7 @@ public class TeamEventDiffTest
     EVENT_1.setSubject("Subject 1");
     EVENT_1.setLocation("Location 1");
     EVENT_1.setRecurrenceExDate(null);
-    EVENT_1.setRecurrenceDate("");
+    EVENT_1.setRecurrenceReferenceDate("");
     EVENT_1.setRecurrenceReferenceId("");
     EVENT_1.setLastEmail(null);
     EVENT_1.setSequence(null);

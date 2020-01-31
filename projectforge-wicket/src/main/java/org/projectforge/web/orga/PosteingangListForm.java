@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,8 +34,7 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.slf4j.Logger;
 
-public class PosteingangListForm extends AbstractListForm<PosteingangListFilter, PosteingangListPage>
-{
+public class PosteingangListForm extends AbstractListForm<PosteingangListFilter, PosteingangListPage> {
   private static final long serialVersionUID = 5594012692306669398L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PosteingangListForm.class);
@@ -45,39 +44,35 @@ public class PosteingangListForm extends AbstractListForm<PosteingangListFilter,
 
   /**
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
-   *      org.projectforge.web.wicket.flowlayout.DivPanel)
+   * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @Override
-  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
-  {
+  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel) {
     // DropDownChoice years
     final YearListCoiceRenderer yearListChoiceRenderer = new YearListCoiceRenderer(posteingangDao.getYears(), true);
     optionsFieldsetPanel.addDropDownChoice(new PropertyModel<Integer>(this, "year"), yearListChoiceRenderer.getYears(),
-        yearListChoiceRenderer, true).setNullValid(false);
+            yearListChoiceRenderer, true).setNullValid(false);
 
     // DropDownChoice months
     final LabelValueChoiceRenderer<Integer> monthChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
     monthChoiceRenderer.addValue(-1, StringHelper.format2DigitNumber(1) + "-" + 12);
-    for (int i = 0; i <= 11; i++) {
-      monthChoiceRenderer.addValue(i, StringHelper.format2DigitNumber(i + 1));
+    for (int month = 1; month <= 12; month++) {
+      monthChoiceRenderer.addValue(month, StringHelper.format2DigitNumber(month));
     }
     optionsFieldsetPanel
-    .addDropDownChoice(new PropertyModel<Integer>(this, "month"), monthChoiceRenderer.getValues(), monthChoiceRenderer, true)
-    .setNullValid(true).setRequired(false);
+            .addDropDownChoice(new PropertyModel<Integer>(this, "month"), monthChoiceRenderer.getValues(), monthChoiceRenderer, true)
+            .setNullValid(true).setRequired(false);
   }
 
-  public PosteingangListForm(final PosteingangListPage parentPage)
-  {
+  public PosteingangListForm(final PosteingangListPage parentPage) {
     super(parentPage);
   }
 
-  public Integer getYear()
-  {
+  public Integer getYear() {
     return getSearchFilter().getYear();
   }
 
-  public void setYear(final Integer year)
-  {
+  public void setYear(final Integer year) {
     if (year == null) {
       getSearchFilter().setYear(-1);
     } else {
@@ -85,13 +80,11 @@ public class PosteingangListForm extends AbstractListForm<PosteingangListFilter,
     }
   }
 
-  public Integer getMonth()
-  {
+  public Integer getMonth() {
     return getSearchFilter().getMonth();
   }
 
-  public void setMonth(final Integer month)
-  {
+  public void setMonth(final Integer month) {
     if (month == null) {
       getSearchFilter().setMonth(-1);
     } else {
@@ -100,14 +93,12 @@ public class PosteingangListForm extends AbstractListForm<PosteingangListFilter,
   }
 
   @Override
-  protected PosteingangListFilter newSearchFilterInstance()
-  {
+  protected PosteingangListFilter newSearchFilterInstance() {
     return new PosteingangListFilter();
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 }

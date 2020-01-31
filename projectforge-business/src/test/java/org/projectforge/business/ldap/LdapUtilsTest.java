@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,6 +33,15 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class LdapUtilsTest
 {
+  @Test
+  void toJsonStringTest() {
+    LdapUser user = new LdapUser();
+    user.setSurname("Reinhard");
+    user.setUid("kai");
+    user.setSambaNTPassword("secret");
+    assertEquals("{\"uid\":\"kai\",\"surname\":\"Reinhard\",\"deleted\":false,\"deactivated\":false,\"restrictedUser\":false,\"passwordGiven\":false}", user.toString());
+  }
+
   @Test
   public void escapeUserGroupNames()
   {

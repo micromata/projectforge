@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,11 +32,10 @@ import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.PFDateTime
 import java.time.Month
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 object BirthdaysProvider {
     private val log = org.slf4j.LoggerFactory.getLogger(BirthdaysProvider::class.java)
-    private val holidays = Holidays.getInstance()
+    private val holidays = Holidays.instance
 
     fun addEvents(addressDao: AddressDao,
                   start: PFDateTime,
@@ -58,15 +57,15 @@ object BirthdaysProvider {
             if (!showAllBirthdays && !birthdayAddress.isFavorite)
                 continue // Ignore non-favorites
             val address = birthdayAddress.getAddress()
-            val month = birthdayAddress.getMonth() + 1
+            val month = birthdayAddress.getMonth()
             val dayOfMonth = birthdayAddress.getDayOfMonth()
             var date = getDate(from, end, month, dayOfMonth)
             // February, 29th fix:
-            if (date == null && month == Calendar.FEBRUARY + 1 && dayOfMonth == 29) {
-                date = getDate(from, end, month + 1, 1)
+            if (date == null && month == Month.FEBRUARY && dayOfMonth == 29) {
+                date = getDate(from, end, Month.MARCH, 1)
             }
             if (date == null) {
-                log.info("Date ${birthdayAddress.getDayOfMonth()} / ${birthdayAddress.getMonth() + 1} not found between $from and $end")
+                log.info("Date ${birthdayAddress.getDayOfMonth()} / ${birthdayAddress.month} not found between $from and $end")
                 continue
             } else {
                 if (dataProtection == false) {
@@ -103,11 +102,11 @@ object BirthdaysProvider {
         }
     }
 
-    private fun getDate(start: PFDateTime, end: PFDateTime, month: Int, dayOfMonth: Int): PFDateTime? {
+    private fun getDate(start: PFDateTime, end: PFDateTime, month: Month, dayOfMonth: Int): PFDateTime? {
         var day = start
         var paranoiaCounter = 0
         do {
-            if (day.monthValue == month && day.dayOfMonth == dayOfMonth) {
+            if (day.month == month && day.dayOfMonth == dayOfMonth) {
                 return day
             }
             day = day.plusDays(1)

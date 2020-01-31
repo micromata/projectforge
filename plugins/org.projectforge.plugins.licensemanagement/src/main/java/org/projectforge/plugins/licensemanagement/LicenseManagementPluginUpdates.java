@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,11 @@
 
 package org.projectforge.plugins.licensemanagement;
 
+import org.projectforge.continuousdb.*;
+import org.projectforge.framework.persistence.database.DatabaseService;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.projectforge.continuousdb.SchemaGenerator;
-import org.projectforge.continuousdb.UpdateEntry;
-import org.projectforge.continuousdb.UpdateEntryImpl;
-import org.projectforge.continuousdb.UpdatePreCheckStatus;
-import org.projectforge.continuousdb.UpdateRunningStatus;
-import org.projectforge.framework.persistence.database.DatabaseService;
 
 /**
  * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are
@@ -41,12 +37,12 @@ import org.projectforge.framework.persistence.database.DatabaseService;
  */
 public class LicenseManagementPluginUpdates
 {
-  static DatabaseService dao;
+  static DatabaseService databaseService;
 
   @SuppressWarnings("serial")
   public static List<UpdateEntry> getUpdateEntries()
   {
-    final List<UpdateEntry> list = new ArrayList<UpdateEntry>();
+    final List<UpdateEntry> list = new ArrayList<>();
     // /////////////////////////////////////////////////////////////////
     // 5.1
     // /////////////////////////////////////////////////////////////////
@@ -59,7 +55,7 @@ public class LicenseManagementPluginUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         // Does the data-base table already exist?
-        if (dao.doTableAttributesExist(LicenseDO.class, newAttributes) == true) {
+        if (databaseService.doTableAttributesExist(LicenseDO.class, newAttributes)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
@@ -69,8 +65,8 @@ public class LicenseManagementPluginUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (dao.doTableAttributesExist(LicenseDO.class, newAttributes) == false) {
-          dao.addTableAttributes(LicenseDO.class, newAttributes);
+        if (!databaseService.doTableAttributesExist(LicenseDO.class, newAttributes)) {
+          databaseService.addTableAttributes(LicenseDO.class, newAttributes);
         }
         return UpdateRunningStatus.DONE;
       }
@@ -88,7 +84,7 @@ public class LicenseManagementPluginUpdates
       {
         // Does the data-base table already exist?
         // Check only the oldest table.
-        if (dao.doTablesExist(LicenseDO.class) == true) {
+        if (databaseService.doTablesExist(LicenseDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           // The oldest table doesn't exist, therefore the plugin has to initialized completely.
@@ -100,10 +96,10 @@ public class LicenseManagementPluginUpdates
       public UpdateRunningStatus runUpdate()
       {
         // Create initial data-base table:
-        final SchemaGenerator schemaGenerator = new SchemaGenerator(dao);
+        final SchemaGenerator schemaGenerator = new SchemaGenerator(databaseService);
         schemaGenerator.add(LicenseDO.class);
         schemaGenerator.createSchema();
-        dao.createMissingIndices();
+        databaseService.createMissingIndices();
         return UpdateRunningStatus.DONE;
       }
     };

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,8 +25,7 @@ package org.projectforge.web.wicket.converter;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.configuration.ConfigXmlTest;
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.test.TestSetup;
 
 import java.math.BigDecimal;
@@ -44,7 +43,7 @@ public class CurrencyConverterTest {
   @BeforeAll
   public static void setUp() {
     TestSetup.init();
-    CURRENCY = ConfigXml.getInstance().getCurrencySymbol();
+    CURRENCY = ConfigurationServiceAccessor.get().getCurrencySymbol();
     con = new CurrencyConverter();
   }
 

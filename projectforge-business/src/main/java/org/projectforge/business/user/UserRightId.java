@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,15 @@
 
 package org.projectforge.business.user;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import org.hibernate.search.annotations.ClassBridge;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.RightRightIdProviderService;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -103,7 +103,10 @@ public enum UserRightId implements IUserRightId
       "plugins.teamcal.calendar"),
 
   PLUGIN_CALENDAR_EVENT("PLUGIN_CALENDAR_EVENT", "plugin15",
-      "plugins.teamcalendar.event");
+      "plugins.teamcalendar.event"),
+
+  CALENDAR_EVENT("CALENDAR_EVENT", "plugin15",
+    "plugins.teamcalendar.event");
 
   public static class ProviderService implements RightRightIdProviderService
   {

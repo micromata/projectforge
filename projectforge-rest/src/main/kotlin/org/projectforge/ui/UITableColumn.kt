@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,8 +33,10 @@ data class UITableColumn(var id: String,
     : UIElement(UIElementType.TABLE_COLUMN)
 
 enum class Formatter {
+    ADDRESS_BOOK,
     AUFTRAG_POSITION,
     DATE,
+    EMPLOYEE,
     COST1,
     COST2,
     CUSTOMER,

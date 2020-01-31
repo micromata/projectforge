@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -65,7 +65,7 @@ public class BankingPlugin extends AbstractPlugin {
   @Override
   protected void initialize() {
     // DatabaseUpdateDao is needed by the updater:
-    BankingPluginUpdates.dao = myDatabaseUpdater;
+    BankingPluginUpdates.databaseService = databaseService;
     // Register it:
     register(BANK_ACCOUNT_ID, BankAccountDao.class, bankAccountDao, "plugins.banking.account").setNestedDOClasses(
             BankAccountRecordDO.class, BankAccountBalanceDO.class).setSearchable(false);

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.core
 
+import de.micromata.merlin.utils.ReplaceUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -56,7 +57,7 @@ class ReplaceUtilsTest {
 
     @Test
     fun replaceGermanUmlauteAndAccents() {
-        assertEquals("untitled", ReplaceUtils.replaceGermanUmlauteAndAccents(null))
+        assertEquals(null, ReplaceUtils.replaceGermanUmlauteAndAccents(null))
         assertEquals("", ReplaceUtils.replaceGermanUmlauteAndAccents(""))
         assertEquals("AGOOacAeaeOeoeUeuessnormal_ .", ReplaceUtils.replaceGermanUmlauteAndAccents("ĂĠÒǬåçÄäÖöÜüßnormal_ ."))
     }

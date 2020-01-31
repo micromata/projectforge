@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.business.fibu.kost;
 
-import java.io.Serializable;
-import java.util.List;
-
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.framework.xstream.XmlField;
 import org.projectforge.framework.xstream.XmlObject;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * Used in config.xml for the definition of the used business assessment schema. The business assessment is displayed in different
@@ -68,7 +68,7 @@ public class BusinessAssessmentConfig implements Serializable
       return null;
     }
     for (final BusinessAssessmentRowConfig row : rows) {
-      if (id.equals(row.getId()) == true || id.equals(row.getNo()) == true) {
+      if (id.equals(row.getId()) || id.equals(row.getNo())) {
         return row;
       }
     }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,9 +27,9 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.joda.time.DateTime;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.web.wicket.flowlayout.AjaxIconButtonPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 
@@ -48,12 +48,12 @@ public abstract class PollEventEntryPanel extends Panel
   {
     super(id);
 
-    final DateTime start = new DateTime(poll.getStartDate());
-    final DateTime end = new DateTime(poll.getEndDate());
+    final PFDateTime start = PFDateTime.from(poll.getStartDate()); // not null
+    final PFDateTime end = PFDateTime.from(poll.getEndDate()); // not null
 
     final String pattern = DateFormats.getFormatString(DateFormatType.DATE_TIME_MINUTES);
-    add(new Label("startDate", "Start: " + DateFormatUtils.format(start.getMillis(), pattern)));
-    add(new Label("endDate", "Ende: " + DateFormatUtils.format(end.getMillis(), pattern)));
+    add(new Label("startDate", "Start: " + DateFormatUtils.format(start.getEpochMilli(), pattern)));
+    add(new Label("endDate", "Ende: " + DateFormatUtils.format(end.getEpochMilli(), pattern)));
 
     final AjaxIconButtonPanel iconButton = new AjaxIconButtonPanel("delete", IconType.REMOVE)
     {

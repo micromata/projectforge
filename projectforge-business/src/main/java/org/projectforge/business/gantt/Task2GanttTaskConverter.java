@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -95,9 +95,9 @@ public class Task2GanttTaskConverter
       ganttChartData.setRootObject(ganttObject);
     }
     final TaskNode taskNode = taskTree.getTaskNodeById(task.getId());
-    if (taskNode.hasChilds() == true) {
-      for (final TaskNode childNode : taskNode.getChilds()) {
-        if (childNode.isDeleted() == false) {
+    if (taskNode.hasChildren()) {
+      for (final TaskNode childNode : taskNode.getChildren()) {
+        if (!childNode.isDeleted()) {
           ganttObject.addChild(convertToGanttObject(ganttChartData, taskTree, childNode.getTask()));
         }
       }
@@ -111,7 +111,7 @@ public class Task2GanttTaskConverter
       log.warn("Oups, Gantt task shouldn't be null.");
       return;
     }
-    if (ganttTask.equals(ganttChartData.getRootObject()) == false) {
+    if (!ganttTask.equals(ganttChartData.getRootObject())) {
       final TaskDO task = taskTree.getTaskById((Integer) ganttTask.getId());
       final Integer predecessorId = task.getGanttPredecessorId();
       if (predecessorId != null) {

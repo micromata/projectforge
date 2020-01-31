@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,6 @@
 
 package org.projectforge.web.teamcal.rest;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.TeamCalFilter;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
@@ -45,6 +34,16 @@ import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.JsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * REST interface for {@link TeamCalDao}.
@@ -73,7 +72,7 @@ public class TeamCalDaoRest
   public Response getList(@QueryParam("fullAccess") final boolean fullAccess)
   {
     final TeamCalFilter filter = new TeamCalFilter();
-    if (fullAccess == true) {
+    if (fullAccess) {
       filter.setFullAccess(true);
       filter.setMinimalAccess(false);
       filter.setReadonlyAccess(false);
@@ -84,7 +83,7 @@ public class TeamCalDaoRest
     if(teamCalBlackListIds != null && teamCalBlackListIds.length > 0) {
       Arrays.stream(teamCalBlackListIds).forEach(calId -> list.remove(teamCalDao.getById(calId)));
     }
-    final List<CalendarObject> result = new LinkedList<CalendarObject>();
+    final List<CalendarObject> result = new LinkedList<>();
     if (list != null && list.size() > 0) {
       for (final TeamCalDO cal : list) {
         result.add(TeamCalDOConverter.getCalendarObject(cal, userRights));

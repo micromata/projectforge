@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,15 @@
 
 package org.projectforge.framework.xstream.converter;
 
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.xstream.XmlConstants;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.xstream.XmlConstants;
 
 public class DateConverter extends AbstractValueConverter<Date>
 {
@@ -72,7 +72,7 @@ public class DateConverter extends AbstractValueConverter<Date>
   @Override
   public Date fromString(String str)
   {
-    if (StringUtils.isEmpty(str) == true || XmlConstants.NULL_IDENTIFIER.equals(str) == true) {
+    if (StringUtils.isEmpty(str) || XmlConstants.NULL_IDENTIFIER.equals(str)) {
       return null;
     }
     String format = null;

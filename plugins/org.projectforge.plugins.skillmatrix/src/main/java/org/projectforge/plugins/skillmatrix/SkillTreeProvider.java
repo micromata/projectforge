@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,6 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.io.Serializable;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -38,9 +30,12 @@ import org.apache.wicket.model.Model;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
+import java.io.Serializable;
+import java.util.*;
+
 /**
  * @author Billy Duong (b.duong@micromata.de)
- * 
+ *
  */
 public class SkillTreeProvider implements ITreeProvider<SkillNode>
 {
@@ -62,7 +57,7 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
 
   /**
    * Nothing to do.
-   * 
+   *
    * @see org.apache.wicket.model.IDetachable#detach()
    */
   @Override
@@ -80,7 +75,7 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
       // Force a refresh to load the root skill node
       getSkillTree().refresh();
     }
-    return iterator(getSkillTree().getRootSkillNode().getChilds(), showRootNode);
+    return iterator(getSkillTree().getRootSkillNode().getChildren(), showRootNode);
   }
 
   /**
@@ -89,11 +84,11 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
   @Override
   public boolean hasChildren(final SkillNode node)
   {
-    if (node.isRootNode() == true) {
+    if (node.isRootNode()) {
       // Don't show children of root node again.
       return false;
     }
-    return node.hasChilds();
+    return node.hasChildren();
   }
 
   /**
@@ -102,11 +97,11 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
   @Override
   public Iterator<SkillNode> getChildren(final SkillNode node)
   {
-    if (node.isRootNode() == true) {
+    if (node.isRootNode()) {
       // Don't show children of root node again.
       return new LinkedList<SkillNode>().iterator();
     }
-    return iterator(node.getChilds());
+    return iterator(node.getChildren());
   }
 
   /**
@@ -126,19 +121,17 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
   private Iterator<SkillNode> iterator(final List<SkillNode> nodes, final boolean appendRootNode)
   {
     // ensureSkillTree();
-    final SortedSet<SkillNode> list = new TreeSet<SkillNode>(new Comparator<SkillNode>()
-    {
+    final SortedSet<SkillNode> list = new TreeSet<>(new Comparator<SkillNode>() {
       /**
        * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
        */
       @Override
-      public int compare(final SkillNode skillNode1, final SkillNode skillNode2)
-      {
-        if (skillNode1.isRootNode() == true) {
+      public int compare(final SkillNode skillNode1, final SkillNode skillNode2) {
+        if (skillNode1.isRootNode()) {
           // Show root node at last position.
           return 1;
         }
-        if (skillNode2.isRootNode() == true) {
+        if (skillNode2.isRootNode()) {
           // Show root node at last position.
           return -1;
         }
@@ -149,21 +142,21 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
         return title1.compareTo(title2);
       }
     });
-    if (appendRootNode == true) {
-      if (skillFilter.match(getSkillTree().getRootSkillNode(), null, null) == true) {
+    if (appendRootNode) {
+      if (skillFilter.match(getSkillTree().getRootSkillNode(), null, null)) {
         list.add(getSkillTree().getRootSkillNode());
       }
     }
-    if (nodes == null || nodes.isEmpty() == true) {
+    if (nodes == null || nodes.isEmpty()) {
       return list.iterator();
     }
     final PFUserDO user = ThreadLocalUserContext.getUser();
     for (final SkillNode node : nodes) {
 
       final boolean isMatch = skillFilter.match(node, skillDao, user);
-      final boolean hasAccess = skillDao.hasSelectAccess(user, node.getSkill(), false);
+      final boolean hasAccess = skillDao.hasUserSelectAccess(user, node.getSkill(), false);
 
-      if (isMatch == true && hasAccess == true) {
+      if (isMatch && hasAccess) {
         list.add(node);
       }
     }
@@ -190,9 +183,9 @@ public class SkillTreeProvider implements ITreeProvider<SkillNode>
 
   /**
    * A {@link Model} which uses an id to load its {@link Foo}.
-   * 
+   *
    * If {@link Foo}s were {@link Serializable} you could just use a standard {@link Model}.
-   * 
+   *
    * @see #equals(Object)
    * @see #hashCode()
    */

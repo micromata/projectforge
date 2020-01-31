@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,9 @@
 
 package org.projectforge.common;
 
-import org.projectforge.framework.utils.Crypt;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.projectforge.framework.utils.Crypt;
 
 public class CryptTest
 {

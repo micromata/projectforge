@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -48,7 +48,7 @@ public class ContractEditPage extends AbstractEditPage<ContractDO, ContractEditF
     super(parameters, "legalAffaires.contract");
     init();
     if (isNew() == true) {
-      getData().setDate(new DayHolder().getSQLDate());
+      getData().setDate(new DayHolder().getSqlDate());
     }
   }
 
@@ -70,7 +70,7 @@ public class ContractEditPage extends AbstractEditPage<ContractDO, ContractEditF
     super.cloneData();
     final ContractDO contract = getData();
     contract.setNumber(null);
-    contract.setDate(new DayHolder().getSQLDate());
+    contract.setDate(new DayHolder().getSqlDate());
     form.numberField.modelChanged();
   }
 

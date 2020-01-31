@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,11 @@
 
 package org.projectforge.framework.configuration;
 
-import java.util.List;
-
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.xstream.XmlObject;
+
+import java.util.List;
 
 /**
  * This class also provides the configuration of the parameters which are stored via ConfigurationDao. Those parameters

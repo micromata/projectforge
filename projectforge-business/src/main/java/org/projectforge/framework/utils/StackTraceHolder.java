@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -52,9 +52,8 @@ public class StackTraceHolder implements Serializable
       d = depth;
     }
     debugStackTrace = new StackTraceElement[d];
-    for (int i = 0; i < d; i++) {
-      debugStackTrace[i] = stackTraceElements[i];
-    }
+    if (d >= 0)
+      System.arraycopy(stackTraceElements, 0, debugStackTrace, 0, d);
   }
 
   /**
@@ -66,7 +65,7 @@ public class StackTraceHolder implements Serializable
     if (debugStackTrace == null) {
       return null;
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     for (final StackTraceElement el : debugStackTrace) {
       buf.append("\nat " + el.getClassName()).append(".").append(el.getMethodName()).append("(").append(el.getFileName()).append(":")
       .append(el.getLineNumber()).append(")");

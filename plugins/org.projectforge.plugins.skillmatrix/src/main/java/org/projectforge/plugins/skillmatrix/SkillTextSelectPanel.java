@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,23 +23,23 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
+import org.projectforge.business.user.service.UserPreferencesHelper;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.web.fibu.ISelectCallerPage;
-import org.projectforge.business.user.service.UserPreferencesHelper;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
+
+import java.util.List;
+import java.util.Locale;
 
 /**
  * This panel shows the actual user and buttons for select/unselect training.
@@ -146,7 +146,7 @@ public class SkillTextSelectPanel extends AbstractSelectPanel<SkillDO> implement
           @Override
           public Object convertToObject(final String value, final Locale locale)
           {
-            if (StringUtils.isEmpty(value) == true) {
+            if (StringUtils.isEmpty(value)) {
               getModel().setObject(null);
               return null;
             }
@@ -230,7 +230,7 @@ public class SkillTextSelectPanel extends AbstractSelectPanel<SkillDO> implement
       this.recentSkills = (RecentQueue<String>) UserPreferencesHelper.getEntry(USER_PREF_KEY_RECENT_SKILLS);
     }
     if (this.recentSkills == null) {
-      this.recentSkills = new RecentQueue<String>();
+      this.recentSkills = new RecentQueue<>();
       UserPreferencesHelper.putEntry(USER_PREF_KEY_RECENT_SKILLS, this.recentSkills, true);
     }
     return this.recentSkills;

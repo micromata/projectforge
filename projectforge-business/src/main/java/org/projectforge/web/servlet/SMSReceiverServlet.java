@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,6 @@
 
 package org.projectforge.web.servlet;
 
-import java.io.IOException;
-import java.util.Date;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.meb.MebDao;
@@ -41,6 +31,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Date;
 
 /**
  * Servlet which supports receiving SMS via http get:<br/>
@@ -86,30 +85,30 @@ public class SMSReceiverServlet extends HttpServlet
     req.setCharacterEncoding("UTF-8");
     final String key = req.getParameter("key");
     final String expectedKey = configService.getReceiveSmsKey();
-    if (StringUtils.isBlank(expectedKey) == true) {
+    if (StringUtils.isBlank(expectedKey)) {
       log.warn("Servlet call for receiving sms ignored because receiveSmsKey is not given in config.xml file.");
       response(resp, "NOT YET CONFIGURED");
       return;
     }
-    if (expectedKey.equals(key) == false) {
+    if (!expectedKey.equals(key)) {
       log.warn("Servlet call for receiving sms ignored because receiveSmsKey does not match given key: " + key);
       response(resp, "DENIED");
       return;
     }
     final String dateString = req.getParameter("date");
-    if (StringUtils.isBlank(dateString) == true) {
+    if (StringUtils.isBlank(dateString)) {
       log.warn("Servlet call for receiving sms ignored because parameter 'date' is not given.");
       response(resp, "Missing parameter 'date'.");
       return;
     }
     final String sender = req.getParameter("sender");
-    if (StringUtils.isBlank(sender) == true) {
+    if (StringUtils.isBlank(sender)) {
       log.warn("Servlet call for receiving sms ignored because parameter 'sender' is not given.");
       response(resp, "Missing parameter 'sender'.");
       return;
     }
     final String msg = req.getParameter("msg");
-    if (StringUtils.isBlank(msg) == true) {
+    if (StringUtils.isBlank(msg)) {
       log.warn("Servlet call for receiving sms ignored because parameter 'msg' is not given.");
       response(resp, "Missing parameter 'msg'.");
       return;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.business.teamcal.service;
 
+import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.teamcal.model.CalendarFeedConst;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -31,49 +32,73 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class CalendarFeedService
-{
+public class CalendarFeedService {
+  private static final String PARAM_EXPORT_REMINDER = "exportReminders";
+  private static final String PARAM_CALENDAR = "teamCals";
+
+  @Autowired
+  private DomainService domainService;
+
   @Autowired
   private UserService userService;
 
-  public String getUrl()
-  {
+  public String getUrl() {
     return getUrl(null);
   }
 
   /**
    * @return The url for downloading timesheets (including context), e. g.
-   *         /ProjectForge/export/ProjectForge.ics?user=....
+   * /ProjectForge/export/ProjectForge.ics?user=....
    */
-  public String getUrl4Timesheets(final Integer timesheetUserId)
-  {
+  public String getUrl4Timesheets(final Integer timesheetUserId) {
     return getUrl("&" + CalendarFeedConst.PARAM_NAME_TIMESHEET_USER + "=" + timesheetUserId);
   }
 
   /**
    * @return The url for downloading timesheets (including context), e. g.
-   *         /ProjectForge/export/ProjectForge.ics?user=....
+   * /ProjectForge/export/ProjectForge.ics?user=....
    */
-  public String getUrl4Holidays()
-  {
+  public String getFullUrl4Timesheets(final Integer timesheetUserId) {
+    return getFullUrl("&" + CalendarFeedConst.PARAM_NAME_TIMESHEET_USER + "=" + timesheetUserId);
+  }
+
+  /**
+   * @return The url for downloading timesheets (including context), e. g.
+   * /ProjectForge/export/ProjectForge.ics?user=....
+   */
+  public String getUrl4Holidays() {
     return getUrl("&" + CalendarFeedConst.PARAM_NAME_HOLIDAYS + "=true");
   }
 
   /**
    * @return The url for downloading timesheets (including context), e. g.
-   *         /ProjectForge/export/ProjectForge.ics?user=....
+   * /ProjectForge/export/ProjectForge.ics?user=....
    */
-  public String getUrl4WeekOfYears()
-  {
+  public String getFullUrl4Holidays() {
+    return getFullUrl("&" + CalendarFeedConst.PARAM_NAME_HOLIDAYS + "=true");
+  }
+
+  /**
+   * @return The url for downloading timesheets (including context), e. g.
+   * /ProjectForge/export/ProjectForge.ics?user=....
+   */
+  public String getUrl4WeekOfYears() {
     return getUrl("&" + CalendarFeedConst.PARAM_NAME_WEEK_OF_YEARS + "=true");
+  }
+
+  /**
+   * @return The url for downloading timesheets (including context), e. g.
+   * /ProjectForge/export/ProjectForge.ics?user=....
+   */
+  public String getFullUrl4WeekOfYears() {
+    return getFullUrl("&" + CalendarFeedConst.PARAM_NAME_WEEK_OF_YEARS + "=true");
   }
 
   /**
    * @param additionalParams Request parameters such as "&calId=42", may be null.
    * @return The url for downloading calendars (without context), e. g. /export/ProjectForge.ics?user=...
    */
-  public String getUrl(final String additionalParams)
-  {
+  public String getUrl(final String additionalParams) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     final String authenticationKey = userService.getAuthenticationToken(user.getId());
     final StringBuilder buf = new StringBuilder();
@@ -84,5 +109,15 @@ public class CalendarFeedService
     final String encryptedParams = userService.encrypt(buf.toString());
     final String result = "/export/ProjectForge.ics?user=" + user.getId() + "&q=" + encryptedParams;
     return result;
+  }
+
+  public String getFullUrl(final String additionalParams) {
+    final String pfBaseUrl = domainService.getDomainWithContextPath();
+    final String url = getUrl(additionalParams);
+    return pfBaseUrl + url;
+  }
+
+  public String getFullUrl(Integer teamCalId, boolean exportReminders) {
+    return getFullUrl("&" + PARAM_CALENDAR + "=" + teamCalId + "&" + PARAM_EXPORT_REMINDER + "=" + exportReminders);
   }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -33,11 +32,8 @@ import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
-import org.projectforge.web.wicket.flowlayout.TextStyle;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
 
 /**
  * The list formular for the list view (this example has no filter settings). See ToDoListPage for seeing how to use
@@ -124,7 +120,7 @@ public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, Li
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
   {
     // DropDownChoice next days
-    final LabelValueChoiceRenderer<Integer> nextDaysRenderer = new LabelValueChoiceRenderer<Integer>();
+    final LabelValueChoiceRenderer<Integer> nextDaysRenderer = new LabelValueChoiceRenderer<>();
     nextDaysRenderer.addValue(0, getString("filter.all"));
     nextDaysRenderer.addValue(7, getLocalizedMessage("search.nextDays", 7));
     nextDaysRenderer.addValue(10, getLocalizedMessage("search.nextDays", 10));
@@ -132,16 +128,16 @@ public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, Li
     nextDaysRenderer.addValue(30, getLocalizedMessage("search.nextDays", 30));
     nextDaysRenderer.addValue(60, getLocalizedMessage("search.nextDays", 60));
     nextDaysRenderer.addValue(90, getLocalizedMessage("search.nextDays", 90));
-    final DropDownChoice<Integer> nextDaysChoice = new DropDownChoice<Integer>(
+    final DropDownChoice<Integer> nextDaysChoice = new DropDownChoice<>(
         optionsFieldsetPanel.getDropDownChoiceId(),
-        new PropertyModel<Integer>(getSearchFilter(), "nextDays"), nextDaysRenderer.getValues(), nextDaysRenderer);
+        new PropertyModel<>(getSearchFilter(), "nextDays"), nextDaysRenderer.getValues(), nextDaysRenderer);
     nextDaysChoice.setNullValid(false);
     optionsFieldsetPanel.add(nextDaysChoice, true);
     {
       final DivPanel radioGroupPanel = optionsFieldsetPanel.addNewRadioBoxButtonDiv();
       final RadioGroupPanel<PaymentStatus> radioGroup = new RadioGroupPanel<PaymentStatus>(radioGroupPanel.newChildId(),
           "paymentStatus",
-          new PropertyModel<PaymentStatus>(getSearchFilter(), "paymentStatus"))
+          new PropertyModel<>(getSearchFilter(), "paymentStatus"))
       {
         /**
          * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#wantOnSelectionChangedNotifications()
@@ -162,15 +158,15 @@ public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, Li
         }
       };
       radioGroupPanel.add(radioGroup);
-      radioGroup.add(new Model<PaymentStatus>(PaymentStatus.ALL), getString(PaymentStatus.ALL.getI18nKey()));
-      radioGroup.add(new Model<PaymentStatus>(PaymentStatus.UNPAID), getString(PaymentStatus.UNPAID.getI18nKey()));
-      radioGroup.add(new Model<PaymentStatus>(PaymentStatus.PAID), getString(PaymentStatus.PAID.getI18nKey()));
+      radioGroup.add(new Model<>(PaymentStatus.ALL), getString(PaymentStatus.ALL.getI18nKey()));
+      radioGroup.add(new Model<>(PaymentStatus.UNPAID), getString(PaymentStatus.UNPAID.getI18nKey()));
+      radioGroup.add(new Model<>(PaymentStatus.PAID), getString(PaymentStatus.PAID.getI18nKey()));
     }
     {
       final DivPanel radioGroupPanel = optionsFieldsetPanel.addNewRadioBoxButtonDiv();
       final RadioGroupPanel<AmountType> radioGroup = new RadioGroupPanel<AmountType>(radioGroupPanel.newChildId(),
           "amountType",
-          new PropertyModel<AmountType>(getSearchFilter(), "amountType"))
+          new PropertyModel<>(getSearchFilter(), "amountType"))
       {
         /**
          * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#wantOnSelectionChangedNotifications()
@@ -191,9 +187,9 @@ public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, Li
         }
       };
       radioGroupPanel.add(radioGroup);
-      radioGroup.add(new Model<AmountType>(AmountType.ALL), getString(AmountType.ALL.getI18nKey()));
-      radioGroup.add(new Model<AmountType>(AmountType.CREDIT), getString(AmountType.CREDIT.getI18nKey()));
-      radioGroup.add(new Model<AmountType>(AmountType.DEBIT), getString(AmountType.DEBIT.getI18nKey()));
+      radioGroup.add(new Model<>(AmountType.ALL), getString(AmountType.ALL.getI18nKey()));
+      radioGroup.add(new Model<>(AmountType.CREDIT), getString(AmountType.CREDIT.getI18nKey()));
+      radioGroup.add(new Model<>(AmountType.DEBIT), getString(AmountType.DEBIT.getI18nKey()));
     }
   }
 

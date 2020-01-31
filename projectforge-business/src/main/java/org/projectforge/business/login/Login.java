@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.business.login;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -131,7 +131,7 @@ public class Login
   {
     if (loginHandler == null) {
       log.warn("No login handler is defined yet, so can't get all users.");
-      return new ArrayList<PFUserDO>();
+      return new ArrayList<>();
     }
     return loginHandler.getAllUsers();
   }
@@ -143,14 +143,14 @@ public class Login
   {
     if (loginHandler == null) {
       log.warn("No login handler is defined yet, so can't get all groups.");
-      return new ArrayList<GroupDO>();
+      return new ArrayList<>();
     }
     return loginHandler.getAllGroups();
   }
 
   public void afterUserGroupCacheRefresh(final List<PFUserDO> users, final List<GroupDO> groups)
   {
-    if (UserFilter.isUpdateRequiredFirst() == true) {
+    if (UserFilter.isUpdateRequiredFirst()) {
       // Don't run e. g. LDAP synchronization because user and groups may not be available!
       return;
     }

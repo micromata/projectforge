@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,13 +33,15 @@ import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.formatter.TaskFormatter;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.business.vacation.service.VacationStats;
 import org.projectforge.common.StringHelper;
+import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.calendar.WeekHolder;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 
 import java.io.Serializable;
@@ -51,26 +53,48 @@ import java.util.*;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class MonthlyEmployeeReport implements Serializable
-{
+public class MonthlyEmployeeReport implements Serializable {
   private static final long serialVersionUID = -4636357379552246075L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MonthlyEmployeeReport.class);
 
-  public class Kost2Row implements Serializable
-  {
+  /**
+   * ID of pseudo task, see below.
+   */
+  static final int MAGIC_PSEUDO_TASK_ID = -42;
+
+  /**
+   * Checks if the given taskId is the Pseudo task, see below.
+   * @return true, if the given task id matches the magic pseudo task id.
+   */
+  public static boolean isPseudoTask(Integer taskId) {
+    return taskId == MAGIC_PSEUDO_TASK_ID;
+  }
+
+  /**
+   * Pseudo task are used for team leaders for showing time sheet hours of foreign users without detailed information,
+   * if the team leader has no select access.
+   * @return Pseudo task with magic task id (-42) and title '******'.
+   */
+  public static TaskDO createPseudoTask() {
+    TaskDO pseudoTask = new TaskDO();
+    pseudoTask.setId(MAGIC_PSEUDO_TASK_ID);
+    pseudoTask.setTitle("******");
+    return pseudoTask;
+  }
+
+
+  public static class Kost2Row implements Serializable {
     private static final long serialVersionUID = -5379735557333691194L;
 
-    public Kost2Row(final Kost2DO kost2)
-    {
+    public Kost2Row(final Kost2DO kost2) {
       this.kost2 = kost2;
     }
 
     /**
      * XML-escaped or null if not exists.
      */
-    public String getProjektname()
-    {
+    public String getProjektname() {
       if (kost2 == null || kost2.getProjekt() == null) {
         return null;
       }
@@ -80,8 +104,7 @@ public class MonthlyEmployeeReport implements Serializable
     /**
      * XML-escaped or null if not exists.
      */
-    public String getKundename()
-    {
+    public String getKundename() {
       if (kost2 == null || kost2.getProjekt() == null || kost2.getProjekt().getKunde() == null) {
         return null;
       }
@@ -91,8 +114,7 @@ public class MonthlyEmployeeReport implements Serializable
     /**
      * XML-escaped or null if not exists.
      */
-    public String getKost2ArtName()
-    {
+    public String getKost2ArtName() {
       if (kost2 == null || kost2.getKost2Art() == null) {
         return null;
       }
@@ -102,29 +124,23 @@ public class MonthlyEmployeeReport implements Serializable
     /**
      * XML-escaped or null if not exists.
      */
-    public String getKost2Description()
-    {
+    public String getKost2Description() {
       if (kost2 == null) {
         return null;
       }
       return StringEscapeUtils.escapeXml11(kost2.getDescription());
     }
 
-    public Kost2DO getKost2()
-    {
+    public Kost2DO getKost2() {
       return kost2;
     }
 
     private final Kost2DO kost2;
   }
 
-  private final int year;
+  private PFDateTime fromDate;
 
-  private final int month;
-
-  private Date fromDate;
-
-  private Date toDate;
+  private PFDateTime toDate;
 
   private BigDecimal numberOfWorkingDays;
 
@@ -139,7 +155,7 @@ public class MonthlyEmployeeReport implements Serializable
 
   private BigDecimal vacationCount = BigDecimal.ZERO;
 
-  private BigDecimal vacationPlandCount = BigDecimal.ZERO;
+  private BigDecimal vacationPlannedCount = BigDecimal.ZERO;
 
   private Integer kost1Id;
 
@@ -148,9 +164,9 @@ public class MonthlyEmployeeReport implements Serializable
   /**
    * Days with time sheets.
    */
-  private final Set<Integer> bookedDays = new HashSet<Integer>();
+  private final Set<Integer> bookedDays = new HashSet<>();
 
-  private final List<Integer> unbookedDays = new ArrayList<Integer>();
+  private final List<Integer> unbookedDays = new ArrayList<>();
 
   /**
    * Key is kost2.id.
@@ -176,13 +192,12 @@ public class MonthlyEmployeeReport implements Serializable
 
   private EmployeeService employeeService;
 
-  public static final String getFormattedDuration(final long duration)
-  {
+  public static String getFormattedDuration(final long duration) {
     if (duration == 0) {
       return "";
     }
     final BigDecimal hours = new BigDecimal(duration).divide(new BigDecimal(1000 * 60 * 60), 2,
-        BigDecimal.ROUND_HALF_UP);
+            BigDecimal.ROUND_HALF_UP);
     return NumberHelper.formatFraction2(hours);
   }
 
@@ -190,13 +205,11 @@ public class MonthlyEmployeeReport implements Serializable
    * Dont't forget to initialize: setFormatter and setUser or setEmployee.
    *
    * @param year
-   * @param month
+   * @param month 1-based: 1 - January, ..., 12 - December
    */
-  public MonthlyEmployeeReport(final EmployeeService employeeService, final VacationService vacationService, final PFUserDO user, final int year,
-      final int month)
-  {
-    this.year = year;
-    this.month = month;
+  public MonthlyEmployeeReport(final EmployeeService employeeService, final VacationService vacationService, final PFUserDO user, final int year, final Integer month) {
+    this.fromDate = PFDateTime.withDate(year, month, 1);
+    this.toDate = this.fromDate.getEndOfMonth();
     this.user = user;
     this.employeeService = employeeService;
     this.vacationService = vacationService;
@@ -207,8 +220,7 @@ public class MonthlyEmployeeReport implements Serializable
    *
    * @param user
    */
-  public void setUser(final PFUserDO user)
-  {
+  public void setUser(final PFUserDO user) {
     this.user = user;
   }
 
@@ -217,8 +229,7 @@ public class MonthlyEmployeeReport implements Serializable
    *
    * @param employee
    */
-  public void setEmployee(final EmployeeDO employee)
-  {
+  public void setEmployee(final EmployeeDO employee) {
     this.employee = employee;
     if (employee != null) {
       this.user = employee.getUser();
@@ -226,63 +237,54 @@ public class MonthlyEmployeeReport implements Serializable
     }
   }
 
-  public void init()
-  {
+  public void init() {
     if (this.user != null) {
       this.employee = employeeService.getEmployeeByUserId(this.user.getId());
     }
     // Create the weeks:
-    this.weeks = new ArrayList<MonthlyEmployeeReportWeek>();
-    final DateHolder dh = new DateHolder();
-    dh.setDate(year, month, 1, 0, 0, 0);
-    fromDate = dh.getDate();
-    final DateHolder dh2 = new DateHolder(dh.getDate());
-    dh2.setEndOfMonth();
-    toDate = dh2.getDate();
-    int i = 0;
+    this.weeks = new ArrayList<>();
+
+    int paranoiaCounter = 0;
+    PFDateTime date = fromDate;
     do {
-      final MonthlyEmployeeReportWeek week = new MonthlyEmployeeReportWeek(dh.getDate());
+      final MonthlyEmployeeReportWeek week = new MonthlyEmployeeReportWeek(date);
       weeks.add(week);
-      dh.setEndOfWeek();
-      dh.add(Calendar.DAY_OF_WEEK, +1);
-      dh.setBeginOfWeek();
-      if (i++ > 10) {
+      date = date.plusWeeks(1).getBeginOfWeek();
+      if (paranoiaCounter++ > 10) {
         throw new RuntimeException("Endless loop protection: Please contact developer!");
       }
-    } while (dh.getDate().before(toDate));
+    } while (date.isBefore(toDate));
   }
 
-  public void addTimesheet(final TimesheetDO sheet)
-  {
-    final DayHolder day = new DayHolder(sheet.getStartTime());
+  public void addTimesheet(final TimesheetDO sheet, final boolean hasSelectAccess) {
+    final PFDateTime day = PFDateTime.from(sheet.getStartTime()); // not null
     bookedDays.add(day.getDayOfMonth());
     for (final MonthlyEmployeeReportWeek week : weeks) {
-      if (week.matchWeek(sheet) == true) {
-        week.addEntry(sheet);
+      if (week.matchWeek(sheet)) {
+        week.addEntry(sheet, hasSelectAccess);
         return;
       }
     }
     log.info("Ignoring time sheet which isn't inside current month: "
-        + year
-        + "-"
-        + StringHelper.format2DigitNumber(month + 1)
-        + ": "
-        + sheet);
+            + getYear()
+            + "-"
+            + StringHelper.format2DigitNumber(getMonth())
+            + ": "
+            + sheet);
 
   }
 
-  public void calculate()
-  {
+  public void calculate() {
     Validate.notEmpty(weeks);
-    kost2Rows = new TreeMap<String, Kost2Row>();
-    taskEntries = new TreeMap<String, TaskDO>();
-    kost2Durations = new HashMap<Integer, MonthlyEmployeeReportEntry>();
-    taskDurations = new HashMap<Integer, MonthlyEmployeeReportEntry>();
+    kost2Rows = new TreeMap<>();
+    taskEntries = new TreeMap<>();
+    kost2Durations = new HashMap<>();
+    taskDurations = new HashMap<>();
     for (final MonthlyEmployeeReportWeek week : weeks) {
-      if (MapUtils.isNotEmpty(week.getKost2Entries()) == true) {
+      if (MapUtils.isNotEmpty(week.getKost2Entries())) {
         for (final MonthlyEmployeeReportEntry entry : week.getKost2Entries().values()) {
           Validate.notNull(entry.getKost2());
-          kost2Rows.put(entry.getKost2().getShortDisplayName(), new Kost2Row(entry.getKost2()));
+          kost2Rows.put(entry.getKost2().getDisplayName(), new Kost2Row(entry.getKost2()));
           MonthlyEmployeeReportEntry kost2Total = kost2Durations.get(entry.getKost2().getId());
           if (kost2Total == null) {
             kost2Total = new MonthlyEmployeeReportEntry(entry.getKost2());
@@ -296,11 +298,19 @@ public class MonthlyEmployeeReport implements Serializable
           totalNetDuration += entry.getWorkFractionMillis();
         }
       }
-      if (MapUtils.isNotEmpty(week.getTaskEntries()) == true) {
+      if (MapUtils.isNotEmpty(week.getTaskEntries())) {
         for (final MonthlyEmployeeReportEntry entry : week.getTaskEntries().values()) {
           Validate.notNull(entry.getTask());
-          taskEntries.put(TaskFormatter.getTaskPath(entry.getTask().getId(), true, OutputType.XML),
-              entry.getTask());
+          int taskId = entry.getTask().getId();
+          if (isPseudoTask(taskId)) {
+            // Pseudo task (see MonthlyEmployeeReportWeek for timesheet the current user has no select access.
+            TaskDO pseudoTask = createPseudoTask();
+            taskEntries.put(pseudoTask.getTitle(), pseudoTask);
+          } else {
+            taskEntries.put(TaskFormatter.getTaskPath(taskId, true,
+                    OutputType.XML),
+                    entry.getTask());
+          }
           MonthlyEmployeeReportEntry taskTotal = taskDurations.get(entry.getTask().getId());
           if (taskTotal == null) {
             taskTotal = new MonthlyEmployeeReportEntry(entry.getTask());
@@ -316,18 +326,21 @@ public class MonthlyEmployeeReport implements Serializable
     }
     final MonthHolder monthHolder = new MonthHolder(this.fromDate);
     this.numberOfWorkingDays = monthHolder.getNumberOfWorkingDays();
+    final Holidays holidays = Holidays.getInstance();
     for (final WeekHolder week : monthHolder.getWeeks()) {
-      for (final DayHolder day : week.getDays()) {
-        if (day.getMonth() == this.month && day.isWorkingDay() == true
-            && bookedDays.contains(day.getDayOfMonth()) == false) {
+
+      for (final PFDay day : week.getDays()) {
+        if (day.getMonth() == this.fromDate.getMonth() && holidays.isWorkingDay(day)
+                && !bookedDays.contains(day.getDayOfMonth())) {
           unbookedDays.add(day.getDayOfMonth());
         }
       }
     }
     if (vacationService != null && this.employee != null && this.employee.getUser() != null) {
-      if (vacationService.couldUserUseVacationService(this.employee.getUser(), false)) {
-        this.vacationCount = vacationService.getAvailableVacationDaysForYearAtDate(this.employee, this.toDate);
-        this.vacationPlandCount = vacationService.getPlandVacationDaysForYearAtDate(this.employee, this.toDate);
+      if (vacationService.hasAccessToVacationService(this.employee.getUser(), false)) {
+        VacationStats stats = vacationService.getVacationStats(employee);
+        this.vacationCount = stats.getVacationDaysLeftInYear(); // was vacationService.getAvailableVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
+        this.vacationPlannedCount = stats.getVacationDaysInProgress(); // was vacationService.getPlandVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
       }
     }
   }
@@ -335,28 +348,26 @@ public class MonthlyEmployeeReport implements Serializable
   /**
    * Gets the list of unbooked working days. These are working days without time sheets of the actual user.
    */
-  public List<Integer> getUnbookedDays()
-  {
+  public List<Integer> getUnbookedDays() {
     return unbookedDays;
   }
 
   /**
    * @return Days of month without time sheets: 03.11., 08.11., ... or null if no entries exists.
    */
-  public String getFormattedUnbookedDays()
-  {
-    final StringBuffer buf = new StringBuffer();
+  public String getFormattedUnbookedDays() {
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     for (final Integer dayOfMonth : unbookedDays) {
-      if (first == true) {
+      if (first) {
         first = false;
       } else {
         buf.append(", ");
       }
       buf.append(StringHelper.format2DigitNumber(dayOfMonth)).append(".")
-          .append(StringHelper.format2DigitNumber(month + 1)).append(".");
+              .append(StringHelper.format2DigitNumber(getMonth())).append(".");
     }
-    if (first == true) {
+    if (first) {
       return null;
     }
     return buf.toString();
@@ -364,85 +375,75 @@ public class MonthlyEmployeeReport implements Serializable
   }
 
   /**
-   * Key is the shortDisplayName of Kost2DO. The Map is a TreeMap sorted by the keys.
+   * Key is the displayName of Kost2DO. The Map is a TreeMap sorted by the keys.
    */
-  public Map<String, Kost2Row> getKost2Rows()
-  {
+  public Map<String, Kost2Row> getKost2Rows() {
     return kost2Rows;
   }
 
   /**
    * Key is the kost2 id.
    */
-  public Map<Integer, MonthlyEmployeeReportEntry> getKost2Durations()
-  {
+  public Map<Integer, MonthlyEmployeeReportEntry> getKost2Durations() {
     return kost2Durations;
   }
 
   /**
    * Key is the task path string of TaskDO. The Map is a TreeMap sorted by the keys.
    */
-  public Map<String, TaskDO> getTaskEntries()
-  {
+  public Map<String, TaskDO> getTaskEntries() {
     return taskEntries;
   }
 
   /**
    * Key is the task id.
    */
-  public Map<Integer, MonthlyEmployeeReportEntry> getTaskDurations()
-  {
+  public Map<Integer, MonthlyEmployeeReportEntry> getTaskDurations() {
     return taskDurations;
   }
 
-  public int getYear()
-  {
-    return year;
+  public int getYear() {
+    return fromDate.getYear();
   }
 
-  public int getMonth()
-  {
-    return month;
+  /**
+   * @return 1-January, ..., 12-December.
+   */
+  public Integer getMonth() {
+    return fromDate.getMonthValue();
   }
 
-  public List<MonthlyEmployeeReportWeek> getWeeks()
-  {
+  public List<MonthlyEmployeeReportWeek> getWeeks() {
     return weeks;
   }
 
-  public String getFormmattedMonth()
-  {
-    return StringHelper.format2DigitNumber(month + 1);
+  public String getFormmattedMonth() {
+    return StringHelper.format2DigitNumber(getMonth());
   }
 
-  public Date getFromDate()
-  {
-    return fromDate;
+  public Date getFromDate() {
+    return fromDate.getUtilDate();
   }
 
-  public Date getToDate()
-  {
-    return toDate;
+  public Date getToDate() {
+    return toDate.getUtilDate();
   }
 
   /**
    * Can be null, if not set (not available).
    */
-  public EmployeeDO getEmployee()
-  {
+  public EmployeeDO getEmployee() {
     return employee;
   }
 
-  public PFUserDO getUser()
-  {
+  public PFUserDO getUser() {
     return user;
   }
 
   /**
    * @return Total duration in ms.
    */
-  public long getTotalGrossDuration()
-  {
+  public long getTotalGrossDuration() {
     return totalGrossDuration;
   }
 
@@ -452,38 +453,31 @@ public class MonthlyEmployeeReport implements Serializable
    *
    * @return the netDuration in ms.
    */
-  public long getTotalNetDuration()
-  {
+  public long getTotalNetDuration() {
     return totalNetDuration;
   }
 
-  public String getFormattedTotalGrossDuration()
-  {
+  public String getFormattedTotalGrossDuration() {
     return MonthlyEmployeeReport.getFormattedDuration(totalGrossDuration);
   }
 
-  public String getFormattedVacationCount()
-  {
+  public String getFormattedVacationCount() {
     return vacationCount + " " + I18nHelper.getLocalizedMessage("day");
   }
 
-  public String getFormattedVacationPlandCount()
-  {
-    return vacationPlandCount + " " + I18nHelper.getLocalizedMessage("day");
+  public String getFormattedVacationPlandCount() {
+    return vacationPlannedCount + " " + I18nHelper.getLocalizedMessage("day");
   }
 
-  public String getFormattedTotalNetDuration()
-  {
+  public String getFormattedTotalNetDuration() {
     return MonthlyEmployeeReport.getFormattedDuration(totalNetDuration);
   }
 
-  public Integer getKost1Id()
-  {
+  public Integer getKost1Id() {
     return kost1Id;
   }
 
-  public BigDecimal getNumberOfWorkingDays()
-  {
+  public BigDecimal getNumberOfWorkingDays() {
     return numberOfWorkingDays;
   }
 }

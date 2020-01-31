@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,10 @@
 
 package org.projectforge.framework.persistence.database;
 
+import com.thoughtworks.xstream.converters.SingleValueConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.user.UserPrefAreaRegistry;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
-
-import com.thoughtworks.xstream.converters.SingleValueConverter;
 
 /**
  * Converts UserRightArea from and to strings.
@@ -54,7 +53,7 @@ public class UserPrefAreaSingleValueConverter implements SingleValueConverter
   @Override
   public Object fromString(final String str)
   {
-    if (StringUtils.isBlank(str) == true) {
+    if (StringUtils.isBlank(str)) {
       return null;
     }
     return UserPrefAreaRegistry.instance().getEntry(str.trim());

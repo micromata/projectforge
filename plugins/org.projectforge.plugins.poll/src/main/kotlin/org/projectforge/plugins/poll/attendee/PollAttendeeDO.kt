@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,37 +28,31 @@ import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.poll.PollDO
-
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
+import javax.persistence.*
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_POLL_ATTENDEE", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_poll_attendee_tenant_id", columnList = "tenant_id")])
-class PollAttendeeDO : DefaultBaseDO() {
+@Table(name = "T_PLUGIN_POLL_ATTENDEE", indexes = [Index(name = "idx_fk_t_plugin_poll_attendee_tenant_id", columnList = "tenant_id")])
+open class PollAttendeeDO : DefaultBaseDO() {
 
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_fk")
-    var user: PFUserDO? = null
+    open var user: PFUserDO? = null
 
     @get:Column
-    var email: String? = null
+    open var email: String? = null
 
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "poll_fk")
-    var poll: PollDO? = null
+    open var poll: PollDO? = null
 
     @get:Column
-    var secureKey: String? = null
+    open var secureKey: String? = null
 
     /**
      * @see java.lang.Object.hashCode
@@ -76,18 +70,17 @@ class PollAttendeeDO : DefaultBaseDO() {
     /**
      * @see java.lang.Object.equals
      */
-    override fun equals(obj: Any?): Boolean {
-        if (this === obj)
+    override fun equals(other: Any?): Boolean {
+        if (this === other)
             return true
-        if (obj == null)
+        if (other == null)
             return false
-        if (javaClass != obj.javaClass)
+        if (other !is PollAttendeeDO)
             return false
-        val other = obj as PollAttendeeDO?
         if (email == null) {
-            if (other!!.email != null)
+            if (other.email != null)
                 return false
-        } else if (email != other!!.email)
+        } else if (email != other.email)
             return false
         if (poll == null) {
             if (other.poll != null)

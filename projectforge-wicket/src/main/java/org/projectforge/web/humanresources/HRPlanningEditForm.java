@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,6 @@
 
 package org.projectforge.web.humanresources;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -46,11 +39,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidator;
 import org.hibernate.Hibernate;
 import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.humanresources.HRPlanningDO;
-import org.projectforge.business.humanresources.HRPlanningDao;
-import org.projectforge.business.humanresources.HRPlanningEntryDO;
-import org.projectforge.business.humanresources.HRPlanningEntryDao;
-import org.projectforge.business.humanresources.HRPlanningEntryStatus;
+import org.projectforge.business.humanresources.*;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
@@ -62,20 +51,12 @@ import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DateTimePanelSettings;
-import org.projectforge.web.wicket.components.JiraIssuesPanel;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivType;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.HtmlCodePanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
-import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
+import org.projectforge.web.wicket.components.*;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
+
+import java.math.BigDecimal;
+import java.util.*;
 
 /**
  * @author Mario Groß (m.gross@micromata.de)
@@ -187,7 +168,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
         if (date != null) {
           final DayHolder dh = new DayHolder(date);
           dh.setBeginOfWeek();
-          data.setWeek(dh.getSQLDate());
+          data.setWeek(dh.getSqlDate());
         }
         weekDatePanel.markModelAsChanged();
       });
@@ -451,7 +432,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
         // Get the entry from the predecessor week:
         final DayHolder dh = new DayHolder(getData().getWeek());
         dh.add(Calendar.WEEK_OF_YEAR, -1);
-        predecessor = hrPlanningDao.getEntry(userId, dh.getSQLDate());
+        predecessor = hrPlanningDao.getEntry(userId, dh.getSqlDate());
       }
       predecessorUpdToDate = true;
     }

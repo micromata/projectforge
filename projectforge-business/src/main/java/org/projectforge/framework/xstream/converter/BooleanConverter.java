@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,6 +28,6 @@ public class BooleanConverter extends AbstractValueConverter<Boolean>
   @Override
   public Boolean fromString(String str)
   {
-    return new Boolean(str);
+    return Boolean.valueOf(str);
   }
 }

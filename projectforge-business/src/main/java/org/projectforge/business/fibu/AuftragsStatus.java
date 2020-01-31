@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -65,6 +65,34 @@ public enum AuftragsStatus implements I18nEnum
   AuftragsStatus(String key)
   {
     this.key = key;
+  }
+
+  /**
+   * Converts this to equivalent enum AuftragsPositionsStatus.
+   * @return
+   */
+  public AuftragsPositionsStatus asAuftragsPositionStatus() {
+    switch(this) {
+      case IN_ERSTELLUNG:
+        return AuftragsPositionsStatus.IN_ERSTELLUNG;
+      case POTENZIAL:
+        return AuftragsPositionsStatus.POTENZIAL;
+      case GELEGT:
+        return AuftragsPositionsStatus.GELEGT;
+      case LOI:
+        return AuftragsPositionsStatus.LOI;
+      case BEAUFTRAGT:
+        return AuftragsPositionsStatus.BEAUFTRAGT;
+      case ABGESCHLOSSEN:
+        return AuftragsPositionsStatus.ABGESCHLOSSEN;
+      case ABGELEHNT:
+        return AuftragsPositionsStatus.ABGELEHNT;
+      case ERSETZT:
+        return AuftragsPositionsStatus.ERSETZT;
+      case ESKALATION:
+        return AuftragsPositionsStatus.ESKALATION;
+    }
+    return null;
   }
 
   public boolean isIn(AuftragsStatus... status)

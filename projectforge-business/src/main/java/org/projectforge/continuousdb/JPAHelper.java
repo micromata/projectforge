@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,28 +23,17 @@
 
 package org.projectforge.continuousdb;
 
+import org.projectforge.common.BeanHelper;
+
+import javax.persistence.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.Lob;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderColumn;
-import javax.persistence.Transient;
-
-import org.projectforge.common.BeanHelper;
 
 /**
  * For manipulating the database (patching data etc.)
@@ -186,11 +175,11 @@ public class JPAHelper
   private static List<Annotation> handlePersistenceAnnotation(List<Annotation> list, final AccessibleObject object,
       final Class<? extends Annotation> annotation)
   {
-    if (object.isAnnotationPresent(annotation) == false) {
+    if (!object.isAnnotationPresent(annotation)) {
       return list;
     }
     if (list == null) {
-      list = new LinkedList<Annotation>();
+      list = new LinkedList<>();
     }
     list.add(object.getAnnotation(annotation));
     return list;
@@ -228,9 +217,7 @@ public class JPAHelper
       if (field != null) {
         return field;
       }
-    } catch (final SecurityException ex) {
-      // OK, nothing to do.
-    } catch (final NoSuchFieldException ex) {
+    } catch (final SecurityException | NoSuchFieldException ex) {
       // OK, nothing to do.
     }
     if (clazz.getSuperclass() != null) {
@@ -241,16 +228,14 @@ public class JPAHelper
 
   private static List<Field> getAllDeclaredFields(final Class<?> clazz)
   {
-    return getAllDeclaredFields(new ArrayList<Field>(), clazz);
+    return getAllDeclaredFields(new ArrayList<>(), clazz);
   }
 
   private static List<Field> getAllDeclaredFields(final List<Field> list, final Class<?> clazz)
   {
     final Field[] fields = clazz.getDeclaredFields();
     AccessibleObject.setAccessible(fields, true);
-    for (final Field field : fields) {
-      list.add(field);
-    }
+    Collections.addAll(list, fields);
     if (clazz.getSuperclass() != null) {
       getAllDeclaredFields(list, clazz.getSuperclass());
     }

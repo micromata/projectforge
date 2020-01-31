@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,20 +24,15 @@
 package org.projectforge.plugins.liquidityplanning
 
 import org.hibernate.search.annotations.DateBridge
-import org.hibernate.search.annotations.EncodingType
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Index
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.Resolution
-import org.hibernate.search.annotations.Store
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-
 import java.math.BigDecimal
 import java.sql.Date
-
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.Table
@@ -51,28 +46,28 @@ import javax.persistence.Table
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_LIQUI_ENTRY", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_liqui_entry_tenant_id", columnList = "tenant_id")])
-class LiquidityEntryDO : DefaultBaseDO() {
+open class LiquidityEntryDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.liquidityplanning.entry.dateOfPayment")
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "date_of_payment")
-    var dateOfPayment: Date? = null
+    open var dateOfPayment: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.common.betrag", type = PropertyType.CURRENCY)
     @get:Column(scale = 2, precision = 12)
-    var amount: BigDecimal? = null
+    open var amount: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.status.bezahlt")
     @get:Column
-    var paid: Boolean = false
+    open var paid: Boolean = false
 
     @PropertyInfo(i18nKey = "fibu.rechnung.betreff")
     @Field
     @get:Column(length = Constants.LENGTH_TITLE)
-    var subject: String? = null
+    open var subject: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = Constants.LENGTH_TEXT)
-    var comment: String? = null
+    open var comment: String? = null
 }

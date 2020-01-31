@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.framework.renderer;
 
-import java.io.ByteArrayOutputStream;
-
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
@@ -34,6 +32,8 @@ import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.fop.svg.PDFTranscoder;
 import org.projectforge.framework.xstream.XmlHelper;
 import org.w3c.dom.Document;
+
+import java.io.ByteArrayOutputStream;
 
 public class BatikImageRenderer
 {
@@ -48,7 +48,7 @@ public class BatikImageRenderer
    */
   public static byte[] getByteArray(final Document document, final int width, final ImageFormat imageFormat)
   {
-    if (imageFormat.isIn(ImageFormat.PNG, ImageFormat.JPEG) == true) {
+    if (imageFormat.isIn(ImageFormat.PNG, ImageFormat.JPEG)) {
       return getRasterImageByteArray(document, width, imageFormat);
     }
     if (imageFormat == ImageFormat.PDF == true) {
@@ -66,14 +66,14 @@ public class BatikImageRenderer
     final ImageTranscoder t;
     if (imageFormat == ImageFormat.JPEG) {
       t = new JPEGTranscoder();
-      t.addTranscodingHint(JPEGTranscoder.KEY_QUALITY, new Float(.8));
-      t.addTranscodingHint(JPEGTranscoder.KEY_WIDTH, new Float(width));
+      t.addTranscodingHint(JPEGTranscoder.KEY_QUALITY, .8f);
+      t.addTranscodingHint(JPEGTranscoder.KEY_WIDTH, (float) width);
       // } else if (imageFormat == ImageFormat.TIFF) {
       // t = new TIFFTranscoder();
       // t.addTranscodingHint(TIFFTranscoder.KEY_WIDTH, new Float(width));
     } else {
       t = new PNGTranscoder();
-      t.addTranscodingHint(PNGTranscoder.KEY_WIDTH, new Float(width));
+      t.addTranscodingHint(PNGTranscoder.KEY_WIDTH, (float) width);
     }
     // Set the transcoding hints.
     TranscoderInput input = new TranscoderInput(document);
@@ -99,7 +99,7 @@ public class BatikImageRenderer
     // Create a pdf transcoder
     final PDFTranscoder t = new PDFTranscoder();
     t.addTranscodingHint(PDFTranscoder.KEY_AUTO_FONTS, false);
-    t.addTranscodingHint(PDFTranscoder.KEY_WIDTH, new Float(width));
+    t.addTranscodingHint(PDFTranscoder.KEY_WIDTH, (float) width);
     TranscoderInput input = new TranscoderInput(document);
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     final TranscoderOutput output = new TranscoderOutput(baos);

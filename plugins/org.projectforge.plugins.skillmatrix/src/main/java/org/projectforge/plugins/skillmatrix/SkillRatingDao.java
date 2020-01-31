@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,27 +23,24 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * DAO for SkillRatingDO. Handles constraint validation and database access.
- * 
- * @author Billy Duong (b.duong@micromata.de)
  *
+ * @author Billy Duong (b.duong@micromata.de)
  */
 @Repository
-public class SkillRatingDao extends BaseDao<SkillRatingDO>
-{
+public class SkillRatingDao extends BaseDao<SkillRatingDO> {
   static final String I18N_KEY_ERROR_CYCLIC_REFERENCE = "plugins.skillmatrix.error.cyclicReference";
 
   public static final String I18N_KEY_ERROR_DUPLICATE_RATING = "plugins.skillmatrix.error.duplicateRating";
@@ -52,59 +49,54 @@ public class SkillRatingDao extends BaseDao<SkillRatingDO>
 
   public static final String I18N_KEY_ERROR_UNRATEABLE_SKILL_WITH_RATING = "plugins.skillmatrix.error.unrateableSkillWithRating";
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "skill.title" };
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"skill.title"};
 
   @Autowired
   private SkillDao skillDao;
 
-  public SkillRatingDao()
-  {
+  public SkillRatingDao() {
     super(SkillRatingDO.class);
     userRightId = SkillmatrixPluginUserRightId.PLUGIN_SKILL_MATRIX_SKILL_RATING;
   }
 
   @Override
-  public SkillRatingDO newInstance()
-  {
+  public SkillRatingDO newInstance() {
     return new SkillRatingDO();
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
-   */
   @Override
-  protected void onSaveOrModify(final SkillRatingDO obj)
-  {
+  protected void onSaveOrModify(final SkillRatingDO obj) {
     synchronized (this) {
       checkConstraintViolation(obj);
     }
   }
 
   /**
-   *
    * @param skillRating that needs to be validated.
    * @throws UserException is thrown when the user wants to create a duplicate.
    */
   @SuppressWarnings("unchecked")
-  private void checkConstraintViolation(final SkillRatingDO skillRating) throws UserException
-  {
-    List<SkillRatingDO> list;
+  private void checkConstraintViolation(final SkillRatingDO skillRating) throws UserException {
+    SkillRatingDO other;
     if (skillRating.getId() != null) {
-      list = (List<SkillRatingDO>) getHibernateTemplate().find(
-          "from SkillRatingDO s where s.user.id = ? and s.skill.id = ? and s.id != ?",
-          new Object[] { skillRating.getUserId(), skillRating.getSkillId(), skillRating.getId() });
+      other = SQLHelper.ensureUniqueResult(em
+              .createNamedQuery(SkillRatingDO.FIND_OTHER_BY_USER_AND_SKILL, SkillRatingDO.class)
+              .setParameter("userId", skillRating.getUserId())
+              .setParameter("skillId", skillRating.getSkillId())
+              .setParameter("id", skillRating.getId()));
     } else {
-      list = (List<SkillRatingDO>) getHibernateTemplate().find(
-          "from SkillRatingDO s where s.user.id = ? and s.skill.id = ?",
-          new Object[] { skillRating.getUserId(), skillRating.getSkillId() });
+      other = SQLHelper.ensureUniqueResult(em
+              .createNamedQuery(SkillRatingDO.FIND_BY_USER_AND_SKILL, SkillRatingDO.class)
+              .setParameter("userId", skillRating.getUserId())
+              .setParameter("skillId", skillRating.getSkillId()));
     }
-    if (CollectionUtils.isNotEmpty(list) == true) {
+    if (other != null) {
       throw new UserException(I18N_KEY_ERROR_DUPLICATE_RATING);
     }
 
-    if (skillRating.getSkill().isRateable() == false && skillRating.getSkillRating() != null) {
+    if (!skillRating.getSkill().getRateable() && skillRating.getSkillRating() != null) {
       throw new UserException(I18N_KEY_ERROR_UNRATEABLE_SKILL_WITH_RATING);
-    } else if (skillRating.getSkill().isRateable() == true && skillRating.getSkillRating() == null) {
+    } else if (skillRating.getSkill().getRateable() && skillRating.getSkillRating() == null) {
       throw new UserException(I18N_KEY_ERROR_RATEABLE_SKILL_WITH_NULL_RATING);
     }
   }
@@ -113,8 +105,7 @@ public class SkillRatingDao extends BaseDao<SkillRatingDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#getAdditionalSearchFields()
    */
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
@@ -122,8 +113,7 @@ public class SkillRatingDao extends BaseDao<SkillRatingDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#getList(org.projectforge.framework.persistence.api.BaseSearchFilter)
    */
   @Override
-  public List<SkillRatingDO> getList(final BaseSearchFilter filter)
-  {
+  public List<SkillRatingDO> getList(final BaseSearchFilter filter) {
     final SkillRatingFilter myFilter;
     if (filter instanceof SkillRatingFilter) {
       myFilter = (SkillRatingFilter) filter;
@@ -135,28 +125,27 @@ public class SkillRatingDao extends BaseDao<SkillRatingDO>
 
     if (myFilter.getSkillRating() != null) {
       final Object[] values = SkillRating.getRequiredExperienceValues(myFilter
-          .getSkillRating());
-      queryFilter.add(Restrictions.in("skillRating", values));
+              .getSkillRating());
+      queryFilter.add(QueryFilter.isIn("skillRating", values));
     }
 
     if (myFilter.getSkillId() != null) {
       final SkillDO skill = new SkillDO();
       skill.setId(myFilter.getSkillId());
-      queryFilter.add(Restrictions.eq("skill", skill));
+      queryFilter.add(QueryFilter.eq("skill", skill));
     }
 
     if (myFilter.getUserId() != null) {
       final PFUserDO user = new PFUserDO();
       user.setId(myFilter.getUserId());
-      queryFilter.add(Restrictions.eq("user", user));
+      queryFilter.add(QueryFilter.eq("user", user));
     }
 
     myFilter.setSearchString(searchString); // Restore search string.
     return getList(queryFilter);
   }
 
-  public SkillRatingDO setSkill(final SkillRatingDO rating, final Integer id)
-  {
+  public SkillRatingDO setSkill(final SkillRatingDO rating, final Integer id) {
     final SkillDO skill = skillDao.getSkillTree().getSkillById(id);
     rating.setSkill(skill);
     return rating;

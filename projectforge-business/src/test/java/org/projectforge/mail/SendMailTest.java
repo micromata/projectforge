@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -42,8 +42,7 @@ import javax.mail.Transport;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
@@ -91,8 +90,9 @@ public class SendMailTest
     final Collection<? extends MailAttachment> attachments = null;
     try {
       sendMail.send(message, icalContent, attachments);
-      assertTrue(false);
+      fail();
     } catch (UserException e) {
+      assertEquals("mail.error.missingToAddress", e.getI18nKey());
       //OK
     }
   }
@@ -101,22 +101,24 @@ public class SendMailTest
   public void sendMailUserNullTest()
   {
     final Mail message = new Mail();
-    PFUserDO toUser = null;
-    message.setTo(toUser);
+    PFUserDO toUser;
+    message.setTo(null);
     final String icalContent = null;
     final Collection<? extends MailAttachment> attachments = null;
     try {
       sendMail.send(message, icalContent, attachments);
-      assertTrue(false);
+      fail();
     } catch (UserException e) {
+      assertEquals("mail.error.missingToAddress", e.getI18nKey());
       //OK
     }
     toUser = new PFUserDO();
     message.setTo(toUser);
     try {
       sendMail.send(message, icalContent, attachments);
-      assertTrue(false);
+      fail();
     } catch (UserException e) {
+      assertEquals("mail.error.missingToAddress", e.getI18nKey());
       //OK
     }
   }
@@ -190,8 +192,9 @@ public class SendMailTest
     final Collection<? extends MailAttachment> attachments = null;
     try {
       sendMail.send(message, icalContent, attachments, false);
-      assertTrue(false);
+      fail();
     } catch (InternalErrorException e) {
+      assertEquals("mail.error.exception", e.getI18nKey());
       //OK
       //java.lang.NullPointerException: null
       //at com.sun.mail.handlers.text_plain.writeTo(text_plain.java:152)

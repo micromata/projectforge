@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.business.teamcal.externalsubscription;
 
+import org.projectforge.common.i18n.I18nEnum;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.projectforge.common.i18n.I18nEnum;
 
 /**
  * Refresh interval in seconds.
@@ -65,7 +65,7 @@ public enum SubscriptionUpdateInterval implements I18nEnum
 
   public static List<Integer> getIntervals()
   {
-    final List<Integer> result = new ArrayList<Integer>();
+    final List<Integer> result = new ArrayList<>();
     for (final SubscriptionUpdateInterval value : values()) {
       result.add(value.getInterval());
     }

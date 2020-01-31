@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
@@ -61,106 +62,131 @@ import javax.persistence.*
             javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_tenant_id", columnList = "tenant_id")])
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"],
         nestedEntities = [AuftragsPositionDO::class, PaymentScheduleDO::class])
-class AuftragDO : DefaultBaseDO() {
+@NamedQueries(
+        NamedQuery(name = AuftragDO.SELECT_MIN_MAX_DATE, query = "select min(angebotsDatum), max(angebotsDatum) from AuftragDO"),
+        NamedQuery(name = AuftragDO.FIND_BY_NUMMER, query = "from AuftragDO where nummer=:nummer"),
+        NamedQuery(name = AuftragDO.FIND_OTHER_BY_NUMMER, query = "from AuftragDO where nummer=:nummer and id!=:id"))
+open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
 
     private val log = org.slf4j.LoggerFactory.getLogger(AuftragDO::class.java)
+
+    override val displayName: String
+        @Transient
+        get() = "$nummer: $titel"
 
     /**
      * Auftragsnummer ist eindeutig und wird fortlaufend erzeugt.
      */
     @PropertyInfo(i18nKey = "fibu.auftrag.nummer")
+    @Field
     @get:Column(nullable = false)
-    var nummer: Int? = null
+    open var nummer: Int? = null
 
     /**
      * Dies sind die alten Auftragsnummern oder Kundenreferenzen.
      */
-    @PropertyInfo(i18nKey = "fibu.auftrag.customer.reference")
+    @PropertyInfo(i18nKey = "fibu.common.customer.reference")
     @Fields(Field(name = "referenz_tokenized"), Field(analyze = Analyze.NO))
     @get:Column(length = 255)
-    var referenz: String? = null
+    open var referenz: String? = null
 
+    @PropertyInfo(i18nKey = "label.position.short")
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @IndexedEmbedded(depth = 1)
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "auftrag")
+    @get:OneToMany(cascade = [CascadeType.MERGE], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "auftrag")
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
-    var positionen: MutableList<AuftragsPositionDO>? = null
+    open var positionen: MutableList<AuftragsPositionDO>? = null
 
+    @PropertyInfo(i18nKey = "fibu.auftrag.status")
     @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "status", length = 30)
-    var auftragsStatus: AuftragsStatus? = null
+    open var auftragsStatus: AuftragsStatus? = null
 
     @PropertyInfo(i18nKey = "contactPerson")
     @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "contact_person_fk", nullable = true)
-    var contactPerson: PFUserDO? = null
+    open var contactPerson: PFUserDO? = null
+
+    val contactPersonId: Int?
+        @Transient
+        get() = contactPerson?.id
+
 
     @PropertyInfo(i18nKey = "fibu.kunde")
     @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "kunde_fk", nullable = true)
-    var kunde: KundeDO? = null
+    open var kunde: KundeDO? = null
+
+    val kundeId: Int?
+        @Transient
+        get() = kunde?.id
 
     /**
      * Freitextfeld, falls Kunde nicht aus Liste gewählt werden kann bzw. für Rückwärtskompatibilität mit alten Kunden.
      */
+    @PropertyInfo(i18nKey = "fibu.kunde.text")
     @Field
     @get:Column(name = "kunde_text", length = 1000)
-    var kundeText: String? = null
+    open var kundeText: String? = null
 
     @PropertyInfo(i18nKey = "fibu.projekt")
     @IndexedEmbedded(depth = 2)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projekt_fk", nullable = true)
-    var projekt: ProjektDO? = null
+    open var projekt: ProjektDO? = null
+
+    val projektId: Int?
+        @Transient
+        get() = projekt?.id
 
     @PropertyInfo(i18nKey = "fibu.auftrag.titel")
     @Field
     @get:Column(name = "titel", length = 1000)
-    var titel: String? = null
+    open var titel: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @Field
     @get:Column(length = 4000)
-    var bemerkung: String? = null
+    open var bemerkung: String? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.statusBeschreibung")
     @Field
     @get:Column(length = 4000, name = "status_beschreibung")
-    var statusBeschreibung: String? = null
+    open var statusBeschreibung: String? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.angebot.datum")
     @Field
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "angebots_datum")
-    var angebotsDatum: Date? = null
+    open var angebotsDatum: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.erfassung.datum")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "erfassungs_datum")
-    var erfassungsDatum: Date? = null
+    open var erfassungsDatum: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.entscheidung.datum")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "entscheidungs_datum")
-    var entscheidungsDatum: Date? = null
+    open var entscheidungsDatum: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.bindungsFrist")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "bindungs_frist")
-    var bindungsFrist: Date? = null
+    open var bindungsFrist: Date? = null
 
     /**
      * Wer hat wann und wie beauftragt? Z. B. Beauftragung per E-Mail durch Herrn Müller.
      */
     @get:Column(name = "beauftragungs_beschreibung", length = 4000)
-    var beauftragungsBeschreibung: String? = null
+    open var beauftragungsBeschreibung: String? = null
 
     /**
      * Wann wurde beauftragt? Beachte: Alle Felder historisiert, so dass hier ein Datum z. B. mit dem LOI und später das
@@ -168,9 +194,32 @@ class AuftragDO : DefaultBaseDO() {
      */
     @PropertyInfo(i18nKey = "fibu.auftrag.beauftragungsdatum")
     @get:Column(name = "beauftragungs_datum")
-    var beauftragungsDatum: Date? = null
+    open var beauftragungsDatum: Date? = null
 
-    private var fakturiertSum: BigDecimal? = null
+    @PropertyInfo(i18nKey = "fibu.fakturiert")
+    @get:Transient
+    open var fakturiertSum: BigDecimal? = null
+        /**
+         * Sums all positions. Must be set in all positions before usage. The value is not calculated automatically!
+         *
+         * @see AuftragDao.calculateInvoicedSum
+         */
+        get() {
+            if (field == null) {
+                field = BigDecimal.ZERO
+                if (positionen != null) {
+                    for (pos in positionen!!) {
+                        if (pos.isDeleted) {
+                            continue
+                        }
+                        if (NumberHelper.isNotZero(pos.fakturiertSum)) {
+                            field = field!!.add(pos.fakturiertSum)
+                        }
+                    }
+                }
+            }
+            return field!!
+        }
 
     /**
      * The user interface status of an order. The [AuftragUIStatus] is stored as XML.
@@ -180,52 +229,53 @@ class AuftragDO : DefaultBaseDO() {
      */
     @field:NoHistory
     @get:Column(name = "ui_status_as_xml", length = 10000)
-    var uiStatusAsXml: String? = null
+    open var uiStatusAsXml: String? = null
 
     private var uiStatus: AuftragUIStatus? = null
 
     /**
      * Get the payment schedule entries for this object.
      */
+    @PropertyInfo(i18nKey = "fibu.auftrag.paymentschedule")
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "auftrag")
+    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "auftrag")
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
-    var paymentSchedules: MutableList<PaymentScheduleDO>? = null
+    open var paymentSchedules: MutableList<PaymentScheduleDO>? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_begin")
-    var periodOfPerformanceBegin: Date? = null
+    open var periodOfPerformanceBegin: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_end")
-    var periodOfPerformanceEnd: Date? = null
+    open var periodOfPerformanceEnd: Date? = null
 
     @PropertyInfo(i18nKey = "fibu.probabilityOfOccurrence")
     @get:Column(name = "probability_of_occurrence")
-    var probabilityOfOccurrence: Int? = null
+    open var probabilityOfOccurrence: Int? = null
 
     @PropertyInfo(i18nKey = "fibu.projectManager")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projectmanager_fk")
-    var projectManager: PFUserDO? = null
+    open var projectManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.headOfBusinessManager")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "headofbusinessmanager_fk")
-    var headOfBusinessManager: PFUserDO? = null
+    open var headOfBusinessManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.salesManager")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "salesmanager_fk")
-    var salesManager: PFUserDO? = null
+    open var salesManager: PFUserDO? = null
 
     /**
      * Adds all net sums of the positions (without not ordered positions) and return the total sum.
@@ -286,12 +336,6 @@ class AuftragDO : DefaultBaseDO() {
             return if (auftragsStatus != null) I18nHelper.getLocalizedMessage(auftragsStatus!!.i18nKey) else null
         }
 
-    val kundeId: Int?
-        @Transient
-        get() = if (this.kunde == null) {
-            null
-        } else kunde!!.id
-
     /**
      * @see ProjektFormatter.formatProjektKundeAsString
      */
@@ -332,18 +376,6 @@ class AuftragDO : DefaultBaseDO() {
             return buf.toString()
         }
 
-    val projektId: Int?
-        @Transient
-        get() = if (this.projekt == null) {
-            null
-        } else projekt!!.id
-
-    val contactPersonId: Int?
-        @Transient
-        get() = if (this.contactPerson == null) {
-            null
-        } else contactPerson!!.id
-
     /**
      * @return true wenn alle Auftragspositionen vollständig fakturiert sind.
      * @see AuftragsPositionDO.vollstaendigFakturiert
@@ -351,17 +383,19 @@ class AuftragDO : DefaultBaseDO() {
     val isVollstaendigFakturiert: Boolean
         @Transient
         get() {
-            if (positionen == null || auftragsStatus != AuftragsStatus.ABGESCHLOSSEN) {
+            if (auftragsStatus != AuftragsStatus.ABGESCHLOSSEN) {
                 return false
             }
-            for (position in positionen!!) {
-                if (position.isDeleted) {
-                    continue
+            positionen?.let {positionen ->
+                for (position in positionen) {
+                    if (position.isDeleted) {
+                        continue
+                    }
+                    if (position.vollstaendigFakturiert != true && (position.status == null || !position.status!!.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT))) {
+                        return false
+                    }
                 }
-                if (position.vollstaendigFakturiert != true && (position.status == null || !position.status!!.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT))) {
-                    return false
-                }
-            }
+            } ?: return false
             return true
         }
 
@@ -457,7 +491,7 @@ class AuftragDO : DefaultBaseDO() {
         get() {
             if (this.paymentSchedules != null) {
                 for (pos in this.paymentSchedules!!) {
-                    if (pos.reached && pos.vollstaendigFakturiert) {
+                    if (pos.reached && !pos.vollstaendigFakturiert) {
                         return true
                     }
                 }
@@ -533,29 +567,6 @@ class AuftragDO : DefaultBaseDO() {
     }
 
     /**
-     * Sums all positions. Must be set in all positions before usage. The value is not calculated automatically!
-     *
-     * @see AuftragDao.calculateInvoicedSum
-     */
-    @Transient
-    fun getFakturiertSum(): BigDecimal {
-        if (this.fakturiertSum == null) {
-            this.fakturiertSum = BigDecimal.ZERO
-            if (positionen != null) {
-                for (pos in positionen!!) {
-                    if (pos.isDeleted) {
-                        continue
-                    }
-                    if (NumberHelper.isNotZero(pos.fakturiertSum)) {
-                        this.fakturiertSum = this.fakturiertSum!!.add(pos.fakturiertSum)
-                    }
-                }
-            }
-        }
-        return this.fakturiertSum!!
-    }
-
-    /**
      * @return the rechungUiStatus
      */
     @Transient
@@ -608,5 +619,11 @@ class AuftragDO : DefaultBaseDO() {
             this.paymentSchedules = ArrayList()
         }
         return this.paymentSchedules
+    }
+
+    companion object {
+        internal const val SELECT_MIN_MAX_DATE = "AuftragDO_SelectMinMaxDate"
+        internal const val FIND_BY_NUMMER = "AuftragDO_FindByNummer"
+        internal const val FIND_OTHER_BY_NUMMER = "AuftragDO_FindOtherByNummer"
     }
 }

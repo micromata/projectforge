@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -70,7 +70,7 @@ public class RechnungCacheTest extends AbstractTestBase {
     position.setText("1.2");
     rechnung1.addPosition(position);
     rechnung1.setNummer(rechnungDao.getNextNumber(rechnung1));
-    rechnung1.setDatum(today.getSQLDate());
+    rechnung1.setDatum(today.getSqlDate());
     rechnung1.setFaelligkeit(new Date(System.currentTimeMillis()));
     rechnung1.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
     rechnungDao.save(rechnung1);
@@ -82,7 +82,7 @@ public class RechnungCacheTest extends AbstractTestBase {
     position.setText("2.1");
     rechnung2.addPosition(position);
     rechnung2.setNummer(rechnungDao.getNextNumber(rechnung2));
-    rechnung2.setDatum(today.getSQLDate());
+    rechnung2.setDatum(today.getSqlDate());
     rechnung2.setFaelligkeit(new Date(System.currentTimeMillis()));
     rechnung2.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
     rechnungDao.save(rechnung2);
@@ -109,7 +109,7 @@ public class RechnungCacheTest extends AbstractTestBase {
     assertTrue(new BigDecimal("200").compareTo(RechnungDao.getNettoSumme(set)) == 0);
 
     final RechnungDO rechnung = rechnungDao.getById(rechnung2.getId());
-    rechnung.getPosition(0).setAuftragsPosition(null);
+    rechnung.getPositionen().get(0).setAuftragsPosition(null);
     rechnungDao.update(rechnung);
     set = rechnungDao.getRechnungCache().getRechnungsPositionVOSetByAuftragId(auftrag.getId());
     assertEquals( 2, set.size(),"2 invoice positions expected.");

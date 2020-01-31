@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,11 @@
 
 package org.projectforge.framework.persistence.database;
 
+import com.thoughtworks.xstream.converters.SingleValueConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.UserRightService;
-
-import com.thoughtworks.xstream.converters.SingleValueConverter;
 
 /**
  * Converts UserRightId from and to strings.
@@ -65,7 +64,7 @@ public class UserRightIdSingleValueConverter implements SingleValueConverter
   @Override
   public Object fromString(final String str)
   {
-    if (StringUtils.isBlank(str) == true) {
+    if (StringUtils.isBlank(str)) {
       return null;
     }
     return userRights.getRightId(str.trim());

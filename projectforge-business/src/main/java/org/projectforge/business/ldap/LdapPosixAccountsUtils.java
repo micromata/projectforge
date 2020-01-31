@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,15 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.Collection;
-
-import java.util.Objects;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.Objects;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -57,7 +57,7 @@ public class LdapPosixAccountsUtils
       if (ldapUserValues == null) {
         continue;
       }
-      if (ldapUserValues.getUidNumber() != null && ldapUserValues.getUidNumber().intValue() > currentMaxNumber) {
+      if (ldapUserValues.getUidNumber() != null && ldapUserValues.getUidNumber() > currentMaxNumber) {
         currentMaxNumber = ldapUserValues.getUidNumber();
       }
     }
@@ -77,12 +77,12 @@ public class LdapPosixAccountsUtils
     final Collection<PFUserDO> allUsers = getUserGroupCache().getAllUsers();
     for (final PFUserDO user : allUsers) {
       final LdapUserValues ldapUserValues = PFUserDOConverter.readLdapUserValues(user.getLdapValues());
-      if (Objects.equals(user.getId(), currentUser.getId()) == true) {
+      if (Objects.equals(user.getId(), currentUser.getId())) {
         // The current user may have the given uidNumber already, so ignore this entry.
         continue;
       }
       if (ldapUserValues != null && ldapUserValues.getUidNumber() != null
-          && ldapUserValues.getUidNumber().intValue() == uidNumber) {
+          && ldapUserValues.getUidNumber() == uidNumber) {
         // Number isn't free.
         log.info("The uidNumber (posix account) '" + uidNumber + "' is already occupied by user: " + user);
         return false;

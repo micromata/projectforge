@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,7 +29,9 @@ public enum VisitorType implements I18nEnum
 {
   NORMAL("normal"),
   EXTENDED("extended"),
-  FAMILY("family");
+  FAMILY("family"),
+  SUPPLIER("supplier"),
+  WORKMAN("workman");
 
   private final String i18nKey;
 

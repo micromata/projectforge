@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,8 +37,6 @@ import org.projectforge.web.admin.AdminPage;
 import org.projectforge.web.admin.ConfigurationListPage;
 import org.projectforge.web.admin.SetupPage;
 import org.projectforge.web.admin.SystemUpdatePage;
-import org.projectforge.web.book.BookEditPage;
-import org.projectforge.web.book.BookListPage;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.core.SearchPage;
 import org.projectforge.web.doc.DocumentationPage;
@@ -63,7 +61,6 @@ import org.projectforge.web.statistics.SystemStatisticsPage;
 import org.projectforge.web.task.TaskEditPage;
 import org.projectforge.web.task.TaskListPage;
 import org.projectforge.web.task.TaskTreePage;
-import org.projectforge.web.teamcal.admin.TeamCalListPage;
 import org.projectforge.web.teamcal.event.TeamEventListPage;
 import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
 import org.projectforge.web.timesheet.TimesheetEditPage;
@@ -266,9 +263,6 @@ public class WebRegistry
     addMountPages(DaoConst.ADDRESS, AddressListPage.class, AddressEditPage.class);
     addMountPage(DaoConst.ADDRESS + "View", AddressViewPage.class);
 
-    register(DaoConst.BOOK, BookListPage.class);
-    addMountPages(DaoConst.BOOK, BookListPage.class, BookEditPage.class);
-
     register(DaoConst.TASK, TaskListPage.class);
     addMountPages(DaoConst.TASK, TaskListPage.class, TaskEditPage.class);
 
@@ -354,7 +348,6 @@ public class WebRegistry
     addMountPage("taskTree", TaskTreePage.class);
     addMountPage("tutorial", TutorialPage.class);
 
-    register("teamCal", TeamCalListPage.class);
     register("teamEvent", TeamEventListPage.class);
     addMountPage("teamCalendar", TeamCalCalendarPage.class);
   }

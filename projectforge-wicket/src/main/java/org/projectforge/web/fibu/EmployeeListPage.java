@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -125,9 +125,9 @@ public class EmployeeListPage extends AbstractListPage<EmployeeListForm, Employe
             "staffNumber",
             cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<EmployeeDO>(new ResourceModel("fibu.kost1"),
-        getSortable("kost1.shortDisplayName",
+        getSortable("kost1.displayName",
             sortable),
-        "kost1.shortDisplayName", cellItemListener));
+        "kost1.displayName", cellItemListener));
     columns.add(
         new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class, getSortable("position", sortable), "position",
             cellItemListener));

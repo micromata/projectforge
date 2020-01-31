@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,21 +23,13 @@
 
 package org.projectforge.business.excel;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
-import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.util.HSSFColor;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.*;
 import org.projectforge.common.DateFormatType;
+import org.projectforge.framework.time.PFDateTime;
+
+import java.util.*;
 
 public class XlsContentProvider implements ContentProvider
 {
@@ -87,15 +79,15 @@ public class XlsContentProvider implements ContentProvider
 
   static protected Font FONT_RED_BOLD;
 
-  protected Map<CellFormat, CellStyle> reusableCellFormats = new HashMap<CellFormat, CellStyle>();
+  protected Map<CellFormat, CellStyle> reusableCellFormats = new HashMap<>();
 
   protected ExportWorkbook workbook;
 
-  private final Map<Object, CellFormat> formatMap = new HashMap<Object, CellFormat>();
+  private final Map<Object, CellFormat> formatMap = new HashMap<>();
 
-  protected final Map<Object, CellFormat> defaultFormatMap = new HashMap<Object, CellFormat>();
+  protected final Map<Object, CellFormat> defaultFormatMap = new HashMap<>();
 
-  private final Map<Integer, Integer> colWidthMap = new HashMap<Integer, Integer>();
+  private final Map<Integer, Integer> colWidthMap = new HashMap<>();
 
   private boolean autoFormatCells = true;
 
@@ -113,8 +105,8 @@ public class XlsContentProvider implements ContentProvider
     this.exportContext = exportContext;
     this.workbook = workbook;
     createFonts();
-    defaultFormatMap.put(Integer.class, new CellFormat("#,##0", CellStyle.ALIGN_RIGHT));
-    defaultFormatMap.put(Number.class, new CellFormat("#,###.######", CellStyle.ALIGN_RIGHT));
+    defaultFormatMap.put(Integer.class, new CellFormat("#,##0", HorizontalAlignment.RIGHT.getCode()));
+    defaultFormatMap.put(Number.class, new CellFormat("#,###.######", HorizontalAlignment.RIGHT.getCode()));
     defaultFormatMap
         .put(Date.class, new CellFormat(ExcelDateFormats.getExcelFormatString(exportContext, DateFormatType.DATE_TIME_MINUTES)));
     defaultFormatMap.put(java.sql.Date.class, new CellFormat(ExcelDateFormats.getExcelFormatString(exportContext, DateFormatType.DATE)));
@@ -150,10 +142,10 @@ public class XlsContentProvider implements ContentProvider
   @Override
   public XlsContentProvider updateRowStyle(final ExportRow row)
   {
-    if (autoFormatCells == true) {
+    if (autoFormatCells) {
       for (final ExportCell cell : row.getCells()) {
         final CellFormat format = cell.ensureAndGetCellFormat();
-        format.setFillForegroundColor(HSSFColor.WHITE.index);
+        format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
         switch (row.getRowNum()) {
           /*
            * case 0: font = FONT_HEADER; break;
@@ -165,7 +157,7 @@ public class XlsContentProvider implements ContentProvider
           default:
             format.setFont(FONT_NORMAL);
             if (row.getRowNum() % 2 == 0) {
-              format.setFillForegroundColor(HSSFColor.GREY_25_PERCENT.index);
+              format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.GREY_25_PERCENT.getIndex());
             }
             break;
         }
@@ -184,12 +176,12 @@ public class XlsContentProvider implements ContentProvider
       reusableCellFormats.put(format, cellStyle);
       format.copyToCellStyle(cellStyle);
       if (format.getFillForegroundColor() != null) {
-        cellStyle.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
+        cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
       }
-      cellStyle.setBorderBottom((short) 1);
-      cellStyle.setBorderLeft((short) 1);
-      cellStyle.setBorderRight((short) 1);
-      cellStyle.setBorderTop((short) 1);
+      cellStyle.setBorderBottom(BorderStyle.valueOf((short) 1));
+      cellStyle.setBorderLeft(BorderStyle.valueOf((short) 1));
+      cellStyle.setBorderRight(BorderStyle.valueOf((short) 1));
+      cellStyle.setBorderTop(BorderStyle.valueOf((short) 1));
       cellStyle.setWrapText(true);
       final String dataFormat = format.getDataFormat();
       if (dataFormat != null) {
@@ -238,12 +230,14 @@ public class XlsContentProvider implements ContentProvider
       } else {
         poiCell.setCellValue(String.valueOf(customizedValue));
       }
+    } else if (value instanceof PFDateTime) {
+      poiCell.setCellValue(((PFDateTime)value).getCalendar());
     } else if (value instanceof Date) { // Attention: Time zone is not given!
       poiCell.setCellValue((Date) value);
     } else if (value instanceof Calendar) {
       poiCell.setCellValue((Calendar) value);
     } else if (value instanceof Boolean) {
-      poiCell.setCellValue(((Boolean) value).booleanValue());
+      poiCell.setCellValue((Boolean) value);
     } else if (value instanceof Number) {
       poiCell.setCellValue(((Number) value).doubleValue());
     } else if (value instanceof Formula) {
@@ -257,7 +251,7 @@ public class XlsContentProvider implements ContentProvider
     }
     if (cellFormat == null) {
       cellFormat = new CellFormat();
-      cellFormat.setAlignment(CellStyle.ALIGN_LEFT);
+      cellFormat.setAlignment(HorizontalAlignment.LEFT.getCode());
       cellFormat.setDataFormat("@");
       cellFormat.setWrapText(true);
     }
@@ -280,7 +274,7 @@ public class XlsContentProvider implements ContentProvider
     }
     if (format == null && columns != null) {
       for (final ExportColumn column : columns) {
-        if (column.getName().equals(property) == true) {
+        if (column.getName().equals(property)) {
           format = map.get(column);
           break;
         }
@@ -383,7 +377,7 @@ public class XlsContentProvider implements ContentProvider
   private XlsContentProvider registerColumn(final ExportColumn column)
   {
     if (this.columns == null) {
-      this.columns = new LinkedList<ExportColumn>();
+      this.columns = new LinkedList<>();
     }
     this.columns.add(column);
     return this;
@@ -409,21 +403,21 @@ public class XlsContentProvider implements ContentProvider
   {
     FONT_HEADER = workbook.createFont();
     FONT_HEADER.setFontHeightInPoints(FONT_HEADER_SIZE);
-    FONT_HEADER.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+    FONT_HEADER.setBold(true);
 
     FONT_NORMAL_BOLD = workbook.createFont();
-    FONT_NORMAL_BOLD.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+    FONT_NORMAL_BOLD.setBold(true);
 
     FONT_WHITE_BOLD = workbook.createFont();
-    FONT_WHITE_BOLD.setColor(HSSFColor.WHITE.index);
-    FONT_WHITE_BOLD.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+    FONT_WHITE_BOLD.setColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
+    FONT_WHITE_BOLD.setBold(true);
 
     FONT_RED = workbook.createFont();
-    FONT_RED.setColor(HSSFColor.RED.index);
+    FONT_RED.setColor(HSSFColor.HSSFColorPredefined.RED.getIndex());
 
     FONT_RED_BOLD = workbook.createFont();
-    FONT_RED_BOLD.setColor(HSSFColor.RED.index);
-    FONT_RED_BOLD.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+    FONT_RED_BOLD.setColor(HSSFColor.HSSFColorPredefined.RED.getIndex());
+    FONT_RED_BOLD.setBold(true);
 
     FONT_NORMAL = workbook.createFont();
   }

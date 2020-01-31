@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,8 @@
 
 package org.projectforge.business.fibu;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.collections.CollectionUtils;
-import org.projectforge.business.excel.ContentProvider;
-import org.projectforge.business.excel.ExportColumn;
-import org.projectforge.business.excel.ExportSheet;
-import org.projectforge.business.excel.ExportWorkbook;
-import org.projectforge.business.excel.I18nExportColumn;
-import org.projectforge.business.excel.PropertyMapping;
+import org.projectforge.business.excel.*;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskNode;
@@ -47,6 +37,11 @@ import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  * For excel export.
@@ -129,7 +124,7 @@ public class OrderExport
     mapping.add(OrderCol.NETSUM, netSum);
     addCurrency(mapping, OrderCol.INVOICED, invoicedSum);
     addCurrency(mapping, OrderCol.TO_BE_INVOICED, toBeInvoicedSum);
-    mapping.add(OrderCol.COMPLETELY_INVOICED, order.isVollstaendigFakturiert() == true ? "x" : "");
+    mapping.add(OrderCol.COMPLETELY_INVOICED, order.isVollstaendigFakturiert() ? "x" : "");
     final Set<RechnungsPositionVO> invoicePositions = rechnungCache
         .getRechnungsPositionVOSetByAuftragId(order.getId());
     mapping.add(OrderCol.INVOICES, getInvoices(invoicePositions));
@@ -202,7 +197,7 @@ public class OrderExport
     mapping.add(PosCol.NETSUM, netSum);
     addCurrency(mapping, PosCol.INVOICED, invoicedSum);
     addCurrency(mapping, PosCol.TO_BE_INVOICED, toBeInvoicedSum);
-    mapping.add(PosCol.COMPLETELY_INVOICED, pos.getVollstaendigFakturiert() == true ? "x" : "");
+    mapping.add(PosCol.COMPLETELY_INVOICED, pos.getVollstaendigFakturiert() ? "x" : "");
     final Set<RechnungsPositionVO> invoicePositions = rechnungCache
         .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
     mapping.add(PosCol.INVOICES, getInvoices(invoicePositions));
@@ -247,8 +242,8 @@ public class OrderExport
     mapping.add(PaymentsCol.PAY_NUMBER, "#" + scheduleDO.getNumber());
     mapping.add(PaymentsCol.AMOUNT, scheduleDO.getAmount());
     mapping.add(PaymentsCol.COMMENT, scheduleDO.getComment());
-    mapping.add(PaymentsCol.REACHED, scheduleDO.getReached() == true ? "x" : "");
-    mapping.add(PaymentsCol.VOLLSTAENDIG_FAKTURIERT, scheduleDO.getVollstaendigFakturiert() == true ? "x" : "");
+    mapping.add(PaymentsCol.REACHED, scheduleDO.getReached() ? "x" : "");
+    mapping.add(PaymentsCol.VOLLSTAENDIG_FAKTURIERT, scheduleDO.getVollstaendigFakturiert() ? "x" : "");
     mapping.add(PaymentsCol.SCHEDULE_DATE, scheduleDO.getScheduleDate());
   }
 
@@ -267,7 +262,7 @@ public class OrderExport
 
   private void addCurrency(final PropertyMapping mapping, final Enum<?> col, final BigDecimal value)
   {
-    if (NumberHelper.isNotZero(value) == true) {
+    if (NumberHelper.isNotZero(value)) {
       mapping.add(col, value);
     } else {
       mapping.add(col, "");
@@ -281,7 +276,7 @@ public class OrderExport
    */
   public byte[] export(final List<AuftragDO> list)
   {
-    if (CollectionUtils.isEmpty(list) == true) {
+    if (CollectionUtils.isEmpty(list)) {
       return null;
     }
     log.info("Exporting order list.");

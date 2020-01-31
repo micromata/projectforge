@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.framework.access;
 
-import java.util.ResourceBundle;
-
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
@@ -37,6 +35,8 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+
+import java.util.ResourceBundle;
 
 /**
  * This class will be thrown by AccessChecker, if no access is given for the demanded action by an user.
@@ -248,7 +248,7 @@ public class AccessException extends UserException
     }
     if (taskId != null) {
       final TaskDO task = taskTree != null ? getTaskTree().getTaskById(taskId) : null;
-      final String ts = task != null ? ":" + task.getShortDisplayName() : "";
+      final String ts = task != null ? ":" + task.getDisplayName() : "";
       builder.append("task", String.valueOf(taskId) + ts);
     }
     if (accessType != null) {

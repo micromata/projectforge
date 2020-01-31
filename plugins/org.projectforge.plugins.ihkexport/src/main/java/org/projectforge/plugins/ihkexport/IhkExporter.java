@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,27 +23,24 @@
 
 package org.projectforge.plugins.ihkexport;
 
-import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.projectforge.business.excel.ExportRow;
+import org.projectforge.business.excel.ExportSheet;
+import org.projectforge.business.excel.ExportWorkbook;
+import org.projectforge.business.timesheet.TimesheetDO;
+import org.projectforge.framework.time.PFDateTime;
+import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.util.CellRangeAddress;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
-import org.projectforge.business.excel.ExportRow;
-import org.projectforge.business.excel.ExportSheet;
-import org.projectforge.business.excel.ExportWorkbook;
-import org.projectforge.business.timesheet.TimesheetDO;
-import org.springframework.core.io.ClassPathResource;
+import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
 
 /**
  * Created by jsiebert on 18.05.16.
@@ -61,8 +58,9 @@ class IhkExporter
     }
     ExportWorkbook workbook;
 
-    DateTime mondayDate = new DateTime(timesheets.get(0).getStartTime()).withDayOfWeek(DateTimeConstants.MONDAY);
-    DateTime sundayDate = mondayDate.withDayOfWeek(DateTimeConstants.SUNDAY);
+    PFDateTime date = PFDateTime.from(timesheets.get(0).getStartTime()); // not null
+    PFDateTime mondayDate = date.getBeginOfWeek();
+    PFDateTime sundayDate = date.getEndOfWeek();
 
     ClassPathResource classPathResource = new ClassPathResource("IHK-Template.xls");
 
@@ -79,8 +77,8 @@ class IhkExporter
 
     String string = header.getStringCellValue();
     string = string.replace("%fullName%", getUser().getFullname());
-    string = string.replace("%startDate%", sdf.format(mondayDate.toDate()));
-    string = string.replace("%endDate%", sdf.format(sundayDate.toDate()));
+    string = string.replace("%startDate%", sdf.format(mondayDate.getUtilDate()));
+    string = string.replace("%endDate%", sdf.format(sundayDate.getUtilDate()));
     header.setCellValue(string);
 
     // first data row
@@ -95,7 +93,7 @@ class IhkExporter
       hourCounter = fillRow(hourCounter, newRow, timesheet);
 
       CellStyle style = workbook.createCellStyle();
-      style.setBorderBottom((short) 1);
+      style.setBorderBottom(BorderStyle.HAIR);
       style.setShrinkToFit(true);
       style.setWrapText(true);
       newRow.setRowStyle(style);
@@ -153,7 +151,6 @@ class IhkExporter
       // Copy style from old cell and apply to new cell
       HSSFCellStyle newCellStyle = worksheet.getWorkbook().createCellStyle();
       newCellStyle.cloneStyleFrom(oldCell.getCellStyle());
-      ;
       newCell.setCellStyle(newCellStyle);
 
       // If there is a cell comment, copy
@@ -167,26 +164,26 @@ class IhkExporter
       }
 
       // Set the cell data type
-      newCell.setCellType(oldCell.getCellType());
+      newCell.setCellType(oldCell.getCellTypeEnum());
 
       // Set the cell data value
       switch (oldCell.getCellType()) {
-        case Cell.CELL_TYPE_BLANK:
+        case BLANK:
           newCell.setCellValue(oldCell.getStringCellValue());
           break;
-        case Cell.CELL_TYPE_BOOLEAN:
+        case BOOLEAN:
           newCell.setCellValue(oldCell.getBooleanCellValue());
           break;
-        case Cell.CELL_TYPE_ERROR:
+        case ERROR:
           newCell.setCellErrorValue(oldCell.getErrorCellValue());
           break;
-        case Cell.CELL_TYPE_FORMULA:
+        case FORMULA:
           newCell.setCellFormula(oldCell.getCellFormula());
           break;
-        case Cell.CELL_TYPE_NUMERIC:
+        case NUMERIC:
           newCell.setCellValue(oldCell.getNumericCellValue());
           break;
-        case Cell.CELL_TYPE_STRING:
+        case STRING:
           newCell.setCellValue(oldCell.getRichStringCellValue());
           break;
       }

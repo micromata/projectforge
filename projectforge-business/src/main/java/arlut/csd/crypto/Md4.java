@@ -48,9 +48,8 @@ public class Md4 {
         "12345678901234567890123456789012345678901234567890123456789012345678901234567890",
     "01234567890123456789012345678901234567890123456789012345"};
 
-    for (int i = 0; i < str.length; i++)
-    {
-      final Md4 mdc = new Md4(str[i]);
+    for (String aStr : str) {
+      final Md4 mdc = new Md4(aStr);
       mdc.calc();
       //System.out.println("md4(\"" + str[i] + "\") = " + mdc);
     }

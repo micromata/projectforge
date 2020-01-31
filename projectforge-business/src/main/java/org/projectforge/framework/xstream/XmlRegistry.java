@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,30 +23,11 @@
 
 package org.projectforge.framework.xstream;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-
 import org.projectforge.Version;
-import org.projectforge.framework.xstream.converter.BigDecimalConverter;
-import org.projectforge.framework.xstream.converter.BooleanConverter;
-import org.projectforge.framework.xstream.converter.ByteArrayConverter;
-import org.projectforge.framework.xstream.converter.ClassConverter;
-import org.projectforge.framework.xstream.converter.DateConverter;
-import org.projectforge.framework.xstream.converter.DoubleConverter;
-import org.projectforge.framework.xstream.converter.IConverter;
-import org.projectforge.framework.xstream.converter.IntConverter;
-import org.projectforge.framework.xstream.converter.LocaleConverter;
-import org.projectforge.framework.xstream.converter.LongConverter;
-import org.projectforge.framework.xstream.converter.ShortConverter;
-import org.projectforge.framework.xstream.converter.StringConverter;
-import org.projectforge.framework.xstream.converter.TimeZoneConverter;
-import org.projectforge.framework.xstream.converter.VersionConverter;
+import org.projectforge.framework.xstream.converter.*;
+
+import java.math.BigDecimal;
+import java.util.*;
 
 /**
  * There is one singleton instance used for default mappings, aliases etc.
@@ -155,7 +136,7 @@ public class XmlRegistry
         return converter;
       }
       for (final Class< ? > cls : converterRegistry.keySet()) {
-        if (cls.isAssignableFrom(clazz) == true) {
+        if (cls.isAssignableFrom(clazz)) {
           final IConverter< ? > conv = converterRegistry.get(cls);
           if (conv != null) {
             // Register so every type must only be checked once.
@@ -174,7 +155,7 @@ public class XmlRegistry
   public boolean asAttributeAsDefault(final Class< ? > type)
   {
     if (asAttributeAsDefaultSet != null) {
-      if (asAttributeAsDefaultSet.contains(type) == true) {
+      if (asAttributeAsDefaultSet.contains(type)) {
         return true;
       }
     }
@@ -224,7 +205,7 @@ public class XmlRegistry
   private void internalRegisterConverter(final Class< ? > type, final IConverter< ? > converter)
   {
     if (this.converterRegistry == null) {
-      this.converterRegistry = new HashMap<Class< ? >, IConverter< ? >>();
+      this.converterRegistry = new HashMap<>();
     }
     this.converterRegistry.put(type, converter);
   }
@@ -258,7 +239,7 @@ public class XmlRegistry
   private void internalRegisterTypeAsAttribute(final Class< ? > type)
   {
     if (this.asAttributeAsDefaultSet == null) {
-      this.asAttributeAsDefaultSet = new HashSet<Class< ? >>();
+      this.asAttributeAsDefaultSet = new HashSet<>();
     }
     this.asAttributeAsDefaultSet.add(type);
   }

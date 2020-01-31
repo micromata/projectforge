@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,6 +28,7 @@ import org.projectforge.business.book.BookDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.saveOrUpdate
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.ResponseAction
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -46,26 +47,28 @@ class BookServicesRest() {
     private lateinit var bookDao: BookDao
 
     @Autowired
-    private lateinit var bookRest: BookRest
+    private lateinit var bookRest: BookPagesRest
 
     /**
      * Lends the given book out by the logged-in user.
      */
     @PostMapping("lendOut")
-    fun lendOut(request: HttpServletRequest, @RequestBody book: BookDO): ResponseEntity<ResponseAction> {
+    fun lendOut(request: HttpServletRequest, @RequestBody postData: PostData<BookDO>): ResponseEntity<ResponseAction> {
+        val book = postData.data
         book.lendOutDate = Date()
         bookDao.setLendOutBy(book, getUserId())
-        return saveOrUpdate(request, bookDao, book, book, bookRest, bookRest.validate(book))
+        return saveOrUpdate(request, bookDao, book, postData, bookRest, bookRest.validate(book))
     }
 
     /**
      * Returns the given book by the logged-in user.
      */
     @PostMapping("returnBook")
-    fun returnBook( request: HttpServletRequest, @RequestBody book: BookDO): ResponseEntity<ResponseAction> {
+    fun returnBook( request: HttpServletRequest, @RequestBody postData: PostData<BookDO>): ResponseEntity<ResponseAction> {
+        val book = postData.data
         book.lendOutBy = null
         book.lendOutDate = null
         book.lendOutComment = null
-        return saveOrUpdate(request, bookDao, book, book, bookRest, bookRest.validate(book))
+        return saveOrUpdate(request, bookDao, book, postData, bookRest, bookRest.validate(book))
     }
 }

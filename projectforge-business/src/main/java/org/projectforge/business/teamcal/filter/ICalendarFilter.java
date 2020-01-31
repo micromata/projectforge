@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,9 @@
 
 package org.projectforge.business.teamcal.filter;
 
-import java.io.Serializable;
-
 import org.joda.time.DateMidnight;
+
+import java.io.Serializable;
 
 /**
  * Some settings for the SelectDateAction stored in the flow scope (configurable by the caller).
@@ -37,121 +37,121 @@ public interface ICalendarFilter extends Serializable
   /**
    * @return the startDate
    */
-  public DateMidnight getStartDate();
+  DateMidnight getStartDate(); // Don't migrate to PFDateTime. Must be DateMidnight for deserialization of deprecated filters. The whole class will be removed after removing Wicket.
 
   /**
    * @param startDate the startDate to set
    * @return this for chaining.
    */
-  public ICalendarFilter setStartDate(final DateMidnight startDate);
+  ICalendarFilter setStartDate(final DateMidnight startDate);
 
   /**
    * If true then the slot is 30 minutes otherwise 15 minutes.
-   * 
+   *
    * @return the slot30
    */
-  public boolean isSlot30();
+  boolean isSlot30();
 
   /**
    * @param slot30 the slot30 to set
    * @return this for chaining.
    */
-  public ICalendarFilter setSlot30(final boolean slot30);
+  ICalendarFilter setSlot30(final boolean slot30);
 
   /**
    * @return the viewType
    */
-  public ViewType getViewType();
+  ViewType getViewType();
 
   /**
    * @param viewType the viewType to set
    * @return this for chaining.
    */
-  public ICalendarFilter setViewType(final ViewType viewType);
+  ICalendarFilter setViewType(final ViewType viewType);
 
   /**
    * @return the firstHour to display in week mode of calendar.
    */
-  public Integer getFirstHour();
+  Integer getFirstHour();
 
   /**
    * @param firstHour the firstHour to set
    * @return this for chaining.
    */
-  public ICalendarFilter setFirstHour(final Integer firstHour);
+  ICalendarFilter setFirstHour(final Integer firstHour);
 
-  public boolean isShowBirthdays();
+  boolean isShowBirthdays();
 
-  public ICalendarFilter setShowBirthdays(final boolean showBirthdays);
+  ICalendarFilter setShowBirthdays(final boolean showBirthdays);
 
   /**
    * @return the showStatistics
    */
-  public boolean isShowStatistics();
+  boolean isShowStatistics();
 
   /**
    * @param showStatistics the showStatistics to set
    * @return this for chaining.
    */
-  public ICalendarFilter setShowStatistics(final boolean showStatistics);
+  ICalendarFilter setShowStatistics(final boolean showStatistics);
 
   /**
    * @return the showPlanning
    */
-  public boolean isShowPlanning();
+  boolean isShowPlanning();
 
   /**
    * @param showPlanning the showPlanning to set
    * @return this for chaining.
    */
-  public ICalendarFilter setShowPlanning(final boolean showPlanning);
+  ICalendarFilter setShowPlanning(final boolean showPlanning);
 
   /**
    * The user id of the user for showing his time sheets.
-   * 
+   *
    * @return this for chaining.
    */
-  public Integer getTimesheetUserId();
+  Integer getTimesheetUserId();
 
-  public ICalendarFilter setTimesheetUserId(final Integer timesheetUserId);
+  ICalendarFilter setTimesheetUserId(final Integer timesheetUserId);
 
   /**
    * Show timesheets?
-   * 
+   *
    * @return true if the time-sheet user id is given.
    */
-  public boolean isShowTimesheets();
+  boolean isShowTimesheets();
 
   /**
    * If true then the current logged-in user is set as time-sheet user.
-   * 
+   *
    * @param showTimesheets
    * @return this for chaining.
    */
-  public ICalendarFilter setShowTimesheets(boolean showTimesheets);
+  ICalendarFilter setShowTimesheets(boolean showTimesheets);
 
   /**
    * If the time sheets of an user are displayed and this option is set, then also all breaks between time-sheets of
    * ones day will be displayed.
-   * 
+   *
    * @return the showBreaks
    */
-  public boolean isShowBreaks();
+  boolean isShowBreaks();
 
   /**
    * @param showBreaks the showBreaks to set
    * @return this for chaining.
    */
-  public ICalendarFilter setShowBreaks(final boolean showBreaks);
+  ICalendarFilter setShowBreaks(final boolean showBreaks);
 
   /**
    * @return the selectedCalendar
    */
-  public String getSelectedCalendar();
+  String getSelectedCalendar();
 
   /**
    * @param selectedCalendar the selectedCalendar to set
    * @return this for chaining.
    */
-  public ICalendarFilter setSelectedCalendar(final String selectedCalendar);
+  ICalendarFilter setSelectedCalendar(final String selectedCalendar);
 }

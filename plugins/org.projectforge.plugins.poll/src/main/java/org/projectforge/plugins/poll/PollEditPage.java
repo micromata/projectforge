@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -53,7 +53,7 @@ public class PollEditPage extends AbstractEditPage<PollDO, PollEditForm, PollDao
   {
     super(parameters, "plugins.poll");
     init();
-    if (form.isNew() == true) {
+    if (form.isNew()) {
       NewPollPage.redirectToNewPollPage(parameters);
     }
   }

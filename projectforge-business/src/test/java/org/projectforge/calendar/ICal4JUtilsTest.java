@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,21 +23,20 @@
 
 package org.projectforge.calendar;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.TimeZone;
-
+import net.fortuna.ical4j.model.DateList;
+import net.fortuna.ical4j.model.Recur;
+import net.fortuna.ical4j.model.parameter.Value;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.RecurrenceFrequency;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
-import net.fortuna.ical4j.model.DateList;
-import net.fortuna.ical4j.model.Recur;
-import net.fortuna.ical4j.model.parameter.Value;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.TimeZone;
 
 public class ICal4JUtilsTest
 {

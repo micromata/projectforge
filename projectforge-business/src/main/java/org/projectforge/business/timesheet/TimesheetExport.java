@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,21 +23,9 @@
 
 package org.projectforge.business.timesheet;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.List;
-
 import org.apache.poi.hssf.util.HSSFColor;
 import org.projectforge.business.common.OutputType;
-import org.projectforge.business.excel.CellFormat;
-import org.projectforge.business.excel.ContentProvider;
-import org.projectforge.business.excel.ExportCell;
-import org.projectforge.business.excel.ExportColumn;
-import org.projectforge.business.excel.ExportRow;
-import org.projectforge.business.excel.ExportSheet;
-import org.projectforge.business.excel.ExportWorkbook;
-import org.projectforge.business.excel.I18nExportColumn;
-import org.projectforge.business.excel.PropertyMapping;
+import org.projectforge.business.excel.*;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
@@ -52,10 +40,14 @@ import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateFormats;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.framework.time.PFDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
 
 /**
  * For excel export.
@@ -83,7 +75,7 @@ public class TimesheetExport
     {
       for (final ExportCell cell : row.getCells()) {
         final CellFormat format = cell.ensureAndGetCellFormat();
-        format.setFillForegroundColor(HSSFColor.WHITE.index);
+        format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
         switch (row.getRowNum()) {
           case 0:
             format.setFont(FONT_HEADER);
@@ -95,7 +87,7 @@ public class TimesheetExport
           default:
             format.setFont(FONT_NORMAL);
             if (row.getRowNum() % 2 == 0) {
-              format.setFillForegroundColor(HSSFColor.GREY_25_PERCENT.index);
+              format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.GREY_25_PERCENT.getIndex());
             }
             break;
         }
@@ -171,7 +163,7 @@ public class TimesheetExport
       String projektName = null;
       String kundeName = null;
       if (kost2 != null) {
-        kost2Name = kost2.getShortDisplayName();
+        kost2Name = kost2.getDisplayName();
         final ProjektDO projekt = kost2.getProjekt();
         if (projekt != null) {
           projektName = projekt.getName();
@@ -190,10 +182,10 @@ public class TimesheetExport
       mapping.add(Col.WEEK_OF_YEAR, timesheet.getFormattedWeekOfYear());
       mapping.add(Col.DAY_OF_WEEK, dateTimeFormatter.getFormattedDate(timesheet.getStartTime(), DateFormats
           .getFormatString(DateFormatType.DAY_OF_WEEK_SHORT)));
-      final DateHolder startTime = new DateHolder(timesheet.getStartTime());
-      final DateHolder stopTime = new DateHolder(timesheet.getStopTime());
-      mapping.add(Col.START_TIME, startTime);
-      mapping.add(Col.STOP_TIME, stopTime);
+      PFDateTime startTime = PFDateTime.from(timesheet.getStartTime()); // not null
+      PFDateTime stopTime = PFDateTime.from(timesheet.getStopTime()); // not null
+      mapping.add(Col.START_TIME, startTime.getUtilDate());
+      mapping.add(Col.STOP_TIME, stopTime.getUtilDate());
       final BigDecimal seconds = new BigDecimal(timesheet.getDuration() / 1000); // Seconds
       final BigDecimal duration = seconds.divide(new BigDecimal(60 * 60 * 24), 8, RoundingMode.HALF_UP); // Fraction of day (24 hours)
       mapping.add(Col.DURATION, duration.doubleValue());
@@ -206,7 +198,7 @@ public class TimesheetExport
       mapping.add(Col.ID, timesheet.getId());
       sheet.addRow(mapping.getMapping(), 0);
     }
-    sheet.setZoom(3, 4); // 75%
+    sheet.setZoom(75); // 75%
 
     return xls.getAsByteArray();
   }

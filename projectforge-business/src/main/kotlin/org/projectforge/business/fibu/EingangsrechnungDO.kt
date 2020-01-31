@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,17 @@
 
 package org.projectforge.business.fibu
 
-import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.WithHistory
-import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.FieldBridge
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
+import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.utils.StringComparator
 import java.math.BigDecimal
 import javax.persistence.*
 
@@ -49,7 +51,30 @@ import javax.persistence.*
         ])
 // @AssociationOverride(name="positionen", joinColumns=@JoinColumn(name="eingangsrechnung_fk"))
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [EingangsrechnungsPositionDO::class])
-class EingangsrechnungDO : AbstractRechnungDO<EingangsrechnungsPositionDO>(), Comparable<EingangsrechnungDO> {
+@NamedQueries(
+        NamedQuery(name = EingangsrechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from EingangsrechnungDO"))
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
+open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO>, DisplayNameCapable {
+
+    override val displayName: String
+        @Transient
+        get() = if (referenz.isNullOrBlank()) "$kreditor" else "$kreditor: $referenz"
+
+    @PropertyInfo(i18nKey = "fibu.rechnung.receiver")
+    @Field
+    @get:Column
+    open var receiver: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.rechnung.iban")
+    @Field
+    @get:Column(length = 50)
+    open var iban: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.rechnung.bic")
+    @Field
+    @get:Column(length = 11)
+    open var bic: String? = null
+
 
     /**
      * Referenz / Eingangsrechnungsnummer des Kreditors.
@@ -59,32 +84,50 @@ class EingangsrechnungDO : AbstractRechnungDO<EingangsrechnungsPositionDO>(), Co
     @PropertyInfo(i18nKey = "fibu.common.reference")
     @Field
     @get:Column(length = 1000)
-    var referenz: String? = null
+    open var referenz: String? = null
 
     @PropertyInfo(i18nKey = "fibu.common.creditor")
     @Field
     @get:Column(length = 255)
-    var kreditor: String? = null
+    open var kreditor: String? = null
 
     @PropertyInfo(i18nKey = "fibu.payment.type")
     @Field(bridge = FieldBridge(impl = HibernateSearchPaymentTypeBridge::class))
     @get:Column(length = 20, name = "payment_type")
     @get:Enumerated(EnumType.STRING)
-    var paymentType: PaymentType? = null
+    open var paymentType: PaymentType? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.customernr")
     @Field
     @get:Column
-    var customernr: String? = null
+    open var customernr: String? = null
 
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
-    @JsonBackReference
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, mappedBy = "eingangsrechnung", targetEntity = EingangsrechnungsPositionDO::class)
+    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, mappedBy = "eingangsrechnung", targetEntity = EingangsrechnungsPositionDO::class)
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
-    override var positionen: MutableList<EingangsrechnungsPositionDO>? = null
+    open var positionen: MutableList<EingangsrechnungsPositionDO>? = null
 
-    override fun setRechnung(position: EingangsrechnungsPositionDO) {
+    override val abstractPositionen: List<AbstractRechnungsPositionDO>?
+        @Transient
+        get() = positionen
+
+    override fun ensureAndGetPositionen(): MutableList<out AbstractRechnungsPositionDO> {
+        if (this.positionen == null) {
+            positionen = mutableListOf()
+        }
+        return positionen!!
+    }
+
+    override fun addPositionWithoutCheck(position: AbstractRechnungsPositionDO) {
+        position as EingangsrechnungsPositionDO
+        this.positionen!!.add(position)
+        position.eingangsrechnung = this
+    }
+
+
+    override fun setRechnung(position: AbstractRechnungsPositionDO) {
+        position as EingangsrechnungsPositionDO
         position.eingangsrechnung = this
     }
 
@@ -98,18 +141,14 @@ class EingangsrechnungDO : AbstractRechnungDO<EingangsrechnungsPositionDO>(), Co
         } else this.bezahlDatum != null && this.zahlBetrag != null
 
     override fun compareTo(other: EingangsrechnungDO): Int {
-        var r = this.datum!!.compareTo(other.datum!!)
-        if (r != 0) {
-            return -r
-        }
-        var s1 = StringUtils.defaultString(this.kreditor)
-        var s2 = StringUtils.defaultString(other.kreditor)
-        r = s1.compareTo(s2)
-        if (r != 0) {
-            return -r
-        }
-        s1 = StringUtils.defaultString(this.referenz)
-        s2 = StringUtils.defaultString(other.referenz)
-        return s1.compareTo(s2)
+        var cmp = compareValues(this.datum, other.datum)
+        if (cmp != 0) return cmp
+        cmp = StringComparator.compare(this.kreditor, other.kreditor)
+        if (cmp != 0) return cmp
+        return StringComparator.compare(this.referenz, other.referenz)
+    }
+
+    companion object {
+        internal const val SELECT_MIN_MAX_DATE = "EingangsrechnungDO_SelectMinMaxDate"
     }
 }

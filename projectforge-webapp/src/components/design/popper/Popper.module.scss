@@ -1,7 +1,126 @@
 .popper {
   z-index: 9999;
   background-color: #fff;
-  border: 1px solid #000000;
+  border: 1px solid #dfdfdf;
   border-radius: .25em;
-  padding: .5em;
+  padding: 10px;
+}
+
+.advancedPopperContainer {
+  $baseShadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+  $transitionTime: .2s;
+
+  position: relative;
+
+  &.isOpen {
+    .content {
+      box-shadow: $baseShadow, 0 3px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .additional {
+      opacity: 1;
+    }
+  }
+
+  .content {
+    position: relative;
+    border: 1px solid #ebebeb;
+    border-radius: 5px;
+    box-shadow: $baseShadow;
+    transition: box-shadow $transitionTime;
+    outline: none;
+
+    &:hover {
+      box-shadow: $baseShadow, 0 3px 12px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  .additional {
+    background-color: #fff;
+    opacity: 0;
+    overflow: auto;
+    border: 1px solid #EBEBEB;
+    border-radius: 5px;
+    box-shadow: 0 15px 46px -10px rgba(26, 26, 29, 0.3);
+    z-index: 99;
+    top: 10px;
+    overflow-x: hidden;
+
+    position: absolute;
+
+    .actions {
+      padding: .8em .9em;
+      display: flex;
+
+      .action {
+        margin: 0;
+        display: inline-block;
+        text-align: center;
+        width: auto;
+        font-weight: 600;
+        padding: .4em .6em;
+        color: #333;
+        outline: none;
+        border: none;
+        border-radius: 8px;
+
+        &.delete {
+          text-decoration: underline;
+
+          &:hover {
+            color: #000;
+            background-color: #f2f2f2;
+          }
+
+          &:disabled {
+            color: #ccc;
+            background-color: transparent;
+            cursor: not-allowed;
+          }
+        }
+
+        &.success {
+          margin-left: auto;
+          background-color: #333;
+          font-size: .9em;
+          color: #fff;
+
+          &:hover {
+            background-color: #000;
+          }
+        }
+      }
+    }
+  }
+}
+
+.input {
+  &:hover {
+    input::placeholder {
+      color: #444;
+    }
+  }
+
+  &.dark {
+    background-color: #333;
+    color: #fff;
+
+    input {
+      color: #fff;
+
+      &::placeholder {
+        color: #eee;
+      }
+    }
+
+    &:hover {
+      input::placeholder {
+        color: #fff;
+      }
+    }
+  }
+
+  .container {
+    padding: .5em;
+  }
 }

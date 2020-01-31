@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,21 +23,22 @@
 
 package org.projectforge.business.teamcal.event;
 
-import java.io.Serializable;
-import java.util.Calendar;
-import java.util.Date;
-
-import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.utils.ReflectionToString;
+import org.projectforge.framework.time.PFDateTime;
+
+import java.io.Serializable;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 
 /**
  * Represents a recurrence event (created by a master TeamEventDO with recurrence rules).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
-public class TeamRecurrenceEvent implements TeamEvent, Serializable
+public class TeamRecurrenceEvent implements ICalendarEvent, Serializable
 {
   private static final long serialVersionUID = -7523583666714303142L;
 
@@ -49,14 +50,13 @@ public class TeamRecurrenceEvent implements TeamEvent, Serializable
    * @param master
    * @param startDay day of event (startDate and endDate will be calculated based on this day and the master).
    */
-  public TeamRecurrenceEvent(final TeamEventDO master, final Calendar startDate)
+  public TeamRecurrenceEvent(final TeamEventDO master, final PFDateTime startDate)
   {
     this.master = master;
-    final Calendar cal = (Calendar) startDate.clone();
-    this.startDate = cal.getTime();
+    this.startDate = startDate.getUtilDate();
     final long duration = master.getEndDate().getTime() - master.getStartDate().getTime();
-    cal.add(Calendar.MINUTE, (int) (duration / 60000));
-    this.endDate = cal.getTime();
+    PFDateTime endDate = startDate.plus((int) (duration / 60000), ChronoUnit.MINUTES);
+    this.endDate = endDate.getUtilDate();
   }
 
   /**
@@ -68,7 +68,7 @@ public class TeamRecurrenceEvent implements TeamEvent, Serializable
   }
 
   /**
-   * @see org.projectforge.business.teamcal.event.model.TeamEvent#getUid()
+   * @see ICalendarEvent#getUid()
    */
   @Override
   public String getUid()
@@ -77,7 +77,7 @@ public class TeamRecurrenceEvent implements TeamEvent, Serializable
   }
 
   /**
-   * @see org.projectforge.business.teamcal.event.model.TeamEvent#getSubject()
+   * @see ICalendarEvent#getSubject()
    */
   @Override
   public String getSubject()
@@ -86,7 +86,7 @@ public class TeamRecurrenceEvent implements TeamEvent, Serializable
   }
 
   /**
-   * @see org.projectforge.business.teamcal.event.model.TeamEvent#getLocation()
+   * @see ICalendarEvent#getLocation()
    */
   @Override
   public String getLocation()
@@ -95,16 +95,16 @@ public class TeamRecurrenceEvent implements TeamEvent, Serializable
   }
 
   /**
-   * @see org.projectforge.business.teamcal.event.model.TeamEvent#isAllDay()
+   * @see ICalendarEvent#getAllDay()
    */
   @Override
-  public boolean isAllDay()
+  public boolean getAllDay()
   {
-    return master.isAllDay();
+    return master.getAllDay();
   }
 
   /**
-   * @see org.projectforge.business.teamcal.event.model.TeamEvent#getStartDate()
+   * @see ICalendarEvent#getStartDate()
    */
   @Override
   public Date getStartDate()
@@ -113,7 +113,7 @@ public class TeamRecurrenceEvent implements TeamEvent, Serializable
   }
 
   /**
-   * @see org.projectforge.business.teamcal.event.model.TeamEvent#getEndDate()
+   * @see ICalendarEvent#getEndDate()
    */
   @Override
   public Date getEndDate()
@@ -122,7 +122,7 @@ public class TeamRecurrenceEvent implements TeamEvent, Serializable
   }
 
   /**
-   * @see org.projectforge.business.teamcal.event.model.TeamEvent#getNote()
+   * @see ICalendarEvent#getNote()
    */
   @Override
   public String getNote()

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.plugins.todo;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.projectforge.framework.cache.AbstractCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The number of open to-do entries is cached. Accessible via ToDoDao.
@@ -73,6 +73,6 @@ public class ToDoCache extends AbstractCache
   protected void refresh()
   {
     log.info("Clearing cache with open to-do entries.");
-    openEntriesMap = new HashMap<Integer, Integer>();
+    openEntriesMap = new HashMap<>();
   }
 }

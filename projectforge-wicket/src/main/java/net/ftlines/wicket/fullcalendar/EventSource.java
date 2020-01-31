@@ -1,9 +1,32 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 /**
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -12,15 +35,14 @@
 
 package net.ftlines.wicket.fullcalendar;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import net.ftlines.wicket.fullcalendar.selector.EventSourceSelector;
+import org.apache.wicket.model.IModel;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-
-import net.ftlines.wicket.fullcalendar.selector.EventSourceSelector;
-
-import org.apache.wicket.model.IModel;
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonRawValue;
 
 public class EventSource implements Serializable {
 
@@ -174,7 +196,7 @@ public class EventSource implements Serializable {
    * If <var>enableInSelector</var> is {@code true} then the check box for this EventSource, if included in a
    * {@link EventSourceSelector} to begin with, will be enabled. If {@code false} then the check box will not be
    * enabled. Default is {@code true}.
-   * 
+   *
    * @param includeInSelector
    *            if {@code true} then the check box for this EventSource will be enabled, otherwise it won't
    */
@@ -186,7 +208,7 @@ public class EventSource implements Serializable {
    * Returns {@code true} if this EventSource will be included in a {@link EventSourceSelector}, if one is included
    * for the {@link FullCalendar} containing this EventSource. Returns {@code false} if this EventSource will not be
    * included. Default is {@code true}.
-   * 
+   *
    * @return if {@code true} then this event source will be included in a {@link EventSourceSelector}, otherwise it
    *         won't
    */
@@ -198,7 +220,7 @@ public class EventSource implements Serializable {
    * If <var>includeInSelector</var> is {@code true} then this EventSource will be included in a
    * {@link EventSourceSelector}, if one exists for the {@link FullCalendar} containing this EventSource. If
    * {@code false} then this EventSource will not be included. Default is {@code true}.
-   * 
+   *
    * @param includeInSelector
    *            if {@code true} then this event source will be included in a {@link EventSourceSelector}, otherwise it
    *            won't
@@ -211,7 +233,7 @@ public class EventSource implements Serializable {
    * Returns {@code true} if this EventSource will be included in a {@link EventSourceSelector}, if one exists for the
    * {@link FullCalendar} containing this EventSource. Returns {@code false} if this EventSource will not be included.
    * Default is {@code true}.
-   * 
+   *
    * @return if {@code true} then this event source will be included in a {@link EventSourceSelector}, otherwise it
    *         won't
    */

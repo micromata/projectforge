@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.framework.xstream.converter;
 
-import java.io.IOException;
-import java.util.Base64;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.utils.Base64Helper;
 import org.projectforge.framework.xstream.XmlConstants;
+
+import java.io.IOException;
+import java.util.Base64;
 
 public class ByteArrayConverter implements IConverter<byte[]>
 {
@@ -37,16 +37,13 @@ public class ByteArrayConverter implements IConverter<byte[]>
   @Override
   public byte[] fromString(final String str)
   {
-    if (StringUtils.isEmpty(str) == true || XmlConstants.NULL_IDENTIFIER.equals(str) == true) {
+    if (StringUtils.isEmpty(str) || XmlConstants.NULL_IDENTIFIER.equals(str)) {
       return null;
     }
     try {
       final byte[] bytes = (byte[]) Base64Helper.decodeObject(str);
       return bytes;
-    } catch (final IOException ex) {
-      log.error("Error while uncompressing string: " + ex.getMessage(), ex);
-      return null;
-    } catch (final ClassNotFoundException ex) {
+    } catch (final IOException | ClassNotFoundException ex) {
       log.error("Error while uncompressing string: " + ex.getMessage(), ex);
       return null;
     }
@@ -58,7 +55,7 @@ public class ByteArrayConverter implements IConverter<byte[]>
   @Override
   public String toString(final Object obj)
   {
-    if (obj == null || obj instanceof byte[] == false) {
+    if (obj == null || !(obj instanceof byte[])) {
       return null;
     }
     final String result = Base64.getEncoder().encodeToString((byte[]) obj);

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
@@ -43,6 +41,8 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.slf4j.Logger;
+
+import java.math.BigDecimal;
 
 public class EmployeeSalaryEditForm extends AbstractEditForm<EmployeeSalaryDO, EmployeeSalaryEditPage>
 {
@@ -76,8 +76,8 @@ public class EmployeeSalaryEditForm extends AbstractEditForm<EmployeeSalaryDO, E
       final FieldsetPanel fs = gridBuilder.newFieldset(WicketUtils.createMultipleFieldsetLabel(getString("calendar.month"),
           getString("calendar.year")));
       final LabelValueChoiceRenderer<Integer> monthChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
-      for (int i = 0; i <= 11; i++) {
-        monthChoiceRenderer.addValue(i, StringHelper.format2DigitNumber(i + 1));
+      for (int month = 1; month <= 12; month++) {
+        monthChoiceRenderer.addValue(month, StringHelper.format2DigitNumber(month));
       }
       final DropDownChoice<Integer> monthChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new PropertyModel<Integer>(data,
           "month"), monthChoiceRenderer.getValues(), monthChoiceRenderer);

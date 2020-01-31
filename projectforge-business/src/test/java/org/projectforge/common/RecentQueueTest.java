@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 public class RecentQueueTest {
   @Test
   public void test() {
-    RecentQueue<Integer> queue = new RecentQueue<Integer>(4);
+    RecentQueue<Integer> queue = new RecentQueue<>(4);
     assertEquals(0, queue.size(), "Length of queue");
     assertNull(queue.get(null));
     assertNull(queue.get(5));

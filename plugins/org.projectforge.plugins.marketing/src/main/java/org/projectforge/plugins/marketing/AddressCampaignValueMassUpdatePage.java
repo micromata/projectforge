@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,6 @@
 
 package org.projectforge.plugins.marketing;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DefaultDataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -43,6 +37,8 @@ import org.projectforge.business.address.PersonalAddressDO;
 import org.projectforge.framework.utils.MyBeanComparator;
 import org.projectforge.web.wicket.AbstractMassEditPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
+
+import java.util.*;
 
 public class AddressCampaignValueMassUpdatePage extends AbstractMassEditPage
 {
@@ -77,9 +73,9 @@ public class AddressCampaignValueMassUpdatePage extends AbstractMassEditPage
         if (addresses == null) {
           return null;
         }
-        final Comparator<AddressDO> comp = new MyBeanComparator<AddressDO>(sp.getProperty().toString(),
+        final Comparator<AddressDO> comp = new MyBeanComparator<>(sp.getProperty().toString(),
             sp.isAscending());
-        Collections.sort(addresses, comp);
+        addresses.sort(comp);
         return addresses.subList((int) first, (int) (first + count)).iterator();
       }
 
@@ -102,7 +98,7 @@ public class AddressCampaignValueMassUpdatePage extends AbstractMassEditPage
     };
     sortableDataProvider.setSort("name", SortOrder.DESCENDING);
 
-    final DefaultDataTable<AddressDO, String> dataTable = new DefaultDataTable<AddressDO, String>("table", columns,
+    final DefaultDataTable<AddressDO, String> dataTable = new DefaultDataTable<>("table", columns,
         sortableDataProvider, 1000);
     body.add(dataTable);
   }

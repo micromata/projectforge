@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.export;
 
-import java.lang.reflect.Field;
-
 import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.common.BeanHelper;
+
+import java.lang.reflect.Field;
 
 /**
  * Created by blumenstein on 24.11.16.

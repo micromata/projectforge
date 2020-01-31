@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -46,14 +46,14 @@ public class KundeFormatter extends BaseFormatter
    */
   public static String formatKundeAsString(final KundeDO kunde, final String kundeText)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
-    if (StringUtils.isNotBlank(kundeText) == true) {
+    if (StringUtils.isNotBlank(kundeText)) {
       first = false;
       buf.append(kundeText);
     }
-    if (kunde != null && StringUtils.isNotBlank(kunde.getName()) == true) {
-      if (first == true)
+    if (kunde != null && StringUtils.isNotBlank(kunde.getName())) {
+      if (first)
         first = false;
       else
         buf.append("; ");
@@ -93,10 +93,10 @@ public class KundeFormatter extends BaseFormatter
     StringBuffer sb = new StringBuffer();
 
     boolean hasAccess = kundeDao.hasLoggedInUserSelectAccess(false);
-    if (hasAccess == false) {
+    if (!hasAccess) {
       appendNotVisible(sb);
     } else {
-      if (showOnlyNumber == true) {
+      if (showOnlyNumber) {
         sb.append(KostFormatter.format(kunde));
       } else {
         sb.append(KostFormatter.formatKunde(kunde));

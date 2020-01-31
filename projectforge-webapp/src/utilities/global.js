@@ -19,3 +19,18 @@ Object.getByString = (object, multiKey) => {
 
     return obj;
 };
+
+Object.isEmpty = object => Object.keys(object).length === 0;
+
+Object.isObject = object => typeof object === 'object';
+
+Array.findByField = (array, field, value) => array.reduce((accumulator, currentValue) => {
+    if (currentValue[field] === value) {
+        return currentValue;
+    }
+
+    return accumulator;
+}, undefined);
+
+// Replace all selector characters to prevent that they appear in an id.
+String.idify = string => string.replace(/[.#*, >+~[\]=|^$:()]/g, '-');

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,11 @@
 
 package org.projectforge.plugins.poll.attendee;
 
-import java.util.Collection;
-import java.util.List;
-
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * <b>ATTENTION</b> Just use this for disabled selections!

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -49,8 +49,8 @@ public class PosteingangEditPage extends AbstractEditPage<PosteingangDO, Postein
     super(parameters, "orga.posteingang");
     init();
     if (isNew() == true) {
-      getData().setDatum(new DayHolder().getSQLDate());
-      getData().setType(PostType.BRIEF);
+      getData().setDatum(new DayHolder().getSqlDate());
+      getData().setType(PostType.E_MAIL);
     }
   }
 

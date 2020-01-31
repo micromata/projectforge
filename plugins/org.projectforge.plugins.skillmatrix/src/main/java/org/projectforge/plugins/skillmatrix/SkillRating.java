@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.plugins.skillmatrix;
 
+import org.projectforge.common.i18n.I18nEnum;
+
 import java.util.ArrayList;
 import java.util.Collection;
-
-import org.projectforge.common.i18n.I18nEnum;
 
 /**
  * 
@@ -60,7 +60,7 @@ public enum SkillRating implements I18nEnum
     return key;
   }
 
-  private SkillRating(final String key, final int ordering)
+  SkillRating(final String key, final int ordering)
   {
     this.key = key;
     this.ordering = ordering;
@@ -73,7 +73,7 @@ public enum SkillRating implements I18nEnum
    */
   public static Object[] getRequiredExperienceValues(final SkillRating rating)
   {
-    final Collection<SkillRating> values = new ArrayList<SkillRating>(5);
+    final Collection<SkillRating> values = new ArrayList<>(5);
     // The missing breaks are intentionally: this way the key of the case itself and all the cases higher are added.
     switch (rating) {
       case UNKNOWN:

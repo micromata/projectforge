@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,12 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.Calendar;
-
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
 import org.projectforge.business.fibu.EmployeeSalaryDao;
 import org.projectforge.business.fibu.EmployeeSalaryType;
-import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
@@ -39,9 +37,8 @@ import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = EmployeeSalaryListPage.class)
 public class EmployeeSalaryEditPage
-    extends AbstractEditPage<EmployeeSalaryDO, EmployeeSalaryEditForm, EmployeeSalaryDao> implements
-    ISelectCallerPage
-{
+        extends AbstractEditPage<EmployeeSalaryDO, EmployeeSalaryEditForm, EmployeeSalaryDao> implements
+        ISelectCallerPage {
   private static final long serialVersionUID = -3899191243765232906L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeSalaryEditPage.class);
@@ -49,8 +46,7 @@ public class EmployeeSalaryEditPage
   @SpringBean
   private EmployeeSalaryDao employeeSalaryDao;
 
-  public EmployeeSalaryEditPage(final PageParameters parameters)
-  {
+  public EmployeeSalaryEditPage(final PageParameters parameters) {
     super(parameters, "fibu.employee.salary");
     init();
   }
@@ -58,8 +54,7 @@ public class EmployeeSalaryEditPage
   private EmployeeSalaryEditRecentEntry recent;
 
   @Override
-  protected void onPreEdit()
-  {
+  protected void onPreEdit() {
     super.onPreEdit();
     if (getData().getId() == null) {
       recent = getRecent();
@@ -69,16 +64,15 @@ public class EmployeeSalaryEditPage
     }
   }
 
-  private EmployeeSalaryEditRecentEntry getRecent()
-  {
+  private EmployeeSalaryEditRecentEntry getRecent() {
     if (recent == null) {
       recent = (EmployeeSalaryEditRecentEntry) getUserPrefEntry(EmployeeSalaryEditRecentEntry.class.getName());
     }
     if (recent == null) {
       recent = new EmployeeSalaryEditRecentEntry();
-      final Calendar cal = DateHelper.getCalendar();
-      recent.setYear(cal.get(Calendar.YEAR));
-      recent.setMonth(cal.get(Calendar.MONTH));
+      PFDay date = PFDay.now();
+      recent.setYear(date.getYear());
+      recent.setMonth(date.getMonthValue());
       recent.setType(EmployeeSalaryType.GEHALT);
       putUserPrefEntry(EmployeeSalaryEditRecentEntry.class.getName(), recent, true);
     }
@@ -86,8 +80,7 @@ public class EmployeeSalaryEditPage
   }
 
   @Override
-  public AbstractSecuredBasePage afterSaveOrUpdate()
-  {
+  public AbstractSecuredBasePage afterSaveOrUpdate() {
     recent = getRecent();
     if (getData().getYear() != null) {
       recent.setYear(getData().getYear());
@@ -101,12 +94,8 @@ public class EmployeeSalaryEditPage
     return null;
   }
 
-  /**
-   * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
-   */
   @Override
-  public void select(final String property, final Object selectedValue)
-  {
+  public void select(final String property, final Object selectedValue) {
     if ("userId".equals(property) == true) {
       final Integer id;
       if (selectedValue instanceof String) {
@@ -124,8 +113,7 @@ public class EmployeeSalaryEditPage
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
   @Override
-  public void unselect(final String property)
-  {
+  public void unselect(final String property) {
     log.error("Property '" + property + "' not supported for selection.");
   }
 
@@ -133,26 +121,22 @@ public class EmployeeSalaryEditPage
    * @see org.projectforge.web.fibu.ISelectCallerPage#cancelSelection(java.lang.String)
    */
   @Override
-  public void cancelSelection(final String property)
-  {
+  public void cancelSelection(final String property) {
     // Do nothing.
   }
 
   @Override
-  protected EmployeeSalaryDao getBaseDao()
-  {
+  protected EmployeeSalaryDao getBaseDao() {
     return employeeSalaryDao;
   }
 
   @Override
-  protected EmployeeSalaryEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final EmployeeSalaryDO data)
-  {
+  protected EmployeeSalaryEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final EmployeeSalaryDO data) {
     return new EmployeeSalaryEditForm(this, data);
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 }

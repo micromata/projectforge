@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,7 @@
 
 package org.projectforge.plugins.banking;
 
-import org.projectforge.continuousdb.SchemaGenerator;
-import org.projectforge.continuousdb.UpdateEntry;
-import org.projectforge.continuousdb.UpdateEntryImpl;
-import org.projectforge.continuousdb.UpdatePreCheckStatus;
-import org.projectforge.continuousdb.UpdateRunningStatus;
+import org.projectforge.continuousdb.*;
 import org.projectforge.framework.persistence.database.DatabaseService;
 
 /**
@@ -40,7 +36,7 @@ import org.projectforge.framework.persistence.database.DatabaseService;
  */
 public class BankingPluginUpdates
 {
-  static DatabaseService dao;
+  static DatabaseService databaseService;
 
   final static Class<?>[] doClasses = new Class<?>[] { //
       BankAccountDO.class, BankAccountBalanceDO.class, BankAccountRecordDO.class };
@@ -54,7 +50,7 @@ public class BankingPluginUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         // Does the data-base table already exist?
-        if (dao.doTablesExist(BankAccountDO.class) == true) {
+        if (databaseService.doTablesExist(BankAccountDO.class)) {
           // Check only the oldest table.
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
@@ -67,8 +63,8 @@ public class BankingPluginUpdates
       public UpdateRunningStatus runUpdate()
       {
         // Create initial data-base table:
-        new SchemaGenerator(dao).add(doClasses).createSchema();
-        dao.createMissingIndices();
+        new SchemaGenerator(databaseService).add(doClasses).createSchema();
+        databaseService.createMissingIndices();
         return UpdateRunningStatus.DONE;
       }
     };

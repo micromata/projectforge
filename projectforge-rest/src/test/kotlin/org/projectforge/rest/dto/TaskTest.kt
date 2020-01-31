@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -49,8 +49,8 @@ class TaskTest {
         task.id = 2
         task.title = "t1"
         task.description = "description"
-        task.isProtectionOfPrivacy = true
-        task.isKost2IsBlackList = false
+        task.protectionOfPrivacy = true
+        task.kost2IsBlackList = false
         val responsibleUser = PFUserDO()
         responsibleUser.id = 3
         responsibleUser.username = "kai"

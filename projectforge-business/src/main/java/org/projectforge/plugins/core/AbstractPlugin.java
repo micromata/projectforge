@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,6 @@
 
 package org.projectforge.plugins.core;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.user.UserPrefAreaRegistry;
 import org.projectforge.business.user.UserRight;
@@ -47,6 +41,12 @@ import org.projectforge.registry.RegistryEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -58,7 +58,7 @@ public abstract class AbstractPlugin
   protected ApplicationContext applicationContext;
 
   @Autowired
-  protected DatabaseService myDatabaseUpdater;
+  protected DatabaseService databaseService;
 
   @Autowired
   protected UserXmlPreferencesDao userXmlPreferencesDao;
@@ -69,25 +69,17 @@ public abstract class AbstractPlugin
   @Autowired
   UserRightService userRights;
 
-  @Deprecated
-  private String resourceBundleName;
-
   private List<String> resourceBundleNames = new ArrayList<>();
 
   private boolean initialized;
 
   @Deprecated
-  private static Set<Class<?>> initializedPlugins = new HashSet<Class<?>>();
-
-  public String getResourceBundleName()
-  {
-    return resourceBundleName;
-  }
+  private static Set<Class<?>> initializedPlugins = new HashSet<>();
 
   public final void init()
   {
     synchronized (initializedPlugins) {
-      if (initializedPlugins.contains(this.getClass()) == true || initialized == true) {
+      if (initializedPlugins.contains(this.getClass()) || initialized) {
         log.warn("Ignoring multiple initialization of plugin.");
         return;
       }

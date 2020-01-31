@@ -5,8 +5,12 @@
     <parent>
         <groupId>org.projectforge</groupId>
         <artifactId>projectforge-parent</artifactId>
-        <version>6.26.0-SNAPSHOT</version><!-- projectforge.version -->
+        <version>7.0-SNAPSHOT</version><!-- projectforge.version -->
     </parent>
+    <properties>
+        <joda-time.version>2.0</joda-time.version>
+    </properties>
+
     <licenses>
         <license>
             <name>Dual license</name>
@@ -105,18 +109,13 @@
             <version>${wicket.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-core-asl</artifactId>
-            <version>${codehaus-jackson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-mapper-asl</artifactId>
-            <version>${codehaus-jackson.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mozilla</groupId>
+            <artifactId>rhino</artifactId>
+            <version>${rhino.version}</version>
         </dependency>
     </dependencies>
     <build>
@@ -175,7 +174,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
                 <executions>
                     <!-- Replacing default-compile as it is treated specially by maven -->
                     <execution>

@@ -260,11 +260,11 @@ VALUES
                                                                                                               'track & trace project', NULL, 'O', 'INHERIT',
    'Yellow track & trace', NULL, 1, NULL, 48, 16);
 
-INSERT INTO t_book (pk, created, deleted, last_update, abstract_text, authors, comment, editor, isbn, keywords, lend_out_comment, lend_out_date, publisher, signature, status, title, book_type, year_of_publishing, tenant_id, lend_out_by, task_id)
+INSERT INTO t_book (pk, created, deleted, last_update, abstract_text, authors, comment, editor, isbn, keywords, lend_out_comment, lend_out_date, publisher, signature, status, title, book_type, year_of_publishing, tenant_id, lend_out_by)
 VALUES (168, '2008-01-10 08:27:53.675', FALSE, '2011-01-23 17:23:34.283', NULL, 'Harnisch, Carsten', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'PRESENT',
                                                                                                                                    'eBay API', 'BOOK', '2007',
-                                                                                                                                   1, NULL, 47);
-INSERT INTO t_book (pk, created, deleted, last_update, abstract_text, authors, comment, editor, isbn, keywords, lend_out_comment, lend_out_date, publisher, signature, status, title, book_type, year_of_publishing, tenant_id, lend_out_by, task_id)
+                                                                                                                                   1, NULL);
+INSERT INTO t_book (pk, created, deleted, last_update, abstract_text, authors, comment, editor, isbn, keywords, lend_out_comment, lend_out_date, publisher, signature, status, title, book_type, year_of_publishing, tenant_id, lend_out_by)
 VALUES (169, '2008-01-10 08:44:59.304', FALSE, '2011-01-23 17:23:29.555', NULL, 'Hart, Matthew u. Freeman, Robert G.', NULL, NULL, NULL, NULL, NULL, NULL,
                                                                                                                                                      'OraclePress',
                                                                                                                                                      NULL,
@@ -272,21 +272,20 @@ VALUES (169, '2008-01-10 08:44:59.304', FALSE, '2011-01-23 17:23:29.555', NULL, 
                                                                                                                                                      'Oracle Database 10g RMAN Backup & Recovery',
                                                                                                                                                      'BOOK',
                                                                                                                                                      '2007', 1,
-                                                                                                                                                     NULL, 57);
-INSERT INTO t_book (pk, created, deleted, last_update, abstract_text, authors, comment, editor, isbn, keywords, lend_out_comment, lend_out_date, publisher, signature, status, title, book_type, year_of_publishing, tenant_id, lend_out_by, task_id)
+                                                                                                                                                     NULL);
+INSERT INTO t_book (pk, created, deleted, last_update, abstract_text, authors, comment, editor, isbn, keywords, lend_out_comment, lend_out_date, publisher, signature, status, title, book_type, year_of_publishing, tenant_id, lend_out_by)
 VALUES (170, '2011-02-07 21:18:40.005', FALSE, '2011-02-07 21:18:40.005', NULL, 'Bien, Adam', NULL, NULL, '978-3-939084-24-2', 'Java EE5', NULL, NULL,
                                                                                                                                                  'entwickler.press',
                                                                                                                                                  NULL,
                                                                                                                                                  'PRESENT',
                                                                                                                                                  'Java EE5, Patterns und Idiome',
                                                                                                                                                  'BOOK', '2007',
-                                                                                                                                                 1, NULL, 57);
-INSERT INTO t_book (pk, created, deleted, last_update, abstract_text, authors, comment, editor, isbn, keywords, lend_out_comment, lend_out_date, publisher, signature, status, title, book_type, year_of_publishing, tenant_id, lend_out_by, task_id)
+                                                                                                                                                 1, NULL);
+INSERT INTO t_book (pk, created, deleted, last_update, abstract_text, authors, comment, editor, isbn, keywords, lend_out_comment, lend_out_date, publisher, signature, status, title, book_type, year_of_publishing, tenant_id, lend_out_by)
 VALUES (171, '2011-02-07 21:19:47.902', FALSE, '2011-02-07 21:19:47.902', NULL, 'Bien, Adam', NULL, NULL, '3-935042-99-X', NULL, NULL, NULL, 'entwickler.press',
                                                                                                                                        NULL, 'PRESENT',
                                                                                                                                        'Enterprise Architekturen. Leitfaden für effiziente Software-Entwicklung',
-                                                                                                                                       'BOOK', '2006', 1, NULL,
-                                                                                                                                       57);
+                                                                                                                                       'BOOK', '2006', 1, NULL);
 
 INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue, parameter, stringvalue, tenant_id)
 VALUES (3, '2010-04-21 00:12:07.601', FALSE, '2011-02-07 21:22:26.455', 'STRING', NULL, FALSE, NULL, 'feedbackEMail', 'admin@dev-null.com', 1);
@@ -349,17 +348,17 @@ VALUES
                                                                                                                NULL, 'FEST_ANGESTELLTER', NULL, 25, 40.00000,
    NULL, 1, 81, 18);
 
-INSERT INTO t_plugin_calendar (pk, created, deleted, last_update, description, ext_subscription, ext_subscription_calendar_binary, ext_subscription_hash, ext_subscription_update_interval, ext_subscription_url, full_access_group_ids, full_access_user_ids, minimal_access_group_ids, minimal_access_user_ids, readonly_access_group_ids, readonly_access_user_ids, title, tenant_id, owner_fk)
+INSERT INTO t_calendar (pk, created, deleted, last_update, description, ext_subscription, ext_subscription_calendar_binary, ext_subscription_hash, ext_subscription_update_interval, ext_subscription_url, full_access_group_ids, full_access_user_ids, minimal_access_group_ids, minimal_access_user_ids, readonly_access_group_ids, readonly_access_user_ids, title, tenant_id, owner_fk)
 VALUES
   (157, '2013-04-07 16:15:42.141', FALSE, '2017-11-23 12:56:36.083', 'Kai''s business calendar', FALSE, NULL, NULL, NULL, NULL, '', '1,2', '', '', '40', '',
    'kai@work', 1, 19);
-INSERT INTO t_plugin_calendar (pk, created, deleted, last_update, description, ext_subscription, ext_subscription_calendar_binary, ext_subscription_hash, ext_subscription_update_interval, ext_subscription_url, full_access_group_ids, full_access_user_ids, minimal_access_group_ids, minimal_access_user_ids, readonly_access_group_ids, readonly_access_user_ids, title, tenant_id, owner_fk)
+INSERT INTO t_calendar (pk, created, deleted, last_update, description, ext_subscription, ext_subscription_calendar_binary, ext_subscription_hash, ext_subscription_update_interval, ext_subscription_url, full_access_group_ids, full_access_user_ids, minimal_access_group_ids, minimal_access_user_ids, readonly_access_group_ids, readonly_access_user_ids, title, tenant_id, owner_fk)
 VALUES (158, '2013-04-07 16:14:34.257', FALSE, '2017-11-23 12:56:36.159', 'Team calendar', FALSE, NULL, NULL, NULL, NULL, '43', '2', '', '', '40', '',
         'Yellow web portal team', 1, 19);
-INSERT INTO t_plugin_calendar (pk, created, deleted, last_update, description, ext_subscription, ext_subscription_calendar_binary, ext_subscription_hash, ext_subscription_update_interval, ext_subscription_url, full_access_group_ids, full_access_user_ids, minimal_access_group_ids, minimal_access_user_ids, readonly_access_group_ids, readonly_access_user_ids, title, tenant_id, owner_fk)
+INSERT INTO t_calendar (pk, created, deleted, last_update, description, ext_subscription, ext_subscription_calendar_binary, ext_subscription_hash, ext_subscription_update_interval, ext_subscription_url, full_access_group_ids, full_access_user_ids, minimal_access_group_ids, minimal_access_user_ids, readonly_access_group_ids, readonly_access_user_ids, title, tenant_id, owner_fk)
 VALUES (159, '2013-04-07 16:15:17.791', FALSE, '2017-11-23 12:56:36.228', 'Kai''s private calendar', FALSE, NULL, NULL, NULL, NULL, '', '2,1', '40', '', '', '',
         'kai@home', 1, 19);
-INSERT INTO t_plugin_calendar (pk, created, deleted, last_update, description, ext_subscription, ext_subscription_calendar_binary, ext_subscription_hash, ext_subscription_update_interval, ext_subscription_url, full_access_group_ids, full_access_user_ids, minimal_access_group_ids, minimal_access_user_ids, readonly_access_group_ids, readonly_access_user_ids, title, tenant_id, owner_fk)
+INSERT INTO t_calendar (pk, created, deleted, last_update, description, ext_subscription, ext_subscription_calendar_binary, ext_subscription_hash, ext_subscription_update_interval, ext_subscription_url, full_access_group_ids, full_access_user_ids, minimal_access_group_ids, minimal_access_user_ids, readonly_access_group_ids, readonly_access_user_ids, title, tenant_id, owner_fk)
 VALUES
   (160, '2013-04-07 16:14:08.668', FALSE, '2017-11-23 12:56:36.282', 'Events, releases, meetings of the team etc.', FALSE, NULL, NULL, NULL, NULL, '35', '2',
    '', '', '41,40', '', 'ProjectForge team', 1, 19);
@@ -1670,13 +1669,56 @@ VALUES (247, '2010-04-21 00:13:19.651', 'org.projectforge.web.admin.Configuratio
       </org.projectforge.framework.persistence.api.BaseSearchFilter>
     ', 4, 1, 17);
 INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, tenant_id, user_id)
-VALUES (248, '2010-04-21 00:13:19.653', 'CalendarPage.userPrefs', '2013-04-07 18:14:25.506', '<org.projectforge.web.calendar.CalendarFilter>
-      <startDate>2013-04-07</startDate>
-      <firstHour>8</firstHour>
+VALUES (248, '2010-04-21 00:13:19.653', 'CalendarPage.userPrefs', '2013-04-07 18:14:25.506', '<org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>
+  <startDate>2019-06-23</startDate>
+  <firstHour>8</firstHour>
+  <viewType>AGENDA_WEEK</viewType>
+  <templateEntries>
+    <org.projectforge.business.teamcal.filter.TemplateEntry>
+      <calendarProperties class="sorted-set">
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>157</calId>
+          <colorCode>#008000</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227222945</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>158</calId>
+          <colorCode>#ff0</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227225273</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>159</calId>
+          <colorCode>#FAAF26</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227214916</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>160</calId>
+          <colorCode>#f0f</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227233067</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+      </calendarProperties>
+      <visibleCalendarIds>
+        <int>160</int>
+        <int>157</int>
+        <int>158</int>
+        <int>159</int>
+      </visibleCalendarIds>
+      <name>Default</name>
+      <defaultCalendarId>-1</defaultCalendarId>
+      <showBirthdays>true</showBirthdays>
+      <showStatistics>true</showStatistics>
+      <timesheetUserId>19</timesheetUserId>
       <selectedCalendar>timesheet</selectedCalendar>
-      <timesheetUserId>1</timesheetUserId>
       <showBreaks>true</showBreaks>
-      </org.projectforge.web.calendar.CalendarFilter>
+      <showPlanning>true</showPlanning>
+    </org.projectforge.business.teamcal.filter.TemplateEntry>
+  </templateEntries>
+  <activeTemplateEntryIndex>0</activeTemplateEntryIndex>
+      </org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>
     ', 4, 1, 17);
 INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, tenant_id, user_id)
 VALUES (249, '2010-04-20 22:24:43.644', 'org.projectforge.web.fibu.KundeListAction:Filter', '2013-04-07 18:14:25.493', '<org.projectforge.framework.persistence.api.BaseSearchFilter>
@@ -1864,14 +1906,56 @@ VALUES (276, '2010-04-21 23:11:22.362', 'org.projectforge.web.user.UserListActio
   <searchHistory>false</searchHistory>
 </org.projectforge.framework.persistence.api.BaseSearchFilter>', 4, 1, 19);
 INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, tenant_id, user_id)
-VALUES (272, '2010-04-21 22:11:35.596', 'CalendarPage.userPrefs', '2017-11-23 12:56:37.575', '<org.projectforge.web.calendar.CalendarFilter>
-  <startDate>2013-04-01</startDate>
+VALUES (272, '2010-04-21 22:11:35.596', 'CalendarPage.userPrefs', '2017-11-23 12:56:37.575', '<org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>
+  <startDate>2019-06-23</startDate>
   <firstHour>8</firstHour>
   <viewType>AGENDA_WEEK</viewType>
-  <selectedCalendar>timesheet</selectedCalendar>
-  <timesheetUserId>3</timesheetUserId>
-  <showBreaks>true</showBreaks>
-</org.projectforge.web.calendar.CalendarFilter>', 4, 1, 19);
+  <templateEntries>
+    <org.projectforge.business.teamcal.filter.TemplateEntry>
+      <calendarProperties class="sorted-set">
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>157</calId>
+          <colorCode>#008000</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227222945</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>158</calId>
+          <colorCode>#ff0</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227225273</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>159</calId>
+          <colorCode>#FAAF26</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227214916</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>160</calId>
+          <colorCode>#f0f</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227233067</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+      </calendarProperties>
+      <visibleCalendarIds>
+        <int>160</int>
+        <int>157</int>
+        <int>158</int>
+        <int>159</int>
+      </visibleCalendarIds>
+      <name>Default</name>
+      <defaultCalendarId>-1</defaultCalendarId>
+      <showBirthdays>true</showBirthdays>
+      <showStatistics>true</showStatistics>
+      <timesheetUserId>19</timesheetUserId>
+      <selectedCalendar>timesheet</selectedCalendar>
+      <showBreaks>true</showBreaks>
+      <showPlanning>true</showPlanning>
+    </org.projectforge.business.teamcal.filter.TemplateEntry>
+  </templateEntries>
+  <activeTemplateEntryIndex>0</activeTemplateEntryIndex>
+</org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>', 4, 1, 19);
 INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, tenant_id, user_id)
 VALUES (277, '2010-04-21 23:11:22.364', 'org.projectforge.web.humanresources.HRListForm:Filter', '2017-11-23 12:56:37.597', '<org.projectforge.business.humanresources.HRFilter>
   <searchString></searchString>
@@ -2041,14 +2125,56 @@ VALUES (293, '2010-04-22 21:45:34.799', 'org.projectforge.web.timesheet.Timeshee
       !rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAGhH4sIAAAAAAAAALWU207CQBCG732KSS+8oqmFUhItJAgoB0mIknhpljK0G9ou7m7x8DI+jC9mawtpmyVC1KudU/b/ZtpZR9IQhY8oZxxXnTMAh6OLkRSpnXgheX2g79hpXjjGzs4ypbrEL900iCR/A0nEerRsa7YGsUCemnUN1kzIemq3NAiYSyRlUVsbIlnCc0y4RK7BEoXL6SZL9XGLAduEiRywFaxIyGIBQ7pAHhGJ0AuIECguYXajm/VGLT3tVlMz/oqtK8FnIVawbjn7/Eh4qYcwJluiT745IvCSKp9TXGB0HINpqiEaRYgpdTkLiSQVjDG97+ojIeJ0At3edPD0OLjWTcuuFb3WkSSWmsQqkkzSNgPQzz15BUMSLmLuVaDmnNBjmz9GMlfJNTOAf5ZUdvmr601FR5UmpsmFNPLghUof+mSLO0XHKOxb2cnseSJ++tLSSHZsx0iPYsg0FTGrEFPi7BFymbu82dOxhOTJFDrFN8Ex8mClJt/NQ+n91hwqUH3mQ7Wqv/CH2nJaObbCmByj/B5/AUD89kmfBQAA
     ', 4, 1, 18);
 INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, tenant_id, user_id)
-VALUES (294, '2010-04-22 21:45:34.801', 'CalendarPage.userPrefs', '2013-04-12 03:48:24.601', '<org.projectforge.web.calendar.CalendarFilter>
-      <startDate>2013-04-12</startDate>
-      <firstHour>8</firstHour>
-      <selectedCalendar>timesheet</selectedCalendar>
+VALUES (294, '2010-04-22 21:45:34.801', 'CalendarPage.userPrefs', '2013-04-12 03:48:24.601', '<org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>
+  <startDate>2019-06-23</startDate>
+  <firstHour>8</firstHour>
+  <viewType>AGENDA_WEEK</viewType>
+  <templateEntries>
+    <org.projectforge.business.teamcal.filter.TemplateEntry>
+      <calendarProperties class="sorted-set">
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>157</calId>
+          <colorCode>#008000</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227222945</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>158</calId>
+          <colorCode>#ff0</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227225273</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>159</calId>
+          <colorCode>#FAAF26</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227214916</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+        <org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+          <calId>160</calId>
+          <colorCode>#f0f</colorCode>
+          <visible>true</visible>
+          <millisOfLastChange>1562227233067</millisOfLastChange>
+        </org.projectforge.business.teamcal.filter.TemplateCalendarProperties>
+      </calendarProperties>
+      <visibleCalendarIds>
+        <int>160</int>
+        <int>157</int>
+        <int>158</int>
+        <int>159</int>
+      </visibleCalendarIds>
+      <name>Default</name>
+      <defaultCalendarId>-1</defaultCalendarId>
       <showBirthdays>true</showBirthdays>
-      <timesheetUserId>3</timesheetUserId>
+      <showStatistics>true</showStatistics>
+      <timesheetUserId>19</timesheetUserId>
+      <selectedCalendar>timesheet</selectedCalendar>
       <showBreaks>true</showBreaks>
-      </org.projectforge.web.calendar.CalendarFilter>
+      <showPlanning>true</showPlanning>
+    </org.projectforge.business.teamcal.filter.TemplateEntry>
+  </templateEntries>
+  <activeTemplateEntryIndex>0</activeTemplateEntryIndex>
+      </org.projectforge.business.teamcal.filter.TeamCalCalendarFilter>
     ', 4, 1, 18);
 INSERT INTO t_user_xml_prefs (pk, created, key, last_update, serializedsettings, version, tenant_id, user_id)
 VALUES (296, '2010-04-23 21:13:12.76', 'org.projectforge.web.fibu.Kost2ListForm:Filter', '2017-11-23 12:56:37.368', '<org.projectforge.web.fibu.Kost2ListFilter>
@@ -2549,11 +2675,3 @@ VALUES (297, '2010-04-24 06:01:19.467', 'org.projectforge.web.orga.PostausgangLi
   <year>-1</year>
   <month>-1</month>
 </org.projectforge.web.orga.PostausgangListFilter>', 4, 1, 19);
-
-SELECT pg_catalog.setval('hibernate_sequence', 617, TRUE);
-
-SELECT pg_catalog.setval('sq_base_ghistory_attr_data_pk', 1, FALSE);
-
-SELECT pg_catalog.setval('sq_base_ghistory_attr_pk', 1, FALSE);
-
-SELECT pg_catalog.setval('sq_base_ghistory_pk', 1, FALSE);

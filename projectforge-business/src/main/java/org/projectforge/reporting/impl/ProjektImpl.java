@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,14 @@
 
 package org.projectforge.reporting.impl;
 
-import java.util.List;
-
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektStatus;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.reporting.Kost2Art;
 import org.projectforge.reporting.Kunde;
 import org.projectforge.reporting.Projekt;
+
+import java.util.List;
 
 /**
  * Proxy for ProjektDO;
@@ -121,10 +121,10 @@ public class ProjektImpl implements Projekt
     if (kost2Arts == null) {
       return "";
     }
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     boolean first = false;
     for (Kost2Art value : kost2Arts) {
-      if (first == true) {
+      if (first) {
         first = false;
       } else {
         buf.append(", ");
@@ -143,11 +143,11 @@ public class ProjektImpl implements Projekt
     boolean first = true;
     for (Kost2Art art : kost2Arts) {
       boolean suppress = true;
-      if (art.isExistsAlready() == true) {
-        if (first == false) {
+      if (art.isExistsAlready()) {
+        if (!first) {
           buf.append(", ");
         }
-        if (art.isProjektStandard() == true) {
+        if (art.isProjektStandard()) {
           buf.append("<span");
           HtmlHelper.attribute(buf, "style", "color: green;");
           buf.append(">").append(art.getFormattedId()).append("</span>");
@@ -155,8 +155,8 @@ public class ProjektImpl implements Projekt
           buf.append(art.getFormattedId());
         }
         suppress = false;
-      } else if (art.isProjektStandard() == true) {
-        if (first == false) {
+      } else if (art.isProjektStandard()) {
+        if (!first) {
           buf.append(", ");
         }
         buf.append("<span");
@@ -166,7 +166,7 @@ public class ProjektImpl implements Projekt
       } else {
         // Suppress output;
       }
-      if (suppress == false && first == true) {
+      if (!suppress && first) {
         first = false;
       }
     }

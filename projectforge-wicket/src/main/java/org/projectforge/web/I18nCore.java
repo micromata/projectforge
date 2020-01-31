@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,13 @@
 
 package org.projectforge.web;
 
-import java.util.Locale;
-
 import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.web.calendar.MyFullCalendarConfig;
+
+import java.util.Locale;
 
 /**
  * Main class for administration ProjectForge's localization. If you want to add new translations, this class should be referred first.

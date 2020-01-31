@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -41,14 +37,8 @@ import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.common.OutputType;
-import org.projectforge.business.fibu.KostFormatter;
-import org.projectforge.business.fibu.KundeDO;
-import org.projectforge.business.fibu.MonthlyEmployeeReport;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.MonthlyEmployeeReport.Kost2Row;
-import org.projectforge.business.fibu.MonthlyEmployeeReportDao;
-import org.projectforge.business.fibu.MonthlyEmployeeReportEntry;
-import org.projectforge.business.fibu.MonthlyEmployeeReportWeek;
-import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost1Dao;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
@@ -73,6 +63,10 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.TextStyle;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implements ISelectCallerPage
 {
@@ -224,7 +218,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
         @Override
         public boolean isVisible()
         {
-          return report != null && StringUtils.isNotBlank(report.getFormattedVacationCount()) && vacationService.couldUserUseVacationService(
+          return report != null && StringUtils.isNotBlank(report.getFormattedVacationCount()) && vacationService.hasAccessToVacationService(
               ThreadLocalUserContext.getUser(), false);
         }
       }.suppressLabelForWarning();
@@ -250,7 +244,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
         @Override
         public boolean isVisible()
         {
-          return report != null && StringUtils.isNotBlank(report.getFormattedVacationPlandCount()) && vacationService.couldUserUseVacationService(
+          return report != null && StringUtils.isNotBlank(report.getFormattedVacationPlandCount()) && vacationService.hasAccessToVacationService(
               ThreadLocalUserContext.getUser(), false);
         }
       }.suppressLabelForWarning();
@@ -505,7 +499,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     data.put("sumLabel", getString("sum"));
     data.put("netSumLabel", getString("sum"));
     data.put("totalSumLabel", getString("fibu.monthlyEmployeeReport.totalSum"));
-    data.put("vacationAvailabel", vacationService.couldUserUseVacationService(form.filter.getUser(), false));
+    data.put("vacationAvailabel", vacationService.hasAccessToVacationService(form.filter.getUser(), false));
     data.put("vacationCountLabel", getString("vacation.annualleave"));
     data.put("vacationPlandCountLabel", getString("vacation.plandannualleave"));
     data.put("report", report);

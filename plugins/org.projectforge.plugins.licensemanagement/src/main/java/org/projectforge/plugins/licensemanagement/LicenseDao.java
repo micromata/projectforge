@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.plugins.licensemanagement;
 
-import java.util.Collection;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.common.StringHelper;
@@ -34,26 +32,20 @@ import org.projectforge.web.user.UsersProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @Repository
 public class LicenseDao extends BaseDao<LicenseDO>
 {
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "owners" };
-
   private final UsersProvider usersProvider;
 
   @Autowired
   UserDao userDao;
-
-  @Override
-  protected String[] getAdditionalSearchFields()
-  {
-    return ADDITIONAL_SEARCH_FIELDS;
-  }
 
   public LicenseDao()
   {
@@ -64,7 +56,7 @@ public class LicenseDao extends BaseDao<LicenseDO>
 
   /**
    * Please note: Only the string license.owners will be modified (but not be saved)!
-   * 
+   *
    * @param license
    * @param owners Full list of all owners (user id's) which have are assigned to this license.
    * @return
@@ -82,7 +74,7 @@ public class LicenseDao extends BaseDao<LicenseDO>
   public String getSortedOwnernames(final LicenseDO license)
   {
     final Collection<PFUserDO> sortedOwners = getSortedOwners(license);
-    if (CollectionUtils.isEmpty(sortedOwners) == true) {
+    if (CollectionUtils.isEmpty(sortedOwners)) {
       return "";
     }
     final StringBuffer buf = new StringBuffer();

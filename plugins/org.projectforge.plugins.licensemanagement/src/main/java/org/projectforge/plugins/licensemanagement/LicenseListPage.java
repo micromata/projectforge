@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.licensemanagement;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -38,12 +35,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The controller of the list page. Most functionality such as search etc. is done by the super class.
@@ -69,7 +64,7 @@ public class LicenseListPage extends AbstractListPage<LicenseListForm, LicenseDa
   @SuppressWarnings("serial")
   public List<IColumn<LicenseDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final List<IColumn<LicenseDO, String>> columns = new ArrayList<IColumn<LicenseDO, String>>();
+    final List<IColumn<LicenseDO, String>> columns = new ArrayList<>();
     final CellItemListener<LicenseDO> cellItemListener = new CellItemListener<LicenseDO>()
     {
       @Override
@@ -81,7 +76,7 @@ public class LicenseListPage extends AbstractListPage<LicenseListForm, LicenseDa
       }
     };
 
-    columns.add(new CellItemListenerPropertyColumn<LicenseDO>(new Model<String>(getString("organization")),
+    columns.add(new CellItemListenerPropertyColumn<LicenseDO>(new Model<>(getString("organization")),
         getSortable("organization", sortable),
         "organization", cellItemListener)
     {
@@ -100,19 +95,19 @@ public class LicenseListPage extends AbstractListPage<LicenseListForm, LicenseDa
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<LicenseDO>(
-        new Model<String>(getString("plugins.licensemanagement.product")), getSortable(
+    columns.add(new CellItemListenerPropertyColumn<>(
+        new Model<>(getString("plugins.licensemanagement.product")), getSortable(
         "product", sortable),
         "product", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<LicenseDO>(
-        new Model<String>(getString("plugins.licensemanagement.version")), getSortable(
+    columns.add(new CellItemListenerPropertyColumn<>(
+        new Model<>(getString("plugins.licensemanagement.version")), getSortable(
         "version", sortable),
         "version", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<LicenseDO>(
-        new Model<String>(getString("plugins.licensemanagement.numberOfLicenses")), getSortable(
+    columns.add(new CellItemListenerPropertyColumn<>(
+        new Model<>(getString("plugins.licensemanagement.numberOfLicenses")), getSortable(
         "numberOfLicenses", sortable),
         "numberOfLicenses", cellItemListener));
-    columns.add(new AbstractColumn<LicenseDO, String>(new Model<String>(getString("plugins.licensemanagement.owner")))
+    columns.add(new AbstractColumn<LicenseDO, String>(new Model<>(getString("plugins.licensemanagement.owner")))
     {
       @Override
       public void populateItem(final Item<ICellPopulator<LicenseDO>> cellItem, final String componentId,
@@ -120,18 +115,18 @@ public class LicenseListPage extends AbstractListPage<LicenseListForm, LicenseDa
       {
         final LicenseDO license = rowModel.getObject();
         final String owners = licenseDao.getSortedOwnernames(license);
-        final Label label = new Label(componentId, new Model<String>(owners));
+        final Label label = new Label(componentId, new Model<>(owners));
         cellItem.add(label);
         cellItemListener.populateItem(cellItem, componentId, rowModel);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<LicenseDO>(
-        new Model<String>(getString("plugins.licensemanagement.device")), getSortable(
+    columns.add(new CellItemListenerPropertyColumn<>(
+        new Model<>(getString("plugins.licensemanagement.device")), getSortable(
         "device", sortable),
         "device", cellItemListener));
-    if (accessChecker.isLoggedInUserMemberOfAdminGroup() == true) {
+    if (accessChecker.isLoggedInUserMemberOfAdminGroup()) {
       columns.add(new CellItemListenerPropertyColumn<LicenseDO>(
-          new Model<String>(getString("plugins.licensemanagement.key")), getSortable(
+          new Model<>(getString("plugins.licensemanagement.key")), getSortable(
           "key", sortable),
           "key", cellItemListener)
       {
@@ -140,13 +135,13 @@ public class LicenseListPage extends AbstractListPage<LicenseListForm, LicenseDa
             final IModel<LicenseDO> rowModel)
         {
           final LicenseDO license = rowModel.getObject();
-          final Label label = new Label(componentId, new Model<String>(StringUtils.abbreviate(license.getKey(), 40)));
+          final Label label = new Label(componentId, new Model<>(StringUtils.abbreviate(license.getKey(), 40)));
           cellItemListener.populateItem(item, componentId, rowModel);
           item.add(label);
         }
       });
     }
-    columns.add(new CellItemListenerPropertyColumn<LicenseDO>(new Model<String>(getString("comment")),
+    columns.add(new CellItemListenerPropertyColumn<LicenseDO>(new Model<>(getString("comment")),
         getSortable("comment", sortable), "comment", cellItemListener)
     {
       @Override
@@ -155,15 +150,15 @@ public class LicenseListPage extends AbstractListPage<LicenseListForm, LicenseDa
       {
         final LicenseDO license = rowModel.getObject();
         final Label label = new Label(componentId,
-            new Model<String>(StringUtils.abbreviate(license.getComment(), 100)));
+            new Model<>(StringUtils.abbreviate(license.getComment(), 100)));
         cellItemListener.populateItem(item, componentId, rowModel);
         item.add(label);
       }
     });
     columns.add(
-        new CellItemListenerPropertyColumn<LicenseDO>(getString("created"), getSortable("created", sortable), "created",
+        new CellItemListenerPropertyColumn<>(getString("created"), getSortable("created", sortable), "created",
             cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<LicenseDO>(getString("modified"),
+    columns.add(new CellItemListenerPropertyColumn<>(getString("modified"),
         getSortable("lastUpdate", sortable), "lastUpdate",
         cellItemListener));
     return columns;

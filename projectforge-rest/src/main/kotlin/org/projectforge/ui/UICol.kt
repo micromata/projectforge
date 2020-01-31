@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,29 @@
 
 package org.projectforge.ui
 
-open class UICol(val length: Int? = null,
-                 val content: MutableList<UIElement> = mutableListOf(),
-                 type: UIElementType = UIElementType.COL)
+open class UICol(
+        /**
+         * Length in grid system (1-12)
+         */
+        val length: Int? = null,
+        /**
+         * Length for small screens (1-12)
+         */
+        val smLength: Int? = null,
+        /**
+         * Length for middle sized screens (1-12)
+         */
+        val mdLength: Int? = null,
+        /**
+         * Length for large screens (1-12)
+         */
+        val lgLength: Int? = null,
+        /**
+         * Length for large screens (1-12)
+         */
+        val xlLength: Int? = null,
+        val content: MutableList<UIElement> = mutableListOf(),
+        type: UIElementType = UIElementType.COL)
     : UIElement(type) {
     fun add(element: UIElement): UICol {
         content.add(element)
@@ -36,7 +56,7 @@ open class UICol(val length: Int? = null,
      * Convenient method for adding a bunch of UIInput fields with the given ids.
      * @param createRowCol If true (default), the elements will be surrounded with [UIRow] and [UICol] each, otherwise not.
      */
-    fun add(layoutSettings: LayoutContext, vararg ids: String, createRowCol: Boolean = true): UICol {
+    fun add(layoutSettings: LayoutContext, vararg ids: String, createRowCol: Boolean = false): UICol {
         ids.forEach {
             val element = LayoutUtils.buildLabelInputElement(layoutSettings, it)
             if (element != null) {

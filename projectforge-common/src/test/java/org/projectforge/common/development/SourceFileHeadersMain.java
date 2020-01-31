@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -78,7 +78,7 @@ public class SourceFileHeadersMain {
     validateAndFixHeaders(new File(baseDir, "projectforge-common").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-model").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-rest").getAbsolutePath(), true, autoFixFiles);
-    validateAndFixHeaders(new File(baseDir, "projectforge-webapp").getAbsolutePath(), true, autoFixFiles);
+    validateAndFixHeaders(new File(baseDir, "projectforge-wicket").getAbsolutePath(), true, autoFixFiles);
     final File[] files = new File(baseDir, "plugins").listFiles();
     for (File file : files) {
       if (!file.isDirectory() || !file.getName().startsWith("org.projectforge.plugins")) continue;
@@ -101,20 +101,16 @@ public class SourceFileHeadersMain {
         System.out.println("Closed: Validating and fixing all source code file headers in: " + path);
       }
     }
-    final Collection<File> files = FileUtils.listFiles(new File(path, "src"), new String[]{"java", "kt"}, true);
+    File dir = new File(path, "src");
+    if (!dir.exists() || !dir.isDirectory())
+      return;
+    final Collection<File> files = FileUtils.listFiles(dir, new String[]{"java", "kt"}, true);
     for (final File file : files) {
-      if (file.getAbsolutePath().contains("org/projectforge/lucene/PF")
-              || file.getAbsolutePath().contains("arlut/csd/crypto")
-              || file.getAbsolutePath().contains("at/jta")
-              || file.getAbsolutePath().contains("edu/stanford")
-              || file.getAbsolutePath().contains("java/net")
+      if (file.getAbsolutePath().contains("arlut/csd/crypto")
+              || file.getAbsolutePath().contains("java/net/ftlines.wicket.fullcalendar")
               || file.getAbsolutePath().contains("name/fraser/neil/plaintext")
-              || file.getAbsolutePath().contains("org/lesscss")
-              || file.getAbsolutePath().contains("org/parosproxy")
-              || file.getAbsolutePath().contains("org/projectforge/lucene/Classic") // ClassicAnalyzer, ClassicFilter, ...
-              || file.getAbsolutePath().contains("org/projectforge/lucene/Standard")  // StandardAnalyzer, ...
-              || file.getAbsolutePath().contains("org/projectforge/lucene/UAX29")
-              || file.getAbsolutePath().contains("org/zaproxy")) {
+              || file.getAbsolutePath().contains("org/apache")
+              || file.getAbsolutePath().contains("org/lesscss")) {
         continue;
       }
       String content = FileUtils.readFileToString(file, "UTF-8");
@@ -127,7 +123,7 @@ public class SourceFileHeadersMain {
         continue;
       }
       if (!autoFixFiles) {
-        Assertions.fail("Source code file '" + file.getName() + "' without valid copy right header. As a maintainer you should fix it by simply calling Java main: "
+        Assertions.fail("Source code file '" + file.getPath() + "' without valid copy right header. As a maintainer you should fix it by simply calling Java main: "
                 + mainJavaFile.getAbsolutePath());
       }
       System.out.println("****** Source code file without valid copy right header (will be fixed right now automatically): " + file.getAbsolutePath());

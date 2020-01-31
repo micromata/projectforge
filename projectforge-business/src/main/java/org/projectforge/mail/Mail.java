@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,16 @@
 
 package org.projectforge.mail;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import javax.mail.Message;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Represents a mail. Mails can be received from a MailAccount or can be sent via SendMail.
@@ -304,13 +303,13 @@ public class Mail implements Comparable<Mail>
     if (date != null) {
       sb.append("date", getDate());
     }
-    if (deleted == true) {
+    if (deleted) {
       sb.append("deleted", isDeleted());
     }
-    if (recent == true) {
+    if (recent) {
       sb.append("recent", isRecent());
     }
-    if (seen == true) {
+    if (seen) {
       sb.append("seen", isSeen());
     }
     return sb.toString();
@@ -319,12 +318,6 @@ public class Mail implements Comparable<Mail>
   @Override
   public int compareTo(Mail o)
   {
-    if (this.messageNumber < o.messageNumber) {
-      return -1;
-    } else if (this.messageNumber == o.messageNumber) {
-      return 0;
-    } else {
-      return 1;
-    }
+    return Integer.compare(this.messageNumber, o.messageNumber);
   }
 }

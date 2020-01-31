@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -41,7 +41,7 @@ public class WorkFileHelper
   public static File getWorkFile(final String filename)
   {
     final File workDir = new File(WORK_DIR);
-    if (workDir.exists() == false) {
+    if (!workDir.exists()) {
       log.info("Create working directory: " + workDir.getAbsolutePath());
       workDir.mkdir();
     }

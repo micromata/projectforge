@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,11 @@
 
 package org.projectforge.business.user;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
+
+import java.util.*;
 
 /**
  * All user pref areas. They will shown in the list of 'my settings'.
@@ -44,7 +38,7 @@ public class UserPrefAreaRegistry
 {
   private static final UserPrefAreaRegistry instance = new UserPrefAreaRegistry();
 
-  private Set<UserPrefArea> set = new HashSet<UserPrefArea>();
+  private Set<UserPrefArea> set = new HashSet<>();
 
   public static UserPrefAreaRegistry instance()
   {
@@ -60,7 +54,7 @@ public class UserPrefAreaRegistry
   public UserPrefArea getEntry(final String id)
   {
     for (final UserPrefArea area : set) {
-      if (id.equals(area.getId()) == true) {
+      if (id.equals(area.getId())) {
         return area;
       }
     }
@@ -73,13 +67,10 @@ public class UserPrefAreaRegistry
    */
   public List<UserPrefArea> getOrderedEntries(final Locale locale)
   {
-    final List<UserPrefArea> list = new ArrayList<UserPrefArea>();
-    list.addAll(set);
-    Collections.sort(list, new Comparator<UserPrefArea>()
-    {
+    final List<UserPrefArea> list = new ArrayList<>(set);
+    list.sort(new Comparator<UserPrefArea>() {
       @Override
-      public int compare(final UserPrefArea o1, final UserPrefArea o2)
-      {
+      public int compare(final UserPrefArea o1, final UserPrefArea o2) {
         return StringHelper.compareTo(
             I18nHelper.getLocalizedMessage(locale, o1.getI18nKey()),
             I18nHelper.getLocalizedMessage(locale, o2.getI18nKey())

@@ -1,13 +1,11 @@
 import Input from './input';
 import CheckBox from './input/CheckBox';
-import Select from './input/Select';
 import TextArea from './input/TextArea';
 
 export {
     Input,
     TextArea,
     CheckBox,
-    Select,
 };
 
 export {
@@ -17,6 +15,8 @@ export {
     ButtonGroup,
     Card,
     CardBody,
+    CardFooter,
+    CardHeader,
     CardTitle,
     Col,
     Collapse,
@@ -38,6 +38,8 @@ export {
     NavbarToggler,
     NavItem,
     NavLink,
+    Popover,
+    PopoverBody,
     Row,
     Spinner,
     TabContent,

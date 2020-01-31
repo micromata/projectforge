@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,13 +26,17 @@ package org.projectforge.business.user.service;
 
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 
+/**
+ * Use {@link UserPrefService} instead.
+ */
+@Deprecated
 public class UserPreferencesHelper
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPreferencesHelper.class);
 
   /**
    * Stores the given value for the current user.
-   * 
+   *
    * @param key
    * @param value
    * @param persistent If true, the object will be persisted in the database.
@@ -45,7 +49,7 @@ public class UserPreferencesHelper
 
   /**
    * Gets the stored user preference entry.
-   * 
+   *
    * @param key
    * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
    *         existing, otherwise null;
@@ -58,7 +62,7 @@ public class UserPreferencesHelper
 
   /**
    * Removes the entry under the given key.
-   * 
+   *
    * @param key
    * @return The removed entry if found.
    */
@@ -67,8 +71,8 @@ public class UserPreferencesHelper
     return getUserPreferencesService().removeEntry(key);
   }
 
-  private static UserPreferencesService getUserPreferencesService()
+  private static UserXmlPreferencesService getUserPreferencesService()
   {
-    return ApplicationContextProvider.getApplicationContext().getBean(UserPreferencesService.class);
+    return ApplicationContextProvider.getApplicationContext().getBean(UserXmlPreferencesService.class);
   }
 }

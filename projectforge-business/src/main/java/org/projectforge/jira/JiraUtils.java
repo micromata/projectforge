@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,14 @@
 
 package org.projectforge.jira;
 
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.framework.configuration.ConfigXml;
+import org.projectforge.framework.configuration.Configuration;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.configuration.Configuration;
 
 public class JiraUtils
 {
@@ -92,7 +92,7 @@ public class JiraUtils
     if (jiraIssues == null) {
       return text;
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     int current = 0;
     for (final String jiraIssue : jiraIssues) {
       final int pos = text.indexOf(jiraIssue, current);
@@ -121,7 +121,7 @@ public class JiraUtils
     final Matcher m = p.matcher(text);
     while (m.find()) {
       if (list == null) {
-        list = new ArrayList<String>();
+        list = new ArrayList<>();
       }
       if (m.group(1) != null)
         list.add(m.group(1));

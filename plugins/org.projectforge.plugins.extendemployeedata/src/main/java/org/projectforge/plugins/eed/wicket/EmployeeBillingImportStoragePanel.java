@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,20 +23,19 @@
 
 package org.projectforge.plugins.eed.wicket;
 
-import java.util.Date;
-import java.util.List;
-
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import de.micromata.merlin.excel.importer.ImportedElement;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.export.AttrColumnDescription;
-import org.projectforge.framework.persistence.utils.ImportedElement;
 import org.projectforge.web.core.importstorage.AbstractImportStoragePanel;
 import org.projectforge.web.core.importstorage.ImportFilter;
 
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import java.util.Date;
+import java.util.List;
 
 class EmployeeBillingImportStoragePanel extends AbstractImportStoragePanel<EmployeeBillingImportPage>
 {

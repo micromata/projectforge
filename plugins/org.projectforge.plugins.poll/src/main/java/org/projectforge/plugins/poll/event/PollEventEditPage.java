@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,12 @@
 
 package org.projectforge.plugins.poll.event;
 
-import java.util.Collection;
-
+import net.ftlines.wicket.fullcalendar.CalendarResponse;
+import net.ftlines.wicket.fullcalendar.EventSource;
+import net.ftlines.wicket.fullcalendar.callback.ClickedEvent;
+import net.ftlines.wicket.fullcalendar.callback.DroppedEvent;
+import net.ftlines.wicket.fullcalendar.callback.ResizedEvent;
+import net.ftlines.wicket.fullcalendar.callback.SelectedRange;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -42,19 +46,12 @@ import org.projectforge.web.calendar.MyFullCalendarConfig;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 
-import net.ftlines.wicket.fullcalendar.CalendarResponse;
-import net.ftlines.wicket.fullcalendar.EventSource;
-import net.ftlines.wicket.fullcalendar.callback.ClickedEvent;
-import net.ftlines.wicket.fullcalendar.callback.DroppedEvent;
-import net.ftlines.wicket.fullcalendar.callback.ResizedEvent;
-import net.ftlines.wicket.fullcalendar.callback.SelectedRange;
+import java.util.Collection;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)
- * 
  */
-public class PollEventEditPage extends AbstractSecuredPage
-{
+public class PollEventEditPage extends AbstractSecuredPage {
   private static final long serialVersionUID = 2988767055605267801L;
 
   // private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PollEventEditPage.class);
@@ -71,15 +68,13 @@ public class PollEventEditPage extends AbstractSecuredPage
 
   private final NewPollFrontendModel model;
 
-  public PollEventEditPage(final PageParameters parameters)
-  {
+  public PollEventEditPage(final PageParameters parameters) {
     super(parameters);
     NewPollPage.redirectToNewPollPage(parameters);
     this.model = null;
   }
 
-  public PollEventEditPage(final PageParameters parameters, final NewPollFrontendModel model)
-  {
+  public PollEventEditPage(final PageParameters parameters, final NewPollFrontendModel model) {
     super(parameters);
     this.model = model;
   }
@@ -88,44 +83,39 @@ public class PollEventEditPage extends AbstractSecuredPage
    * @see org.apache.wicket.Component#onInitialize()
    */
   @Override
-  protected void onInitialize()
-  {
+  protected void onInitialize() {
     super.onInitialize();
-    final Form<Void> form = new Form<Void>("form");
+    final Form<Void> form = new Form<>("form");
     body.add(form);
 
     form.add(new Label("title", model.getPollDo().getTitle()));
     form.add(new Label("location", model.getPollDo().getLocation()));
     eventEntries = new RepeatingView("eventEntries");
     eventEntries.setVisible(true);
-    entryContainer = new WebMarkupContainer("entryContainer")
-    {
+    entryContainer = new WebMarkupContainer("entryContainer") {
       private static final long serialVersionUID = -2897780301098962428L;
 
       /**
        * @see org.apache.wicket.Component#onBeforeRender()
        */
       @Override
-      protected void onBeforeRender()
-      {
+      protected void onBeforeRender() {
         super.onBeforeRender();
         eventEntries.removeAll();
         for (final PollEventDO pollEvent : eventProvider.getAllEvents()) {
-          eventEntries.add(new PollEventEntryPanel(eventEntries.newChildId(), pollEvent)
-          {
+          eventEntries.add(new PollEventEntryPanel(eventEntries.newChildId(), pollEvent) {
             private static final long serialVersionUID = -3844278068979559030L;
 
             /**
              * @see org.projectforge.plugins.poll.event.PollEventEntryPanel#onDeleteClick(org.apache.wicket.ajax.AjaxRequestTarget)
              */
             @Override
-            protected void onDeleteClick(final AjaxRequestTarget target)
-            {
+            protected void onDeleteClick(final AjaxRequestTarget target) {
               target.appendJavaScript("$('#"
-                  + calendar.getMarkupId()
-                  + "').fullCalendar('removeEvents', "
-                  + eventProvider.getEventForPollEvent(pollEvent).getId()
-                  + ");");
+                      + calendar.getMarkupId()
+                      + "').fullCalendar('removeEvents', "
+                      + eventProvider.getEventForPollEvent(pollEvent).getId()
+                      + ");");
               target.add(entryContainer);
               eventProvider.removeElement(pollEvent);
             }
@@ -134,14 +124,12 @@ public class PollEventEditPage extends AbstractSecuredPage
       }
     };
 
-    final Button nextButton = new Button(SingleButtonPanel.WICKET_ID)
-    {
+    final Button nextButton = new Button(SingleButtonPanel.WICKET_ID) {
       private static final long serialVersionUID = -7779593314951993472L;
 
       @Override
-      public final void onSubmit()
-      {
-        if (eventProvider.getAllEvents().isEmpty() == false) {
+      public final void onSubmit() {
+        if (!eventProvider.getAllEvents().isEmpty()) {
           onNextButtonClick(model.getPollDo(), eventProvider.getAllEvents());
         } else {
           this.error(getString("plugins.poll.event.error"));
@@ -150,7 +138,7 @@ public class PollEventEditPage extends AbstractSecuredPage
     };
     nextButton.setDefaultFormProcessing(false);
     final SingleButtonPanel nextButtonPanel = new SingleButtonPanel("continueButton", nextButton, getString("next"),
-        SingleButtonPanel.DEFAULT_SUBMIT);
+            SingleButtonPanel.DEFAULT_SUBMIT);
     nextButtonPanel.setOutputMarkupId(true);
     form.add(nextButtonPanel);
 
@@ -159,10 +147,10 @@ public class PollEventEditPage extends AbstractSecuredPage
     form.add(entryContainer);
 
     eventProvider = new PollEventEventsProvider(model.getPollDo());
-    if (model.getAllEvents().isEmpty() == false) {
+    if (!model.getAllEvents().isEmpty()) {
       for (final PollEventDO event : model.getAllEvents()) {
         eventProvider.addEvent(
-            new SelectedRange(new DateTime(event.getStartDate()), new DateTime(event.getEndDate()), false), null);
+                new SelectedRange(new DateTime(event.getStartDate()), new DateTime(event.getEndDate()), false), null);
       }
     }
     config = new MyFullCalendarConfig(this);
@@ -173,8 +161,7 @@ public class PollEventEditPage extends AbstractSecuredPage
     config.getHeader().setRight("");
     config.setEnableContextMenu(false);
     config.setLoading("function(bool) { if (bool) $(\"#loading\").show(); else $(\"#loading\").hide(); }");
-    calendar = new MyFullCalendar("cal", config)
-    {
+    calendar = new MyFullCalendar("cal", config) {
       private static final long serialVersionUID = -6819899072933690316L;
 
       /**
@@ -182,8 +169,7 @@ public class PollEventEditPage extends AbstractSecuredPage
        *      net.ftlines.wicket.fullcalendar.CalendarResponse)
        */
       @Override
-      protected void onDateRangeSelected(final SelectedRange range, final CalendarResponse response)
-      {
+      protected void onDateRangeSelected(final SelectedRange range, final CalendarResponse response) {
         eventProvider.addEvent(range, response);
         response.getTarget().add(entryContainer);
       }
@@ -193,8 +179,7 @@ public class PollEventEditPage extends AbstractSecuredPage
        *      net.ftlines.wicket.fullcalendar.CalendarResponse)
        */
       @Override
-      protected boolean onEventResized(final ResizedEvent event, final CalendarResponse response)
-      {
+      protected boolean onEventResized(final ResizedEvent event, final CalendarResponse response) {
         response.getTarget().add(entryContainer);
         return eventProvider.resizeEvent(event, response);
       }
@@ -204,8 +189,7 @@ public class PollEventEditPage extends AbstractSecuredPage
        *      net.ftlines.wicket.fullcalendar.CalendarResponse)
        */
       @Override
-      protected boolean onEventDropped(final DroppedEvent event, final CalendarResponse response)
-      {
+      protected boolean onEventDropped(final DroppedEvent event, final CalendarResponse response) {
         response.getTarget().add(entryContainer);
         return eventProvider.dropEvent(event, response);
       }
@@ -215,8 +199,7 @@ public class PollEventEditPage extends AbstractSecuredPage
        *      net.ftlines.wicket.fullcalendar.CalendarResponse)
        */
       @Override
-      protected void onEventClicked(final ClickedEvent event, final CalendarResponse response)
-      {
+      protected void onEventClicked(final ClickedEvent event, final CalendarResponse response) {
         response.getTarget().add(entryContainer);
         eventProvider.eventClicked(event, response);
       }
@@ -232,8 +215,7 @@ public class PollEventEditPage extends AbstractSecuredPage
   /**
    * @param allEvents
    */
-  protected void onNextButtonClick(final PollDO pollDo, final Collection<PollEventDO> allEvents)
-  {
+  protected void onNextButtonClick(final PollDO pollDo, final Collection<PollEventDO> allEvents) {
     model.getAllEvents().clear();
     model.getAllEvents().addAll(allEvents);
     setResponsePage(new PollAttendeePage(getPageParameters(), model));
@@ -243,8 +225,7 @@ public class PollEventEditPage extends AbstractSecuredPage
    * @see org.projectforge.web.wicket.AbstractUnsecureBasePage#getTitle()
    */
   @Override
-  protected String getTitle()
-  {
+  protected String getTitle() {
     return getString("plugins.poll.event");
   }
 

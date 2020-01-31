@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,24 +23,19 @@
 
 package org.projectforge.framework.xstream;
 
+import org.apache.commons.lang3.StringUtils;
+import org.dom4j.*;
+import org.dom4j.tree.DefaultCDATA;
+import org.projectforge.common.BeanHelper;
+import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.framework.xstream.converter.IConverter;
+
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.dom4j.Attribute;
-import org.dom4j.Branch;
-import org.dom4j.Document;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
-import org.dom4j.tree.DefaultCDATA;
-import org.projectforge.common.BeanHelper;
-import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.framework.xstream.converter.IConverter;
 
 /**
  * Serializes objects to xml. A simple solution for streaming xml objects and to prevent default values from the xml output (because this
@@ -69,7 +64,7 @@ public class XmlObjectWriter
    * Key is the class name with the hashCode of the object, e. g.: org.projectforge.xml.stream.TestObject:987345678854 and the value is the
    * element where the object was written to.
    */
-  private Map<String, Element> writtenObjects = new HashMap<String, Element>();
+  private Map<String, Element> writtenObjects = new HashMap<>();
 
   /**
    * For customization, the base xml registry of XmlRegistry is used at default.
@@ -145,7 +140,7 @@ public class XmlObjectWriter
   public static boolean ignoreField(final Field field)
   {
     final int modifiers = field.getModifiers();
-    return Modifier.isStatic(modifiers) || Modifier.isFinal(modifiers) == true || Modifier.isTransient(modifiers);
+    return Modifier.isStatic(modifiers) || Modifier.isFinal(modifiers) || Modifier.isTransient(modifiers);
   }
 
   public XmlObjectWriter setOnlyAnnotatedFields(boolean onlyAnnotatedFields)
@@ -186,9 +181,9 @@ public class XmlObjectWriter
     if (name == null) {
       name = getAliasMap().getAliasForClass(type);
     }
-    if (name == null && obj.getClass().isAnnotationPresent(XmlObject.class) == true) {
+    if (name == null && obj.getClass().isAnnotationPresent(XmlObject.class)) {
       final XmlObject xmlObject = obj.getClass().getAnnotation(XmlObject.class);
-      if (StringUtils.isNotEmpty(xmlObject.alias()) == true) {
+      if (StringUtils.isNotEmpty(xmlObject.alias())) {
         name = xmlObject.alias();
       }
     }
@@ -198,7 +193,7 @@ public class XmlObjectWriter
     if (name == null) {
       name = obj.getClass().getName();
     }
-    if (isRegistered(obj) == true) {
+    if (isRegistered(obj)) {
       final Element el = getRegisteredElement(obj);
       Integer refId;
       final Attribute attr = el.attribute(ATTR_ID);
@@ -222,15 +217,14 @@ public class XmlObjectWriter
       final String sValue = converter.toString(obj);
       writeValue(parent, obj, name, sValue, asAttribute, asCDATA);
       return (Element) parent;
-    } else if (Enum.class.isAssignableFrom(type) == true) {
+    } else if (Enum.class.isAssignableFrom(type)) {
       final String sValue = ((Enum< ? >) obj).name();
       writeValue(parent, obj, name, sValue, asAttribute, asCDATA);
       return (Element) parent;
     } else if (obj instanceof Collection< ? >) {
       final Element listElement = parent.addElement(name);
-      final Iterator< ? > it = ((Collection< ? >) obj).iterator();
-      while (it.hasNext() == true) {
-        write(listElement, it.next(), null, false, false);
+      for (Object o : ((Collection<?>) obj)) {
+        write(listElement, o, null, false, false);
       }
       return listElement;
     }
@@ -239,11 +233,11 @@ public class XmlObjectWriter
     final Field[] fields = BeanHelper.getAllDeclaredFields(obj.getClass());
     AccessibleObject.setAccessible(fields, true);
     for (final Field field : fields) {
-      if (field.isAnnotationPresent(XmlOmitField.class) == true || ignoreField(obj, field) == true) {
+      if (field.isAnnotationPresent(XmlOmitField.class) || ignoreField(obj, field)) {
         continue;
       }
-      final XmlField ann = field.isAnnotationPresent(XmlField.class) == true ? field.getAnnotation(XmlField.class) : null;
-      if (onlyAnnotatedFields == true && field.isAnnotationPresent(XmlField.class) == false) {
+      final XmlField ann = field.isAnnotationPresent(XmlField.class) ? field.getAnnotation(XmlField.class) : null;
+      if (onlyAnnotatedFields && !field.isAnnotationPresent(XmlField.class)) {
         continue;
       }
       final Object value = BeanHelper.getFieldValue(obj, field);
@@ -254,20 +248,20 @@ public class XmlObjectWriter
 
   protected void writeField(final Field field, final Object obj, final Object fieldValue, final XmlField annotation, final Element element)
   {
-    if (fieldValue == null || isDefaultType(annotation, fieldValue) == true) {
+    if (fieldValue == null || isDefaultType(annotation, fieldValue)) {
       return;
     }
     boolean childAsAttribute = false;
     if (annotation != null) {
-      if (annotation.asElement() == false && (asAttributeAsDefault(field.getType()) == true || annotation.asAttribute() == true)) {
+      if (!annotation.asElement() && (asAttributeAsDefault(field.getType()) || annotation.asAttribute())) {
         childAsAttribute = true;
       }
-    } else if (asAttributeAsDefault(field.getType()) == true) {
+    } else if (asAttributeAsDefault(field.getType())) {
       childAsAttribute = true;
     }
-    final boolean childAsCDATA = (annotation != null && annotation.asCDATA() == true);
+    final boolean childAsCDATA = (annotation != null && annotation.asCDATA());
     final String childName;
-    if (annotation != null && StringUtils.isNotEmpty(annotation.alias()) == true) {
+    if (annotation != null && StringUtils.isNotEmpty(annotation.alias())) {
       childName = annotation.alias();
     } else {
       childName = field.getName();
@@ -286,9 +280,9 @@ public class XmlObjectWriter
     if (sValue == null) {
       return;
     }
-    if (asAttribute == true) {
+    if (asAttribute) {
       addAttribute((Element) branch, obj, key, sValue);
-    } else if (asCDATA == true) {
+    } else if (asCDATA) {
       branch.addElement(key).add(new DefaultCDATA(sValue));
     } else {
       branch.addElement(key).setText(sValue);
@@ -329,12 +323,12 @@ public class XmlObjectWriter
    */
   public boolean asAttributeAsDefault(final Class< ? > type)
   {
-    return xmlRegistry.asAttributeAsDefault(type) || Enum.class.isAssignableFrom(type) == true;
+    return xmlRegistry.asAttributeAsDefault(type) || Enum.class.isAssignableFrom(type);
   }
 
   private static boolean isDefaultType(final XmlField ann, final Object value)
   {
-    if (hasDefaultType(ann, value) == false) {
+    if (!hasDefaultType(ann, value)) {
       // No default value given in the annotation.
       return false;
     }
@@ -342,16 +336,16 @@ public class XmlObjectWriter
       if (ann != null) {
         return ann.defaultBooleanValue() == (Boolean) value;
       } else {
-        return (Boolean) value == false;
+        return !((Boolean) value);
       }
     } else if (value instanceof Double) {
       return ((Double) value).compareTo(ann.defaultDoubleValue()) == 0;
     } else if (value instanceof Integer) {
       return ((Integer) value).compareTo(ann.defaultIntValue()) == 0;
     } else if (value instanceof String) {
-      return ann.defaultStringValue().equals((String) value) == true;
-    } else if (Enum.class.isAssignableFrom(value.getClass()) == true) {
-      return ann.defaultStringValue().equals(((Enum< ? >) value).name()) == true;
+      return ann.defaultStringValue().equals((String) value);
+    } else if (Enum.class.isAssignableFrom(value.getClass())) {
+      return ann.defaultStringValue().equals(((Enum<?>) value).name());
     }
     return false;
   }
@@ -369,11 +363,11 @@ public class XmlObjectWriter
     } else if (ann == null) {
       return false;
     } else if (value instanceof Double) {
-      return Double.isNaN(ann.defaultDoubleValue()) == false;
+      return !Double.isNaN(ann.defaultDoubleValue());
     } else if (value instanceof Integer) {
       return ann.defaultIntValue() != XmlConstants.MAGIC_INT_NUMBER;
-    } else if (value instanceof String || Enum.class.isAssignableFrom(value.getClass()) == true) {
-      return XmlConstants.MAGIC_STRING.equals(ann.defaultStringValue()) == false;
+    } else if (value instanceof String || Enum.class.isAssignableFrom(value.getClass())) {
+      return !XmlConstants.MAGIC_STRING.equals(ann.defaultStringValue());
     }
     return false;
   }

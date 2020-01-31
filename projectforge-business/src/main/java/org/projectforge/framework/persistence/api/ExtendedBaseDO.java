@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.framework.persistence.api;
 
+import de.micromata.genome.jpa.MarkDeletableRecord;
+
 import java.io.Serializable;
 import java.util.Date;
-
-import de.micromata.genome.jpa.MarkDeletableRecord;
 
 /**
  * Extends BaseDO: Supports extended functionalities: deleted, created and lastUpdate.

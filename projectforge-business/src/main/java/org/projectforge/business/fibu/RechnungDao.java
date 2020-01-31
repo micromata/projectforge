@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,23 +23,9 @@
 
 package org.projectforge.business.fibu;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.FetchMode;
-import org.hibernate.criterion.Order;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessException;
@@ -50,32 +36,33 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.xstream.XmlObjectWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.Tuple;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
 
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class RechnungDao extends BaseDao<RechnungDO>
-{
+public class RechnungDao extends BaseDao<RechnungDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_AUSGANGSRECHNUNGEN;
 
   public final static int START_NUMBER = 1000;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RechnungDao.class);
 
-  private static final Class<?>[] ADDITIONAL_SEARCH_DOS = new Class[] { RechnungsPositionDO.class };
+  private static final Class<?>[] ADDITIONAL_SEARCH_DOS = new Class[]{RechnungsPositionDO.class};
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "kunde.name", "projekt.name",
-      "projekt.kunde.name",
-      "positionen.text", "positionen.auftragsPosition.position", "positionen.auftragsPosition.position",
-      "positionen.auftragsPosition.titel", "positionen.auftragsPosition.bemerkung" };
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"kunde.name", "projekt.name",
+          "projekt.kunde.name", "positionen.auftragsPosition.auftrag.nummer"};
 
   @Autowired
   private KundeDao kundeDao;
@@ -86,8 +73,12 @@ public class RechnungDao extends BaseDao<RechnungDO>
   @Autowired
   private RechnungCache rechnungCache;
 
-  public static BigDecimal getNettoSumme(final Collection<RechnungsPositionVO> col)
-  {
+  public RechnungDao() {
+    super(RechnungDO.class);
+    userRightId = USER_RIGHT_ID;
+  }
+
+  public static BigDecimal getNettoSumme(final Collection<RechnungsPositionVO> col) {
     BigDecimal nettoSumme = BigDecimal.ZERO;
     if (col != null && col.size() > 0) {
       for (final RechnungsPositionVO pos : col) {
@@ -97,8 +88,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
     return nettoSumme;
   }
 
-  static void writeUiStatusToXml(final AbstractRechnungDO<?> rechnung)
-  {
+  static void writeUiStatusToXml(final AbstractRechnungDO rechnung) {
     final String uiStatusAsXml = XmlObjectWriter.writeAsXml(rechnung.getUiStatus());
     rechnung.setUiStatusAsXml(uiStatusAsXml);
   }
@@ -106,31 +96,19 @@ public class RechnungDao extends BaseDao<RechnungDO>
   /**
    * @return the rechnungCache
    */
-  public RechnungCache getRechnungCache()
-  {
+  public RechnungCache getRechnungCache() {
     return rechnungCache;
-  }
-
-  public RechnungDao()
-  {
-    super(RechnungDO.class);
-    userRightId = USER_RIGHT_ID;
   }
 
   /**
    * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
-   *
-   * @return
    */
-  @SuppressWarnings("unchecked")
-  public int[] getYears()
-  {
-    final List<Object[]> list = getSession().createQuery("select min(datum), max(datum) from RechnungDO t").list();
-    return SQLHelper.getYears(list);
+  public int[] getYears() {
+    final Tuple minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(RechnungDO.SELECT_MIN_MAX_DATE, Tuple.class));
+    return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
   }
 
-  public RechnungsStatistik buildStatistik(final List<RechnungDO> list)
-  {
+  public RechnungsStatistik buildStatistik(final List<RechnungDO> list) {
     final RechnungsStatistik stats = new RechnungsStatistik();
     if (list == null) {
       return stats;
@@ -144,17 +122,14 @@ public class RechnungDao extends BaseDao<RechnungDO>
   /**
    * @param rechnung
    * @param days
-   * @see DateHelper#getCalendar()
    */
-  public Date calculateFaelligkeit(final RechnungDO rechnung, final int days)
-  {
+  public Date calculateFaelligkeit(final RechnungDO rechnung, final int days) {
     if (rechnung.getDatum() == null) {
       return null;
     }
-    final Calendar cal = DateHelper.getCalendar();
-    cal.setTime(rechnung.getDatum());
-    cal.add(Calendar.DAY_OF_YEAR, days);
-    return cal.getTime();
+    PFDateTime dateTime = PFDateTime.from(rechnung.getDatum()); // not null
+    dateTime = dateTime.plusDays(days);
+    return dateTime.getUtilDate();
   }
 
   /**
@@ -162,8 +137,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
    * @param kundeId  If null, then kunde will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setKunde(final RechnungDO rechnung, final Integer kundeId)
-  {
+  public void setKunde(final RechnungDO rechnung, final Integer kundeId) {
     final KundeDO kunde = kundeDao.getOrLoad(kundeId);
     rechnung.setKunde(kunde);
   }
@@ -173,8 +147,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
    * @param projektId If null, then projekt will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setProjekt(final RechnungDO rechnung, final Integer projektId)
-  {
+  public void setProjekt(final RechnungDO rechnung, final Integer projektId) {
     final ProjektDO projekt = projektDao.getOrLoad(projektId);
     rechnung.setProjekt(projekt);
   }
@@ -184,26 +157,22 @@ public class RechnungDao extends BaseDao<RechnungDO>
    * Gutschriftsanzeigen dürfen keine Rechnungsnummer haben. Wenn eine Rechnungsnummer für neue Rechnungen gegeben
    * wurde, so muss sie fortlaufend sein. Berechnet das Zahlungsziel in Tagen, wenn nicht gesetzt, damit es indiziert
    * wird.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
-  @SuppressWarnings("unchecked")
   @Override
-  protected void onSaveOrModify(final RechnungDO rechnung)
-  {
+  protected void onSaveOrModify(final RechnungDO rechnung) {
     if (RechnungTyp.RECHNUNG.equals(rechnung.getTyp()) && rechnung.getId() != null) {
       RechnungDO originValue = internalGetById(rechnung.getId());
-      if (RechnungStatus.GEPLANT.equals(originValue.getStatus()) && RechnungStatus.GEPLANT.equals(rechnung.getStatus()) == false) {
+      if (RechnungStatus.GEPLANT.equals(originValue.getStatus()) && !RechnungStatus.GEPLANT.equals(rechnung.getStatus())) {
         rechnung.setNummer(getNextNumber(rechnung));
 
-        final DayHolder day = new DayHolder();
-        rechnung.setDatum(day.getSQLDate());
+        final PFDateTime day = PFDateTime.now();
+        rechnung.setDatum(day.getSqlDate());
 
         Integer zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
         if (zahlungsZielInTagen != null) {
-          day.add(Calendar.DAY_OF_MONTH, zahlungsZielInTagen);
+          PFDateTime faelligkeitDay = day.plusDays(zahlungsZielInTagen);
+          rechnung.setFaelligkeit(faelligkeitDay.getSqlDate());
         }
-        rechnung.setFaelligkeit(day.getSQLDate());
       }
     }
 
@@ -216,11 +185,11 @@ public class RechnungDao extends BaseDao<RechnungDO>
         throw new UserException("fibu.rechnung.error.gutschriftsanzeigeDarfKeineRechnungsnummerHaben");
       }
     } else {
-      if (RechnungStatus.GEPLANT.equals(rechnung.getStatus()) == false && rechnung.getNummer() == null) {
+      if (!RechnungStatus.GEPLANT.equals(rechnung.getStatus()) && rechnung.getNummer() == null) {
         throw new UserException("validation.required.valueNotPresent",
-            new MessageParam("fibu.rechnung.nummer", MessageParamType.I18N_KEY));
+                new MessageParam("fibu.rechnung.nummer", MessageParamType.I18N_KEY));
       }
-      if (RechnungStatus.GEPLANT.equals(rechnung.getStatus()) == false) {
+      if (!RechnungStatus.GEPLANT.equals(rechnung.getStatus())) {
         if (rechnung.getId() == null) {
           // Neue Rechnung
           final Integer next = getNextNumber(rechnung);
@@ -228,10 +197,10 @@ public class RechnungDao extends BaseDao<RechnungDO>
             throw new UserException("fibu.rechnung.error.rechnungsNummerIstNichtFortlaufend");
           }
         } else {
-          final List<RechnungDO> list = (List<RechnungDO>) getHibernateTemplate().find(
-              "from RechnungDO r where r.nummer = ? and r.id <> ?",
-              new Object[] { rechnung.getNummer(), rechnung.getId() });
-          if (list != null && list.size() > 0) {
+          final RechnungDO other = SQLHelper.ensureUniqueResult(em.createNamedQuery(RechnungDO.FIND_OTHER_BY_NUMMER, RechnungDO.class)
+                  .setParameter("nummer", rechnung.getNummer())
+                  .setParameter("id", rechnung.getId()));
+          if (other != null) {
             throw new UserException("fibu.rechnung.error.rechnungsNummerBereitsVergeben");
           }
         }
@@ -241,14 +210,14 @@ public class RechnungDao extends BaseDao<RechnungDO>
       rechnung.setZahlBetrag(rechnung.getZahlBetrag().setScale(2, RoundingMode.HALF_UP));
     }
     rechnung.recalculate();
-    if (CollectionUtils.isEmpty(rechnung.getPositionen()) == true) {
+    if (CollectionUtils.isEmpty(rechnung.getPositionen())) {
       throw new UserException("fibu.rechnung.error.rechnungHatKeinePositionen");
     }
     final int size = rechnung.getPositionen().size();
     for (int i = size - 1; i > 0; i--) {
       // Don't remove first position, remove only the last empty positions.
       final RechnungsPositionDO position = rechnung.getPositionen().get(i);
-      if (position.getId() == null && position.isEmpty() == true) {
+      if (position.getId() == null && position.isEmpty()) {
         rechnung.getPositionen().remove(i);
       } else {
         break;
@@ -257,12 +226,11 @@ public class RechnungDao extends BaseDao<RechnungDO>
     writeUiStatusToXml(rechnung);
   }
 
-  private void validate(final RechnungDO rechnung)
-  {
+  private void validate(final RechnungDO rechnung) {
     final RechnungStatus status = rechnung.getStatus();
     final BigDecimal zahlBetrag = rechnung.getZahlBetrag();
     final boolean zahlBetragExists = (zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0);
-    if (status == RechnungStatus.BEZAHLT && zahlBetragExists == false) {
+    if (status == RechnungStatus.BEZAHLT && !zahlBetragExists) {
       throw new UserException("fibu.rechnung.error.statusBezahltErfordertZahlBetrag");
     }
 
@@ -275,24 +243,17 @@ public class RechnungDao extends BaseDao<RechnungDO>
   }
 
   @Override
-  protected void afterSaveOrModify(final RechnungDO obj)
-  {
+  protected void afterSaveOrModify(final RechnungDO obj) {
     getRechnungCache().setExpired(); // Expire the cache because assignments to order position may be changed.
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#prepareHibernateSearch(org.projectforge.core.ExtendedBaseDO,
-   * org.projectforge.framework.access.OperationType)
-   */
   @Override
-  protected void prepareHibernateSearch(final RechnungDO obj, final OperationType operationType)
-  {
+  protected void prepareHibernateSearch(final RechnungDO obj, final OperationType operationType) {
     projektDao.initializeProjektManagerGroup(obj.getProjekt());
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
@@ -301,10 +262,8 @@ public class RechnungDao extends BaseDao<RechnungDO>
    *
    * @see org.projectforge.framework.persistence.api.BaseDao#getById(java.io.Serializable)
    */
-  @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
   @Override
-  public RechnungDO getById(final Serializable id) throws AccessException
-  {
+  public RechnungDO getById(final Serializable id) throws AccessException {
     final RechnungDO rechnung = super.getById(id);
     for (final RechnungsPositionDO pos : rechnung.getPositionen()) {
       final List<KostZuweisungDO> list = pos.getKostZuweisungen();
@@ -316,8 +275,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
   }
 
   @Override
-  public List<RechnungDO> getList(final BaseSearchFilter filter)
-  {
+  public List<RechnungDO> getList(final BaseSearchFilter filter) {
     final RechnungListFilter myFilter;
     if (filter instanceof RechnungListFilter) {
       myFilter = (RechnungListFilter) filter;
@@ -326,23 +284,23 @@ public class RechnungDao extends BaseDao<RechnungDO>
     }
 
     final QueryFilter queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(myFilter);
-    queryFilter.addOrder(Order.desc("datum"));
-    queryFilter.addOrder(Order.desc("nummer"));
+    queryFilter.addOrder(SortProperty.desc("datum"));
+    queryFilter.addOrder(SortProperty.desc("nummer"));
     if (myFilter.isShowKostZuweisungStatus()) {
-      queryFilter.setFetchMode("positionen.kostZuweisungen", FetchMode.JOIN);
+      //queryFilter.setFetchMode("positionen.kostZuweisungen", FetchMode.JOIN);
     }
 
     AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance(myFilter).ifPresent(queryFilter::add);
 
     final List<RechnungDO> list = getList(queryFilter);
-    if (myFilter.isShowAll() == true || myFilter.isDeleted() == true) {
+    if (myFilter.isShowAll() || myFilter.isDeleted()) {
       return list;
     }
 
-    final List<RechnungDO> result = new ArrayList<RechnungDO>();
+    final List<RechnungDO> result = new ArrayList<>();
     for (final RechnungDO rechnung : list) {
       if (myFilter.isShowUnbezahlt()) {
-        if (rechnung.isBezahlt() == false) {
+        if (!rechnung.isBezahlt()) {
           result.add(rechnung);
         }
       } else if (myFilter.isShowBezahlt()) {
@@ -362,10 +320,16 @@ public class RechnungDao extends BaseDao<RechnungDO>
   }
 
   @Override
-  public List<RechnungDO> sort(final List<RechnungDO> list)
-  {
+  public List<RechnungDO> sort(final List<RechnungDO> list) {
     Collections.sort(list);
     return list;
+  }
+
+  /**
+   * Gets the highest Rechnungsnummer.
+   */
+  public Integer getNextNumber() {
+    return getNextNumber(null);
   }
 
   /**
@@ -376,17 +340,15 @@ public class RechnungDao extends BaseDao<RechnungDO>
    *                 Rechnung bekommt die alte Nummer wieder zugeordnet.
    */
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public Integer getNextNumber(final RechnungDO rechnung)
-  {
-    if (rechnung.getId() != null) {
+  public Integer getNextNumber(final RechnungDO rechnung) {
+    if (rechnung != null && rechnung.getId() != null) {
       final RechnungDO orig = internalGetById(rechnung.getId());
       if (orig.getNummer() != null) {
         rechnung.setNummer(orig.getNummer());
         return orig.getNummer();
       }
     }
-    final List<Integer> list = getSession().createQuery("select max(t.nummer) from RechnungDO t").list();
+    final List<Integer> list = em.createQuery("select max(t.nummer) from RechnungDO t").getResultList();
     Validate.notNull(list);
     if (list.size() == 0 || list.get(0) == null) {
       log.info("First entry of RechnungDO");
@@ -397,18 +359,15 @@ public class RechnungDao extends BaseDao<RechnungDO>
   }
 
   /**
-   * Gets history entries of super and adds all history entries of the RechnungsPositionDO childs.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
+   * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
    */
   @Override
-  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final RechnungDO obj)
-  {
+  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final RechnungDO obj) {
     final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
-    if (hasLoggedInUserHistoryAccess(obj, false) == false) {
+    if (!hasLoggedInUserHistoryAccess(obj, false)) {
       return list;
     }
-    if (CollectionUtils.isNotEmpty(obj.getPositionen()) == true) {
+    if (CollectionUtils.isNotEmpty(obj.getPositionen())) {
       for (final RechnungsPositionDO position : obj.getPositionen()) {
         final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(position);
         for (final DisplayHistoryEntry entry : entries) {
@@ -420,14 +379,14 @@ public class RechnungDao extends BaseDao<RechnungDO>
           }
         }
         list.addAll(entries);
-        if (CollectionUtils.isNotEmpty(position.getKostZuweisungen()) == true) {
+        if (CollectionUtils.isNotEmpty(position.getKostZuweisungen())) {
           for (final KostZuweisungDO zuweisung : position.getKostZuweisungen()) {
             final List<DisplayHistoryEntry> kostEntries = internalGetDisplayHistoryEntries(zuweisung);
             for (final DisplayHistoryEntry entry : kostEntries) {
               final String propertyName = entry.getPropertyName();
               if (propertyName != null) {
                 entry.setPropertyName(
-                    "#" + position.getNumber() + ".kost#" + zuweisung.getIndex() + ":" + entry.getPropertyName()); // Prepend
+                        "#" + position.getNumber() + ".kost#" + zuweisung.getIndex() + ":" + entry.getPropertyName()); // Prepend
                 // number of positon and index of zuweisung.
               } else {
                 entry.setPropertyName("#" + position.getNumber() + ".kost#" + zuweisung.getIndex());
@@ -438,37 +397,25 @@ public class RechnungDao extends BaseDao<RechnungDO>
         }
       }
     }
-    Collections.sort(list, new Comparator<DisplayHistoryEntry>()
-    {
-      @Override
-      public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2)
-      {
-        return (o2.getTimestamp().compareTo(o1.getTimestamp()));
-      }
-    });
+    list.sort((o1, o2) -> (o2.getTimestamp().compareTo(o1.getTimestamp())));
     return list;
   }
 
   @Override
-  protected Class<?>[] getAdditionalHistorySearchDOs()
-  {
+  protected Class<?>[] getAdditionalHistorySearchDOs() {
     return ADDITIONAL_SEARCH_DOS;
   }
 
   /**
    * Returns also true, if idSet contains the id of any order position.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#contains(java.util.Set,
-   * org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  protected boolean contains(final Set<Integer> idSet, final RechnungDO entry)
-  {
-    if (super.contains(idSet, entry) == true) {
+  public boolean contains(final Set<Integer> idSet, final RechnungDO entry) {
+    if (super.contains(idSet, entry)) {
       return true;
     }
     for (final RechnungsPositionDO pos : entry.getPositionen()) {
-      if (idSet.contains(pos.getId()) == true) {
+      if (idSet.contains(pos.getId())) {
         return true;
       }
     }
@@ -476,17 +423,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
   }
 
   @Override
-  public RechnungDO newInstance()
-  {
+  public RechnungDO newInstance() {
     return new RechnungDO();
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
-   */
-  @Override
-  protected boolean useOwnCriteriaCacheRegion()
-  {
-    return true;
   }
 }

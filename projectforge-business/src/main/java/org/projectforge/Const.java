@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,6 +33,10 @@ import java.util.Locale;
 
 public class Const
 {
+  public static final String RESOURCE_BUNDLE_NAME = "I18nResources";
+
+  public static final String REACT_APP_PATH = "react/";
+
   public static final String WICKET_APPLICATION_PATH = "wa/";
 
   public static final int WICKET_REQUEST_TIMEOUT_MINUTES = 5;

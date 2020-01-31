@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -63,7 +63,7 @@ class AddressImageServicesRest() {
             ResponseEntity<String> {
         val filename = file.originalFilename
         if (filename == null || !filename.endsWith(".png", true)) {
-            return ResponseEntity("Unsupported file: ${filename}. Only png files supported", HttpStatus.BAD_REQUEST)
+            return ResponseEntity("Unsupported file: $filename. Only png files supported", HttpStatus.BAD_REQUEST)
         }
         val bytes = file.bytes
         if (id == null || id < 0) {
@@ -89,7 +89,7 @@ class AddressImageServicesRest() {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("application/octet-stream"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ProjectForge-addressImage_$id.png")
-                .body(resource);
+                .body(resource)
     }
 
     @GetMapping("imagePreview/{id}")
@@ -101,7 +101,7 @@ class AddressImageServicesRest() {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("application/octet-stream"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ProjectForge-addressImagePreview_$id.png")
-                .body(resource);
+                .body(resource)
     }
 
     /**

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,42 +23,36 @@
 
 package org.projectforge.framework.persistence.history;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.hibernate.Session;
-import org.jfree.util.Log;
-import org.projectforge.business.address.AddressbookDO;
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.utils.NumberHelper;
-
 import de.micromata.genome.db.jpa.history.api.DiffEntry;
 import de.micromata.genome.db.jpa.history.api.HistProp;
 import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import de.micromata.genome.db.jpa.history.entities.EntityOpType;
 import de.micromata.genome.jpa.metainf.EntityMetadata;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Transformer;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.jfree.util.Log;
+import org.projectforge.business.address.AddressbookDO;
+import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.framework.DisplayNameCapable;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.utils.NumberHelper;
+
+import javax.persistence.EntityManager;
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.*;
 
 /**
  * For storing the hibernate history entries in flat format.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de), Roger Kommer, Florian Blumenstein
  */
-public class DisplayHistoryEntry implements Serializable
-{
+public class DisplayHistoryEntry implements Serializable {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DisplayHistoryEntry.class);
 
   private static final long serialVersionUID = 3900345445639438747L;
@@ -77,12 +71,14 @@ public class DisplayHistoryEntry implements Serializable
 
   private final Date timestamp;
 
-  public DisplayHistoryEntry(final UserGroupCache userGroupCache, final HistoryEntry entry)
-  {
+  public DisplayHistoryEntry(final UserGroupCache userGroupCache, final HistoryEntry entry) {
     this.timestamp = entry.getModifiedAt();
-    final Integer userId = NumberHelper.parseInteger(entry.getUserName());
-    if (userId != null) {
-      this.user = userGroupCache.getUser(userId);
+    final String str = entry.getUserName();
+    if (StringUtils.isNotEmpty(str) && !"anon".equals(str)) { // Anonymous user, see PfEmgrFactory.java
+      final Integer userId = NumberHelper.parseInteger(entry.getUserName());
+      if (userId != null) {
+        this.user = userGroupCache.getUser(userId);
+      }
     }
     // entry.getClassName();
     // entry.getComment();
@@ -90,9 +86,8 @@ public class DisplayHistoryEntry implements Serializable
     // entry.getEntityId();
   }
 
-  private PFUserDO getUser(final UserGroupCache userGroupCache, final String userId)
-  {
-    if (StringUtils.isBlank(userId) == true) {
+  private PFUserDO getUser(final UserGroupCache userGroupCache, final String userId) {
+    if (StringUtils.isBlank(userId)) {
       return null;
     }
     final Integer id = NumberHelper.parseInteger(userId);
@@ -103,8 +98,7 @@ public class DisplayHistoryEntry implements Serializable
   }
 
   public DisplayHistoryEntry(final UserGroupCache userGroupCache, final HistoryEntry entry, final DiffEntry prop,
-      final Session session)
-  {
+                             final EntityManager em) {
     this(userGroupCache, entry);
     if (prop.getNewProp() != null) {
       this.propertyType = prop.getNewProp().getType();
@@ -118,27 +112,27 @@ public class DisplayHistoryEntry implements Serializable
     Object newObjectValue = null;
 
     try {
-      oldObjectValue = getObjectValue(userGroupCache, session, prop.getOldProp());
+      oldObjectValue = getObjectValue(userGroupCache, em, prop.getOldProp());
     } catch (final Exception ex) {
       oldObjectValue = "???";
       log.warn("Error while try to parse old object value '"
-          + prop.getOldValue()
-          + "' of prop-type '"
-          + prop.getClass().getName()
-          + "': "
-          + ex.getMessage(), ex);
+              + prop.getOldValue()
+              + "' of prop-type '"
+              + prop.getClass().getName()
+              + "': "
+              + ex.getMessage(), ex);
     }
 
     try {
-      newObjectValue = getObjectValue(userGroupCache, session, prop.getNewProp());
+      newObjectValue = getObjectValue(userGroupCache, em, prop.getNewProp());
     } catch (final Exception ex) {
       newObjectValue = "???";
       log.warn("Error while try to parse new object value '"
-          + prop.getNewValue()
-          + "' of prop-type '"
-          + prop.getClass().getName()
-          + "': "
-          + ex.getMessage(), ex);
+              + prop.getNewValue()
+              + "' of prop-type '"
+              + prop.getClass().getName()
+              + "': "
+              + ex.getMessage(), ex);
     }
 
     if (oldObjectValue != null) {
@@ -151,8 +145,7 @@ public class DisplayHistoryEntry implements Serializable
     this.propertyName = prop.getPropertyName();
   }
 
-  private String objectValueToDisplay(Object value)
-  {
+  private String objectValueToDisplay(Object value) {
     if (value instanceof Date || value instanceof java.sql.Date || value instanceof Timestamp) {
       return formatDate(value);
     }
@@ -160,27 +153,26 @@ public class DisplayHistoryEntry implements Serializable
     return String.valueOf(toShortNameOfList(value));
   }
 
-  protected Object getObjectValue(UserGroupCache userGroupCache, Session session, HistProp prop)
-  {
+  protected Object getObjectValue(UserGroupCache userGroupCache, EntityManager em, HistProp prop) {
     if (prop == null) {
       return null;
     }
-    if (StringUtils.isBlank(prop.getValue()) == true) {
+    if (StringUtils.isBlank(prop.getValue())) {
       return prop.getValue();
     }
     String type = prop.getType();
-    if (String.class.getName().equals(type) == true) {
+    if (String.class.getName().equals(type)) {
       return prop.getValue();
     }
-    if (PFUserDO.class.getName().equals(type) == true) {
+    if (PFUserDO.class.getName().equals(type)) {
       PFUserDO user = getUser(userGroupCache, prop.getValue());
       if (user != null) {
         return user;
       }
     }
-    if (EmployeeDO.class.getName().equals(type) == true || AddressbookDO.class.getName().equals(type) == true) {
+    if (EmployeeDO.class.getName().equals(type) || AddressbookDO.class.getName().equals(type)) {
       StringBuffer sb = new StringBuffer();
-      getDBObjects(session, prop).forEach(dbObject -> {
+      getDBObjects(em, prop).forEach(dbObject -> {
         if (dbObject instanceof EmployeeDO) {
           EmployeeDO employee = (EmployeeDO) dbObject;
           sb.append(employee.getUser().getFullname() + ";");
@@ -194,11 +186,10 @@ public class DisplayHistoryEntry implements Serializable
       return sb.toString();
     }
 
-    return getDBObjects(session, prop);
+    return getDBObjects(em, prop);
   }
 
-  private List<Object> getDBObjects(Session session, HistProp prop)
-  {
+  private List<Object> getDBObjects(EntityManager em, HistProp prop) {
     List<Object> ret = new ArrayList<>();
     EntityMetadata emd = PfEmgrFactory.get().getMetadataRepository().findEntityMetadata(prop.getType());
     if (emd == null) {
@@ -212,7 +203,7 @@ public class DisplayHistoryEntry implements Serializable
     for (String pks : sa) {
       try {
         int pk = Integer.parseInt(pks);
-        Object ent = session.get(emd.getJavaType(), pk);
+        Object ent = em.find(emd.getJavaType(), pk);
         if (ent != null) {
           ret.add(ent);
         }
@@ -223,8 +214,7 @@ public class DisplayHistoryEntry implements Serializable
     return ret;
   }
 
-  private String formatDate(final Object objectValue)
-  {
+  private String formatDate(final Object objectValue) {
     if (objectValue == null) {
       return "";
     }
@@ -236,14 +226,11 @@ public class DisplayHistoryEntry implements Serializable
     return String.valueOf(objectValue);
   }
 
-  private Object toShortNameOfList(final Object value)
-  {
+  private Object toShortNameOfList(final Object value) {
     if (value instanceof Collection<?>) {
-      return CollectionUtils.collect((Collection<?>) value, new Transformer()
-      {
+      return CollectionUtils.collect((Collection<?>) value, new Transformer() {
         @Override
-        public Object transform(final Object input)
-        {
+        public Object transform(final Object input) {
           return toShortName(input);
         }
       });
@@ -252,25 +239,22 @@ public class DisplayHistoryEntry implements Serializable
     return toShortName(value);
   }
 
-  String toShortName(final Object object)
-  {
+  String toShortName(final Object object) {
     return String.valueOf(
-        object instanceof ShortDisplayNameCapable ? ((ShortDisplayNameCapable) object).getShortDisplayName() : object);
+            object instanceof DisplayNameCapable ? ((DisplayNameCapable) object).getDisplayName() : object);
   }
 
   /**
    * @return the entryType
    */
-  public EntityOpType getEntryType()
-  {
+  public EntityOpType getEntryType() {
     return entryType;
   }
 
   /**
    * @return the newValue
    */
-  public String getNewValue()
-  {
+  public String getNewValue() {
     return newValue;
   }
 
@@ -278,16 +262,14 @@ public class DisplayHistoryEntry implements Serializable
    * @param newValue the newValue to set
    * @return this for chaining.
    */
-  public void setNewValue(final String newValue)
-  {
+  public void setNewValue(final String newValue) {
     this.newValue = newValue;
   }
 
   /**
    * @return the oldValue
    */
-  public String getOldValue()
-  {
+  public String getOldValue() {
     return oldValue;
   }
 
@@ -295,45 +277,39 @@ public class DisplayHistoryEntry implements Serializable
    * @param oldValue the oldValue to set
    * @return this for chaining.
    */
-  public void setOldValue(final String oldValue)
-  {
+  public void setOldValue(final String oldValue) {
     this.oldValue = oldValue;
   }
 
   /**
    * @return the propertyName
    */
-  public String getPropertyName()
-  {
+  public String getPropertyName() {
     return propertyName;
   }
 
   /**
-   * Use-full for prepending id of childs (e. g. entries in a collection displayed in the history table of the parent
+   * Use-full for prepending id of children (e. g. entries in a collection displayed in the history table of the parent
    * object). Example: AuftragDO -> AuftragsPositionDO.
    *
    * @param propertyName
    */
-  public void setPropertyName(final String propertyName)
-  {
+  public void setPropertyName(final String propertyName) {
     this.propertyName = propertyName;
   }
 
   /**
    * @return the propertyType
    */
-  public String getPropertyType()
-  {
+  public String getPropertyType() {
     return propertyType;
   }
 
-  public PFUserDO getUser()
-  {
+  public PFUserDO getUser() {
     return user;
   }
 
-  public Date getTimestamp()
-  {
+  public Date getTimestamp() {
     return timestamp;
   }
 
@@ -343,8 +319,7 @@ public class DisplayHistoryEntry implements Serializable
    * @return
    */
   @Override
-  public String toString()
-  {
+  public String toString() {
     return new ReflectionToStringBuilder(this).toString();
   }
 }

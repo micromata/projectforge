@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,22 +23,18 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
-import org.slf4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.framework.utils.Constants;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
-import org.projectforge.web.wicket.components.RequiredMinMaxNumberField;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.converter.CurrencyConverter;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
+
+import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * This is the edit formular page.
@@ -65,11 +61,11 @@ public class LiquidityEntryEditForm extends AbstractEditForm<LiquidityEntryDO, L
     {
       // Date of payment
       final FieldsetPanel fs = gridBuilder.newFieldset(LiquidityEntryDO.class, "dateOfPayment");
-      final DatePanel dateOfPayment = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "dateOfPayment"),
+      final DatePanel dateOfPayment = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "dateOfPayment"),
           DatePanelSettings
               .get().withTargetType(java.sql.Date.class));
       fs.add(dateOfPayment);
-      if (isNew() == true) {
+      if (isNew()) {
         dateOfPayment.setFocus();
       }
     }
@@ -78,7 +74,7 @@ public class LiquidityEntryEditForm extends AbstractEditForm<LiquidityEntryDO, L
       final FieldsetPanel fs = gridBuilder.newFieldset(LiquidityEntryDO.class, "amount");
       final RequiredMinMaxNumberField<BigDecimal> amount = new RequiredMinMaxNumberField<BigDecimal>(
           fs.getTextFieldId(),
-          new PropertyModel<BigDecimal>(data, "amount"), Constants.TEN_BILLION_NEGATIVE, Constants.TEN_BILLION)
+          new PropertyModel<>(data, "amount"), Constants.TEN_BILLION_NEGATIVE, Constants.TEN_BILLION)
       {
         @SuppressWarnings({ "rawtypes", "unchecked" })
         @Override
@@ -89,26 +85,26 @@ public class LiquidityEntryEditForm extends AbstractEditForm<LiquidityEntryDO, L
       };
       WicketUtils.setSize(amount, 8);
       fs.add(amount);
-      if (isNew() == false) {
+      if (!isNew()) {
         amount.add(WicketUtils.setFocus());
       }
     }
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(LiquidityEntryDO.class, "paid");
-      fs.addCheckBox(new PropertyModel<Boolean>(data, "paid"), null);
+      fs.addCheckBox(new PropertyModel<>(data, "paid"), null);
     }
     {
       // Subject
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.rechnung.betreff"));
       final RequiredMaxLengthTextField subject = new RequiredMaxLengthTextField(fs.getTextFieldId(),
-          new PropertyModel<String>(data,
+          new PropertyModel<>(data,
               "subject"));
       fs.add(subject);
     }
     {
       // Text comment
       final FieldsetPanel fs = gridBuilder.newFieldset(LiquidityEntryDO.class, "comment");
-      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<String>(data, "comment"))).setAutogrow();
+      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "comment"))).setAutogrow();
     }
     addCloneButton();
   }

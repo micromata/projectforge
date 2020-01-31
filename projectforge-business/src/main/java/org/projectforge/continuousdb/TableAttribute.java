@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,10 @@
 
 package org.projectforge.continuousdb;
 
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.common.BeanHelper;
+
+import javax.persistence.*;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -31,16 +35,6 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.LinkedList;
 import java.util.List;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.common.BeanHelper;
 
 /**
  * Represents one attribute of a table (e. g. for creation).
@@ -53,7 +47,7 @@ public class TableAttribute implements Serializable
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TableAttribute.class);
 
-  private static List<TableAttributeHook> hooks = new LinkedList<TableAttributeHook>();
+  private static List<TableAttributeHook> hooks = new LinkedList<>();
 
   private boolean nullable = true;
 
@@ -110,7 +104,7 @@ public class TableAttribute implements Serializable
     if (getterMethod == null) {
       throw new IllegalStateException("Can't determine getter: " + clazz + "." + property);
     }
-    if (JPAHelper.isTransientAnnotationPresent(getterMethod) == true) {
+    if (JPAHelper.isTransientAnnotationPresent(getterMethod)) {
       // Transient property.
       return null;
     }
@@ -144,38 +138,38 @@ public class TableAttribute implements Serializable
       }
     }
     final boolean primitive = this.propertyType.isPrimitive();
-    if (JPAHelper.isPersistenceAnnotationPresent(getterMethod) == false) {
+    if (!JPAHelper.isPersistenceAnnotationPresent(getterMethod)) {
       log.warn(
           "************** ProjectForge schema updater expect JPA annotations at getter method such as @Column for proper functioning!");
     }
     if (this.type != null) {
       // Type is already determined.
-    } else if (Boolean.class.isAssignableFrom(this.propertyType) == true
-        || Boolean.TYPE.isAssignableFrom(this.propertyType) == true) {
+    } else if (Boolean.class.isAssignableFrom(this.propertyType)
+        || Boolean.TYPE.isAssignableFrom(this.propertyType)) {
       this.type = TableAttributeType.BOOLEAN;
-    } else if (Integer.class.isAssignableFrom(this.propertyType) == true
-        || Integer.TYPE.isAssignableFrom(this.propertyType) == true) {
+    } else if (Integer.class.isAssignableFrom(this.propertyType)
+        || Integer.TYPE.isAssignableFrom(this.propertyType)) {
       this.type = TableAttributeType.INT;
-    } else if (Long.class.isAssignableFrom(this.propertyType) == true
-        || Long.TYPE.isAssignableFrom(this.propertyType) == true) {
+    } else if (Long.class.isAssignableFrom(this.propertyType)
+        || Long.TYPE.isAssignableFrom(this.propertyType)) {
       this.type = TableAttributeType.LONG;
-    } else if (Short.class.isAssignableFrom(this.propertyType) == true
-        || Short.TYPE.isAssignableFrom(this.propertyType) == true) {
+    } else if (Short.class.isAssignableFrom(this.propertyType)
+        || Short.TYPE.isAssignableFrom(this.propertyType)) {
       this.type = TableAttributeType.SHORT;
-    } else if (String.class.isAssignableFrom(this.propertyType) == true || this.propertyType.isEnum() == true) {
+    } else if (String.class.isAssignableFrom(this.propertyType) || this.propertyType.isEnum()) {
       this.type = TableAttributeType.VARCHAR;
-    } else if (BigDecimal.class.isAssignableFrom(this.propertyType) == true) {
+    } else if (BigDecimal.class.isAssignableFrom(this.propertyType)) {
       this.type = TableAttributeType.DECIMAL;
-    } else if (java.sql.Date.class.isAssignableFrom(this.propertyType) == true) {
+    } else if (java.sql.Date.class.isAssignableFrom(this.propertyType)) {
       this.type = TableAttributeType.DATE;
-    } else if (java.util.Date.class.isAssignableFrom(this.propertyType) == true) {
+    } else if (java.util.Date.class.isAssignableFrom(this.propertyType)) {
       this.type = TableAttributeType.TIMESTAMP;
-    } else if (java.util.Locale.class.isAssignableFrom(this.propertyType) == true) {
+    } else if (java.util.Locale.class.isAssignableFrom(this.propertyType)) {
       this.type = TableAttributeType.LOCALE;
-    } else if (java.util.List.class.isAssignableFrom(this.propertyType) == true) {
+    } else if (List.class.isAssignableFrom(this.propertyType)) {
       this.type = TableAttributeType.LIST;
       this.setGenericReturnType(getterMethod);
-    } else if (java.util.Set.class.isAssignableFrom(this.propertyType) == true) {
+    } else if (java.util.Set.class.isAssignableFrom(this.propertyType)) {
       this.type = TableAttributeType.SET;
       this.setGenericReturnType(getterMethod);
       // } else if (typePropertyPresent == true && "binary".equals(typePropertyValue) == true) {
@@ -196,7 +190,7 @@ public class TableAttribute implements Serializable
         }
         this.foreignAttribute = idProperty;
         final Column column = JPAHelper.getColumnAnnotation(this.propertyType, idProperty);
-        if (column != null && StringUtils.isNotEmpty(column.name()) == true) {
+        if (column != null && StringUtils.isNotEmpty(column.name())) {
           this.foreignAttribute = column.name();
         }
       } else {
@@ -211,18 +205,18 @@ public class TableAttribute implements Serializable
       this.primaryKey = true;
       this.nullable = false;
     }
-    if (primitive == true) {
+    if (primitive) {
       this.nullable = false;
     }
     final Column column = JPAHelper.getColumnAnnotation(clazz, property);
     if (column != null) {
-      if (this.isPrimaryKey() == false && primitive == false) {
+      if (!this.isPrimaryKey() && !primitive) {
         this.nullable = column.nullable();
       }
-      if (StringUtils.isNotEmpty(column.name()) == true) {
+      if (StringUtils.isNotEmpty(column.name())) {
         this.name = column.name();
       }
-      if (this.type.isIn(TableAttributeType.VARCHAR, TableAttributeType.CHAR) == true) {
+      if (this.type.isIn(TableAttributeType.VARCHAR, TableAttributeType.CHAR)) {
         this.length = column.length();
       }
       if (this.type == TableAttributeType.DECIMAL) {
@@ -237,10 +231,10 @@ public class TableAttribute implements Serializable
     }
     final JoinColumn joinColumn = JPAHelper.getJoinColumnAnnotation(clazz, property);
     if (joinColumn != null) {
-      if (StringUtils.isNotEmpty(joinColumn.name()) == true) {
+      if (StringUtils.isNotEmpty(joinColumn.name())) {
         this.name = joinColumn.name();
       }
-      if (joinColumn.nullable() == false) {
+      if (!joinColumn.nullable()) {
         this.nullable = false;
       }
     }
@@ -254,14 +248,14 @@ public class TableAttribute implements Serializable
   {
 
     Type returnType = method.getGenericReturnType();
-    if ((returnType instanceof ParameterizedType) == false) {
+    if (!(returnType instanceof ParameterizedType)) {
       return;
     }
     final ParameterizedType type = (ParameterizedType) returnType;
     OneToMany oneToMany = method.getAnnotation(OneToMany.class);
     if (oneToMany != null && oneToMany.targetEntity() != null && oneToMany.targetEntity() != Void.TYPE) {
       if (type.getRawType() instanceof Class) {
-        if (List.class.isAssignableFrom((Class) type.getRawType()) == true) {
+        if (List.class.isAssignableFrom((Class) type.getRawType())) {
           genericType = oneToMany.targetEntity();
           return;
         }
@@ -276,19 +270,19 @@ public class TableAttribute implements Serializable
       final Type[] nst = nt.getActualTypeArguments();
       if (nst.length > 0) {
         final Class<?> typeArgClass = (Class<?>) nst[0];
-        if (log.isDebugEnabled() == true) {
+        if (log.isDebugEnabled()) {
           log.debug("Generic type found for '" + entityClass + "." + property + "': '" + typeArgClass + "'.");
         }
         genericType = typeArgClass;
       }
     }
-    if ((typeArguments[0] instanceof Class) == false) {
+    if (!(typeArguments[0] instanceof Class)) {
       // opps
       final Class<?> thclas = typeArguments[0].getClass();
       log.error("Cannot determine entity type: " + thclas.getName() + " in method: " + method);
     } else {
       final Class<?> typeArgClass = (Class<?>) typeArguments[0];
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("Generic type found for '" + entityClass + "." + property + "': '" + typeArgClass + "'.");
       }
       genericType = typeArgClass;
@@ -574,7 +568,7 @@ public class TableAttribute implements Serializable
       return null;
     }
     for (final Annotation annotation : annotations) {
-      if (annotation.annotationType().isAssignableFrom(annotationClass) == true) {
+      if (annotation.annotationType().isAssignableFrom(annotationClass)) {
         return (T) annotation;
       }
     }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,19 +24,22 @@
 package org.projectforge.ui
 
 enum class UIElementType {
-    GROUP,
-    ROW,
-    COL,
-    FIELDSET,
-    LABEL,
-    TEXTAREA,
-    INPUT,
-    SELECT,
+    BUTTON,
     CHECKBOX,
+    COL,
+    CUSTOMIZED,
+    FIELDSET,
+    FILTER_ELEMENT,
+    GROUP,
+    INPUT,
+    LABEL,
+    LIST,
+    NAMED_CONTAINER,
+    RADIOBUTTON,
+    READONLY_FIELD,
+    ROW,
+    SELECT,
     TABLE,
     TABLE_COLUMN,
-    BUTTON,
-    NAMED_CONTAINER,
-    FILTER_ELEMENT,
-    CUSTOMIZED
+    TEXTAREA
 }

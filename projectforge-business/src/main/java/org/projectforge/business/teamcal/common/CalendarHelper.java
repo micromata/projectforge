@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,10 +29,9 @@ import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.utils.HtmlHelper;
+import org.projectforge.framework.time.PFDateTime;
 
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 
 public class CalendarHelper
 {
@@ -43,11 +42,11 @@ public class CalendarHelper
     if (kost2 == null) {
       return (task != null && task.getTitle() != null) ? HtmlHelper.escapeXml(task.getTitle()) : "";
     }
-    final StringBuffer buf = new StringBuffer();
-    final StringBuffer b2 = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
+    final StringBuilder b2 = new StringBuilder();
     final ProjektDO projekt = kost2.getProjekt();
     if (projekt != null) {
-      if (StringUtils.isNotBlank(projekt.getIdentifier()) == true) {
+      if (StringUtils.isNotBlank(projekt.getIdentifier())) {
         b2.append(projekt.getIdentifier());
       } else {
         b2.append(projekt.getName());
@@ -62,9 +61,8 @@ public class CalendarHelper
   public static int getCalenderData(final Date date, int calendarData)
   {
     if(date != null) {
-      Calendar tmp_date = new GregorianCalendar();
-      tmp_date.setTime(date);
-      return tmp_date.get(calendarData);
+      PFDateTime tmp_date = PFDateTime.from(date); // not null
+      return tmp_date.getCalendar().get(calendarData);
     } else {
       return -1;
     }

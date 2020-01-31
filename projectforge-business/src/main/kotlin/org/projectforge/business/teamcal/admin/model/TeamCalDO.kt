@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.business.teamcal.admin.model
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.apache.commons.lang3.StringUtils
@@ -43,13 +44,25 @@ import javax.persistence.*
 @Entity
 @Indexed
 @ClassBridge(name = "usersgroups", index = Index.YES, store = Store.NO, impl = HibernateSearchUsersGroupsBridge::class)
-@Table(name = "T_PLUGIN_CALENDAR", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_calendar_owner_fk", columnList = "owner_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_calendar_tenant_id", columnList = "tenant_id")])
-class TeamCalDO : BaseUserGroupRightsDO() {
+@Table(name = "T_CALENDAR", indexes = [javax.persistence.Index(name = "idx_fk_t_calendar_owner_fk", columnList = "owner_fk"), javax.persistence.Index(name = "idx_fk_t_calendar_tenant_id", columnList = "tenant_id")])
+open class TeamCalDO() : BaseUserGroupRightsDO() {
+
+    companion object {
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+        @JvmStatic
+        fun createFrom(value: Int): TeamCalDO {
+            val cal = TeamCalDO()
+            cal.id = value
+            return cal
+        }
+
+        val TEAMCALRESTBLACKLIST = "teamCalRestBlackList"
+    }
 
     @PropertyInfo(i18nKey = "plugins.teamcal.title")
     @Field
     @get:Column(length = Constants.LENGTH_TITLE)
-    var title: String? = null
+    open var title: String? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.owner")
     @IndexedEmbedded(depth = 1)
@@ -60,11 +73,25 @@ class TeamCalDO : BaseUserGroupRightsDO() {
     @PropertyInfo(i18nKey = "plugins.teamcal.description")
     @Field
     @get:Column(length = Constants.LENGTH_TEXT)
-    var description: String? = null
+    open var description: String? = null
+
+    /**
+     * Optional list of user id's (csv). For these users the leave days will be included as events.
+     */
+    @PropertyInfo(i18nKey = "calendar.filter.vacation.users", tooltip = "calendar.filter.vacation.users.tooltip")
+    @get:Column(name = "include_leave_days_for_users", length = Constants.LENGTH_TEXT)
+    open var includeLeaveDaysForUsers: String? = null
+
+    /**
+     * Optional list of group id's (csv). For all users of these groups the leave days will be included as events.
+     */
+    @PropertyInfo(i18nKey = "calendar.filter.vacation.groups", tooltip = "calendar.filter.vacation.groups.tooltip")
+    @get:Column(name = "include_leave_days_for_groups", length = Constants.LENGTH_TEXT)
+    open var includeLeaveDaysForGroups: String? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.externalsubscription.url")
     @get:Column(name = "ext_subscription", nullable = false, columnDefinition = "BOOLEAN DEFAULT 'false'")
-    var externalSubscription: Boolean = false
+    open var externalSubscription: Boolean = false
 
     /**
      * This hash value is used for detecting changes of an subscribed calendar.
@@ -72,7 +99,7 @@ class TeamCalDO : BaseUserGroupRightsDO() {
     @JsonIgnore
     @field:NoHistory
     @get:Column(length = 255, name = "ext_subscription_hash")
-    var externalSubscriptionHash: String? = null
+    open var externalSubscriptionHash: String? = null
 
     /**
      * This calendar is a subscription of an external calendar. This URL shouldn't be visible for users without
@@ -82,7 +109,7 @@ class TeamCalDO : BaseUserGroupRightsDO() {
      */
     @PropertyInfo(i18nKey = "plugins.teamcal.externalsubscription.label")
     @get:Column(name = "ext_subscription_url")
-    var externalSubscriptionUrl: String? = null
+    open var externalSubscriptionUrl: String? = null
 
     /**
      * This calendar is a subscription of an external calendar. This is the time in seconds after which this calendar
@@ -92,7 +119,7 @@ class TeamCalDO : BaseUserGroupRightsDO() {
      */
     @PropertyInfo(i18nKey = "plugins.teamcal.externalsubscription.updateInterval")
     @get:Column(name = "ext_subscription_update_interval")
-    var externalSubscriptionUpdateInterval: Int? = null
+    open var externalSubscriptionUpdateInterval: Int? = null
 
     /**
      * This binary contains all the events of a subscribed calendar and might be large. Don't export this field to
@@ -103,7 +130,7 @@ class TeamCalDO : BaseUserGroupRightsDO() {
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "ext_subscription_calendar_binary")
     @get:Type(type = "binary")
-    var externalSubscriptionCalendarBinary: ByteArray? = null
+    open var externalSubscriptionCalendarBinary: ByteArray? = null
 
     /**
      * Shorten the url or avoiding logging of user credentials as part of the url.<br></br>
@@ -113,6 +140,7 @@ class TeamCalDO : BaseUserGroupRightsDO() {
      */
     // Slash after domain found
     // Shorten http://www.projectforge.org/cal/... -> http://www.projectforge.org
+    @get:PropertyInfo(i18nKey = "plugins.teamcal.externalsubscription.label")
     val externalSubscriptionUrlAnonymized: String
         @Transient
         get() {
@@ -159,9 +187,5 @@ class TeamCalDO : BaseUserGroupRightsDO() {
         return if (this.id == other.id) {
             true
         } else StringUtils.equals(title, other.title)
-    }
-
-    companion object {
-        val TEAMCALRESTBLACKLIST = "teamCalRestBlackList"
     }
 }

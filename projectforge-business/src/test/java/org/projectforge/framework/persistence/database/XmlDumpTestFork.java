@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,7 +31,7 @@ public class XmlDumpTestFork extends AbstractTestBase
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XmlDumpTestFork.class);
 
   @Autowired
-  private DatabaseService initDatabaseDao;
+  private DatabaseService databaseService;
 
   @Autowired
   private XmlDump xmlDump;

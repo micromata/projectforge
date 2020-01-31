@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,14 @@
 
 package org.projectforge.business.password;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class responsible to check quality of a password referencing stored configuration.
@@ -121,7 +121,7 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
     checkForCharsInPassword(newPassword, result);
 
     // stop here if only the new password is validated
-    if (checkOldPassword == false) {
+    if (!checkOldPassword) {
       return result;
     }
 
@@ -139,16 +139,16 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
     boolean nonLetter = false;
     for (int i = 0; i < password.length(); i++) {
       final char ch = password.charAt(i);
-      if (letter == false && Character.isLetter(ch)) {
+      if (!letter && Character.isLetter(ch)) {
         letter = true;
-      } else if (nonLetter == false && Character.isLetter(ch) == false) {
+      } else if (!nonLetter && !Character.isLetter(ch)) {
         nonLetter = true;
       }
     }
-    if (letter == false) {
+    if (!letter) {
       result.add(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_CHARACTER_ERROR));
     }
-    if (nonLetter == false) {
+    if (!nonLetter) {
       result.add(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_NONCHAR_ERROR));
     }
   }

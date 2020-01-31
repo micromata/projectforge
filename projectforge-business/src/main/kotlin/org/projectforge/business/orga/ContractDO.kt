@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,112 +38,117 @@ import javax.persistence.*
 @Table(name = "T_CONTRACT",
         uniqueConstraints = [UniqueConstraint(columnNames = ["number", "tenant_id"])],
         indexes = [javax.persistence.Index(name = "idx_fk_t_contract_tenant_id", columnList = "tenant_id")])
-class ContractDO : DefaultBaseDO() {
+@NamedQueries(
+        NamedQuery(name = ContractDO.FIND_OTHER_BY_NUMBER, query = "from ContractDO where number=:number and id<>:id"),
+        NamedQuery(name = ContractDO.SELECT_MIN_MAX_DATE, query = "select min(date), max(date) from ContractDO"))
+open class ContractDO : DefaultBaseDO() {
 
     // TODO: Support int input field
     @PropertyInfo(i18nKey = "legalAffaires.contract.number")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column(name = "number")
-    var number: Int? = null
+    open var number: Int? = null
 
     @PropertyInfo(i18nKey = "date")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "c_date")
-    var date: Date? = null
+    open var date: Date? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.validity")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "valid_from")
-    var validFrom: Date? = null
+    open var validFrom: Date? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.validity")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "valid_until")
-    var validUntil: Date? = null
+    open var validUntil: Date? = null
 
     @PropertyInfo(i18nKey = "title", required = true)
     @Field
     @get:Column(length = 1000)
-    var title: String? = null
+    open var title: String? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.coContractorA")
     @Field
     @get:Column(length = 1000, name = "co_contractor_a")
-    var coContractorA: String? = null
+    open var coContractorA: String? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.contractPersonA")
     @Field
     @get:Column(length = 1000, name = "contract_person_a")
-    var contractPersonA: String? = null
+    open var contractPersonA: String? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.signerA")
     @Field
     @get:Column(length = 1000, name = "signer_a")
-    var signerA: String? = null
+    open var signerA: String? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.coContractorB")
     @Field
     @get:Column(length = 1000, name = "co_contractor_b")
-    var coContractorB: String? = null
+    open var coContractorB: String? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.contractPersonB")
     @Field
     @get:Column(length = 1000, name = "contract_person_b")
-    var contractPersonB: String? = null
+    open var contractPersonB: String? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.signerB")
     @Field
     @get:Column(length = 1000, name = "signer_b")
-    var signerB: String? = null
+    open var signerB: String? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.signing")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "signing_date")
-    var signingDate: Date? = null
+    open var signingDate: Date? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.type")
     @Field
     @get:Column(length = 100)
-    var type: String? = null
+    open var type: String? = null
 
     @PropertyInfo(i18nKey = "status")
     @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 100)
-    var status: ContractStatus? = null
+    open var status: ContractStatus? = null
 
     @PropertyInfo(i18nKey = "text")
     @Field
     @get:Column(length = 4000)
-    var text: String? = null
+    open var text: String? = null
 
     @PropertyInfo(i18nKey = "fibu.common.reference")
     @Field
     @get:Column
-    var reference: String? = null
+    open var reference: String? = null
 
     @PropertyInfo(i18nKey = "filing")
     @Field
     @get:Column(length = 1000)
-    var filing: String? = null
+    open var filing: String? = null
 
     @PropertyInfo(i18nKey = "resubmissionOnDate")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "resubmission_on_date")
-    var resubmissionOnDate: Date? = null
+    open var resubmissionOnDate: Date? = null
 
     @PropertyInfo(i18nKey = "dueDate")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "due_date")
-    var dueDate: Date? = null
+    open var dueDate: Date? = null
 
     companion object {
-        val serialVersionUID = -1399338188515793833L
+        internal const val FIND_OTHER_BY_NUMBER = "ContractDO_FindOtherByNumber"
+
+        internal const val SELECT_MIN_MAX_DATE = "ContractDO_SelectMinMaxDate"
     }
 }

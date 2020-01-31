@@ -1,13 +1,11 @@
 import { combineReducers } from 'redux';
 import authentication from './authentication';
-import editPage from './editPage';
-import listPage from './listPage';
 import menu from './menu';
+import list from './list';
 
 
 export default combineReducers({
     authentication,
-    editPage,
-    listPage,
     menu,
+    list,
 });

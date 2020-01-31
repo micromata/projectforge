@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.memo
 
+import org.projectforge.Const
 import org.projectforge.continuousdb.UpdateEntry
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
@@ -51,7 +52,7 @@ class MemoPlugin : AbstractPlugin() {
 
     override fun initialize() {
         // DatabaseUpdateDao is needed by the updater:
-        MemoPluginUpdates.dao = myDatabaseUpdater
+        MemoPluginUpdates.databaseService = databaseService
         memoDao = applicationContext.getBean("memoDao") as MemoDao
         // Register it:
         register(ID, MemoDao::class.java, memoDao, "plugins.memo")
@@ -61,7 +62,7 @@ class MemoPlugin : AbstractPlugin() {
 
         // Register the menu entry as sub menu entry of the misc menu:
         // Both: Wicket and React
-        pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef(ID, "plugins.memo.menu", "memo"), MemoListPage::class.java)
+        pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef(ID, "plugins.memo.menu", "${Const.REACT_APP_PATH}memo"), MemoListPage::class.java)
         // Later: React only:
         // menuCreator.add(parentId, menuItemDef);
 

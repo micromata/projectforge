@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,19 +23,18 @@
 
 package org.projectforge.fibu.kost.reporting;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.kost.reporting.Report;
 import org.projectforge.business.fibu.kost.reporting.ReportDao;
 import org.projectforge.business.fibu.kost.reporting.ReportObjective;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ReportTest extends AbstractTestBase
 {
@@ -91,11 +90,11 @@ public class ReportTest extends AbstractTestBase
     assertEquals(".*\\.10\\..*", Report.modifyRegExp("*.10.*"));
     assertEquals("5.100.*", Report.modifyRegExp("'5.100.*"));
     assertEquals("*.10.*", Report.modifyRegExp("'*.10.*"));
-    List<String> regExpList = new ArrayList<String>();
+    List<String> regExpList = new ArrayList<>();
     regExpList.add("5.1*");
     assertFalse(Report.match(regExpList, "5.200.01.02", true));
     assertTrue(Report.match(regExpList, "5.190.01.02", true));
-    regExpList = new ArrayList<String>();
+    regExpList = new ArrayList<>();
     regExpList.add("*.02");
     assertFalse(Report.match(regExpList, "5.200.01.03", true));
     assertTrue(Report.match(regExpList, "5.190.01.02", true));

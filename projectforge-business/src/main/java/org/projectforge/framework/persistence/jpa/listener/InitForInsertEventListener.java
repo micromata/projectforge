@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,14 @@
 
 package org.projectforge.framework.persistence.jpa.listener;
 
+import de.micromata.genome.jpa.DbRecord;
+import de.micromata.genome.jpa.events.EmgrEventHandler;
+import de.micromata.genome.jpa.events.EmgrInitForInsertEvent;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import de.micromata.genome.jpa.DbRecord;
-import de.micromata.genome.jpa.events.EmgrEventHandler;
-import de.micromata.genome.jpa.events.EmgrInitForInsertEvent;
 
 /**
  * Bookkeeping of created and lastupdate fields.
@@ -51,7 +50,7 @@ public class InitForInsertEventListener implements EmgrEventHandler<EmgrInitForI
   public void onEvent(EmgrInitForInsertEvent event)
   {
     DbRecord<?> rec = event.getRecord();
-    if ((rec instanceof ExtendedBaseDO) == false) {
+    if (!(rec instanceof ExtendedBaseDO)) {
       return;
     }
     ExtendedBaseDO extb = (ExtendedBaseDO) rec;

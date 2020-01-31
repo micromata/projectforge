@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,26 +23,18 @@
 
 package org.projectforge.framework.persistence.utils;
 
+import de.micromata.hibernate.history.delta.PropertyDelta;
+import de.micromata.hibernate.history.delta.SimplePropertyDelta;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
+import org.projectforge.common.BeanHelper;
+import org.projectforge.framework.DisplayNameCapable;
+import org.projectforge.framework.utils.NumberHelper;
+
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
-import java.util.Objects;
-import org.projectforge.common.BeanHelper;
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
-import org.projectforge.framework.utils.NumberHelper;
-
-import de.micromata.hibernate.history.delta.PropertyDelta;
-import de.micromata.hibernate.history.delta.SimplePropertyDelta;
+import java.util.*;
 
 /**
  * Stores one imported object (e. g. MS Excel row as bean object). It also contains information about the status: New object or modified
@@ -156,22 +148,22 @@ public class ImportedElement<T> implements Serializable
   {
     boolean modified = false;
     if (type == BigDecimal.class) {
-      if (NumberHelper.isEqual((BigDecimal) newValue, (BigDecimal) origValue) == false) {
+      if (!NumberHelper.isEqual((BigDecimal) newValue, (BigDecimal) origValue)) {
         modified = true;
       }
-    } else if (Objects.equals(newValue, origValue) == false) {
+    } else if (!Objects.equals(newValue, origValue)) {
       modified = true;
     }
     if (modified) {
       Object ov;
       Object nv;
-      if (origValue instanceof ShortDisplayNameCapable) {
-        ov = ((ShortDisplayNameCapable) origValue).getShortDisplayName();
+      if (origValue instanceof DisplayNameCapable) {
+        ov = ((DisplayNameCapable) origValue).getDisplayName();
       } else {
         ov = origValue;
       }
-      if (newValue instanceof ShortDisplayNameCapable) {
-        nv = ((ShortDisplayNameCapable) newValue).getShortDisplayName();
+      if (newValue instanceof DisplayNameCapable) {
+        nv = ((DisplayNameCapable) newValue).getDisplayName();
       } else {
         nv = newValue;
       }
@@ -196,7 +188,7 @@ public class ImportedElement<T> implements Serializable
    */
   public boolean isModified()
   {
-    return reconciled == true && oldValue != null && CollectionUtils.isEmpty(getPropertyChanges()) == false;
+    return reconciled && oldValue != null && !CollectionUtils.isEmpty(getPropertyChanges());
   }
 
   /**
@@ -204,7 +196,7 @@ public class ImportedElement<T> implements Serializable
    */
   public boolean isUnmodified()
   {
-    return reconciled == true && oldValue != null && oldValue.equals(value) == true;
+    return reconciled && oldValue != null && oldValue.equals(value);
   }
 
   /**
@@ -212,7 +204,7 @@ public class ImportedElement<T> implements Serializable
    */
   public boolean isNew()
   {
-    return reconciled == true && oldValue == null;
+    return reconciled && oldValue == null;
   }
 
   /**
@@ -241,7 +233,7 @@ public class ImportedElement<T> implements Serializable
    */
   public boolean isSelected()
   {
-    return isFaulty() == false && selected;
+    return !isFaulty() && selected;
   }
 
   /**
@@ -250,7 +242,7 @@ public class ImportedElement<T> implements Serializable
    */
   public void setSelected(boolean selected)
   {
-    if (isFaulty() == false) {
+    if (!isFaulty()) {
       this.selected = selected;
     } else {
       this.selected = false;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,6 +27,7 @@ package org.projectforge.rest.core
  * Contains the data including the result list (matching the filter) served by getList methods ([getInitialList] and [getList]).
  */
 class ResultSet<O : Any>(var resultSet: List<O>,
-                         var totalSize: Int? = null) {
+                         var totalSize: Int? = null,
+                         var highlightRowId: Int? = null) {
     val size = resultSet.size
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,12 @@
 
 package org.projectforge.web.teamcal.event.importics;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
+import de.micromata.merlin.excel.importer.ImportStatus;
+import de.micromata.merlin.excel.importer.ImportStorage;
+import de.micromata.merlin.excel.importer.ImportedElement;
+import de.micromata.merlin.excel.importer.ImportedSheet;
+import net.fortuna.ical4j.model.Calendar;
+import net.fortuna.ical4j.model.component.VEvent;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
@@ -34,24 +36,16 @@ import org.projectforge.business.teamcal.event.ical.ICalParser;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.utils.ImportStatus;
-import org.projectforge.framework.persistence.utils.ImportStorage;
-import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
-import org.projectforge.framework.utils.ActionLog;
+import org.projectforge.framework.persistence.utils.MyImportedElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import net.fortuna.ical4j.model.Calendar;
-import net.fortuna.ical4j.model.component.VEvent;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class TeamCalImportDao
-{
+public class TeamCalImportDao {
   @Autowired
   private TeamEventService eventService;
 
@@ -61,27 +55,25 @@ public class TeamCalImportDao
    */
   private static final int INSERT_BLOCK_SIZE = 50;
 
-  private static final String[] DIFF_PROPERTIES = { "subject", "location", "allDay", "startDate", "endDate", "note",
-      "recurrenceRule",
-      "recurrenceUntil" };
+  private static final String[] DIFF_PROPERTIES = {"subject", "location", "allDay", "startDate", "endDate", "note",
+          "recurrenceRule",
+          "recurrenceUntil"};
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalImportDao.class);
 
   @Autowired
   private TeamEventDao teamEventDao;
 
-  public ImportStorage<TeamEventDO> importEvents(final Calendar calendar, final String filename, final ActionLog actionLog)
-  {
+  public ImportStorage<TeamEventDO> importEvents(final Calendar calendar, final String filename) {
     ICalParser parser = ICalParser.parseAllFields();
     parser.parse(calendar);
     final List<TeamEventDO> events = parser.getExtractedEvents();
     events.forEach(teamEventDO -> eventService.fixAttendees(teamEventDO));
 
-    return importEvents(events, filename, actionLog);
+    return importEvents(events, filename);
   }
 
-  public ImportStorage<TeamEventDO> importEvents(final List<VEvent> vEvents, final ActionLog actionLog)
-  {
+  public ImportStorage<TeamEventDO> importEvents(final List<VEvent> vEvents) {
     final Calendar calendar = new Calendar();
     vEvents.forEach(event -> calendar.getComponents().add(event));
 
@@ -90,34 +82,32 @@ public class TeamCalImportDao
     final List<TeamEventDO> events = parser.getExtractedEvents();
     events.forEach(teamEventDO -> eventService.fixAttendees(teamEventDO));
 
-    return importEvents(events, "none", actionLog);
+    return importEvents(events, "none");
   }
 
-  private ImportStorage<TeamEventDO> importEvents(final List<TeamEventDO> events, final String filename,
-      final ActionLog actionLog)
-  {
+  private ImportStorage<TeamEventDO> importEvents(final List<TeamEventDO> events, final String filename) {
     log.info("Uploading ics file: '" + filename + "'...");
-    final ImportStorage<TeamEventDO> storage = new ImportStorage<TeamEventDO>();
+    final ImportStorage<TeamEventDO> storage = new ImportStorage<>();
     storage.setFilename(filename);
 
-    final ImportedSheet<TeamEventDO> importedSheet = new ImportedSheet<TeamEventDO>();
+    final ImportedSheet<TeamEventDO> importedSheet = new ImportedSheet<>(storage);
     importedSheet.setName(getSheetName());
     storage.addSheet(importedSheet);
 
+    int row = 0;
     for (final TeamEventDO event : events) {
-      actionLog.incrementCounterSuccess();
-      final ImportedElement<TeamEventDO> element = new ImportedElement<TeamEventDO>(storage.nextVal(),
-          TeamEventDO.class, DIFF_PROPERTIES);
+      importedSheet.getLogger().incrementSuccesscounter();
+      final MyImportedElement<TeamEventDO> element = new MyImportedElement<>(importedSheet, row++,
+              TeamEventDO.class, DIFF_PROPERTIES);
       element.setValue(event);
       importedSheet.addElement(element);
     }
-    log.info("Uploading of ics file '" + filename + "' done. " + actionLog.getCounterSuccess() + " events read.");
+    log.info("Uploading of ics file '" + filename + "' done. " + importedSheet.getLogger().getSuccessCounter() + " events read.");
     return storage;
   }
 
   @SuppressWarnings("unchecked")
-  public void reconcile(final ImportStorage<?> storage, final ImportedSheet<?> sheet, final Integer teamCalId)
-  {
+  public void reconcile(final ImportStorage<?> storage, final ImportedSheet<?> sheet, final Integer teamCalId) {
     Validate.notNull(storage.getSheets());
     Validate.notNull(sheet);
     reconcile((ImportedSheet<TeamEventDO>) sheet, teamCalId);
@@ -125,9 +115,7 @@ public class TeamCalImportDao
   }
 
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
-  public void commit(final ImportStorage<?> storage, final ImportedSheet<?> sheet, final Integer teamCalId)
-  {
+  public void commit(final ImportStorage<?> storage, final ImportedSheet<?> sheet, final Integer teamCalId) {
     Validate.notNull(storage.getSheets());
     Validate.notNull(sheet);
     Validate.isTrue(sheet.getStatus() == ImportStatus.RECONCILED);
@@ -136,13 +124,11 @@ public class TeamCalImportDao
     sheet.setStatus(ImportStatus.IMPORTED);
   }
 
-  String getSheetName()
-  {
+  String getSheetName() {
     return ThreadLocalUserContext.getLocalizedString("plugins.teamcal.events");
   }
 
-  private void reconcile(final ImportedSheet<TeamEventDO> sheet, final Integer teamCalId)
-  {
+  private void reconcile(final ImportedSheet<TeamEventDO> sheet, final Integer teamCalId) {
     for (final ImportedElement<TeamEventDO> el : sheet.getElements()) {
       final TeamEventDO event = el.getValue();
       teamEventDao.setCalendar(event, teamCalId);
@@ -153,8 +139,7 @@ public class TeamCalImportDao
     sheet.calculateStatistics();
   }
 
-  private int commit(final ImportedSheet<TeamEventDO> sheet, final Integer teamCalId)
-  {
+  private int commit(final ImportedSheet<TeamEventDO> sheet, final Integer teamCalId) {
     log.info("Commit team events called");
     final Collection<TeamEventDO> col = new ArrayList<TeamEventDO>();
     for (final ImportedElement<TeamEventDO> el : sheet.getElements()) {
@@ -166,14 +151,14 @@ public class TeamCalImportDao
       if (dbEvent != null) {
         event.setId(dbEvent.getId());
         event.setTenant(dbEvent.getTenant());
-        if (el.isSelected() == true) {
+        if (el.getSelected() == true) {
           col.add(event);
         }
-      } else if (el.isSelected() == true) {
+      } else if (el.getSelected() == true) {
         col.add(event);
       }
     }
-    teamEventDao.internalSaveOrUpdate(teamEventDao, col, INSERT_BLOCK_SIZE);
+    teamEventDao.internalSaveOrUpdate(col, INSERT_BLOCK_SIZE);
     return col.size();
   }
 }

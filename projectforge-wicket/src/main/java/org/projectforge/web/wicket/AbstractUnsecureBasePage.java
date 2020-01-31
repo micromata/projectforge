@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -22,10 +22,6 @@
 /////////////////////////////////////////////////////////////////////////////
 
 package org.projectforge.web.wicket;
-
-import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.Session;
@@ -47,7 +43,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.template.PackageTextTemplate;
 import org.projectforge.AppVersion;
-import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.systeminfo.SystemService;
@@ -57,6 +53,10 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.servlet.LogoServlet;
 import org.projectforge.web.session.MySession;
+
+import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Do only derive from this page, if no login is required!
@@ -74,7 +74,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage
   protected boolean alreadySubmitted = false;
 
   @SpringBean
-  private ConfigurationService configService;
+  private DomainService domainService;
 
   @SpringBean
   private SystemService systemService;
@@ -168,7 +168,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage
   {
     super.renderHead(response);
     response.render(StringHeaderItem
-        .forString(WicketUtils.getCssForFavicon(getUrl(configService.getServletContextPath() + "/favicon.ico"))));
+        .forString(WicketUtils.getCssForFavicon(getUrl(domainService.getContextPath() + "/favicon.ico"))));
     WicketRenderHeadUtils.renderMainCSSIncludes(response);
     //response.renderCSSReference();
     WicketRenderHeadUtils.renderMainJavaScriptIncludes(response);

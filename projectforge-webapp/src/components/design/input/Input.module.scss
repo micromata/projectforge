@@ -1,6 +1,139 @@
 @import '../../../assets/style/mixins';
+@import "../../../assets/style/theming";
+
+.inputField {
+  $transitionTime: .2s ease-out;
+  $offset: .25em;
+
+  position: relative;
+  margin-top: 1em;
+  font-size: 1.5rem;
+  letter-spacing: .02em;
+  padding-bottom: 1em;
+
+  &.noLabel {
+    margin-top: 0;
+  }
+
+  .icon {
+    position: absolute;
+    font-size: 1.25em;
+
+    & ~ label, & ~ .additionalLabel {
+      margin-left: 2rem;
+      width: calc(100% - 2rem);
+    }
+  }
+
+  label {
+    position: relative;
+    color: #7a7a7a;
+    margin: 0;
+    cursor: text;
+    width: 100%;
+
+    &.isActive {
+      .labelText {
+        color: #a5a2a5;
+        transform: translateY(-1em) scale(0.8);
+      }
+    }
+
+    &.noLine {
+      input {
+        border: none;
+
+        &:focus {
+          border: none;
+          box-shadow: none;
+        }
+      }
+    }
+
+    input {
+      background-color: transparent;
+      border: none;
+      border-bottom: 1px solid #deddde;
+      border-radius: 0;
+      outline: none;
+      width: 100%;
+      margin: 0;
+      padding: 0 0 0 $offset;
+      box-shadow: none;
+      transition: box-shadow .3s;
+
+      &:focus {
+        border-bottom: 1px solid #007480;
+        box-shadow: 0 1px 0 0 #007480;
+      }
+    }
+
+    .labelText {
+      font-size: 1.1em;
+      transition: transform $transitionTime, color $transitionTime;
+      position: absolute;
+      top: 0;
+      left: $offset;
+      transform-origin: 0 0;
+      transform: translateY(0);
+    }
+
+    @mixin color($color) {
+      input {
+        border-color: $color;
+
+        &:focus {
+          border-color: $color;
+          box-shadow: 0 1px 0 0 $color;
+        }
+      }
+
+      .labelText {
+        color: $color;
+      }
+    }
+
+    &.primary {
+      @include color(map_get($theme-colors, primary));
+    }
+
+    &.secondary {
+      @include color(map_get($theme-colors, secondary));
+    }
+
+    &.success {
+      @include color(map_get($theme-colors, success));
+    }
+
+    &.danger {
+      @include color(map_get($theme-colors, danger));
+    }
+
+    &.warning {
+      @include color(map_get($theme-colors, warning));
+    }
+
+    &.info {
+      @include color(map_get($theme-colors, info));
+    }
+  }
+
+  .additionalLabel {
+    margin-top: .5em;
+    padding-left: $offset;
+    position: relative;
+    min-height: 1.25em;
+    display: block;
+    font-size: 0.9em;
+    color: rgba(0, 0, 0, .54);
+  }
+}
 
 .checkboxGroup {
+
+}
+
+.radioButtonGroup {
 
 }
 
@@ -8,88 +141,7 @@
   position: relative;
   font-size: 1.5rem;
   letter-spacing: .02em;
-
-  .label {
-    display: block;
-    margin: 0 0 0 0;
-    height: 2.8em;
-    width: 100%;
-    cursor: text;
-    position: relative;
-
-    .text {
-      position: absolute;
-      top: 0;
-      left: 15px;
-      color: #555;
-      @include transition-transform-extra(.3s, translate(2px, 1em) scale(1, 1), color .3s);
-      transform-origin: top left;
-      color: #7a7a7a;
-    }
-
-    .input {
-      padding-left: 15px;
-      padding-bottom: 0;
-      width: 100%;
-      position: relative;
-      top: 1.6em;
-      background-color: transparent;
-      border: none;
-      border-bottom: 1px solid #deddde;
-      outline: none;
-
-      &:focus {
-        border-bottom: 1px solid #007480;
-        transition: border-bottom 1s;
-      }
-
-      //@include transition(border-bottom .3s);
-
-    }
-
-    &.active {
-
-      .text {
-        color: #a5a2a5;
-        @include transform(translate(0, 0) scale(.7,.7));
-      }
-    }
-
-    @mixin color($color) {
-      .text {
-        color: $color;
-      }
-
-      .input {
-        border-color: $color;
-      }
-    }
-
-    &.primary {
-      @include color(#007bff);
-    }
-
-    &.secondary {
-      @include color(#6c757d);
-    }
-
-    &.success {
-      @include color(#28a745);
-    }
-
-    &.danger {
-      @include color(#dc3545);
-    }
-
-    &.warning {
-      @include color(#ffc107);
-    }
-
-    &.info {
-      @include color(#17a2b8);
-    }
-
-  }
+  margin-bottom: 13px;
 
   .checkboxLabel {
     position: relative;
@@ -113,12 +165,14 @@
           @include transition(.3s);
         }
 
+        white-space: nowrap;
         padding-left: 2em;
         -webkit-touch-callout: none;
         -webkit-user-select: none;
         -moz-user-select: none;
         -ms-user-select: none;
         user-select: none;
+        cursor: pointer;
 
         @mixin color($color) {
           &::before {
@@ -126,30 +180,48 @@
           }
 
           color: $color;
+
+          &:hover {
+            $hoverColor: 0;
+
+            @if lightness($color) > 50% {
+              $hoverColor: scale_color($color, $lightness: -30%);
+            } @else {
+              $hoverColor: scale_color($color, $lightness: 20%);
+            }
+
+            &::before {
+              border-color: $hoverColor;
+            }
+
+            color: $hoverColor;
+          }
         }
 
+        @include color(map_get($theme-colors, dark));
+
         &.primary {
-          @include color(#007bff);
+          @include color(map_get($theme-colors, primary));
         }
 
         &.secondary {
-          @include color(#6c757d);
+          @include color(map_get($theme-colors, secondary));
         }
 
         &.success {
-          @include color(#28a745);
+          @include color(map_get($theme-colors, success));
         }
 
         &.danger {
-          @include color(#dc3545);
+          @include color(map_get($theme-colors, danger));
         }
 
         &.warning {
-          @include color(#ffc107);
+          @include color(map_get($theme-colors, warning));
         }
 
         &.info {
-          @include color(#17a2b8);
+          @include color(map_get($theme-colors, info));
         }
       }
 
@@ -166,94 +238,80 @@
     }
   }
 
-  .selectLabel {
+  .radioButtonLabel {
     position: relative;
-    z-index: 0;
+    margin-left: 5px;
 
-    .text {
-      position: relative;
-      background-color: #fff;
-      font-size: .9em;
-      margin-left: .6em;
-      padding: 0 .5em;
-      z-index: 1;
-      letter-spacing: .06em;
-      color: #666;
-    }
-
-    .select {
-      margin-top: -.8em;
-      z-index: 0;
-      position: relative;
-      padding: .8em .5em .5em;
-      box-sizing: border-box;
-      width: 100%;
-      outline: none;
-      font-weight: 600;
-      color: #333;
-      border: 1px solid #ddd;
-      border-bottom: none;
-      border-radius: 3px 3px 0 0;
-    }
-
-    .icon {
+    .radio {
       position: absolute;
-      top: 1.6em;
-      right: .5em;
-      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
 
-      @include transition-transform(.5s, rotate(0))
-    }
+      & + .text {
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          border: 2px solid #333;
+          border-radius: 50%;
+          width: 1.2em;
+          height: 1.2em;
 
-    .options {
-      z-index: 99;
-      background-color: #fff;
-      position: absolute;
-      list-style: none;
-      margin-block-start: 0;
-      margin-block-end: 0;
-      padding-inline-start: 0;
-      width: 100%;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height .5s;
-      border: 1px solid #ddd;
-      border-top: none;
-
-      .option {
-        position: relative;
-        cursor: pointer;
-
-        &.selected {
-          background-color: #eee;
+          @include transition(.3s);
         }
 
-        span {
-          display: block;
-          padding: .5em;
-          width: 100%;
+        padding-left: 2em;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
 
-          *:nth-child(1) {
-            position: absolute;
-            right: .5em;
+        @mixin color($color) {
+          &::before {
+            border-color: $color;
           }
+
+          color: $color;
+        }
+
+        @include color(map_get($theme-colors, dark));
+
+        &.primary {
+          @include color(map_get($theme-colors, primary));
+        }
+
+        &.secondary {
+          @include color(map_get($theme-colors, secondary));
+        }
+
+        &.success {
+          @include color(map_get($theme-colors, success));
+        }
+
+        &.danger {
+          @include color(map_get($theme-colors, danger));
+        }
+
+        &.warning {
+          @include color(map_get($theme-colors, warning));
+        }
+
+        &.info {
+          @include color(map_get($theme-colors, info));
         }
       }
-    }
 
-    &.active {
-      .icon {
-        @include transform(rotate(180deg));
-      }
-
-      .options {
-        max-height: 500px;
-        z-index: 100;
-
-        .option {
-          span:hover {
-            background-color: #ddd;
-          }
+      &:checked + .text {
+        &::before {
+          @include transform(rotate(40deg));
+          top: -3px;
+          left: 5px;
+          border-top-color: transparent;
+          border-left-color: transparent;
+          border-radius: 0;
+          width: .6em;
         }
       }
     }
@@ -261,10 +319,11 @@
 
   .textAreaLabel {
     width: 100%;
+    display: block;
+    margin: 20px 0;
 
     .text {
       position: absolute;
-      top: 0;
       left: .6em;
       background-color: #fff;
       font-size: .9em;
@@ -272,7 +331,7 @@
       letter-spacing: .05em;
       color: #666;
 
-      @include transition(color $defaultTransitionTime);
+      @include transition(.3s);
     }
 
     .textArea {
@@ -312,57 +371,49 @@
       }
     }
 
+    @include color(map_get($theme-colors, dark));
+
     &.primary {
-      @include color(#007bff);
+      @include color(map_get($theme-colors, primary));
     }
 
     &.secondary {
-      @include color(#6c757d);
+      @include color(map_get($theme-colors, secondary));
     }
 
     &.success {
-      @include color(#28a745);
+      @include color(map_get($theme-colors, success));
     }
 
     &.danger {
-      @include color(#dc3545);
+      @include color(map_get($theme-colors, danger));
     }
 
     &.warning {
-      @include color(#ffc107);
+      @include color(map_get($theme-colors, warning));
     }
 
     &.info {
-      @include color(#17a2b8);
+      @include color(map_get($theme-colors, info));
     }
   }
 
   .additionalLabel {
     display: block;
-    margin: .5em 0;
+    margin-bottom: .5em;
     font-size: .85em;
+
+    span {
+      margin-left: 15px;
+    }
   }
 }
 
 .dayPickerLabel {
-
 }
 
 .userSelect {
   width: 30em;
-}
-
-div[class*="Input_formGroup_"] {
-  height: 45px;
-  margin-bottom: 13px;
-
-  span[class*="Input_text_"] {
-    margin-top: 5px;
-  }
-}
-
-div[class*="Input_additionalLabel_"] span {
-  margin-left: 15px !important;
 }
 
 [class^="css-"][class$="-control"] {
@@ -400,7 +451,7 @@ svg[class^="css-"] {
     &.saveIcon {
       position: absolute;
       right: 10px;
-      top: 16px;
+      top: 0;
     }
 
     &:hover {
@@ -419,6 +470,17 @@ svg[class^="css-"] {
 
     .favoriteName {
       margin-right: 75px;
+    }
+
+    .hidden {
+      visibility: hidden;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
     }
 
     &.selected {

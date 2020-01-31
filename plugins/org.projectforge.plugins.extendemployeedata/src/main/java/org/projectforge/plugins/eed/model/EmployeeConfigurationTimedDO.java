@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,27 +23,13 @@
 
 package org.projectforge.plugins.eed.model;
 
-import java.io.Serializable;
-import java.util.Map;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapKey;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
-
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
 import de.micromata.genome.db.jpa.tabattr.entities.TimeableBaseDO;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.Map;
 
 @Entity
 @Table(name = "T_PLUGIN_EMPLOYEE_CONFIGURATION_TIMED",

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,19 @@
 
 package de.micromata.hibernate.history.delta;
 
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.query.Query;
+import org.hibernate.type.IntegerType;
+import org.hibernate.type.LongType;
+import org.hibernate.type.StringType;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Legacy used for XML persistence of DB.
@@ -140,7 +143,7 @@ public abstract class PropertyDelta
       Map<String, ClassMetadata> map = factory.getAllClassMetadata();
       ClassMetadata meta = null;
       for (String entry : map.keySet()) {
-        if (entry.endsWith(type) == true) {
+        if (entry.endsWith(type)) {
           meta = factory.getClassMetadata(entry);
           break;
         }
@@ -150,16 +153,16 @@ public abstract class PropertyDelta
         return null;
       }
       Class<?> pkType = meta.getIdentifierType().getReturnedClass();
-      if (ClassUtils.isAssignable(pkType, Number.class) == true) {
+      if (ClassUtils.isAssignable(pkType, Number.class)) {
         if (pkType == Integer.class) {
           Integer pk = Integer.parseInt(id);
-          query.setInteger("pk", pk);
+          query.setParameter("pk", pk, IntegerType.INSTANCE);
         } else {
           Long pk = Long.parseLong(id);
-          query.setLong("pk", pk);
+          query.setParameter("pk", pk, LongType.INSTANCE);
         }
       } else {
-        query.setString("pk", id);
+        query.setParameter("pk", id, StringType.INSTANCE);
       }
       query.setCacheable(true);
       query.setMaxResults(1);

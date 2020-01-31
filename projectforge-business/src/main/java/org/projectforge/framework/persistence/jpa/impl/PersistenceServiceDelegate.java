@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.framework.persistence.jpa.impl;
 
-import java.io.Serializable;
-import java.util.List;
-
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
@@ -34,9 +31,12 @@ import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
+import java.io.Serializable;
+import java.util.List;
+
 /**
  * Delegates to getNested() Service.
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  * @param <O>
@@ -69,12 +69,6 @@ public abstract class PersistenceServiceDelegate<O extends ExtendedBaseDO<Intege
   public List<O> getList(BaseSearchFilter filter)
   {
     return getNested().getList(filter);
-  }
-
-  @Override
-  public String[] getSearchFields()
-  {
-    return getNested().getSearchFields();
   }
 
   @Override

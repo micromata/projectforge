@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,13 +35,13 @@ public class ClassHelper
    */
   public static Object getDefaultType(final Class< ? > type)
   {
-    if (type.isPrimitive() == false) {
+    if (!type.isPrimitive()) {
       return null;
     }
-    if (Boolean.TYPE.equals(type) == true) {
+    if (Boolean.TYPE.equals(type)) {
       return false;
     }
-    if (Integer.TYPE.equals(type) == true) {
+    if (Integer.TYPE.equals(type)) {
       return 0;
     }
     log.warn("Unsupported type for null value of type: " + type);
@@ -58,7 +58,7 @@ public class ClassHelper
     if (value == null) {
       return true;
     }
-    if ((value instanceof Boolean || Boolean.TYPE.equals(type) == true) && (Boolean) value == false) {
+    if ((value instanceof Boolean || Boolean.TYPE.equals(type)) && !((Boolean) value)) {
       return true;
     }
     return false;

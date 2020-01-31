@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,13 @@
 
 package org.projectforge.plugins.eed.wicket;
 
-import java.util.Calendar;
-
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.eed.service.EEDHelper;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.WicketUtils;
@@ -63,14 +62,14 @@ public class ExportDataForm extends AbstractStandardForm<Object, ExportDataPage>
     //Fieldset for Date DropDown
     final FieldsetPanel fsMonthYear = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("plugins.eed.listcare.yearmonth"));
     //Get actual Month as preselected
-    selectedMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
+    selectedMonth = PFDateTime.now().getMonthValue() + 1;
     //Month DropDown
     DropDownChoicePanel<Integer> ddcMonth = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedMonth"),
             EEDHelper.MONTH_INTEGERS));
     fsMonthYear.add(ddcMonth);
     //Get actual year for pre select
-    selectedYear = Calendar.getInstance().get(Calendar.YEAR);
+    selectedYear = PFDateTime.now().getYear();
     //Year DropDown
     DropDownChoicePanel<Integer> ddcYear = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedYear"),

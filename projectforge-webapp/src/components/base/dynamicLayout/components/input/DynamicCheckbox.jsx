@@ -1,26 +1,29 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import CheckBox from '../../../../design/input/CheckBox';
-import ValidationManager from '../../../../design/input/ValidationManager';
 import { DynamicLayoutContext } from '../../context';
+import DynamicValidationManager from './DynamicValidationManager';
 
-function DynamicCheckbox({ id, label }) {
+function DynamicCheckbox({ id, label, ...props }) {
     const { data, setData } = React.useContext(DynamicLayoutContext);
+
+    const value = Object.getByString(data, id) || false;
 
     return React.useMemo(() => {
         const handleCheckboxChange = ({ target }) => setData({ [id]: target.checked });
 
         return (
-            <ValidationManager>
+            <DynamicValidationManager id={id}>
                 <CheckBox
                     id={id}
                     label={label}
-                    checked={data[id] || false}
-                    onClick={handleCheckboxChange}
+                    checked={value}
+                    onChange={handleCheckboxChange}
+                    {...props}
                 />
-            </ValidationManager>
+            </DynamicValidationManager>
         );
-    }, [data[id]]);
+    }, [value, setData]);
 }
 
 DynamicCheckbox.propTypes = {

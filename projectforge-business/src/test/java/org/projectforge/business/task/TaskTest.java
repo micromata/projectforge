@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,12 +39,13 @@ import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
-import java.util.Calendar;
+import java.time.Month;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 
@@ -72,7 +73,7 @@ public class TaskTest extends AbstractTestBase {
   public void testTaskDO() {
     final List<TaskDO> list = taskDao.internalLoadAll();
     for (final TaskDO task : list) {
-      if ("root".equals(task.getTitle()) == true) {
+      if ("root".equals(task.getTitle())) {
         assertNull(task.getParentTaskId(), "Only root node has no parent task.");
       } else {
         assertNotNull(task.getParentTaskId(), "Only root node has no parent task.");
@@ -91,15 +92,15 @@ public class TaskTest extends AbstractTestBase {
     final TaskNode root = taskTree.getRootTaskNode();
     assertNull(root.getParent());
     assertEquals("root", root.getTask().getTitle());
-    assertNotNull(root.getChilds(), "root node must have childs");
-    assertTrue(root.getChilds().size() > 0, "root node must have childs");
+    assertNotNull(root.getChildren(), "root node must have children");
+    assertTrue(root.getChildren().size() > 0, "root node must have children");
 
     final TaskNode node1_1 = taskTree.getTaskNodeById(getTask("1.1").getId());
     assertEquals(getTask("1.1").getTitle(), node1_1.getTask().getTitle());
     assertEquals(getTask("1.1").getParentTaskId(), node1_1.getParent().getId());
     final TaskNode node1 = taskTree.getTaskNodeById(getTask("1").getId());
-    final List<TaskNode> list = node1.getChilds();
-    assertEquals(2, list.size(), "Childs of 1 are 1.1 and 1.2");
+    final List<TaskNode> list = node1.getChildren();
+    assertEquals(2, list.size(), "Children of 1 are 1.1 and 1.2");
     final TaskNode task1_1_1 = taskTree.getTaskNodeById(getTask("1.1.1").getId());
     final List<TaskNode> path = task1_1_1.getPathToRoot();
     assertEquals(3, path.size(), "Node has 2 ancestors plus itself.");
@@ -168,27 +169,27 @@ public class TaskTest extends AbstractTestBase {
     initTestDB.addTask("u", "taskTreeUpdateTest");
     final TaskNode u = tree.getTaskNodeById(getTask("u").getId());
     final TaskNode parent = tree.getTaskNodeById(getTask("taskTreeUpdateTest").getId());
-    assertEquals(false, u.hasChilds(), "Should have no childs");
+    assertEquals(false, u.hasChildren(), "Should have no children");
     assertEquals(u.getParent().getId(), parent.getId());
     initTestDB.addTask("u.1", "u");
-    assertEquals(true, u.hasChilds(), "Should have childs");
-    assertEquals(1, u.getChilds().size(), "Should have exact 1 child");
+    assertEquals(true, u.hasChildren(), "Should have children");
+    assertEquals(1, u.getChildren().size(), "Should have exact 1 child");
     initTestDB.addTask("u.2", "u");
-    assertEquals(2, u.getChilds().size(), "Should have exact 2 childs");
+    assertEquals(2, u.getChildren().size(), "Should have exact 2 children");
     initTestDB.addTask("u.2.1", "u.2");
     initTestDB.addTask("u.2.2", "u.2");
     initTestDB.addTask("u.2.3", "u.2");
     final TaskNode u1 = tree.getTaskNodeById(getTask("u.1").getId());
     final TaskNode u2 = tree.getTaskNodeById(getTask("u.2").getId());
-    assertEquals(3, u2.getChilds().size(), "Should have exact 3 childs");
+    assertEquals(3, u2.getChildren().size(), "Should have exact 3 children");
     // Now we move u.2.3 to u.1.1:
     final TaskDO tu_2_3 = taskDao.internalGetById(getTask("u.2.3").getId());
     tu_2_3.setTitle("u.1.1");
     logon(AbstractTestBase.ADMIN);
     taskDao.setParentTask(tu_2_3, getTask("u.1").getId());
     taskDao.internalUpdate(tu_2_3);
-    assertEquals(2, u2.getChilds().size(), "Should have exact 2 childs");
-    assertEquals(1, u1.getChilds().size(), "Should have exact 1 child");
+    assertEquals(2, u2.getChildren().size(), "Should have exact 2 children");
+    assertEquals(1, u1.getChildren().size(), "Should have exact 1 child");
     final TaskDO tu_1_1 = taskDao.internalGetById(getTask("u.2.3").getId());
     assertEquals("u.1.1", tu_1_1.getTitle());
     assertEquals(getTask("u.1").getId(), tu_1_1.getParentTaskId());
@@ -219,7 +220,7 @@ public class TaskTest extends AbstractTestBase {
     } catch (final AccessException ex) {
       assertAccessException(ex, getTask("a.1").getId(), AccessType.TASKS, OperationType.SELECT);
     }
-    initTestDB.addGroup("taskTest1", new String[]{"taskTest1"});
+    initTestDB.addGroup("taskTest1", "taskTest1");
     initTestDB.createGroupTaskAccess(getGroup("taskTest1"), getTask("a.1"), AccessType.TASKS, true, true, true, true);
     TaskDO task = taskDao.getById(getTask("a.1").getId());
     assertEquals("a.1", task.getTitle(), "Now readable.");
@@ -245,7 +246,7 @@ public class TaskTest extends AbstractTestBase {
 
     initTestDB.addUser("taskTest2");
     logon("taskTest2");
-    initTestDB.addGroup("taskTest2", new String[]{"taskTest2"});
+    initTestDB.addGroup("taskTest2", "taskTest2");
     initTestDB.createGroupTaskAccess(getGroup("taskTest2"), getTask("a.1"), AccessType.TASKS, true, true, true, true);
     initTestDB.createGroupTaskAccess(getGroup("taskTest2"), getTask("a.2"), AccessType.TASKS, true, true, true, false);
     task = taskDao.getById(getTask("a.2.1").getId());
@@ -262,7 +263,7 @@ public class TaskTest extends AbstractTestBase {
   public void checkAccess() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     final TaskDO task = initTestDB.addTask("checkAccessTestTask", "root");
-    initTestDB.addGroup("checkAccessTestGroup", new String[]{AbstractTestBase.TEST_USER});
+    initTestDB.addGroup("checkAccessTestGroup", AbstractTestBase.TEST_USER);
     initTestDB.createGroupTaskAccess(getGroup("checkAccessTestGroup"), getTask("checkAccessTestTask"), AccessType.TASKS,
             true, true, true,
             true);
@@ -292,8 +293,8 @@ public class TaskTest extends AbstractTestBase {
     final String groupName = "checkKost2AndTimesheetBookingStatusAccessGroup";
     // Please note: TEST_USER is no project manager or assistant!
     final GroupDO projectManagers = initTestDB.addGroup(groupName,
-            new String[]{AbstractTestBase.TEST_PROJECT_MANAGER_USER, AbstractTestBase.TEST_PROJECT_ASSISTANT_USER,
-                    AbstractTestBase.TEST_USER});
+        AbstractTestBase.TEST_PROJECT_MANAGER_USER, AbstractTestBase.TEST_PROJECT_ASSISTANT_USER,
+        AbstractTestBase.TEST_USER);
     initTestDB.createGroupTaskAccess(projectManagers, task, AccessType.TASKS, true, true, true, true); // All rights.
     final ProjektDO projekt = new ProjektDO();
     projekt.setName("checkKost2AndTimesheetBookingStatusAccess");
@@ -303,7 +304,10 @@ public class TaskTest extends AbstractTestBase {
     projekt.setTask(task);
     projektDao.save(projekt);
     logon(AbstractTestBase.TEST_USER);
-    TaskDO task1 = new TaskDO().setParentTask(task).setTitle("Task 1").setKost2BlackWhiteList("Hurzel");
+    TaskDO task1 = new TaskDO();
+    task1.setParentTask(task);
+    task1.setTitle("Task 1");
+    task1.setKost2BlackWhiteList("Hurzel");
     try {
       taskDao.save(task1);
       fail("AccessException expected.");
@@ -450,28 +454,26 @@ public class TaskTest extends AbstractTestBase {
     final TaskDO subTask2 = initTestDB.addTask("totalDurationTask.subtask2", "totalDurationTask");
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     assertEquals(0, taskDao.readTotalDuration(task.getId()));
-    final DateHolder dh = new DateHolder();
-    dh.setDate(2010, Calendar.APRIL, 20, 8, 0);
+    final PFDateTime dt = PFDateTime.withDate(2010, Month.APRIL, 20, 8, 0);
     TimesheetDO ts = new TimesheetDO();
     ts.setUser(getUser(AbstractTestBase.TEST_USER));
-    ts.setStartDate(dh.getDate())
-            .setStopTime(dh.add(Calendar.HOUR_OF_DAY, 4).getTimestamp());
+    ts.setStartDate(dt.getUtilDate()).setStopTime(dt.plus(4, ChronoUnit.HOURS).getSqlTimestamp());
     ts.setTask(task);
     timesheetDao.save(ts);
     assertEquals(4 * 3600, taskDao.readTotalDuration(task.getId()));
     assertEquals(4 * 3600, getTotalDuration(taskTree, task.getId()));
     ts = new TimesheetDO();
     ts.setUser(getUser(AbstractTestBase.TEST_USER));
-    ts.setStartDate(dh.add(Calendar.HOUR_OF_DAY, 1).getDate())
-            .setStopTime(dh.add(Calendar.HOUR_OF_DAY, 4).getTimestamp());
+    ts.setStartDate(dt.plus(5, ChronoUnit.HOURS).getUtilDate())
+            .setStopTime(dt.plus(9, ChronoUnit.HOURS).getSqlTimestamp());
     ts.setTask(task);
     timesheetDao.save(ts);
     assertEquals(8 * 3600, taskDao.readTotalDuration(task.getId()));
     assertEquals(8 * 3600, getTotalDuration(taskTree, task.getId()));
     ts = new TimesheetDO();
     ts.setUser(getUser(AbstractTestBase.TEST_USER));
-    ts.setStartDate(dh.add(Calendar.HOUR_OF_DAY, 1).getDate())
-            .setStopTime(dh.add(Calendar.HOUR_OF_DAY, 4).getTimestamp());
+    ts.setStartDate(dt.plus(10, ChronoUnit.HOURS).getUtilDate())
+            .setStopTime(dt.plus(14, ChronoUnit.HOURS).getSqlTimestamp());
     ts.setTask(subTask1);
     timesheetDao.save(ts);
     final List<Object[]> list = taskDao.readTotalDurations();
@@ -479,17 +481,17 @@ public class TaskTest extends AbstractTestBase {
     boolean subtask1Found = false;
     for (final Object[] oa : list) {
       final Integer taskId = (Integer) oa[1];
-      if (taskId == task.getId()) {
+      if (taskId.equals(task.getId())) {
         assertFalse(taskFound, "Entry should only exist once.");
         assertFalse(subtask1Found, "Entry not first.");
         taskFound = true;
-        assertEquals(new Long(8 * 3600), oa[0]);
-      } else if (taskId == subTask1.getId()) {
+        assertEquals((long) (8 * 3600), oa[0]);
+      } else if (taskId.equals(subTask1.getId())) {
         assertFalse(subtask1Found, "Entry should only exist once.");
         assertTrue(taskFound, "Entry not second.");
         subtask1Found = true;
-        assertEquals(new Long(4 * 3600), oa[0]);
-      } else if (taskId == subTask2.getId()) {
+        assertEquals((long) (4 * 3600), oa[0]);
+      } else if (taskId.equals(subTask2.getId())) {
         fail("Entry not not expected.");
       }
     }
@@ -518,9 +520,9 @@ public class TaskTest extends AbstractTestBase {
 
   private void traverseTaskTree(final TaskNode node) {
     logDot();
-    final List<TaskNode> childs = node.getChilds();
-    if (childs != null) {
-      for (final TaskNode child : childs) {
+    final List<TaskNode> children = node.getChildren();
+    if (children != null) {
+      for (final TaskNode child : children) {
         assertEquals(node.getId(), child.getParentId(), "Child should have parent id of current node.");
         traverseTaskTree(child);
       }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -81,7 +81,7 @@ public class GroupsProviderTest
 
   private Collection<GroupDO> createGroupsCol(final int... groupIds)
   {
-    final Collection<GroupDO> col = new TreeSet<GroupDO>(new GroupsComparator());
+    final Collection<GroupDO> col = new TreeSet<>(new GroupsComparator());
     for (final int id : groupIds) {
       col.add(cg(String.valueOf(id), id));
     }
@@ -95,7 +95,7 @@ public class GroupsProviderTest
       return;
     }
     assertEquals(expectedIds.length, actualGroupSet.size());
-    final Set<Integer> actualIdSet = new HashSet<Integer>();
+    final Set<Integer> actualIdSet = new HashSet<>();
     for (final GroupDO actualGroup : actualGroupSet) {
       actualIdSet.add(actualGroup.getId());
     }

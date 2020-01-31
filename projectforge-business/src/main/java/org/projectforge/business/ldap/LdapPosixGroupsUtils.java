@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,14 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.Collection;
-
-import java.util.Objects;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.Objects;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -57,7 +57,7 @@ public class LdapPosixGroupsUtils
       if (ldapGroupValues == null) {
         continue;
       }
-      if (ldapGroupValues.getGidNumber() != null && ldapGroupValues.getGidNumber().intValue() > currentMaxNumber) {
+      if (ldapGroupValues.getGidNumber() != null && ldapGroupValues.getGidNumber() > currentMaxNumber) {
         currentMaxNumber = ldapGroupValues.getGidNumber();
       }
     }
@@ -78,12 +78,12 @@ public class LdapPosixGroupsUtils
     final Collection<GroupDO> allGroups = userGroupCache.getAllGroups();
     for (final GroupDO group : allGroups) {
       final LdapGroupValues ldapGroupValues = groupDOConverter.readLdapGroupValues(group.getLdapValues());
-      if (Objects.equals(group.getId(), currentGroup.getId()) == true) {
+      if (Objects.equals(group.getId(), currentGroup.getId())) {
         // The current group may have the given gidNumber already, so ignore this entry.
         continue;
       }
       if (ldapGroupValues != null && ldapGroupValues.getGidNumber() != null
-          && ldapGroupValues.getGidNumber().intValue() == gidNumber) {
+          && ldapGroupValues.getGidNumber() == gidNumber) {
         // Number isn't free.
         log.info("The gidNumber (posix account) '" + gidNumber + "' is already occupied by group: " + group);
         return false;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,7 +27,10 @@ import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Own abstraction of a RangeMap. You can add TeamEvents and access them through their start and end date.
@@ -47,7 +50,7 @@ public class SubscriptionHolder implements Serializable {
   private boolean sorted;
 
   public SubscriptionHolder() {
-    eventList = new ArrayList<TeamEventDO>();
+    eventList = new ArrayList<>();
     sorted = false;
   }
 
@@ -79,7 +82,7 @@ public class SubscriptionHolder implements Serializable {
         return o1.getStartDate().compareTo(o2.getStartDate());
       }
     };
-    Collections.sort(eventList, comparator);
+    eventList.sort(comparator);
     sorted = true;
   }
 
@@ -94,19 +97,19 @@ public class SubscriptionHolder implements Serializable {
   public List<TeamEventDO> getResultList(final Long startTime, final Long endTime, final boolean minimalAccess) {
     // sorting should by synchronized
     synchronized (this) {
-      if (sorted == false) {
+      if (!sorted) {
         sort();
       }
     }
-    final List<TeamEventDO> result = new ArrayList<TeamEventDO>();
+    final List<TeamEventDO> result = new ArrayList<>();
     for (final TeamEventDO teamEventDo : eventList) {
       // all our events are sorted, if we find a event which starts
       // after the end date, we can break this iteration
       if (teamEventDo.getStartDate().getTime() > endTime) {
         break;
       }
-      if (matches(teamEventDo, startTime, endTime) == true) {
-        if (minimalAccess == true) {
+      if (matches(teamEventDo, startTime, endTime)) {
+        if (minimalAccess) {
           result.add(teamEventDo.createMinimalCopy());
         } else {
           result.add(teamEventDo);

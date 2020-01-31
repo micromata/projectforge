@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,6 @@
 
 package org.projectforge.web.vacation;
 
-import java.io.Serializable;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -43,8 +34,10 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.persistence.api.IdObject;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.MyBeanComparator;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Stores list of result sets (id's) for pagination and provides iterator of data-base objects on demand.
@@ -76,11 +69,14 @@ public class VacationViewPageSortableDataProvider<T extends IdObject<?>>
 
   private EmployeeDO employee;
 
+  private int year;
+
   public VacationViewPageSortableDataProvider(final SortParam<String> sortParam, VacationService vacationService,
-      EmployeeDO employee)
+                                              EmployeeDO employee, int year)
   {
     this.vacationService = vacationService;
     this.employee = employee;
+    this.year = year;
     // set default sort
     if (sortParam != null) {
       setSort(sortParam);
@@ -171,8 +167,7 @@ public class VacationViewPageSortableDataProvider<T extends IdObject<?>>
 
   private void reloadList()
   {
-    Calendar now = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-    final List<VacationDO> list = vacationService.getActiveVacationForYear(employee, now.get(Calendar.YEAR), true);
+    final List<VacationDO> list = vacationService.getActiveVacationForYear(employee, year, true);
     setCompleteList(list);
   }
 

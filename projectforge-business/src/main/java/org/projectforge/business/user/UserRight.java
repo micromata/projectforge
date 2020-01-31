@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,15 @@
 
 package org.projectforge.business.user;
 
+import org.projectforge.framework.persistence.api.IUserRightId;
+import org.projectforge.framework.DisplayNameCapable;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.projectforge.framework.persistence.api.IUserRightId;
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-
-public abstract class UserRight implements Serializable, ShortDisplayNameCapable
+public abstract class UserRight implements Serializable, DisplayNameCapable
 {
   private static final long serialVersionUID = -4356329396089081134L;
 
@@ -111,11 +111,11 @@ public abstract class UserRight implements Serializable, ShortDisplayNameCapable
       if (value == UserRightValue.FALSE) {
         continue; // Should not be configurable.
       }
-      if (matches(userGroupCache, user, value) == false) {
+      if (!matches(userGroupCache, user, value)) {
         final UserRightValue[] includedByValues = value.includedBy();
         if (includedByValues != null) {
           for (final UserRightValue includedByValue : includedByValues) {
-            if (matches(userGroupCache, user, includedByValue) == true) {
+            if (matches(userGroupCache, user, includedByValue)) {
               // This available value is automatically set for the user, so the right seems to be not configurable:
               break;
             }
@@ -142,9 +142,9 @@ public abstract class UserRight implements Serializable, ShortDisplayNameCapable
     if (values == null) {
       return null;
     }
-    final List<UserRightValue> list = new ArrayList<UserRightValue>();
+    final List<UserRightValue> list = new ArrayList<>();
     for (final UserRightValue value : values) {
-      if (isAvailable(userGroupCache, user, value) == true) {
+      if (isAvailable(userGroupCache, user, value)) {
         list.add(value);
       }
     }
@@ -225,10 +225,10 @@ public abstract class UserRight implements Serializable, ShortDisplayNameCapable
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.ShortDisplayNameCapable#getShortDisplayName()
+   * @see org.projectforge.framework.DisplayNameCapable#getDisplayName()
    */
   @Override
-  public String getShortDisplayName()
+  public String getDisplayName()
   {
     return this.id.toString();
   }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.framework.configuration;
 
-import java.util.List;
-import java.util.TimeZone;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -37,6 +34,9 @@ import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.xstream.XmlObject;
+
+import java.util.List;
+import java.util.TimeZone;
 
 /**
  * This class also provides the configuration of the parameters which are stored via ConfigurationDao. Those parameters
@@ -73,8 +73,8 @@ public class Configuration extends AbstractConfiguration
 
   public boolean isMebConfigured()
   {
-    if (StringUtils.isNotEmpty(getStringValue(ConfigurationParam.MEB_SMS_RECEIVING_PHONE_NUMBER)) == true
-        || configurationService.isMebMailAccountConfigured() == true) {
+    if (StringUtils.isNotEmpty(getStringValue(ConfigurationParam.MEB_SMS_RECEIVING_PHONE_NUMBER))
+        || configurationService.isMebMailAccountConfigured()) {
       return true;
     }
     return false;
@@ -97,8 +97,8 @@ public class Configuration extends AbstractConfiguration
    */
   public static boolean isDomainValid(final String domain)
   {
-    return StringUtils.isNotBlank(domain) == true
-        && domain.matches("^[a-zA-Z]+[a-zA-Z0-9\\.\\-]*[a-zA-Z0-9]+$") == true;
+    return StringUtils.isNotBlank(domain)
+        && domain.matches("^[a-zA-Z]+[a-zA-Z0-9\\.\\-]*[a-zA-Z0-9]+$");
   }
 
   /**

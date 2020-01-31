@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -280,16 +280,8 @@ public class BeanHelper
   {
     try {
       return method.invoke(obj, args);
-    } catch (final IllegalArgumentException ex) {
-      log.error("Could not invoke '" + method.getName() + "': " + ex + " for object [" + obj + "] with args: " + args,
-          ex);
-      throw new RuntimeException(ex);
-    } catch (final IllegalAccessException ex) {
-      log.error("Could not invoke '" + method.getName() + "': " + ex + " for object [" + obj + "] with args: " + args,
-          ex);
-      throw new RuntimeException(ex);
-    } catch (final InvocationTargetException ex) {
-      log.error("Could not invoke '" + method.getName() + "': " + ex + " for object [" + obj + "] with args: " + args,
+    } catch (final IllegalArgumentException |IllegalAccessException | InvocationTargetException ex) {
+      log.error("Could not invoke '" + method.getName() + "': " + ex.getMessage() + " for object [" + obj + "] with args: " + args,
           ex);
       throw new RuntimeException(ex);
     }
@@ -466,7 +458,7 @@ public class BeanHelper
   {
     final Method getter = determineGetter(bean.getClass(), property);
     if (getter == null) {
-      throw new RuntimeException("Getter for property '" + property + "' not found.");
+      throw new RuntimeException("Getter for property '" + bean.getClass() + "." + property + "' not found.");
     }
     try {
       return getter.invoke(bean);

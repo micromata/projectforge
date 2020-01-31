@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -75,8 +75,8 @@ public class GanttTreeTableNode extends TreeTableNode implements Serializable
     final ToStringBuilder tos = new ToStringBuilder(this);
     tos.append("id", ganttObject.getId());
     tos.append("title", ganttObject.getTitle());
-    if (getChilds() != null) {
-      tos.append("children", getChilds());
+    if (getChildren() != null) {
+      tos.append("children", getChildren());
     }
     return tos.toString();
   }

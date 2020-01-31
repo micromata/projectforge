@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,7 @@ import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.IManualIndex
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import javax.persistence.*
 
@@ -43,10 +43,14 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_FIBU_KUNDE",
-        indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_kunde_konto_id", columnList = "konto_id"),
-            javax.persistence.Index(name = "idx_fk_t_fibu_kunde_tenant_id", columnList = "tenant_id")])
+        indexes = [Index(name = "idx_fk_t_fibu_kunde_konto_id", columnList = "konto_id"),
+            Index(name = "idx_fk_t_fibu_kunde_tenant_id", columnList = "tenant_id")])
 @Analyzer(impl = ClassicAnalyzer::class)
-class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable, IManualIndex {
+open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, DisplayNameCapable {
+
+    override val displayName: String
+        @Transient
+        get() = KostFormatter.formatKunde(this)
 
     /**
      * Kundennummer.
@@ -56,7 +60,7 @@ class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable, IMan
     @PropertyInfo(i18nKey = "fibu.kunde.nummer")
     @get:Id
     @get:Column(name = "pk")
-    var nummer: Int? = null
+    open var nummer: Int? = null
 
     @Transient
     override fun getId(): Int? {
@@ -71,7 +75,7 @@ class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable, IMan
     @PropertyInfo(i18nKey = "fibu.kunde.name")
     @Field
     @get:Column(length = 255, nullable = false)
-    var name: String? = null
+    open var name: String? = null
 
     /**
      * The identifier is used e. g. for display the project as short name in human resources planning tables.
@@ -81,23 +85,23 @@ class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable, IMan
     @PropertyInfo(i18nKey = "fibu.kunde.identifier")
     @Field
     @get:Column(length = 20)
-    var identifier: String? = null
+    open var identifier: String? = null
 
     @PropertyInfo(i18nKey = "fibu.kunde.division")
     @Field
     @get:Column(length = 255)
-    var division: String? = null
+    open var division: String? = null
 
     @PropertyInfo(i18nKey = "status")
     @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 30)
-    var status: KundeStatus? = null
+    open var status: KundeStatus? = null
 
     @PropertyInfo(i18nKey = "description")
     @Field
     @get:Column(length = 4000)
-    var description: String? = null
+    open var description: String? = null
 
     /**
      * This Datev account number is used for the exports of invoices. This account numbers may-be overwritten by the
@@ -108,11 +112,11 @@ class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable, IMan
     @PropertyInfo(i18nKey = "fibu.konto")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "konto_id")
-    var konto: KontoDO? = null
+    open var konto: KontoDO? = null
 
     /**
      * @return "5.###" ("5.<kunde id>")</kunde> */
-    val kost: String
+    open val kost: String
         @Transient
         get() = "5." + KostFormatter.format3Digits(nummer)
 
@@ -130,7 +134,7 @@ class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable, IMan
      */
     val kundeIdentifierDisplayName: String?
         @Transient
-        get() = if (StringUtils.isNotBlank(this.identifier) == true) {
+        get() = if (StringUtils.isNotBlank(this.identifier)) {
             this.identifier
         } else this.name
 
@@ -138,16 +142,7 @@ class KundeDO : AbstractHistorizableBaseDO<Int>(), ShortDisplayNameCapable, IMan
         @Transient
         get() = if (konto != null) konto!!.id else null
 
-    /**
-     * @see org.projectforge.framework.persistence.api.ShortDisplayNameCapable.getShortDisplayName
-     * @see KostFormatter.format
-     */
-    @Transient
-    override fun getShortDisplayName(): String {
-        return KostFormatter.formatKunde(this)
-    }
-
     companion object {
-        val MAX_ID = 999
+        const val MAX_ID = 999
     }
 }

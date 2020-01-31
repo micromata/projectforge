@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,6 @@
 
 package org.projectforge.business.teamcal.event.ical.converter;
 
-import java.net.URISyntaxException;
-import java.util.Iterator;
-
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
-
 import net.fortuna.ical4j.model.Parameter;
 import net.fortuna.ical4j.model.ParameterList;
 import net.fortuna.ical4j.model.Property;
@@ -37,6 +32,10 @@ import net.fortuna.ical4j.model.parameter.CuType;
 import net.fortuna.ical4j.model.parameter.PartStat;
 import net.fortuna.ical4j.model.parameter.Role;
 import net.fortuna.ical4j.model.property.Organizer;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
+
+import java.net.URISyntaxException;
+import java.util.Iterator;
 
 public class OrganizerConverter extends PropertyConverter
 {
@@ -53,7 +52,7 @@ public class OrganizerConverter extends PropertyConverter
     final ParameterList param = new ParameterList();
     final String organizerMail;
 
-    if (event.isOwnership() != null && event.isOwnership()) {
+    if (event.getOwnership() != null && event.getOwnership()) {
       // TODO improve ownership handling
       param.add(new Cn(event.getCreator().getFullname()));
       param.add(CuType.INDIVIDUAL);
@@ -139,7 +138,7 @@ public class OrganizerConverter extends PropertyConverter
         event.setOrganizerAdditionalParams(sb.substring(1));
       }
 
-      if ("mailto:null".equals(organizerValue) == false) {
+      if (!"mailto:null".equals(organizerValue)) {
         event.setOrganizer(organizer.getValue());
       }
     } else {

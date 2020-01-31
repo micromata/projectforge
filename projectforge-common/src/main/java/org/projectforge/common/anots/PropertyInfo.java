@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,19 +23,20 @@
 
 package org.projectforge.common.anots;
 
-import static java.lang.annotation.ElementType.FIELD;
+import org.projectforge.common.props.PropertyType;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.projectforge.common.props.PropertyType;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
 
 /**
  * Annotation for properties of DO classes for handling i18n keys and Excel-Exports.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Target({ FIELD})
+@Target({ FIELD, METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PropertyInfo {
   /**
@@ -47,6 +48,11 @@ public @interface PropertyInfo {
    * i18n key of additional key. Used e. g. by phone number to specify business or private number.
    */
   String additionalI18nKey() default "";
+
+  /**
+   * Optional tooltip (i18n key) to display.
+   */
+  String tooltip() default "";
 
   boolean required() default false;
 

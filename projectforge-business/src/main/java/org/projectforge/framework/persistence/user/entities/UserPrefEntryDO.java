@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,20 +23,6 @@
 
 package org.projectforge.framework.persistence.user.entities;
 
-import java.io.Serializable;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
-
-import java.util.Objects;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.framework.persistence.api.BaseDO;
@@ -45,9 +31,13 @@ import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.persistence.user.api.UserPrefParameter;
 import org.projectforge.framework.utils.NumberHelper;
 
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.Objects;
+
 /**
  * Represents a single generic user preference entry.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
@@ -185,7 +175,7 @@ public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
 
   /**
    * For displaying paramter's localized label (if given). This field is not persisted.
-   * 
+   *
    * @see UserPrefParameter#i18nKey()
    */
   @Transient
@@ -208,7 +198,7 @@ public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
 
   /**
    * This field is not persisted.
-   * 
+   *
    * @see UserPrefParameter#required()
    */
   @Transient
@@ -219,7 +209,7 @@ public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
 
   /**
    * This field is not persisted.
-   * 
+   *
    * @see UserPrefParameter#multiline()
    */
   @Transient
@@ -259,7 +249,7 @@ public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
 
   /**
    * Throws UnsupportedOperationException.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDO#setMinorChange(boolean)
    */
   @Override
@@ -277,10 +267,10 @@ public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
   {
     if (o instanceof UserPrefEntryDO) {
       final UserPrefEntryDO other = (UserPrefEntryDO) o;
-      if (Objects.equals(this.parameter, other.parameter) == false) {
+      if (!Objects.equals(this.parameter, other.parameter)) {
         return false;
       }
-      if (Objects.equals(this.getId(), other.getId()) == false) {
+      if (!Objects.equals(this.getId(), other.getId())) {
         return false;
       }
       return true;
@@ -320,6 +310,11 @@ public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
   @Override
   public Object getTransientAttribute(final String key)
   {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Object removeTransientAttribute(String key) {
     throw new UnsupportedOperationException();
   }
 

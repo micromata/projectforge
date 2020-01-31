@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -54,21 +54,21 @@ public class TimesheetPrefData
   private synchronized void ensureRecents()
   {
     if (recents == null) {
-      recents = new RecentQueue<TimesheetPrefEntry>(MAX_RECENT);
+      recents = new RecentQueue<>(MAX_RECENT);
     }
   }
 
   private synchronized void ensureRecentTasks()
   {
     if (recentTasks == null) {
-      recentTasks = new RecentQueue<Integer>(MAX_RECENT);
+      recentTasks = new RecentQueue<>(MAX_RECENT);
     }
   }
 
   private synchronized void ensureRecentLocations()
   {
     if (recentLocations == null) {
-      recentLocations = new RecentQueue<String>(MAX_RECENT);
+      recentLocations = new RecentQueue<>(MAX_RECENT);
     }
   }
 
@@ -129,7 +129,7 @@ public class TimesheetPrefData
 
   public void appendRecentLocation(String location)
   {
-    if (StringUtils.isBlank(location) == true) {
+    if (StringUtils.isBlank(location)) {
       return;
     }
     ensureRecentLocations();
@@ -165,7 +165,7 @@ public class TimesheetPrefData
 
   public void init(List<TimesheetDO> list)
   {
-    if (CollectionUtils.isNotEmpty(list) == true) {
+    if (CollectionUtils.isNotEmpty(list)) {
       ensureRecents();
       ensureRecentTasks();
       for (TimesheetDO timesheet : list) {
@@ -181,10 +181,10 @@ public class TimesheetPrefData
 
   public void initLocations(Collection<String> locations)
   {
-    if (CollectionUtils.isNotEmpty(locations) == true) {
+    if (CollectionUtils.isNotEmpty(locations)) {
       ensureRecentLocations();
       for (String location : locations) {
-        if (StringUtils.isBlank(location) == true) {
+        if (StringUtils.isBlank(location)) {
           return;
         }
         recentLocations.addOnly(location);

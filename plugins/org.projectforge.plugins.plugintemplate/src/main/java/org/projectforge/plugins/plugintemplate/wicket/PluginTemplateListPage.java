@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.plugins.plugintemplate.wicket;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -38,12 +35,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.plugins.plugintemplate.model.PluginTemplateDO;
 import org.projectforge.plugins.plugintemplate.repository.PluginTemplateDao;
 import org.projectforge.plugins.plugintemplate.service.PluginTemplateService;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @ListPage(editPage = PluginTemplateEditPage.class)
 public class PluginTemplateListPage extends AbstractListPage<PluginTemplateListForm, PluginTemplateDao, PluginTemplateDO> implements
@@ -89,7 +84,7 @@ public class PluginTemplateListPage extends AbstractListPage<PluginTemplateListF
               final IModel<PluginTemplateDO> rowModel)
           {
             final PluginTemplateDO event = rowModel.getObject();
-            if (isSelectMode() == false) {
+            if (!isSelectMode()) {
               item.add(new ListSelectActionPanel(componentId, rowModel, PluginTemplateEditPage.class, event.getId(),
                   returnToPage, event.getKey()));
             } else {
@@ -104,15 +99,15 @@ public class PluginTemplateListPage extends AbstractListPage<PluginTemplateListF
         });
 
     columns
-        .add(new CellItemListenerPropertyColumn<PluginTemplateDO>(PluginTemplateDO.class, getSortable("value", sortable),
+        .add(new CellItemListenerPropertyColumn<>(PluginTemplateDO.class, getSortable("value", sortable),
             "value", cellItemListener));
 
     columns
-        .add(new CellItemListenerPropertyColumn<PluginTemplateDO>(PluginTemplateDO.class, getSortable("created", sortable),
+        .add(new CellItemListenerPropertyColumn<>(PluginTemplateDO.class, getSortable("created", sortable),
             "created", cellItemListener));
 
     columns
-        .add(new CellItemListenerPropertyColumn<PluginTemplateDO>(PluginTemplateDO.class, getSortable("lastUpdate", sortable),
+        .add(new CellItemListenerPropertyColumn<>(PluginTemplateDO.class, getSortable("lastUpdate", sortable),
             "lastUpdate", cellItemListener));
 
     return columns;
