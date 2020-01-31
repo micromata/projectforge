@@ -112,7 +112,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
   public int[] getYears(final Integer userId) {
     final Object[] minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER, Object[].class)
             .setParameter("userId", userId));
-    return SQLHelper.getYears((java.util.Date) minMaxDate[0], (java.util.Date) minMaxDate[1]);
+    return SQLHelper.getYears(minMaxDate[0], minMaxDate[1]);
   }
 
   /**

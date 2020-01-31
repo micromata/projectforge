@@ -121,7 +121,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
    */
   public int[] getYears() {
     final Tuple minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(AuftragDO.SELECT_MIN_MAX_DATE, Tuple.class));
-    return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
+    return SQLHelper.getYears(minMaxDate.get(0), minMaxDate.get(1));
   }
 
   /**
