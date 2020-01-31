@@ -48,12 +48,23 @@ object SQLHelper {
      * @return Array of years in descendent order. If min or max is null, the current year is returned.
      */
     @JvmStatic
+    fun getYears(min: Any?, max: Any?): IntArray {
+        if (min == null || max == null) {
+            return intArrayOf(Year.now().value)
+        }
+        if (min is Date || max is Date) {
+            return getYears(min, max)
+        }
+        return getYears(min as LocalDate, max as LocalDate)
+    }
+
+    @JvmStatic
     fun getYears(min: Date?, max: Date?): IntArray {
         if (min == null || max == null) {
             return intArrayOf(Year.now().value)
         }
-        val from = PFDateTime.from(min)!!.year
-        val to= PFDateTime.from(max)!!.year
+        val from = PFDateTime.from(min).year
+        val to= PFDateTime.from(max).year
         return getYears(from, to)
     }
 

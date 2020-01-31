@@ -105,7 +105,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
    */
   public int[] getYears() {
     final Tuple minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(RechnungDO.SELECT_MIN_MAX_DATE, Tuple.class));
-    return SQLHelper.getYears((LocalDate) minMaxDate.get(0), (LocalDate) minMaxDate.get(1));
+    return SQLHelper.getYears(minMaxDate.get(0), minMaxDate.get(1));
   }
 
   public RechnungsStatistik buildStatistik(final List<RechnungDO> list) {
