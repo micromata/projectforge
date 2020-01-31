@@ -56,6 +56,9 @@ class PostausgangPagesRest() : AbstractDOPagesRest<PostausgangDO, PostausgangDao
         }
     }
 
+    override val classicsLinkListUrl: String?
+        get() = "wa/outgoingMailList"
+
     /**
      * LAYOUT List page
      */
