@@ -134,7 +134,7 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
 
         defaultFirstDayOfWeekCombobox = JComboBox()
         FinalizeScreenSupport.listOfWeekdays.forEach { defaultFirstDayOfWeekCombobox.addItem(it.label) }
-        defaultFirstDayOfWeekCombobox.selectedIndex = 1
+        defaultFirstDayOfWeekCombobox.selectedIndex = 0
         panel.add(JLabel(Texts.FS_FIRST_DAY), constraints(0, ++y))
         panel.add(defaultFirstDayOfWeekCombobox, constraints(1, y))
         panel.add(JLabel(Texts.FS_FIRST_DAY_DESC), constraints(2, y))
