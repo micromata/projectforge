@@ -33,7 +33,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.lang.Bytes;
 import org.projectforge.business.fibu.kost.reporting.Report;
 import org.projectforge.business.fibu.kost.reporting.ReportStorage;
-import org.projectforge.business.scripting.GroovyResult;
+import org.projectforge.business.scripting.ScriptExecutionResult;
 import org.projectforge.business.scripting.ScriptDO;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.web.fibu.ReportScriptingStorage;
@@ -116,12 +116,12 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
         @Override
         public String getObject()
         {
-          final GroovyResult groovyResult = parentPage.groovyResult;
+          final ScriptExecutionResult groovyResult = parentPage.groovyResult;
           final StringBuffer buf = new StringBuffer();
           buf.append(groovyResult.getResultAsHtmlString());
-          if (groovyResult.getResult() != null && StringUtils.isNotEmpty(groovyResult.getOutput()) == true) {
+          if (groovyResult.result != null && StringUtils.isNotEmpty(groovyResult.output) == true) {
             buf.append("<br/>\n");
-            buf.append(HtmlHelper.escapeXml(groovyResult.getOutput()));
+            buf.append(HtmlHelper.escapeXml(groovyResult.output));
           }
           return buf.toString();
         }
@@ -132,7 +132,7 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
         @Override
         public boolean isVisible()
         {
-          final GroovyResult groovyResult = parentPage.groovyResult;
+          final ScriptExecutionResult groovyResult = parentPage.groovyResult;
           return (groovyResult != null && groovyResult.hasResult() == true);
         }
       };
