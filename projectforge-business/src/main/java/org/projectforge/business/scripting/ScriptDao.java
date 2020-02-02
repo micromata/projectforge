@@ -60,7 +60,7 @@ public class ScriptDao extends BaseDao<ScriptDO>
   @Autowired
   private GroovyExecutor groovyExecutor;
 
-  private GroovyResult groovyResult;
+  private ScriptExecutionResult groovyResult;
 
   public ScriptDao()
   {
@@ -110,7 +110,7 @@ public class ScriptDao extends BaseDao<ScriptDO>
     return new ScriptDO();
   }
 
-  public GroovyResult execute(final ScriptDO script, final List<ScriptParameter> parameters)
+  public ScriptExecutionResult execute(final ScriptDO script, final List<ScriptParameter> parameters)
   {
     hasLoggedInUserSelectAccess(script, true);
     final ReportGeneratorList reportGeneratorList = new ReportGeneratorList();
@@ -138,7 +138,7 @@ public class ScriptDao extends BaseDao<ScriptDO>
       scriptContent = scriptContent.replace("import org.projectforge.export",
           "import org.projectforge.export.*\nimport org.projectforge.business.excel");
     }
-    groovyResult = groovyExecutor.execute(new GroovyResult(), scriptContent, scriptVariables);
+    groovyResult = groovyExecutor.execute(new ScriptExecutionResult(), scriptContent, scriptVariables);
     return groovyResult;
   }
 

@@ -180,7 +180,7 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
     }
     if (groovyResult.hasResult() == true) {
       // TODO maybe a good point to generalize to AbstractScriptingPage?
-      final Object obj = groovyResult.getResult();
+      final Object obj = groovyResult.result;
       if (obj instanceof ExportWorkbook == true) {
         exportExcel((ExportWorkbook) obj);
       } else if (obj instanceof ExportJFreeChart == true) {
