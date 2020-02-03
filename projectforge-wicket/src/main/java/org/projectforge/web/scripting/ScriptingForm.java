@@ -23,29 +23,28 @@
 
 package org.projectforge.web.scripting;
 
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.Button;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.lang.Bytes;
 import org.projectforge.business.fibu.kost.reporting.Report;
 import org.projectforge.business.fibu.kost.reporting.ReportStorage;
-import org.projectforge.business.scripting.ScriptExecutionResult;
 import org.projectforge.business.scripting.ScriptDO;
+import org.projectforge.business.scripting.ScriptExecutionResult;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.web.fibu.ReportScriptingStorage;
 import org.projectforge.web.wicket.AbstractStandardForm;
+import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.AceEditorPanel;
+import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
-import org.projectforge.web.wicket.flowlayout.Heading1Panel;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.springframework.util.CollectionUtils;
+
+import java.util.List;
 
 public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
 {
@@ -80,7 +79,7 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
         return reportPathHeading;
       }
     }));
-    gridBuilder.newGridPanel();
+    gridBuilder.newSplitPanel(GridSize.COL50);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("file"), "*.xsl, *.jrxml");
       fileUploadField = new FileUploadField(FileUploadPanel.WICKET_ID);
@@ -102,26 +101,40 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
       };
       fs.add(new SingleButtonPanel(fs.newChildId(), uploadButton, getString("upload"), SingleButtonPanel.NORMAL));
     }
+    gridBuilder.newSplitPanel(GridSize.COL50);
     {
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("label.groovyScript"));
-      final AceEditorPanel textArea = new AceEditorPanel(fs.newChildId(), new PropertyModel<String>(this, "groovyScript"));
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("scripting.script.type"));
+      // DropDownChoice type
+      final LabelValueChoiceRenderer<ScriptDO.ScriptType> typeChoiceRenderer = new LabelValueChoiceRenderer<ScriptDO.ScriptType>();
+      typeChoiceRenderer.addValue(ScriptDO.ScriptType.GROOVY, "Groovy");
+      typeChoiceRenderer.addValue(ScriptDO.ScriptType.KOTLIN, "Kotlin");
+      final DropDownChoice<ScriptDO.ScriptType> typeChoice = new DropDownChoice<ScriptDO.ScriptType>(fs.getDropDownChoiceId(),
+              new PropertyModel<ScriptDO.ScriptType>(getReportScriptingStorage(), "type"), typeChoiceRenderer.getValues(), typeChoiceRenderer);
+      typeChoice.setNullValid(true);
+      typeChoice.setRequired(false);
+      fs.add(typeChoice);
+    }
+    gridBuilder.newGridPanel();
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("label.script"));
+      final AceEditorPanel textArea = new AceEditorPanel(fs.newChildId(), new PropertyModel<String>(getReportScriptingStorage(), "script"));
       fs.add(textArea);
     }
     {
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("label.groovy.result")).suppressLabelForWarning();
-      final DivTextPanel groovyResultPanel = new DivTextPanel(fs.newChildId(), new Model<String>() {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("label.script.result")).suppressLabelForWarning();
+      final DivTextPanel scriptResultPanel = new DivTextPanel(fs.newChildId(), new Model<String>() {
         /**
          * @see org.apache.wicket.model.Model#getObject()
          */
         @Override
         public String getObject()
         {
-          final ScriptExecutionResult groovyResult = parentPage.groovyResult;
+          final ScriptExecutionResult scriptingExecutionResult = parentPage.scriptExecutionResult;
           final StringBuffer buf = new StringBuffer();
-          buf.append(groovyResult.getResultAsHtmlString());
-          if (groovyResult.result != null && StringUtils.isNotEmpty(groovyResult.output) == true) {
+          buf.append(scriptingExecutionResult.getResultAsHtmlString());
+          if (scriptingExecutionResult.getResult() != null && StringUtils.isNotEmpty(scriptingExecutionResult.getOutput()) == true) {
             buf.append("<br/>\n");
-            buf.append(HtmlHelper.escapeXml(groovyResult.output));
+            buf.append(HtmlHelper.escapeXml(scriptingExecutionResult.getOutput()));
           }
           return buf.toString();
         }
@@ -132,12 +145,12 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
         @Override
         public boolean isVisible()
         {
-          final ScriptExecutionResult groovyResult = parentPage.groovyResult;
-          return (groovyResult != null && groovyResult.hasResult() == true);
+          final ScriptExecutionResult scriptExecutionResult = parentPage.scriptExecutionResult;
+          return (scriptExecutionResult != null && scriptExecutionResult.hasResult() == true);
         }
       };
-      groovyResultPanel.getLabel().setEscapeModelStrings(false);
-      fs.add(groovyResultPanel);
+      scriptResultPanel.getLabel().setEscapeModelStrings(false);
+      fs.add(scriptResultPanel);
     }
     {
       final Button executeButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("execute")) {
@@ -183,16 +196,6 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
     }
     buf.append(report.getId());
     return buf.toString();
-  }
-
-  public String getGroovyScript()
-  {
-    return getReportScriptingStorage().getGroovyScript();
-  }
-
-  public void setGroovyScript(final String groovyScript)
-  {
-    getReportScriptingStorage().setGroovyScript(groovyScript);
   }
 
   private ReportScriptingStorage getReportScriptingStorage()

@@ -26,21 +26,53 @@ package org.projectforge.business.scripting
 import org.slf4j.LoggerFactory
 import javax.script.ScriptEngineManager
 
-class KotlinEngine {
+object KotlinScriptExecutor {
+
+    val autoImports = listOf(
+            "import java.io.ByteArrayInputStream",
+            "import java.math.BigDecimal",
+            "import java.math.RoundingMode",
+            "import java.time.format.DateTimeFormatter",
+            "import de.micromata.merlin.I18n",
+            "import de.micromata.merlin.excel.ExcelSheet",
+            "import de.micromata.merlin.excel.ExcelWorkbook",
+            "import de.micromata.merlin.excel.ExcelWriterContext",
+            "import org.projectforge.framework.calendar.*",
+            "import org.projectforge.framework.i18n.translate",
+            "import org.projectforge.framework.i18n.translateMsg",
+            "import org.projectforge.framework.time.*",
+            "import org.projectforge.framework.utils.NumberHelper",
+            "import org.projectforge.business.fibu.*",
+            "import org.projectforge.business.task.*",
+            "import org.projectforge.business.timesheet.*",
+            "import org.projectforge.business.scripting.ScriptDO",
+            "import org.projectforge.common.*")
 
     /**
-     * @param template
+     * @param script Common imports will be prepended.
+     * @param variables Variables to bind. Variables are usable via binding["key"] or directly, if #autobind# is part of script.
      * @see GroovyExecutor.executeTemplate
      */
-     fun execute(template: String?, variables: Map<String, Any>): ScriptExecutionResult {
+    @JvmStatic
+    @JvmOverloads
+    fun execute(script: String, variables: Map<String, Any>, file: ByteArray? = null): ScriptExecutionResult {
         val engineManager = ScriptEngineManager()
         val engine = engineManager.getEngineByExtension("kts")
+        val bindings = engine.createBindings()
         variables.forEach {
-            engine.put(it.key, it.value)
+            bindings[it.key] = it.value
         }
+        if (file != null) {
+            bindings["fileInput"] = file.inputStream()
+        }
+        val sb = StringBuilder()
+        sb.appendln(autoImports.joinToString("\n"))
+        sb.append(script)
+        val effectiveScript = sb.toString()
         try {
             val result = ScriptExecutionResult()
-            result.result = engine.eval(template)
+            result.script = effectiveScript
+            result.result = engine.eval(effectiveScript, bindings)
             return result
         } catch (ex: Exception) {
             log.info("Exception on Kotlin script execution: ${ex.message}", ex)
@@ -48,9 +80,7 @@ class KotlinEngine {
         }
     }
 
-    companion object {
-        private val log = LoggerFactory.getLogger(KotlinEngine::class.java)
-    }
+    private val log = LoggerFactory.getLogger(KotlinScriptExecutor::class.java)
 }
 
 fun main() {

@@ -31,6 +31,10 @@ class ScriptExecutionResult : Serializable {
     @Transient
     var exception: Exception? = null
     var output: String? = null
+    /**
+     * The effective script (including any auto-imports and bindings).
+     */
+    var script: String = ""
 
     constructor() {}
     constructor(ex: Exception?) {

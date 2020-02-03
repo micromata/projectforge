@@ -60,8 +60,6 @@ public class ScriptDao extends BaseDao<ScriptDO>
   @Autowired
   private GroovyExecutor groovyExecutor;
 
-  private ScriptExecutionResult groovyResult;
-
   public ScriptDao()
   {
     super(ScriptDO.class);
@@ -133,13 +131,15 @@ public class ScriptDao extends BaseDao<ScriptDO>
     scriptVariables.put("i18n", new I18n());
 
     String scriptContent = script.getScriptAsString();
+    if (script.getType() == ScriptDO.ScriptType.KOTLIN) {
+      return KotlinScriptExecutor.execute(scriptContent, scriptVariables, script.getFile());
+    }
     if (scriptContent.contains("import org.projectforge.export")) {
       // Package was renamed in version 5.2 and 6.13:
       scriptContent = scriptContent.replace("import org.projectforge.export",
           "import org.projectforge.export.*\nimport org.projectforge.business.excel");
     }
-    groovyResult = groovyExecutor.execute(new ScriptExecutionResult(), scriptContent, scriptVariables);
-    return groovyResult;
+    return groovyExecutor.execute(new ScriptExecutionResult(), scriptContent, scriptVariables);
   }
 
   /**
