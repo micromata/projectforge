@@ -63,7 +63,7 @@ object KotlinScriptExecutor {
             bindings[it.key] = it.value
         }
         if (file != null) {
-            bindings["fileInput"] = file.inputStream()
+            bindings["file"] = file
         }
         val sb = StringBuilder()
         sb.appendln(autoImports.joinToString("\n"))
