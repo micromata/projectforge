@@ -69,20 +69,30 @@ public class ScriptEditForm extends AbstractEditForm<ScriptDO, ScriptEditPage>
   protected void init()
   {
     super.init();
-    gridBuilder.newSplitPanel(GridSize.COL33);
+    gridBuilder.newSplitPanel(GridSize.COL25);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("scripting.script.name"));
       fs.add(new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(data, "name")));
     }
-    gridBuilder.newSplitPanel(GridSize.COL66);
+    gridBuilder.newSplitPanel(GridSize.COL25);
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("scripting.script.type"));
+      // DropDownChoice type
+      final LabelValueChoiceRenderer<ScriptDO.ScriptType> typeChoiceRenderer = new LabelValueChoiceRenderer<ScriptDO.ScriptType>();
+      typeChoiceRenderer.addValue(ScriptDO.ScriptType.GROOVY, "Groovy");
+      typeChoiceRenderer.addValue(ScriptDO.ScriptType.KOTLIN, "Kotlin");
+      final DropDownChoice<ScriptDO.ScriptType> typeChoice = new DropDownChoice<ScriptDO.ScriptType>(fs.getDropDownChoiceId(),
+              new PropertyModel<ScriptDO.ScriptType>(data, "type"), typeChoiceRenderer.getValues(), typeChoiceRenderer);
+      typeChoice.setNullValid(true);
+      typeChoice.setRequired(false);
+      fs.add(typeChoice);
+    }
+    gridBuilder.newSplitPanel(GridSize.COL50);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("file"));
       fs.addHelpIcon(getString("scripting.script.editForm.file.tooltip"));
       fileUploadPanel = new FileUploadPanel(fs.newChildId(), fs, this, true, new PropertyModel<String>(data, "filename"),
           new PropertyModel<byte[]>(data, "file")) {
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.FileUploadPanel#upload()
-         */
         @Override
         protected void upload(final FileUpload fileUpload)
         {
