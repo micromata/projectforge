@@ -88,8 +88,8 @@ class UISelect<T>(val id: String,
     private fun getEnumValues(enumClass: Class<out Enum<*>>): Array<out Enum<*>> = enumClass.enumConstants
 
     companion object {
-        fun creatUserSelect(lc: LayoutContext,id:String, multi: Boolean, label: String? = null, additionalLabel: String? = null, tooltip: String? = null,
-                            showOnlyActiveUsers: Boolean = true): UISelect<Int> {
+        fun createUserSelect(lc: LayoutContext, id:String, multi: Boolean, label: String? = null, additionalLabel: String? = null, tooltip: String? = null,
+                             showOnlyActiveUsers: Boolean = true): UISelect<Int> {
             return UISelect<Int>(id,
                     lc,
                     multi = multi,
