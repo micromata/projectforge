@@ -61,8 +61,6 @@ class IndexPage extends React.Component {
     render() {
         const { translations } = this.state;
 
-        const todoDone = { color: 'green' };
-
         if (!translations) {
             return (<div>{' '}</div>);
         }
@@ -140,7 +138,7 @@ class IndexPage extends React.Component {
                 </Row>
                 <Row>
                     <Col>
-                        <h1>ToDo&apos;s (Fin)</h1>
+                        <h1>ToDo&apos;s (F.)</h1>
                         <ol>
                             <li>
                                 Can&apos;t delete last calendar.
@@ -162,183 +160,6 @@ class IndexPage extends React.Component {
                                 and date-range picker.
                             </li>
                         </ol>
-                        <h1>Done</h1>
-                        <ol style={todoDone}>
-                            <li>
-                                Prepare nested, indexed properties, such as
-                                {' '}
-                                <code>invoice.positions[2].amount</code>
-                                <br />
-                                See /incomingInvoice
-                            </li>
-                            <li>
-                                Clear Autocomplete (EditableMultiValueLabel) crash.
-                            </li>
-                            <li>
-                                ReactSelect.jsx tooltip random id.
-                            </li>
-                            <li>Finishing time sheet editing (recents)</li>
-                            <li>
-                                Open Popover with focus in Inputfield after selecting a new
-                                field in list&apos;s search filter.
-                            </li>
-                            <li>Update React-Select (fixes warning)</li>
-                            <li>
-                                TaskSelect panel: collapse search fields to have more a feeling
-                                of a bread crumb...
-                            </li>
-                            <li>Translations in SearchFilter.jsx</li>
-                            <li>MagicFilter: send filter settings to server on search action</li>
-                            <li>
-                                Bugs after dynamic layout refactoring
-                                <ol>
-                                    <li>
-                                        Address list page
-                                        <br />
-                                        <code>
-                                            Failed prop type: Invalid prop `translations` of type
-                                            `array` supplied to `FavoritesPanel`, expected `object`.
-                                            in FavoritesPanel (at SearchFilter.jsx:125)
-                                        </code>
-                                    </li>
-                                </ol>
-                            </li>
-                            <li>
-                                Redirect menu entries on edit page (address - print view)
-                            </li>
-                            <li>
-                                Display Logo
-                                <ol>
-                                    <li>
-                                        Configuration: projectforge.properties:
-                                        projectforge.logoFile=Micromata.png
-                                    </li>
-                                    <li>Logo url in rsPublic/systemStatus (e. g. logo.png)</li>
-                                    <li>
-                                        Logo service: rsPublic/logo.png (rsPublic/&lt;logoUrl&gt;)
-                                    </li>
-                                </ol>
-                            </li>
-                            <li>Display global validation errors of forms</li>
-                            <li>
-                                Clone button (e. g. address): reload page with data sent by server
-                                as response after fetching clone
-                            </li>
-                            <li>
-                                Display field validation errors in ReactSelect and date input
-                                fields
-                            </li>
-                            <li>
-                                Edit page in Modals: handle tabs (especially history), see time
-                                sheet edit page as modal of CalendarPage.
-                            </li>
-                            <li>Redirect after logout</li>
-                            <li>Enable localized customized pages (login page, setup page etc.)</li>
-                            <li>
-                                Redirect to setup-page if ProjectForge isn&apos;t initialized on
-                                first usage.
-                            </li>
-                            <li>
-                                Edit / rename entry of favorite filter, e. g. calendar page (star
-                                icon)
-                            </li>
-                            <li>Highlight last edited entry in list page</li>
-                            <li>
-                                In der Listenansicht werden nur die geraden (hellen) Zeilen
-                                gehighlighted nach der Editierseite (even-odd).
-                            </li>
-                            <li>
-                                Bug: States of Inputfields!
-                            </li>
-                            <li>Change time of day in calendar events.</li>
-                            <li>
-                                TimesheetEditTaskAndKost2.jsx: set kost2list on initial call and
-                                update of kost2list after task selections. See classic version.
-                                <i>Part of TaskTree refactor</i>
-                            </li>
-                            <li>
-                                Design improvements for selection of task tree (e. g. time
-                                sheet editing). Highlighting of current active breadcrumb,
-                                smaller search bar, no table head row. Collapse like Apple Finder.
-                            </li>
-                            <li>
-                                Set date of calendar view after editing timesheet or event.
-                            </li>
-                            <li>Calendar refetch events after deletion/creation etc.</li>
-                            <li>System alert message (front end side)</li>
-                            <li>
-                                Customized Data Image in List Page not working
-                            </li>
-                            <li>
-                                Autocompletion for input fields (see outgoing-mail), worked in older
-                                versions (before dynamic rendering).
-                            </li>
-                        </ol>
-                    </Col>
-                    <Col>
-                        <h1>ToDo&apos;s (Kai)</h1>
-                        <ol>
-                            <li>Adressbücher fehlen zwei row title.</li>
-                            <li>List pages: addresses, tasks etc.</li>
-                            <li>
-                                Search filter
-                                <ol>
-                                    <li>
-                                        <code>
-                                            Querying fields of type &#39;class
-                                            org.projectforge.business.address.AddressStatus&#39; not
-                                            yet implemented.
-                                        </code>
-                                    </li>
-                                </ol>
-                            </li>
-                            <li>Setup page</li>
-                            <li>Message of the day</li>
-                            <li>CSRF</li>
-                        </ol>
-                        <h1>Done</h1>
-                        <ol style={todoDone}>
-                            <li>System alert message (server side)</li>
-                            <li>Drag&Drop/resize of calendar events</li>
-                            <li>Calendar events (especially recurrences)</li>
-                            <li>updateFilter-Rest call for favorites</li>
-                            <li>
-                                Remove Apple-Control chars in all input fields (generated by copy
-                                and paste e. g. from Apple&apos; address book)
-                            </li>
-                            <li>Remove BookDO.task from data base.</li>
-                            <li>
-                                Edit of addresses: preserve address books without access of current
-                                logged in user.
-                            </li>
-                            <li>
-                                DynamicReactSelect: support of autocompletion and favorites (see
-                                field communication language of edit page for addresses).
-                            </li>
-                            <li>
-                                Calendar edit pages redirect url to /calendar
-                            </li>
-                            <li>Favorites</li>
-                            <li>
-                                switch from edit page time-sheets to calendar event and vica
-                                versa. see classic version.
-                                Via Action Buttons and UPDATE action
-                            </li>
-                            <li>
-                                <code>
-                                    java.lang.UnsupportedOperationException: null
-                                    at java.sql.Date.toInstant(Date.java:304)
-                                </code>
-                            </li>
-                            <li>
-                                Fix calendar issues, if the user&apos;s time zone differs from the
-                                browser&apos;s time zone. BigCalendar doesn&apos;t support this. The
-                                client should send his time zone for getting the events for the
-                                matching calendar week, otherwise the calendar get the events
-                                for the week or day before and can&apos;t display them.
-                            </li>
-                            <li>Loading plugins failed after mgc-update in executable jar.</li>
-                        </ol>
                     </Col>
                     <Col>
                         <h1>ToDo&apos;s (both)</h1>
@@ -357,10 +178,6 @@ class IndexPage extends React.Component {
                             <li>
                                 Registration of customized containers (e. g. for external plugins)
                             </li>
-                        </ol>
-                        <h1>Done</h1>
-                        <ol style={todoDone}>
-                            <li>Clone button of timesheets and calendar events</li>
                         </ol>
                     </Col>
                 </Row>
