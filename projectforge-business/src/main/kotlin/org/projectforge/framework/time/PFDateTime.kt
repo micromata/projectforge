@@ -410,7 +410,7 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
             return _localDate!!
         }
 
-    val localDateTime: LocalDateTime?
+    val localDateTime: LocalDateTime
         get() = dateTime.toLocalDateTime()
 
     companion object {

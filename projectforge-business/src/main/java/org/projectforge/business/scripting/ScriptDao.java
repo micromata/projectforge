@@ -132,7 +132,7 @@ public class ScriptDao extends BaseDao<ScriptDO>
 
     String scriptContent = script.getScriptAsString();
     if (script.getType() == ScriptDO.ScriptType.KOTLIN) {
-      return KotlinScriptExecutor.execute(scriptContent, scriptVariables, script.getFile());
+      return KotlinScriptExecutor.execute(scriptContent, scriptVariables, script.getFile(), script.getFilename());
     }
     if (scriptContent.contains("import org.projectforge.export")) {
       // Package was renamed in version 5.2 and 6.13:

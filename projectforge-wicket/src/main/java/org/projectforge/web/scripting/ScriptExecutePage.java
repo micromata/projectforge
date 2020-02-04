@@ -213,11 +213,11 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
   private void exportExcel(final ExcelWorkbook workbook) {
     final StringBuffer buf = new StringBuffer();
     if (workbook.getFilename() != null) {
-      buf.append(workbook.getFilename()).append("_");
+      buf.append(workbook.getFilenameWithoutExtension()).append("_");
     } else {
       buf.append("pf_scriptresult_");
     }
-    buf.append(DateHelper.getTimestampAsFilenameSuffix(new Date())).append(".xls");
+    buf.append(DateHelper.getTimestampAsFilenameSuffix(new Date())).append(".").append(workbook.getFilenameExtension());
     final String filename = buf.toString();
     final byte[] xls = workbook.getAsByteArrayOutputStream().toByteArray();
     if (xls == null || xls.length == 0) {
