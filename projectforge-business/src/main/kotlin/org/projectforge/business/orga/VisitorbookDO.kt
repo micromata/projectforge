@@ -23,42 +23,6 @@
 
 package org.projectforge.business.orga
 
-import java.io.Serializable
-import java.util.ArrayList
-import java.util.HashSet
-
-import javax.persistence.CascadeType
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.JoinTable
-import javax.persistence.ManyToMany
-import javax.persistence.OneToMany
-import javax.persistence.Table
-import javax.persistence.Transient
-
-import org.hibernate.annotations.Fetch
-import org.hibernate.annotations.FetchMode
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.FieldBridge
-import org.hibernate.search.annotations.Index
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
-import org.hibernate.search.annotations.Store
-import org.projectforge.business.fibu.EmployeeDO
-import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.AUserRightId
-import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.api.ModificationStatus
-import org.projectforge.framework.persistence.attr.impl.HibernateSearchAttrSchemaFieldInfoProvider
-import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-
 import de.micromata.genome.db.jpa.history.api.HistoryProperty
 import de.micromata.genome.db.jpa.history.impl.TimependingHistoryPropertyConverter
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr
@@ -67,6 +31,21 @@ import de.micromata.genome.jpa.ComplexEntity
 import de.micromata.genome.jpa.ComplexEntityVisitor
 import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo
 import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge
+import org.hibernate.annotations.Fetch
+import org.hibernate.annotations.FetchMode
+import org.hibernate.search.annotations.*
+import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.persistence.api.AUserRightId
+import org.projectforge.framework.persistence.api.BaseDO
+import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.attr.impl.HibernateSearchAttrSchemaFieldInfoProvider
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter
+import org.slf4j.LoggerFactory
+import java.io.Serializable
+import java.util.*
+import javax.persistence.*
 
 @Entity
 @Indexed
@@ -91,10 +70,11 @@ class VisitorbookDO : DefaultBaseDO(), EntityWithTimeableAttr<Int, VisitorbookTi
     var company: String? = null
 
     @PropertyInfo(i18nKey = "orga.visitorbook.contactPerson")
-    @IndexedEmbedded(depth = 2, includePaths = ["user.firstname", "user.lastname"])
+    @get:IndexedEmbedded(depth = 2, includePaths = ["user.firstname", "user.lastname"])
+    @get:ManyToMany(targetEntity = EmployeeDO::class, cascade = [CascadeType.MERGE], fetch = FetchType.EAGER)
+    @get:JoinTable(name = "T_ORGA_VISITORBOOK_EMPLOYEE", joinColumns = [JoinColumn(name = "VISITORBOOK_ID")], inverseJoinColumns = [JoinColumn(name = "EMPLOYEE_ID")], indexes = [javax.persistence.Index(name = "idx_fk_t_orga_visitorbook_employee_id", columnList = "visitorbook_id"), javax.persistence.Index(name = "idx_fk_t_orga_employee_employee_id", columnList = "employee_id")])
     var contactPersons: Set<EmployeeDO>? = null
-        @ManyToMany(targetEntity = EmployeeDO::class, cascade = [CascadeType.MERGE], fetch = FetchType.EAGER)
-        @JoinTable(name = "T_ORGA_VISITORBOOK_EMPLOYEE", joinColumns = [JoinColumn(name = "VISITORBOOK_ID")], inverseJoinColumns = [JoinColumn(name = "EMPLOYEE_ID")], indexes = [javax.persistence.Index(name = "idx_fk_t_orga_visitorbook_employee_id", columnList = "visitorbook_id"), javax.persistence.Index(name = "idx_fk_t_orga_employee_employee_id", columnList = "employee_id")])
+
         get() {
             if (field == null) {
                 this.contactPersons = HashSet()
