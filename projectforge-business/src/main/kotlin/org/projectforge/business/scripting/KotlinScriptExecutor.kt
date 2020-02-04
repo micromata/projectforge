@@ -34,6 +34,8 @@ object KotlinScriptExecutor {
             "import java.math.RoundingMode",
             "import java.time.format.DateTimeFormatter",
             "import de.micromata.merlin.I18n",
+            "import de.micromata.merlin.excel.ExcelCell",
+            "import de.micromata.merlin.excel.ExcelRow",
             "import de.micromata.merlin.excel.ExcelSheet",
             "import de.micromata.merlin.excel.ExcelWorkbook",
             "import de.micromata.merlin.excel.ExcelWriterContext",
@@ -46,6 +48,7 @@ object KotlinScriptExecutor {
             "import org.projectforge.business.task.*",
             "import org.projectforge.business.timesheet.*",
             "import org.projectforge.business.scripting.ScriptDO",
+            "import org.projectforge.business.scripting.ScriptingDao",
             "import org.projectforge.common.*")
 
     /**
@@ -55,7 +58,7 @@ object KotlinScriptExecutor {
      */
     @JvmStatic
     @JvmOverloads
-    fun execute(script: String, variables: Map<String, Any>, file: ByteArray? = null): ScriptExecutionResult {
+    fun execute(script: String, variables: Map<String, Any>, file: ByteArray? = null, filename: String? = null): ScriptExecutionResult {
         val engineManager = ScriptEngineManager()
         val engine = engineManager.getEngineByExtension("kts")
         val bindings = engine.createBindings()
@@ -64,6 +67,7 @@ object KotlinScriptExecutor {
         }
         if (file != null) {
             bindings["file"] = file
+            bindings["filename"] = filename
         }
         val sb = StringBuilder()
         sb.appendln(autoImports.joinToString("\n"))
@@ -89,7 +93,6 @@ fun main() {
         println(factory.engineName)
         println("\t" + factory.languageName)
     }
-
     val engine = engineManager.getEngineByExtension("kts")
     engine.eval("import org.projectforge.*\nprintln(\"\${ProjectForgeVersion.APP_ID} \${ProjectForgeVersion.VERSION_STRING}\")")
 }

@@ -23,6 +23,7 @@
 
 package org.projectforge.web.scripting;
 
+import de.micromata.merlin.excel.ExcelWorkbook;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -139,7 +140,7 @@ public class ScriptingPage extends AbstractScriptingPage
     scriptVariables.put("reportList", reportGeneratorList);
     if (StringUtils.isNotBlank(getReportScriptingStorage().getScript()) == true) {
       if (getReportScriptingStorage().getType() == ScriptDO.ScriptType.KOTLIN) {
-        scriptExecutionResult = KotlinScriptExecutor.execute(getReportScriptingStorage().getScript(), scriptVariables);
+         scriptExecutionResult = KotlinScriptExecutor.execute(getReportScriptingStorage().getScript(), scriptVariables);
       } else {
         scriptExecutionResult = groovyExecutor.execute(new ScriptExecutionResult(), getReportScriptingStorage().getScript(),
                 scriptVariables);
@@ -152,7 +153,9 @@ public class ScriptingPage extends AbstractScriptingPage
         // TODO maybe a good point to generalize to AbstractScriptingPage?
         final Object result = scriptExecutionResult.getResult();
         if (result instanceof ExportWorkbook == true) {
-          excelExport();
+          excelExport(((ExportWorkbook) result));
+        } else  if (result instanceof ExcelWorkbook == true) {
+            excelExport(((ExcelWorkbook) result));
         } else if (scriptExecutionResult.getResult() instanceof ReportGeneratorList == true) {
           reportGeneratorList = (ReportGeneratorList) scriptExecutionResult.getResult();
           // jasperReport(reportGeneratorList);
@@ -188,13 +191,15 @@ public class ScriptingPage extends AbstractScriptingPage
           // if (report != null) {
           // getReportScriptingStorage().setJasperReport(report, clientFileName);
           // }
-        } else if (clientFileName.endsWith(".xls") == true) {
+        } else if (clientFileName.toLowerCase().endsWith(".xls") || clientFileName.toLowerCase().endsWith(".xlsx")) {
+          String extension = clientFileName.substring(clientFileName.lastIndexOf('.' + 1));
           final StringBuffer buf = new StringBuffer();
           buf.append("report_")
-              .append(FileHelper.createSafeFilename(ThreadLocalUserContext.getUser().getUsername(), 20)).append(".xls");
+              .append(FileHelper.createSafeFilename(ThreadLocalUserContext.getUser().getUsername(), 20)).append(extension);
           final File file = new File(ConfigXml.getInstance().getWorkingDirectory(), buf.toString());
           fileUpload.writeTo(file);
           getReportScriptingStorage().setFilename(clientFileName, file.getAbsolutePath());
+          getReportScriptingStorage().setFilename("clientFileName", file.getAbsolutePath());
         } else {
           log.error("File extension not supported: " + clientFileName);
         }
@@ -259,10 +264,9 @@ public class ScriptingPage extends AbstractScriptingPage
   // log.error(ex.getMessage(), ex);
   // }
   // }
-  private void excelExport()
+  private void excelExport(ExportWorkbook workbook)
   {
     try {
-      final ExportWorkbook workbook = (ExportWorkbook) scriptExecutionResult.getResult();
       final StringBuffer buf = new StringBuffer();
       if (workbook.getFilename() != null) {
         buf.append(workbook.getFilename()).append("_");
@@ -272,6 +276,29 @@ public class ScriptingPage extends AbstractScriptingPage
       buf.append(DateHelper.getTimestampAsFilenameSuffix(new Date())).append(".xls");
       final String filename = buf.toString();
       DownloadUtils.setDownloadTarget(workbook.getAsByteArray(), filename);
+    } catch (final Exception ex) {
+      error(getLocalizedMessage("error", ex.getMessage()));
+      log.error(ex.getMessage(), ex);
+    }
+  }
+
+  private void excelExport(ExcelWorkbook workbook)
+  {
+    try {
+      final StringBuffer buf = new StringBuffer();
+      if (workbook.getFilename() != null) {
+        buf.append(workbook.getFilename()).append("_");
+      } else {
+        buf.append("pf_scriptresult_");
+      }
+      buf.append(DateHelper.getTimestampAsFilenameSuffix(new Date())).append(".").append(workbook.getFilenameExtension());
+      final String filename = buf.toString();
+      final byte[] xls = workbook.getAsByteArrayOutputStream().toByteArray();
+      if (xls == null || xls.length == 0) {
+        log.error("Oups, xls has zero size. Filename: " + filename);
+        return;
+      }
+      DownloadUtils.setDownloadTarget(xls, filename);
     } catch (final Exception ex) {
       error(getLocalizedMessage("error", ex.getMessage()));
       log.error(ex.getMessage(), ex);
