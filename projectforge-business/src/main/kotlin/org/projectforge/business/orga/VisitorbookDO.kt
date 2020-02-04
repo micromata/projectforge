@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2019 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -75,20 +75,17 @@ import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge
 @AUserRightId("ORGA_VISITORBOOK")
 class VisitorbookDO : DefaultBaseDO(), EntityWithTimeableAttr<Int, VisitorbookTimedDO>, ComplexEntity, EntityWithConfigurableAttr {
 
-    @Field(index = Index.YES, store = Store.NO)
-/* TOKENIZED */
+    @Field
     @PropertyInfo(i18nKey = "orga.visitorbook.lastname")
     @get:Column(name = "lastname", length = 30, nullable = false)
     var lastname: String? = null
 
-    @Field(index = Index.YES, store = Store.NO)
-/* TOKENIZED */
+    @Field
     @PropertyInfo(i18nKey = "orga.visitorbook.firstname")
     @get:Column(name = "firstname", length = 30, nullable = false)
     var firstname: String? = null
 
-    @Field(index = Index.YES, store = Store.NO)
-/* TOKENIZED */
+    @Field
     @PropertyInfo(i18nKey = "orga.visitorbook.company")
     @get:Column(name = "company")
     var company: String? = null
@@ -151,8 +148,6 @@ class VisitorbookDO : DefaultBaseDO(), EntityWithTimeableAttr<Int, VisitorbookTi
     }
 
     companion object {
-        private val serialVersionUID = -1208597049289694757L
-
         private val LOG = LoggerFactory.getLogger(VisitorbookDO::class.java)
     }
 

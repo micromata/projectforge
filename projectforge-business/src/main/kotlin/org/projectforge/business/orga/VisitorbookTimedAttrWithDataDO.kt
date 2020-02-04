@@ -35,14 +35,13 @@ class VisitorbookTimedAttrWithDataDO : VisitorbookTimedAttrDO {
     constructor() : super() {}
 
     constructor(parent: VisitorbookTimedDO, propertyName: String, type: Char,
-                value: String) : super(parent, propertyName, type, value) {
-    }
+                value: String) : super(parent, propertyName, type, value) {}
 
     constructor(parent: VisitorbookTimedDO) : super(parent) {}
 
     @OneToMany(cascade = [CascadeType.ALL], mappedBy = "parent", targetEntity = VisitorbookTimedAttrDataDO::class, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderColumn(name = "datarow")
-    override fun getData(): List<JpaTabAttrDataBaseDO<*, Int>> {
+    override fun getData(): MutableList<JpaTabAttrDataBaseDO<*, Int>>? {
         return super.getData()
     }
 }
