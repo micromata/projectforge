@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.orga;
+package org.projectforge.business.orga
 
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
 
@@ -29,39 +29,25 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "t_orga_visitorbook_timedattrdata")
-public class VisitorbookTimedAttrDataDO extends JpaTabAttrDataBaseDO<VisitorbookTimedAttrDO, Integer>
-{
+class VisitorbookTimedAttrDataDO : JpaTabAttrDataBaseDO<VisitorbookTimedAttrDO, Int> {
 
-  public VisitorbookTimedAttrDataDO()
-  {
-    super();
-  }
+    constructor() : super() {}
 
-  public VisitorbookTimedAttrDataDO(final VisitorbookTimedAttrDO parent, final String value)
-  {
-    super(parent, value);
-  }
+    constructor(parent: VisitorbookTimedAttrDO, value: String) : super(parent, value) {}
 
-  public VisitorbookTimedAttrDataDO(final VisitorbookTimedAttrDO parent)
-  {
-    super(parent);
-  }
+    constructor(parent: VisitorbookTimedAttrDO) : super(parent) {}
 
-  @Override
-  @Id
-  @GeneratedValue
-  @Column(name = "pk")
-  public Integer getPk()
-  {
-    return pk;
-  }
+    @Id
+    @GeneratedValue
+    @Column(name = "pk")
+    override fun getPk(): Int? {
+        return pk
+    }
 
-  @Override
-  @ManyToOne(optional = false)
-  @JoinColumn(name = "parent_id", referencedColumnName = "pk")
-  public VisitorbookTimedAttrDO getParent()
-  {
-    return super.getParent();
-  }
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "parent_id", referencedColumnName = "pk")
+    override fun getParent(): VisitorbookTimedAttrDO {
+        return super.getParent()
+    }
 
 }
