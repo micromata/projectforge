@@ -74,7 +74,7 @@ open class ScriptDO : BaseUserGroupRightsDO() {
     @PropertyInfo(i18nKey = "description")
     @Field
     @get:Column(length = 4000)
-    open var description: String? = null // 4000;
+    open var description: String? = null
 
     /**
      * Please note: script is not historizable. Therefore there is now history of scripts.

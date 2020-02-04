@@ -37,6 +37,7 @@ import org.projectforge.business.scripting.xstream.ScriptCallData;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.export.ExportJFreeChart;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -118,7 +119,15 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
       final DivTextPanel resultPanel = new DivTextPanel(scriptResultFieldsetPanel.newChildId(), new Model<String>() {
         @Override
         public String getObject() {
-          return scriptExecutionResult != null ? scriptExecutionResult.getResultAsHtmlString() : "";
+          if (scriptExecutionResult == null) {
+            return "";
+          }
+          StringBuilder sb = new StringBuilder();
+          if (scriptExecutionResult.hasException()) {
+            sb.append(scriptExecutionResult.getException().getMessage()).append("\n");
+          }
+          sb.append(scriptExecutionResult.getResult());
+          return "<pre>" + HtmlHelper.escapeHtml(sb.toString(), true) + "</pre>";
         }
       });
       resultPanel.getLabel().setEscapeModelStrings(false);
