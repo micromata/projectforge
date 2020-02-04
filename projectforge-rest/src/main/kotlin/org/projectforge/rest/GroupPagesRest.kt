@@ -80,7 +80,7 @@ class GroupPagesRest() : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao
                         .add(UICol()
                                 .add(lc, "name", "organization", "description"))
                         .add(UICol()
-                                .add(UISelect.creatUserSelect(lc, "assignedUsers", true, "group.assignedUsers", "access.users"))))
+                                .add(UISelect.createUserSelect(lc, "assignedUsers", true, "group.assignedUsers", "access.users"))))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
