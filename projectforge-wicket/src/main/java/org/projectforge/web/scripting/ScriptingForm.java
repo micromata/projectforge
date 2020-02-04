@@ -46,8 +46,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
-public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
-{
+public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage> {
   private static final long serialVersionUID = 1868796548657011785L;
 
   protected FileUploadField fileUploadField;
@@ -56,16 +55,14 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
 
   private DivPanel reportPathPanel;
 
-  public ScriptingForm(final ScriptingPage parentPage)
-  {
+  public ScriptingForm(final ScriptingPage parentPage) {
     super(parentPage);
     initUpload(Bytes.megabytes(1));
   }
 
   @Override
   @SuppressWarnings("serial")
-  protected void init()
-  {
+  protected void init() {
     super.init();
     gridBuilder.newGridPanel();
     reportPathPanel = gridBuilder.getPanel();
@@ -74,8 +71,7 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
        * @see org.apache.wicket.model.Model#getObject()
        */
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         return reportPathHeading;
       }
     }));
@@ -85,8 +81,7 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
       fileUploadField = new FileUploadField(FileUploadPanel.WICKET_ID);
       fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           final ReportScriptingStorage storage = getReportScriptingStorage();
           return storage != null ? storage.getLastAddedFilename() : "";
         }
@@ -94,8 +89,7 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
       fs.add(new FileUploadPanel(fs.newChildId(), fileUploadField));
       final Button uploadButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("upload")) {
         @Override
-        public final void onSubmit()
-        {
+        public final void onSubmit() {
           parentPage.upload();
         }
       };
@@ -127,26 +121,27 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
          * @see org.apache.wicket.model.Model#getObject()
          */
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           final ScriptExecutionResult scriptingExecutionResult = parentPage.scriptExecutionResult;
           final StringBuffer buf = new StringBuffer();
+          if (scriptingExecutionResult.hasException()) {
+            buf.append(scriptingExecutionResult.getException().getMessage()).append("\n");
+          }
           buf.append(scriptingExecutionResult.getResultAsHtmlString());
           if (scriptingExecutionResult.getResult() != null && StringUtils.isNotEmpty(scriptingExecutionResult.getOutput()) == true) {
             buf.append("<br/>\n");
-            buf.append(HtmlHelper.escapeXml(scriptingExecutionResult.getOutput()));
+            buf.append(scriptingExecutionResult.getOutput());
           }
-          return buf.toString();
+          return "<pre>" + HtmlHelper.escapeHtml(buf.toString(), true) + "</pre>";
         }
       }) {
         /**
          * @see org.apache.wicket.Component#isVisible()
          */
         @Override
-        public boolean isVisible()
-        {
+        public boolean isVisible() {
           final ScriptExecutionResult scriptExecutionResult = parentPage.scriptExecutionResult;
-          return (scriptExecutionResult != null && scriptExecutionResult.hasResult() == true);
+          return scriptExecutionResult != null;
         }
       };
       scriptResultPanel.getLabel().setEscapeModelStrings(false);
@@ -155,21 +150,19 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
     {
       final Button executeButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("execute")) {
         @Override
-        public final void onSubmit()
-        {
+        public final void onSubmit() {
           parentPage.execute();
         }
       };
       final SingleButtonPanel executeButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), executeButton, getString("execute"),
-          SingleButtonPanel.DEFAULT_SUBMIT);
+              SingleButtonPanel.DEFAULT_SUBMIT);
       actionButtons.add(executeButtonPanel);
       setDefaultButton(executeButton);
     }
   }
 
   @Override
-  public void onBeforeRender()
-  {
+  public void onBeforeRender() {
     final ReportStorage reportStorage = parentPage.getReportStorage();
     final Report currentReport = reportStorage != null ? reportStorage.getCurrentReport() : null;
     final String reportPathHeading = getReportPath(currentReport);
@@ -181,8 +174,7 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
     super.onBeforeRender();
   }
 
-  private String getReportPath(final Report report)
-  {
+  private String getReportPath(final Report report) {
     if (report == null) {
       return null;
     }
@@ -198,8 +190,7 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
     return buf.toString();
   }
 
-  private ReportScriptingStorage getReportScriptingStorage()
-  {
+  private ReportScriptingStorage getReportScriptingStorage() {
     return parentPage.getReportScriptingStorage();
   }
 }
