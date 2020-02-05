@@ -118,15 +118,13 @@
     <!-- Needed for kotlin script engine: -->
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
-      <artifactId>kotlin-compiler-embeddable</artifactId>
+      <artifactId>kotlin-compiler</artifactId>
       <version>${kotlin.version}</version>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
-      <artifactId>kotlin-scripting-compiler-embeddable</artifactId>
+      <artifactId>kotlin-scripting-compiler</artifactId>
       <version>${kotlin.version}</version>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>

@@ -61,8 +61,8 @@ open class ScriptDO : BaseUserGroupRightsDO() {
     /**
      * Not yet in use, later, it marks if this script should run as super user.
      */
-    @Basic
-    var sudo: Boolean? = null
+    @get:Basic
+    open var sudo: Boolean? = null
 
     /**
      * Unused (derived from [BaseUserGroupRightsDO]
