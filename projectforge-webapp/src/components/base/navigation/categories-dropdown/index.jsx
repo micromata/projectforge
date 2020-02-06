@@ -56,10 +56,9 @@ function CategoriesDropdown({ badge, categories }) {
             </DropdownToggle>
             <DropdownMenu className={style.categoryListDropdownMenu}>
                 <Container>
-                    <Row>
+                    <div className={style.categories}>
                         {columns.map(column => (
-                            <Col
-                                md={3}
+                            <div
                                 key={`menu-column-${column.map(({ id }) => id)
                                     .join('-')}`}
                                 className={style.categoryColumn}
@@ -71,9 +70,9 @@ function CategoriesDropdown({ badge, categories }) {
                                         closeMenu={() => setOpen(false)}
                                     />
                                 ))}
-                            </Col>
+                            </div>
                         ))}
-                    </Row>
+                    </div>
                 </Container>
             </DropdownMenu>
         </Dropdown>
