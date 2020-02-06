@@ -86,7 +86,7 @@ function AdvancedPopper(
                         additionalClassName,
                     )}
                     style={{
-                        top: basicHeight,
+                        top: basicHeight + (withInput ? 0 : 10),
                         minWidth: basicWidth,
                         maxWidth: additionalWidth,
                         maxHeight: additionalHeight,
