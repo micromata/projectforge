@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { menuItemPropType } from '../../../../utilities/propTypes';
-import { Col, Container, Dropdown, DropdownMenu, DropdownToggle, Row, } from '../../../design';
+import { Container, Dropdown, DropdownMenu, DropdownToggle, } from '../../../design';
 import style from '../Navigation.module.scss';
 import Category from './Category';
 import MenuBadge from './MenuBadge';
