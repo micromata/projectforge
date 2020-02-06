@@ -66,7 +66,7 @@ public class QuickSelectWeekPanel extends AbstractSelectPanel<Date> {
       final SubmitLink previousButton = new SubmitLink("previousWeek") {
         @Override
         public void onSubmit() {
-          final PFDay day = PFDay.from(getModelObject()).minusWeeks(1).getBeginOfWeek();
+          final PFDay day = PFDay.fromOrNow(getModelObject()).minusWeeks(1).getBeginOfWeek();
           caller.select(selectProperty, day.getLocalDate());
         }
       };
@@ -92,7 +92,7 @@ public class QuickSelectWeekPanel extends AbstractSelectPanel<Date> {
       final SubmitLink followingWeekButton = new SubmitLink("followingWeek") {
         @Override
         public void onSubmit() {
-          final PFDay day = PFDay.from(getModelObject()).plusWeeks(1).getBeginOfWeek();
+          final PFDay day = PFDay.fromOrNow(getModelObject()).plusWeeks(1).getBeginOfWeek();
           caller.select(selectProperty, day.getLocalDate());
         }
       };

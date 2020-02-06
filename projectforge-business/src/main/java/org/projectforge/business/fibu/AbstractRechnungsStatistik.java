@@ -23,7 +23,6 @@
 
 package org.projectforge.business.fibu;
 
-import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.statistics.IntAggregatedValues;
@@ -79,11 +78,11 @@ public class AbstractRechnungsStatistik<T extends AbstractRechnungDO> implements
         ueberfaelligSum = NumberHelper.add(ueberfaelligSum, brutto);
       }
     }
-    final DayHolder datum = new DayHolder(new PFDay(rechnung.getDatum()).getUtilDate());
-    final DayHolder faelligDatum = new DayHolder(new PFDay(rechnung.getFaelligkeit()).getUtilDate());
+    final PFDay datum = PFDay.fromOrNow(rechnung.getDatum());
+    final PFDay faelligDatum = PFDay.fromOrNow(rechnung.getFaelligkeit());
     zahlungsZielSum += datum.daysBetween(faelligDatum);
     if (rechnung.getBezahlDatum() != null) {
-      final DayHolder bezahlDatum = new DayHolder(new PFDay(rechnung.getBezahlDatum()).getUtilDate());
+      final PFDay bezahlDatum = PFDay.fromOrNow(rechnung.getBezahlDatum());
       tatsaechlichesZahlungsZiel.add((int) datum.daysBetween(bezahlDatum), brutto.intValue());
       counterBezahlt++;
     }
