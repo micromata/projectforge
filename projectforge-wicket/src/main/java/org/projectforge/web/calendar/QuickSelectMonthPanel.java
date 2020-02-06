@@ -66,7 +66,7 @@ public class QuickSelectMonthPanel extends AbstractSelectPanel<Date> {
       final SubmitLink previousButton = new SubmitLink("previousMonth") {
         @Override
         public void onSubmit() {
-          final PFDay day = PFDay.from(getModelObject()).minusMonths(1).getBeginOfMonth();
+          final PFDay day = PFDay.fromOrNow(getModelObject()).minusMonths(1).getBeginOfMonth();
           caller.select(selectProperty, day.getLocalDate());
         }
       };
@@ -92,7 +92,7 @@ public class QuickSelectMonthPanel extends AbstractSelectPanel<Date> {
       final SubmitLink followingMonthButton = new SubmitLink("followingMonth") {
         @Override
         public void onSubmit() {
-          final PFDay day = PFDay.from(getModelObject()).plusMonths(1).getBeginOfMonth();
+          final PFDay day = PFDay.fromOrNow(getModelObject()).plusMonths(1).getBeginOfMonth();
           caller.select(selectProperty, day.getLocalDate());
         }
       };
