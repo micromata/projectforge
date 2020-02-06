@@ -119,7 +119,7 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
 
         defaultFirstDayOfWeekCombobox = ComboBox()
         listOfWeekdays.forEach { defaultFirstDayOfWeekCombobox.addItem(it.label) }
-        defaultFirstDayOfWeekCombobox.selectedIndex = 1
+        defaultFirstDayOfWeekCombobox.selectedIndex = 0
         panel.addComponent(Label(Texts.FS_FIRST_DAY))
                 .addComponent(defaultFirstDayOfWeekCombobox)
                 .addComponent(Label(Texts.FS_FIRST_DAY_DESC))

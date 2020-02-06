@@ -23,6 +23,7 @@
 
 package org.projectforge.web.scripting;
 
+import de.micromata.merlin.excel.ExcelWorkbook;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -36,6 +37,7 @@ import org.projectforge.business.scripting.xstream.ScriptCallData;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.export.ExportJFreeChart;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -58,8 +60,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import java.io.ByteArrayOutputStream;
 import java.util.Date;
 
-public class ScriptExecutePage extends AbstractScriptingPage implements ISelectCallerPage
-{
+public class ScriptExecutePage extends AbstractScriptingPage implements ISelectCallerPage {
   private static final long serialVersionUID = -183858142939207911L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ScriptExecutePage.class);
@@ -82,26 +83,23 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
   private GridBuilder resultGridBuilder;
 
   @SuppressWarnings("serial")
-  public ScriptExecutePage(final PageParameters parameters)
-  {
+  public ScriptExecutePage(final PageParameters parameters) {
     super(parameters);
     id = WicketUtils.getAsInteger(parameters, AbstractEditPage.PARAMETER_KEY_ID);
     final ContentMenuEntryPanel editMenuEntryPanel = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-        new Link<Object>("link")
-        {
-          @Override
-          public void onClick()
-          {
-            storeRecentScriptCalls();
-            final PageParameters params = new PageParameters();
-            params.add(AbstractEditPage.PARAMETER_KEY_ID, String.valueOf(id));
-            final ScriptEditPage editPage = new ScriptEditPage(params);
-            editPage.setReturnToPage(ScriptExecutePage.this);
-            form.refresh = true; // Force reload of parameter settings.
-            setResponsePage(editPage);
-          }
+            new Link<Object>("link") {
+              @Override
+              public void onClick() {
+                storeRecentScriptCalls();
+                final PageParameters params = new PageParameters();
+                params.add(AbstractEditPage.PARAMETER_KEY_ID, String.valueOf(id));
+                final ScriptEditPage editPage = new ScriptEditPage(params);
+                editPage.setReturnToPage(ScriptExecutePage.this);
+                form.refresh = true; // Force reload of parameter settings.
+                setResponsePage(editPage);
+              }
 
-        }, getString("edit"));
+            }, getString("edit"));
     addContentMenuEntry(editMenuEntryPanel);
     form = new ScriptExecuteForm(this, loadScript());
     body.add(form);
@@ -109,23 +107,27 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
     resultGridBuilder = form.newGridBuilder(body, "results");
     resultGridBuilder.newGridPanel();
     {
-      scriptResultFieldsetPanel = new FieldsetPanel(resultGridBuilder.getPanel(), getString("scripting.script.result"))
-      {
+      scriptResultFieldsetPanel = new FieldsetPanel(resultGridBuilder.getPanel(), getString("scripting.script.result")) {
         /**
          * @see org.apache.wicket.Component#isVisible()
          */
         @Override
-        public boolean isVisible()
-        {
-          return groovyResult != null;
+        public boolean isVisible() {
+          return scriptExecutionResult != null;
         }
       }.suppressLabelForWarning();
-      final DivTextPanel resultPanel = new DivTextPanel(scriptResultFieldsetPanel.newChildId(), new Model<String>()
-      {
+      final DivTextPanel resultPanel = new DivTextPanel(scriptResultFieldsetPanel.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
-          return groovyResult != null ? groovyResult.getResultAsHtmlString() : "";
+        public String getObject() {
+          if (scriptExecutionResult == null) {
+            return "";
+          }
+          StringBuilder sb = new StringBuilder();
+          if (scriptExecutionResult.hasException()) {
+            sb.append(scriptExecutionResult.getException().getMessage()).append("\n");
+          }
+          sb.append(scriptExecutionResult.getResult());
+          return "<pre>" + HtmlHelper.escapeHtml(sb.toString(), true) + "</pre>";
         }
       });
       resultPanel.getLabel().setEscapeModelStrings(false);
@@ -133,8 +135,7 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
     }
   }
 
-  protected ScriptDO loadScript()
-  {
+  protected ScriptDO loadScript() {
     final ScriptDO script = scriptDao.getById(id);
     if (script == null) {
       log.error("Script with id '" + id + "' not found");
@@ -144,20 +145,17 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
   }
 
   @Override
-  protected String getTitle()
-  {
+  protected String getTitle() {
     return getString("scripting.script.execute");
   }
 
-  protected void cancel()
-  {
+  protected void cancel() {
     final PageParameters params = new PageParameters();
     params.add(AbstractListPage.PARAMETER_HIGHLIGHTED_ROW, id);
     setResponsePage(ScriptListPage.class, params);
   }
 
-  protected void execute()
-  {
+  protected void execute() {
     final StringBuffer buf = new StringBuffer();
     buf.append("Execute script '").append(getScript().getName()).append("': ");
     if (form.scriptParameters != null) {
@@ -173,16 +171,18 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
     }
     log.info(buf.toString());
     storeRecentScriptCalls();
-    groovyResult = scriptDao.execute(getScript(), form.scriptParameters);
-    if (groovyResult.hasException() == true) {
-      form.error(getLocalizedMessage("exception.groovyError", String.valueOf(groovyResult.getException())));
+    scriptExecutionResult = scriptDao.execute(getScript(), form.scriptParameters);
+    if (scriptExecutionResult.hasException() == true) {
+      form.error(getLocalizedMessage("exception.scriptError", String.valueOf(scriptExecutionResult.getException())));
       return;
     }
-    if (groovyResult.hasResult() == true) {
+    if (scriptExecutionResult.hasResult() == true) {
       // TODO maybe a good point to generalize to AbstractScriptingPage?
-      final Object obj = groovyResult.getResult();
+      final Object obj = scriptExecutionResult.getResult();
       if (obj instanceof ExportWorkbook == true) {
         exportExcel((ExportWorkbook) obj);
+      } else if (obj instanceof ExcelWorkbook == true) {
+        exportExcel((ExcelWorkbook) obj);
       } else if (obj instanceof ExportJFreeChart == true) {
         exportJFreeChart((ExportJFreeChart) obj);
       } else if (obj instanceof ExportZipArchive == true) {
@@ -193,8 +193,7 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
     }
   }
 
-  private void exportExcel(final ExportWorkbook workbook)
-  {
+  private void exportExcel(final ExportWorkbook workbook) {
     final StringBuffer buf = new StringBuffer();
     if (workbook.getFilename() != null) {
       buf.append(workbook.getFilename()).append("_");
@@ -211,8 +210,24 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
     DownloadUtils.setDownloadTarget(xls, filename);
   }
 
-  private void exportJFreeChart(final ExportJFreeChart exportJFreeChart)
-  {
+  private void exportExcel(final ExcelWorkbook workbook) {
+    final StringBuffer buf = new StringBuffer();
+    if (workbook.getFilename() != null) {
+      buf.append(workbook.getFilenameWithoutExtension()).append("_");
+    } else {
+      buf.append("pf_scriptresult_");
+    }
+    buf.append(DateHelper.getTimestampAsFilenameSuffix(new Date())).append(".").append(workbook.getFilenameExtension());
+    final String filename = buf.toString();
+    final byte[] xls = workbook.getAsByteArrayOutputStream().toByteArray();
+    if (xls == null || xls.length == 0) {
+      log.error("Oups, xls has zero size. Filename: " + filename);
+      return;
+    }
+    DownloadUtils.setDownloadTarget(xls, filename);
+  }
+
+  private void exportJFreeChart(final ExportJFreeChart exportJFreeChart) {
     final StringBuilder sb = new StringBuilder();
     sb.append("pf_chart_");
     sb.append(DateHelper.getTimestampAsFilenameSuffix(new Date()));
@@ -222,8 +237,7 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
     DownloadUtils.setDownloadTarget(out.toByteArray(), sb.toString());
   }
 
-  private void exportZipArchive(final ExportZipArchive exportZipArchive)
-  {
+  private void exportZipArchive(final ExportZipArchive exportZipArchive) {
     try {
       final StringBuilder sb = new StringBuilder();
       sb.append(exportZipArchive.getFilename()).append("_");
@@ -236,15 +250,13 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
     }
   }
 
-  protected void storeRecentScriptCalls()
-  {
+  protected void storeRecentScriptCalls() {
     final RecentScriptCalls recents = getRecentScriptCalls();
     final ScriptCallData scriptCallData = new ScriptCallData(getScript().getName(), form.scriptParameters);
     recents.append(scriptCallData);
   }
 
-  protected RecentScriptCalls getRecentScriptCalls()
-  {
+  protected RecentScriptCalls getRecentScriptCalls() {
     RecentScriptCalls recentScriptCalls = (RecentScriptCalls) getUserPrefEntry(ScriptExecutePage.class.getName());
     if (recentScriptCalls == null) {
       recentScriptCalls = new RecentScriptCalls();
@@ -253,20 +265,17 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
     return recentScriptCalls;
   }
 
-  protected ScriptDO getScript()
-  {
+  protected ScriptDO getScript() {
     return form.data;
   }
 
   @Override
-  public void cancelSelection(final String property)
-  {
+  public void cancelSelection(final String property) {
     // Do nothing.
   }
 
   @Override
-  public void select(final String property, final Object selectedValue)
-  {
+  public void select(final String property, final Object selectedValue) {
     if (property == null) {
       log.error("Oups, null property not supported for selection.");
       return;
@@ -295,7 +304,7 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
       } else {
         log.error("Property '" + property + "' not supported for selection.");
       }
-      timePeriod.setToDate(dateHolder.getUtilDate());
+      timePeriod.setToDate(dateHolder.getDate());
       form.scriptParameters.get(idx).setTimePeriodValue(timePeriod);
       form.datePanel1[idx].markModelAsChanged();
       form.datePanel2[idx].markModelAsChanged();
@@ -311,8 +320,7 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
   }
 
   @Override
-  public void unselect(final String property)
-  {
+  public void unselect(final String property) {
     // Do nothing.
   }
 }
