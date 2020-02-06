@@ -39,6 +39,11 @@ class TimePeriod @JvmOverloads constructor(var fromDate: Date? = null, var toDat
                                             * @return
                                             */
                                            var marker: Boolean = false) : Serializable {
+    constructor( fromDay: LocalDate? = null,
+                 toDate: LocalDate? = null,
+                 marker: Boolean = false)
+            : this(PFDateTime.fromOrNull(fromDay)?.beginOfDay?.utilDate, PFDateTime.fromOrNull(toDate)?.endOfDay?.utilDate, marker)
+
     var fromDay: LocalDate?
         get() = PFDay.fromOrNull(fromDate)?.localDate
         set(value) {

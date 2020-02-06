@@ -219,13 +219,13 @@ public class ScriptExecuteForm extends AbstractStandardForm<ScriptDO, ScriptExec
             new TextField<BigDecimal>(fs.getTextFieldId(), new PropertyModel<BigDecimal>(parameter, "decimalValue")));
       } else if (parameter.getType() == ScriptParameterType.DATE
           || parameter.getType() == ScriptParameterType.TIME_PERIOD) {
-        final String property = parameter.getType() == ScriptParameterType.TIME_PERIOD ? "timePeriodValue.fromDate"
+        final String property = parameter.getType() == ScriptParameterType.TIME_PERIOD ? "timePeriodValue.fromDay"
             : "dateValue";
         datePanel1[index] = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<LocalDate>(parameter, property)));
         fs.add(datePanel1[index]);
         if (parameter.getType() == ScriptParameterType.TIME_PERIOD) {
           fs.add(new DivTextPanel(fs.newChildId(), " - "));
-          datePanel2[index] = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<LocalDate>(parameter, "timePeriodValue.toDate")));
+          datePanel2[index] = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<LocalDate>(parameter, "timePeriodValue.toDay")));
           fs.add(datePanel2[index]);
           quickSelectPanel[index] = new QuickSelectPanel(fs.newChildId(), parentPage, "quickSelect:" + index,
               datePanel1[index]);
