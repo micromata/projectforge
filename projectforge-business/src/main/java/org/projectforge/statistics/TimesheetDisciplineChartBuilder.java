@@ -128,7 +128,7 @@ public class TimesheetDisciplineChartBuilder
       // NPE-Fix required: current may be null.
       PFDateTime dateTime = null;
       if (current != null)
-        dateTime = PFDateTime.from(current.getStartTime());
+        dateTime = PFDateTime.from(current.getStartTime()); // not null
       while (current != null && (dt.isSameDay(dateTime) || dateTime.isBefore(dt))) {
         actualWorkingHours += ((double) current.getWorkFractionDuration()) / 3600000;
         if (it.hasNext()) {
@@ -197,7 +197,7 @@ public class TimesheetDisciplineChartBuilder
       long totalDuration = 0; // Weight for average.
       PFDateTime dateTime = null;
       if (current != null)
-        dateTime = PFDateTime.from(current.getStartTime());
+        dateTime = PFDateTime.from(current.getStartTime()); // not null
       while (current != null && (dt.isSameDay(dateTime) || dateTime.isBefore(dt))) {
         final long duration = current.getWorkFractionDuration();
         difference += (current.getCreated().getTime() - current.getStartTime().getTime()) * duration;

@@ -138,7 +138,7 @@ object VacationValidator {
                         // more than one year leave days, can't be enough days left.
                         return returnOrThrow(Error.NOT_ENOUGH_DAYS_LEFT, throwException)
                     }
-                    val startDay = PFDay.from(startDate)!!
+                    val startDay = PFDay.from(startDate) // not null
                     val numberOfWorkingDaysInStartDate = VacationService.getVacationDays(vacation, startDay.beginOfYear.localDate, startDay.endOfYear.localDate)
                     if (numberOfWorkingDaysInStartDate > stats.vacationDaysLeftInYearWithoutCarry) {
                         // Not enough days left in year of start date:
@@ -146,7 +146,7 @@ object VacationValidator {
                     }
                     // Process only with leave days in new year (modifiedStartDate and reduced numberOfWorkingDays):
                     modifiedStartDate = LocalDate.of(endDate.year, Month.JANUARY, 1)
-                    val endDay = PFDay.from(endDate)!!
+                    val endDay = PFDay.from(endDate) // not null
                     numberOfWorkingDays = VacationService.getVacationDays(vacation, endDay.beginOfYear.localDate, endDay.endOfYear.localDate)
                     stats = vacationService.getVacationStats(employee, endDate.year, vacationEntries = allVacationEntries)
                 }

@@ -51,7 +51,7 @@ class PFDayUtilsTest {
 
     private fun checkNextWorkingDay(date: LocalDate, year: Int, month: Month, dayOfMonth: Int) {
         checkDate(PFDayUtils.getNextWorkingDay(date), year, month, dayOfMonth)
-        checkDate(PFDayUtils.getNextWorkingDay(PFDay.from(date)!!).localDate, year, month, dayOfMonth)
+        checkDate(PFDayUtils.getNextWorkingDay(PFDay.from(date)).localDate, year, month, dayOfMonth)
 
     }
 

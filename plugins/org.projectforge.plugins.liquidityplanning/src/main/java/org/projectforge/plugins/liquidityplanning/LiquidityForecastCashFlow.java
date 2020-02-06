@@ -28,7 +28,6 @@ import org.projectforge.business.scripting.I18n;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.export.MyExcelExporter;
 import org.projectforge.framework.time.DateFormats;
-import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 
@@ -77,7 +76,7 @@ public class LiquidityForecastCashFlow implements Serializable
       }
       int numberOfDay = 0;
       if (dateOfPayment != null) {
-        final PFDateTime dateTimeOfPayment = PFDateTime.from(dateOfPayment);
+        final PFDateTime dateTimeOfPayment = PFDateTime.from(dateOfPayment); // not null
         if (today.isBefore(dateTimeOfPayment) && !today.isSameDay(dateTimeOfPayment)) {
           numberOfDay = (int) today.daysBetween(dateTimeOfPayment);
         }
@@ -93,7 +92,7 @@ public class LiquidityForecastCashFlow implements Serializable
       }
       int numberOfDayExpected = 0;
       if (expectedDateOfPayment != null) {
-        final PFDateTime expectedDateTimeOfPayment = PFDateTime.from(expectedDateOfPayment);
+        final PFDateTime expectedDateTimeOfPayment = PFDateTime.from(expectedDateOfPayment); // not null
         if (today.isBefore(expectedDateTimeOfPayment) && !today.isSameDay(expectedDateTimeOfPayment)) {
           numberOfDayExpected = (int)today.daysBetween(expectedDateTimeOfPayment);
         }

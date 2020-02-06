@@ -220,7 +220,7 @@ open class ForecastExport { // open needed by Wicket.
                     log.error("Shouldn't occur: order position is registered but referred order itself not.")
                     continue
                 }
-                var monthIndex = getMonthIndex(ctx, PFDay.from(invoice.datum)!!)
+                var monthIndex = getMonthIndex(ctx, PFDay.fromOrNow(invoice.datum))
                 if (monthIndex !in -12..11) {
                     continue
                 }
@@ -320,7 +320,7 @@ open class ForecastExport { // open needed by Wicket.
         // handle payment schedule
         if (paymentSchedules.isNotEmpty()) {
             var sum = BigDecimal.ZERO
-            beginDistribute = PFDay.from(paymentSchedules[0].scheduleDate)!!
+            beginDistribute = PFDay.fromOrNow(paymentSchedules[0].scheduleDate)
             val sb = StringBuilder()
             var first = true
             for (schedule in paymentSchedules) {
@@ -329,7 +329,7 @@ open class ForecastExport { // open needed by Wicket.
                 val amount = schedule.amount!!.multiply(probability)
                 sum += amount
                 if (beginDistribute.isBefore(schedule.scheduleDate!!)) {
-                    beginDistribute = PFDay.from(schedule.scheduleDate)!!
+                    beginDistribute = PFDay.fromOrNow(schedule.scheduleDate)
                 }
                 if (first) first = false else sb.append(", ")
                 sb.append("${beginDistribute.format(ctx.dateFormat)}: ${ctx.currencyFormat.format(amount)}")
@@ -373,7 +373,7 @@ open class ForecastExport { // open needed by Wicket.
                     if (schedule.vollstaendigFakturiert) {
                         continue
                     }
-                    val date = PFDay.from(schedule.scheduleDate)!!.endOfMonth
+                    val date = PFDay.fromOrNow(schedule.scheduleDate).endOfMonth
                     if (date.year == currentMonth.year && date.month == currentMonth.month) {
                         sum += schedule.amount!!.multiply(probability).setScale(2, RoundingMode.HALF_UP)
                     }

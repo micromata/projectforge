@@ -257,7 +257,7 @@ public class MonthlyEmployeeReport implements Serializable {
   }
 
   public void addTimesheet(final TimesheetDO sheet, final boolean hasSelectAccess) {
-    final PFDateTime day = PFDateTime.from(sheet.getStartTime());
+    final PFDateTime day = PFDateTime.from(sheet.getStartTime()); // not null
     bookedDays.add(day.getDayOfMonth());
     for (final MonthlyEmployeeReportWeek week : weeks) {
       if (week.matchWeek(sheet)) {

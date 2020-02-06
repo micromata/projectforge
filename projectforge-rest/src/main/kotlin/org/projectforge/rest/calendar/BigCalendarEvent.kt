@@ -84,11 +84,11 @@ class BigCalendarEvent(val title: String?,
 
     companion object {
         fun asStartDate(start: LocalDate): Date {
-            return PFDay.from(start)!!.utilDate
+            return PFDay.from(start).utilDate
         }
 
         fun asEndDate(end: LocalDate): Date {
-            return PFDateTime.from(end)!!.endOfDay.utilDate
+            return PFDateTime.from(end).endOfDay.utilDate
         }
 
         fun samePeriod(event: BigCalendarEvent, start: LocalDate?, end: LocalDate?): Boolean {

@@ -295,7 +295,7 @@ public class TeamEventDaoRest
       event.setReminderDuration(src.getReminderDuration());
       final ReminderDurationUnit unit = src.getReminderDurationUnit();
       event.setReminderUnit(unit.toString());
-      PFDateTime dateTime = PFDateTime.from(src.getStartDate());
+      PFDateTime dateTime = PFDateTime.from(src.getStartDate()); // not null
       if (unit == ReminderDurationUnit.MINUTES) {
         dateTime.minus(src.getReminderDuration(), ChronoUnit.MINUTES);
         event.setReminder(dateTime.getUtilDate());
