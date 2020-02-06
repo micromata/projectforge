@@ -304,7 +304,7 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
       } else {
         log.error("Property '" + property + "' not supported for selection.");
       }
-      timePeriod.setToDate(dateHolder.getDate());
+      timePeriod.setToDate(dateHolder.getUtilDate());
       form.scriptParameters.get(idx).setTimePeriodValue(timePeriod);
       form.datePanel1[idx].markModelAsChanged();
       form.datePanel2[idx].markModelAsChanged();
