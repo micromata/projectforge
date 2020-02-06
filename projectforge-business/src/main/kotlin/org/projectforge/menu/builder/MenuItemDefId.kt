@@ -103,7 +103,6 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     PLUGIN_ADMIN("menu.pluginAdmin", "wa/wicket/bookmarkable/org.projectforge.web.admin.PluginListPage"), //
     SYSTEM("menu.system", "wa/admin"), //
     SYSTEM_STATISTICS("menu.systemStatistics", "wa/systemStatistics"), //
-    SYSTEM_UPDATE("menu.systemUpdate", "wa/systemUpdate"), //
     TENANT_LIST("menu.multiTenancy");
 
 

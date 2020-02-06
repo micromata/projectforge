@@ -41,9 +41,10 @@ import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.admin.SetupPage;
-import org.projectforge.web.admin.SystemUpdatePage;
 import org.projectforge.web.wicket.AbstractUnsecureBasePage;
 import org.projectforge.web.wicket.WicketUtils;
+
+import java.util.Objects;
 
 public class LoginPage extends AbstractUnsecureBasePage
 {
@@ -103,12 +104,11 @@ public class LoginPage extends AbstractUnsecureBasePage
     final PFUserDO wicketSessionUser = getMySession().getUser();
     final PFUserDO sessionUser = UserFilter.getUser(WicketUtils.getHttpServletRequest(getRequest()));
     // Sometimes the wicket session user is given but the http session user is lost (re-login required).
-    if (wicketSessionUser != null && sessionUser != null && wicketSessionUser.getId() == sessionUser.getId()) {
+    if (wicketSessionUser != null && sessionUser != null && Objects.equals(wicketSessionUser.getId(), sessionUser.getId())) {
       if (UserFilter.isUpdateRequiredFirst() == true) {
-        log.info("Admin login for maintenance (data-base update) successful for user '"
-            + wicketSessionUser.getUsername() + "'.");
-
-        throw new RestartResponseException(SystemUpdatePage.class);
+        /* log.info("Admin login for maintenance (data-base update) successful for user '"
+                + wicketSessionUser.getUsername() + "'.");
+        throw new RestartResponseException(SystemUpdatePage.class);*/
       }
       throw new RestartResponseException(WicketUtils.getDefaultPage());
     }
