@@ -181,6 +181,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
    * @see ProjektDO#getTask()
    */
   public ProjektDO getProjekt(final boolean recursive) {
+    // TBD: Why the project isn't updated or will resists after caches refresh?
     if (projekt != null) {
       return projekt;
     } else if (recursive && parent != null) {
