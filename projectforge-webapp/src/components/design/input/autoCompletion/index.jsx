@@ -12,6 +12,7 @@ const loadCompletionsBounced = (
         search = '',
         setCompletions,
         searchParameter,
+        signal,
     },
 ) => {
     fetch(
@@ -20,12 +21,13 @@ const loadCompletionsBounced = (
             method: 'GET',
             credentials: 'include',
             headers: { Accept: 'application/json' },
+            signal,
         },
     )
         .then(handleHTTPErrors)
         .then(response => response.json())
         .then(setCompletions)
-        .catch(() => setCompletions([]));
+        .catch(undefined);
 };
 
 function AutoCompletion(
@@ -40,6 +42,7 @@ function AutoCompletion(
 ) {
     const [completions, setCompletions] = React.useState([]);
     const [isOpen, setIsOpen] = React.useState(false);
+    const [abortController, setAbortController] = React.useState(null);
     const searchRef = React.useRef(null);
     const [loadCompletions] = React.useState(
         () => AwesomeDebouncePromise(loadCompletionsBounced, debouncedWaitTime),
@@ -65,11 +68,20 @@ function AutoCompletion(
 
     React.useEffect(() => {
         if (url) {
+            // Cancel old request, to prevent overwriting
+            if (abortController) {
+                abortController.abort();
+            }
+
+            const newAbortController = new AbortController();
+            setAbortController(newAbortController);
+
             loadCompletions({
                 url,
                 search,
                 setCompletions,
                 searchParameter,
+                signal: newAbortController.signal,
             });
         }
     }, [url, search]);
