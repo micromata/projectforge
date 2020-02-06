@@ -58,6 +58,8 @@ function AutoCompletion(
     const handleKeyDown = ({ key }) => {
         if (key === 'Escape' || key === 'Enter') {
             close();
+        } else if (!isOpen) {
+            setIsOpen(true);
         }
     };
 
