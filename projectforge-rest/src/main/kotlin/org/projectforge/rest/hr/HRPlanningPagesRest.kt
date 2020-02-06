@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest
+package org.projectforge.rest.hr
 
 import org.projectforge.business.humanresources.HRPlanningDO
 import org.projectforge.business.humanresources.HRPlanningDao
