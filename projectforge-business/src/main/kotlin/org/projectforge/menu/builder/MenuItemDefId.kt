@@ -45,7 +45,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     ACCESS_LIST("menu.accessList", "wa/accessList"), //
     ACCOUNT_LIST("menu.fibu.konten", "${PREFIX}konto"), //
     ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", "wa/accountingRecordList"), //
-    ADDRESSBOOK_LIST("menu.addressbookList", "$PREFIX}addressBook"), //
+    ADDRESSBOOK_LIST("menu.addressbookList", "${PREFIX}addressBook"), //
     ADDRESS_LIST("menu.addressList", "${PREFIX}address"), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
     BOOK_LIST("menu.bookList", "${PREFIX}book"), //
