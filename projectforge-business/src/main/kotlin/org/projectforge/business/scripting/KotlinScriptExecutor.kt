@@ -59,8 +59,6 @@ object KotlinScriptExecutor {
     @JvmStatic
     @JvmOverloads
     fun execute(script: String, variables: Map<String, Any>, file: ByteArray? = null, filename: String? = null): ScriptExecutionResult {
-        // val engineManager = ScriptEngineManager()
-        // val engine = engineManager.getEngineByExtension("kts")
         val engine = MyKotlinScriptEngineFactory().scriptEngine
         val bindings = engine.createBindings()
         variables.forEach {

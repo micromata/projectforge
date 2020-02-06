@@ -34,99 +34,74 @@ import java.util.jar.JarFile
 import javax.script.Bindings
 import javax.script.ScriptContext
 import javax.script.ScriptEngine
+import javax.script.ScriptEngineManager
+
+private val whiteListJars = listOf("merlin-core", "org.projectforge", "projectforge", "kotlin-stdlib", "kotlin-script-runtime", "kotlin-script-util", "poi")
 
 /**
  * Kotlin scripts don't run out of the box with spring boot. This workarround is needed.
  */
 // https://stackoverflow.com/questions/44781462/kotlin-jsr-223-scriptenginefactory-within-the-fat-jar-cannot-find-kotlin-compi
 class MyKotlinScriptEngineFactory : KotlinJsr223JvmScriptEngineFactoryBase() {
-    override fun getScriptEngine(): ScriptEngine =
-            KotlinJsr223JvmLocalScriptEngine(
-                    //Disposer.newDisposable(),
-                    this,
-                    classPath,
-                    KotlinStandardJsr223ScriptTemplate::class.qualifiedName!!,
-                    { ctx, types ->
-                        ScriptArgsWithTypes(arrayOf(ctx.getBindings(ScriptContext.ENGINE_SCOPE)), types ?: emptyArray())
-                    },
-                    arrayOf(Bindings::class)
-            )
-
-    companion object {
-        private val log = LoggerFactory.getLogger(MyKotlinScriptEngineFactory::class.java)
-        private lateinit var jarFile: File
-        private val libDir = File(ConfigXml.getInstance().tempDirectory, "scriptClassPath")
-        private val classPath = mutableListOf<File>()
-
-        init {
-            if (libDir.exists()) {
-                log.info("Deleting existing tmp dir '$libDir'.")
-                libDir.deleteRecursively()
-            }
-            val uriString = MyKotlinScriptEngineFactory::class.java.protectionDomain.codeSource.location.toString()
-            val filename = uriString.substring(0, uriString.indexOf('!')).removePrefix("jar:file:")
-            jarFile = File(filename)
-            log.info("Detecting jar file: ${jarFile.absolutePath}")
-            log.info("Creating new tmp dir '$libDir'.")
-            libDir.mkdirs()
-            JarFile(jarFile).use { zip ->
-                zip.entries().asSequence().forEach { entry ->
-                    zip.getInputStream(entry).use { input ->
-                        val file = File(libDir, entry.name)
-                        if (entry.isDirectory) {
-                            file.mkdirs()
-                        } else {
-                            if (file.extension == "jar") {
-                                classPath.add(file)
-                            }
-                            file.outputStream().use { output ->
-                                input.copyTo(output)
-                            }
-                        }
-                    }
-                }
-            }
-            //classPath.add(jarFile)
-            log.info("Setting script classPath: ${classPath.joinToString(";") { it.absolutePath }}")
-        }
-    }
-}
-
-// org.jetbrains.kotlin.com.intellij.openapi.util.UserDataHolderBase (kotlin-compiler-embeddable)
-
-// https://discuss.kotlinlang.org/t/kotlin-compiler-embeddable-exception-on-kotlin-script-evaluation/6547
-/**
- * Special Kotlin-script engine factory that adds script's dependencies to the script evaluator classpath.
- */
-/*
-class SpringBootKotlinScriptEngineFactory  : KotlinJsr223JvmScriptEngineFactoryBase() {
     override fun getScriptEngine(): ScriptEngine {
-        val extractedJarLocation = <some of the classes referenced by the script>::class.java.protectionDomain.codeSource.location.toURI()
-        val jarDirectory = try {
-            Paths.get(extractedJarLocation).parent
-        } catch (e: FileSystemNotFoundException) {
-            log.error("Script engine creation error: can't get JAR directory for $extractedJarLocation", ex)
-            throw e
+        if (jarFile == null) {
+            // We're not running in a jar file:
+            val engineManager = ScriptEngineManager()
+            return engineManager.getEngineByExtension("kts")
         }
-
-        val classpath = Files.list(jarDirectory)
-                .filter { it.fileName.endsWith(".jar") }
-                .map { it.toFile() }
-                .collect(Collectors.toCollection { mutableListOf<File>() })
-
-        classpath += scriptCompilationClasspathFromContext("kotlin-script-util.jar", wholeClasspath = true)
-
         return KotlinJsr223JvmLocalScriptEngine(
+                //Disposer.newDisposable(),
                 this,
-                classpath,
+                classPath,
                 KotlinStandardJsr223ScriptTemplate::class.qualifiedName!!,
                 { ctx, types ->
                     ScriptArgsWithTypes(arrayOf(ctx.getBindings(ScriptContext.ENGINE_SCOPE)), types ?: emptyArray())
                 },
-                arrayOf(Bindings::class)
-        )
+                arrayOf(Bindings::class))
     }
 
-    private val log = LoggerFactory.getLogger(KotlinScriptExecutor::class.java)
+    companion object {
+        private val log = LoggerFactory.getLogger(MyKotlinScriptEngineFactory::class.java)
+        private var jarFile: File? = null
+        private val libDir = File(ConfigXml.getInstance().tempDirectory, "scriptClassPath")
+        private val classPath = mutableListOf<File>()
 
-}*/
+        init {
+            val uriString = MyKotlinScriptEngineFactory::class.java.protectionDomain.codeSource.location.toString()
+            if (uriString.startsWith("file:")) {
+                // We're not running in a jar file.
+            } else {
+                if (libDir.exists()) {
+                    log.info("Deleting existing tmp dir '$libDir'.")
+                    libDir.deleteRecursively()
+                }
+                val filename = uriString.substring(0, uriString.indexOf('!')).removePrefix("jar:file:")
+                jarFile = File(filename)
+                log.info("Detecting jar file: ${jarFile!!.absolutePath}")
+                log.info("Creating new tmp dir '$libDir'.")
+                libDir.mkdirs()
+                JarFile(jarFile).use { zip ->
+                    zip.entries().asSequence().forEach { entry ->
+                        zip.getInputStream(entry).use { input ->
+                            if (entry.isDirectory) {
+                                // Do nothing (only jars required)
+                                // file.mkdirs()
+                            } else {
+                                val origFile = File(entry.name)
+                                if (origFile.extension == "jar" && whiteListJars.any { origFile.name.startsWith(it) }) {
+                                    val file = File(libDir, origFile.name)
+                                    classPath.add(file)
+                                    file.outputStream().use { output ->
+                                        input.copyTo(output)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                //classPath.add(jarFile)
+                log.info("Setting script classPath: ${classPath.joinToString(";") { it.absolutePath }}")
+            }
+        }
+    }
+}
