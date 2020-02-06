@@ -3,16 +3,17 @@
 
 .inputField {
   $transitionTime: .2s ease-out;
-  $offset: .25em;
+  $offset: 1rem;
 
   position: relative;
   margin-top: 1em;
   font-size: 1.5rem;
   letter-spacing: .02em;
-  padding-bottom: 1em;
 
   &.noLabel {
-    margin-top: 0;
+    label {
+      padding: 0;
+    }
   }
 
   .icon {
@@ -20,7 +21,7 @@
     font-size: 1.25em;
 
     & ~ label, & ~ .additionalLabel {
-      margin-left: 2rem;
+      margin-left: 1.75rem;
       width: calc(100% - 2rem);
     }
   }
@@ -31,29 +32,28 @@
     margin: 0;
     cursor: text;
     width: 100%;
+    padding-top: 1.5em;
+    background-color: #f9f9f9;
+    border-bottom: 2px solid #bbb;
+    border-radius: 5px 5px 0 0;
 
     &.isActive {
+      background-color: #f5f5f5;
+      border-color: #333;
+
       .labelText {
-        color: #a5a2a5;
-        transform: translateY(-1em) scale(0.8);
+        color: #666;
+        transform: translateY(-.5em) scale(0.8);
       }
     }
 
-    &.noLine {
-      input {
-        border: none;
-
-        &:focus {
-          border: none;
-          box-shadow: none;
-        }
-      }
+    &:hover {
+      background-color: #eaeaea;
     }
 
     input {
       background-color: transparent;
       border: none;
-      border-bottom: 1px solid #deddde;
       border-radius: 0;
       outline: none;
       width: 100%;
@@ -61,32 +61,20 @@
       padding: 0 0 0 $offset;
       box-shadow: none;
       transition: box-shadow .3s;
-
-      &:focus {
-        border-bottom: 1px solid #007480;
-        box-shadow: 0 1px 0 0 #007480;
-      }
     }
 
     .labelText {
       font-size: 1.1em;
       transition: transform $transitionTime, color $transitionTime;
       position: absolute;
-      top: 0;
+      bottom: .5em;
       left: $offset;
       transform-origin: 0 0;
       transform: translateY(0);
     }
 
     @mixin color($color) {
-      input {
-        border-color: $color;
-
-        &:focus {
-          border-color: $color;
-          box-shadow: 0 1px 0 0 $color;
-        }
-      }
+      border-color: $color;
 
       .labelText {
         color: $color;
@@ -118,14 +106,25 @@
     }
   }
 
+  &.noStyle {
+    margin-top: 0;
+
+    label {
+      padding: 0;
+      background-color: transparent;
+      border: none;
+      border-radius: 0;
+    }
+  }
+
   .additionalLabel {
-    margin-top: .5em;
-    padding-left: $offset;
+    margin-left: $offset;
     position: relative;
     min-height: 1.25em;
     display: block;
     font-size: 0.9em;
-    color: rgba(0, 0, 0, .54);
+    color: #aaa;
+    font-style: italic;
   }
 }
 
