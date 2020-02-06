@@ -265,7 +265,7 @@
     <poi.version>4.1.1</poi.version>
     <spring.version>5.2.1.RELEASE</spring.version> <!-- Should match spring boot's parent pom -->
     <wicket.version>7.15.0</wicket.version>
-    <micromata.merlin-core.version>1.1.4</micromata.merlin-core.version>
+    <micromata.merlin-core.version>1.1.5</micromata.merlin-core.version>
 
     <javax.jsp-api.version>2.3.3</javax.jsp-api.version>
     <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
