@@ -84,6 +84,7 @@ function AutoCompletion(
             })}
             setIsOpen={setIsOpen}
             isOpen={isOpen && completions.length !== 0}
+            withInput
             {...props}
         >
             <ul className={styles.entries}>
