@@ -31,7 +31,7 @@ import org.projectforge.framework.time.TimePeriod;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 
 
 public class ScriptParameter implements Serializable
@@ -53,7 +53,7 @@ public class ScriptParameter implements Serializable
   protected BigDecimal decimalValue;
 
   @XStreamAsAttribute
-  protected Date dateValue;
+  protected LocalDate dateValue;
 
   protected transient TaskDO task;
 
@@ -94,7 +94,7 @@ public class ScriptParameter implements Serializable
     } else if (type == ScriptParameterType.DECIMAL) {
       decimalValue = (BigDecimal) value;
     } else if (type == ScriptParameterType.DATE) {
-      dateValue = (Date) value;
+      dateValue = (LocalDate) value;
     } else if (type == ScriptParameterType.TIME_PERIOD) {
       timePeriodValue = (TimePeriod) value;
     } else if (type == ScriptParameterType.INTEGER) {
@@ -157,12 +157,12 @@ public class ScriptParameter implements Serializable
     this.decimalValue = decimalValue;
   }
 
-  public Date getDateValue()
+  public LocalDate getDateValue()
   {
     return dateValue;
   }
 
-  public void setDateValue(Date dateValue)
+  public void setDateValue(LocalDate dateValue)
   {
     if (type != ScriptParameterType.DATE) {
       throw new IllegalArgumentException("Cannot set date for non date parameter: " + type);
