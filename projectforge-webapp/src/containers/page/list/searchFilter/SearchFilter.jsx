@@ -99,6 +99,7 @@ function SearchFilter(props) {
                         onBlur: onSearchStringBlur,
                         placeholder: ui.translations.search || '',
                         noStyle: true,
+                        autoFocus: true,
                     }}
                     onChange={onSearchStringChange}
                     onSelect={onSelectQuickSelection}
