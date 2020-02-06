@@ -100,7 +100,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
             historyQuery.modifiedByUserId = value
         }
 
-    var maxRows: Int = 50
+    var maxRows: Int = QUERY_FILTER_MAX_ROWS
 
     var sortAndLimitMaxRowsWhileSelect: Boolean = true
 
@@ -113,7 +113,6 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
     }
 
     init {
-        maxRows = QUERY_FILTER_MAX_ROWS
         if (filter != null) {
             this.fullTextSearchFields = filter.fullTextSearchFields
             this.autoWildcardSearch = true
@@ -138,7 +137,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
                 }
             }
             if (filter.modifiedByUserId != null) modifiedByUserId = filter.modifiedByUserId
-            // if (filter.maxRows > 0) maxRows = filter.maxRows // Legacy gets whole result list and supports pagination.
+            if (filter.maxRows > 0) maxRows = filter.maxRows // Legacy gets whole result list and supports pagination.
         }
     }
 
