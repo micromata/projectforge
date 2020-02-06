@@ -413,7 +413,7 @@ public abstract class AbstractTestBase {
   protected void assertUTCDate(final Date date, final int year, final Month month, final int day, final int hour,
                                final int minute,
                                final int second) {
-    PFDateTime dateTime = PFDateTime.from(date, false, DateHelper.UTC);
+    PFDateTime dateTime = PFDateTime.from(date, DateHelper.UTC);
     assertEquals(year, dateTime.getYear());
     assertEquals(month, dateTime.getMonth());
     assertEquals(day, dateTime.getDayOfMonth());

@@ -212,7 +212,7 @@ public class ICalGenerator {
       final Date endUtc = PFDateTimeUtils.getUTCBeginOfDay(endDate);
       fortunaStartDate = new net.fortuna.ical4j.model.Date(startUtc);
       // TODO should not be done
-      final PFDateTime dateTime = PFDateTime.from(endUtc);
+      final PFDateTime dateTime = PFDateTime.from(endUtc); // not null
       // requires plus 1 because one day will be omitted by calendar.
       fortunaEndDate = new net.fortuna.ical4j.model.Date(dateTime.plusDays(1).getUtilDate());
     } else {

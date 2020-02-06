@@ -51,26 +51,26 @@ class PFDayTest {
 
     @Test
     fun baseTest() {
-        var date = PFDay.from(LocalDate.of(2019, Month.APRIL, 10))!!
+        var date = PFDay.from(LocalDate.of(2019, Month.APRIL, 10))
         assertEquals(2019, date.year)
         assertEquals(Month.APRIL, date.month)
         assertEquals(4, date.monthValue)
         assertEquals(1, date.beginOfMonth.dayOfMonth)
         assertEquals(30, date.endOfMonth.dayOfMonth)
 
-        date = PFDay.from(LocalDate.of(2019, Month.JANUARY, 1))!!
+        date = PFDay.from(LocalDate.of(2019, Month.JANUARY, 1))
         assertEquals(2019, date.year)
         assertEquals(Month.JANUARY, date.month)
         assertEquals(1, date.monthValue)
         assertEquals(1, date.beginOfMonth.dayOfMonth)
 
-        date = PFDay.from(LocalDate.of(2019, Month.JANUARY, 31))!!.plusMonths(1)
+        date = PFDay.from(LocalDate.of(2019, Month.JANUARY, 31)).plusMonths(1)
         assertEquals(2019, date.year)
         assertEquals(Month.FEBRUARY, date.month)
         assertEquals(28, date.dayOfMonth)
 
         val dateTime = PFDateTimeUtils.parseAndCreateDateTime("2019-11-30 23:00")!!
-        date = PFDay.from(dateTime.utilDate)!!
+        date = PFDay.from(dateTime.utilDate)
         assertEquals(2019, date.year)
         assertEquals(Month.DECEMBER, date.month)
         assertEquals(1, date.dayOfMonth)

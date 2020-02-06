@@ -80,8 +80,8 @@ class TimesheetEventsProvider() {
 
         //var lastStopTime: LocalDateTime? = null
         for (timesheet in timesheets) {
-            val startTime = PFDateTime.from(timesheet.startTime, true)
-            val stopTime = PFDateTime.from(timesheet.stopTime, true)
+            val startTime = PFDateTime.fromOrNow(timesheet.startTime)
+            val stopTime = PFDateTime.fromOrNow(timesheet.stopTime)
             if (stopTime!!.isBefore(start) || startTime!!.isAfter(end) == true) {
                 // Time sheet doesn't match time period start - end.
                 continue

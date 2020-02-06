@@ -42,8 +42,8 @@ object AuftragAndRechnungDaoHelper {
     fun createCriterionForPeriodOfPerformance(myFilter: SearchFilterWithPeriodOfPerformance): Optional<DBPredicate> {
         val popBeginName = "periodOfPerformanceBegin"
         val popEndName = "periodOfPerformanceEnd"
-        val startDate = PFDay.from(myFilter.periodOfPerformanceStartDate)?.sqlDate
-        val endDate = PFDay.from(myFilter.periodOfPerformanceEndDate)?.sqlDate
+        val startDate = PFDay.fromOrNull(myFilter.periodOfPerformanceStartDate)?.sqlDate
+        val endDate = PFDay.fromOrNull(myFilter.periodOfPerformanceEndDate)?.sqlDate
         if (startDate != null && endDate != null) {
             return Optional.of(
                     and(ge(popEndName, startDate),
@@ -68,8 +68,8 @@ object AuftragAndRechnungDaoHelper {
         val dateName = "datum"
         val from = myFilter.getFromDate()
         val to = myFilter.getToDate()
-        val fromDate = if (from is Date) from else PFDay.from(from)?.sqlDate
-        val toDate = if (to is Date) to else PFDay.from(to)?.sqlDate
+        val fromDate = if (from == null || from is Date) from else PFDay.fromOrNull(from)?.sqlDate
+        val toDate = if (to == null || to is Date) to else PFDay.fromOrNull(to)?.sqlDate
         val queryFilter = QueryFilter(myFilter)
         if (fromDate != null && toDate != null) {
             queryFilter.add(between(dateName, fromDate, toDate))
@@ -94,7 +94,7 @@ object AuftragAndRechnungDaoHelper {
         if (rechnung.faelligkeit == null && zahlungsZiel != null) {
             val rechnungsDatum: java.util.Date? = rechnung.datum
             if (rechnungsDatum != null) {
-                var day = PFDateTime.from(rechnungsDatum)
+                var day = PFDateTime.from(rechnungsDatum) // not null
                 day = day!!.plusDays(zahlungsZiel.toLong())
                 rechnung.faelligkeit = day.sqlDate
             }
@@ -106,7 +106,7 @@ object AuftragAndRechnungDaoHelper {
         if (rechnung.discountMaturity == null && discountZahlungsZiel != null) {
             val rechnungsDatum: java.util.Date? = rechnung.datum
             if (rechnungsDatum != null) {
-                var day = PFDateTime.from(rechnungsDatum)
+                var day = PFDateTime.from(rechnungsDatum) // not null
                 day = day!!.plusDays(discountZahlungsZiel.toLong())
                 rechnung.discountMaturity = day.sqlDate
             }

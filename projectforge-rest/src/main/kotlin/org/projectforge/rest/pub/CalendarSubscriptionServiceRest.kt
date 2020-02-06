@@ -256,10 +256,10 @@ class CalendarSubscriptionServiceRest {
                     val vacations = vacationCache.getVacationForPeriodAndUsers(eventDateFromLimit.localDate, eventDateUntilLimit.localDate, groupIds, userIds)
                     vacations.forEach { vacation ->
                         val title = "${translate("vacation")}: ${vacation.employee?.user?.getFullname()}"
-                        if (!vacationEvents.contains(vacation.id)) {
+                        if (!vacationEvents.contains(vacation.id) && vacation.startDate != null && vacation.endDate != null) {
                             vacationEvents.add(vacation.id)
                             // Event doesn't yet exist:
-                            generator.addEvent(PFDay.from(vacation.startDate)!!.utilDate, PFDay.from(vacation.endDate)!!.utilDate, true, title, "vacation-${vacation.id}")
+                            generator.addEvent(PFDay.from(vacation.startDate!!).utilDate, PFDay.from(vacation.endDate!!).utilDate, true, title, "vacation-${vacation.id}")
                         }
                     }
                 }

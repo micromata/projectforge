@@ -21,28 +21,27 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup
+package org.projectforge.business.orga
 
-import org.projectforge.framework.time.TimeNotation
-import java.io.File
-import java.time.DayOfWeek
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
 
-class SetupData(
-        var applicationHomeDir: File? = null,
-        var domain: String? = "http://localhost:8080",
-        var serverPort: Int = 8080,
-        var startServer: Boolean = true,
-        var developmentMode: Boolean = false,
-        var defaultLocale: String = "en",
-        var currencySymbol: String = "€",
-        var defaultTimeNotation: TimeNotation = TimeNotation.H24,
-        var defaultFirstDayOfWeek: DayOfWeek = DayOfWeek.MONDAY,
-        var useEmbeddedDatabase: Boolean = true,
-        var jdbcSettings: JdbcSettings? = null) {
+import javax.persistence.*
+import java.util.List
 
-    class JdbcSettings(var jdbcUrl: String? = null,
-                       var user: String? = null,
-                       var password: String? = null,
-                       var driverClass: String? = null)
+@Entity
+@DiscriminatorValue("1")
+class VisitorbookTimedAttrWithDataDO : VisitorbookTimedAttrDO {
+
+    constructor() : super() {}
+
+    constructor(parent: VisitorbookTimedDO, propertyName: String, type: Char,
+                value: String) : super(parent, propertyName, type, value) {}
+
+    constructor(parent: VisitorbookTimedDO) : super(parent) {}
+
+    @OneToMany(cascade = [CascadeType.ALL], mappedBy = "parent", targetEntity = VisitorbookTimedAttrDataDO::class, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OrderColumn(name = "datarow")
+    override fun getData(): MutableList<JpaTabAttrDataBaseDO<*, Int>>? {
+        return super.getData()
+    }
 }
-

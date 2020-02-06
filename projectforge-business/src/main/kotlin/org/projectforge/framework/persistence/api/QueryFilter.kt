@@ -128,9 +128,14 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
                 addFullTextSearch(filter.searchString, autoWildcardSearch)
             }
             if (filter.useModificationFilter) {
-                if (filter.modifiedSince != null) modifiedFrom = PFDateTime.from(filter.modifiedSince)
-                else if (filter.startTimeOfModification != null) modifiedFrom = PFDateTime.from(filter.startTimeOfModification)
-                if (filter.stopTimeOfModification != null) modifiedTo = PFDateTime.from(filter.stopTimeOfModification)
+                if (filter.modifiedSince != null) {
+                    modifiedFrom = PFDateTime.from(filter.modifiedSince) // not null
+                } else if (filter.startTimeOfModification != null) { // not null
+                    modifiedFrom = PFDateTime.from(filter.startTimeOfModification)
+                }
+                if (filter.stopTimeOfModification != null) {
+                    modifiedTo = PFDateTime.from(filter.stopTimeOfModification) // not null
+                }
             }
             if (filter.modifiedByUserId != null) modifiedByUserId = filter.modifiedByUserId
             // if (filter.maxRows > 0) maxRows = filter.maxRows // Legacy gets whole result list and supports pagination.

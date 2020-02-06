@@ -95,11 +95,11 @@ public class ReportObjectivesPage extends AbstractStandardFormPage
     final ReportStorage storage = getReportStorage();
     final Report report = storage.getRoot();
     final String currentReportId = storage.getCurrentReport().getId(); // Store current report id.
-    final PFDay day = PFDay.from(filter.getFromDate());
+    final PFDay day = PFDay.from(filter.getFromDate()); // not null
     report.setFrom(day.getYear(), day.getMonthValue());
     PFDay untilDay;
     if (filter.getToDate() != null) {
-      untilDay = PFDay.from(filter.getToDate());
+      untilDay = PFDay.from(filter.getToDate()); // not null
     } else {
       untilDay = day.getEndOfMonth();
     }

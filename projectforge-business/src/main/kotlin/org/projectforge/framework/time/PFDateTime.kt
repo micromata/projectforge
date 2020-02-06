@@ -41,8 +41,8 @@ import java.util.*
  * Zone date times will be generated automatically with the context user's time zone.
  */
 open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
-                                      val locale: Locale,
-                                      val precision: DatePrecision?)
+                                           val locale: Locale,
+                                           val precision: DatePrecision?)
     : IPFDate<PFDateTime> {
 
     /**
@@ -283,7 +283,7 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
     }
 
     fun daysBetween(date: Date): Long {
-        return daysBetween(from(date)!!)
+        return daysBetween(from(date)) // not null
     }
 
     override fun daysBetween(other: PFDateTime): Long {
@@ -393,7 +393,7 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
     override val sqlDate: java.sql.Date
         get() {
             if (_sqlDate == null) {
-                _sqlDate = PFDay.from(this)!!.sqlDate
+                _sqlDate = PFDay.from(this).sqlDate
             }
             return _sqlDate!!
         }
@@ -415,18 +415,20 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
 
     companion object {
         /**
-         * Sets the user's time zone.
+         * @param value Date in millis or seconds (depends on [numberFormat]).
+         * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @param numberFormat value is intepreted as millis at default.
+         * @return PFDateTime from given value...
+         * @throws java.lang.IllegalStateException if date is null.
          */
         @JvmStatic
         @JvmOverloads
-        fun from(value: Long?,
-                 nowIfNull: Boolean = false,
-                 zoneId: ZoneId = getUsersZoneId(),
-                 locale: Locale = getUsersLocale(),
+        fun from(value: Long,
+                 zoneId: ZoneId? = null,
+                 locale: Locale? = null,
                  numberFormat: NumberFormat? = NumberFormat.EPOCH_MILLIS)
-                : PFDateTime? {
-            if (value == null)
-                return if (nowIfNull) now() else null
+                : PFDateTime {
             return if (numberFormat == NumberFormat.EPOCH_SECONDS) {
                 from(Instant.ofEpochSecond(value), zoneId, locale)
             } else {
@@ -435,78 +437,211 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         }
 
         /**
-         * Sets the user's time zone.
+         * @param value Date in millis or seconds (depends on [numberFormat]). Null is supported.
+         * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @param numberFormat value is intepreted as millis at default.
+         * @return PFDateTime from given value or now, if value is null.
          */
         @JvmStatic
         @JvmOverloads
-        fun fromMilli(epochMilli: Long?, nowIfNull: Boolean = false, zoneId: ZoneId = getUsersZoneId(), locale: Locale = getUsersLocale()): PFDateTime? {
-            if (epochMilli == null)
-                return if (nowIfNull) now() else null
-            return from(Instant.ofEpochMilli(epochMilli), zoneId, locale)
-        }
-
-        private fun from(instant: Instant, zoneId: ZoneId, locale: Locale): PFDateTime {
-            return PFDateTime(ZonedDateTime.ofInstant(instant, zoneId), locale, null)
-        }
-
-        /**
-         * @param zoneId The zone id of the given local date time. If not given, the context user's default time zone is used.
-         * @param locale The created and returned [PFDateTime] will initialized with this locale. If not given, the context user's default local is used.
-         */
-        @JvmStatic
-        @JvmOverloads
-        fun from(localDateTime: LocalDateTime?, nowIfNull: Boolean = false, zoneId: ZoneId = getUsersZoneId(), locale: Locale = getUsersLocale()): PFDateTime? {
-            if (localDateTime == null)
-                return if (nowIfNull) now() else null
-            return PFDateTime(ZonedDateTime.of(localDateTime, zoneId), locale, null)
+        fun fromOrNow(value: Long?,
+                      zoneId: ZoneId? = null,
+                      locale: Locale? = null,
+                      numberFormat: NumberFormat? = NumberFormat.EPOCH_MILLIS)
+                : PFDateTime {
+            value ?: return now()
+            return from(value, zoneId, locale, numberFormat)
         }
 
         /**
-         * Creates midnight [ZonedDateTime] from given [LocalDate].
+         * @param value Date in millis or seconds (depends on [numberFormat]). Null is supported.
+         * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @param numberFormat value is intepreted as millis at default.
+         * @return PFDateTime from given value or null, if value is null.
          */
         @JvmStatic
         @JvmOverloads
-        fun from(localDate: LocalDate?, nowIfNull: Boolean = false, zoneId: ZoneId = getUsersZoneId(), locale: Locale = getUsersLocale()): PFDateTime? {
-            if (localDate == null)
-                return if (nowIfNull) now() else null
+        fun fromOrNull(value: Long?,
+                       zoneId: ZoneId? = null,
+                       locale: Locale? = null,
+                       numberFormat: NumberFormat? = NumberFormat.EPOCH_MILLIS)
+                : PFDateTime? {
+            value ?: return null
+            return from(value, zoneId, locale, numberFormat)
+        }
+
+        private fun from(instant: Instant, zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime {
+            return PFDateTime(ZonedDateTime.ofInstant(instant, zoneId ?: getUsersZoneId()),
+                    locale ?: getUsersLocale(), null)
+        }
+
+        /**
+         * @param localDateTime Date to convert.
+         * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date...
+         * @throws java.lang.IllegalStateException if date is null.
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun from(localDateTime: LocalDateTime, zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime {
+            return PFDateTime(ZonedDateTime.of(localDateTime, zoneId ?: getUsersZoneId()), locale ?: getUsersLocale(), null)
+        }
+
+        /**
+         * @param localDateTime Date to convert.
+         * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date or now, if given [localDateTime] is null...
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun fromOrNow(localDateTime: LocalDateTime?, zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime {
+            localDateTime ?: return now()
+            return from(localDateTime, zoneId, locale)
+        }
+
+        /**
+         * @param localDateTime Date to convert.
+         * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date or null, if given [localDateTime] is null...
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun fromOrNull(localDateTime: LocalDateTime?, zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime? {
+            localDateTime ?: return null
+            return from(localDateTime, zoneId, locale)
+        }
+
+        /**
+         * @param localDate Date to convert (midnight).
+         * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date...
+         * @throws java.lang.IllegalStateException if date is null.
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun from(localDate: LocalDate, zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime {
             val localDateTime = LocalDateTime.of(localDate, LocalTime.MIDNIGHT)
-            return PFDateTime(ZonedDateTime.of(localDateTime, zoneId), locale, null)
+            return PFDateTime(ZonedDateTime.of(localDateTime, zoneId ?: getUsersZoneId()), locale ?: getUsersLocale(), null)
         }
 
         /**
-         * @param timeZone: TimeZone to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
-         * @return null if date is null.
+         * @param localDate Date to convert (midnight) or null.
+         * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date or now, if given [localDate] is null...
          */
         @JvmStatic
         @JvmOverloads
-        fun from(date: Date?, nowIfNull: Boolean = false, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
-            if (date == null)
-                return if (nowIfNull) now() else null
+        fun fromOrNow(localDate: LocalDate?, zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime {
+            localDate ?: return now()
+            return from(localDate, zoneId, locale)
+        }
+
+        /**
+         * @param localDate Date to convert (midnight) or null.
+         * @param zoneId ZoneId to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date or null, if given [localDate] is null...
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun fromOrNull(localDate: LocalDate?, zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime? {
+            localDate ?: return null
+            return from(localDate, zoneId, locale)
+        }
+
+        /**
+         * @param date Date to transform (must not be null).
+         * @param timeZone: TimeZone to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale: Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date...
+         * @throws java.lang.IllegalStateException if date is null.
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun from(date: Date, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime {
             val zoneId = timeZone?.toZoneId() ?: getUsersZoneId()
             return if (date is java.sql.Date) { // Yes, this occurs!
-                from(date.toLocalDate(), false, zoneId, locale ?: getUsersLocale())
+                from(date.toLocalDate(), zoneId, locale ?: getUsersLocale())
             } else {
                 PFDateTime(date.toInstant().atZone(zoneId), locale ?: getUsersLocale(), null)
             }
         }
 
         /**
+         * @param date Date to transform, might be null.
+         * @param timeZone: TimeZone to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale: Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date or now if [date] is null...
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun fromOrNow(date: Date?, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime {
+            date ?: return now()
+            return from(date, timeZone, locale)
+        }
+
+        /**
+         * @param date Date to transform, might be null.
+         * @param timeZone: TimeZone to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale: Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date or null if [date] is null...
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun fromOrNull(date: Date?, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
+            date ?: return null
+            return from(date, timeZone, locale)
+        }
+
+        /**
+         * @param date Date to transform (must not be null).
+         * @param timeZone: TimeZone to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale: Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date...
+         * @throws java.lang.IllegalStateException if date is null.
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun from(date: java.sql.Date, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime {
+            val zoneId = timeZone?.toZoneId() ?: getUsersZoneId()
+            return from(date.toLocalDate(), zoneId, locale ?: getUsersLocale())
+        }
+
+        /**
+         * @param date Date to transform (might be null).
+         * @param timeZone: TimeZone to use, if not given, the user's time zone (from ThreadLocalUserContext) is used.
+         * @param locale: Locale to use, if not given, the user's locale (from ThreadLocalUserContext) is used.
+         * @return PFDateTime from given date or null if [date] is null...
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun fromOrNow(date: java.sql.Date?, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime {
+            date ?: return now()
+            return from(date, timeZone, locale)
+        }
+
+        /**
          * Creates midnight [ZonedDateTime] from given [LocalDate].
          * @return null if date is null.
          */
         @JvmStatic
         @JvmOverloads
-        fun from(date: java.sql.Date?, nowIfNull: Boolean = false, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
-            if (date == null)
-                return if (nowIfNull) now() else null
-            val zoneId = timeZone?.toZoneId() ?: getUsersZoneId()
-            return from(date.toLocalDate(), false, zoneId, locale ?: getUsersLocale())
+        fun fromOrNull(date: java.sql.Date?, nowIfNull: Boolean, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
+            date ?: return null
+            return from(date, timeZone, locale)
         }
 
         @JvmStatic
         @JvmOverloads
-        fun now(zoneId: ZoneId = getUsersZoneId(), locale: Locale = getUsersLocale()): PFDateTime {
-            return PFDateTime(ZonedDateTime.now(zoneId), locale, null)
+        fun now(zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime {
+            return PFDateTime(ZonedDateTime.now(zoneId ?: getUsersZoneId()), locale ?: getUsersLocale(), null)
         }
 
         internal fun getUsersZoneId(): ZoneId {

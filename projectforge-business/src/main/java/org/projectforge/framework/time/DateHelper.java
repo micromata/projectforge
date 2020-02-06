@@ -24,7 +24,6 @@
 package org.projectforge.framework.time;
 
 import org.joda.time.DateTime;
-import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 import java.io.Serializable;
@@ -33,7 +32,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Month;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -387,7 +385,10 @@ public class DateHelper implements Serializable {
    * hours, minutes etc.
    */
   public static boolean isSameDay(final Date d1, final Date d2) {
-    return isSameDay(PFDateTime.from(d1, true), PFDateTime.from(d2, true));
+    if (d1 == null || d2 == null) {
+      return false;
+    }
+    return isSameDay(PFDateTime.fromOrNull(d1), PFDateTime.fromOrNull(d2));
   }
 
   /**

@@ -384,8 +384,8 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   }
 
   private Optional<DBPredicate> createCriterionForErfassungsDatum(final AuftragFilter myFilter) {
-    final PFDay startDay = PFDay.from(myFilter.getStartDate());
-    final PFDay endDay = PFDay.from(myFilter.getEndDate());
+    final PFDay startDay = PFDay.fromOrNull(myFilter.getStartDate());
+    final PFDay endDay = PFDay.fromOrNull(myFilter.getEndDate());
     final java.sql.Date startDate = startDay != null ? startDay.getSqlDate() : null;
     final java.sql.Date endDate = endDay != null ? endDay.getSqlDate() : null;
 
