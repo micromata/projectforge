@@ -25,7 +25,6 @@ package org.projectforge.plugins.todo
 
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.search.annotations.*
-import org.hibernate.search.annotations.Index
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.Priority
@@ -47,7 +46,7 @@ open class ToDoDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.todo.subject")
     @UserPrefParameter(i18nKey = "plugins.todo.subject")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = Constants.LENGTH_TITLE)
     open var subject: String? = null
 
