@@ -21,40 +21,15 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.orga;
+package org.projectforge.rest.dto
 
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
+import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.orga.VisitorType
+import org.projectforge.business.orga.VisitorbookDO
 
-import javax.persistence.*;
-import java.util.List;
-
-@Entity
-@DiscriminatorValue("1")
-public class VisitorbookTimedAttrWithDataDO extends VisitorbookTimedAttrDO
-{
-
-  public VisitorbookTimedAttrWithDataDO()
-  {
-    super();
-  }
-
-  public VisitorbookTimedAttrWithDataDO(final VisitorbookTimedDO parent, final String propertyName, final char type,
-      final String value)
-  {
-    super(parent, propertyName, type, value);
-  }
-
-  public VisitorbookTimedAttrWithDataDO(final VisitorbookTimedDO parent)
-  {
-    super(parent);
-  }
-
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "parent", targetEntity = VisitorbookTimedAttrDataDO.class,
-      orphanRemoval = true, fetch = FetchType.EAGER)
-  @Override
-  @OrderColumn(name = "datarow")
-  public List<JpaTabAttrDataBaseDO<?, Integer>> getData()
-  {
-    return super.getData();
-  }
-}
+class Visitorbook(var lastname: String? = null,
+                  var firstname: String? = null,
+                  var company: String? = null,
+                  var contactPersons: Set<EmployeeDO>? = null,
+                  var visitortype: VisitorType? = null
+) : BaseDTO<VisitorbookDO>()
