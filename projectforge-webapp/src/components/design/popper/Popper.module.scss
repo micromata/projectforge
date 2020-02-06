@@ -63,7 +63,7 @@
     }
 
     .actions {
-      padding: .8em .9em;
+      padding: .8em 1rem;
       display: flex;
 
       .action {
@@ -80,10 +80,10 @@
 
         &.delete {
           text-decoration: underline;
+          padding: 0;
 
           &:hover {
             color: #000;
-            background-color: #f2f2f2;
           }
 
           &:disabled {
