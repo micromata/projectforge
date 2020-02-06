@@ -42,7 +42,7 @@ import org.projectforge.export.ExportJFreeChart;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.export.ExportJson;
@@ -58,6 +58,7 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 import java.io.ByteArrayOutputStream;
+import java.time.LocalDate;
 import java.util.Date;
 
 public class ScriptExecutePage extends AbstractScriptingPage implements ISelectCallerPage {
@@ -290,21 +291,20 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
     }
     final Integer idx = NumberHelper.parseInteger(indexString);
     if (property.startsWith("quickSelect:") == true) {
-      final Date date = (Date) selectedValue;
+      final LocalDate date = (LocalDate) selectedValue;
       TimePeriod timePeriod = form.scriptParameters.get(idx).getTimePeriodValue();
       if (timePeriod == null) {
         timePeriod = new TimePeriod();
       }
-      timePeriod.setFromDate(date);
-      final DateHolder dateHolder = new DateHolder(date);
+      timePeriod.setFromDay(date);
+      final PFDay day = PFDay.from(date);
       if (property.endsWith(".month") == true) {
-        dateHolder.setEndOfMonth();
+        timePeriod.setToDay(day.getEndOfMonth().getLocalDate());
       } else if (property.endsWith(".week") == true) {
-        dateHolder.setEndOfWeek();
+        timePeriod.setToDay(day.getEndOfWeek().getLocalDate());
       } else {
         log.error("Property '" + property + "' not supported for selection.");
       }
-      timePeriod.setToDate(dateHolder.getUtilDate());
       form.scriptParameters.get(idx).setTimePeriodValue(timePeriod);
       form.datePanel1[idx].markModelAsChanged();
       form.datePanel2[idx].markModelAsChanged();
