@@ -1,6 +1,7 @@
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { colorPropType } from '../../../../utilities/propTypes';
 import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
 import AdvancedPopper from '../../popper/AdvancedPopper';
 import styles from './AutoCompletion.module.scss';
@@ -32,9 +33,12 @@ const loadCompletionsBounced = (
 
 function AutoCompletion(
     {
+        additionalLabel,
+        color,
         input,
         url,
         onSelect,
+        required,
         search,
         searchParameter,
         ...props
@@ -92,6 +96,8 @@ function AutoCompletion(
         <AdvancedPopper
             additionalClassName={styles.completions}
             basic={input({
+                additionalLabel,
+                color: required && !search ? 'danger' : color,
                 ref: searchRef,
                 onKeyDown: handleKeyDown,
                 value: search,
@@ -126,13 +132,19 @@ function AutoCompletion(
 AutoCompletion.propTypes = {
     input: PropTypes.func.isRequired,
     onSelect: PropTypes.func.isRequired,
+    additionalLabel: PropTypes.string,
+    color: colorPropType,
     url: PropTypes.string,
+    required: PropTypes.bool,
     search: PropTypes.string,
     searchParameter: PropTypes.string,
 };
 
 AutoCompletion.defaultProps = {
+    additionalLabel: undefined,
+    color: undefined,
     url: undefined,
+    required: false,
     search: '',
     searchParameter: 'search',
 };

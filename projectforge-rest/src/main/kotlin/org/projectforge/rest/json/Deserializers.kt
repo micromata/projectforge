@@ -30,22 +30,8 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.node.IntNode
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.rest.dto.Kost2
 import java.math.BigDecimal
-
-
-/**
- * Deserialization for PFUserDO.
- */
-class PFUserDODeserializer : StdDeserializer<PFUserDO>(PFUserDO::class.java) {
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): PFUserDO? {
-        val node: JsonNode = p.getCodec().readTree(p)
-        val id = (node.get("id") as IntNode).numberValue() as Int
-        val user = PFUserDO()
-        user.id = id
-        return user
-    }
-}
-
 
 /**
  * Deserialization for Integers.
@@ -103,5 +89,37 @@ class TextDeserializer : StdDeserializer<String>(String::class.java) {
         text = text.replace("\\p{C}".toRegex(), "")
 
         return text.trim { it <= ' ' }
+    }
+}
+
+/**
+ * Deserialization of PFUserDO.
+ */
+class PFUserDODeserializer : StdDeserializer<PFUserDO>(PFUserDO::class.java) {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): PFUserDO? {
+        val node: JsonNode = p.codec.readTree(p)
+        val id = (node.get("id") as IntNode).numberValue() as Int
+        val user = PFUserDO()
+        user.id = id
+        return user
+    }
+}
+
+private fun getId(p: JsonParser): Int? {
+    val node: JsonNode = p.codec.readTree(p)
+    return if (node.has("id")) {
+        (node.get("id") as IntNode).numberValue() as Int
+    } else {
+        node.asInt()
+    }
+}
+
+/**
+ * Deserialization for Kost2.
+ */
+class Kost2Deserializer : StdDeserializer<Kost2>(Kost2::class.java) {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Kost2? {
+        val id = getId(p) ?: return null
+        return Kost2(id)
     }
 }
