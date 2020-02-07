@@ -95,7 +95,7 @@ object AuftragAndRechnungDaoHelper {
             val rechnungsDatum: java.util.Date? = rechnung.datum
             if (rechnungsDatum != null) {
                 var day = PFDateTime.from(rechnungsDatum) // not null
-                day = day!!.plusDays(zahlungsZiel.toLong())
+                day = day.plusDays(zahlungsZiel.toLong())
                 rechnung.faelligkeit = day.sqlDate
             }
         }
@@ -107,7 +107,7 @@ object AuftragAndRechnungDaoHelper {
             val rechnungsDatum: java.util.Date? = rechnung.datum
             if (rechnungsDatum != null) {
                 var day = PFDateTime.from(rechnungsDatum) // not null
-                day = day!!.plusDays(discountZahlungsZiel.toLong())
+                day = day.plusDays(discountZahlungsZiel.toLong())
                 rechnung.discountMaturity = day.sqlDate
             }
         }
