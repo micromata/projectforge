@@ -63,11 +63,11 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
      * LAYOUT Edit page
      */
     override fun createEditLayout(dto: Kost1, userAccess: UILayout.UserAccess): UILayout {
-        // TODO: EditPage needs customized component for the cost 1 id
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
-                                .add(lc, "nummer", "description", "kostentraegerStatus")))
+                                .add(UILabel("TODO: Requires custom component for the cost 1 id"))
+                                .add(lc, "description", "kostentraegerStatus")))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

@@ -69,8 +69,9 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
-                                .add(lc, "projekt", "workFraction", "description", "comment", "kostentraegerStatus")
-                                .add(UILabel("TODO: Cost unit id"))))
+                                .add(lc, "projekt")
+                                .add(UILabel("TODO: customized component for the cost 2 id"))
+                                .add(lc, "workFraction", "description", "comment", "kostentraegerStatus")))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
