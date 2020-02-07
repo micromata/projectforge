@@ -45,7 +45,6 @@ import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.user.UserPropertyColumn;
 import org.projectforge.web.wicket.*;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -118,9 +117,8 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
       public void populateItem(final Item<ICellPopulator<HRPlanningEntryDO>> item, final String componentId,
                                final IModel<HRPlanningEntryDO> rowModel) {
         final HRPlanningEntryDO entry = rowModel.getObject();
-        final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy");
-        final String year = simpleDateFormat.format(entry.getPlanning().getWeek());
-        final Label label = new Label(componentId, year);
+        LocalDate week = entry.getPlanning().getWeek();
+        final Label label = new Label(componentId, week.getYear());
         item.add(label);
         cellItemListener.populateItem(item, componentId, rowModel);
       }
@@ -230,7 +228,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
     if (params == null) {
       params = new PageParameters();
     }
-    final LocalDate date = form.getSearchFilter().getStartTime();
+    final LocalDate date = form.getSearchFilter().getStartDay();
     if (date != null) {
       PFDateTime dateTime = PFDateTime.from(date);
       params.add(WebConstants.PARAMETER_DATE, String.valueOf(dateTime.getEpochMilli()));
@@ -274,7 +272,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
       refresh();
     } else if (property.startsWith("quickSelect.")) { // month".equals(property) == true) {
       final LocalDate date = (LocalDate) selectedValue;
-      form.getSearchFilter().setStartTime(date);
+      form.getSearchFilter().setStartDay(date);
       PFDay day = PFDay.fromOrNow(date);
       if (property.endsWith(".month")) {
         day = day.getEndOfMonth();
@@ -283,7 +281,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
       } else {
         log.error("Property '" + property + "' not supported for selection.");
       }
-      form.getSearchFilter().setStopTime(day.getLocalDate());
+      form.getSearchFilter().setStopDay(day.getLocalDate());
       refresh();
     } else {
       log.error("Property '" + property + "' not supported for selection.");

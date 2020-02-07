@@ -89,8 +89,8 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
     PFDay startDay = PFDay.fromOrNow(start.toDate());
     PFDay endDay = PFDay.fromOrNow(end.toDate());
 
-    filter.setStartTime(startDay.getLocalDate());
-    filter.setStopTime(endDay.getLocalDate());
+    filter.setStartDay(startDay.getLocalDate());
+    filter.setStopDay(endDay.getLocalDate());
     final List<HRPlanningDO> list = hrPlanningDao.getList(filter);
     if (list == null) {
       return;
