@@ -31,6 +31,7 @@ import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.components.TooltipImage;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 /**
@@ -39,10 +40,10 @@ import java.util.Date;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class QuickSelectMonthPanel extends AbstractSelectPanel<Date> {
+public class QuickSelectMonthPanel extends AbstractSelectPanel<LocalDate> {
   private static final long serialVersionUID = -3173096216643497466L;
 
-  private Date beginOfMonth;
+  private LocalDate beginOfMonth;
 
   private final String selectProperty;
 
@@ -52,7 +53,7 @@ public class QuickSelectMonthPanel extends AbstractSelectPanel<Date> {
    * @param caller
    * @param selectProperty
    */
-  public QuickSelectMonthPanel(final String id, final IModel<Date> model, final ISelectCallerPage caller, final String selectProperty) {
+  public QuickSelectMonthPanel(final String id, final IModel<LocalDate> model, final ISelectCallerPage caller, final String selectProperty) {
     super(id, model, caller, selectProperty);
     this.beginOfMonth = model.getObject();
     this.selectProperty = selectProperty;
