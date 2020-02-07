@@ -32,14 +32,15 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.IModel;
 import org.projectforge.business.fibu.PeriodOfPerformanceType;
-import org.projectforge.web.wicket.components.*;
+import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 
@@ -150,26 +151,26 @@ class PeriodOfPerformanceHelper
       @Override
       public void validate(final Form<?> form)
       {
-        final Date performanceFromDate = fromDatePanel.getDateField().getConvertedInput();
-        final Date performanceEndDate = endDatePanel.getDateField().getConvertedInput();
+        final LocalDate performanceFromDate = fromDatePanel.getConvertedInputAsLocalDate();
+        final LocalDate performanceEndDate = endDatePanel.getConvertedInputAsLocalDate();
         if (performanceFromDate == null || performanceEndDate == null) {
           return;
-        } else if (performanceEndDate.before(performanceFromDate)) {
+        } else if (performanceEndDate.isBefore(performanceFromDate)) {
           endDatePanel.error(form.getString("error.endDateBeforeBeginDate"));
         }
 
         final FormComponent<?>[] dependentFormComponents = getDependentFormComponents();
 
         for (int i = 0; i < dependentFormComponents.length - 1; i += 2) {
-          final Date posPerformanceFromDate = ((DatePanel) dependentFormComponents[i]).getDateField().getConvertedInput();
-          final Date posPerformanceEndDate = ((DatePanel) dependentFormComponents[i + 1]).getDateField().getConvertedInput();
+          final LocalDate posPerformanceFromDate = ((LocalDatePanel) dependentFormComponents[i]).getConvertedInputAsLocalDate();
+          final LocalDate posPerformanceEndDate = ((LocalDatePanel) dependentFormComponents[i + 1]).getConvertedInputAsLocalDate();
           if (posPerformanceFromDate == null || posPerformanceEndDate == null) {
             continue;
           }
-          if (posPerformanceEndDate.before(posPerformanceFromDate)) {
+          if (posPerformanceEndDate.isBefore(posPerformanceFromDate)) {
             dependentFormComponents[i + 1].error(form.getString("error.endDateBeforeBeginDate"));
           }
-          if (posPerformanceFromDate.before(performanceFromDate)) {
+          if (posPerformanceFromDate.isBefore(performanceFromDate)) {
             dependentFormComponents[i + 1].error(form.getString("error.posFromDateBeforeFromDate"));
           }
         }
