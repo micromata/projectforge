@@ -28,12 +28,11 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.framework.xstream.converter.DateConverter;
-import org.projectforge.framework.xstream.converter.ISODateConverter;
-import org.projectforge.framework.xstream.converter.LocaleConverter;
-import org.projectforge.framework.xstream.converter.TimeZoneConverter;
+import org.projectforge.framework.time.PFDay;
+import org.projectforge.framework.xstream.converter.*;
 import org.projectforge.test.TestSetup;
 
+import java.time.LocalDate;
 import java.time.Month;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -70,6 +69,14 @@ public class ConverterTest {
     dt = PFDateTime.withDate(2010, Month.AUGUST, 29, 23, 8, 17, 123);
     assertEquals("2010-08-29 23:08:17.123", isoDateConverter.toString(dt.getUtilDate()));
     assertEquals("2010-08-29 23:08:17.123", dt.getIsoStringMilli(), "UTC time zone.");
+  }
+
+  @Test
+  public void testIsoLocalDateConverter() {
+    final ISOLocalDateConverter isoDateConverter = new ISOLocalDateConverter();
+    LocalDate date = isoDateConverter.fromString("2020-02-07");
+    assertEquals("2020-02-07", PFDay.from(date).toString());
+    assertEquals("2020-02-07", isoDateConverter.toString(date));
   }
 
   @Test
