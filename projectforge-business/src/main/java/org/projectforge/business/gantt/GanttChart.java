@@ -28,14 +28,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.export.SVGColor;
 import org.projectforge.export.SVGHelper;
 import org.projectforge.export.SVGHelper.ArrowDirection;
-import org.projectforge.framework.time.DayHolder;
-import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
+import org.projectforge.framework.time.PFDayUtils;
 import org.projectforge.framework.xstream.XmlObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 @XmlObject(alias = "ganttChart")
 public class GanttChart {
@@ -177,10 +180,10 @@ public class GanttChart {
       toDate = settings.getToDate();
     }
     if (fromDate == null) {
-      fromDate = PFDateTime.now().getBeginOfDay().withHour(8).getLocalDate();
+      fromDate = PFDay.today().getDate();
     }
     if (toDate == null) {
-      toDate = PFDateTime.now().getBeginOfDay().withHour(8).plusDays(30).getLocalDate();
+      toDate = PFDay.today().getDate();
     }
     for (final GanttTask node : allVisibleGanttObjects) {
       final ObjectInfo taskInfo = new ObjectInfo(node, row++);
@@ -254,9 +257,9 @@ public class GanttChart {
 
     // Show today line, if configured.
     if (style.isShowToday()) {
-      final DayHolder today = new DayHolder();
-      if (!(today.getLocalDate().isAfter(toDate) || today.getLocalDate().isBefore(fromDate))) {
-        diagram.appendChild(SVGHelper.createLine(doc, getXValue(today.getLocalDate()), 0, getXValue(today.getLocalDate()), getDiagramHeight(), SVGColor.RED, "stroke-width", "2"));
+      final PFDay today = PFDay.today();
+      if (PFDayUtils.isBetween(today, PFDay.from(fromDate), PFDay.from(toDate))) {
+        diagram.appendChild(SVGHelper.createLine(doc, getXValue(today.getDate()), 0, getXValue(today.getDate()), getDiagramHeight(), SVGColor.RED, "stroke-width", "2"));
       }
     }
 
@@ -593,20 +596,19 @@ public class GanttChart {
     if (date == null) {
       return 0.0;
     }
-    final PFDateTime dt = PFDateTime.fromOrNow(fromDate); // not null
-    final int days = (int) dt.daysBetween(date);
+    final PFDay day = PFDay.from(fromDate); // not null
+    final int days = (int) day.daysBetween(PFDay.from(date));
     final int fromToDays = getFromToDays();
     if (fromToDays == 0) {
       return 0;
     }
-    final int hourOfDay = PFDateTime.from(date).getHour();
-    return this.getDiagramWidth() * (days * 24 + hourOfDay) / (fromToDays * 24);
+    return this.getDiagramWidth() * days / fromToDays;
   }
 
   private int getFromToDays() {
     if (fromToDays < 0) {
-      final PFDateTime dt = PFDateTime.fromOrNow(fromDate); // not null
-      fromToDays = (int) dt.daysBetween(toDate);
+      final PFDay day = PFDay.from(fromDate); // not null
+      fromToDays = (int) day.daysBetween(PFDay.from(toDate));
     }
     return fromToDays;
   }

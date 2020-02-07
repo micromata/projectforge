@@ -37,6 +37,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
+import java.util.*
 import kotlin.math.absoluteValue
 
 class PFDayUtils {
@@ -159,6 +160,15 @@ class PFDayUtils {
             }
             return month
         }
+
+        /**
+         * Including limits.
+         */
+        @JvmStatic
+        fun <T : IPFDate<T>> isBetween(date: T, from: T?, to: T?): Boolean {
+            return PFDateTimeUtils.isBetween(date, from, to)
+        }
+
 
         /**
          * Determines the number of working days in the given period. Please note: there might be also half working days
@@ -290,6 +300,11 @@ class PFDayUtils {
         @JvmStatic
         fun getYear(date: LocalDate?): Int {
             return date?.year ?: -1
+        }
+
+        @JvmStatic
+        fun convertToUtilDate(date: LocalDate): Date {
+            return PFDateTime.from(date).utilDate
         }
 
         /**

@@ -29,7 +29,7 @@ import net.sf.mpxj.mspdi.MSPDIWriter;
 import net.sf.mpxj.writer.ProjectWriter;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.framework.time.PFDay;
+import org.projectforge.framework.time.PFDayUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -98,7 +98,7 @@ public class ExportMSProject {
     //
     ganttChart.recalculate();
     final ProjectHeader header = file.getProjectHeader();
-    header.setStartDate(PFDay.from(ganttChart.getCalculatedStartDate()).getUtilDate());
+    header.setStartDate(PFDayUtils.convertToUtilDate(ganttChart.getCalculatedStartDate()));
 
     //
     // Add a default calendar called "Standard"
@@ -158,10 +158,10 @@ public class ExportMSProject {
     taskMap.put(ganttTask.getId(), task);
     task.setName(ganttTask.getTitle());
     if (ganttTask.getStartDate() != null) {
-      task.setStart(PFDay.from(ganttTask.getStartDate()).getUtilDate());
+      task.setStart(PFDayUtils.convertToUtilDate(ganttTask.getStartDate()));
     }
     if (ganttTask.getEndDate() != null) {
-      task.setFinish(PFDay.from(ganttTask.getEndDate()).getUtilDate());
+      task.setFinish(PFDayUtils.convertToUtilDate(ganttTask.getEndDate()));
     }
     final BigDecimal duration = ganttTask.getDuration();
     final double value;

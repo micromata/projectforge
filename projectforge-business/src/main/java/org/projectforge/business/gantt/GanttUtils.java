@@ -25,14 +25,17 @@ package org.projectforge.business.gantt;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.PFDayUtils;
 import org.projectforge.framework.utils.NumberHelper;
 
 import java.io.Serializable;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 public class GanttUtils {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttUtils.class);
@@ -181,8 +184,6 @@ public class GanttUtils {
 
   /**
    * @param node
-   * @param depth For avoiding stack overflow errors
-   * @return
    */
   private static LocalDate getCalculatedEndDate(final GanttTask node, final Set<Serializable> startDateSet, final Set<Serializable> endDateSet) {
     if (node == null) {
@@ -250,8 +251,8 @@ public class GanttUtils {
   }
 
   private static LocalDate calculateDate(final LocalDate date, final int workingDayOffset) {
-    PFDateTime dt = PFDateTime.fromOrNow(date);
-    dt = PFDayUtils.addWorkingDays(dt, workingDayOffset);
-    return dt.getLocalDate();
+    PFDay day = PFDay.from(date); // not null
+    day = PFDayUtils.addWorkingDays(day, workingDayOffset);
+    return day.getDate();
   }
 }
