@@ -263,8 +263,7 @@ public class TaskTreeBuilder implements Serializable
         "task.shortDescription",
         cellItemListener));
     if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP) == true) {
-      columns.add(new DatePropertyColumn<TaskNode>(dateTimeFormatter,
-          parentPage.getString("task.protectTimesheetsUntil.short"), null,
+      columns.add(new LocalDatePropertyColumn<TaskNode>(parentPage.getString("task.protectTimesheetsUntil.short"), null,
           "task.protectTimesheetsUntil", cellItemListener));
     }
     columns.add(new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("task.reference"), null, "reference",
