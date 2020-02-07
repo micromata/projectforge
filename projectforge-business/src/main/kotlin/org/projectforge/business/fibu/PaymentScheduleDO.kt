@@ -62,7 +62,7 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column
     open var number: Short = 0
 
-    @PropertyInfo(i18nKey = "date")
+    @PropertyInfo(i18nKey = "fibu.rechnung.datum.short")
     @get:Column(name = "schedule_date")
     open var scheduleDate: LocalDate? = null
 

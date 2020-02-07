@@ -31,7 +31,7 @@ import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.components.TooltipImage;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  * This panel show the buttons for selecting current, previous and following week inside an existing form. Calls caller.select("selectWeek",
@@ -39,10 +39,10 @@ import java.util.Date;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class QuickSelectWeekPanel extends AbstractSelectPanel<Date> {
+public class QuickSelectWeekPanel extends AbstractSelectPanel<LocalDate> {
   private static final long serialVersionUID = -3173096216643497466L;
 
-  private Date beginOfWeek;
+  private LocalDate beginOfWeek;
 
   private final String selectProperty;
 
@@ -52,7 +52,7 @@ public class QuickSelectWeekPanel extends AbstractSelectPanel<Date> {
    * @param caller
    * @param selectProperty
    */
-  public QuickSelectWeekPanel(final String id, final IModel<Date> model, final ISelectCallerPage caller, final String selectProperty) {
+  public QuickSelectWeekPanel(final String id, final IModel<LocalDate> model, final ISelectCallerPage caller, final String selectProperty) {
     super(id, model, caller, selectProperty);
     this.beginOfWeek = model.getObject();
     this.selectProperty = selectProperty;

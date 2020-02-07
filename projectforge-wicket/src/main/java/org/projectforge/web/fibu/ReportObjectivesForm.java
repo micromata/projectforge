@@ -82,7 +82,7 @@ public class ReportObjectivesForm extends AbstractStandardForm<ReportObjectivesF
       {
         final Date fromDate = fromDatePanel.getConvertedInput();
         final Date toDate = toDatePanel.getConvertedInput();
-        if (toDate != null && fromDate != null && fromDate.after(toDate) == true) {
+        if (toDate != null && fromDate != null && fromDate.after(toDate)) {
           toDatePanel.getDateField().error(getString("fibu.buchungssatz.error.invalidTimeperiod"));
         }
       }
@@ -99,7 +99,7 @@ public class ReportObjectivesForm extends AbstractStandardForm<ReportObjectivesF
       };
       fileUploadField = new FileUploadField(FileUploadPanel.WICKET_ID);
       fs.add(new FileUploadPanel(fs.newChildId(), fileUploadField));
-      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("import")) {
+      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<>("import")) {
         @Override
         public final void onSubmit()
         {
@@ -115,13 +115,13 @@ public class ReportObjectivesForm extends AbstractStandardForm<ReportObjectivesF
           return reportObjectivesPanel.isVisible();
         }
       };
-      fs.add(fromDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(filter, "fromDate"), DatePanelSettings.get()
+      fs.add(fromDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(filter, "fromDate"), DatePanelSettings.get()
           .withRequired(true)));
       dependentFormComponents[0] = fromDatePanel;
       fs.add(new DivTextPanel(fs.newChildId(), " - "));
-      fs.add(toDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(filter, "toDate"), DatePanelSettings.get()));
+      fs.add(toDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(filter, "toDate"), DatePanelSettings.get()));
       dependentFormComponents[1] = toDatePanel;
-      final Button createReportButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("createReport")) {
+      final Button createReportButton = new Button(SingleButtonPanel.WICKET_ID, new Model<>("createReport")) {
         @Override
         public final void onSubmit()
         {
@@ -131,7 +131,7 @@ public class ReportObjectivesForm extends AbstractStandardForm<ReportObjectivesF
       setDefaultButton(createReportButton);
       fs.add(new SingleButtonPanel(fs.newChildId(), createReportButton, getString("fibu.kost.reporting.createReport"),
           SingleButtonPanel.DEFAULT_SUBMIT));
-      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("clear")) {
+      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<>("clear")) {
         @Override
         public final void onSubmit()
         {

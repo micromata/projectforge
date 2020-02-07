@@ -45,14 +45,14 @@ import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.wicket.WicketUtils;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.MaxLengthTextField;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.converter.CurrencyConverter;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivType;
+import org.projectforge.web.wicket.flowlayout.FieldProperties;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -113,24 +113,20 @@ public class PaymentSchedulePanel extends Panel
         item.add(createPositionColumn(entry));
 
         // date
-        final DatePanel datePanel = new DatePanel("scheduleDate", new PropertyModel<>(entry, "scheduleDate"),
-            DatePanelSettings.get().withTargetType(java.sql.Date.class));
-        datePanel.setLabel(new ResourceModel("fibu.rechnung.datum.short"));
+        final FieldProperties<LocalDate> props = new FieldProperties<>("fibu.rechnung.datum.short", new PropertyModel<>(entry, "scheduleDate"));
+        final LocalDatePanel datePanel = new LocalDatePanel("scheduleDate", new LocalDateModel(props.getModel()));
         item.add(datePanel);
 
         // amount
-        final TextField<String> amount = new TextField<String>("amount", new PropertyModel<>(entry, "amount"))
-        {
-          @SuppressWarnings({ "rawtypes", "unchecked" })
+        final TextField<String> amount = new TextField<>("amount", new PropertyModel<>(entry, "amount")) {
+          @SuppressWarnings({"rawtypes", "unchecked"})
           @Override
-          public IConverter getConverter(final Class type)
-          {
+          public IConverter getConverter(final Class type) {
             return new CurrencyConverter();
           }
 
           @Override
-          public boolean isRequired()
-          {
+          public boolean isRequired() {
             // amount is required when a date is entered
             return StringUtils.isNotBlank(datePanel.getDateField().getValue());
           }
@@ -148,7 +144,7 @@ public class PaymentSchedulePanel extends Panel
         item.add(new CheckBox("reached", new PropertyModel<>(entry, "reached")));
 
         // vollstaendig fakturiert
-        if (accessChecker.hasRight(user, RechnungDao.USER_RIGHT_ID, UserRightValue.READWRITE) == true) {
+        if (accessChecker.hasRight(user, RechnungDao.USER_RIGHT_ID, UserRightValue.READWRITE)) {
           final DivPanel checkBoxDiv = new DivPanel("vollstaendigFakturiert", DivType.BTN_GROUP);
           checkBoxDiv.add(new CheckBoxButton(checkBoxDiv.newChildId(), new PropertyModel<>(entry, "vollstaendigFakturiert"),
               getString("fibu.auftrag.vollstaendigFakturiert")));

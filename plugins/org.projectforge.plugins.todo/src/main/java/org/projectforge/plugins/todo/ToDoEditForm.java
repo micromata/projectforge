@@ -37,10 +37,8 @@ import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 import org.hibernate.Hibernate;
 import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.user.UserPrefDao;
 import org.projectforge.common.i18n.Priority;
-import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.web.dialog.ModalDialog;
@@ -54,7 +52,7 @@ import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
 {
@@ -181,10 +179,9 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
     }
     {
       // Due date
+      final FieldProperties<LocalDate> props = getDueDateProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "dueDate");
-      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<>(data, "dueDate"),
-          DatePanelSettings.get().withTargetType(
-              java.sql.Date.class)));
+      fs.add(new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel())));
     }
 
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -311,6 +308,10 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       actionButtons.add(2, closeButtonPanel);
       addCloseToDoDialog();
     }
+  }
+
+  private FieldProperties<LocalDate> getDueDateProperties() {
+    return new FieldProperties<>("dueDate", new PropertyModel<>(data, "dueDate"));
   }
 
   @SuppressWarnings("serial")

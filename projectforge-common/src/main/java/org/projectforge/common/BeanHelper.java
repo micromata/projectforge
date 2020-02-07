@@ -320,17 +320,13 @@ public class BeanHelper
     Constructor<?> constructor = null;
     try {
       constructor = clazz.getDeclaredConstructor(new Class[0]);
-    } catch (final SecurityException ex) {
-      logInstantiationException(ex, clazz);
-    } catch (final NoSuchMethodException ex) {
+    } catch (final SecurityException | NoSuchMethodException ex) {
       logInstantiationException(ex, clazz);
     }
     if (constructor == null) {
       try {
-        return clazz.newInstance();
-      } catch (final InstantiationException ex) {
-        logInstantiationException(ex, clazz);
-      } catch (final IllegalAccessException ex) {
+        return clazz.getDeclaredConstructor().newInstance();
+      } catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
         logInstantiationException(ex, clazz);
       }
       return null;
@@ -338,13 +334,7 @@ public class BeanHelper
     constructor.setAccessible(true);
     try {
       return constructor.newInstance();
-    } catch (final IllegalArgumentException ex) {
-      logInstantiationException(ex, clazz);
-    } catch (final InstantiationException ex) {
-      logInstantiationException(ex, clazz);
-    } catch (final IllegalAccessException ex) {
-      logInstantiationException(ex, clazz);
-    } catch (final InvocationTargetException ex) {
+    } catch (final IllegalArgumentException | InstantiationException | InvocationTargetException | IllegalAccessException ex) {
       logInstantiationException(ex, clazz);
     }
     return null;
@@ -367,21 +357,13 @@ public class BeanHelper
     Constructor<?> constructor = null;
     try {
       constructor = clazz.getDeclaredConstructor(paramTypes);
-    } catch (final SecurityException ex) {
-      logInstantiationException(ex, clazz);
-    } catch (final NoSuchMethodException ex) {
+    } catch (final SecurityException | NoSuchMethodException ex) {
       logInstantiationException(ex, clazz);
     }
     constructor.setAccessible(true);
     try {
       return constructor.newInstance(params);
-    } catch (final IllegalArgumentException ex) {
-      logInstantiationException(ex, clazz);
-    } catch (final InstantiationException ex) {
-      logInstantiationException(ex, clazz);
-    } catch (final IllegalAccessException ex) {
-      logInstantiationException(ex, clazz);
-    } catch (final InvocationTargetException ex) {
+    } catch (final IllegalArgumentException | InstantiationException | InvocationTargetException | IllegalAccessException ex) {
       logInstantiationException(ex, clazz);
     }
     return null;
