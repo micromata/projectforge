@@ -118,7 +118,7 @@ public class PaymentSchedulePanel extends Panel
         item.add(datePanel);
 
         // amount
-        final TextField<String> amount = new TextField<>("amount", new PropertyModel<>(entry, "amount")) {
+        final TextField<String> amount = new TextField<String>("amount", new PropertyModel<>(entry, "amount")) {
           @SuppressWarnings({"rawtypes", "unchecked"})
           @Override
           public IConverter getConverter(final Class type) {

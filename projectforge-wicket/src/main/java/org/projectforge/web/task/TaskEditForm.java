@@ -268,7 +268,7 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       {
         // Progress
         final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("task.progress")).setUnit("%");
-        final MinMaxNumberField<Integer> progressField = new MinMaxNumberField<>(InputPanel.WICKET_ID,
+        final MinMaxNumberField<Integer> progressField = new MinMaxNumberField<Integer>(InputPanel.WICKET_ID,
             new PropertyModel<>(
                 data, "progress"),
             0, 100) {
@@ -351,7 +351,7 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
         // Cost 2 settings
         final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("fibu.kost2"));
         this.projektKostLabel = new DivTextPanel(fs.newChildId(), "");
-        WicketUtils.addTooltip(projektKostLabel.getLabel(), new Model<>() {
+        WicketUtils.addTooltip(projektKostLabel.getLabel(), new Model<String>() {
           @Override
           public String getObject() {
             final List<Kost2DO> kost2DOs = getTaskTree().getKost2List(projekt, data, data.getKost2BlackWhiteItems(),

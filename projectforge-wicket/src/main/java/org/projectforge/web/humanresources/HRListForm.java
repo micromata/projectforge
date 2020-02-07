@@ -117,7 +117,7 @@ public class HRListForm extends AbstractListForm<HRFilter, HRListPage>
     stopDate = new LocalDatePanel(optionsFieldsetPanel.newChildId(), new LocalDateModel(props.getModel()), DatePanelSettings.get().withSelectPeriodMode(true), true);
     stopDate.setRequired(true);
     optionsFieldsetPanel.add(stopDate);
-    final QuickSelectWeekPanel quickSelectPanel = new QuickSelectWeekPanel(optionsFieldsetPanel.newChildId(), new Model<>() {
+    final QuickSelectWeekPanel quickSelectPanel = new QuickSelectWeekPanel(optionsFieldsetPanel.newChildId(), new Model<LocalDate>() {
       @Override
       public LocalDate getObject() {
         startDate.validate(); // Update model from form field.
@@ -134,7 +134,7 @@ public class HRListForm extends AbstractListForm<HRFilter, HRListPage>
         return WicketUtils.getCalendarWeeks(HRListForm.this, filter.getStartTime(), filter.getStopTime());
       }
     }));
-    optionsFieldsetPanel.add(new HtmlCommentPanel(optionsFieldsetPanel.newChildId(), new Model<>() {
+    optionsFieldsetPanel.add(new HtmlCommentPanel(optionsFieldsetPanel.newChildId(), new Model<String>() {
       @Override
       public String getObject() {
         return WicketUtils.getUTCDates(filter.getStartTime(), filter.getStopTime());

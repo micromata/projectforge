@@ -28,6 +28,7 @@ import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.web.CSSColor;
 import org.projectforge.web.calendar.QuickSelectWeekPanel;
@@ -92,13 +93,13 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage>
           unselectPeriodLink).setColor(CSSColor.RED));
     }
 
-    final QuickSelectWeekPanel quickSelectWeekPanel = new QuickSelectWeekPanel(fs.newChildId(), new Model<Date>()
+    final QuickSelectWeekPanel quickSelectWeekPanel = new QuickSelectWeekPanel(fs.newChildId(), new Model<LocalDate>()
     {
       @Override
-      public Date getObject()
+      public LocalDate getObject()
       {
         startDate.getDateField().validate();
-        return startDate.getDateField().getConvertedInput();
+        return PFDay.from(startDate.getDateField().getConvertedInput()).getLocalDate();
       }
     }, parentPage, "quickSelect" + ".week");
     fs.add(quickSelectWeekPanel);

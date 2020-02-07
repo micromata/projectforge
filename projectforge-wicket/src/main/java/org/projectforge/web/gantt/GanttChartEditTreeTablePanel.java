@@ -53,6 +53,7 @@ import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.CSSColor;
@@ -64,11 +65,13 @@ import org.projectforge.web.tree.*;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.converter.IntegerPercentConverter;
+import org.projectforge.web.wicket.flowlayout.FieldProperties;
 import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTreeTableNode> implements ISelectCallerPage
@@ -91,11 +94,11 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
 
   private GanttTask clipboard;
 
-  private final Map<Serializable, DatePanel> startDatePanelMap = new HashMap<Serializable, DatePanel>();
+  private final Map<Serializable, LocalDatePanel> startDatePanelMap = new HashMap<>();
 
-  private final Map<Serializable, DatePanel> endDatePanelMap = new HashMap<Serializable, DatePanel>();
+  private final Map<Serializable, LocalDatePanel> endDatePanelMap = new HashMap<>();
 
-  private final Map<Serializable, CheckBox> visibleCheckboxMap = new HashMap<Serializable, CheckBox>();
+  private final Map<Serializable, CheckBox> visibleCheckboxMap = new HashMap<>();
 
   private RefreshingView<GanttTreeTableNode> refreshingView;
 
@@ -207,31 +210,31 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
         final TaskDO task = taskTree.getTaskById((Integer) ganttObject.getId());
         if (task != null) {
           int col = 0;
-          if (rejectSaveColumnVisible[col] == false && isTitleModified(ganttObject, task) == true) {
+          if (!rejectSaveColumnVisible[col] && isTitleModified(ganttObject, task)) {
             rejectSaveColumnVisible[col] = true;
           }
-          if (rejectSaveColumnVisible[++col] == false && isStartDateModified(ganttObject, task) == true) {
+          if (!rejectSaveColumnVisible[++col] && isStartDateModified(ganttObject, task)) {
             rejectSaveColumnVisible[col] = true;
           }
-          if (rejectSaveColumnVisible[++col] == false && isDurationModified(ganttObject, task) == true) {
+          if (!rejectSaveColumnVisible[++col] && isDurationModified(ganttObject, task)) {
             rejectSaveColumnVisible[col] = true;
           }
-          if (rejectSaveColumnVisible[++col] == false && isEndDateModified(ganttObject, task) == true) {
+          if (!rejectSaveColumnVisible[++col] && isEndDateModified(ganttObject, task)) {
             rejectSaveColumnVisible[col] = true;
           }
-          if (rejectSaveColumnVisible[++col] == false && isProgressModified(ganttObject, task) == true) {
+          if (!rejectSaveColumnVisible[++col] && isProgressModified(ganttObject, task)) {
             rejectSaveColumnVisible[col] = true;
           }
-          if (rejectSaveColumnVisible[++col] == false && isPredecessorModified(ganttObject, task) == true) {
+          if (!rejectSaveColumnVisible[++col] && isPredecessorModified(ganttObject, task)) {
             rejectSaveColumnVisible[col] = true;
           }
-          if (rejectSaveColumnVisible[++col] == false && isPredecessorOffsetModified(ganttObject, task) == true) {
+          if (!rejectSaveColumnVisible[++col] && isPredecessorOffsetModified(ganttObject, task)) {
             rejectSaveColumnVisible[col] = true;
           }
-          if (rejectSaveColumnVisible[++col] == false && isRelationTypeModified(ganttObject, task) == true) {
+          if (!rejectSaveColumnVisible[++col] && isRelationTypeModified(ganttObject, task)) {
             rejectSaveColumnVisible[col] = true;
           }
-          if (rejectSaveColumnVisible[++col] == false && isTypeModified(ganttObject, task) == true) {
+          if (!rejectSaveColumnVisible[++col] && isTypeModified(ganttObject, task)) {
             rejectSaveColumnVisible[col] = true;
           }
         }
@@ -242,11 +245,11 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
     }
     createTreeRows();
     final Iterator<Item<GanttTreeTableNode>> it = refreshingView.getItems();
-    while (it.hasNext() == true) {
+    while (it.hasNext()) {
       final Item<GanttTreeTableNode> row = it.next();
       final GanttTask ganttObject = row.getModelObject().getGanttObject();
       boolean visible = true;
-      if (form.getSettings().isShowOnlyVisibles() == true) {
+      if (form.getSettings().isShowOnlyVisibles()) {
         final GanttTaskImpl root = (GanttTaskImpl) ganttChartData.getRootObject();
         GanttTask current = ganttObject;
         int i = 10;
@@ -254,7 +257,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
           if (i-- < 0) {
             break; // Endless loop protection.
           }
-          if (current.isVisible() == false) {
+          if (!current.isVisible()) {
             visible = false;
             break;
           }
@@ -262,7 +265,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
         }
       }
       row.setVisible(visible);
-      if (visible == true) {
+      if (visible) {
         final TaskDO task = taskTree.getTaskById((Integer) ganttObject.getId());
         int col = 0;
         setRejectSaveLinksFragmentVisibility("rejectSaveTitle", row, col++, isTitleModified(ganttObject, task));
@@ -285,7 +288,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       final boolean visible)
   {
     final RejectSaveLinksFragment rejectSaveFragment = (RejectSaveLinksFragment) row.get(id);
-    if (rejectSaveColumnVisible[col] == false) {
+    if (!rejectSaveColumnVisible[col]) {
       rejectSaveFragment.setVisible(false);
     } else {
       rejectSaveFragment.setVisible(true);
@@ -295,38 +298,38 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
 
   private boolean isTitleModified(final GanttTask ganttObject, final TaskDO task)
   {
-    return task != null && StringUtils.equals(ganttObject.getTitle(), task.getTitle()) == false;
+    return task != null && !StringUtils.equals(ganttObject.getTitle(), task.getTitle());
   }
 
   private boolean isStartDateModified(final GanttTask ganttObject, final TaskDO task)
   {
-    return task != null && DateHelper.isSameDay(ganttObject.getStartDate(), task.getStartDate()) == false;
+    return task != null && !DateHelper.isSameDay(PFDateTime.from(ganttObject.getStartDate()), PFDateTime.from(task.getStartDate()));
   }
 
   private boolean isDurationModified(final GanttTask ganttObject, final TaskDO task)
   {
-    return task != null && NumberHelper.isEqual(ganttObject.getDuration(), task.getDuration()) == false;
+    return task != null && !NumberHelper.isEqual(ganttObject.getDuration(), task.getDuration());
   }
 
   private boolean isEndDateModified(final GanttTask ganttObject, final TaskDO task)
   {
-    return task != null && DateHelper.isSameDay(ganttObject.getEndDate(), task.getEndDate()) == false;
+    return task != null && !DateHelper.isSameDay(PFDateTime.from(ganttObject.getEndDate()), PFDateTime.from(task.getEndDate()));
   }
 
   private boolean isProgressModified(final GanttTask ganttObject, final TaskDO task)
   {
-    return task != null && NumberHelper.isEqual(ganttObject.getProgress(), task.getProgress()) == false;
+    return task != null && !NumberHelper.isEqual(ganttObject.getProgress(), task.getProgress());
   }
 
   private boolean isPredecessorModified(final GanttTask ganttObject, final TaskDO task)
   {
-    return task != null && Objects.equals(ganttObject.getPredecessorId(), task.getGanttPredecessorId()) == false;
+    return task != null && !Objects.equals(ganttObject.getPredecessorId(), task.getGanttPredecessorId());
   }
 
   private boolean isPredecessorOffsetModified(final GanttTask ganttObject, final TaskDO task)
   {
     return task != null
-        && NumberHelper.isEqual(ganttObject.getPredecessorOffset(), task.getGanttPredecessorOffset()) == false;
+        && !NumberHelper.isEqual(ganttObject.getPredecessorOffset(), task.getGanttPredecessorOffset());
   }
 
   private boolean isRelationTypeModified(final GanttTask ganttObject, final TaskDO task)
@@ -380,24 +383,20 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
         } else {
           item.add(AttributeModifier.replace("class", "odd"));
         }
-        final Label formattedLabel = new Label(ListSelectActionPanel.LABEL_ID, new Model<String>()
-        {
+        final Label formattedLabel = new Label(ListSelectActionPanel.LABEL_ID, new Model<String>() {
           @Override
-          public String getObject()
-          {
-            if (NumberHelper.greaterZero((Integer) ganttObject.getId()) == true) {
+          public String getObject() {
+            if (NumberHelper.greaterZero((Integer) ganttObject.getId())) {
               return ganttObject.getTitle();
             } else {
               return "*" + ganttObject.getTitle() + "*";
             }
           }
-        })
-        {
+        }) {
           @Override
-          protected void onBeforeRender()
-          {
+          protected void onBeforeRender() {
             final boolean clipboarded = clipboard != null && clipboard.getId() == ganttObject.getId();
-            if (clipboarded == true) {
+            if (clipboarded) {
               add(AttributeModifier.replace("style", "font-weight: bold; color:red;"));
             } else {
               final Behavior behavior = WicketUtils.getAttributeModifier(this, "style");
@@ -411,11 +410,11 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
 
         final TreeIconsActionPanel<? extends TreeTableNode> treeIconsActionPanel = new TreeIconsActionPanel<GanttTreeTableNode>(
             "tree",
-            new Model<GanttTreeTableNode>(node), formattedLabel, getTreeTable());
+            new Model<>(node), formattedLabel, getTreeTable());
         treeIconsActionPanel.setUseAjaxAtDefault(false).setUseSubmitLinkImages(true);
         addColumn(item, treeIconsActionPanel, null);
         treeIconsActionPanel.init(GanttChartEditTreeTablePanel.this, node);
-        treeIconsActionPanel.add(AttributeModifier.append("style", new Model<String>("white-space: nowrap;")));
+        treeIconsActionPanel.add(AttributeModifier.append("style", new Model<>("white-space: nowrap;")));
         treeIconsActionPanel.setUseAjaxAtDefault(false);
         {
           final WebMarkupContainer dropDownMenu = new WebMarkupContainer("dropDownMenu");
@@ -424,11 +423,9 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
           dropDownMenu.add(new PresizedImage("arrowDownImage", WebConstants.IMAGE_ARROW_DOWN));
           final RepeatingView menuRepeater = new RepeatingView("menuEntriesRepeater");
           dropDownMenu.add(menuRepeater);
-          menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "mark")
-          {
+          menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "mark") {
             @Override
-            void onSubmit()
-            {
+            void onSubmit() {
               if (clipboard != null && clipboard == node.getGanttObject()) {
                 clipboard = null;
               } else {
@@ -472,22 +469,18 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               form.getParentPage().refresh();
             }
           });
-          menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), new Model<String>()
-          {
+          menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), new Model<String>() {
             @Override
-            public String getObject()
-            {
+            public String getObject() {
               if (clipboard == ganttObject) {
                 return ThreadLocalUserContext.getLocalizedString("gantt.action.moveToTop");
               } else {
                 return ThreadLocalUserContext.getLocalizedString("gantt.action.move");
               }
             }
-          })
-          {
+          }) {
             @Override
-            public boolean isVisible()
-            {
+            public boolean isVisible() {
               if (clipboard == null) {
                 return false;
               }
@@ -500,8 +493,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
             }
 
             @Override
-            void onSubmit()
-            {
+            void onSubmit() {
               if (clipboard == null) {
                 return;
               }
@@ -534,8 +526,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
             }
 
             @Override
-            protected void onBeforeRender()
-            {
+            protected void onBeforeRender() {
               if (clipboard != null) {
                 final TaskDO task = taskDao.getTaskTree().getTaskById((Integer) clipboard.getId());
                 if (task != null && onClick == null) {
@@ -546,17 +537,14 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               super.onBeforeRender();
             }
           });
-          menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "delete")
-          {
+          menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "delete") {
             @Override
-            public boolean isVisible()
-            {
+            public boolean isVisible() {
               return task == null;
             }
 
             @Override
-            void onSubmit()
-            {
+            void onSubmit() {
               final GanttTaskImpl root = (GanttTaskImpl) ganttChartData.getRootObject();
               final GanttTask parent = root.findParent(ganttObject.getId());
               parent.removeChild(ganttObject);
@@ -566,17 +554,14 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               form.getParentPage().refresh();
             }
           }.setOnClick("if (!showDeleteQuestionDialog()) return;"));
-          menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "gantt.contextMenu.saveAsTask")
-          {
+          menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "gantt.contextMenu.saveAsTask") {
             @Override
-            public boolean isVisible()
-            {
+            public boolean isVisible() {
               return task == null;
             }
 
             @Override
-            void onSubmit()
-            {
+            void onSubmit() {
               final GanttTaskImpl root = (GanttTaskImpl) ganttChartData.getRootObject();
               final GanttTask parent = root.findParent(ganttObject.getId());
               final TaskDO parentTask = taskDao.getTaskTree().getTaskById((Integer) parent.getId());
@@ -607,17 +592,14 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               form.getParentPage().refresh();
             }
           }.setOnClick("if (!showSaveAsTaskQuestionDialog()) return;"));
-          menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "task.title.edit")
-          {
+          menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "task.title.edit") {
             @Override
-            public boolean isVisible()
-            {
+            public boolean isVisible() {
               return task != null;
             }
 
             @Override
-            void onSubmit()
-            {
+            void onSubmit() {
               final PageParameters pageParams = new PageParameters();
               pageParams.add(AbstractEditPage.PARAMETER_KEY_ID, String.valueOf(task.getId()));
               final TaskEditPage editPage = new TaskEditPage(pageParams);
@@ -625,22 +607,18 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               setResponsePage(editPage);
             }
           });
-          menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "gantt.contextMenu.setInvisible")
-          {
+          menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "gantt.contextMenu.setInvisible") {
             @Override
-            void onSubmit()
-            {
+            void onSubmit() {
               ((GanttTaskImpl) ganttObject).setInvisible();
               for (final CheckBox visibleCheckBox : visibleCheckboxMap.values()) {
                 visibleCheckBox.modelChanged();
               }
             }
           });
-          menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "gantt.contextMenu.setSubTasksVisible")
-          {
+          menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "gantt.contextMenu.setSubTasksVisible") {
             @Override
-            void onSubmit()
-            {
+            void onSubmit() {
               ganttObject.setVisible(true);
               if (ganttObject.getChildren() != null) {
                 for (final GanttTask child : ganttObject.getChildren()) {
@@ -725,7 +703,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
   private void addColumn(final Item<GanttTreeTableNode> item, final Component component, final String cssStyle)
   {
     if (cssStyle != null) {
-      component.add(AttributeModifier.append("style", new Model<String>(cssStyle)));
+      component.add(AttributeModifier.append("style", new Model<>(cssStyle)));
     }
     item.add(component);
   }
@@ -736,7 +714,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       final TaskDO task)
   {
     final AjaxRequiredMaxLengthEditableLabel titleField = new AjaxRequiredMaxLengthEditableLabel("title",
-        new PropertyModel<String>(
+        new PropertyModel<>(
             ganttObject, "title"),
         HibernateUtils.getPropertyLength(TaskDO.class.getName(), "title"));
     titleField.setOutputMarkupId(true);
@@ -766,9 +744,9 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       final GanttTask ganttObject,
       final TaskDO task)
   {
-    final DatePanel startDatePanel = new DatePanel("startDate", new PropertyModel<Date>(ganttObject, "startDate"),
-        DatePanelSettings.get()
-            .withSelectProperty("startDate:" + node.getHashId()));
+    final FieldProperties<LocalDate> props = getStartDateProperties(ganttObject);
+    final LocalDatePanel startDatePanel = new LocalDatePanel("gantt.startDate", new LocalDateModel(props.getModel()),
+        DatePanelSettings.get().withSelectProperty("startDate:" + node.getHashId()), true);
     addColumn(item, startDatePanel, "white-space: nowrap;");
     startDatePanelMap.put(ganttObject.getId(), startDatePanel);
     new RejectSaveLinksFragment("rejectSaveStartDate", item, startDatePanel, task,
@@ -790,13 +768,17 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
     };
   }
 
+  private FieldProperties<LocalDate> getStartDateProperties(GanttTask ganttObject) {
+    return new FieldProperties<>("gantt.startDate", new PropertyModel<>(ganttObject, "startDate"));
+  }
+
   @SuppressWarnings("serial")
   private void addDurationColumns(final Item<GanttTreeTableNode> item, final GanttTreeTableNode node,
       final GanttTask ganttObject,
       final TaskDO task)
   {
-    final MinMaxNumberField<BigDecimal> durationField = new MinMaxNumberField<BigDecimal>("duration",
-        new PropertyModel<BigDecimal>(
+    final MinMaxNumberField<BigDecimal> durationField = new MinMaxNumberField<>("duration",
+        new PropertyModel<>(
             ganttObject, "duration"),
         BigDecimal.ZERO, TaskEditForm.MAX_DURATION_DAYS);
     addColumn(item, durationField, null);
@@ -824,9 +806,8 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       final GanttTask ganttObject,
       final TaskDO task)
   {
-    final DatePanel endDatePanel = new DatePanel("endDate", new PropertyModel<Date>(ganttObject, "endDate"),
-        DatePanelSettings.get()
-            .withSelectProperty("endDate:" + node.getHashId()));
+    final FieldProperties<LocalDate> props = getEndDateProperties(ganttObject);
+    final LocalDatePanel endDatePanel = new LocalDatePanel("endDate", new LocalDateModel(props.getModel()), DatePanelSettings.get().withSelectProperty("endDate:" + node.getHashId()), true);
     addColumn(item, endDatePanel, "white-space: nowrap;");
     endDatePanelMap.put(ganttObject.getId(), endDatePanel);
     new RejectSaveLinksFragment("rejectSaveEndDate", item, endDatePanel, task,
@@ -846,6 +827,10 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
         ganttObject.setEndDate(task.getEndDate());
       }
     };
+  }
+
+  private FieldProperties<LocalDate> getEndDateProperties(GanttTask ganttObject) {
+    return new FieldProperties<>("gantt.endDate", new PropertyModel<>(ganttObject, "endDate"));
   }
 
   @SuppressWarnings("serial")
@@ -963,8 +948,8 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       final GanttTask ganttObject,
       final TaskDO task)
   {
-    final MinMaxNumberField<Integer> offsetField = new MinMaxNumberField<Integer>("predecessorOffset",
-        new PropertyModel<Integer>(
+    final MinMaxNumberField<Integer> offsetField = new MinMaxNumberField<>("predecessorOffset",
+        new PropertyModel<>(
             ganttObject, "predecessorOffset"),
         Integer.MIN_VALUE, Integer.MAX_VALUE);
     addColumn(item, offsetField, null);
@@ -992,7 +977,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       final GanttTask ganttObject,
       final TaskDO task)
   {
-    final LabelValueChoiceRenderer<GanttRelationType> relationTypeChoiceRenderer = new LabelValueChoiceRenderer<GanttRelationType>();
+    final LabelValueChoiceRenderer<GanttRelationType> relationTypeChoiceRenderer = new LabelValueChoiceRenderer<>();
     relationTypeChoiceRenderer.addValue(GanttRelationType.START_START,
         getString(GanttRelationType.START_START.getI18nKey() + ".short"));
     relationTypeChoiceRenderer.addValue(GanttRelationType.START_FINISH,
@@ -1001,8 +986,8 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
         getString(GanttRelationType.FINISH_START.getI18nKey() + ".short"));
     relationTypeChoiceRenderer
         .addValue(GanttRelationType.FINISH_FINISH, getString(GanttRelationType.FINISH_FINISH.getI18nKey() + ".short"));
-    final DropDownChoice<GanttRelationType> relationTypeChoice = new DropDownChoice<GanttRelationType>("relationType",
-        new PropertyModel<GanttRelationType>(ganttObject, "relationType"), relationTypeChoiceRenderer.getValues(),
+    final DropDownChoice<GanttRelationType> relationTypeChoice = new DropDownChoice<>("relationType",
+        new PropertyModel<>(ganttObject, "relationType"), relationTypeChoiceRenderer.getValues(),
         relationTypeChoiceRenderer);
     relationTypeChoice.setNullValid(true);
     addColumn(item, relationTypeChoice, null);
@@ -1030,15 +1015,15 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       final GanttTask ganttObject,
       final TaskDO task)
   {
-    final LabelValueChoiceRenderer<GanttObjectType> objectTypeChoiceRenderer = new LabelValueChoiceRenderer<GanttObjectType>();
+    final LabelValueChoiceRenderer<GanttObjectType> objectTypeChoiceRenderer = new LabelValueChoiceRenderer<>();
     objectTypeChoiceRenderer.addValue(GanttObjectType.ACTIVITY,
         getString(GanttObjectType.ACTIVITY.getI18nKey() + ".short"));
     objectTypeChoiceRenderer.addValue(GanttObjectType.MILESTONE,
         getString(GanttObjectType.MILESTONE.getI18nKey() + ".short"));
     objectTypeChoiceRenderer.addValue(GanttObjectType.SUMMARY,
         getString(GanttObjectType.SUMMARY.getI18nKey() + ".short"));
-    final DropDownChoice<GanttObjectType> objectTypeChoice = new DropDownChoice<GanttObjectType>("type",
-        new PropertyModel<GanttObjectType>(ganttObject, "type"), objectTypeChoiceRenderer.getValues(),
+    final DropDownChoice<GanttObjectType> objectTypeChoice = new DropDownChoice<>("type",
+        new PropertyModel<>(ganttObject, "type"), objectTypeChoiceRenderer.getValues(),
         objectTypeChoiceRenderer);
     objectTypeChoice.setNullValid(true);
     addColumn(item, objectTypeChoice, null);
@@ -1086,7 +1071,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
 
   private void markStartDateModelAsChanged(final Serializable id)
   {
-    final DatePanel startDatePanel = startDatePanelMap.get(id);
+    final LocalDatePanel startDatePanel = startDatePanelMap.get(id);
     if (startDatePanel != null) {
       startDatePanel.markModelAsChanged();
     } else {
@@ -1096,7 +1081,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
 
   private void markEndDateModelAsChanged(final Serializable id)
   {
-    final DatePanel endDatePanel = endDatePanelMap.get(id);
+    final LocalDatePanel endDatePanel = endDatePanelMap.get(id);
     if (endDatePanel != null) {
       endDatePanel.markModelAsChanged();
     } else {
@@ -1107,25 +1092,25 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
   @Override
   public void select(final String property, final Object selectedValue)
   {
-    if (property.startsWith("startDate:") == true) {
+    if (property.startsWith("startDate:")) {
       final GanttTask obj = getIndexedGanttObject(property);
       if (obj == null) {
         log.error("GanttObject not found: + " + property);
       } else {
-        final Date date = (Date) selectedValue;
+        final LocalDate date = (LocalDate) selectedValue;
         obj.setStartDate(date);
         markStartDateModelAsChanged(obj.getId());
       }
-    } else if (property.startsWith("endDate:") == true) {
+    } else if (property.startsWith("endDate:")) {
       final GanttTask obj = getIndexedGanttObject(property);
       if (obj == null) {
         log.error("GanttObject not found: + " + property);
       } else {
-        final Date date = (Date) selectedValue;
+        final LocalDate date = (LocalDate) selectedValue;
         obj.setEndDate(date);
         markEndDateModelAsChanged(obj.getId());
       }
-    } else if (property.startsWith("predecessorId") == true) {
+    } else if (property.startsWith("predecessorId")) {
       final GanttTask obj = getIndexedGanttObject(property);
       if (obj == null) {
         log.error("GanttObject not found: + " + property);
@@ -1236,7 +1221,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
     private void setIconsVisible(final boolean visible)
     {
       rejectSubmitLink.setVisible(visible);
-      if (hasTaskUpdateAccess == false) {
+      if (!hasTaskUpdateAccess) {
         saveSubmitLink.setVisible(false);
       } else {
         saveSubmitLink.setVisible(visible);
