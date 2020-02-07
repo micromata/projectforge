@@ -156,7 +156,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
     final HRPlanningDO planning = SQLHelper.ensureUniqueResult(em
             .createNamedQuery(HRPlanningDO.FIND_BY_USER_AND_WEEK, HRPlanningDO.class)
             .setParameter("userId", userId)
-            .setParameter("week", day.getSqlDate()));
+            .setParameter("week", day.getLocalDate()));
     if (planning == null) {
       return null;
     }
