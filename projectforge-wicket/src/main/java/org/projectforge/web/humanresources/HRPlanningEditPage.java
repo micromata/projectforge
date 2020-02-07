@@ -28,14 +28,13 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.humanresources.HRPlanningDO;
 import org.projectforge.business.humanresources.HRPlanningDao;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.*;
 import org.slf4j.Logger;
 
-import java.sql.Date;
 import java.time.LocalDate;
 
 /**
@@ -56,15 +55,21 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
   public HRPlanningEditPage(final PageParameters parameters) {
     super(parameters, "hr.planning");
     final Integer userId = WicketUtils.getAsInteger(parameters, WebConstants.PARAMETER_USER_ID);
-    final Long millis = WicketUtils.getAsLong(parameters, WebConstants.PARAMETER_DATE);
+    Long millis = WicketUtils.getAsLong(parameters, WebConstants.PARAMETER_DATE);
     final LocalDate week;
+    if (millis == null) {
+      final Object obj = getUserPrefEntry(SESSION_KEY_RECENT_WEEK);
+      if (obj instanceof Long) {
+        millis = (Long) obj;
+      }
+    }
     if (millis != null) {
-      week = new DayHolder(new Date(millis)).getLocalDate();
+      week = PFDateTime.from(millis, null, null, PFDateTime.NumberFormat.EPOCH_MILLIS).getLocalDate();
     } else {
-      week = null;
+      week = PFDay.today().getLocalDate();
     }
     HRPlanningDO planning = null;
-    if (userId != null && week != null) {
+    if (userId != null) {
       // Check if there exists already an entry (deleted or not):
       planning = hrPlanningDao.getEntry(userId, week);
     }
@@ -76,20 +81,10 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
     if (userId != null) {
       getBaseDao().setUser(getData(), userId);
     }
-    if (week != null) {
-      getData().setWeek(week);
-    }
-    if (getData().getWeek() != null) {
-      final PFDay day = PFDay.fromOrNow(getData().getWeek());
-      if (!day.isFirstDayOfWeek()) {
-        getData().setWeek(day.getBeginOfWeek().getLocalDate());
-      }
-    } else {
-      // Get week of last edited entry as default.
-      final Object obj = getUserPrefEntry(SESSION_KEY_RECENT_WEEK);
-      if (obj instanceof Long) {
-        getData().setWeek(LocalDate.ofEpochDay((Long) obj));
-      }
+    getData().setWeek(week);
+    final PFDay day = PFDay.fromOrNow(getData().getWeek());
+    if (!day.isFirstDayOfWeek()) {
+      getData().setWeek(day.getBeginOfWeek().getLocalDate());
     }
   }
 

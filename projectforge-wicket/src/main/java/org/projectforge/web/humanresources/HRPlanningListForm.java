@@ -48,7 +48,6 @@ import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 /**
  * @author Mario Groß (m.gross@micromata.de)
@@ -81,12 +80,12 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
     {
       gridBuilder.newSplitPanel(GridSize.COL66);
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timePeriod"));
-      startDate = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<LocalDate>(filter, "startDay")), DatePanelSettings.get()
+      startDate = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<>(filter, "startDay")), DatePanelSettings.get()
               .withSelectPeriodMode(true).withRequired(true), true);
       fs.add(startDate);
       fs.setLabelFor(startDate);
       fs.add(new DivTextPanel(fs.newChildId(), " - ").setRenderBodyOnly(false));
-      stopDate = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<LocalDate>(filter, "stopDay")), DatePanelSettings.get()
+      stopDate = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<>(filter, "stopDay")), DatePanelSettings.get()
               .withSelectPeriodMode(true).withRequired(true), true);
       fs.add(stopDate);
       {
