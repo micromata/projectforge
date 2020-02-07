@@ -51,13 +51,6 @@ const Input = React.forwardRef((
                 },
             )}
         >
-            {icon && (
-                <FontAwesomeIcon
-                    icon={icon}
-                    {...iconProps}
-                    className={classNames(styles.icon, iconProps && iconProps.className)}
-                />
-            )}
             <label
                 className={classNames(
                     {
@@ -67,6 +60,13 @@ const Input = React.forwardRef((
                 )}
                 htmlFor={id}
             >
+                {icon && (
+                    <FontAwesomeIcon
+                        icon={icon}
+                        {...iconProps}
+                        className={classNames(styles.icon, iconProps && iconProps.className)}
+                    />
+                )}
                 <input
                     ref={ref}
                     id={id}

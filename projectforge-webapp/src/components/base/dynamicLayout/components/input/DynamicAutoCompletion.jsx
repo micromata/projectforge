@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import TextAutoCompletion from '../../../../design/input/autoCompletion/TextAutoCompletion';
 import { DynamicLayoutContext } from '../../context';
+import DynamicValidationManager from './DynamicValidationManager';
 
 function DynamicAutoCompletion(
     {
@@ -13,13 +14,15 @@ function DynamicAutoCompletion(
     const { data, setData } = React.useContext(DynamicLayoutContext);
 
     return (
-        <TextAutoCompletion
-            inputId={id}
-            inputProps={{ label }}
-            onChange={completion => setData({ [id]: completion })}
-            url={url}
-            value={data[id]}
-        />
+        <DynamicValidationManager id={id}>
+            <TextAutoCompletion
+                inputId={id}
+                inputProps={{ label }}
+                onChange={completion => setData({ [id]: completion })}
+                url={url}
+                value={data[id]}
+            />
+        </DynamicValidationManager>
     );
 }
 
