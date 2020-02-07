@@ -16,16 +16,6 @@
     }
   }
 
-  .icon {
-    position: absolute;
-    font-size: 1.25em;
-
-    & ~ label, & ~ .additionalLabel {
-      margin-left: 1.75rem;
-      width: calc(100% - 2rem);
-    }
-  }
-
   label {
     position: relative;
     color: #7a7a7a;
@@ -49,6 +39,18 @@
 
     &:hover {
       background-color: #eaeaea;
+    }
+
+    .icon {
+      position: absolute;
+      font-size: 1.3em;
+      bottom: .5em;
+      left: .5em;
+
+      & ~ input, & ~ .labelText {
+        margin-left: 2.75rem;
+        width: calc(100% - 2.75rem);
+      }
     }
 
     input {
