@@ -31,9 +31,9 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 /**
- * 
+ *
  * @author Mario Groß (m.gross@micromata.de)
- * 
+ *
  */
 public class HRPlanningFilter extends BaseSearchFilter implements Serializable
 {
@@ -72,35 +72,35 @@ public class HRPlanningFilter extends BaseSearchFilter implements Serializable
   }
 
   /**
-   * @return the startTime
+   * @return the startDay
    */
-  public LocalDate getStartTime()
+  public LocalDate getStartDay()
   {
     return getTimePeriod().getFromDay();
   }
 
   /**
-   * @param startTime the startTime to set
+   * @param startDay the startDay to set
    */
-  public void setStartTime(LocalDate startTime)
+  public void setStartDay(LocalDate startDay)
   {
-    getTimePeriod().setFromDay(startTime);
+    getTimePeriod().setFromDay(startDay);
   }
 
   /**
-   * @return the stopTime
+   * @return the stopDay
    */
-  public LocalDate getStopTime()
+  public LocalDate getStopDay()
   {
     return getTimePeriod().getToDay();
   }
 
   /**
-   * @param stopTime the stopTime to set
+   * @param stopDay the stopDay to set
    */
-  public void setStopTime(LocalDate stopTime)
+  public void setStopDay(LocalDate stopDay)
   {
-    getTimePeriod().setToDay(stopTime);
+    getTimePeriod().setToDay(stopDay);
   }
 
   /**
@@ -109,8 +109,8 @@ public class HRPlanningFilter extends BaseSearchFilter implements Serializable
    */
   public void setTimePeriod(final LocalDatePeriod timePeriod)
   {
-    setStartTime(timePeriod.getBegin());
-    setStopTime(timePeriod.getEnd());
+    setStartDay(timePeriod.getBegin());
+    setStopDay(timePeriod.getEnd());
   }
 
   private TimePeriod getTimePeriod()

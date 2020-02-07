@@ -34,10 +34,10 @@ import org.projectforge.business.humanresources.HRViewData;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.web.wicket.WebConstants;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -68,7 +68,7 @@ public class HRListResourceLinkPanel extends Panel
     add(userRepeater);
   }
 
-  public void refresh(final HRViewData hrViewData, final Date startTime)
+  public void refresh(final HRViewData hrViewData, final LocalDate startDay)
   {
     userRepeater.removeAll();
     final List<PFUserDO> unplannedUsers = hrViewDao.getUnplannedResources(hrViewData);
@@ -83,8 +83,7 @@ public class HRListResourceLinkPanel extends Panel
         @Override
         public void onClick()
         {
-          final DateHolder date = new DateHolder(startTime);
-          final long millis = date.getTimeInMillis();
+          final long millis = PFDateTime.from(startDay).getBeginOfDay().getEpochMilli();
           final PageParameters pageParams = new PageParameters();
           pageParams.add(WebConstants.PARAMETER_USER_ID, String.valueOf(user.getId()));
           pageParams.add(WebConstants.PARAMETER_DATE, Long.toString(millis));

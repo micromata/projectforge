@@ -44,7 +44,6 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
-import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
 import org.slf4j.Logger;
@@ -52,7 +51,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import javax.ws.rs.HEAD;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -172,9 +170,9 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
   @Override
   public List<HRPlanningDO> getList(final BaseSearchFilter filter) {
     final HRPlanningFilter myFilter = (HRPlanningFilter) filter;
-    if (myFilter.getStopTime() != null) {
-      PFDateTime dateTime = PFDateTime.fromOrNow(myFilter.getStopTime()).getEndOfDay();
-      myFilter.setStopTime(dateTime.getLocalDate());
+    if (myFilter.getStopDay() != null) {
+      PFDateTime dateTime = PFDateTime.fromOrNow(myFilter.getStopDay()).getEndOfDay();
+      myFilter.setStopDay(dateTime.getLocalDate());
     }
     final QueryFilter queryFilter = buildQueryFilter(myFilter);
     final List<HRPlanningDO> result = getList(queryFilter);
@@ -205,12 +203,12 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
       user.setId(filter.getUserId());
       queryFilter.add(QueryFilter.eq("user", user));
     }
-    if (filter.getStartTime() != null && filter.getStopTime() != null) {
-      queryFilter.add(QueryFilter.between("week", filter.getStartTime(), filter.getStopTime()));
-    } else if (filter.getStartTime() != null) {
-      queryFilter.add(QueryFilter.ge("week", filter.getStartTime()));
-    } else if (filter.getStopTime() != null) {
-      queryFilter.add(QueryFilter.le("week", filter.getStopTime()));
+    if (filter.getStartDay() != null && filter.getStopDay() != null) {
+      queryFilter.add(QueryFilter.between("week", filter.getStartDay(), filter.getStopDay()));
+    } else if (filter.getStartDay() != null) {
+      queryFilter.add(QueryFilter.ge("week", filter.getStartDay()));
+    } else if (filter.getStopDay() != null) {
+      queryFilter.add(QueryFilter.le("week", filter.getStopDay()));
     }
     if (filter.getProjektId() != null) {
       queryFilter.add(QueryFilter.eq("projekt.id", filter.getProjektId()));

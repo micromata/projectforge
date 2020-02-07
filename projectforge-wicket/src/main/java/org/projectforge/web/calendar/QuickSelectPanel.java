@@ -86,6 +86,6 @@ public class QuickSelectPanel extends AbstractSelectPanel<Date>
   public LocalDate getInputDate() {
     datePanel.getDateField().validate(); // Update model from form field.
     final Date date = datePanel.getDateField().getConvertedInput();
-    return PFDay.from(date).getLocalDate();
+    return PFDay.fromOrNow(date).getLocalDate();
   }
 }

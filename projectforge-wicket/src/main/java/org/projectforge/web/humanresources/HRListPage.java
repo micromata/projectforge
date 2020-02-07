@@ -40,7 +40,8 @@ import org.projectforge.business.humanresources.*;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseDao;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -50,8 +51,8 @@ import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -97,8 +98,8 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
   @SuppressWarnings("serial")
   private void recreateDataTable()
   {
-    final Date date = form.getSearchFilter().getStartTime();
-    weekMillis = date != null ? date.getTime() : null;
+    final LocalDate date = form.getSearchFilter().getStartDay();
+    weekMillis = date != null ? PFDateTime.from(date).getBeginOfWeek().getEpochMilli() : null;
     if (dataTable != null) {
       form.remove(dataTable);
     }
@@ -155,8 +156,8 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
                 // Redirect to time sheet list page and show the corresponding time sheets.
                 final PageParameters parameters = new PageParameters();
                 parameters.add(TimesheetListPage.PARAMETER_KEY_STORE_FILTER, false);
-                parameters.add(TimesheetListPage.PARAMETER_KEY_START_TIME, filter.getStartTime().getTime());
-                parameters.add(TimesheetListPage.PARAMETER_KEY_STOP_TIME, filter.getStopTime().getTime());
+                parameters.add(TimesheetListPage.PARAMETER_KEY_START_TIME, PFDateTime.from(filter.getStartDay()).getBeginOfDay().getEpochMilli());
+                parameters.add(TimesheetListPage.PARAMETER_KEY_STOP_TIME, PFDateTime.from(filter.getStopDay()).getEpochMilli());
                 parameters.add(TimesheetListPage.PARAMETER_KEY_USER_ID, userData.getUserId());
                 final TimesheetListPage timesheetListPage = new TimesheetListPage(parameters);
                 setResponsePage(timesheetListPage);
@@ -207,8 +208,8 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
                       final PageParameters parameters = new PageParameters();
                       parameters.add(TimesheetListPage.PARAMETER_KEY_STORE_FILTER, false);
                       parameters.add(TimesheetListPage.PARAMETER_KEY_TASK_ID, project.getTaskId());
-                      parameters.add(TimesheetListPage.PARAMETER_KEY_START_TIME, filter.getStartTime().getTime());
-                      parameters.add(TimesheetListPage.PARAMETER_KEY_STOP_TIME, filter.getStopTime().getTime());
+                      parameters.add(TimesheetListPage.PARAMETER_KEY_START_TIME, PFDateTime.from(filter.getStartDay()).getEpochMilli());
+                      parameters.add(TimesheetListPage.PARAMETER_KEY_STOP_TIME, PFDateTime.from(filter.getStopDay()).getEpochMilli());
                       parameters.add(TimesheetListPage.PARAMETER_KEY_USER_ID, userData.getUserId());
                       final TimesheetListPage timesheetListPage = new TimesheetListPage(parameters);
                       setResponsePage(timesheetListPage);
@@ -270,8 +271,6 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
 
   /**
    * Get the current date (start date) and preset this date for the edit page.
-   *
-   * @see org.projectforge.web.wicket.AbstractListPage#onNewEntryClick(org.apache.wicket.PageParameters)
    */
   @Override
   protected AbstractEditPage<?, ?, ?> redirectToEditPage(PageParameters params)
@@ -306,7 +305,7 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
 
   private void recreateBottomPanel()
   {
-    resourceLinkPanel.refresh(getHRViewData(), form.getSearchFilter().getStartTime());
+    resourceLinkPanel.refresh(getHRViewData(), form.getSearchFilter().getStartDay());
   }
 
   @Override
@@ -352,11 +351,9 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
   public void select(final String property, final Object selectedValue)
   {
     if (property.equals("week") == true) {
-      final Date date = (Date) selectedValue;
-      final DateHolder dateHolder = new DateHolder(date);
-      form.getSearchFilter().setStartTime(dateHolder.getUtilDate());
-      dateHolder.setEndOfWeek();
-      form.getSearchFilter().setStopTime(dateHolder.getUtilDate());
+      final LocalDate date = (LocalDate) selectedValue;
+      form.getSearchFilter().setStartDay(date);
+      form.getSearchFilter().setStopDay(PFDay.from(date).getEndOfWeek().getLocalDate());
       form.startDate.markModelAsChanged();
       form.stopDate.markModelAsChanged();
       refresh();

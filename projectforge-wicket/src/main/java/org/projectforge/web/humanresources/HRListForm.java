@@ -40,9 +40,9 @@ import java.time.LocalDate;
 import java.util.Date;
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class HRListForm extends AbstractListForm<HRFilter, HRListPage>
 {
@@ -122,7 +122,7 @@ public class HRListForm extends AbstractListForm<HRFilter, HRListPage>
       public LocalDate getObject() {
         startDate.validate(); // Update model from form field.
         final Date date = startDate.getConvertedInput();
-        return PFDay.from(date).getLocalDate();
+        return PFDay.fromOrNow(date).getLocalDate();
       }
     }, parentPage, "week");
     optionsFieldsetPanel.add(quickSelectPanel);
@@ -131,23 +131,23 @@ public class HRListForm extends AbstractListForm<HRFilter, HRListPage>
       @Override
       public String getObject()
       {
-        return WicketUtils.getCalendarWeeks(HRListForm.this, filter.getStartTime(), filter.getStopTime());
+        return WicketUtils.getCalendarWeeks(HRListForm.this, filter.getStartDay(), filter.getStopDay());
       }
     }));
     optionsFieldsetPanel.add(new HtmlCommentPanel(optionsFieldsetPanel.newChildId(), new Model<String>() {
       @Override
       public String getObject() {
-        return WicketUtils.getUTCDates(filter.getStartTime(), filter.getStopTime());
+        return WicketUtils.getUTCDates(filter.getStartDay(), filter.getStopDay());
       }
     }));
   }
 
   private FieldProperties<LocalDate> getStopDateProperties(HRFilter filter) {
-    return new FieldProperties<>("", new PropertyModel<>(filter, "stopTime"));
+    return new FieldProperties<>("", new PropertyModel<>(filter, "stopDay"));
   }
 
   private FieldProperties<LocalDate> getStartDateProperties(HRFilter filter) {
-    return new FieldProperties<>("", new PropertyModel<>(filter, "startTime"));
+    return new FieldProperties<>("", new PropertyModel<>(filter, "startDay"));
   }
 
   @Override
