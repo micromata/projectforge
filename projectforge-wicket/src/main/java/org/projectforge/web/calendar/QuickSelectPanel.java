@@ -64,7 +64,7 @@ public class QuickSelectPanel extends AbstractSelectPanel<Date>
   public QuickSelectPanel init()
   {
     super.init();
-    final QuickSelectMonthPanel quickSelectMonthPanel = new QuickSelectMonthPanel("quickSelectMonth", new Model<>() {
+    final QuickSelectMonthPanel quickSelectMonthPanel = new QuickSelectMonthPanel("quickSelectMonth", new Model<LocalDate>() {
       @Override
       public LocalDate getObject() {
         return getInputDate();
@@ -72,7 +72,7 @@ public class QuickSelectPanel extends AbstractSelectPanel<Date>
     }, caller, selectProperty + ".month");
     add(quickSelectMonthPanel);
     quickSelectMonthPanel.init();
-    final QuickSelectWeekPanel quickSelectWeekPanel = new QuickSelectWeekPanel("quickSelectWeek", new Model<>() {
+    final QuickSelectWeekPanel quickSelectWeekPanel = new QuickSelectWeekPanel("quickSelectWeek", new Model<LocalDate>() {
       @Override
       public LocalDate getObject() {
         return getInputDate();

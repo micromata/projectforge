@@ -34,6 +34,7 @@ import org.projectforge.framework.xstream.XmlObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @XmlObject(alias = "ganttChart")
@@ -47,13 +48,13 @@ public class GanttChart {
 
   private GanttChartSettings settings;
 
-  private Date fromDate;
+  private LocalDate fromDate;
 
-  private Date toDate;
+  private LocalDate toDate;
 
-  private transient Date calculatedStartDate;
+  private transient LocalDate calculatedStartDate;
 
-  private transient Date calculatedEndDate;
+  private transient LocalDate calculatedEndDate;
 
   private transient int fromToDays = -1;
 
@@ -66,9 +67,9 @@ public class GanttChart {
   private transient Map<GanttTask, ObjectInfo> objectMap = new HashMap<>();
 
   private class ObjectInfo {
-    final Date fromDate;
+    final LocalDate fromDate;
 
-    final Date toDate;
+    final LocalDate toDate;
 
     final double x1;
 
@@ -138,14 +139,14 @@ public class GanttChart {
   /**
    * The earliest date of all contained tasks.
    */
-  public Date getCalculatedStartDate() {
+  public LocalDate getCalculatedStartDate() {
     return calculatedStartDate;
   }
 
   /**
    * The latest date of all contained tasks.
    */
-  public Date getCalculatedEndDate() {
+  public LocalDate getCalculatedEndDate() {
     return calculatedEndDate;
   }
 
@@ -176,10 +177,10 @@ public class GanttChart {
       toDate = settings.getToDate();
     }
     if (fromDate == null) {
-      fromDate = PFDateTime.now().getBeginOfDay().withHour(8).getUtilDate();
+      fromDate = PFDateTime.now().getBeginOfDay().withHour(8).getLocalDate();
     }
     if (toDate == null) {
-      toDate = PFDateTime.now().getBeginOfDay().withHour(8).plusDays(30).getUtilDate();
+      toDate = PFDateTime.now().getBeginOfDay().withHour(8).plusDays(30).getLocalDate();
     }
     for (final GanttTask node : allVisibleGanttObjects) {
       final ObjectInfo taskInfo = new ObjectInfo(node, row++);
@@ -254,8 +255,8 @@ public class GanttChart {
     // Show today line, if configured.
     if (style.isShowToday()) {
       final DayHolder today = new DayHolder();
-      if (today.isBetween(fromDate, toDate)) {
-        diagram.appendChild(SVGHelper.createLine(doc, getXValue(today.getUtilDate()), 0, getXValue(today.getUtilDate()), getDiagramHeight(), SVGColor.RED, "stroke-width", "2"));
+      if (!(today.getLocalDate().isAfter(toDate) || today.getLocalDate().isBefore(fromDate))) {
+        diagram.appendChild(SVGHelper.createLine(doc, getXValue(today.getLocalDate()), 0, getXValue(today.getLocalDate()), getDiagramHeight(), SVGColor.RED, "stroke-width", "2"));
       }
     }
 
@@ -306,8 +307,8 @@ public class GanttChart {
     fromDate = toDate = null;
     final Collection<GanttTask> allVisibleGanttObjects = getAllVisibleGanttObjects(new ArrayList<>(), rootNode);
     for (final GanttTask node : allVisibleGanttObjects) {
-      Date periodStart = GanttUtils.getCalculatedStartDate(node);
-      Date periodEnd = GanttUtils.getCalculatedEndDate(node);
+      LocalDate periodStart = GanttUtils.getCalculatedStartDate(node);
+      LocalDate periodEnd = GanttUtils.getCalculatedEndDate(node);
       if (periodEnd == null) {
         periodEnd = periodStart;
       } else if (periodStart == null) {
@@ -315,12 +316,12 @@ public class GanttChart {
       }
       if (fromDate == null) {
         fromDate = periodStart;
-      } else if (periodStart != null && fromDate.after(periodStart)) {
+      } else if (periodStart != null && fromDate.isAfter(periodStart)) {
         fromDate = periodStart;
       }
       if (toDate == null) {
         toDate = periodEnd;
-      } else if (periodEnd != null && toDate.before(periodEnd)) {
+      } else if (periodEnd != null && toDate.isBefore(periodEnd)) {
         toDate = periodEnd;
       }
     }
@@ -515,7 +516,7 @@ public class GanttChart {
 
   private void drawMilestone(final GanttTask node, final Document doc, final Element diagram) {
     final ObjectInfo taskInfo = getObjectInfo(node);
-    final Date date = taskInfo.fromDate != null ? taskInfo.fromDate : taskInfo.toDate;
+    final LocalDate date = taskInfo.fromDate != null ? taskInfo.fromDate : taskInfo.toDate;
     if (date == null) {
       // Neither start nor end date given, do nothing:
       return;
@@ -588,11 +589,11 @@ public class GanttChart {
     return height - GanttChartStyle.HEAD_HEIGHT;
   }
 
-  private double getXValue(final Date date) {
+  private double getXValue(final LocalDate date) {
     if (date == null) {
       return 0.0;
     }
-    final PFDateTime dt = PFDateTime.from(fromDate); // not null
+    final PFDateTime dt = PFDateTime.fromOrNow(fromDate); // not null
     final int days = (int) dt.daysBetween(date);
     final int fromToDays = getFromToDays();
     if (fromToDays == 0) {
@@ -604,7 +605,7 @@ public class GanttChart {
 
   private int getFromToDays() {
     if (fromToDays < 0) {
-      final PFDateTime dt = PFDateTime.from(fromDate); // not null
+      final PFDateTime dt = PFDateTime.fromOrNow(fromDate); // not null
       fromToDays = (int) dt.daysBetween(toDate);
     }
     return fromToDays;

@@ -50,12 +50,12 @@ public class GanttTaskImplTest2 {
     assertTrue(task.hasDuration(), "duration should be 10.");
     final DayHolder day = new DayHolder();
     day.setDate(2010, Month.AUGUST, 13);
-    task.setStartDate(day.getUtilDate());
+    task.setStartDate(day.getLocalDate());
     assertTrue(task.hasDuration(), "duration should be 10.");
     task.setDuration(null);
     assertFalse(task.hasDuration(), "duration should be null.");
     day.add(Calendar.DAY_OF_MONTH, 1);
-    task.setEndDate(day.getUtilDate());
+    task.setEndDate(day.getLocalDate());
     assertTrue(task.hasDuration(), "duration expected.");
   }
 }

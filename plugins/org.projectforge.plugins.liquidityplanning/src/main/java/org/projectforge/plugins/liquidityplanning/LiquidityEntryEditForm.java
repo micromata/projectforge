@@ -72,7 +72,7 @@ public class LiquidityEntryEditForm extends AbstractEditForm<LiquidityEntryDO, L
     {
       // Amount
       final FieldsetPanel fs = gridBuilder.newFieldset(LiquidityEntryDO.class, "amount");
-      final RequiredMinMaxNumberField<BigDecimal> amount = new RequiredMinMaxNumberField<>(
+      final RequiredMinMaxNumberField<BigDecimal> amount = new RequiredMinMaxNumberField<BigDecimal>(
           fs.getTextFieldId(),
           new PropertyModel<>(data, "amount"), Constants.TEN_BILLION_NEGATIVE, Constants.TEN_BILLION) {
         @SuppressWarnings({"rawtypes", "unchecked"})

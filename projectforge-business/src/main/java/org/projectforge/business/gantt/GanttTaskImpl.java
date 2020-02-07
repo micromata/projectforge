@@ -31,6 +31,7 @@ import org.projectforge.framework.utils.NumberHelper;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -58,9 +59,9 @@ public class GanttTaskImpl implements GanttTask, Serializable
 
   private BigDecimal duration;
 
-  private Date endDate;
+  private LocalDate endDate;
 
-  private Date startDate;
+  private LocalDate startDate;
 
   private Integer progress;
 
@@ -74,11 +75,11 @@ public class GanttTaskImpl implements GanttTask, Serializable
 
   private boolean visible = false;
 
-  private transient Date calculatedStartDate;
+  private transient LocalDate calculatedStartDate;
 
   private transient boolean startDateCalculated;
 
-  private transient Date calculatedEndDate;
+  private transient LocalDate calculatedEndDate;
 
   private transient boolean endDateCalculated;
 
@@ -200,13 +201,13 @@ public class GanttTaskImpl implements GanttTask, Serializable
    * @see org.projectforge.business.gantt.GanttTask#getEndDate()
    */
   @Override
-  public Date getEndDate()
+  public LocalDate getEndDate()
   {
     return endDate;
   }
 
   @Override
-  public GanttTaskImpl setEndDate(Date endDate)
+  public GanttTaskImpl setEndDate(LocalDate endDate)
   {
     this.endDate = endDate;
     this.startDateCalculated = this.endDateCalculated = false; // Force recalculation (also taking the children into account)
@@ -217,13 +218,13 @@ public class GanttTaskImpl implements GanttTask, Serializable
    * @see org.projectforge.business.gantt.GanttTask#getStartDate()
    */
   @Override
-  public Date getStartDate()
+  public LocalDate getStartDate()
   {
     return startDate;
   }
 
   @Override
-  public GanttTaskImpl setStartDate(Date startDate)
+  public GanttTaskImpl setStartDate(LocalDate startDate)
   {
     this.startDate = startDate;
     this.startDateCalculated = this.endDateCalculated = false; // Force recalculation (also taking the children into account)
@@ -346,7 +347,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
    * @see org.projectforge.business.gantt.GanttTask#getCalculatedStartDate()
    */
   @Override
-  public Date getCalculatedStartDate()
+  public LocalDate getCalculatedStartDate()
   {
     if (!startDateCalculated) {
       calculatedStartDate = GanttUtils.getCalculatedStartDate(this);
@@ -356,10 +357,10 @@ public class GanttTaskImpl implements GanttTask, Serializable
   }
 
   /**
-   * @see org.projectforge.business.gantt.GanttTask#setCalculatedStartDate(java.util.Date)
+   * @see org.projectforge.business.gantt.GanttTask#setCalculatedStartDate(java.time.LocalDate)
    */
   @Override
-  public GanttTaskImpl setCalculatedStartDate(Date calculatedStartDate)
+  public GanttTaskImpl setCalculatedStartDate(LocalDate calculatedStartDate)
   {
     this.calculatedStartDate = calculatedStartDate;
     return this;
@@ -370,7 +371,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
    * @see org.projectforge.business.gantt.GanttTask#getCalculatedEndDate()
    */
   @Override
-  public Date getCalculatedEndDate()
+  public LocalDate getCalculatedEndDate()
   {
     if (!endDateCalculated) {
       calculatedEndDate = GanttUtils.getCalculatedEndDate(this);
@@ -380,10 +381,10 @@ public class GanttTaskImpl implements GanttTask, Serializable
   }
 
   /**
-   * @see org.projectforge.business.gantt.GanttTask#setCalculatedEndDate(java.util.Date)
+   * @see org.projectforge.business.gantt.GanttTask#setCalculatedEndDate(java.time.LocalDate)
    */
   @Override
-  public GanttTaskImpl setCalculatedEndDate(Date calculatedEndDate)
+  public GanttTaskImpl setCalculatedEndDate(LocalDate calculatedEndDate)
   {
     this.calculatedEndDate = calculatedEndDate;
     return this;

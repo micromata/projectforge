@@ -31,6 +31,7 @@ import org.projectforge.framework.utils.NumberHelper;
 
 import java.io.Serializable;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.*;
 
 public class GanttUtils {
@@ -42,8 +43,8 @@ public class GanttUtils {
       if (Objects.equals(o1.getId(), o2.getId())) {
         return 0;
       }
-      final Date start1 = o1.getCalculatedStartDate();
-      final Date start2 = o2.getCalculatedStartDate();
+      final LocalDate start1 = o1.getCalculatedStartDate();
+      final LocalDate start2 = o2.getCalculatedStartDate();
       if (start1 == null) {
         if (start2 != null) {
           return 1;
@@ -56,8 +57,8 @@ public class GanttUtils {
           return result;
         }
       }
-      final Date end1 = o1.getCalculatedEndDate();
-      final Date end2 = o2.getCalculatedEndDate();
+      final LocalDate end1 = o1.getCalculatedEndDate();
+      final LocalDate end2 = o2.getCalculatedEndDate();
       if (end1 == null) {
         if (end2 != null) {
           return 1;
@@ -83,12 +84,12 @@ public class GanttUtils {
    *
    * @param node
    */
-  public static Date getCalculatedStartDate(final GanttTask node) {
-    final Date start = getCalculatedStartDate(node, new HashSet<>(), new HashSet<>());
+  public static LocalDate getCalculatedStartDate(final GanttTask node) {
+    final LocalDate start = getCalculatedStartDate(node, new HashSet<>(), new HashSet<>());
     return start;
   }
 
-  private static Date getCalculatedStartDate(final GanttTask node, final Set<Serializable> startDateSet, final Set<Serializable> endDateSet) {
+  private static LocalDate getCalculatedStartDate(final GanttTask node, final Set<Serializable> startDateSet, final Set<Serializable> endDateSet) {
     if (node == null) {
       return null;
     }
@@ -100,7 +101,7 @@ public class GanttUtils {
     }
     final int durationDays = node.getDuration() != null ? node.getDuration().setScale(0, RoundingMode.HALF_UP).intValue() : 0;
     if (node.getDuration() != null && node.getEndDate() != null) {
-      final Date startDate = calculateDate(node.getEndDate(), -durationDays);
+      final LocalDate startDate = calculateDate(node.getEndDate(), -durationDays);
       node.setCalculatedStartDate(startDate).setStartDateCalculated(true);
       if (log.isDebugEnabled()) {
         log.debug("calculated start date=" + startDate + " for: " + node);
@@ -113,7 +114,7 @@ public class GanttUtils {
     } else {
       startDateSet.add(node.getId());
     }
-    Date startDate = null;
+    LocalDate startDate = null;
     final GanttTask predecessor = node.getPredecessor();
     if (predecessor != null) {
       startDate = getPredecessorRelDate(node.getRelationType(), predecessor, startDateSet, endDateSet);
@@ -133,10 +134,10 @@ public class GanttUtils {
             && node.getChildren() != null) {
       // Calculate start date from the earliest child.
       for (final GanttTask child : node.getChildren()) {
-        final Date date = getCalculatedStartDate(child, startDateSet, endDateSet);
+        final LocalDate date = getCalculatedStartDate(child, startDateSet, endDateSet);
         if (startDate == null) {
           startDate = date;
-        } else if (date != null && date.before(startDate)) {
+        } else if (date != null && date.isBefore(startDate)) {
           if (log.isDebugEnabled()) {
             log.debug("Start date of child is before start date=" + date + " of parent: " + child);
           }
@@ -145,7 +146,7 @@ public class GanttUtils {
       }
     }
     if (startDate == null && node.getDuration() != null) {
-      final Date calculatedEndDate = getCalculatedEndDate(node, startDateSet, endDateSet);
+      final LocalDate calculatedEndDate = getCalculatedEndDate(node, startDateSet, endDateSet);
       if (calculatedEndDate != null) {
         startDate = calculateDate(calculatedEndDate, -durationDays);
       }
@@ -157,13 +158,13 @@ public class GanttUtils {
     return startDate;
   }
 
-  private static Date getPredecessorRelDate(final GanttRelationType relationType, final GanttTask predecessor,
+  private static LocalDate getPredecessorRelDate(final GanttRelationType relationType, final GanttTask predecessor,
                                             final Set<Serializable> startDateSet, final Set<Serializable> endDateSet) {
     if (relationType == GanttRelationType.START_START || relationType == GanttRelationType.START_FINISH) {
-      final Date calculatedStartDate = getCalculatedStartDate(predecessor, startDateSet, endDateSet);
+      final LocalDate calculatedStartDate = getCalculatedStartDate(predecessor, startDateSet, endDateSet);
       return calculatedStartDate;
     } else {
-      final Date calculatedEndDate = getCalculatedEndDate(predecessor, startDateSet, endDateSet);
+      final LocalDate calculatedEndDate = getCalculatedEndDate(predecessor, startDateSet, endDateSet);
       return calculatedEndDate;
     }
   }
@@ -173,8 +174,8 @@ public class GanttUtils {
    * given, then the start date is taken and durationDays (only working days) will be added. If no start date is given, the start date will
    * be calculated from the node this node depends on.
    */
-  public static Date getCalculatedEndDate(final GanttTask node) {
-    final Date end = getCalculatedEndDate(node, new HashSet<>(), new HashSet<>());
+  public static LocalDate getCalculatedEndDate(final GanttTask node) {
+    final LocalDate end = getCalculatedEndDate(node, new HashSet<>(), new HashSet<>());
     return end;
   }
 
@@ -183,7 +184,7 @@ public class GanttUtils {
    * @param depth For avoiding stack overflow errors
    * @return
    */
-  private static Date getCalculatedEndDate(final GanttTask node, final Set<Serializable> startDateSet, final Set<Serializable> endDateSet) {
+  private static LocalDate getCalculatedEndDate(final GanttTask node, final Set<Serializable> startDateSet, final Set<Serializable> endDateSet) {
     if (node == null) {
       return null;
     }
@@ -195,7 +196,7 @@ public class GanttUtils {
     }
     final int durationDays = node.getDuration() != null ? node.getDuration().setScale(0, RoundingMode.HALF_UP).intValue() : 0;
     if (node.getDuration() != null && node.getStartDate() != null) {
-      final Date endDate = calculateDate(node.getStartDate(), durationDays);
+      final LocalDate endDate = calculateDate(node.getStartDate(), durationDays);
       node.setCalculatedEndDate(endDate).setEndDateCalculated(true);
       if (log.isDebugEnabled()) {
         log.debug("calculated end date=" + endDate + " for: " + node);
@@ -208,7 +209,7 @@ public class GanttUtils {
     } else {
       endDateSet.add(node.getId());
     }
-    Date endDate = null;
+    LocalDate endDate = null;
     final GanttTask predecessor = node.getPredecessor();
     if (predecessor != null) {
       endDate = getPredecessorRelDate(node.getRelationType(), predecessor, startDateSet, endDateSet);
@@ -229,14 +230,14 @@ public class GanttUtils {
             && node.getDuration() == null) {
       // There are children and the end date is not fix defined by a predecessor.
       for (final GanttTask child : node.getChildren()) {
-        final Date date = getCalculatedEndDate(child, startDateSet, endDateSet);
-        if (date != null && (endDate == null || date.after(endDate))) {
+        final LocalDate date = getCalculatedEndDate(child, startDateSet, endDateSet);
+        if (date != null && (endDate == null || date.isAfter(endDate))) {
           endDate = date;
         }
       }
     }
     if (endDate == null && node.getDuration() != null) {
-      final Date calculatedStartDate = getCalculatedStartDate(node, startDateSet, endDateSet);
+      final LocalDate calculatedStartDate = getCalculatedStartDate(node, startDateSet, endDateSet);
       if (calculatedStartDate != null) {
         endDate = calculateDate(calculatedStartDate, durationDays);
       }
@@ -248,9 +249,9 @@ public class GanttUtils {
     return endDate;
   }
 
-  private static Date calculateDate(final Date date, final int workingDayOffset) {
-    PFDateTime dt = PFDateTime.from(date); // not null
+  private static LocalDate calculateDate(final LocalDate date, final int workingDayOffset) {
+    PFDateTime dt = PFDateTime.fromOrNow(date);
     dt = PFDayUtils.addWorkingDays(dt, workingDayOffset);
-    return dt.getUtilDate();
+    return dt.getLocalDate();
   }
 }

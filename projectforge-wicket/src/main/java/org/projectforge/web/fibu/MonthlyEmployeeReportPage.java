@@ -64,6 +64,7 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.TextStyle;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -282,7 +283,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
   {
     final RepeatingView headcolRepeater = new RepeatingView("headcolRepeater");
     table.add(headcolRepeater);
-    if (MapUtils.isEmpty(report.getKost2Rows()) == false) {
+    if (!MapUtils.isEmpty(report.getKost2Rows())) {
       headcolRepeater.add(new Label(headcolRepeater.newChildId(), getString("fibu.kost2")));
       headcolRepeater.add(new Label(headcolRepeater.newChildId(), getString("fibu.kunde")));
       headcolRepeater.add(new Label(headcolRepeater.newChildId(), getString("fibu.projekt")));
@@ -526,7 +527,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
   @Override
   public void select(final String property, final Object selectedValue)
   {
-    if ("user".equals(property) == true) {
+    if ("user".equals(property)) {
       final Integer id;
       if (selectedValue instanceof String) {
         id = NumberHelper.parseInteger((String) selectedValue);
@@ -534,8 +535,8 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
         id = (Integer) selectedValue;
       }
       form.filter.setUser(getTenantRegistry().getUserGroupCache().getUser(id));
-    } else if ("quickSelect".equals(property) == true) {
-      final Date date = (Date) selectedValue;
+    } else if ("quickSelect".equals(property)) {
+      final LocalDate date = (LocalDate) selectedValue;
       form.setDate(date);
     } else {
       log.error("Property '" + property + "' not supported for selection.");
