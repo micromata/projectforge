@@ -607,10 +607,10 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
    */
   public int getPageSize()
   {
-    if (searchFilter.getMaxRows() < 0) {
-      searchFilter.setMaxRows(25);
+    if (searchFilter.getPageSize() < 0) {
+      searchFilter.setPageSize(25);
     }
-    return searchFilter.getMaxRows();
+    return searchFilter.getPageSize();
   }
 
   /**

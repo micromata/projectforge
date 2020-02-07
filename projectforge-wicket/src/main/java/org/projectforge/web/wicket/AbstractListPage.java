@@ -669,7 +669,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
       final SortOrder sortOrder)
   {
     int pageSize = form.getPageSize();
-    if (pageSize < 0) {
+    if (pageSize < 1) {
       pageSize = 50;
     }
     final SortParam<String> sortParam = sortProperty != null

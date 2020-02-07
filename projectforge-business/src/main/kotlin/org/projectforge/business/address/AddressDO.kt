@@ -56,7 +56,7 @@ import javax.persistence.*
 open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     override val displayName: String
         @Transient
-        get() = if (city.isNullOrBlank()) "$fullName" else "$fullName, $city"
+        get() = listOf(name, firstName, organization, city).filter { !it.isNullOrBlank() }.joinToString(", ")
 
     @PropertyInfo(i18nKey = "address.contactStatus")
     @get:Enumerated(EnumType.STRING)
@@ -286,7 +286,7 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
 
     val fullName: String?
         @Transient
-        get() = StringHelper.listToString(", ", name, firstName)
+        get() = listOf(name, firstName, organization).filter { !it.isNullOrBlank() }.joinToString(", ")
 
     val fullNameWithTitleAndForm: String
         @Transient

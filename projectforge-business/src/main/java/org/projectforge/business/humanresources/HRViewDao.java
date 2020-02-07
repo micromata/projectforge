@@ -106,9 +106,9 @@ public class HRViewDao implements IDao<HRViewData> {
     }
     if (filter.isShowPlanning()) {
       final HRPlanningFilter hrFilter = new HRPlanningFilter();
-      PFDateTime dateTime = PFDateTime.from(filter.getStartTime()); // not null
+      PFDateTime dateTime = PFDateTime.fromOrNow(filter.getStartTime());
       hrFilter.setStartTime(dateTime.getLocalDate()); // Considers the user's time zone.
-      dateTime = PFDateTime.from(filter.getStopTime()); // not null
+      dateTime = PFDateTime.fromOrNow(filter.getStopTime());
       hrFilter.setStopTime(dateTime.getLocalDate()); // Considers the user's time zone.
       final List<HRPlanningDO> plannings = hrPlanningDao.getList(hrFilter);
       final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();

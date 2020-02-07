@@ -99,6 +99,7 @@ function MagicFilters(
                             onChange={handleSearchChange}
                             value={search}
                             placeholder={translations.search || ''}
+                            noStyle
                         />
                         <ul className={styles.filterList}>
                             {filteredSearchFilters.map(({ id, label }) => (
