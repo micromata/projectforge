@@ -105,19 +105,21 @@ class PFUserDODeserializer : StdDeserializer<PFUserDO>(PFUserDO::class.java) {
     }
 }
 
+private fun getId(p: JsonParser): Int? {
+    val node: JsonNode = p.codec.readTree(p)
+    return if (node.has("id")) {
+        (node.get("id") as IntNode).numberValue() as Int
+    } else {
+        node.asInt()
+    }
+}
+
 /**
- * Deserialization for PFUserDO.
+ * Deserialization for Kost2.
  */
 class Kost2Deserializer : StdDeserializer<Kost2>(Kost2::class.java) {
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Kost2? {
-        val node: JsonNode = p.codec.readTree(p)
-        val id = if (node.has("id")) {
-            (node.get("id") as IntNode).numberValue() as Int
-        } else {
-            node.asInt()
-        }
-        val kost2 = Kost2()
-        kost2.id = id
-        return kost2
+        val id = getId(p) ?: return null
+        return Kost2(id)
     }
 }
