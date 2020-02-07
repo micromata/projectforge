@@ -40,14 +40,18 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.xstream.*;
-import org.projectforge.framework.xstream.converter.ISODateConverter;
+import org.projectforge.framework.xstream.converter.ISOLocalDateConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
-import java.util.*;
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -121,7 +125,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
     final Document document = DocumentHelper.createDocument();
     final XmlObjectWriter writer = getXmlGanttObjectWriter();
     final XmlRegistry xmlRegistry = new XmlRegistry();
-    xmlRegistry.registerConverter(Date.class, new ISODateConverter());
+    xmlRegistry.registerConverter(LocalDate.class, new ISOLocalDateConverter());
     writer.setXmlRegistry(xmlRegistry);
     final MyRootElement root = new MyRootElement();
     root.ganttChart = ganttChart;
