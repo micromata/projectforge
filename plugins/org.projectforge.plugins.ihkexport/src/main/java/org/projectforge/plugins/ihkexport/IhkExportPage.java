@@ -74,7 +74,7 @@ public class IhkExportPage extends AbstractStandardFormPage implements ISelectCa
       final Date date = (Date) selectedValue;
 
       form.getTimePeriod().setFromDate(date);
-      PFDateTime dateTime = PFDateTime.from(date); // not null
+      PFDateTime dateTime = PFDateTime.fromOrNow(date); // not null
       if (property.endsWith(".week")) {
         dateTime = dateTime.getBeginOfWeek();
       }

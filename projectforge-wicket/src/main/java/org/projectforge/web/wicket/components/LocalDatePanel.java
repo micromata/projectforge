@@ -94,8 +94,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
    * @param requiredSupplier a callback which supplies the return value for the isRequired method of the date field.
    */
   @SuppressWarnings("serial")
-  public LocalDatePanel(final String id, final LocalDateModel model, final DatePanelSettings settings, final boolean useModelDirectly,
-                        final BooleanSupplier requiredSupplier) {
+  public LocalDatePanel(final String id, final LocalDateModel model, final DatePanelSettings settings, final boolean useModelDirectly, final BooleanSupplier requiredSupplier) {
     super(id, model);
     this.settings = settings;
     this.requiredSupplier = requiredSupplier;

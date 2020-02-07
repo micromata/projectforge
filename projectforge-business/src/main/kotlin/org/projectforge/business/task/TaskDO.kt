@@ -39,7 +39,6 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
 import javax.persistence.*
 import javax.persistence.Index
 
@@ -119,7 +118,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @PropertyInfo(i18nKey = "gantt.startDate")
     @get:Column(name = "start_date")
-    open var startDate: Date? = null
+    open var startDate: LocalDate? = null
 
     /**
      * @see org.projectforge.business.gantt.GanttTask.getEndDate
@@ -129,7 +128,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @PropertyInfo(i18nKey = "gantt.endDate")
     @get:Column(name = "end_date")
-    open var endDate: Date? = null
+    open var endDate: LocalDate? = null
 
     /**
      * Duration in days.
