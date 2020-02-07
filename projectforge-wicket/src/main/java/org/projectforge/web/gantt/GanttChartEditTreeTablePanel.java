@@ -65,7 +65,6 @@ import org.projectforge.web.tree.*;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.converter.IntegerPercentConverter;
-import org.projectforge.web.wicket.flowlayout.FieldProperties;
 import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 
@@ -303,7 +302,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
 
   private boolean isStartDateModified(final GanttTask ganttObject, final TaskDO task)
   {
-    return task != null && !DateHelper.isSameDay(PFDateTime.from(ganttObject.getStartDate()), PFDateTime.from(task.getStartDate()));
+    return task != null && !DateHelper.isSameDay(PFDateTime.fromOrNull(ganttObject.getStartDate()), PFDateTime.fromOrNull(task.getStartDate()));
   }
 
   private boolean isDurationModified(final GanttTask ganttObject, final TaskDO task)
@@ -313,7 +312,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
 
   private boolean isEndDateModified(final GanttTask ganttObject, final TaskDO task)
   {
-    return task != null && !DateHelper.isSameDay(PFDateTime.from(ganttObject.getEndDate()), PFDateTime.from(task.getEndDate()));
+    return task != null && !DateHelper.isSameDay(PFDateTime.fromOrNull(ganttObject.getEndDate()), PFDateTime.fromOrNull(task.getEndDate()));
   }
 
   private boolean isProgressModified(final GanttTask ganttObject, final TaskDO task)
@@ -744,8 +743,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       final GanttTask ganttObject,
       final TaskDO task)
   {
-    final FieldProperties<LocalDate> props = getStartDateProperties(ganttObject);
-    final LocalDatePanel startDatePanel = new LocalDatePanel("gantt.startDate", new LocalDateModel(props.getModel()),
+    final LocalDatePanel startDatePanel = new LocalDatePanel("startDate", new LocalDateModel(new PropertyModel<>(ganttObject, "startDate")),
         DatePanelSettings.get().withSelectProperty("startDate:" + node.getHashId()), true);
     addColumn(item, startDatePanel, "white-space: nowrap;");
     startDatePanelMap.put(ganttObject.getId(), startDatePanel);
@@ -766,10 +764,6 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
         ganttObject.setStartDate(task.getStartDate());
       }
     };
-  }
-
-  private FieldProperties<LocalDate> getStartDateProperties(GanttTask ganttObject) {
-    return new FieldProperties<>("gantt.startDate", new PropertyModel<>(ganttObject, "startDate"));
   }
 
   @SuppressWarnings("serial")
@@ -806,8 +800,8 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       final GanttTask ganttObject,
       final TaskDO task)
   {
-    final FieldProperties<LocalDate> props = getEndDateProperties(ganttObject);
-    final LocalDatePanel endDatePanel = new LocalDatePanel("endDate", new LocalDateModel(props.getModel()), DatePanelSettings.get().withSelectProperty("endDate:" + node.getHashId()), true);
+    final LocalDatePanel endDatePanel = new LocalDatePanel("endDate", new LocalDateModel(new PropertyModel<>(ganttObject, "endDate")),
+            DatePanelSettings.get().withSelectProperty("endDate:" + node.getHashId()), true);
     addColumn(item, endDatePanel, "white-space: nowrap;");
     endDatePanelMap.put(ganttObject.getId(), endDatePanel);
     new RejectSaveLinksFragment("rejectSaveEndDate", item, endDatePanel, task,
@@ -827,10 +821,6 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
         ganttObject.setEndDate(task.getEndDate());
       }
     };
-  }
-
-  private FieldProperties<LocalDate> getEndDateProperties(GanttTask ganttObject) {
-    return new FieldProperties<>("gantt.endDate", new PropertyModel<>(ganttObject, "endDate"));
   }
 
   @SuppressWarnings("serial")
