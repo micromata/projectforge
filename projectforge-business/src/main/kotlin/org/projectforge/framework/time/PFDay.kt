@@ -360,6 +360,14 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         }
 
         /**
+         * Alias for [now].
+         */
+        @JvmStatic
+        fun today(): PFDay {
+            return now()
+        }
+
+        /**
          *  1-based Month: 1 (January) to 12 (December)
          */
         @JvmStatic

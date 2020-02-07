@@ -26,14 +26,13 @@ package org.projectforge.business.gantt;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 
 /**
  * Represents a gantt object such as a task and a milestone.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public interface GanttTask
 {
@@ -41,7 +40,7 @@ public interface GanttTask
    * Identifier, if needed by the implementation (such as task id).
    */
   Serializable getId();
-  
+
   GanttTask setId(final Serializable id);
 
   GanttTask findBy(final Matcher<GanttTask> matcher, final Object expression);
@@ -109,7 +108,7 @@ public interface GanttTask
    * @return The given start date or if not exist the calculated start date. If no calculation is possible the now is assumed.
    */
   LocalDate getCalculatedStartDate();
-  
+
   GanttTask setCalculatedStartDate(LocalDate calculatedStartDate);
 
   /**
@@ -118,15 +117,15 @@ public interface GanttTask
   LocalDate getEndDate();
 
   GanttTask setCalculatedEndDate(LocalDate calculatedEndDate);
-  
+
   boolean isStartDateCalculated();
 
   GanttTask setStartDateCalculated(boolean isStartDateCalculated);
-  
+
   boolean isEndDateCalculated();
 
   GanttTask setEndDateCalculated(boolean isEndDateCalculated);
-  
+
   /**
    * Fluent.
    * @param startDate
@@ -245,7 +244,7 @@ public interface GanttTask
    * Adds a child object.
    */
   GanttTask addChild(GanttTask ganttObject);
-  
+
   /**
    * Removes a child object.
    * @param ganttObject Object to remove.
