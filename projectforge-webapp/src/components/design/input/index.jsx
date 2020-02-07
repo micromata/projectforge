@@ -16,7 +16,7 @@ const Input = React.forwardRef((
         label,
         onBlur,
         onFocus,
-        noLine,
+        noStyle,
         value,
         ...props
     },
@@ -45,7 +45,10 @@ const Input = React.forwardRef((
             className={classNames(
                 styles.inputField,
                 className,
-                { [styles.noLabel]: !label },
+                {
+                    [styles.noLabel]: !label,
+                    [styles.noStyle]: noStyle,
+                },
             )}
         >
             {icon && (
@@ -59,7 +62,6 @@ const Input = React.forwardRef((
                 className={classNames(
                     {
                         [styles.isActive]: value || isActive,
-                        [styles.noLine]: noLine,
                     },
                     styles[color],
                 )}
@@ -92,7 +94,7 @@ Input.propTypes = {
     label: PropTypes.string,
     onBlur: PropTypes.func,
     onFocus: PropTypes.func,
-    noLine: PropTypes.bool,
+    noStyle: PropTypes.bool,
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
@@ -105,7 +107,7 @@ Input.defaultProps = {
     label: undefined,
     onBlur: undefined,
     onFocus: undefined,
-    noLine: false,
+    noStyle: false,
     value: undefined,
 };
 

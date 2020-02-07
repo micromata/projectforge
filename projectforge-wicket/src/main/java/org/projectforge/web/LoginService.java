@@ -45,7 +45,6 @@ import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.login.LoginHandlerService;
-import org.projectforge.web.admin.SystemUpdatePage;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.ClientIpResolver;
 import org.projectforge.web.wicket.WicketUtils;
@@ -107,9 +106,11 @@ public class LoginService {
       return loginResult.getLoginResultStatus();
     }
     if (UserFilter.isUpdateRequiredFirst() == true) {
+      /*
       internalLogin(page, user);
       log.info("Admin login for maintenance (data-base update) successful for user '" + username + "'.");
       throw new RestartResponseException(SystemUpdatePage.class);
+      */
     }
     log.info("User successfully logged in: " + user.getUserDisplayName());
     if (userWantsToStayLoggedIn == true) {
@@ -124,7 +125,7 @@ public class LoginService {
     internalLogin(page, user);
     // Do not redirect to requested page in maintenance mode (update required first):
     if (UserFilter.isUpdateRequiredFirst() == true) {
-      throw new RestartResponseException(SystemUpdatePage.class);
+      //throw new RestartResponseException(SystemUpdatePage.class);
     }
     page.continueToOriginalDestination();
     // Redirect only if not a redirect is set by Wicket.
