@@ -61,7 +61,7 @@ import javax.validation.Valid
 @RestController
 @RequestMapping("${Rest.URL}/timesheet")
 class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, TimesheetDao>(TimesheetDao::class.java, "timesheet.title",
-        cloneSupported = true) {
+        cloneSupport = CloneSupport.AUTOSAVE) {
 
     companion object {
         private const val PREF_AREA = "timesheet"

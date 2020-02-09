@@ -25,8 +25,6 @@ package org.projectforge.rest
 
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.*
-import org.projectforge.business.address.DoubletsResultFilter
-import org.projectforge.business.address.FavoritesResultFilter
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
@@ -60,7 +58,7 @@ class AddressPagesRest()
     : AbstractDTOPagesRest<AddressDO, Address, AddressDao>(
         AddressDao::class.java,
         i18nKeyPrefix = "address.title",
-        cloneSupported = true) {
+        cloneSupport = CloneSupport.AUTOSAVE) {
 
     /**
      * For exporting list of addresses.
