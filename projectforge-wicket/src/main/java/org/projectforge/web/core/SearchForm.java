@@ -160,7 +160,7 @@ public class SearchForm extends AbstractStandardForm<SearchPageFilter, SearchPag
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("label.pageSize"));
       final DropDownChoice<Integer> pageSizeChoice = AbstractListForm.getPageSizeDropDownChoice(
           fs.getDropDownChoiceId(), getLocale(),
-          new PropertyModel<Integer>(filter, "maxRows"), MIN_PAGE_SIZE, MAX_PAGE_SIZE);
+          new PropertyModel<Integer>(filter, "pageSize"), MIN_PAGE_SIZE, MAX_PAGE_SIZE);
       fs.add(pageSizeChoice);
     }
 
