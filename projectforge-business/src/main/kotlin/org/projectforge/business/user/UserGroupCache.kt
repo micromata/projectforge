@@ -509,7 +509,7 @@ open class UserGroupCache(tenant: TenantDO?, applicationContext: ApplicationCont
             }
         }
         rightMap = rMap
-        log.info("Initializing of UserGroupCache done$tenantLog.")
+        log.info("Initializing of UserGroupCache done$tenantLog. Found ${uMap.size} entries.")
         Login.getInstance().afterUserGroupCacheRefresh(users, groups)
         val end = System.currentTimeMillis()
         log.info("UserGroupCache.refresh took: " + (end - begin) + " ms.")
