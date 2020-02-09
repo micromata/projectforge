@@ -206,6 +206,9 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         return date.compareTo(other.date)
     }
 
+    /**
+     * Formats current date in user's date format.
+     */
     fun format(): String {
         val formatter = DateFormats.getDateTimeFormatter(DateFormatType.DATE)
         return format(formatter)
