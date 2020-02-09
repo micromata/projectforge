@@ -67,7 +67,20 @@ abstract class AbstractPagesRest<
         B : BaseDao<O>>(
         private val baseDaoClazz: Class<B>,
         private val i18nKeyPrefix: String,
-        val cloneSupported: Boolean = false) {
+        val cloneSupport: CloneSupport = CloneSupport.NONE) {
+    enum class CloneSupport {
+        /** No clone support. */
+        NONE,
+        /**
+         * Clone button will create a copy (without saving it automatically).
+         */
+        CLONE,
+        /**
+         * Clone button will create and save a copy and close the window.
+         */
+        AUTOSAVE
+    }
+
     /**
      * If [getAutoCompletionObjects] is called without a special property to search for, all properties will be searched for,
      * given by this attribute. If null, an exception is thrown, if [getAutoCompletionObjects] is called without a property.
@@ -656,13 +669,28 @@ abstract class AbstractPagesRest<
      */
     @PostMapping(RestPaths.CLONE)
     fun clone(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>)
-            : ResponseAction {
-        val item = prepareClone(postData.data)
-        val editLayoutData = getItemAndLayout(request, item, UILayout.UserAccess(false, true))
-        return ResponseAction(targetType = TargetType.UPDATE)
+            : ResponseEntity<ResponseAction> {
+        val clone = prepareClone(postData.data)
+        if (cloneSupport == CloneSupport.AUTOSAVE) {
+            // If cloneSupport is of type AUTOSAVE and no validation error exist: clone, save and close.
+            postData.data = clone
+            val result = saveOrUpdate(request, postData)
+            if (result.statusCode == HttpStatus.OK) {
+                return result
+            }
+            // Validation errors or other errors occured, doesn't save. Proceed with editing.
+        }
+        val editLayoutData = getItemAndLayout(request, clone, UILayout.UserAccess(false, true))
+        return ResponseEntity(ResponseAction(targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)
-                .addVariable("variables", editLayoutData.variables)
+                .addVariable("variables", editLayoutData.variables),
+                HttpStatus.OK)
+    }
+
+
+    protected open fun autoSaveOnClone(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>, clone: DTO): Boolean {
+        return true
     }
 
     /**
