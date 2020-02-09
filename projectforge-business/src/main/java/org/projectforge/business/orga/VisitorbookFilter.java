@@ -25,12 +25,10 @@ package org.projectforge.business.orga;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.TimePeriod;
+import org.projectforge.framework.time.PFDay;
 
 import java.io.Serializable;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Date;
 
 @XStreamAlias("VisitorbookFilter")
@@ -38,7 +36,9 @@ public class VisitorbookFilter extends BaseSearchFilter implements Serializable
 {
   private static final long serialVersionUID = 8567780910637887786L;
 
-  private TimePeriod timePeriod;
+  private LocalDate startDay;
+
+  private LocalDate stopDay;
 
   private boolean showOnlyActiveEntries;
 
@@ -61,77 +61,43 @@ public class VisitorbookFilter extends BaseSearchFilter implements Serializable
     this.showOnlyActiveEntries = showOnlyActiveEntries;
   }
 
+  public Date getUTCStartTime() {
+    return PFDay.from(startDay).getUtilDateUTC();
+  }
+
+  public Date getUTCStopTime() {
+    return PFDay.from(startDay).getUtilDateUTC();
+  }
+
   /**
    * @return the startTime
    */
-  public Date getStartTime()
+  public LocalDate getStartDay()
   {
-    return getTimePeriod().getFromDate();
+    return startDay;
   }
 
   /**
-   * @param startTime the startTime to set
+   * @param startDay the startTime to set
    */
-  public void setStartTime(final Date startTime)
+  public void setStartDay(final LocalDate startDay)
   {
-    Date recalculatedDate = null;
-    if (startTime != null) {
-      recalculatedDate = getDateInUserTimezone(startTime);
-    }
-    getTimePeriod().setFromDate(recalculatedDate);
-  }
-
-  private Date getDateInUserTimezone(Date startTime)
-  {
-    Date recalculatedDate;
-    SimpleDateFormat sdfParser = new SimpleDateFormat("yyyy-MM-dd");
-    SimpleDateFormat sdfUserTimeZone = new SimpleDateFormat("yyyy-MM-dd");
-    sdfUserTimeZone.setTimeZone(ThreadLocalUserContext.getTimeZone());
-    String startDateUserTimeZone = sdfUserTimeZone.format(startTime);
-    try {
-      recalculatedDate = sdfParser.parse(startDateUserTimeZone);
-    } catch (ParseException e) {
-      recalculatedDate = startTime;
-    }
-    return recalculatedDate;
+    this.startDay = startDay;
   }
 
   /**
    * @return the stopTime
    */
-  public Date getStopTime()
+  public LocalDate getStopDay()
   {
-    return getTimePeriod().getToDate();
+    return stopDay;
   }
 
   /**
-   * @param stopTime the stopTime to set
+   * @param stopDay the stopTime to set
    */
-  public void setStopTime(final Date stopTime)
+  public void setStopDay(final LocalDate stopDay)
   {
-    Date recalculatedDate = null;
-    if (stopTime != null) {
-      recalculatedDate = getDateInUserTimezone(stopTime);
-    }
-    getTimePeriod().setToDate(recalculatedDate);
-  }
-
-  /**
-   * Gets start and stop time from timePeriod.
-   *
-   * @param timePeriod
-   */
-  public void setTimePeriod(final TimePeriod timePeriod)
-  {
-    setStartTime(timePeriod.getFromDate());
-    setStopTime(timePeriod.getToDate());
-  }
-
-  private TimePeriod getTimePeriod()
-  {
-    if (timePeriod == null) {
-      timePeriod = new TimePeriod();
-    }
-    return timePeriod;
+    this.stopDay = stopDay;
   }
 }

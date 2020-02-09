@@ -49,12 +49,13 @@ import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.ValidationError;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.dialog.ModalQuestionDialog;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.converter.MyDateConverter;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
@@ -177,8 +178,8 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
           @Override
           public Object getDisplayValue(T attrRow)
           {
-            final Date startTime = attrRow.getStartTime();
-            return dateConverter.convertToString(startTime, null);
+            final PFDay startDay = PFDay.fromOrNullUTC(attrRow.getStartTime());
+            return startDay != null ? startDay.format() : "";
           }
 
           @Override
@@ -317,15 +318,13 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
   {
     final String startTimeLabel = getString(attrGroup.getI18nKeyStartTime());
     final FieldsetPanel dateFs = gridBuilder.newFieldset(startTimeLabel);
-    final PropertyModel<Date> dateModel = new PropertyModel<>(attrRow, "startTime");
-    final DatePanel dp = new DatePanel(dateFs.newChildId(), dateModel,
-        DatePanelSettings.get().withTargetType(java.sql.Date.class));
+    final LocalDatePanel dp = new LocalDatePanel(dateFs.newChildId(), new LocalDateModel(new PropertyModel<>(attrRow, "startDay")));
     dp.setRequired(true);
     dp.add(this::validateDate);
     dateFs.add(dp);
 
     final DateTextField dateField = dp.getDateField();
-    dateField.setMarkupId(attrGroup.getName() + "-startTime").setOutputMarkupId(true);
+    dateField.setMarkupId(attrGroup.getName() + "-startDay").setOutputMarkupId(true);
   }
 
   private void validateDate(IValidatable<Date> iValidatable)

@@ -85,12 +85,12 @@ public class VisitorbookListForm extends AbstractListForm<VisitorbookFilter, Vis
     {
       gridBuilder.newSplitPanel(GridSize.COL66);
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timePeriod"));
-      startDate = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<LocalDate>(filter, "startTime")), DatePanelSettings.get()
+      startDate = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<LocalDate>(filter, "startDay")), DatePanelSettings.get()
           .withSelectPeriodMode(true), true);
       fs.add(dependentFormComponents[0] = startDate);
       fs.setLabelFor(startDate);
       fs.add(new DivTextPanel(fs.newChildId(), " - "));
-      stopDate = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<LocalDate>(filter, "stopTime")),
+      stopDate = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<LocalDate>(filter, "stopDay")),
           DatePanelSettings.get().withSelectPeriodMode(true), true);
       fs.add(dependentFormComponents[1] = stopDate);
       {
@@ -99,8 +99,8 @@ public class VisitorbookListForm extends AbstractListForm<VisitorbookFilter, Vis
           @Override
           public void onSubmit()
           {
-            getSearchFilter().setStartTime(null);
-            getSearchFilter().setStopTime(null);
+            getSearchFilter().setStartDay(null);
+            getSearchFilter().setStopDay(null);
             clearInput();
             parentPage.refresh();
           }
@@ -120,7 +120,7 @@ public class VisitorbookListForm extends AbstractListForm<VisitorbookFilter, Vis
         @Override
         public String getObject()
         {
-          return WicketUtils.getCalendarWeeks(VisitorbookListForm.this, filter.getStartTime(), filter.getStopTime());
+          return WicketUtils.getCalendarWeeks(VisitorbookListForm.this, filter.getStartDay(), filter.getStopDay());
         }
       }));
       fs.add(new HtmlCommentPanel(fs.newChildId(), new Model<String>()
@@ -128,7 +128,7 @@ public class VisitorbookListForm extends AbstractListForm<VisitorbookFilter, Vis
         @Override
         public String getObject()
         {
-          return WicketUtils.getUTCDates(filter.getStartTime(), filter.getStopTime());
+          return WicketUtils.getUTCDates(filter.getStartDay(), filter.getStopDay());
         }
       }));
     }
