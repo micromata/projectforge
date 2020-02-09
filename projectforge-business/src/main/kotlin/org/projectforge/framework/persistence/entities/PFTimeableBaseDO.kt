@@ -33,7 +33,8 @@ import javax.persistence.Transient
  * use startDay instead of startTime.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-abstract class PFTimeableBaseDO<Self : TimeableBaseDO<Self, *>> : TimeableBaseDO<Self, Int>() {
+@Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
+abstract class PFTimeableBaseDO<Self : TimeableBaseDO<Self, Int>> : TimeableBaseDO<Self, Int>() {
     /**
      * For working with local dates. This converts startTime from and to localDate. This should be used instead of startTime.
      */
