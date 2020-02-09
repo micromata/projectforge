@@ -137,8 +137,12 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
                     modifiedTo = PFDateTime.from(filter.stopTimeOfModification) // not null
                 }
             }
-            if (filter.modifiedByUserId != null) modifiedByUserId = filter.modifiedByUserId
-            if (filter.maxRows > 0) maxRows = filter.maxRows // Legacy gets whole result list and supports pagination.
+            if (filter.modifiedByUserId != null) {
+                modifiedByUserId = filter.modifiedByUserId
+            }
+            if (filter.maxRows > 0) {
+                maxRows = filter.maxRows
+            }
         }
     }
 

@@ -116,6 +116,18 @@
       background-color: transparent;
       border: none;
       border-radius: 0;
+
+      .icon {
+        font-size: 1.25em;
+        top: 0;
+        bottom: 0;
+        left: 0;
+
+        & ~ input, & ~ .labelText {
+          margin-left: 1.5rem;
+          width: calc(100% - 1.5rem);
+        }
+      }
     }
   }
 
