@@ -36,11 +36,9 @@ import java.util.*;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @Service
-public class LiquidityForecast implements Serializable
-{
+public class LiquidityForecast implements Serializable {
   private static final long serialVersionUID = 5385319337895942452L;
 
   @Autowired
@@ -74,8 +72,7 @@ public class LiquidityForecast implements Serializable
    * @return this for chaining.
    * @see #sort()
    */
-  public LiquidityForecast build()
-  {
+  public LiquidityForecast build() {
     entries.clear();
     entries.addAll(this.liquiEntries);
     entries.addAll(this.invoicesLiquidityEntries);
@@ -87,8 +84,7 @@ public class LiquidityForecast implements Serializable
   /**
    * @return this for chaining.
    */
-  private LiquidityForecast sort()
-  {
+  private LiquidityForecast sort() {
     entries.sort(new Comparator<LiquidityEntry>() {
       @Override
       public int compare(final LiquidityEntry o1, final LiquidityEntry o2) {
@@ -115,13 +111,11 @@ public class LiquidityForecast implements Serializable
   /**
    * @return the entries
    */
-  public List<LiquidityEntry> getEntries()
-  {
+  public List<LiquidityEntry> getEntries() {
     return entries;
   }
 
-  public LiquidityForecast set(final Collection<LiquidityEntryDO> list)
-  {
+  public LiquidityForecast set(final Collection<LiquidityEntryDO> list) {
     this.liquiEntries = new LinkedList<>();
     if (list == null) {
       return this;
@@ -144,18 +138,17 @@ public class LiquidityForecast implements Serializable
    *
    * @param list
    */
-  public LiquidityForecast calculateExpectedTimeOfPayments(final Collection<RechnungDO> list)
-  {
+  public LiquidityForecast calculateExpectedTimeOfPayments(final Collection<RechnungDO> list) {
     if (list == null) {
       return this;
     }
     for (final RechnungDO invoice : list) {
-      final DayHolder date = new DayHolder(PFDay.from(invoice.getDatum()).getUtilDate());
-      final DayHolder dateOfPayment = new DayHolder(PFDay.from(invoice.getBezahlDatum()).getUtilDate());
+      final PFDay date = PFDay.fromOrNull(invoice.getDatum());
+      final PFDay dateOfPayment = PFDay.fromOrNull(invoice.getBezahlDatum());
       if (date == null || dateOfPayment == null) {
         continue;
       }
-      final int timeForPayment = (int)date.daysBetween(dateOfPayment);
+      final int timeForPayment = (int) date.daysBetween(dateOfPayment);
       final int amount = invoice.getGrossSum().intValue();
       // Store values for different groups:
       final Integer projectId = invoice.getProjektId();
@@ -184,28 +177,27 @@ public class LiquidityForecast implements Serializable
     return this;
   }
 
-  private void setExpectedTimeOfPayment(final LiquidityEntry entry, final RechnungDO invoice)
-  {
+  private void setExpectedTimeOfPayment(final LiquidityEntry entry, final RechnungDO invoice) {
     LocalDate dateOfInvoice = invoice.getDatum();
     if (dateOfInvoice == null) {
       dateOfInvoice = new DayHolder().getLocalDate();
     }
     final ProjektDO project = invoice.getProjekt();
     if (project != null
-        && setExpectedDateOfPayment(entry, dateOfInvoice, "project#" + project.getId(),
-        ProjektFormatter.formatProjektKundeAsString(project, null, null))) {
+            && setExpectedDateOfPayment(entry, dateOfInvoice, "project#" + project.getId(),
+            ProjektFormatter.formatProjektKundeAsString(project, null, null))) {
       return;
     }
     final KundeDO customer = invoice.getKunde();
     if (customer != null
-        && setExpectedDateOfPayment(entry, dateOfInvoice, "customer#" + customer.getId(),
-        KundeFormatter.formatKundeAsString(customer, null))) {
+            && setExpectedDateOfPayment(entry, dateOfInvoice, "customer#" + customer.getId(),
+            KundeFormatter.formatKundeAsString(customer, null))) {
       return;
     }
     final KontoDO account = accountCache.getKonto(invoice);
     if (account != null
-        && setExpectedDateOfPayment(entry, dateOfInvoice, "account#" + account.getId(),
-        "" + account.getNummer() + " - " + account.getBezeichnung())) {
+            && setExpectedDateOfPayment(entry, dateOfInvoice, "account#" + account.getId(),
+            "" + account.getNummer() + " - " + account.getBezeichnung())) {
       return;
     }
     String customerText = invoice.getKundeText();
@@ -224,27 +216,25 @@ public class LiquidityForecast implements Serializable
   }
 
   private boolean setExpectedDateOfPayment(final LiquidityEntry entry, final LocalDate dateOfInvoice, final String mapKey,
-      final String area)
-  {
+                                           final String area) {
     final IntAggregatedValues values = aggregatedDebitorInvoicesValuesMap.get(mapKey);
     if (values != null && values.getNumberOfValues() >= 1) {
       entry.setExpectedDateOfPayment(getDate(dateOfInvoice, values.getWeightedAverage()));
       entry.setComment(mapKey
-          + ": "
-          + area
-          + ": "
-          + values.getWeightedAverage()
-          + " days ("
-          + values.getNumberOfValues()
-          + " paid invoices)");
+              + ": "
+              + area
+              + ": "
+              + values.getWeightedAverage()
+              + " days ("
+              + values.getNumberOfValues()
+              + " paid invoices)");
       return true;
     } else {
       return false;
     }
   }
 
-  private void ensureAndAddDebitorPaymentValue(final String mapId, final int timeForPayment, final int amount)
-  {
+  private void ensureAndAddDebitorPaymentValue(final String mapId, final int timeForPayment, final int amount) {
     IntAggregatedValues values = aggregatedDebitorInvoicesValuesMap.get(mapId);
     if (values == null) {
       values = new IntAggregatedValues();
@@ -259,18 +249,17 @@ public class LiquidityForecast implements Serializable
    *
    * @param list
    */
-  public LiquidityForecast calculateExpectedTimeOfCreditorPayments(final Collection<EingangsrechnungDO> list)
-  {
+  public LiquidityForecast calculateExpectedTimeOfCreditorPayments(final Collection<EingangsrechnungDO> list) {
     if (list == null) {
       return this;
     }
     for (final EingangsrechnungDO invoice : list) {
-      final DayHolder date = new DayHolder(PFDay.from(invoice.getDatum()).getUtilDate());
-      final DayHolder dateOfPayment = new DayHolder(PFDay.from(invoice.getBezahlDatum()).getUtilDate());
+      final PFDay date = PFDay.fromOrNull(invoice.getDatum());
+      final PFDay dateOfPayment = PFDay.fromOrNull(invoice.getBezahlDatum());
       if (date == null || dateOfPayment == null) {
         continue;
       }
-      final int timeForPayment = (int)date.daysBetween(dateOfPayment);
+      final int timeForPayment = (int) date.daysBetween(dateOfPayment);
       final int amount = invoice.getGrossSum().intValue();
       final KontoDO account = invoice.getKonto();
       final Integer accountId = account != null ? account.getId() : null;
@@ -290,16 +279,15 @@ public class LiquidityForecast implements Serializable
     return this;
   }
 
-  private void setExpectedTimeOfPayment(final LiquidityEntry entry, final EingangsrechnungDO invoice)
-  {
+  private void setExpectedTimeOfPayment(final LiquidityEntry entry, final EingangsrechnungDO invoice) {
     LocalDate dateOfInvoice = invoice.getDatum();
     if (dateOfInvoice == null) {
       dateOfInvoice = new DayHolder().getLocalDate();
     }
     final KontoDO account = invoice.getKonto();
     if (account != null
-        && setExpectedDateOfCreditorPayment(entry, dateOfInvoice, "account#" + account.getId(),
-        "" + account.getNummer() + " - " + account.getBezeichnung())) {
+            && setExpectedDateOfCreditorPayment(entry, dateOfInvoice, "account#" + account.getId(),
+            "" + account.getNummer() + " - " + account.getBezeichnung())) {
       return;
     }
     String creditorText = invoice.getKreditor();
@@ -312,35 +300,33 @@ public class LiquidityForecast implements Serializable
         creditorText = creditorText.substring(0, 5);
       }
       if (setExpectedDateOfCreditorPayment(entry, dateOfInvoice, "shortCreditor:" + creditorText,
-          creditorText)) {
+              creditorText)) {
         return;
       }
     }
   }
 
   private boolean setExpectedDateOfCreditorPayment(final LiquidityEntry entry, final LocalDate dateOfInvoice,
-      final String mapKey,
-      final String area)
-  {
+                                                   final String mapKey,
+                                                   final String area) {
     final IntAggregatedValues values = aggregatedCreditorInvoicesValuesMap.get(mapKey);
     if (values != null && values.getNumberOfValues() >= 1) {
       entry.setExpectedDateOfPayment(getDate(dateOfInvoice, values.getWeightedAverage()));
       entry.setComment(mapKey
-          + ": "
-          + area
-          + ": "
-          + values.getWeightedAverage()
-          + " days ("
-          + values.getNumberOfValues()
-          + " paid invoices)");
+              + ": "
+              + area
+              + ": "
+              + values.getWeightedAverage()
+              + " days ("
+              + values.getNumberOfValues()
+              + " paid invoices)");
       return true;
     } else {
       return false;
     }
   }
 
-  private void ensureAndAddCreditorPaymentValue(final String mapId, final int timeForPayment, final int amount)
-  {
+  private void ensureAndAddCreditorPaymentValue(final String mapId, final int timeForPayment, final int amount) {
     IntAggregatedValues values = aggregatedCreditorInvoicesValuesMap.get(mapId);
     if (values == null) {
       values = new IntAggregatedValues();
@@ -349,8 +335,7 @@ public class LiquidityForecast implements Serializable
     values.add(timeForPayment, amount);
   }
 
-  private LocalDate getDate(final LocalDate date, final int timeOfPayment)
-  {
+  private LocalDate getDate(final LocalDate date, final int timeOfPayment) {
     final PFDay day = PFDay.from(date).plusDays(timeOfPayment);
     return day.getLocalDate();
   }
@@ -361,8 +346,7 @@ public class LiquidityForecast implements Serializable
    * @param list
    * @return
    */
-  public LiquidityForecast setInvoices(final Collection<RechnungDO> list)
-  {
+  public LiquidityForecast setInvoices(final Collection<RechnungDO> list) {
     this.invoices = list;
     this.invoicesLiquidityEntries = new LinkedList<>();
     if (list == null) {
@@ -385,8 +369,7 @@ public class LiquidityForecast implements Serializable
     return this;
   }
 
-  public LiquidityForecast setCreditorInvoices(final Collection<EingangsrechnungDO> list)
-  {
+  public LiquidityForecast setCreditorInvoices(final Collection<EingangsrechnungDO> list) {
     this.creditorInvoices = list;
     this.creditorInvoicesLiquidityEntries = new LinkedList<>();
     if (list == null) {
@@ -412,32 +395,28 @@ public class LiquidityForecast implements Serializable
   /**
    * @return the invoices
    */
-  public Collection<LiquidityEntry> getInvoicesLiquidityEntries()
-  {
+  public Collection<LiquidityEntry> getInvoicesLiquidityEntries() {
     return invoicesLiquidityEntries;
   }
 
   /**
    * @return the invoices
    */
-  public Collection<RechnungDO> getInvoices()
-  {
+  public Collection<RechnungDO> getInvoices() {
     return invoices;
   }
 
   /**
    * @return the creditorInvoices
    */
-  public Collection<LiquidityEntry> getCreditorInvoicesLiquidityEntries()
-  {
+  public Collection<LiquidityEntry> getCreditorInvoicesLiquidityEntries() {
     return creditorInvoicesLiquidityEntries;
   }
 
   /**
    * @return the creditorInvoices
    */
-  public Collection<EingangsrechnungDO> getCreditorInvoices()
-  {
+  public Collection<EingangsrechnungDO> getCreditorInvoices() {
     return creditorInvoices;
   }
 }
