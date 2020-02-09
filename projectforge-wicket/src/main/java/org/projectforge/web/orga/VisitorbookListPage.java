@@ -40,17 +40,16 @@ import org.projectforge.business.orga.VisitorbookDO;
 import org.projectforge.business.orga.VisitorbookService;
 import org.projectforge.business.orga.VisitorbookTimedDO;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.flowlayout.TextPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -58,8 +57,7 @@ import java.util.List;
  */
 @ListPage(editPage = VisitorbookEditPage.class)
 public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, VisitorbookService, VisitorbookDO> implements
-    IListPageColumnsCreator<VisitorbookDO>
-{
+        IListPageColumnsCreator<VisitorbookDO> {
   private static final Logger log = LoggerFactory.getLogger(VisitorbookListPage.class);
 
   private static final long serialVersionUID = -8406451234003792763L;
@@ -73,52 +71,45 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
   @SpringBean
   private TimeableService timeableService;
 
-  public VisitorbookListPage(final PageParameters parameters)
-  {
+  public VisitorbookListPage(final PageParameters parameters) {
     super(parameters, "orga.visitorbook");
   }
 
-  public VisitorbookListPage(final ISelectCallerPage caller, final String selectProperty)
-  {
+  public VisitorbookListPage(final ISelectCallerPage caller, final String selectProperty) {
     super(caller, selectProperty, "orga.visitorbook");
   }
 
   @Override
   @SuppressWarnings("serial")
-  public List<IColumn<VisitorbookDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
-  {
+  public List<IColumn<VisitorbookDO, String>> createColumns(final WebPage returnToPage, final boolean sortable) {
     final List<IColumn<VisitorbookDO, String>> columns = new ArrayList<>();
 
-    final CellItemListener<VisitorbookDO> cellItemListener = new CellItemListener<VisitorbookDO>()
-    {
+    final CellItemListener<VisitorbookDO> cellItemListener = new CellItemListener<VisitorbookDO>() {
       @Override
       public void populateItem(final Item<ICellPopulator<VisitorbookDO>> item, final String componentId,
-          final IModel<VisitorbookDO> rowModel)
-      {
+                               final IModel<VisitorbookDO> rowModel) {
         final VisitorbookDO visitorbook = rowModel.getObject();
         appendCssClasses(item, visitorbook.getId(), visitorbook.isDeleted());
       }
     };
 
     columns.add(new CellItemListenerPropertyColumn<VisitorbookDO>(new ResourceModel("orga.visitorbook.number"),
-        getSortable("id", sortable),
-        "id", cellItemListener)
-    {
+            getSortable("id", sortable),
+            "id", cellItemListener) {
       /**
        * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
        *      java.lang.String, org.apache.wicket.model.IModel)
        */
       @Override
       public void populateItem(final Item<ICellPopulator<VisitorbookDO>> item, final String componentId,
-          final IModel<VisitorbookDO> rowModel)
-      {
+                               final IModel<VisitorbookDO> rowModel) {
         final VisitorbookDO visitor = rowModel.getObject();
         if (isSelectMode() == false) {
           item.add(new ListSelectActionPanel(componentId, rowModel, VisitorbookEditPage.class, visitor.getId(),
-              returnToPage, visitor.getPk().toString()));
+                  returnToPage, visitor.getPk().toString()));
         } else {
           item.add(
-              new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, visitor.getId(), visitor.getPk().toString()));
+                  new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, visitor.getId(), visitor.getPk().toString()));
         }
         cellItemListener.populateItem(item, componentId, rowModel);
         addRowClick(item);
@@ -126,40 +117,37 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
     });
 
     columns.add(new CellItemListenerPropertyColumn<VisitorbookDO>(new ResourceModel("orga.visitorbook.lastname"),
-        getSortable("lastname", sortable),
-        "lastname", cellItemListener));
+            getSortable("lastname", sortable),
+            "lastname", cellItemListener));
 
     columns.add(new CellItemListenerPropertyColumn<VisitorbookDO>(new ResourceModel("orga.visitorbook.firstname"),
-        getSortable("firstname", sortable),
-        "firstname", cellItemListener));
+            getSortable("firstname", sortable),
+            "firstname", cellItemListener));
 
     columns.add(new CellItemListenerPropertyColumn<VisitorbookDO>(new ResourceModel("orga.visitorbook.company"),
-        getSortable("company", sortable),
-        "company", cellItemListener));
+            getSortable("company", sortable),
+            "company", cellItemListener));
 
     columns.add(new CellItemListenerPropertyColumn<VisitorbookDO>(new ResourceModel("orga.visitorbook.visitortype"),
-        getSortable("visitortype", sortable),
-        "visitortype", cellItemListener));
+            getSortable("visitortype", sortable),
+            "visitortype", cellItemListener));
 
     columns.add(new CellItemListenerPropertyColumn<VisitorbookDO>(new ResourceModel("orga.visitorbook.arrive"),
-        getSortable("arrive", true), "arrive", cellItemListener)
-    {
+            getSortable("arrive", true), "arrive", cellItemListener) {
       /**
        * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
        *      java.lang.String, org.apache.wicket.model.IModel)
        */
       @Override
       public void populateItem(final Item<ICellPopulator<VisitorbookDO>> item, final String componentId,
-          final IModel<VisitorbookDO> rowModel)
-      {
+                               final IModel<VisitorbookDO> rowModel) {
         final VisitorbookDO visitor = rowModel.getObject();
         String value = "";
         List<VisitorbookTimedDO> timeableAttributes = timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit");
         if (timeableAttributes != null && timeableAttributes.size() > 0) {
           List<VisitorbookTimedDO> sortedList = timeableService.sortTimeableAttrRowsByDateDescending(timeableAttributes);
           VisitorbookTimedDO newestEntry = sortedList.get(0);
-          SimpleDateFormat sdfParser = new SimpleDateFormat("dd.MM.yyyy");
-          String date = sdfParser.format(newestEntry.getStartTime());
+          String date = PFDay.from(newestEntry.getStartDay()).format();
           String time = newestEntry.getAttribute("arrive") != null ? newestEntry.getAttribute("arrive", String.class) : "";
           value = date + " " + time;
         }
@@ -169,23 +157,20 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
     });
 
     columns.add(new CellItemListenerPropertyColumn<VisitorbookDO>(new ResourceModel("orga.visitorbook.depart"),
-        getSortable("depart", true), "depart", cellItemListener)
-    {
+            getSortable("depart", true), "depart", cellItemListener) {
       /**
        * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
        *      java.lang.String, org.apache.wicket.model.IModel)
        */
       @Override
-      public void populateItem(final Item<ICellPopulator<VisitorbookDO>> item, final String componentId, final IModel<VisitorbookDO> rowModel)
-      {
+      public void populateItem(final Item<ICellPopulator<VisitorbookDO>> item, final String componentId, final IModel<VisitorbookDO> rowModel) {
         final VisitorbookDO visitor = rowModel.getObject();
         String value = "";
         List<VisitorbookTimedDO> timeableAttributes = timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit");
         if (timeableAttributes != null && timeableAttributes.size() > 0) {
           List<VisitorbookTimedDO> sortedList = timeableService.sortTimeableAttrRowsByDateDescending(timeableAttributes);
           VisitorbookTimedDO newestEntry = sortedList.get(0);
-          SimpleDateFormat sdfParser = new SimpleDateFormat("dd.MM.yyyy");
-          String date = sdfParser.format(newestEntry.getStartTime());
+          String date = PFDay.from(newestEntry.getStartDay()).format();
           String time = newestEntry.getAttribute("depart") != null ? newestEntry.getAttribute("depart", String.class) : "";
           value = date + " " + time;
         }
@@ -195,15 +180,13 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
     });
 
     columns.add(new CellItemListenerPropertyColumn<VisitorbookDO>(new ResourceModel("orga.visitorbook.contactPerson"),
-        getSortable("contactPerson", true), "contactPerson", cellItemListener)
-    {
+            getSortable("contactPerson", true), "contactPerson", cellItemListener) {
       /**
        * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
        *      java.lang.String, org.apache.wicket.model.IModel)
        */
       @Override
-      public void populateItem(final Item<ICellPopulator<VisitorbookDO>> item, final String componentId, final IModel<VisitorbookDO> rowModel)
-      {
+      public void populateItem(final Item<ICellPopulator<VisitorbookDO>> item, final String componentId, final IModel<VisitorbookDO> rowModel) {
         final VisitorbookDO visitor = rowModel.getObject();
         String value = "";
         if (visitor.getContactPersons() != null && visitor.getContactPersons().size() > 0) {
@@ -220,8 +203,7 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
   }
 
   @Override
-  protected void init()
-  {
+  protected void init() {
     final List<IColumn<VisitorbookDO, String>> columns = createColumns(this, true);
     dataTable = createDataTable(columns, "id", SortOrder.DESCENDING);
     form.add(dataTable);
@@ -230,20 +212,17 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
 
   @Override
   protected ISortableDataProvider<VisitorbookDO, String> createSortableDataProvider(final SortParam<String> sortParam,
-      final SortParam<String> secondSortParam)
-  {
+                                                                                    final SortParam<String> secondSortParam) {
     if (listPageSortableDataProvider == null) {
-      listPageSortableDataProvider = new MyListPageSortableDataProvider<VisitorbookDO>(sortParam, secondSortParam, this)
-      {
+      listPageSortableDataProvider = new MyListPageSortableDataProvider<VisitorbookDO>(sortParam, secondSortParam, this) {
         @Override
-        protected Comparator<VisitorbookDO> getComparator(final SortParam<String> sortParam, final SortParam<String> secondSortParam)
-        {
+        protected Comparator<VisitorbookDO> getComparator(final SortParam<String> sortParam, final SortParam<String> secondSortParam) {
           final String sortProperty = sortParam != null ? sortParam.getProperty() : null;
           if ("arrive".equals(sortProperty) || "depart".equals(sortProperty)) {
             VisitorbookTimeComparator comparator = new VisitorbookTimeComparator();
 
             comparator.property = sortProperty;
-            comparator.dsc = sortParam != null ? (sortParam.isAscending() == false) : false;
+            comparator.dsc = sortParam != null && (sortParam.isAscending() == false);
 
             return comparator;
           }
@@ -256,14 +235,12 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
   }
 
   @Override
-  protected VisitorbookListForm newListForm(final AbstractListPage<?, ?, ?> parentPage)
-  {
+  protected VisitorbookListForm newListForm(final AbstractListPage<?, ?, ?> parentPage) {
     return new VisitorbookListForm(this);
   }
 
   @Override
-  public VisitorbookService getBaseDao()
-  {
+  public VisitorbookService getBaseDao() {
     return visitorbookService;
   }
 
@@ -271,20 +248,19 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
    * @see org.projectforge.web.wicket.AbstractListPage#select(java.lang.String, java.lang.Object)
    */
   @Override
-  public void select(final String property, final Object selectedValue)
-  {
+  public void select(final String property, final Object selectedValue) {
     if (property.startsWith("quickSelect.") == true) { // month".equals(property) == true) {
-      final Date date = (Date) selectedValue;
-      form.getSearchFilter().setStartTime(date);
-      final DateHolder dateHolder = new DateHolder(date);
+      final LocalDate date = (LocalDate) selectedValue;
+      form.getSearchFilter().setStartDay(date);
+      PFDay day = PFDay.from(date);
       if (property.endsWith(".month") == true) {
-        dateHolder.setEndOfMonth();
+        day = day.getEndOfMonth();
       } else if (property.endsWith(".week") == true) {
-        dateHolder.setEndOfWeek();
+        day = day.getEndOfWeek();
       } else {
         log.error("Property '" + property + "' not supported for selection.");
       }
-      form.getSearchFilter().setStopTime(dateHolder.getUtilDate());
+      form.getSearchFilter().setStopDay(day.getLocalDate());
       form.startDate.markModelAsChanged();
       form.stopDate.markModelAsChanged();
       refresh();
@@ -293,14 +269,12 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
     }
   }
 
-  private class VisitorbookTimeComparator implements Comparator<VisitorbookDO>
-  {
+  private class VisitorbookTimeComparator implements Comparator<VisitorbookDO> {
     private String property;
     private boolean dsc;
 
     @Override
-    public int compare(final VisitorbookDO o1, final VisitorbookDO o2)
-    {
+    public int compare(final VisitorbookDO o1, final VisitorbookDO o2) {
       final VisitorbookTimedDO value1 = getNewestEntry(o1);
       final VisitorbookTimedDO value2 = getNewestEntry(o2);
 
@@ -314,9 +288,9 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
         return (dsc) ? 1 : -1;
       }
 
-      if (value1.getStartTime().before(value2.getStartTime())) {
+      if (value1.getStartDay().isBefore(value2.getStartDay())) {
         return (dsc) ? -1 : 1;
-      } else if (value2.getStartTime().before(value1.getStartTime())) {
+      } else if (value2.getStartDay().isBefore(value1.getStartDay())) {
         return (dsc) ? 1 : -1;
       }
 
@@ -340,8 +314,7 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
       }
     }
 
-    private VisitorbookTimedDO getNewestEntry(final VisitorbookDO visitor)
-    {
+    private VisitorbookTimedDO getNewestEntry(final VisitorbookDO visitor) {
       List<VisitorbookTimedDO> timeableAttributes = timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit");
       if (timeableAttributes != null && timeableAttributes.size() > 0) {
         List<VisitorbookTimedDO> sortedList = timeableService.sortTimeableAttrRowsByDateDescending(timeableAttributes);
@@ -351,8 +324,7 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
       return null;
     }
 
-    private Integer getTimeOf(final VisitorbookTimedDO timedDO)
-    {
+    private Integer getTimeOf(final VisitorbookTimedDO timedDO) {
       String time1 = timedDO.getAttribute(property) != null ? timedDO.getAttribute(property, String.class) : "";
 
       if (time1 == null) {

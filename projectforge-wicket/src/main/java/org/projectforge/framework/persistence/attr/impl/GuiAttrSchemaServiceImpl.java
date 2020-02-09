@@ -51,7 +51,7 @@ import java.util.function.Function;
  */
 public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl implements GuiAttrSchemaService
 {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimedAttributePanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GuiAttrSchemaServiceImpl.class);
 
   @Autowired
   private TimeableService timeableService;
