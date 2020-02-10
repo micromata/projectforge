@@ -105,7 +105,6 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     open var gegenKonto: KontoDO? = null
 
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(nullable = false)
     open var datum: LocalDate? = null
 

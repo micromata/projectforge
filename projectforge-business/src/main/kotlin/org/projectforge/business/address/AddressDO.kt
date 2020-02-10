@@ -253,7 +253,6 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "address.birthday")
     @Field(index = Index.YES, analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
     open var birthday: LocalDate? = null
 
