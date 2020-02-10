@@ -29,18 +29,15 @@ import org.projectforge.business.timesheet.OrderDirection;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.DownloadUtils;
 
-import java.time.DayOfWeek;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.TimeZone;
 
 public class IhkExportPage extends AbstractStandardFormPage implements ISelectCallerPage
 {
@@ -71,14 +68,14 @@ public class IhkExportPage extends AbstractStandardFormPage implements ISelectCa
   public void select(String property, Object selectedValue)
   {
     if (property.startsWith("quickSelect.")) {
-      final Date date = (Date) selectedValue;
+      final LocalDate date = (LocalDate) selectedValue;
 
-      form.getTimePeriod().setFromDate(date);
-      PFDateTime dateTime = PFDateTime.fromOrNow(date); // not null
+      form.getTimePeriod().setFromDay(date);
+      PFDay day = PFDay.fromOrNow(date); // not null
       if (property.endsWith(".week")) {
-        dateTime = dateTime.getBeginOfWeek();
+        day = day.getBeginOfWeek();
       }
-      form.getTimePeriod().setToDate(dateTime.getUtilDate());
+      form.getTimePeriod().setToDay(day.getLocalDate());
       form.startDate.markModelAsChanged();
       form.stopDate.markModelAsChanged();
     }
@@ -117,22 +114,15 @@ public class IhkExportPage extends AbstractStandardFormPage implements ISelectCa
 
   private List<TimesheetDO> findTimesheets()
   {
-    final TimeZone usersTimeZone = ThreadLocalUserContext.getTimeZone();
-    final Date fromDate = form.getTimePeriod().getFromDate();
-    final PFDateTime startDate = PFDateTime.fromOrNow(fromDate, usersTimeZone).withDayOfWeek(DayOfWeek.MONDAY.getValue());
+    final LocalDate fromDate = form.getTimePeriod().getFromDay();
+    final PFDateTime date = PFDateTime.fromOrNow(fromDate).getBeginOfWeek();
     final TimesheetFilter tf = new TimesheetFilter();
     //ASC = Montag bis Sonntag
     tf.setOrderType(OrderDirection.ASC);
-    tf.setStartTime(startDate.getUtilDate());
+    tf.setStartTime(date.getUtilDate());
     tf.setUserId(this.getUserId());
-
     //stopDate auf Sonntag 23:59:59.999 setzten um alle Eintragungen aus der Woche zu bekommen
-    PFDateTime stopDate = startDate.withDayOfWeek(DayOfWeek.SUNDAY.getValue());
-    stopDate = stopDate.plus(23, ChronoUnit.HOURS);
-    stopDate = stopDate.plus(59, ChronoUnit.MINUTES);
-    stopDate = stopDate.plus(59, ChronoUnit.SECONDS);
-    stopDate = stopDate.plus(999, ChronoUnit.MILLIS);
-    tf.setStopTime(stopDate.getUtilDate());
+    tf.setStopTime(date.getEndOfWeek().getUtilDate());
     tf.setRecursive(true);
 
     return timesheetDao.getList(tf);
