@@ -516,10 +516,14 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   {
     this.resultList = null; // Force reload of list
     this.refreshResultList = true;
-    final long itemsPerPage = dataTable.getItemsPerPage();
+    long itemsPerPage = dataTable.getItemsPerPage();
     if (form.getPageSize() != itemsPerPage) {
-      dataTable.setItemsPerPage(form.getPageSize());
+      itemsPerPage = form.getPageSize();
     }
+    if (itemsPerPage < 1) {
+      itemsPerPage = 25; // cannot be less than 1
+    }
+    dataTable.setItemsPerPage(itemsPerPage);
     addRecentSearchTerm();
   }
 
