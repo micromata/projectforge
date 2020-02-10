@@ -35,11 +35,12 @@ import org.projectforge.web.calendar.QuickSelectWeekPanel;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.*;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
+import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.*;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 /**
  * Created by mnuhn on 05.12.2019
@@ -99,7 +100,7 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage>
       public LocalDate getObject()
       {
         startDate.getDateField().validate();
-        return PFDay.from(startDate.getDateField().getConvertedInput()).getLocalDate();
+        return PFDay.fromOrNow(startDate.getDateField().getConvertedInput()).getLocalDate();
       }
     }, parentPage, "quickSelect" + ".week");
     fs.add(quickSelectWeekPanel);
