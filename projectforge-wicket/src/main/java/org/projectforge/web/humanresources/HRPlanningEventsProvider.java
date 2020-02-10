@@ -32,6 +32,7 @@ import org.projectforge.business.humanresources.HRPlanningEntryDO;
 import org.projectforge.business.humanresources.HRPlanningFilter;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
@@ -99,7 +100,7 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
       if (planning.getEntries() == null) {
         continue;
       }
-      final DateTime week = new DateTime(planning.getWeek(), ThreadLocalUserContext.getDateTimeZone());
+      final DateTime week = new DateTime(PFDateTime.from(planning.getWeek()).getUtilDate(), ThreadLocalUserContext.getDateTimeZone());
       for (final HRPlanningEntryDO entry : planning.getEntries()) {
         if (entry.isDeleted() == true) {
           continue;
