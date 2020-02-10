@@ -101,11 +101,9 @@ public class TimesheetDisciplineChartBuilder
    * @param userId
    * @param workingHoursPerDay
    * @param forLastNDays
-   * @param showAxisValues
    * @return
    */
-  public JFreeChart create(final TimesheetDao timesheetDao, final Integer userId, final double workingHoursPerDay,
-      final short forLastNDays, final boolean showAxisValues)
+  public JFreeChart create(final TimesheetDao timesheetDao, final Integer userId, final double workingHoursPerDay, final short forLastNDays, boolean useWorkingHours)
   {
     PFDateTime dt = PFDateTime.now();
     final TimesheetFilter filter = new TimesheetFilter();
@@ -124,43 +122,82 @@ public class TimesheetDisciplineChartBuilder
     if (it.hasNext()) {
       current = it.next();
     }
+    long numberOfBookedDays = 0;
+    long totalDifference = 0;
     for (int i = 0; i <= forLastNDays; i++) {
       // NPE-Fix required: current may be null.
+      long difference = 0;
+      long totalDuration = 0; // Weight for average.
       PFDateTime dateTime = null;
       if (current != null)
         dateTime = PFDateTime.from(current.getStartTime()); // not null
       while (current != null && (dt.isSameDay(dateTime) || dateTime.isBefore(dt))) {
-        actualWorkingHours += ((double) current.getWorkFractionDuration()) / 3600000;
+        if (useWorkingHours) {
+          actualWorkingHours += ((double) current.getWorkFractionDuration()) / 3600000;
+        } else {
+          final long duration = current.getWorkFractionDuration();
+          difference += (current.getCreated().getTime() - current.getStartTime().getTime()) * duration;
+          totalDuration += duration;
+        }
         if (it.hasNext()) {
           current = it.next();
+          dateTime = PFDateTime.from(current.getStartTime()); // not null
         } else {
           current = null;
           break;
         }
       }
-      Holidays holidays = Holidays.getInstance();
-      if (holidays.isWorkingDay(dt.getDateTime())) {
-        final BigDecimal workFraction = holidays.getWorkFraction(dt);
-        if (workFraction != null) {
-          planWorkingHours += workFraction.doubleValue() * workingHoursPerDay;
-        } else {
-          planWorkingHours += workingHoursPerDay;
+
+      final Day day = new Day(dt.getDayOfMonth(), dt.getMonthValue(), dt.getYear());
+      if(useWorkingHours){
+        Holidays holidays = Holidays.getInstance();
+        if (holidays.isWorkingDay(dt.getDateTime())) {
+          final BigDecimal workFraction = holidays.getWorkFraction(dt);
+          if (workFraction != null) {
+            planWorkingHours += workFraction.doubleValue() * workingHoursPerDay;
+          } else {
+            planWorkingHours += workingHoursPerDay;
+          }
+        }
+        sollSeries.add(day, planWorkingHours);
+        istSeries.add(day, actualWorkingHours);
+      } else {
+        final double averageDifference = difference > 0 ? ((double) difference) / totalDuration / 86400000 : 0; // In days.
+        if (averageDifference > 0) {
+          sollSeries.add(day, PLANNED_AVERAGE_DIFFERENCE_BETWEEN_TIMESHEET_AND_BOOKING); // plan average
+          // (PLANNED_AVERAGE_DIFFERENCE_BETWEEN_TIMESHEET_AND_BOOKING
+          // days).
+          istSeries.add(day, averageDifference);
+          totalDifference += averageDifference;
+          numberOfBookedDays++;
         }
       }
-      final Day day = new Day(dt.getDayOfMonth(), dt.getMonthValue(), dt.getYear());
-      sollSeries.add(day, planWorkingHours);
-      istSeries.add(day, actualWorkingHours);
       dt = dt.plusDays(1);
     }
     final TimeSeriesCollection dataset = new TimeSeriesCollection();
-    dataset.addSeries(sollSeries);
-    dataset.addSeries(istSeries);
+
+    if(useWorkingHours){
+      dataset.addSeries(sollSeries);
+      dataset.addSeries(istSeries);
+    } else {
+      dataset.addSeries(istSeries);
+      dataset.addSeries(sollSeries);
+    }
+
+
     final XYChartBuilder cb = new XYChartBuilder(null,  null,  null,  dataset, false);
     final XYDifferenceRenderer diffRenderer = new XYDifferenceRenderer(cb.getRedFill(), cb.getGreenFill(), true);
     diffRenderer.setSeriesPaint(0, cb.getRedMarker());
     diffRenderer.setSeriesPaint(1, cb.getGreenMarker());
     cb.setRenderer(0, diffRenderer).setStrongStyle(diffRenderer, false, sollSeries, istSeries);
-    cb.setDateXAxis(true).setYAxis(true, "hours");
+
+    if(useWorkingHours){
+      cb.setDateXAxis(true).setYAxis(true, "hours");
+    } else {
+      averageDifferenceBetweenTimesheetAndBooking = numberOfBookedDays > 0 ? new BigDecimal(totalDifference).divide(new BigDecimal(numberOfBookedDays), 1, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+      cb.setDateXAxis(true).setYAxis(true, "days");
+    }
+
     return cb.getChart();
   }
 
@@ -170,10 +207,9 @@ public class TimesheetDisciplineChartBuilder
    * @param timesheetDao
    * @param userId
    * @param forLastNDays
-   * @param showAxisValues
    * @return
    */
-  public JFreeChart create(final TimesheetDao timesheetDao, final Integer userId, final short forLastNDays, final boolean showAxisValues)
+  public JFreeChart create(final TimesheetDao timesheetDao, final Integer userId, final short forLastNDays)
   {
     PFDateTime dt = PFDateTime.now();
     final TimesheetFilter filter = new TimesheetFilter();
@@ -204,6 +240,7 @@ public class TimesheetDisciplineChartBuilder
         totalDuration += duration;
         if (it.hasNext()) {
           current = it.next();
+          dateTime = PFDateTime.from(current.getStartTime()); // not null
         } else {
           current = null;
           break;
