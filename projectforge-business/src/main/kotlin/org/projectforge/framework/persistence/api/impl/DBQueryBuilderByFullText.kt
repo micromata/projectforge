@@ -34,6 +34,7 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.slf4j.LoggerFactory
 import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
 import javax.persistence.EntityManager
 
 internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
@@ -211,6 +212,9 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
 
     fun formatMultiParserValue(field: String, value: Any): String {
         return when (value) {
+            is java.time.LocalDate -> {
+                localDateFormat.format(value)
+            }
             is java.sql.Date -> {
                 if (searchClassInfo.get(field)?.getDateBridgeEncodingType() == EncodingType.NUMERIC) {
                     value.time.toString()
@@ -341,5 +345,9 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
 
     fun addOrder(sortProperty: SortProperty) {
         sortOrders.add(sortProperty)
+    }
+
+    companion object {
+        private val localDateFormat = DateTimeFormatter.ofPattern("'+00000'yyyyMMdd")
     }
 }
