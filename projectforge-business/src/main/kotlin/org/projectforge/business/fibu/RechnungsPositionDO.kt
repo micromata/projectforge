@@ -63,12 +63,10 @@ open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
     open var periodOfPerformanceType: PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_begin")
     open var periodOfPerformanceBegin: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_end")
     open var periodOfPerformanceEnd: LocalDate? = null
 
