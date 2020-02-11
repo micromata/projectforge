@@ -37,6 +37,7 @@ import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.DownloadUtils;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
@@ -74,14 +75,11 @@ public class IHKPage extends AbstractStandardFormPage implements ISelectCallerPa
   public void select(String property, Object selectedValue)
   {
     if (property.startsWith("quickSelect.")) {
-      final Date date = (Date) selectedValue;
+      final LocalDate date = (LocalDate) selectedValue;
 
-      form.getTimePeriod().setFromDate(date);
-      PFDateTime dateTime = PFDateTime.from(date); // not null
-      if (property.endsWith(".week")) {
-        dateTime = dateTime.getEndOfWeek();
-      }
-      form.getTimePeriod().setToDate(dateTime.getUtilDate());
+      PFDateTime dateTime = PFDateTime.fromOrNow(date).getBeginOfDay();
+      form.getTimePeriod().setFromDate(dateTime.getUtilDate());
+      form.getTimePeriod().setToDate(dateTime.getEndOfWeek().getUtilDate());
       form.startDate.markModelAsChanged();
       form.stopDate.markModelAsChanged();
     }

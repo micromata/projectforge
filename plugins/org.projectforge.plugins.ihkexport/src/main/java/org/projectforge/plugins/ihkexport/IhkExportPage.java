@@ -31,7 +31,6 @@ import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.DownloadUtils;
@@ -70,12 +69,9 @@ public class IhkExportPage extends AbstractStandardFormPage implements ISelectCa
     if (property.startsWith("quickSelect.")) {
       final LocalDate date = (LocalDate) selectedValue;
 
-      form.getTimePeriod().setFromDay(date);
-      PFDay day = PFDay.fromOrNow(date); // not null
-      if (property.endsWith(".week")) {
-        day = day.getBeginOfWeek();
-      }
-      form.getTimePeriod().setToDay(day.getLocalDate());
+      PFDateTime dateTime = PFDateTime.fromOrNow(date).getBeginOfDay();
+      form.getTimePeriod().setFromDate(dateTime.getUtilDate());
+      form.getTimePeriod().setToDate(dateTime.getEndOfWeek().getUtilDate());
       form.startDate.markModelAsChanged();
       form.stopDate.markModelAsChanged();
     }
