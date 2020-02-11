@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PF_JAR=./projectforge-caldav*.jar
+PF_JAR=projectforge-caldav*.jar
 PF_HOME_DIR=${HOME}/ProjectForge
 
 while getopts ":v:" opt; do
@@ -31,4 +31,4 @@ export LOADER_PATH=${PF_HOME_DIR}/resources/caldav
 
 echo "Starting ProjectForge CalDAV"
 java ${DEBUGOPTS} -Dprojectforge.base.dir=${PF_HOME_DIR} -jar $PF_JAR
-#nohup java ${DEBUGOPTS} -Dprojectforge.base.dir=${PF_HOME_DIR} -jar $PF_JAR >> projectforge-caldav.log 2>&1 &
+#nohup java ${DEBUGOPTS} -Dprojectforge.base.dir=${PF_HOME_DIR} -jar $PF_JAR 2>&1 > /dev/null &
