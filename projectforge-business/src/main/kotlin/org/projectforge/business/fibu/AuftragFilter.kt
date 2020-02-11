@@ -29,6 +29,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.Serializable
+import java.time.LocalDate
 import java.util.*
 
 /**
@@ -39,13 +40,13 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
 
     var user: PFUserDO? = null
 
-    var startDate: Date? = null
+    var startDate: LocalDate? = null
 
-    var endDate: Date? = null
+    var endDate: LocalDate? = null
 
-    private var periodOfPerformanceStartDate: Date? = null
+    override var periodOfPerformanceStartDate: LocalDate? = null
 
-    private var periodOfPerformanceEndDate: Date? = null
+    override var periodOfPerformanceEndDate: LocalDate? = null
 
     val auftragsStatuses = mutableListOf<AuftragsStatus>()
 
@@ -68,24 +69,7 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
     var auftragsPositionsPaymentType: AuftragsPositionsPaymentType? = null
 
     @JvmOverloads
-    constructor(filter: BaseSearchFilter? = null) : super(filter) {
-    }
-
-    override fun getPeriodOfPerformanceStartDate(): Date? {
-        return periodOfPerformanceStartDate
-    }
-
-    fun setPeriodOfPerformanceStartDate(periodOfPerformanceStartDate: Date?) {
-        this.periodOfPerformanceStartDate = periodOfPerformanceStartDate
-    }
-
-    override fun getPeriodOfPerformanceEndDate(): Date? {
-        return periodOfPerformanceEndDate
-    }
-
-    fun setPeriodOfPerformanceEndDate(periodOfPerformanceEndDate: Date?) {
-        this.periodOfPerformanceEndDate = periodOfPerformanceEndDate
-    }
+    constructor(filter: BaseSearchFilter? = null) : super(filter)
 
     override fun reset(): AuftragFilter {
         searchString = ""

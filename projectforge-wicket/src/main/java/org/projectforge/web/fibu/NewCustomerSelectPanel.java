@@ -23,9 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -54,6 +51,9 @@ import org.projectforge.web.wicket.components.FavoritesChoicePanel;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.components.TooltipImage;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
+
+import java.util.List;
+import java.util.Locale;
 
 /**
  * This panel shows the actual customer.

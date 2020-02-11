@@ -27,7 +27,7 @@ import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.search.annotations.*
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -48,9 +48,8 @@ open class BankAccountBalanceDO : DefaultBaseDO() {
     open var account: BankAccountDO? = null
 
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "date_col", nullable = false)
-    open var date: Date? = null
+    open var date: LocalDate? = null
 
     @get:Column(nullable = false, scale = 5, precision = 18)
     open var amount: BigDecimal? = null

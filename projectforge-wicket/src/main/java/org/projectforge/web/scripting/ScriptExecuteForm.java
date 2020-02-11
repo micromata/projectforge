@@ -23,11 +23,6 @@
 
 package org.projectforge.web.scripting;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.TextField;
@@ -48,12 +43,18 @@ import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.WicketUtils;
-import org.projectforge.web.wicket.components.DatePanel;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ScriptExecuteForm extends AbstractStandardForm<ScriptDO, ScriptExecutePage>
 {
@@ -69,9 +70,9 @@ public class ScriptExecuteForm extends AbstractStandardForm<ScriptDO, ScriptExec
 
   protected List<ScriptParameter> scriptParameters;
 
-  protected DatePanel[] datePanel1 = new DatePanel[5];
+  protected LocalDatePanel[] datePanel1 = new LocalDatePanel[5];
 
-  protected DatePanel[] datePanel2 = new DatePanel[5];
+  protected LocalDatePanel[] datePanel2 = new LocalDatePanel[5];
 
   protected FieldsetPanel parameterFieldsets[];
 
@@ -218,14 +219,13 @@ public class ScriptExecuteForm extends AbstractStandardForm<ScriptDO, ScriptExec
             new TextField<BigDecimal>(fs.getTextFieldId(), new PropertyModel<BigDecimal>(parameter, "decimalValue")));
       } else if (parameter.getType() == ScriptParameterType.DATE
           || parameter.getType() == ScriptParameterType.TIME_PERIOD) {
-        final String property = parameter.getType() == ScriptParameterType.TIME_PERIOD ? "timePeriodValue.fromDate"
+        final String property = parameter.getType() == ScriptParameterType.TIME_PERIOD ? "timePeriodValue.fromDay"
             : "dateValue";
-        datePanel1[index] = new DatePanel(fs.newChildId(), new PropertyModel<Date>(parameter, property));
+        datePanel1[index] = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<LocalDate>(parameter, property)));
         fs.add(datePanel1[index]);
         if (parameter.getType() == ScriptParameterType.TIME_PERIOD) {
           fs.add(new DivTextPanel(fs.newChildId(), " - "));
-          datePanel2[index] = new DatePanel(fs.newChildId(),
-              new PropertyModel<Date>(parameter, "timePeriodValue.toDate"));
+          datePanel2[index] = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<LocalDate>(parameter, "timePeriodValue.toDay")));
           fs.add(datePanel2[index]);
           quickSelectPanel[index] = new QuickSelectPanel(fs.newChildId(), parentPage, "quickSelect:" + index,
               datePanel1[index]);

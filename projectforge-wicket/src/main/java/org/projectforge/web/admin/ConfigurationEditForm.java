@@ -23,9 +23,6 @@
 
 package org.projectforge.web.admin;
 
-import java.math.BigDecimal;
-import java.util.TimeZone;
-
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
@@ -51,13 +48,12 @@ import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.components.TimeZonePanel;
 import org.projectforge.web.wicket.converter.BigDecimalPercentConverter;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.Select2SingleChoicePanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2Choice;
+
+import java.math.BigDecimal;
+import java.util.TimeZone;
 
 public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, ConfigurationEditPage>
 {

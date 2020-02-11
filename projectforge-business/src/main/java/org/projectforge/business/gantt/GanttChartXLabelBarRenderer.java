@@ -32,6 +32,7 @@ import org.projectforge.framework.time.PFDateTime;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import java.time.LocalDate;
 import java.time.Month;
 import java.util.Date;
 
@@ -69,9 +70,9 @@ public class GanttChartXLabelBarRenderer
 
   private boolean showNonWorkingDays;
 
-  private Date fromDate;
+  private LocalDate fromDate;
 
-  private Date toDate;
+  private LocalDate toDate;
 
   int fromToDays = -1;
 
@@ -79,7 +80,7 @@ public class GanttChartXLabelBarRenderer
 
   private GanttChartStyle style;
 
-  public GanttChartXLabelBarRenderer(final Date fromDate, final Date toDate, final double diagramWidth, final GanttChartStyle style)
+  public GanttChartXLabelBarRenderer(final LocalDate fromDate, final LocalDate toDate, final double diagramWidth, final GanttChartStyle style)
   {
     this.fromDate = fromDate;
     this.toDate = toDate;

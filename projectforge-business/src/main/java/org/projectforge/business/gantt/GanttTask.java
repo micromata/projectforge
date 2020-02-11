@@ -25,229 +25,229 @@ package org.projectforge.business.gantt;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
  * Represents a gantt object such as a task and a milestone.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public interface GanttTask
 {
   /**
    * Identifier, if needed by the implementation (such as task id).
    */
-  public Serializable getId();
-  
-  public GanttTask setId(final Serializable id);
+  Serializable getId();
 
-  public GanttTask findBy(final Matcher<GanttTask> matcher, final Object expression);
+  GanttTask setId(final Serializable id);
+
+  GanttTask findBy(final Matcher<GanttTask> matcher, final Object expression);
 
   /**
    * Helper methods using findBy with the matcher testing the id.
    * @param id The id of the Gantt object to find.
    */
-  public GanttTask findById(final Serializable id);
+  GanttTask findById(final Serializable id);
 
   /**
    * Helper methods using findBy with the matcher testing the work package code.
    * @param workpackageId The code of the work package of the Gantt object to find.
    */
-  public GanttTask findByWorkpackageCode(final String workpackageCode);
+  GanttTask findByWorkpackageCode(final String workpackageCode);
 
   /**
    * Helper methods using findBy with the matcher testing the title.
    * @param title The title of the Gantt object to find.
    */
-  public GanttTask findByTitle(final String title);
+  GanttTask findByTitle(final String title);
 
   /**
    * Search the given task tree (root is given by this) for the task which is the parent task of the task with the given id.
    * @param id
    * @return
    */
-  public GanttTask findParent(final Serializable id);
+  GanttTask findParent(final Serializable id);
 
   /**
    * The list of child objects if exist.
    */
-  public List<GanttTask> getChildren();
+  List<GanttTask> getChildren();
 
   /**
    * Milestone or task?
    */
-  public GanttObjectType getType();
+  GanttObjectType getType();
 
   /**
    * Fluent.
    * @param startDate
    * @return this
    */
-  public GanttTask setType(GanttObjectType ganttObjectType);
+  GanttTask setType(GanttObjectType ganttObjectType);
 
   /**
    * Required if this object doesn't depend on another Gantt object.
    */
-  public Date getStartDate();
+  LocalDate getStartDate();
 
   /**
    * Fluent.
    * @param startDate
    * @return this
    */
-  public GanttTask setStartDate(Date startDate);
+  GanttTask setStartDate(LocalDate startDate);
 
   /**
    * @return True, if the calculated start and end dates differ or if both not given if a duration not equal 0 is set.
    */
-  public boolean hasDuration();
+  boolean hasDuration();
 
   /**
    * @return The given start date or if not exist the calculated start date. If no calculation is possible the now is assumed.
    */
-  public Date getCalculatedStartDate();
-  
-  public GanttTask setCalculatedStartDate(Date calculatedStartDate);
+  LocalDate getCalculatedStartDate();
+
+  GanttTask setCalculatedStartDate(LocalDate calculatedStartDate);
 
   /**
    * Required if this object is a task and has no duration.
    */
-  public Date getEndDate();
+  LocalDate getEndDate();
 
-  public GanttTask setCalculatedEndDate(Date calculatedEndDate);
-  
-  public boolean isStartDateCalculated();
+  GanttTask setCalculatedEndDate(LocalDate calculatedEndDate);
 
-  public GanttTask setStartDateCalculated(boolean isStartDateCalculated);
-  
-  public boolean isEndDateCalculated();
+  boolean isStartDateCalculated();
 
-  public GanttTask setEndDateCalculated(boolean isEndDateCalculated);
-  
+  GanttTask setStartDateCalculated(boolean isStartDateCalculated);
+
+  boolean isEndDateCalculated();
+
+  GanttTask setEndDateCalculated(boolean isEndDateCalculated);
+
   /**
    * Fluent.
    * @param startDate
    * @return this
    */
-  public GanttTask setEndDate(Date endDate);
+  GanttTask setEndDate(LocalDate endDate);
 
   /**
    * @return The given end date or if not exist the calculated end date.
    */
-  public Date getCalculatedEndDate();
+  LocalDate getCalculatedEndDate();
 
   /**
    * Required if this task has no end date.
    */
-  public BigDecimal getDuration();
+  BigDecimal getDuration();
 
   /**
    * Fluent.
    * @param duration
    * @return this
    */
-  public GanttTask setDuration(BigDecimal duration);
+  GanttTask setDuration(BigDecimal duration);
 
   /**
    * Completion of the task in percentage.
    */
-  public Integer getProgress();
+  Integer getProgress();
 
   /**
    * Fluent.
    * @param progress
    * @return this
    */
-  public GanttTask setProgress(Integer progress);
+  GanttTask setProgress(Integer progress);
 
   /**
    * Optional, short code to display.
    */
-  public String getWorkpackageCode();
+  String getWorkpackageCode();
 
   /**
    * The title to display.
    */
-  public String getTitle();
+  String getTitle();
 
-  public GanttTask setTitle(final String title);
+  GanttTask setTitle(final String title);
 
   /**
    * Optional.
    */
-  public String getDescription();
+  String getDescription();
 
   /**
    * Default is FINISH-START.
    */
-  public GanttRelationType getRelationType();
+  GanttRelationType getRelationType();
 
   /**
    * Fluent.
    * @param relationType
    * @return this.
    */
-  public GanttTask setRelationType(GanttRelationType relationType);
+  GanttTask setRelationType(GanttRelationType relationType);
 
   /**
    * Optional offset in days after predecessor.
    */
-  public Integer getPredecessorOffset();
+  Integer getPredecessorOffset();
 
   /**
    * Fluent.
    * @param ganttPredecessorOffset
    * @return this
    */
-  public GanttTask setPredecessorOffset(Integer ganttPredecessorOffset);
+  GanttTask setPredecessorOffset(Integer ganttPredecessorOffset);
 
   /**
    * Sorts all children (recursive) e. g. by calculated start date.
    */
-  public void sortChildren();
+  void sortChildren();
 
   /**
    * Optional, this object depends on the beginning or ending of another Gantt object.
    */
-  public GanttTask getPredecessor();
+  GanttTask getPredecessor();
 
   /**
    * Fluent.
    * @param predecessor
    * @return this
    */
-  public GanttTask setPredecessor(GanttTask predecessor);
+  GanttTask setPredecessor(GanttTask predecessor);
 
   /**
    * NPE safe method for getting id of the predecessor if exist, otherwise null.
    */
-  public Serializable getPredecessorId();
+  Serializable getPredecessorId();
 
   /**
    * @return true if this object should be visible. False if this object should be suppressed from output.
    */
-  public boolean isVisible();
+  boolean isVisible();
 
   /**
    * Sets the visibility of this Gantt object.
    */
-  public GanttTask setVisible(boolean b);
+  GanttTask setVisible(boolean b);
 
   /**
    * Recalculate all dates.
    */
-  public GanttTask recalculate();
+  GanttTask recalculate();
 
   /**
    * Adds a child object.
    */
-  public GanttTask addChild(GanttTask ganttObject);
-  
+  GanttTask addChild(GanttTask ganttObject);
+
   /**
    * Removes a child object.
    * @param ganttObject Object to remove.
    */
-  public void removeChild(GanttTask ganttObject);
+  void removeChild(GanttTask ganttObject);
 }

@@ -31,6 +31,7 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.Month;
 import java.util.Date;
 import java.util.TimeZone;
@@ -355,6 +356,22 @@ public class DateHelper implements Serializable {
    * the new year.
    */
   public static int getWeekOfYear(final Date date) {
+    if (date == null) {
+      return -1;
+    }
+    return PFDay.from(date).getWeekOfYear();
+  }
+
+  /**
+   * Should be used application wide for getting and/or displaying the week of year!
+   *
+   * @param date
+   * @return Return the week of year. The week of year depends on the Locale set in the Configuration (config.xml). If
+   * given date is null then -1 is returned. For "de" the first week of year is the first week with a minimum of
+   * 4 days in the new year. For "en" the first week of the year is the first week with a minimum of 1 days in
+   * the new year.
+   */
+  public static int getWeekOfYear(final LocalDate date) {
     if (date == null) {
       return -1;
     }

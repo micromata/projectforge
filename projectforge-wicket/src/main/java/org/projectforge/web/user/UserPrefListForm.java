@@ -23,12 +23,12 @@
 
 package org.projectforge.web.user;
 
-import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 public class UserPrefListForm extends AbstractListForm<UserPrefListFilter, UserPrefListPage>
 {

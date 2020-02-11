@@ -23,9 +23,6 @@
 
 package org.projectforge.web.meb;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
@@ -42,6 +39,7 @@ import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.jira.JiraConfig;
 import org.projectforge.jira.JiraIssueType;
 import org.projectforge.jira.JiraProject;
@@ -57,6 +55,9 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MebEditForm extends AbstractEditForm<MebEntryDO, MebEditPage>
 {
@@ -88,7 +89,8 @@ public class MebEditForm extends AbstractEditForm<MebEntryDO, MebEditPage>
     {
       // Date
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("date")).suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), DateTimeFormatter.instance().getFormattedDateTime(data.getDate())));
+      PFDay mebDate = PFDay.from(data.getDate());
+      fs.add(new DivTextPanel(fs.newChildId(), DateTimeFormatter.instance().getFormattedDateTime(mebDate.getUtilDate())));
     }
     {
       // Owner

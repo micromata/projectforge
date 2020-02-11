@@ -23,8 +23,6 @@
 
 package org.projectforge.web.teamcal.event.importics;
 
-import java.util.List;
-
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
@@ -40,6 +38,8 @@ import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
+
+import java.util.List;
 
 public class TeamCalImportForm extends AbstractImportForm<ImportFilter, TeamCalImportPage, TeamCalImportStoragePanel>
 {

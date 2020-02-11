@@ -57,7 +57,7 @@ import javax.validation.Valid
 class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventDao>(
         CalEventDao::class.java,
         "plugins.teamcal.event.title",
-        cloneSupported = true) {
+        cloneSupport = CloneSupport.AUTOSAVE) {
 
     private val log = org.slf4j.LoggerFactory.getLogger(CalEventPagesRest::class.java)
 

@@ -35,6 +35,7 @@
 
 package net.ftlines.wicket.fullcalendar.callback;
 
+import net.ftlines.wicket.fullcalendar.CalendarResponse;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -44,8 +45,6 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.projectforge.business.teamcal.filter.ViewType;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-
-import net.ftlines.wicket.fullcalendar.CalendarResponse;
 
 /**
  * A base callback that passes back calendar's starting date

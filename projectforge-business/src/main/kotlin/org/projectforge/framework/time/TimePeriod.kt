@@ -25,6 +25,7 @@ package org.projectforge.framework.time
 
 import org.projectforge.framework.ToStringUtil.Companion.toJsonString
 import java.io.Serializable
+import java.time.LocalDate
 import java.util.*
 
 /**
@@ -38,6 +39,31 @@ class TimePeriod @JvmOverloads constructor(var fromDate: Date? = null, var toDat
                                             * @return
                                             */
                                            var marker: Boolean = false) : Serializable {
+    constructor( fromDay: LocalDate? = null,
+                 toDate: LocalDate? = null,
+                 marker: Boolean = false)
+            : this(PFDateTime.fromOrNull(fromDay)?.beginOfDay?.utilDate, PFDateTime.fromOrNull(toDate)?.endOfDay?.utilDate, marker)
+
+    var fromDay: LocalDate?
+        get() = PFDay.fromOrNull(fromDate)?.localDate
+        set(value) {
+            if (value == null) {
+                fromDate = null
+            } else {
+                fromDate = PFDateTime.from(value).beginOfDay.utilDate
+            }
+        }
+
+    var toDay: LocalDate?
+        get() = PFDay.fromOrNull(toDate)?.localDate
+        set(value) {
+            if (value == null) {
+                toDate = null
+            } else {
+                toDate = PFDateTime.from(value).endOfDay.utilDate
+            }
+        }
+
     /**
      * hoursOfDay = 24; minHoursOfDaySeparation = 0;
      *

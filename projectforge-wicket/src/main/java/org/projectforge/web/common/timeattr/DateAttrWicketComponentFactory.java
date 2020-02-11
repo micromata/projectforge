@@ -23,15 +23,14 @@
 
 package org.projectforge.web.common.timeattr;
 
-import java.util.Date;
-
+import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
+import java.util.Date;
 
 /**
  * A Date input field.

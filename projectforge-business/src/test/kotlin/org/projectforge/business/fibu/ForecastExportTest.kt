@@ -68,7 +68,7 @@ class ForecastExportTest : AbstractTestBase() {
         auftragDao.save(order3)
 
         val filter = AuftragFilter()
-        filter.periodOfPerformanceStartDate = baseDate.sqlDate
+        filter.periodOfPerformanceStartDate = baseDate.localDate
         val ba = forecastExport.export(filter)
         val excelFile = WorkFileHelper.getWorkFile("forecast.xlsx")
         log.info("Writing forecast Excel file to work directory: " + excelFile.absolutePath)
@@ -114,9 +114,9 @@ class ForecastExportTest : AbstractTestBase() {
         val order = AuftragDO()
         order.nummer = auftragDao.nextNumber
         order.auftragsStatus = status
-        order.angebotsDatum = date.sqlDate
-        order.periodOfPerformanceBegin = periodOfPerformanceBegin?.sqlDate
-        order.periodOfPerformanceEnd = periodOfPerformanceEnd?.sqlDate
+        order.angebotsDatum = date.localDate
+        order.periodOfPerformanceBegin = periodOfPerformanceBegin?.localDate
+        order.periodOfPerformanceEnd = periodOfPerformanceEnd?.localDate
         order.probabilityOfOccurrence = probability
         return order
     }
@@ -134,8 +134,8 @@ class ForecastExportTest : AbstractTestBase() {
         pos.status = status
         pos.paymentType = paymentType
         pos.nettoSumme = BigDecimal(netSum)
-        pos.periodOfPerformanceBegin = periodOfPerformanceBegin?.sqlDate
-        pos.periodOfPerformanceEnd = periodOfPerformanceEnd?.sqlDate
+        pos.periodOfPerformanceBegin = periodOfPerformanceBegin?.localDate
+        pos.periodOfPerformanceEnd = periodOfPerformanceEnd?.localDate
         pos.periodOfPerformanceType = periodOfPerformanceType
         order.addPosition(pos)
         return pos
@@ -144,8 +144,8 @@ class ForecastExportTest : AbstractTestBase() {
     private fun createInvoice(date: PFDay): RechnungDO {
         val invoice = RechnungDO()
         invoice.nummer = rechnungDao.nextNumber
-        invoice.datum = date.sqlDate
-        invoice.faelligkeit = date.plusDays(30).sqlDate
+        invoice.datum = date.localDate
+        invoice.faelligkeit = date.plusDays(30).localDate
         invoice.status = RechnungStatus.GESTELLT
         invoice.typ = RechnungTyp.RECHNUNG
         invoice.kundeText = "ACME Inc."

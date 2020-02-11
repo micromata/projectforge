@@ -7110,7 +7110,7 @@
       <de.micromata.hibernate.history.delta.SimplePropertyDelta id="1646">
         <id>61</id>
         <propertyName>faelligkeit</propertyName>
-        <propertyType>java.sql.Date</propertyType>
+        <propertyType>java.time.LocalDate</propertyType>
         <oldValue>2010-05-23</oldValue>
         <newValue>2010-04-23</newValue>
       </de.micromata.hibernate.history.delta.SimplePropertyDelta>
@@ -7213,13 +7213,13 @@
       <de.micromata.hibernate.history.delta.SimplePropertyDelta id="1674">
         <id>65</id>
         <propertyName>bezahlDatum</propertyName>
-        <propertyType>java.sql.Date</propertyType>
+        <propertyType>java.time.LocalDate</propertyType>
         <newValue>2010-04-23</newValue>
       </de.micromata.hibernate.history.delta.SimplePropertyDelta>
       <de.micromata.hibernate.history.delta.SimplePropertyDelta id="1675">
         <id>66</id>
         <propertyName>faelligkeit</propertyName>
-        <propertyType>java.sql.Date</propertyType>
+        <propertyType>java.time.LocalDate</propertyType>
         <oldValue>2010-04-23</oldValue>
         <newValue>2010-04-01</newValue>
       </de.micromata.hibernate.history.delta.SimplePropertyDelta>
@@ -7259,14 +7259,14 @@
       <de.micromata.hibernate.history.delta.SimplePropertyDelta id="1684">
         <id>69</id>
         <propertyName>datum</propertyName>
-        <propertyType>java.sql.Date</propertyType>
+        <propertyType>java.time.LocalDate</propertyType>
         <oldValue>2010-04-23</oldValue>
         <newValue>2010-04-01</newValue>
       </de.micromata.hibernate.history.delta.SimplePropertyDelta>
       <de.micromata.hibernate.history.delta.SimplePropertyDelta id="1685">
         <id>70</id>
         <propertyName>faelligkeit</propertyName>
-        <propertyType>java.sql.Date</propertyType>
+        <propertyType>java.time.LocalDate</propertyType>
         <oldValue>2010-04-01</oldValue>
         <newValue>2010-04-30</newValue>
       </de.micromata.hibernate.history.delta.SimplePropertyDelta>
@@ -7283,7 +7283,7 @@
       <de.micromata.hibernate.history.delta.SimplePropertyDelta id="1689">
         <id>71</id>
         <propertyName>faelligkeit</propertyName>
-        <propertyType>java.sql.Date</propertyType>
+        <propertyType>java.time.LocalDate</propertyType>
         <oldValue>2010-04-30</oldValue>
         <newValue>2010-05-01</newValue>
       </de.micromata.hibernate.history.delta.SimplePropertyDelta>
@@ -7379,7 +7379,7 @@
       <de.micromata.hibernate.history.delta.SimplePropertyDelta id="1718">
         <id>73</id>
         <propertyName>birthday</propertyName>
-        <propertyType>java.sql.Date</propertyType>
+        <propertyType>java.time.LocalDate</propertyType>
         <oldValue>1968-05-05</oldValue>
         <newValue>1968-04-05</newValue>
       </de.micromata.hibernate.history.delta.SimplePropertyDelta>
@@ -7396,7 +7396,7 @@
       <de.micromata.hibernate.history.delta.SimplePropertyDelta id="1722">
         <id>74</id>
         <propertyName>birthday</propertyName>
-        <propertyType>java.sql.Date</propertyType>
+        <propertyType>java.time.LocalDate</propertyType>
         <oldValue>1968-04-05</oldValue>
         <newValue>1968-04-08</newValue>
       </de.micromata.hibernate.history.delta.SimplePropertyDelta>
@@ -7739,7 +7739,7 @@
       <de.micromata.hibernate.history.delta.SimplePropertyDelta id="1815">
         <id>86</id>
         <propertyName>birthday</propertyName>
-        <propertyType>java.sql.Date</propertyType>
+        <propertyType>java.time.LocalDate</propertyType>
         <oldValue>1968-04-08</oldValue>
         <newValue>1968-05-08</newValue>
       </de.micromata.hibernate.history.delta.SimplePropertyDelta>
@@ -7756,7 +7756,7 @@
       <de.micromata.hibernate.history.delta.SimplePropertyDelta id="1819">
         <id>87</id>
         <propertyName>birthday</propertyName>
-        <propertyType>java.sql.Date</propertyType>
+        <propertyType>java.time.LocalDate</propertyType>
         <oldValue>1968-05-08</oldValue>
         <newValue>1968-05-07</newValue>
       </de.micromata.hibernate.history.delta.SimplePropertyDelta>

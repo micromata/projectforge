@@ -45,6 +45,7 @@ import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -76,7 +77,7 @@ public class MonthlyEmployeeReportForm
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.user"));
-      if (accessChecker.hasLoggedInUserAccessToTimesheetsOfOtherUsers() == true) {
+      if (accessChecker.hasLoggedInUserAccessToTimesheetsOfOtherUsers()) {
         final UserSelectPanel userSelectPanel = new UserSelectPanel(fs.newChildId(),
             new PropertyModel<PFUserDO>(filter, "user"),
             parentPage, "user");
@@ -124,13 +125,13 @@ public class MonthlyEmployeeReportForm
       };
       monthChoice.setNullValid(false).setRequired(true);
       fs.add(monthChoice);
-      final QuickSelectMonthPanel quickSelectPanel = new QuickSelectMonthPanel(fs.newChildId(), new Model<Date>()
+      final QuickSelectMonthPanel quickSelectPanel = new QuickSelectMonthPanel(fs.newChildId(), new Model<LocalDate>()
       {
         /**
          * @see org.apache.wicket.model.Model#getObject()
          */
         @Override
-        public Date getObject()
+        public LocalDate getObject()
         {
           Integer year = filter.getYear();
           Integer month = filter.getMonth();
@@ -140,14 +141,14 @@ public class MonthlyEmployeeReportForm
           } else {
             date = PFDateTime.withDate(filter.getYear(), PFDayUtils.validateMonthValue(filter.getMonth()), 1);
           }
-          return date.getUtilDate();
+          return date.getLocalDate();
         }
 
         /**
          * @see org.apache.wicket.model.Model#setObject(java.io.Serializable)
          */
         @Override
-        public void setObject(final Date object)
+        public void setObject(final LocalDate object)
         {
           if (object != null) {
             setDate(object);
@@ -167,9 +168,9 @@ public class MonthlyEmployeeReportForm
     }
   }
 
-  void setDate(final Date date)
+  void setDate(final LocalDate date)
   {
-    PFDateTime dt = PFDateTime.from(date); // not null
+    PFDateTime dt = PFDateTime.fromOrNow(date); // not null
     filter.setYear(dt.getYear());
     filter.setMonth(dt.getMonthValue());
     yearChoice.modelChanged();

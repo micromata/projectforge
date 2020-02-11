@@ -59,26 +59,26 @@ public class VisitorbookDao extends BaseDao<VisitorbookDO> {
     final List<VisitorbookDO> resultList = getList(queryFilter);
 
     final Predicate<VisitorbookDO> afterStartTimeOrSameDay = visitor -> timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit").stream()
-            .anyMatch(timeAttr -> !timeAttr.getStartTime().before(myFilter.getStartTime())); // before() == false -> after or same day
+            .anyMatch(timeAttr -> !timeAttr.getStartTime().before(myFilter.getUTCStartTime())); // before() == false -> after or same day
 
     final Predicate<VisitorbookDO> beforeStopTimeOrSameDay = visitor -> timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit").stream()
-            .anyMatch(timeAttr -> !timeAttr.getStartTime().after(myFilter.getStopTime())); // after() == false -> before or same day
+            .anyMatch(timeAttr -> !timeAttr.getStartTime().after(myFilter.getUTCStopTime())); // after() == false -> before or same day
 
-    if (myFilter.getStartTime() != null && myFilter.getStopTime() == null) {
+    if (myFilter.getStartDay() != null && myFilter.getStopDay() == null) {
       return resultList
               .stream()
               .filter(afterStartTimeOrSameDay)
               .collect(Collectors.toList());
     }
 
-    if (myFilter.getStartTime() == null && myFilter.getStopTime() != null) {
+    if (myFilter.getStartDay() == null && myFilter.getStopDay() != null) {
       return resultList
               .stream()
               .filter(beforeStopTimeOrSameDay)
               .collect(Collectors.toList());
     }
 
-    if (myFilter.getStartTime() != null && myFilter.getStopTime() != null) {
+    if (myFilter.getStartDay() != null && myFilter.getStopDay() != null) {
       return resultList
               .stream()
               .filter(afterStartTimeOrSameDay)

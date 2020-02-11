@@ -49,8 +49,8 @@ import java.io.File
 import java.io.IOException
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.sql.Date
 import java.text.DecimalFormat
+import java.time.LocalDate
 import java.util.*
 import java.util.stream.Collectors
 
@@ -174,8 +174,8 @@ open class InvoiceService {
     }
 
     private fun getPeriodOfPerformance(position: RechnungsPositionDO, invoice: RechnungDO): String {
-        val begin: Date?
-        val end: Date?
+        val begin: LocalDate?
+        val end: LocalDate?
         if (position.periodOfPerformanceType == PeriodOfPerformanceType.OWN) {
             begin = position.periodOfPerformanceBegin
             end = position.periodOfPerformanceEnd

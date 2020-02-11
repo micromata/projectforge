@@ -23,9 +23,6 @@
 
 package org.projectforge.web.wicket.bootstrap;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -33,12 +30,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.props.PropUtils;
-import org.projectforge.web.wicket.flowlayout.AbstractGridBuilder;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldProperties;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.FormHeadingPanel;
+import org.projectforge.web.wicket.flowlayout.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

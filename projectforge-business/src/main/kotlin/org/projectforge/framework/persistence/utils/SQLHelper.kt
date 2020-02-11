@@ -25,6 +25,9 @@ package org.projectforge.framework.persistence.utils
 
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.i18n.InternalErrorException
+import org.projectforge.framework.time.PFDateTime
+import java.time.LocalDate
+import java.time.Year
 import java.util.*
 import javax.persistence.TypedQuery
 
@@ -45,24 +48,38 @@ object SQLHelper {
      * @return Array of years in descendent order. If min or max is null, the current year is returned.
      */
     @JvmStatic
+    fun getYears(min: Any?, max: Any?): IntArray {
+        if (min == null || max == null) {
+            return intArrayOf(Year.now().value)
+        }
+        if (min is Date || max is Date) {
+            return getYears(min as Date, max as Date)
+        }
+        return getYears(min as LocalDate, max as LocalDate)
+    }
+
+    @JvmStatic
     fun getYears(min: Date?, max: Date?): IntArray {
         if (min == null || max == null) {
-            return intArrayOf(Calendar.getInstance().get(Calendar.YEAR))
+            return intArrayOf(Year.now().value)
         }
-        val from: Int
-        val to: Int
-        val cal = Calendar.getInstance()
-        cal.time = min
-        from = cal.get(Calendar.YEAR)
-        cal.time = max
-        to = cal.get(Calendar.YEAR)
+        val from = PFDateTime.from(min).year
+        val to= PFDateTime.from(max).year
         return getYears(from, to)
+    }
+
+    @JvmStatic
+    fun getYears(min: LocalDate?, max: LocalDate?): IntArray {
+        if (min == null || max == null) {
+            return intArrayOf(LocalDate.now().year)
+        }
+        return getYears(min.year, max.year)
     }
 
     @JvmStatic
     fun getYears(min: Int?, max: Int?): IntArray {
         if (min == null || max == null) {
-            return intArrayOf(Calendar.getInstance().get(Calendar.YEAR))
+            return intArrayOf(Year.now().value)
         }
         val res = IntArray(max - min + 1)
         var i = 0

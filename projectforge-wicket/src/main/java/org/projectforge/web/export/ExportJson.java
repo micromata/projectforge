@@ -23,14 +23,13 @@
 
 package org.projectforge.web.export;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
+import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.util.resource.AbstractResourceStreamWriter;
 import org.apache.wicket.util.resource.IResourceStream;
 
-import com.google.gson.Gson;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)

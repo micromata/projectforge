@@ -23,9 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.http.WebResponse.CacheScope;
@@ -35,6 +32,9 @@ import org.apache.wicket.util.time.Duration;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.projectforge.export.JFreeChartImageType;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 public class JFreeChartImage extends Image
 {

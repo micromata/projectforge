@@ -50,6 +50,8 @@ public class BaseSearchFilter implements Serializable {
 
   protected int maxRows = -1;
 
+  protected int pageSize = -1;
+
   protected transient boolean sortAndLimitMaxRowsWhileSelect = false;
 
   protected boolean useModificationFilter;
@@ -294,6 +296,14 @@ public class BaseSearchFilter implements Serializable {
   public BaseSearchFilter setMaxRows(final int maxRows) {
     this.maxRows = maxRows;
     return this;
+  }
+
+  public int getPageSize() {
+    return pageSize;
+  }
+
+  public void setPageSize(int pageSize) {
+    this.pageSize = pageSize;
   }
 
   /**

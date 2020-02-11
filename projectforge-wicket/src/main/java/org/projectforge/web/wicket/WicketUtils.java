@@ -692,6 +692,35 @@ public class WicketUtils
     if (stopTime != null) {
       toWeek = DateHelper.getWeekOfYear(stopTime);
     }
+    return getCalendarWeeks(parent, fromWeek, toWeek);
+  }
+
+  /**
+   * @param parent    Only for i18n needed.
+   * @param startTime Start time or null.
+   * @param stopTime  Stop time or null.
+   * @return The weeks of year range for the given start an stop time.
+   */
+  public static String getCalendarWeeks(final MarkupContainer parent, final LocalDate startTime, final LocalDate stopTime)
+  {
+    int fromWeek = -1;
+    int toWeek = -1;
+    if (startTime != null) {
+      fromWeek = DateHelper.getWeekOfYear(startTime);
+    }
+    if (stopTime != null) {
+      toWeek = DateHelper.getWeekOfYear(stopTime);
+    }
+    return getCalendarWeeks(parent, fromWeek, toWeek);
+  }
+
+  /**
+   * @param parent    Only for i18n needed.
+   * @param startTime Start time or null.
+   * @param stopTime  Stop time or null.
+   * @return The weeks of year range for the given start an stop time.
+   */
+  private static String getCalendarWeeks(final MarkupContainer parent, final int fromWeek, final int toWeek) {
     if (fromWeek < 0 && toWeek < 0) {
       return "";
     }
@@ -710,16 +739,16 @@ public class WicketUtils
     return buf.toString();
   }
 
-  /**
-   * @param date
-   */
+    /**
+     * @param date
+     */
   public static String getUTCDate(final Date date)
   {
     if (date == null) {
       return "";
     }
     final DateHolder dh = new DateHolder(date);
-    return DateHelper.TECHNICAL_ISO_UTC.get().format(dh.getDate());
+    return DateHelper.TECHNICAL_ISO_UTC.get().format(dh.getUtilDate());
   }
 
   /**
@@ -733,7 +762,7 @@ public class WicketUtils
       return label + ":";
     }
     final DateHolder dh = new DateHolder(date);
-    return label + ": " + DateHelper.TECHNICAL_ISO_UTC.get().format(dh.getDate());
+    return label + ": " + DateHelper.TECHNICAL_ISO_UTC.get().format(dh.getUtilDate());
   }
 
   /**
@@ -760,13 +789,32 @@ public class WicketUtils
     final DateHolder start = startTime != null ? new DateHolder(startTime) : null;
     final DateHolder stop = stopTime != null ? new DateHolder(stopTime) : null;
     if (start != null) {
-      buf.append(DateHelper.TECHNICAL_ISO_UTC.get().format(start.getDate()));
+      buf.append(DateHelper.TECHNICAL_ISO_UTC.get().format(start.getUtilDate()));
       if (stop != null) {
         buf.append(" - ");
       }
     }
     if (stop != null) {
-      buf.append(DateHelper.TECHNICAL_ISO_UTC.get().format(stop.getDate()));
+      buf.append(DateHelper.TECHNICAL_ISO_UTC.get().format(stop.getUtilDate()));
+    }
+    return buf.toString();
+  }
+
+  /**
+   * @param startTime Start time or null.
+   * @param stopTime  Stop time or null.
+   */
+  public static String getUTCDates(final LocalDate startTime, final LocalDate stopTime)
+  {
+    final StringBuffer buf = new StringBuffer();
+    if (startTime != null) {
+      buf.append(startTime.toString());
+      if (stopTime != null) {
+        buf.append(" - ");
+      }
+    }
+    if (stopTime != null) {
+      buf.append(stopTime.toString());
     }
     return buf.toString();
   }
@@ -777,8 +825,8 @@ public class WicketUtils
     for (int i = 0; i > -lastNDays; i--) {
       final DayHolder day = new DayHolder();
       day.add(Calendar.DAY_OF_YEAR, i);
-      datumChoiceRenderer.addValue(day.getSqlDate().getTime(),
-          DateTimeFormatter.instance().getFormattedDate(day.getSqlDate(),
+      datumChoiceRenderer.addValue(day.getUtilDate().getTime(),
+          DateTimeFormatter.instance().getFormattedDate(day.getLocalDate(),
               DateFormats.getFormatString(DateFormatType.DATE)));
     }
     return datumChoiceRenderer;

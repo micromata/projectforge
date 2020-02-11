@@ -201,7 +201,7 @@ public class XlsContentProvider implements ContentProvider
   }
 
   /**
-   * Override this method if you need to convert complex data types, e. g. value is a DateHolder object you may return value.getDate().
+   * Override this method if you need to convert complex data types, e. g. value is a DateHolder object you may return value.getUtilDate().
    * Please note, that only some object types are supported by {@link Cell} and by this implementation.
    *
    * @param value

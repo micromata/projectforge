@@ -34,7 +34,7 @@ import org.projectforge.framework.persistence.api.Constants;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
+import java.util.Date;
 
 @Entity
 @Indexed
@@ -50,12 +50,12 @@ public class CalEventDO extends DefaultBaseDO implements ICalendarEvent {
   @PropertyInfo(i18nKey = "plugins.teamcal.event.beginDate")
   @Field(index = Index.YES, analyze = Analyze.NO)
   @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
-  private Timestamp startDate;
+  private Date startDate;
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.endDate")
   @Field(index = Index.YES, analyze = Analyze.NO)
   @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
-  private Timestamp endDate;
+  private Date endDate;
 
   private String uid;
 
@@ -174,14 +174,14 @@ public class CalEventDO extends DefaultBaseDO implements ICalendarEvent {
    */
   @Override
   @Column(name = "start_date")
-  public Timestamp getStartDate() {
+  public Date getStartDate() {
     return startDate;
   }
 
   /**
    * @param startDate the startDate to set
    */
-  public void setStartDate(final Timestamp startDate) {
+  public void setStartDate(final Date startDate) {
     this.startDate = startDate;
   }
 
@@ -190,14 +190,14 @@ public class CalEventDO extends DefaultBaseDO implements ICalendarEvent {
    */
   @Override
   @Column(name = "end_date")
-  public Timestamp getEndDate() {
+  public Date getEndDate() {
     return endDate;
   }
 
   /**
    * @param endDate the endDate to set
    */
-  public void setEndDate(final Timestamp endDate) {
+  public void setEndDate(final Date endDate) {
     this.endDate = endDate;
   }
 

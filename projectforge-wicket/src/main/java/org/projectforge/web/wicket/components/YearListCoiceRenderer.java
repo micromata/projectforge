@@ -23,12 +23,12 @@
 
 package org.projectforge.web.wicket.components;
 
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.IModel;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.IModel;
 
 /**
  * Helper class for rendering combo boxes: {"2007-2009"; "2009"; "2008"; "2007"} or {"2009"; "2008", "2007"}

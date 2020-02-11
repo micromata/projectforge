@@ -23,14 +23,14 @@
 
 package org.projectforge.web.humanresources;
 
-import java.math.BigDecimal;
-
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.projectforge.business.humanresources.HRFilter;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.framework.utils.NumberHelper;
+
+import java.math.BigDecimal;
 
 /**
  * 

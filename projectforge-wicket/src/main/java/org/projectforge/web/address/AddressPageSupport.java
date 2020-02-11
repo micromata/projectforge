@@ -296,8 +296,7 @@ class AddressPageSupport implements Serializable {
     final AbstractFieldsetPanel<?> fs = gridBuilder.newFieldset(props);
     LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
     components.getFormComponent().setMarkupId("birthday").setOutputMarkupId(true);
-    fs.add(
-            components);
+    fs.add(components);
     fs.add(new HtmlCommentPanel(fs.newChildId(), new Model<String>() {
       @Override
       public String getObject() {
@@ -308,7 +307,7 @@ class AddressPageSupport implements Serializable {
   }
 
   public FieldProperties<LocalDate> getBirthdayProperties() {
-    return new FieldProperties<LocalDate>("address.birthday", new PropertyModel<LocalDate>(address, "birthday"));
+    return new FieldProperties<>("address.birthday", new PropertyModel<>(address, "birthday"));
   }
 
   public AbstractFieldsetPanel<?> addLanguage() {

@@ -23,7 +23,6 @@
 
 package org.projectforge.web.teamcal.admin;
 
-import org.slf4j.Logger;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -34,6 +33,7 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivType;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
+import org.slf4j.Logger;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)

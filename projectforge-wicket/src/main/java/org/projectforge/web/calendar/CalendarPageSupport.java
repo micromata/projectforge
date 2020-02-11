@@ -23,8 +23,6 @@
 
 package org.projectforge.web.calendar;
 
-import java.io.Serializable;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.model.IModel;
@@ -39,6 +37,8 @@ import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+
+import java.io.Serializable;
 
 public class CalendarPageSupport implements Serializable
 {

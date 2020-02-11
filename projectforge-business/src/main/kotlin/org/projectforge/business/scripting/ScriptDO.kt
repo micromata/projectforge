@@ -31,8 +31,9 @@ import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Index
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.Store
+import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.UnsupportedEncodingException
 import javax.persistence.*
 
@@ -43,20 +44,37 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_SCRIPT", indexes = [Index(name = "idx_fk_t_script_tenant_id", columnList = "tenant_id")])
-open class ScriptDO : DefaultBaseDO() {
-    @JsonIgnore
-    private val log = org.slf4j.LoggerFactory.getLogger(ScriptDO::class.java)
+@Table(name = "T_SCRIPT", indexes = [javax.persistence.Index(name = "idx_fk_t_script_tenant_id", columnList = "tenant_id")])
+open class ScriptDO : BaseUserGroupRightsDO() {
+    enum class ScriptType { KOTLIN, GROOVY }
 
     @PropertyInfo(i18nKey = "scripting.script.name")
     @Field
     @get:Column(length = 255, nullable = false)
     open var name: String? = null // 255 not null
 
+    @PropertyInfo(i18nKey = "scripting.script.type")
+    @get:Enumerated(EnumType.STRING)
+    @get:Column(length = 20)
+    open var type: ScriptType? = null
+
+    /**
+     * Not yet in use, later, it marks if this script should run as super user.
+     */
+    @get:Basic
+    open var sudo: Boolean? = null
+
+    /**
+     * Unused (derived from [BaseUserGroupRightsDO]
+     */
+    @get:Transient
+    override var owner: PFUserDO? = null
+
+
     @PropertyInfo(i18nKey = "description")
     @Field
     @get:Column(length = 4000)
-    open var description: String? = null // 4000;
+    open var description: String? = null
 
     /**
      * Please note: script is not historizable. Therefore there is now history of scripts.
@@ -224,5 +242,7 @@ open class ScriptDO : DefaultBaseDO() {
 
     companion object {
         const val PARAMETER_NAME_MAX_LENGTH = 100
+        @JsonIgnore
+        private val log = org.slf4j.LoggerFactory.getLogger(ScriptDO::class.java)
     }
 }

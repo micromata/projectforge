@@ -35,8 +35,9 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.DayHolder
+import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal
-import java.sql.Date
+import java.time.LocalDate
 import java.util.*
 import javax.persistence.*
 
@@ -67,9 +68,8 @@ open class HRPlanningDO : DefaultBaseDO() {
      * @return The first day of the week.
      */
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "week", nullable = false)
-    open var week: Date? = null
+    open var week: LocalDate? = null
 
     /**
      * Get the entries for this planned week.
@@ -245,7 +245,7 @@ open class HRPlanningDO : DefaultBaseDO() {
      * @param week
      * @see .getFirstDayOfWeek
      */
-    fun setFirstDayOfWeek(week: Date) {
+    fun setFirstDayOfWeek(week: LocalDate) {
         this.week = getFirstDayOfWeek(week)
     }
 
@@ -352,10 +352,10 @@ open class HRPlanningDO : DefaultBaseDO() {
          * first working day of the week.
          * @see DayHolder.setBeginOfWeek
          */
-        fun getFirstDayOfWeek(date: java.sql.Date): Date {
-            val day = DayHolder(date, DateHelper.UTC)
-            day.setBeginOfWeek()
-            return day.sqlDate
+        fun getFirstDayOfWeek(date: LocalDate): LocalDate {
+            var day = PFDay.from(date)
+            day = day!!.beginOfWeek
+            return day.localDate
         }
 
         /**
@@ -364,10 +364,10 @@ open class HRPlanningDO : DefaultBaseDO() {
          * first working day of the week.
          * @see DayHolder.setBeginOfWeek
          */
-        fun getFirstDayOfWeek(date: java.util.Date): Date {
+        fun getFirstDayOfWeek(date: Date): Date {
             val day = DayHolder(date, DateHelper.UTC)
             day.setBeginOfWeek()
-            return day.sqlDate
+            return day.utilDate
         }
     }
 }

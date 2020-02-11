@@ -36,7 +36,6 @@ import org.projectforge.web.address.*;
 import org.projectforge.web.admin.AdminPage;
 import org.projectforge.web.admin.ConfigurationListPage;
 import org.projectforge.web.admin.SetupPage;
-import org.projectforge.web.admin.SystemUpdatePage;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.core.SearchPage;
 import org.projectforge.web.doc.DocumentationPage;
@@ -344,7 +343,6 @@ public class WebRegistry
     addMountPage("sendSms", SendSmsPage.class);
     addMountPage("setup", SetupPage.class);
     addMountPage("systemStatistics", SystemStatisticsPage.class);
-    addMountPage("systemUpdate", SystemUpdatePage.class);
     addMountPage("taskTree", TaskTreePage.class);
     addMountPage("tutorial", TutorialPage.class);
 

@@ -23,12 +23,12 @@
 
 package org.projectforge.web.core;
 
-import javax.servlet.jsp.PageContext;
-
+import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.business.utils.HtmlHelper;
 import org.springframework.stereotype.Service;
+
+import javax.servlet.jsp.PageContext;
 
 @Service
 public class PriorityFormatter

@@ -23,9 +23,6 @@
 
 package org.projectforge.web.multitenancy;
 
-import java.util.Collection;
-import java.util.Set;
-
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.multitenancy.TenantDao;
@@ -45,6 +42,9 @@ import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
+
+import java.util.Collection;
+import java.util.Set;
 
 public class TenantEditForm extends AbstractEditForm<TenantDO, TenantEditPage>
 {

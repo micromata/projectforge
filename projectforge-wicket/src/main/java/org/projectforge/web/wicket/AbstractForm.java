@@ -23,12 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -46,6 +40,11 @@ import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.servlet.http.HttpServletRequest;
+import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class AbstractForm<F, P extends AbstractUnsecureBasePage> extends Form<F>
 {

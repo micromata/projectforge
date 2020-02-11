@@ -41,12 +41,7 @@ import org.projectforge.web.user.GroupEditPage;
 import org.projectforge.web.user.NewGroupSelectPanel;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.Heading3Panel;
-import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
+import org.projectforge.web.wicket.flowlayout.*;
 
 public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWizardPage>
 {

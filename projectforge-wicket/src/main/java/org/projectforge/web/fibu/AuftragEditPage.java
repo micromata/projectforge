@@ -57,7 +57,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   {
     super(parameters, "fibu.auftrag");
     init();
-    if (isNew() == true && getData().getContactPerson() == null) {
+    if (isNew() && getData().getContactPerson() == null) {
       auftragDao.setContactPerson(getData(), getUser().getId());
     }
   }
@@ -80,20 +80,20 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   @Override
   public void select(final String property, final Object selectedValue)
   {
-    if ("projektId".equals(property) == true) {
+    if ("projektId".equals(property)) {
       auftragDao.setProjekt(getData(), (Integer) selectedValue);
       form.projektSelectPanel.getTextField().modelChanged();
       if (getData().getProjektId() != null && getData().getProjektId() >= 0) {
         final ProjektDO projekt = projektDao.getById(getData().getProjektId());
         form.setKundePmHobmAndSmIfEmpty(projekt, null);
       }
-    } else if ("kundeId".equals(property) == true) {
+    } else if ("kundeId".equals(property)) {
       auftragDao.setKunde(getData(), (Integer) selectedValue);
       form.kundeSelectPanel.getTextField().modelChanged();
-    } else if ("contactPersonId".equals(property) == true) {
+    } else if ("contactPersonId".equals(property)) {
       auftragDao.setContactPerson(getData(), (Integer) selectedValue);
       setSendEMailNotification();
-    } else if (property.startsWith("taskId:") == true) {
+    } else if (property.startsWith("taskId:")) {
       final Short number = NumberHelper.parseShort(property.substring(property.indexOf(':') + 1));
       final AuftragsPositionDO pos = getData().getPosition(number);
       auftragDao.setTask(pos, (Integer) selectedValue);
@@ -104,7 +104,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
 
   private void setSendEMailNotification()
   {
-    if (accessChecker.userEqualsToContextUser(getData().getContactPerson()) == true)
+    if (accessChecker.userEqualsToContextUser(getData().getContactPerson()))
       form.setSendEMailNotification(false);
     else
       form.setSendEMailNotification(true);
@@ -116,16 +116,16 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   @Override
   public void unselect(final String property)
   {
-    if ("projektId".equals(property) == true) {
+    if ("projektId".equals(property)) {
       getData().setProjekt(null);
       form.projektSelectPanel.getTextField().modelChanged();
-    } else if ("kundeId".equals(property) == true) {
+    } else if ("kundeId".equals(property)) {
       getData().setKunde(null);
       form.kundeSelectPanel.getTextField().modelChanged();
-    } else if ("contactPersonId".equals(property) == true) {
+    } else if ("contactPersonId".equals(property)) {
       getData().setContactPerson(null);
       setSendEMailNotification();
-    } else if (property.startsWith("taskId:") == true) {
+    } else if (property.startsWith("taskId:")) {
       final Short number = NumberHelper.parseShort(property.substring(property.indexOf(':') + 1));
       final AuftragsPositionDO pos = getData().getPosition(number);
       pos.setTask(null);
@@ -163,9 +163,9 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
     if (auftrag.getId() == null) {
       if (auftrag.getAngebotsDatum() == null) {
         final LocalDate today = LocalDate.now();
-        auftrag.setAngebotsDatum(java.sql.Date.valueOf(today));
-        auftrag.setErfassungsDatum(java.sql.Date.valueOf(today));
-        auftrag.setEntscheidungsDatum(java.sql.Date.valueOf(today));
+        auftrag.setAngebotsDatum(today);
+        auftrag.setErfassungsDatum(today);
+        auftrag.setEntscheidungsDatum(today);
       }
       if (auftrag.getContactPersonId() == null && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.PROJECT_MANAGER)) {
         auftragDao.setContactPerson(auftrag, getUser().getId());
@@ -173,11 +173,11 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
       }
     } else if (auftrag.getErfassungsDatum() == null) {
       if (auftrag.getCreated() != null) {
-        auftrag.setErfassungsDatum(PFDay.from(auftrag.getCreated()).getSqlDate());
+        auftrag.setErfassungsDatum(PFDay.from(auftrag.getCreated()).getLocalDate());
       } else if (auftrag.getAngebotsDatum() != null) {
-        auftrag.setErfassungsDatum((java.sql.Date) auftrag.getAngebotsDatum().clone());
+        auftrag.setErfassungsDatum(auftrag.getAngebotsDatum());
       } else {
-        auftrag.setErfassungsDatum(java.sql.Date.valueOf(LocalDate.now()));
+        auftrag.setErfassungsDatum(LocalDate.now());
       }
     } else {
       setSendEMailNotification();
@@ -189,7 +189,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   @Override
   public AbstractSecuredBasePage afterSave()
   {
-    if (form.isSendEMailNotification() == false) {
+    if (!form.isSendEMailNotification()) {
       return null;
     }
     sendNotificationIfRequired(OperationType.INSERT);
@@ -199,7 +199,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   @Override
   public AbstractSecuredBasePage afterUpdate(final ModificationStatus modified)
   {
-    if (form.isSendEMailNotification() == false) {
+    if (!form.isSendEMailNotification()) {
       return null;
     }
     if (modified == ModificationStatus.MAJOR) {

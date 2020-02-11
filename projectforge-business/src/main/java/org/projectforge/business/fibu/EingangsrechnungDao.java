@@ -37,6 +37,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.*;
 
 @Repository
@@ -63,7 +64,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO> {
    */
   public int[] getYears() {
     final Tuple minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(EingangsrechnungDO.SELECT_MIN_MAX_DATE, Tuple.class));
-    return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
+    return SQLHelper.getYears(minMaxDate.get(0), minMaxDate.get(1));
   }
 
   public EingangsrechnungsStatistik buildStatistik(final List<EingangsrechnungDO> list) {

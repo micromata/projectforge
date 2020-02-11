@@ -40,7 +40,6 @@ import org.projectforge.framework.persistence.api.impl.DBPredicate;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
-import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.xstream.XmlObjectWriter;
 import org.projectforge.mail.Mail;
@@ -51,7 +50,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.Tuple;
 import javax.persistence.criteria.JoinType;
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -122,7 +121,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
    */
   public int[] getYears() {
     final Tuple minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(AuftragDO.SELECT_MIN_MAX_DATE, Tuple.class));
-    return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
+    return SQLHelper.getYears(minMaxDate.get(0), minMaxDate.get(1));
   }
 
   /**
@@ -384,10 +383,8 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   }
 
   private Optional<DBPredicate> createCriterionForErfassungsDatum(final AuftragFilter myFilter) {
-    final PFDay startDay = PFDay.fromOrNull(myFilter.getStartDate());
-    final PFDay endDay = PFDay.fromOrNull(myFilter.getEndDate());
-    final java.sql.Date startDate = startDay != null ? startDay.getSqlDate() : null;
-    final java.sql.Date endDate = endDay != null ? endDay.getSqlDate() : null;
+    final LocalDate startDate = myFilter.getStartDate();
+    final LocalDate endDate = myFilter.getEndDate();
 
     if (startDate != null && endDate != null) {
       return Optional.of(
@@ -492,14 +489,14 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
     final List<Short> positionsWithDatesNotWithinPop = new ArrayList<>();
     for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
-      final Date periodOfPerformanceBegin = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceBegin() : auftrag.getPeriodOfPerformanceBegin();
-      final Date periodOfPerformanceEnd = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceEnd() : auftrag.getPeriodOfPerformanceEnd();
+      final LocalDate periodOfPerformanceBegin = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceBegin() : auftrag.getPeriodOfPerformanceBegin();
+      final LocalDate periodOfPerformanceEnd = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceEnd() : auftrag.getPeriodOfPerformanceEnd();
 
       final boolean hasDateNotInRange = paymentSchedules.stream()
               .filter(payment -> payment.getPositionNumber() == pos.getNumber())
               .map(PaymentScheduleDO::getScheduleDate)
               .filter(Objects::nonNull)
-              .anyMatch(date -> date.before(periodOfPerformanceBegin) || date.after(periodOfPerformanceEnd));
+              .anyMatch(date -> date.isBefore(periodOfPerformanceBegin) || date.isAfter(periodOfPerformanceEnd));
 
       if (hasDateNotInRange) {
         positionsWithDatesNotWithinPop.add(pos.getNumber());

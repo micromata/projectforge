@@ -39,8 +39,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.excel.*;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.KostZuweisungExport;
-import org.projectforge.business.fibu.SEPATransferGenerator;
-import org.projectforge.business.fibu.SEPATransferResult;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.MyXlsContentProvider;

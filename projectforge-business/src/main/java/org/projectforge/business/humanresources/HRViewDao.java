@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -69,18 +70,16 @@ public class HRViewDao implements IDao<HRViewData> {
    */
   public HRViewData getResources(final HRFilter filter) {
     final HRViewData data = new HRViewData(filter);
-    if (filter.getStartTime() == null) {
-      final PFDateTime day = PFDateTime.now().getBeginOfWeek();
-      filter.setStartTime(day.getUtilDate());
+    if (filter.getStartDay() == null) {
+      filter.setStartDay(PFDay.today().getLocalDate());
     }
-    if (filter.getStopTime() == null) {
-      final PFDateTime day = PFDateTime.now().getEndOfWeek();
-      filter.setStartTime(day.getUtilDate());
+    if (filter.getStopDay() == null) {
+      filter.setStartDay(PFDay.today().getLocalDate());
     }
     if (filter.isShowBookedTimesheets()) {
       final TimesheetFilter tsFilter = new TimesheetFilter();
-      tsFilter.setStartTime(filter.getStartTime());
-      tsFilter.setStopTime(filter.getStopTime());
+      tsFilter.setStartTime(PFDateTime.fromOrNull(filter.getStartDay()).getBeginOfDay().getUtilDate());
+      tsFilter.setStopTime(PFDateTime.fromOrNull(filter.getStopDay()).getEndOfDay().getUtilDate());
       final List<TimesheetDO> sheets = timesheetDao.getList(tsFilter);
       final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
       for (final TimesheetDO sheet : sheets) {
@@ -106,10 +105,10 @@ public class HRViewDao implements IDao<HRViewData> {
     }
     if (filter.isShowPlanning()) {
       final HRPlanningFilter hrFilter = new HRPlanningFilter();
-      PFDateTime dateTime = PFDateTime.from(filter.getStartTime()); // not null
-      hrFilter.setStartTime(dateTime.getSqlDate()); // Considers the user's time zone.
-      dateTime = PFDateTime.from(filter.getStopTime()); // not null
-      hrFilter.setStopTime(dateTime.getSqlDate()); // Considers the user's time zone.
+      PFDay day = PFDay.fromOrNow(filter.getStartDay());
+      hrFilter.setStartDay(day.getLocalDate());
+      day = PFDay.fromOrNow(filter.getStopDay());
+      hrFilter.setStopDay(day.getLocalDate());
       final List<HRPlanningDO> plannings = hrPlanningDao.getList(hrFilter);
       final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
       for (final HRPlanningDO planning : plannings) {

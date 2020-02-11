@@ -125,7 +125,7 @@ class PFDateTimeUtils {
          * Including limits.
          */
         @JvmStatic
-        fun isBetween(date: PFDateTime, from: PFDateTime?, to: PFDateTime?): Boolean {
+        fun <T : IPFDate<T>> isBetween(date: T, from: T?, to: T?): Boolean {
             if (from == null) {
                 return if (to == null) {
                     false

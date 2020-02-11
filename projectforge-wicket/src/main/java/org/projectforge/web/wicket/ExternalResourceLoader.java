@@ -23,11 +23,11 @@
 
 package org.projectforge.web.wicket;
 
-import java.util.Locale;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
 import org.projectforge.framework.i18n.I18nHelper;
+
+import java.util.Locale;
 
 public class ExternalResourceLoader implements IStringResourceLoader
 {

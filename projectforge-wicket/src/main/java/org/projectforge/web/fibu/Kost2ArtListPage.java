@@ -23,9 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -38,14 +35,12 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.business.fibu.kost.Kost2ArtDao;
 import org.projectforge.common.StringHelper;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @ListPage(editPage = Kost2ArtEditPage.class)
 public class Kost2ArtListPage extends AbstractListPage<Kost2ArtListForm, Kost2ArtDao, Kost2ArtDO> implements

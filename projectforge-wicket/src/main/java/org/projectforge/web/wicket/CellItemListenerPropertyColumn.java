@@ -23,8 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import java.util.Date;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
@@ -36,6 +34,8 @@ import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.common.props.PropUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateTimeFormatter;
+
+import java.util.Date;
 
 /**
  * Supports CellItemListener.

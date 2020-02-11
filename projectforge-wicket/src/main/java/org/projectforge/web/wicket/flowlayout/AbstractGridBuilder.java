@@ -23,12 +23,12 @@
 
 package org.projectforge.web.wicket.flowlayout;
 
-import java.io.Serializable;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.projectforge.common.anots.PropertyInfo;
+
+import java.io.Serializable;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

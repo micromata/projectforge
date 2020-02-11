@@ -36,7 +36,6 @@
 package net.ftlines.wicket.fullcalendar.callback;
 
 import net.ftlines.wicket.fullcalendar.FullCalendar;
-
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 
 abstract class AbstractAjaxCallback extends AbstractDefaultAjaxBehavior {

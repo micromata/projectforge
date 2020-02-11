@@ -43,9 +43,9 @@ import java.util.Map;
 
 /**
  * Executes groovy templates. For more functionality please refer GroovyEngine.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @Service
 public class GroovyExecutor
@@ -55,19 +55,19 @@ public class GroovyExecutor
   @Autowired
   private RefactoringService refService;
 
-  public GroovyResult execute(final String script, final Map<String, Object> variables)
+  public ScriptExecutionResult execute(final String script, final Map<String, Object> variables)
   {
     if (script == null) {
-      return new GroovyResult();
+      return new ScriptExecutionResult();
     }
     final Script groovyObject = compileGroovy(script, true);
     if (groovyObject == null) {
-      return new GroovyResult();
+      return new ScriptExecutionResult();
     }
     return execute(groovyObject, variables);
   }
 
-  public GroovyResult execute(final GroovyResult result, final String script, final Map<String, Object> variables)
+  public ScriptExecutionResult execute(final ScriptExecutionResult result, final String script, final Map<String, Object> variables)
   {
     if (script == null) {
       return result;
@@ -123,7 +123,7 @@ public class GroovyExecutor
    * @param bindScriptResult If true then "scriptResult" from type GroovyResult is binded.
    * @return
    */
-  public Script compileGroovy(final GroovyResult result, final String script, final boolean bindScriptResult)
+  public Script compileGroovy(final ScriptExecutionResult result, final String script, final boolean bindScriptResult)
   {
     securityChecks(script);
     final GroovyClassLoader gcl = new GroovyClassLoader()
@@ -176,23 +176,23 @@ public class GroovyExecutor
     }
     if (bindScriptResult) {
       final Binding binding = groovyObject.getBinding();
-      final GroovyResult scriptResult = new GroovyResult();
+      final ScriptExecutionResult scriptResult = new ScriptExecutionResult();
       binding.setVariable("scriptResult", scriptResult);
     }
     return groovyObject;
   }
 
-  public GroovyResult execute(final Script groovyScript)
+  public ScriptExecutionResult execute(final Script groovyScript)
   {
     return execute(groovyScript, null);
   }
 
-  public GroovyResult execute(final Script groovyScript, final Map<String, Object> variables)
+  public ScriptExecutionResult execute(final Script groovyScript, final Map<String, Object> variables)
   {
     return execute(null, groovyScript, variables);
   }
 
-  public GroovyResult execute(GroovyResult result, final Script groovyScript, final Map<String, Object> variables)
+  public ScriptExecutionResult execute(ScriptExecutionResult result, final Script groovyScript, final Map<String, Object> variables)
   {
     if (variables != null) {
       final Binding binding = groovyScript.getBinding();
@@ -201,14 +201,14 @@ public class GroovyExecutor
       }
     }
     if (result == null) {
-      result = new GroovyResult();
+      result = new ScriptExecutionResult();
     }
     Object res;
     try {
       res = groovyScript.run();
     } catch (final Exception ex) {
       log.info("Groovy-Execution-Exception: " + ex.getMessage(), ex);
-      return new GroovyResult(ex);
+      return new ScriptExecutionResult(ex);
     }
     result.setResult(res);
     return result;
@@ -216,7 +216,7 @@ public class GroovyExecutor
 
   /**
    * Better than nothing...
-   * 
+   *
    * @param script
    */
   private void securityChecks(final String script)

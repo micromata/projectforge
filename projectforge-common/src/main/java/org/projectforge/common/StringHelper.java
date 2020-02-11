@@ -26,7 +26,6 @@ package org.projectforge.common;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
-import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -54,10 +53,10 @@ public class StringHelper
    */
   public static boolean append(final StringBuffer buf, final boolean first, final String str, final String delimiter)
   {
-    if (StringUtils.isEmpty(str) == true) {
+    if (StringUtils.isEmpty(str)) {
       return first;
     }
-    if (first == false) {
+    if (!first) {
       buf.append(delimiter);
     }
     buf.append(str);
@@ -80,10 +79,10 @@ public class StringHelper
    */
   public static boolean append(final StringBuilder sb, final boolean first, final String str, final String delimiter)
   {
-    if (StringUtils.isEmpty(str) == true) {
+    if (StringUtils.isEmpty(str)) {
       return first;
     }
-    if (first == false) {
+    if (!first) {
       sb.append(delimiter);
     }
     sb.append(str);
@@ -107,11 +106,11 @@ public class StringHelper
 
   public static boolean isIn(final String string, final String... fields)
   {
-    if (StringUtils.isEmpty(string) == true) {
+    if (StringUtils.isEmpty(string)) {
       return false;
     }
     for (final String field : fields) {
-      if (string.equals(field) == true) {
+      if (string.equals(field)) {
         return true;
       }
     }
@@ -130,7 +129,7 @@ public class StringHelper
       return false;
     }
     for (final String suffix : suffixes) {
-      if (str.endsWith(suffix) == true) {
+      if (str.endsWith(suffix)) {
         return true;
       }
     }
@@ -149,7 +148,7 @@ public class StringHelper
       return false;
     }
     for (final String prefix : prefixes) {
-      if (str.startsWith(prefix) == true) {
+      if (str.startsWith(prefix)) {
         return true;
       }
     }
@@ -166,7 +165,7 @@ public class StringHelper
    */
   public static String listToString(final List<String> list, final String delimiter, final boolean sort)
   {
-    if (sort == true) {
+    if (sort) {
       Collections.sort(list);
     }
     return colToString(list, delimiter);
@@ -312,7 +311,7 @@ public class StringHelper
     boolean first = true;
     for (final String s : strings) {
       append(buf, first, prefix, delimiter);
-      if (first == true)
+      if (first)
         first = false;
       buf.append(s).append(suffix);
     }
@@ -324,18 +323,10 @@ public class StringHelper
     if (array == null || array.length <= 1) {
       return array;
     }
-    final Set<String> set = new TreeSet<String>();
+    final Set<String> set = new TreeSet<>();
     set.addAll(Arrays.asList(array));
     final String[] result = (set.toArray(new String[set.size()]));
     return result;
-  }
-
-  public static String timestampToSearchString(final Timestamp timestamp)
-  {
-    if (timestamp == null) {
-      return "";
-    }
-    return timestamp.toString();
   }
 
   public static String dateToSearchString(final Date date)
@@ -383,7 +374,7 @@ public class StringHelper
     if (str == null) {
       return "";
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     for (int i = 0; i < str.length(); i++) {
       final char ch = str.charAt(i);
       if (ch >= '0' && ch <= '9') {
@@ -398,7 +389,7 @@ public class StringHelper
     if (str == null) {
       return "";
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     for (int i = 0; i < str.length(); i++) {
       final char ch = str.charAt(i);
       if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch >= '0' && ch <= '9') {
@@ -425,15 +416,15 @@ public class StringHelper
     Validate.notNull(maxWidth);
     Validate.isTrue(strings.length == maxWidth.length);
     int rest = maxTotalLength;
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     final int separatorLength = separator.length();
     boolean output = false;
     for (int i = 0; i < strings.length; i++) {
       final String str = strings[i];
-      if (StringUtils.isBlank(str) == true) {
+      if (StringUtils.isBlank(str)) {
         continue;
       }
-      if (output == true) {
+      if (output) {
         buf.append(separator);
         rest -= separatorLength;
       } else {
@@ -454,10 +445,10 @@ public class StringHelper
     if (value == null) {
       return null;
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     for (int i = 0; i < value.length(); i++) {
       final char ch = value.charAt(i);
-      if (Character.isWhitespace(ch) == false) {
+      if (!Character.isWhitespace(ch)) {
         buf.append(ch);
       }
     }
@@ -510,13 +501,13 @@ public class StringHelper
    */
   public static boolean checkPhoneNumberFormat(final String value)
   {
-    if (StringUtils.isBlank(value) == true) {
+    if (StringUtils.isBlank(value)) {
       return true;
     }
-    if (StringUtils.containsOnly(value, "+1234567890 -/") == false
-        || value.startsWith("+") == false
+    if (!StringUtils.containsOnly(value, "+1234567890 -/")
+        || !value.startsWith("+")
         || value.length() < 2
-        || Character.isDigit(value.charAt(1)) == false
+        || !Character.isDigit(value.charAt(1))
         || value.indexOf('+', 1) != -1) {
       return false;
     }
@@ -567,7 +558,7 @@ public class StringHelper
     final StringTokenizer tokenizer = new StringTokenizer(str, delim);
     final Integer[] result = new Integer[tokenizer.countTokens()];
     int i = 0;
-    while (tokenizer.hasMoreTokens() == true) {
+    while (tokenizer.hasMoreTokens()) {
       final String token = tokenizer.nextToken();
       final Integer value = IntegerHelper.parseInteger(token);
       result[i++] = value;
@@ -580,7 +571,7 @@ public class StringHelper
     final StringTokenizer tokenizer = new StringTokenizer(str, delim);
     final int[] result = new int[tokenizer.countTokens()];
     int i = 0;
-    while (tokenizer.hasMoreTokens() == true) {
+    while (tokenizer.hasMoreTokens()) {
       final String token = tokenizer.nextToken();
       final Integer value = IntegerHelper.parseInteger(token);
       result[i++] = value != null ? value : 0;
@@ -596,12 +587,12 @@ public class StringHelper
    */
   public static int[] splitToInts(final String str, final String delim, final boolean ignoreEmptyItems)
   {
-    if (ignoreEmptyItems == true) {
+    if (ignoreEmptyItems) {
       return splitToInts(str, delim);
     }
     final StringTokenizer tokenizer = new StringTokenizer(str, delim);
-    final List<Integer> list = new ArrayList<Integer>(tokenizer.countTokens());
-    while (tokenizer.hasMoreTokens() == true) {
+    final List<Integer> list = new ArrayList<>(tokenizer.countTokens());
+    while (tokenizer.hasMoreTokens()) {
       final String token = tokenizer.nextToken();
       final Integer value = IntegerHelper.parseInteger(token);
       if (value != null) {
@@ -646,7 +637,7 @@ public class StringHelper
    */
   public static boolean isNotBlank(final String... strs)
   {
-    return isBlank(strs) == false;
+    return !isBlank(strs);
   }
 
   /**
@@ -662,7 +653,7 @@ public class StringHelper
       return true;
     }
     for (final String s : strs) {
-      if (StringUtils.isNotBlank(s) == true) {
+      if (StringUtils.isNotBlank(s)) {
         return false;
       }
     }
@@ -691,12 +682,12 @@ public class StringHelper
    */
   public static Map<String, String> getKeyValues(final String keyValues, final String delimiter)
   {
-    final Map<String, String> map = new HashMap<String, String>();
+    final Map<String, String> map = new HashMap<>();
     if (keyValues == null) {
       return map;
     }
     final StringTokenizer tokenizer = new StringTokenizer(keyValues, delimiter);
-    while (tokenizer.hasMoreTokens() == true) {
+    while (tokenizer.hasMoreTokens()) {
       final String token = tokenizer.nextToken();
       final int pos = token.indexOf('=');
       if (pos <= 0) {

@@ -23,14 +23,7 @@
 
 package org.projectforge.web.scripting;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
+import de.micromata.merlin.excel.ExcelWorkbook;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -43,9 +36,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.business.fibu.kost.reporting.ReportGeneratorList;
 import org.projectforge.business.fibu.kost.reporting.ReportStorage;
-import org.projectforge.business.scripting.GroovyExecutor;
-import org.projectforge.business.scripting.GroovyResult;
-import org.projectforge.business.scripting.ScriptDao;
+import org.projectforge.business.scripting.*;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.export.ExportJFreeChart;
 import org.projectforge.framework.configuration.ConfigXml;
@@ -58,6 +49,10 @@ import org.projectforge.web.fibu.ReportObjectivesPage;
 import org.projectforge.web.fibu.ReportScriptingStorage;
 import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.JFreeChartImage;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.*;
 
 public class ScriptingPage extends AbstractScriptingPage
 {
@@ -143,20 +138,26 @@ public class ScriptingPage extends AbstractScriptingPage
     scriptVariables.put("reportStorage", getReportStorage());
     scriptVariables.put("reportScriptingStorage", getReportScriptingStorage());
     scriptVariables.put("reportList", reportGeneratorList);
-    if (StringUtils.isNotBlank(getReportScriptingStorage().getGroovyScript()) == true) {
-      groovyResult = groovyExecutor.execute(new GroovyResult(), getReportScriptingStorage().getGroovyScript(),
-          scriptVariables);
-      if (groovyResult.hasException() == true) {
-        form.error(getLocalizedMessage("exception.groovyError", String.valueOf(groovyResult.getException())));
+    if (StringUtils.isNotBlank(getReportScriptingStorage().getScript()) == true) {
+      if (getReportScriptingStorage().getType() == ScriptDO.ScriptType.KOTLIN) {
+         scriptExecutionResult = KotlinScriptExecutor.execute(getReportScriptingStorage().getScript(), scriptVariables);
+      } else {
+        scriptExecutionResult = groovyExecutor.execute(new ScriptExecutionResult(), getReportScriptingStorage().getScript(),
+                scriptVariables);
+      }
+      if (scriptExecutionResult.hasException() == true) {
+        form.error(getLocalizedMessage("exception.scriptError", String.valueOf(scriptExecutionResult.getException())));
         return;
       }
-      if (groovyResult.hasResult() == true) {
+      if (scriptExecutionResult.hasResult() == true) {
         // TODO maybe a good point to generalize to AbstractScriptingPage?
-        final Object result = groovyResult.getResult();
+        final Object result = scriptExecutionResult.getResult();
         if (result instanceof ExportWorkbook == true) {
-          excelExport();
-        } else if (groovyResult.getResult() instanceof ReportGeneratorList == true) {
-          reportGeneratorList = (ReportGeneratorList) groovyResult.getResult();
+          excelExport(((ExportWorkbook) result));
+        } else  if (result instanceof ExcelWorkbook == true) {
+            excelExport(((ExcelWorkbook) result));
+        } else if (scriptExecutionResult.getResult() instanceof ReportGeneratorList == true) {
+          reportGeneratorList = (ReportGeneratorList) scriptExecutionResult.getResult();
           // jasperReport(reportGeneratorList);
         } else if (result instanceof ExportZipArchive) {
           zipExport();
@@ -190,13 +191,15 @@ public class ScriptingPage extends AbstractScriptingPage
           // if (report != null) {
           // getReportScriptingStorage().setJasperReport(report, clientFileName);
           // }
-        } else if (clientFileName.endsWith(".xls") == true) {
+        } else if (clientFileName.toLowerCase().endsWith(".xls") || clientFileName.toLowerCase().endsWith(".xlsx")) {
+          String extension = clientFileName.substring(clientFileName.lastIndexOf('.' + 1));
           final StringBuffer buf = new StringBuffer();
           buf.append("report_")
-              .append(FileHelper.createSafeFilename(ThreadLocalUserContext.getUser().getUsername(), 20)).append(".xls");
+              .append(FileHelper.createSafeFilename(ThreadLocalUserContext.getUser().getUsername(), 20)).append(extension);
           final File file = new File(ConfigXml.getInstance().getWorkingDirectory(), buf.toString());
           fileUpload.writeTo(file);
           getReportScriptingStorage().setFilename(clientFileName, file.getAbsolutePath());
+          getReportScriptingStorage().setFilename("clientFileName", file.getAbsolutePath());
         } else {
           log.error("File extension not supported: " + clientFileName);
         }
@@ -261,10 +264,9 @@ public class ScriptingPage extends AbstractScriptingPage
   // log.error(ex.getMessage(), ex);
   // }
   // }
-  private void excelExport()
+  private void excelExport(ExportWorkbook workbook)
   {
     try {
-      final ExportWorkbook workbook = (ExportWorkbook) groovyResult.getResult();
       final StringBuffer buf = new StringBuffer();
       if (workbook.getFilename() != null) {
         buf.append(workbook.getFilename()).append("_");
@@ -280,10 +282,33 @@ public class ScriptingPage extends AbstractScriptingPage
     }
   }
 
+  private void excelExport(ExcelWorkbook workbook)
+  {
+    try {
+      final StringBuffer buf = new StringBuffer();
+      if (workbook.getFilename() != null) {
+        buf.append(workbook.getFilename()).append("_");
+      } else {
+        buf.append("pf_scriptresult_");
+      }
+      buf.append(DateHelper.getTimestampAsFilenameSuffix(new Date())).append(".").append(workbook.getFilenameExtension());
+      final String filename = buf.toString();
+      final byte[] xls = workbook.getAsByteArrayOutputStream().toByteArray();
+      if (xls == null || xls.length == 0) {
+        log.error("Oups, xls has zero size. Filename: " + filename);
+        return;
+      }
+      DownloadUtils.setDownloadTarget(xls, filename);
+    } catch (final Exception ex) {
+      error(getLocalizedMessage("error", ex.getMessage()));
+      log.error(ex.getMessage(), ex);
+    }
+  }
+
   private void jFreeChartExport()
   {
     try {
-      final ExportJFreeChart exportJFreeChart = (ExportJFreeChart) groovyResult.getResult();
+      final ExportJFreeChart exportJFreeChart = (ExportJFreeChart) scriptExecutionResult.getResult();
       final StringBuilder sb = new StringBuilder();
       sb.append("pf_chart_");
       sb.append(DateHelper.getTimestampAsFilenameSuffix(new Date()));
@@ -314,7 +339,7 @@ public class ScriptingPage extends AbstractScriptingPage
   private void zipExport()
   {
     try {
-      final ExportZipArchive exportZipArchive = (ExportZipArchive) groovyResult.getResult();
+      final ExportZipArchive exportZipArchive = (ExportZipArchive) scriptExecutionResult.getResult();
       final StringBuilder sb = new StringBuilder();
       sb.append(exportZipArchive.getFilename()).append("_");
       sb.append(DateHelper.getTimestampAsFilenameSuffix(new Date())).append(".zip");

@@ -23,8 +23,6 @@
 
 package org.projectforge.web.tree;
 
-import java.io.Serializable;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
@@ -39,11 +37,13 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.Response;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.PresizedImage;
 import org.projectforge.web.wicket.WebConstants;
+import org.projectforge.web.wicket.WicketUtils;
+
+import java.io.Serializable;
 
 /**
  * Panel showing the icons of a tree list table.

@@ -27,7 +27,7 @@ import org.projectforge.framework.xstream.XmlField;
 import org.projectforge.framework.xstream.XmlObject;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Set;
 
 @XmlObject(alias = "ganttChartSettings")
@@ -38,9 +38,9 @@ public class GanttChartSettings implements Serializable
   @XmlField(defaultStringValue = "Gantt diagram by ProjectForge®")
   private String title = "Gantt diagram by ProjectForge®";
 
-  private Date fromDate;
+  private LocalDate fromDate;
 
-  private Date toDate;
+  private LocalDate toDate;
   
   private boolean showOnlyVisibles;
   
@@ -63,12 +63,12 @@ public class GanttChartSettings implements Serializable
   /**
    * If not set then the start date of the Gantt diagram will be automatically calculated.
    */
-  public Date getFromDate()
+  public LocalDate getFromDate()
   {
     return fromDate;
   }
 
-  public GanttChartSettings setFromDate(Date fromDate)
+  public GanttChartSettings setFromDate(LocalDate fromDate)
   {
     this.fromDate = fromDate;
     return this;
@@ -77,12 +77,12 @@ public class GanttChartSettings implements Serializable
   /**
    * If not set then the end date of the Gantt diagram will be automatically calculated.
    */
-  public Date getToDate()
+  public LocalDate getToDate()
   {
     return toDate;
   }
 
-  public GanttChartSettings setToDate(Date toDate)
+  public GanttChartSettings setToDate(LocalDate toDate)
   {
     this.toDate = toDate;
     return this;

@@ -34,6 +34,7 @@ import org.springframework.context.ApplicationContext;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Holds TenantCachesHolder element and detaches them if not used for some time to save memory.
@@ -61,8 +62,11 @@ public class TenantRegistryMap extends AbstractCache {
 
   private TenantService tenantService;
 
+  private Integer defaultTenantId;
+
   /**
    * Short-cut for TenantRegistryMap.getInstance().getTenantRegistry()
+   *
    * @return
    */
   public static TenantRegistry getRegistry() {
@@ -71,6 +75,7 @@ public class TenantRegistryMap extends AbstractCache {
 
   /**
    * Short-cut for TenantRegistryMap.getInstance().getTenantRegistry().getCache(cacheClass)
+   *
    * @return
    */
   public static <T extends AbstractCache> T getCache(Class<T> cacheClass) {
@@ -95,7 +100,7 @@ public class TenantRegistryMap extends AbstractCache {
   public TenantRegistry getTenantRegistry(TenantDO tenant) {
     checkRefresh();
     if (!tenantService.isMultiTenancyAvailable()) {
-      if (tenant != null && !tenant.isDefault()) {
+      if (tenant != null && Objects.equals(tenant.getId(), defaultTenantId)) { // tenant.isDefault() may not work if tenant is received from the rest client.
         log.warn("Oups, why call getTenantRegistry with tenant " + tenant.getId()
                 + " if ProjectForge is running in single tenant mode?");
       }
@@ -194,9 +199,18 @@ public class TenantRegistryMap extends AbstractCache {
   protected void refresh() {
     log.info("Refreshing " + TenantRegistry.class.getName() + "...");
     final Iterator<Map.Entry<Integer, TenantRegistry>> it = tenantRegistryMap.entrySet().iterator();
+    boolean defaultTenantFound = false;
     while (it.hasNext()) {
       final Map.Entry<Integer, TenantRegistry> entry = it.next();
       final TenantRegistry registry = entry.getValue();
+      if (registry.getTenant().isDefault()) {
+        if (defaultTenantFound) {
+          log.error("Oups, multiple default tenants found: " + registry.getTenant() + ", defaultTenantId=" + defaultTenantId);
+        } else {
+          defaultTenantId = registry.getTenant().getId();
+          defaultTenantFound = true;
+        }
+      }
       if (registry.isOutdated()) {
         final TenantDO tenant = registry.getTenant();
         log.info("Detaching caches of tenant '"

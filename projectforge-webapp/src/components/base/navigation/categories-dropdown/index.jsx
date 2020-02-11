@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { menuItemPropType } from '../../../../utilities/propTypes';
-import { Col, Container, Dropdown, DropdownMenu, DropdownToggle, Row, } from '../../../design';
+import { Container, Dropdown, DropdownMenu, DropdownToggle, } from '../../../design';
 import style from '../Navigation.module.scss';
 import Category from './Category';
 import MenuBadge from './MenuBadge';
@@ -56,10 +56,9 @@ function CategoriesDropdown({ badge, categories }) {
             </DropdownToggle>
             <DropdownMenu className={style.categoryListDropdownMenu}>
                 <Container>
-                    <Row>
+                    <div className={style.categories}>
                         {columns.map(column => (
-                            <Col
-                                md={3}
+                            <div
                                 key={`menu-column-${column.map(({ id }) => id)
                                     .join('-')}`}
                                 className={style.categoryColumn}
@@ -71,9 +70,9 @@ function CategoriesDropdown({ badge, categories }) {
                                         closeMenu={() => setOpen(false)}
                                     />
                                 ))}
-                            </Col>
+                            </div>
                         ))}
-                    </Row>
+                    </div>
                 </Container>
             </DropdownMenu>
         </Dropdown>

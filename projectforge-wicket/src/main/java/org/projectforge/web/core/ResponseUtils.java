@@ -23,14 +23,13 @@
 
 package org.projectforge.web.core;
 
-import java.io.IOException;
-
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * @author Wolfgang Jung (w.jung@micromata.de)

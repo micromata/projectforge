@@ -23,14 +23,14 @@
 
 package org.projectforge.web.wicket;
 
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.util.lang.Objects;
+
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.util.lang.Objects;
 
 /**
  * From the book "Wicket in Action" by Martijn Dashorst and Eelco Hillenius.<br/>

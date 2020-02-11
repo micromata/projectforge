@@ -23,13 +23,13 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
+
+import java.math.BigDecimal;
 
 public class EmployeeVacationFormValidator implements IFormValidator
 {
