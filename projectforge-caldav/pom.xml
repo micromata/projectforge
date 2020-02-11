@@ -25,6 +25,18 @@
         <postgresql.version>42.2.2</postgresql.version>
         <ez-vcard.version>0.10.4</ez-vcard.version>
     </properties>
+    <profiles>
+        <profile>
+            <id>intellij-properties-launcher</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-loader</artifactId>
+                    <version>${spring.boot.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
     <dependencies>
         <dependency>
             <groupId>org.projectforge</groupId>
