@@ -23,9 +23,6 @@
 
 package org.projectforge.web.meb;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -40,14 +37,12 @@ import org.projectforge.business.meb.MebEntryDO;
 import org.projectforge.business.meb.MebEntryStatus;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.user.UserPropertyColumn;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.RowCssClass;
+import org.projectforge.web.wicket.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @ListPage(editPage = MebEditPage.class)
 public class MebListPage extends AbstractListPage<MebListForm, MebDao, MebEntryDO>
@@ -105,9 +100,8 @@ public class MebListPage extends AbstractListPage<MebListForm, MebDao, MebEntryD
           final IModel<MebEntryDO> rowModel)
       {
         final MebEntryDO meb = rowModel.getObject();
-        item.add(new ListSelectActionPanel(componentId, rowModel, MebEditPage.class, meb.getId(), MebListPage.this,
-            DateTimeFormatter
-                .instance().getFormattedDateTime(meb.getDate())));
+        PFDay mebDate = PFDay.from(meb.getDate());
+        item.add(new ListSelectActionPanel(componentId, rowModel, MebEditPage.class, meb.getId(), MebListPage.this, DateTimeFormatter.instance().getFormattedDateTime(mebDate.getUtilDate())));
         cellItemListener.populateItem(item, componentId, rowModel);
         cellItemListener.populateItem(item, componentId, rowModel);
         addRowClick(item);

@@ -34,6 +34,7 @@ import org.projectforge.framework.time.PFDayUtils
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -104,9 +105,8 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     open var gegenKonto: KontoDO? = null
 
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(nullable = false)
-    open var datum: java.sql.Date? = null
+    open var datum: LocalDate? = null
 
     /** Je nach Buchungssatz: Belegnummer / Referenznummer / Rechnungsnummer.  */
     @PropertyInfo(i18nKey = "fibu.buchungssatz.beleg")

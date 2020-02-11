@@ -187,7 +187,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
       } else {
         log.error("Property '" + property + "' not supported for selection.");
       }
-      form.getSearchFilter().setEndDate(dateHolder.getDate());
+      form.getSearchFilter().setEndDate(dateHolder.getUtilDate());
       form.startDate.markModelAsChanged();
       form.endDate.markModelAsChanged();
       refresh();

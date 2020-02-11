@@ -30,11 +30,12 @@ import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.converter.CurrencyConverter;
+import org.projectforge.web.wicket.flowlayout.FieldProperties;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.slf4j.Logger;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  * This is the edit formular page.
@@ -60,10 +61,9 @@ public class LiquidityEntryEditForm extends AbstractEditForm<LiquidityEntryDO, L
     super.init();
     {
       // Date of payment
+      final FieldProperties<LocalDate> props = getDateOfPaymentProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(LiquidityEntryDO.class, "dateOfPayment");
-      final DatePanel dateOfPayment = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "dateOfPayment"),
-          DatePanelSettings
-              .get().withTargetType(java.sql.Date.class));
+      final LocalDatePanel dateOfPayment = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
       fs.add(dateOfPayment);
       if (isNew()) {
         dateOfPayment.setFocus();
@@ -74,12 +74,10 @@ public class LiquidityEntryEditForm extends AbstractEditForm<LiquidityEntryDO, L
       final FieldsetPanel fs = gridBuilder.newFieldset(LiquidityEntryDO.class, "amount");
       final RequiredMinMaxNumberField<BigDecimal> amount = new RequiredMinMaxNumberField<BigDecimal>(
           fs.getTextFieldId(),
-          new PropertyModel<>(data, "amount"), Constants.TEN_BILLION_NEGATIVE, Constants.TEN_BILLION)
-      {
-        @SuppressWarnings({ "rawtypes", "unchecked" })
+          new PropertyModel<>(data, "amount"), Constants.TEN_BILLION_NEGATIVE, Constants.TEN_BILLION) {
+        @SuppressWarnings({"rawtypes", "unchecked"})
         @Override
-        public IConverter getConverter(final Class type)
-        {
+        public IConverter getConverter(final Class type) {
           return new CurrencyConverter();
         }
       };
@@ -107,6 +105,10 @@ public class LiquidityEntryEditForm extends AbstractEditForm<LiquidityEntryDO, L
       fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "comment"))).setAutogrow();
     }
     addCloneButton();
+  }
+
+  private FieldProperties<LocalDate> getDateOfPaymentProperties() {
+    return new FieldProperties<>("plugins.liquidityplanning.entry.dateOfPayment", new PropertyModel<>(data, "dateOfPayment"));
   }
 
   @Override

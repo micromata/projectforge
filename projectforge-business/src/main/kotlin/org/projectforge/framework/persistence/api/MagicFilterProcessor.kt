@@ -27,8 +27,10 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.time.PFDateTimeUtils
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.NumberHelper
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.util.*
 
 /** Transforms MagicFilterEntries to DBFilterExpressions. */
@@ -83,6 +85,17 @@ object MagicFilterProcessor {
             val valueDate = PFDateTimeUtils.parseAndCreateDateTime(magicFilterEntry.value.value)?.utilDate
             val fromDate = PFDateTimeUtils.parseAndCreateDateTime(magicFilterEntry.value.fromValue)?.utilDate
             val toDate = PFDateTimeUtils.parseAndCreateDateTime(magicFilterEntry.value.toValue)?.utilDate
+            if (fromDate != null || toDate != null) {
+                queryFilter.add(QueryFilter.interval(field, fromDate, toDate))
+            } else if (valueDate != null) {
+                queryFilter.add(QueryFilter.eq(field, valueDate))
+            } else {
+                queryFilter.add(QueryFilter.isNull(field))
+            }
+        } else if (fieldType == LocalDate::class.java) {
+            val valueDate = PFDayUtils.parseDate(magicFilterEntry.value.value)
+            val fromDate = PFDayUtils.parseDate(magicFilterEntry.value.fromValue)
+            val toDate = PFDayUtils.parseDate(magicFilterEntry.value.toValue)
             if (fromDate != null || toDate != null) {
                 queryFilter.add(QueryFilter.interval(field, fromDate, toDate))
             } else if (valueDate != null) {

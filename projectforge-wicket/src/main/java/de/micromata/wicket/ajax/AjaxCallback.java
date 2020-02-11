@@ -23,9 +23,9 @@
 
 package de.micromata.wicket.ajax;
 
-import java.io.Serializable;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
+
+import java.io.Serializable;
 
 /**
  * Call back interface for micromata wicket ajax handlings.

@@ -44,6 +44,7 @@ import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.framework.utils.NumberHelper;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -413,7 +414,7 @@ public class GroovyEngine
     return NumberFormatter.format(value, locale);
   }
 
-  public String getString(final java.sql.Date date)
+  public String getString(final LocalDate date)
   {
     if (date == null) {
       return "";

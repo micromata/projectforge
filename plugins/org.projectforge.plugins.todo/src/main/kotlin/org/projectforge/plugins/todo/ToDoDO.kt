@@ -25,7 +25,6 @@ package org.projectforge.plugins.todo
 
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.search.annotations.*
-import org.hibernate.search.annotations.Index
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.Priority
@@ -34,7 +33,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -47,7 +46,7 @@ open class ToDoDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.todo.subject")
     @UserPrefParameter(i18nKey = "plugins.todo.subject")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = Constants.LENGTH_TITLE)
     open var subject: String? = null
 
@@ -132,15 +131,13 @@ open class ToDoDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "dueDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "due_date")
-    open var dueDate: Date? = null
+    open var dueDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "resubmissionOnDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
-    open var resubmission: Date? = null
+    open var resubmission: LocalDate? = null
 
     val reporterId: Int?
         @Transient

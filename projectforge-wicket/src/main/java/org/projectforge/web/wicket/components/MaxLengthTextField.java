@@ -23,8 +23,6 @@
 
 package org.projectforge.web.wicket.components;
 
-import java.lang.reflect.Field;
-
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
@@ -35,6 +33,8 @@ import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.validator.StringValidator;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.persistence.api.HibernateUtils;
+
+import java.lang.reflect.Field;
 
 public class MaxLengthTextField extends TextField<String>
 {

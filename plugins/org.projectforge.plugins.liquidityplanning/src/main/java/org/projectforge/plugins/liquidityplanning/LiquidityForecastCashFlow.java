@@ -33,7 +33,7 @@ import org.projectforge.framework.utils.NumberHelper;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.time.LocalDate;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -69,8 +69,8 @@ public class LiquidityForecastCashFlow implements Serializable
       if (amount == null) {
         continue;
       }
-      final Date dateOfPayment = entry.getDateOfPayment();
-      Date expectedDateOfPayment = entry.getExpectedDateOfPayment();
+      final LocalDate dateOfPayment = entry.getDateOfPayment();
+      LocalDate expectedDateOfPayment = entry.getExpectedDateOfPayment();
       if (expectedDateOfPayment == null) {
         expectedDateOfPayment = dateOfPayment;
       }

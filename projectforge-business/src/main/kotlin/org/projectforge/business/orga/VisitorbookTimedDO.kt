@@ -23,37 +23,21 @@
 
 package org.projectforge.business.orga
 
-import java.io.Serializable
-
-import javax.persistence.CascadeType
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.GeneratedValue
-import javax.persistence.Id
-import javax.persistence.Index
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.MapKey
-import javax.persistence.OneToMany
-import javax.persistence.Table
-import javax.persistence.Transient
-import javax.persistence.UniqueConstraint
-
+import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.IdObject
-
-import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
-import de.micromata.genome.db.jpa.tabattr.entities.TimeableBaseDO
+import org.projectforge.framework.persistence.entities.PFTimeableBaseDO
+import java.io.Serializable
+import javax.persistence.*
 
 @Entity
 @Indexed
 @Table(name = "t_orga_visitorbook_timed", uniqueConstraints = [UniqueConstraint(columnNames = ["visitor_id", "group_name", "start_time"])], indexes = [Index(name = "idx_orga_visitorbook_timed_start_time", columnList = "start_time")])
-class VisitorbookTimedDO : TimeableBaseDO<VisitorbookTimedDO, Int>(), TimeableAttrRow<Int>, IdObject<Int> {
+class VisitorbookTimedDO : PFTimeableBaseDO<VisitorbookTimedDO>(), TimeableAttrRow<Int>, IdObject<Int> {
 
     /**
      * @return Zugehöriger Mitarbeiter.

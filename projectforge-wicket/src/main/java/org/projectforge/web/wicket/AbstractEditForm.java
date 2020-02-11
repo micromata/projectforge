@@ -23,7 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import org.slf4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.Button;
@@ -35,6 +34,7 @@ import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
+import org.slf4j.Logger;
 
 public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P extends AbstractEditPage<?, ?, ?>> extends
     AbstractSecuredForm<O, P>

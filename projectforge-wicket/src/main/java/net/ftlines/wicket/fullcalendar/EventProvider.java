@@ -35,10 +35,10 @@
 
 package net.ftlines.wicket.fullcalendar;
 
+import org.joda.time.DateTime;
+
 import java.io.Serializable;
 import java.util.Collection;
-
-import org.joda.time.DateTime;
 
 public interface EventProvider extends Serializable {
 	Collection<Event> getEvents(DateTime start, DateTime end);

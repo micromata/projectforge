@@ -42,7 +42,7 @@ class PosteingangPagesRest() : AbstractDOPagesRest<PosteingangDO, PosteingangDao
 
     override fun newBaseDO(request: HttpServletRequest?): PosteingangDO {
         val inbox = super.newBaseDO(request)
-        inbox.datum = PFDay.now().sqlDate
+        inbox.datum = PFDay.now().localDate
         inbox.type = PostType.E_MAIL
         return inbox
     }

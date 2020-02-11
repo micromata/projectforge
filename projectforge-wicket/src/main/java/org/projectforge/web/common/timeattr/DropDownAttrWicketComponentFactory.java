@@ -23,10 +23,9 @@
 
 package org.projectforge.web.common.timeattr;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
@@ -34,9 +33,9 @@ import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A DropDown input field.

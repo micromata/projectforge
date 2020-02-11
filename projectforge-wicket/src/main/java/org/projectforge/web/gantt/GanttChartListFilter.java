@@ -23,9 +23,8 @@
 
 package org.projectforge.web.gantt;
 
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 @XStreamAlias("ContractFilter")
 public class GanttChartListFilter extends BaseSearchFilter

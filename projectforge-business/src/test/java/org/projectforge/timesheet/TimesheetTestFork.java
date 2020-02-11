@@ -38,7 +38,6 @@ import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.time.Month;
 import java.util.Date;
 import java.util.Locale;
@@ -70,15 +69,15 @@ public class TimesheetTestFork extends AbstractTestBase {
       final TimesheetDO ts = new TimesheetDO();
       final long current = System.currentTimeMillis();
 
-      ts.setTask(initTestDB.getTask("ts-hasSelectAccess-task"));
-      ts.setUser(getUser("ts-hasSelectAccess-user"));
-      ts.setLocation("Office");
-      ts.setDescription("A lot of stuff done and more.");
-      ts.setStartTime(new Timestamp(current));
-      ts.setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
-      id[0] = timesheetDao.internalSave(ts);
-      timesheetDao.internalSave(ts);
-      return null;
+        ts.setTask(initTestDB.getTask("ts-hasSelectAccess-task"));
+        ts.setUser(getUser("ts-hasSelectAccess-user"));
+        ts.setLocation("Office");
+        ts.setDescription("A lot of stuff done and more.");
+        ts.setStartTime(new Date(current));
+        ts.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
+        id[0] = timesheetDao.internalSave(ts);
+        timesheetDao.internalSave(ts);
+        return null;
     });
     emf.runInTrans(emgr -> {
       logon(getUser("ts-hasSelectAccess-user"));
@@ -103,8 +102,8 @@ public class TimesheetTestFork extends AbstractTestBase {
     initTestDB.addUser("saveAndModify-user");
     final TimesheetDO ts1 = new TimesheetDO();
     final long current = System.currentTimeMillis();
-    ts1.setStartTime(new Timestamp(current));
-    ts1.setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
+    ts1.setStartTime(new Date(current));
+    ts1.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
     try {
       timesheetDao.internalSave(ts1);
       fail("timesheet without task and/or user should not be possible.");
@@ -124,8 +123,8 @@ public class TimesheetTestFork extends AbstractTestBase {
     } catch (final Exception ex) {
     }
     ts1.setTask(getTask("saveAndModify-task"));
-    ts1.setStartTime(new Timestamp(current));
-    ts1.setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
+    ts1.setStartTime(new Date(current));
+    ts1.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
     timesheetDao.internalSave(ts1);
     // ToDo: Check onSaveOrUpdate: kost2Id vs. task!
   }
@@ -199,7 +198,7 @@ public class TimesheetTestFork extends AbstractTestBase {
     task = initTestDB.addTask("tpt.1.1", "tpt.1");
     task = initTestDB.addTask("tpt.2", "tpt");
     date = date.withDate(2008, Month.OCTOBER, 31, 0, 0, 0);
-    task.setProtectTimesheetsUntil(date.getUtilDate());
+    task.setProtectTimesheetsUntil(date.getLocalDate());
     taskDao.internalUpdate(task); // Without check access.
     task = initTestDB.addTask("tpt.2.1", "tpt.2");
     TimesheetDO sheet = new TimesheetDO();
@@ -233,7 +232,7 @@ public class TimesheetTestFork extends AbstractTestBase {
     }
     task = getTask("tpt.2");
     date.withDate(2008, Month.NOVEMBER, 30, 0, 0, 0); // Change protection date, so time sheet is now protected.
-    task.setProtectTimesheetsUntil(date.getUtilDate());
+    task.setProtectTimesheetsUntil(date.getLocalDate());
     taskDao.internalUpdate(task); // Without check access.
     sheet = timesheetDao.getById(id);
     sheet.setDescription("Hurzel"); // Should work, because start and stop time is not modified.

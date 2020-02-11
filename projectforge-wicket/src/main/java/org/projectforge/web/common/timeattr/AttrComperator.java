@@ -23,18 +23,17 @@
 
 package org.projectforge.web.common.timeattr;
 
-import java.io.Serializable;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Optional;
-
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
 import org.apache.wicket.model.IModel;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
+import java.io.Serializable;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.Optional;
 
 /**
  * Compares an attribute determined by a given group name and description name.

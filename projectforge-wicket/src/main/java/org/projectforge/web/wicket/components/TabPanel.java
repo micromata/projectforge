@@ -23,9 +23,6 @@
 
 package org.projectforge.web.wicket.components;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -33,6 +30,9 @@ import org.apache.wicket.markup.html.list.AbstractItem;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class TabPanel extends Panel
 {

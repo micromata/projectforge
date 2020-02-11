@@ -23,8 +23,6 @@
 
 package org.projectforge.web.admin;
 
-import java.util.List;
-
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -37,6 +35,8 @@ import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.utils.ExceptionHelper;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
+
+import java.util.List;
 
 public class SqlConsolePage extends AbstractStandardFormPage
 {

@@ -61,7 +61,7 @@ import javax.validation.Valid
 @RestController
 @RequestMapping("${Rest.URL}/timesheet")
 class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, TimesheetDao>(TimesheetDao::class.java, "timesheet.title",
-        cloneSupported = true) {
+        cloneSupport = CloneSupport.AUTOSAVE) {
 
     companion object {
         private const val PREF_AREA = "timesheet"
@@ -167,6 +167,15 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     }
 
     override fun afterEdit(obj: TimesheetDO, postData: PostData<Timesheet>): ResponseAction {
+        // Save time sheet as recent time sheet
+        val pref = getTimesheetPrefData()
+        val timesheet = postData.data
+        pref.appendRecentEntry(transformForDB(timesheet))
+        pref.appendRecentTask(timesheet.task?.id)
+        if (!timesheet.location.isNullOrBlank()) {
+            pref.appendRecentLocation(timesheet.location)
+        }
+
         return ResponseAction("/${Const.REACT_APP_PATH}calendar")
                 .addVariable("date", obj.startTime)
                 .addVariable("id", obj.id ?: -1)
@@ -346,7 +355,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
      */
     override fun onGetItemAndLayout(request: HttpServletRequest, dto: Timesheet, editLayoutData: EditLayoutData) {
         val startTime = PFDateTimeUtils.parseAndCreateDateTime(request.getParameter("startDate"), numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS)
-        if (startTime != null)  {
+        if (startTime != null) {
             dto.startTime = startTime.withPrecision(DatePrecision.MINUTE_15).sqlTimestamp
         }
         val stopTime = PFDateTimeUtils.parseAndCreateDateTime(request.getParameter("endDate"), numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS)

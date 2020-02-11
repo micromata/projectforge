@@ -23,9 +23,6 @@
 
 package org.projectforge.business.fibu;
 
-import org.projectforge.business.fibu.EingangsrechnungDO;
-import org.projectforge.business.fibu.SEPATransferGenerator;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

@@ -31,8 +31,8 @@ import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
-import java.sql.Timestamp;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -369,8 +369,8 @@ public class TeamEventDiffTest
 
     EVENT_1.setCreator(user1);
     EVENT_1.setCalendar(calendar1);
-    EVENT_1.setStartDate(new Timestamp(System.currentTimeMillis()));
-    EVENT_1.setEndDate(new Timestamp(System.currentTimeMillis()));
+    EVENT_1.setStartDate(new Date(System.currentTimeMillis()));
+    EVENT_1.setEndDate(new Date(System.currentTimeMillis()));
     EVENT_1.setAllDay(false);
     EVENT_1.setSubject("Subject 1");
     EVENT_1.setLocation("Location 1");

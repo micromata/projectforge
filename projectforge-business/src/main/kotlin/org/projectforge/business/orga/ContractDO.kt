@@ -27,7 +27,7 @@ import org.hibernate.search.annotations.*
 import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -43,7 +43,6 @@ import javax.persistence.*
         NamedQuery(name = ContractDO.SELECT_MIN_MAX_DATE, query = "select min(date), max(date) from ContractDO"))
 open class ContractDO : DefaultBaseDO() {
 
-    // TODO: Support int input field
     @PropertyInfo(i18nKey = "legalAffaires.contract.number")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column(name = "number")
@@ -51,21 +50,18 @@ open class ContractDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "date")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "c_date")
-    open var date: Date? = null
+    open var date: LocalDate? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.validity")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "valid_from")
-    open var validFrom: Date? = null
+    open var validFrom: LocalDate? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.validity")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "valid_until")
-    open var validUntil: Date? = null
+    open var validUntil: LocalDate? = null
 
     @PropertyInfo(i18nKey = "title", required = true)
     @Field
@@ -104,9 +100,8 @@ open class ContractDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.signing")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "signing_date")
-    open var signingDate: Date? = null
+    open var signingDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.type")
     @Field
@@ -136,15 +131,13 @@ open class ContractDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "resubmissionOnDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "resubmission_on_date")
-    open var resubmissionOnDate: Date? = null
+    open var resubmissionOnDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "dueDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "due_date")
-    open var dueDate: Date? = null
+    open var dueDate: LocalDate? = null
 
     companion object {
         internal const val FIND_OTHER_BY_NUMBER = "ContractDO_FindOtherByNumber"

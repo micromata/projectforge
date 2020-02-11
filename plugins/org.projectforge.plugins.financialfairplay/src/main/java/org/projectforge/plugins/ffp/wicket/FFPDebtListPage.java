@@ -75,7 +75,7 @@ public class FFPDebtListPage extends AbstractListPage<FFPDebtListForm, FFPDebtDa
     columns.add(new PropertyColumn<>(new ResourceModel("plugins.ffp.to"), "to.fullname"));
     columns.add(new CellItemListenerPropertyColumn<>(FFPDebtDO.class, "plugins.ffp.value", "value", null));
 
-    columns.add(new CellItemListenerPropertyColumn<FFPDebtDO>(FFPDebtDO.class, "plugins.ffp.approvedByFrom", "approvedByFrom", null)
+    columns.add(new CellItemListenerPropertyColumn<FFPDebtDO>(FFPDebtDO.class, "plugins.ffp.approvedByFrom", "isApprovedByFrom", null)
     {
       private static final long serialVersionUID = 3672950740712610620L;
 
@@ -110,7 +110,7 @@ public class FFPDebtListPage extends AbstractListPage<FFPDebtListForm, FFPDebtDa
       }
 
     });
-    columns.add(new CellItemListenerPropertyColumn<FFPDebtDO>(FFPDebtDO.class, I18nHelper.getLocalizedMessage("plugins.ffp.approvedByTo"), "approvedByTo", null)
+    columns.add(new CellItemListenerPropertyColumn<FFPDebtDO>(FFPDebtDO.class, I18nHelper.getLocalizedMessage("plugins.ffp.approvedByTo"), "isApprovedByTo", null)
     {
       private static final long serialVersionUID = 367295074123610620L;
 

@@ -98,11 +98,14 @@ function SearchFilter(props) {
                         icon: faSearch,
                         onBlur: onSearchStringBlur,
                         placeholder: ui.translations.search || '',
+                        noStyle: true,
+                        autoFocus: true,
                     }}
                     onChange={onSearchStringChange}
                     onSelect={onSelectQuickSelection}
                     url={quickSelectUrl}
                     value={filter.searchString}
+                    withInput={false}
                 />
             </div>
             <MagicFilters />

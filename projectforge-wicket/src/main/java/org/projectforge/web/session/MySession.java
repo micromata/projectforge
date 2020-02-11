@@ -23,10 +23,6 @@
 
 package org.projectforge.web.session;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.TimeZone;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.core.request.ClientInfo;
@@ -44,6 +40,10 @@ import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.utils.NumberHelper;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.TimeZone;
 
 public class MySession extends WebSession
 {

@@ -23,12 +23,12 @@
 
 package org.projectforge.web.wicket;
 
-import java.io.Serializable;
-
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.model.ResourceModel;
 import org.projectforge.web.core.MenuBarPanel;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+
+import java.io.Serializable;
 
 /**
  * Helper for creating re-index menu items in the top right drop down menu.

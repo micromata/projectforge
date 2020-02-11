@@ -29,8 +29,8 @@ MagicCheckboxInput.propTypes = {
 
 MagicCheckboxInput.defaultProps = {};
 
-MagicCheckboxInput.isEmpty = () => false;
+MagicCheckboxInput.isEmpty = ({ value }) => !value;
 
-MagicCheckboxInput.getLabel = (label, { value }) => `${label}: ${value}`;
+MagicCheckboxInput.getLabel = label => label;
 
 export default MagicCheckboxInput;

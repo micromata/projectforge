@@ -26,7 +26,7 @@ package org.projectforge.plugins.poll.event
 import org.hibernate.search.annotations.*
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.plugins.poll.PollDO
-import java.sql.Timestamp
+import java.util.*
 import javax.persistence.*
 
 /**
@@ -45,12 +45,12 @@ open class PollEventDO : DefaultBaseDO() {
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column
-    open var startDate: Timestamp? = null
+    open var startDate: Date? = null
 
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column
-    open var endDate: Timestamp? = null
+    open var endDate: Date? = null
 
     /**
      * @see java.lang.Object.hashCode
@@ -81,7 +81,7 @@ open class PollEventDO : DefaultBaseDO() {
             if (other.endDate != null) {
                 return false
             }
-        } else if (!endDate!!.equals(other.endDate)) {
+        } else if (endDate!! != other.endDate) {
             return false
         }
         if (poll == null) {
@@ -95,7 +95,7 @@ open class PollEventDO : DefaultBaseDO() {
             if (other.startDate != null) {
                 return false
             }
-        } else if (!startDate!!.equals(other.startDate)) {
+        } else if (startDate!! != other.startDate) {
             return false
         }
         return true

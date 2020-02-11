@@ -23,8 +23,8 @@
 
 package org.projectforge.web.gantt;
 
-import org.slf4j.Logger;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.slf4j.Logger;
 
 public class GanttChartListForm extends AbstractListForm<GanttChartListFilter, GanttChartListPage>
 {

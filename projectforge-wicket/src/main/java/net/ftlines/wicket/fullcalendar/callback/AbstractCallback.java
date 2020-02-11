@@ -35,14 +35,13 @@
 
 package net.ftlines.wicket.fullcalendar.callback;
 
-import java.util.Map;
-
 import net.ftlines.wicket.fullcalendar.FullCalendar;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.behavior.IBehaviorListener;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import java.util.Map;
 
 abstract class AbstractCallback extends Behavior implements IBehaviorListener {
 	private FullCalendar calendar;

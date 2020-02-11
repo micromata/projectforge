@@ -23,14 +23,14 @@
 
 package org.projectforge.web.wicket.flowlayout;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.projectforge.web.wicket.WicketUtils;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.projectforge.web.wicket.WicketUtils;
 
 /**
  * List of components should be updated after every Ajax call. They will be added to the AjaxTarget.

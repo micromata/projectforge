@@ -23,10 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-import java.util.Iterator;
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -39,6 +35,10 @@ import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.WicketUtils;
+
+import java.math.BigDecimal;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * This panel shows order positions including links to the corresponding order pages.

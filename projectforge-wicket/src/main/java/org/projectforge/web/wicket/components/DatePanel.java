@@ -23,10 +23,6 @@
 
 package org.projectforge.web.wicket.components;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.function.BooleanSupplier;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -42,6 +38,10 @@ import org.projectforge.web.wicket.WicketRenderHeadUtils;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.converter.MyDateConverter;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.function.BooleanSupplier;
 
 /**
  * Panel for date selection. Works for java.util.Date and java.sql.Date. For java.sql.Date don't forget to call the constructor with

@@ -68,6 +68,14 @@ public class DateTimeFormatter extends AbstractFormatter {
     return weekOfYear < 10 ? "0" + weekOfYear : String.valueOf(weekOfYear);
   }
 
+  public static String formatWeekOfYear(final LocalDate date) {
+    if (date == null) {
+      return "";
+    }
+    final int weekOfYear = DateHelper.getWeekOfYear(date);
+    return weekOfYear < 10 ? "0" + weekOfYear : String.valueOf(weekOfYear);
+  }
+
   private int durationOfWorkingDay = 8;
 
   /**

@@ -39,7 +39,6 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.utils.SQLHelper;
-import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.xstream.XmlObjectWriter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +48,7 @@ import javax.persistence.Tuple;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.*;
 
 @Repository
@@ -105,7 +105,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
    */
   public int[] getYears() {
     final Tuple minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(RechnungDO.SELECT_MIN_MAX_DATE, Tuple.class));
-    return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
+    return SQLHelper.getYears(minMaxDate.get(0), minMaxDate.get(1));
   }
 
   public RechnungsStatistik buildStatistik(final List<RechnungDO> list) {
@@ -166,12 +166,12 @@ public class RechnungDao extends BaseDao<RechnungDO> {
         rechnung.setNummer(getNextNumber(rechnung));
 
         final PFDateTime day = PFDateTime.now();
-        rechnung.setDatum(day.getSqlDate());
+        rechnung.setDatum(day.getLocalDate());
 
         Integer zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
         if (zahlungsZielInTagen != null) {
           PFDateTime faelligkeitDay = day.plusDays(zahlungsZielInTagen);
-          rechnung.setFaelligkeit(faelligkeitDay.getSqlDate());
+          rechnung.setFaelligkeit(faelligkeitDay.getLocalDate());
         }
       }
     }

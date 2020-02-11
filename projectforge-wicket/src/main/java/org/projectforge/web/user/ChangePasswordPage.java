@@ -23,8 +23,6 @@
 
 package org.projectforge.web.user;
 
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -34,6 +32,8 @@ import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.MessagePage;
+
+import java.util.List;
 
 public class ChangePasswordPage extends AbstractStandardFormPage
 {

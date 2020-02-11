@@ -36,13 +36,14 @@ import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
-import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -129,26 +130,23 @@ public class HRPlanningTest extends AbstractTestBase {
 
   @Test
   public void getFirstDayOfWeek() {
-    final java.sql.Date date = createDate(2010, Month.JANUARY, 9, 1, 10, 57, 456);
-    assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(HRPlanningDO.Companion.getFirstDayOfWeek(date)));
+    final LocalDate date = LocalDate.of(2010, Month.JANUARY, 9);
+    assertEquals("2010-01-04", HRPlanningDO.Companion.getFirstDayOfWeek(date).toString());
   }
 
   @Test
   public void testBeginOfWeek() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     HRPlanningDO planning = new HRPlanningDO();
-    final java.sql.Date date = createDate(2010, Month.JANUARY, 9, 1, 10, 57, 456);
-    final PFDateTime firstDayOfWeek = PFDateTime.withDate(2010, Month.JANUARY, 4, 0, 0, 0, 0, ZoneId.of("UTC"));
-    final long millis = firstDayOfWeek.getEpochMilli();
+    final LocalDate date = LocalDate.of(2010, Month.JANUARY, 9);
     planning.setFirstDayOfWeek(date);
-    assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(planning.getWeek()));
-    assertEquals(millis, planning.getWeek().getTime());
-    // planning.setWeek(date);
+    assertEquals("2010-01-04", planning.getWeek().toString());
+    planning.setWeek(date);
     planning.setUser(getUser(AbstractTestBase.TEST_USER));
-    assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(planning.getWeek()));
+    assertEquals("2010-01-09", planning.getWeek().toString());
     final Serializable id = hrPlanningDao.save(planning);
     planning = hrPlanningDao.getById(id);
-    assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(planning.getWeek()));
+    assertEquals("2010-01-04", planning.getWeek().toString());
   }
 
   @Test
@@ -157,8 +155,8 @@ public class HRPlanningTest extends AbstractTestBase {
     // Create planning:
     HRPlanningDO planning = new HRPlanningDO();
     planning.setUser(getUser(AbstractTestBase.TEST_USER));
-    planning.setWeek(createDate(2010, Month.JANUARY, 11, 0, 0, 0, 0));
-    assertUTCDate(planning.getWeek(), 2010, Month.JANUARY, 11, 0, 0, 0);
+    planning.setWeek(LocalDate.of(2010, Month.JANUARY, 11));
+    assertLocalDate(planning.getWeek(), 2010, Month.JANUARY, 11);
     HRPlanningEntryDO entry = new HRPlanningEntryDO();
     setHours(entry, 1, 2, 3, 4, 5, 6);
     entry.setProjekt(projekt1);
@@ -174,7 +172,8 @@ public class HRPlanningTest extends AbstractTestBase {
     final Serializable id = hrPlanningDao.save(planning);
     // Check saved planning
     planning = hrPlanningDao.getById(id);
-    assertUTCDate(planning.getWeek(), 2010, Month.JANUARY, 11, 0, 0, 0);
+    PFDay day = new PFDay(planning.getWeek());
+    assertLocalDate(day.getLocalDate(), 2010, Month.JANUARY, 11);
     assertEquals(3, planning.getEntries().size());
     assertHours(planning.getProjectEntry(projekt1), 1, 2, 3, 4, 5, 6);
     assertHours(planning.getProjectEntry(projekt2), 6, 5, 4, 3, 2, 1);
@@ -214,8 +213,8 @@ public class HRPlanningTest extends AbstractTestBase {
     assertBigDecimal(weekend, entry.getWeekendHours());
   }
 
-  private java.sql.Date createDate(final int year, final Month month, final int day, final int hour, final int minute,
+  private LocalDate createDate(final int year, final Month month, final int day, final int hour, final int minute,
                                    final int second, final int millisecond) {
-    return PFDateTime.withDate(year, month, day, hour, minute, second, millisecond, ZoneId.of("UTC"), Locale.GERMAN).getSqlDate();
+    return PFDateTime.withDate(year, month, day, hour, minute, second, millisecond, ZoneId.of("UTC"), Locale.GERMAN).getLocalDate();
   }
 }

@@ -23,14 +23,6 @@
 
 package org.projectforge.web.wicket.converter;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
-
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.datetime.DateConverter;
@@ -40,6 +32,14 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.DayHolder;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * Concepts and implementation based on Stripes DateTypeConverter implementation.
@@ -135,9 +135,9 @@ public abstract class MyAbstractDateConverter extends DateConverter
     }
     // Step 3: If we successfully parsed, return a date, otherwise send back an error
     if (date != null) {
-      if (ClassUtils.isAssignable(targetType, java.sql.Date.class) == true) {
+      if (ClassUtils.isAssignable(targetType, Date.class)) {
         final DayHolder day = new DayHolder(date);
-        return day.getSqlDate();
+        return day.getUtilDate();
       }
       return date;
     } else {

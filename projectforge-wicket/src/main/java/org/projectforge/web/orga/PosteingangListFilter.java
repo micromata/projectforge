@@ -23,9 +23,8 @@
 
 package org.projectforge.web.orga;
 
-import org.projectforge.business.orga.PostFilter;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.projectforge.business.orga.PostFilter;
 
 
 /**

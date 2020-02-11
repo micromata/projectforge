@@ -28,7 +28,7 @@ import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.util.*
+import java.time.LocalDate
 
 /**
  * Forcast excel export.
@@ -142,7 +142,7 @@ object ForecastUtils { // open needed by Wicket.
         return getLeistungszeitraumDate(pos, order.periodOfPerformanceEnd, pos.periodOfPerformanceEnd)
     }
 
-    private fun getLeistungszeitraumDate(pos: AuftragsPositionDO, orderDate: Date?, posDate: Date?): PFDay {
+    private fun getLeistungszeitraumDate(pos: AuftragsPositionDO, orderDate: LocalDate?, posDate: LocalDate?): PFDay {
         var result = PFDay.now()
         if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) {
             if (posDate != null) {
@@ -171,7 +171,7 @@ object ForecastUtils { // open needed by Wicket.
     }
 
     @JvmStatic
-    fun getMonthCount(start: Date, end: Date): BigDecimal {
+    fun getMonthCount(start: LocalDate, end: LocalDate): BigDecimal {
         val startDate = PFDay.from(start) // not null
         val endDate = PFDay.from(end) // not null
         val diffYear = endDate.year - startDate.year
@@ -194,14 +194,14 @@ object ForecastUtils { // open needed by Wicket.
     }
 
     @JvmStatic
-    fun ensureErfassungsDatum(order: AuftragDO): Date? {
+    fun ensureErfassungsDatum(order: AuftragDO): LocalDate? {
         if (order.erfassungsDatum != null)
             return order.erfassungsDatum
         if (order.created != null)
-            return order.created
+            return PFDay.from(order.created).localDate
         if (order.angebotsDatum != null)
             return order.angebotsDatum
-        return PFDay.now().sqlDate
+        return PFDay.now().localDate
     }
 
     private val POINT_FIVE = BigDecimal(".5")

@@ -23,15 +23,14 @@
 
 package org.projectforge.web.common.timeattr;
 
-import java.math.BigDecimal;
-
+import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
+import java.math.BigDecimal;
 
 /**
  * @author Roger Kommer (r.kommer.extern@micromata.de)

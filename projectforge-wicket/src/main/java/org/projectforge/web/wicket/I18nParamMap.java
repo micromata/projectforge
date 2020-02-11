@@ -23,10 +23,10 @@
 
 package org.projectforge.web.wicket;
 
+import org.apache.wicket.model.util.MapModel;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.wicket.model.util.MapModel;
 
 /**
  * Helper for parameterized Wicket i18n messages.

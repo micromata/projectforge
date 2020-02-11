@@ -23,6 +23,12 @@
 
 package org.projectforge.web.wicket;
 
+import org.apache.wicket.Application;
+import org.apache.wicket.page.IManageablePage;
+import org.apache.wicket.pageStore.IPageStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 import java.lang.ref.SoftReference;
 import java.util.HashMap;
@@ -30,12 +36,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import org.apache.wicket.Application;
-import org.apache.wicket.page.IManageablePage;
-import org.apache.wicket.pageStore.IPageStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A custom IPageStore implementation, that keeps pages in memory without serialization.

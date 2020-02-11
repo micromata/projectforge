@@ -23,12 +23,12 @@
 
 package org.projectforge.web.wicket.converter;
 
-import java.util.Locale;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.common.i18n.I18nEnum;
+
+import java.util.Locale;
 
 /**
  * Format I18nEnums.

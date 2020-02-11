@@ -33,6 +33,15 @@
     &:hover {
       box-shadow: $baseShadow, 0 3px 12px rgba(0, 0, 0, 0.1);
     }
+
+    &.noBorder {
+      border: none;
+      box-shadow: none;
+
+      .container {
+        padding: 0;
+      }
+    }
   }
 
   .additional {
@@ -43,13 +52,18 @@
     border-radius: 5px;
     box-shadow: 0 15px 46px -10px rgba(26, 26, 29, 0.3);
     z-index: 99;
-    top: 10px;
     overflow-x: hidden;
 
     position: absolute;
 
+    &.withInput {
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+      border-top: none;
+    }
+
     .actions {
-      padding: .8em .9em;
+      padding: .8em 1rem;
       display: flex;
 
       .action {
@@ -66,10 +80,10 @@
 
         &.delete {
           text-decoration: underline;
+          padding: 0;
 
           &:hover {
             color: #000;
-            background-color: #f2f2f2;
           }
 
           &:disabled {

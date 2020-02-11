@@ -23,13 +23,13 @@
 
 package org.projectforge.web.wicket.flowlayout;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.repeater.RepeatingView;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * List of components which are built in the order of the list. The RepeatingView is generated after creating this list (is used e. g. for

@@ -23,8 +23,6 @@
 
 package org.projectforge.business.task.formatter;
 
-import java.util.List;
-
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.hibernate.Hibernate;
@@ -34,6 +32,8 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.web.common.WicketHtmlHelper;
+
+import java.util.List;
 
 public class WicketTaskFormatter extends TaskFormatter
 {

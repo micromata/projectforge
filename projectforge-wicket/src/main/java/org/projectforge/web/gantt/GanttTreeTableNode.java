@@ -23,13 +23,13 @@
 
 package org.projectforge.web.gantt;
 
-import java.io.Serializable;
-
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.business.gantt.GanttTask;
 import org.projectforge.business.gantt.GanttUtils;
 import org.projectforge.common.StringHelper;
 import org.projectforge.web.tree.TreeTableNode;
+
+import java.io.Serializable;
 
 /**
  * Represents a single node as part of the TreeTable.

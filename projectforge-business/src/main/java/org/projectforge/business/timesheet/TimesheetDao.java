@@ -59,6 +59,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.*;
 
 /**
@@ -111,7 +112,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
   public int[] getYears(final Integer userId) {
     final Object[] minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER, Object[].class)
             .setParameter("userId", userId));
-    return SQLHelper.getYears((java.util.Date) minMaxDate[0], (java.util.Date) minMaxDate[1]);
+    return SQLHelper.getYears(minMaxDate[0], minMaxDate[1]);
   }
 
   /**
@@ -639,7 +640,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     final List<TaskNode> list = taskNode.getPathToRoot();
     list.add(0, taskTree.getRootTaskNode());
     for (final TaskNode node : list) {
-      final Date date = node.getTask().getProtectTimesheetsUntil();
+      final LocalDate date = node.getTask().getProtectTimesheetsUntil();
       if (date == null) {
         continue;
       }

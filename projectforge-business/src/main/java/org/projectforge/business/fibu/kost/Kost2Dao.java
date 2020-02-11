@@ -25,7 +25,6 @@ package org.projectforge.business.fibu.kost;
 
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
-import org.projectforge.business.fibu.ProjektStatus;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -152,7 +151,7 @@ public class Kost2Dao extends BaseDao<Kost2DO> {
     } else if (myFilter.isEnded()) {
       queryFilter.add(QueryFilter.eq("kostentraegerStatus", KostentraegerStatus.ENDED));
     } else if (myFilter.isNotEnded()) {
-      queryFilter.add(QueryFilter.or(QueryFilter.ne("kostentraegerStatus", ProjektStatus.ENDED),
+      queryFilter.add(QueryFilter.or(QueryFilter.ne("kostentraegerStatus", KostentraegerStatus.ENDED),
               QueryFilter.isNull("kostentraegerStatus")));
     }
     queryFilter.addOrder(SortProperty.asc("nummernkreis")).addOrder(SortProperty.asc("bereich")).addOrder(SortProperty.asc("teilbereich"))
