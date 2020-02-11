@@ -67,12 +67,14 @@ import org.projectforge.web.registry.WebRegistry;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
 import org.projectforge.web.wicket.converter.MyDateConverter;
+import org.projectforge.web.wicket.converter.MyLocalDateConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -469,6 +471,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
   protected IConverterLocator newConverterLocator()
   {
     final ConverterLocator converterLocator = new ConverterLocator();
+    converterLocator.set(LocalDate.class, new MyLocalDateConverter());
     converterLocator.set(java.util.Date.class, new MyDateConverter());
     converterLocator.set(java.sql.Date.class, new MyDateConverter(java.sql.Date.class, "S-"));
     return converterLocator;
