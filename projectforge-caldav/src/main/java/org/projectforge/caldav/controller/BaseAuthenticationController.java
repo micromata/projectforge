@@ -35,6 +35,12 @@ import org.slf4j.LoggerFactory;
  * Created by blumenstein on 21.11.16.
  */
 public class BaseAuthenticationController {
+    /**
+     * Function as Java code needed, because Milton fails while checking return type of this method (java.lang.Boolean required).
+     * @param user
+     * @param requestedPassword
+     * @return
+     */
     @Authenticate
     public Boolean authenticate(final User user, final String requestedPassword) {
         log.info("Trying to authenticate user '$user'.");

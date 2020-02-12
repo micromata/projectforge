@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
 
 @ResourceController
-open class ProjectForgeCaldavController : BaseAuthenticationController() {
+open class ProjectForgeCaldavController : BaseDAVController() {
     @Autowired
     private lateinit var calendarService: CalendarService
 
@@ -46,7 +46,7 @@ open class ProjectForgeCaldavController : BaseAuthenticationController() {
             log.info("Create new UsersHome")
             usersHome = UsersHome()
         }
-        return usersHome!!
+        return UsersHome()
     }
 
     @ChildrenOf
