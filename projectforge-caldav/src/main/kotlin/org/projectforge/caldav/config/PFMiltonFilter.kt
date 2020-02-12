@@ -80,7 +80,7 @@ class PFMiltonFilter : MiltonFilter() {
                     (supportedAgentsStrings.any { userAgent == it } || supportedAgentsRegexps.any { it.matches(userAgent) })
             ) {
                 val url: String = req.requestURI
-                if (miltonUrls.any { it.startsWith(url) }) {
+                if (miltonUrls.any { url.startsWith(it) }) {
                     log.info("Processed by milton.io: $url")
                     val userInfo: RestAuthenticationInfo = restAuthenticationUtils.authenticate(req, resp)
                             ?: return // Not authenticated.
