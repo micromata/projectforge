@@ -33,6 +33,9 @@ import java.io.File
 import javax.servlet.FilterRegistration
 import javax.servlet.ServletContext
 
+/**
+ * -Dloader.path=${HOME}/ProjectForge/resources/milton
+ */
 @Component
 open class PFMiltonInit {
     @Autowired
@@ -45,10 +48,10 @@ open class PFMiltonInit {
         val miltonDir = File(configurationService.resourceDir, "milton")
         val licenseFile = File(miltonDir, "milton.license.properties")
         if (!licenseFile.exists()) {
-            log.info("Don't start webdav (caldav and carddav) server, OK. No license files given: ${licenseFile.absolutePath}")
+            log.info("Don't start webdav (CalDAV and CardDAV) server, OK. No license files given: ${licenseFile.absolutePath}")
             return
         }
-        log.info("Milton license file found, try to start webdav functionality: ${licenseFile.absolutePath}")
+        log.info("Milton license file found, try to start WebDAV functionality: ${licenseFile.absolutePath}")
         val miltonFilter: FilterRegistration = sc.addFilter("MiltonFilter",
                 PFMiltonFilter::class.java)
         miltonFilter.setInitParameter("resource.factory.class", "io.milton.http.annotated.AnnotationResourceFactory")
