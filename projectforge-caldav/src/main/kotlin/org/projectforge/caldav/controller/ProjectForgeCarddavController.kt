@@ -47,7 +47,6 @@ import org.projectforge.caldav.service.AddressService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 
-@ResourceController
 open class ProjectForgeCarddavController : BaseDAVController() {
     @Autowired
     private lateinit var addressService: AddressService

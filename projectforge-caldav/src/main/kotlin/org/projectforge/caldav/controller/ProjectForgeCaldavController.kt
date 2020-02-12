@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
 
-@ResourceController
 open class ProjectForgeCaldavController : BaseDAVController() {
     @Autowired
     private lateinit var calendarService: CalendarService
@@ -41,8 +40,9 @@ open class ProjectForgeCaldavController : BaseDAVController() {
         get() = this
 
     @ChildrenOf
-    fun getUsersHome(root: ProjectForgeCaldavController?): UsersHome {
-        if (usersHome == null) {
+    fun getUsersHome(root: ProjectForgeCaldavController): UsersHome {
+        log.info("getUsersHome(root)")
+                if (usersHome == null) {
             log.info("Create new UsersHome")
             usersHome = UsersHome()
         }
@@ -58,11 +58,13 @@ open class ProjectForgeCaldavController : BaseDAVController() {
     @ChildrenOf
     @Calendars
     fun getCalendarsHome(cals: CalendarsHome): List<Calendar> {
+        log.info("getCalendarsHome '${cals.name}'.")
         return calendarService.getCalendarList(cals.user)
     }
 
     @ChildrenOf
     fun getCalendarEvents(cal: Calendar?): List<Meeting> {
+        log.info("getCalendarEvents '${cal?.name}'.")
         if (cal == null) {
             return emptyList()
         }
@@ -72,11 +74,13 @@ open class ProjectForgeCaldavController : BaseDAVController() {
     @Get
     @ICalData
     fun getMeetingData(m: Meeting): ByteArray? {
+        log.info("getMeetingData '${m.uniqueId}'.")
         return m.icalData
     }
 
     @PutChild
     fun createMeeting(cal: Calendar, ical: ByteArray, newName: String?): Meeting? {
+        log.info("createMeeting '${cal.name}'-'$newName'.")
         val requestMeeting = Meeting(cal)
         requestMeeting.icalData = ical
         val now = Date()
@@ -88,6 +92,7 @@ open class ProjectForgeCaldavController : BaseDAVController() {
 
     @PutChild
     fun updateMeeting(m: Meeting, ical: ByteArray): Meeting? {
+        log.info("updateMeeting ${m.uniqueId}.")
         m.icalData = ical
         val meetingUpdated = calendarService.updateCalendarEvent(m) ?: return null
         // update modification date in event parameter, required for computing eTag!
@@ -97,6 +102,7 @@ open class ProjectForgeCaldavController : BaseDAVController() {
 
     @Delete
     fun deleteMeeting(m: Meeting) {
+        log.info("deleteMeeting ${m.uniqueId}.")
         calendarService.deleteCalendarEvent(m)
     }
 

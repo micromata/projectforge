@@ -26,6 +26,7 @@ package org.projectforge.caldav.controller;
 import io.milton.annotations.Authenticate;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.caldav.model.User;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.slf4j.Logger;
@@ -35,6 +36,8 @@ import org.slf4j.LoggerFactory;
  * Created by blumenstein on 21.11.16.
  */
 public class BaseAuthenticationController {
+    private boolean initialized = false;
+
     /**
      * Function as Java code needed, because Milton fails while checking return type of this method (java.lang.Boolean required).
      * @param user
@@ -43,6 +46,11 @@ public class BaseAuthenticationController {
      */
     @Authenticate
     public Boolean authenticate(final User user, final String requestedPassword) {
+        if (!initialized) {
+            // Late initialization is required. ApplicationContext isn't available in constructor.
+            ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().autowireBean(this);
+            initialized = true;
+        }
         log.info("Trying to authenticate user '$user'.");
         final PFUserDO contextUser = ThreadLocalUserContext.getUser();
         if (contextUser == null) {
