@@ -27,6 +27,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.*;
 import org.projectforge.business.converter.DOConverter;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.model.rest.AddressObject;
 
 import java.io.PrintWriter;
@@ -49,7 +50,10 @@ public class AddressDOConverter
     address.setUid(addressDO.getUid());
     address.setAddressStatus(addressDO.getAddressStatus() != null ? addressDO.getAddressStatus().toString() : null);
     address.setAddressText(addressDO.getAddressText());
-    address.setBirthday(addressDO.getBirthday());
+    final PFDay birthday = PFDay.fromOrNull(addressDO.getBirthday());
+    if (birthday != null) {
+      address.setBirthday(birthday.getSqlDate());
+    }
     address.setBusinessPhone(addressDO.getBusinessPhone());
     address.setCity(addressDO.getCity());
     address.setComment(addressDO.getComment());
@@ -105,7 +109,10 @@ public class AddressDOConverter
     address.setUid(addressObject.getUid());
     address.setAddressStatus(addressObject.getAddressStatus() != null ? AddressStatus.valueOf(addressObject.getAddressStatus()) : null);
     address.setAddressText(addressObject.getAddressText());
-    address.setBirthday(addressObject.getBirthday());
+    final PFDay birthday = PFDay.fromOrNull(addressObject.getBirthday());
+    if (birthday != null) {
+      address.setBirthday(birthday.getLocalDate());
+    }
     address.setBusinessPhone(addressObject.getBusinessPhone());
     address.setCity(addressObject.getCity());
     address.setComment(addressObject.getComment());
