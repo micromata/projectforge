@@ -91,9 +91,9 @@ public class VCardService {
     postalAddress.setRegion(addressDO.getPostalState());
     postalAddress.setCountry(addressDO.getPostalCountry());
 
-    final Birthday birthday = convertBirthday(addressDO.getBirthday());
+    final java.sql.Date birthday = addressDO.getBirthday();
     if (birthday != null) {
-      vcard.setBirthday(birthday);
+      vcard.setBirthday(new Birthday(birthday));
     }
 
     vcard.addUrl(addressDO.getWebsite());
@@ -171,8 +171,10 @@ public class VCardService {
 
     ao.setWebsite(vcard.getUrls() != null && vcard.getUrls().size() > 0 ? vcard.getUrls().get(0).getValue() : null);
 
-    final LocalDate birthday = convertBirthday(vcard.getBirthday());
-    ao.setBirthday(birthday);
+    final Birthday birthday = vcard.getBirthday();
+    if (birthday != null) {
+      ao.setBirthday(new java.sql.Date(birthday.getDate().getTime()));
+    }
 
     for (Note note : vcard.getNotes()) {
       ao.setComment(ao.getComment() != null ? ao.getComment() : "" + note.getValue() + " ");
@@ -226,13 +228,5 @@ public class VCardService {
             .date(birthday.getDayOfMonth())
             .build();
     return new Birthday(date);
-  }
-
-  private LocalDate convertBirthday(Birthday birthday) {
-    if (birthday == null) {
-      return null;
-    }
-    final PartialDate partialDate = birthday.getPartialDate();
-    return LocalDate.of(partialDate.getYear(), partialDate.getMonth(), partialDate.getDate());
   }
 }
