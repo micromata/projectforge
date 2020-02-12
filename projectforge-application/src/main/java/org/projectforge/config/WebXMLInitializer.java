@@ -27,6 +27,7 @@ import org.apache.wicket.protocol.http.WicketFilter;
 import org.apache.wicket.spring.SpringWebApplicationFactory;
 import org.projectforge.Const;
 import org.projectforge.business.user.filter.UserFilter;
+import org.projectforge.caldav.config.PFMiltonInit;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.config.CORSFilter;
@@ -36,6 +37,7 @@ import org.projectforge.web.doc.TutorialFilter;
 import org.projectforge.web.filter.ResponseHeaderFilter;
 import org.projectforge.web.filter.SpringThreadLocalFilter;
 import org.projectforge.web.rest.RestUserFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Configuration;
@@ -61,11 +63,16 @@ public class WebXMLInitializer implements ServletContextInitializer {
 
   private static final String PARAM_APP_BEAN = "applicationBean";
 
+  @Autowired
+  private PFMiltonInit pfMiltonInit;
+
   @Override
   public void onStartup(ServletContext sc) throws ServletException {
     final FilterRegistration securityHeaderFilter = sc.addFilter("SecurityHeaderFilter", SecurityHeaderFilter.class);
     securityHeaderFilter.addMappingForUrlPatterns(null, false, "/*");
     securityHeaderFilter.setInitParameter(SecurityHeaderFilter.PARAM_CSP_HEADER_VALUE, cspHeaderValue);
+
+    pfMiltonInit.init(sc);
 
     final FilterRegistration userFilter = sc.addFilter("UserFilter", UserFilter.class);
     boolean filterAfterInternal = false;
