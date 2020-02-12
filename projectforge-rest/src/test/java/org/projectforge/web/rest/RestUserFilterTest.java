@@ -26,7 +26,6 @@ package org.projectforge.web.rest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.rest.Authentication;
 import org.projectforge.test.AbstractTestBase;
@@ -44,7 +43,7 @@ public class RestUserFilterTest extends AbstractTestBase
 {
 
   @Autowired
-  private UserService userService;
+  private RestAuthenticationUtils restAuthenticationUtils;
 
   final RestUserFilter filter = new RestUserFilter();
 
@@ -63,7 +62,7 @@ public class RestUserFilterTest extends AbstractTestBase
     PFUserDO user = getUserGroupCache().getUser(AbstractTestBase.TEST_USER);
     this.userId = user.getId();
     this.userToken = userService.getAuthenticationToken(this.userId);
-    this.filter.setUserService(userService);
+    this.filter.setRestAuthenticationUtils(restAuthenticationUtils);
   }
 
   @Test

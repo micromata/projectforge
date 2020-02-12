@@ -3,14 +3,15 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>projectforge-caldav</artifactId>
     <packaging>jar</packaging>
-    <!-- UNCOMMENT IF WANT TO BUILD WAR FILE-->
-    <!--<packaging>war</packaging>-->
-
     <parent>
         <groupId>org.projectforge</groupId>
         <artifactId>projectforge-parent</artifactId>
         <version>7.0-SNAPSHOT</version><!-- projectforge.version -->
     </parent>
+    <properties>
+        <milton.version>2.7.4.4</milton.version>
+        <ez-vcard.version>0.10.4</ez-vcard.version>
+    </properties>
     <licenses>
         <license>
             <name>Dual license</name>
@@ -19,118 +20,15 @@
             <distribution>manual</distribution>
         </license>
     </licenses>
-    <properties>
-        <start-class>org.projectforge.caldav.start.ProjectForgeCalDAVApplication</start-class>
-        <milton.version>2.7.4.4</milton.version>
-        <postgresql.version>42.2.2</postgresql.version>
-        <ez-vcard.version>0.10.4</ez-vcard.version>
-    </properties>
-    <profiles>
-        <profile>
-            <id>intellij-properties-launcher</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-loader</artifactId>
-                    <version>${spring.boot.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
-    <dependencies>
-        <dependency>
-            <groupId>org.projectforge</groupId>
-            <artifactId>projectforge-model</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.flywaydb</groupId>
-                    <artifactId>flyway-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>${postgresql.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>${spring.boot.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-logging</artifactId>
-            <version>${spring.boot.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.milton</groupId>
-            <artifactId>milton-server-ent</artifactId>
-            <version>${milton.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.googlecode.ez-vcard</groupId>
-            <artifactId>ez-vcard</artifactId>
-            <version>${ez-vcard.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-    </dependencies>
     <build>
+        <finalName>projectforge-common</finalName>
         <resources>
             <resource>
-                <directory>src/main/java</directory>
-            </resource>
-            <resource>
                 <directory>src/main/resources</directory>
+                <filtering>true</filtering>
             </resource>
         </resources>
         <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <!-- needed for intern application.properties -->
-                    <layout>ZIP</layout>
-                    <!-- UNCOMMENT IF WANT TO BUILD WAR FILE-->
-                    <!--<layout>WAR</layout>-->
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectforge</groupId>
-                            <artifactId>org.projectforge.plugins.banking</artifactId>
-                        </exclude>
-                        <exclude>
-                            <groupId>org.projectforge</groupId>
-                            <artifactId>org.projectforge.plugins.plugintemplate</artifactId>
-                        </exclude>
-                        <exclude>
-                            <groupId>org.projectforge</groupId>
-                            <artifactId>org.projectforge.plugins.poll</artifactId>
-                        </exclude>
-                    </excludes>
-                    <requiresUnpack>
-                        <!-- Needed for running Kotlin scripts from spring-boot fat jar: -->
-                        <dependency>
-                            <groupId>org.jetbrains.kotlin</groupId>
-                            <artifactId>kotlin-compiler</artifactId>
-                        </dependency>
-                    </requiresUnpack>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
@@ -162,38 +60,55 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <executions>
-                    <!-- Replacing default-compile as it is treated specially by maven -->
-                    <execution>
-                        <id>default-compile</id>
-                        <phase>none</phase>
-                    </execution>
-                    <!-- Replacing default-testCompile as it is treated specially by maven -->
-                    <execution>
-                        <id>default-testCompile</id>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <id>java-compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>java-test-compile</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
+    <dependencies>
+        <dependency>
+            <groupId>org.projectforge</groupId>
+            <artifactId>projectforge-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectforge</groupId>
+            <artifactId>projectforge-business</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectforge</groupId>
+            <artifactId>projectforge-rest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.milton</groupId>
+            <artifactId>milton-server-ent</artifactId>
+            <version>${milton.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.ez-vcard</groupId>
+            <artifactId>ez-vcard</artifactId>
+            <version>${ez-vcard.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+    </dependencies>
     <repositories>
         <repository>
             <id>central</id>
