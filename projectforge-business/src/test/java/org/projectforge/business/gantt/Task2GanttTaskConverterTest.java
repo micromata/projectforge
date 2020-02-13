@@ -65,7 +65,7 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
     final PFDateTime day = PFDateTime.withDate(2010, Month.AUGUST, 16);
 
     TaskDO task = getTask(prefix + "2.1");
-    task.setStartDate(day.getUtilDate());
+    task.setStartDate(day.getLocalDate());
     task.setDuration(BigDecimal.TEN);
     taskDao.update(task);
 
@@ -147,15 +147,12 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
   private void assertExternalTasks(final GanttChartData ganttChartData, final String prefix) {
     GanttTask externalGanttTask = ganttChartData.getExternalObject(getTaskId(prefix + "2.1"));
     assertNull(externalGanttTask.getPredecessor(), "Predecessor should be null.");
-    assertDate("Start date unmodified.", 2010, Month.AUGUST.getValue(), 16, externalGanttTask.getStartDate());
-    assertDate("End date should have been calculated and set.", 2010, Month.AUGUST.getValue(), 30,
-            externalGanttTask.getEndDate());
+    assertLocalDate(externalGanttTask.getStartDate(), 2010, Month.AUGUST, 16);
+    assertLocalDate(externalGanttTask.getEndDate(),2010, Month.AUGUST, 30);
     externalGanttTask = ganttChartData.getExternalObject(getTaskId(prefix + "2.2"));
     assertNull(externalGanttTask.getPredecessor(), "Predecessor should be null.");
-    assertDate("Start date should have been calculated and set.", 2010, Month.AUGUST.getValue(), 30,
-            externalGanttTask.getStartDate());
-    assertDate("End date should have been calculated and set.", 2010, Month.SEPTEMBER.getValue(), 13,
-            externalGanttTask.getEndDate());
+    assertLocalDate(externalGanttTask.getStartDate(), 2010, Month.AUGUST, 30);
+    assertLocalDate(externalGanttTask.getEndDate(),2010, Month.SEPTEMBER, 13);
   }
 
   private void assertDate(final String message, final int year, final int month, final int dayOfMonth, final Date date) {

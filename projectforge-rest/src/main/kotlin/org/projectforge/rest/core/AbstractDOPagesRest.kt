@@ -40,8 +40,8 @@ abstract class AbstractDOPagesRest<
         B : BaseDao<O>>(
         baseDaoClazz: Class<B>,
         i18nKeyPrefix: String,
-        cloneSupported: Boolean = false)
-    : AbstractPagesRest<O, O, B>(baseDaoClazz, i18nKeyPrefix, cloneSupported) {
+        cloneSupport: AbstractPagesRest.CloneSupport = AbstractPagesRest.CloneSupport.NONE)
+    : AbstractPagesRest<O, O, B>(baseDaoClazz, i18nKeyPrefix, cloneSupport) {
 
     companion object {
         // For caching historizable flag:

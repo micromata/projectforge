@@ -25,7 +25,7 @@ package org.projectforge.setup
 
 import org.projectforge.framework.time.TimeNotation
 import java.io.File
-import java.util.*
+import java.time.DayOfWeek
 
 class SetupData(
         var applicationHomeDir: File? = null,
@@ -36,7 +36,7 @@ class SetupData(
         var defaultLocale: String = "en",
         var currencySymbol: String = "€",
         var defaultTimeNotation: TimeNotation = TimeNotation.H24,
-        var defaultFirstDayOfWeek: Int = Calendar.MONDAY,
+        var defaultFirstDayOfWeek: DayOfWeek = DayOfWeek.MONDAY,
         var useEmbeddedDatabase: Boolean = true,
         var jdbcSettings: JdbcSettings? = null) {
 

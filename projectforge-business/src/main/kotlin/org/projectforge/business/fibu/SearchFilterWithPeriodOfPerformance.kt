@@ -21,47 +21,12 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.orga;
+package org.projectforge.business.fibu
 
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
+import java.time.LocalDate
 
-import javax.persistence.*;
+interface SearchFilterWithPeriodOfPerformance {
+    val periodOfPerformanceStartDate: LocalDate?
 
-@Entity
-@Table(name = "t_orga_visitorbook_timedattrdata")
-public class VisitorbookTimedAttrDataDO extends JpaTabAttrDataBaseDO<VisitorbookTimedAttrDO, Integer>
-{
-
-  public VisitorbookTimedAttrDataDO()
-  {
-    super();
-  }
-
-  public VisitorbookTimedAttrDataDO(final VisitorbookTimedAttrDO parent, final String value)
-  {
-    super(parent, value);
-  }
-
-  public VisitorbookTimedAttrDataDO(final VisitorbookTimedAttrDO parent)
-  {
-    super(parent);
-  }
-
-  @Override
-  @Id
-  @GeneratedValue
-  @Column(name = "pk")
-  public Integer getPk()
-  {
-    return pk;
-  }
-
-  @Override
-  @ManyToOne(optional = false)
-  @JoinColumn(name = "parent_id", referencedColumnName = "pk")
-  public VisitorbookTimedAttrDO getParent()
-  {
-    return super.getParent();
-  }
-
+    val periodOfPerformanceEndDate: LocalDate?
 }

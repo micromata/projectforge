@@ -23,16 +23,13 @@
 
 package org.projectforge.plugins.liquidityplanning
 
-import org.hibernate.search.annotations.DateBridge
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.Resolution
+import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.Table
@@ -49,9 +46,8 @@ import javax.persistence.Table
 open class LiquidityEntryDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.liquidityplanning.entry.dateOfPayment")
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "date_of_payment")
-    open var dateOfPayment: Date? = null
+    open var dateOfPayment: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.common.betrag", type = PropertyType.CURRENCY)
     @get:Column(scale = 2, precision = 12)

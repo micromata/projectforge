@@ -60,7 +60,6 @@ import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -157,14 +156,14 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
     gridBuilder.newSplitPanel(GridSize.COL50);
     final TeamCalDO teamCal = data.getCalendar();
     // setting access view
-    if (isNew() == true || teamCal == null || teamCal.getOwner() == null) {
+    if (isNew() || teamCal == null || teamCal.getOwner() == null) {
       access = true;
     } else {
-      if (right.hasUpdateAccess(getUser(), data, data) == true) {
+      if (right.hasUpdateAccess(getUser(), data, data)) {
         access = true;
       } else {
         access = false;
-        if (right.hasMinimalAccess(data, getUserId()) == true) {
+        if (right.hasMinimalAccess(data, getUserId())) {
           final TeamEventDO newTeamEventDO = new TeamEventDO();
           newTeamEventDO.setId(data.getId());
           newTeamEventDO.setStartDate(data.getStartDate());
@@ -184,7 +183,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
           new PropertyModel<>(data, "subject"));
       subjectField.setRequired(true);
       fieldSet.add(subjectField);
-      if (access == false) {
+      if (!access) {
         fieldSet.setEnabled(false);
       } else {
         WicketUtils.setFocus(subjectField);
@@ -205,7 +204,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       };
       locationTextField.withMatchContains(true).withMinChars(3);
       fieldSet.add(locationTextField);
-      if (access == false)
+      if (!access)
         fieldSet.setEnabled(false);
     }
     {
@@ -227,7 +226,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       attendees.add(new TeamEventAttendeeValidator());
       attendees.getSettings().setCloseOnSelect(true);
       fieldSet.add(attendees);
-      if (access == false) {
+      if (!access) {
         fieldSet.setEnabled(false);
       }
     }
@@ -236,7 +235,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("plugins.teamcal.event.note"));
       final MaxLengthTextArea noteField = new MaxLengthTextArea(fieldSet.getTextAreaId(), new PropertyModel<>(data, "note"));
       fieldSet.add(noteField).setAutogrow();
-      if (access == false)
+      if (!access)
         fieldSet.setEnabled(false);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -246,14 +245,14 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       // ALL DAY CHECKBOX
       final FieldsetPanel fieldSet = gridBuilder.newFieldset("").suppressLabelForWarning();
       final DivPanel divPanel = fieldSet.addNewCheckBoxButtonDiv();
-      final CheckBoxButton checkBox = new CheckBoxButton(divPanel.newChildId(), new PropertyModel<Boolean>(data, "allDay"),
+      final CheckBoxButton checkBox = new CheckBoxButton(divPanel.newChildId(), new PropertyModel<>(data, "allDay"),
           getString("plugins.teamcal.event.allDay"));
       checkBox.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("change")
       {
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          if (data.getAllDay() == false) {
+          if (!data.getAllDay()) {
             setDateDropChoiceVisible(true);
           } else {
             setDateDropChoiceVisible(false);
@@ -261,10 +260,10 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
           target.add(startDateTimePanel.getTimeContainer(), endDateTimePanel.getTimeContainer());
         }
       });
-      setDateDropChoiceVisible(data.getAllDay() == false);
+      setDateDropChoiceVisible(!data.getAllDay());
       divPanel.add(checkBox);
       fieldSet.add(divPanel);
-      if (access == false)
+      if (!access)
         fieldSet.setEnabled(false);
 
       // ///////////////////////////////
@@ -324,7 +323,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       panel.getLabel().setEscapeModelStrings(false);
       recurrenceIntervalFieldset.add(panel);
       final MinMaxNumberField<Integer> intervalNumberField = new MinMaxNumberField<>(InputPanel.WICKET_ID,
-          new PropertyModel<Integer>(recurrenceData, "interval"), 0, 1000);
+          new PropertyModel<>(recurrenceData, "interval"), 0, 1000);
       WicketUtils.setSize(intervalNumberField, 2);
       recurrenceIntervalFieldset.add(intervalNumberField);
       panel = new DivTextPanel(recurrenceIntervalFieldset.newChildId(), new Model<String>()
@@ -454,7 +453,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       modeOneDropDownChoiceYear.setNullValid(false).setOutputMarkupId(true);
       recurrenceYearModeFieldset.add(modeOneDropDownChoiceYear);
       recurrenceYearModeFieldset.getFieldset().setOutputMarkupId(true);
-      if (recurrenceData.isYearMode() == false)
+      if (!recurrenceData.isYearMode())
         modeOneDropDownChoiceYear.setEnabled(false);
 
       //Select für (Wochentage, Tag, Wochentag, Wochenende)
@@ -465,7 +464,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
           frequencyModeTwoChoiceRenderer.getValues(), frequencyModeTwoChoiceRenderer);
       modeTwoDropDownChoiceYear.setNullValid(false).setOutputMarkupId(true);
       recurrenceYearModeFieldset.add(modeTwoDropDownChoiceYear);
-      if (recurrenceData.isYearMode() == false)
+      if (!recurrenceData.isYearMode())
         modeTwoDropDownChoiceYear.setEnabled(false);
 
       recurrenceYearModeFieldset.getFieldset().setOutputMarkupId(true);
@@ -476,7 +475,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
     {
       // Until. Only visible if recurrenceData.interval != NONE.
       recurrenceUntilDateFieldset = gridBuilder.newFieldset(getString("plugins.teamcal.event.recurrence.until"));
-      final DatePanel untilDatePanel = new DatePanel(recurrenceUntilDateFieldset.newChildId(), new PropertyModel<Date>(recurrenceData,
+      final DatePanel untilDatePanel = new DatePanel(recurrenceUntilDateFieldset.newChildId(), new PropertyModel<>(recurrenceData,
           "until"), DatePanelSettings.get().withTimeZone(DateHelper.UTC));
 
       recurrenceUntilDateFieldset.add(untilDatePanel);
@@ -494,7 +493,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
         // Until. Only visible if recurrenceData.interval != NONE.
         recurrenceExDateFieldset = innerGridBuilder.newFieldset(getString("plugins.teamcal.event.recurrence.exDate"));
         recurrenceExDateFieldset
-            .add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(data,
+            .add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data,
                 "recurrenceExDate"), 4000));
         recurrenceExDateFieldset.getFieldset().setOutputMarkupId(true);
         recurrenceExDateFieldset.addHelpIcon(getString("plugins.teamcal.event.recurrence.exDate.tooltip"));
@@ -536,8 +535,8 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       {
         final DateHolder startDate = new DateHolder(startDateTimePanel.getConvertedInput());
         final DateHolder endDate = new DateHolder(endDateTimePanel.getConvertedInput());
-        data.setStartDate(startDate.getTimestamp());
-        data.setEndDate(endDate.getTimestamp());
+        data.setStartDate(startDate.getUtilDate());
+        data.setEndDate(endDate.getUtilDate());
         if (data.getDuration() < 60000) {
           // Duration is less than 60 seconds.
           error(getString("plugins.teamcal.event.duration.error"));
@@ -739,7 +738,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
    */
   private void initTeamCalPicker(final FieldsetPanel fieldSet)
   {
-    if (access == false) {
+    if (!access) {
       final TeamCalDO calendar = data.getCalendar();
       final Label teamCalTitle = new Label(fieldSet.newChildId(),
           calendar != null ? new PropertyModel<String>(data.getCalendar(), "title")
@@ -748,12 +747,12 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
     } else {
       final List<TeamCalDO> list = teamCalDao.getAllCalendarsWithFullAccess();
       calendarsWithFullAccess = list.toArray(new TeamCalDO[0]);
-      final LabelValueChoiceRenderer<TeamCalDO> calChoiceRenderer = new LabelValueChoiceRenderer<TeamCalDO>();
+      final LabelValueChoiceRenderer<TeamCalDO> calChoiceRenderer = new LabelValueChoiceRenderer<>();
       for (final TeamCalDO cal : list) {
         calChoiceRenderer.addValue(cal, cal.getTitle());
       }
       final DropDownChoice<TeamCalDO> calDropDownChoice = new DropDownChoice<>(fieldSet.getDropDownChoiceId(),
-          new PropertyModel<TeamCalDO>(data, "calendar"), calChoiceRenderer.getValues(), calChoiceRenderer);
+          new PropertyModel<>(data, "calendar"), calChoiceRenderer.getValues(), calChoiceRenderer);
       calDropDownChoice.setNullValid(false);
       calDropDownChoice.setRequired(true);
       fieldSet.add(calDropDownChoice);
@@ -770,7 +769,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
     startDateField.getFieldset().setOutputMarkupId(true);
 
     startDateField.getFieldset().setOutputMarkupId(true);
-    startDateTimePanel = new DateTimePanel(startDateField.newChildId(), new PropertyModel<Date>(data, "startDate"),
+    startDateTimePanel = new DateTimePanel(startDateField.newChildId(), new PropertyModel<>(data, "startDate"),
         (DateTimePanelSettings) DateTimePanelSettings.get().withSelectStartStopTime(true)
             .withTargetType(java.sql.Timestamp.class)
             .withRequired(true),
@@ -789,7 +788,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
     endDateField.getFieldset().setOutputMarkupId(true);
 
     endDateField.getFieldset().setOutputMarkupId(true);
-    endDateTimePanel = new DateTimePanel(endDateField.newChildId(), new PropertyModel<Date>(data, "endDate"),
+    endDateTimePanel = new DateTimePanel(endDateField.newChildId(), new PropertyModel<>(data, "endDate"),
         (DateTimePanelSettings) DateTimePanelSettings.get().withSelectStartStopTime(true)
             .withTargetType(java.sql.Timestamp.class)
             .withRequired(true),
@@ -827,7 +826,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
             + ")); });");
       }
     });
-    if (access == false) {
+    if (!access) {
       endDateField.setEnabled(false);
       startDateField.setEnabled(false);
     }
@@ -845,7 +844,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       @Override
       public String getObject()
       {
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         if (data.getStartDate() != null) {
           buf.append(DateHelper.TECHNICAL_ISO_UTC.get().format(data.getStartDate()));
           if (data.getEndDate() != null) {

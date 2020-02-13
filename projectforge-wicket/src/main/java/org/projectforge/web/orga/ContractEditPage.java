@@ -23,7 +23,6 @@
 
 package org.projectforge.web.orga;
 
-import org.slf4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.orga.ContractDO;
@@ -32,6 +31,7 @@ import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = ContractListPage.class)
 public class ContractEditPage extends AbstractEditPage<ContractDO, ContractEditForm, ContractDao>
@@ -48,7 +48,7 @@ public class ContractEditPage extends AbstractEditPage<ContractDO, ContractEditF
     super(parameters, "legalAffaires.contract");
     init();
     if (isNew() == true) {
-      getData().setDate(new DayHolder().getSqlDate());
+      getData().setDate(new DayHolder().getLocalDate());
     }
   }
 
@@ -70,7 +70,7 @@ public class ContractEditPage extends AbstractEditPage<ContractDO, ContractEditF
     super.cloneData();
     final ContractDO contract = getData();
     contract.setNumber(null);
-    contract.setDate(new DayHolder().getSqlDate());
+    contract.setDate(new DayHolder().getLocalDate());
     form.numberField.modelChanged();
   }
 

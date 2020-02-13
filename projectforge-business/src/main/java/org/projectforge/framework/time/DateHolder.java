@@ -28,8 +28,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
 import java.util.Date;
@@ -161,23 +161,23 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
   }
 
   public boolean before(final DateHolder date) {
-    return this.getDate().before(date.getDate());
+    return this.getUtilDate().before(date.getUtilDate());
   }
 
   public boolean before(final Date date) {
-    return this.getDate().before(date);
+    return this.getUtilDate().before(date);
   }
 
   public boolean after(final DateHolder date) {
-    return this.getDate().after(date.getDate());
+    return this.getUtilDate().after(date.getUtilDate());
   }
 
   public boolean after(final Date date) {
-    return this.getDate().after(date);
+    return this.getUtilDate().after(date);
   }
 
   public boolean isBetween(final Date from, final Date to) {
-    final Date date = getDate();
+    final Date date = getUtilDate();
     if (from == null) {
       if (to == null) {
         return false;
@@ -191,8 +191,8 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
   }
 
   public boolean isBetween(final DateHolder from, final DateHolder to) {
-    final Date fromDate = from != null ? from.getDate() : null;
-    final Date toDate = to != null ? to.getDate() : null;
+    final Date fromDate = from != null ? from.getUtilDate() : null;
+    final Date toDate = to != null ? to.getUtilDate() : null;
     return isBetween(fromDate, toDate);
   }
 
@@ -251,9 +251,8 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * java.sql.Date should be 21.11.1970! <br/>
    * This methods transforms first the day into UTC and then into java.sql.Date.
    */
-
-  public java.sql.Date getSQLDate() {
-    return this.dateTime.getSqlDate();
+  public LocalDate getLocalDate() {
+    return this.dateTime.getLocalDate();
   }
 
   /**
@@ -370,7 +369,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
     return this;
   }
 
-  public Date getDate() {
+  public Date getUtilDate() {
     return this.dateTime.getUtilDate();
   }
 
@@ -381,10 +380,6 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    */
   public long getTimeOfDay() {
     return getHourOfDay() * 3600 + getMinute() * 60 + getSecond();
-  }
-
-  public Timestamp getTimestamp() {
-    return new Timestamp(getDate().getTime());
   }
 
   public int getYear() {
@@ -541,7 +536,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
 
   @Override
   public String toString() {
-    return DateHelper.formatAsUTC(getDate()) + ", time zone=" + dateTime.getZone() + ", date=" + this.dateTime;
+    return DateHelper.formatAsUTC(getUtilDate()) + ", time zone=" + dateTime.getZone() + ", date=" + this.dateTime;
   }
 
   @Override

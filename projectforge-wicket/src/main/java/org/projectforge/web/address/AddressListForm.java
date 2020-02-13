@@ -23,21 +23,12 @@
 
 package org.projectforge.web.address;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.business.address.AddressDO;
-import org.projectforge.business.address.AddressDao;
-import org.projectforge.business.address.AddressFilter;
-import org.projectforge.business.address.AddressbookDO;
-import org.projectforge.business.address.AddressbookDao;
+import org.projectforge.business.address.*;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.web.wicket.AbstractListForm;
@@ -45,13 +36,14 @@ import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanelVisibility;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
 
 public class AddressListForm extends AbstractListForm<AddressFilter, AddressListPage>
 {

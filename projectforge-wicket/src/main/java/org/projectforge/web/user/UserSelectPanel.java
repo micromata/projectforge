@@ -23,9 +23,6 @@
 
 package org.projectforge.web.user;
 
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -51,6 +48,10 @@ import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 /**
  * This panel shows the actual user and buttons for select/unselect user.
@@ -274,8 +275,8 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
         {
           // Is visible if no user is given or the given user is not the current logged in user.
           final PFUserDO user = UserSelectPanel.this.getModelObject();
-          return showSelectMeButton == true
-              && (user == null || user.getId().equals(ThreadLocalUserContext.getUser().getId()) == false);
+          return showSelectMeButton
+              && (user == null || !Objects.equals(user.getId(), ThreadLocalUserContext.getUserId()));
         }
       };
       selectMeLink.setOutputMarkupId(true);

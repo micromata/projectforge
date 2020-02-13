@@ -23,9 +23,8 @@
 
 package org.projectforge.web.teamcal.event.importics;
 
-import org.projectforge.web.wicket.components.DropFileContainer;
-
 import net.fortuna.ical4j.model.Calendar;
+import org.projectforge.web.wicket.components.DropFileContainer;
 
 /**
  * Adaption of {@link DropFileContainer} for dropped {@link Calendar} files.

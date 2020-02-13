@@ -23,14 +23,14 @@
 
 package org.projectforge.web.wicket.converter;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.Locale;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.util.convert.converter.BigDecimalConverter;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.framework.utils.NumberHelper;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Locale;
 
 /**
  * Supports text fields with % symbol.

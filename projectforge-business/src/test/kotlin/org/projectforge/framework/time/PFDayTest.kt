@@ -47,6 +47,15 @@ class PFDayTest {
 
         date = PFDay.from(sqlDate)
         checkDate(date!!.date, 2019, Month.APRIL, 10)
+
+        // 1581206400000 is UTC midnight
+        val utcMidnight = Date(1581206400000)
+        val europeBerlinMidnight = Date(1581202800000)
+        assertEquals("2020-02-09 00:00:00.000 +0000", DateHelper.formatAsUTC(utcMidnight))
+        assertEquals("2020-02-08 23:00:00.000 +0000", DateHelper.formatAsUTC(europeBerlinMidnight))
+        assertEquals("2020-02-09", PFDay.fromOrNullUTC(utcMidnight)!!.isoString)
+        assertEquals("2020-02-08", PFDay.fromOrNullUTC(europeBerlinMidnight)!!.isoString)
+        assertEquals("2020-02-09 00:00:00.000 +0000", DateHelper.formatAsUTC(PFDay.of(2020, Month.FEBRUARY, 9).utilDateUTC))
     }
 
     @Test

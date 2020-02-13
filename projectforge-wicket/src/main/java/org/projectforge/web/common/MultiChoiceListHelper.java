@@ -24,12 +24,7 @@
 package org.projectforge.web.common;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * This class is an helper class for supporting the implementation of gui lists. The user can select and unselect entries. This will be

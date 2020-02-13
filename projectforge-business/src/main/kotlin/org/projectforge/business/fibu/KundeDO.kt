@@ -29,8 +29,8 @@ import org.hibernate.search.annotations.Analyzer
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.IManualIndex
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.persistence.api.IManualIndex
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import javax.persistence.*
 

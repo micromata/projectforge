@@ -21,13 +21,27 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu;
+package org.projectforge.framework.persistence.entities
 
-import java.util.Date;
+import de.micromata.genome.db.jpa.tabattr.entities.TimeableBaseDO
+import org.projectforge.framework.time.PFDay
+import java.time.LocalDate
+import javax.persistence.Transient
 
-public interface SearchFilterWithPeriodOfPerformance
-{
-  Date getPeriodOfPerformanceStartDate();
-
-  Date getPeriodOfPerformanceEndDate();
+/**
+ * Should be used, because in ProjectForge TimeableBaseDO is used with startTime with day or month precision. So the callers should
+ * use startDay instead of startTime.
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ */
+@Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
+abstract class PFTimeableBaseDO<Self : TimeableBaseDO<Self, Int>> : TimeableBaseDO<Self, Int>() {
+    /**
+     * For working with local dates. This converts startTime from and to localDate. This should be used instead of startTime.
+     */
+    @get:Transient
+    var startDay: LocalDate?
+        get() = PFDay.fromOrNullUTC(startTime)?.localDate
+        set(value) {
+            startTime = PFDay.fromOrNull(value)?.utilDateUTC
+        }
 }

@@ -26,18 +26,17 @@
  */
 package org.projectforge.web.debug;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import org.apache.commons.lang3.ClassUtils;
+import org.projectforge.web.WebConfiguration;
+import org.projectforge.web.wicket.WicketApplication;
 
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionAttributeListener;
 import javax.servlet.http.HttpSessionBindingEvent;
-
-import org.apache.commons.lang3.ClassUtils;
-import org.projectforge.web.WebConfiguration;
-import org.projectforge.web.wicket.WicketApplication;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 /**
  * In production environment this checker does nothing.

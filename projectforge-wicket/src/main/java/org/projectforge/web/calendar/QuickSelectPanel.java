@@ -23,24 +23,26 @@
 
 package org.projectforge.web.calendar;
 
-import java.util.Date;
-
 import org.apache.wicket.model.Model;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractSelectPanel;
-import org.projectforge.web.wicket.components.DatePanel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
+
+import java.time.LocalDate;
+import java.util.Date;
 
 
 /**
  * This panel combines QuickSelectMonthPanel and QuickSelectWeekPanel.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class QuickSelectPanel extends AbstractSelectPanel<Date>
 {
   private static final long serialVersionUID = 8334141505387689261L;
 
-  private final DatePanel datePanel;
+  private final LocalDatePanel datePanel;
 
   private final ISelectCallerPage caller;
 
@@ -50,9 +52,9 @@ public class QuickSelectPanel extends AbstractSelectPanel<Date>
    * @param caller
    * @param selectProperty Results int two select properties: selectProperty + ".month" and selectProperty + ".week".
    */
-  public QuickSelectPanel(final String id, final ISelectCallerPage caller, final String selectProperty, final DatePanel datePanel)
+  public QuickSelectPanel(final String id, final ISelectCallerPage caller, final String selectProperty, final LocalDatePanel datePanel)
   {
-    super(id, new Model<Date>(), caller, selectProperty);
+    super(id, new Model<>(), caller, selectProperty);
     this.caller = caller;
     this.datePanel = datePanel;
   }
@@ -62,19 +64,17 @@ public class QuickSelectPanel extends AbstractSelectPanel<Date>
   public QuickSelectPanel init()
   {
     super.init();
-    final QuickSelectMonthPanel quickSelectMonthPanel = new QuickSelectMonthPanel("quickSelectMonth", new Model<Date>() {
+    final QuickSelectMonthPanel quickSelectMonthPanel = new QuickSelectMonthPanel("quickSelectMonth", new Model<LocalDate>() {
       @Override
-      public Date getObject()
-      {
+      public LocalDate getObject() {
         return getInputDate();
       }
     }, caller, selectProperty + ".month");
     add(quickSelectMonthPanel);
     quickSelectMonthPanel.init();
-    final QuickSelectWeekPanel quickSelectWeekPanel = new QuickSelectWeekPanel("quickSelectWeek", new Model<Date>() {
+    final QuickSelectWeekPanel quickSelectWeekPanel = new QuickSelectWeekPanel("quickSelectWeek", new Model<LocalDate>() {
       @Override
-      public Date getObject()
-      {
+      public LocalDate getObject() {
         return getInputDate();
       }
     }, caller, selectProperty + ".week");
@@ -83,9 +83,9 @@ public class QuickSelectPanel extends AbstractSelectPanel<Date>
     return this;
   }
 
-  public Date getInputDate() {
+  public LocalDate getInputDate() {
     datePanel.getDateField().validate(); // Update model from form field.
     final Date date = datePanel.getDateField().getConvertedInput();
-    return date;
+    return PFDay.fromOrNow(date).getLocalDate();
   }
 }

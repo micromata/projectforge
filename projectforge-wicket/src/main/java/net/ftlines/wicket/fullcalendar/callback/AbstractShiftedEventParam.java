@@ -37,7 +37,6 @@ package net.ftlines.wicket.fullcalendar.callback;
 
 import net.ftlines.wicket.fullcalendar.Event;
 import net.ftlines.wicket.fullcalendar.EventSource;
-
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 

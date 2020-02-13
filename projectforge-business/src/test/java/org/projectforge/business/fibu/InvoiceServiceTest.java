@@ -24,8 +24,8 @@
 package org.projectforge.business.fibu;
 
 import org.junit.jupiter.api.Test;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.web.session.UserAgentBrowser;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
@@ -43,7 +43,7 @@ public class InvoiceServiceTest extends AbstractTestBase {
     String filename = invoiceService.getInvoiceFilename(data);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals("_.docx", filename);
+    assertEquals("_" + PFDay.today().getIsoString() + ".docx", filename);
   }
 
   @Test
@@ -58,12 +58,12 @@ public class InvoiceServiceTest extends AbstractTestBase {
     data.setProjekt(projekt);
     data.setBetreff("Betreff");
     LocalDate date = LocalDate.of(2017, Month.AUGUST, 4);
-    data.setDatum(java.sql.Date.valueOf(date));
+    data.setDatum(date);
 
     String filename = invoiceService.getInvoiceFilename(data);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals("12345_Kunde_Projekt_Betreff_04_08_2017.docx", filename);
+    assertEquals("12345_Kunde_Projekt_Betreff_2017-08-04.docx", filename);
   }
 
   @Test
@@ -78,12 +78,12 @@ public class InvoiceServiceTest extends AbstractTestBase {
     data.setProjekt(projekt);
     data.setBetreff("Betreff/Änderung?");
     LocalDate date = LocalDate.of(2017, Month.AUGUST, 4);
-    data.setDatum(java.sql.Date.valueOf(date));
+    data.setDatum(date);
     logon(TEST_USER);
     String filename = invoiceService.getInvoiceFilename(data);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals("12345_Kunde___Kunde_Projekt-Titel_Betreff_Aenderung__04_08_2017.docx", filename);
+    assertEquals("12345_Kunde___Kunde_Projekt-Titel_Betreff_Aenderung__2017-08-04.docx", filename);
   }
 
   @Test

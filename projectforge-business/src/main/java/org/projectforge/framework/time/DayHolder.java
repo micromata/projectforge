@@ -28,8 +28,12 @@ import org.projectforge.framework.calendar.Holidays;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.Month;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 
 /**
  * Please use PFDate instead.
@@ -311,8 +315,8 @@ public class DayHolder {
     return date.getUtilDate();
   }
 
-  public java.sql.Date getSqlDate() {
-    return date.getSqlDate();
+  public LocalDate getLocalDate() {
+    return date.getLocalDate();
   }
 
   @Override

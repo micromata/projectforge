@@ -23,8 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import java.io.Serializable;
-
 import org.apache.wicket.markup.html.WebPage;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.ICorePersistenceService;
@@ -32,6 +30,8 @@ import org.projectforge.framework.persistence.api.IManualIndex;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.springframework.dao.DataIntegrityViolationException;
+
+import java.io.Serializable;
 
 public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICorePersistenceService<Integer, O>, P extends WebPage & IEditPage<O, D>>
     implements Serializable

@@ -23,7 +23,6 @@
 
 package org.projectforge.web.teamcal.admin;
 
-import org.slf4j.Logger;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -37,6 +36,7 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+import org.slf4j.Logger;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)

@@ -23,11 +23,11 @@
 
 package org.projectforge.web.language.converter;
 
-import java.util.Locale;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.converter.LanguageConverter;
+
+import java.util.Locale;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

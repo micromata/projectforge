@@ -30,7 +30,7 @@ import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -80,15 +80,13 @@ open class TrainingDO : DefaultBaseDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skilltraining.startDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "start_date")
-    open var startDate: Date? = null
+    open var startDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skilltraining.endDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "end_date")
-    open var endDate: Date? = null
+    open var endDate: LocalDate? = null
 
     /**
      * Members of these groups have full read/write access to this training.

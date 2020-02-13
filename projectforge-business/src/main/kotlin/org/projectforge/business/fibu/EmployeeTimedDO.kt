@@ -28,11 +28,11 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
-import de.micromata.genome.db.jpa.tabattr.entities.TimeableBaseDO
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.framework.persistence.entities.PFTimeableBaseDO
 import java.io.Serializable
 import javax.persistence.*
 
@@ -46,7 +46,7 @@ import javax.persistence.*
 @Indexed
 @Table(name = "t_fibu_employee_timed", uniqueConstraints = [UniqueConstraint(columnNames = ["employee_id", "group_name", "start_time"])], indexes = [Index(name = "idx_fibu_employee_timed_start_time", columnList = "start_time")])
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "pk")
-class EmployeeTimedDO : TimeableBaseDO<EmployeeTimedDO, Int>(), TimeableAttrRow<Int>, IdObject<Int> {
+class EmployeeTimedDO : PFTimeableBaseDO<EmployeeTimedDO>(), TimeableAttrRow<Int>, IdObject<Int> {
 
     /**
      * @return Zugehöriger Mitarbeiter.

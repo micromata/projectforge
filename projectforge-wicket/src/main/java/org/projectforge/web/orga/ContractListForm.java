@@ -23,10 +23,7 @@
 
 package org.projectforge.web.orga;
 
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -40,6 +37,9 @@ import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.YearListCoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
+
+import java.util.List;
 
 public class ContractListForm extends AbstractListForm<ContractFilter, ContractListPage>
 {

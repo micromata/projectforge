@@ -23,10 +23,10 @@
 
 package org.projectforge.web.wicket;
 
-import java.util.Date;
-
 import org.apache.wicket.model.Model;
 import org.projectforge.framework.time.DateHelper;
+
+import java.util.Date;
 
 /**
  * Displays from and to date as UTC time stamp. Use-ful for checking the correctness of the time zone of any date object

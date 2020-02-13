@@ -23,12 +23,12 @@
 
 package org.projectforge.web;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.projectforge.framework.utils.NumberHelper;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * For displaying the total number of new items as sum of all counters from the sub menu entries.

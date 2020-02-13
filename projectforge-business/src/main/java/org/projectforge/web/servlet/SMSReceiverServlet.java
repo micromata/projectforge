@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  * Servlet which supports receiving SMS via http get:<br/>
@@ -113,7 +113,7 @@ public class SMSReceiverServlet extends HttpServlet
       response(resp, "Missing parameter 'msg'.");
       return;
     }
-    final Date date = MebDao.parseDate(dateString);
+    final LocalDate date = MebDao.parseDate(dateString);
     if (date == null) {
       log.warn("Servlet call for receiving sms ignored because couln't parse parameter 'date'.");
       response(resp, "Unsupported date format.");

@@ -34,15 +34,11 @@ import org.joda.time.DateTime;
 import org.projectforge.plugins.poll.PollDO;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
-import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)
- * 
+ *
  */
 public class PollEventEventsProvider extends MyFullCalendarEventsProvider
 {
@@ -90,7 +86,7 @@ public class PollEventEventsProvider extends MyFullCalendarEventsProvider
 
   /**
    * Just use getEvents, no caching enabled at this page!
-   * 
+   *
    * @see org.projectforge.web.calendar.MyFullCalendarEventsProvider#buildEvents(org.joda.time.DateTime,
    *      org.joda.time.DateTime)
    */
@@ -108,15 +104,15 @@ public class PollEventEventsProvider extends MyFullCalendarEventsProvider
   {
     final PollEventDO newEvent = new PollEventDO();
     newEvent.setPoll(poll);
-    newEvent.setStartDate(new Timestamp(range.getStart().getMillis()));
-    newEvent.setEndDate(new Timestamp(range.getEnd().getMillis()));
+    newEvent.setStartDate(range.getStart().toDate());
+    newEvent.setEndDate(range.getEnd().toDate());
     pollEventCache.put(newEvent, null);
     clearSelection(response);
   }
 
   /**
    * Clears the FullCalendar JS Selection and udpates the events
-   * 
+   *
    * @param response
    */
   private void clearSelection(final CalendarResponse response)
@@ -160,11 +156,11 @@ public class PollEventEventsProvider extends MyFullCalendarEventsProvider
       final PollEventDO eventDO = searchById(event.getId());
       if (eventDO != null) {
         if (newStartTime != null) {
-          eventDO.setStartDate(new Timestamp(newStartTime.getMillis()));
+          eventDO.setStartDate(new Date());
           event.setStart(newStartTime);
         }
         if (newEndTime != null) {
-          eventDO.setEndDate(new Timestamp(newEndTime.getMillis()));
+          eventDO.setEndDate(new Date());
           event.setEnd(newEndTime);
         }
         clearSelection(response);
@@ -176,7 +172,7 @@ public class PollEventEventsProvider extends MyFullCalendarEventsProvider
   }
 
   /**
-   * 
+   *
    * @param event
    */
   public void removeElement(final PollEventDO event)

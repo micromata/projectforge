@@ -23,11 +23,11 @@
 
 package org.projectforge.web.core;
 
-import java.awt.*;
-
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.framework.xstream.XmlField;
 import org.projectforge.framework.xstream.XmlObject;
+
+import java.awt.*;
 
 /**
  * For (de-)serializing web app's image dimensions. Used by PresizedImage and GetImageDimensionsTest.

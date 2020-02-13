@@ -23,8 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import java.util.Date;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
@@ -34,6 +32,8 @@ import org.projectforge.common.BeanHelper;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateTimeFormatter;
+
+import java.util.Date;
 
 /**
  * Table view property columns representing date or time stamps.

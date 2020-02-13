@@ -23,11 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -38,6 +33,11 @@ import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
 
 public class KontoFormComponent extends PFAutoCompleteTextField<KontoDO>
 {

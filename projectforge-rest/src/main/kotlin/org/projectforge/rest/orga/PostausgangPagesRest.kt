@@ -44,7 +44,7 @@ class PostausgangPagesRest() : AbstractDOPagesRest<PostausgangDO, PostausgangDao
      */
     override fun newBaseDO(request: HttpServletRequest?): PostausgangDO {
         val outbox = super.newBaseDO(request)
-        outbox.datum = PFDay.now().sqlDate
+        outbox.datum = PFDay.now().localDate
         outbox.type = PostType.BRIEF
         return outbox
     }

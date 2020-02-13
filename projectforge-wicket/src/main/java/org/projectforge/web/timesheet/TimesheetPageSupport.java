@@ -23,20 +23,16 @@
 
 package org.projectforge.web.timesheet;
 
-import java.io.Serializable;
-import java.util.List;
-
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetPrefData;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextField;
-import org.projectforge.web.wicket.flowlayout.AbstractFieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.AbstractGridBuilder;
-import org.projectforge.web.wicket.flowlayout.FieldProperties;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
+import org.projectforge.web.wicket.flowlayout.*;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * For sharing functionality between mobile and normal edit pages.

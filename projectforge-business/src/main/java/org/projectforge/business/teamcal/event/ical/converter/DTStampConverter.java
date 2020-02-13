@@ -29,7 +29,8 @@ import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.DtStamp;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
-import java.sql.Timestamp;
+import java.util.Date;
+
 
 public class DTStampConverter extends PropertyConverter
 {
@@ -45,7 +46,7 @@ public class DTStampConverter extends PropertyConverter
   public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent)
   {
     if (vEvent.getDateStamp() != null) {
-      event.setDtStamp(new Timestamp(vEvent.getDateStamp().getDate().getTime()));
+      event.setDtStamp(new Date(vEvent.getDateStamp().getDate().getTime()));
       return true;
     }
 

@@ -32,7 +32,6 @@ import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDateTimeUtils;
 
-import java.sql.Timestamp;
 import java.util.Date;
 
 import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.TIMEZONE_REGISTRY;
@@ -69,9 +68,9 @@ public class DTEndConverter extends PropertyConverter {
       // TODO sn change behaviour to iCal standard
       final PFDateTime dateTime = PFDateTime.from(vEvent.getEndDate().getDate()); // not null
       final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(dateTime.plusDays(-1).getUtilDate());
-      event.setEndDate(new Timestamp(fortunaEndDate.getTime()));
+      event.setEndDate(new Date(fortunaEndDate.getTime()));
     } else {
-      event.setEndDate(ICal4JUtils.getSqlTimestamp(vEvent.getEndDate().getDate()));
+      event.setEndDate(ICal4JUtils.getUtilDate(vEvent.getEndDate().getDate()));
     }
 
     return true;

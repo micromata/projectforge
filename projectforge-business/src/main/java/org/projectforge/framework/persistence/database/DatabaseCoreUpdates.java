@@ -36,7 +36,6 @@ import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.image.ImageService;
 import org.projectforge.business.multitenancy.TenantDao;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.vacation.model.VacationDO;
@@ -47,7 +46,6 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.*;
 import org.springframework.context.ApplicationContext;
 

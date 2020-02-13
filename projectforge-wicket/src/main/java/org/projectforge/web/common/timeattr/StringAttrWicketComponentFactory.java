@@ -23,13 +23,12 @@
 
 package org.projectforge.web.common.timeattr;
 
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-
 import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
 import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
+import org.projectforge.web.wicket.components.MaxLengthTextField;
+import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
+import org.projectforge.web.wicket.flowlayout.InputPanel;
 
 /**
  * A String input field.

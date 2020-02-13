@@ -23,11 +23,11 @@
 
 package org.projectforge.web;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.utils.KeyValueBean;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Helper for building and writing html tags.

@@ -28,21 +28,19 @@ import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.web.CSSColor;
 import org.projectforge.web.calendar.QuickSelectWeekPanel;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
+import org.projectforge.web.wicket.flowlayout.*;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  * Created by mnuhn on 05.12.2019
@@ -53,9 +51,9 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage>
 
   private TimePeriod timePeriod = new TimePeriod();
 
-  protected DatePanel startDate;
+  protected LocalDatePanel startDate;
 
-  protected DatePanel stopDate;
+  protected LocalDatePanel stopDate;
 
   public IHKForm(IHKPage parentPage)
   {
@@ -70,13 +68,13 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage>
     gridBuilder.newSplitPanel(GridSize.COL66);
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("timePeriod"));
 
-    startDate = new DatePanel(fs.newChildId(), new PropertyModel<>(timePeriod, "fromDate"),
-        DatePanelSettings.get().withSelectPeriodMode(true));
+    FieldProperties<LocalDate> props = getFromDayProperties();
+    startDate = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
     fs.add(startDate);
     fs.setLabelFor(startDate);
     fs.add(new DivTextPanel(fs.newChildId(), " - "));
-    stopDate = new DatePanel(fs.newChildId(), new PropertyModel<>(timePeriod, "toDate"),
-        DatePanelSettings.get().withSelectPeriodMode(true));
+    props = getToDayProperties();
+    stopDate = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
     fs.add(stopDate);
 
     {
@@ -96,13 +94,13 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage>
           unselectPeriodLink).setColor(CSSColor.RED));
     }
 
-    final QuickSelectWeekPanel quickSelectWeekPanel = new QuickSelectWeekPanel(fs.newChildId(), new Model<Date>()
+    final QuickSelectWeekPanel quickSelectWeekPanel = new QuickSelectWeekPanel(fs.newChildId(), new Model<LocalDate>()
     {
       @Override
-      public Date getObject()
+      public LocalDate getObject()
       {
         startDate.getDateField().validate();
-        return startDate.getDateField().getConvertedInput();
+        return PFDay.fromOrNow(startDate.getDateField().getConvertedInput()).getLocalDate();
       }
     }, parentPage, "quickSelect" + ".week");
     fs.add(quickSelectWeekPanel);
@@ -129,12 +127,20 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage>
         getString("plugins.ihk.download"), SingleButtonPanel.DEFAULT_SUBMIT));
   }
 
+  private FieldProperties<LocalDate> getToDayProperties() {
+    return new FieldProperties<>("", new PropertyModel<>(timePeriod, "fromDay"));
+  }
+
+  private FieldProperties<LocalDate> getFromDayProperties() {
+    return new FieldProperties<>("", new PropertyModel<>(timePeriod, "toDay"));
+  }
+
   public TimePeriod getTimePeriod()
   {
     return timePeriod;
   }
 
-  public DatePanel getStartDate()
+  public LocalDatePanel getStartDate()
   {
     return startDate;
   }

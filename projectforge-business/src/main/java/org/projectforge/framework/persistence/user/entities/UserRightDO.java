@@ -31,8 +31,8 @@ import org.hibernate.search.annotations.*;
 import org.hibernate.search.annotations.Index;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
-import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.DisplayNameCapable;
+import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 import javax.persistence.*;

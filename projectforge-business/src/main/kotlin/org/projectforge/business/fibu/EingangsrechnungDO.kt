@@ -31,8 +31,8 @@ import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.FieldBridge
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.utils.StringComparator
 import java.math.BigDecimal
 import javax.persistence.*

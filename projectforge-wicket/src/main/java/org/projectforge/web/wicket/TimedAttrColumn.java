@@ -23,10 +23,10 @@
 
 package org.projectforge.web.wicket;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Optional;
-
+import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.markup.html.basic.Label;
@@ -36,10 +36,9 @@ import org.apache.wicket.model.Model;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Optional;
 
 public class TimedAttrColumn<PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithTimeableAttr<PK, T> & EntityWithConfigurableAttr>
     extends AbstractColumn<U, String>

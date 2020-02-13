@@ -76,7 +76,7 @@ class PollPagesRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class
                 .add(lc, "title")
                 .add(location)
                 .add(lc, "description")
-                .add(UISelect.creatUserSelect(lc, "assignedItems", true, "plugins.poll.attendee.users"))
+                .add(UISelect.createUserSelect(lc, "assignedItems", true, "plugins.poll.attendee.users"))
         //additionalLabel = "access.users",
         return LayoutUtils.processEditPage(layout, dto, this)
     }

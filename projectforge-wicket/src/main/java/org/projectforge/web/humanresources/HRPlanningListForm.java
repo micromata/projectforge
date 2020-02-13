@@ -23,9 +23,6 @@
 
 package org.projectforge.web.humanresources;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -44,24 +41,18 @@ import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
-import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
-import org.projectforge.web.wicket.flowlayout.TextPanel;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
+import java.math.BigDecimal;
+
 /**
- * 
  * @author Mario Groß (m.gross@micromata.de)
- * 
  */
-public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, HRPlanningListPage>
-{
+public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, HRPlanningListPage> {
   private static final long serialVersionUID = 3167681159669386691L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRPlanningListForm.class);
@@ -72,16 +63,15 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
   @SpringBean
   private HRPlanningEntryDao hrPlanningEntryDao;
 
-  protected DatePanel startDate;
+  protected LocalDatePanel startDate;
 
-  protected DatePanel stopDate;
+  protected LocalDatePanel stopDate;
 
   protected NewProjektSelectPanel projektSelectPanel;
 
-  @SuppressWarnings({ "serial"})
+  @SuppressWarnings({"serial"})
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
     final HRPlanningFilter filter = getSearchFilter();
     if (hrPlanningEntryDao.hasLoggedInUserSelectAccess(false) == false) {
@@ -90,22 +80,21 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
     {
       gridBuilder.newSplitPanel(GridSize.COL66);
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timePeriod"));
-      startDate = new DatePanel(fs.newChildId(), new PropertyModel<Date>(filter, "startTime"), DatePanelSettings.get()
-          .withSelectPeriodMode(true).withRequired(true));
+      startDate = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<>(filter, "startDay")), DatePanelSettings.get()
+              .withSelectPeriodMode(true).withRequired(true), true);
       fs.add(startDate);
       fs.setLabelFor(startDate);
       fs.add(new DivTextPanel(fs.newChildId(), " - ").setRenderBodyOnly(false));
-      stopDate = new DatePanel(fs.newChildId(), new PropertyModel<Date>(filter, "stopTime"), DatePanelSettings.get()
-          .withSelectPeriodMode(true).withRequired(true));
+      stopDate = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<>(filter, "stopDay")), DatePanelSettings.get()
+              .withSelectPeriodMode(true).withRequired(true), true);
       fs.add(stopDate);
       {
         fs.add(new IconLinkPanel(fs.newChildId(), IconType.REMOVE_SIGN, new ResourceModel("calendar.tooltip.unselectPeriod"), new SubmitLink(
-            IconLinkPanel.LINK_ID) {
+                IconLinkPanel.LINK_ID) {
           @Override
-          public void onSubmit()
-          {
-            getSearchFilter().setStartTime(null);
-            getSearchFilter().setStopTime(null);
+          public void onSubmit() {
+            getSearchFilter().setStartDay(null);
+            getSearchFilter().setStopDay(null);
             clearInput();
             parentPage.refresh();
           }
@@ -116,16 +105,14 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
       quickSelectPanel.init();
       fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
-          return WicketUtils.getCalendarWeeks(HRPlanningListForm.this, filter.getStartTime(), filter.getStopTime());
+        public String getObject() {
+          return WicketUtils.getCalendarWeeks(HRPlanningListForm.this, filter.getStartDay(), filter.getStopDay());
         }
       }));
       fs.add(new HtmlCommentPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
-          return WicketUtils.getUTCDates(filter.getStartTime(), filter.getStopTime());
+        public String getObject() {
+          return WicketUtils.getUTCDates(filter.getStartDay(), filter.getStopDay());
         }
       }));
     }
@@ -135,8 +122,7 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.totalDuration")).suppressLabelForWarning();
       fs.add(new TextPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           BigDecimal duration = new BigDecimal(0);
           if (parentPage.getList() != null) {
             for (final HRPlanningEntryDO sheet : parentPage.getList()) {
@@ -161,8 +147,7 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.projekt"));
       projektSelectPanel = new NewProjektSelectPanel(fs.newChildId(), new Model<ProjektDO>() {
         @Override
-        public ProjektDO getObject()
-        {
+        public ProjektDO getObject() {
           return projektDao.getById(filter.getProjektId());
         }
       }, parentPage, "projektId");
@@ -177,14 +162,12 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("user"));
       final UserSelectPanel userSelectPanel = new UserSelectPanel(fs.newChildId(), new Model<PFUserDO>() {
         @Override
-        public PFUserDO getObject()
-        {
+        public PFUserDO getObject() {
           return getTenantRegistry().getUserGroupCache().getUser(filter.getUserId());
         }
 
         @Override
-        public void setObject(final PFUserDO object)
-        {
+        public void setObject(final PFUserDO object) {
           if (object == null) {
             filter.setUserId(null);
           } else {
@@ -198,8 +181,7 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
     }
   }
 
-  public HRPlanningListForm(final HRPlanningListPage parentPage)
-  {
+  public HRPlanningListForm(final HRPlanningListPage parentPage) {
     super(parentPage);
   }
 
@@ -207,25 +189,22 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel, org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @Override
-  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
-  {
+  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel) {
     optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(getSearchFilter(),
-        "groupEntries"), getString("hr.planning.filter.groupEntries")));
+            "groupEntries"), getString("hr.planning.filter.groupEntries")));
     optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(getSearchFilter(),
-        "onlyMyProjects"), getString("hr.planning.filter.onlyMyProjects")));
+            "onlyMyProjects"), getString("hr.planning.filter.onlyMyProjects")));
     optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(getSearchFilter(),
-        "longFormat"), getString("longFormat")));
+            "longFormat"), getString("longFormat")));
   }
 
   @Override
-  protected HRPlanningListFilter newSearchFilterInstance()
-  {
+  protected HRPlanningListFilter newSearchFilterInstance() {
     return new HRPlanningListFilter();
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 }

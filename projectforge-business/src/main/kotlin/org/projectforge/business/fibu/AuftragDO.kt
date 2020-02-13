@@ -37,7 +37,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.xstream.XmlObjectReader
 import java.math.BigDecimal
-import java.sql.Date
+import java.time.LocalDate
 import java.util.*
 import javax.persistence.*
 
@@ -160,27 +160,23 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "fibu.auftrag.angebot.datum")
     @Field
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "angebots_datum")
-    open var angebotsDatum: Date? = null
+    open var angebotsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.erfassung.datum")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "erfassungs_datum")
-    open var erfassungsDatum: Date? = null
+    open var erfassungsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.entscheidung.datum")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "entscheidungs_datum")
-    open var entscheidungsDatum: Date? = null
+    open var entscheidungsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.bindungsFrist")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "bindungs_frist")
-    open var bindungsFrist: Date? = null
+    open var bindungsFrist: LocalDate? = null
 
     /**
      * Wer hat wann und wie beauftragt? Z. B. Beauftragung per E-Mail durch Herrn Müller.
@@ -194,7 +190,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
      */
     @PropertyInfo(i18nKey = "fibu.auftrag.beauftragungsdatum")
     @get:Column(name = "beauftragungs_datum")
-    open var beauftragungsDatum: Date? = null
+    open var beauftragungsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.fakturiert")
     @get:Transient
@@ -245,15 +241,13 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_begin")
-    open var periodOfPerformanceBegin: Date? = null
+    open var periodOfPerformanceBegin: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_end")
-    open var periodOfPerformanceEnd: Date? = null
+    open var periodOfPerformanceEnd: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.probabilityOfOccurrence")
     @get:Column(name = "probability_of_occurrence")

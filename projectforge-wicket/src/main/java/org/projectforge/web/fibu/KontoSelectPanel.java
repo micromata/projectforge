@@ -23,10 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
@@ -43,6 +39,10 @@ import org.projectforge.framework.utils.Ranges;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * This panel is a autocompletion text field for selecting an account (DATEV-Konto).

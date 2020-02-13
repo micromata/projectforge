@@ -138,6 +138,10 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         return isBefore(from(other))
     }
 
+    fun isBefore(other: LocalDate): Boolean {
+        return date.isBefore(other)
+    }
+
     override fun isAfter(other: PFDay): Boolean {
         return date.isAfter(other.date)
     }
@@ -202,6 +206,9 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         return date.compareTo(other.date)
     }
 
+    /**
+     * Formats current date in user's date format.
+     */
     fun format(): String {
         val formatter = DateFormats.getDateTimeFormatter(DateFormatType.DATE)
         return format(formatter)
@@ -233,6 +240,12 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
             }
             return _utilDate!!
         }
+
+    /**
+     * @return [java.sql.Date] ignoring any user's or system's time zone.
+     */
+    val utilDateUTC: Date
+        get() = java.sql.Date.valueOf(date)
 
     private var _sqlDate: java.sql.Date? = null
     /**
@@ -279,6 +292,15 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         }
 
         /**
+         * Date "2020-02-09 **:**:**" (UTC) results in 2020-02-09 independant of user's or system timezoone.
+         * Convenient method of fromOrNull] with time zone UTC.
+         */
+        @JvmStatic
+        fun fromOrNullUTC(date: Date?): PFDay? {
+            return fromOrNull(date, PFDateTimeUtils.TIMEZONE_UTC)
+        }
+
+        /**
          * @param date Date of type java.util.Date or java.sql.Date (not null).
          * @param timeZone If not given, the context user's time zone will be used.
          * @return PFDay (midnight) from given value...
@@ -295,7 +317,7 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
             return PFDay(localDate)
         }
 
-            /**
+        /**
          * @param date Date of type java.util.Date or java.sql.Date (or null).
          * @param timeZone If not given, the context user's time zone will be used.
          * @return PFDay (midnight) from given value or now if [localDate] is null...
@@ -353,6 +375,14 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         @JvmStatic
         fun now(): PFDay {
             return PFDay(LocalDate.now())
+        }
+
+        /**
+         * Alias for [now].
+         */
+        @JvmStatic
+        fun today(): PFDay {
+            return now()
         }
 
         /**
