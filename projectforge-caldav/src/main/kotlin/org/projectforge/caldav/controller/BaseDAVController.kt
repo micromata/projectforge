@@ -36,7 +36,8 @@ import org.slf4j.LoggerFactory
 /**
  * Created by blumenstein on 21.11.16.
  */
-open class BaseDAVController: BaseAuthenticationController() {
+open class BaseDAVController: BaseDAVAuthenticationController() {
+
     @JvmField
     var usersHome: UsersHome? = null
     @AccessControlList
@@ -53,7 +54,7 @@ open class BaseDAVController: BaseAuthenticationController() {
     @ChildrenOf
     @Users
     fun getUsers(usersHome: UsersHome?): Collection<User> {
-        log.info("Trying to get list of users. Return only logged-in one due to security reasons")
+        log.info("Trying to get list of users. Return only logged-in one due to security reasons.")
         val user = User()
         user.pk = ThreadLocalUserContext.getUserId().toLong()
         user.username = ThreadLocalUserContext.getUser().username

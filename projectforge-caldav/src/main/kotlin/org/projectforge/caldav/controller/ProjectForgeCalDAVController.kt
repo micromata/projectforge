@@ -31,16 +31,24 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
 
-open class ProjectForgeCaldavController : BaseDAVController() {
+@ResourceController
+open class ProjectForgeCalDAVController : BaseDAVController() {
     @Autowired
-    private lateinit var calendarService: CalendarService
+    private lateinit var calendarService_: CalendarService
+
+    private val calendarService: CalendarService
+        get() {
+            ensureAutowire()
+            return calendarService_
+        }
+
 
     @get:Root
-    val root: ProjectForgeCaldavController
+    val root: ProjectForgeCalDAVController
         get() = this
 
     @ChildrenOf
-    fun getUsersHome(root: ProjectForgeCaldavController): UsersHome {
+    fun getUsersHome(root: ProjectForgeCalDAVController): UsersHome {
         log.info("getUsersHome(root)")
                 if (usersHome == null) {
             log.info("Create new UsersHome")
@@ -57,9 +65,9 @@ open class ProjectForgeCaldavController : BaseDAVController() {
 
     @ChildrenOf
     @Calendars
-    fun getCalendarsHome(cals: CalendarsHome): List<Calendar> {
-        log.info("getCalendarsHome '${cals.name}'.")
-        return calendarService.getCalendarList(cals.user)
+    fun getCalendars(cal: CalendarsHome): List<Calendar> {
+        log.info("getCalendars '${cal.name}'.")
+        return calendarService.getCalendarList(cal.user)
     }
 
     @ChildrenOf
@@ -107,7 +115,7 @@ open class ProjectForgeCaldavController : BaseDAVController() {
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(ProjectForgeCaldavController::class.java)
+        private val log = LoggerFactory.getLogger(ProjectForgeCalDAVController::class.java)
     }
 
     init {

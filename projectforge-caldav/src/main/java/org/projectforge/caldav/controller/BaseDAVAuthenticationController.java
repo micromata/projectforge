@@ -35,8 +35,16 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by blumenstein on 21.11.16.
  */
-public class BaseAuthenticationController {
-    private boolean initialized = false;
+public class BaseDAVAuthenticationController {
+    private boolean autowired = false;
+
+    protected void ensureAutowire() {
+        if (!autowired) {
+            // Late initialization is required. ApplicationContext isn't available in constructor.
+            ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().autowireBean(this);
+            autowired = true;
+        }
+    }
 
     /**
      * Function as Java code needed, because Milton fails while checking return type of this method (java.lang.Boolean required).
@@ -46,12 +54,7 @@ public class BaseAuthenticationController {
      */
     @Authenticate
     public Boolean authenticate(final User user, final String requestedPassword) {
-        if (!initialized) {
-            // Late initialization is required. ApplicationContext isn't available in constructor.
-            ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().autowireBean(this);
-            initialized = true;
-        }
-        log.info("Trying to authenticate user '$user'.");
+        log.info("Trying to authenticate user '" + user.getUsername()  + "'.");
         final PFUserDO contextUser = ThreadLocalUserContext.getUser();
         if (contextUser == null) {
           return false;

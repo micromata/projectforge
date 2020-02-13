@@ -42,6 +42,7 @@ import org.projectforge.rest.ConnectionSettings;
 import org.projectforge.rest.converter.DateTimeFormat;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.ServletRequest;
@@ -219,7 +220,9 @@ public class RestAuthenticationUtils {
     ConnectionSettings.set(null);
     MDC.remove("ip");
     MDC.remove("user");
-    if (((HttpServletResponse) response).getStatus() != HttpServletResponse.SC_OK) {
+    final int resultCode = ((HttpServletResponse) response).getStatus();
+    if (resultCode != HttpStatus.OK.value() && resultCode != HttpStatus.MULTI_STATUS.value()) {
+      // MULTI_STATUS (207) will be returned by milton.io (CalDAV/CardDAV), because XML is returned.
       final PFUserDO user = userInfo.user;
       final String clientIpAddress = userInfo.clientIpAddress;
       log.error("User: " + user.getUsername() + " calls RestURL: " + ((HttpServletRequest) request).getRequestURI()

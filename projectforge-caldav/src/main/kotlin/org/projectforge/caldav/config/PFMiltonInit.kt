@@ -24,8 +24,8 @@
 package org.projectforge.caldav.config
 
 import org.projectforge.business.configuration.ConfigurationService
-import org.projectforge.caldav.controller.ProjectForgeCaldavController
-import org.projectforge.caldav.controller.ProjectForgeCarddavController
+import org.projectforge.caldav.controller.ProjectForgeCalDAVController
+import org.projectforge.caldav.controller.ProjectForgeCardDAVController
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -58,7 +58,7 @@ open class PFMiltonInit {
         // FB: Don't work in Spring Boot fat jar
         // miltonFilter.setInitParameter("controllerPackagesToScan", "org.projectforge.caldav.controller");
         miltonFilter.setInitParameter("controllerClassNames",
-                listOf(ProjectForgeCaldavController::class.java, ProjectForgeCarddavController::class.java).joinToString { it.name })
+                listOf(ProjectForgeCalDAVController::class.java, ProjectForgeCardDAVController::class.java).joinToString { it.name })
         miltonFilter.setInitParameter("enableDigestAuth", "false")
         miltonFilter.setInitParameter("milton.configurator", ProjectForgeMiltonConfigurator::class.java.name)
         miltonFilter.addMappingForUrlPatterns(null, false, "/*")
