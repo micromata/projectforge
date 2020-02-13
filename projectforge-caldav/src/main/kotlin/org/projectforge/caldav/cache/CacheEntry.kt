@@ -20,6 +20,7 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.caldav.cache
 
 class CacheEntry<T>(val expireTimeInMillis: Long = 60000L) {

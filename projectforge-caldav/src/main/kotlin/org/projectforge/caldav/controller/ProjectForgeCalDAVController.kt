@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
 
+// curl -A "CoreDAV" --user "kai:xxxx" -H "Content-Type: text/xml" -H "Depth: 1" --data "<propfind xmlns='DAV:'><prop><calendar-data xmlns='urn:ietf:params:xml:ns:caldav'/></prop></propfind>" -X PROPFIND "http://localhost:8080/users/kai/addressBooks/default"
 @ResourceController
 open class ProjectForgeCalDAVController : BaseDAVController() {
     @Autowired
