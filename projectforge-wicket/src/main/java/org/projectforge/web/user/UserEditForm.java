@@ -23,26 +23,12 @@
 
 package org.projectforge.web.user;
 
-import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
-
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.html.form.Button;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.PasswordTextField;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -54,26 +40,13 @@ import org.apache.wicket.validation.ValidationError;
 import org.projectforge.Const;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.group.service.GroupService;
-import org.projectforge.business.ldap.LdapPosixAccountsUtils;
-import org.projectforge.business.ldap.LdapSambaAccountsConfig;
-import org.projectforge.business.ldap.LdapSambaAccountsUtils;
-import org.projectforge.business.ldap.LdapService;
-import org.projectforge.business.ldap.LdapUserDao;
-import org.projectforge.business.ldap.LdapUserValues;
-import org.projectforge.business.ldap.PFUserDOConverter;
+import org.projectforge.business.ldap.*;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.multitenancy.TenantsComparator;
 import org.projectforge.business.password.PasswordQualityService;
-import org.projectforge.business.user.GroupDao;
-import org.projectforge.business.user.GroupsComparator;
-import org.projectforge.business.user.UserDao;
-import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.UserRight;
-import org.projectforge.business.user.UserRightDao;
-import org.projectforge.business.user.UserRightVO;
-import org.projectforge.business.user.UserRightValue;
+import org.projectforge.business.user.*;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
@@ -94,16 +67,14 @@ import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
-import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.components.TimeZoneField;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
 {

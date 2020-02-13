@@ -1,6 +1,7 @@
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { colorPropType } from '../../../../utilities/propTypes';
 import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
 import AdvancedPopper from '../../popper/AdvancedPopper';
 import styles from './AutoCompletion.module.scss';
@@ -12,6 +13,7 @@ const loadCompletionsBounced = (
         search = '',
         setCompletions,
         searchParameter,
+        signal,
     },
 ) => {
     fetch(
@@ -20,19 +22,23 @@ const loadCompletionsBounced = (
             method: 'GET',
             credentials: 'include',
             headers: { Accept: 'application/json' },
+            signal,
         },
     )
         .then(handleHTTPErrors)
         .then(response => response.json())
         .then(setCompletions)
-        .catch(() => setCompletions([]));
+        .catch(() => {});
 };
 
 function AutoCompletion(
     {
+        additionalLabel,
+        color,
         input,
         url,
         onSelect,
+        required,
         search,
         searchParameter,
         ...props
@@ -40,6 +46,7 @@ function AutoCompletion(
 ) {
     const [completions, setCompletions] = React.useState([]);
     const [isOpen, setIsOpen] = React.useState(false);
+    const [abortController, setAbortController] = React.useState(null);
     const searchRef = React.useRef(null);
     const [loadCompletions] = React.useState(
         () => AwesomeDebouncePromise(loadCompletionsBounced, debouncedWaitTime),
@@ -55,6 +62,8 @@ function AutoCompletion(
     const handleKeyDown = ({ key }) => {
         if (key === 'Escape' || key === 'Enter') {
             close();
+        } else if (!isOpen) {
+            setIsOpen(true);
         }
     };
 
@@ -65,11 +74,20 @@ function AutoCompletion(
 
     React.useEffect(() => {
         if (url) {
+            // Cancel old request, to prevent overwriting
+            if (abortController) {
+                abortController.abort();
+            }
+
+            const newAbortController = new AbortController();
+            setAbortController(newAbortController);
+
             loadCompletions({
                 url,
                 search,
                 setCompletions,
                 searchParameter,
+                signal: newAbortController.signal,
             });
         }
     }, [url, search]);
@@ -78,12 +96,15 @@ function AutoCompletion(
         <AdvancedPopper
             additionalClassName={styles.completions}
             basic={input({
+                additionalLabel,
+                color: required && !search ? 'danger' : color,
                 ref: searchRef,
                 onKeyDown: handleKeyDown,
                 value: search,
             })}
             setIsOpen={setIsOpen}
             isOpen={isOpen && completions.length !== 0}
+            withInput
             {...props}
         >
             <ul className={styles.entries}>
@@ -111,13 +132,19 @@ function AutoCompletion(
 AutoCompletion.propTypes = {
     input: PropTypes.func.isRequired,
     onSelect: PropTypes.func.isRequired,
+    additionalLabel: PropTypes.string,
+    color: colorPropType,
     url: PropTypes.string,
+    required: PropTypes.bool,
     search: PropTypes.string,
     searchParameter: PropTypes.string,
 };
 
 AutoCompletion.defaultProps = {
+    additionalLabel: undefined,
+    color: undefined,
     url: undefined,
+    required: false,
     search: '',
     searchParameter: 'search',
 };

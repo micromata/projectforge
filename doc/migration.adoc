@@ -23,5 +23,5 @@ link:index{outfilesuffix}[Top]
    .. `config.xml:currencySymbol` -> `projectforge.properties:projectforge.currencySymbol=€`
    .. `config.xml:defaultLocale` -> `projectforge.properties:projectforge.defaultLocale=en`
    .. `config.xml:defaultTimeNotation` -> `projectforge.properties:projectforge.defaultTimeNotation=H24`
-   .. `config.xml:firstDayOfWeek` -> `projectforge.properties:projectforge.defaultFirstDayOfWeek=2`
+   .. `config.xml:firstDayOfWeek` -> `projectforge.properties:projectforge.defaultFirstDayOfWeek=MONDAY`
    .. `config.xml:excelPaperSize` -> `projectforge.properties:projectforge.excelPaperSize=DINA4`

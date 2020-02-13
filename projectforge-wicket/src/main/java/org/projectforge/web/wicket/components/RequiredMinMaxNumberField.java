@@ -23,9 +23,9 @@
 
 package org.projectforge.web.wicket.components;
 
-import java.io.Serializable;
-
 import org.apache.wicket.model.IModel;
+
+import java.io.Serializable;
 
 public class RequiredMinMaxNumberField<Z extends Comparable<Z> & Serializable> extends MinMaxNumberField<Z>
 {

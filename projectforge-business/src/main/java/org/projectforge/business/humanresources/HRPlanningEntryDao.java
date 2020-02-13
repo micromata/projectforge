@@ -86,9 +86,9 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
   @Override
   public List<HRPlanningEntryDO> getList(final BaseSearchFilter filter) {
     final HRPlanningFilter myFilter = (HRPlanningFilter) filter;
-    if (myFilter.getStopTime() != null) {
-      final PFDateTime date = PFDateTime.from(myFilter.getStopTime()).getEndOfDay();
-      myFilter.setStopTime(date.getUtilDate());
+    if (myFilter.getStopDay() != null) {
+      final PFDateTime date = PFDateTime.from(myFilter.getStopDay()).getEndOfDay();
+      myFilter.setStopDay(date.getLocalDate());
     }
     final QueryFilter queryFilter = buildQueryFilter(myFilter);
     myFilter.setIgnoreDeleted(true); // Ignore deleted flag of HRPlanningEntryDOs, use instead:
@@ -172,12 +172,12 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
       user.setId(filter.getUserId());
       queryFilter.add(QueryFilter.eq("planning.user", user));
     }
-    if (filter.getStartTime() != null && filter.getStopTime() != null) {
-      queryFilter.add(QueryFilter.between("planning.week", filter.getStartTime(), filter.getStopTime()));
-    } else if (filter.getStartTime() != null) {
-      queryFilter.add(QueryFilter.ge("planning.week", filter.getStartTime()));
-    } else if (filter.getStopTime() != null) {
-      queryFilter.add(QueryFilter.le("planning.week", filter.getStopTime()));
+    if (filter.getStartDay() != null && filter.getStopDay() != null) {
+      queryFilter.add(QueryFilter.between("planning.week", filter.getStartDay(), filter.getStopDay()));
+    } else if (filter.getStartDay() != null) {
+      queryFilter.add(QueryFilter.ge("planning.week", filter.getStartDay()));
+    } else if (filter.getStopDay() != null) {
+      queryFilter.add(QueryFilter.le("planning.week", filter.getStopDay()));
     }
     if (filter.getProjektId() != null) {
       queryFilter.add(QueryFilter.eq("projekt.id", filter.getProjektId()));

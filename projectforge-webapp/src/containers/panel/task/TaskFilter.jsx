@@ -73,6 +73,7 @@ function TaskFilter(
                     onChange={handleSearchChange}
                     onKeyPress={handleInputKeyPress}
                     value={searchValue}
+                    noStyle
                 />
             )}
             className={style.searchContainer}

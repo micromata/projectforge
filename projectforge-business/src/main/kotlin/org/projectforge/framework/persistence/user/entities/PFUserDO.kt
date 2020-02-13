@@ -43,7 +43,6 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.time.TimeNotation
 import java.io.Serializable
-import java.sql.Timestamp
 import java.time.DayOfWeek
 import java.util.*
 import javax.persistence.*
@@ -198,7 +197,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     @PropertyInfo(i18nKey = "login.lastLogin")
     @field:NoHistory
     @get:Column
-    open var lastLogin: Timestamp? = null
+    open var lastLogin: Date? = null
 
     /**
      * Die Anzahl der erfolglosen Logins. Dieser Wert wird bei dem nächsten erfolgreichen Login auf 0 zurück gesetzt.

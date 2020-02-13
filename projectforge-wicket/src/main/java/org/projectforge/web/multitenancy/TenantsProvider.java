@@ -23,11 +23,6 @@
 
 package org.projectforge.web.multitenancy;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.TreeSet;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.multitenancy.TenantsComparator;
@@ -38,6 +33,11 @@ import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.TreeSet;
 
 public class TenantsProvider extends ChoiceProvider<TenantDO>
 {

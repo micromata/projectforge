@@ -30,23 +30,17 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.joda.time.DateMidnight;
 import org.projectforge.business.teamcal.filter.CalendarFilter;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.wicket.AbstractStandardForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DateTimePanel;
 import org.projectforge.web.wicket.components.JodaDatePanel;
-import org.projectforge.web.wicket.flowlayout.ButtonGroupPanel;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.IconButtonPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
+import org.projectforge.web.wicket.flowlayout.*;
 
 public class CalendarForm extends AbstractStandardForm<CalendarFilter, CalendarPage>
 {

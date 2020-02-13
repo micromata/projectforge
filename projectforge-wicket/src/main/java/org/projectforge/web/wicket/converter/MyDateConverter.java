@@ -23,11 +23,11 @@
 
 package org.projectforge.web.wicket.converter;
 
-import java.util.Date;
-import java.util.Locale;
-
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+
+import java.util.Date;
+import java.util.Locale;
 
 public class MyDateConverter extends MyAbstractDateConverter
 {

@@ -35,7 +35,6 @@ import org.projectforge.framework.time.PFDateTime;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.Collection;
 import java.util.List;
 

@@ -36,7 +36,6 @@
 package net.ftlines.wicket.fullcalendar.selector;
 
 import net.ftlines.wicket.fullcalendar.FullCalendar;
-
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnLoadHeaderItem;
 import org.apache.wicket.markup.html.IHeaderContributor;

@@ -23,12 +23,12 @@
 
 package org.projectforge.web.humanresources;
 
-import java.math.BigDecimal;
-
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
+
+import java.math.BigDecimal;
 
 /**
  * 

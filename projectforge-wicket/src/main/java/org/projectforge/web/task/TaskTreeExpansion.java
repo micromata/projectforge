@@ -23,8 +23,7 @@
 
 package org.projectforge.web.task;
 
-import java.util.Set;
-
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.projectforge.business.task.TaskNode;
@@ -32,7 +31,7 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.service.UserPreferencesHelper;
 import org.projectforge.web.wicket.tree.TableTreeExpansion;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
+import java.util.Set;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

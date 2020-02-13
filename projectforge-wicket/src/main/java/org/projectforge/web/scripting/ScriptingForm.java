@@ -23,32 +23,30 @@
 
 package org.projectforge.web.scripting;
 
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.Button;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.lang.Bytes;
 import org.projectforge.business.fibu.kost.reporting.Report;
 import org.projectforge.business.fibu.kost.reporting.ReportStorage;
-import org.projectforge.business.scripting.GroovyResult;
 import org.projectforge.business.scripting.ScriptDO;
+import org.projectforge.business.scripting.ScriptExecutionResult;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.web.fibu.ReportScriptingStorage;
 import org.projectforge.web.wicket.AbstractStandardForm;
+import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.AceEditorPanel;
+import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
-import org.projectforge.web.wicket.flowlayout.Heading1Panel;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.springframework.util.CollectionUtils;
 
-public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
-{
+import java.util.List;
+
+public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage> {
   private static final long serialVersionUID = 1868796548657011785L;
 
   protected FileUploadField fileUploadField;
@@ -57,16 +55,14 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
 
   private DivPanel reportPathPanel;
 
-  public ScriptingForm(final ScriptingPage parentPage)
-  {
+  public ScriptingForm(final ScriptingPage parentPage) {
     super(parentPage);
     initUpload(Bytes.megabytes(1));
   }
 
   @Override
   @SuppressWarnings("serial")
-  protected void init()
-  {
+  protected void init() {
     super.init();
     gridBuilder.newGridPanel();
     reportPathPanel = gridBuilder.getPanel();
@@ -75,19 +71,17 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
        * @see org.apache.wicket.model.Model#getObject()
        */
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         return reportPathHeading;
       }
     }));
-    gridBuilder.newGridPanel();
+    gridBuilder.newSplitPanel(GridSize.COL50);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("file"), "*.xsl, *.jrxml");
       fileUploadField = new FileUploadField(FileUploadPanel.WICKET_ID);
       fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           final ReportScriptingStorage storage = getReportScriptingStorage();
           return storage != null ? storage.getLastAddedFilename() : "";
         }
@@ -95,68 +89,80 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
       fs.add(new FileUploadPanel(fs.newChildId(), fileUploadField));
       final Button uploadButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("upload")) {
         @Override
-        public final void onSubmit()
-        {
+        public final void onSubmit() {
           parentPage.upload();
         }
       };
       fs.add(new SingleButtonPanel(fs.newChildId(), uploadButton, getString("upload"), SingleButtonPanel.NORMAL));
     }
+    gridBuilder.newSplitPanel(GridSize.COL50);
     {
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("label.groovyScript"));
-      final AceEditorPanel textArea = new AceEditorPanel(fs.newChildId(), new PropertyModel<String>(this, "groovyScript"));
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("scripting.script.type"));
+      // DropDownChoice type
+      final LabelValueChoiceRenderer<ScriptDO.ScriptType> typeChoiceRenderer = new LabelValueChoiceRenderer<ScriptDO.ScriptType>();
+      typeChoiceRenderer.addValue(ScriptDO.ScriptType.GROOVY, "Groovy");
+      typeChoiceRenderer.addValue(ScriptDO.ScriptType.KOTLIN, "Kotlin");
+      final DropDownChoice<ScriptDO.ScriptType> typeChoice = new DropDownChoice<ScriptDO.ScriptType>(fs.getDropDownChoiceId(),
+              new PropertyModel<ScriptDO.ScriptType>(getReportScriptingStorage(), "type"), typeChoiceRenderer.getValues(), typeChoiceRenderer);
+      typeChoice.setNullValid(true);
+      typeChoice.setRequired(false);
+      fs.add(typeChoice);
+    }
+    gridBuilder.newGridPanel();
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("label.script"));
+      final AceEditorPanel textArea = new AceEditorPanel(fs.newChildId(), new PropertyModel<String>(getReportScriptingStorage(), "script"));
       fs.add(textArea);
     }
     {
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("label.groovy.result")).suppressLabelForWarning();
-      final DivTextPanel groovyResultPanel = new DivTextPanel(fs.newChildId(), new Model<String>() {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("label.script.result")).suppressLabelForWarning();
+      final DivTextPanel scriptResultPanel = new DivTextPanel(fs.newChildId(), new Model<String>() {
         /**
          * @see org.apache.wicket.model.Model#getObject()
          */
         @Override
-        public String getObject()
-        {
-          final GroovyResult groovyResult = parentPage.groovyResult;
+        public String getObject() {
+          final ScriptExecutionResult scriptingExecutionResult = parentPage.scriptExecutionResult;
           final StringBuffer buf = new StringBuffer();
-          buf.append(groovyResult.getResultAsHtmlString());
-          if (groovyResult.getResult() != null && StringUtils.isNotEmpty(groovyResult.getOutput()) == true) {
-            buf.append("<br/>\n");
-            buf.append(HtmlHelper.escapeXml(groovyResult.getOutput()));
+          if (scriptingExecutionResult.hasException()) {
+            buf.append(scriptingExecutionResult.getException().getMessage()).append("\n");
           }
-          return buf.toString();
+          buf.append(scriptingExecutionResult.getResultAsHtmlString());
+          if (scriptingExecutionResult.getResult() != null && StringUtils.isNotEmpty(scriptingExecutionResult.getOutput()) == true) {
+            buf.append("<br/>\n");
+            buf.append(scriptingExecutionResult.getOutput());
+          }
+          return "<pre>" + HtmlHelper.escapeHtml(buf.toString(), true) + "</pre>";
         }
       }) {
         /**
          * @see org.apache.wicket.Component#isVisible()
          */
         @Override
-        public boolean isVisible()
-        {
-          final GroovyResult groovyResult = parentPage.groovyResult;
-          return (groovyResult != null && groovyResult.hasResult() == true);
+        public boolean isVisible() {
+          final ScriptExecutionResult scriptExecutionResult = parentPage.scriptExecutionResult;
+          return scriptExecutionResult != null;
         }
       };
-      groovyResultPanel.getLabel().setEscapeModelStrings(false);
-      fs.add(groovyResultPanel);
+      scriptResultPanel.getLabel().setEscapeModelStrings(false);
+      fs.add(scriptResultPanel);
     }
     {
       final Button executeButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("execute")) {
         @Override
-        public final void onSubmit()
-        {
+        public final void onSubmit() {
           parentPage.execute();
         }
       };
       final SingleButtonPanel executeButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), executeButton, getString("execute"),
-          SingleButtonPanel.DEFAULT_SUBMIT);
+              SingleButtonPanel.DEFAULT_SUBMIT);
       actionButtons.add(executeButtonPanel);
       setDefaultButton(executeButton);
     }
   }
 
   @Override
-  public void onBeforeRender()
-  {
+  public void onBeforeRender() {
     final ReportStorage reportStorage = parentPage.getReportStorage();
     final Report currentReport = reportStorage != null ? reportStorage.getCurrentReport() : null;
     final String reportPathHeading = getReportPath(currentReport);
@@ -168,8 +174,7 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
     super.onBeforeRender();
   }
 
-  private String getReportPath(final Report report)
-  {
+  private String getReportPath(final Report report) {
     if (report == null) {
       return null;
     }
@@ -185,18 +190,7 @@ public class ScriptingForm extends AbstractStandardForm<ScriptDO, ScriptingPage>
     return buf.toString();
   }
 
-  public String getGroovyScript()
-  {
-    return getReportScriptingStorage().getGroovyScript();
-  }
-
-  public void setGroovyScript(final String groovyScript)
-  {
-    getReportScriptingStorage().setGroovyScript(groovyScript);
-  }
-
-  private ReportScriptingStorage getReportScriptingStorage()
-  {
+  private ReportScriptingStorage getReportScriptingStorage() {
     return parentPage.getReportScriptingStorage();
   }
 }

@@ -39,6 +39,7 @@ import org.projectforge.business.configuration.DomainService
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateTimeFormatter
+import org.projectforge.framework.time.PFDay
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -49,8 +50,8 @@ import java.io.File
 import java.io.IOException
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.sql.Date
 import java.text.DecimalFormat
+import java.time.LocalDate
 import java.util.*
 import java.util.stream.Collectors
 
@@ -174,8 +175,8 @@ open class InvoiceService {
     }
 
     private fun getPeriodOfPerformance(position: RechnungsPositionDO, invoice: RechnungDO): String {
-        val begin: Date?
-        val end: Date?
+        val begin: LocalDate?
+        val end: LocalDate?
         if (position.periodOfPerformanceType == PeriodOfPerformanceType.OWN) {
             begin = position.periodOfPerformanceBegin
             end = position.periodOfPerformanceEnd
@@ -251,7 +252,7 @@ open class InvoiceService {
         }
         val project = if (invoice.projekt != null) "_" + invoice.projekt!!.name else ""
         val subject = if (invoice.betreff != null) "_" + invoice.betreff else ""
-        val invoiceDate = "_" + DateTimeFormatter.instance().getFormattedDate(invoice.datum)
+        val invoiceDate = "_" + PFDay.fromOrNow(invoice.datum).isoString
         return StringUtils.abbreviate(
                 ReplaceUtils.encodeFilename(number + customer + project + subject + invoiceDate, true),
                 "...", FILENAME_MAXLENGTH) + suffix

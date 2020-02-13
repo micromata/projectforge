@@ -23,11 +23,11 @@
 
 package org.projectforge.web.wicket;
 
-import java.util.List;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebPage;
 import org.projectforge.framework.persistence.api.BaseDO;
+
+import java.util.List;
 
 /**
  * Needed by SearchPage for creating the result tables.

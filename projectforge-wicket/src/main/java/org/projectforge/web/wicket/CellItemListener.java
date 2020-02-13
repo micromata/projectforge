@@ -23,11 +23,11 @@
 
 package org.projectforge.web.wicket;
 
-import java.io.Serializable;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+
+import java.io.Serializable;
 
 /**
  * Usable for data view objects for manipulating single cells. T is for example the do object.

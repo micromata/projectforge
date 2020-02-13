@@ -23,8 +23,6 @@
 
 package org.projectforge.web.timesheet;
 
-import java.util.Date;
-
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
@@ -50,6 +48,8 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.slf4j.Logger;
+
+import java.util.Date;
 
 public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, TimesheetListPage>
 {
@@ -130,8 +130,8 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
     final FieldsetPanel tpfs = gridBuilder.newFieldset(getString("timePeriod"));
     final TimePeriodPanel timePeriodPanel = new TimePeriodPanel(
         tpfs.newChildId(),
-        LambdaModel.of(filter::getStartTime, filter::setStartTime),
-        LambdaModel.of(filter::getStopTime, filter::setStopTime),
+        LambdaModel.of(filter.getTimePeriod()::getFromDay, filter.getTimePeriod()::setFromDay),
+        LambdaModel.of(filter.getTimePeriod()::getToDay, filter.getTimePeriod()::setToDay),
         parentPage
     );
     tpfs.add(timePeriodPanel);

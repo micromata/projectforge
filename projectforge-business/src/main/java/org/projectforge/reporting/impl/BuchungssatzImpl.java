@@ -32,7 +32,7 @@ import org.projectforge.reporting.Kost1;
 import org.projectforge.reporting.Kost2;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 
 
 /**
@@ -81,7 +81,7 @@ public class BuchungssatzImpl implements Buchungssatz
     return buchungssatz.getComment();
   }
 
-  public Date getDatum()
+  public LocalDate getDatum()
   {
     return buchungssatz.getDatum();
   }

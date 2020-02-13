@@ -286,6 +286,10 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         return daysBetween(from(date)) // not null
     }
 
+    fun daysBetween(date: LocalDate): Long {
+        return daysBetween(from(date)!!)
+    }
+
     override fun daysBetween(other: PFDateTime): Long {
         return ChronoUnit.DAYS.between(dateTime, other.dateTime)
     }
@@ -410,7 +414,7 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
             return _localDate!!
         }
 
-    val localDateTime: LocalDateTime?
+    val localDateTime: LocalDateTime
         get() = dateTime.toLocalDateTime()
 
     companion object {
@@ -673,6 +677,8 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
                      zoneId: ZoneId = getUsersZoneId(), locale: Locale = getUsersLocale()): PFDateTime {
             return withDate(year, month.value, day, hour, minute, second, millisecond, zoneId, locale)
         }
+
+
 
         private val log = org.slf4j.LoggerFactory.getLogger(PFDateTime::class.java)
 

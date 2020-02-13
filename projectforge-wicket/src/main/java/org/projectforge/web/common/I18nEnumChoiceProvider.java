@@ -23,15 +23,15 @@
 
 package org.projectforge.web.common;
 
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
+
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class I18nEnumChoiceProvider<T extends Enum<T> & I18nEnum> extends ChoiceProvider<T>
 {

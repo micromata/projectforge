@@ -65,7 +65,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
-import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -665,9 +664,6 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
 
     module.addSerializer(java.util.Date.class, new UtilDateSerializer(UtilDateFormat.ISO_DATE_TIME_SECONDS));
     module.addDeserializer(java.util.Date.class, new UtilDateDeserializer());
-
-    module.addSerializer(Timestamp.class, new TimestampSerializer(UtilDateFormat.ISO_DATE_TIME_MILLIS));
-    module.addDeserializer(Timestamp.class, new TimestampDeserializer());
 
     module.addSerializer(java.sql.Date.class, new SqlDateSerializer());
     module.addDeserializer(java.sql.Date.class, new SqlDateDeserializer());

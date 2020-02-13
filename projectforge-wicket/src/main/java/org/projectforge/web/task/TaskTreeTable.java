@@ -23,9 +23,6 @@
 
 package org.projectforge.web.task;
 
-import java.util.Date;
-import java.util.List;
-
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.web.tree.TreeTable;
@@ -33,6 +30,9 @@ import org.projectforge.web.tree.TreeTableFilter;
 import org.projectforge.web.tree.TreeTableNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * The implementation of TreeTable for tasks. Used for browsing the tasks (tree view).

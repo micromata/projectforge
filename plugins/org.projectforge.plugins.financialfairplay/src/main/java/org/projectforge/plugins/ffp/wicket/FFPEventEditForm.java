@@ -46,6 +46,7 @@ import org.projectforge.business.user.PFUserFilter;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.UserException;
+import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.IdObject;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -66,6 +67,7 @@ import org.wicketstuff.select2.Select2MultiChoice;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditPage>
@@ -151,12 +153,10 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
     {
       // Event date
       final FieldsetPanel fs = gridBuilder.newFieldset(FFPEventDO.class, "eventDate");
-      DatePanel eventDate = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "eventDate"),
-          DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
-      eventDate.setRequired(true);
-      eventDate.setMarkupId("eventDate").setOutputMarkupId(true);
-      eventDate.setEnabled(!getData().getFinished());
-      fs.add(eventDate);
+      final FieldProperties<LocalDate> props = getEventDateProperties();
+      LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+      components.getFormComponent().setRequired(true).setMarkupId("eventDate").setOutputMarkupId(true).setEnabled(!getData().getFinished());
+      fs.add(components);
     }
     {
       // Division
@@ -172,16 +172,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       // ATTENDEES
       final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("plugins.ffp.attendees"));
       assignAttendeesListHelper = new MultiChoiceListHelper<PFUserDO>()
-          .setComparator(new Comparator<PFUserDO>()
-          {
-
-            @Override
-            public int compare(PFUserDO o1, PFUserDO o2)
-            {
-              return o1.getPk().compareTo(o2.getPk());
-            }
-
-          }).setFullList(userDao.getList(new PFUserFilter().setDeactivatedUser(false)));
+          .setComparator(Comparator.comparing(BaseDO::getPk)).setFullList(userDao.getList(new PFUserFilter().setDeactivatedUser(false)));
 
       if (this.data.getAttendeeList() != null && this.data.getAttendeeList().size() > 0) {
         for (final PFUserDO attendee : this.data.getAttendeeList()) {
@@ -357,6 +348,10 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       this.accountingList.removeAll(toRemove);
     }
     return this.accountingList;
+  }
+
+  public FieldProperties<LocalDate> getEventDateProperties() {
+    return new FieldProperties<LocalDate>("plugins.ffp.eventDate", new PropertyModel<LocalDate>(super.getData(), "eventDate"));
   }
 
   private FFPAccountingDO getNewFfpAccountingDO(PFUserDO user)

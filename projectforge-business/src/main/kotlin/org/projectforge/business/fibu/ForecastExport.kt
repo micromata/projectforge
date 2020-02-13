@@ -102,7 +102,7 @@ open class ForecastExport { // open needed by Wicket.
                           val baseDate: PFDay, val invoices: List<RechnungDO>) {
         val excelDateFormat = ThreadLocalUserContext.getUser()?.excelDateFormat ?: ExcelDateFormats.EXCEL_DEFAULT_DATE
         val dateFormat = DateTimeFormatter.ofPattern(DateFormats.getFormatString(DateFormatType.DATE_SHORT))!!
-        val currencyFormat = NumberHelper.getCurrencyFormat(ThreadLocalUserContext.getLocale())!!
+        val currencyFormat = NumberHelper.getCurrencyFormat(ThreadLocalUserContext.getLocale())
         val currencyCellStyle = workbook.createOrGetCellStyle("DataFormat.currency")!!
         val percentageCellStyle = workbook.createOrGetCellStyle("DataFormat.percentage")!!
         val writerContext = ExcelWriterContext(I18n(Const.RESOURCE_BUNDLE_NAME, ThreadLocalUserContext.getLocale()), workbook)
@@ -129,14 +129,14 @@ open class ForecastExport { // open needed by Wicket.
         filter.searchString = origFilter.searchString
         //filter.auftragFakturiertFilterStatus = origFilter.auftragFakturiertFilterStatus
         //filter.auftragsPositionsPaymentType = origFilter.auftragsPositionsPaymentType
-        filter.periodOfPerformanceStartDate = baseDate.plusYears(-2).utilDate // Go 2 years back for getting all orders referred by invoices of prior year.
+        filter.periodOfPerformanceStartDate = baseDate.plusYears(-2).localDate // Go 2 years back for getting all orders referred by invoices of prior year.
         filter.user = origFilter.user
         val orderList = orderBookDao.getList(filter)
         if (orderList.isNullOrEmpty()) {
             return null
         }
         val invoiceFilter = RechnungFilter()
-        invoiceFilter.fromDate = prioYearBaseDate.plusDays(-1).utilDate // Go 1 day back, paranoia setting for getting all invoices of time period.
+        invoiceFilter.fromDate = prioYearBaseDate.plusDays(-1).localDate // Go 1 day back, paranoia setting for getting all invoices of time period.
         val queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(invoiceFilter)
         queryFilter.addOrder(desc("datum"))
         queryFilter.addOrder(desc("nummer"))
@@ -231,15 +231,21 @@ open class ForecastExport { // open needed by Wicket.
                 val rowNumber = sheet.createRow().rowNum
                 sheet.setIntValue(rowNumber, InvoicesCol.INVOICE_NR.header, invoice.nummer)
                 sheet.setStringValue(rowNumber, InvoicesCol.POS_NR.header, "#${pos.number}")
-                sheet.setDateValue(rowNumber, InvoicesCol.DATE.header, invoice.datum, ctx.excelDateFormat)
+                sheet.setDateValue(rowNumber, InvoicesCol.DATE.header, PFDay(invoice.datum!!).utilDate, ctx.excelDateFormat)
                 sheet.setStringValue(rowNumber, InvoicesCol.CUSTOMER.header, invoice.kundeAsString)
                 sheet.setStringValue(rowNumber, InvoicesCol.PROJECT.header, invoice.projekt?.name)
                 sheet.setStringValue(rowNumber, InvoicesCol.SUBJECT.header, invoice.betreff)
                 sheet.setStringValue(rowNumber, InvoicesCol.POS_TEXT.header, pos.text)
-                sheet.setDateValue(rowNumber, InvoicesCol.DATE_OF_PAYMENT.header, invoice.bezahlDatum, ctx.excelDateFormat)
-                val leistungsZeitraumColDef = sheet.getColumnDef(InvoicesCol.LEISTUNGSZEITRAUM.header)!!
-                sheet.setDateValue(rowNumber, leistungsZeitraumColDef, invoice.periodOfPerformanceBegin, ctx.excelDateFormat)
-                sheet.setDateValue(rowNumber, leistungsZeitraumColDef.columnNumber + 1, invoice.periodOfPerformanceEnd, ctx.excelDateFormat)
+                invoice.bezahlDatum?.let {
+                    sheet.setDateValue(rowNumber, InvoicesCol.DATE_OF_PAYMENT.header, PFDay(it).utilDate, ctx.excelDateFormat)
+                }
+                val leistungsZeitraumColDef = sheet.getColumnDef(InvoicesCol.LEISTUNGSZEITRAUM.header)
+                invoice.periodOfPerformanceBegin?.let {
+                    sheet.setDateValue(rowNumber, leistungsZeitraumColDef, PFDay(it).utilDate, ctx.excelDateFormat)
+                }
+                invoice.periodOfPerformanceEnd?.let {
+                    sheet.setDateValue(rowNumber, leistungsZeitraumColDef!!.columnNumber + 1, PFDay(it).utilDate, ctx.excelDateFormat)
+                }
                 sheet.setStringValue(rowNumber, InvoicesCol.ORDER.header, "${order.nummer}.${orderPos.number}")
                 sheet.setBigDecimalValue(rowNumber, InvoicesCol.NETSUM.header, pos.netSum).cellStyle = ctx.currencyCellStyle
                 sheet.setBigDecimalValue(rowNumber, firstMonthCol + monthIndex, pos.netSum).cellStyle = ctx.currencyCellStyle
@@ -260,9 +266,15 @@ open class ForecastExport { // open needed by Wicket.
         val sheet = ctx.forecastSheet
         sheet.setIntValue(row, ForecastCol.ORDER_NR.header, order.nummer)
         sheet.setStringValue(row, ForecastCol.POS_NR.header, "#${pos.number}")
-        sheet.setDateValue(row, ForecastCol.DATE_OF_OFFER.header, order.angebotsDatum, ctx.excelDateFormat)
-        sheet.setDateValue(row, ForecastCol.DATE.header, order.erfassungsDatum, ctx.excelDateFormat)
-        sheet.setDateValue(row, ForecastCol.DATE_OF_DECISION.header, ForecastUtils.ensureErfassungsDatum(order), ctx.excelDateFormat)
+        order.angebotsDatum?.let {
+            sheet.setDateValue(row, ForecastCol.DATE_OF_OFFER.header, PFDay(it).utilDate, ctx.excelDateFormat)
+        }
+        ForecastUtils.ensureErfassungsDatum(order)?.let {
+            sheet.setDateValue(row, ForecastCol.DATE.header, PFDay(it).utilDate, ctx.excelDateFormat)
+        }
+        order.entscheidungsDatum?.let {
+            sheet.setDateValue(row, ForecastCol.DATE_OF_DECISION.header, PFDay(it).utilDate, ctx.excelDateFormat)
+        }
         sheet.setStringValue(row, ForecastCol.HEAD.header, order.headOfBusinessManager?.getFullname())
         sheet.setStringValue(row, ForecastCol.CUSTOMER.header, order.kundeAsString)
         sheet.setStringValue(row, ForecastCol.PROJECT.header, order.projektAsString)
@@ -295,11 +307,12 @@ open class ForecastExport { // open needed by Wicket.
         sheet.setStringValue(row, ForecastCol.DEBITOREN_RECHNUNGEN.header, ForecastUtils.getInvoices(invoicePositions))
         val leistungsZeitraumColDef = sheet.getColumnDef(ForecastCol.LEISTUNGSZEITRAUM.header)!!
         if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) { // use "own" period -> from pos
-            sheet.setDateValue(row, leistungsZeitraumColDef, pos.periodOfPerformanceBegin, ctx.excelDateFormat)
-            sheet.setDateValue(row, leistungsZeitraumColDef.columnNumber + 1, pos.periodOfPerformanceEnd, ctx.excelDateFormat)
+
+            sheet.setDateValue(row, leistungsZeitraumColDef, PFDay(pos.periodOfPerformanceBegin!!).utilDate, ctx.excelDateFormat)
+            sheet.setDateValue(row, leistungsZeitraumColDef.columnNumber + 1, PFDay(pos.periodOfPerformanceEnd!!).utilDate, ctx.excelDateFormat)
         } else { // use "see above" period -> from order
-            sheet.setDateValue(row, leistungsZeitraumColDef, order.periodOfPerformanceBegin, ctx.excelDateFormat)
-            sheet.setDateValue(row, leistungsZeitraumColDef.columnNumber + 1, order.periodOfPerformanceEnd, ctx.excelDateFormat)
+            sheet.setDateValue(row, leistungsZeitraumColDef, PFDay(order.periodOfPerformanceBegin!!).utilDate, ctx.excelDateFormat)
+            sheet.setDateValue(row, leistungsZeitraumColDef.columnNumber + 1, PFDay(order.periodOfPerformanceEnd!!).utilDate, ctx.excelDateFormat)
         }
         val probability = ForecastUtils.getProbabilityOfAccurence(order, pos)
         sheet.setBigDecimalValue(row, ForecastCol.EINTRITTSWAHRSCHEINLICHKEIT.header, probability).cellStyle = ctx.percentageCellStyle
@@ -328,8 +341,10 @@ open class ForecastExport { // open needed by Wicket.
                     continue
                 val amount = schedule.amount!!.multiply(probability)
                 sum += amount
-                if (beginDistribute.isBefore(schedule.scheduleDate!!)) {
-                    beginDistribute = PFDay.fromOrNow(schedule.scheduleDate)
+                schedule.scheduleDate?.let { scheduleDate ->
+                    if (beginDistribute.isBefore(scheduleDate)) {
+                        beginDistribute = PFDay.from(scheduleDate)
+                    }
                 }
                 if (first) first = false else sb.append(", ")
                 sb.append("${beginDistribute.format(ctx.dateFormat)}: ${ctx.currencyFormat.format(amount)}")

@@ -28,7 +28,6 @@ import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.event.model.*
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import java.sql.Timestamp
 import java.util.*
 
 class CalEvent(
@@ -40,10 +39,10 @@ class CalEvent(
         override var subject: String? = null,
         override var location: String? = null,
         override var allDay: Boolean = false,
-        override var startDate: Timestamp? = null,
-        override var endDate: Timestamp? = null,
-        var lastEmail: Timestamp? = null,
-        var dtStamp: Timestamp? = null,
+        override var startDate: Date? = null,
+        override var endDate: Date? = null,
+        var lastEmail: Date? = null,
+        var dtStamp: Date? = null,
         var calendar: TeamCalDO? = null,
         var recurrenceRule: String? = null,
         var recurrenceExDate: String? = null,

@@ -41,19 +41,16 @@ import org.projectforge.web.user.GroupsWicketProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
+import org.projectforge.web.wicket.components.*;
+import org.projectforge.web.wicket.flowlayout.FieldProperties;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.Select2MultiChoice;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
-
 /**
  * This is the edit formular page.
  *
@@ -202,18 +199,16 @@ public class TrainingEditForm extends AbstractEditForm<TrainingDO, TrainingEditP
 
     {
       // startDate
+      final FieldProperties<LocalDate> props = getStartDateProperties();
       fs = gridBuilder.newFieldset(TrainingDO.class, "startDate");
-      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<>(data, "startDate"),
-          DatePanelSettings.get().withTargetType(
-              java.sql.Date.class)));
+      fs.add(new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel())));
     }
 
     {
       // EndDate
+      final FieldProperties<LocalDate> props = getEndDateProperties();
       fs = gridBuilder.newFieldset(TrainingDO.class, "endDate");
-      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<>(data, "endDate"),
-          DatePanelSettings.get().withTargetType(
-              java.sql.Date.class)));
+      fs.add(new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel())));
     }
 
     {
@@ -256,6 +251,14 @@ public class TrainingEditForm extends AbstractEditForm<TrainingDO, TrainingEditP
         }
       });
     }
+  }
+
+  private FieldProperties<LocalDate> getStartDateProperties() {
+    return new FieldProperties<>("plugins.skillmatrix.skilltraining.startDate", new PropertyModel<>(data, "startDate"));
+  }
+
+  private FieldProperties<LocalDate> getEndDateProperties() {
+    return new FieldProperties<>("plugins.skillmatrix.skilltraining.endDate", new PropertyModel<>(data, "endDate"));
   }
 
   /**

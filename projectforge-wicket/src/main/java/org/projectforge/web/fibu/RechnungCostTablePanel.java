@@ -23,24 +23,24 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.AbstractRechnungsPositionDO;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.wicket.WicketUtils;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

@@ -30,6 +30,7 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.PFDay;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -41,6 +42,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -82,8 +84,8 @@ public class MebDao extends BaseDao<MebEntryDO> {
     }
   }
 
-  public static Date parseDate(final String dateString) {
-    Date date = null;
+  public static LocalDate parseDate(final String dateString) {
+    Date date;
     if (dateString.startsWith("20")) {
       final DateFormat df = new SimpleDateFormat(DATE_FORMAT);
       try {
@@ -115,7 +117,7 @@ public class MebDao extends BaseDao<MebEntryDO> {
         return null;
       }
     }
-    return date;
+    return PFDay.from(date).getLocalDate();
   }
 
   /**

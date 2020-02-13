@@ -23,13 +23,8 @@
 
 package org.projectforge.web.timesheet;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -72,18 +67,13 @@ import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.AutoCompleteIgnoreForm;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextField;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
-import org.projectforge.web.wicket.components.ConsumptionBarPanel;
-import org.projectforge.web.wicket.components.DateTimePanel;
-import org.projectforge.web.wicket.components.DateTimePanelSettings;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.flowlayout.AbstractFieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.projectforge.web.wicket.components.*;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEditPage>
     implements AutoCompleteIgnoreForm
@@ -162,7 +152,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
       @Override
       public FormComponent<?>[] getDependentFormComponents()
       {
-        if (cost2ChoiceFieldset != null && cost2ChoiceFieldset.isVisible() == true) {
+        if (cost2ChoiceFieldset != null && cost2ChoiceFieldset.isVisible()) {
           return dependentFormComponentsWithCost2;
         } else {
           return dependentFormComponentsWithoutCost2;
@@ -177,22 +167,22 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
         final DropDownChoice<Integer> stopHourOfDayDropDownChoice = (DropDownChoice<Integer>) dependentFormComponentsWithCost2[1];
         final DropDownChoice<Integer> stopMinuteDropDownChoice = (DropDownChoice<Integer>) dependentFormComponentsWithCost2[2];
         final DateHolder startDate = new DateHolder(startDateTimePanel.getConvertedInput());
-        final DateHolder stopDate = new DateHolder(startDate.getTimestamp());
+        final DateHolder stopDate = new DateHolder(startDate.getUtilDate());
         stopDate.setHourOfDay(stopHourOfDayDropDownChoice.getConvertedInput());
         stopDate.setMinute(stopMinuteDropDownChoice.getConvertedInput());
         if (stopDate.getTimeOfDay() < startDate.getTimeOfDay()) { // Stop time is
           // before start time. Assuming next day for stop time:
           stopDate.add(Calendar.DAY_OF_MONTH, 1);
         }
-        data.setStartTime(startDate.getTimestamp());
-        data.setStopTime(stopDate.getTimestamp());
+        data.setStartTime(startDate.getUtilDate());
+        data.setStopTime(stopDate.getUtilDate());
         if (data.getDuration() < 60000) {
           // Duration is less than 60 seconds.
           stopMinuteDropDownChoice.error(getString("timesheet.error.zeroDuration"));
         } else if (data.getDuration() > TimesheetDao.MAXIMUM_DURATION) {
           stopMinuteDropDownChoice.error(getString("timesheet.error.maximumDurationExceeded"));
         }
-        if (cost2Exists == true) {
+        if (cost2Exists) {
           if (cost2Choice != null && cost2Choice.getConvertedInput() == null) {
             // cost2Choice is always != null (but may-be invisible) if cost2 entries does exist in the system.
             // Kost2 is not available for current task.
@@ -200,7 +190,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
             if (taskNode != null) {
               final List<Integer> descendents = taskNode.getDescendantIds();
               for (final Integer taskId : descendents) {
-                if (CollectionUtils.isNotEmpty(getTaskTree().getKost2List(taskId)) == true) {
+                if (CollectionUtils.isNotEmpty(getTaskTree().getKost2List(taskId))) {
                   // But Kost2 is available for sub task, so user should book his time sheet
                   // on a sub task with kost2s.
                   if (cost2Choice.isVisible()) {
@@ -218,7 +208,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
     });
     parentPage.preInit();
     gridBuilder.newGridPanel();
-    if (isNew() == true) {
+    if (isNew()) {
       addTemplatesRow();
     }
     {
@@ -253,7 +243,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
       taskSelectPanel.init();
       taskSelectPanel.setRequired(true);
     }
-    if (cost2Exists == true) {
+    if (cost2Exists) {
       // Cost 2 entries does exist in the data-base.
       cost2ChoiceFieldset = gridBuilder.newFieldset(getString("fibu.kost2"));
       cost2ChoiceFieldset.getFieldset().setOutputMarkupId(true);
@@ -273,7 +263,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
       // User
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("user"));
       PFUserDO user = data.getUser();
-      if (Hibernate.isInitialized(user) == false) {
+      if (!Hibernate.isInitialized(user)) {
         user = getTenantRegistry().getUserGroupCache().getUser(user.getId());
         data.setUser(user);
       }
@@ -314,15 +304,15 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
       });
       fs.add(new DivTextPanel(fs.newChildId(), getString("until")));
       // Stop time
-      final DropDownChoice<Integer> stopHourOfDayDropDownChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(),
-          new PropertyModel<Integer>(this, "stopHourOfDay"), DateTimePanel.getHourOfDayRenderer().getValues(),
+      final DropDownChoice<Integer> stopHourOfDayDropDownChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
+          new PropertyModel<>(this, "stopHourOfDay"), DateTimePanel.getHourOfDayRenderer().getValues(),
           DateTimePanel.getHourOfDayRenderer());
       stopHourOfDayDropDownChoice.setNullValid(false);
       stopHourOfDayDropDownChoice.setRequired(true);
       fs.add(stopHourOfDayDropDownChoice);
       dependentFormComponentsWithCost2[1] = dependentFormComponentsWithoutCost2[1] = stopHourOfDayDropDownChoice;
-      final DropDownChoice<Integer> stopMinuteDropDownChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(),
-          new PropertyModel<Integer>(this, "stopMinute"),
+      final DropDownChoice<Integer> stopMinuteDropDownChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
+          new PropertyModel<>(this, "stopMinute"),
           DateTimePanel.getMinutesRenderer(DatePrecision.MINUTE_15).getValues(),
           DateTimePanel.getMinutesRenderer(DatePrecision.MINUTE_15));
       stopMinuteDropDownChoice.setNullValid(false);
@@ -353,7 +343,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
     }
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.description"));
-      final IModel<String> model = new PropertyModel<String>(data, "description");
+      final IModel<String> model = new PropertyModel<>(data, "description");
       fs.add(descriptionArea = new MaxLengthTextArea(TextAreaPanel.WICKET_ID, model)).setAutogrow();
       fs.addJIRAField(model);
     }
@@ -368,7 +358,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
   private void renderHookComponents()
   {
     final List<TimesheetPluginComponentHook> hooks = TimesheetEditPage.getPluginHooks();
-    if (hooks != null && hooks.isEmpty() == false) {
+    if (hooks != null && !hooks.isEmpty()) {
       for (final TimesheetPluginComponentHook hook : hooks) {
         hook.renderComponentsToTimesheetEditForm(this.parentPage, getData());
       }
@@ -410,7 +400,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
         @Override
         protected void onSelectionChanged(final String newSelection)
         {
-          if (StringUtils.isNotEmpty(newSelection) == true) {
+          if (StringUtils.isNotEmpty(newSelection)) {
             // Fill fields with selected template values:
             final UserPrefDO userPref = userPrefDao.getUserPref(UserPrefArea.TIMESHEET_TEMPLATE, newSelection);
             if (userPref != null) {
@@ -420,12 +410,12 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
               descriptionArea.processInput(); // Update model.
               if (recentUserPref != null) {
                 final String recentLocation = recentUserPref.getUserPrefEntryAsString("location");
-                if (StringUtils.equals(recentLocation, data.getLocation()) == true) {
+                if (StringUtils.equals(recentLocation, data.getLocation())) {
                   // Previous value was filled by recent user pref so overwrite it:
                   data.setLocation(null);
                 }
                 final String recentDescription = recentUserPref.getUserPrefEntryAsString("description");
-                if (StringUtils.equals(recentDescription, data.getDescription()) == true) {
+                if (StringUtils.equals(recentDescription, data.getDescription())) {
                   // Previous value was filled by recent user pref so overwrite it:
                   data.setDescription(null);
                 }
@@ -483,17 +473,14 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
       final TaskTree taskTree, final LabelValueChoiceRenderer<Integer> kost2ChoiceRenderer, final TimesheetDO data,
       final List<Kost2DO> kost2List)
   {
-    final DropDownChoice<Integer> choice = new DropDownChoice<Integer>(id, new Model<Integer>()
-    {
+    final DropDownChoice<Integer> choice = new DropDownChoice<>(id, new Model<Integer>() {
       @Override
-      public Integer getObject()
-      {
+      public Integer getObject() {
         return data.getKost2Id();
       }
 
       @Override
-      public void setObject(final Integer kost2Id)
-      {
+      public void setObject(final Integer kost2Id) {
         if (kost2Id != null) {
           timesheetDao.setKost2(data, kost2Id);
         } else {
@@ -511,7 +498,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
         if (value != null && value >= 0) {
           return;
         }
-        if (CollectionUtils.isNotEmpty(kost2List) == true) {
+        if (CollectionUtils.isNotEmpty(kost2List)) {
           // Kost2 available but not selected.
           choice.error(ThreadLocalUserContext.getLocalizedString("timesheet.error.kost2Required"));
         }
@@ -532,7 +519,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
   protected static LabelValueChoiceRenderer<Integer> getCost2LabelValueChoiceRenderer(final TimesheetDao timesheetDao,
       final List<Kost2DO> kost2List, final TimesheetDO data, final DropDownChoice<Integer> kost2Choice)
   {
-    final LabelValueChoiceRenderer<Integer> kost2ChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
+    final LabelValueChoiceRenderer<Integer> kost2ChoiceRenderer = new LabelValueChoiceRenderer<>();
     if (kost2List != null && kost2List.size() == 1) {
       // Es ist genau ein Eintrag. Deshalb selektieren wir diesen auch:
       final Integer kost2Id = kost2List.get(0).getId();
@@ -541,7 +528,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
         kost2Choice.modelChanged();
       }
     }
-    if (CollectionUtils.isEmpty(kost2List) == true) {
+    if (CollectionUtils.isEmpty(kost2List)) {
       data.setKost2(null); // No kost2 list given, therefore set also kost2 to null.
     } else {
       for (final Kost2DO kost2 : kost2List) {
@@ -626,7 +613,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
   @Override
   public void ignore(final PFAutoCompleteTextField<?> autoCompleteField, final String ignoreText)
   {
-    if (locationTextField != null && locationTextField.equals(autoCompleteField) == true) {
+    if (locationTextField != null && locationTextField.equals(autoCompleteField)) {
       filter.addIgnoredLocation(ignoreText);
     }
   }

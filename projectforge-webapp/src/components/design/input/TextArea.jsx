@@ -14,11 +14,30 @@ function TextArea(
         id,
         label,
         maxRows,
+        onKeyDown,
         value,
         ...props
     },
 ) {
     const [active, setActive] = React.useState(value);
+
+    const handleKeyDown = (event) => {
+        if (onKeyDown) {
+            onKeyDown(event);
+        }
+
+        if (event.ctrlKey && event.key === 'Enter') {
+            for (let i = 0; i < document.forms.length; i += 1) {
+                // check all forms if textarea is child
+                if (document.forms[i].querySelector(`#${id}`)) {
+                    // find submit button of form and click it.
+                    document.forms[i].querySelector('button[type="submit"]')
+                        .click();
+                    break;
+                }
+            }
+        }
+    };
 
     return (
         <div className={classNames(style.formGroup, 'form-group', className, cssClass)}>
@@ -36,6 +55,7 @@ function TextArea(
                     {...props}
                     onFocus={() => setActive(true)}
                     onBlur={event => setActive(event.target.value !== '')}
+                    onKeyDown={handleKeyDown}
                     value={value}
                 />
                 <span className={style.text}>{label}</span>
@@ -53,6 +73,7 @@ TextArea.propTypes = {
     color: colorPropType,
     cssClass: PropTypes.string,
     maxRows: PropTypes.number,
+    onKeyDown: PropTypes.func,
     value: PropTypes.string,
 };
 
@@ -62,6 +83,7 @@ TextArea.defaultProps = {
     color: undefined,
     cssClass: undefined,
     maxRows: undefined,
+    onKeyDown: undefined,
     value: undefined,
 };
 

@@ -30,7 +30,6 @@ import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
-import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -206,9 +205,9 @@ public class TeamEventDiff
   // fields
   private TeamEventFieldDiff<TeamCalDO> calendar;
   private TeamEventFieldDiff<PFUserDO> creator;
-  private TeamEventFieldDiff<Timestamp> startDate;
-  private TeamEventFieldDiff<Timestamp> endDate;
-  private TeamEventFieldDiff<Timestamp> dtStamp;
+  private TeamEventFieldDiff<Date> startDate;
+  private TeamEventFieldDiff<Date> endDate;
+  private TeamEventFieldDiff<Date> dtStamp;
   private TeamEventFieldDiff<Boolean> allDay;
   private TeamEventFieldDiff<String> subject;
   private TeamEventFieldDiff<String> location;
@@ -220,7 +219,7 @@ public class TeamEventDiff
   private TeamEventFieldDiff<String> organizer;
   private TeamEventFieldDiff<String> organizerAdditionalParams;
   private TeamEventFieldDiff<String> note;
-  private TeamEventFieldDiff<Timestamp> lastEmail;
+  private TeamEventFieldDiff<Date> lastEmail;
   private TeamEventFieldDiff<Integer> sequence;
   private TeamEventFieldDiff<Integer> reminderDuration;
   private TeamEventFieldDiff<ReminderDurationUnit> reminderDurationUnit;

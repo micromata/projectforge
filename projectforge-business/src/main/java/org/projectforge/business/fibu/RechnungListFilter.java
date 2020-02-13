@@ -26,16 +26,16 @@ package org.projectforge.business.fibu;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 @XStreamAlias("RechnungFilter")
 public class RechnungListFilter extends RechnungFilter implements SearchFilterWithPeriodOfPerformance
 {
   private static final long serialVersionUID = -874619598640299510L;
 
-  private Date periodOfPerformanceStartDate;
+  private LocalDate periodOfPerformanceStartDate;
 
-  private Date periodOfPerformanceEndDate;
+  private LocalDate periodOfPerformanceEndDate;
 
   public RechnungListFilter()
   {
@@ -52,23 +52,23 @@ public class RechnungListFilter extends RechnungFilter implements SearchFilterWi
   }
 
   @Override
-  public Date getPeriodOfPerformanceStartDate()
+  public LocalDate getPeriodOfPerformanceStartDate()
   {
     return periodOfPerformanceStartDate;
   }
 
-  public void setPeriodOfPerformanceStartDate(final Date periodOfPerformanceStartDate)
+  public void setPeriodOfPerformanceStartDate(final LocalDate periodOfPerformanceStartDate)
   {
     this.periodOfPerformanceStartDate = periodOfPerformanceStartDate;
   }
 
   @Override
-  public Date getPeriodOfPerformanceEndDate()
+  public LocalDate getPeriodOfPerformanceEndDate()
   {
     return periodOfPerformanceEndDate;
   }
 
-  public void setPeriodOfPerformanceEndDate(final Date periodOfPerformanceEndDate)
+  public void setPeriodOfPerformanceEndDate(final LocalDate periodOfPerformanceEndDate)
   {
     this.periodOfPerformanceEndDate = periodOfPerformanceEndDate;
   }

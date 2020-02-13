@@ -57,7 +57,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.*;
 
 @Component
@@ -214,9 +213,8 @@ public class InitTestDB {
     return this.taskMap.get(taskName);
   }
 
-  public TimesheetDO addTimesheet(final PFUserDO user, final TaskDO task, final Timestamp startTime,
-                                  final Timestamp stopTime,
-                                  final String description) {
+  public TimesheetDO addTimesheet(final PFUserDO user, final TaskDO task, final Date startTime,
+                                  final Date stopTime, final String description) {
     final TimesheetDO timesheet = new TimesheetDO();
     timesheet.setDescription(description);
     timesheet.setStartTime(startTime);

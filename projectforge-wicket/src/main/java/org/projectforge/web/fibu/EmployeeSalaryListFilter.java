@@ -23,9 +23,8 @@
 
 package org.projectforge.web.fibu;
 
-import org.projectforge.business.fibu.EmployeeSalaryFilter;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.projectforge.business.fibu.EmployeeSalaryFilter;
 
 
 @XStreamAlias("EmployeeSalaryFilter")

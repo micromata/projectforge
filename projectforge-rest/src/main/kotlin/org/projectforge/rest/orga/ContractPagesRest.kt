@@ -33,6 +33,7 @@ import org.projectforge.rest.core.AbstractDOPagesRest
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
 import javax.servlet.http.HttpServletRequest
 
 @RestController
@@ -43,7 +44,7 @@ class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(Contrac
      */
     override fun newBaseDO(request: HttpServletRequest?): ContractDO {
         val contract = super.newBaseDO(request)
-        contract.date = PFDay.now().sqlDate
+        contract.date = LocalDate.now()
         return contract
     }
 

@@ -29,7 +29,6 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.FormComponentPanel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.projectforge.Const;
@@ -95,8 +94,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
    * @param requiredSupplier a callback which supplies the return value for the isRequired method of the date field.
    */
   @SuppressWarnings("serial")
-  public LocalDatePanel(final String id, final LocalDateModel model, final DatePanelSettings settings, final boolean useModelDirectly,
-                        final BooleanSupplier requiredSupplier) {
+  public LocalDatePanel(final String id, final LocalDateModel model, final DatePanelSettings settings, final boolean useModelDirectly, final BooleanSupplier requiredSupplier) {
     super(id, model);
     this.settings = settings;
     this.requiredSupplier = requiredSupplier;
@@ -123,24 +121,20 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
     dateField.add(AttributeModifier.replace("size", "10"));
     dateField.setOutputMarkupId(true);
     add(dateField);
-    if (settings.required == true) {
+    if (settings.required) {
       this.required = true;
     }
     if (settings.tabIndex != null) {
       dateField.add(AttributeModifier.replace("tabindex", String.valueOf(settings.tabIndex)));
     }
-    dateField.add(new IValidator<Date>() {
-
-      @Override
-      public void validate(final IValidatable<Date> validatable) {
-        final Date date = validatable.getValue();
-        if (date != null) {
-          final PFDay day = PFDay.from(date, settings.timeZone); // not null
-          final int year = day.getYear();
-          if (year < minYear || year > maxYear) {
-            validatable.error(new ValidationError().addKey("error.date.yearOutOfRange").setVariable("minimumYear", minYear)
-                    .setVariable("maximumYear", maxYear));
-          }
+    dateField.add((IValidator<Date>) validatable -> {
+      final Date date = validatable.getValue();
+      if (date != null) {
+        final PFDay day = PFDay.from(date, settings.timeZone); // not null
+        final int year = day.getYear();
+        if (year < minYear || year > maxYear) {
+          validatable.error(new ValidationError().addKey("error.date.yearOutOfRange").setVariable("minimumYear", minYear)
+                  .setVariable("maximumYear", maxYear));
         }
       }
     });
@@ -215,7 +209,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
   @Override
   protected void onBeforeRender() {
     date = (Date) getDefaultModelObject(); // copy the value from the outer model to the dateField's model
-    if (modelMarkedAsChanged == true) {
+    if (modelMarkedAsChanged) {
       dateField.modelChanged();
       modelMarkedAsChanged = false;
     }
@@ -232,7 +226,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
    */
   @Override
   public void updateModel() {
-    if (modelMarkedAsChanged == true) {
+    if (modelMarkedAsChanged) {
       // Work-around: update model only if not marked as changed. Prevent overwriting the model by the user's input.
       modelMarkedAsChanged = false;
     } else {
@@ -271,7 +265,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
   }
 
   public LocalDate getConvertedInputAsLocalDate() {
-    Date newDate = null;
+    Date newDate;
     if (isEnabled()) {
       newDate = getConvertedInput();
     } else {

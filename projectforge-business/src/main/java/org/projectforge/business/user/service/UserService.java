@@ -51,7 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -492,7 +491,7 @@ public class UserService implements UserChangedListener {
     if (user != null) {
 
       final int loginFailures = user.getLoginFailures();
-      final Timestamp lastLogin = user.getLastLogin();
+      final Date lastLogin = user.getLastLogin();
       userDao.updateUserAfterLoginSuccess(user);
       if (!user.hasSystemAccess()) {
         log.warn("Deleted/deactivated user tried to login: " + user);

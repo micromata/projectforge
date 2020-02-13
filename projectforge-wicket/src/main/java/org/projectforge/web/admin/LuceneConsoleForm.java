@@ -23,13 +23,6 @@
 
 package org.projectforge.web.admin;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -44,11 +37,10 @@ import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.projectforge.web.wicket.flowlayout.*;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)

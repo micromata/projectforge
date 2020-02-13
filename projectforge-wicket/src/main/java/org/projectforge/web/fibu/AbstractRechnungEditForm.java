@@ -61,8 +61,8 @@ import org.projectforge.web.wicket.flowlayout.*;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel.ToggleStatus;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T extends AbstractRechnungsPositionDO, P extends AbstractEditPage<?, ?, ?>>
@@ -106,11 +106,11 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
     gridBuilder.newSubSplitPanel(GridSize.COL50);
     {
       // Date
+      final FieldProperties<LocalDate> props = getDatumProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "datum");
-      final DatePanel datumPanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "datum"), DatePanelSettings.get().withTargetType(
-              java.sql.Date.class));
-      datumPanel.setRequired(true);
-      fs.add(datumPanel);
+      LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+      components.setRequired(true);
+      fs.add(components);
     }
     gridBuilder.newSubSplitPanel(GridSize.COL50);
     {
@@ -157,10 +157,10 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
     gridBuilder.newSubSplitPanel(GridSize.COL50);
     {
       // Bezahldatum
+      final FieldProperties<LocalDate> props = getBezahlDatumProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "bezahlDatum");
-      final DatePanel bezahlDatumPanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "bezahlDatum"),
-              DatePanelSettings.get().withTargetType(java.sql.Date.class));
-      fs.add(bezahlDatumPanel);
+      LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+      fs.add(components);
     }
     gridBuilder.newSubSplitPanel(GridSize.COL50);
     {
@@ -179,11 +179,11 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
     {
       gridBuilder.newSubSplitPanel(GridSize.COL50);
       // Fälligkeit und Zahlungsziel
+      final FieldProperties<LocalDate> props = getFaelligkeitProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "faelligkeit");
-      final DatePanel faelligkeitPanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "faelligkeit"),
-              DatePanelSettings.get().withTargetType(java.sql.Date.class));
-      fs.add(faelligkeitPanel);
-      fs.setLabelFor(faelligkeitPanel);
+      LocalDatePanel faelligkeitsPanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+      fs.add(faelligkeitsPanel);
+      fs.setLabelFor(faelligkeitsPanel);
 
       // DropDownChoice ZahlungsZiel
       final LabelValueChoiceRenderer<Integer> zielChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
@@ -217,9 +217,9 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
     {
       gridBuilder.newSubSplitPanel(GridSize.COL50);
       // Discount
+      final FieldProperties<LocalDate> props = getDiscountProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("fibu.rechnung.discount"));
-      final DatePanel discountPanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "discountMaturity"),
-              DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
+      LocalDatePanel discountPanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
       fs.add(discountPanel);
       fs.setLabelFor(discountPanel);
 
@@ -298,6 +298,26 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
       panel.add(addPositionButtonPanel);
     }
   }
+
+
+
+
+  private FieldProperties<LocalDate> getDatumProperties() {
+    return new FieldProperties<>("fibu.rechnung.datum", new PropertyModel<>(super.data, "datum"));
+  }
+
+  private FieldProperties<LocalDate> getBezahlDatumProperties() {
+    return new FieldProperties<>("fibu.rechnung.bezahlDatum", new PropertyModel<>(super.data, "bezahlDatum"));
+  }
+
+  private FieldProperties<LocalDate> getFaelligkeitProperties() {
+    return new FieldProperties<>("fibu.rechnung.faelligkeit", new PropertyModel<>(super.data, "faelligkeit"));
+  }
+
+  private FieldProperties<LocalDate> getDiscountProperties() {
+    return new FieldProperties<>("fibu.rechnung.discountMaturity", new PropertyModel<>(super.data, "discountMaturity"));
+  }
+
 
   protected void addCellAfterDiscount() {
     // Do nothing.

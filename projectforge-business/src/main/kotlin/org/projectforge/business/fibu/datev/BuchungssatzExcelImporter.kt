@@ -129,7 +129,7 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
             ImportHelper.fillBean(satz, excelSheet, row.rowNum)
             val day = PFDay.fromOrNull(dateValidator.getDate(excelSheet.getCell(row, Cols.DATUM)))
             if (day != null) {
-                satz.datum = day.sqlDate
+                satz.datum = day.localDate
                 if (year == 0) {
                     year = day.year
                 } else if (year != day.year) {

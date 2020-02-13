@@ -23,14 +23,14 @@
 
 package org.projectforge.web;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class SendFeedback

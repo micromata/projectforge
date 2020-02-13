@@ -30,11 +30,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
-import org.projectforge.web.wicket.flowlayout.TextPanel;
+import org.projectforge.web.wicket.flowlayout.*;
 
 /**
  * Standard error page should be shown in production mode.

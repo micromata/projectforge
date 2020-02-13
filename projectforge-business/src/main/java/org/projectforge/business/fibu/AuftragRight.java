@@ -30,9 +30,8 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHelper;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  * User {@link UserRightValue#PARTLYREADWRITE} for users who are members of FIBU_ORGA_GROUPS <b>and</b> of
@@ -44,6 +43,11 @@ import java.util.Date;
  */
 public class AuftragRight extends UserRightAccessCheck<AuftragDO>
 {
+  /**
+   * Orders older than this number of days will not be visible for project managers anymore.
+   */
+  public static final int MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER = 1800;
+
   private static final long serialVersionUID = 8639987084144268831L;
 
   public AuftragRight(AccessChecker accessChecker)
@@ -149,10 +153,8 @@ public class AuftragRight extends UserRightAccessCheck<AuftragDO>
         if (!obj.isVollstaendigFakturiert()) {
           return true;
         } else if (obj.getAngebotsDatum() != null) {
-          final long millis = (new Date()).getTime() - obj.getAngebotsDatum().getTime();
-          if (millis / DateHelper.MILLIS_DAY <= 1800) {
-            return true;
-          }
+          final long days = LocalDate.now().toEpochDay() - obj.getAngebotsDatum().toEpochDay();
+          return days <= MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER;
         }
       }
       return false;

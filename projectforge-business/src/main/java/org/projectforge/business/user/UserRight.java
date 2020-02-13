@@ -23,8 +23,8 @@
 
 package org.projectforge.business.user;
 
-import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.DisplayNameCapable;
+import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import java.io.Serializable;

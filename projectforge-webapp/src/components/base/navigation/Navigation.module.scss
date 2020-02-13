@@ -53,14 +53,17 @@ ul.categoryLinks {
   }
 }
 
-.categoryColumn {
+.categories {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 
   @media #{$mediumMediaQuery} {
-    border-right: 1px solid #ddd;
+    flex-direction: row;
+  }
 
-    &:last-child {
-      border-right: none;
-    }
+  .categoryColumn {
+    flex: 1;
   }
 }
 

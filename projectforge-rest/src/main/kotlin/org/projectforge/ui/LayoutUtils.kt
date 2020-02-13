@@ -175,7 +175,7 @@ class LayoutUtils {
                         responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.DELETE), targetType = TargetType.DELETE)))
             }
             if (pagesRest.getId(dto) != null) {
-                if (pagesRest.cloneSupported) {
+                if (pagesRest.cloneSupport != AbstractPagesRest.CloneSupport.NONE) {
                     layout.addAction(UIButton("clone",
                             color = UIColor.SECONDARY,
                             outline = true,

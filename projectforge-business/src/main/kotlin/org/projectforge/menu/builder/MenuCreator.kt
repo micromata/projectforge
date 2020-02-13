@@ -381,8 +381,7 @@ class MenuCreator {
                     .add(MenuItemDef(MenuItemDefId.LUCENE_CONSOLE,
                             requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
         }
-        adminMenu.add(MenuItemDef(MenuItemDefId.SYSTEM_UPDATE, requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
-                .add(MenuItemDef(MenuItemDefId.SYSTEM_STATISTICS)) // Visible for all.
+        adminMenu.add(MenuItemDef(MenuItemDefId.SYSTEM_STATISTICS)) // Visible for all.
                 .add(MenuItemDef(MenuItemDefId.CONFIGURATION, requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
                 .add(MenuItemDef(MenuItemDefId.PLUGIN_ADMIN,
                         requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))

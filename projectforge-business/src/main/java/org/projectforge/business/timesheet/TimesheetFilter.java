@@ -219,7 +219,7 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
     this.orderType = orderType;
   }
 
-  private TimePeriod getTimePeriod()
+  public TimePeriod getTimePeriod()
   {
     if (timePeriod == null) {
       timePeriod = new TimePeriod();

@@ -34,12 +34,12 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateFormats;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -222,12 +222,12 @@ public class OrderExport
     if (order.getErfassungsDatum() == null) {
       if (order.getCreated() == null) {
         if (order.getAngebotsDatum() == null) {
-          order.setErfassungsDatum(new java.sql.Date(new Date().getTime()));
+          order.setErfassungsDatum(PFDay.now().getLocalDate());
         } else {
-          order.setErfassungsDatum(new java.sql.Date(order.getAngebotsDatum().getTime()));
+          order.setErfassungsDatum(order.getAngebotsDatum());
         }
       } else {
-        order.setErfassungsDatum(new java.sql.Date(order.getCreated().getTime()));
+        order.setErfassungsDatum(PFDay.from(order.getCreated()).getLocalDate());
       }
     }
     return order.getErfassungsDatum();

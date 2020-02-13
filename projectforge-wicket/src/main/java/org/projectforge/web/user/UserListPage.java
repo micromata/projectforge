@@ -23,10 +23,6 @@
 
 package org.projectforge.web.user;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -52,15 +48,13 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.web.fibu.ISelectCallerPage;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.RowCssClass;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @ListPage(editPage = UserEditPage.class)
 public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUserDO>

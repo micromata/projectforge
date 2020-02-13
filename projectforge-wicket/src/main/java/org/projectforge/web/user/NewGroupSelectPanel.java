@@ -23,9 +23,6 @@
 
 package org.projectforge.web.user;
 
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -44,6 +41,9 @@ import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.components.TooltipImage;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
+
+import java.util.List;
+import java.util.Locale;
 
 /**
  * This panel shows the actual group.

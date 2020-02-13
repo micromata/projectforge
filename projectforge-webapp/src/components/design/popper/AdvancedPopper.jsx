@@ -14,6 +14,7 @@ function AdvancedPopper(
         contentClassName,
         isOpen,
         setIsOpen,
+        withInput,
     },
 ) {
     const reference = React.useRef(null);
@@ -28,8 +29,8 @@ function AdvancedPopper(
     React.useLayoutEffect(
         () => {
             if (basicReference.current) {
-                setBasicWidth(basicReference.current.clientWidth + 2);
-                setBasicHeight(basicReference.current.clientHeight + 10);
+                setBasicWidth(basicReference.current.clientWidth);
+                setBasicHeight(basicReference.current.clientHeight);
             }
         },
         [
@@ -64,7 +65,11 @@ function AdvancedPopper(
             )}
         >
             <div
-                className={classNames(style.content, contentClassName)}
+                className={classNames(
+                    style.content,
+                    { [style.noBorder]: withInput },
+                    contentClassName,
+                )}
                 role="menu"
                 ref={basicReference}
                 tabIndex={0}
@@ -75,9 +80,13 @@ function AdvancedPopper(
             </div>
             {additionalVisible && (
                 <div
-                    className={classNames(style.additional, additionalClassName)}
+                    className={classNames(
+                        style.additional,
+                        { [style.withInput]: withInput },
+                        additionalClassName,
+                    )}
                     style={{
-                        top: basicHeight,
+                        top: basicHeight + (withInput ? 0 : 10),
                         minWidth: basicWidth,
                         maxWidth: additionalWidth,
                         maxHeight: additionalHeight,
@@ -104,6 +113,7 @@ AdvancedPopper.propTypes = {
     className: PropTypes.string,
     contentClassName: PropTypes.string,
     isOpen: PropTypes.bool,
+    withInput: PropTypes.bool,
 };
 
 AdvancedPopper.defaultProps = {
@@ -113,6 +123,7 @@ AdvancedPopper.defaultProps = {
     className: undefined,
     contentClassName: undefined,
     isOpen: false,
+    withInput: false,
 };
 
 export default AdvancedPopper;

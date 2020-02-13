@@ -23,12 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.function.BooleanSupplier;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -38,21 +32,27 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.IModel;
 import org.projectforge.business.fibu.PeriodOfPerformanceType;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.BooleanSupplier;
 
 class PeriodOfPerformanceHelper
 {
   private final List<DropDownChoice<PeriodOfPerformanceType>> performanceDropDowns = new ArrayList<>();
 
-  private final List<DatePanel> datePanels = new ArrayList<>();
+  private final List<LocalDatePanel> datePanels = new ArrayList<>();
 
-  private DatePanel fromDatePanel;
+  private LocalDatePanel fromDatePanel;
 
-  private DatePanel endDatePanel;
+  private LocalDatePanel endDatePanel;
 
   public void onRefreshPositions()
   {
@@ -60,26 +60,25 @@ class PeriodOfPerformanceHelper
     datePanels.clear();
   }
 
-  public void createPeriodOfPerformanceFields(final FieldsetPanel fs, final IModel<Date> periodOfPerformanceBeginModel,
-      final IModel<Date> periodOfPerformanceEndModel)
+  public void createPeriodOfPerformanceFields(final FieldsetPanel fs, final IModel<LocalDate> periodOfPerformanceBeginModel, final IModel<LocalDate> periodOfPerformanceEndModel)
   {
     final BooleanSupplier isAnyPerformanceTypeSeeAboveSelected = () -> performanceDropDowns.stream()
         .map(FormComponent::getRawInput) // need to use getRawInput here instead of getModelObject, because model is not updated at time of validation
         .anyMatch(PeriodOfPerformanceType.SEEABOVE.name()::equals);
 
-    fromDatePanel = new DatePanel(fs.newChildId(), periodOfPerformanceBeginModel, DatePanelSettings.get().withTargetType(java.sql.Date.class),
-        isAnyPerformanceTypeSeeAboveSelected);
+    fromDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(periodOfPerformanceBeginModel));
+    fromDatePanel.setRequiredSupplier(isAnyPerformanceTypeSeeAboveSelected);
     fs.add(fromDatePanel);
 
     fs.add(new DivTextPanel(fs.newChildId(), "-"));
 
-    endDatePanel = new DatePanel(fs.newChildId(), periodOfPerformanceEndModel, DatePanelSettings.get().withTargetType(java.sql.Date.class),
-        isAnyPerformanceTypeSeeAboveSelected);
+    endDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(periodOfPerformanceEndModel));
+    fromDatePanel.setRequiredSupplier(isAnyPerformanceTypeSeeAboveSelected);
     fs.add(endDatePanel);
   }
 
   public void createPositionsPeriodOfPerformanceFields(final FieldsetPanel fs, final IModel<PeriodOfPerformanceType> periodOfPerformanceTypeModel,
-      final IModel<Date> periodOfPerformanceBeginModel, final IModel<Date> periodOfPerformanceEndModel,
+      final IModel<LocalDate> periodOfPerformanceBeginModel, final IModel<LocalDate> periodOfPerformanceEndModel,
       final Component... additionalComponentsToToggleVisibility)
   {
     final List<Component> componentsToToggleVisibility = new ArrayList<>();
@@ -109,8 +108,7 @@ class PeriodOfPerformanceHelper
     final BooleanSupplier hasOwnPeriodOfPerformanceSupplier = () -> hasOwnPeriodOfPerformance(performanceTypeDropDown);
 
     // from date
-    final DatePanel fromDatePanel = new DatePanel(fs.newChildId(), periodOfPerformanceBeginModel, DatePanelSettings.get().withTargetType(java.sql.Date.class),
-        hasOwnPeriodOfPerformanceSupplier);
+    final LocalDatePanel fromDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(periodOfPerformanceBeginModel));
     fromDatePanel.getDateField().setOutputMarkupPlaceholderTag(true);
     fs.add(fromDatePanel);
     componentsToToggleVisibility.add(fromDatePanel.getDateField());
@@ -123,8 +121,8 @@ class PeriodOfPerformanceHelper
     componentsToToggleVisibility.add(minusTextPanel.getLabel4Ajax());
 
     // end date
-    final DatePanel endDatePanel = new DatePanel(fs.newChildId(), periodOfPerformanceEndModel, DatePanelSettings.get().withTargetType(java.sql.Date.class),
-        hasOwnPeriodOfPerformanceSupplier);
+    final LocalDatePanel endDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(periodOfPerformanceEndModel));
+    endDatePanel.setRequiredSupplier(hasOwnPeriodOfPerformanceSupplier);
     endDatePanel.getDateField().setOutputMarkupPlaceholderTag(true);
     fs.add(endDatePanel);
     componentsToToggleVisibility.add(endDatePanel.getDateField());
@@ -147,32 +145,32 @@ class PeriodOfPerformanceHelper
       @Override
       public FormComponent<?>[] getDependentFormComponents()
       {
-        return datePanels.toArray(new DatePanel[datePanels.size()]);
+        return datePanels.toArray(new LocalDatePanel[0]);
       }
 
       @Override
       public void validate(final Form<?> form)
       {
-        final Date performanceFromDate = fromDatePanel.getDateField().getConvertedInput();
-        final Date performanceEndDate = endDatePanel.getDateField().getConvertedInput();
+        final LocalDate performanceFromDate = fromDatePanel.getConvertedInputAsLocalDate();
+        final LocalDate performanceEndDate = endDatePanel.getConvertedInputAsLocalDate();
         if (performanceFromDate == null || performanceEndDate == null) {
           return;
-        } else if (performanceEndDate.before(performanceFromDate) == true) {
+        } else if (performanceEndDate.isBefore(performanceFromDate)) {
           endDatePanel.error(form.getString("error.endDateBeforeBeginDate"));
         }
 
         final FormComponent<?>[] dependentFormComponents = getDependentFormComponents();
 
         for (int i = 0; i < dependentFormComponents.length - 1; i += 2) {
-          final Date posPerformanceFromDate = ((DatePanel) dependentFormComponents[i]).getDateField().getConvertedInput();
-          final Date posPerformanceEndDate = ((DatePanel) dependentFormComponents[i + 1]).getDateField().getConvertedInput();
+          final LocalDate posPerformanceFromDate = ((LocalDatePanel) dependentFormComponents[i]).getConvertedInputAsLocalDate();
+          final LocalDate posPerformanceEndDate = ((LocalDatePanel) dependentFormComponents[i + 1]).getConvertedInputAsLocalDate();
           if (posPerformanceFromDate == null || posPerformanceEndDate == null) {
             continue;
           }
-          if (posPerformanceEndDate.before(posPerformanceFromDate) == true) {
+          if (posPerformanceEndDate.isBefore(posPerformanceFromDate)) {
             dependentFormComponents[i + 1].error(form.getString("error.endDateBeforeBeginDate"));
           }
-          if (posPerformanceFromDate.before(performanceFromDate) == true) {
+          if (posPerformanceFromDate.isBefore(performanceFromDate)) {
             dependentFormComponents[i + 1].error(form.getString("error.posFromDateBeforeFromDate"));
           }
         }

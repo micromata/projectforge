@@ -23,28 +23,26 @@
 
 package org.projectforge.web.orga;
 
-import java.util.Date;
-import java.util.List;
-
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.validation.IValidator;
-import org.apache.wicket.validation.ValidationError;
 import org.projectforge.business.orga.PostType;
 import org.projectforge.business.orga.PosteingangDO;
-import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
+import org.projectforge.web.wicket.flowlayout.FieldProperties;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.slf4j.Logger;
+
+import java.time.LocalDate;
+import java.util.List;
 
 public class PosteingangEditForm extends AbstractEditForm<PosteingangDO, PosteingangEditPage>
 {
@@ -65,27 +63,32 @@ public class PosteingangEditForm extends AbstractEditForm<PosteingangDO, Postein
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // Date
+      final FieldProperties<LocalDate> props = getDateProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("date"));
-      final DatePanel datumPanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "datum"), DatePanelSettings.get()
-          .withTargetType(java.sql.Date.class).withSelectProperty("datum"));
+      LocalDatePanel datumPanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
       datumPanel.setRequired(true);
-      datumPanel.add((IValidator<Date>) validatable -> {
-        final Date value = validatable.getValue();
-
-        final DayHolder today = new DayHolder();
-        final DayHolder date = new DayHolder(value);
-        if (today.before(date) == true) { // No dates in the future accepted.
-          error(new ValidationError().addKey("error.dateInFuture"));
+      /*
+      datumPanel.add((IValidator) validatable -> {
+        // TODO: Jan: Du hast das gelöscht, bitte Rücksprache. Ist aber OK, weil wir diese Wicket-Seite bald löschen:
+        final LocalDate value = (LocalDate)validatable.getValue();
+        if (value == null) {
+          return;
+        }
+        final PFDay today = PFDay.now();
+        final PFDay date = PFDay.from(value);
+        if (today.isBefore(date) == true) { // No dates in the future accepted.
+          validatable.error(new ValidationError().addKey("error.dateInFuture"));
         }
       });
+       */
       fs.add(datumPanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // Status drop down box:
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("orga.post.type"));
-      final LabelValueChoiceRenderer<PostType> typeChoiceRenderer = new LabelValueChoiceRenderer<PostType>(fs, PostType.values());
-      final DropDownChoice<PostType> typeChoice = new DropDownChoice<PostType>(fs.getDropDownChoiceId(), new PropertyModel<PostType>(data,
+      final LabelValueChoiceRenderer<PostType> typeChoiceRenderer = new LabelValueChoiceRenderer<>(fs, PostType.values());
+      final DropDownChoice<PostType> typeChoice = new DropDownChoice<PostType>(fs.getDropDownChoiceId(), new PropertyModel<>(data,
           "type"), typeChoiceRenderer.getValues(), typeChoiceRenderer);
       typeChoice.setNullValid(false);
       typeChoice.setRequired(true);
@@ -96,7 +99,7 @@ public class PosteingangEditForm extends AbstractEditForm<PosteingangDO, Postein
       // Sender
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("orga.posteingang.absender"));
       final PFAutoCompleteMaxLengthTextField absenderTextField = new PFAutoCompleteMaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<String>(data, "absender"))
+          new PropertyModel<>(data, "absender"))
       {
         @Override
         protected List<String> getChoices(final String input)
@@ -113,7 +116,7 @@ public class PosteingangEditForm extends AbstractEditForm<PosteingangDO, Postein
       // Person
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("orga.posteingang.person"));
       final PFAutoCompleteMaxLengthTextField personTextField = new PFAutoCompleteMaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<String>(data, "person"))
+          new PropertyModel<>(data, "person"))
       {
         @Override
         protected List<String> getChoices(final String input)
@@ -128,7 +131,7 @@ public class PosteingangEditForm extends AbstractEditForm<PosteingangDO, Postein
       // Content
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("orga.post.inhalt"));
       final PFAutoCompleteMaxLengthTextField inhaltTextField = new PFAutoCompleteMaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<String>(data, "inhalt"))
+          new PropertyModel<>(data, "inhalt"))
       {
         @Override
         protected List<String> getChoices(final String input)
@@ -143,8 +146,12 @@ public class PosteingangEditForm extends AbstractEditForm<PosteingangDO, Postein
     {
       // Content
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("comment"));
-      fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(data, "bemerkung")), true);
+      fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "bemerkung")), true);
     }
+  }
+
+  private FieldProperties<LocalDate> getDateProperties() {
+    return new FieldProperties<>("date", new PropertyModel<>(super.data, "datum"));
   }
 
   @Override

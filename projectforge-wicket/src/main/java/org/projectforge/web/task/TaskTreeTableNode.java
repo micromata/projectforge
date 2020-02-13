@@ -23,14 +23,14 @@
 
 package org.projectforge.web.task;
 
-import java.io.Serializable;
-
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.common.task.TaskStatus;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.tree.TreeTableNode;
+
+import java.io.Serializable;
 
 
 /**

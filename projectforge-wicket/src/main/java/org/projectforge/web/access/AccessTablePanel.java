@@ -23,8 +23,6 @@
 
 package org.projectforge.web.access;
 
-import java.util.List;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -34,6 +32,8 @@ import org.projectforge.framework.access.AccessEntryDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+
+import java.util.List;
 
 /**
  * Rows of access rights (without header).

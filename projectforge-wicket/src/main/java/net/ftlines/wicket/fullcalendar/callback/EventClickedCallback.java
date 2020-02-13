@@ -38,7 +38,6 @@ package net.ftlines.wicket.fullcalendar.callback;
 import net.ftlines.wicket.fullcalendar.CalendarResponse;
 import net.ftlines.wicket.fullcalendar.Event;
 import net.ftlines.wicket.fullcalendar.EventSource;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;

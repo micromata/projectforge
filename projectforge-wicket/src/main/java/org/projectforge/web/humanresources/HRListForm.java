@@ -23,26 +23,26 @@
 
 package org.projectforge.web.humanresources;
 
-import java.util.Date;
-
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.humanresources.HRFilter;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.calendar.QuickSelectWeekPanel;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WicketUtils;
-import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
+import java.time.LocalDate;
+import java.util.Date;
+
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class HRListForm extends AbstractListForm<HRFilter, HRListPage>
 {
@@ -50,9 +50,9 @@ public class HRListForm extends AbstractListForm<HRFilter, HRListPage>
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRListForm.class);
 
-  protected DatePanel startDate;
+  protected LocalDatePanel startDate;
 
-  protected DatePanel stopDate;
+  protected LocalDatePanel stopDate;
 
   @Override
   protected void init()
@@ -62,15 +62,15 @@ public class HRListForm extends AbstractListForm<HRFilter, HRListPage>
     gridBuilder.newGridPanel();
     final FieldsetPanel fs = gridBuilder.newFieldset(super.getOptionsLabel()).suppressLabelForWarning();
     final DivPanel optionsCheckBoxesPanel = fs.addNewCheckBoxButtonDiv();
-    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(filter, "showPlanning"),
+    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(filter, "showPlanning"),
         getString("hr.planning.filter.showPlanning")));
-    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(filter, "showBookedTimesheets"),
+    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(filter, "showBookedTimesheets"),
         getString("hr.planning.filter.showBookedTimesheets")));
-    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(filter, "onlyMyProjects"),
+    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(filter, "onlyMyProjects"),
         getString("hr.planning.filter.onlyMyProjects")));
-    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(filter, "allProjectsGroupedByCustomer"),
+    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(filter, "allProjectsGroupedByCustomer"),
         getString("hr.planning.filter.allProjectsGroupedByCustomer")));
-    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(filter, "otherProjectsGroupedByCustomer"),
+    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(filter, "otherProjectsGroupedByCustomer"),
         getString("hr.planning.filter.otherProjectsGroupedByCustomer")));
     pageSizeFieldsetPanel.setVisible(false);
     filter.setMaxRows(-1);
@@ -108,20 +108,21 @@ public class HRListForm extends AbstractListForm<HRFilter, HRListPage>
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
   {
     final HRFilter filter = getSearchFilter();
-    startDate = new DatePanel(optionsFieldsetPanel.newChildId(), new PropertyModel<Date>(filter, "startTime"), DatePanelSettings.get()
-        .withSelectPeriodMode(true).withRequired(true));
+    FieldProperties<LocalDate> props = getStartDateProperties(filter);
+    startDate = new LocalDatePanel(optionsFieldsetPanel.newChildId(), new LocalDateModel(props.getModel()), DatePanelSettings.get().withSelectPeriodMode(true), true);
+    startDate.setRequired(true);
     optionsFieldsetPanel.add(startDate);
     optionsFieldsetPanel.add(new DivTextPanel(optionsFieldsetPanel.newChildId(), " - "));
-    stopDate = new DatePanel(optionsFieldsetPanel.newChildId(), new PropertyModel<Date>(filter, "stopTime"), DatePanelSettings.get()
-        .withSelectPeriodMode(true).withRequired(true));
+    props = getStopDateProperties(filter);
+    stopDate = new LocalDatePanel(optionsFieldsetPanel.newChildId(), new LocalDateModel(props.getModel()), DatePanelSettings.get().withSelectPeriodMode(true), true);
+    stopDate.setRequired(true);
     optionsFieldsetPanel.add(stopDate);
-    final QuickSelectWeekPanel quickSelectPanel = new QuickSelectWeekPanel(optionsFieldsetPanel.newChildId(), new Model<Date>() {
+    final QuickSelectWeekPanel quickSelectPanel = new QuickSelectWeekPanel(optionsFieldsetPanel.newChildId(), new Model<LocalDate>() {
       @Override
-      public Date getObject()
-      {
+      public LocalDate getObject() {
         startDate.validate(); // Update model from form field.
         final Date date = startDate.getConvertedInput();
-        return date;
+        return PFDay.fromOrNow(date).getLocalDate();
       }
     }, parentPage, "week");
     optionsFieldsetPanel.add(quickSelectPanel);
@@ -130,16 +131,23 @@ public class HRListForm extends AbstractListForm<HRFilter, HRListPage>
       @Override
       public String getObject()
       {
-        return WicketUtils.getCalendarWeeks(HRListForm.this, filter.getStartTime(), filter.getStopTime());
+        return WicketUtils.getCalendarWeeks(HRListForm.this, filter.getStartDay(), filter.getStopDay());
       }
     }));
     optionsFieldsetPanel.add(new HtmlCommentPanel(optionsFieldsetPanel.newChildId(), new Model<String>() {
       @Override
-      public String getObject()
-      {
-        return WicketUtils.getUTCDates(filter.getStartTime(), filter.getStopTime());
+      public String getObject() {
+        return WicketUtils.getUTCDates(filter.getStartDay(), filter.getStopDay());
       }
     }));
+  }
+
+  private FieldProperties<LocalDate> getStopDateProperties(HRFilter filter) {
+    return new FieldProperties<>("", new PropertyModel<>(filter, "stopDay"));
+  }
+
+  private FieldProperties<LocalDate> getStartDateProperties(HRFilter filter) {
+    return new FieldProperties<>("", new PropertyModel<>(filter, "startDay"));
   }
 
   @Override

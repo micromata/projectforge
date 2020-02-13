@@ -25,7 +25,7 @@ package org.projectforge.business.meb
 
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
-import java.util.*
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -55,7 +55,7 @@ class ImportedMebEntryDO : AbstractBaseDO<Int>() {
 
     @PropertyInfo(i18nKey = "date")
     @get:Column(nullable = false)
-    var date: Date? = null
+    var date: LocalDate? = null
 
     /**
      * From which source was this entry imported (MAIL or SERVLET)?

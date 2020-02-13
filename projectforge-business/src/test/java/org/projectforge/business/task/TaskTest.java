@@ -44,9 +44,9 @@ import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.Month;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -368,7 +368,7 @@ public class TaskTest extends AbstractTestBase {
   private void checkAccess(final String user, final Serializable id, final ProjektDO projekt, final Kost2DO kost2) {
     logon(user);
     TaskDO task = taskDao.getById(id);
-    task.setProtectTimesheetsUntil(new Date());
+    task.setProtectTimesheetsUntil(LocalDate.now());
     try {
       taskDao.update(task);
       fail("AccessException expected.");
@@ -388,7 +388,7 @@ public class TaskTest extends AbstractTestBase {
     task = taskDao.getById(id);
     task = new TaskDO();
     task.setParentTask(getTask("checkAccessTestTask"));
-    task.setProtectTimesheetsUntil(new Date());
+    task.setProtectTimesheetsUntil(LocalDate.now());
     try {
       taskDao.save(task);
       fail("AccessException expected.");
