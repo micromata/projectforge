@@ -392,6 +392,7 @@ public class UserService implements UserChangedListener {
     if (updateSaltAndPepperIfNeeded && passwordCheckResult.isPasswordUpdateNeeded()) {
       log.info("Giving salt and/or pepper to the password of the user " + user.getId() + ".");
       createEncryptedPassword(user, password);
+      userDao.internalUpdate(user);
     }
     return user;
   }
