@@ -47,16 +47,23 @@ import org.projectforge.caldav.service.AddressService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 
-open class ProjectForgeCarddavController : BaseDAVController() {
+@ResourceController
+open class ProjectForgeCardDAVController : BaseDAVController() {
     @Autowired
-    private lateinit var addressService: AddressService
+    private lateinit var addressService_: AddressService
+
+    private val addressService: AddressService
+        get() {
+            ensureAutowire()
+            return addressService_
+        }
 
     @get:Root
-    val root: ProjectForgeCarddavController
+    val root: ProjectForgeCardDAVController
         get() = this
 
     @ChildrenOf
-    fun getUsersHome(root: ProjectForgeCarddavController?): UsersHome {
+    fun getUsersHome(root: ProjectForgeCardDAVController?): UsersHome {
         if (usersHome == null) {
             log.info("Create new UsersHome")
             usersHome = UsersHome()
@@ -73,17 +80,20 @@ open class ProjectForgeCarddavController : BaseDAVController() {
     @ChildrenOf
     @AddressBooks
     fun getAddressBook(cons: ContactsHome): AddressBook {
+        log.info("getAddressBook: '${cons.name}' for user '${cons.user.username}'.")
         return AddressBook(cons.user)
     }
 
     @ChildrenOf
-    fun getContact(ab: AddressBook): List<Contact> {
+    fun getContacts(ab: AddressBook): List<Contact> {
+        log.info("getContacts for address book '${ab.name}' and user '${ab.user.username}'.")
         return addressService.getContactList(ab)
     }
 
     @Get
     @ContactData
     fun getContactData(c: Contact): ByteArray? {
+        log.info("getContactData: '${c.name}' with id '${c.id}'.")
         return c.vcardData
     }
 
@@ -95,6 +105,7 @@ open class ProjectForgeCarddavController : BaseDAVController() {
 
     @PutChild
     fun updateContact(c: Contact, vcardBytearray: ByteArray?): Contact {
+        log.info("updateContact: '${c.name}' with id '${c.id}'.")
         var c = c
         log.info("updateContact: " + c.name)
         c = addressService.updateContact(c, vcardBytearray)
@@ -103,12 +114,12 @@ open class ProjectForgeCarddavController : BaseDAVController() {
 
     @Delete
     fun deleteContact(c: Contact) {
-        log.info("deleteContact: " + c.name)
+        log.info("deleteContact: '${c.name}' with id '${c.id}'.")
         addressService.deleteContact(c)
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(ProjectForgeCarddavController::class.java)
+        private val log = LoggerFactory.getLogger(ProjectForgeCardDAVController::class.java)
     }
 
     init {

@@ -9,8 +9,8 @@
         <version>7.0-SNAPSHOT</version><!-- projectforge.version -->
     </parent>
     <properties>
-        <milton.version>2.7.4.4</milton.version>
-        <ez-vcard.version>0.10.4</ez-vcard.version>
+        <milton.version>2.7.5.0</milton.version>
+        <ez-vcard.version>0.10.5</ez-vcard.version>
     </properties>
     <licenses>
         <license>

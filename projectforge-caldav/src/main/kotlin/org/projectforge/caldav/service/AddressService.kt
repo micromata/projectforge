@@ -43,7 +43,9 @@ class AddressService {
     private lateinit var vCardService: VCardService
 
     fun getContactList(ab: AddressBook): List<Contact> {
-        return personalAddressDao.list.map { Contact() }
+        return personalAddressDao.list.map {
+            convertRestResponse(ab, it)
+        }
     }
 
     fun createContact(ab: AddressBook?, vcardBytearray: ByteArray?): Contact {

@@ -30,8 +30,10 @@ import java.util.*
 class Contact {
     @get:UniqueId
     var id: Long = 0
-    var name // filename for the meeting. Must be unique within the user
-            : String? = null
+    /**
+     * filename for the meeting. Must be unique within the user
+     */
+    var name: String? = null
     @get:ModifiedDate
     var modifiedDate: Date? = null
     var vcardData: ByteArray? = null

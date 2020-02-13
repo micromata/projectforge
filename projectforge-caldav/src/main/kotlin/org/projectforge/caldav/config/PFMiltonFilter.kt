@@ -65,6 +65,7 @@ class PFMiltonFilter : MiltonFilter() {
                 "Preferences",
                 "Fantastical",
                 "Reminders")
+        private val excludedAgentsStrings = listOf("CriOS")
         private val log = LoggerFactory.getLogger(PFMiltonFilter::class.java)
     }
 
@@ -76,9 +77,7 @@ class PFMiltonFilter : MiltonFilter() {
         }
         if (req is HttpServletRequest) {
             val userAgent: String = req.getHeader("User-Agent")
-            if (userAgent != null &&
-                    (supportedAgentsStrings.any { userAgent == it } || supportedAgentsRegexps.any { it.matches(userAgent) })
-            ) {
+            if (checkUserAgent(userAgent)) {
                 val url: String = req.requestURI
                 if (miltonUrls.any { url.startsWith(it) }) {
                     log.info("Processed by milton.io: $url")
@@ -95,5 +94,11 @@ class PFMiltonFilter : MiltonFilter() {
             }
         }
         fc.doFilter(req, resp)
+    }
+
+    internal fun checkUserAgent(userAgent: String?): Boolean {
+        return !userAgent.isNullOrBlank()
+                && (supportedAgentsStrings.any { userAgent == it } || supportedAgentsRegexps.any { it.matches(userAgent) })
+                && excludedAgentsStrings.none { userAgent == it }
     }
 }
