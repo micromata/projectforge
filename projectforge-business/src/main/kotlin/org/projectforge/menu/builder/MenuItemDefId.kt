@@ -56,8 +56,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     CONFIGURATION("menu.configuration", "wa/configuration"), //
     CONTACT_LIST("menu.contactList"), //
     CONTRACTS("menu.contracts", "${PREFIX}contract"), //
-    COST1_LIST("menu.fibu.kost1", "${PREFIX}kost1"), //
-    COST2_LIST("menu.fibu.kost2", "wa/cost2List"), //
+    COST1_LIST("menu.fibu.kost1", "${PREFIX}cost1"), //
+    COST2_LIST("menu.fibu.kost2", "${PREFIX}cost2"), //
     COST2_TYPE_LIST("menu.fibu.kost2arten", "wa/cost2TypeList"), //
     CUSTOMER_LIST("menu.fibu.kunden", "wa/customerList"), //
     DATEV_IMPORT("menu.fibu.datevImport", "wa/datevImport"), //
@@ -67,7 +67,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", "${PREFIX}leaveAccountEntry"), //
     FEEDBACK("menu.gear.feedback", url = "wa/feedback"), //
     GANTT("menu.gantt", "wa/ganttList"), //
-    GROUP_LIST("menu.groupList", "wa/groupList"), //
+    GROUP_LIST("menu.groupList", "${PREFIX}group"), //
     HR_PLANNING_LIST("menu.hrPlanningList", "wa/hrPlanningList"), //
     HR_VIEW("menu.hrList", "wa/hrList"), //
     IMAGE_CROPPER("menu.imageCropper"), //
