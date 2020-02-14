@@ -14,6 +14,7 @@ import CalendarEditExternalSubscription from './components/CalendarEditExternalS
 import CalendarSubscriptionInfo from './components/CalendarSubscriptionInfo';
 import VacationEntries from './components/VacationEntries';
 import VacationStatistics from './components/VacationStatistics';
+import CostNumberComponent from "./components/CostNumberComponent";
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;
@@ -42,6 +43,9 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'calendar.subscriptionInfo':
             Tag = CalendarSubscriptionInfo;
+            break;
+        case 'cost.number':
+            Tag = CostNumberComponent;
             break;
         case 'dayRange':
             Tag = DayRange;

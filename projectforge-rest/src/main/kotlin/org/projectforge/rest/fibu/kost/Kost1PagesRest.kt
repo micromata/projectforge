@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("${Rest.URL}/kost1")
+@RequestMapping("${Rest.URL}/cost1")
 class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::class.java, "fibu.kost1.title") {
     override fun transformFromDB(obj: Kost1DO, editMode: Boolean): Kost1 {
         val kost1 = Kost1()
@@ -59,6 +59,9 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
         return LayoutUtils.processListPage(layout, this)
     }
 
+    override val classicsLinkListUrl: String?
+        get() = "wa/cost1List"
+
     /**
      * LAYOUT Edit page
      */
@@ -66,7 +69,7 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
-                                .add(UILabel("TODO: Requires custom component for the cost 1 id"))
+                                .add(UICustomized("cost.number"))
                                 .add(lc, "description", "kostentraegerStatus")))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
