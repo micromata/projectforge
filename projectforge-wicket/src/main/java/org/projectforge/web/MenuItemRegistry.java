@@ -111,8 +111,6 @@ public class MenuItemRegistry implements Serializable {
     // createdMenuEntry.setNewCounterModel(new MenuNewCounterOrder());
     // createdMenuEntry.setNewCounterTooltip("menu.fibu.orderbook.htmlSuffixTooltip");
     register(MenuItemDefId.ACCOUNT_LIST, KontoListPage.class);
-    register(MenuItemDefId.COST1_LIST, Kost1ListPage.class);
-    register(MenuItemDefId.COST2_LIST, Kost2ListPage.class);
     register(MenuItemDefId.COST2_TYPE_LIST, Kost2ArtListPage.class);
     register(MenuItemDefId.SCRIPT_LIST, ScriptListPage.class);
     register(MenuItemDefId.SCRIPTING, ScriptingPage.class);
@@ -129,7 +127,6 @@ public class MenuItemRegistry implements Serializable {
     register(MenuItemDefId.CHANGE_PASSWORD, ChangePasswordPage.class);
     register(MenuItemDefId.CHANGE_WLAN_PASSWORD, ChangeWlanPasswordPage.class);
     register(MenuItemDefId.USER_LIST, UserListPage.class);
-    register(MenuItemDefId.GROUP_LIST, GroupListPage.class);
     register(MenuItemDefId.ACCESS_LIST, AccessListPage.class);
     register(MenuItemDefId.SYSTEM, AdminPage.class);
     register(MenuItemDefId.SQL_CONSOLE, SqlConsolePage.class);

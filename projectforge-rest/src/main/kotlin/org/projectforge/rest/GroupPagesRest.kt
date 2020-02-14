@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/group")
-class GroupPagesRest() : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::class.java, "group.title") {
+class GroupPagesRest: AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::class.java, "group.title") {
 
     @Autowired
     private lateinit var userService: UserService
@@ -61,6 +61,9 @@ class GroupPagesRest() : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao
         return groupDO
     }
 
+    override val classicsLinkListUrl: String?
+        get() = "wa/groupList"
+
     /**
      * LAYOUT List page
      */
@@ -80,7 +83,7 @@ class GroupPagesRest() : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao
                         .add(UICol()
                                 .add(lc, "name", "organization", "description"))
                         .add(UICol()
-                                .add(UISelect.createUserSelect(lc, "assignedUsers", true, "group.assignedUsers", "access.users"))))
+                                .add(UISelect.createUserSelect(lc, "assignedUsers", true, "group.assignedUsers"))))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
