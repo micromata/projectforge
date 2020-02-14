@@ -26,15 +26,17 @@ package org.projectforge.rest.fibu.kost
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
+import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.dto.Kost1
 import org.projectforge.rest.dto.Kost2
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("${Rest.URL}/kost2")
+@RequestMapping("${Rest.URL}/cost2")
 class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::class.java, "fibu.kost2.title") {
     override fun transformFromDB(obj: Kost2DO, editMode: Boolean): Kost2 {
         val kost2 = Kost2()
@@ -48,6 +50,9 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
         dto.copyTo(kost2DO)
         return kost2DO
     }
+
+    override val classicsLinkListUrl: String?
+        get() = "wa/cost2List"
 
     /**
      * LAYOUT List page
@@ -65,12 +70,11 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
      * LAYOUT Edit page
      */
     override fun createEditLayout(dto: Kost2, userAccess: UILayout.UserAccess): UILayout {
-        // TODO: EditPage needs customized component for the cost 2 id
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "projekt")
-                                .add(UILabel("TODO: customized component for the cost 2 id"))
+                                .add(UICustomized("cost.number"))
                                 .add(lc, "workFraction", "description", "comment", "kostentraegerStatus")))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
