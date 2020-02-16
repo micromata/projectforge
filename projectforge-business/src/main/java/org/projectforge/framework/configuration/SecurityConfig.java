@@ -38,8 +38,8 @@ public class SecurityConfig
   @Value("${projectforge.security.passwordPepper}")
   private String passwordPepper;
 
-  @Value("${projectforge.security.authenticationTokenKey}")
-  private String authenticationTokenKey;
+  @Value("${projectforge.security.authenticationTokenEncryptionKey}")
+  private String authenticationTokenEncryptionKey;
 
   @Value("${projectforge.security.sqlConsoleAvailable}")
   private boolean sqlConsoleAvailable;
@@ -71,11 +71,11 @@ public class SecurityConfig
    * @see org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
    */
   public String getAuthenticationTokenEncryptionKey() {
-    return authenticationTokenKey;
+    return authenticationTokenEncryptionKey;
   }
 
   public void setAuthenticationTokenEncryptionKey(String authenticationTokenKey) {
-    this.authenticationTokenKey = authenticationTokenKey;
+    this.authenticationTokenEncryptionKey = authenticationTokenKey;
   }
 
   /**
