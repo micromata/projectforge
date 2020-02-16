@@ -86,7 +86,7 @@ object ProjectForgeInitializer {
                         result = replace(result, "spring.datasource.driver-class-name", "org.postgresql.Driver")
                     }
                     result = replace(result, "projectforge.security.passwordPepper", NumberHelper.getSecureRandomBase64String(20))
-                    result = replace(result, "projectforge.security.authenticationTokenKey", NumberHelper.getSecureRandomBase64String(20))
+                    result = replace(result, "projectforge.security.authenticationTokenEncryptionKey", NumberHelper.getSecureRandomBase64String(20))
                     result
                 }
         )

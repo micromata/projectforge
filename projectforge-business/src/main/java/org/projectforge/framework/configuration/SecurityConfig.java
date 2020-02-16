@@ -70,11 +70,11 @@ public class SecurityConfig
    * @return The key for encryption.
    * @see org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
    */
-  public String getAuthenticationTokenKey() {
+  public String getAuthenticationTokenEncryptionKey() {
     return authenticationTokenKey;
   }
 
-  public void setAuthenticationTokenKey(String authenticationTokenKey) {
+  public void setAuthenticationTokenEncryptionKey(String authenticationTokenKey) {
     this.authenticationTokenKey = authenticationTokenKey;
   }
 
