@@ -47,6 +47,7 @@ import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.service.UserService
 import org.projectforge.business.vacation.VacationCache
 import org.projectforge.common.StringHelper
@@ -77,12 +78,13 @@ import org.springframework.web.context.WebApplicationContext
 import java.time.LocalDate
 import javax.servlet.http.HttpServletRequest
 
+const val CALENDAR_EXPORT_BASE_URI = "/export/ProjectForge.ics" // See CalendarFeedService
 
 /**
  * This rest service should be available without login (public).
  */
 @RestController
-@RequestMapping("/export/ProjectForge.ics")
+@RequestMapping(CALENDAR_EXPORT_BASE_URI)
 class CalendarSubscriptionServiceRest {
     @Autowired
     private lateinit var configurationService: ConfigurationService
@@ -120,7 +122,7 @@ class CalendarSubscriptionServiceRest {
             log.error("System isn't up and running, CalendarFeed call denied. The system is may-be in start-up phase or in maintenance mode.")
             return ResponseEntity(HttpStatus.SERVICE_UNAVAILABLE)
         }
-        var user: PFUserDO?
+        val user: PFUserDO?
         var logMessage: String? = null
         try { // add logging stuff
             MDC.put("ip", request.remoteAddr)
@@ -135,13 +137,13 @@ class CalendarSubscriptionServiceRest {
                 return ResponseEntity(HttpStatus.BAD_REQUEST)
             }
             // read params of request
-            val decryptedParams = userService.decrypt(userId, q) ?: run {
+            val decryptedParams = userService.decrypt(userId, UserTokenType.CALENDAR_REST, q) ?: run {
                 log.error("Bad request, can't decrypt parameter q (may-be the user's authentication token was changed): ${request.queryString}")
                 return ResponseEntity(HttpStatus.BAD_REQUEST)
             }
             val params = StringHelper.getKeyValues(decryptedParams, "&")
             // validate user
-            user = userService.getUserByAuthenticationToken(userId, params["token"]) ?: run {
+            user = userService.getUserByAuthenticationToken(userId, UserTokenType.CALENDAR_REST, params["token"]) ?: run {
                 log.error("Bad request, user not found: ${request.queryString}")
                 return ResponseEntity(HttpStatus.BAD_REQUEST)
             }
@@ -234,7 +236,7 @@ class CalendarSubscriptionServiceRest {
         eventFilter.isDeleted = false
         eventFilter.startDate = eventDateFromLimit.utilDate
         val vacationEvents = mutableSetOf<Int>() // For avoiding multiple entries of vacation days. Ids of vacation event.
-        var processedTeamCals = mutableListOf<TeamCalDO>()
+        val processedTeamCals = mutableListOf<TeamCalDO>()
         for (teamCalIdString in teamCalIds) {
             val calId = Integer.valueOf(teamCalIdString)
             eventFilter.teamCalId = calId
@@ -376,6 +378,7 @@ class CalendarSubscriptionServiceRest {
     companion object {
         private val log = LoggerFactory.getLogger(CalendarSubscriptionServiceRest::class.java)
 
+        const val BASE_URI = CALENDAR_EXPORT_BASE_URI // See CalendarFeedService
         const val PARAM_EXPORT_REMINDER = "exportReminders"
         const val PARAM_EXPORT_ATTENDEES = "exportAttendees"
     }

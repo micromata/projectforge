@@ -26,6 +26,7 @@ package org.projectforge.web.rest;
 import org.projectforge.AppVersion;
 import org.projectforge.Version;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserTokenType;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -94,7 +95,7 @@ public class AuthenticationRest
       throw new IllegalArgumentException("No user given for the rest call: authenticate/getToken.");
     }
     final UserObject userObject = PFUserDOConverter.getUserObject(user);
-    final String authenticationToken = userService.getAuthenticationToken(user.getId());
+    final String authenticationToken = userService.getAuthenticationToken(user.getId(), UserTokenType.REST_CLIENT);
     userObject.setAuthenticationToken(authenticationToken);
     final String json = JsonUtils.toJson(userObject);
     return Response.ok(json).build();

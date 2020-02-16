@@ -38,6 +38,7 @@ import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserPrefCache;
+import org.projectforge.business.user.UserTokenType;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.filter.CookieService;
 import org.projectforge.business.user.filter.UserFilter;
@@ -119,7 +120,7 @@ public class LoginService {
               + ":"
               + loggedInUser.getUsername()
               + ":"
-              + userService.getStayLoggedInKey(user.getId()));
+              + userService.getAuthenticationToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY));
       cookieService.addStayLoggedInCookie(WicketUtils.getHttpServletRequest(page.getRequest()), WicketUtils.getHttpServletResponse(page.getResponse()), cookie);
     }
     internalLogin(page, user);

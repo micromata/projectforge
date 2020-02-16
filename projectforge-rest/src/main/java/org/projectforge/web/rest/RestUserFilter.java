@@ -27,6 +27,7 @@ import org.projectforge.business.login.LoginProtection;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.business.user.UserTokenType;
 import org.projectforge.business.user.filter.CookieService;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.user.service.UserService;
@@ -38,6 +39,7 @@ import org.projectforge.rest.Authentication;
 import org.projectforge.rest.AuthenticationOld;
 import org.projectforge.rest.ConnectionSettings;
 import org.projectforge.rest.converter.DateTimeFormat;
+import org.projectforge.rest.pub.CalendarSubscriptionServiceRest;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -100,6 +102,7 @@ public class RestUserFilter implements Filter {
     }
     HttpServletRequest req = (HttpServletRequest) request;
     HttpServletResponse resp = (HttpServletResponse) response;
+    final String url = req.getRequestURI();
     String userString = getAttribute(req, Authentication.AUTHENTICATION_USER_ID, AuthenticationOld.AUTHENTICATION_USER_ID);
     final LoginProtection loginProtection = LoginProtection.instance();
     final String clientIpAddress = request.getRemoteAddr();
@@ -114,11 +117,14 @@ public class RestUserFilter implements Filter {
       final Integer userId = NumberHelper.parseInteger(userString);
       if (userId != null) {
         final String authenticationToken = getAttribute(req, Authentication.AUTHENTICATION_TOKEN, AuthenticationOld.AUTHENTICATION_TOKEN);
-        if (userService.checkAuthenticationToken(userId,
-                authenticationToken,
-                Authentication.AUTHENTICATION_USER_ID,
-                Authentication.AUTHENTICATION_TOKEN)) {
-          user = userService.getUser(userId);
+        if (url.startsWith(CalendarSubscriptionServiceRest.BASE_URI)) {
+          if (userService.checkAuthenticationToken(userId,
+                  UserTokenType.CALENDAR_REST,
+                  authenticationToken,
+                  Authentication.AUTHENTICATION_USER_ID,
+                  Authentication.AUTHENTICATION_TOKEN)) {
+            user = userService.getUser(userId);
+          }
         }
       } else {
         log.error(Authentication.AUTHENTICATION_USER_ID + " is not an integer: '" + userString + "'. Rest call forbidden.");

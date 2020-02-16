@@ -30,6 +30,7 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.user.UserAuthenticationsDao;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserXmlPreferencesDao;
 import org.projectforge.business.user.service.UserService;
@@ -74,6 +75,9 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
   @SpringBean
   private UserXmlPreferencesDao userXmlPreferencesDao;
 
+  @SpringBean
+  private UserAuthenticationsDao userAuthenticationsDao;
+
   private Collection<TeamCalDO> teamCalRestWhiteList;
 
   private Boolean disableSnowEffectPermant;
@@ -106,7 +110,7 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
     }
     UserEditForm.createFirstName(gridBuilder, data);
     UserEditForm.createLastName(gridBuilder, data);
-    UserEditForm.createAuthenticationToken(gridBuilder, data, (UserDao) getBaseDao(), this);
+    UserEditForm.createCalRestAuthenticationToken(gridBuilder, data, userAuthenticationsDao, this);
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("user.assignedGroups")).suppressLabelForWarning();
     fs.add(new DivTextPanel(fs.newChildId(), groupService.getGroupnames(data.getId())));
 
