@@ -26,7 +26,9 @@ package org.projectforge.business.user.filter;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.Const;
 import org.projectforge.business.login.Login;
+import org.projectforge.business.user.UserAuthenticationsDao;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserTokenType;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
@@ -47,6 +49,9 @@ public class CookieService
 
   @Autowired
   private UserDao userDao;
+
+  @Autowired
+  private UserAuthenticationsDao userAuthenticationsDao;
 
   @Autowired
   private ServerProperties serverProperties;
@@ -79,7 +84,7 @@ public class CookieService
         log.warn("Invalid cookie found (user name wrong, maybe changed): " + value);
         return null;
       }
-      if (values[2] == null || !values[2].equals(user.getStayLoggedInKey())) {
+      if (values[2] == null || !values[2].equals(userAuthenticationsDao.getToken(userId, UserTokenType.STAY_LOGGED_IN_KEY))) {
         log.warn("Invalid cookie found (stay-logged-in key, maybe renewed and/or user password changed): " + value);
         return null;
       }

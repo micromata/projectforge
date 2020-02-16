@@ -32,6 +32,7 @@ import org.projectforge.business.login.Login;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserTokenType;
 import org.projectforge.business.user.UserXmlPreferencesDao;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.user.service.UserService;
@@ -139,7 +140,7 @@ public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditF
     }
     ((MySession) getSession()).setLocale(getRequest());
     if (form.invalidateAllStayLoggedInSessions == true) {
-      userService.renewStayLoggedInKey(getData().getId());
+      userService.renewAuthenticationToken(getData().getId(), UserTokenType.STAY_LOGGED_IN_KEY);
     }
     afterSaveOrUpdate();
     setResponsePage(new MessagePage("message.successfullChanged"));

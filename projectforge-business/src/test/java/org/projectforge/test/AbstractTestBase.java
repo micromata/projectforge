@@ -299,7 +299,7 @@ public abstract class AbstractTestBase {
   }
 
   public PFUserDO logon(final String username) {
-    final PFUserDO user = userService.getByUsername(username);
+    final PFUserDO user = userService.getInternalByUsername(username);
     if (user == null) {
       fail("User not found: " + username);
     }

@@ -26,6 +26,7 @@ package org.projectforge.web.rest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.projectforge.business.user.UserTokenType;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.rest.Authentication;
@@ -62,7 +63,7 @@ public class RestUserFilterTest extends AbstractTestBase
     initialized = true;
     PFUserDO user = getUserGroupCache().getUser(AbstractTestBase.TEST_USER);
     this.userId = user.getId();
-    this.userToken = userService.getAuthenticationToken(this.userId);
+    this.userToken = userService.getAuthenticationToken(this.userId, UserTokenType.REST_CLIENT);
     this.filter.setUserService(userService);
   }
 

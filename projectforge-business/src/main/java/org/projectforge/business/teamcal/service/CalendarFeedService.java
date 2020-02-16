@@ -25,6 +25,7 @@ package org.projectforge.business.teamcal.service;
 
 import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.teamcal.model.CalendarFeedConst;
+import org.projectforge.business.user.UserTokenType;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -35,6 +36,7 @@ import org.springframework.stereotype.Service;
 public class CalendarFeedService {
   private static final String PARAM_EXPORT_REMINDER = "exportReminders";
   private static final String PARAM_CALENDAR = "teamCals";
+  private static final String BASE_URI = "/export/ProjectForge.ics"; // See also CalendarSubscriptionServiceRest
 
   @Autowired
   private DomainService domainService;
@@ -100,13 +102,13 @@ public class CalendarFeedService {
    */
   public String getUrl(final String additionalParams) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
-    final String authenticationKey = userService.getAuthenticationToken(user.getId());
+    final String authenticationKey = userService.getAuthenticationToken(user.getId(), UserTokenType.CALENDAR_REST);
     final StringBuilder buf = new StringBuilder();
     buf.append("token=").append(authenticationKey);
     if (additionalParams != null) {
       buf.append(additionalParams);
     }
-    final String encryptedParams = userService.encrypt(buf.toString());
+    final String encryptedParams = userService.encrypt(UserTokenType.CALENDAR_REST, buf.toString());
     final String result = "/export/ProjectForge.ics?user=" + user.getId() + "&q=" + encryptedParams;
     return result;
   }
