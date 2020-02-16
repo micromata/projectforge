@@ -92,6 +92,7 @@ object ProjectForgeInitializer {
         )
         counter = ensureConfigFile(applicationHomeDir,
                 ConfigXml.CLASSPATH_INITIAL_CONFIG_XML_FILE, ConfigXml.CONFIG_XML_FILE, counter, emphasizedLog)
+        @Suppress("UNUSED_VALUE")
         counter = ensureConfigFile(applicationHomeDir,
                 AttrSchemaServiceSpringBeanImpl.CLASSPATH_INITIAL_ATTR_SCHEMA_CONFIG_FILE, AttrSchemaServiceSpringBeanImpl.ATTR_SCHEMA_CONFIG_FILE, counter, emphasizedLog)
         emphasizedLog.logEnd()

@@ -119,7 +119,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
   private UserService userService;
 
   @SpringBean
-  private UserAuthenticationsDao userAuthenticationsDao;
+  private UserAuthenticationsService userAuthenticationsService;
 
   protected UserRightsEditData rightsData;
 
@@ -208,7 +208,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
 
   @SuppressWarnings("serial")
   public static void createCalRestAuthenticationToken(final GridBuilder gridBuilder, final PFUserDO user,
-                                                      final UserAuthenticationsDao userAuthenticationsDao,
+                                                      final UserAuthenticationsService userAuthenticationsService,
                                                       final Form<?> form)
   {
     // Authentication token
@@ -220,7 +220,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       public String getObject()
       {
         if (ThreadLocalUserContext.getUserId().equals(user.getId()) == true) {
-          return userAuthenticationsDao.getToken(user.getId(), UserTokenType.CALENDAR_REST);
+          return userAuthenticationsService.getToken(user.getId(), UserTokenType.CALENDAR_REST);
         } else {
           // Administrators shouldn't see the token.
           return "*****";
@@ -233,7 +233,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       @Override
       public final void onSubmit()
       {
-        userAuthenticationsDao.renewToken(user.getId(), UserTokenType.CALENDAR_REST);
+        userAuthenticationsService.renewToken(user.getId(), UserTokenType.CALENDAR_REST);
         form.error(getString("user.authenticationToken.renew.successful"));
       }
     };
@@ -258,7 +258,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
   }
 
   public static void createLastLoginAndDeleteAllStayLogins(final GridBuilder gridBuilder, final PFUserDO user,
-      final UserService userService,
+      final UserAuthenticationsService userAuthenticationsService,
       final Form<?> form)
   {
     // Last login and deleteAllStayLoggedInSessions
@@ -271,7 +271,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       @Override
       public final void onSubmit()
       {
-        userService.renewAuthenticationToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY);
+        userAuthenticationsService.renewToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY);
         form.error(getString("login.stayLoggedIn.invalidateAllStayLoggedInSessions.successfullDeleted"));
       }
     };
@@ -461,7 +461,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     createLastName(gridBuilder, data);
     createOrganization(gridBuilder, data);
     createEMail(gridBuilder, data);
-    createCalRestAuthenticationToken(gridBuilder, data, userAuthenticationsDao, this);
+    createCalRestAuthenticationToken(gridBuilder, data, userAuthenticationsService, this);
     createJIRAUsername(gridBuilder, data);
     if (adminAccess == true) {
       gridBuilder.newFieldset(getString("user.hrPlanningEnabled"))
@@ -488,7 +488,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     }
 
     gridBuilder.newSplitPanel(GridSize.COL50);
-    createLastLoginAndDeleteAllStayLogins(gridBuilder, data, userService, this);
+    createLastLoginAndDeleteAllStayLogins(gridBuilder, data, userAuthenticationsService, this);
     createLocale(gridBuilder, data);
     createDateFormat(gridBuilder, data);
     createExcelDateFormat(gridBuilder, data);

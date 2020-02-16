@@ -24,6 +24,7 @@
 package org.projectforge.business.user
 
 import org.apache.commons.lang3.Validate
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
@@ -31,18 +32,35 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
 import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
-import org.projectforge.framework.utils.NumberHelper.getSecureRandomUrlSaveString
+import org.projectforge.framework.utils.Crypt
+import org.projectforge.framework.utils.NumberHelper.getSecureRandomBase64String
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+import javax.annotation.PostConstruct
 
 /**
+ * The authentication tokens are used to prevent the usage of the user's password for services as calendar subscription of CardDAV/CalDAVServices as well
+ * as for rest clients.
+ * The tokens will be stored encrypted in the database by a key stored in ProjectForge's config file. Therefore a data base administrator isn't able to re-use
+ * tokens without the knowledge of this key.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
 open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthenticationsDO::class.java) {
     @Autowired
     private lateinit var userDao: UserDao
+
+    @Autowired
+    private lateinit var configurationService: ConfigurationService
+
+    private lateinit var authenticationTokenEncryptionKey: String
+
+    @PostConstruct
+    private fun postContruct() {
+        //authenticationTokenEncryptionKey = StringUtils.rightPad(configurationService.securityConfig.authenticationTokenEncryptionKey, 32, "x")
+        authenticationTokenEncryptionKey = configurationService.securityConfig.authenticationTokenEncryptionKey
+    }
 
     internal var userTokenCache: UserTokenCache? = null
 
@@ -105,6 +123,28 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             return null
         }
         val queryName = when (type) {
+            UserTokenType.CALENDAR_REST -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_CALENDAR_TOKEN
+            UserTokenType.DAV_TOKEN -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_DAV_TOKEN
+            UserTokenType.REST_CLIENT -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_REST_CLIENT_TOKEN
+            UserTokenType.STAY_LOGGED_IN_KEY -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_STAY_LOGGED_IN_KEY
+        }
+        val user = ensureUniqueResult(em
+                .createNamedQuery(queryName, PFUserDO::class.java)
+                .setParameter("userId", userId)
+                .setParameter("token", encryptToken(token)))
+        if (user != null && !user.hasSystemAccess()) {
+            log.warn("Deleted user tried to login (via token '$type'): $user")
+            return null
+        }
+        return user
+    }
+
+    open fun getUserByToken(username: String, type: UserTokenType, token: String?): PFUserDO? {
+        if (token.isNullOrBlank() || token.trim().length < 10) {
+            log.warn("Token for user '$username' too short, aborting.")
+            return null
+        }
+        val queryName = when (type) {
             UserTokenType.CALENDAR_REST -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_CALENDAR_TOKEN
             UserTokenType.DAV_TOKEN -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_DAV_TOKEN
             UserTokenType.REST_CLIENT -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_REST_CLIENT_TOKEN
@@ -112,8 +152,8 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         }
         val user = ensureUniqueResult(em
                 .createNamedQuery(queryName, PFUserDO::class.java)
-                .setParameter("id", userId)
-                .setParameter("token", token))
+                .setParameter("username", username)
+                .setParameter("token", encryptToken(token)))
         if (user != null && !user.hasSystemAccess()) {
             log.warn("Deleted user tried to login (via token '$type'): $user")
             return null
@@ -124,6 +164,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
     /**
      * Returns the user's authentication token if exists (must be not blank with a size >= 10). If not, a new token key
      * will be generated.
+     * @return The decrypted token.
      * @throws AccessException if logged in user isn't either admin user nor owner of this token.
      */
     open fun getToken(userId: Int, type: UserTokenType): String? {
@@ -131,7 +172,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         }
         val authentications = ensureAuthentications(userId)
-        return authentications.getToken(type)
+        return decryptToken(authentications.getToken(type))
     }
 
     /**
@@ -181,7 +222,28 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
     }
 
     private fun createAuthenticationToken(): String? {
-        return getSecureRandomUrlSaveString(AUTHENTICATION_TOKEN_LENGTH.toInt())
+        val newToken = getSecureRandomBase64String(AUTHENTICATION_TOKEN_LENGTH);
+        return encryptToken(newToken)
+    }
+
+    private fun encryptToken(token: String): String {
+        return Crypt.encrypt(authenticationTokenEncryptionKey, token)
+    }
+
+    open fun decryptToken(token: String?): String? {
+        if (token.isNullOrBlank() || token.length <= 10) {
+            return null
+        }
+        return Crypt.decrypt(authenticationTokenEncryptionKey, token)
+    }
+
+    /**
+     * Decrypts all tokens in given object.
+     */
+    open fun decryptAllTokens(authentications: UserAuthenticationsDO) {
+        UserTokenType.values().forEach { type ->
+            authentications.setToken(type, decryptToken(authentications.getToken(type)))
+        }
     }
 
     /**
@@ -215,6 +277,6 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
 
     companion object {
         private val log = LoggerFactory.getLogger(UserAuthenticationsDao::class.java)
-        private val AUTHENTICATION_TOKEN_LENGTH: Short = 20
+        private val AUTHENTICATION_TOKEN_LENGTH = 20
     }
 }

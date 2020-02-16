@@ -38,14 +38,25 @@ import javax.persistence.*
 @NamedQueries(
         NamedQuery(name = UserAuthenticationsDO.FIND_BY_USER_ID,
                 query = "from UserAuthenticationsDO t join fetch t.user where t.user.id = :userId"),
+
         NamedQuery(name = UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_STAY_LOGGED_IN_KEY,
-                query = "select u from PFUserDO u, UserAuthenticationsDO t where t.user.username = :username and t.stayLoggedInKey = :token"),
+                query = "select u from PFUserDO u, UserAuthenticationsDO t where u.username = :username and u.id = t.user.id and t.stayLoggedInKey = :token"),
         NamedQuery(name = UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_CALENDAR_TOKEN,
-                query = "select u from PFUserDO u, UserAuthenticationsDO t where t.user.username = :username and t.calendarExportToken = :token"),
+                query = "select u from PFUserDO u, UserAuthenticationsDO t where u.username = :username and u.id = t.user.id and t.calendarExportToken = :token"),
         NamedQuery(name = UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_REST_CLIENT_TOKEN,
-                query = "select u from PFUserDO u, UserAuthenticationsDO t where t.user.username = :username and t.restClientToken = :token"),
+                query = "select u from PFUserDO u, UserAuthenticationsDO t where u.username = :username and u.id = t.user.id and t.restClientToken = :token"),
         NamedQuery(name = UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_DAV_TOKEN,
-                query = "select u from PFUserDO u, UserAuthenticationsDO t where t.user.username = :username and t.davToken = :token"),
+                query = "select u from PFUserDO u, UserAuthenticationsDO t where u.username = :username and u.id = t.user.id and t.davToken = :token"),
+
+        NamedQuery(name = UserAuthenticationsDO.FIND_USER_BY_USERID_AND_STAY_LOGGED_IN_KEY,
+                query = "select u from PFUserDO u, UserAuthenticationsDO t where u.id = :userId and u.id = t.user.id and t.stayLoggedInKey = :token"),
+        NamedQuery(name = UserAuthenticationsDO.FIND_USER_BY_USERID_AND_CALENDAR_TOKEN,
+                query = "select u from PFUserDO u, UserAuthenticationsDO t where u.id = :userId and u.id = t.user.id and t.calendarExportToken = :token"),
+        NamedQuery(name = UserAuthenticationsDO.FIND_USER_BY_USERID_AND_REST_CLIENT_TOKEN,
+                query = "select u from PFUserDO u, UserAuthenticationsDO t where u.id = :userId and u.id = t.user.id and t.restClientToken = :token"),
+        NamedQuery(name = UserAuthenticationsDO.FIND_USER_BY_USERID_AND_DAV_TOKEN,
+                query = "select u from PFUserDO u, UserAuthenticationsDO t where u.id = :userId and u.id = t.user.id and t.davToken = :token"),
+
         NamedQuery(name = UserAuthenticationsDO.CHECK_AUTH_CAL_EXPORT,
                 query = "from UserAuthenticationsDO t join fetch t.user where t.calendarExportToken = :calendarExportToken and t.user.username = :username"),
         NamedQuery(name = UserAuthenticationsDO.CHECK_AUTH_DAV,
@@ -58,6 +69,10 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_id")
     open var user: PFUserDO? = null
+
+    val userId: Int?
+        @Transient
+        get() = user?.id
 
     /**
      * Token used for calendar exports
@@ -116,6 +131,10 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
         internal const val FIND_USER_BY_USERNAME_AND_DAV_TOKEN = "UserAuthenticationTokenDO_FindUserByUsernameAndDAVToken"
         internal const val FIND_USER_BY_USERNAME_AND_REST_CLIENT_TOKEN = "UserAuthenticationTokenDO_FindUserByUsernameAndRestClientToken"
         internal const val FIND_USER_BY_USERNAME_AND_STAY_LOGGED_IN_KEY = "UserAuthenticationTokenDO_FindUserByUsernameAndStayLoggedInKey"
+        internal const val FIND_USER_BY_USERID_AND_CALENDAR_TOKEN = "UserAuthenticationTokenDO_FindUserByUserIdAndCalendarToken"
+        internal const val FIND_USER_BY_USERID_AND_DAV_TOKEN = "UserAuthenticationTokenDO_FindUserByUserIdAndDAVToken"
+        internal const val FIND_USER_BY_USERID_AND_REST_CLIENT_TOKEN = "UserAuthenticationTokenDO_FindUserByUserIdAndRestClientToken"
+        internal const val FIND_USER_BY_USERID_AND_STAY_LOGGED_IN_KEY = "UserAuthenticationTokenDO_FindUserByUserIdAndStayLoggedInKey"
         internal const val FIND_BY_USER_ID = "UserAuthenticationTokenDO_FindByUserId"
         internal const val CHECK_AUTH_CAL_EXPORT = "UserAuthenticationTokenDO_CheckCalExport"
         internal const val CHECK_AUTH_DAV = "UserAuthenticationTokenDO_CheckAuthDAV"
