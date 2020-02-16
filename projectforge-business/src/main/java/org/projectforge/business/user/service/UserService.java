@@ -59,11 +59,10 @@ public class UserService {
   private static final String MESSAGE_KEY_LOGIN_PASSWORD_WRONG = "user.changeWlanPassword.error.loginPasswordWrong";
   private final UsersComparator usersComparator = new UsersComparator();
   private UserGroupCache userGroupCache;
-  private UserTokenCache userTokenCache;
   private ConfigurationService configurationService;
   private UserDao userDao;
-  private UserAuthenticationsDao userAuthenticationsDao;
   private AccessChecker accessChecker;
+  private UserAuthenticationsService userAuthenticationsService;
   private TenantService tenantService;
   private PasswordQualityService passwordQualityService;
 
@@ -79,15 +78,13 @@ public class UserService {
                      PasswordQualityService passwordQualityService,
                      TenantService tenantService,
                      UserDao userDao,
-                     UserAuthenticationsDao userAuthenticationsDao,
-                     UserTokenCache userTokenCache) {
+                     UserAuthenticationsService userAuthenticationsService) {
     this.accessChecker = accessChecker;
     this.configurationService = configurationService;
     this.passwordQualityService = passwordQualityService;
     this.tenantService = tenantService;
     this.userDao = userDao;
-    this.userAuthenticationsDao = userAuthenticationsDao;
-    this.userTokenCache = userTokenCache;
+    this.userAuthenticationsService = userAuthenticationsService;
   }
 
   /**
@@ -181,76 +178,6 @@ public class UserService {
 
   public List<PFUserDO> getAllActiveUsers() {
     return getAllUsers().stream().filter(u -> !u.getDeactivated() && !u.isDeleted()).collect(Collectors.toList());
-  }
-
-  /**
-   * @param userId
-   * @param type
-   * @param authenticationToken
-   * @param userIdAttribute     The required http attribute (only for logging purposes)
-   * @param tokenAttribute      The required http attribute (only for logging purposes)
-   * @return
-   */
-  public boolean checkAuthenticationToken(final Integer userId, UserTokenType type, String authenticationToken, String userIdAttribute, String tokenAttribute) {
-    String storedAuthenticationToken = getAuthenticationToken(userId, type);
-    if (storedAuthenticationToken == null) {
-      log.error(userIdAttribute + " '" + userId + "' does not exist. Authentication failed.");
-    } else if (authenticationToken == null) {
-      log.error(tokenAttribute + " not given for userId '" + userId + "'. Authentication failed.");
-    } else if (authenticationToken.equals(storedAuthenticationToken)) {
-      return true;
-    } else {
-      log.error(tokenAttribute + " doesn't match for " + userIdAttribute + " '" + userId + "'. Authentication failed.");
-    }
-    return false;
-  }
-
-  /**
-   * Decrypts a given string encrypted with selected token (selected by UserTokenType).
-   *
-   * @param userId
-   * @param encryptedString
-   * @return The decrypted string.
-   * @see Crypt#decrypt(String, String)
-   */
-  public String decrypt(final Integer userId, UserTokenType type, final String encryptedString) {
-    String storedAuthenticationToken = getAuthenticationToken(userId, type);
-    if (storedAuthenticationToken == null) {
-      log.warn("Can't get authentication token for user " + userId + ". So can't decrypt encrypted string.");
-      return "";
-    }
-    final String authenticationToken = StringUtils.rightPad(storedAuthenticationToken, 32, "x");
-    return Crypt.decrypt(authenticationToken, encryptedString);
-  }
-
-  /**
-   * Encrypts the given str with AES. The key is the selected authenticationToken of the given user (by id) (first 16
-   * bytes of it).
-   *
-   * @param userId
-   * @param data
-   * @return The base64 encoded result (url safe).
-   * @see Crypt#encrypt(String, String)
-   */
-  public String encrypt(final Integer userId, final UserTokenType type, final String data) {
-    String storedAuthenticationToken = getAuthenticationToken(userId, type);
-    if (storedAuthenticationToken == null) {
-      log.warn("Can't get authentication token for user " + userId + ". So can't encrypt string.");
-      return "";
-    }
-    final String authenticationToken = StringUtils.rightPad(storedAuthenticationToken, 32, "x");
-    return Crypt.encrypt(authenticationToken, data);
-  }
-
-  /**
-   * Uses the context user.
-   *
-   * @param type The token to use for encryption.
-   * @param data
-   * @return
-   */
-  public String encrypt(final UserTokenType type, final String data) {
-    return encrypt(ThreadLocalUserContext.getUserId(), type, data);
   }
 
   /**
@@ -357,8 +284,8 @@ public class UserService {
       } else {
         user.setLastPasswordChange(new Date());
       }
-      renewAuthenticationToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY);
-      renewAuthenticationToken(user.getId(), UserTokenType.REST_CLIENT);
+      userAuthenticationsService.renewToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY);
+      userAuthenticationsService.renewToken(user.getId(), UserTokenType.REST_CLIENT);
     } else {
       throw new IllegalArgumentException(
               "Given password seems to be not encrypted! Aborting due to security reasons (for avoiding storage of clear password in the database).");
@@ -581,10 +508,6 @@ public class UserService {
     userDao.internalUndelete(dbUser);
   }
 
-  public PFUserDO getUserByAuthenticationToken(Integer userId, UserTokenType type, String authKey) {
-    return userAuthenticationsDao.getUserByToken(userId, type, authKey);
-  }
-
   public List<PFUserDO> findUserByMail(String email) {
     List<PFUserDO> userList = new ArrayList<>();
     for (PFUserDO user : getUserGroupCache().getAllUsers()) {
@@ -593,28 +516,5 @@ public class UserService {
       }
     }
     return userList;
-  }
-
-  /**
-   * Uses an internal cache for faster access. The cache is automatically renewed if the authentication token was changed.
-   *
-   * @param userId
-   * @param type
-   * @return The user's authentication token (will be created if not given yet).
-   * @see UserTokenCache#getAuthenticationToken
-   */
-  public String getAuthenticationToken(Integer userId, UserTokenType type) {
-    return this.userTokenCache.getAuthenticationToken(userId, type);
-  }
-
-  /**
-   * Renews the user's authentication token.
-   *
-   * @param userId
-   * @param type
-   * @see UserAuthenticationsDao#renewToken(int, UserTokenType)
-   */
-  public void renewAuthenticationToken(Integer userId, UserTokenType type) {
-    userAuthenticationsDao.renewToken(userId, type);
   }
 }

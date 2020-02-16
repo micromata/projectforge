@@ -46,9 +46,9 @@ import org.projectforge.business.teamcal.model.CalendarFeedConst
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.business.user.service.UserService
 import org.projectforge.business.vacation.VacationCache
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessChecker
@@ -60,6 +60,7 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.PFDay.Companion.now
 import org.projectforge.framework.utils.NumberHelper.parseInteger
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
 import org.slf4j.LoggerFactory
@@ -78,13 +79,11 @@ import org.springframework.web.context.WebApplicationContext
 import java.time.LocalDate
 import javax.servlet.http.HttpServletRequest
 
-const val CALENDAR_EXPORT_BASE_URI = "/export/ProjectForge.ics" // See CalendarFeedService
-
 /**
  * This rest service should be available without login (public).
  */
 @RestController
-@RequestMapping(CALENDAR_EXPORT_BASE_URI)
+@RequestMapping(Rest.CALENDAR_EXPORT_BASE_URI)
 class CalendarSubscriptionServiceRest {
     @Autowired
     private lateinit var configurationService: ConfigurationService
@@ -98,7 +97,7 @@ class CalendarSubscriptionServiceRest {
     private lateinit var springContext: WebApplicationContext
 
     @Autowired
-    private lateinit var userService: UserService
+    private lateinit var userAuthenticationsService: UserAuthenticationsService
 
     @Autowired
     private lateinit var teamEventService: TeamEventService
@@ -137,13 +136,13 @@ class CalendarSubscriptionServiceRest {
                 return ResponseEntity(HttpStatus.BAD_REQUEST)
             }
             // read params of request
-            val decryptedParams = userService.decrypt(userId, UserTokenType.CALENDAR_REST, q) ?: run {
+            val decryptedParams = userAuthenticationsService.decrypt(userId, UserTokenType.CALENDAR_REST, q) ?: run {
                 log.error("Bad request, can't decrypt parameter q (may-be the user's authentication token was changed): ${request.queryString}")
                 return ResponseEntity(HttpStatus.BAD_REQUEST)
             }
             val params = StringHelper.getKeyValues(decryptedParams, "&")
             // validate user
-            user = userService.getUserByAuthenticationToken(userId, UserTokenType.CALENDAR_REST, params["token"]) ?: run {
+            user = userAuthenticationsService.getUserByToken(userId, UserTokenType.CALENDAR_REST, params["token"]) ?: run {
                 log.error("Bad request, user not found: ${request.queryString}")
                 return ResponseEntity(HttpStatus.BAD_REQUEST)
             }
@@ -377,8 +376,6 @@ class CalendarSubscriptionServiceRest {
 
     companion object {
         private val log = LoggerFactory.getLogger(CalendarSubscriptionServiceRest::class.java)
-
-        const val BASE_URI = CALENDAR_EXPORT_BASE_URI // See CalendarFeedService
         const val PARAM_EXPORT_REMINDER = "exportReminders"
         const val PARAM_EXPORT_ATTENDEES = "exportAttendees"
     }

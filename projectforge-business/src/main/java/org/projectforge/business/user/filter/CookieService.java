@@ -26,8 +26,7 @@ package org.projectforge.business.user.filter;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.Const;
 import org.projectforge.business.login.Login;
-import org.projectforge.business.user.UserAuthenticationsDao;
-import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserAuthenticationsService;
 import org.projectforge.business.user.UserTokenType;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -41,17 +40,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Service
-public class CookieService
-{
+public class CookieService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CookieService.class);
 
   private static final int COOKIE_MAX_AGE = 30 * 24 * 3600; // 30 days.
 
   @Autowired
-  private UserDao userDao;
-
-  @Autowired
-  private UserAuthenticationsDao userAuthenticationsDao;
+  private UserAuthenticationsService userAuthenticationsService;
 
   @Autowired
   private ServerProperties serverProperties;
@@ -61,8 +56,7 @@ public class CookieService
    *
    * @return user if valid cookie found, otherwise null.
    */
-  public UserContext checkStayLoggedIn(final HttpServletRequest request, final HttpServletResponse response)
-  {
+  public UserContext checkStayLoggedIn(final HttpServletRequest request, final HttpServletResponse response) {
     final Cookie stayLoggedInCookie = getStayLoggedInCookie(request);
     if (stayLoggedInCookie != null) {
       final String value = stayLoggedInCookie.getValue();
@@ -75,17 +69,11 @@ public class CookieService
         return null;
       }
       final Integer userId = NumberHelper.parseInteger(values[0]);
-      final PFUserDO user = userDao.internalGetById(userId);
+      final String username = values[1];
+      final String stayLoggedInKey = values[2];
+      final PFUserDO user = userAuthenticationsService.getUserByToken(username, UserTokenType.STAY_LOGGED_IN_KEY, stayLoggedInKey);
       if (user == null) {
-        log.warn("Invalid cookie found (user not found): " + value);
-        return null;
-      }
-      if (!user.getUsername().equals(values[1])) {
-        log.warn("Invalid cookie found (user name wrong, maybe changed): " + value);
-        return null;
-      }
-      if (values[2] == null || !values[2].equals(userAuthenticationsDao.getToken(userId, UserTokenType.STAY_LOGGED_IN_KEY))) {
-        log.warn("Invalid cookie found (stay-logged-in key, maybe renewed and/or user password changed): " + value);
+        log.warn("Invalid cookie found (user not found, stay-logged-in key, maybe renewed and/or user password changed): " + value);
         return null;
       }
       if (!Login.getInstance().checkStayLoggedIn(user)) {
@@ -95,7 +83,7 @@ public class CookieService
       // update the cookie, especially the max age
       addStayLoggedInCookie(request, response, stayLoggedInCookie);
       log.info("User successfully logged in using stay-logged-in method: " + user.getUserDisplayName());
-      return new UserContext(PFUserDO.Companion.createCopyWithoutSecretFields(user), userDao.getUserGroupCache());
+      return new UserContext(PFUserDO.createCopyWithoutSecretFields(user));
     }
     return null;
   }
@@ -103,8 +91,7 @@ public class CookieService
   /**
    * Adds or refresh the given cookie.
    */
-  public void addStayLoggedInCookie(final HttpServletRequest request, final HttpServletResponse response, final Cookie stayLoggedInCookie)
-  {
+  public void addStayLoggedInCookie(final HttpServletRequest request, final HttpServletResponse response, final Cookie stayLoggedInCookie) {
     stayLoggedInCookie.setMaxAge(COOKIE_MAX_AGE);
     stayLoggedInCookie.setPath("/");
     if (request.isSecure() || isSecureCookieConfigured()) {
@@ -120,19 +107,16 @@ public class CookieService
   /**
    * Reads the secure cookie setting from the spring boot configuration.
    */
-  private Boolean isSecureCookieConfigured()
-  {
+  private Boolean isSecureCookieConfigured() {
     final Boolean secure = serverProperties.getServlet().getSession().getCookie().getSecure();
     return secure != null && secure;
   }
 
-  public Cookie getStayLoggedInCookie(final HttpServletRequest request)
-  {
+  public Cookie getStayLoggedInCookie(final HttpServletRequest request) {
     return getCookie(request, Const.COOKIE_NAME_FOR_STAY_LOGGED_IN);
   }
 
-  private Cookie getCookie(final HttpServletRequest request, final String name)
-  {
+  private Cookie getCookie(final HttpServletRequest request, final String name) {
     final Cookie[] cookies = request.getCookies();
     if (cookies != null) {
       for (final Cookie cookie : cookies) {

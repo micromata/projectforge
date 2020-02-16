@@ -40,7 +40,7 @@ class UserAuthenticaitonsDaoTest : AbstractTestBase() {
     fun accessTest() {
         logon(TEST_FINANCE_USER)
         val otherUser = getUser(TEST_USER)
-        var loggedInUser = ThreadLocalUserContext.getUser()
+        val loggedInUser = ThreadLocalUserContext.getUser()
         try {
             userAuthenticationsDao.getByUserId(otherUser.id)
             fail("Access exception exptected.")
@@ -55,9 +55,9 @@ class UserAuthenticaitonsDaoTest : AbstractTestBase() {
         }
         var authentications = userAuthenticationsDao.getByUserId(ThreadLocalUserContext.getUserId())
         var stayLoggedInKey = authentications!!.getToken(UserTokenType.STAY_LOGGED_IN_KEY)
-        var calendarToken = authentications.getToken(UserTokenType.CALENDAR_REST)
-        var davToken = authentications.getToken(UserTokenType.DAV_TOKEN)
-        var restClientToken = authentications.getToken(UserTokenType.REST_CLIENT)
+        val calendarToken = authentications.getToken(UserTokenType.CALENDAR_REST)
+        val davToken = authentications.getToken(UserTokenType.DAV_TOKEN)
+        val restClientToken = authentications.getToken(UserTokenType.REST_CLIENT)
         authentications = userAuthenticationsDao.getByUserId(ThreadLocalUserContext.getUserId())
         assertTokens(authentications!!, stayLoggedInKey, calendarToken, davToken, restClientToken)
         userAuthenticationsDao.renewToken(loggedInUser.id, UserTokenType.STAY_LOGGED_IN_KEY)
@@ -71,6 +71,32 @@ class UserAuthenticaitonsDaoTest : AbstractTestBase() {
         userAuthenticationsDao.renewToken(otherUser.id, UserTokenType.STAY_LOGGED_IN_KEY)
     }
 
+    @Test
+    fun getUserByTokenTest() {
+        logon(TEST_USER)
+        val loggedInUser = ThreadLocalUserContext.getUser()
+        val authentications = userAuthenticationsDao.getByUserId(loggedInUser.id)
+        userAuthenticationsDao.renewToken(loggedInUser.id, UserTokenType.STAY_LOGGED_IN_KEY)
+        val stayLoggedInKey = userAuthenticationsDao.getToken(loggedInUser.id, UserTokenType.STAY_LOGGED_IN_KEY)!!
+        logoff()
+        var user = userAuthenticationsDao.getUserByToken(loggedInUser.id, UserTokenType.STAY_LOGGED_IN_KEY, stayLoggedInKey)!!
+        Assertions.assertEquals(loggedInUser.id, user.id)
+
+        user = userAuthenticationsDao.getUserByToken(loggedInUser.username!!, UserTokenType.STAY_LOGGED_IN_KEY, stayLoggedInKey)!!
+        Assertions.assertEquals(loggedInUser.id, user.id)
+    }
+
+    @Test
+    fun decryptTest() {
+        logon(TEST_USER)
+        val loggedInUser = ThreadLocalUserContext.getUser()
+        val authentications = userAuthenticationsDao.getByUserId(loggedInUser.id)!!
+        val stayLoggedInKey = userAuthenticationsDao.getToken(loggedInUser.id, UserTokenType.STAY_LOGGED_IN_KEY)!!
+        Assertions.assertNotEquals(stayLoggedInKey, authentications.stayLoggedInKey, "Should be stored as encrypted value.")
+        userAuthenticationsDao.decryptAllTokens(authentications)
+        Assertions.assertEquals(stayLoggedInKey, authentications.stayLoggedInKey, "Is now decrypted.")
+    }
+
     private fun assertTokens(authentications: UserAuthenticationsDO, expectedStayLoggedInKey: String?, expectedCalendarToken: String?, expectedDAVToken: String?, expectedRestClientToken: String?) {
         Assertions.assertTrue(!expectedStayLoggedInKey.isNullOrBlank() && expectedStayLoggedInKey.trim().length > 10)
         Assertions.assertTrue(!expectedCalendarToken.isNullOrBlank() && expectedCalendarToken.trim().length > 10)
@@ -79,6 +105,15 @@ class UserAuthenticaitonsDaoTest : AbstractTestBase() {
         Assertions.assertEquals(expectedCalendarToken, authentications.calendarExportToken)
         Assertions.assertEquals(expectedDAVToken, authentications.davToken)
         Assertions.assertEquals(expectedRestClientToken, authentications.restClientToken)
+
+        assertEncryptedToken(authentications, UserTokenType.CALENDAR_REST, expectedCalendarToken)
+        assertEncryptedToken(authentications, UserTokenType.DAV_TOKEN, expectedDAVToken)
+        assertEncryptedToken(authentications, UserTokenType.REST_CLIENT, expectedRestClientToken)
+        assertEncryptedToken(authentications, UserTokenType.STAY_LOGGED_IN_KEY, expectedStayLoggedInKey)
     }
 
+    private fun assertEncryptedToken(authentications: UserAuthenticationsDO, type: UserTokenType, expectedEncryptedKey: String?) {
+        expectedEncryptedKey ?: return
+        Assertions.assertEquals(userAuthenticationsDao.decryptToken(expectedEncryptedKey), userAuthenticationsDao.getToken(authentications.userId!!, type))
+    }
 }

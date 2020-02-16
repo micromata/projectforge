@@ -31,6 +31,7 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.user.UserAuthenticationsService;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserTokenType;
 import org.projectforge.business.user.UserXmlPreferencesDao;
@@ -57,6 +58,9 @@ public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditF
 
   @SpringBean
   private UserService userService;
+
+  @SpringBean
+  private UserAuthenticationsService userAuthenticationsService;
 
   @SpringBean
   private EmployeeService employeeService;
@@ -140,7 +144,7 @@ public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditF
     }
     ((MySession) getSession()).setLocale(getRequest());
     if (form.invalidateAllStayLoggedInSessions == true) {
-      userService.renewAuthenticationToken(getData().getId(), UserTokenType.STAY_LOGGED_IN_KEY);
+      userAuthenticationsService.renewToken(getData().getId(), UserTokenType.STAY_LOGGED_IN_KEY);
     }
     afterSaveOrUpdate();
     setResponsePage(new MessagePage("message.successfullChanged"));

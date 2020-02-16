@@ -26,6 +26,7 @@ package org.projectforge.web.rest;
 import org.projectforge.business.login.LoginProtection;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserAuthenticationsService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserTokenType;
 import org.projectforge.business.user.filter.CookieService;
@@ -38,8 +39,8 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.rest.Authentication;
 import org.projectforge.rest.AuthenticationOld;
 import org.projectforge.rest.ConnectionSettings;
+import org.projectforge.rest.config.Rest;
 import org.projectforge.rest.converter.DateTimeFormat;
-import org.projectforge.rest.pub.CalendarSubscriptionServiceRest;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -66,6 +67,9 @@ public class RestUserFilter implements Filter {
 
   @Autowired
   private UserService userService;
+
+  @Autowired
+  private UserAuthenticationsService userAuthenticationsService;
 
   @Autowired
   private CookieService cookieService;
@@ -117,13 +121,10 @@ public class RestUserFilter implements Filter {
       final Integer userId = NumberHelper.parseInteger(userString);
       if (userId != null) {
         final String authenticationToken = getAttribute(req, Authentication.AUTHENTICATION_TOKEN, AuthenticationOld.AUTHENTICATION_TOKEN);
-        if (url.startsWith(CalendarSubscriptionServiceRest.BASE_URI)) {
-          if (userService.checkAuthenticationToken(userId,
-                  UserTokenType.CALENDAR_REST,
-                  authenticationToken,
-                  Authentication.AUTHENTICATION_USER_ID,
-                  Authentication.AUTHENTICATION_TOKEN)) {
-            user = userService.getUser(userId);
+        if (url != null && url.startsWith(Rest.CALENDAR_EXPORT_BASE_URI)) { // url might be null in RestUserFilterTest.
+          user = userAuthenticationsService.getUserByToken(userId, UserTokenType.CALENDAR_REST, authenticationToken);
+          if (user == null) {
+            log.error(Authentication.AUTHENTICATION_TOKEN + " doesn't match for " + Authentication.AUTHENTICATION_USER_ID + " '" + userId + "'. Authentication failed.");
           }
         }
       } else {
@@ -272,6 +273,13 @@ public class RestUserFilter implements Filter {
    */
   void setUserService(UserService userService) {
     this.userService = userService;
+  }
+
+  /**
+   * Only for tests
+   */
+  void setUserAuthenticationsService(UserAuthenticationsService userAuthenticationsService) {
+    this.userAuthenticationsService = userAuthenticationsService;
   }
 
   private TenantRegistry getTenantRegistry() {

@@ -36,7 +36,7 @@ import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
-import org.projectforge.business.user.UserAuthenticationsDao;
+import org.projectforge.business.user.UserAuthenticationsService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserTokenType;
 import org.projectforge.framework.access.AccessDao;
@@ -79,7 +79,7 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
   private BookDao bookDao;
 
   @Autowired
-  private UserAuthenticationsDao userAuthenticationsDao;
+  private UserAuthenticationsService userAuthenticationsService;
 
   @Autowired
   private TaskDao taskDao;
@@ -121,7 +121,7 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
     final List<PFUserDO> userList = userService.internalLoadAll();
     assertTrue(userList.size() > 0);
     for (final PFUserDO user : userList) {
-      assertNull("For security reasons the stay-logged-in-key should be null.", userAuthenticationsDao.getToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY));
+      assertNull("For security reasons the stay-logged-in-key should be null.", userAuthenticationsService.getToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY));
     }
 
     final List<GroupTaskAccessDO> accessList = accessDao.internalLoadAll();

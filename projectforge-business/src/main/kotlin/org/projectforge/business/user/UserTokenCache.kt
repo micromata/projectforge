@@ -38,7 +38,7 @@ import javax.annotation.PostConstruct
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-class UserTokenCache() : AbstractCache(), UserChangedListener {
+internal class UserTokenCache() : AbstractCache(), UserChangedListener {
 
     @Autowired
     private lateinit var userAuthenticationTokenDao: UserAuthenticationsDao
@@ -65,6 +65,7 @@ class UserTokenCache() : AbstractCache(), UserChangedListener {
         var authentications = authenticationCache[userId]
         if (authentications == null) {
             authentications = userAuthenticationTokenDao.getByUserId(userId) ?: return null
+            userAuthenticationTokenDao.decryptAllTokens(authentications) // Decrypt all tokens for faster access.
             authenticationCache[userId] = authentications
         }
         return authentications
