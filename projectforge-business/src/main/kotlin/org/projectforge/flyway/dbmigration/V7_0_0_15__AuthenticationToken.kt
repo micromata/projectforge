@@ -25,10 +25,14 @@ package org.projectforge.flyway.dbmigration
 
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
+import org.projectforge.ProjectForgeApp
+import org.projectforge.common.EmphasizedLogSupport
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert
+import java.io.File
 import java.util.*
+import kotlin.math.min
 
 /**
  * EmployeeDO will now support timed annual leave days instead of fixed annual leave days (aka urlaubstage). So [org.projectforge.business.vacation.service.VacationStats]
@@ -36,6 +40,22 @@ import java.util.*
  */
 class V7_0_0_15__AuthenticationToken : BaseJavaMigration() {
     override fun migrate(context: Context) {
+        val configFile = File(System.getProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR), "projectforge.properties")
+        log.info("Trying to read configuration from '${configFile.absolutePath}'...")
+        val configuration = Properties()
+        val param = "projectforge.security.authenticationTokenEncryptionKey"
+        configFile.inputStream().use { configuration.load(it) }
+        val authenticationTokenEncryptionKey = configuration[param] as? String
+        if (authenticationTokenEncryptionKey.isNullOrBlank()) {
+            EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.IMPORTANT, EmphasizedLogSupport.Alignment.LEFT)
+                    .setLogLevel(EmphasizedLogSupport.LogLevel.WARN)
+                    .log("Now authenticationTokenEncryptionKey found!!!:")
+                    .log("")
+                    .log("Please define '$param' in your config file.")
+                    .logEnd()
+            return
+        }
+        log.info("Using authenticationToken '${authenticationTokenEncryptionKey.substring(0..min(3, authenticationTokenEncryptionKey.length))}....'")
         val ds = context.configuration.dataSource
         log.info("Trying to migrate authentication token of t_pf_user.authentication_token.")
         val jdbc = JdbcTemplate(ds)
@@ -53,12 +73,13 @@ class V7_0_0_15__AuthenticationToken : BaseJavaMigration() {
             var simpleJdbcInsert = SimpleJdbcInsert(ds).withTableName("T_PF_USER_AUTHENTICATIONS")
             val parameters = mutableMapOf<String, Any?>()
             parameters["pk"] = counter
+            parameters["deleted"] = false
             parameters["createdat"] = now
             parameters["createdby"] = "anon"
             parameters["modifiedat"] = now
             parameters["modifiedby"] = "anon"
             parameters["user_id"] = userId
-            parameters["calendar_export_token"] = token
+            parameters["calendar_export_token"] = token//Crypt.encrypt(authenticationTokenEncryptionKey, token)
             parameters["stay_logged_in_key"] = stayLoggedInKey
             simpleJdbcInsert.execute(parameters)
         }
