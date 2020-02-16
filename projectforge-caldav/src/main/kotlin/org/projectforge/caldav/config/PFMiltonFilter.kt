@@ -44,7 +44,7 @@ class PFMiltonFilter : MiltonFilter() {
     private var initialized: Boolean = false
 
     companion object {
-        private val miltonUrls = listOf("/users", "/principals")
+        internal val miltonUrls = listOf("/users", "/principals")
         private val supportedAgentsRegexps = listOf(
                 "Address.*Book".toRegex(),
                 "eM.*Client".toRegex())

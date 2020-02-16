@@ -61,7 +61,9 @@ open class PFMiltonInit {
                 listOf(ProjectForgeCalDAVController::class.java, ProjectForgeCardDAVController::class.java).joinToString { it.name })
         miltonFilter.setInitParameter("enableDigestAuth", "false")
         miltonFilter.setInitParameter("milton.configurator", ProjectForgeMiltonConfigurator::class.java.name)
-        miltonFilter.addMappingForUrlPatterns(null, false, "/*")
+        val miltonFilterUrlPatterns = PFMiltonFilter.miltonUrls.map { "$it/*" }.toTypedArray()
+        log.info("Registering PFMiltonFilter for urls: ${miltonFilterUrlPatterns.joinToString { "'$it'" }}")
+        miltonFilter.addMappingForUrlPatterns(null, false, *miltonFilterUrlPatterns)
     }
 
     companion object {
