@@ -31,6 +31,7 @@ import org.projectforge.business.user.UserTokenType;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.rest.Authentication;
+import org.projectforge.rest.config.Rest;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -67,7 +68,7 @@ public class RestUserFilterTest extends AbstractTestBase
     PFUserDO user = getUserGroupCache().getUser(AbstractTestBase.TEST_USER);
     this.userId = user.getId();
     logon(AbstractTestBase.TEST_ADMIN_USER);
-    this.userToken = userAuthenticationsService.getToken(this.userId, UserTokenType.REST_CLIENT); // Admin access required.
+    this.userToken = userAuthenticationsService.getToken(this.userId, UserTokenType.CALENDAR_REST); // Admin access required.
     logoff();
     this.filter.setUserService(userService);
     this.filter.setUserAuthenticationsService(userAuthenticationsService);
@@ -117,6 +118,7 @@ public class RestUserFilterTest extends AbstractTestBase
     }
     if (authenticationToken != null) {
       when(request.getHeader(Mockito.eq(Authentication.AUTHENTICATION_TOKEN))).thenReturn(authenticationToken);
+      when(request.getRequestURI()).thenReturn(Rest.CALENDAR_EXPORT_BASE_URI + "?...."); // Calendar rest (subscription)
     }
     return request;
   }
