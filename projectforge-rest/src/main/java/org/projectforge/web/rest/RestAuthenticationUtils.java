@@ -28,7 +28,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.login.LoginProtection;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserAuthenticationsService;
 import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.business.user.UserTokenType;
 import org.projectforge.business.user.filter.CookieService;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.user.service.UserService;
@@ -39,6 +41,7 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.rest.Authentication;
 import org.projectforge.rest.AuthenticationOld;
 import org.projectforge.rest.ConnectionSettings;
+import org.projectforge.rest.config.Rest;
 import org.projectforge.rest.converter.DateTimeFormat;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +68,9 @@ public class RestAuthenticationUtils {
   private UserService userService;
 
   @Autowired
+  private UserAuthenticationsService userAuthenticationsService;
+
+  @Autowired
   private CookieService cookieService;
 
   public static void executeLogin(HttpServletRequest request, UserContext userContext) {
@@ -87,6 +93,7 @@ public class RestAuthenticationUtils {
     }
     HttpServletRequest req = (HttpServletRequest) request;
     HttpServletResponse resp = (HttpServletResponse) response;
+    final String url = req.getRequestURI();
     String userString = getAttribute(req, Authentication.AUTHENTICATION_USER_ID, AuthenticationOld.AUTHENTICATION_USER_ID);
     final LoginProtection loginProtection = LoginProtection.instance();
     final String clientIpAddress = request.getRemoteAddr();
@@ -101,12 +108,12 @@ public class RestAuthenticationUtils {
       final Integer userId = NumberHelper.parseInteger(userString);
       if (userId != null) {
         final String authenticationToken = getAttribute(req, Authentication.AUTHENTICATION_TOKEN, AuthenticationOld.AUTHENTICATION_TOKEN);
-        if (userService.checkAuthenticationToken(userId,
-                authenticationToken,
-                Authentication.AUTHENTICATION_USER_ID,
-                Authentication.AUTHENTICATION_TOKEN)) {
-          user = userService.getUser(userId);
-          return new RestAuthenticationInfo(user, userString, clientIpAddress);
+        if (url != null && url.startsWith(Rest.CALENDAR_EXPORT_BASE_URI)) { // url might be null in RestUserFilterTest.
+          user = userAuthenticationsService.getUserByToken(userId, UserTokenType.CALENDAR_REST, authenticationToken);
+          if (user != null) {
+            return new RestAuthenticationInfo(user, userString, clientIpAddress);
+          }
+          log.error(Authentication.AUTHENTICATION_TOKEN + " doesn't match for " + Authentication.AUTHENTICATION_USER_ID + " '" + userId + "'. Authentication failed.");
         }
       } else {
         log.error(Authentication.AUTHENTICATION_USER_ID + " is not an integer: '" + userString + "'. Rest call forbidden.");

@@ -102,7 +102,7 @@ object NumberHelper {
         }
         if (bytes < GIGA_BYTES) {
             var no = BigDecimal(bytes).divide(MB_BD, 1, RoundingMode.HALF_UP)
-            if (no.toLong()  >= 100) {
+            if (no.toLong() >= 100) {
                 no = no.setScale(0, RoundingMode.HALF_UP)
             }
             return NumberFormat.getInstance(ThreadLocalUserContext.getLocale()).format(no) + " Mb"
@@ -492,10 +492,8 @@ object NumberHelper {
      */
     @JvmStatic
     fun getSecureRandomUrlSaveString(numberOfBytes: Int): String {
-        val random = SecureRandom()
-        val bytes = ByteArray(numberOfBytes)
-        random.nextBytes(bytes)
-        return Base64.encodeBase64URLSafeString(bytes)
+        val random = getSecureRandomBytes(numberOfBytes)
+        return Base64.encodeBase64URLSafeString(random)
     }
 
     /**
@@ -507,10 +505,23 @@ object NumberHelper {
      */
     @JvmStatic
     fun getSecureRandomBase64String(numberOfBytes: Int): String {
+        val random = getSecureRandomBytes(numberOfBytes)
+        return org.apache.commons.codec.binary.StringUtils.newStringUtf8(Base64.encodeBase64(random, false))
+    }
+
+    /**
+     * Generates secure random bytes of the given length and return base 64 encoded bytes as url safe String. This is not the length of the
+     * resulting string!
+     *
+     * @param numberOfBytes
+     * @return
+     */
+    @JvmStatic
+    fun getSecureRandomBytes(numberOfBytes: Int): ByteArray {
         val random = SecureRandom()
         val bytes = ByteArray(numberOfBytes)
         random.nextBytes(bytes)
-        return org.apache.commons.codec.binary.StringUtils.newStringUtf8(Base64.encodeBase64(bytes, false))
+        return bytes
     }
 
     @JvmStatic

@@ -36,9 +36,7 @@ import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.login.LoginResultStatus;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.UserPrefCache;
-import org.projectforge.business.user.UserXmlPreferencesCache;
+import org.projectforge.business.user.*;
 import org.projectforge.business.user.filter.CookieService;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.user.service.UserService;
@@ -49,7 +47,6 @@ import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.ClientIpResolver;
 import org.projectforge.web.wicket.WicketUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.Cookie;
@@ -61,10 +58,10 @@ public class LoginService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LoginService.class);
 
   @Autowired
-  private ApplicationContext applicationContext;
+  private UserService userService;
 
   @Autowired
-  private UserService userService;
+  private UserAuthenticationsService userAuthenticationsService;
 
   @Autowired
   private CookieService cookieService;
@@ -119,7 +116,7 @@ public class LoginService {
               + ":"
               + loggedInUser.getUsername()
               + ":"
-              + userService.getStayLoggedInKey(user.getId()));
+              + userAuthenticationsService.getToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY));
       cookieService.addStayLoggedInCookie(WicketUtils.getHttpServletRequest(page.getRequest()), WicketUtils.getHttpServletResponse(page.getResponse()), cookie);
     }
     internalLogin(page, user);

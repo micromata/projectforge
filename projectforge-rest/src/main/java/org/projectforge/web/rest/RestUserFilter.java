@@ -96,6 +96,7 @@ public class RestUserFilter implements Filter {
 
   /**
    * Only for test cases.
+   *
    * @param restAuthenticationUtils
    */
   void setRestAuthenticationUtils(RestAuthenticationUtils restAuthenticationUtils) {
