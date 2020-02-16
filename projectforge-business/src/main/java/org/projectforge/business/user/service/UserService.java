@@ -31,13 +31,9 @@ import org.projectforge.business.login.PasswordCheckResult;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.password.PasswordQualityService;
-import org.projectforge.business.user.UserChangedListener;
-import org.projectforge.business.user.UserDao;
-import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.UsersComparator;
+import org.projectforge.business.user.*;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
-import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.api.ModificationStatus;
@@ -55,20 +51,18 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class UserService implements UserChangedListener {
+public class UserService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserService.class);
-
-  private static final short STAY_LOGGED_IN_KEY_LENGTH = 20;
 
   private static final String MESSAGE_KEY_OLD_PASSWORD_WRONG = "user.changePassword.error.oldPasswordWrong";
 
   private static final String MESSAGE_KEY_LOGIN_PASSWORD_WRONG = "user.changeWlanPassword.error.loginPasswordWrong";
   private final UsersComparator usersComparator = new UsersComparator();
   private UserGroupCache userGroupCache;
-  private Map<Integer, String> authenticationTokenCache = new HashMap<>();
   private ConfigurationService configurationService;
   private UserDao userDao;
   private AccessChecker accessChecker;
+  private UserAuthenticationsService userAuthenticationsService;
   private TenantService tenantService;
   private PasswordQualityService passwordQualityService;
 
@@ -83,13 +77,14 @@ public class UserService implements UserChangedListener {
                      ConfigurationService configurationService,
                      PasswordQualityService passwordQualityService,
                      TenantService tenantService,
-                     UserDao userDao) {
+                     UserDao userDao,
+                     UserAuthenticationsService userAuthenticationsService) {
     this.accessChecker = accessChecker;
     this.configurationService = configurationService;
     this.passwordQualityService = passwordQualityService;
     this.tenantService = tenantService;
     this.userDao = userDao;
-    userDao.register(this);
+    this.userAuthenticationsService = userAuthenticationsService;
   }
 
   /**
@@ -187,73 +182,6 @@ public class UserService implements UserChangedListener {
 
   /**
    * @param userId
-   * @param authenticationToken
-   * @param userIdAttribute     The required http attribute (only for logging purposes)
-   * @param tokenAttribute      The required http attribute (only for logging purposes)
-   * @return
-   */
-  public boolean checkAuthenticationToken(final Integer userId, String authenticationToken, String userIdAttribute, String tokenAttribute) {
-    String storedAuthenticationToken = getAuthenticationToken(userId);
-    if (storedAuthenticationToken == null) {
-      log.error(userIdAttribute + " '" + userId + "' does not exist. Authentication failed.");
-    } else if (authenticationToken == null) {
-      log.error(tokenAttribute + " not given for userId '" + userId + "'. Authentication failed.");
-    } else if (authenticationToken.equals(storedAuthenticationToken)) {
-      return true;
-    } else {
-      log.error(tokenAttribute + " doesn't match for " + userIdAttribute + " '" + userId + "'. Authentication failed.");
-    }
-    return false;
-  }
-
-  /**
-   * @param userId
-   * @param encryptedString
-   * @return The decrypted string.
-   * @see Crypt#decrypt(String, String)
-   */
-  public String decrypt(final Integer userId, final String encryptedString) {
-    String storedAuthenticationToken = getAuthenticationToken(userId);
-    if (storedAuthenticationToken == null) {
-      log.warn("Can't get authentication token for user " + userId + ". So can't decrypt encrypted string.");
-      return "";
-    }
-    final String authenticationToken = StringUtils.rightPad(storedAuthenticationToken, 32, "x");
-    return Crypt.decrypt(authenticationToken, encryptedString);
-  }
-
-  /**
-   * Encrypts the given str with AES. The key is the current authenticationToken of the given user (by id) (first 16
-   * bytes of it).
-   *
-   * @param userId
-   * @param data
-   * @return The base64 encoded result (url safe).
-   * @see Crypt#encrypt(String, String)
-   */
-  public String encrypt(final Integer userId, final String data) {
-    String storedAuthenticationToken = getAuthenticationToken(userId);
-    if (storedAuthenticationToken == null) {
-      log.warn("Can't get authentication token for user " + userId + ". So can't encrypt string.");
-      return "";
-    }
-    final String authenticationToken = StringUtils.rightPad(storedAuthenticationToken, 32, "x");
-    return Crypt.encrypt(authenticationToken, data);
-  }
-
-  /**
-   * Uses the context user.
-   *
-   * @param data
-   * @return
-   * @see #encrypt(Integer, String)
-   */
-  public String encrypt(final String data) {
-    return encrypt(ThreadLocalUserContext.getUserId(), data);
-  }
-
-  /**
-   * @param userId
    * @return The user from UserGroupCache.
    */
   public PFUserDO getUser(Integer userId) {
@@ -311,7 +239,7 @@ public class UserService implements UserChangedListener {
     createEncryptedPassword(user, newPassword);
     onPasswordChange(user, true);
     Login.getInstance().passwordChanged(user, newPassword);
-    log.info("Password changed and stay-logged-key renewed for user: " + user.getId() + " - " + user.getUsername());
+    log.info("Password changed for user: " + user.getId() + " - " + user.getUsername());
     return Collections.emptyList();
   }
 
@@ -348,7 +276,6 @@ public class UserService implements UserChangedListener {
   public void onPasswordChange(final PFUserDO user, final boolean createHistoryEntry) {
     user.checkAndFixPassword();
     if (user.getPassword() != null) {
-      user.setStayLoggedInKey(createStayLoggedInKey());
       if (createHistoryEntry) {
         HistoryBaseDaoAdapter.wrapHistoryUpdate(user, () -> {
           user.setLastPasswordChange(new Date());
@@ -357,6 +284,8 @@ public class UserService implements UserChangedListener {
       } else {
         user.setLastPasswordChange(new Date());
       }
+      userAuthenticationsService.renewToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY);
+      userAuthenticationsService.renewToken(user.getId(), UserTokenType.REST_CLIENT);
     } else {
       throw new IllegalArgumentException(
               "Given password seems to be not encrypted! Aborting due to security reasons (for avoiding storage of clear password in the database).");
@@ -374,10 +303,6 @@ public class UserService implements UserChangedListener {
     }
   }
 
-  private String createStayLoggedInKey() {
-    return NumberHelper.getSecureRandomUrlSaveString(STAY_LOGGED_IN_KEY_LENGTH);
-  }
-
   @SuppressWarnings("unchecked")
   protected PFUserDO getUser(final String username, final String password, final boolean updateSaltAndPepperIfNeeded) {
     final List<PFUserDO> list = userDao.findByUsername(username);
@@ -392,6 +317,7 @@ public class UserService implements UserChangedListener {
     if (updateSaltAndPepperIfNeeded && passwordCheckResult.isPasswordUpdateNeeded()) {
       log.info("Giving salt and/or pepper to the password of the user " + user.getId() + ".");
       createEncryptedPassword(user, password);
+      userDao.internalUpdate(user);
     }
     return user;
   }
@@ -451,36 +377,6 @@ public class UserService implements UserChangedListener {
   }
 
   /**
-   * Returns the user's stay-logged-in key if exists (must be not blank with a size >= 10). If not, a new stay-logged-in
-   * key will be generated.
-   *
-   * @param userId
-   * @return
-   */
-  public String getStayLoggedInKey(final Integer userId) {
-    final PFUserDO user = userDao.internalGetById(userId);
-    if (StringUtils.isBlank(user.getStayLoggedInKey()) || user.getStayLoggedInKey().trim().length() < 10) {
-      user.setStayLoggedInKey(createStayLoggedInKey());
-      log.info("Stay-logged-key renewed for user: " + userId + " - " + user.getUsername());
-    }
-    return user.getStayLoggedInKey();
-  }
-
-  /**
-   * Renews the user's stay-logged-in key (random string sequence).
-   */
-  public void renewStayLoggedInKey(final Integer userId) {
-    if (!ThreadLocalUserContext.getUserId().equals(userId)) {
-      // Only admin users are able to renew authentication token of other users:
-      accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
-    }
-    accessChecker.checkRestrictedOrDemoUser(); // Demo users are also not allowed to do this.
-    final PFUserDO user = userDao.internalGetById(userId);
-    user.setStayLoggedInKey(createStayLoggedInKey());
-    log.info("Stay-logged-key renewed for user: " + userId + " - " + user.getUsername());
-  }
-
-  /**
    * Ohne Zugangsbegrenzung. Wird bei Anmeldung benötigt.
    */
   public PFUserDO authenticateUser(final String username, final String password) {
@@ -514,7 +410,7 @@ public class UserService implements UserChangedListener {
     return "";
   }
 
-  public PFUserDO getByUsername(String username) {
+  public PFUserDO getInternalByUsername(String username) {
     return userDao.getInternalByName(username);
   }
 
@@ -612,10 +508,6 @@ public class UserService implements UserChangedListener {
     userDao.internalUndelete(dbUser);
   }
 
-  public PFUserDO getUserByAuthenticationToken(Integer userId, String authKey) {
-    return userDao.getUserByAuthenticationToken(userId, authKey);
-  }
-
   public List<PFUserDO> findUserByMail(String email) {
     List<PFUserDO> userList = new ArrayList<>();
     for (PFUserDO user : getUserGroupCache().getAllUsers()) {
@@ -624,32 +516,5 @@ public class UserService implements UserChangedListener {
       }
     }
     return userList;
-  }
-
-  /**
-   * Uses an internal cache for faster access. The cache is automatically renewed if the authentication token was changed.
-   *
-   * @param userId
-   * @return The user's authentication token (will be created if not given yet).
-   * @see UserDao#getAuthenticationToken(Integer)
-   */
-  public String getAuthenticationToken(Integer userId) {
-    String authenticationToken = this.authenticationTokenCache.get(userId);
-    if (authenticationToken == null) {
-      authenticationToken = userDao.getAuthenticationToken(userId);
-      this.authenticationTokenCache.put(userId, authenticationToken);
-    }
-    return authenticationToken;
-  }
-
-  /**
-   * Clears authentication token.
-   *
-   * @param user
-   * @param operationType
-   */
-  @Override
-  public void afterUserChanged(PFUserDO user, OperationType operationType) {
-    this.authenticationTokenCache.remove(user.getId());
   }
 }

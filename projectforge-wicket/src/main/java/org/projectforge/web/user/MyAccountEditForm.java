@@ -30,7 +30,7 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserAuthenticationsService;
 import org.projectforge.business.user.UserXmlPreferencesDao;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -74,6 +74,9 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
   @SpringBean
   private UserXmlPreferencesDao userXmlPreferencesDao;
 
+  @SpringBean
+  private UserAuthenticationsService userAuthenticationsService;
+
   private Collection<TeamCalDO> teamCalRestWhiteList;
 
   private Boolean disableSnowEffectPermant;
@@ -106,12 +109,12 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
     }
     UserEditForm.createFirstName(gridBuilder, data);
     UserEditForm.createLastName(gridBuilder, data);
-    UserEditForm.createAuthenticationToken(gridBuilder, data, (UserDao) getBaseDao(), this);
+    UserEditForm.createCalRestAuthenticationToken(gridBuilder, data, userAuthenticationsService, this);
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("user.assignedGroups")).suppressLabelForWarning();
     fs.add(new DivTextPanel(fs.newChildId(), groupService.getGroupnames(data.getId())));
 
     gridBuilder.newSplitPanel(GridSize.COL50);
-    UserEditForm.createLastLoginAndDeleteAllStayLogins(gridBuilder, data, userService, this);
+    UserEditForm.createLastLoginAndDeleteAllStayLogins(gridBuilder, data, userAuthenticationsService, this);
     UserEditForm.createLocale(gridBuilder, data);
     UserEditForm.createDateFormat(gridBuilder, data);
     UserEditForm.createExcelDateFormat(gridBuilder, data);

@@ -30,7 +30,9 @@ import org.projectforge.business.login.LoginResult
 import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.business.multitenancy.TenantRegistry
 import org.projectforge.business.multitenancy.TenantRegistryMap
+import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserService
@@ -72,6 +74,9 @@ open class LoginRest {
     private lateinit var userService: UserService
 
     @Autowired
+    private lateinit var userAuthenticationsService: UserAuthenticationsService
+
+    @Autowired
     private lateinit var cookieService: CookieService
 
     @GetMapping("layout")
@@ -107,7 +112,8 @@ open class LoginRest {
         log.info("User successfully logged in: " + user.userDisplayName)
         if (loginData.stayLoggedIn == true) {
             val loggedInUser = userService.internalGetById(user.id)
-            val cookie = Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, "${loggedInUser.getId()}:${loggedInUser.username}:${userService.getStayLoggedInKey(user.id)}")
+            val stayLoggedInKey = userAuthenticationsService.getToken(user.id, UserTokenType.STAY_LOGGED_IN_KEY)
+            val cookie = Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, "${loggedInUser.getId()}:${loggedInUser.username}:$stayLoggedInKey")
             cookieService.addStayLoggedInCookie(request, response, cookie)
         }
         // Execute login:

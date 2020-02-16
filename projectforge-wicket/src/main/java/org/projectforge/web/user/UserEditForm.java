@@ -118,6 +118,9 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
   @SpringBean
   private UserService userService;
 
+  @SpringBean
+  private UserAuthenticationsService userAuthenticationsService;
+
   protected UserRightsEditData rightsData;
 
   private String password;
@@ -204,9 +207,9 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
   }
 
   @SuppressWarnings("serial")
-  public static void createAuthenticationToken(final GridBuilder gridBuilder, final PFUserDO user,
-      final UserDao userDao,
-      final Form<?> form)
+  public static void createCalRestAuthenticationToken(final GridBuilder gridBuilder, final PFUserDO user,
+                                                      final UserAuthenticationsService userAuthenticationsService,
+                                                      final Form<?> form)
   {
     // Authentication token
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.authenticationToken"))
@@ -217,7 +220,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       public String getObject()
       {
         if (ThreadLocalUserContext.getUserId().equals(user.getId()) == true) {
-          return userDao.getAuthenticationToken(user.getId());
+          return userAuthenticationsService.getToken(user.getId(), UserTokenType.CALENDAR_REST);
         } else {
           // Administrators shouldn't see the token.
           return "*****";
@@ -230,7 +233,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       @Override
       public final void onSubmit()
       {
-        userDao.renewAuthenticationToken(user.getId());
+        userAuthenticationsService.renewToken(user.getId(), UserTokenType.CALENDAR_REST);
         form.error(getString("user.authenticationToken.renew.successful"));
       }
     };
@@ -255,7 +258,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
   }
 
   public static void createLastLoginAndDeleteAllStayLogins(final GridBuilder gridBuilder, final PFUserDO user,
-      final UserService userService,
+      final UserAuthenticationsService userAuthenticationsService,
       final Form<?> form)
   {
     // Last login and deleteAllStayLoggedInSessions
@@ -268,7 +271,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       @Override
       public final void onSubmit()
       {
-        userService.renewStayLoggedInKey(user.getId());
+        userAuthenticationsService.renewToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY);
         form.error(getString("login.stayLoggedIn.invalidateAllStayLoggedInSessions.successfullDeleted"));
       }
     };
@@ -458,7 +461,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     createLastName(gridBuilder, data);
     createOrganization(gridBuilder, data);
     createEMail(gridBuilder, data);
-    createAuthenticationToken(gridBuilder, data, (UserDao) getBaseDao(), this);
+    createCalRestAuthenticationToken(gridBuilder, data, userAuthenticationsService, this);
     createJIRAUsername(gridBuilder, data);
     if (adminAccess == true) {
       gridBuilder.newFieldset(getString("user.hrPlanningEnabled"))
@@ -485,7 +488,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     }
 
     gridBuilder.newSplitPanel(GridSize.COL50);
-    createLastLoginAndDeleteAllStayLogins(gridBuilder, data, userService, this);
+    createLastLoginAndDeleteAllStayLogins(gridBuilder, data, userAuthenticationsService, this);
     createLocale(gridBuilder, data);
     createDateFormat(gridBuilder, data);
     createExcelDateFormat(gridBuilder, data);

@@ -21,13 +21,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.config;
+package org.projectforge.business.user
 
-import org.projectforge.model.rest.RestPaths;
-
-public class Rest {
-  public static final String URL = "/" + RestPaths.REST_WEB_APP;
-  public static final String PUBLIC_URL = "/" + RestPaths.REST_WEB_APP_PUBLIC;
-
-  public static final String CALENDAR_EXPORT_BASE_URI = "/export/ProjectForge.ics"; // See CalendarFeedService
-}
+/**
+ * Supported tokens
+ *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ */
+enum class UserTokenType { CALENDAR_REST, DAV_TOKEN, REST_CLIENT, STAY_LOGGED_IN_KEY }
