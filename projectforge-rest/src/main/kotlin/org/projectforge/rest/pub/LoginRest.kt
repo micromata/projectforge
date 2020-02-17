@@ -44,7 +44,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.ui.UILabel
 import org.projectforge.ui.UILayout
 import org.projectforge.ui.UINamedContainer
-import org.projectforge.web.rest.RestUserFilter.executeLogin
+import org.projectforge.web.rest.AbstractRestUserFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.http.HttpStatus
@@ -83,7 +83,7 @@ open class LoginRest {
     fun getLayout(): UILayout {
         val layout = UILayout("login.title")
                 .addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
-                //.addTranslation("messageOfTheDay")
+        //.addTranslation("messageOfTheDay")
         layout.add(UINamedContainer("messageOfTheDay").add(UILabel(label = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY))))
         return layout
     }
@@ -118,7 +118,7 @@ open class LoginRest {
         }
         // Execute login:
         val userContext = UserContext(PFUserDO.createCopyWithoutSecretFields(user)!!, getUserGroupCache())
-        executeLogin(request, userContext)
+        AbstractRestUserFilter.executeLogin(request, userContext)
         return LoginResultStatus.SUCCESS
     }
 

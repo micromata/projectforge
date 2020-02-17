@@ -20,18 +20,16 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+package org.projectforge.web.rest
 
-package org.projectforge.caldav.config
-
-import io.milton.servlet.MiltonFilter
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.user.UserAuthenticationsService
-import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.filter.UserFilter
-import org.projectforge.web.rest.RestAuthenticationInfo
-import org.projectforge.web.rest.RestAuthenticationUtils
+import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.persistence.user.api.UserContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.context.support.WebApplicationContextUtils
 import java.io.IOException
@@ -40,55 +38,39 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 /**
- * Ensuring a white url list for using Milton filter. MiltonFilter at default supports only black list.
+ * Does the authentication stuff for restful requests.
+ *
+ * @author Daniel Ludwig (d.ludwig@micromata.de)
+ * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class PFMiltonFilter : MiltonFilter() {
+@Component
+abstract class AbstractRestUserFilter : Filter {
     private lateinit var springContext: WebApplicationContext
     @Autowired
-    private lateinit var restAuthenticationUtils: RestAuthenticationUtils
+    lateinit var restAuthenticationUtils: RestAuthenticationUtils
     @Autowired
-    private lateinit var userAuthenticationsService: UserAuthenticationsService
-
-    companion object {
-        internal val miltonUrls = listOf("/users", "/principals")
-        private val supportedAgentsRegexps = listOf(
-                "Address.*Book".toRegex(),
-                "eM.*Client".toRegex())
-        private val supportedAgentsStrings = listOf(
-                "DAVdroid",
-                "accountsd",
-                "Adresboek",
-                "Adressbuch",
-                "Calendar",
-                "CalendarAgent",
-                "CalendarStore",
-                "CoreDAV",
-                "DataAccess",
-                "dataaccessd",
-                "DAVKit",
-                "iOS",
-                "Lightning",
-                "Preferences",
-                "Fantastical",
-                "Reminders")
-        private val excludedAgentsStrings = listOf("CriOS")
-        private val log = LoggerFactory.getLogger(PFMiltonFilter::class.java)
-    }
+    lateinit var userAuthenticationsService: UserAuthenticationsService
+    @Autowired
+    lateinit var userService: UserService
 
     @Throws(ServletException::class)
     override fun init(filterConfig: FilterConfig) {
-        super.init(filterConfig)
         springContext = WebApplicationContextUtils.getRequiredWebApplicationContext(filterConfig.servletContext)
         val beanFactory = springContext.getAutowireCapableBeanFactory()
         beanFactory.autowireBean(this)
     }
 
-    fun authenticate(authInfo: RestAuthenticationInfo) {
-        return restAuthenticationUtils.basicAuthentication(authInfo) { user, authenticationToken ->
-            userAuthenticationsService.getUserByToken(user, UserTokenType.DAV_TOKEN, authenticationToken)
-        }
-    }
+    abstract fun authenticate(info: RestAuthenticationInfo)
 
+    /**
+     * Authentication via request header.
+     *
+     *  1. Authentication userId (authenticationUserId) and authenticationToken (authenticationToken) or
+     *  1. Authentication username (authenticationUsername) and password (authenticationPassword) or
+     *
+     *
+     * @see javax.servlet.Filter.doFilter
+     */
     @Throws(IOException::class, ServletException::class)
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
         if (UserFilter.isUpdateRequiredFirst()) {
@@ -104,15 +86,20 @@ class PFMiltonFilter : MiltonFilter() {
         }
         try {
             restAuthenticationUtils.registerUser(request, authInfo)
-            super.doFilter(request, response, chain)
+            chain.doFilter(request, response)
         } finally {
             restAuthenticationUtils.unregister(request, response, authInfo)
         }
     }
 
-    internal fun checkUserAgent(userAgent: String?): Boolean {
-        return !userAgent.isNullOrBlank()
-                && (supportedAgentsStrings.any { userAgent == it } || supportedAgentsRegexps.any { it.matches(userAgent) })
-                && excludedAgentsStrings.none { userAgent == it }
+    override fun destroy() { // NOOP
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(AbstractRestUserFilter::class.java)
+
+        fun executeLogin(request: HttpServletRequest?, userContext: UserContext?) { // Wicket part: (page.getSession() as MySession).login(userContext, page.getRequest())
+            UserFilter.login(request, userContext)
+        }
     }
 }

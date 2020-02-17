@@ -31,11 +31,13 @@ import org.projectforge.caldav.config.PFMiltonInit;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.config.CORSFilter;
+import org.projectforge.rest.config.Rest;
 import org.projectforge.security.SecurityHeaderFilter;
 import org.projectforge.web.debug.SessionSerializableChecker;
 import org.projectforge.web.doc.TutorialFilter;
 import org.projectforge.web.filter.ResponseHeaderFilter;
 import org.projectforge.web.filter.SpringThreadLocalFilter;
+import org.projectforge.web.rest.RestCalendarSubscriptionUserFilter;
 import org.projectforge.web.rest.RestUserFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -109,6 +111,8 @@ public class WebXMLInitializer implements ServletContextInitializer {
             "/" + RestPaths.REST + "/*",
             "/" + RestPaths.REST_WEB_APP + "/*");
 
+    final FilterRegistration calendarSubscriptionFilter = sc.addFilter("restUserFilter", RestCalendarSubscriptionUserFilter.class);
+    calendarSubscriptionFilter.addMappingForUrlPatterns(null, false, Rest.CALENDAR_EXPORT_BASE_URI);
 
     final FilterRegistration expire = sc.addFilter("expire", ResponseHeaderFilter.class);
     expire.setInitParameter("Cache-Control", "public, max-age=7200");
