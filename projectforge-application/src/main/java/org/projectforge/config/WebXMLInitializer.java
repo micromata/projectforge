@@ -111,8 +111,8 @@ public class WebXMLInitializer implements ServletContextInitializer {
             "/" + RestPaths.REST + "/*",
             "/" + RestPaths.REST_WEB_APP + "/*");
 
-    final FilterRegistration calendarSubscriptionFilter = sc.addFilter("restUserFilter", RestCalendarSubscriptionUserFilter.class);
-    calendarSubscriptionFilter.addMappingForUrlPatterns(null, false, Rest.CALENDAR_EXPORT_BASE_URI);
+    final FilterRegistration restCalSubscriptionUserFilter = sc.addFilter("restCalSubscriptionUserFilter", RestCalendarSubscriptionUserFilter.class);
+    restCalSubscriptionUserFilter.addMappingForUrlPatterns(null, false, Rest.CALENDAR_EXPORT_BASE_URI);
 
     final FilterRegistration expire = sc.addFilter("expire", ResponseHeaderFilter.class);
     expire.setInitParameter("Cache-Control", "public, max-age=7200");
