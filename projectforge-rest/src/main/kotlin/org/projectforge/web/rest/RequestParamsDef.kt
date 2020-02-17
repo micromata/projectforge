@@ -20,20 +20,19 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+package org.projectforge.web.rest
 
-package org.projectforge.web.rest;
+import org.projectforge.rest.Authentication
+import org.projectforge.rest.AuthenticationOld
 
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-
-public class RestAuthenticationInfo {
-  public RestAuthenticationInfo(PFUserDO user, String userString, String clientIpAddress) {
-    this.user = user;
-    user.clearSecretFields();
-    this.userString = userString;
-    this.clientIpAddress = clientIpAddress;
-  }
-
-  public PFUserDO user;
-  public String clientIpAddress;
-  public String userString;
+enum class RequestParamsDef(var userAttributes: Array<String>,
+                            var tokenAttributes: Array<String>) {
+    USER_ID_AND_TOKEN(
+            arrayOf(Authentication.AUTHENTICATION_USER_ID, AuthenticationOld.AUTHENTICATION_USER_ID),
+            arrayOf(Authentication.AUTHENTICATION_TOKEN, AuthenticationOld.AUTHENTICATION_TOKEN)
+    ),
+    USERNAME_AND_PASSWORD(
+            arrayOf(Authentication.AUTHENTICATION_USERNAME, AuthenticationOld.AUTHENTICATION_USERNAME),
+            arrayOf(Authentication.AUTHENTICATION_PASSWORD, AuthenticationOld.AUTHENTICATION_PASSWORD)
+    )
 }
