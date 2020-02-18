@@ -81,16 +81,10 @@ class UserPagesRest
                                         /*"authenticationToken",*/
                                         "jiraUsername", "hrPlanning", "deactivated"/*, "password"*/))
                         .add(UICol()
-                                .add(lc, /*"lastLogin", "language", */ "dateformat", "dateformat.xls", "timeNotation",
-                                        "_timeZoneObject", "personalPhoneIdentifiers", "sshPublicKey")))
+                                .add(lc, /*"lastLogin", "language", */ "dateFormat", "excelDateFormat", "timeNotation",
+                                        "timeZoneObject", "personalPhoneIdentifiers", "sshPublicKey")))
+                .add(UISelect.createGroupSelect(lc, "readonlyAccessUsers", true, "user.assignedGroups"))
                 /*.add(UISelect<Int>("readonlyAccessUsers", lc,
-                        multi = true,
-                        label = "user.assignedGroups",
-                        additionalLabel = "access.groups",
-                        autoCompletion = AutoCompletion<Int>(url = "group/aco"),
-                        labelProperty = "name",
-                        valueProperty = "id"))
-                .add(UISelect<Int>("readonlyAccessUsers", lc,
                         multi = true,
                         label = "multitenancy.assignedTenants",
                         additionalLabel = "access.groups",

@@ -133,8 +133,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
 
     /**
      * A super admin is able to administer tenants. For tenants the user must be assigned to PF_Admin if he should be an
-     * administrator of the tenant's objects. This flag is therefore independent of the right to administer objects of
-     * tenants itself.
+     * administrator of the tenant's objects. This flag is therefore independent of the right to administer objects of tenants itself.
      */
     @get:Column(name = "super_admin", nullable = false, columnDefinition = "boolean DEFAULT false")
     open var superAdmin: Boolean = false
@@ -272,7 +271,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
      *  * dd/MM/yyyy: 21/02/2011, British and French format (day of month first)
      *  * MM/dd/yyyy: 02/21/2011, American format (month first)
      */
-    @PropertyInfo(i18nKey = "dateformat")
+    @PropertyInfo(i18nKey = "dateFormat")
     @get:Column(name = "date_format", length = 20)
     open var dateFormat: String? = null
 
@@ -283,7 +282,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
      *  * DD/MM/YYYY: 21/02/2011, British and French format (day of month first)
      *  * MM/DD/YYYY: 02/21/2011, American format (month first)
      */
-    @PropertyInfo(i18nKey = "dateformat.xls")
+    @PropertyInfo(i18nKey = "dateFormat.xls")
     @get:Column(name = "excel_date_format", length = 20)
     open var excelDateFormat: String? = null
 
