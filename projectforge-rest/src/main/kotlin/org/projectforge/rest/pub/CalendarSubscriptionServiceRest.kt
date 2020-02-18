@@ -116,38 +116,19 @@ class CalendarSubscriptionServiceRest {
                        @RequestParam("user") userIdString: String?,
                        @RequestParam("q") q: String?)
             : ResponseEntity<Any> {
-        // check if PF is running
-        if (!systemStatus.upAndRunning) {
-            log.error("System isn't up and running, CalendarFeed call denied. The system is may-be in start-up phase or in maintenance mode.")
-            return ResponseEntity(HttpStatus.SERVICE_UNAVAILABLE)
-        }
-        val user: PFUserDO?
         var logMessage: String? = null
-        try { // add logging stuff
-            MDC.put("ip", request.remoteAddr)
-            MDC.put("session", request.session.id)
-            // read user
-            if (userIdString.isNullOrBlank() || q.isNullOrBlank()) {
-                log.error("Bad request, parameters user and q not given. Query string is: ${request.queryString}")
+        try {
+            val userId = ThreadLocalUserContext.getUserId() ?: run {
+                log.error("Internal errror: shouldn't occur: can't get context user! Should be denied by filter!!!")
                 return ResponseEntity(HttpStatus.BAD_REQUEST)
             }
-            val userId = parseInteger(userIdString) ?: run {
-                log.error("Bad request, parameter user is not an integer: ${request.queryString}")
-                return ResponseEntity(HttpStatus.BAD_REQUEST)
-            }
-            // read params of request
-            val decryptedParams = userAuthenticationsService.decrypt(userId, UserTokenType.CALENDAR_REST, q) ?: run {
-                log.error("Bad request, can't decrypt parameter q (may-be the user's authentication token was changed): ${request.queryString}")
+            val q = request.getParameter("q")
+            val decryptedParams = userAuthenticationsService.decrypt(ThreadLocalUserContext.getUserId(), UserTokenType.CALENDAR_REST, q)
+            if (q.isNullOrBlank() || decryptedParams.isNullOrBlank()) {
+                log.error("Internal errror: shouldn't occur: can't find parameter q='$q' or can't decrypt params. Should be denied by filter!!!")
                 return ResponseEntity(HttpStatus.BAD_REQUEST)
             }
             val params = StringHelper.getKeyValues(decryptedParams, "&")
-            // validate user
-            user = userAuthenticationsService.getUserByToken(userId, UserTokenType.CALENDAR_REST, params["token"]) ?: run {
-                log.error("Bad request, user not found: ${request.queryString}")
-                return ResponseEntity(HttpStatus.BAD_REQUEST)
-            }
-            ThreadLocalUserContext.setUser(getUserGroupCache(), user)
-            MDC.put("user", user.username)
             // check timesheet user
             val timesheetUserParam = params[CalendarFeedConst.PARAM_NAME_TIMESHEET_USER]
             var timesheetUser: PFUserDO? = null

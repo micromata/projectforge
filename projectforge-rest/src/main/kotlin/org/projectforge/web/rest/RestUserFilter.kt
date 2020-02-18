@@ -27,19 +27,26 @@ import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.rest.Authentication
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
+@Component
 class RestUserFilter : AbstractRestUserFilter() {
     @Autowired
     lateinit var cookieService: CookieService
 
     override fun authenticate(authInfo: RestAuthenticationInfo) {
-        restAuthenticationUtils.authenticationByRequestParameter(authInfo, RequestParamsDef.USERNAME_AND_PASSWORD) { user, password ->
+        restAuthenticationUtils.authenticationByRequestParameter(
+                authInfo = authInfo,
+                userAttributes = RestAuthenticationUtils.REQUEST_PARAMS_USERNAME,
+                secretAttributes = RestAuthenticationUtils.REQUEST_PARAMS_PASSWORD,
+                required = false
+        ) { user, password ->
             userService.authenticateUser(user, password)
         }
         if (authInfo.success) {
             return
         }
-        restAuthenticationUtils.basicAuthentication(authInfo) { user, password ->
+        restAuthenticationUtils.basicAuthentication(authInfo, false) { user, password ->
             userService.authenticateUser(user, password)
         }
         if (authInfo.success) {

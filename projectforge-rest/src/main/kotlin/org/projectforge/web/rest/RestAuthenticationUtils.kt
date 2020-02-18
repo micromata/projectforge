@@ -37,6 +37,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.Authentication
+import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
 import org.projectforge.rest.converter.DateTimeFormat
 import org.slf4j.LoggerFactory
@@ -66,33 +67,70 @@ class RestAuthenticationUtils {
     @Autowired
     private lateinit var cookieService: CookieService
 
+    /**
+     * Tries to authenticate the user by the given authInfo object and will write the authenticated user to it. The user of
+     * authInfo will be left untouched, if authentication fails.
+     * @param authInfo [RestAuthenticationInfo] contains request, response, clientIPAddress.
+     * @param userAttributes List of request parameters to look for the user's identifier (user name or user id).
+     * @param secretAttributes List of request parameters to look for the user's secret (password or token).
+     * @param required If required, an error message is logged if no authentication is present. Otherwise
+     * only wrong credentials will result in error messages.
+     */
     fun authenticationByRequestParameter(authInfo: RestAuthenticationInfo,
-                                         requestParamsDef: RequestParamsDef,
+                                         userAttributes: Array<String>,
+                                         secretAttributes: Array<String>,
+                                         required: Boolean,
                                          authenticate: (user: String, authenticationToken: String) -> PFUserDO?) {
-        val userString = getAttribute(authInfo.request, *requestParamsDef.userAttributes)
-        if (userString == null) {
-            log.error("Authentication failed, no user given by '${Authentication.AUTHENTICATION_USER_ID}'. Rest call forbidden.")
-            return
-        }
-        if (checkLoginProtection(authInfo.response, userString, LoginProtection.instance(), authInfo.clientIpAddress)) { // access denied
-            return
-        }
-        val authenticationToken = getAttribute(authInfo.request, *requestParamsDef.tokenAttributes)
-        if (authenticationToken.isNullOrBlank()) {
-            log.error("${Authentication.AUTHENTICATION_TOKEN} not found. Rest call forbidden.")
-            return
-        }
+        val userString = getUserString(authInfo, userAttributes, required) ?: return
+        val authenticationToken = getUserSecret(authInfo, secretAttributes) ?: return
         authInfo.user = authenticate(userString, authenticationToken)
         if (!authInfo.success) {
             log.error("Authentication failed for user $userString. Rest call forbidden.")
         }
     }
 
-    fun basicAuthentication(authInfo: RestAuthenticationInfo, authenticate: (user: String, password: String) -> PFUserDO?) {
+    /**
+     * Checks also login protection (time out against brute force attack).
+     */
+    fun getUserString(authInfo: RestAuthenticationInfo, userAttributes: Array<String>, required: Boolean): String? {
+        val userString = getAttribute(authInfo.request, *userAttributes)
+        if (userString.isNullOrBlank()) {
+            if (required) {
+                log.error("Authentication failed, no user given by request params ${userAttributes.joinToString(", or ", "'", "'") { it }}. Rest call forbidden.")
+            }
+            return null
+        }
+        if (checkLoginProtection(authInfo.response, userString, LoginProtection.instance(), authInfo.clientIpAddress)) {
+            // Access denied (time offset due to failed logins). Logging is done by check method.
+            return null
+        }
+        return userString
+    }
+
+    fun getUserSecret(authInfo: RestAuthenticationInfo, secretAttributes: Array<String>): String? {
+        val secret = getAttribute(authInfo.request, *secretAttributes)
+        if (secret.isNullOrBlank()) {
+            // Log message, because userString was found, but authentication token not:
+            log.error("Authentication failed, no user secret (password or token) given by request params ${secretAttributes.joinToString(", or ", "'", "'") { it }}. Rest call forbidden.")
+            return null
+        }
+        return secret
+    }
+
+    fun basicAuthentication(authInfo: RestAuthenticationInfo,
+                            /**
+                             * If required, an error message is logged if no authentication is present. Otherwise
+                             * only wrong credentials will result in error messages.
+                             */
+                            required: Boolean,
+                            authenticate: (user: String, password: String) -> PFUserDO?) {
         val authHeader = authInfo.request.getHeader("Authorization") ?: return
         // Try basic authorization
         val basic = StringUtils.split(authHeader)
         if (basic.size != 2 || !StringUtils.equalsIgnoreCase(basic[0], "Basic")) {
+            if (required) {
+                log.error("Basic authentication failed, header 'Authorization' not found.")
+            }
             return
         }
         val credentials = String(Base64.decodeBase64(basic[1]), StandardCharsets.UTF_8)
@@ -103,7 +141,8 @@ class RestAuthenticationUtils {
         }
         val username = credentials.substring(0, p).trim { it <= ' ' }
         val clientIpAddress = authInfo.request.remoteAddr
-        if (checkLoginProtection(authInfo.response, username, LoginProtection.instance(), clientIpAddress)) { // access denied
+        if (checkLoginProtection(authInfo.response, username, LoginProtection.instance(), clientIpAddress)) {
+            // Access denied (time offset due to failed logins). Logging is done by check method.
             return
         }
         val password = credentials.substring(p + 1).trim { it <= ' ' }
@@ -133,6 +172,8 @@ class RestAuthenticationUtils {
         } else { // Only null in test case:
             MDC.put("ip", "unknown")
         }
+        MDC.put("ip", request.remoteAddr)
+        MDC.put("session", request.session?.id)
         MDC.put("user", user.username)
         log.info("User: " + user.username + " calls RestURL: " + request.requestURI
                 + " with ip: "
@@ -199,6 +240,23 @@ class RestAuthenticationUtils {
         fun executeLogin(request: HttpServletRequest?, userContext: UserContext?) { // Wicket part: (page.getSession() as MySession).login(userContext, page.getRequest())
             UserFilter.login(request, userContext)
         }
+
+        /**
+         * "Authentication-User-Id" and "authenticationUserId".
+         */
+        val REQUEST_PARAMS_USER_ID = arrayOf(Authentication.AUTHENTICATION_USER_ID, AuthenticationOld.AUTHENTICATION_USER_ID)
+        /**
+         * "Authentication-Token" and "authenticationToken".
+         */
+        val REQUEST_PARAMS_TOKEN = arrayOf(Authentication.AUTHENTICATION_TOKEN, AuthenticationOld.AUTHENTICATION_TOKEN)
+        /**
+         * "Authentication-Username" and "authenticationUsername".
+         */
+        val REQUEST_PARAMS_USERNAME = arrayOf(Authentication.AUTHENTICATION_USERNAME, AuthenticationOld.AUTHENTICATION_USERNAME)
+        /**
+         * "Authentication-Password" and "authenticationPassword".
+         */
+        val REQUEST_PARAMS_PASSWORD = arrayOf(Authentication.AUTHENTICATION_PASSWORD, AuthenticationOld.AUTHENTICATION_PASSWORD)
 
         /**
          * @param req

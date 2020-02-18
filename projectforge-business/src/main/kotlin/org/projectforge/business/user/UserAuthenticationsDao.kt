@@ -23,6 +23,7 @@
 
 package org.projectforge.business.user
 
+import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.framework.access.AccessException
@@ -91,7 +92,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
 
     override fun afterSaveOrModify(obj: UserAuthenticationsDO?) {
         if (userTokenCache != null) {
-            throw UnsupportedOperationException("Not yet implmented: userTokenCache.refresh...")
+            log.error("******************************************************* Not yet implmented: userTokenCache.refresh...")
         }
     }
 
@@ -171,7 +172,16 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         if (ThreadLocalUserContext.getUserId() != userId) { // Only admin users are able to renew authentication token of other users:
             accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         }
-        val authentications = ensureAuthentications(userId)
+        return internalGetToken(userId, type)
+    }
+
+    /**
+     * Returns the user's authentication token if exists (must be not blank with a size >= 10). If not, a new token key
+     * will be generated. Without check access.
+     * @return The decrypted token.
+     */
+    open fun internalGetToken(userId: Int, type: UserTokenType): String? {
+        val authentications = ensureAuthentications(userId, checkAccess = false)
         return decryptToken(authentications.getToken(type))
     }
 
@@ -184,14 +194,15 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         return authentications.getToken(type)
     }
 
-    private fun checkAndFixAuthenticationTokens(authentication: UserAuthenticationsDO) {
-        authentication.user?.id?.let { userId ->
-            var changed = checkAndFixToken(authentication, userId, UserTokenType.CALENDAR_REST)
-            changed = changed || checkAndFixToken(authentication, userId, UserTokenType.DAV_TOKEN)
-            changed = changed || checkAndFixToken(authentication, userId, UserTokenType.REST_CLIENT)
-            changed = changed || checkAndFixToken(authentication, userId, UserTokenType.STAY_LOGGED_IN_KEY)
+    private fun checkAndFixAuthenticationTokens(authentications: UserAuthenticationsDO, checkAccess: Boolean = true) {
+        authentications.user?.id?.let { userId ->
+            var changed = checkAndFixToken(authentications, userId, UserTokenType.CALENDAR_REST)
+            changed = changed || checkAndFixToken(authentications, userId, UserTokenType.DAV_TOKEN)
+            changed = changed || checkAndFixToken(authentications, userId, UserTokenType.REST_CLIENT)
+            changed = changed || checkAndFixToken(authentications, userId, UserTokenType.STAY_LOGGED_IN_KEY)
             if (changed) {
-                update(authentication)
+                authentications.tenant = authentications.user?.tenant ?: authentications.tenant
+                internalUpdate(authentications, checkAccess)
             }
         }
     }
@@ -226,15 +237,17 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         return encryptToken(newToken)
     }
 
-    private fun encryptToken(token: String): String {
-        return Crypt.encrypt(authenticationTokenEncryptionKey, token)
+    internal fun encryptToken(token: String): String {
+        val authenticationToken: String = StringUtils.rightPad(token, 32, "x")
+        return Crypt.encrypt(authenticationTokenEncryptionKey, authenticationToken)
     }
 
     open fun decryptToken(token: String?): String? {
         if (token.isNullOrBlank() || token.length <= 10) {
             return null
         }
-        return Crypt.decrypt(authenticationTokenEncryptionKey, token)
+        val authenticationToken: String = StringUtils.rightPad(token, 32, "x")
+        return Crypt.decrypt(authenticationTokenEncryptionKey, authenticationToken)
     }
 
     /**
@@ -250,21 +263,28 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
      * @return Stored or created authentications object for given user.
      * @throws AccessException if the logged-in user neither doesn't match the given user nor is admin user.
      */
-    private fun ensureAuthentications(userId: Int): UserAuthenticationsDO {
-        hasLoggedInUserAccess(userId)
+    private fun ensureAuthentications(userId: Int, checkAccess: Boolean = true): UserAuthenticationsDO {
+        if (checkAccess) {
+            hasLoggedInUserAccess(userId)
+        }
         var authentications = ensureUniqueResult(em
                 .createNamedQuery(UserAuthenticationsDO.FIND_BY_USER_ID, UserAuthenticationsDO::class.java)
                 .setParameter("userId", userId))
         if (authentications == null) {
             authentications = UserAuthenticationsDO()
             setUser(authentications, userId)
+            authentications.tenant = authentications.user?.tenant
             authentications.calendarExportToken = createAuthenticationToken()
             authentications.davToken = createAuthenticationToken()
             authentications.restClientToken = createAuthenticationToken()
             authentications.stayLoggedInKey = createAuthenticationToken()
-            save(authentications)
+            if (checkAccess) {
+                save(authentications)
+            } else {
+                internalSave(authentications)
+            }
         } else {
-            checkAndFixAuthenticationTokens(authentications)
+            checkAndFixAuthenticationTokens(authentications, checkAccess)
         }
         return authentications
     }
