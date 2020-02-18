@@ -4,6 +4,7 @@ import {
     EDIT_CALL_FAILURE,
     EDIT_CALL_INITIAL_BEGIN,
     EDIT_CALL_SUCCESS,
+    EDIT_CHANGE_DATA,
 } from '../../actions';
 
 const initialState = {};
@@ -60,6 +61,14 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                 isFetching: false,
                 ...payload.response,
             };
+        case EDIT_CHANGE_DATA:
+            return {
+                ...state,
+                data: {
+                    ...state.data,
+                    ...payload.newData,
+                },
+            };
         default:
             return state;
     }
@@ -73,7 +82,8 @@ const reducer = (state = initialState, action) => {
         case EDIT_CALL_ACTION_SUCCESS:
         case EDIT_CALL_FAILURE:
         case EDIT_CALL_INITIAL_BEGIN:
-        case EDIT_CALL_SUCCESS: {
+        case EDIT_CALL_SUCCESS:
+        case EDIT_CHANGE_DATA: {
             const { category } = payload;
 
             if (category) {

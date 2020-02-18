@@ -50,6 +50,8 @@ export {
     EDIT_CALL_FAILURE,
     EDIT_CALL_INITIAL_BEGIN,
     EDIT_CALL_SUCCESS,
+    EDIT_CHANGE_DATA,
     loadEditPage,
     callAction,
+    setData,
 } from './edit';

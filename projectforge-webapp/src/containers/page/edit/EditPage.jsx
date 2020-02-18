@@ -2,10 +2,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Route } from 'react-router-dom';
-import { callAction, loadEditPage } from '../../../actions';
+import { callAction, loadEditPage, setData } from '../../../actions';
 import DynamicLayout from '../../../components/base/dynamicLayout';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
-import { Container, TabContent, TabPane } from '../../../components/design';
+import { Alert, Container, TabContent, TabPane } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import style from '../../ProjectForge.module.scss';
 import EditHistory from './history';
@@ -16,6 +16,7 @@ function EditPage(
         location,
         match,
         onCallAction,
+        onDataChange,
         onNewEditPage,
     },
 ) {
@@ -40,6 +41,29 @@ function EditPage(
         },
         [currentCategory, id, location.state],
     );
+
+    const globalValidation = React.useMemo(() => {
+        if (validationErrors === undefined) {
+            return <React.Fragment />;
+        }
+        const globalErrors = validationErrors.filter(entry => entry.fieldId === undefined);
+
+        if (globalErrors.length === 0) {
+            return <React.Fragment />;
+        }
+
+        return (
+            <Alert color="danger">
+                <ul>
+                    {globalErrors.map(({ message, messageId }) => (
+                        <li key={`edit-page-global-validation-${messageId}`}>
+                            {message}
+                        </li>
+                    ))}
+                </ul>
+            </Alert>
+        );
+    }, [validationErrors]);
 
     if (ui === undefined) {
         return <LoadingContainer loading />;
@@ -78,13 +102,13 @@ function EditPage(
                                                 showActionButtons: true,
                                                 showPageMenuTitle: false,
                                             }}
-                                            setData={console.log}
+                                            setData={onDataChange}
                                             setVariables={console.log}
                                             ui={ui}
                                             validationErrors={validationErrors}
                                             variables={variables}
                                         >
-                                            <i>Global Validation</i>
+                                            {globalValidation}
                                         </DynamicLayout>
                                     </form>
                                 </Container>
@@ -125,6 +149,7 @@ EditPage.propTypes = {
         }).isRequired,
     }).isRequired,
     onCallAction: PropTypes.func.isRequired,
+    onDataChange: PropTypes.func.isRequired,
     onNewEditPage: PropTypes.func.isRequired,
     category: PropTypes.shape({}),
 };
@@ -139,6 +164,7 @@ const mapStateToProps = ({ edit }, { match }) => ({
 
 const actions = {
     onCallAction: callAction,
+    onDataChange: setData,
     onNewEditPage: loadEditPage,
 };
 

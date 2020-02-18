@@ -6,6 +6,7 @@ export const EDIT_CALL_ACTION_SUCCESS = 'EDIT_CALL_ACTION_SUCCESS';
 export const EDIT_CALL_FAILURE = 'EDIT_CALL_FAILURE';
 export const EDIT_CALL_INITIAL_BEGIN = 'EDIT_CALL_INITIAL_BEGIN';
 export const EDIT_CALL_SUCCESS = 'EDIT_CALL_SUCCESS';
+export const EDIT_CHANGE_DATA = 'EDIT_CHANGE_DATA';
 
 const callActionBegin = category => ({
     type: EDIT_CALL_ACTION_BEGIN,
@@ -38,6 +39,14 @@ const callSuccess = (category, response) => ({
     payload: {
         category,
         response,
+    },
+});
+
+const changeData = (category, newData) => ({
+    type: EDIT_CHANGE_DATA,
+    payload: {
+        category,
+        newData,
     },
 });
 
@@ -133,3 +142,7 @@ export const callAction = (category, action) => (dispatch, getState) => {
         })
         .catch(error => dispatch(callFailure(category, error)));
 };
+
+export const setData = newData => (dispatch, getState) => dispatch(
+    changeData(getState().edit.currentCategory, newData),
+);
