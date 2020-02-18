@@ -5,6 +5,7 @@ import {
     EDIT_CALL_INITIAL_BEGIN,
     EDIT_CALL_SUCCESS,
     EDIT_CHANGE_DATA,
+    EDIT_CHANGE_VARIABLES,
 } from '../../actions';
 
 const initialState = {};
@@ -69,6 +70,14 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                     ...payload.newData,
                 },
             };
+        case EDIT_CHANGE_VARIABLES:
+            return {
+                ...state,
+                variables: {
+                    ...state.variables,
+                    ...payload.newVariables,
+                },
+            };
         default:
             return state;
     }
@@ -83,7 +92,8 @@ const reducer = (state = initialState, action) => {
         case EDIT_CALL_FAILURE:
         case EDIT_CALL_INITIAL_BEGIN:
         case EDIT_CALL_SUCCESS:
-        case EDIT_CHANGE_DATA: {
+        case EDIT_CHANGE_DATA:
+        case EDIT_CHANGE_VARIABLES: {
             const { category } = payload;
 
             if (category) {

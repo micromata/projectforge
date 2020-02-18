@@ -51,7 +51,9 @@ export {
     EDIT_CALL_INITIAL_BEGIN,
     EDIT_CALL_SUCCESS,
     EDIT_CHANGE_DATA,
+    EDIT_CHANGE_VARIABLES,
     loadEditPage,
     callAction,
-    setData,
+    setCurrentData,
+    setCurrentVariables,
 } from './edit';
