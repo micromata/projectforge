@@ -46,7 +46,6 @@ function AutoCompletion(
 ) {
     const [completions, setCompletions] = React.useState([]);
     const [isOpen, setIsOpen] = React.useState(false);
-    const [abortController, setAbortController] = React.useState(null);
     const searchRef = React.useRef(null);
     const [loadCompletions] = React.useState(
         () => AwesomeDebouncePromise(loadCompletionsBounced, debouncedWaitTime),
@@ -75,7 +74,6 @@ function AutoCompletion(
     React.useEffect(() => {
         if (url) {
             const newAbortController = new AbortController();
-            setAbortController(newAbortController);
 
             loadCompletions({
                 url,
