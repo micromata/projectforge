@@ -64,7 +64,6 @@ open class FFPEventDO : DefaultBaseDO() {
     open var title: String? = null
 
     @PropertyInfo(i18nKey = "plugins.ffp.eventDate")
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(nullable = false)
     open var eventDate: LocalDate? = null
 
