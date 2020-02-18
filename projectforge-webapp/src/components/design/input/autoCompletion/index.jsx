@@ -74,11 +74,6 @@ function AutoCompletion(
 
     React.useEffect(() => {
         if (url) {
-            // Cancel old request, to prevent overwriting
-            if (abortController) {
-                abortController.abort();
-            }
-
             const newAbortController = new AbortController();
             setAbortController(newAbortController);
 
@@ -89,7 +84,12 @@ function AutoCompletion(
                 searchParameter,
                 signal: newAbortController.signal,
             });
+
+            // Cancel old request, to prevent overwriting
+            return () => newAbortController.abort();
         }
+
+        return undefined;
     }, [url, search]);
 
     return (
