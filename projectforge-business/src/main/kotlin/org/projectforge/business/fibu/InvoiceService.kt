@@ -39,6 +39,7 @@ import org.projectforge.business.configuration.DomainService
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateTimeFormatter
+import org.projectforge.framework.time.PFDay
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -67,7 +68,7 @@ open class InvoiceService {
     @Autowired
     private lateinit var domainService: DomainService
     @Value("\${projectforge.invoiceTemplate}")
-    open protected var customInvoiceTemplateName: String? = null
+    protected open var customInvoiceTemplateName: String? = null
 
     /**
      * InvoiceTemplate.docx, InvoiceTemplate_en.docx results in ["", "en"].
@@ -80,7 +81,7 @@ open class InvoiceService {
         val resourceDir = configurationService.resourceDir
         val baseDir = File("$resourceDir/officeTemplates")
         val langs = mutableListOf<String>()
-        baseDir.list().filter { it.startsWith(templateName) }.forEach {
+        baseDir.list()?.filter { it.startsWith(templateName) }?.forEach {
             val lang = it.removePrefix(templateName).removeSuffix(".docx")
             if (lang.isBlank()) {
                 langs.add("")
@@ -153,22 +154,17 @@ open class InvoiceService {
     }
 
     private fun formatCurrencyAmount(value: BigDecimal?): String {
-        return formatBigDecimal(value!!.setScale(2, RoundingMode.HALF_UP))
+        value ?: return ""
+        return formatBigDecimal(value.setScale(2, RoundingMode.HALF_UP))
     }
 
     private fun formatBigDecimal(value: BigDecimal?): String {
-        if (value == null) {
-            return ""
-        }
-        val df: DecimalFormat
-        df = if (value.scale() == 0) {
-            DecimalFormat("#,###")
-        } else if (value.scale() == 1) {
-            DecimalFormat("#,###.0")
-        } else if (value.scale() == 2) {
-            DecimalFormat("#,###.00")
-        } else {
-            DecimalFormat("#,###.#")
+        value ?: return ""
+        val df = when {
+            value.scale() == 0 -> DecimalFormat("#,###")
+            value.scale() == 1 -> DecimalFormat("#,###.0")
+            value.scale() == 2 -> DecimalFormat("#,###.00")
+            else -> DecimalFormat("#,###.#")
         }
         return df.format(value)
     }
@@ -251,7 +247,7 @@ open class InvoiceService {
         }
         val project = if (invoice.projekt != null) "_" + invoice.projekt!!.name else ""
         val subject = if (invoice.betreff != null) "_" + invoice.betreff else ""
-        val invoiceDate = "_" + DateTimeFormatter.instance().getFormattedDate(invoice.datum)
+        val invoiceDate = "_" + PFDay.fromOrNow(invoice.datum).isoString
         return StringUtils.abbreviate(
                 ReplaceUtils.encodeFilename(number + customer + project + subject + invoiceDate, true),
                 "...", FILENAME_MAXLENGTH) + suffix

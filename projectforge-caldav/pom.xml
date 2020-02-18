@@ -20,11 +20,23 @@
         </license>
     </licenses>
     <properties>
-        <start-class>org.projectforge.start.ProjectForgeCalDAVApplication</start-class>
+        <start-class>org.projectforge.caldav.start.ProjectForgeCalDAVApplication</start-class>
         <milton.version>2.7.4.4</milton.version>
         <postgresql.version>42.2.2</postgresql.version>
         <ez-vcard.version>0.10.4</ez-vcard.version>
     </properties>
+    <profiles>
+        <profile>
+            <id>intellij-properties-launcher</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-loader</artifactId>
+                    <version>${spring.boot.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
     <dependencies>
         <dependency>
             <groupId>org.projectforge</groupId>
@@ -48,18 +60,37 @@
             <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-logging</artifactId>
+            <version>${spring.boot.version}</version>
+        </dependency>
+        <dependency>
             <groupId>io.milton</groupId>
             <artifactId>milton-server-ent</artifactId>
             <version>${milton.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.googlecode.ez-vcard</groupId>
             <artifactId>ez-vcard</artifactId>
             <version>${ez-vcard.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
     </dependencies>
     <build>
-        <sourceDirectory>src/main/java</sourceDirectory>
         <resources>
             <resource>
                 <directory>src/main/java</directory>
