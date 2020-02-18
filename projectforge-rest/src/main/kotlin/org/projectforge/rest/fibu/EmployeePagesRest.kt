@@ -61,7 +61,6 @@ class EmployeePagesRest : AbstractDTOPagesRest<EmployeeDO, Employee, EmployeeDao
                         .add(lc, "status", "staffNumber")
                         .add(UITableColumn("kost1", "fibu.kost1", formatter = Formatter.COST1))
                         .add(lc, "position", "abteilung", "eintrittsDatum", "austrittsDatum", "comment"))
-        layout.getTableColumnById("user").formatter = Formatter.USER
         layout.getTableColumnById("eintrittsDatum").formatter = Formatter.DATE
         layout.getTableColumnById("austrittsDatum").formatter = Formatter.DATE
         return LayoutUtils.processListPage(layout, this)
