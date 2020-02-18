@@ -74,7 +74,6 @@ open class BookDO : DefaultBaseDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "date")
     @Field(index = Index.YES, analyze = Analyze.NO)
-    @DateBridge(encoding = EncodingType.STRING)
     @get:Column(name = "lend_out_date")
     open var lendOutDate: LocalDate? = null
 

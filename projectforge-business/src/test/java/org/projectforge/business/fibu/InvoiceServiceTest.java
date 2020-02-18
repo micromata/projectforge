@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu;
 
 import org.junit.jupiter.api.Test;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -42,7 +43,7 @@ public class InvoiceServiceTest extends AbstractTestBase {
     String filename = invoiceService.getInvoiceFilename(data);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals("_.docx", filename);
+    assertEquals("_" + PFDay.today().getIsoString() + ".docx", filename);
   }
 
   @Test
@@ -62,7 +63,7 @@ public class InvoiceServiceTest extends AbstractTestBase {
     String filename = invoiceService.getInvoiceFilename(data);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals("12345_Kunde_Projekt_Betreff_04_08_2017.docx", filename);
+    assertEquals("12345_Kunde_Projekt_Betreff_2017-08-04.docx", filename);
   }
 
   @Test
@@ -82,7 +83,7 @@ public class InvoiceServiceTest extends AbstractTestBase {
     String filename = invoiceService.getInvoiceFilename(data);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals("12345_Kunde___Kunde_Projekt-Titel_Betreff_Aenderung__04_08_2017.docx", filename);
+    assertEquals("12345_Kunde___Kunde_Projekt-Titel_Betreff_Aenderung__2017-08-04.docx", filename);
   }
 
   @Test

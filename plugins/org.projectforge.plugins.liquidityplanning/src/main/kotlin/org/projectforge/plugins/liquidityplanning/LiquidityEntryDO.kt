@@ -46,7 +46,6 @@ import javax.persistence.Table
 open class LiquidityEntryDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.liquidityplanning.entry.dateOfPayment")
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "date_of_payment")
     open var dateOfPayment: LocalDate? = null
 

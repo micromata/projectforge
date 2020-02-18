@@ -261,7 +261,7 @@ class PFDayUtils {
         }
 
         /**
-         * Parses the given date.
+         * Parses the given date (of iso type yyyy-MM-dd or user's date format [DateFormatType.DATE] or [DateFormatType.DATE_SHORT].
          * @throws DateTimeParseException if the text cannot be parsed
          */
         @JvmStatic

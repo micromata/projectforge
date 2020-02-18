@@ -131,13 +131,11 @@ open class ToDoDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "dueDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "due_date")
     open var dueDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "resubmissionOnDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
     open var resubmission: LocalDate? = null
 

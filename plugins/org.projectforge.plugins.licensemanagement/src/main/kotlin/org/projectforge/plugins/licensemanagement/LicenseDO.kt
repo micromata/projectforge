@@ -100,12 +100,10 @@ open class LicenseDO : DefaultBaseDO() {
     open var status: LicenseStatus? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.validSince")
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "valid_since")
     open var validSince: LocalDate? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.validUntil")
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "valid_until")
     open var validUntil: LocalDate? = null
 

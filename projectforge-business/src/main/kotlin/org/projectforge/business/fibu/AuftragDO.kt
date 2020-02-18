@@ -160,25 +160,21 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "fibu.auftrag.angebot.datum")
     @Field
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "angebots_datum")
     open var angebotsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.erfassung.datum")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "erfassungs_datum")
     open var erfassungsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.entscheidung.datum")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "entscheidungs_datum")
     open var entscheidungsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.bindungsFrist")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "bindungs_frist")
     open var bindungsFrist: LocalDate? = null
 
@@ -245,13 +241,11 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_begin")
     open var periodOfPerformanceBegin: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_end")
     open var periodOfPerformanceEnd: LocalDate? = null
 
