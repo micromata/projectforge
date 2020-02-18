@@ -52,8 +52,10 @@ export {
     EDIT_CALL_SUCCESS,
     EDIT_CHANGE_DATA,
     EDIT_CHANGE_VARIABLES,
+    EDIT_SWITCH_CATEGORY,
     loadEditPage,
     callAction,
     setCurrentData,
     setCurrentVariables,
+    switchFromCurrentCategory,
 } from './edit';

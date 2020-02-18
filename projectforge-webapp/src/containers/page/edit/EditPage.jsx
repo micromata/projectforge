@@ -2,7 +2,13 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Route } from 'react-router-dom';
-import { callAction, loadEditPage, setCurrentData, setCurrentVariables } from '../../../actions';
+import {
+    callAction,
+    loadEditPage,
+    setCurrentData,
+    setCurrentVariables,
+    switchFromCurrentCategory,
+} from '../../../actions';
 import DynamicLayout from '../../../components/base/dynamicLayout';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
 import { Alert, Container, TabContent, TabPane } from '../../../components/design';
@@ -17,6 +23,7 @@ function EditPage(
         location,
         match,
         onCallAction,
+        onCategorySwitch,
         onDataChange,
         onNewEditPage,
         onVariablesChange,
@@ -32,7 +39,8 @@ function EditPage(
 
     React.useEffect(
         () => {
-            if (location.state && location.state.noReload && Object.entries(data).length !== 0) {
+            if (location.state && location.state.noReload) {
+                onCategorySwitch(currentCategory, location.state.newVariables || {});
                 return;
             }
 
@@ -160,6 +168,7 @@ EditPage.propTypes = {
         }).isRequired,
     }).isRequired,
     onCallAction: PropTypes.func.isRequired,
+    onCategorySwitch: PropTypes.func.isRequired,
     onDataChange: PropTypes.func.isRequired,
     onNewEditPage: PropTypes.func.isRequired,
     onVariablesChange: PropTypes.func.isRequired,
@@ -176,6 +185,7 @@ const mapStateToProps = ({ edit }, { match }) => ({
 
 const actions = {
     onCallAction: callAction,
+    onCategorySwitch: switchFromCurrentCategory,
     onDataChange: setCurrentData,
     onNewEditPage: loadEditPage,
     onVariablesChange: setCurrentVariables,
