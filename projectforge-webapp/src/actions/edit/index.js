@@ -7,6 +7,7 @@ export const EDIT_CALL_FAILURE = 'EDIT_CALL_FAILURE';
 export const EDIT_CALL_INITIAL_BEGIN = 'EDIT_CALL_INITIAL_BEGIN';
 export const EDIT_CALL_SUCCESS = 'EDIT_CALL_SUCCESS';
 export const EDIT_CHANGE_DATA = 'EDIT_CHANGE_DATA';
+export const EDIT_CHANGE_VARIABLES = 'EDIT_CHANGE_VARIABLES';
 
 const callActionBegin = category => ({
     type: EDIT_CALL_ACTION_BEGIN,
@@ -47,6 +48,14 @@ const changeData = (category, newData) => ({
     payload: {
         category,
         newData,
+    },
+});
+
+const changeVariables = (category, newVariables) => ({
+    type: EDIT_CHANGE_VARIABLES,
+    payload: {
+        category,
+        newVariables,
     },
 });
 
@@ -143,6 +152,10 @@ export const callAction = (category, action) => (dispatch, getState) => {
         .catch(error => dispatch(callFailure(category, error)));
 };
 
-export const setData = newData => (dispatch, getState) => dispatch(
+export const setCurrentData = newData => (dispatch, getState) => dispatch(
     changeData(getState().edit.currentCategory, newData),
 );
+
+export const setCurrentVariables = newVariables => (dispatch, getState) => dispatch(
+    changeVariables(getState().edit.currentCategory, newVariables),
+)

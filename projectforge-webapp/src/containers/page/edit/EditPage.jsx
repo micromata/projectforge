@@ -2,11 +2,12 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Route } from 'react-router-dom';
-import { callAction, loadEditPage, setData } from '../../../actions';
+import { callAction, loadEditPage, setCurrentData, setCurrentVariables } from '../../../actions';
 import DynamicLayout from '../../../components/base/dynamicLayout';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
 import { Alert, Container, TabContent, TabPane } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
+import { getTranslation } from '../../../utilities/layout';
 import style from '../../ProjectForge.module.scss';
 import EditHistory from './history';
 
@@ -18,6 +19,7 @@ function EditPage(
         onCallAction,
         onDataChange,
         onNewEditPage,
+        onVariablesChange,
     },
 ) {
     const {
@@ -73,8 +75,17 @@ function EditPage(
         {
             id: 'edit',
             title: ui.title,
+            link: match.url,
         },
     ];
+
+    if (ui.showHistory === true) {
+        tabs.push({
+            id: 'history',
+            title: getTranslation('label.historyOfChanges', ui.translations),
+            link: `${match.url}/history`,
+        });
+    }
 
     return (
         <Container fluid>
@@ -103,7 +114,7 @@ function EditPage(
                                                 showPageMenuTitle: false,
                                             }}
                                             setData={onDataChange}
-                                            setVariables={console.log}
+                                            setVariables={onVariablesChange}
                                             ui={ui}
                                             validationErrors={validationErrors}
                                             variables={variables}
@@ -151,6 +162,7 @@ EditPage.propTypes = {
     onCallAction: PropTypes.func.isRequired,
     onDataChange: PropTypes.func.isRequired,
     onNewEditPage: PropTypes.func.isRequired,
+    onVariablesChange: PropTypes.func.isRequired,
     category: PropTypes.shape({}),
 };
 
@@ -164,8 +176,9 @@ const mapStateToProps = ({ edit }, { match }) => ({
 
 const actions = {
     onCallAction: callAction,
-    onDataChange: setData,
+    onDataChange: setCurrentData,
     onNewEditPage: loadEditPage,
+    onVariablesChange: setCurrentVariables,
 };
 
 export default connect(mapStateToProps, actions)(EditPage);
