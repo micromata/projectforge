@@ -87,16 +87,19 @@ export const loadEditPage = (category, { id, search }) => (dispatch, getState) =
         .catch(error => callFailure(category, error));
 };
 
-export const callAction = (category, action) => (dispatch, getState) => {
+export const callAction = ({ responseAction: action }) => (dispatch, getState) => {
     if (!action) {
         return Promise.reject(Error('No response action given.'));
     }
+
+    const { edit: state } = getState();
+    const category = state.currentCategory;
 
     dispatch(callActionBegin(category));
 
     let status = 0;
 
-    const { data, watchFieldsTriggered } = getState().edit.categories[category];
+    const { data, watchFieldsTriggered } = state.categories[category];
 
     return fetch(
         getServiceURL(action.url),
@@ -158,4 +161,4 @@ export const setCurrentData = newData => (dispatch, getState) => dispatch(
 
 export const setCurrentVariables = newVariables => (dispatch, getState) => dispatch(
     changeVariables(getState().edit.currentCategory, newVariables),
-)
+);
