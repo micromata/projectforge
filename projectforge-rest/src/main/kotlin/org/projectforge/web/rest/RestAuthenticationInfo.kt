@@ -24,13 +24,14 @@
 package org.projectforge.web.rest
 
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.springframework.http.HttpStatus
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class RestAuthenticationInfo(var request: HttpServletRequest,
                              var response: HttpServletResponse) {
     val success: Boolean
-        get() = user != null
+        get() = user != null && resultCode == null
 
     var user: PFUserDO? = null
         set(value) {
@@ -41,5 +42,6 @@ class RestAuthenticationInfo(var request: HttpServletRequest,
             field = value
         }
     var userString: String? = null
-    var clientIpAddress = request.remoteAddr
+    var clientIpAddress: String = request.remoteAddr
+    var resultCode: HttpStatus? = null
 }

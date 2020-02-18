@@ -59,6 +59,14 @@ open class UserAuthenticationsService {
     }
 
     /**
+     * Without check access.
+     * @see UserAuthenticationsDao.internalGetToken
+     */
+    open fun internalGetToken(userId: Int, type: UserTokenType): String? {
+        return userAuthenticationsDao.internalGetToken(userId, type)
+    }
+
+    /**
      * @see UserAuthenticationsDao.getToken
      */
     open fun getToken(userId: Int, type: UserTokenType): String? {
@@ -89,7 +97,7 @@ open class UserAuthenticationsService {
      * @see Crypt.decrypt
      */
     open fun decrypt(userId: Int, type: UserTokenType, encryptedString: String): String? {
-        val storedAuthenticationToken: String? = getToken(userId, type)
+        val storedAuthenticationToken: String? = internalGetToken(userId, type)
         if (storedAuthenticationToken == null) {
             log.warn("Can't get authentication token for user $userId. So can't decrypt encrypted string.")
             return ""

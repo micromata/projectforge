@@ -22,6 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 package org.projectforge.web.rest
 
+import org.projectforge.SystemStatus
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.filter.UserFilter
@@ -52,6 +53,8 @@ abstract class AbstractRestUserFilter : Filter {
     lateinit var userAuthenticationsService: UserAuthenticationsService
     @Autowired
     lateinit var userService: UserService
+    @Autowired
+    private lateinit var systemStatus: SystemStatus
 
     @Throws(ServletException::class)
     override fun init(filterConfig: FilterConfig) {
@@ -60,7 +63,7 @@ abstract class AbstractRestUserFilter : Filter {
         beanFactory.autowireBean(this)
     }
 
-    abstract fun authenticate(info: RestAuthenticationInfo)
+    abstract fun authenticate(authInfo: RestAuthenticationInfo)
 
     /**
      * Authentication via request header.
@@ -73,15 +76,23 @@ abstract class AbstractRestUserFilter : Filter {
      */
     @Throws(IOException::class, ServletException::class)
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-        if (UserFilter.isUpdateRequiredFirst()) {
-            log.warn("Update of the system is required first. Login via Rest not available. Administrators login required.")
+        response as HttpServletResponse
+        request as HttpServletRequest
+        if (!systemStatus.upAndRunning) {
+            log.error("System isn't up and running, all rest calls are denied. The system is may-be in start-up phase or in maintenance mode.")
+            response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)
             return
         }
-        val authInfo = RestAuthenticationInfo(request as HttpServletRequest, response as HttpServletResponse)
+        if (UserFilter.isUpdateRequiredFirst()) {
+            log.warn("Update of the system is required first. Login via Rest not available. Administrators login required.")
+            response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)
+            return
+        }
+        val authInfo = RestAuthenticationInfo(request, response)
         authenticate(authInfo)
         if (!authInfo.success) {
             LoginProtection.instance().incrementFailedLoginTimeOffset(authInfo.userString, authInfo.clientIpAddress)
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+            response.sendError(authInfo.resultCode?.value() ?: HttpServletResponse.SC_UNAUTHORIZED)
             return
         }
         try {
