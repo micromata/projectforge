@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.generated.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 
@@ -69,6 +70,12 @@ public class SEPATransferGenerator
 
   private Pattern patternBic;
   private Pattern patternIBAN;
+
+  @Value("${projectforge.fibu.sepa.defaultIBAN}")
+  private String defaultIBAN = "DE87200500001234567890";
+
+  @Value("${projectforge.fibu.sepa.defaultBIC}")
+  private String defaultBIC = "BANKDEFFXXX";
 
   public SEPATransferGenerator()
   {
@@ -159,7 +166,7 @@ public class SEPATransferGenerator
     } catch (DatatypeConfigurationException e) {
       log.error("Exception occured while setting creDtTm property.", e);
     }
-    grpHdr.setNbOfTxs(String.valueOf(1));
+    grpHdr.setNbOfTxs(String.valueOf(invoices.size()));
     final PartyIdentificationSEPA1 partyIdentificationSEPA1 = factory.createPartyIdentificationSEPA1();
     grpHdr.setInitgPty(partyIdentificationSEPA1);
     partyIdentificationSEPA1.setNm(debitor);
@@ -171,7 +178,7 @@ public class SEPATransferGenerator
     pmtInf.setPmtInfId(msgID + "-1");
     pmtInf.setPmtMtd(PaymentMethodSCTCode.TRF);
     pmtInf.setBtchBookg(true);
-    pmtInf.setNbOfTxs("1");
+    pmtInf.setNbOfTxs(String.valueOf(invoices.size()));
     // the default value for most HBCI/FinTS is 01/01/1999 or the current date
     // pmtInf.setReqdExctnDt(XMLGregorianCalendarImpl.createDate(1999, 1, 1, 0));
     try {
@@ -197,14 +204,14 @@ public class SEPATransferGenerator
     CashAccountSEPA1 dbtrAcct = factory.createCashAccountSEPA1();
     AccountIdentificationSEPA id = factory.createAccountIdentificationSEPA();
     dbtrAcct.setId(id);
-    id.setIBAN("DE87200500001234567890"); // dummy iban, is replaced by external program afterwards
+    id.setIBAN(defaultIBAN);
     pmtInf.setDbtrAcct(dbtrAcct);
 
     // set debitor bic
     BranchAndFinancialInstitutionIdentificationSEPA3 dbtrAgt = factory.createBranchAndFinancialInstitutionIdentificationSEPA3();
     FinancialInstitutionIdentificationSEPA3 finInstnId = factory.createFinancialInstitutionIdentificationSEPA3();
     dbtrAgt.setFinInstnId(finInstnId);
-    finInstnId.setBIC("BANKDEFFXXX"); // dummy bic, is replaced by external program afterwards
+    finInstnId.setBIC(defaultBIC);
     pmtInf.setDbtrAgt(dbtrAgt);
 
     // create transaction
