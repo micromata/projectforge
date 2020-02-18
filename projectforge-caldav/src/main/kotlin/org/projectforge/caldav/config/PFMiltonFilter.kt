@@ -84,7 +84,7 @@ class PFMiltonFilter : MiltonFilter() {
     }
 
     fun authenticate(authInfo: RestAuthenticationInfo) {
-        return restAuthenticationUtils.basicAuthentication(authInfo) { user, authenticationToken ->
+        return restAuthenticationUtils.basicAuthentication(authInfo, true) { user, authenticationToken ->
             userAuthenticationsService.getUserByToken(user, UserTokenType.DAV_TOKEN, authenticationToken)
         }
     }
