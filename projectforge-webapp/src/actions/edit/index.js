@@ -8,6 +8,7 @@ export const EDIT_CALL_INITIAL_BEGIN = 'EDIT_CALL_INITIAL_BEGIN';
 export const EDIT_CALL_SUCCESS = 'EDIT_CALL_SUCCESS';
 export const EDIT_CHANGE_DATA = 'EDIT_CHANGE_DATA';
 export const EDIT_CHANGE_VARIABLES = 'EDIT_CHANGE_VARIABLES';
+export const EDIT_SWITCH_CATEGORY = 'EDIT_SWITCH_CATEGORY';
 
 const callActionBegin = category => ({
     type: EDIT_CALL_ACTION_BEGIN,
@@ -56,6 +57,15 @@ const changeVariables = (category, newVariables) => ({
     payload: {
         category,
         newVariables,
+    },
+});
+
+const switchCategoryWithData = (from, to, newVariables) => ({
+    type: EDIT_SWITCH_CATEGORY,
+    payload: {
+        from,
+        newVariables,
+        category: to,
     },
 });
 
@@ -133,11 +143,17 @@ export const callAction = ({ responseAction: action }) => (dispatch, getState) =
                             break;
                         case 'UPDATE':
                             if (json.url) {
-                                history.push(`${json.url}`, { noReload: true });
+                                history.push(
+                                    `${json.url}`,
+                                    {
+                                        noReload: true,
+                                        newVariables: json.variables,
+                                    },
+                                );
                                 window.scrollTo(0, 0);
+                            } else {
+                                dispatch(callSuccess(category, json.variables));
                             }
-
-                            dispatch(callSuccess(category, json.variables));
                             break;
                         case 'NOTHING':
                         default:
@@ -162,3 +178,17 @@ export const setCurrentData = newData => (dispatch, getState) => dispatch(
 export const setCurrentVariables = newVariables => (dispatch, getState) => dispatch(
     changeVariables(getState().edit.currentCategory, newVariables),
 );
+
+export const switchFromCurrentCategory = (to, newVariables) => (dispatch, getState) => {
+    const { edit: state } = getState();
+    const from = state.currentCategory;
+
+    dispatch(switchCategoryWithData(
+        from,
+        to,
+        {
+            ...state[from],
+            ...newVariables,
+        },
+    ));
+};
