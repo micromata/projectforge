@@ -68,7 +68,7 @@ open class InvoiceService {
     @Autowired
     private lateinit var domainService: DomainService
     @Value("\${projectforge.invoiceTemplate}")
-    open protected var customInvoiceTemplateName: String? = null
+    protected open var customInvoiceTemplateName: String? = null
 
     /**
      * InvoiceTemplate.docx, InvoiceTemplate_en.docx results in ["", "en"].
@@ -81,7 +81,7 @@ open class InvoiceService {
         val resourceDir = configurationService.resourceDir
         val baseDir = File("$resourceDir/officeTemplates")
         val langs = mutableListOf<String>()
-        baseDir.list().filter { it.startsWith(templateName) }.forEach {
+        baseDir.list()?.filter { it.startsWith(templateName) }?.forEach {
             val lang = it.removePrefix(templateName).removeSuffix(".docx")
             if (lang.isBlank()) {
                 langs.add("")
@@ -154,22 +154,17 @@ open class InvoiceService {
     }
 
     private fun formatCurrencyAmount(value: BigDecimal?): String {
-        return formatBigDecimal(value!!.setScale(2, RoundingMode.HALF_UP))
+        value ?: return ""
+        return formatBigDecimal(value.setScale(2, RoundingMode.HALF_UP))
     }
 
     private fun formatBigDecimal(value: BigDecimal?): String {
-        if (value == null) {
-            return ""
-        }
-        val df: DecimalFormat
-        df = if (value.scale() == 0) {
-            DecimalFormat("#,###")
-        } else if (value.scale() == 1) {
-            DecimalFormat("#,###.0")
-        } else if (value.scale() == 2) {
-            DecimalFormat("#,###.00")
-        } else {
-            DecimalFormat("#,###.#")
+        value ?: return ""
+        val df = when {
+            value.scale() == 0 -> DecimalFormat("#,###")
+            value.scale() == 1 -> DecimalFormat("#,###.0")
+            value.scale() == 2 -> DecimalFormat("#,###.00")
+            else -> DecimalFormat("#,###.#")
         }
         return df.format(value)
     }

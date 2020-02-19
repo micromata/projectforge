@@ -46,7 +46,6 @@ function AutoCompletion(
 ) {
     const [completions, setCompletions] = React.useState([]);
     const [isOpen, setIsOpen] = React.useState(false);
-    const [abortController, setAbortController] = React.useState(null);
     const searchRef = React.useRef(null);
     const [loadCompletions] = React.useState(
         () => AwesomeDebouncePromise(loadCompletionsBounced, debouncedWaitTime),
@@ -74,13 +73,7 @@ function AutoCompletion(
 
     React.useEffect(() => {
         if (url) {
-            // Cancel old request, to prevent overwriting
-            if (abortController) {
-                abortController.abort();
-            }
-
             const newAbortController = new AbortController();
-            setAbortController(newAbortController);
 
             loadCompletions({
                 url,
@@ -89,7 +82,12 @@ function AutoCompletion(
                 searchParameter,
                 signal: newAbortController.signal,
             });
+
+            // Cancel old request, to prevent overwriting
+            return () => newAbortController.abort();
         }
+
+        return undefined;
     }, [url, search]);
 
     return (

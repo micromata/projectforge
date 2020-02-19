@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
-import ReactSelect from '../ReactSelect';
+import ReactSelect from '../react-select/ReactSelect';
 
 const resolveJSON = (callback, type = undefined) => json => callback(json.map((completion) => {
     if (type) {
