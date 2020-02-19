@@ -24,8 +24,8 @@
 package org.projectforge.web.rest
 
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.common.StringHelper
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.rest.pub.CalendarSubscriptionServiceRest
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
@@ -40,21 +40,11 @@ class RestCalendarSubscriptionUserFilter : AbstractRestUserFilter() {
                     authInfo.resultCode = HttpStatus.BAD_REQUEST
                     return
                 }
-        // All credentials are encrypted in request parameter 'q'
-        val q = authInfo.request.getParameter("q")
-        if (q.isNullOrBlank()) {
-            log.info("Parameter 'q' with encrypted credentials not found in request parameters. Rest call denied.")
+        val params = CalendarSubscriptionServiceRest.decryptRequestParams(authInfo.request, userId, userAuthenticationsService)
+        if (params.isNullOrEmpty()) {
             authInfo.resultCode = HttpStatus.BAD_REQUEST
             return
         }
-        // Parameters of q are encrypted by user's token for calendar subscriptions:
-        val decryptedParams = userAuthenticationsService.decrypt(userId, UserTokenType.CALENDAR_REST, q)
-                ?: run {
-                    log.error("Bad request, can't decrypt parameter q (may-be the user's authentication token was changed): ${authInfo.request.queryString}")
-                    authInfo.resultCode = HttpStatus.BAD_REQUEST
-                    return
-                }
-        val params = StringHelper.getKeyValues(decryptedParams, "&")
         // validate user
         authInfo.user = userAuthenticationsService.getUserByToken(userId, UserTokenType.CALENDAR_REST, params["token"])
         if (authInfo.user == null) {
