@@ -6,7 +6,7 @@ import { Button, Col, Container, Popover, PopoverBody, PopoverHeader, Row } from
 import ObjectSelect from '../../../components/design/input/autoCompletion/ObjectSelect';
 import CheckBox from '../../../components/design/input/CheckBox';
 import style from '../../../components/design/input/Input.module.scss';
-import ReactSelect from '../../../components/design/ReactSelect';
+import ReactSelect from '../../../components/design/react-select/ReactSelect';
 import { fetchJsonGet, fetchJsonPost } from '../../../utilities/rest';
 import { CalendarContext } from '../../page/calendar/CalendarContext';
 

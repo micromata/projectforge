@@ -3,7 +3,7 @@ import React from 'react';
 import FavoritesPanel from '../../../../../containers/panel/favorite/FavoritesPanel';
 import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
 import { resolveJSON } from '../../../../design/input/AutoCompletion';
-import ReactSelect from '../../../../design/ReactSelect';
+import ReactSelect from '../../../../design/react-select/ReactSelect';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from '../input/DynamicValidationManager';
 
