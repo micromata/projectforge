@@ -22,8 +22,6 @@
 /////////////////////////////////////////////////////////////////////////////
 package org.projectforge.web.rest
 
-import org.projectforge.SystemStatus
-import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserService
@@ -35,7 +33,6 @@ import org.springframework.web.context.support.WebApplicationContextUtils
 import java.io.IOException
 import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 /**
  * Does the authentication stuff for restful requests.
@@ -51,8 +48,6 @@ abstract class AbstractRestUserFilter : Filter {
     lateinit var userAuthenticationsService: UserAuthenticationsService
     @Autowired
     lateinit var userService: UserService
-    @Autowired
-    private lateinit var systemStatus: SystemStatus
 
     @Throws(ServletException::class)
     override fun init(filterConfig: FilterConfig) {
@@ -74,31 +69,11 @@ abstract class AbstractRestUserFilter : Filter {
      */
     @Throws(IOException::class, ServletException::class)
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-        response as HttpServletResponse
-        request as HttpServletRequest
-        if (!systemStatus.upAndRunning) {
-            log.error("System isn't up and running, all rest calls are denied. The system is may-be in start-up phase or in maintenance mode.")
-            response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)
-            return
-        }
-        if (UserFilter.isUpdateRequiredFirst()) {
-            log.warn("Update of the system is required first. Login via Rest not available. Administrators login required.")
-            response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)
-            return
-        }
-        val authInfo = RestAuthenticationInfo(request, response)
-        authenticate(authInfo)
-        if (!authInfo.success) {
-            LoginProtection.instance().incrementFailedLoginTimeOffset(authInfo.userString, authInfo.clientIpAddress)
-            response.sendError(authInfo.resultCode?.value() ?: HttpServletResponse.SC_UNAUTHORIZED)
-            return
-        }
-        try {
-            restAuthenticationUtils.registerUser(request, authInfo)
-            chain.doFilter(request, response)
-        } finally {
-            restAuthenticationUtils.unregister(request, response, authInfo)
-        }
+        restAuthenticationUtils.doFilter(request,
+                response,
+                authenticate = { authInfo -> authenticate(authInfo) },
+                doFilter = { -> chain.doFilter(request, response) }
+        )
     }
 
     override fun destroy() { // NOOP

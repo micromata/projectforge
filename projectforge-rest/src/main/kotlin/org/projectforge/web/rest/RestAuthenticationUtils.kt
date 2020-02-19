@@ -25,6 +25,7 @@ package org.projectforge.web.rest
 
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.SystemStatus
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.multitenancy.TenantRegistry
 import org.projectforge.business.multitenancy.TenantRegistryMap
@@ -66,6 +67,8 @@ class RestAuthenticationUtils {
     private lateinit var userAuthenticationsService: UserAuthenticationsService
     @Autowired
     private lateinit var cookieService: CookieService
+    @Autowired
+    private lateinit var systemStatus: SystemStatus
 
     /**
      * Tries to authenticate the user by the given authInfo object and will write the authenticated user to it. The user of
@@ -149,6 +152,45 @@ class RestAuthenticationUtils {
         authInfo.user = authenticate(username, password)
         if (!authInfo.success) {
             log.error("Basic authentication failed for user '$username'.")
+        }
+    }
+
+    /**
+     * Re-usable doFilter method. Checks the system status and calls given authenticate method. In case of success, the
+     * authenticated user will be put to the [ThreadLocalUserContext], calls the doFilter method and will be removed after request was finished.
+     * @param request
+     * @param response
+     * @param authenticate The authenticate method tries to authenticate the user.
+     * @param doFilter If authenticated, this method is called to proceed the request.
+     */
+    fun doFilter(request: ServletRequest,
+                 response: ServletResponse,
+                 authenticate: (authInfo: RestAuthenticationInfo) -> Unit,
+                 doFilter: () -> Unit) {
+        response as HttpServletResponse
+        request as HttpServletRequest
+        if (!systemStatus.upAndRunning) {
+            log.error("System isn't up and running, all rest calls are denied. The system is may-be in start-up phase or in maintenance mode.")
+            response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)
+            return
+        }
+        if (UserFilter.isUpdateRequiredFirst()) {
+            log.warn("Update of the system is required first. Login via Rest not available. Administrators login required.")
+            response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)
+            return
+        }
+        val authInfo = RestAuthenticationInfo(request, response)
+        authenticate(authInfo)
+        if (!authInfo.success) {
+            LoginProtection.instance().incrementFailedLoginTimeOffset(authInfo.userString, authInfo.clientIpAddress)
+            response.sendError(authInfo.resultCode?.value() ?: HttpServletResponse.SC_UNAUTHORIZED)
+            return
+        }
+        try {
+            registerUser(request, authInfo)
+            doFilter()
+        } finally {
+            unregister(request, response, authInfo)
         }
     }
 
