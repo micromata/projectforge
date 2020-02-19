@@ -27,9 +27,7 @@ import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.rest.Authentication
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 
-@Component
 class RestUserFilter : AbstractRestUserFilter() {
     @Autowired
     lateinit var cookieService: CookieService

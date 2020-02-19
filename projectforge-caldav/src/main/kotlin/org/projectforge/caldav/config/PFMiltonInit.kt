@@ -26,6 +26,7 @@ package org.projectforge.caldav.config
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.caldav.controller.ProjectForgeCalDAVController
 import org.projectforge.caldav.controller.ProjectForgeCardDAVController
+import org.projectforge.rest.config.RestUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -51,9 +52,11 @@ open class PFMiltonInit {
             log.info("Don't start webdav (CalDAV and CardDAV) server, OK. No license files given: ${licenseFile.absolutePath}")
             return
         }
+        val miltonFilterUrlPatterns = PFMiltonFilter.miltonUrls.map { "$it/*" }.toTypedArray()
+
         log.info("Milton license file found, try to start WebDAV functionality: ${licenseFile.absolutePath}")
-        val miltonFilter: FilterRegistration = sc.addFilter("MiltonFilter",
-                PFMiltonFilter::class.java)
+        val miltonFilter: FilterRegistration = RestUtils.registerFilter(sc, "MiltonFilter", PFMiltonFilter::class.java, false,
+                *miltonFilterUrlPatterns)
         miltonFilter.setInitParameter("resource.factory.class", "io.milton.http.annotated.AnnotationResourceFactory")
         // FB: Don't work in Spring Boot fat jar
         // miltonFilter.setInitParameter("controllerPackagesToScan", "org.projectforge.caldav.controller");
@@ -61,9 +64,6 @@ open class PFMiltonInit {
                 listOf(ProjectForgeCalDAVController::class.java, ProjectForgeCardDAVController::class.java).joinToString { it.name })
         miltonFilter.setInitParameter("enableDigestAuth", "false")
         miltonFilter.setInitParameter("milton.configurator", ProjectForgeMiltonConfigurator::class.java.name)
-        val miltonFilterUrlPatterns = PFMiltonFilter.miltonUrls.map { "$it/*" }.toTypedArray()
-        log.info("Registering PFMiltonFilter for urls: ${miltonFilterUrlPatterns.joinToString { "'$it'" }}")
-        miltonFilter.addMappingForUrlPatterns(null, false, *miltonFilterUrlPatterns)
     }
 
     companion object {

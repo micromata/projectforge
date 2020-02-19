@@ -89,10 +89,10 @@ class V7_0_0_15__AuthenticationToken : BaseJavaMigration() {
             parameters["modifiedat"] = now
             parameters["modifiedby"] = "anon"
             parameters["user_id"] = userId
-            //val paddedAuthenticationTokenEncryptionKey: String = StringUtils.rightPad(token, 32, "x")
             val encryptedToken = if (token.isNullOrBlank()) null else Crypt.encrypt(authenticationTokenEncryptionKey, token)
             parameters["calendar_export_token"] = encryptedToken
-            parameters["stay_logged_in_key"] = stayLoggedInKey
+            val encryptedStayLoggedInKey = if (stayLoggedInKey.isNullOrBlank()) null else Crypt.encrypt(authenticationTokenEncryptionKey, stayLoggedInKey)
+            parameters["stay_logged_in_key"] = encryptedStayLoggedInKey
             simpleJdbcInsert.execute(parameters)
         }
         if (counter > 0) { // counter > 0

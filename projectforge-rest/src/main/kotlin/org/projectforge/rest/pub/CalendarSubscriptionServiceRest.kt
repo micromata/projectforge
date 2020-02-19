@@ -63,7 +63,6 @@ import org.projectforge.framework.utils.NumberHelper.parseInteger
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
-import org.projectforge.web.rest.RestAuthenticationInfo
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
@@ -125,8 +124,7 @@ class CalendarSubscriptionServiceRest {
                 log.error("Internal errror: shouldn't occur: can't get context user! Should be denied by filter!!!")
                 return ResponseEntity(HttpStatus.BAD_REQUEST)
             }
-            val authInfo = RestAuthenticationInfo(request, response)
-            val params = CalendarSubscriptionServiceRest.decryptRequestParams(request, userId, userAuthenticationsService)
+            val params = decryptRequestParams(request, userId, userAuthenticationsService)
             if (params.isNullOrEmpty()) {
                 return ResponseEntity(HttpStatus.BAD_REQUEST)
             }
