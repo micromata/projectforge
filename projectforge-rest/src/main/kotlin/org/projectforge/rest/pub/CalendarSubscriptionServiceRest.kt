@@ -63,6 +63,7 @@ import org.projectforge.framework.utils.NumberHelper.parseInteger
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
+import org.projectforge.web.rest.RestAuthenticationInfo
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
@@ -78,6 +79,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.context.WebApplicationContext
 import java.time.LocalDate
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 /**
  * This rest service should be available without login (public).
@@ -113,6 +115,7 @@ class CalendarSubscriptionServiceRest {
 
     @GetMapping
     fun exportCalendar(request: HttpServletRequest,
+                       response: HttpServletResponse,
                        @RequestParam("user") userIdString: String?,
                        @RequestParam("q") q: String?)
             : ResponseEntity<Any> {
@@ -122,13 +125,11 @@ class CalendarSubscriptionServiceRest {
                 log.error("Internal errror: shouldn't occur: can't get context user! Should be denied by filter!!!")
                 return ResponseEntity(HttpStatus.BAD_REQUEST)
             }
-            val q = request.getParameter("q")
-            val decryptedParams = userAuthenticationsService.decrypt(ThreadLocalUserContext.getUserId(), UserTokenType.CALENDAR_REST, q)
-            if (q.isNullOrBlank() || decryptedParams.isNullOrBlank()) {
-                log.error("Internal errror: shouldn't occur: can't find parameter q='$q' or can't decrypt params. Should be denied by filter!!!")
+            val authInfo = RestAuthenticationInfo(request, response)
+            val params = CalendarSubscriptionServiceRest.decryptRequestParams(request, userId, userAuthenticationsService)
+            if (params.isNullOrEmpty()) {
                 return ResponseEntity(HttpStatus.BAD_REQUEST)
             }
-            val params = StringHelper.getKeyValues(decryptedParams, "&")
             // check timesheet user
             val timesheetUserParam = params[CalendarFeedConst.PARAM_NAME_TIMESHEET_USER]
             var timesheetUser: PFUserDO? = null
@@ -359,5 +360,21 @@ class CalendarSubscriptionServiceRest {
         private val log = LoggerFactory.getLogger(CalendarSubscriptionServiceRest::class.java)
         const val PARAM_EXPORT_REMINDER = "exportReminders"
         const val PARAM_EXPORT_ATTENDEES = "exportAttendees"
+
+        fun decryptRequestParams(request: HttpServletRequest, userId: Int, userAuthenticationsService: UserAuthenticationsService)
+                : Map<String, String>? {
+            val q = request.getParameter("q")
+            if (q.isNullOrBlank()) {
+                log.info("Parameter 'q' with encrypted credentials not found in request parameters. Rest call denied.")
+                return null
+            }
+            // Parameters of q are encrypted by user's token for calendar subscriptions:
+            val decryptedParams = userAuthenticationsService.decrypt(userId, UserTokenType.CALENDAR_REST, q)
+                    ?: run {
+                        log.error("Bad request, can't decrypt parameter q (may-be the user's authentication token was changed): ${request.queryString}")
+                        return null
+                    }
+            return StringHelper.getKeyValues(decryptedParams, "&")
+        }
     }
 }
