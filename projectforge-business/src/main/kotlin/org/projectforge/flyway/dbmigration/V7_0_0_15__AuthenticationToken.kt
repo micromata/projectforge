@@ -27,10 +27,13 @@ import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import org.projectforge.ProjectForgeApp
 import org.projectforge.common.EmphasizedLogSupport
+import org.projectforge.framework.utils.Crypt
+import org.projectforge.framework.utils.NumberHelper
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert
 import java.io.File
+import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.math.min
 
@@ -45,15 +48,22 @@ class V7_0_0_15__AuthenticationToken : BaseJavaMigration() {
         val configuration = Properties()
         val param = "projectforge.security.authenticationTokenEncryptionKey"
         configFile.inputStream().use { configuration.load(it) }
-        val authenticationTokenEncryptionKey = configuration[param] as? String
+        var authenticationTokenEncryptionKey = configuration[param] as? String
         if (authenticationTokenEncryptionKey.isNullOrBlank()) {
             EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.IMPORTANT, EmphasizedLogSupport.Alignment.LEFT)
                     .setLogLevel(EmphasizedLogSupport.LogLevel.WARN)
-                    .log("Now authenticationTokenEncryptionKey found!!!:")
+                    .log("No authenticationTokenEncryptionKey found:")
                     .log("")
-                    .log("Please define '$param' in your config file.")
+                    .log("Defining and appending a random generated key:")
+                    .log("")
+                    .log("'${configFile.absolutePath}':")
+                    .log("projectforge.security.authenticationTokenEncryptionKey=..." )
                     .logEnd()
-            return
+            authenticationTokenEncryptionKey =  NumberHelper.getSecureRandomBase64String(20)
+            val text = "# All authentication tokens of the user's will be encrypted with this key.\n" +
+                    "# If you loose this key or if you change it later, all users have to renew their authentication passwords (their passwords will NOT be affected).\n" +
+                    "projectforge.security.authenticationTokenEncryptionKey=$authenticationTokenEncryptionKey\n"
+            configFile.appendText(text, StandardCharsets.UTF_8)
         }
         log.info("Using authenticationToken '${authenticationTokenEncryptionKey.substring(0..min(3, authenticationTokenEncryptionKey.length))}....'")
         val ds = context.configuration.dataSource
@@ -79,7 +89,9 @@ class V7_0_0_15__AuthenticationToken : BaseJavaMigration() {
             parameters["modifiedat"] = now
             parameters["modifiedby"] = "anon"
             parameters["user_id"] = userId
-            parameters["calendar_export_token"] = token//Crypt.encrypt(authenticationTokenEncryptionKey, token)
+            //val paddedAuthenticationTokenEncryptionKey: String = StringUtils.rightPad(token, 32, "x")
+            val encryptedToken = if (token.isNullOrBlank()) null else Crypt.encrypt(authenticationTokenEncryptionKey, token)
+            parameters["calendar_export_token"] = encryptedToken
             parameters["stay_logged_in_key"] = stayLoggedInKey
             simpleJdbcInsert.execute(parameters)
         }
