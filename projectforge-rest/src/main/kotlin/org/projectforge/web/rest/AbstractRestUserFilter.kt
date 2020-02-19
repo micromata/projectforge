@@ -30,7 +30,6 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.context.support.WebApplicationContextUtils
 import java.io.IOException
@@ -44,7 +43,6 @@ import javax.servlet.http.HttpServletResponse
  * @author Daniel Ludwig (d.ludwig@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Component
 abstract class AbstractRestUserFilter : Filter {
     private lateinit var springContext: WebApplicationContext
     @Autowired
@@ -78,6 +76,7 @@ abstract class AbstractRestUserFilter : Filter {
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
         response as HttpServletResponse
         request as HttpServletRequest
+        log.info("Request: ${request.requestURI}")
         if (!systemStatus.upAndRunning) {
             log.error("System isn't up and running, all rest calls are denied. The system is may-be in start-up phase or in maintenance mode.")
             response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)

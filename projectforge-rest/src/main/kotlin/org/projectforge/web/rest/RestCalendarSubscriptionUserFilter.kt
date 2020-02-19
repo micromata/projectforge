@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 
-@Component
 class RestCalendarSubscriptionUserFilter : AbstractRestUserFilter() {
     override fun authenticate(authInfo: RestAuthenticationInfo) {
         val userString = restAuthenticationUtils.getUserString(authInfo, arrayOf("user"), true)

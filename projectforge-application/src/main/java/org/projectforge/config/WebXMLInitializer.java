@@ -32,6 +32,7 @@ import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.config.CORSFilter;
 import org.projectforge.rest.config.Rest;
+import org.projectforge.rest.config.RestUtils;
 import org.projectforge.security.SecurityHeaderFilter;
 import org.projectforge.web.debug.SessionSerializableChecker;
 import org.projectforge.web.doc.TutorialFilter;
@@ -76,21 +77,14 @@ public class WebXMLInitializer implements ServletContextInitializer {
 
     pfMiltonInit.init(sc);
 
-    final FilterRegistration userFilter = sc.addFilter("UserFilter", UserFilter.class);
     boolean filterAfterInternal = false;
-    userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/secure/*");
-    userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
-    userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/" + Const.REACT_APP_PATH + "*");
+    RestUtils.registerFilter(sc, "UserFilter", UserFilter.class, filterAfterInternal, "/secure/*", "/wa/*", "/" + Const.REACT_APP_PATH + "*");
+    RestUtils.registerFilter(sc, "springContext", SpringThreadLocalFilter.class, filterAfterInternal, "/secure/*", "/wa/*");
 
-    final FilterRegistration springContext = sc.addFilter("springContext", SpringThreadLocalFilter.class);
-    springContext.addMappingForUrlPatterns(null, filterAfterInternal, "/secure/*");
-    springContext.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
-
-    final FilterRegistration wicketApp = sc.addFilter("wicket.app", WicketFilter.class);
+    final FilterRegistration wicketApp = RestUtils.registerFilter(sc, "wicket.app", WicketFilter.class, filterAfterInternal, "/wa/*");
     wicketApp.setInitParameter(WicketFilter.APP_FACT_PARAM, SpringWebApplicationFactory.class.getName());
     wicketApp.setInitParameter(PARAM_APP_BEAN, "wicketApplication");
     wicketApp.setInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/wa/*");
-    wicketApp.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
 
     if (webDevelopmentEnableCORSFilter) {
       new EmphasizedLogSupport(log)
@@ -106,13 +100,10 @@ public class WebXMLInitializer implements ServletContextInitializer {
               "/" + RestPaths.REST_WEB_APP_PUBLIC + "/*"); // Needed for login service.
     }
 
-    final FilterRegistration restUserFilter = sc.addFilter("restUserFilter", RestUserFilter.class);
-    restUserFilter.addMappingForUrlPatterns(null, false,
+    RestUtils.registerFilter(sc, "restUserFilter", RestUserFilter.class, false,
             "/" + RestPaths.REST + "/*",
             "/" + RestPaths.REST_WEB_APP + "/*");
-
-    final FilterRegistration restCalSubscriptionUserFilter = sc.addFilter("restCalSubscriptionUserFilter", RestCalendarSubscriptionUserFilter.class);
-    restCalSubscriptionUserFilter.addMappingForUrlPatterns(null, false, Rest.CALENDAR_EXPORT_BASE_URI);
+    RestUtils.registerFilter(sc, "calendarSubscriptionFilter", RestCalendarSubscriptionUserFilter.class, false, Rest.CALENDAR_EXPORT_BASE_URI);
 
     final FilterRegistration expire = sc.addFilter("expire", ResponseHeaderFilter.class);
     expire.setInitParameter("Cache-Control", "public, max-age=7200");
@@ -129,5 +120,4 @@ public class WebXMLInitializer implements ServletContextInitializer {
 
     sc.addListener(SessionSerializableChecker.class);
   }
-
 }
