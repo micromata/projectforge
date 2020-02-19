@@ -87,9 +87,13 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   private static final List<DisplayHistoryEntry> EMPTY_HISTORY_ENTRIES = new ArrayList<>();
   private static final Logger log = LoggerFactory.getLogger(BaseDao.class);
   /**
+   * DEBUG flag. remove later
+   */
+  static final boolean NO_UPDATE_MAGIC = true;
+  /**
    * DEBUG flag. Not sure, if always has be flushed.
    */
-  private static final boolean LUCENE_FLUSH_ALWAYS = false;
+  private static final boolean LUCENE_FLUSH_ALWAYS = true;
 
   protected Class<O> clazz;
 
