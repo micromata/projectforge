@@ -264,7 +264,7 @@ abstract class AbstractPagesRest<
                 }
                 if (error)
                     validationErrors.add(ValidationError(translateMsg("validation.error.fieldRequired", translate(elementInfo.i18nKey)),
-                            fieldId = property))
+                            fieldId = property, messageId = elementInfo.i18nKey))
             }
         }
         return validationErrors

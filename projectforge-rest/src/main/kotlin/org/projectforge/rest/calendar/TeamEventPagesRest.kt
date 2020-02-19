@@ -91,8 +91,6 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: TeamEvent) {
-        if (dto.calendar == null)
-            validationErrors.add(ValidationError.createFieldRequired(baseDao.doClass, fieldId = "calendar"))
         if (dto.subject.isNullOrBlank())
             validationErrors.add(ValidationError.createFieldRequired(baseDao.doClass, fieldId = "subject"))
         if (dto.id != null && dto.hasRecurrence && dto.seriesModificationMode == null) {
