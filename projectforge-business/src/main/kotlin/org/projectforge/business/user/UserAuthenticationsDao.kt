@@ -23,7 +23,6 @@
 
 package org.projectforge.business.user
 
-import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.framework.access.AccessException
@@ -238,16 +237,16 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
     }
 
     internal fun encryptToken(token: String): String {
-        val authenticationToken: String = StringUtils.rightPad(token, 32, "x")
-        return Crypt.encrypt(authenticationTokenEncryptionKey, authenticationToken)
+        //val authenticationToken: String = StringUtils.rightPad(token, 32, "x")
+        return Crypt.encrypt(authenticationTokenEncryptionKey, token)
     }
 
     open fun decryptToken(token: String?): String? {
         if (token.isNullOrBlank() || token.length <= 10) {
             return null
         }
-        val authenticationToken: String = StringUtils.rightPad(token, 32, "x")
-        return Crypt.decrypt(authenticationTokenEncryptionKey, authenticationToken)
+        //val authenticationToken: String = StringUtils.rightPad(token, 32, "x")
+        return Crypt.decrypt(authenticationTokenEncryptionKey, token)
     }
 
     /**
