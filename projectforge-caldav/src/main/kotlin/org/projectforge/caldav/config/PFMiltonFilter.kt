@@ -24,10 +24,8 @@
 package org.projectforge.caldav.config
 
 import io.milton.servlet.MiltonFilter
-import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.web.rest.RestAuthenticationInfo
 import org.projectforge.web.rest.RestAuthenticationUtils
 import org.slf4j.LoggerFactory
@@ -36,8 +34,6 @@ import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.context.support.WebApplicationContextUtils
 import java.io.IOException
 import javax.servlet.*
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 /**
  * Ensuring a white url list for using Milton filter. MiltonFilter at default supports only black list.
@@ -51,27 +47,6 @@ class PFMiltonFilter : MiltonFilter() {
 
     companion object {
         internal val miltonUrls = listOf("/users", "/principals")
-        private val supportedAgentsRegexps = listOf(
-                "Address.*Book".toRegex(),
-                "eM.*Client".toRegex())
-        private val supportedAgentsStrings = listOf(
-                "DAVdroid",
-                "accountsd",
-                "Adresboek",
-                "Adressbuch",
-                "Calendar",
-                "CalendarAgent",
-                "CalendarStore",
-                "CoreDAV",
-                "DataAccess",
-                "dataaccessd",
-                "DAVKit",
-                "iOS",
-                "Lightning",
-                "Preferences",
-                "Fantastical",
-                "Reminders")
-        private val excludedAgentsStrings = listOf("CriOS")
         private val log = LoggerFactory.getLogger(PFMiltonFilter::class.java)
     }
 
@@ -91,28 +66,10 @@ class PFMiltonFilter : MiltonFilter() {
 
     @Throws(IOException::class, ServletException::class)
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-        if (UserFilter.isUpdateRequiredFirst()) {
-            log.warn("Update of the system is required first. Login via Rest not available. Administrators login required.")
-            return
-        }
-        val authInfo = RestAuthenticationInfo(request as HttpServletRequest, response as HttpServletResponse)
-        authenticate(authInfo)
-        if (!authInfo.success) {
-            LoginProtection.instance().incrementFailedLoginTimeOffset(authInfo.userString, authInfo.clientIpAddress)
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
-            return
-        }
-        try {
-            restAuthenticationUtils.registerUser(request, authInfo)
-            super.doFilter(request, response, chain)
-        } finally {
-            restAuthenticationUtils.unregister(request, response, authInfo)
-        }
-    }
-
-    internal fun checkUserAgent(userAgent: String?): Boolean {
-        return !userAgent.isNullOrBlank()
-                && (supportedAgentsStrings.any { userAgent == it } || supportedAgentsRegexps.any { it.matches(userAgent) })
-                && excludedAgentsStrings.none { userAgent == it }
+        restAuthenticationUtils.doFilter(request,
+                response,
+                authenticate = { authInfo -> authenticate(authInfo) },
+                doFilter = { -> super.doFilter(request, response, chain) }
+        )
     }
 }
