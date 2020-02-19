@@ -89,7 +89,7 @@ function ReactSelect(
     };
 
     return (
-        <React.Fragment>
+        <div className="react-select">
             {tooltipElement}
             <Tag
                 cache={{}}
@@ -127,7 +127,7 @@ function ReactSelect(
             {additionalLabel && (
                 <span className="react-select__additional-label">{additionalLabel}</span>
             )}
-        </React.Fragment>
+        </div>
     );
 }
 
