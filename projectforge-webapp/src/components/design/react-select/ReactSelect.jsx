@@ -1,19 +1,22 @@
 import { faQuestion } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import Select from 'react-select';
-import makeAnimated from 'react-select/animated';
 import Async from 'react-select/async';
 import AsyncCreatable from 'react-select/async-creatable';
 import { UncontrolledTooltip } from 'reactstrap';
-import AdditionalLabel from './input/AdditionalLabel';
-import style from './input/Input.module.scss';
+import AdditionalLabel from '../input/AdditionalLabel';
+import style from '../input/Input.module.scss';
+import ReactSelectControlWithLabel from './ReactSelectControlWithLabel';
 
 function ReactSelect(
     {
         additionalLabel,
         autoCompletion,
+        className,
+        color,
         getOptionLabel,
         id,
         label,
@@ -29,6 +32,8 @@ function ReactSelect(
         ...props
     },
 ) {
+    const selectRef = React.useRef(null);
+
     let Tag = Select;
     let defaultOptions;
     let options;
@@ -84,73 +89,93 @@ function ReactSelect(
     };
 
     return (
-        <React.Fragment>
-            <span className={`mm-select ${style.text}`}>{label}</span>
+        <div className="react-select">
             {tooltipElement}
             <Tag
-                // closeMenuOnSelect={false}
-                components={makeAnimated()}
-                options={options}
-                isClearable={!required}
-                getOptionValue={option => (option[valueProperty])}
-                getOptionLabel={getOptionLabel || getOptionLabelDefault}
-                loadOptions={loadOptions}
-                defaultOptions={defaultOptions}
-                id={id}
-                isMulti={multi}
-                placeholder={translations['select.placeholder'] || ''}
                 cache={{}}
+                className={classNames(
+                    className,
+                    'react-select__container',
+                    { hasValue: value },
+                    color,
+                )}
+                classNamePrefix="react-select"
+                components={{ Control: ReactSelectControlWithLabel }}
+                defaultOptions={defaultOptions}
+                getOptionLabel={getOptionLabel || getOptionLabelDefault}
+                getOptionValue={option => (option[valueProperty])}
+                id={id}
+                isClearable={!required}
+                isMulti={multi}
+                label={label}
+                loadOptions={loadOptions}
+                options={options}
+                ref={selectRef}
+                selectRef={selectRef}
+                styles={{
+                    // Input font size has to be set here, so the component can calculate with
+                    // this size.
+                    input: provided => ({
+                        ...provided,
+                        fontSize: 15,
+                    }),
+                }}
+                placeholder=""
                 value={value || null}
                 {...props}
             />
-            <AdditionalLabel title={additionalLabel} />
-        </React.Fragment>
+            {additionalLabel && (
+                <span className="react-select__additional-label">{additionalLabel}</span>
+            )}
+        </div>
     );
 }
 
 ReactSelect.propTypes = {
     label: PropTypes.string.isRequired,
+    translations: PropTypes.shape({}).isRequired,
     additionalLabel: PropTypes.string,
     autoCompletion: PropTypes.shape({
         type: PropTypes.oneOf(['USER', 'GROUP', 'EMPLOYEE', undefined]),
     }),
-    value: PropTypes.oneOfType([
-        PropTypes.shape({}),
-        PropTypes.arrayOf(PropTypes.shape({})),
-    ]),
+    className: PropTypes.string,
+    color: PropTypes.string,
     defaultValue: PropTypes.oneOfType([
         PropTypes.shape({}),
         PropTypes.arrayOf(PropTypes.shape({})),
     ]),
-    id: PropTypes.string,
-    values: PropTypes.arrayOf(PropTypes.object),
-    valueProperty: PropTypes.string,
-    labelProperty: PropTypes.string,
-    multi: PropTypes.bool,
-    required: PropTypes.bool,
-    translations: PropTypes.shape({}).isRequired,
-    loadOptions: PropTypes.func,
     getOptionLabel: PropTypes.func,
+    id: PropTypes.string,
+    labelProperty: PropTypes.string,
+    loadOptions: PropTypes.func,
+    multi: PropTypes.bool,
     onChange: PropTypes.func,
-    className: PropTypes.string,
+    required: PropTypes.bool,
     tooltip: PropTypes.string,
+    value: PropTypes.oneOfType([
+        PropTypes.shape({}),
+        PropTypes.arrayOf(PropTypes.shape({})),
+    ]),
+    valueProperty: PropTypes.string,
+    values: PropTypes.arrayOf(PropTypes.object),
 };
 
 ReactSelect.defaultProps = {
-    autoCompletion: undefined,
-    id: undefined,
-    values: undefined,
-    value: undefined,
-    defaultValue: undefined,
     additionalLabel: undefined,
-    valueProperty: 'value',
-    labelProperty: 'label',
-    multi: false,
-    required: false,
-    loadOptions: undefined,
-    getOptionLabel: undefined,
-    onChange: undefined,
+    autoCompletion: undefined,
     className: undefined,
+    color: undefined,
+    defaultValue: undefined,
+    getOptionLabel: undefined,
+    id: undefined,
+    labelProperty: 'label',
+    loadOptions: undefined,
+    multi: false,
+    onChange: undefined,
+    required: false,
     tooltip: undefined,
+    value: undefined,
+    valueProperty: 'value',
+    values: undefined,
 };
 export default ReactSelect;

@@ -31,7 +31,7 @@ function ListPage(
                     <DynamicLayout
                         ui={category.ui}
                         data={category.data}
-                        setData={category.setData}
+                        setData={undefined}
                         options={{
                             displayPageMenu: false,
                             setBrowserTitle: true,
