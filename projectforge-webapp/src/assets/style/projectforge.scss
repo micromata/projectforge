@@ -352,11 +352,6 @@ nav[class^="Navigation_globalNavigation__"] .ml-auto.nav .nav-item {
   font-size: 11px;
 }
 
-div[class*="-singleValue"] {
-  margin-left: 8px;
-  font-size: 15px;
-}
-
 fieldset label[for*="favorite"] {
   margin-top: 27px;
 }
@@ -380,12 +375,6 @@ button.dropdown-item a.nav-link {
 .dropdown-menu.show {
   margin-top: 1px;
   margin-left: -5px;
-}
-
-span.mm-select {
-  margin-left: 18px;
-  font-size: 11px;
-  color: #a5a2a5;
 }
 
 // Table
@@ -427,4 +416,121 @@ span.mm-select {
     background-color: $color;
     color: #fff !important;
   }
+}
+
+span.mm-select {
+  margin-left: 18px;
+  font-size: 11px;
+  color: #a5a2a5;
+}
+
+
+// React Select
+.react-select__container {
+  $transitionTime: .2s ease-out;
+  margin-bottom: 20px;
+
+  .react-select__label {
+    font-size: 1.5em;
+    transition: transform $transitionTime, color $transitionTime;
+    position: absolute;
+    bottom: .5em;
+    left: 1rem;
+    transform-origin: 0 0;
+    transform: translateY(0);
+    color: #7a7a7a;
+
+    &.isActive {
+      color: #666;
+      transform: translateY(-.8em) scale(0.75);
+    }
+  }
+
+  .react-select__control {
+    background-color: #f9f9f9;
+    border: none;
+    border-bottom: 2px solid #bbb;
+    border-radius: 5px 5px 0 0;
+    padding-top: 1.3em;
+    margin: 0;
+    cursor: text;
+
+    &.react-select__control--is-focused {
+      background-color: #f5f5f5;
+      border-color: #333;
+      box-shadow: none;
+    }
+
+    .react-select__single-value {
+      font-size: 15px;
+    }
+
+    .react-select__indicator {
+      color: #009BA3;
+      cursor: default;
+    }
+  }
+
+  &.hasValue {
+    .react-select__label {
+      color: #666;
+      transform: translateY(-.8em) scale(0.75);
+    }
+
+    .react-select__control {
+      background-color: #f5f5f5;
+      border-color: #333;
+      box-shadow: none;
+    }
+  }
+
+  &:hover {
+    .react-select__control {
+      background-color: #eaeaea;
+    }
+  }
+
+  @mixin color($color) {
+    .react-select__control {
+      border-color: $color;
+    }
+
+    .react-select__label {
+      color: $color;
+    }
+  }
+
+  &.primary {
+    @include color(map_get($theme-colors, primary));
+  }
+
+  &.secondary {
+    @include color(map_get($theme-colors, secondary));
+  }
+
+  &.success {
+    @include color(map_get($theme-colors, success));
+  }
+
+  &.danger {
+    @include color(map_get($theme-colors, danger));
+  }
+
+  &.warning {
+    @include color(map_get($theme-colors, warning));
+  }
+
+  &.info {
+    @include color(map_get($theme-colors, info));
+  }
+}
+
+.react-select__additional-label {
+  margin-left: 1rem;
+  position: relative;
+  min-height: 1.25em;
+  display: block;
+  font-size: 1.125em;
+  color: #aaa;
+  font-style: italic;
 }
