@@ -76,7 +76,6 @@ abstract class AbstractRestUserFilter : Filter {
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
         response as HttpServletResponse
         request as HttpServletRequest
-        log.info("Request: ${request.requestURI}")
         if (!systemStatus.upAndRunning) {
             log.error("System isn't up and running, all rest calls are denied. The system is may-be in start-up phase or in maintenance mode.")
             response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)
