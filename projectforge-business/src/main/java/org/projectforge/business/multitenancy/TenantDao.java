@@ -223,6 +223,7 @@ public class TenantDao extends BaseDao<TenantDO> {
     final List<TenantDO> assignedTenants = new ArrayList<>();
     if (tenantsToAssign != null) {
       for (final TenantDO tenant : tenantsToAssign) {
+        // TODO why and PFUserDO seems to be lazy
         emgrFactory.runInTrans(emgr -> {
           final TenantDO dbTenant = emgr.selectByPkAttached(TenantDO.class, tenant.getId());
           final PFUserDO dbUser = emgr.selectByPkAttached(PFUserDO.class, user.getId());
