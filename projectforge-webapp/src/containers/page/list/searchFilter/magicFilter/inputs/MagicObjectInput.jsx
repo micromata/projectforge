@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import AutoCompletion from '../../../../../../components/design/input/AutoCompletion';
+import ObjectSelect from '../../../../../../components/design/input/autoCompletion/ObjectSelect';
 
 function MagicObjectInput(
     {
@@ -8,27 +8,35 @@ function MagicObjectInput(
         onChange,
         translations,
         value,
+        ...props
     },
 ) {
+    console.log(props);
+
     return (
-        <div
-            style={{
-                width: 350,
-                minHeight: 200,
-            }}
-        >
-            <AutoCompletion
-                {...autoCompletion}
-                label={translations['select.placeholder'] || ''}
-                // Wrap the onChange because it only accepts one argument
-                onChange={newValue => onChange(newValue)}
-                value={{
-                    label: (value && value.label) || '',
-                    value: (value && value.value) || '',
-                }}
-            />
-        </div>
+        <ObjectSelect
+            onSelect={onChange}
+            translations={translations}
+            value={value}
+            {...props}
+            type={autoCompletion.type}
+            url={autoCompletion.url}
+        />
     );
+    /*
+    return (
+        <AutoCompletion
+            {...autoCompletion}
+            label={translations['select.placeholder'] || ''}
+            // Wrap the onChange because it only accepts one argument
+            onChange={newValue => onChange(newValue)}
+            value={{
+                label: (value && value.label) || '',
+                value: (value && value.value) || '',
+            }}
+        />
+    );
+     */
 }
 
 MagicObjectInput.propTypes = {
