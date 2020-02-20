@@ -66,6 +66,7 @@
     }
 
     .labelText {
+      white-space: nowrap;
       font-size: 1.1em;
       transition: transform $transitionTime, color $transitionTime;
       position: absolute;
