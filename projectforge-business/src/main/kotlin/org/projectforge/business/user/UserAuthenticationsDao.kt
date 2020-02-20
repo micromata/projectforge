@@ -62,8 +62,6 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         authenticationTokenEncryptionKey = configurationService.securityConfig.authenticationTokenEncryptionKey
     }
 
-    internal var userTokenCache: UserTokenCache? = null
-
     /**
      * return true for admin users.
      */
@@ -87,12 +85,6 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             throw AccessException("access.exception.violation", "AccessToken")
         }
         return false
-    }
-
-    override fun afterSaveOrModify(obj: UserAuthenticationsDO?) {
-        if (userTokenCache != null) {
-            log.error("******************************************************* Not yet implmented: userTokenCache.refresh...")
-        }
     }
 
     override fun newInstance(): UserAuthenticationsDO {
