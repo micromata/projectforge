@@ -47,8 +47,12 @@ const Input = React.forwardRef((
             onFocus(event);
         }
 
-        if (selectOnFocus && inputRef.current) {
-            setTimeout(() => inputRef.current.select(), 100);
+        if (selectOnFocus) {
+            setTimeout(() => {
+                if (inputRef.current) {
+                    inputRef.current.select();
+                }
+            }, 100);
         }
 
         setIsActive(true);
