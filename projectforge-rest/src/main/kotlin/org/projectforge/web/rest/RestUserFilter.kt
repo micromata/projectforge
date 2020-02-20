@@ -22,6 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 package org.projectforge.web.rest
 
+import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.rest.Authentication
@@ -64,6 +65,7 @@ class RestUserFilter : AbstractRestUserFilter() {
             authInfo.user = userContext.user
         }
         if (authInfo.success) {
+            restAuthenticationUtils.registerLogAccess(authInfo.request, UserTokenType.STAY_LOGGED_IN_KEY.name)
             return
         }
         val requestURI = authInfo.request.requestURI
