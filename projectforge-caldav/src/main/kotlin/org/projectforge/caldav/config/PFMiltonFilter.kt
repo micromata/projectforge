@@ -34,6 +34,7 @@ import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.context.support.WebApplicationContextUtils
 import java.io.IOException
 import javax.servlet.*
+import javax.servlet.http.HttpServletRequest
 
 /**
  * Ensuring a white url list for using Milton filter. MiltonFilter at default supports only black list.
@@ -69,7 +70,10 @@ class PFMiltonFilter : MiltonFilter() {
         restAuthenticationUtils.doFilter(request,
                 response,
                 authenticate = { authInfo -> authenticate(authInfo) },
-                doFilter = { -> super.doFilter(request, response, chain) }
+                doFilter = { ->
+                    restAuthenticationUtils.registerLogAccess(request as HttpServletRequest, UserTokenType.DAV_TOKEN.name)
+                    super.doFilter(request, response, chain)
+                }
         )
     }
 }

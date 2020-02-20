@@ -33,6 +33,7 @@ import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
@@ -53,8 +54,10 @@ import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+private const val USER_PREF_AREA_ACCESS_LOG_ENTRIES = "RestAuthentication.accessLog"
+
 /**
- * Does the authentication stuff for restfull requests.
+ * Does the authentication stuff for restful requests.
  *
  * @author Daniel Ludwig (d.ludwig@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -65,6 +68,8 @@ class RestAuthenticationUtils {
     private lateinit var userService: UserService
     @Autowired
     private lateinit var userAuthenticationsService: UserAuthenticationsService
+    @Autowired
+    private lateinit var userPrefService: UserPrefService
     @Autowired
     private lateinit var cookieService: CookieService
     @Autowired
@@ -192,6 +197,16 @@ class RestAuthenticationUtils {
         } finally {
             unregister(request, response, authInfo)
         }
+    }
+
+    fun registerLogAccess(request: HttpServletRequest, logAccessName: String) {
+        val accessEntries = userPrefService.ensureEntry(USER_PREF_AREA_ACCESS_LOG_ENTRIES, logAccessName, UserAccessLogEntries())
+        accessEntries.update(UserAccessLogEntry(request.getHeader("User-Agent"), request.remoteAddr))
+    }
+
+
+    fun getUserAccessLogEntries(logAccessName: String): UserAccessLogEntries {
+        return userPrefService.ensureEntry(USER_PREF_AREA_ACCESS_LOG_ENTRIES, logAccessName, UserAccessLogEntries())
     }
 
     /**
