@@ -10,8 +10,12 @@
       padding: 1rem;
       cursor: default;
 
+      &.selected {
+        background-color: #f2f1f1;
+      }
+
       &:hover {
-        background-color: #eee;
+        background-color: #e8e8e8;
       }
 
       .icon {
