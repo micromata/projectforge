@@ -31,6 +31,7 @@ import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.UserAuthenticationsService;
+import org.projectforge.business.user.UserTokenType;
 import org.projectforge.business.user.UserXmlPreferencesDao;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -40,7 +41,6 @@ import org.projectforge.web.teamcal.admin.TeamCalsProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.slf4j.Logger;
@@ -49,8 +49,7 @@ import org.wicketstuff.select2.Select2MultiChoice;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditPage>
-{
+public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditPage> {
   private static final long serialVersionUID = 4137560623244324454L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MyAccountEditForm.class);
@@ -81,13 +80,11 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
 
   private Boolean disableSnowEffectPermant;
 
-  public MyAccountEditForm(final MyAccountEditPage parentPage, final PFUserDO data)
-  {
+  public MyAccountEditForm(final MyAccountEditPage parentPage, final PFUserDO data) {
     super(parentPage, data);
   }
 
-  public static void createAddressData(final GridBuilder gridBuilder, EmployeeDO data)
-  {
+  public static void createAddressData(final GridBuilder gridBuilder, EmployeeDO data) {
     gridBuilder.newSubSplitPanel(GridSize.COL33);
     gridBuilder.newFormHeading("");
     EmployeeEditForm.generateStreetZipCityFields(gridBuilder, data);
@@ -98,8 +95,7 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
   }
 
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
@@ -109,7 +105,9 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
     }
     UserEditForm.createFirstName(gridBuilder, data);
     UserEditForm.createLastName(gridBuilder, data);
-    UserEditForm.createCalRestAuthenticationToken(gridBuilder, data, userAuthenticationsService, this);
+    UserEditForm.createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.CALENDAR_REST);
+    UserEditForm.createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.DAV_TOKEN);
+    UserEditForm.createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.REST_CLIENT);
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("user.assignedGroups")).suppressLabelForWarning();
     fs.add(new DivTextPanel(fs.newChildId(), groupService.getGroupnames(data.getId())));
 
@@ -129,25 +127,17 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
     final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("user.myAccount.teamcalwhitelist"));
     this.teamCalRestWhiteList = teamCalCache.getAllFullAccessCalendars();
     Integer[] teamCalBlackListIds = userXmlPreferencesDao
-        .getDeserializedUserPreferencesByUserId(ThreadLocalUserContext.getUserId(), TeamCalDO.Companion.getTEAMCALRESTBLACKLIST(), Integer[].class);
+            .getDeserializedUserPreferencesByUserId(ThreadLocalUserContext.getUserId(), TeamCalDO.Companion.getTEAMCALRESTBLACKLIST(), Integer[].class);
     if (teamCalBlackListIds != null && teamCalBlackListIds.length > 0) {
       Arrays.stream(teamCalBlackListIds).forEach(calId -> teamCalRestWhiteList.remove(teamCalCache.getCalendar(calId)));
     }
 
     final Select2MultiChoice<TeamCalDO> calendars = new Select2MultiChoice<>(
-        fieldSet.getSelect2MultiChoiceId(),
-        new PropertyModel<Collection<TeamCalDO>>(this, "teamCalRestWhiteList"),
-        new TeamCalsProvider(teamCalCache, true));
+            fieldSet.getSelect2MultiChoiceId(),
+            new PropertyModel<Collection<TeamCalDO>>(this, "teamCalRestWhiteList"),
+            new TeamCalsProvider(teamCalCache, true));
     calendars.setMarkupId("calenders").setOutputMarkupId(true);
     fieldSet.add(calendars);
-
-    // Snow effect disable permanent
-    disableSnowEffectPermant = userXmlPreferencesDao
-        .getDeserializedUserPreferencesByUserId(ThreadLocalUserContext.getUserId(), "disableSnowEffectPermant", Boolean.class);
-    final FieldsetPanel snowFieldSetSnow = gridBuilder.newFieldset(getString("user.myAccount.snow"));
-    snowFieldSetSnow
-        .add(new CheckBoxPanel(snowFieldSetSnow.newChildId(), new PropertyModel<Boolean>(this, "disableSnowEffectPermant"),
-            getString("user.myAccount.snow.removePermanent"), false));
 
     employeeData = employeeService.getEmployeeByUserId(data.getId());
 
@@ -169,8 +159,7 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
   }
 
   @Override
-  public void updateButtonVisibility()
-  {
+  public void updateButtonVisibility() {
     super.updateButtonVisibility();
     createButtonPanel.setVisible(false);
     updateButtonPanel.setVisible(true);
@@ -180,23 +169,19 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 
-  public EmployeeDO getEmployeeData()
-  {
+  public EmployeeDO getEmployeeData() {
     return employeeData;
   }
 
-  public Collection<TeamCalDO> getTeamCalRestWhiteList()
-  {
+  public Collection<TeamCalDO> getTeamCalRestWhiteList() {
     return teamCalRestWhiteList;
   }
 
-  public Boolean getDisableSnowEffectPermant()
-  {
+  public Boolean getDisableSnowEffectPermant() {
     return disableSnowEffectPermant;
   }
 }
