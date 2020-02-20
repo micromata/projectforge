@@ -11,8 +11,6 @@ function MagicObjectInput(
         ...props
     },
 ) {
-    console.log(props);
-
     return (
         <ObjectSelect
             onSelect={onChange}
@@ -23,20 +21,6 @@ function MagicObjectInput(
             url={autoCompletion.url}
         />
     );
-    /*
-    return (
-        <AutoCompletion
-            {...autoCompletion}
-            label={translations['select.placeholder'] || ''}
-            // Wrap the onChange because it only accepts one argument
-            onChange={newValue => onChange(newValue)}
-            value={{
-                label: (value && value.label) || '',
-                value: (value && value.value) || '',
-            }}
-        />
-    );
-     */
 }
 
 MagicObjectInput.propTypes = {
@@ -60,8 +44,8 @@ MagicObjectInput.defaultProps = {
     value: {},
 };
 
-MagicObjectInput.isEmpty = () => false;
+MagicObjectInput.isEmpty = ({ id }) => id === undefined;
 
-MagicObjectInput.getLabel = (label, { label: valueLabel }) => `${label}: ${valueLabel}`;
+MagicObjectInput.getLabel = (label, { displayName }) => `${label}: ${displayName}`;
 
 export default MagicObjectInput;
