@@ -208,7 +208,7 @@ public class UserService {
   }
 
   private String createSaltString() {
-    return NumberHelper.getSecureRandomBase64String(10);
+    return NumberHelper.getSecureRandomAlphanumeric(10);
   }
 
   /**

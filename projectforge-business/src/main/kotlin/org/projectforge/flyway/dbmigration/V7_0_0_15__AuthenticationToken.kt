@@ -59,7 +59,7 @@ class V7_0_0_15__AuthenticationToken : BaseJavaMigration() {
                     .log("'${configFile.absolutePath}':")
                     .log("projectforge.security.authenticationTokenEncryptionKey=..." )
                     .logEnd()
-            authenticationTokenEncryptionKey =  NumberHelper.getSecureRandomBase64String(20)
+            authenticationTokenEncryptionKey =  NumberHelper.getSecureRandomAlphanumeric(20)
             val text = "# All authentication tokens of the user's will be encrypted with this key.\n" +
                     "# If you loose this key or if you change it later, all users have to renew their authentication passwords (their passwords will NOT be affected).\n" +
                     "projectforge.security.authenticationTokenEncryptionKey=$authenticationTokenEncryptionKey\n"

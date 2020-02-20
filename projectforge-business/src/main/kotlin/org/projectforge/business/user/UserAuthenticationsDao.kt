@@ -33,7 +33,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
 import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.projectforge.framework.utils.Crypt
-import org.projectforge.framework.utils.NumberHelper.getSecureRandomBase64String
+import org.projectforge.framework.utils.NumberHelper.getSecureRandomAlphanumeric
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -232,7 +232,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
     }
 
     private fun createAuthenticationToken(): String? {
-        val newToken = getSecureRandomBase64String(AUTHENTICATION_TOKEN_LENGTH);
+        val newToken = getSecureRandomAlphanumeric(AUTHENTICATION_TOKEN_LENGTH);
         return encryptToken(newToken)
     }
 
