@@ -18,6 +18,7 @@ const Input = React.forwardRef((
         onBlur,
         onFocus,
         noStyle,
+        selectOnFocus,
         value,
         ...props
     },
@@ -44,6 +45,10 @@ const Input = React.forwardRef((
     const handleFocus = (event) => {
         if (onFocus) {
             onFocus(event);
+        }
+
+        if (selectOnFocus && inputRef.current) {
+            setTimeout(() => inputRef.current.select(), 100);
         }
 
         setIsActive(true);
@@ -111,6 +116,7 @@ Input.propTypes = {
     onBlur: PropTypes.func,
     onFocus: PropTypes.func,
     noStyle: PropTypes.bool,
+    selectOnFocus: PropTypes.bool,
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
@@ -125,6 +131,7 @@ Input.defaultProps = {
     onBlur: undefined,
     onFocus: undefined,
     noStyle: false,
+    selectOnFocus: false,
     value: undefined,
 };
 
