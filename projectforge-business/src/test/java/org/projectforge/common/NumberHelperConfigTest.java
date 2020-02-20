@@ -34,9 +34,9 @@ import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class NumberHelperTest extends AbstractTestBase
+public class NumberHelperConfigTest extends AbstractTestBase
 {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NumberHelperTest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NumberHelperConfigTest.class);
 
   @Test
   public void greaterZero()
@@ -188,19 +188,6 @@ public class NumberHelperTest extends AbstractTestBase
     assertEquals(1, NumberHelper.setDefaultScale(new BigDecimal(-99.99999)).scale());
     assertEquals(0, NumberHelper.setDefaultScale(new BigDecimal(-100)).scale());
     assertEquals(0, NumberHelper.setDefaultScale(new BigDecimal(-100.000001)).scale());
-  }
-
-  @Test
-  public void randomTest()
-  {
-    for (int i = 0; i < 10; i++) {
-      final String randomString = NumberHelper.getSecureRandomUrlSaveString(20);
-      log.info(randomString);
-    }
-    for (int i = 1; i < 20; i++) {
-      final String randomString = NumberHelper.getSecureRandomBase64String(i);
-      log.info(randomString);
-    }
   }
 
   @Test

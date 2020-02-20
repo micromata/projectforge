@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.utils
 
-import org.apache.commons.codec.binary.Base64
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.math.NumberUtils
 import org.projectforge.framework.configuration.Configuration
@@ -484,44 +483,29 @@ object NumberHelper {
     }
 
     /**
-     * Generates secure random bytes of the given length and return base 64 encoded bytes as url safe String. This is not the length of the
-     * resulting string!
+     * Generates secure random String of the given length.
      *
-     * @param numberOfBytes
-     * @return
+     * @param length
+     * @return Secure random string.
      */
     @JvmStatic
-    fun getSecureRandomUrlSaveString(numberOfBytes: Int): String {
-        val random = getSecureRandomBytes(numberOfBytes)
-        return Base64.encodeBase64URLSafeString(random)
-    }
-
-    /**
-     * Generates secure random bytes of the given length and return base 64 encoded bytes as url safe String. This is not the length of the
-     * resulting string!
-     *
-     * @param numberOfBytes
-     * @return
-     */
-    @JvmStatic
-    fun getSecureRandomBase64String(numberOfBytes: Int): String {
-        val random = getSecureRandomBytes(numberOfBytes)
-        return org.apache.commons.codec.binary.StringUtils.newStringUtf8(Base64.encodeBase64(random, false))
-    }
-
-    /**
-     * Generates secure random bytes of the given length and return base 64 encoded bytes as url safe String. This is not the length of the
-     * resulting string!
-     *
-     * @param numberOfBytes
-     * @return
-     */
-    @JvmStatic
-    fun getSecureRandomBytes(numberOfBytes: Int): ByteArray {
+    fun getSecureRandomAlphanumeric(length: Int): String {
         val random = SecureRandom()
-        val bytes = ByteArray(numberOfBytes)
+        val bytes = ByteArray(length)
         random.nextBytes(bytes)
-        return bytes
+        val sb = StringBuilder()
+        for (i in 0 until length) {
+            sb.append(ALPHA_NUMERICS_CHARSET[(bytes[i].toInt() and 0xFF) % ALPHA_NUMERICS_CHARSET_LENGTH])
+        }
+        return sb.toString()
+        /*
+                val charset = CharArray(length)
+        for (i in 0 until length) {
+            charset[i] = ALPHA_NUMERICS_CHARSET[(bytes[i].toInt() and 0xFF) % ALPHA_NUMERICS_CHARSET_LENGTH]
+        }
+        return String(charset)
+
+         */
     }
 
     @JvmStatic
@@ -552,4 +536,7 @@ object NumberHelper {
         }
         return if (stripTrailingZeros) result.stripTrailingZeros() else result
     }
+
+    internal val ALPHA_NUMERICS_CHARSET: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+    private val ALPHA_NUMERICS_CHARSET_LENGTH = ALPHA_NUMERICS_CHARSET.size
 }
