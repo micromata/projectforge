@@ -186,7 +186,7 @@ public class PollAttendeePage extends PollBasePage
           if (!existingMailAddresses.contains(email.trim())) {
             final PollAttendeeDO newAttendee = new PollAttendeeDO();
             newAttendee.setEmail(email.trim());
-            newAttendee.setSecureKey(NumberHelper.getSecureRandomUrlSaveString(SECURE_KEY_LENGTH));
+            newAttendee.setSecureKey(NumberHelper.getSecureRandomAlphanumeric(SECURE_KEY_LENGTH));
             allAttendeeList.add(newAttendee);
           }
         }
