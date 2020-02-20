@@ -68,7 +68,8 @@ const Input = React.forwardRef((
 
     React.useLayoutEffect(() => {
         if (labelRef.current) {
-            setLabelWidth(labelRef.current.clientWidth + 20);
+            console.log(icon ? 50 : 20);
+            setLabelWidth(labelRef.current.clientWidth + (icon ? 100 : 20));
         }
     }, [label]);
 
