@@ -8,6 +8,7 @@ import styles from './Input.module.scss';
 const Input = React.forwardRef((
     {
         additionalLabel,
+        autoFocus,
         className,
         color,
         icon,
@@ -22,6 +23,14 @@ const Input = React.forwardRef((
     },
     ref,
 ) => {
+    // Initialize inputRef
+    let inputRef = React.useRef(null);
+
+    // Override ref with forwarded ref
+    if (ref) {
+        inputRef = ref;
+    }
+
     const [isActive, setIsActive] = React.useState(false);
 
     const handleBlur = (event) => {
@@ -39,6 +48,12 @@ const Input = React.forwardRef((
 
         setIsActive(true);
     };
+
+    React.useLayoutEffect(() => {
+        if (autoFocus && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [autoFocus]);
 
     return (
         <div
@@ -68,7 +83,7 @@ const Input = React.forwardRef((
                     />
                 )}
                 <input
-                    ref={ref}
+                    ref={inputRef}
                     id={id}
                     {...props}
                     onBlur={handleBlur}
@@ -87,6 +102,7 @@ const Input = React.forwardRef((
 Input.propTypes = {
     id: PropTypes.string.isRequired,
     additionalLabel: PropTypes.string,
+    autoFocus: PropTypes.bool,
     className: PropTypes.string,
     color: colorPropType,
     icon: PropTypes.shape({}),
@@ -100,6 +116,7 @@ Input.propTypes = {
 
 Input.defaultProps = {
     additionalLabel: undefined,
+    autoFocus: false,
     className: undefined,
     color: undefined,
     icon: undefined,
