@@ -33,7 +33,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
 import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.projectforge.framework.utils.Crypt
-import org.projectforge.framework.utils.NumberHelper.getSecureRandomAlphanumeric
+import org.projectforge.framework.utils.NumberHelper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -202,7 +202,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         val token = authentications.getToken(type)
         if (token.isNullOrBlank() || token.trim().length < 10) {
             log.info("Authentication token '$type' renewed for user: $userId")
-            authentications.setToken(type, createAuthenticationToken())
+            authentications.setToken(type, createEncryptedAuthenticationToken())
             return true
         }
         return false
@@ -218,17 +218,21 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             log.warn("No user authentications object found for user $userId. Nothing to renew for token '$type'.")
             return
         }
-        authentications.setToken(type, createAuthenticationToken())
+        authentications.setToken(type, createEncryptedAuthenticationToken())
         update(authentications)
         log.info("Authentication token '$type' renewed for user: $userId")
     }
 
-    private fun createAuthenticationToken(): String? {
-        val newToken = getSecureRandomAlphanumeric(AUTHENTICATION_TOKEN_LENGTH);
-        return encryptToken(newToken)
+    internal fun createAuthenticationToken(): String {
+        val parts = Array(4) { _ -> NumberHelper.getSecureRandomReducedAlphanumeric(4) }
+        return parts.joinToString("-") { it }
     }
 
-    internal fun encryptToken(token: String): String {
+    private fun createEncryptedAuthenticationToken(): String {
+        return encryptToken(createAuthenticationToken())
+    }
+
+    private fun encryptToken(token: String): String {
         //val authenticationToken: String = StringUtils.rightPad(token, 32, "x")
         return Crypt.encrypt(authenticationTokenEncryptionKey, token)
     }
@@ -265,10 +269,10 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             authentications = UserAuthenticationsDO()
             setUser(authentications, userId)
             authentications.tenant = authentications.user?.tenant
-            authentications.calendarExportToken = createAuthenticationToken()
-            authentications.davToken = createAuthenticationToken()
-            authentications.restClientToken = createAuthenticationToken()
-            authentications.stayLoggedInKey = createAuthenticationToken()
+            authentications.calendarExportToken = createEncryptedAuthenticationToken()
+            authentications.davToken = createEncryptedAuthenticationToken()
+            authentications.restClientToken = createEncryptedAuthenticationToken()
+            authentications.stayLoggedInKey = createEncryptedAuthenticationToken()
             if (checkAccess) {
                 save(authentications)
             } else {
@@ -288,6 +292,5 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
 
     companion object {
         private val log = LoggerFactory.getLogger(UserAuthenticationsDao::class.java)
-        private val AUTHENTICATION_TOKEN_LENGTH = 20
     }
 }

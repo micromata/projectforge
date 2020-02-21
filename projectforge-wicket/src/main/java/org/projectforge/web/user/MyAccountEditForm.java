@@ -28,6 +28,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.group.service.GroupService;
@@ -37,7 +38,6 @@ import org.projectforge.business.user.UserAuthenticationsService;
 import org.projectforge.business.user.UserTokenType;
 import org.projectforge.business.user.UserXmlPreferencesDao;
 import org.projectforge.business.user.service.UserService;
-import org.projectforge.caldav.config.PFMiltonInit;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.dialog.ModalDialog;
@@ -63,6 +63,9 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MyAccountEditForm.class);
 
   boolean invalidateAllStayLoggedInSessions;
+
+  @SpringBean
+  private ConfigurationService configurationService;
 
   @SpringBean
   private UserService userService;
@@ -119,7 +122,7 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
     UserEditForm.createFirstName(gridBuilder, data);
     UserEditForm.createLastName(gridBuilder, data);
     addTokenRow(UserTokenType.CALENDAR_REST);
-    if (PFMiltonInit.getAvailable()) {
+    if (configurationService.isDAVServicesAvailable()) {
       addTokenRow(UserTokenType.DAV_TOKEN);
     }
     addTokenRow(UserTokenType.REST_CLIENT);

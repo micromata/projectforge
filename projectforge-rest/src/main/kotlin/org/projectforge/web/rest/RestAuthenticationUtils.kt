@@ -94,6 +94,7 @@ open class RestAuthenticationUtils {
         val authenticationToken = getUserSecret(authInfo, secretAttributes) ?: return
         authInfo.user = authenticate(userString, authenticationToken)
         if (!authInfo.success) {
+            LoginProtection.instance().incrementFailedLoginTimeOffset(authInfo.userString, authInfo.clientIpAddress)
             log.error("Authentication failed for user $userString. Rest call forbidden.")
         }
     }
@@ -157,6 +158,7 @@ open class RestAuthenticationUtils {
         val password = credentials.substring(p + 1).trim { it <= ' ' }
         authInfo.user = authenticate(username, password)
         if (!authInfo.success) {
+            LoginProtection.instance().incrementFailedLoginTimeOffset(username, authInfo.clientIpAddress)
             log.error("Basic authentication failed for user '$username'.")
         }
     }
@@ -188,7 +190,8 @@ open class RestAuthenticationUtils {
         val authInfo = RestAuthenticationInfo(request, response)
         authenticate(authInfo)
         if (!authInfo.success) {
-            LoginProtection.instance().incrementFailedLoginTimeOffset(authInfo.userString, authInfo.clientIpAddress)
+            // Already increased:
+            // LoginProtection.instance().incrementFailedLoginTimeOffset(authInfo.userString, authInfo.clientIpAddress)
             response.sendError(authInfo.resultCode?.value() ?: HttpServletResponse.SC_UNAUTHORIZED)
             return
         }
@@ -200,22 +203,26 @@ open class RestAuthenticationUtils {
         }
     }
 
-    fun registerLogAccess(request: HttpServletRequest, tokenType: UserTokenType) {
-        registerLogAccess(request, tokenType.name)
+    /**
+     * @param userId If null, ThreadLocalUserContext.getUserId() is used.
+     */
+    @JvmOverloads
+    fun registerLogAccess(request: HttpServletRequest, tokenType: UserTokenType, userId: Int? = null) {
+        registerLogAccess(request, tokenType.name, userId)
     }
 
-    fun registerLogAccess(request: HttpServletRequest, logAccessName: String) {
-        val accessEntries = getUserAccessLogEntries(logAccessName)
+    fun registerLogAccess(request: HttpServletRequest, logAccessName: String, userId: Int? = null) {
+        val accessEntries = getUserAccessLogEntries(logAccessName, userId ?: ThreadLocalUserContext.getUserId())
         accessEntries.update(request)
     }
 
-
-    open fun getUserAccessLogEntries(logAccessName: String): UserAccessLogEntries {
-        return userPrefService.ensureEntry(USER_PREF_AREA_ACCESS_LOG_ENTRIES, logAccessName, UserAccessLogEntries())
+    @JvmOverloads
+    open fun getUserAccessLogEntries(tokenType: UserTokenType, userId: Int? = null): UserAccessLogEntries {
+        return getUserAccessLogEntries(tokenType.name, userId)
     }
 
-    open fun getUserAccessLogEntries(tokenType: UserTokenType): UserAccessLogEntries {
-        return getUserAccessLogEntries(tokenType.name)
+    open fun getUserAccessLogEntries(logAccessName: String, userId: Int? = null): UserAccessLogEntries {
+        return userPrefService.ensureEntry(USER_PREF_AREA_ACCESS_LOG_ENTRIES, logAccessName, UserAccessLogEntries(), true, userId)
     }
 
     /**

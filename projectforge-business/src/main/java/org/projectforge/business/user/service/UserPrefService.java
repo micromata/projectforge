@@ -24,6 +24,7 @@
 package org.projectforge.business.user.service;
 
 import org.projectforge.business.user.UserPrefCache;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -69,7 +70,19 @@ public class UserPrefService {
    * @param persistent If true, the object will be persisted in the database.
    */
   public void putEntry(final String area, final String name, final Object value, final boolean persistent) {
-    userPrefCache.putEntry(area, name, value, persistent);
+    putEntry(area, name, value, persistent, null);
+  }
+
+  /**
+   * Stores the given value for the current user.
+   *
+   * @param name
+   * @param value
+   * @param persistent If true, the object will be persisted in the database.
+   * @param userId     Optional userId. If not given, {@link ThreadLocalUserContext#getUserId()} is used.
+   */
+  public void putEntry(final String area, final String name, final Object value, final boolean persistent, Integer userId) {
+    userPrefCache.putEntry(area, name, value, persistent, userId);
   }
 
   /**
@@ -83,8 +96,24 @@ public class UserPrefService {
    * existing, otherwise null;
    */
   public <T> T getEntry(String area, String name, Class<T> expectedType) {
-    return userPrefCache.getEntry(area, name, expectedType);
+    return getEntry(area, name, expectedType, null);
   }
+
+  /**
+   * Gets the stored user preference entry.
+   *
+   * @param area
+   * @param name
+   * @param expectedType Checks the type of the user pref entry (if found) and returns only this object if the object is
+   *                     from the expected type, otherwise null is returned.
+   * @param userId       User id to user. If null, ThreadLocalUserContext.getUserId() is used.
+   * @return Return a persistent object with this name, if existing, or if not a volatile object with this name, if
+   * existing, otherwise null;
+   */
+  public <T> T getEntry(String area, String name, Class<T> expectedType, Integer userId) {
+    return userPrefCache.getEntry(area, name, expectedType, userId);
+  }
+
 
   public Object getEntry(String area, String name) {
     return userPrefCache.getEntry(area, name);
@@ -96,6 +125,7 @@ public class UserPrefService {
 
   /**
    * Gets the entry if exist, if not, defaultValue will be returned an the default entry will be stored.
+   *
    * @param area
    * @param name
    * @param defaultValue
@@ -103,10 +133,29 @@ public class UserPrefService {
    * @return
    */
   public <T> T ensureEntry(String area, String name, T defaultValue, boolean persistent) {
-    T value = (T)getEntry(area, name, defaultValue.getClass());
+    T value = (T) getEntry(area, name, defaultValue.getClass());
     if (value == null) {
       value = defaultValue;
       putEntry(area, name, value, persistent);
+    }
+    return value;
+  }
+
+  /**
+   * Gets the entry if exist, if not, defaultValue will be returned an the default entry will be stored.
+   *
+   * @param area
+   * @param name
+   * @param defaultValue
+   * @param persistent
+   * @param userId       User to use. Uses ThreadLocalUserContext.getUserId() if null.
+   * @return
+   */
+  public <T> T ensureEntry(String area, String name, T defaultValue, boolean persistent, Integer userId) {
+    T value = (T) getEntry(area, name, defaultValue.getClass(), userId);
+    if (value == null) {
+      value = defaultValue;
+      putEntry(area, name, value, persistent, userId);
     }
     return value;
   }

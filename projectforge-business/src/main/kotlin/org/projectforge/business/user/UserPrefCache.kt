@@ -63,13 +63,13 @@ class UserPrefCache : AbstractCache() {
      * @param persistent If true (default) this user preference will be stored to the data base, otherwise it will
      * be volatile stored in memory and will expire.
      */
-    fun putEntry(area: String, name: String, value: Any, persistent: Boolean = true) {
-        val userId = ThreadLocalUserContext.getUserId()
-        if (accessChecker.isDemoUser(userId)) {
+    fun putEntry(area: String, name: String, value: Any, persistent: Boolean = true, userId: Int?) {
+        val uid = userId ?: ThreadLocalUserContext.getUserId()
+        if (accessChecker.isDemoUser(uid)) {
             // Store user pref for demo user only in user's session.
             return
         }
-        val data = ensureAndGetUserPreferencesData(userId)
+        val data = ensureAndGetUserPreferencesData(uid)
         data.putEntry(area, name, value, persistent)
         checkRefresh() // Should be called at the end of this method for considering changes inside this method.
     }
@@ -95,9 +95,9 @@ class UserPrefCache : AbstractCache() {
     /**
      * Gets the user's entry.
      */
-    fun <T> getEntry(area: String, name: String, clazz: Class<T>): T? {
-        val userId = ThreadLocalUserContext.getUserId()
-        return getEntry(userId, area, name, clazz)
+    @JvmOverloads
+    fun <T> getEntry(area: String, name: String, clazz: Class<T>, userId: Int? = null): T? {
+        return getEntry(userId ?: ThreadLocalUserContext.getUserId(), area, name, clazz)
     }
 
     fun removeEntry(area: String, name: String) {
@@ -155,7 +155,7 @@ class UserPrefCache : AbstractCache() {
         if (data == null) {
             data = UserPrefCacheData()
             data.userId = userId
-            val userPrefs = userPrefDao.getUserPrefs()
+            val userPrefs = userPrefDao.getUserPrefs(userId)
             userPrefs?.forEach {
                 data.putEntry(it)
             }

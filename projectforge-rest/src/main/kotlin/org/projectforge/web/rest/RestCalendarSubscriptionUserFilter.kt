@@ -46,7 +46,7 @@ class RestCalendarSubscriptionUserFilter : AbstractRestUserFilter() {
         // validate user
         authInfo.user = userAuthenticationsService.getUserByToken(userId, UserTokenType.CALENDAR_REST, params["token"])
         if (authInfo.user != null) {
-            restAuthenticationUtils.registerLogAccess(authInfo.request, UserTokenType.CALENDAR_REST)
+            restAuthenticationUtils.registerLogAccess(authInfo.request, UserTokenType.CALENDAR_REST, userId = authInfo.user!!.id!!)
         } else {
             log.error("Bad request, user not found: ${authInfo.request.queryString}")
             authInfo.resultCode = HttpStatus.BAD_REQUEST
