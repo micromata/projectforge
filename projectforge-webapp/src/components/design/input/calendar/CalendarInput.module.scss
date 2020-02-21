@@ -33,14 +33,24 @@
   display: inline-block;
 
   .hourInput, .minuteInput {
+    font-family: monospace;
     border: none;
-    text-align: center;
     width: 5em;
-    margin: 0 auto;
+    padding: 0 .5em;
+    background: none;
+
+    &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
+      appearance: none;
+      margin: 0;
+    }
 
     &:focus {
       outline: none;
     }
+  }
+
+  .hourInput {
+    text-align: right;
   }
 
   .hours, .minutes {
