@@ -117,6 +117,9 @@ function TimeInput(
                     />
                 )}
                 <input
+                    type="number"
+                    min={0}
+                    max={23}
                     className={style.tempTimeInput}
                     onBlur={handleHourBlur}
                     onChange={handleHourChange}
@@ -124,6 +127,9 @@ function TimeInput(
                 />
                 <span>:</span>
                 <input
+                    type="number"
+                    min={0}
+                    max={59}
                     className={style.tempTimeInput}
                     onBlur={handleMinuteBlur}
                     onChange={handleMinuteChange}
