@@ -49,6 +49,9 @@
 
       & ~ input, & ~ .labelText {
         margin-left: 2.75rem;
+      }
+
+      & ~ input {
         width: calc(100% - 2.75rem);
       }
     }
@@ -66,6 +69,8 @@
     }
 
     .labelText {
+      width: auto;
+      white-space: nowrap;
       font-size: 1.1em;
       transition: transform $transitionTime, color $transitionTime;
       position: absolute;
@@ -427,24 +432,6 @@
 
 .userSelect {
   width: 30em;
-}
-
-[class^="css-"][class$="-control"] {
-  border: none;
-  border-bottom: 1px solid #deddde;
-  border-radius: 0;
-}
-
-form div[class^="css-"][class$="-container"] {
-  margin-bottom: 30px;
-}
-
-svg[class^="css-"] {
-  color: #009BA3;
-}
-
-[class$="-multiValue"] {
-  font-size: 120%;
 }
 
 .favoritesList {

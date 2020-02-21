@@ -44,6 +44,7 @@ function SearchFilter(props) {
         filter,
         filterFavorites,
         isFetching,
+        newlySwitched,
         quickSelectUrl,
         ui,
     } = category;
@@ -95,11 +96,12 @@ function SearchFilter(props) {
                     className={styles.searchContainer}
                     inputId="searchString"
                     inputProps={{
+                        autoFocus: newlySwitched,
                         icon: faSearch,
+                        noStyle: true,
                         onBlur: onSearchStringBlur,
                         placeholder: ui.translations.search || '',
-                        noStyle: true,
-                        autoFocus: true,
+                        selectOnFocus: newlySwitched,
                     }}
                     onChange={onSearchStringChange}
                     onSelect={onSelectQuickSelection}

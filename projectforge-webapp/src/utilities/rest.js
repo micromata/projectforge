@@ -10,6 +10,7 @@ export const debouncedWaitTime = (
 export const baseURL = (process.env.NODE_ENV === 'development' ? testServer : '/rs');
 
 export const createQueryParams = params => Object.keys(params)
+    .filter(key => params[key] !== undefined)
     .map(key => `${key}=${encodeURIComponent(params[key])}`)
     .join('&');
 

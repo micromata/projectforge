@@ -5,6 +5,8 @@ import { colorPropType } from '../../../utilities/propTypes';
 import AdditionalLabel from './AdditionalLabel';
 import style from './Input.module.scss';
 
+const MAX_ROWS = 10;
+
 function TextArea(
     {
         additionalLabel,
@@ -14,12 +16,15 @@ function TextArea(
         id,
         label,
         maxRows,
+        onChange,
         onKeyDown,
+        rows,
         value,
         ...props
     },
 ) {
     const [active, setActive] = React.useState(value);
+    const [dynamicRows, setDynamicRows] = React.useState(rows);
 
     const handleKeyDown = (event) => {
         if (onKeyDown) {
@@ -39,6 +44,21 @@ function TextArea(
         }
     };
 
+    const handleChange = (event) => {
+        if (onChange) {
+            onChange(event);
+        }
+
+        // Resize TextArea till Max Rows is reached.
+        setDynamicRows(Math.min(
+            Math.max(
+                rows,
+                event.target.value.split('\n').length,
+            ),
+            MAX_ROWS,
+        ));
+    };
+
     return (
         <div className={classNames(style.formGroup, 'form-group', className, cssClass)}>
             <label
@@ -53,9 +73,11 @@ function TextArea(
                     id={id}
                     className={style.textArea}
                     {...props}
-                    onFocus={() => setActive(true)}
                     onBlur={event => setActive(event.target.value !== '')}
+                    onChange={handleChange}
+                    onFocus={() => setActive(true)}
                     onKeyDown={handleKeyDown}
+                    rows={dynamicRows}
                     value={value}
                 />
                 <span className={style.text}>{label}</span>
@@ -73,7 +95,9 @@ TextArea.propTypes = {
     color: colorPropType,
     cssClass: PropTypes.string,
     maxRows: PropTypes.number,
+    onChange: PropTypes.func,
     onKeyDown: PropTypes.func,
+    rows: PropTypes.number,
     value: PropTypes.string,
 };
 
@@ -83,7 +107,9 @@ TextArea.defaultProps = {
     color: undefined,
     cssClass: undefined,
     maxRows: undefined,
+    onChange: undefined,
     onKeyDown: undefined,
+    rows: 3,
     value: undefined,
 };
 
