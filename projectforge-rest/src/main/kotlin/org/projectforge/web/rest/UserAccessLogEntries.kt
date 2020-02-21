@@ -23,6 +23,9 @@
 
 package org.projectforge.web.rest
 
+import java.util.*
+import javax.servlet.http.HttpServletRequest
+
 private const val MAX_SIZE = 20
 
 /**
@@ -32,8 +35,16 @@ private const val MAX_SIZE = 20
 class UserAccessLogEntries {
     private var entries = mutableSetOf<UserAccessLogEntry>()
 
-    fun update(entry: UserAccessLogEntry) {
-        entries.add(entry)
+    fun update(request: HttpServletRequest) {
+        val ip = request.remoteAddr
+        val userAgent = request.getHeader("User-Agent")
+        update(userAgent = userAgent, ip = ip)
+    }
+
+    fun update(userAgent: String?, ip: String?) {
+        entries.find { it.ip == ip && it.userAgent == userAgent }?.let { it.lastAccess = Date() } ?: run {
+            entries.add(UserAccessLogEntry(userAgent = userAgent, ip = ip))
+        }
         if (entries.size > 20) {
             val numberOfItemsToDrop = entries.size - MAX_SIZE
             entries = sortedList().dropLast(numberOfItemsToDrop).toMutableSet()
