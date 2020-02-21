@@ -29,8 +29,10 @@ import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.caldav.model.Calendar
 import org.projectforge.caldav.model.Meeting
 import org.projectforge.caldav.model.User
+import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.model.rest.CalendarEventObject
-import org.projectforge.model.rest.CalendarObject
 import org.projectforge.model.rest.RestPaths
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,31 +49,13 @@ class CalendarService {
     private lateinit var teamEventDao: TeamEventDao
 
     fun getCalendarList(user: User): List<Calendar> {
-        var result = mutableListOf<Calendar>()
-        return result
-        /*try {
-            val url = projectforgeServerAddress + ":" + projectforgeServerPort + RestPaths.buildListPath(RestPaths.TEAMCAL)
-            val headers = HttpHeaders()
-            headers["authenticationUserId"] = user.pk.toString()
-            headers["authenticationToken"] = user.authenticationToken
-            headers["Accept"] = MediaType.APPLICATION_JSON_VALUE
-            val builder = UriComponentsBuilder.fromHttpUrl(url)
-                    .queryParam("fullAccess", true)
-            val entity: HttpEntity<*> = HttpEntity<Any>(headers)
-            val response: HttpEntity<Array<CalendarObject>> = restTemplate!!.exchange(builder.build().encode().toUri(), HttpMethod.GET, entity, Array<CalendarObject>::class.java)
-            val calendarArray = response.body
-            log.info("Result of rest call (" + RestPaths.TEAMCAL + "): " + calendarArray)
-            result = convertRestResponse(user, calendarArray)
-        } catch (e: HttpClientErrorException) {
-            if (e.statusCode == HttpStatus.UNAUTHORIZED) { // do not log the exception message if just unauthorized
-                log.warn("Unauthorized to access calenders for user '{}'", user.username)
-            } else {
-                log.error("Exception while getting calendars for user: " + user.username, e)
-            }
-        } catch (e: Exception) {
-            log.error("Exception while getting calendars for user: " + user.username, e)
+        if (user.pk != ThreadLocalUserContext.getUserId().toLong()) {
+            throw AccessException("Logged-in user differs from the user requested.")
         }
-        return result*/
+        val calendars = teamCalDao.getList(BaseSearchFilter())
+        val result = calendars.map { cal ->
+            Calendar(user, cal.id, cal.title ?: "untitled") }
+        return result
     }
 
     fun getCalendarEvents(cal: Calendar): List<Meeting> {
@@ -148,13 +132,6 @@ class CalendarService {
          } catch (e: Exception) {
              log.error("Exception while creating calendar event: " + meeting.name, e)
          }*/
-    }
-
-    private fun convertRestResponse(user: User, calendarArray: Array<CalendarObject>): List<Calendar?> {
-        val result: MutableList<Calendar?> = ArrayList()
-        val calObjList = Arrays.asList(*calendarArray)
-        calObjList.forEach(Consumer { calObj: CalendarObject -> result.add(Calendar(user, calObj.id, calObj.title)) })
-        return result
     }
 
     private fun convertRestResponse(cal: Calendar, calendarEventArray: Array<CalendarEventObject>): List<Meeting?> {

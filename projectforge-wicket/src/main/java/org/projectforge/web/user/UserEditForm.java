@@ -48,7 +48,6 @@ import org.projectforge.business.multitenancy.TenantsComparator;
 import org.projectforge.business.password.PasswordQualityService;
 import org.projectforge.business.user.*;
 import org.projectforge.business.user.service.UserService;
-import org.projectforge.caldav.config.PFMiltonInit;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
@@ -84,6 +83,9 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
 
   @SpringBean
   private AccessChecker accessChecker;
+
+  @SpringBean
+  private ConfigurationService configurationService;
 
   @SpringBean
   private UserRightDao userRightDao;
@@ -434,7 +436,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     createOrganization(gridBuilder, data);
     createEMail(gridBuilder, data);
     createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.CALENDAR_REST);
-    if (PFMiltonInit.getAvailable()) {
+    if (configurationService.isDAVServicesAvailable()) {
       createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.DAV_TOKEN);
     }
     createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.REST_CLIENT);

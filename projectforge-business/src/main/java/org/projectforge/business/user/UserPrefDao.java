@@ -231,10 +231,9 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     return selectUnique(list);
   }
 
-  public List<UserPrefDO> getUserPrefs() {
-    final PFUserDO user = ThreadLocalUserContext.getUser();
+  public List<UserPrefDO> getUserPrefs(Integer userId) {
     final List<UserPrefDO> list = em.createNamedQuery(UserPrefDO.FIND_BY_USER_ID, UserPrefDO.class)
-            .setParameter("userId", user.getId())
+            .setParameter("userId", userId)
             .getResultList();
     return selectUnique(list);
   }
