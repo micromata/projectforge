@@ -156,5 +156,7 @@ public interface ConfigurationService {
 
   String getMaxFileSizeXmlDumpImport();
 
-  boolean isSnowEffectEnabled();
+  boolean isDAVServicesAvailable();
+
+  void setDAVServicesAvailable(boolean dAVServicesAvailable);
 }
