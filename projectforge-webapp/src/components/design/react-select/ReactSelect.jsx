@@ -7,7 +7,6 @@ import Select from 'react-select';
 import Async from 'react-select/async';
 import AsyncCreatable from 'react-select/async-creatable';
 import { UncontrolledTooltip } from 'reactstrap';
-import AdditionalLabel from '../input/AdditionalLabel';
 import style from '../input/Input.module.scss';
 import ReactSelectControlWithLabel from './ReactSelectControlWithLabel';
 

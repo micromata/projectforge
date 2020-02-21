@@ -92,14 +92,16 @@ function MagicFilters(
                     >
                         <AdvancedPopperInput
                             forwardRef={searchRef}
+                            autoFocus
                             dark
                             id="magicFiltersSearch"
                             icon={faSearch}
+                            noStyle
                             onCancel={() => setIsOpen(false)}
                             onChange={handleSearchChange}
-                            value={search}
                             placeholder={translations.search || ''}
-                            noStyle
+                            selectOnFocus
+                            value={search}
                         />
                         <ul className={styles.filterList}>
                             {filteredSearchFilters.map(({ id, label }) => (
