@@ -508,9 +508,13 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     checkLoggedInUserSelectAccess();
     final String s = "select distinct location from "
             + clazz.getSimpleName()
-            + " t where deleted=false and t.calendar in :cals and lastUpdate > :lastUpdate and lower(t.location) like :location) order by t.location";
+            + " t where deleted=false and t.calendar.id in :cals and lastUpdate > :lastUpdate and lower(t.location) like :location order by t.location";
     final TypedQuery<String> query = em.createQuery(s, String.class);
-    query.setParameter("cals", calendars);
+    final List<Integer> calIds = new ArrayList(calendars.length);
+    for (int i = 0; i < calendars.length; i++) {
+      calIds.add(calendars[i].getId());
+    }
+    query.setParameter("cals", calIds);
     PFDateTime dateTime = PFDateTime.now().minusYears(1);
     query.setParameter("lastUpdate", dateTime.getUtilDate());
     query.setParameter("location", "%" + StringUtils.lowerCase(searchString) + "%");
