@@ -90,3 +90,30 @@
 .editMode {
   display: inline-block;
 }
+
+.dateInput {
+  display: inline-block;
+  position: relative;
+  font-size: 14px;
+
+  input {
+    position: relative;
+    border: none;
+    padding: 0;
+    z-index: 2;
+    background: none;
+    outline: none;
+  }
+
+  .placeholder {
+    position: absolute;
+    top: 0;
+    color: #999;
+    z-index: 1;
+    right: 0;
+  }
+
+  input, .placeholder {
+    font-family: monospace;
+  }
+}

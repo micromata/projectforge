@@ -5,6 +5,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import AdvancedPopper from '../../popper/AdvancedPopper';
 import style from './CalendarInput.module.scss';
+import DateInput from './DateInput';
 import TimeInputUnit from './TimeInputUnit';
 
 const hourRegex = /^([01]?[0-9]|2[0-3]|)$/;
@@ -51,18 +52,18 @@ function TimeInput(
         setTime(newTime);
     };
 
-    const handleDateBlur = ({ target }) => {
-        const newDate = moment(target.value, jsDateFormat);
+    const handleDateChange = (newDate) => {
+        const momentDate = moment(newDate, jsDateFormat);
 
-        if (!newDate.isValid()) {
+        if (!momentDate.isValid()) {
             return;
         }
 
         // Manipulating with MomentJS
-        newDate.hour(time.getHours());
-        newDate.minute(time.getMinutes());
+        momentDate.hour(time.getHours());
+        momentDate.minute(time.getMinutes());
 
-        setTime(newDate.toDate());
+        setTime(momentDate.toDate());
     };
 
     const handleHourChange = ({ target }) => {
@@ -84,11 +85,10 @@ function TimeInput(
     return (
         <React.Fragment>
             {showDate && (
-                <input
-                    size={jsDateFormat.length + 1}
-                    onBlur={handleDateBlur}
-                    defaultValue={moment(time)
-                        .format(jsDateFormat)}
+                <DateInput
+                    date={time}
+                    setDate={handleDateChange}
+                    value={time}
                 />
             )}
             <AdvancedPopper
