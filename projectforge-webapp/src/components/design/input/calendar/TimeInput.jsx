@@ -85,7 +85,7 @@ function TimeInput(
         <React.Fragment>
             {showDate && (
                 <input
-                    className={style.dateInput}
+                    size={jsDateFormat.length + 1}
                     onBlur={handleDateBlur}
                     defaultValue={moment(time)
                         .format(jsDateFormat)}
