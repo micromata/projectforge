@@ -17,6 +17,7 @@ function TimeInputUnit(
 
     if (Math.abs(distance) < precision) {
         style.backgroundColor = `rgba(59, 153, 252, ${(precision - Math.abs(distance)) / precision})`;
+        style.color = '#fff';
         if (distance < 0) {
             style.borderBottomLeftRadius = 0;
             style.borderBottomRightRadius = 0;
