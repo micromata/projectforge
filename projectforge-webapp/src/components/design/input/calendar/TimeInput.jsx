@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import AdvancedPopper from '../../popper/AdvancedPopper';
+import InputContainer from '../InputContainer';
 import style from './CalendarInput.module.scss';
 import DateInput from './DateInput';
 import TimeInputUnit from './TimeInputUnit';
@@ -22,6 +23,7 @@ function TimeInput(
         time,
     },
 ) {
+    const [isActive, setIsActive] = React.useState(false);
     const [isOpen, setIsOpen] = React.useState(false);
     const hourRef = React.useRef(null);
     const minuteRef = React.useRef(null);
@@ -82,8 +84,11 @@ function TimeInput(
         setMinute(Number(target.value));
     };
 
+    const handleFocus = () => setIsActive(true);
+    const handleBlur = () => setIsActive(false);
+
     return (
-        <React.Fragment>
+        <InputContainer isActive={isActive}>
             {showDate && (
                 <DateInput
                     date={time}
@@ -119,6 +124,7 @@ function TimeInput(
                 className={style.timeInput}
                 isOpen={isOpen}
                 setIsOpen={setIsOpen}
+                withInput
             >
                 <ul className={style.hours}>
                     {[...Array(12)
@@ -168,7 +174,7 @@ function TimeInput(
                     </ul>
                 )}
             </AdvancedPopper>
-        </React.Fragment>
+        </InputContainer>
     );
 }
 
