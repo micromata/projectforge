@@ -33,7 +33,12 @@
   width: 5em;
 }
 
+.dateInput {
+  width: 6em;
+}
+
 .timeInput {
+  display: inline-block;
 
   .hourInput, .minuteInput {
     border: none;
@@ -59,10 +64,10 @@
       height: 2em;
       text-align: center;
       padding-top: .25em;
+      border-radius: 50%;
 
-      &:hover, &.selected {
-        background-color: #3b99fc;
-        border-radius: 50%;
+      &:hover {
+        background-color: #3a76d8;
         color: #fff;
       }
     }
