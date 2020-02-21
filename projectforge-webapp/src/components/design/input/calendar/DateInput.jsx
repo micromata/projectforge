@@ -2,21 +2,48 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
+import InputContainer from '../InputContainer';
 import styles from './CalendarInput.module.scss';
 
 function DateInput(
     {
         date,
         jsDateFormat,
+        noInputContainer,
         setDate,
     },
 ) {
     const [inputValue, setInputValue] = React.useState('');
+    const [isActive, setIsActive] = React.useState(false);
+    const inputRef = React.useRef(null);
+    const Tag = noInputContainer ? React.Fragment : InputContainer;
 
     React.useEffect(() => {
-        setInputValue(moment(date)
-            .format(jsDateFormat));
+        if (date) {
+            setInputValue(moment(date)
+                .format(jsDateFormat));
+        } else {
+            setInputValue('');
+        }
     }, [date]);
+
+    const handleBlur = () => {
+        setIsActive(false);
+
+        if (inputValue.trim() === '') {
+            setDate(undefined);
+            return;
+        }
+
+        const momentDate = moment(inputValue, jsDateFormat);
+
+        if (momentDate.isValid()) {
+            setDate(momentDate.toDate());
+        } else {
+            setInputValue(moment(date)
+                .format(jsDateFormat));
+        }
+    };
 
     const handleChange = ({ target }) => {
         setInputValue(target.value);
@@ -28,6 +55,8 @@ function DateInput(
             setDate(momentDate.toDate());
         }
     };
+
+    const handleFocus = () => setIsActive(true);
 
     const handleKeyDown = (event) => {
         const momentDate = moment(inputValue, jsDateFormat, true);
@@ -47,32 +76,54 @@ function DateInput(
         }
     };
 
+    const handleTagClick = () => {
+        if (inputRef.current) {
+            inputRef.current.focus();
+        }
+    };
+
+    const tagProps = {};
+
+    if (Tag !== React.Fragment) {
+        tagProps.onClick = handleTagClick;
+        tagProps.isActive = isActive;
+    }
+
     return (
-        <div className={styles.dateInput}>
-            <span className={styles.placeholder}>
-                {jsDateFormat
-                    .split('')
-                    .filter((char, index) => index >= inputValue.length)
-                    .join('')}
-            </span>
-            <input
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
-                size={jsDateFormat.length}
-                type="text"
-                value={inputValue}
-            />
-        </div>
+        <Tag {...tagProps}>
+            <div className={styles.dateInput}>
+                <span className={styles.placeholder}>
+                    {jsDateFormat
+                        .split('')
+                        .filter((char, index) => index >= inputValue.length)
+                        .join('')}
+                </span>
+                <input
+                    ref={inputRef}
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    onFocus={handleFocus}
+                    onKeyDown={handleKeyDown}
+                    size={jsDateFormat.length}
+                    type="text"
+                    value={inputValue}
+                />
+            </div>
+        </Tag>
     );
 }
 
 DateInput.propTypes = {
-    date: PropTypes.instanceOf(Date).isRequired,
     jsDateFormat: PropTypes.string.isRequired,
     setDate: PropTypes.func.isRequired,
+    date: PropTypes.instanceOf(Date),
+    noInputContainer: PropTypes.bool,
 };
 
-DateInput.defaultProps = {};
+DateInput.defaultProps = {
+    date: undefined,
+    noInputContainer: false,
+};
 
 const mapStateToProps = ({ authentication }) => ({
     jsDateFormat: authentication.user.jsDateFormat,
