@@ -71,7 +71,7 @@ class PFMiltonFilter : MiltonFilter() {
                 response,
                 authenticate = { authInfo -> authenticate(authInfo) },
                 doFilter = { ->
-                    restAuthenticationUtils.registerLogAccess(request as HttpServletRequest, UserTokenType.DAV_TOKEN.name)
+                    restAuthenticationUtils.registerLogAccess(request as HttpServletRequest, UserTokenType.DAV_TOKEN)
                     super.doFilter(request, response, chain)
                 }
         )
