@@ -31,6 +31,7 @@ import org.projectforge.business.multitenancy.TenantRegistry
 import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserPrefService
@@ -63,7 +64,7 @@ private const val USER_PREF_AREA_ACCESS_LOG_ENTRIES = "RestAuthentication.access
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-class RestAuthenticationUtils {
+open class RestAuthenticationUtils {
     @Autowired
     private lateinit var userService: UserService
     @Autowired
@@ -199,14 +200,22 @@ class RestAuthenticationUtils {
         }
     }
 
+    fun registerLogAccess(request: HttpServletRequest, tokenType: UserTokenType) {
+        registerLogAccess(request, tokenType.name)
+    }
+
     fun registerLogAccess(request: HttpServletRequest, logAccessName: String) {
-        val accessEntries = userPrefService.ensureEntry(USER_PREF_AREA_ACCESS_LOG_ENTRIES, logAccessName, UserAccessLogEntries())
+        val accessEntries = getUserAccessLogEntries(logAccessName)
         accessEntries.update(UserAccessLogEntry(request.getHeader("User-Agent"), request.remoteAddr))
     }
 
 
-    fun getUserAccessLogEntries(logAccessName: String): UserAccessLogEntries {
+    open fun getUserAccessLogEntries(logAccessName: String): UserAccessLogEntries {
         return userPrefService.ensureEntry(USER_PREF_AREA_ACCESS_LOG_ENTRIES, logAccessName, UserAccessLogEntries())
+    }
+
+    open fun getUserAccessLogEntries(tokenType: UserTokenType): UserAccessLogEntries {
+        return getUserAccessLogEntries(tokenType.name)
     }
 
     /**
@@ -229,9 +238,9 @@ class RestAuthenticationUtils {
         } else { // Only null in test case:
             MDC.put("ip", "unknown")
         }
-        MDC.put("ip", request.remoteAddr)
         MDC.put("session", request.session?.id)
         MDC.put("user", user.username)
+        MDC.put("userAgent", request.getHeader("User-Agent"))
         log.info("User: " + user.username + " calls RestURL: " + request.requestURI
                 + " with ip: "
                 + clientIpAddress)
@@ -243,6 +252,8 @@ class RestAuthenticationUtils {
         ConnectionSettings.set(null)
         MDC.remove("ip")
         MDC.remove("user")
+        MDC.remove("session")
+        MDC.remove("userAgent")
         val resultCode = (response as HttpServletResponse).status
         if (resultCode != HttpStatus.OK.value() && resultCode != HttpStatus.MULTI_STATUS.value()) { // MULTI_STATUS (207) will be returned by milton.io (CalDAV/CardDAV), because XML is returned.
             val user = userInfo.user!!
