@@ -11,6 +11,7 @@ import {
     LIST_FILTER_SET,
     LIST_FILTER_SORT,
     LIST_INITIAL_CALL_BEGIN,
+    LIST_SWITCH_CATEGORY,
 } from '../../actions';
 
 const initialState = {};
@@ -73,6 +74,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                         },
                     ],
                 },
+                newlySwitched: false,
             };
         }
         case LIST_FILTER_REMOVE: {
@@ -85,6 +87,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                     entries: filter.entries
                         .filter(({ field }) => field !== payload.fieldId),
                 },
+                newlySwitched: false,
             };
         }
         case LIST_FILTER_RESET:
@@ -95,6 +98,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                     searchString: '',
                     entries: [],
                 },
+                newlySwitched: false,
             };
         case LIST_FILTER_SEARCH_STRING_CHANGED:
             return {
@@ -103,6 +107,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                     ...state.filter,
                     searchString: payload.searchString,
                 },
+                newlySwitched: false,
             };
         case LIST_FILTER_SET: {
             const { filter } = state;
@@ -121,6 +126,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                         },
                     ],
                 },
+                newlySwitched: false,
             };
         }
         case LIST_FILTER_SORT: {
@@ -144,6 +150,11 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                 ...state,
                 ...payload.response,
             };
+        case LIST_SWITCH_CATEGORY:
+            return {
+                ...state,
+                newlySwitched: true,
+            };
         default:
             return state;
     }
@@ -163,7 +174,8 @@ const reducer = (state = initialState, action) => {
         case LIST_FILTER_SEARCH_STRING_CHANGED:
         case LIST_FILTER_SET:
         case LIST_FILTER_SORT:
-        case LIST_FAVORITES_RECEIVED: {
+        case LIST_FAVORITES_RECEIVED:
+        case LIST_SWITCH_CATEGORY: {
             const { category } = payload;
 
             return {

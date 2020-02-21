@@ -46,6 +46,7 @@ function AutoCompletion(
 ) {
     const [completions, setCompletions] = React.useState([]);
     const [isOpen, setIsOpen] = React.useState(false);
+    const [selected, setSelected] = React.useState(0);
     const searchRef = React.useRef(null);
     const [loadCompletions] = React.useState(
         () => AwesomeDebouncePromise(loadCompletionsBounced, debouncedWaitTime),
@@ -58,17 +59,36 @@ function AutoCompletion(
         setIsOpen(false);
     };
 
-    const handleKeyDown = ({ key }) => {
-        if (key === 'Escape' || key === 'Enter') {
-            close();
-        } else if (!isOpen) {
-            setIsOpen(true);
-        }
-    };
-
     const handleSelect = (completion) => {
         onSelect(completion);
         close();
+    };
+
+    const handleKeyDown = (event) => {
+        const { key } = event;
+
+        if (key === 'Escape') {
+            close();
+        } else if (key === 'Enter') {
+            if (selected !== 0) {
+                handleSelect(completions[selected - 1]);
+                event.preventDefault();
+            } else {
+                close();
+            }
+        } else {
+            if (!isOpen) {
+                setIsOpen(true);
+            }
+
+            if (key === 'ArrowDown') {
+                setSelected(Math.min(selected + 1, completions.length));
+                event.preventDefault();
+            } else if (key === 'ArrowUp') {
+                setSelected(Math.max(selected - 1, 0));
+                event.preventDefault();
+            }
+        }
     };
 
     React.useEffect(() => {
@@ -90,6 +110,10 @@ function AutoCompletion(
         return undefined;
     }, [url, search]);
 
+    React.useEffect(() => {
+        setSelected(Math.min(completions.length, selected));
+    }, [completions]);
+
     return (
         <AdvancedPopper
             additionalClassName={styles.completions}
@@ -106,7 +130,7 @@ function AutoCompletion(
             {...props}
         >
             <ul className={styles.entries}>
-                {completions.map((completion) => {
+                {completions.map((completion, index) => {
                     let { id, displayName } = completion;
 
                     if (typeof completion === 'string') {
@@ -119,6 +143,7 @@ function AutoCompletion(
                             key={`completion-${id}`}
                             displayName={displayName}
                             onClick={() => handleSelect(completion)}
+                            selected={index + 1 === selected}
                         />
                     );
                 })}

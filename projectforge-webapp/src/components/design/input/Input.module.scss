@@ -49,6 +49,9 @@
 
       & ~ input, & ~ .labelText {
         margin-left: 2.75rem;
+      }
+
+      & ~ input {
         width: calc(100% - 2.75rem);
       }
     }
@@ -66,6 +69,8 @@
     }
 
     .labelText {
+      width: auto;
+      white-space: nowrap;
       font-size: 1.1em;
       transition: transform $transitionTime, color $transitionTime;
       position: absolute;
