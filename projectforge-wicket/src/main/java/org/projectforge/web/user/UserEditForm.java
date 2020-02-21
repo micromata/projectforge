@@ -48,6 +48,7 @@ import org.projectforge.business.multitenancy.TenantsComparator;
 import org.projectforge.business.password.PasswordQualityService;
 import org.projectforge.business.user.*;
 import org.projectforge.business.user.service.UserService;
+import org.projectforge.caldav.config.PFMiltonInit;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
@@ -201,10 +202,10 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
   }
 
   @SuppressWarnings("serial")
-  public static void createAuthenticationToken(final GridBuilder gridBuilder, final PFUserDO user,
-                                               final UserAuthenticationsService userAuthenticationsService,
-                                               final Form<?> form,
-                                               final UserTokenType tokenType) {
+  public static FieldsetPanel createAuthenticationToken(final GridBuilder gridBuilder, final PFUserDO user,
+                                                        final UserAuthenticationsService userAuthenticationsService,
+                                                        final Form<?> form,
+                                                        final UserTokenType tokenType) {
     // Authentication token
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.authenticationToken." + tokenType.name().toLowerCase()))
             .suppressLabelForWarning();
@@ -232,6 +233,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     fs.add(new SingleButtonPanel(fs.newChildId(), button, gridBuilder.getString("user.authenticationToken.renew"),
             SingleButtonPanel.DANGER));
     WicketUtils.addTooltip(button, gridBuilder.getString("user.authenticationToken.renew.tooltip"));
+    return fs;
   }
 
   public static void createJIRAUsername(final GridBuilder gridBuilder, final PFUserDO user) {
@@ -432,7 +434,9 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     createOrganization(gridBuilder, data);
     createEMail(gridBuilder, data);
     createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.CALENDAR_REST);
-    createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.DAV_TOKEN);
+    if (PFMiltonInit.getAvailable()) {
+      createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.DAV_TOKEN);
+    }
     createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.REST_CLIENT);
     createJIRAUsername(gridBuilder, data);
     if (adminAccess == true) {

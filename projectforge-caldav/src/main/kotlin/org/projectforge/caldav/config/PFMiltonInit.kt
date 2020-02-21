@@ -64,9 +64,14 @@ open class PFMiltonInit {
                 listOf(ProjectForgeCalDAVController::class.java, ProjectForgeCardDAVController::class.java).joinToString { it.name })
         miltonFilter.setInitParameter("enableDigestAuth", "false")
         miltonFilter.setInitParameter("milton.configurator", ProjectForgeMiltonConfigurator::class.java.name)
+        available = true
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(PFMiltonInit::class.java)
+
+        @get:JvmStatic
+        var available = false
+            private set
     }
 }

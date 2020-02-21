@@ -23,6 +23,9 @@
 
 package org.projectforge.web.rest
 
+import org.apache.commons.text.StringEscapeUtils
+import org.projectforge.common.DateFormatType
+import org.projectforge.framework.time.PFDateTime
 import java.util.*
 
 /**
@@ -32,4 +35,18 @@ import java.util.*
 data class UserAccessLogEntry(var userAgent: String? = null,
                               var ip: String? = null) {
     var lastAccess: Date = Date()
+
+    /**
+     * @param escapeHtml If true, the user-agent string will be html escaped. Default is false.
+     */
+    @JvmOverloads
+    fun asText(escapeHtml: Boolean = false): String {
+        val dateTime = PFDateTime.from(lastAccess)
+        val userAgentString = if (escapeHtml) {
+            StringEscapeUtils.escapeHtml4(userAgent)
+        } else {
+            userAgent
+        }
+        return "IP=$ip, User-Agent='$userAgentString', Last-Access=${dateTime.format(DateFormatType.DATE_TIME_MINUTES)}"
+    }
 }

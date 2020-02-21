@@ -50,4 +50,13 @@ class UserAccessLogEntries {
     fun size(): Int {
         return entries.size
     }
+
+    /**
+     * @param escapeHtml If true, the user-agent string will be html escaped. Default is false. The separator string
+     * itself will not be escaped.
+     */
+    @JvmOverloads
+    fun asText(separator: String, escapeHtml: Boolean = false): String {
+        return sortedList().joinToString(separator) { it.asText(escapeHtml) }
+    }
 }
