@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import RRuleGenerator, { translations } from 'react-rrule-generator';
 import 'react-rrule-generator/build/styles.css';
 import { Col, Row } from 'reactstrap';
-import ReactSelect from '../../../../../design/ReactSelect';
+import ReactSelect from '../../../../../design/react-select/ReactSelect';
 import { DynamicLayoutContext } from '../../../context';
 
 function CalendarEventRecurrence({ locale }) {

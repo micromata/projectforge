@@ -8,6 +8,7 @@ import styles from './Input.module.scss';
 const Input = React.forwardRef((
     {
         additionalLabel,
+        autoFocus,
         className,
         color,
         icon,
@@ -17,11 +18,22 @@ const Input = React.forwardRef((
         onBlur,
         onFocus,
         noStyle,
+        selectOnFocus,
         value,
         ...props
     },
     ref,
 ) => {
+    // Initialize inputRef
+    let inputRef = React.useRef(null);
+    const labelRef = React.useRef(null);
+    const [labelWidth, setLabelWidth] = React.useState(0);
+
+    // Override ref with forwarded ref
+    if (ref) {
+        inputRef = ref;
+    }
+
     const [isActive, setIsActive] = React.useState(false);
 
     const handleBlur = (event) => {
@@ -37,8 +49,28 @@ const Input = React.forwardRef((
             onFocus(event);
         }
 
+        if (selectOnFocus) {
+            setTimeout(() => {
+                if (inputRef.current) {
+                    inputRef.current.select();
+                }
+            }, 100);
+        }
+
         setIsActive(true);
     };
+
+    React.useLayoutEffect(() => {
+        if (autoFocus && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [autoFocus]);
+
+    React.useLayoutEffect(() => {
+        if (labelRef.current) {
+            setLabelWidth(labelRef.current.clientWidth + (icon ? 100 : 20));
+        }
+    }, [label]);
 
     return (
         <div
@@ -50,6 +82,7 @@ const Input = React.forwardRef((
                     [styles.noStyle]: noStyle,
                 },
             )}
+            style={{ minWidth: labelWidth }}
         >
             <label
                 className={classNames(
@@ -68,14 +101,19 @@ const Input = React.forwardRef((
                     />
                 )}
                 <input
-                    ref={ref}
+                    ref={inputRef}
                     id={id}
                     {...props}
                     onBlur={handleBlur}
                     onFocus={handleFocus}
                     value={value}
                 />
-                <span className={styles.labelText}>{label}</span>
+                <span
+                    ref={labelRef}
+                    className={styles.labelText}
+                >
+                    {label}
+                </span>
             </label>
             {additionalLabel && (
                 <span className={styles.additionalLabel}>{additionalLabel}</span>
@@ -87,6 +125,7 @@ const Input = React.forwardRef((
 Input.propTypes = {
     id: PropTypes.string.isRequired,
     additionalLabel: PropTypes.string,
+    autoFocus: PropTypes.bool,
     className: PropTypes.string,
     color: colorPropType,
     icon: PropTypes.shape({}),
@@ -95,11 +134,13 @@ Input.propTypes = {
     onBlur: PropTypes.func,
     onFocus: PropTypes.func,
     noStyle: PropTypes.bool,
+    selectOnFocus: PropTypes.bool,
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 Input.defaultProps = {
     additionalLabel: undefined,
+    autoFocus: false,
     className: undefined,
     color: undefined,
     icon: undefined,
@@ -108,6 +149,7 @@ Input.defaultProps = {
     onBlur: undefined,
     onFocus: undefined,
     noStyle: false,
+    selectOnFocus: false,
     value: undefined,
 };
 

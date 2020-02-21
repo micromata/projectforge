@@ -4,7 +4,7 @@ import { Col, Row } from 'reactstrap';
 import { Input } from '../../../../../design';
 import CheckBox from '../../../../../design/input/CheckBox';
 import { DynamicLayoutContext } from '../../../context';
-import ReactSelect from '../../../../../design/ReactSelect';
+import ReactSelect from '../../../../../design/react-select/ReactSelect';
 
 function CalendarEditExternalSubscription({ values }) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);

@@ -14,6 +14,7 @@ function ObjectSelect(
         onSelect,
         translations,
         type,
+        url,
         user,
         value,
         ...props
@@ -61,7 +62,7 @@ function ObjectSelect(
                 inputId={id}
                 inputProps={inputProps}
                 onSelect={onSelect}
-                url={`${type.toLowerCase()}/autosearch?search=:search`}
+                url={url || `${type.toLowerCase()}/autosearch?search=:search`}
                 value={value}
                 {...props}
             />
@@ -78,7 +79,7 @@ ObjectSelect.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     onSelect: PropTypes.func.isRequired,
-    type: PropTypes.oneOf(['USER', 'EMPLOYEE']).isRequired,
+    type: PropTypes.oneOf(['USER', 'EMPLOYEE', 'OTHER']).isRequired,
     user: PropTypes.shape({
         id: PropTypes.number.isRequired,
         displayName: PropTypes.string.isRequired,
@@ -86,11 +87,13 @@ ObjectSelect.propTypes = {
     translations: PropTypes.shape({
         'tooltip.selectMe': PropTypes.string,
     }),
+    url: PropTypes.string,
     value: PropTypes.shape({}),
 };
 
 ObjectSelect.defaultProps = {
     translations: undefined,
+    url: undefined,
     value: undefined,
 };
 

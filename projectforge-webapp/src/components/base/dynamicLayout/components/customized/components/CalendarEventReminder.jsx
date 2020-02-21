@@ -2,7 +2,7 @@ import React from 'react';
 import 'react-rrule-generator/build/styles.css';
 import { Col, Row } from 'reactstrap';
 import { Input } from '../../../../../design';
-import ReactSelect from '../../../../../design/ReactSelect';
+import ReactSelect from '../../../../../design/react-select/ReactSelect';
 import { DynamicLayoutContext } from '../../../context';
 
 function CalendarEventReminder() {
