@@ -35,6 +35,7 @@ import java.util.*
 data class UserAccessLogEntry(var userAgent: String? = null,
                               var ip: String? = null) {
     var lastAccess: Date = Date()
+    var counter: Int = 1
 
     /**
      * @param escapeHtml If true, the user-agent string will be html escaped. Default is false.
@@ -47,6 +48,6 @@ data class UserAccessLogEntry(var userAgent: String? = null,
         } else {
             userAgent
         }
-        return "IP=$ip, User-Agent='$userAgentString', Last-Access=${dateTime.format(DateFormatType.DATE_TIME_MINUTES)}"
+        return "IP=$ip, User-Agent='$userAgentString', Last-Access=${dateTime.format(DateFormatType.DATE_TIME_MINUTES)}, Counter=$counter"
     }
 }
