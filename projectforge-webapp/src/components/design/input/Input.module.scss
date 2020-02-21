@@ -1,10 +1,89 @@
 @import '../../../assets/style/mixins';
 @import "../../../assets/style/theming";
 
-.inputField {
-  $transitionTime: .2s ease-out;
-  $offset: 1rem;
+$transitionTime: .2s ease-out;
 
+.inputContainer {
+  position: relative;
+  color: #7a7a7a;
+  margin: 0;
+  cursor: text;
+  width: 100%;
+  padding: 1.5em 0 0 1em;
+  background-color: #f9f9f9;
+  border-bottom: 2px solid #bbb;
+  border-radius: 5px 5px 0 0;
+
+  &.isActive {
+    background-color: #f5f5f5;
+    border-color: #333;
+
+    .labelText {
+      color: #666;
+      transform: translateY(-.5em) scale(0.8);
+    }
+  }
+
+  &:hover {
+    background-color: #eaeaea;
+  }
+
+  .labelText {
+    width: auto;
+    white-space: nowrap;
+    font-size: 1.1em;
+    transition: transform $transitionTime, color $transitionTime;
+    position: absolute;
+    bottom: .5em;
+    left: 1rem;
+    transform-origin: 0 0;
+    transform: translateY(0);
+  }
+
+  @mixin color($color) {
+    border-color: $color;
+
+    .labelText {
+      color: $color;
+    }
+  }
+
+  &.primary {
+    @include color(map_get($theme-colors, primary));
+  }
+
+  &.secondary {
+    @include color(map_get($theme-colors, secondary));
+  }
+
+  &.success {
+    @include color(map_get($theme-colors, success));
+  }
+
+  &.danger {
+    @include color(map_get($theme-colors, danger));
+  }
+
+  &.warning {
+    @include color(map_get($theme-colors, warning));
+  }
+
+  &.info {
+    @include color(map_get($theme-colors, info));
+  }
+}
+
+.additionalLabel {
+  margin-left: 1rem;
+  position: relative;
+  min-height: 1.25em;
+  display: block;
+  font-size: 0.9em;
+  color: #aaa;
+  font-style: italic;
+}
+
+.inputField {
   position: relative;
   margin-top: 1em;
   font-size: 1.5rem;
@@ -17,30 +96,6 @@
   }
 
   label {
-    position: relative;
-    color: #7a7a7a;
-    margin: 0;
-    cursor: text;
-    width: 100%;
-    padding-top: 1.5em;
-    background-color: #f9f9f9;
-    border-bottom: 2px solid #bbb;
-    border-radius: 5px 5px 0 0;
-
-    &.isActive {
-      background-color: #f5f5f5;
-      border-color: #333;
-
-      .labelText {
-        color: #666;
-        transform: translateY(-.5em) scale(0.8);
-      }
-    }
-
-    &:hover {
-      background-color: #eaeaea;
-    }
-
     .icon {
       position: absolute;
       font-size: 1.3em;
@@ -63,53 +118,9 @@
       outline: none;
       width: 100%;
       margin: 0;
-      padding: 0 0 0 $offset;
+      padding: 0 0 0 1rem;
       box-shadow: none;
       transition: box-shadow .3s;
-    }
-
-    .labelText {
-      width: auto;
-      white-space: nowrap;
-      font-size: 1.1em;
-      transition: transform $transitionTime, color $transitionTime;
-      position: absolute;
-      bottom: .5em;
-      left: $offset;
-      transform-origin: 0 0;
-      transform: translateY(0);
-    }
-
-    @mixin color($color) {
-      border-color: $color;
-
-      .labelText {
-        color: $color;
-      }
-    }
-
-    &.primary {
-      @include color(map_get($theme-colors, primary));
-    }
-
-    &.secondary {
-      @include color(map_get($theme-colors, secondary));
-    }
-
-    &.success {
-      @include color(map_get($theme-colors, success));
-    }
-
-    &.danger {
-      @include color(map_get($theme-colors, danger));
-    }
-
-    &.warning {
-      @include color(map_get($theme-colors, warning));
-    }
-
-    &.info {
-      @include color(map_get($theme-colors, info));
     }
   }
 
@@ -134,16 +145,6 @@
         }
       }
     }
-  }
-
-  .additionalLabel {
-    margin-left: $offset;
-    position: relative;
-    min-height: 1.25em;
-    display: block;
-    font-size: 0.9em;
-    color: #aaa;
-    font-style: italic;
   }
 }
 
