@@ -93,7 +93,7 @@ function TimeInput(
                 <DateInput
                     date={time}
                     setDate={handleDateChange}
-                    value={time}
+                    noInputContainer
                 />
             )}
             <AdvancedPopper
