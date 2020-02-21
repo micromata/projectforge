@@ -508,6 +508,24 @@ object NumberHelper {
          */
     }
 
+    /**
+     * Generates secure random String of the given length. Doesn't user chars "lIO0".
+     *
+     * @param length
+     * @return Secure random string.
+     */
+    @JvmStatic
+    fun getSecureRandomReducedAlphanumeric(length: Int): String {
+        val random = SecureRandom()
+        val bytes = ByteArray(length)
+        random.nextBytes(bytes)
+        val sb = StringBuilder()
+        for (i in 0 until length) {
+            sb.append(REDUCED_ALPHA_NUMERICS_CHARSET[(bytes[i].toInt() and 0xFF) % REDUCED_ALPHA_NUMERICS_CHARSET_LENGTH])
+        }
+        return sb.toString()
+    }
+
     @JvmStatic
     fun isIn(value: Int, vararg numbers: Int): Boolean {
         numbers.forEach {
@@ -539,4 +557,7 @@ object NumberHelper {
 
     internal val ALPHA_NUMERICS_CHARSET: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
     private val ALPHA_NUMERICS_CHARSET_LENGTH = ALPHA_NUMERICS_CHARSET.size
+
+    internal val REDUCED_ALPHA_NUMERICS_CHARSET = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ123456789"
+    private val REDUCED_ALPHA_NUMERICS_CHARSET_LENGTH = REDUCED_ALPHA_NUMERICS_CHARSET.length
 }
