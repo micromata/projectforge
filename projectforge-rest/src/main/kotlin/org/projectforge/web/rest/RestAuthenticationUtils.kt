@@ -206,7 +206,7 @@ open class RestAuthenticationUtils {
 
     fun registerLogAccess(request: HttpServletRequest, logAccessName: String) {
         val accessEntries = getUserAccessLogEntries(logAccessName)
-        accessEntries.update(UserAccessLogEntry(request.getHeader("User-Agent"), request.remoteAddr))
+        accessEntries.update(request)
     }
 
 
