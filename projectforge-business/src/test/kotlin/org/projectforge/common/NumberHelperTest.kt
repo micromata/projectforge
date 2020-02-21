@@ -33,8 +33,7 @@ class NumberHelperTest {
         Assertions.assertEquals(62, NumberHelper.ALPHA_NUMERICS_CHARSET.size)
         var str = NumberHelper.getSecureRandomAlphanumeric(1000)
         Assertions.assertEquals(1000, str.length)
-        for (i in 0 until NumberHelper.ALPHA_NUMERICS_CHARSET.size) {
-            val ch = NumberHelper.ALPHA_NUMERICS_CHARSET[i]
+        for (ch in NumberHelper.ALPHA_NUMERICS_CHARSET) {
             if (str.any { it == ch}) {
                 // found
                 continue
@@ -42,6 +41,28 @@ class NumberHelperTest {
             var found = false
             for (i in 0..1000) {
                 str = NumberHelper.getSecureRandomAlphanumeric(1000)
+                if (str.contains(ch)) {
+                    found = true
+                    break
+                }
+            }
+            Assertions.assertTrue(found, "After generating 1,000 secure strings of length 1,000, the char '$ch' wasn't generated!")
+        }
+    }
+
+    @Test
+    fun randomReducedAlphaNumericTest() {
+        Assertions.assertEquals(58, NumberHelper.REDUCED_ALPHA_NUMERICS_CHARSET.length)
+        var str = NumberHelper.getSecureRandomReducedAlphanumeric(1000)
+        Assertions.assertEquals(1000, str.length)
+        for (ch in NumberHelper.REDUCED_ALPHA_NUMERICS_CHARSET) {
+            if (str.any { it == ch}) {
+                // found
+                continue
+            }
+            var found = false
+            for (i in 0..1000) {
+                str = NumberHelper.getSecureRandomReducedAlphanumeric(1000)
                 if (str.contains(ch)) {
                     found = true
                     break
