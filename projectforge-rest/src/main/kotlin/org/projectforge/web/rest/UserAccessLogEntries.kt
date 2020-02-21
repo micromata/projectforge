@@ -42,7 +42,10 @@ class UserAccessLogEntries {
     }
 
     fun update(userAgent: String?, ip: String?) {
-        entries.find { it.ip == ip && it.userAgent == userAgent }?.let { it.lastAccess = Date() } ?: run {
+        entries.find { it.ip == ip && it.userAgent == userAgent }?.let {
+            it.lastAccess = Date()
+            it.counter++
+        } ?: run {
             entries.add(UserAccessLogEntry(userAgent = userAgent, ip = ip))
         }
         if (entries.size > 20) {
