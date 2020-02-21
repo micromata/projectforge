@@ -141,7 +141,7 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
                 i18nKey = "plugins.teamcal.export.weekOfYears",
                 tooltip = "plugins.teamcal.export.weekOfYears.tooltip",
                 type = MenuItemTargetType.REDIRECT,
-                url = "react/dynamic/calendarSubscription?type=WEEK_OF_YEAR"))
+                url = CalendarSubscriptionInfoPageRest.getWeekOfYearUrl()))
         exportMenu.add(MenuItem("calendar.exportHolidays",
                 i18nKey = "plugins.teamcal.export.holidays",
                 tooltip = "plugins.teamcal.export.holidays.tooltip",
