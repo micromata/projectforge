@@ -20,6 +20,7 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.web.rest
 
 import org.projectforge.business.user.UserAuthenticationsService
@@ -59,12 +60,6 @@ abstract class AbstractRestUserFilter : Filter {
     abstract fun authenticate(authInfo: RestAuthenticationInfo)
 
     /**
-     * Authentication via request header.
-     *
-     *  1. Authentication userId (authenticationUserId) and authenticationToken (authenticationToken) or
-     *  1. Authentication username (authenticationUsername) and password (authenticationPassword) or
-     *
-     *
      * @see javax.servlet.Filter.doFilter
      */
     @Throws(IOException::class, ServletException::class)
