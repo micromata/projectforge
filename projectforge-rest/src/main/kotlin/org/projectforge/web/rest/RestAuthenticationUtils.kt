@@ -94,7 +94,6 @@ open class RestAuthenticationUtils {
         val authenticationToken = getUserSecret(authInfo, secretAttributes) ?: return
         authInfo.user = authenticate(userString, authenticationToken)
         if (!authInfo.success) {
-            LoginProtection.instance().incrementFailedLoginTimeOffset(authInfo.userString, authInfo.clientIpAddress)
             log.error("Authentication failed for user $userString. Rest call forbidden.")
         }
     }
@@ -103,18 +102,18 @@ open class RestAuthenticationUtils {
      * Checks also login protection (time out against brute force attack).
      */
     fun getUserString(authInfo: RestAuthenticationInfo, userAttributes: Array<String>, required: Boolean): String? {
-        val userString = getAttribute(authInfo.request, *userAttributes)
-        if (userString.isNullOrBlank()) {
+        authInfo.userString = getAttribute(authInfo.request, *userAttributes)
+        if (authInfo.userString.isNullOrBlank()) {
             if (required) {
                 log.error("Authentication failed, no user given by request params ${userAttributes.joinToString(", or ", "'", "'") { it }}. Rest call forbidden.")
             }
             return null
         }
-        if (checkLoginProtection(authInfo.response, userString, LoginProtection.instance(), authInfo.clientIpAddress)) {
+        if (checkLoginProtection(authInfo, LoginProtection.instance(), authInfo.clientIpAddress)) {
             // Access denied (time offset due to failed logins). Logging is done by check method.
             return null
         }
-        return userString
+        return authInfo.userString
     }
 
     fun getUserSecret(authInfo: RestAuthenticationInfo, secretAttributes: Array<String>): String? {
@@ -150,15 +149,15 @@ open class RestAuthenticationUtils {
             return
         }
         val username = credentials.substring(0, p).trim { it <= ' ' }
+        authInfo.userString = username // required for LoginProtection.incrementFailedLoginTimeOffset
         val clientIpAddress = authInfo.request.remoteAddr
-        if (checkLoginProtection(authInfo.response, username, LoginProtection.instance(), clientIpAddress)) {
+        if (checkLoginProtection(authInfo, LoginProtection.instance(), clientIpAddress)) {
             // Access denied (time offset due to failed logins). Logging is done by check method.
             return
         }
         val password = credentials.substring(p + 1).trim { it <= ' ' }
         authInfo.user = authenticate(username, password)
         if (!authInfo.success) {
-            LoginProtection.instance().incrementFailedLoginTimeOffset(username, authInfo.clientIpAddress)
             log.error("Basic authentication failed for user '$username'.")
         }
     }
@@ -190,8 +189,11 @@ open class RestAuthenticationUtils {
         val authInfo = RestAuthenticationInfo(request, response)
         authenticate(authInfo)
         if (!authInfo.success) {
-            // Already increased:
-            // LoginProtection.instance().incrementFailedLoginTimeOffset(authInfo.userString, authInfo.clientIpAddress)
+            // Login failed, so increase time penalty for failed login for avoiding brute force attacks:
+            if (!authInfo.lockedByTimePenalty) {
+                // Increment only for login failures, but not increment again if login was denied due to a login penalty.
+                LoginProtection.instance().incrementFailedLoginTimeOffset(authInfo.userString, authInfo.clientIpAddress)
+            }
             response.sendError(authInfo.resultCode?.value() ?: HttpServletResponse.SC_UNAUTHORIZED)
             return
         }
@@ -229,12 +231,12 @@ open class RestAuthenticationUtils {
      * You must use try { registerUser(...) } finally { unregisterUser() }!!!!
      *
      * @param request
-     * @param userInfo
+     * @param authInfo
      */
-    fun registerUser(request: ServletRequest, userInfo: RestAuthenticationInfo) {
-        val user = userInfo.user!!
-        val clientIpAddress = userInfo.clientIpAddress
-        LoginProtection.instance().clearLoginTimeOffset(userInfo.userString, clientIpAddress)
+    fun registerUser(request: ServletRequest, authInfo: RestAuthenticationInfo) {
+        val user = authInfo.user!!
+        val clientIpAddress = authInfo.clientIpAddress
+        LoginProtection.instance().clearLoginTimeOffset(authInfo.userString, clientIpAddress)
         ThreadLocalUserContext.setUser(userGroupCache, user)
         val req = request as HttpServletRequest
         val settings = getConnectionSettings(req)
@@ -254,7 +256,7 @@ open class RestAuthenticationUtils {
     }
 
     fun unregister(request: ServletRequest, response: ServletResponse,
-                   userInfo: RestAuthenticationInfo) {
+                   authInfo: RestAuthenticationInfo) {
         ThreadLocalUserContext.setUser(userGroupCache, null)
         ConnectionSettings.set(null)
         MDC.remove("ip")
@@ -263,8 +265,8 @@ open class RestAuthenticationUtils {
         MDC.remove("userAgent")
         val resultCode = (response as HttpServletResponse).status
         if (resultCode != HttpStatus.OK.value() && resultCode != HttpStatus.MULTI_STATUS.value()) { // MULTI_STATUS (207) will be returned by milton.io (CalDAV/CardDAV), because XML is returned.
-            val user = userInfo.user!!
-            val clientIpAddress = userInfo.clientIpAddress
+            val user = authInfo.user!!
+            val clientIpAddress = authInfo.clientIpAddress
             log.error("User: " + user.username + " calls RestURL: " + (request as HttpServletRequest).requestURI
                     + " with ip: "
                     + clientIpAddress
@@ -274,18 +276,15 @@ open class RestAuthenticationUtils {
     }
 
     @Throws(IOException::class)
-    private fun checkLoginProtection(response: HttpServletResponse, userString: String?,
+    private fun checkLoginProtection(authInfo: RestAuthenticationInfo,
                                      loginProtection: LoginProtection,
                                      clientIpAddress: String): Boolean {
-        val offset = loginProtection.getFailedLoginTimeOffsetIfExists(userString, clientIpAddress)
+        val offset = loginProtection.getFailedLoginTimeOffsetIfExists(authInfo.userString, clientIpAddress)
         if (offset > 0) {
             val seconds = (offset / 1000).toString()
-            log.warn("The account for '"
-                    + userString
-                    + "' is locked for "
-                    + seconds
-                    + " seconds due to failed login attempts (ip=" + clientIpAddress + ").")
-            response.sendError(HttpServletResponse.SC_FORBIDDEN)
+            log.warn("The account for '${authInfo.userString}' is locked for $seconds seconds due to failed login attempts (ip=$clientIpAddress).")
+            authInfo.resultCode = HttpStatus.FORBIDDEN
+            authInfo.lockedByTimePenalty = true
             return true
         }
         return false

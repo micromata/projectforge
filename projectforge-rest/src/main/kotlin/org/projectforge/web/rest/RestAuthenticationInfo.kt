@@ -44,4 +44,5 @@ class RestAuthenticationInfo(var request: HttpServletRequest,
     var userString: String? = null
     var clientIpAddress: String = request.remoteAddr
     var resultCode: HttpStatus? = null
+    var lockedByTimePenalty = false
 }
