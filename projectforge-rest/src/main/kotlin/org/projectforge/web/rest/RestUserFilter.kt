@@ -20,9 +20,9 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.web.rest
 
-import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
@@ -69,7 +69,6 @@ class RestUserFilter : AbstractRestUserFilter() {
             restAuthenticationUtils.registerLogAccess(authInfo.request, UserTokenType.STAY_LOGGED_IN_KEY, userId = authInfo.user!!.id!!)
             return
         }
-        LoginProtection.instance().incrementFailedLoginTimeOffset(authInfo.userString, authInfo.clientIpAddress)
         val requestURI = authInfo.request.requestURI
         // Don't log error for userStatus (used by React client for checking weather the user is logged in or not).
         if (requestURI == null || requestURI != "/rs/userStatus") {
