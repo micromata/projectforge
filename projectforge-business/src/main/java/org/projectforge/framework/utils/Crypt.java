@@ -96,7 +96,11 @@ public class Crypt {
    */
   public static String decrypt(final String password, final String encryptedString) {
     try {
-      return new String(decryptBytes(password, encryptedString), "UTF-8");
+      final byte[] bytes = decryptBytes(password, encryptedString);
+      if (bytes == null) {
+        return null;
+      }
+      return new String(bytes, "UTF-8");
     } catch (final Exception ex) {
       log.error("Exception encountered while trying to encrypt with Algorithm 'AES' and the given password: "
               + ex.getMessage(), ex);
