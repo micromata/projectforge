@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Provides some system information in a cache.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  *
  */
@@ -43,11 +43,9 @@ public class SystemInfoCache extends AbstractCache
 
   private boolean cost2EntriesExists, projectEntriesExists, customerEntriesExists;
 
-  protected long expireTimeHours = 1;
-
   /**
    * SystemInfoCache can be used either over Spring context or with this static method.
-   * 
+   *
    * @return
    */
   public static SystemInfoCache instance()
@@ -59,7 +57,7 @@ public class SystemInfoCache extends AbstractCache
 
   /**
    * Only for internal usage on start-up of ProjectForge.
-   * 
+   *
    * @param theInstance
    */
   public static void internalInitialize(final SystemInfoCache theInstance)
@@ -102,11 +100,4 @@ public class SystemInfoCache extends AbstractCache
       return emgr.createQuery(Long.class, "select count(e) from " + entity.getName() + " e").getSingleResult() != 0;
     });
   }
-
-  @Override
-  public void setExpireTimeInHours(final long expireTime)
-  {
-    this.expireTime = expireTimeHours * TICKS_PER_HOUR;
-  }
-
 }
