@@ -34,8 +34,11 @@ class RestCalendarSubscriptionUserFilter : AbstractRestUserFilter() {
         val userString = restAuthenticationUtils.getUserString(authInfo, arrayOf("user"), true)
         val userId = NumberHelper.parseInteger(userString)
                 ?: run {
-                    log.info("UserId not found in request parameters or can't parse it as int value. Rest call denied.")
-                    authInfo.resultCode = HttpStatus.BAD_REQUEST
+                    if (authInfo.resultCode == null) {
+                        // error not yet handled.
+                        log.info("UserId not found in request parameters or can't parse it as int value. Rest call denied.")
+                        authInfo.resultCode = HttpStatus.BAD_REQUEST
+                    }
                     return
                 }
         val params = CalendarSubscriptionServiceRest.decryptRequestParams(authInfo.request, userId, userAuthenticationsService)
