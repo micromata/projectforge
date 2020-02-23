@@ -52,6 +52,10 @@ class RestUserFilter : AbstractRestUserFilter() {
         if (authInfo.success) {
             return
         }
+        restAuthenticationUtils.tokenAuthentication(authInfo, UserTokenType.REST_CLIENT, false)
+        if (authInfo.success) {
+            return
+        }
         // Try to get the user by session id:
         authInfo.user = UserFilter.getUser(authInfo.request)
         if (authInfo.success) {
