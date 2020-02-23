@@ -30,6 +30,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.projectforge.ProjectForgeApp;
+import org.projectforge.SystemStatus;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.LoginDefaultHandler;
@@ -173,6 +174,9 @@ public abstract class AbstractTestBase {
   @Autowired
   private DatabaseService databaseService;
 
+  @Autowired
+  private SystemStatus systemStatus;
+
   @PostConstruct
   private void postConstruct() {
     WicketSupport.register(applicationContext);
@@ -228,6 +232,7 @@ public abstract class AbstractTestBase {
         recreateDataBase();
       }
       beforeAll();
+      systemStatus.setUpAndRunning(true);
     }
   }
 
