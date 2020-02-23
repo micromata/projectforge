@@ -39,6 +39,7 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.Authentication
 import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
@@ -94,7 +95,9 @@ open class RestAuthenticationUtils {
         val authenticationToken = getUserSecret(authInfo, secretAttributes) ?: return
         authInfo.user = authenticate(userString, authenticationToken)
         if (!authInfo.success) {
-            log.error("Authentication failed for user $userString. Rest call forbidden.")
+            if (required) {
+                log.error("Authentication failed for user $userString. Rest call forbidden.")
+            }
         }
     }
 
@@ -105,11 +108,11 @@ open class RestAuthenticationUtils {
         authInfo.userString = getAttribute(authInfo.request, *userAttributes)
         if (authInfo.userString.isNullOrBlank()) {
             if (required) {
-                log.error("Authentication failed, no user given by request params ${userAttributes.joinToString(", or ", "'", "'") { it }}. Rest call forbidden.")
+                log.error("Authentication failed, no user given by request params ${joinToString(userAttributes)}. Rest call forbidden.")
             }
             return null
         }
-        if (checkLoginProtection(authInfo, LoginProtection.instance(), authInfo.clientIpAddress)) {
+        if (checkLoginProtection(authInfo, LoginProtection.instance())) {
             // Access denied (time offset due to failed logins). Logging is done by check method.
             return null
         }
@@ -120,17 +123,17 @@ open class RestAuthenticationUtils {
         val secret = getAttribute(authInfo.request, *secretAttributes)
         if (secret.isNullOrBlank()) {
             // Log message, because userString was found, but authentication token not:
-            log.error("Authentication failed, no user secret (password or token) given by request params ${secretAttributes.joinToString(", or ", "'", "'") { it }}. Rest call forbidden.")
+            log.error("Authentication failed, no user secret (password or token) given by request params ${joinToString(secretAttributes)}. Rest call forbidden.")
             return null
         }
         return secret
     }
 
+    /**
+     * Tries a basic authorization by getting the "Authorization" header containing String "Basic" and base64 encoded "user:password".
+     * @param required If required, an error message is logged if no authentication is present. Otherwise only wrong credentials will result in error messages.
+     */
     fun basicAuthentication(authInfo: RestAuthenticationInfo,
-                            /**
-                             * If required, an error message is logged if no authentication is present. Otherwise
-                             * only wrong credentials will result in error messages.
-                             */
                             required: Boolean,
                             authenticate: (user: String, password: String) -> PFUserDO?) {
         val authHeader = authInfo.request.getHeader("Authorization") ?: return
@@ -150,8 +153,7 @@ open class RestAuthenticationUtils {
         }
         val username = credentials.substring(0, p).trim { it <= ' ' }
         authInfo.userString = username // required for LoginProtection.incrementFailedLoginTimeOffset
-        val clientIpAddress = authInfo.request.remoteAddr
-        if (checkLoginProtection(authInfo, LoginProtection.instance(), clientIpAddress)) {
+        if (checkLoginProtection(authInfo, LoginProtection.instance())) {
             // Access denied (time offset due to failed logins). Logging is done by check method.
             return
         }
@@ -160,6 +162,62 @@ open class RestAuthenticationUtils {
         if (!authInfo.success) {
             log.error("Basic authentication failed for user '$username'.")
         }
+    }
+
+    /**
+     * Tries an authorization by token.
+     * @param required If required, an error message is logged if no authentication is present. Otherwise only wrong credentials will result in error messages.
+     */
+    fun tokenAuthentication(authInfo: RestAuthenticationInfo,
+                            tokenType: UserTokenType,
+                            required: Boolean) {
+        val authenticationToken = getAttribute(authInfo.request, *REQUEST_PARAMS_TOKEN);
+        getUserString(authInfo, REQUEST_PARAMS_USER_ID, required);
+        val userId = NumberHelper.parseInteger(authInfo.userString)
+        tokenAuthentication(authInfo, tokenType, authenticationToken, required,
+                userParams = REQUEST_PARAMS_USER_ID,
+                tokenParams = REQUEST_PARAMS_TOKEN,
+                userId = userId)
+    }
+
+    /**
+     * @param userParams Request parameter names to search for userId/username, only for logging purposes.
+     * @param tokenParams Request parameter names to search for authentication token, only for logging purposes.
+     */
+    fun tokenAuthentication(authInfo: RestAuthenticationInfo,
+                            tokenType: UserTokenType,
+                            authenticationToken: String?,
+                            required: Boolean,
+                            userParams: Array<String>,
+                            tokenParams: Array<String>,
+                            userId: Int? = null,
+                            username: String? = null) {
+        if (checkLoginProtection(authInfo, LoginProtection.instance())) {
+            // Access denied (time offset due to failed logins). Logging is done by check method.
+            return
+        }
+        if (authenticationToken.isNullOrBlank() || (userId == null && username.isNullOrBlank())) {
+            if (authInfo.resultCode == null) {
+                // error not yet handled.
+                if (required) {
+                    log.info("User (by request params ${joinToString(userParams)}) and/or authentication tokens (by request params ${joinToString(tokenParams)}) not found. Rest call denied.")
+                    authInfo.resultCode = HttpStatus.BAD_REQUEST
+                }
+            }
+            return
+        }
+        authInfo.user = if (userId != null) {
+            userAuthenticationsService.getUserByToken(userId, tokenType, authenticationToken)
+        } else {
+            userAuthenticationsService.getUserByToken(username!!, tokenType, authenticationToken)
+        }
+        if (authInfo.user != null) {
+            registerLogAccess(authInfo.request, tokenType, userId = authInfo.user!!.id!!)
+        } else {
+            log.error("Bad request, user not found: ${authInfo.request.queryString}")
+            authInfo.resultCode = HttpStatus.BAD_REQUEST
+        }
+
     }
 
     /**
@@ -276,13 +334,11 @@ open class RestAuthenticationUtils {
     }
 
     @Throws(IOException::class)
-    private fun checkLoginProtection(authInfo: RestAuthenticationInfo,
-                                     loginProtection: LoginProtection,
-                                     clientIpAddress: String): Boolean {
-        val offset = loginProtection.getFailedLoginTimeOffsetIfExists(authInfo.userString, clientIpAddress)
+    private fun checkLoginProtection(authInfo: RestAuthenticationInfo, loginProtection: LoginProtection): Boolean {
+        val offset = loginProtection.getFailedLoginTimeOffsetIfExists(authInfo.userString, authInfo.clientIpAddress)
         if (offset > 0) {
             val seconds = (offset / 1000).toString()
-            log.warn("The account for '${authInfo.userString}' is locked for $seconds seconds due to failed login attempts (ip=$clientIpAddress).")
+            log.warn("The account for '${authInfo.userString}' is locked for $seconds seconds due to failed login attempts (ip=${authInfo.clientIpAddress}).")
             authInfo.resultCode = HttpStatus.FORBIDDEN
             authInfo.lockedByTimePenalty = true
             return true
@@ -331,6 +387,10 @@ open class RestAuthenticationUtils {
          * "Authentication-Password" and "authenticationPassword".
          */
         val REQUEST_PARAMS_PASSWORD = arrayOf(Authentication.AUTHENTICATION_PASSWORD, AuthenticationOld.AUTHENTICATION_PASSWORD)
+
+        fun joinToString(params: Array<String>): String {
+            return params.joinToString(" or ", "'", "'") { it }
+        }
 
         /**
          * @param req

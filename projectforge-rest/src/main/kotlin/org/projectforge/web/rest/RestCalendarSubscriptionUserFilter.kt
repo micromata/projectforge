@@ -36,7 +36,7 @@ class RestCalendarSubscriptionUserFilter : AbstractRestUserFilter() {
                 ?: run {
                     if (authInfo.resultCode == null) {
                         // error not yet handled.
-                        log.info("UserId not found in request parameters or can't parse it as int value. Rest call denied.")
+                        log.info("UserId not found in request parameters ('user') or can't parse it as int value. Rest call denied.")
                         authInfo.resultCode = HttpStatus.BAD_REQUEST
                     }
                     return
@@ -46,14 +46,12 @@ class RestCalendarSubscriptionUserFilter : AbstractRestUserFilter() {
             authInfo.resultCode = HttpStatus.BAD_REQUEST
             return
         }
-        // validate user
-        authInfo.user = userAuthenticationsService.getUserByToken(userId, UserTokenType.CALENDAR_REST, params["token"])
-        if (authInfo.user != null) {
-            restAuthenticationUtils.registerLogAccess(authInfo.request, UserTokenType.CALENDAR_REST, userId = authInfo.user!!.id!!)
-        } else {
-            log.error("Bad request, user not found: ${authInfo.request.queryString}")
-            authInfo.resultCode = HttpStatus.BAD_REQUEST
-        }
+        restAuthenticationUtils.tokenAuthentication(authInfo, UserTokenType.CALENDAR_REST,
+                required = true,
+                authenticationToken = params["token"],
+                userParams = arrayOf("user"),
+                tokenParams = arrayOf("q[token]"),
+                userId = userId)
     }
 
     companion object {

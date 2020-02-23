@@ -42,7 +42,7 @@ class RestAuthenticationInfo(var request: HttpServletRequest,
             field = value
         }
     var userString: String? = null
-    var clientIpAddress: String = request.remoteAddr
+    var clientIpAddress: String = request.remoteAddr ?: "unkown"
     var resultCode: HttpStatus? = null
     var lockedByTimePenalty = false
 }

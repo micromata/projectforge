@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.projectforge.business.user.UserAuthenticationsService;
 import org.projectforge.business.user.UserTokenType;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.rest.Authentication;
 import org.projectforge.rest.config.Rest;
@@ -64,9 +65,9 @@ public class RestUserFilterTest extends AbstractTestBase {
     initialized = true;
     PFUserDO user = getUserGroupCache().getUser(AbstractTestBase.TEST_USER);
     this.userId = user.getId();
-    this.filter.setRestAuthenticationUtils(restAuthenticationUtils);
+    ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().autowireBean(this.filter);
     logon(AbstractTestBase.TEST_ADMIN_USER);
-    this.userToken = userAuthenticationsService.getToken(this.userId, UserTokenType.CALENDAR_REST); // Admin access required.
+    this.userToken = userAuthenticationsService.getToken(this.userId, UserTokenType.REST_CLIENT); // Admin access required.
     logoff();
   }
 
@@ -112,7 +113,7 @@ public class RestUserFilterTest extends AbstractTestBase {
     }
     if (authenticationToken != null) {
       when(request.getHeader(Mockito.eq(Authentication.AUTHENTICATION_TOKEN))).thenReturn(authenticationToken);
-      when(request.getRequestURI()).thenReturn(Rest.CALENDAR_EXPORT_BASE_URI + "?...."); // Calendar rest (subscription)
+      when(request.getRequestURI()).thenReturn(Rest.URL + "....");
     }
     return request;
   }
