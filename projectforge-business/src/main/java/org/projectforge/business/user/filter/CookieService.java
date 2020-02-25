@@ -71,7 +71,7 @@ public class CookieService {
       final Integer userId = NumberHelper.parseInteger(values[0]);
       final String username = values[1];
       final String stayLoggedInKey = values[2];
-      final PFUserDO user = userAuthenticationsService.getUserByToken(username, UserTokenType.STAY_LOGGED_IN_KEY, stayLoggedInKey);
+      final PFUserDO user = userAuthenticationsService.getUserByToken(request, username, UserTokenType.STAY_LOGGED_IN_KEY, stayLoggedInKey);
       if (user == null) {
         log.warn("Invalid cookie found (user not found, stay-logged-in key, maybe renewed and/or user password changed): " + value);
         return null;

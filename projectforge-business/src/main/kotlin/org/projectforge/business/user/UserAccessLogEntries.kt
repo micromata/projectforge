@@ -21,8 +21,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.rest
+package org.projectforge.business.user
 
+import org.projectforge.framework.ToStringUtil
+import org.projectforge.web.rest.UserAccessLogEntry
+import org.slf4j.LoggerFactory
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
@@ -32,13 +35,27 @@ private const val MAX_SIZE = 20
  * Access to rest services will be logged, including UserAgent string, IP, used type of token and timestamp for
  * checking unauthorized access.
  */
-class UserAccessLogEntries {
+class UserAccessLogEntries(tokenType: UserTokenType) {
     private var entries = mutableSetOf<UserAccessLogEntry>()
+    var logAccessName: String
+        private set
+
+    init {
+        this.logAccessName = tokenType.name
+    }
 
     fun update(request: HttpServletRequest) {
         val ip = request.remoteAddr
         val userAgent = request.getHeader("User-Agent")
         update(userAgent = userAgent, ip = ip)
+    }
+
+    /**
+     * Clears all access entries (writes current state to log file before clearing). Should be called after renewing a token.
+     */
+    fun clear() {
+        log.info("Clearing entries '$logAccessName'. State was: $this")
+        entries.clear()
     }
 
     fun update(userAgent: String?, ip: String?) {
@@ -72,5 +89,13 @@ class UserAccessLogEntries {
     @JvmOverloads
     fun asText(separator: String, escapeHtml: Boolean = false): String {
         return sortedList().joinToString(separator) { it.asText(escapeHtml) }
+    }
+
+    override fun toString(): String {
+        return ToStringUtil.toJsonString(this)
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(UserAccessLogEntries::class.java)
     }
 }

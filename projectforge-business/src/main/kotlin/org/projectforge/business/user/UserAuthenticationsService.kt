@@ -24,13 +24,16 @@
 package org.projectforge.business.user
 
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.Crypt
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import javax.servlet.http.HttpServletRequest
 
+private const val USER_PREF_AREA_ACCESS_LOG_ENTRIES = "Authentication.accessLog"
 
 /**
  * The authentication tokens are used to prevent the usage of the user's password for services as calendar subscription of CardDAV/CalDAVServices as well
@@ -44,18 +47,29 @@ open class UserAuthenticationsService {
     @Autowired
     private lateinit var userAuthenticationsDao: UserAuthenticationsDao
 
+    @Autowired
+    private lateinit var userPrefService: UserPrefService
+
     /**
+     * Tries to get user by user id and token. If found, the access will be logged.
+     * @param request Is needed to register [UserAccessLogEntry] if token is used and valid.
      * @see UserAuthenticationsDao.getUserByToken
      */
-    open fun getUserByToken(userId: Int, type: UserTokenType, token: String?): PFUserDO? {
-        return userAuthenticationsDao.getUserByToken(userId, type, token)
+    open fun getUserByToken(request: HttpServletRequest, userId: Int, type: UserTokenType, token: String?): PFUserDO? {
+        val user = userAuthenticationsDao.getUserByToken(userId, type, token) ?: return null
+        registerLogAccess(request, type, userId)
+        return user
     }
 
     /**
+     * Tries to get user by username and token. If found, the access will be logged.
+     * @param request Is needed to register [UserAccessLogEntry] if token is used and valid.
      * @see UserAuthenticationsDao.getUserByToken
      */
-    open fun getUserByToken(username: String, type: UserTokenType, token: String?): PFUserDO? {
-        return userAuthenticationsDao.getUserByToken(username, type, token)
+    open fun getUserByToken(request: HttpServletRequest, username: String, type: UserTokenType, token: String?): PFUserDO? {
+        val user = userAuthenticationsDao.getUserByToken(username, type, token) ?: return null
+        registerLogAccess(request, type, user.id)
+        return user
     }
 
     /**
@@ -82,9 +96,28 @@ open class UserAuthenticationsService {
 
     /**
      * @see UserAuthenticationsDao.renewToken
+     * @see UserAccessLogEntries.clear
      */
-    open fun renewToken(userId: Int, type: UserTokenType) {
-        userAuthenticationsDao.renewToken(userId, type)
+    open fun renewToken(userId: Int, tokenType: UserTokenType) {
+        userAuthenticationsDao.renewToken(userId, tokenType)
+        getUserAccessLogEntries(tokenType, userId).clear()
+    }
+
+    /**
+     * @param userId Get the token for the given user, or for the context user if id is null.
+     */
+    @JvmOverloads
+    open fun getUserAccessLogEntries(tokenType: UserTokenType, userId: Int? = null): UserAccessLogEntries {
+        return userPrefService.ensureEntry(USER_PREF_AREA_ACCESS_LOG_ENTRIES, tokenType.name, UserAccessLogEntries(tokenType), true,
+                userId ?: ThreadLocalUserContext.getUserId())
+    }
+
+    /**
+     * @param userId If null, ThreadLocalUserContext.getUserId() is used.
+     */
+    private fun registerLogAccess(request: HttpServletRequest, tokenType: UserTokenType, userId: Int) {
+        val accessEntries = getUserAccessLogEntries(tokenType, userId)
+        accessEntries.update(request)
     }
 
     /**

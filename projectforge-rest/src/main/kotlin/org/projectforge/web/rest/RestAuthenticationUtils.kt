@@ -29,6 +29,7 @@ import org.projectforge.SystemStatus
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.multitenancy.TenantRegistry
 import org.projectforge.business.multitenancy.TenantRegistryMap
+import org.projectforge.business.user.UserAccessLogEntries
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserTokenType
@@ -55,8 +56,6 @@ import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-
-private const val USER_PREF_AREA_ACCESS_LOG_ENTRIES = "RestAuthentication.accessLog"
 
 /**
  * Does the authentication stuff for restful requests.
@@ -207,13 +206,11 @@ open class RestAuthenticationUtils {
             return
         }
         authInfo.user = if (userId != null) {
-            userAuthenticationsService.getUserByToken(userId, tokenType, authenticationToken)
+            userAuthenticationsService.getUserByToken(authInfo.request, userId, tokenType, authenticationToken)
         } else {
-            userAuthenticationsService.getUserByToken(username!!, tokenType, authenticationToken)
+            userAuthenticationsService.getUserByToken(authInfo.request, username!!, tokenType, authenticationToken)
         }
-        if (authInfo.user != null) {
-            registerLogAccess(authInfo.request, tokenType, userId = authInfo.user!!.id!!)
-        } else {
+        if (authInfo.user == null) {
             log.error("Bad request, user not found: ${authInfo.request.queryString}")
             authInfo.resultCode = HttpStatus.BAD_REQUEST
         }
@@ -263,26 +260,9 @@ open class RestAuthenticationUtils {
         }
     }
 
-    /**
-     * @param userId If null, ThreadLocalUserContext.getUserId() is used.
-     */
-    @JvmOverloads
-    fun registerLogAccess(request: HttpServletRequest, tokenType: UserTokenType, userId: Int? = null) {
-        registerLogAccess(request, tokenType.name, userId)
-    }
-
-    fun registerLogAccess(request: HttpServletRequest, logAccessName: String, userId: Int? = null) {
-        val accessEntries = getUserAccessLogEntries(logAccessName, userId ?: ThreadLocalUserContext.getUserId())
-        accessEntries.update(request)
-    }
-
     @JvmOverloads
     open fun getUserAccessLogEntries(tokenType: UserTokenType, userId: Int? = null): UserAccessLogEntries {
-        return getUserAccessLogEntries(tokenType.name, userId)
-    }
-
-    open fun getUserAccessLogEntries(logAccessName: String, userId: Int? = null): UserAccessLogEntries {
-        return userPrefService.ensureEntry(USER_PREF_AREA_ACCESS_LOG_ENTRIES, logAccessName, UserAccessLogEntries(), true, userId)
+        return userAuthenticationsService.getUserAccessLogEntries(tokenType, userId)
     }
 
     /**

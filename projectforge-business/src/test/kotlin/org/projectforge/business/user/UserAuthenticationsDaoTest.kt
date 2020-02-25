@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.user.entities.UserAuthenticationsD
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
-class UserAuthenticaitonsDaoTest : AbstractTestBase() {
+class UserAuthenticationsDaoTest : AbstractTestBase() {
     @Autowired
     private lateinit var userAuthenticationsDao: UserAuthenticationsDao
 

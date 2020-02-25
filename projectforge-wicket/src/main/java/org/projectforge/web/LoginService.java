@@ -116,7 +116,7 @@ public class LoginService {
               + ":"
               + loggedInUser.getUsername()
               + ":"
-              + userAuthenticationsService.getToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY));
+              + userAuthenticationsService.internalGetToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY));
       cookieService.addStayLoggedInCookie(WicketUtils.getHttpServletRequest(page.getRequest()), WicketUtils.getHttpServletResponse(page.getResponse()), cookie);
     }
     internalLogin(page, user);

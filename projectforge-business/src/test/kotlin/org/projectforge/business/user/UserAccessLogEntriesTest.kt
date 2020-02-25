@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.rest
+package org.projectforge.business.user
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -29,8 +29,8 @@ import org.junit.jupiter.api.Test
 
 class UserAccessLogEntriesTest {
     @Test
-    fun testAddressEditLayout() {
-        val entries = UserAccessLogEntries()
+    fun testUserAccessLogs() {
+        val entries = UserAccessLogEntries(UserTokenType.REST_CLIENT)
         entries.update(userAgent = "iOS", ip = "127.0.0.1")
         assertEquals(1, entries.size())
         entries.update(userAgent = "iOS", ip = "127.0.0.1")
