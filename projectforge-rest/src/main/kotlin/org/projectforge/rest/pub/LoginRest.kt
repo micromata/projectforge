@@ -105,7 +105,7 @@ open class LoginRest {
         if (user == null || loginResult.loginResultStatus != LoginResultStatus.SUCCESS) {
             return loginResult.loginResultStatus
         }
-        if (UserFilter.isUpdateRequiredFirst() == true) {
+        if (UserFilter.isUpdateRequiredFirst()) {
             log.warn("******* Update of ProjectForge required first. Please login via old login page. LoginService should be used instead.")
             return LoginResultStatus.FAILED
         }

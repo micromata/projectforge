@@ -70,7 +70,6 @@ class RestUserFilter : AbstractRestUserFilter() {
             authInfo.user = userContext.user
         }
         if (authInfo.success) {
-            restAuthenticationUtils.registerLogAccess(authInfo.request, UserTokenType.STAY_LOGGED_IN_KEY, userId = authInfo.user!!.id!!)
             return
         }
         val requestURI = authInfo.request.requestURI
