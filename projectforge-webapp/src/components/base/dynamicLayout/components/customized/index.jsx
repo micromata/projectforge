@@ -15,11 +15,15 @@ import CalendarSubscriptionInfo from './components/CalendarSubscriptionInfo';
 import VacationEntries from './components/VacationEntries';
 import VacationStatistics from './components/VacationStatistics';
 import CostNumberComponent from "./components/CostNumberComponent";
+import AccessTableComponent from "./components/AccessTableComponent";
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;
 
     switch (id) {
+        case 'access.table':
+            Tag = AccessTableComponent;
+            break;
         case 'address.edit.image':
             Tag = CustomizedAddressImage;
             break;

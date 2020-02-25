@@ -78,19 +78,12 @@ class UserPagesRest
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "username", "firstname", "lastname", "organization", "email",
-                                        /*"authenticationToken",*/
-                                        "jiraUsername", "hrPlanning", "deactivated"/*, "password"*/))
+                                        "authenticationToken", "jiraUsername", "hrPlanning", "deactivated"/*, "password"*/))
                         .add(UICol()
-                                .add(lc, /*"lastLogin", "language", */ "dateFormat", "excelDateFormat", "timeNotation",
+                                .add(lc, "lastLogin", "language", "dateFormat", "excelDateFormat", "timeNotation",
                                         "timeZoneObject", "personalPhoneIdentifiers", "sshPublicKey")))
                 .add(UISelect.createGroupSelect(lc, "readonlyAccessUsers", true, "user.assignedGroups"))
-                /*.add(UISelect<Int>("readonlyAccessUsers", lc,
-                        multi = true,
-                        label = "multitenancy.assignedTenants",
-                        additionalLabel = "access.groups",
-                        autoCompletion = AutoCompletion<Int>(url = "group/aco"),
-                        labelProperty = "name",
-                        valueProperty = "id"))*/
+                .add(UILabel("TODO: Add tenant select for assigned tenants"))
                 .add(lc, "description")
 
         return LayoutUtils.processEditPage(layout, dto, this)
