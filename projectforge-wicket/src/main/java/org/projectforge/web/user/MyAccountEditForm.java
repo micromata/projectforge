@@ -87,9 +87,6 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
   @SpringBean
   private UserAuthenticationsService userAuthenticationsService;
 
-  @SpringBean
-  private RestAuthenticationUtils restAuthenticationUtils;
-
   private Collection<TeamCalDO> teamCalRestWhiteList;
 
   private ModalDialog userAccessLogEntriesDialog;
@@ -126,11 +123,13 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
       addTokenRow(UserTokenType.DAV_TOKEN);
     }
     addTokenRow(UserTokenType.REST_CLIENT);
-    final FieldsetPanel fs = gridBuilder.newFieldset(getString("user.assignedGroups")).suppressLabelForWarning();
+    FieldsetPanel fs = gridBuilder.newFieldset(getString("user.assignedGroups")).suppressLabelForWarning();
     fs.add(new DivTextPanel(fs.newChildId(), groupService.getGroupnames(data.getId())));
 
     gridBuilder.newSplitPanel(GridSize.COL50);
-    UserEditForm.createLastLoginAndDeleteAllStayLogins(gridBuilder, data, userAuthenticationsService, this);
+    fs = UserEditForm.createLastLoginAndDeleteAllStayLogins(gridBuilder, data, userAuthenticationsService, this);
+    addInfoButton(fs, UserTokenType.STAY_LOGGED_IN_KEY);
+
     UserEditForm.createLocale(gridBuilder, data);
     UserEditForm.createDateFormat(gridBuilder, data);
     UserEditForm.createExcelDateFormat(gridBuilder, data);
@@ -179,14 +178,17 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
 
   private void addTokenRow(UserTokenType tokenType) {
     final FieldsetPanel fs = UserEditForm.createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, tokenType);
+    addInfoButton(fs, tokenType);
+  }
 
+  private void addInfoButton(FieldsetPanel fs, UserTokenType tokenType) {
     AjaxIconButtonPanel showInfoButton = new AjaxIconButtonPanel(fs.newChildId(), IconType.WRENCH, fs.getString("user.authenticationToken.button.showUsage.tooltip")) {
       /**
        * @see org.projectforge.web.wicket.flowlayout.AjaxIconButtonPanel#onSubmit(org.apache.wicket.ajax.AjaxRequestTarget)
        */
       @Override
       protected void onSubmit(final AjaxRequestTarget target) {
-        userAccessLogEntries = restAuthenticationUtils.getUserAccessLogEntries(tokenType).asText("<br/>", true);
+        userAccessLogEntries = userAuthenticationsService.getUserAccessLogEntries(tokenType).asText("<br/>", true);
         userAccessLogEntriesTextPanel.getLabel4Ajax().modelChanged();
         target.add(userAccessLogEntriesTextPanel.getLabel4Ajax());
         userAccessLogEntriesDialog.open(target);
