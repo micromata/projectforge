@@ -250,7 +250,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     fs.addHelpIcon(gridBuilder.getString("user.jiraUsername.tooltip"));
   }
 
-  public static void createLastLoginAndDeleteAllStayLogins(final GridBuilder gridBuilder, final PFUserDO user,
+  public static FieldsetPanel createLastLoginAndDeleteAllStayLogins(final GridBuilder gridBuilder, final PFUserDO user,
                                                            final UserAuthenticationsService userAuthenticationsService,
                                                            final Form<?> form) {
     // Last login and deleteAllStayLoggedInSessions
@@ -270,6 +270,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
             SingleButtonPanel.DANGER));
     WicketUtils.addTooltip(button,
             gridBuilder.getString("login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip"));
+    return fs;
   }
 
   public static void createLocale(final GridBuilder gridBuilder, final PFUserDO user) {
