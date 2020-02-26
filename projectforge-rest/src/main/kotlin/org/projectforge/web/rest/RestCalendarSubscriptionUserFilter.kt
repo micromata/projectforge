@@ -29,7 +29,7 @@ import org.projectforge.rest.pub.CalendarSubscriptionServiceRest
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 
-class RestCalendarSubscriptionUserFilter : AbstractRestUserFilter() {
+class RestCalendarSubscriptionUserFilter : AbstractRestUserFilter(UserTokenType.CALENDAR_REST) {
     override fun authenticate(authInfo: RestAuthenticationInfo) {
         val userString = restAuthenticationUtils.getUserString(authInfo, arrayOf("user"), true)
         val userId = NumberHelper.parseInteger(userString)

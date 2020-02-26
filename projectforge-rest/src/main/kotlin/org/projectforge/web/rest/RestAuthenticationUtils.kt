@@ -230,11 +230,13 @@ open class RestAuthenticationUtils {
      * authenticated user will be put to the [ThreadLocalUserContext], calls the doFilter method and will be removed after request was finished.
      * @param request
      * @param response
+     * @param tokenType Needed for increasing login penalty on failed logins. Logins should only be blocked for usage with same token.
      * @param authenticate The authenticate method tries to authenticate the user.
      * @param doFilter If authenticated, this method is called to proceed the request.
      */
     fun doFilter(request: ServletRequest,
                  response: ServletResponse,
+                 tokenType: UserTokenType,
                  authenticate: (authInfo: RestAuthenticationInfo) -> Unit,
                  doFilter: () -> Unit) {
         response as HttpServletResponse
@@ -249,13 +251,13 @@ open class RestAuthenticationUtils {
             response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)
             return
         }
-        val authInfo = RestAuthenticationInfo(request, response)
+        val authInfo = RestAuthenticationInfo(request, response, tokenType)
         authenticate(authInfo)
         if (!authInfo.success) {
             // Login failed, so increase time penalty for failed login for avoiding brute force attacks:
             if (!authInfo.lockedByTimePenalty) {
                 // Increment only for login failures, but not increment again if login was denied due to a login penalty.
-                LoginProtection.instance().incrementFailedLoginTimeOffset(authInfo.userString, authInfo.clientIpAddress)
+                LoginProtection.instance().incrementFailedLoginTimeOffset(authInfo.userStringForLoginPenalty, authInfo.clientIpAddress)
             }
             response.sendError(authInfo.resultCode?.value() ?: HttpServletResponse.SC_UNAUTHORIZED)
             return
@@ -282,7 +284,7 @@ open class RestAuthenticationUtils {
     fun registerUser(request: ServletRequest, authInfo: RestAuthenticationInfo) {
         val user = authInfo.user!!
         val clientIpAddress = authInfo.clientIpAddress
-        LoginProtection.instance().clearLoginTimeOffset(authInfo.userString, clientIpAddress)
+        LoginProtection.instance().clearLoginTimeOffset(authInfo.userStringForLoginPenalty, clientIpAddress)
         ThreadLocalUserContext.setUser(userGroupCache, user)
         val req = request as HttpServletRequest
         val settings = getConnectionSettings(req)
@@ -296,9 +298,7 @@ open class RestAuthenticationUtils {
         MDC.put("session", request.session?.id)
         MDC.put("user", user.username)
         MDC.put("userAgent", request.getHeader("User-Agent"))
-        log.info("User: " + user.username + " calls RestURL: " + request.requestURI
-                + " with ip: "
-                + clientIpAddress)
+        log.info("User: ${user.username} calls RestURL: ${request.requestURI} with ip: $clientIpAddress")
     }
 
     fun unregister(request: ServletRequest, response: ServletResponse,
@@ -313,17 +313,13 @@ open class RestAuthenticationUtils {
         if (resultCode != HttpStatus.OK.value() && resultCode != HttpStatus.MULTI_STATUS.value()) { // MULTI_STATUS (207) will be returned by milton.io (CalDAV/CardDAV), because XML is returned.
             val user = authInfo.user!!
             val clientIpAddress = authInfo.clientIpAddress
-            log.error("User: " + user.username + " calls RestURL: " + (request as HttpServletRequest).requestURI
-                    + " with ip: "
-                    + clientIpAddress
-                    + ": Response status not OK: status=" + response.status
-                    + ".")
+            log.error("User: ${user.username} calls RestURL: ${(request as HttpServletRequest).requestURI} with ip: $clientIpAddress: Response status not OK: status=${response.status}.")
         }
     }
 
     @Throws(IOException::class)
     private fun checkLoginProtection(authInfo: RestAuthenticationInfo, loginProtection: LoginProtection): Boolean {
-        val offset = loginProtection.getFailedLoginTimeOffsetIfExists(authInfo.userString, authInfo.clientIpAddress)
+        val offset = loginProtection.getFailedLoginTimeOffsetIfExists(authInfo.userStringForLoginPenalty, authInfo.clientIpAddress)
         if (offset > 0) {
             val seconds = (offset / 1000).toString()
             log.warn("The account for '${authInfo.userString}' is locked for $seconds seconds due to failed login attempts (ip=${authInfo.clientIpAddress}).")

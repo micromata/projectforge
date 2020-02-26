@@ -30,7 +30,7 @@ import org.projectforge.rest.Authentication
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 
-class RestUserFilter : AbstractRestUserFilter() {
+class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
     @Autowired
     lateinit var cookieService: CookieService
 
@@ -52,7 +52,7 @@ class RestUserFilter : AbstractRestUserFilter() {
         if (authInfo.success) {
             return
         }
-        restAuthenticationUtils.tokenAuthentication(authInfo, UserTokenType.REST_CLIENT, false)
+        restAuthenticationUtils.tokenAuthentication(authInfo, tokenType, false)
         if (authInfo.success) {
             return
         }

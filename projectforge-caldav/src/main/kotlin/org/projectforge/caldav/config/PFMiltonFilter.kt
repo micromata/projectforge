@@ -71,13 +71,14 @@ class PFMiltonFilter : MiltonFilter() {
     @Throws(IOException::class, ServletException::class)
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
         request as HttpServletRequest
-        if (request.method != "PROPFIND") {
+        if (!DAVMethodsInterceptor.isMethodSupported(request)) {
             // Not for us:
             chain.doFilter(request, response)
         } else {
             log.info("request ${request.requestURI} with method=${request.method} for Milton...")
             restAuthenticationUtils.doFilter(request,
                     response,
+                    UserTokenType.DAV_TOKEN,
                     authenticate = { authInfo -> authenticate(authInfo) },
                     doFilter = { -> super.doFilter(request, response, chain) }
             )

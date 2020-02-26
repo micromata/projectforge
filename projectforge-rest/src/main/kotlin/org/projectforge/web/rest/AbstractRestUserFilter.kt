@@ -24,6 +24,7 @@
 package org.projectforge.web.rest
 
 import org.projectforge.business.user.UserAuthenticationsService
+import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.UserContext
@@ -41,7 +42,7 @@ import javax.servlet.http.HttpServletRequest
  * @author Daniel Ludwig (d.ludwig@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-abstract class AbstractRestUserFilter : Filter {
+abstract class AbstractRestUserFilter(val tokenType: UserTokenType) : Filter {
     private lateinit var springContext: WebApplicationContext
     @Autowired
     lateinit var restAuthenticationUtils: RestAuthenticationUtils
@@ -66,6 +67,7 @@ abstract class AbstractRestUserFilter : Filter {
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
         restAuthenticationUtils.doFilter(request,
                 response,
+                tokenType,
                 authenticate = { authInfo -> authenticate(authInfo) },
                 doFilter = { -> chain.doFilter(request, response) }
         )
