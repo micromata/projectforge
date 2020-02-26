@@ -24,26 +24,17 @@
 package org.projectforge.caldav.model
 
 import io.milton.annotations.Name
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Id
 
-@Entity(name = "t_pf_user")
 class User {
-    @Id
     var pk: Long? = null
     @get:Name
-    @Column(name = "username")
     var username: String? = null
-    @Column(name = "deleted")
-    var deleted: Boolean? = null
-    @Column(name = "authentication_token")
     var authenticationToken: String? = null
 
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || javaClass != o.javaClass) return false
-        val user = o as User
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || javaClass != other.javaClass) return false
+        val user = other as User
         return if (pk != null) pk == user.pk else user.pk == null
     }
 

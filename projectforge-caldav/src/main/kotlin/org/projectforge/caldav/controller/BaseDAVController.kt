@@ -54,6 +54,11 @@ open class BaseDAVController: BaseDAVAuthenticationController() {
     @ChildrenOf
     @Users
     fun getUsers(usersHome: UsersHome?): Collection<User> {
+        val userId = ThreadLocalUserContext.getUserId()
+        if (userId == null) {
+            log.error("No user authenticated, can't get list of users.")
+            return emptyList()
+        }
         log.info("Trying to get list of users. Return only logged-in one due to security reasons.")
         val user = User()
         user.pk = ThreadLocalUserContext.getUserId().toLong()

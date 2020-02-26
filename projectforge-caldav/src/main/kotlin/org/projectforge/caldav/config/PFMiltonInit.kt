@@ -52,11 +52,8 @@ open class PFMiltonInit {
             log.info("Don't start webdav (CalDAV and CardDAV) server, OK. No license files given: ${licenseFile.absolutePath}")
             return
         }
-        val miltonFilterUrlPatterns = PFMiltonFilter.miltonUrls.map { "$it/*" }.toTypedArray()
-
         log.info("Milton license file found, try to start WebDAV functionality: ${licenseFile.absolutePath}")
-        val miltonFilter: FilterRegistration = RestUtils.registerFilter(sc, "MiltonFilter", PFMiltonFilter::class.java, false,
-                *miltonFilterUrlPatterns)
+        val miltonFilter: FilterRegistration = RestUtils.registerFilter(sc, "MiltonFilter", PFMiltonFilter::class.java, false, "/*")
         miltonFilter.setInitParameter("resource.factory.class", "io.milton.http.annotated.AnnotationResourceFactory")
         // FB: Don't work in Spring Boot fat jar
         // miltonFilter.setInitParameter("controllerPackagesToScan", "org.projectforge.caldav.controller");
