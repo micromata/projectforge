@@ -59,12 +59,12 @@ class PFMiltonFilter : MiltonFilter() {
     }
 
     private fun authenticate(authInfo: RestAuthenticationInfo) {
-        return restAuthenticationUtils.basicAuthentication(authInfo, true) { user, authenticationToken ->
-            val user = userAuthenticationsService.getUserByToken(authInfo.request, user, UserTokenType.DAV_TOKEN, authenticationToken)
-            if (user == null) {
-                log.error("Can't authenticate user '$user' by given token. User name and/or token invalid.")
+        return restAuthenticationUtils.basicAuthentication(authInfo, true) { userString, authenticationToken ->
+            val authenticatedUser = userAuthenticationsService.getUserByToken(authInfo.request, userString, UserTokenType.DAV_TOKEN, authenticationToken)
+            if (authenticatedUser == null) {
+                log.error("Can't authenticate user '$userString' by given token. User name and/or token invalid.")
             }
-            user
+            authenticatedUser
         }
     }
 

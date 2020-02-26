@@ -134,7 +134,7 @@ open class RestAuthenticationUtils {
      */
     fun basicAuthentication(authInfo: RestAuthenticationInfo,
                             required: Boolean,
-                            authenticate: (user: String, password: String) -> PFUserDO?) {
+                            authenticate: (userString: String, password: String) -> PFUserDO?) {
         val authHeader = getHeader(authInfo.request, "authorization", "Authorization")
         if (authHeader.isNullOrBlank()) {
             if (required) {
