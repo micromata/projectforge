@@ -36,31 +36,33 @@ import org.slf4j.LoggerFactory;
  * Created by blumenstein on 21.11.16.
  */
 public class BaseDAVAuthenticationController {
-    private boolean autowired = false;
+  private boolean autowired = false;
 
-    protected void ensureAutowire() {
-        if (!autowired) {
-            // Late initialization is required. ApplicationContext isn't available in constructor.
-            ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().autowireBean(this);
-            autowired = true;
-        }
+  protected void ensureAutowire() {
+    if (!autowired) {
+      // Late initialization is required. ApplicationContext isn't available in constructor.
+      ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().autowireBean(this);
+      autowired = true;
     }
+  }
 
-    /**
-     * Function as Java code needed, because Milton fails while checking return type of this method (java.lang.Boolean required).
-     * @param user
-     * @param requestedPassword
-     * @return
-     */
-    @Authenticate
-    public Boolean authenticate(final User user, final String requestedPassword) {
-        log.info("Trying to authenticate user '" + user.getUsername()  + "'.");
-        final PFUserDO contextUser = ThreadLocalUserContext.getUser();
-        if (contextUser == null) {
-          return false;
-        }
-        return StringUtils.equals(contextUser.getUsername(), user.getUsername());
+  /**
+   * Function as Java code needed, because Milton fails while checking return type of this method (java.lang.Boolean required).
+   *
+   * @param user
+   * @param requestedPassword
+   * @return
+   */
+  @Authenticate
+  public Boolean authenticate(final User user, final String requestedPassword) {
+    final PFUserDO contextUser = ThreadLocalUserContext.getUser();
+    if (contextUser != null && StringUtils.equals(contextUser.getUsername(), user.getUsername())) {
+      log.info("User '" + user.getUsername() + "' authenticated.");
+      return true;
     }
+    log.warn("User '" + user.getUsername() + "' not authenticated.");
+    return false;
+  }
 
-    private static Logger log = LoggerFactory.getLogger(BaseDAVController.class);
+  private static Logger log = LoggerFactory.getLogger(BaseDAVController.class);
 }

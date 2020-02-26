@@ -34,6 +34,7 @@ import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.context.support.WebApplicationContextUtils
 import java.io.IOException
 import javax.servlet.*
+import javax.servlet.http.HttpServletRequest
 
 /**
  * Ensuring a white url list for using Milton filter. MiltonFilter at default supports only black list.
@@ -46,7 +47,6 @@ class PFMiltonFilter : MiltonFilter() {
     private lateinit var userAuthenticationsService: UserAuthenticationsService
 
     companion object {
-        internal val miltonUrls = listOf("/users", "/principals")
         private val log = LoggerFactory.getLogger(PFMiltonFilter::class.java)
     }
 
@@ -60,16 +60,27 @@ class PFMiltonFilter : MiltonFilter() {
 
     private fun authenticate(authInfo: RestAuthenticationInfo) {
         return restAuthenticationUtils.basicAuthentication(authInfo, true) { user, authenticationToken ->
-            userAuthenticationsService.getUserByToken(authInfo.request, user, UserTokenType.DAV_TOKEN, authenticationToken)
+            val user = userAuthenticationsService.getUserByToken(authInfo.request, user, UserTokenType.DAV_TOKEN, authenticationToken)
+            if (user == null) {
+                log.error("Can't authenticate user '$user' by given token. User name and/or token invalid.")
+            }
+            user
         }
     }
 
     @Throws(IOException::class, ServletException::class)
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-        restAuthenticationUtils.doFilter(request,
-                response,
-                authenticate = { authInfo -> authenticate(authInfo) },
-                doFilter = { -> super.doFilter(request, response, chain) }
-        )
+        request as HttpServletRequest
+        if (request.method != "PROPFIND") {
+            // Not for us:
+            chain.doFilter(request, response)
+        } else {
+            log.info("request ${request.requestURI} with method=${request.method} for Milton...")
+            restAuthenticationUtils.doFilter(request,
+                    response,
+                    authenticate = { authInfo -> authenticate(authInfo) },
+                    doFilter = { -> super.doFilter(request, response, chain) }
+            )
+        }
     }
 }

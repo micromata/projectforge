@@ -135,12 +135,21 @@ open class RestAuthenticationUtils {
     fun basicAuthentication(authInfo: RestAuthenticationInfo,
                             required: Boolean,
                             authenticate: (user: String, password: String) -> PFUserDO?) {
-        val authHeader = authInfo.request.getHeader("Authorization") ?: return
+        val authHeader = getHeader(authInfo.request, "authorization", "Authorization")
+        if (authHeader.isNullOrBlank()) {
+            if (required) {
+                val sessionId = authInfo.request.requestedSessionId
+                authInfo.resultCode = HttpStatus.UNAUTHORIZED
+                authInfo.response.setHeader("WWW-Authenticate", "Basic realm=\"Basic authenticaiton required\"")
+                log.error("Basic authentication failed, header 'authorization' not found, sessionId=$sessionId")
+            }
+            return
+        }
         // Try basic authorization
         val basic = StringUtils.split(authHeader)
         if (basic.size != 2 || !StringUtils.equalsIgnoreCase(basic[0], "Basic")) {
             if (required) {
-                log.error("Basic authentication failed, header 'Authorization' not found.")
+                log.error("Basic authentication failed, header 'authorization' not in supported format (Basic <base64>).")
             }
             return
         }
@@ -378,12 +387,28 @@ open class RestAuthenticationUtils {
          * Might be used for backwards compatibility.
          * @return
          */
-        internal fun getAttribute(req: HttpServletRequest, vararg keys: String): String? {
+        private fun getAttribute(req: HttpServletRequest, vararg keys: String): String? {
             keys.forEach { key ->
                 var value = req.getHeader(key)
                 if (value == null) {
                     value = req.getParameter(key)
                 }
+                if (value != null) {
+                    return value
+                }
+            }
+            return null
+        }
+
+        /**
+         * @param req
+         * @param keys Name of the header key. Additional keys may be given as alternative keys if first key isn't found.
+         * Might be used for backwards compatibility.
+         * @return
+         */
+        private fun getHeader(req: HttpServletRequest, vararg keys: String): String? {
+            keys.forEach { key ->
+                val value = req.getHeader(key)
                 if (value != null) {
                     return value
                 }
