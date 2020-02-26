@@ -23,13 +23,7 @@
 
 package org.projectforge.caldav.model
 
-import org.slf4j.LoggerFactory
-
 class UsersHome {
     val name: String
         get() = "users"
-
-    companion object {
-        private val log = LoggerFactory.getLogger(UsersHome::class.java)
-    }
 }

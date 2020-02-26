@@ -138,10 +138,9 @@ open class RestAuthenticationUtils {
         val authHeader = getHeader(authInfo.request, "authorization", "Authorization")
         if (authHeader.isNullOrBlank()) {
             if (required) {
-                val sessionId = authInfo.request.requestedSessionId
                 authInfo.resultCode = HttpStatus.UNAUTHORIZED
                 authInfo.response.setHeader("WWW-Authenticate", "Basic realm=\"Basic authenticaiton required\"")
-                log.error("Basic authentication failed, header 'authorization' not found, sessionId=$sessionId")
+                log.error("Basic authentication failed, header 'authorization' not found.")
             }
             return
         }

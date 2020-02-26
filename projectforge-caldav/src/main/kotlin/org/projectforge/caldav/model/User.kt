@@ -26,23 +26,22 @@ package org.projectforge.caldav.model
 import io.milton.annotations.Name
 
 class User {
-    var pk: Long? = null
+    var id: Long? = null
     @get:Name
     var username: String? = null
     var authenticationToken: String? = null
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other == null || javaClass != other.javaClass) return false
-        val user = other as User
-        return if (pk != null) pk == user.pk else user.pk == null
+        if (other == null || other !is User) return false
+        return id == other.id
     }
 
     override fun hashCode(): Int {
-        return if (pk != null) 42 * pk.hashCode() else 0
+        return if (id != null) 42 * id.hashCode() else 0
     }
 
     override fun toString(): String {
-        return String.format("User[id=%d, username='%s']", pk, username)
+        return "User[id=$id, username='$username']"
     }
 }
