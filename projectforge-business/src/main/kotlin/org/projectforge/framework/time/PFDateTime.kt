@@ -287,7 +287,7 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
     }
 
     fun daysBetween(date: LocalDate): Long {
-        return daysBetween(from(date)!!)
+        return daysBetween(from(date))
     }
 
     override fun daysBetween(other: PFDateTime): Long {
