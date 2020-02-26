@@ -23,21 +23,22 @@
 
 package org.projectforge.config;
 
-import org.projectforge.Const;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-@Configuration
-public class WebApplicationConfig implements WebMvcConfigurer {
-  @Override
-  public void addViewControllers(ViewControllerRegistry registry) {
-    registry.addViewController("/" + Const.REACT_APP_PATH + "**").setViewName("forward:/react-app.html");
-  }
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+public class PropFindInterceptor extends HandlerInterceptorAdapter {
   @Override
-  public void addInterceptors(InterceptorRegistry registry) {
-    registry.addInterceptor(new PropFindInterceptor());
+  public boolean preHandle(HttpServletRequest request,
+                           HttpServletResponse response, Object handler) {
+    if (request.getMethod().equals("PROPFIND")) {
+      // Support PROPFIND
+      return false;
+    } else {
+      return true;
+    }
   }
 }
+
+
