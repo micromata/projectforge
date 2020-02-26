@@ -180,6 +180,10 @@ fieldset {
   margin-top: 20px;
 }
 
+.rbc-btn-group {
+  font-size: 13px;
+}
+
 // NavTabs
 
 .nav-tabs {
@@ -193,6 +197,18 @@ svg.fa-chevron-down {
 }
 
 // Calendar
+
+// Calendar Table Head
+.rbc-month-view {
+  .rbc-row.rbc-month-header {
+    font-size: 13px;
+    line-height: 2;
+    height: 24px;
+    background: #a8a8a8;
+    color: #fff;
+    letter-spacing: 1px
+  }
+}
 
 .rbc-time-view {
   border-radius: 5px;
