@@ -24,6 +24,7 @@
 package org.projectforge.config;
 
 import org.projectforge.Const;
+import org.projectforge.caldav.config.DAVMethodsInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
@@ -38,6 +39,6 @@ public class WebApplicationConfig implements WebMvcConfigurer {
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
-    registry.addInterceptor(new PropFindInterceptor());
+    registry.addInterceptor(new DAVMethodsInterceptor());
   }
 }

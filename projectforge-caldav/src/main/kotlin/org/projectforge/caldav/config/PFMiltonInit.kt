@@ -62,9 +62,13 @@ open class PFMiltonInit {
         miltonFilter.setInitParameter("enableDigestAuth", "false")
         miltonFilter.setInitParameter("milton.configurator", ProjectForgeMiltonConfigurator::class.java.name)
         configurationService.isDAVServicesAvailable = true
+        available = true
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(PFMiltonInit::class.java)
+
+        internal var available = false
+            private set
     }
 }
