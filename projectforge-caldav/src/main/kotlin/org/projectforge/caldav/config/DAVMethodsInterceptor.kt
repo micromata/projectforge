@@ -27,7 +27,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-private val METHODS = arrayOf("PROPFIND", "PROPPATCH", "OPTIONS", "REPORT")
+private val METHODS = arrayOf("OPTIONS", "PROPPATCH", "REPORT")
 
 /**
  * Enables http methods, required by DAV functionality such as "PROPFIND" etc.
@@ -38,19 +38,29 @@ class DAVMethodsInterceptor : HandlerInterceptorAdapter() {
      */
     override fun preHandle(request: HttpServletRequest,
                            response: HttpServletResponse, handler: Any): Boolean {
-        return isMethodSupported(request) // Support PROPFIND, PROPPATCH etc.
+        return !handledByMiltonFilter(request) // Support PROPFIND, PROPPATCH etc.
     }
 
     companion object {
         /**
-         * @return true if [PFMiltonInit.available] and given method is in list "PROPFIND", "PROPPATCH", "OPTIONS", "REPORT".
+         * @return true if [PFMiltonInit.available] and given method is in list "PROPFIND", "PROPPATCH", "OPTIONS" (with /users/...), "REPORT".
          * Otherwise false.
          */
-        internal fun isMethodSupported(request: HttpServletRequest): Boolean {
-            val uri = request.requestURI
-            // We may add uri pattern later ("/", "/principals/*", "/users/*").
-            return PFMiltonInit.available && METHODS.contains(request.method) &&
-                    (uri == "/" || uri.startsWith("/users") || uri.startsWith("/principals"))
+        internal fun handledByMiltonFilter(request: HttpServletRequest): Boolean {
+            if (!PFMiltonInit.available) {
+                return false
+            }
+            val method = request.method
+            if (method == "PROPFIND") {
+                // All PROPFIND's will be handled by Milton.
+                return true
+            }
+            if (METHODS.contains(method)) {
+                val uri = request.requestURI
+                // We may add uri pattern later ("/", "/principals/*", "/users/*").
+                return uri.matches("/+users.*".toRegex())
+            }
+            return false
         }
     }
 }

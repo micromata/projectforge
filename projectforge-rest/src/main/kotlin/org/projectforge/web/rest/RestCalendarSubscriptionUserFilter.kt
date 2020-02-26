@@ -31,7 +31,7 @@ import org.springframework.http.HttpStatus
 
 class RestCalendarSubscriptionUserFilter : AbstractRestUserFilter(UserTokenType.CALENDAR_REST) {
     override fun authenticate(authInfo: RestAuthenticationInfo) {
-        val userString = restAuthenticationUtils.getUserString(authInfo, arrayOf("user"), true)
+        val userString = restAuthenticationUtils.getUserString(authInfo, arrayOf("user"), UserTokenType.CALENDAR_REST, true)
         val userId = NumberHelper.parseInteger(userString)
                 ?: run {
                     if (authInfo.resultCode == null) {

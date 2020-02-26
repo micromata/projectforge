@@ -84,13 +84,15 @@ open class RestAuthenticationUtils {
      * @param secretAttributes List of request parameters to look for the user's secret (password or token).
      * @param required If required, an error message is logged if no authentication is present. Otherwise
      * only wrong credentials will result in error messages.
+     * @param userTokenType Type of authentication (or null) for separating time penalties of login protection for different types (DAV, REST_CLIENT and normal login).
      */
     fun authenticationByRequestParameter(authInfo: RestAuthenticationInfo,
                                          userAttributes: Array<String>,
                                          secretAttributes: Array<String>,
+                                         userTokenType: UserTokenType?,
                                          required: Boolean,
                                          authenticate: (user: String, authenticationToken: String) -> PFUserDO?) {
-        val userString = getUserString(authInfo, userAttributes, required) ?: return
+        val userString = getUserString(authInfo, userAttributes, userTokenType, required) ?: return
         val authenticationToken = getUserSecret(authInfo, secretAttributes) ?: return
         authInfo.user = authenticate(userString, authenticationToken)
         if (!authInfo.success) {
@@ -102,8 +104,9 @@ open class RestAuthenticationUtils {
 
     /**
      * Checks also login protection (time out against brute force attack).
+     * @param userTokenType Type of authentication (or null) for separating time penalties of login protection for different types (DAV, REST_CLIENT and normal login).
      */
-    fun getUserString(authInfo: RestAuthenticationInfo, userAttributes: Array<String>, required: Boolean): String? {
+    fun getUserString(authInfo: RestAuthenticationInfo, userAttributes: Array<String>, userTokenType: UserTokenType?, required: Boolean): String? {
         authInfo.userString = getAttribute(authInfo.request, *userAttributes)
         if (authInfo.userString.isNullOrBlank()) {
             if (required) {
@@ -111,7 +114,7 @@ open class RestAuthenticationUtils {
             }
             return null
         }
-        if (checkLoginProtection(authInfo, LoginProtection.instance())) {
+        if (checkLoginProtection(authInfo, userTokenType)) {
             // Access denied (time offset due to failed logins). Logging is done by check method.
             return null
         }
@@ -130,9 +133,11 @@ open class RestAuthenticationUtils {
 
     /**
      * Tries a basic authorization by getting the "Authorization" header containing String "Basic" and base64 encoded "user:password".
+     * @param userTokenType Type of authentication (or null) for separating time penalties of login protection for different types (DAV, REST_CLIENT and normal login).
      * @param required If required, an error message is logged if no authentication is present. Otherwise only wrong credentials will result in error messages.
      */
     fun basicAuthentication(authInfo: RestAuthenticationInfo,
+                            userTokenType: UserTokenType?,
                             required: Boolean,
                             authenticate: (userString: String, password: String) -> PFUserDO?) {
         val authHeader = getHeader(authInfo.request, "authorization", "Authorization")
@@ -160,7 +165,7 @@ open class RestAuthenticationUtils {
         }
         val username = credentials.substring(0, p).trim { it <= ' ' }
         authInfo.userString = username // required for LoginProtection.incrementFailedLoginTimeOffset
-        if (checkLoginProtection(authInfo, LoginProtection.instance())) {
+        if (checkLoginProtection(authInfo, userTokenType)) {
             // Access denied (time offset due to failed logins). Logging is done by check method.
             return
         }
@@ -174,32 +179,34 @@ open class RestAuthenticationUtils {
     /**
      * Tries an authorization by token.
      * @param required If required, an error message is logged if no authentication is present. Otherwise only wrong credentials will result in error messages.
+     * @param userTokenType Type of authentication (or null) for separating time penalties of login protection for different types (DAV, REST_CLIENT and normal login).
      */
     fun tokenAuthentication(authInfo: RestAuthenticationInfo,
-                            tokenType: UserTokenType,
+                            userTokenType: UserTokenType,
                             required: Boolean) {
-        val authenticationToken = getAttribute(authInfo.request, *REQUEST_PARAMS_TOKEN);
-        getUserString(authInfo, REQUEST_PARAMS_USER_ID, required);
+        val authenticationToken = getAttribute(authInfo.request, *REQUEST_PARAMS_TOKEN)
+        getUserString(authInfo, REQUEST_PARAMS_USER_ID, userTokenType, required)
         val userId = NumberHelper.parseInteger(authInfo.userString)
-        tokenAuthentication(authInfo, tokenType, authenticationToken, required,
+        tokenAuthentication(authInfo, userTokenType, authenticationToken, required,
                 userParams = REQUEST_PARAMS_USER_ID,
                 tokenParams = REQUEST_PARAMS_TOKEN,
                 userId = userId)
     }
 
     /**
+     * @param userTokenType Type of authentication (or null) for separating time penalties of login protection for different types (DAV, REST_CLIENT and normal login).
      * @param userParams Request parameter names to search for userId/username, only for logging purposes.
      * @param tokenParams Request parameter names to search for authentication token, only for logging purposes.
      */
     fun tokenAuthentication(authInfo: RestAuthenticationInfo,
-                            tokenType: UserTokenType,
+                            userTokenType: UserTokenType,
                             authenticationToken: String?,
                             required: Boolean,
                             userParams: Array<String>,
                             tokenParams: Array<String>,
                             userId: Int? = null,
                             username: String? = null) {
-        if (checkLoginProtection(authInfo, LoginProtection.instance())) {
+        if (checkLoginProtection(authInfo, userTokenType)) {
             // Access denied (time offset due to failed logins). Logging is done by check method.
             return
         }
@@ -214,9 +221,9 @@ open class RestAuthenticationUtils {
             return
         }
         authInfo.user = if (userId != null) {
-            userAuthenticationsService.getUserByToken(authInfo.request, userId, tokenType, authenticationToken)
+            userAuthenticationsService.getUserByToken(authInfo.request, userId, userTokenType, authenticationToken)
         } else {
-            userAuthenticationsService.getUserByToken(authInfo.request, username!!, tokenType, authenticationToken)
+            userAuthenticationsService.getUserByToken(authInfo.request, username!!, userTokenType, authenticationToken)
         }
         if (authInfo.user == null) {
             log.error("Bad request, user not found: ${authInfo.request.queryString}")
@@ -230,13 +237,13 @@ open class RestAuthenticationUtils {
      * authenticated user will be put to the [ThreadLocalUserContext], calls the doFilter method and will be removed after request was finished.
      * @param request
      * @param response
-     * @param tokenType Needed for increasing login penalty on failed logins. Logins should only be blocked for usage with same token.
+     * @param userTokenType Type of authentication (or null) for separating time penalties of login protection for different types (DAV, REST_CLIENT and normal login).
      * @param authenticate The authenticate method tries to authenticate the user.
      * @param doFilter If authenticated, this method is called to proceed the request.
      */
     fun doFilter(request: ServletRequest,
                  response: ServletResponse,
-                 tokenType: UserTokenType,
+                 userTokenType: UserTokenType?,
                  authenticate: (authInfo: RestAuthenticationInfo) -> Unit,
                  doFilter: () -> Unit) {
         response as HttpServletResponse
@@ -251,19 +258,19 @@ open class RestAuthenticationUtils {
             response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)
             return
         }
-        val authInfo = RestAuthenticationInfo(request, response, tokenType)
+        val authInfo = RestAuthenticationInfo(request, response)
         authenticate(authInfo)
         if (!authInfo.success) {
             // Login failed, so increase time penalty for failed login for avoiding brute force attacks:
             if (!authInfo.lockedByTimePenalty) {
                 // Increment only for login failures, but not increment again if login was denied due to a login penalty.
-                LoginProtection.instance().incrementFailedLoginTimeOffset(authInfo.userStringForLoginPenalty, authInfo.clientIpAddress)
+                LoginProtection.instance().incrementFailedLoginTimeOffset(authInfo.userString, authInfo.clientIpAddress, userTokenType?.name)
             }
             response.sendError(authInfo.resultCode?.value() ?: HttpServletResponse.SC_UNAUTHORIZED)
             return
         }
         try {
-            registerUser(request, authInfo)
+            registerUser(request, authInfo, userTokenType)
             doFilter()
         } finally {
             unregister(request, response, authInfo)
@@ -280,11 +287,12 @@ open class RestAuthenticationUtils {
      *
      * @param request
      * @param authInfo
+     * @param userTokenType Only needed for checking time penalty of login protection.
      */
-    fun registerUser(request: ServletRequest, authInfo: RestAuthenticationInfo) {
+    fun registerUser(request: ServletRequest, authInfo: RestAuthenticationInfo, userTokenType: UserTokenType?) {
         val user = authInfo.user!!
         val clientIpAddress = authInfo.clientIpAddress
-        LoginProtection.instance().clearLoginTimeOffset(authInfo.userStringForLoginPenalty, clientIpAddress)
+        LoginProtection.instance().clearLoginTimeOffset(authInfo.userString, user.id, clientIpAddress, userTokenType?.name)
         ThreadLocalUserContext.setUser(userGroupCache, user)
         val req = request as HttpServletRequest
         val settings = getConnectionSettings(req)
@@ -318,8 +326,8 @@ open class RestAuthenticationUtils {
     }
 
     @Throws(IOException::class)
-    private fun checkLoginProtection(authInfo: RestAuthenticationInfo, loginProtection: LoginProtection): Boolean {
-        val offset = loginProtection.getFailedLoginTimeOffsetIfExists(authInfo.userStringForLoginPenalty, authInfo.clientIpAddress)
+    private fun checkLoginProtection(authInfo: RestAuthenticationInfo, tokenType: UserTokenType?): Boolean {
+        val offset = LoginProtection.instance().getFailedLoginTimeOffsetIfExists(authInfo.userString, authInfo.clientIpAddress, tokenType?.name)
         if (offset > 0) {
             val seconds = (offset / 1000).toString()
             log.warn("The account for '${authInfo.userString}' is locked for $seconds seconds due to failed login attempts (ip=${authInfo.clientIpAddress}).")
@@ -335,9 +343,7 @@ open class RestAuthenticationUtils {
         val dateTimeFormatString = getAttribute(req, ConnectionSettings.DATE_TIME_FORMAT)
         if (dateTimeFormatString != null) {
             val dateTimeFormat = DateTimeFormat.valueOf(dateTimeFormatString.toUpperCase())
-            if (dateTimeFormat != null) {
-                settings.dateTimeFormat = dateTimeFormat
-            }
+            settings.dateTimeFormat = dateTimeFormat
         }
         return settings
     }

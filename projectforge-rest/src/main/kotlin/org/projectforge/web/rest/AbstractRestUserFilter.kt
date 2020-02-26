@@ -42,7 +42,7 @@ import javax.servlet.http.HttpServletRequest
  * @author Daniel Ludwig (d.ludwig@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-abstract class AbstractRestUserFilter(val tokenType: UserTokenType) : Filter {
+abstract class AbstractRestUserFilter(val userTokenType: UserTokenType) : Filter {
     private lateinit var springContext: WebApplicationContext
     @Autowired
     lateinit var restAuthenticationUtils: RestAuthenticationUtils
@@ -67,7 +67,7 @@ abstract class AbstractRestUserFilter(val tokenType: UserTokenType) : Filter {
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
         restAuthenticationUtils.doFilter(request,
                 response,
-                tokenType,
+                userTokenType,
                 authenticate = { authInfo -> authenticate(authInfo) },
                 doFilter = { -> chain.doFilter(request, response) }
         )

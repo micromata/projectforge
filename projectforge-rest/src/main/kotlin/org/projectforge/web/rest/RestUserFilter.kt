@@ -39,6 +39,7 @@ class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
                 authInfo = authInfo,
                 userAttributes = RestAuthenticationUtils.REQUEST_PARAMS_USERNAME,
                 secretAttributes = RestAuthenticationUtils.REQUEST_PARAMS_PASSWORD,
+                userTokenType = null,
                 required = false
         ) { user, password ->
             userService.authenticateUser(user, password)
@@ -46,13 +47,13 @@ class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
         if (authInfo.success) {
             return
         }
-        restAuthenticationUtils.basicAuthentication(authInfo, false) { user, password ->
+        restAuthenticationUtils.basicAuthentication(authInfo, userTokenType = null, required = false) { user, password ->
             userService.authenticateUser(user, password)
         }
         if (authInfo.success) {
             return
         }
-        restAuthenticationUtils.tokenAuthentication(authInfo, tokenType, false)
+        restAuthenticationUtils.tokenAuthentication(authInfo, UserTokenType.REST_CLIENT, false)
         if (authInfo.success) {
             return
         }

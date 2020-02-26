@@ -59,7 +59,7 @@ class PFMiltonFilter : MiltonFilter() {
     }
 
     private fun authenticate(authInfo: RestAuthenticationInfo) {
-        return restAuthenticationUtils.basicAuthentication(authInfo, true) { userString, authenticationToken ->
+        return restAuthenticationUtils.basicAuthentication(authInfo, UserTokenType.DAV_TOKEN, true) { userString, authenticationToken ->
             val authenticatedUser = userAuthenticationsService.getUserByToken(authInfo.request, userString, UserTokenType.DAV_TOKEN, authenticationToken)
             if (authenticatedUser == null) {
                 log.error("Can't authenticate user '$userString' by given token. User name and/or token invalid.")
@@ -71,7 +71,7 @@ class PFMiltonFilter : MiltonFilter() {
     @Throws(IOException::class, ServletException::class)
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
         request as HttpServletRequest
-        if (!DAVMethodsInterceptor.isMethodSupported(request)) {
+        if (!DAVMethodsInterceptor.handledByMiltonFilter(request)) {
             // Not for us:
             chain.doFilter(request, response)
         } else {
