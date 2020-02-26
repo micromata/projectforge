@@ -284,8 +284,11 @@ public class UserService {
       } else {
         user.setLastPasswordChange(new Date());
       }
-      userAuthenticationsService.renewToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY);
-      userAuthenticationsService.renewToken(user.getId(), UserTokenType.REST_CLIENT);
+      if (user.getId() != null) {
+        // Renew token only for existing users.
+        userAuthenticationsService.renewToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY);
+        userAuthenticationsService.renewToken(user.getId(), UserTokenType.REST_CLIENT);
+      }
     } else {
       throw new IllegalArgumentException(
               "Given password seems to be not encrypted! Aborting due to security reasons (for avoiding storage of clear password in the database).");
