@@ -35,14 +35,23 @@ class DAVMethodsInterceptorTest {
     fun handledByMiltonFilterTest() {
         PFMiltonInit.available = true
         checkRequest("....", "PROPFIND", true)
-        checkRequest("....", "PROPPATCH", true)
-        checkRequest("....", "REPORT", true)
+        checkRequest("/users", "PROPFIND", true)
+        checkRequest("/wa/...", "PROPFIND", true)
+
         checkRequest("....", "GET", false)
-        checkRequest("....", "OPTIONS", false)
-        checkRequest("users", "OPTIONS", false)
-        checkRequest("/users", "OPTIONS", true)
-        checkRequest("//users", "OPTIONS", true)
-        checkRequest("///users", "OPTIONS", true)
+        checkRequest("/users", "GET", false)
+
+        arrayOf("OPTIONS", "PROPPATCH", "REPORT").forEach {
+            checkMethod(it)
+        }
+    }
+
+    private fun checkMethod(method: String) {
+        checkRequest("....", method, false)
+        checkRequest("users", method, false)
+        checkRequest("/users", method, true)
+        checkRequest("//users", method, true)
+        checkRequest("///users", method, true)
     }
 
     private fun checkRequest(uri: String, method: String, expected: Boolean) {
