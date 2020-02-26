@@ -570,3 +570,11 @@ span.mm-select {
     font-style: italic;
   }
 }
+
+// Multi Value Select
+
+div[class$="-multiValue"] {
+  div[role=button] {
+    font-size: 14px;
+  }
+}
