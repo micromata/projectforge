@@ -141,7 +141,7 @@ open class LoginRest {
 
         val result = loginHandler.checkLogin(loginData.username, loginData.password)
         if (result.getLoginResultStatus() == LoginResultStatus.SUCCESS) {
-            loginProtection.clearLoginTimeOffset(loginData.username, clientIpAddress)
+            loginProtection.clearLoginTimeOffset(result.user?.username, result.user?.id, clientIpAddress)
         } else if (result.getLoginResultStatus() == LoginResultStatus.FAILED) {
             loginProtection.incrementFailedLoginTimeOffset(loginData.username, clientIpAddress)
         }

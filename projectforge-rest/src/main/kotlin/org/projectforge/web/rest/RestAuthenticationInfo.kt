@@ -23,15 +23,13 @@
 
 package org.projectforge.web.rest
 
-import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.http.HttpStatus
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class RestAuthenticationInfo(var request: HttpServletRequest,
-                             var response: HttpServletResponse,
-                             val tokenType: UserTokenType) {
+                             var response: HttpServletResponse) {
     val success: Boolean
         get() = user != null && resultCode == null
 
@@ -47,6 +45,4 @@ class RestAuthenticationInfo(var request: HttpServletRequest,
     var clientIpAddress: String = request.remoteAddr ?: "unkown"
     var resultCode: HttpStatus? = null
     var lockedByTimePenalty = false
-    val userStringForLoginPenalty: String
-        get() = "$userString.$tokenType"
 }

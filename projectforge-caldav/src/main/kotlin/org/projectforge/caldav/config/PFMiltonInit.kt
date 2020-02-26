@@ -69,6 +69,5 @@ open class PFMiltonInit {
         private val log = LoggerFactory.getLogger(PFMiltonInit::class.java)
 
         internal var available = false
-            private set
     }
 }

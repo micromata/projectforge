@@ -159,7 +159,13 @@ public class LoginService {
     }
     final LoginResult result = getLoginHandler().checkLogin(username, password);
     if (result.getLoginResultStatus() == LoginResultStatus.SUCCESS) {
-      loginProtection.clearLoginTimeOffset(username, clientIpAddress);
+      final Integer userId;
+      if (result.getUser() != null) {
+        userId = result.getUser().getId();
+      } else {
+        userId = null;
+      }
+      loginProtection.clearLoginTimeOffset(username, userId, clientIpAddress);
     } else if (result.getLoginResultStatus() == LoginResultStatus.FAILED) {
       loginProtection.incrementFailedLoginTimeOffset(username, clientIpAddress);
     }
