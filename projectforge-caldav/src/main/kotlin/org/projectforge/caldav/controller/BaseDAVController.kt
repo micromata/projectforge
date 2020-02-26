@@ -43,7 +43,7 @@ open class BaseDAVController: BaseDAVAuthenticationController() {
     @AccessControlList
     fun getUserPrivs(target: User?, currentUser: User?): List<Priviledge> {
         val result = mutableListOf<Priviledge>()
-        if (target != null && currentUser != null && currentUser.pk == target.pk) {
+        if (target != null && currentUser != null && currentUser.id == target.id) {
             result.add(Priviledge.ALL)
         } else {
             return AccessControlledResource.NONE
@@ -61,7 +61,7 @@ open class BaseDAVController: BaseDAVAuthenticationController() {
         }
         log.info("Trying to get list of users. Return only logged-in one due to security reasons.")
         val user = User()
-        user.pk = ThreadLocalUserContext.getUserId().toLong()
+        user.id = ThreadLocalUserContext.getUserId().toLong()
         user.username = ThreadLocalUserContext.getUser().username
         return listOf(user)
     }

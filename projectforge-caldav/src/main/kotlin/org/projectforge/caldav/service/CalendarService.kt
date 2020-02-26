@@ -49,7 +49,7 @@ class CalendarService {
     private lateinit var teamEventDao: TeamEventDao
 
     fun getCalendarList(user: User): List<Calendar> {
-        if (user.pk != ThreadLocalUserContext.getUserId().toLong()) {
+        if (user.id != ThreadLocalUserContext.getUserId().toLong()) {
             throw AccessException("Logged-in user differs from the user requested.")
         }
         val calendars = teamCalDao.getList(BaseSearchFilter())
