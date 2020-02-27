@@ -107,12 +107,14 @@ function DateInput(
     const input = (
         <Tag {...tagProps}>
             <div className={styles.dateInput}>
-                <span
-                    className={styles.placeholder}
-                    style={{ left: `${jsDateFormat.length - placeholder.length}ch` }}
-                >
-                    {placeholder}
-                </span>
+                {isActive && (
+                    <span
+                        className={styles.placeholder}
+                        style={{ left: `${jsDateFormat.length - placeholder.length}ch` }}
+                    >
+                        {placeholder}
+                    </span>
+                )}
                 <input
                     ref={inputRef}
                     onBlur={handleBlur}
