@@ -14,6 +14,7 @@ function DateInput(
         date,
         hideDayPicker,
         jsDateFormat,
+        label,
         locale,
         noInputContainer,
         setDate,
@@ -94,7 +95,8 @@ function DateInput(
 
     if (Tag !== React.Fragment) {
         tagProps.onClick = handleTagClick;
-        tagProps.isActive = isActive;
+        tagProps.isActive = isActive || inputValue !== '';
+        tagProps.label = label;
     }
 
     const input = (
@@ -151,6 +153,7 @@ DateInput.propTypes = {
     setDate: PropTypes.func.isRequired,
     date: PropTypes.instanceOf(Date),
     hideDayPicker: PropTypes.bool,
+    label: PropTypes.string,
     locale: PropTypes.string,
     noInputContainer: PropTypes.bool,
     todayButton: PropTypes.string,
@@ -159,6 +162,7 @@ DateInput.propTypes = {
 DateInput.defaultProps = {
     date: undefined,
     hideDayPicker: false,
+    label: undefined,
     locale: 'en',
     noInputContainer: false,
     todayButton: undefined,

@@ -8,8 +8,9 @@ function InputContainer(
     {
         children,
         className,
-        isActive,
         color,
+        isActive,
+        label,
         ...props
     },
 ) {
@@ -24,6 +25,11 @@ function InputContainer(
             {...props}
         >
             {children}
+            {label && (
+                <span className={styles.labelText}>
+                    {label}
+                </span>
+            )}
         </div>
     );
 }
@@ -33,12 +39,14 @@ InputContainer.propTypes = {
     className: PropTypes.string,
     color: colorPropType,
     isActive: PropTypes.bool,
+    label: PropTypes.string,
 };
 
 InputContainer.defaultProps = {
     className: undefined,
     color: undefined,
     isActive: false,
+    label: undefined,
 };
 
 export default InputContainer;

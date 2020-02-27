@@ -25,11 +25,12 @@ function DynamicDateInput(props) {
 
         const handleDateChange = newDate => setData({ [id]: newDate });
 
-        // TODO: VALIDATION, LABEL, ADDITIONAL LABEL
+        // TODO: VALIDATION, ADDITIONAL LABEL
         return (
             <DynamicValidationManager id={id}>
                 <DateInput
                     date={value}
+                    label={label}
                     required={required}
                     setDate={handleDateChange}
                     todayButton={ui.translations['calendar.today']}
