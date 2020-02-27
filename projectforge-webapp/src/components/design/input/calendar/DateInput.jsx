@@ -102,6 +102,7 @@ function DateInput(
         tagProps.isActive = isActive || inputValue !== '';
         tagProps.label = label;
         tagProps.onClick = handleTagClick;
+        tagProps.withMargin = true;
     }
 
     const placeholder = jsDateFormat
