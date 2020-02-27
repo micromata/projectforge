@@ -89,6 +89,7 @@ const Input = React.forwardRef((
                     styles.inputContainer,
                     {
                         [styles.isActive]: value || isActive,
+                        [styles.withMargin]: !noStyle,
                     },
                     styles[color],
                 )}

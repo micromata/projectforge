@@ -11,6 +11,7 @@ function InputContainer(
         color,
         isActive,
         label,
+        withMargin,
         ...props
     },
 ) {
@@ -18,7 +19,10 @@ function InputContainer(
         <div
             className={classNames(
                 styles.inputContainer,
-                { [styles.isActive]: isActive },
+                {
+                    [styles.isActive]: isActive,
+                    [styles.withMargin]: withMargin,
+                },
                 styles[color],
                 className,
             )}
@@ -40,6 +44,7 @@ InputContainer.propTypes = {
     color: colorPropType,
     isActive: PropTypes.bool,
     label: PropTypes.string,
+    withMargin: PropTypes.bool,
 };
 
 InputContainer.defaultProps = {
@@ -47,6 +52,7 @@ InputContainer.defaultProps = {
     color: undefined,
     isActive: false,
     label: undefined,
+    withMargin: false,
 };
 
 export default InputContainer;
