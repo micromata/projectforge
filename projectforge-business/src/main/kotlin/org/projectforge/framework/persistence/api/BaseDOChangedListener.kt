@@ -21,17 +21,14 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.user;
+package org.projectforge.framework.persistence.api
 
-import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.access.OperationType
 
 /**
- * UserChangedListener may registered at UserDao and will be called every time a user was changed (added, modified or deleted).
+ * BaseDOChangedListener may registered at BaseDao and will be called every time an object was changed (added, modified or deleted).
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
-public interface UserChangedListener
-{
-  public void afterUserChanged(PFUserDO user, OperationType operationType);
+interface BaseDOChangedListener<O : ExtendedBaseDO<Int>> {
+    fun afterSaveOrModifify(changedObject: O, operationType: OperationType)
 }
