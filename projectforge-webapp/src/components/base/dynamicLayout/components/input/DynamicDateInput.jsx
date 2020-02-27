@@ -26,7 +26,7 @@ function DynamicDateInput(props) {
 
         const handleDateChange = newDate => setData({ [id]: newDate });
 
-        // TODO: VALIDATION, ADDITIONAL LABEL
+        // TODO: VALIDATION
         return (
             <React.Fragment>
                 <DynamicValidationManager id={id}>
@@ -43,33 +43,6 @@ function DynamicDateInput(props) {
                 )}
             </React.Fragment>
         );
-        /*
-                return (
-                    <React.Fragment>
-                        <span className={style.dayPickerLabel}>{label}</span>
-                        <DynamicValidationManager id={id}>
-                            <DayPickerInput
-                                autoFocus={focus}
-                                formatDate={formatDate}
-                                parseDate={parseDate}
-                                format={format}
-                                value={value}
-                                onDayChange={handleDayChange}
-                                dayPickerProps={{
-                                    locale,
-                                    localeUtils: MomentLocaleUtils,
-                                    todayButton: ui.translations['calendar.today'],
-                                }}
-                                month={value}
-                                placeholder={format}
-                                required={required}
-                            />
-                            <AdditionalLabel title={additionalLabel} />
-                        </DynamicValidationManager>
-                    </React.Fragment>
-                            );
-
-         */
     }, [props, value, setData]);
 }
 
