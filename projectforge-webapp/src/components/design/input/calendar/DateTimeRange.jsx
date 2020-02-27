@@ -127,7 +127,9 @@ function DateTimeRange(
         setQuickSelector();
 
         onChange({
-            from: firstDayOfMonth,
+            from: moment(firstDayOfMonth)
+                .hours(0)
+                .toDate(),
             to: moment(firstDayOfMonth)
                 .endOf('month')
                 .toDate(),
