@@ -112,6 +112,10 @@ public class AddressTest extends AbstractTestBase {
     Set<AddressbookDO> addressbookSet = new HashSet<>();
     addressbookSet.add(testAddressbook);
 
+    AddressbookDO globalAddressbook = addressbookDao.getGlobalAddressbook();
+    globalAddressbook.setFullAccessUserIds("" + getUser(AbstractTestBase.TEST_USER).getId());
+    addressbookDao.internalUpdate(globalAddressbook, false);
+
     AddressDO a1 = new AddressDO();
     a1.setName("testa1");
     addressDao.internalSave(a1);
@@ -223,6 +227,7 @@ public class AddressTest extends AbstractTestBase {
     addressbookSet.add(addressbookWithUserAccess);
     addressbookSet.add(addressbookWithoutUserAccess);
 
+    logon(testUser);
     AddressDO address = new AddressDO();
     address.setName("Kai Reinhard");
     address.setAddressbookList(addressbookSet);

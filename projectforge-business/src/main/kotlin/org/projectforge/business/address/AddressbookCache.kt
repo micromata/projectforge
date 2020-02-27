@@ -23,12 +23,13 @@
 
 package org.projectforge.business.address
 
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
+import org.projectforge.framework.persistence.api.BaseDOChangedListener
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import javax.persistence.EntityManager
-import javax.persistence.LockModeType
+import javax.annotation.PostConstruct
 
 /**
  * The address book entries will be cached.
@@ -36,15 +37,17 @@ import javax.persistence.LockModeType
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-open class AddressbookCache : AbstractCache() {
+open class AddressbookCache : AbstractCache(), BaseDOChangedListener<AddressbookDO> {
     @Autowired
-    private lateinit var em: EntityManager
+    private lateinit var addressbookDao: AddressbookDao
 
     private lateinit var addressBookList: List<AddressbookDO>
 
     open fun getAddressbook(id: Int): AddressbookDO? {
         checkRefresh()
-        return addressBookList.find { it.id == id }
+        synchronized(addressBookList) {
+            return addressBookList.find { it.id == id }
+        }
     }
 
     /**
@@ -53,7 +56,22 @@ open class AddressbookCache : AbstractCache() {
      */
     open fun getAddressbook(ab: AddressbookDO): AddressbookDO? {
         checkRefresh()
-        return addressBookList.find { it.id == ab.id }
+        synchronized(addressBookList) {
+            return addressBookList.find { it.id == ab.id }
+        }
+    }
+
+    /**
+     * After modification of any address (insert, update, delete, undelete) this address should be removed from
+     * this cache.
+     */
+    override fun afterSaveOrModifify(changedObject: AddressbookDO, operationType: OperationType) {
+        setExpired()
+    }
+
+    @PostConstruct
+    fun postConstruct() {
+        addressbookDao.register(this)
     }
 
     /**
@@ -63,9 +81,7 @@ open class AddressbookCache : AbstractCache() {
         log.info("Initializing AddressbookCache ...")
         // This method must not be synchronized because it works with a new copy of maps.
         val newList = mutableListOf<AddressbookDO>()
-        val list = em.createQuery("from AddressbookDO t", AddressbookDO::class.java)
-                .setLockMode(LockModeType.NONE)
-                .resultList
+        val list = addressbookDao.internalLoadAll()
         list.forEach {
             if (!it.isDeleted) {
                 newList.add(it)

@@ -55,9 +55,6 @@ public class AddressbookDao extends BaseDao<AddressbookDO> {
           "owner.firstname",
           "owner.lastname"};
   @Autowired
-  private AddressbookCache addressbookCache;
-
-  @Autowired
   private UserDao userDao;
 
   @Autowired
@@ -267,10 +264,5 @@ public class AddressbookDao extends BaseDao<AddressbookDO> {
       }
       return addressList;
     });
-  }
-
-  @Override
-  protected void afterSaveOrModify(AddressbookDO obj) {
-    addressbookCache.setExpired();
   }
 }
