@@ -26,18 +26,16 @@ function DynamicDateInput(props) {
         const handleDateChange = newDate => setData({ [id]: newDate });
 
         return (
-            <React.Fragment>
-                <DynamicValidationManager id={id}>
-                    <DateInput
-                        additionalLabel={additionalLabel}
-                        label={label}
-                        required={required}
-                        setDate={handleDateChange}
-                        todayButton={ui.translations['calendar.today']}
-                        value={value}
-                    />
-                </DynamicValidationManager>
-            </React.Fragment>
+            <DynamicValidationManager id={id}>
+                <DateInput
+                    additionalLabel={additionalLabel}
+                    label={label}
+                    required={required}
+                    setDate={handleDateChange}
+                    todayButton={ui.translations['calendar.today']}
+                    value={value}
+                />
+            </DynamicValidationManager>
         );
     }, [props, value, setData]);
 }
