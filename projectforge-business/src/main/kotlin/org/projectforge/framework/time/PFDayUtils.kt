@@ -257,7 +257,7 @@ class PFDayUtils {
          * @return The given date, if already a working day, otherwise the first working day after given date.
          */
         fun getNextWorkingDay(date: LocalDate): LocalDate {
-            return getNextWorkingDay(PFDay.from(date)!!).localDate
+            return getNextWorkingDay(PFDay.from(date)).localDate
         }
 
         /**
