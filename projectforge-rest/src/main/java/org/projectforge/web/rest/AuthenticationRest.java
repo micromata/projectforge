@@ -25,8 +25,9 @@ package org.projectforge.web.rest;
 
 import org.projectforge.AppVersion;
 import org.projectforge.Version;
+import org.projectforge.business.user.UserAuthenticationsService;
 import org.projectforge.business.user.UserDao;
-import org.projectforge.business.user.service.UserService;
+import org.projectforge.business.user.UserTokenType;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.model.rest.RestPaths;
@@ -65,15 +66,14 @@ import javax.ws.rs.core.Response;
  */
 @Controller
 @Path(RestPaths.AUTHENTICATE)
-public class AuthenticationRest
-{
+public class AuthenticationRest {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuthenticationRest.class);
 
   @Autowired
   private UserDao userDao;
 
   @Autowired
-  private UserService userService;
+  private UserAuthenticationsService userAuthenticationsService;
 
   /**
    * Authentication via http header authenticationUsername and authenticationPassword.<br/>
@@ -86,15 +86,14 @@ public class AuthenticationRest
   @GET
   @Path(RestPaths.AUTHENTICATE_GET_TOKEN_METHOD)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getToken()
-  {
+  public Response getToken() {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     if (user == null) {
       log.error("No user given for rest call.");
       throw new IllegalArgumentException("No user given for the rest call: authenticate/getToken.");
     }
     final UserObject userObject = PFUserDOConverter.getUserObject(user);
-    final String authenticationToken = userService.getAuthenticationToken(user.getId());
+    final String authenticationToken = userAuthenticationsService.getToken(user.getId(), UserTokenType.REST_CLIENT);
     userObject.setAuthenticationToken(authenticationToken);
     final String json = JsonUtils.toJson(userObject);
     return Response.ok(json).build();
@@ -109,8 +108,7 @@ public class AuthenticationRest
   @GET
   @Path(RestPaths.AUTHENTICATE_INITIAL_CONTACT_METHOD)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response initialContact(@QueryParam("clientVersion") final String clientVersionString)
-  {
+  public Response initialContact(@QueryParam("clientVersion") final String clientVersionString) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     if (user == null) {
       log.error("No user given for rest call.");

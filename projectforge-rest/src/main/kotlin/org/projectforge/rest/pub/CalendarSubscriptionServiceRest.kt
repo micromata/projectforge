@@ -46,8 +46,9 @@ import org.projectforge.business.teamcal.model.CalendarFeedConst
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserGroupCache
-import org.projectforge.business.user.service.UserService
+import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.vacation.VacationCache
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessChecker
@@ -59,6 +60,7 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.PFDay.Companion.now
 import org.projectforge.framework.utils.NumberHelper.parseInteger
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
 import org.slf4j.LoggerFactory
@@ -76,13 +78,13 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.context.WebApplicationContext
 import java.time.LocalDate
 import javax.servlet.http.HttpServletRequest
-
+import javax.servlet.http.HttpServletResponse
 
 /**
  * This rest service should be available without login (public).
  */
 @RestController
-@RequestMapping("/export/ProjectForge.ics")
+@RequestMapping(Rest.CALENDAR_EXPORT_BASE_URI)
 class CalendarSubscriptionServiceRest {
     @Autowired
     private lateinit var configurationService: ConfigurationService
@@ -96,7 +98,7 @@ class CalendarSubscriptionServiceRest {
     private lateinit var springContext: WebApplicationContext
 
     @Autowired
-    private lateinit var userService: UserService
+    private lateinit var userAuthenticationsService: UserAuthenticationsService
 
     @Autowired
     private lateinit var teamEventService: TeamEventService
@@ -112,41 +114,20 @@ class CalendarSubscriptionServiceRest {
 
     @GetMapping
     fun exportCalendar(request: HttpServletRequest,
+                       response: HttpServletResponse,
                        @RequestParam("user") userIdString: String?,
                        @RequestParam("q") q: String?)
             : ResponseEntity<Any> {
-        // check if PF is running
-        if (!systemStatus.upAndRunning) {
-            log.error("System isn't up and running, CalendarFeed call denied. The system is may-be in start-up phase or in maintenance mode.")
-            return ResponseEntity(HttpStatus.SERVICE_UNAVAILABLE)
-        }
-        var user: PFUserDO?
         var logMessage: String? = null
-        try { // add logging stuff
-            MDC.put("ip", request.remoteAddr)
-            MDC.put("session", request.session.id)
-            // read user
-            if (userIdString.isNullOrBlank() || q.isNullOrBlank()) {
-                log.error("Bad request, parameters user and q not given. Query string is: ${request.queryString}")
+        try {
+            val userId = ThreadLocalUserContext.getUserId() ?: run {
+                log.error("Internal errror: shouldn't occur: can't get context user! Should be denied by filter!!!")
                 return ResponseEntity(HttpStatus.BAD_REQUEST)
             }
-            val userId = parseInteger(userIdString) ?: run {
-                log.error("Bad request, parameter user is not an integer: ${request.queryString}")
+            val params = decryptRequestParams(request, userId, userAuthenticationsService)
+            if (params.isNullOrEmpty()) {
                 return ResponseEntity(HttpStatus.BAD_REQUEST)
             }
-            // read params of request
-            val decryptedParams = userService.decrypt(userId, q) ?: run {
-                log.error("Bad request, can't decrypt parameter q (may-be the user's authentication token was changed): ${request.queryString}")
-                return ResponseEntity(HttpStatus.BAD_REQUEST)
-            }
-            val params = StringHelper.getKeyValues(decryptedParams, "&")
-            // validate user
-            user = userService.getUserByAuthenticationToken(userId, params["token"]) ?: run {
-                log.error("Bad request, user not found: ${request.queryString}")
-                return ResponseEntity(HttpStatus.BAD_REQUEST)
-            }
-            ThreadLocalUserContext.setUser(getUserGroupCache(), user)
-            MDC.put("user", user.username)
             // check timesheet user
             val timesheetUserParam = params[CalendarFeedConst.PARAM_NAME_TIMESHEET_USER]
             var timesheetUser: PFUserDO? = null
@@ -234,7 +215,7 @@ class CalendarSubscriptionServiceRest {
         eventFilter.isDeleted = false
         eventFilter.startDate = eventDateFromLimit.utilDate
         val vacationEvents = mutableSetOf<Int>() // For avoiding multiple entries of vacation days. Ids of vacation event.
-        var processedTeamCals = mutableListOf<TeamCalDO>()
+        val processedTeamCals = mutableListOf<TeamCalDO>()
         for (teamCalIdString in teamCalIds) {
             val calId = Integer.valueOf(teamCalIdString)
             eventFilter.teamCalId = calId
@@ -375,8 +356,23 @@ class CalendarSubscriptionServiceRest {
 
     companion object {
         private val log = LoggerFactory.getLogger(CalendarSubscriptionServiceRest::class.java)
-
         const val PARAM_EXPORT_REMINDER = "exportReminders"
         const val PARAM_EXPORT_ATTENDEES = "exportAttendees"
+
+        fun decryptRequestParams(request: HttpServletRequest, userId: Int, userAuthenticationsService: UserAuthenticationsService)
+                : Map<String, String>? {
+            val q = request.getParameter("q")
+            if (q.isNullOrBlank()) {
+                log.info("Parameter 'q' with encrypted credentials not found in request parameters. Rest call denied.")
+                return null
+            }
+            // Parameters of q are encrypted by user's token for calendar subscriptions:
+            val decryptedParams = userAuthenticationsService.decrypt(userId, UserTokenType.CALENDAR_REST, q)
+                    ?: run {
+                        log.error("Bad request, can't decrypt parameter q (may-be the user's authentication token was changed): ${request.queryString}")
+                        return null
+                    }
+            return StringHelper.getKeyValues(decryptedParams, "&")
+        }
     }
 }

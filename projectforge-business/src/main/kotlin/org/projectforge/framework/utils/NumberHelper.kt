@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.utils
 
-import org.apache.commons.codec.binary.Base64
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.math.NumberUtils
 import org.projectforge.framework.configuration.Configuration
@@ -102,7 +101,7 @@ object NumberHelper {
         }
         if (bytes < GIGA_BYTES) {
             var no = BigDecimal(bytes).divide(MB_BD, 1, RoundingMode.HALF_UP)
-            if (no.toLong()  >= 100) {
+            if (no.toLong() >= 100) {
                 no = no.setScale(0, RoundingMode.HALF_UP)
             }
             return NumberFormat.getInstance(ThreadLocalUserContext.getLocale()).format(no) + " Mb"
@@ -484,33 +483,47 @@ object NumberHelper {
     }
 
     /**
-     * Generates secure random bytes of the given length and return base 64 encoded bytes as url safe String. This is not the length of the
-     * resulting string!
+     * Generates secure random String of the given length.
      *
-     * @param numberOfBytes
-     * @return
+     * @param length
+     * @return Secure random string.
      */
     @JvmStatic
-    fun getSecureRandomUrlSaveString(numberOfBytes: Int): String {
+    fun getSecureRandomAlphanumeric(length: Int): String {
         val random = SecureRandom()
-        val bytes = ByteArray(numberOfBytes)
+        val bytes = ByteArray(length)
         random.nextBytes(bytes)
-        return Base64.encodeBase64URLSafeString(bytes)
+        val sb = StringBuilder()
+        for (i in 0 until length) {
+            sb.append(ALPHA_NUMERICS_CHARSET[(bytes[i].toInt() and 0xFF) % ALPHA_NUMERICS_CHARSET_LENGTH])
+        }
+        return sb.toString()
+        /*
+                val charset = CharArray(length)
+        for (i in 0 until length) {
+            charset[i] = ALPHA_NUMERICS_CHARSET[(bytes[i].toInt() and 0xFF) % ALPHA_NUMERICS_CHARSET_LENGTH]
+        }
+        return String(charset)
+
+         */
     }
 
     /**
-     * Generates secure random bytes of the given length and return base 64 encoded bytes as url safe String. This is not the length of the
-     * resulting string!
+     * Generates secure random String of the given length. Doesn't user chars "lIO0".
      *
-     * @param numberOfBytes
-     * @return
+     * @param length
+     * @return Secure random string.
      */
     @JvmStatic
-    fun getSecureRandomBase64String(numberOfBytes: Int): String {
+    fun getSecureRandomReducedAlphanumeric(length: Int): String {
         val random = SecureRandom()
-        val bytes = ByteArray(numberOfBytes)
+        val bytes = ByteArray(length)
         random.nextBytes(bytes)
-        return org.apache.commons.codec.binary.StringUtils.newStringUtf8(Base64.encodeBase64(bytes, false))
+        val sb = StringBuilder()
+        for (i in 0 until length) {
+            sb.append(REDUCED_ALPHA_NUMERICS_CHARSET[(bytes[i].toInt() and 0xFF) % REDUCED_ALPHA_NUMERICS_CHARSET_LENGTH])
+        }
+        return sb.toString()
     }
 
     @JvmStatic
@@ -541,4 +554,10 @@ object NumberHelper {
         }
         return if (stripTrailingZeros) result.stripTrailingZeros() else result
     }
+
+    internal val ALPHA_NUMERICS_CHARSET: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+    private val ALPHA_NUMERICS_CHARSET_LENGTH = ALPHA_NUMERICS_CHARSET.size
+
+    internal val REDUCED_ALPHA_NUMERICS_CHARSET = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ123456789"
+    private val REDUCED_ALPHA_NUMERICS_CHARSET_LENGTH = REDUCED_ALPHA_NUMERICS_CHARSET.length
 }

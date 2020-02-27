@@ -131,7 +131,6 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
         LayoutUtils.addListFilterContainer(layout, "longFormat", "recursive",
                 filterClass = TimesheetFilter::class.java)
 
-        // TODO
         val exportMenu = MenuItem("calendar.export", i18nKey = "export")
         exportMenu.add(MenuItem("calendar.exportTimesheets",
                 i18nKey = "plugins.teamcal.export.timesheets",

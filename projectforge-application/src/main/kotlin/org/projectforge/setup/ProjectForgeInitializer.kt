@@ -30,6 +30,7 @@ import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.common.StringModifier
 import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.start.ProjectForgeApplication
 import org.projectforge.start.ProjectForgeApplication.giveUpAndSystemExit
 import org.projectforge.start.ProjectForgeHomeFinder
@@ -82,13 +83,16 @@ object ProjectForgeInitializer {
                         result = replace(result, "spring.datasource.url", jdbc.jdbcUrl)
                         result = replace(result, "spring.datasource.username", jdbc.user)
                         result = replace(result, "spring.datasource.password", jdbc.password)
-                        result = replace(result, "spring.datasource.driver-class-name","org.postgresql.Driver")
+                        result = replace(result, "spring.datasource.driver-class-name", "org.postgresql.Driver")
                     }
+                    result = replace(result, "projectforge.security.passwordPepper", NumberHelper.getSecureRandomAlphanumeric(20))
+                    result = replace(result, "projectforge.security.authenticationTokenEncryptionKey", NumberHelper.getSecureRandomAlphanumeric(20))
                     result
                 }
         )
         counter = ensureConfigFile(applicationHomeDir,
                 ConfigXml.CLASSPATH_INITIAL_CONFIG_XML_FILE, ConfigXml.CONFIG_XML_FILE, counter, emphasizedLog)
+        @Suppress("UNUSED_VALUE")
         counter = ensureConfigFile(applicationHomeDir,
                 AttrSchemaServiceSpringBeanImpl.CLASSPATH_INITIAL_ATTR_SCHEMA_CONFIG_FILE, AttrSchemaServiceSpringBeanImpl.ATTR_SCHEMA_CONFIG_FILE, counter, emphasizedLog)
         emphasizedLog.logEnd()

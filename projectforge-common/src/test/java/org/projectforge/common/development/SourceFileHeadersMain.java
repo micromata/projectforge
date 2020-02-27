@@ -75,6 +75,7 @@ public class SourceFileHeadersMain {
   void validateAndFixAllProjectForgeHeaders(final boolean autoFixFiles) throws IOException {
     validateAndFixHeaders(new File(baseDir, "projectforge-application").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-business").getAbsolutePath(), true, autoFixFiles);
+    validateAndFixHeaders(new File(baseDir, "projectforge-caldav").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-common").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-model").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-rest").getAbsolutePath(), true, autoFixFiles);
