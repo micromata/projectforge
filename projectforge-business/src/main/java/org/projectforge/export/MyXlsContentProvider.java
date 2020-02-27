@@ -70,9 +70,7 @@ public class MyXlsContentProvider extends XlsContentProvider
   @Override
   public Object getCustomizedValue(final Object value)
   {
-    if (value instanceof PFDateTime) {
-      return ((PFDateTime) value).getDateTime();
-    } else if (value instanceof PFUserDO) {
+    if (value instanceof PFUserDO) {
       return ((PFUserDO) value).getFullname();
     } else if (value instanceof I18nEnum) {
       return ThreadLocalUserContext.getLocalizedString(((I18nEnum) value).getI18nKey());
