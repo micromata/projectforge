@@ -1,16 +1,12 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { useClickOutsideHandler } from '../../../../utilities/hooks';
-import style from './CalendarInput.module.scss';
 import FormattedDateTime from './FormattedDateTime';
-import TimeInput from './TimeInput';
 
 function FormattedTimeRange(
     {
         children,
-        childrenAsPrefix,
         from,
-        id,
         setFrom,
         setTo,
         to,
@@ -36,65 +32,35 @@ function FormattedTimeRange(
     useClickOutsideHandler(fromEditRef, () => setFromInEditMode(false), fromInEditMode);
     useClickOutsideHandler(toEditRef, () => setToInEditMode(false), toInEditMode);
 
+
+    // TODO REMOVE EDITABLE CONTENT
     return (
         <React.Fragment>
-            {childrenAsPrefix && children}
-            {fromInEditMode
-                ? (
-                    <div ref={fromEditRef} className={style.editMode}>
-                        <TimeInput
-                            setTime={setFrom}
-                            time={from}
-                            id={`time-input-${id}-from`}
-                            showDate
-                        />
-                    </div>
-                )
-                : (
-                    <FormattedDateTime
-                        slot="FROM"
-                        date={from}
-                        onClick={handleFromClick}
-                    />
-                )}
-            {' - '}
-            {toInEditMode
-                ? (
-                    <div ref={toEditRef} className={style.editMode}>
-                        <TimeInput
-                            setTime={setTo}
-                            time={to}
-                            id={`time-input-${id}-to`}
-                            showDate
-                        />
-                    </div>
-                )
-                : (
-                    <FormattedDateTime
-                        slot="TO"
-                        date={to}
-                        onClick={handleToClick}
-                    />
-                )
-            }
-            {!childrenAsPrefix && children}
+            {children}
+            <FormattedDateTime
+                slot="FROM"
+                date={from}
+                onClick={handleFromClick}
+            />
+            <FormattedDateTime
+                slot="TO"
+                date={to}
+                onClick={handleToClick}
+            />
         </React.Fragment>
     );
 }
 
 FormattedTimeRange.propTypes = {
     from: PropTypes.instanceOf(Date).isRequired,
-    id: PropTypes.string.isRequired,
     to: PropTypes.instanceOf(Date).isRequired,
     children: PropTypes.node,
-    childrenAsPrefix: PropTypes.bool,
     setFrom: PropTypes.func,
     setTo: PropTypes.func,
 };
 
 FormattedTimeRange.defaultProps = {
     children: undefined,
-    childrenAsPrefix: false,
     setFrom: undefined,
     setTo: undefined,
 };

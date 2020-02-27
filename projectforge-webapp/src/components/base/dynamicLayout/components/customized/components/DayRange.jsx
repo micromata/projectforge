@@ -9,7 +9,9 @@ import 'react-day-picker/lib/style.css';
 import MomentLocaleUtils, { formatDate, parseDate } from 'react-day-picker/moment';
 import { connect } from 'react-redux';
 import AdditionalLabel from '../../../../../design/input/AdditionalLabel';
+import DateInput from '../../../../../design/input/calendar/DateInput';
 import style from '../../../../../design/input/Input.module.scss';
+import InputContainer from '../../../../../design/input/InputContainer';
 import { DynamicLayoutContext } from '../../../context';
 
 /**
@@ -79,6 +81,17 @@ function DayRange(
 
         return (
             <React.Fragment>
+                <InputContainer label={label} isActive style={{ display: 'flex' }}>
+                    <div style={{ flex: 1 }}>
+                        <DateInput
+                            noInputContainer
+                            setDate={console.log}
+                            value={startDate ? startDate.toDate() : undefined}
+                        />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                    </div>
+                </InputContainer>
                 <span className={style.text}>{label}</span>
                 <DayPickerInput
                     formatDate={formatDate}

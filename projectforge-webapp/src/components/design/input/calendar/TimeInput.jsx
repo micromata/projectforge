@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import AdvancedPopper from '../../popper/AdvancedPopper';
-import InputContainer from '../InputContainer';
 import style from './CalendarInput.module.scss';
 import DateInput from './DateInput';
 import TimeInputUnit from './TimeInputUnit';
@@ -15,6 +14,7 @@ const minuteRegex = /^([0-5]?[0-9]|)$/;
 
 function TimeInput(
     {
+        hideDayPicker,
         id,
         jsDateFormat,
         precision,
@@ -85,10 +85,10 @@ function TimeInput(
 
 
     return (
-        <InputContainer isActive>
+        <React.Fragment>
             {showDate && (
                 <DateInput
-                    hideDayPicker
+                    hideDayPicker={hideDayPicker}
                     noInputContainer
                     setDate={handleDateChange}
                     value={time}
@@ -172,7 +172,7 @@ function TimeInput(
                     </ul>
                 )}
             </AdvancedPopper>
-        </InputContainer>
+        </React.Fragment>
     );
 }
 
@@ -181,11 +181,13 @@ TimeInput.propTypes = {
     jsDateFormat: PropTypes.string.isRequired,
     setTime: PropTypes.func.isRequired,
     time: PropTypes.instanceOf(Date).isRequired,
+    hideDayPicker: PropTypes.bool,
     precision: PropTypes.oneOf([1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60]),
     showDate: PropTypes.bool,
 };
 
 TimeInput.defaultProps = {
+    hideDayPicker: true,
     precision: 5,
     showDate: false,
 };

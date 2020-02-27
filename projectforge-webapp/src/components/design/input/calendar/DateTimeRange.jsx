@@ -1,5 +1,3 @@
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import moment from 'moment';
 import PropTypes from 'prop-types';
@@ -8,7 +6,7 @@ import DayPicker from 'react-day-picker';
 import { connect } from 'react-redux';
 import { Col, Row } from '../..';
 import style from './CalendarInput.module.scss';
-import FormattedTimeRange from './FormattedTimeRange';
+import TimeRange from './TimeRange';
 
 function DateTimeRange(
     {
@@ -201,19 +199,14 @@ function DateTimeRange(
                     {!from && !to && '[Bitte wähle das Startdatum aus]'}
                     {from && !to && '[Bitte wähle das Enddatum aus]'}
                     {from && to && (
-                        <FormattedTimeRange
+                        <TimeRange
                             from={from}
                             id={`date-time-range-${id}`}
+                            onDelete={() => onChange({})}
                             setFrom={setFrom}
                             setTo={setTo}
                             to={to}
-                        >
-                            {' '}
-                            <FontAwesomeIcon
-                                icon={faTimes}
-                                onClick={() => onChange({})}
-                            />
-                        </FormattedTimeRange>
+                        />
                     )}
                 </span>
                 <DayPicker
