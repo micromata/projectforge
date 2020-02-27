@@ -5,6 +5,7 @@ import React from 'react';
 import DayPicker from 'react-day-picker';
 import MomentLocaleUtils from 'react-day-picker/moment';
 import { connect } from 'react-redux';
+import { colorPropType } from '../../../../utilities/propTypes';
 import AdvancedPopper from '../../popper/AdvancedPopper';
 import AdditionalLabel from '../AdditionalLabel';
 import InputContainer from '../InputContainer';
@@ -13,7 +14,7 @@ import styles from './CalendarInput.module.scss';
 function DateInput(
     {
         additionalLabel,
-        date,
+        color,
         hideDayPicker,
         jsDateFormat,
         label,
@@ -21,6 +22,7 @@ function DateInput(
         noInputContainer,
         setDate,
         todayButton,
+        value,
     },
 ) {
     const [inputValue, setInputValue] = React.useState('');
@@ -30,13 +32,13 @@ function DateInput(
     const Tag = noInputContainer ? React.Fragment : InputContainer;
 
     React.useEffect(() => {
-        if (date) {
-            setInputValue(moment(date)
+        if (value) {
+            setInputValue(moment(value)
                 .format(jsDateFormat));
         } else {
             setInputValue('');
         }
-    }, [date]);
+    }, [value]);
 
     const handleBlur = () => {
         setIsActive(false);
@@ -51,7 +53,7 @@ function DateInput(
         if (momentDate.isValid()) {
             setDate(momentDate.toDate());
         } else {
-            setInputValue(moment(date)
+            setInputValue(moment(value)
                 .format(jsDateFormat));
         }
     };
@@ -96,9 +98,10 @@ function DateInput(
     const tagProps = {};
 
     if (Tag !== React.Fragment) {
-        tagProps.onClick = handleTagClick;
+        tagProps.color = color;
         tagProps.isActive = isActive || inputValue !== '';
         tagProps.label = label;
+        tagProps.onClick = handleTagClick;
     }
 
     const placeholder = jsDateFormat
@@ -148,9 +151,9 @@ function DateInput(
             withInput
         >
             <DayPicker
-                selectedDays={date}
+                selectedDays={value}
                 onDayClick={handleDayPickerClick}
-                month={date}
+                month={value}
                 locale={locale}
                 localeUtils={MomentLocaleUtils}
                 onTodayButtonClick={setDate}
@@ -164,22 +167,24 @@ DateInput.propTypes = {
     jsDateFormat: PropTypes.string.isRequired,
     setDate: PropTypes.func.isRequired,
     additionalLabel: PropTypes.string,
-    date: PropTypes.instanceOf(Date),
+    color: colorPropType,
     hideDayPicker: PropTypes.bool,
     label: PropTypes.string,
     locale: PropTypes.string,
     noInputContainer: PropTypes.bool,
     todayButton: PropTypes.string,
+    value: PropTypes.instanceOf(Date),
 };
 
 DateInput.defaultProps = {
     additionalLabel: undefined,
-    date: undefined,
+    color: undefined,
     hideDayPicker: false,
     label: undefined,
     locale: 'en',
     noInputContainer: false,
     todayButton: undefined,
+    value: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({
