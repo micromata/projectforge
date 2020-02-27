@@ -120,6 +120,8 @@ function DateInput(
         return input;
     }
 
+    const handleDayPickerClick = (day, { selected }) => setDate(selected ? undefined : day);
+
     return (
         <AdvancedPopper
             basic={input}
@@ -129,6 +131,8 @@ function DateInput(
         >
             <DayPicker
                 selectedDays={date}
+                onDayClick={handleDayPickerClick}
+                month={date}
             />
         </AdvancedPopper>
     );
