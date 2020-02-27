@@ -17,7 +17,7 @@ function DateInput(
         locale,
         noInputContainer,
         setDate,
-        ...props
+        todayButton,
     },
 ) {
     const [inputValue, setInputValue] = React.useState('');
@@ -140,7 +140,7 @@ function DateInput(
                 locale={locale}
                 localeUtils={MomentLocaleUtils}
                 onTodayButtonClick={setDate}
-                {...props}
+                todayButton={todayButton}
             />
         </AdvancedPopper>
     );
@@ -153,6 +153,7 @@ DateInput.propTypes = {
     hideDayPicker: PropTypes.bool,
     locale: PropTypes.string,
     noInputContainer: PropTypes.bool,
+    todayButton: PropTypes.string,
 };
 
 DateInput.defaultProps = {
@@ -160,6 +161,7 @@ DateInput.defaultProps = {
     hideDayPicker: false,
     locale: 'en',
     noInputContainer: false,
+    todayButton: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({
