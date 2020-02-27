@@ -5,8 +5,10 @@ $transitionTime: .2s ease-out;
 
 .inputContainer {
   position: relative;
+  font-size: 1.5rem;
+  letter-spacing: .02em;
   color: #7a7a7a;
-  margin: 0;
+  margin: 1em 0 0 0;
   cursor: text;
   width: 100%;
   padding: 1.5em 0 0 1rem;
@@ -84,11 +86,6 @@ $transitionTime: .2s ease-out;
 }
 
 .inputField {
-  position: relative;
-  margin-top: 1em;
-  font-size: 1.5rem;
-  letter-spacing: .02em;
-
   &.noLabel {
     label {
       padding: 0;
