@@ -115,8 +115,8 @@ function DateInput(
                             className={styles.placeholder}
                             style={{ left: `${jsDateFormat.length - placeholder.length}ch` }}
                         >
-                        {placeholder}
-                    </span>
+                            {placeholder}
+                        </span>
                     )}
                     <input
                         ref={inputRef}
