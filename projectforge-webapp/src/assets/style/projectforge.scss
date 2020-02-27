@@ -198,16 +198,28 @@ svg.fa-chevron-down {
 
 // Calendar
 
-// Calendar Table Head
 .rbc-month-view {
+  // Calendar Table Head
   .rbc-row.rbc-month-header {
     font-size: 13px;
-    line-height: 2;
-    height: 24px;
+    line-height: 1.5;
+    //height: 24px;
     background: #a8a8a8;
     color: #fff;
-    letter-spacing: 1px
+    letter-spacing: 1px;
   }
+
+  .rbc-date-cell {
+    font-size: 13px;
+  }
+}
+
+.rbc-header {
+  font-size: 13px;
+  line-height: 1.5;
+  background: #a8a8a8;
+  color: #fff;
+  letter-spacing: 1px;
 }
 
 .rbc-time-view {
