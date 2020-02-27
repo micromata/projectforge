@@ -99,14 +99,19 @@ function DateInput(
         tagProps.label = label;
     }
 
+    const placeholder = jsDateFormat
+        .split('')
+        .filter((char, index) => index >= inputValue.length)
+        .join('');
+
     const input = (
         <Tag {...tagProps}>
             <div className={styles.dateInput}>
-                <span className={styles.placeholder}>
-                    {jsDateFormat
-                        .split('')
-                        .filter((char, index) => index >= inputValue.length)
-                        .join('')}
+                <span
+                    className={styles.placeholder}
+                    style={{ left: `${jsDateFormat.length - placeholder.length}ch` }}
+                >
+                    {placeholder}
                 </span>
                 <input
                     ref={inputRef}
