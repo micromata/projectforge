@@ -78,8 +78,6 @@ MagicTimeStampInput.getLabel = (label, { from, to }, { id }) => {
     if (from && to && typeof from !== 'string' && typeof to !== 'string') {
         return (
             <FormattedTimeRange
-                childrenAsPrefix
-                id={`magic-time-stamp-input-${id}`}
                 from={from}
                 to={to}
             >

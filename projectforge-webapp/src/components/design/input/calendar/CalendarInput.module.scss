@@ -1,6 +1,6 @@
 .label {
   font-size: 1.2em;
-  display: inline-block;
+  display: flex;
 }
 
 .quickSelectors {
@@ -126,5 +126,17 @@
 
   input, .placeholder {
     font-family: monospace;
+  }
+}
+
+.timeRange {
+  &.from {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  &.to {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
   }
 }
