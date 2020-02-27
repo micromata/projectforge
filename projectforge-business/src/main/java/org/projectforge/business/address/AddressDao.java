@@ -72,6 +72,9 @@ public class AddressDao extends BaseDao<AddressDO> {
   private AddressbookDao addressbookDao;
 
   @Autowired
+  private AddressbookCache addressbookCache;
+
+  @Autowired
   private UserRightService userRights;
 
   private transient AddressbookRight addressbookRight;
@@ -260,7 +263,7 @@ public class AddressDao extends BaseDao<AddressDO> {
     switch (operationType) {
       case SELECT:
         for (AddressbookDO ab : obj.getAddressbookList()) {
-          if (addressbookRight.hasSelectAccess(user, ab)) {
+          if (addressbookRight.getAccessType(ab, user.getId()).hasAnyAccess()) {
             return true;
           }
         }
@@ -269,28 +272,10 @@ public class AddressDao extends BaseDao<AddressDO> {
         }
         return false;
       case INSERT:
-        for (AddressbookDO ab : obj.getAddressbookList()) {
-          if (addressbookRight.hasInsertAccess(user, ab)) {
-            return true;
-          }
-        }
-        if (throwException) {
-          throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
-        }
-        return false;
       case UPDATE:
-        for (AddressbookDO ab : obj.getAddressbookList()) {
-          if (addressbookRight.hasUpdateAccess(user, ab, ab)) {
-            return true;
-          }
-        }
-        if (throwException) {
-          throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
-        }
-        return false;
       case DELETE:
         for (AddressbookDO ab : obj.getAddressbookList()) {
-          if (addressbookRight.hasDeleteAccess(user, ab, ab)) {
+          if (addressbookRight.hasFullAccess(addressbookCache.getAddressbook(ab), user.getId())) {
             return true;
           }
         }
