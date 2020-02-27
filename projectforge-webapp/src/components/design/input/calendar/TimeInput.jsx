@@ -23,7 +23,6 @@ function TimeInput(
         time,
     },
 ) {
-    const [isActive, setIsActive] = React.useState(false);
     const [isOpen, setIsOpen] = React.useState(false);
     const hourRef = React.useRef(null);
     const minuteRef = React.useRef(null);
@@ -84,11 +83,9 @@ function TimeInput(
         setMinute(Number(target.value));
     };
 
-    const handleFocus = () => setIsActive(true);
-    const handleBlur = () => setIsActive(false);
 
     return (
-        <InputContainer isActive={isActive}>
+        <InputContainer isActive>
             {showDate && (
                 <DateInput
                     hideDayPicker
