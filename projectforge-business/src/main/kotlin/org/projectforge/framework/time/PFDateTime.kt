@@ -212,6 +212,9 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         return PFDateTime(dateTime.withNano(nanoOfSecond), locale, precision)
     }
 
+    /**
+     * @see ZonedDateTime.withZoneSameInstant
+     */
     open fun withZoneSameInstant(zone: ZoneId): PFDateTime {
         return PFDateTime(dateTime.withZoneSameInstant(zone), locale, precision)
     }
