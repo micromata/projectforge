@@ -92,6 +92,7 @@ function TimeInput(
             {showDate && (
                 <DateInput
                     date={time}
+                    hideDayPicker
                     setDate={handleDateChange}
                     noInputContainer
                 />

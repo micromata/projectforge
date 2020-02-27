@@ -1,13 +1,16 @@
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
+import DayPicker from 'react-day-picker';
 import { connect } from 'react-redux';
+import AdvancedPopper from '../../popper/AdvancedPopper';
 import InputContainer from '../InputContainer';
 import styles from './CalendarInput.module.scss';
 
 function DateInput(
     {
         date,
+        hideDayPicker,
         jsDateFormat,
         noInputContainer,
         setDate,
@@ -15,6 +18,7 @@ function DateInput(
 ) {
     const [inputValue, setInputValue] = React.useState('');
     const [isActive, setIsActive] = React.useState(false);
+    const [isOpen, setIsOpen] = React.useState(false);
     const inputRef = React.useRef(null);
     const Tag = noInputContainer ? React.Fragment : InputContainer;
 
@@ -89,7 +93,7 @@ function DateInput(
         tagProps.isActive = isActive;
     }
 
-    return (
+    const input = (
         <Tag {...tagProps}>
             <div className={styles.dateInput}>
                 <span className={styles.placeholder}>
@@ -111,17 +115,36 @@ function DateInput(
             </div>
         </Tag>
     );
+
+    if (hideDayPicker) {
+        return input;
+    }
+
+    return (
+        <AdvancedPopper
+            basic={input}
+            setIsOpen={setIsOpen}
+            isOpen={isOpen}
+            withInput
+        >
+            <DayPicker
+                selectedDays={date}
+            />
+        </AdvancedPopper>
+    );
 }
 
 DateInput.propTypes = {
     jsDateFormat: PropTypes.string.isRequired,
     setDate: PropTypes.func.isRequired,
     date: PropTypes.instanceOf(Date),
+    hideDayPicker: PropTypes.bool,
     noInputContainer: PropTypes.bool,
 };
 
 DateInput.defaultProps = {
     date: undefined,
+    hideDayPicker: false,
     noInputContainer: false,
 };
 
