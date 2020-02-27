@@ -30,8 +30,8 @@ function DynamicDateInput(props) {
             <DynamicValidationManager id={id}>
                 <DateInput
                     date={value}
-                    setDate={handleDateChange}
                     required={required}
+                    setDate={handleDateChange}
                     todayButton={ui.translations['calendar.today']}
                 />
             </DynamicValidationManager>
