@@ -14,12 +14,14 @@ function DynamicDateInput(props) {
         required,
     } = props;
     const { data, setData } = React.useContext(DynamicLayoutContext);
-    const value = Object.getByString(data, id);
+    let value = Object.getByString(data, id);
 
     // Might be not work in if time zone of browser differs from PF-Users timezone:
     // moment.tz.setDefault(timeZone);
     return React.useMemo(() => {
-        console.log(value);
+        if (typeof value === 'string') {
+            value = new Date(value);
+        }
 
         const handleDateChange = newDate => setData({ [id]: newDate });
 
