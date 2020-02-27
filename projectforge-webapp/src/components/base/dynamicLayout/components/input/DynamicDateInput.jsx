@@ -2,6 +2,7 @@ import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import React from 'react';
 import 'react-day-picker/lib/style.css';
+import AdditionalLabel from '../../../../design/input/AdditionalLabel';
 import DateInput from '../../../../design/input/calendar/DateInput';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from './DynamicValidationManager';
@@ -27,15 +28,20 @@ function DynamicDateInput(props) {
 
         // TODO: VALIDATION, ADDITIONAL LABEL
         return (
-            <DynamicValidationManager id={id}>
-                <DateInput
-                    date={value}
-                    label={label}
-                    required={required}
-                    setDate={handleDateChange}
-                    todayButton={ui.translations['calendar.today']}
-                />
-            </DynamicValidationManager>
+            <React.Fragment>
+                <DynamicValidationManager id={id}>
+                    <DateInput
+                        date={value}
+                        label={label}
+                        required={required}
+                        setDate={handleDateChange}
+                        todayButton={ui.translations['calendar.today']}
+                    />
+                </DynamicValidationManager>
+                {additionalLabel && (
+                    <AdditionalLabel title={additionalLabel} />
+                )}
+            </React.Fragment>
         );
         /*
                 return (
