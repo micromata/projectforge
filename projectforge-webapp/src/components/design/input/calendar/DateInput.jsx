@@ -1,7 +1,9 @@
 import moment from 'moment';
+import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import React from 'react';
 import DayPicker from 'react-day-picker';
+import MomentLocaleUtils from 'react-day-picker/moment';
 import { connect } from 'react-redux';
 import AdvancedPopper from '../../popper/AdvancedPopper';
 import InputContainer from '../InputContainer';
@@ -12,8 +14,10 @@ function DateInput(
         date,
         hideDayPicker,
         jsDateFormat,
+        locale,
         noInputContainer,
         setDate,
+        ...props
     },
 ) {
     const [inputValue, setInputValue] = React.useState('');
@@ -133,6 +137,10 @@ function DateInput(
                 selectedDays={date}
                 onDayClick={handleDayPickerClick}
                 month={date}
+                locale={locale}
+                localeUtils={MomentLocaleUtils}
+                onTodayButtonClick={setDate}
+                {...props}
             />
         </AdvancedPopper>
     );
@@ -143,17 +151,20 @@ DateInput.propTypes = {
     setDate: PropTypes.func.isRequired,
     date: PropTypes.instanceOf(Date),
     hideDayPicker: PropTypes.bool,
+    locale: PropTypes.string,
     noInputContainer: PropTypes.bool,
 };
 
 DateInput.defaultProps = {
     date: undefined,
     hideDayPicker: false,
+    locale: 'en',
     noInputContainer: false,
 };
 
 const mapStateToProps = ({ authentication }) => ({
     jsDateFormat: authentication.user.jsDateFormat,
+    locale: authentication.user.locale,
 });
 
 export default connect(mapStateToProps)(DateInput);

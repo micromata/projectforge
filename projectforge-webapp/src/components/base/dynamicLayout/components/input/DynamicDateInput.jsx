@@ -13,7 +13,7 @@ function DynamicDateInput(props) {
         label,
         required,
     } = props;
-    const { data, setData } = React.useContext(DynamicLayoutContext);
+    const { data, setData, ui } = React.useContext(DynamicLayoutContext);
     let value = Object.getByString(data, id);
 
     // Might be not work in if time zone of browser differs from PF-Users timezone:
@@ -32,6 +32,7 @@ function DynamicDateInput(props) {
                     date={value}
                     setDate={handleDateChange}
                     required={required}
+                    todayButton={ui.translations['calendar.today']}
                 />
             </DynamicValidationManager>
         );
