@@ -86,6 +86,7 @@ const Input = React.forwardRef((
         >
             <label
                 className={classNames(
+                    styles.inputContainer,
                     {
                         [styles.isActive]: value || isActive,
                     },
