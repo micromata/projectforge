@@ -132,7 +132,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   @Override
   public LoginResult checkLogin(final String username, final String password)
   {
-    PFUserDO user = userService.getByUsername(username);
+    PFUserDO user = userService.getInternalByUsername(username);
     if (user != null && user.getLocalUser()) {
       return loginDefaultHandler.checkLogin(username, password);
     }
@@ -144,7 +144,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
       return loginResult.setLoginResultStatus(LoginResultStatus.FAILED);
     }
     log.info("LDAP authentication was successful for: " + username);
-    user = userService.getByUsername(username); // Get again (may-be the user does no exist since last call of getInternalByName(String).
+    user = userService.getInternalByUsername(username); // Get again (may-be the user does no exist since last call of getInternalByName(String).
     if (user == null) {
       log.info("LDAP user '" + username + "' doesn't yet exist in ProjectForge's data base. Creating new user...");
       user = pfUserDOConverter.convert(ldapUser);
@@ -288,7 +288,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
             PFUserDO dbUser = getUser(dbUsers, user.getUsername());
             if (dbUser == null) {
               // Double check if added between internalLoadAll() and here:
-              dbUser = userService.getByUsername(user.getUsername());
+              dbUser = userService.getInternalByUsername(user.getUsername());
             }
             if (dbUser != null) {
               if (dbUser.getLocalUser()) {

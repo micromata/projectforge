@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Bean used by ConfigXML (config.xml) for configuring security stuff.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
@@ -38,12 +38,15 @@ public class SecurityConfig
   @Value("${projectforge.security.passwordPepper}")
   private String passwordPepper;
 
+  @Value("${projectforge.security.authenticationTokenEncryptionKey}")
+  private String authenticationTokenEncryptionKey;
+
   @Value("${projectforge.security.sqlConsoleAvailable}")
   private boolean sqlConsoleAvailable;
 
   /**
    * If configured passwords will be hashed by using this salt.
-   * 
+   *
    * @return the passwordPepper which should be used for hashing passwords (with salt and pepper).
    * @see PFUserDO#getPasswordSalt()
    */
@@ -63,12 +66,25 @@ public class SecurityConfig
   }
 
   /**
+   * If configured, all user's authentication tokens in the data base will be AES encrypted with this key.
+   * @return The key for encryption.
+   * @see org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
+   */
+  public String getAuthenticationTokenEncryptionKey() {
+    return authenticationTokenEncryptionKey;
+  }
+
+  public void setAuthenticationTokenEncryptionKey(String authenticationTokenKey) {
+    this.authenticationTokenEncryptionKey = authenticationTokenKey;
+  }
+
+  /**
    * Attention: You shouldn't activate this feature in productive environments. The SQL console is available for admin
    * users (not for restricted or demo users). This feature is useful if you use e. g. HSQLDB for having access to the
    * database. <br/>
    * Please note: if available there is a full access (select, update, insert, delete, drop etc.) enabled! <br/>
    * This feature is enabled automatically if ProjectForge is started in development mode.
-   * 
+   *
    * @return the sqlConsoleAvailable
    */
   public boolean isSqlConsoleAvailable()
