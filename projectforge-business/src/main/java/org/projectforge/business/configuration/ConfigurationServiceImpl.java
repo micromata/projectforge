@@ -191,6 +191,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   @Value("${projectforge.max-file-size.xml-dump-import}")
   private String maxFileSizeXmlDumpImport;
 
+  private boolean dAVServicesAvailable = false;
+
   @PostConstruct
   public void init() {
     ConfigurationServiceAccessor.setConfigurationService(this);
@@ -679,8 +681,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @Override
-  public boolean isSnowEffectEnabled() {
-    return GlobalConfiguration.getInstance().getBooleanValue(ConfigurationParam.SNOW_EFFECT_ENABLED);
+  public boolean isDAVServicesAvailable() {
+    return dAVServicesAvailable;
+  }
+
+  @Override
+  public void setDAVServicesAvailable(boolean dAVServicesAvailable) {
+    this.dAVServicesAvailable = dAVServicesAvailable;
   }
 
   void setDefaultLocale(Locale defaultLocale) {

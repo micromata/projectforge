@@ -167,6 +167,7 @@ public class UserFilter implements Filter {
     try {
       MDC.put("ip", request.getRemoteAddr());
       MDC.put("session", request.getSession().getId());
+      MDC.put("userAgent", request.getHeader("User-Agent"));
       if (ignoreFilterFor(request)) {
         // Ignore the filter for this request:
         if (log.isDebugEnabled()) {
@@ -221,6 +222,7 @@ public class UserFilter implements Filter {
       ThreadLocalUserContext.clear();
       MDC.remove("ip");
       MDC.remove("session");
+      MDC.remove("userAgent");
       final PFUserDO user = userContext != null ? userContext.getUser() : null;
       if (user != null) {
         MDC.remove("user");

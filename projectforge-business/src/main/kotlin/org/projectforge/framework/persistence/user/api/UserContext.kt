@@ -37,7 +37,7 @@ import java.io.Serializable
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class UserContext : Serializable {
+class UserContext() : Serializable {
     /**
      * @return the user
      */
@@ -55,19 +55,17 @@ class UserContext : Serializable {
     var isStayLoggedIn = false
     private lateinit var userGroupCache: UserGroupCache
 
-    constructor(userGroupCache: UserGroupCache) {
-        this.userGroupCache = userGroupCache
-    }
-
     /**
      * Stores the given user in the context. If the user contains secret fields (such as password etc.) a copy without
      * such fields is stored.
      *
      * @param user
      */
-    constructor(user: PFUserDO, userGroupCache: UserGroupCache) {
+    @JvmOverloads
+    constructor(user: PFUserDO, userGroupCache: UserGroupCache? = null): this() {
         Validate.notNull(user)
-        this.userGroupCache = userGroupCache
+        this.user = user
+        this.userGroupCache = userGroupCache ?: UserGroupCache.tenantInstance
         if (user.hasSecretFieldValues()) {
             log.warn(
                     "Should instantiate UserContext with user containing secret values (makes now a copy of the given user).")
@@ -112,10 +110,6 @@ class UserContext : Serializable {
         return this
     }
 
-    private constructor(user: PFUserDO) {
-        this.user = user
-    }
-
     companion object {
         private val log = LoggerFactory.getLogger(UserContext::class.java)
         private const val serialVersionUID = 4934701869144478233L
@@ -126,15 +120,15 @@ class UserContext : Serializable {
          * @return The created UserContext.
          */
         @JvmStatic
-        fun __internalCreateWithSpecialUser(user: PFUserDO?, userGroupCache: UserGroupCache): UserContext {
-            val userContext = UserContext(userGroupCache)
-            userContext.user = user
-            return userContext
+        fun __internalCreateWithSpecialUser(user: PFUserDO, userGroupCache: UserGroupCache): UserContext {
+            return UserContext(user, userGroupCache)
         }
 
         @JvmStatic
         fun createTestInstance(user: PFUserDO): UserContext {
-            return UserContext(user)
+            val ctx = UserContext() // Can't user UserContext(PFUserDO) constructor: UserGroupCache of tenant not yet initialized.
+            ctx.user = user
+            return ctx
         }
     }
 }

@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * Class used by {@link LoginProtection} for handling maps, time offsets etc.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class LoginProtectionMap
 {
@@ -132,6 +132,14 @@ public class LoginProtectionMap
       this.loginFailedAttemptsMap.remove(id);
       this.lastFailedLoginMap.remove(id);
     }
+  }
+
+  /**
+   * @param id This could be the client's ip address, the login name etc.
+   * @return true if failed logins are registered for given id, otherwise false.
+   */
+  public boolean exists(final String id) {
+    return this.loginFailedAttemptsMap.containsKey(id) || this.lastFailedLoginMap.containsKey(id);
   }
 
   /**
