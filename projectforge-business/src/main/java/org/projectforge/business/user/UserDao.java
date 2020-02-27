@@ -59,8 +59,6 @@ public class UserDao extends BaseDao<PFUserDO> {
 
   private static final SortProperty[] DEFAULT_SORT_PROPERTIES = new SortProperty[]{new SortProperty("firstname"), new SortProperty("lastname")};
 
-  private final List<UserChangedListener> userChangedListeners = new LinkedList<>();
-
   @Autowired
   private ApplicationContext applicationContext;
 
@@ -76,15 +74,6 @@ public class UserDao extends BaseDao<PFUserDO> {
       result.add(PFUserDO.createCopyWithoutSecretFields(user));
     }
     return result;
-  }
-
-  /**
-   * Register given listener. The listener is called every time a user was inserted, updated or deleted.
-   *
-   * @param userChangedListener
-   */
-  public void register(final UserChangedListener userChangedListener) {
-    userChangedListeners.add(userChangedListener);
   }
 
   public QueryFilter getDefaultFilter() {
@@ -253,50 +242,6 @@ public class UserDao extends BaseDao<PFUserDO> {
   @Override
   protected void onChange(final PFUserDO obj, final PFUserDO dbObj) {
     super.onChange(obj, dbObj);
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterSave(ExtendedBaseDO)
-   */
-  @Override
-  protected void afterSave(final PFUserDO obj) {
-    super.afterSave(obj);
-    for (final UserChangedListener userChangedListener : userChangedListeners) {
-      userChangedListener.afterUserChanged(obj, OperationType.INSERT);
-    }
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterUpdate(ExtendedBaseDO, ExtendedBaseDO)
-   */
-  @Override
-  protected void afterUpdate(final PFUserDO obj, final PFUserDO dbObj) {
-    super.afterUpdate(obj, dbObj);
-    for (final UserChangedListener userChangedListener : userChangedListeners) {
-      userChangedListener.afterUserChanged(obj, OperationType.UPDATE);
-    }
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterUndelete(ExtendedBaseDO)
-   */
-  @Override
-  protected void afterUndelete(final PFUserDO obj) {
-    super.afterUndelete(obj);
-    for (final UserChangedListener userChangedListener : userChangedListeners) {
-      userChangedListener.afterUserChanged(obj, OperationType.UPDATE);
-    }
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterDelete(ExtendedBaseDO)
-   */
-  @Override
-  protected void afterDelete(final PFUserDO obj) {
-    super.afterDelete(obj);
-    for (final UserChangedListener userChangedListener : userChangedListeners) {
-      userChangedListener.afterUserChanged(obj, OperationType.DELETE);
-    }
   }
 
   /**
