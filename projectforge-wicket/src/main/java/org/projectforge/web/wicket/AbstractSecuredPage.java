@@ -27,7 +27,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.component.IRequestablePage;
@@ -46,8 +45,6 @@ import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
-
-import java.util.Random;
 
 /**
  * All pages with required login should be derived from this page.
@@ -122,26 +119,6 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
     body.add(alertMessageContainer);
     final Label alertMessageLabel = new Label("alertMessage", alertMessageModel);
     alertMessageContainer.add(alertMessageLabel.setRenderBodyOnly(true));
-
-    body.add(getSnowEffectPanel(parameters));
-  }
-
-  private Panel getSnowEffectPanel(final PageParameters parameters)
-  {
-    boolean enableSnowEffect = configurationService.isSnowEffectEnabled();
-    Boolean disableSnowEffectPermant = (Boolean) userXmlPreferencesCache.getEntry(ThreadLocalUserContext.getUserId(), "disableSnowEffectPermant");
-    if (disableSnowEffectPermant != null) {
-      enableSnowEffect = disableSnowEffectPermant ? false : enableSnowEffect;
-    }
-    enableSnowEffect = (enableSnowEffect && parameters.get("snowEffectEnable") != null && parameters.get("snowEffectEnable").isEmpty() == false) ?
-        parameters.get("snowEffectEnable").toBoolean() :
-        enableSnowEffect;
-    enableSnowEffect = enableSnowEffect && new Random().nextInt(100) >= 50;
-    if (enableSnowEffect) {
-      return new SnowEffectPanel("snowEffect");
-    } else {
-      return new DivPanel("snowEffect");
-    }
   }
 
   /**

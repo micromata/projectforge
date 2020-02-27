@@ -37,10 +37,7 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.core.ExpiringSessionAttributes
-import org.projectforge.rest.core.LanguageService
-import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.core.*
 import org.projectforge.rest.dto.Address
 import org.projectforge.rest.dto.PostData
 import org.projectforge.sms.SmsSenderConfig
@@ -222,6 +219,12 @@ class AddressPagesRest()
             layout.add(MenuItem("address.writeSMS", i18nKey = "address.tooltip.writeSMS", url = "wa/sendSms"), menuIndex++)
         }
         val exportMenu = MenuItem("address.export", i18nKey = "export")
+        if (configurationService.isDAVServicesAvailable) {
+            exportMenu.add(MenuItem("address.useCardDAVService",
+                    i18nKey = "address.cardDAV.infopage.title",
+                    type = MenuItemTargetType.REDIRECT,
+                    url = PagesResolver.getDynamicPageUrl(CardDAVInfoPageRest::class.java)))
+        }
         exportMenu.add(MenuItem("address.vCardExport",
                 i18nKey = "address.book.vCardExport",
                 url = "${getRestPath()}/exportFavoritesVCards",

@@ -55,24 +55,20 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-public class TimesheetExport
-{
+public class TimesheetExport {
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetExport.class);
 
   @Autowired
   private DateTimeFormatter dateTimeFormatter;
 
-  private class MyContentProvider extends MyXlsContentProvider
-  {
-    public MyContentProvider(final ExportWorkbook workbook)
-    {
+  private class MyContentProvider extends MyXlsContentProvider {
+    public MyContentProvider(final ExportWorkbook workbook) {
       super(workbook);
     }
 
     @Override
-    public MyContentProvider updateRowStyle(final ExportRow row)
-    {
+    public MyContentProvider updateRowStyle(final ExportRow row) {
       for (final ExportCell cell : row.getCells()) {
         final CellFormat format = cell.ensureAndGetCellFormat();
         format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
@@ -96,22 +92,19 @@ public class TimesheetExport
     }
 
     @Override
-    public ContentProvider newInstance()
-    {
+    public ContentProvider newInstance() {
       return new MyContentProvider(this.workbook);
     }
   }
 
-  private enum Col
-  {
-    USER, KUNDE, PROJEKT, KOST2, WEEK_OF_YEAR, DAY_OF_WEEK, START_TIME, STOP_TIME, DURATION, HOURS, LOCATION, TASK_TITLE, REFERENCE, SHORT_DESCRIPTION, DESCRIPTION, TASK_PATH, ID
+  private enum Col {
+    USER, KUNDE, PROJEKT, KOST2, WEEK_OF_YEAR, DAY_OF_WEEK, START_TIME, STOP_TIME, DURATION, HOURS, LOCATION, TASK_TITLE, REFERENCE, SHORT_DESCRIPTION, DESCRIPTION, TASK_PATH, ID, CREATED, LAST_UPDATE
   }
 
   /**
    * Exports the filtered list as table with almost all fields.
    */
-  public byte[] export(final List<TimesheetDO> list)
-  {
+  public byte[] export(final List<TimesheetDO> list) {
     log.info("Exporting timesheet list.");
     final ExportWorkbook xls = new ExportWorkbook();
     final ContentProvider contentProvider = new MyContentProvider(xls);
@@ -122,25 +115,26 @@ public class TimesheetExport
     final ExportSheet sheet = xls.addSheet(sheetTitle);
     sheet.createFreezePane(8, 1);
 
-    final ExportColumn[] cols = new ExportColumn[] { //
-        new I18nExportColumn(Col.USER, "timesheet.user", MyXlsContentProvider.LENGTH_USER),
-        new I18nExportColumn(Col.KUNDE, "fibu.kunde", MyXlsContentProvider.LENGTH_STD),
-        new I18nExportColumn(Col.PROJEKT, "fibu.projekt", MyXlsContentProvider.LENGTH_STD),
-        new I18nExportColumn(Col.KOST2, "fibu.kost2", MyXlsContentProvider.LENGTH_KOSTENTRAEGER),
-        new I18nExportColumn(Col.WEEK_OF_YEAR, "calendar.weekOfYearShortLabel", 4),
-        new I18nExportColumn(Col.DAY_OF_WEEK, "calendar.dayOfWeekShortLabel", 4),
-        new I18nExportColumn(Col.START_TIME, "timesheet.startTime", MyXlsContentProvider.LENGTH_DATETIME),
-        new I18nExportColumn(Col.STOP_TIME, "timesheet.stopTime", MyXlsContentProvider.LENGTH_TIMESTAMP),
-        new I18nExportColumn(Col.DURATION, "timesheet.duration", MyXlsContentProvider.LENGTH_DURATION),
-        new I18nExportColumn(Col.HOURS, "hours", MyXlsContentProvider.LENGTH_DURATION),
-        new I18nExportColumn(Col.LOCATION, "timesheet.location", MyXlsContentProvider.LENGTH_STD),
-        new I18nExportColumn(Col.TASK_TITLE, "task.title", MyXlsContentProvider.LENGTH_STD),
-        new I18nExportColumn(Col.REFERENCE, "task.reference", MyXlsContentProvider.LENGTH_STD),
-        new I18nExportColumn(Col.SHORT_DESCRIPTION, "shortDescription", MyXlsContentProvider.LENGTH_STD),
-        new I18nExportColumn(Col.DESCRIPTION, "timesheet.description", MyXlsContentProvider.LENGTH_EXTRA_LONG),
-        new I18nExportColumn(Col.TASK_PATH, "task.path", MyXlsContentProvider.LENGTH_EXTRA_LONG),
-        new I18nExportColumn(Col.ID, "id", MyXlsContentProvider.LENGTH_ID) };
-
+    final ExportColumn[] cols = new ExportColumn[]{ //
+            new I18nExportColumn(Col.USER, "timesheet.user", MyXlsContentProvider.LENGTH_USER),
+            new I18nExportColumn(Col.KUNDE, "fibu.kunde", MyXlsContentProvider.LENGTH_STD),
+            new I18nExportColumn(Col.PROJEKT, "fibu.projekt", MyXlsContentProvider.LENGTH_STD),
+            new I18nExportColumn(Col.KOST2, "fibu.kost2", MyXlsContentProvider.LENGTH_KOSTENTRAEGER),
+            new I18nExportColumn(Col.WEEK_OF_YEAR, "calendar.weekOfYearShortLabel", 4),
+            new I18nExportColumn(Col.DAY_OF_WEEK, "calendar.dayOfWeekShortLabel", 4),
+            new I18nExportColumn(Col.START_TIME, "timesheet.startTime", MyXlsContentProvider.LENGTH_DATETIME),
+            new I18nExportColumn(Col.STOP_TIME, "timesheet.stopTime", MyXlsContentProvider.LENGTH_TIMESTAMP),
+            new I18nExportColumn(Col.DURATION, "timesheet.duration", MyXlsContentProvider.LENGTH_DURATION),
+            new I18nExportColumn(Col.HOURS, "hours", MyXlsContentProvider.LENGTH_DURATION),
+            new I18nExportColumn(Col.LOCATION, "timesheet.location", MyXlsContentProvider.LENGTH_STD),
+            new I18nExportColumn(Col.TASK_TITLE, "task.title", MyXlsContentProvider.LENGTH_STD),
+            new I18nExportColumn(Col.REFERENCE, "task.reference", MyXlsContentProvider.LENGTH_STD),
+            new I18nExportColumn(Col.SHORT_DESCRIPTION, "shortDescription", MyXlsContentProvider.LENGTH_STD),
+            new I18nExportColumn(Col.DESCRIPTION, "timesheet.description", MyXlsContentProvider.LENGTH_EXTRA_LONG),
+            new I18nExportColumn(Col.TASK_PATH, "task.path", MyXlsContentProvider.LENGTH_EXTRA_LONG),
+            new I18nExportColumn(Col.ID, "id", MyXlsContentProvider.LENGTH_ID),
+            new I18nExportColumn(Col.CREATED, "created", MyXlsContentProvider.LENGTH_TIMESTAMP),
+            new I18nExportColumn(Col.LAST_UPDATE, "lastUpdate", MyXlsContentProvider.LENGTH_TIMESTAMP)};
     // column property names
     sheet.setColumns(cols);
 
@@ -150,6 +144,8 @@ public class TimesheetExport
     sheetProvider.putFormat(Col.DURATION, "[h]:mm");
     sheetProvider.putFormat(Col.HOURS, "#,##0.00");
     sheetProvider.putFormat(Col.ID, "0");
+    sheetProvider.putFormat(Col.CREATED, "yyyy-MM-dd HH:mm");
+    sheetProvider.putFormat(Col.LAST_UPDATE, "yyyy-MM-dd HH:mm");
 
     final PropertyMapping mapping = new PropertyMapping();
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
@@ -181,7 +177,7 @@ public class TimesheetExport
       mapping.add(Col.TASK_PATH, TaskFormatter.getTaskPath(timesheet.getTaskId(), null, true, OutputType.PLAIN));
       mapping.add(Col.WEEK_OF_YEAR, timesheet.getFormattedWeekOfYear());
       mapping.add(Col.DAY_OF_WEEK, dateTimeFormatter.getFormattedDate(timesheet.getStartTime(), DateFormats
-          .getFormatString(DateFormatType.DAY_OF_WEEK_SHORT)));
+              .getFormatString(DateFormatType.DAY_OF_WEEK_SHORT)));
       PFDateTime startTime = PFDateTime.from(timesheet.getStartTime()); // not null
       PFDateTime stopTime = PFDateTime.from(timesheet.getStopTime()); // not null
       mapping.add(Col.START_TIME, startTime.getUtilDate());
@@ -196,6 +192,8 @@ public class TimesheetExport
       mapping.add(Col.SHORT_DESCRIPTION, timesheet.getShortDescription());
       mapping.add(Col.DESCRIPTION, timesheet.getDescription());
       mapping.add(Col.ID, timesheet.getId());
+      mapping.add(Col.CREATED, timesheet.getCreated());
+      mapping.add(Col.LAST_UPDATE, timesheet.getLastUpdate());
       sheet.addRow(mapping.getMapping(), 0);
     }
     sheet.setZoom(75); // 75%
@@ -203,8 +201,7 @@ public class TimesheetExport
     return xls.getAsByteArray();
   }
 
-  public void setDateTimeFormatter(final DateTimeFormatter dateTimeFormatter)
-  {
+  public void setDateTimeFormatter(final DateTimeFormatter dateTimeFormatter) {
     this.dateTimeFormatter = dateTimeFormatter;
   }
 }

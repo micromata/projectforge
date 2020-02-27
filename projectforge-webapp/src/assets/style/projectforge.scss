@@ -180,6 +180,10 @@ fieldset {
   margin-top: 20px;
 }
 
+.rbc-btn-group {
+  font-size: 13px;
+}
+
 // NavTabs
 
 .nav-tabs {
@@ -194,9 +198,33 @@ svg.fa-chevron-down {
 
 // Calendar
 
+.rbc-month-view {
+  // Calendar Table Head
+  .rbc-row.rbc-month-header {
+    font-size: 13px;
+    line-height: 1.5;
+    //height: 24px;
+    background: #a8a8a8;
+    color: #fff;
+    letter-spacing: 1px;
+  }
+
+  .rbc-date-cell {
+    font-size: 13px;
+  }
+}
+
+.rbc-header {
+  font-size: 13px;
+  line-height: 1.5;
+  background: #a8a8a8;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
 .rbc-time-view {
   border-radius: 5px;
-  margin-bottom: 15px;
+  margin-bottom: 2em;
 }
 
 .rbc-overlay {
@@ -552,5 +580,13 @@ span.mm-select {
     font-size: 1.125em;
     color: #aaa;
     font-style: italic;
+  }
+}
+
+// Multi Value Select
+
+div[class$="-multiValue"] {
+  div[role=button] {
+    font-size: 14px;
   }
 }

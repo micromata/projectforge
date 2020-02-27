@@ -98,7 +98,7 @@ public class MySession extends WebSession
     }
     setUserContext(ThreadLocalUserContext.getUserContext());
     initActualTenant();
-    this.csrfToken = NumberHelper.getSecureRandomUrlSaveString(20);
+    this.csrfToken = NumberHelper.getSecureRandomAlphanumeric(20);
   }
 
   private void initActualTenant()

@@ -37,6 +37,11 @@
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
+        <dependency>
+            <groupId>org.projectforge</groupId>
+            <artifactId>projectforge-rest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- Is needed for Spring Boot web functionality (e.g. load static content)-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -174,6 +179,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin-version}</version>
                 <executions>
                     <!-- Replacing default-compile as it is treated specially by maven -->
                     <execution>

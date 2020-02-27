@@ -245,7 +245,7 @@ public class PhoneCallPage extends AbstractStandardFormPage {
       form.lastSuccessfulPhoneCall = new Date();
       client.executeMethod(method);
       final String resultStatus = method.getResponseBodyAsString();
-      log.info("Call URL: " + url + " with result code: " + resultStatus);
+      log.info("Call URL: " + urlProtected + " with result code: " + resultStatus);
       if ("0".equals(resultStatus) == true) {
         result = DateTimeFormatter.instance().getFormattedDateTime(new Date()) + ": "
                 + getString("address.phoneCall.result.successful");
