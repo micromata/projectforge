@@ -127,7 +127,7 @@ function DateInput(
                         onChange={handleChange}
                         onFocus={handleFocus}
                         onKeyDown={handleKeyDown}
-                        size={jsDateFormat.length}
+                        size={jsDateFormat.length + 1}
                         type="text"
                         value={inputValue}
                     />
