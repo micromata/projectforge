@@ -263,7 +263,7 @@ public class AddressDao extends BaseDao<AddressDO> {
     switch (operationType) {
       case SELECT:
         for (AddressbookDO ab : obj.getAddressbookList()) {
-          if (addressbookRight.getAccessType(ab, user.getId()).hasAnyAccess()) {
+          if (addressbookRight.checkGlobal(ab) || addressbookRight.getAccessType(ab, user.getId()).hasAnyAccess()) {
             return true;
           }
         }
@@ -275,7 +275,7 @@ public class AddressDao extends BaseDao<AddressDO> {
       case UPDATE:
       case DELETE:
         for (AddressbookDO ab : obj.getAddressbookList()) {
-          if (addressbookRight.hasFullAccess(addressbookCache.getAddressbook(ab), user.getId())) {
+          if (addressbookRight.checkGlobal(ab) || addressbookRight.hasFullAccess(addressbookCache.getAddressbook(ab), user.getId())) {
             return true;
           }
         }

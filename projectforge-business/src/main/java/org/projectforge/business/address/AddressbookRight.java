@@ -39,7 +39,7 @@ public class AddressbookRight extends BaseUserGroupRight<AddressbookDO> {
             UserRightValue.TRUE);
   }
 
-  private boolean checkGlobal(final AddressbookDO obj) {
+  public boolean checkGlobal(final AddressbookDO obj) {
     return obj != null && obj.getId() != null && AddressbookDao.GLOBAL_ADDRESSBOOK_ID == obj.getId();
   }
 
