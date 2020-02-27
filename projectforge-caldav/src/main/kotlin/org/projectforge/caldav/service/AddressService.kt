@@ -23,7 +23,6 @@
 
 package org.projectforge.caldav.service
 
-import org.projectforge.business.address.PersonalAddressDO
 import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.caldav.model.AddressBook
 import org.projectforge.caldav.model.Contact
@@ -51,13 +50,6 @@ class AddressService {
     fun getContactList(addressBook: AddressBook): List<Contact> {
         val favorites = personalAddressDao.favoriteAddressIdList
         return addressCache.getContacts(addressBook, favorites)
-    }
-
-    private fun getFavorites(ownerId: Int): List<Int> {
-        return em.createNamedQuery(PersonalAddressDO.FIND_FAVORITE_ADDRESS_IDS_BY_OWNER, Int::class.java)
-                .setParameter("ownerId", ownerId)
-                .resultList
-
     }
 
     fun createContact(ab: AddressBook?, vcardBytearray: ByteArray?): Contact {
