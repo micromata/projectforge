@@ -53,18 +53,4 @@ public class AddressbookRight extends BaseUserGroupRight<AddressbookDO> {
             || checkGlobal(obj)
             || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ORGA_TEAM);
   }
-
-  /**
-   * Owners and administrators are able to insert new addressbooks.
-   *
-   * @see UserRightAccessCheck#hasInsertAccess(PFUserDO,
-   * Object)
-   */
-  @Override
-  public boolean hasInsertAccess(final PFUserDO user, final AddressbookDO obj) {
-    return super.hasInsertAccess(user, obj)
-            || checkGlobal(obj)
-            || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ORGA_TEAM)
-            || hasFullAccess(obj, user.getId());
-  }
 }
