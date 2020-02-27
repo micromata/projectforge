@@ -91,10 +91,10 @@ function TimeInput(
         <InputContainer isActive={isActive}>
             {showDate && (
                 <DateInput
-                    date={time}
                     hideDayPicker
-                    setDate={handleDateChange}
                     noInputContainer
+                    setDate={handleDateChange}
+                    value={time}
                 />
             )}
             <AdvancedPopper
