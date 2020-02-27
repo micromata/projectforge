@@ -23,7 +23,6 @@
 
 package org.projectforge.caldav.service
 
-import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.PersonalAddressDO
 import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.caldav.model.AddressBook
@@ -31,10 +30,17 @@ import org.projectforge.caldav.model.Contact
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import javax.persistence.EntityManager
 
 @Service
 class AddressService {
+    @Autowired
+    private lateinit var em: EntityManager
+
     private val log = LoggerFactory.getLogger(AddressService::class.java)
+
+    @Autowired
+    private lateinit var addressCache: AddressCache
 
     @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
@@ -42,10 +48,16 @@ class AddressService {
     @Autowired
     private lateinit var vCardService: VCardService
 
-    fun getContactList(ab: AddressBook): List<Contact> {
-        return personalAddressDao.list.map {
-            convertRestResponse(ab, it)
-        }
+    fun getContactList(addressBook: AddressBook): List<Contact> {
+        val favorites = personalAddressDao.favoriteAddressIdList
+        return addressCache.getContacts(addressBook, favorites)
+    }
+
+    private fun getFavorites(ownerId: Int): List<Int> {
+        return em.createNamedQuery(PersonalAddressDO.FIND_FAVORITE_ADDRESS_IDS_BY_OWNER, Int::class.java)
+                .setParameter("ownerId", ownerId)
+                .resultList
+
     }
 
     fun createContact(ab: AddressBook?, vcardBytearray: ByteArray?): Contact {
@@ -126,17 +138,6 @@ class AddressService {
         } catch (e: Exception) {
             log.error("Exception while deleting contact: " + contact.name, e)
         }*/
-    }
-
-    private fun convertRestResponse(ab: AddressBook, personalAddress: PersonalAddressDO): Contact {
-        val c = Contact()
-        val address = personalAddress.address ?: AddressDO()
-        c.id = address.id?.toLong() ?: -1
-        c.name = address.fullName
-        c.modifiedDate = address.lastUpdate
-        c.vcardData = vCardService.getVCard(address)
-        c.addressBook = ab
-        return c
     }
 
     /*private fun convertRestResponse(ab: AddressBook, contactArray: Array<AddressObject>): List<Contact> {

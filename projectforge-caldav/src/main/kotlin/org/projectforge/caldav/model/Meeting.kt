@@ -33,9 +33,10 @@ class Meeting(var calendar: Calendar) {
     var uniqueId: String? = null
         @UniqueId get() = field
         set
+
+    // filename for the meeting. Must be unique within the user
     @get:Name
-    var name // filename for the meeting. Must be unique within the user
-            : String? = null
+    var name: String? = null
     var createDate: Date? = null
     @get:ModifiedDate
     var modifiedDate: Date? = null
