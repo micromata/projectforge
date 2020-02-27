@@ -6,11 +6,13 @@ import DayPicker from 'react-day-picker';
 import MomentLocaleUtils from 'react-day-picker/moment';
 import { connect } from 'react-redux';
 import AdvancedPopper from '../../popper/AdvancedPopper';
+import AdditionalLabel from '../AdditionalLabel';
 import InputContainer from '../InputContainer';
 import styles from './CalendarInput.module.scss';
 
 function DateInput(
     {
+        additionalLabel,
         date,
         hideDayPicker,
         jsDateFormat,
@@ -105,28 +107,31 @@ function DateInput(
         .join('');
 
     const input = (
-        <Tag {...tagProps}>
-            <div className={styles.dateInput}>
-                {isActive && (
-                    <span
-                        className={styles.placeholder}
-                        style={{ left: `${jsDateFormat.length - placeholder.length}ch` }}
-                    >
+        <React.Fragment>
+            <Tag {...tagProps}>
+                <div className={styles.dateInput}>
+                    {isActive && (
+                        <span
+                            className={styles.placeholder}
+                            style={{ left: `${jsDateFormat.length - placeholder.length}ch` }}
+                        >
                         {placeholder}
                     </span>
-                )}
-                <input
-                    ref={inputRef}
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    onFocus={handleFocus}
-                    onKeyDown={handleKeyDown}
-                    size={jsDateFormat.length}
-                    type="text"
-                    value={inputValue}
-                />
-            </div>
-        </Tag>
+                    )}
+                    <input
+                        ref={inputRef}
+                        onBlur={handleBlur}
+                        onChange={handleChange}
+                        onFocus={handleFocus}
+                        onKeyDown={handleKeyDown}
+                        size={jsDateFormat.length}
+                        type="text"
+                        value={inputValue}
+                    />
+                </div>
+            </Tag>
+            <AdditionalLabel title={additionalLabel} />
+        </React.Fragment>
     );
 
     if (hideDayPicker) {
@@ -158,6 +163,7 @@ function DateInput(
 DateInput.propTypes = {
     jsDateFormat: PropTypes.string.isRequired,
     setDate: PropTypes.func.isRequired,
+    additionalLabel: PropTypes.string,
     date: PropTypes.instanceOf(Date),
     hideDayPicker: PropTypes.bool,
     label: PropTypes.string,
@@ -167,6 +173,7 @@ DateInput.propTypes = {
 };
 
 DateInput.defaultProps = {
+    additionalLabel: undefined,
     date: undefined,
     hideDayPicker: false,
     label: undefined,
