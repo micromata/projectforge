@@ -277,7 +277,14 @@ class PFDayUtils {
             if (date != null) {
                 return date
             }
-            return parseDate(dateString, PFDateTimeUtils.ensureUsersDateTimeFormat(DateFormatType.DATE_SHORT))
+            date = parseDate(dateString, PFDateTimeUtils.ensureUsersDateTimeFormat(DateFormatType.DATE_SHORT))
+            if (date != null) {
+                return date
+            }
+            // Try to parse with time of day, but use local date in user's time zone independant of given time zone.
+            // e. g. Fronend sends 2019-10-04T22:00:00.000Z in user's time zone Europe/Berlin. This should result in 1999-10-05.
+            date = PFDateTimeUtils.parse(dateString)?.withZoneSameInstant(ThreadLocalUserContext.getZoneId())?.localDate
+            return date
         }
 
         fun parseDate(str: String?, dateTimeFormatter: DateTimeFormatter): LocalDate? {

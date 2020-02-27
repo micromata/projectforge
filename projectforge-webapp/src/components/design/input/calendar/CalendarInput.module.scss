@@ -29,21 +29,28 @@
   }
 }
 
-.tempTimeInput {
-  width: 5em;
-}
-
 .timeInput {
+  display: inline-block;
 
   .hourInput, .minuteInput {
+    font-family: monospace;
     border: none;
-    text-align: center;
     width: 5em;
-    margin: 0 auto;
+    padding: 0 .5em;
+    background: none;
+
+    &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
+      appearance: none;
+      margin: 0;
+    }
 
     &:focus {
       outline: none;
     }
+  }
+
+  .hourInput {
+    text-align: right;
   }
 
   .hours, .minutes {
@@ -59,10 +66,10 @@
       height: 2em;
       text-align: center;
       padding-top: .25em;
+      border-radius: 50%;
 
-      &:hover, &.selected {
-        background-color: #3b99fc;
-        border-radius: 50%;
+      &:hover {
+        background-color: #3a76d8;
         color: #fff;
       }
     }
@@ -92,4 +99,32 @@
 
 .editMode {
   display: inline-block;
+}
+
+.dateInput {
+  display: inline-block;
+  position: relative;
+  font-size: 14px;
+
+  input {
+    position: relative;
+    border: none;
+    padding: 0;
+    z-index: 2;
+    background: none;
+    outline: none;
+    width: 100%;
+  }
+
+  .placeholder {
+    position: absolute;
+    top: 0;
+    color: #999;
+    z-index: 1;
+    padding-left: 1px;
+  }
+
+  input, .placeholder {
+    font-family: monospace;
+  }
 }
