@@ -38,6 +38,7 @@ class SourceFileCheckerTest {
     /**
      * Checks all Kotlin and Java sources for correct declaration of LoggerFactory.getLogger(SourceFileCheckerTest::class.java). If any
      * Logger declaration differs from the source file name, the test fails.
+     * Example: Foo.java: private final Logger log = LoggerFactory.getLogger(Bar.class); // Bar.class should bee Foo.class.
      */
     @Test
     @Throws(IOException::class)
