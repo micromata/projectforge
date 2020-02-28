@@ -87,7 +87,10 @@ function TimeInput(
     const hours = time ? time.getHours() : 0;
     const minutes = time ? time.getMinutes() : 0;
 
-    const handleInputFocus = ({ target }) => target.select();
+    const handleInputFocus = ({ target }) => {
+        setIsOpen(true);
+        target.select();
+    };
 
     return (
         <React.Fragment>
@@ -117,7 +120,6 @@ function TimeInput(
                             value={formatTimeUnit(hours)}
                         />
                         <span>:</span>
-                        {/* TODO FOCUS ON TAB IN */}
                         {/* TODO FIX WIDTH, SOME NUMBERS GET CUT OUT */}
                         <input
                             className={style.minuteInput}
