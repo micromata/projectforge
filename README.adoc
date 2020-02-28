@@ -108,7 +108,6 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 password is now `test123`.
 |Clear calendar subscriptions (optional)|`update t_calendar set ext_subscription=false where owner_fk != ###;` +
 This is useful for avoiding a lot of external calendar calls of foreign users if your productive data contains a lot of users with calendar subscriptions.
-|PSQL|`docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge`
 |Uninstall|`docker rm projectforge-postgres`
 |===
 
