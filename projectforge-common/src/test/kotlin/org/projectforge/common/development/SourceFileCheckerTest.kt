@@ -59,9 +59,8 @@ class SourceFileCheckerTest {
             } else {
                 ++processedJavaFiles
             }
-            val regex = loggerExp
             val content = file.readText(StandardCharsets.UTF_8)
-            val matchResult = regex.find(content)
+            val matchResult = loggerRegex.find(content)
             val loggerClass = matchResult?.groups?.get(1)?.value?.trim()
             if (loggerClass != null && file.nameWithoutExtension != loggerClass) {
                 errorFiles.add(file.path)
@@ -73,7 +72,7 @@ class SourceFileCheckerTest {
     }
 
     companion object {
-        private val loggerExp = """LoggerFactory\s*.\s*getLogger\s*\(\s*(.*)\s*(\.class|:{2}class)""".toRegex()
+        private val loggerRegex = """LoggerFactory\s*.\s*getLogger\s*\(\s*(.*)\s*(\.class|:{2}class)""".toRegex()
         private val supportedExtensions = arrayOf("kt", "java")
 
         // Kotlin:
