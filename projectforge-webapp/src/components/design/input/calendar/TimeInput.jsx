@@ -120,7 +120,6 @@ function TimeInput(
                             value={formatTimeUnit(hours)}
                         />
                         <span>:</span>
-                        {/* TODO FIX WIDTH, SOME NUMBERS GET CUT OUT */}
                         <input
                             className={style.minuteInput}
                             ref={minuteRef}
