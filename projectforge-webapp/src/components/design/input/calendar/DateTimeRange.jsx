@@ -164,7 +164,7 @@ function DateTimeRange(
             id: 'LAST_HOURS_4',
         },
         {
-            label: 'today',
+            label: 'calendar.today',
             id: 'TODAY',
         },
         {
