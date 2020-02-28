@@ -84,6 +84,7 @@ function TimeInput(
         setMinute(Number(target.value));
     };
 
+    const hours = time ? time.getHours() : -1;
     const minutes = time ? time.getMinutes() : -1;
 
     return (
@@ -98,7 +99,6 @@ function TimeInput(
             )}
             <AdvancedPopper
                 basic={(
-                    <div onClick={() => setIsOpen(true)} role="presentation">
                     <div
                         onClick={() => setIsOpen(true)}
                         role="presentation"
