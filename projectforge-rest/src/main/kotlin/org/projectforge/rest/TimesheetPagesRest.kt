@@ -119,6 +119,11 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
 
     override fun transformForDB(dto: Timesheet): TimesheetDO {
         val timesheetDO = TimesheetDO()
+        if (dto.kost2 != null && baseDao.getKost2List(timesheetDO).isNullOrEmpty()) {
+            // Work arround: if kost 2 was selected in client before new task without kost2 assignments was chosen,
+            // the former kost2 selection will be sent by the client.
+            dto.kost2 = null
+        }
         dto.copyTo(timesheetDO)
         return timesheetDO
     }

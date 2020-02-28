@@ -91,6 +91,8 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   private static final boolean LUCENE_FLUSH_ALWAYS = false;
 
+  private final List<BaseDOChangedListener<O>> objectChangedListeners = new LinkedList<>();
+
   protected Class<O> clazz;
 
   protected boolean logDatabaseActions = true;
@@ -543,6 +545,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * @param obj The inserted object
    */
   protected void afterSave(final O obj) {
+    callObjectChangedListeners(obj, OperationType.INSERT);
   }
 
   /**
@@ -573,6 +576,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * @param dbObj The object from data base before modification.
    */
   protected void afterUpdate(final O obj, final O dbObj) {
+    callObjectChangedListeners(obj, OperationType.UPDATE);
   }
 
   /**
@@ -584,6 +588,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * @param isModified is true if the object was changed, false if the object wasn't modified.
    */
   protected void afterUpdate(final O obj, final O dbObj, final boolean isModified) {
+    callObjectChangedListeners(obj, OperationType.UPDATE);
   }
 
   /**
@@ -610,6 +615,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * @param obj The deleted object.
    */
   protected void afterDelete(final O obj) {
+    callObjectChangedListeners(obj, OperationType.DELETE);
   }
 
   /**
@@ -618,6 +624,13 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * @param obj The deleted object.
    */
   protected void afterUndelete(final O obj) {
+    callObjectChangedListeners(obj, OperationType.UNDELETE);
+  }
+
+  protected void callObjectChangedListeners(final O obj, final OperationType operationType) {
+    for (final BaseDOChangedListener<O> objectChangedListener : objectChangedListeners) {
+      objectChangedListener.afterSaveOrModifify(obj, operationType);
+    }
   }
 
   /**
@@ -1296,5 +1309,15 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   public O selectByPkDetached(Integer pk) throws AccessException {
     // TODO RK not detached here
     return getById(pk);
+  }
+
+  /**
+   * Register given listener. The listener is called every time an object was inserted, updated or deleted.
+   *
+   * @param objectChangedListener
+   */
+  public void register(final BaseDOChangedListener<O> objectChangedListener) {
+    log.info(this.getClass().getSimpleName()  + ": Registering " + objectChangedListener.getClass().getName());
+    objectChangedListeners.add(objectChangedListener);
   }
 }

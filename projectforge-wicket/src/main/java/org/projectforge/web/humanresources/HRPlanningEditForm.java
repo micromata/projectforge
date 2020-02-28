@@ -43,7 +43,6 @@ import org.projectforge.business.humanresources.*;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.fibu.NewProjektSelectPanel;
@@ -58,7 +57,6 @@ import org.slf4j.Logger;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -170,11 +168,10 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
       LocalDatePanel weekDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
       weekDatePanel.setRequired(true);
       weekDatePanel.add((IValidator<Date>) iValidatable -> {
-        final Date date = iValidatable.getValue();
-        if (date != null) {
-          final DayHolder dh = new DayHolder(date);
-          dh.setBeginOfWeek();
-          data.setWeek(dh.getUtilDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+         PFDay day = PFDay.fromOrNull(iValidatable.getValue());
+        if (day != null) {
+          day = day.getBeginOfWeek();
+          data.setWeek(day.getLocalDate());
         }
         weekDatePanel.markModelAsChanged();
       });

@@ -61,8 +61,6 @@ public class PersonalAddressTest extends AbstractTestBase {
     personalAddress.setAddress(a);
     personalAddress.setOwner(getUser(AbstractTestBase.ADMIN));
     personalAddress.setFavoriteCard(true);
-    personalAddress.setFavoriteBusinessPhone(true);
-    personalAddress.setFavoriteMobilePhone(true);
     personalAddressDao.saveOrUpdate(personalAddress);
 
     CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -73,10 +71,6 @@ public class PersonalAddressTest extends AbstractTestBase {
     assertEquals(personalAddress.getAddressId(), addressIds[0]);
     assertEquals(personalAddress.getOwnerId(), getUser(AbstractTestBase.ADMIN).getId());
     assertTrue(personalAddress.isFavoriteCard());
-    assertTrue(personalAddress.isFavoriteBusinessPhone());
-    assertTrue(personalAddress.isFavoriteMobilePhone());
-    assertFalse(personalAddress.isFavoritePrivatePhone());
-    assertFalse(personalAddress.isFavoriteFax());
 
     /*
      * txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW); txTemplate.execute(new

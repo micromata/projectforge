@@ -21,15 +21,14 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.caldav.cache
+package org.projectforge.framework.persistence.api
 
-class CacheEntry<T>(val expireTimeInMillis: Long = 60000L) {
-    var lastAccess = System.currentTimeMillis()
-    var value: T? = null
-        get() {
-            lastAccess = System.currentTimeMillis()
-            return field
-        }
-    val expired: Boolean
-        get() = System.currentTimeMillis() - lastAccess > expireTimeInMillis
+import org.projectforge.framework.access.OperationType
+
+/**
+ * BaseDOChangedListener may registered at BaseDao and will be called every time an object was changed (added, modified or deleted).
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ */
+interface BaseDOChangedListener<O : ExtendedBaseDO<Int>> {
+    fun afterSaveOrModifify(changedObject: O, operationType: OperationType)
 }

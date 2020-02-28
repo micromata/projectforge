@@ -189,7 +189,15 @@ abstract class AbstractPagesRest<
                     url = getRestPath("reindexFull"),
                     type = MenuItemTargetType.RESTCALL))
         layout.add(gearMenu)
-        layout.addTranslations("reset", "datatable.no-records-found")
+        layout.addTranslations("reset", "datatable.no-records-found", "date.begin", "date.end",
+                "search.lastMinute", "search.lastHour", "today", "search.sinceYesterday")
+        layout.addTranslation("search.lastMinutes.10", translateMsg("search.lastMinutes", 10))
+        layout.addTranslation("search.lastMinutes.30", translateMsg("search.lastMinutes", 30))
+        layout.addTranslation("search.lastHours.4", translateMsg("search.lastHours", 4))
+        layout.addTranslation("search.lastDays.3", translateMsg("search.lastDays", 3))
+        layout.addTranslation("search.lastDays.7", translateMsg("search.lastDays", 7))
+        layout.addTranslation("search.lastDays.30", translateMsg("search.lastDays", 30))
+        layout.addTranslation("search.lastDays.90", translateMsg("search.lastDays", 90))
         return layout
     }
 

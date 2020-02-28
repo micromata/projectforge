@@ -80,8 +80,8 @@ class LoginProtection private constructor() {
     fun getFailedLoginTimeOffsetIfExists(userId: String?, clientIpAddress: String?, authenticationType: String? = null): Long {
         var userIdOffset: Long = 0
         var ipAddressOffset: Long = 0
-        val userString = getUserString(userId, authenticationType)
-        if (userString != null) {
+        if (userId != null) {
+            val userString = getUserString(userId, authenticationType)
             userIdOffset = mapByUserString.getFailedLoginTimeOffsetIfExists(userString)
         }
         if (clientIpAddress != null) {
@@ -103,8 +103,8 @@ class LoginProtection private constructor() {
     fun getNumberOfFailedLoginAttempts(userId: String?, clientIpAddress: String?, authenticationType: String? = null): Int {
         var failedLoginsForUserId = 0
         var failedLoginsForIpAddress = 0
-        val userString = getUserString(userId, authenticationType)
-        if (userString != null) {
+        if (userId != null) {
+            val userString = getUserString(userId, authenticationType)
             failedLoginsForUserId = mapByUserString.getNumberOfFailedLoginAttempts(userString)
         }
         if (clientIpAddress != null) {
@@ -121,15 +121,15 @@ class LoginProtection private constructor() {
      */
     @JvmOverloads
     fun clearLoginTimeOffset(username: String?, userId: Int?, clientIpAddress: String?, authenticationType: String? = null) {
-        var userString = getUserString(username, authenticationType)
-        if (userString != null) {
+        if (username != null) {
+            val userString = getUserString(username, authenticationType)
             if (mapByUserString.exists(userString)) {
                 log.info("Clearing time penalty for login $userString after successful login.")
             }
             mapByUserString.clearLoginTimeOffset(userString)
         }
-        userString = getUserString(userId, authenticationType)
-        if (userString != null) {
+        if (userId != null) {
+            val userString = getUserString(userId, authenticationType)
             if (mapByUserString.exists(userString)) {
                 log.info("Clearing time penalty for login $userString after successful login.")
             }
@@ -163,8 +163,8 @@ class LoginProtection private constructor() {
     fun incrementFailedLoginTimeOffset(userId: String?, clientIpAddress: String?, authenticationType: String? = null): Long {
         var timeOffsetForUserId: Long = 0
         var timeOffsetForIpAddress: Long = 0
-        val userString = getUserString(userId, authenticationType)
-        if (userString != null) {
+        if (userId != null) {
+            val userString = getUserString(userId, authenticationType)
             timeOffsetForUserId = mapByUserString.incrementFailedLoginTimeOffset(userString)
             if (timeOffsetForUserId > 0) {
                 log.warn("Time-offset (penalty) for user '$userString' increased: ${timeOffsetForUserId / 1000} seconds.")
@@ -179,10 +179,7 @@ class LoginProtection private constructor() {
         return if (timeOffsetForUserId > timeOffsetForIpAddress) timeOffsetForUserId else timeOffsetForIpAddress
     }
 
-    private fun getUserString(user: Any?, authenticationType: String?): String? {
-        if (user == null) {
-            return authenticationType
-        }
+    private fun getUserString(user: Any, authenticationType: String?): String? {
         if (authenticationType == null) {
             return "$user"
         }

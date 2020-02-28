@@ -24,15 +24,30 @@
 package org.projectforge.caldav.model
 
 import io.milton.annotations.ModifiedDate
+import io.milton.annotations.Name
 import io.milton.annotations.UniqueId
 import java.util.*
 
-class Contact {
+class Contact() {
+    constructor(id: Int?, fullname: String?, modifiedDate: Date?, vcardData: ByteArray?) : this() {
+        this.id = id?.toLong() ?: -1
+        this.name = fullname ?: "untitled"
+        this.modifiedDate = modifiedDate
+        this.vcardData = vcardData
+    }
+
+    constructor(contact: Contact, addressBook: AddressBook?) : this() {
+        this.id = contact.id
+        this.name = contact.name
+        this.modifiedDate = contact.modifiedDate
+        this.vcardData = contact.vcardData
+        this.addressBook = addressBook
+    }
+
     @get:UniqueId
     var id: Long = 0
-    /**
-     * filename for the meeting. Must be unique within the user
-     */
+
+    @get:Name
     var name: String? = null
     @get:ModifiedDate
     var modifiedDate: Date? = null
