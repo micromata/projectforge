@@ -53,7 +53,7 @@ public class CorePersistenceServiceImpl<PK extends Serializable, ENT extends Mar
     implements ICorePersistenceService<PK, ENT>, IDao<ENT>
 {
 
-  private static final Logger LOG = LoggerFactory.getLogger(JpaPfPersistenceServiceImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CorePersistenceServiceImpl.class);
   @Autowired
   private PfEmgrFactory emf;
 

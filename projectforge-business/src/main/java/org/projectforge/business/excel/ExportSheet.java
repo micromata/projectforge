@@ -32,7 +32,7 @@ import java.util.List;
 
 public class ExportSheet
 {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportWorkbook.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportSheet.class);
 
   /**
    * Sheet names are limited to this length
