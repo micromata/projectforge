@@ -1,8 +1,10 @@
 import classNames from 'classnames';
 import moment from 'moment';
+import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import React from 'react';
 import DayPicker from 'react-day-picker';
+import MomentLocaleUtils from 'react-day-picker/moment';
 import { connect } from 'react-redux';
 import { Col, Row } from '../..';
 import { getTranslation } from '../../../../utilities/layout';
@@ -14,6 +16,7 @@ function DateTimeRange(
         firstDayOfWeek,
         from,
         id,
+        locale,
         onChange,
         selectors,
         setFrom,
@@ -225,6 +228,8 @@ function DateTimeRange(
                 <DayPicker
                     className="range"
                     firstDayOfWeek={firstDayOfWeek}
+                    locale={locale}
+                    localeUtils={MomentLocaleUtils}
                     modifiers={{
                         start: from,
                         end: to,
