@@ -15,6 +15,7 @@ function AdvancedPopper(
         isOpen,
         setIsOpen,
         withInput,
+        ...props
     },
 ) {
     const reference = React.useRef(null);
@@ -63,6 +64,7 @@ function AdvancedPopper(
                 { [style.isOpen]: additionalVisible },
                 className,
             )}
+            {...props}
         >
             <div
                 className={classNames(
