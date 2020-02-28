@@ -30,30 +30,40 @@
 }
 
 .timeInput {
-  display: inline-block;
+  flex: 1;
 
-  .hourInput, .minuteInput {
-    font-family: monospace;
-    border: none;
-    width: 5em;
-    padding: 0 .5em;
-    background: none;
+  .container {
+    display: flex;
 
-    &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
-      appearance: none;
-      margin: 0;
+    .hourInput, .minuteInput {
+      font-family: monospace;
+      border: none;
+      padding: 0 .5em;
+      background: none;
+
+      &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
+        appearance: none;
+        margin: 0;
+      }
+
+      &:focus {
+        outline: none;
+      }
     }
 
-    &:focus {
-      outline: none;
+    .hourInput {
+      text-align: right;
+      width: 3.125em;
+    }
+
+    .minuteInput {
+      width: 3.5ch;
     }
   }
 
-  .hourInput {
-    text-align: right;
-  }
 
   .hours, .minutes {
+    font-size: .8em;
     display: inline-block;
     list-style: none;
     margin-block-start: 0;
@@ -76,7 +86,7 @@
   }
 
   .hours {
-    width: 2.5em;
+    width: 2em;
   }
 
   .minutes {
@@ -105,12 +115,12 @@
   display: inline-block;
   position: relative;
   font-size: 14px;
+  flex: 1;
 
   input {
     position: relative;
     border: none;
     padding: 0;
-    z-index: 2;
     background: none;
     outline: none;
     width: 100%;
@@ -120,7 +130,6 @@
     position: absolute;
     top: 0;
     color: #999;
-    z-index: 1;
     padding-left: 1px;
   }
 
@@ -130,13 +139,30 @@
 }
 
 .timeRange {
-  &.from {
+  display: flex;
+  justify-content: flex-start;
+
+  .from, .to {
+    flex: 0;
+    display: flex;
+  }
+
+  .from {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
   }
 
-  &.to {
+  .to {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
+  }
+
+  .deleteButton {
+    margin: 0 .5em;
+    cursor: pointer;
+
+    &:hover {
+      color: #333;
+    }
   }
 }

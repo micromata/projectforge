@@ -1,17 +1,12 @@
 import timezone from 'moment-timezone';
 import 'moment/min/locales';
 import PropTypes from 'prop-types';
-import TimePicker from 'rc-time-picker';
 import 'rc-time-picker/assets/index.css';
 import React from 'react';
-import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
-import MomentLocaleUtils, { formatDate, parseDate } from 'react-day-picker/moment';
 import { connect } from 'react-redux';
 import AdditionalLabel from '../../../../../design/input/AdditionalLabel';
-import DateInput from '../../../../../design/input/calendar/DateInput';
-import style from '../../../../../design/input/Input.module.scss';
-import InputContainer from '../../../../../design/input/InputContainer';
+import TimeRange from '../../../../../design/input/calendar/TimeRange';
 import { DynamicLayoutContext } from '../../../context';
 
 /**
@@ -21,6 +16,7 @@ function DayRange(
     {
         additionalLabel,
         dateFormat,
+        id,
         locale,
         timeNotation,
         values,
@@ -29,8 +25,8 @@ function DayRange(
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
     const { startDateId, endDateId, label } = values;
 
-    const resolveDate = (id) => {
-        const dateEpochSeconds = Object.getByString(data, id);
+    const resolveDate = (dateId) => {
+        const dateEpochSeconds = Object.getByString(data, dateId);
         return dateEpochSeconds ? timezone(new Date(dateEpochSeconds)) : undefined;
     };
 
@@ -84,50 +80,20 @@ function DayRange(
             setFields(newStartDate, endDate);
         };
 
-        const changeStartTime = value => setFields(value, endDate);
-        const changeEndTime = value => setFields(startDate, value);
+        const changeStartTime = value => setFields(timezone(value), endDate);
+        const changeEndTime = value => setFields(startDate, timezone(value));
 
         return (
             <React.Fragment>
-                <InputContainer label={label} isActive style={{ display: 'flex' }}>
-                    <div style={{ flex: 1 }}>
-                        <DateInput
-                            noInputContainer
-                            setDate={console.log}
-                            value={startDate ? startDate.toDate() : undefined}
-                        />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                    </div>
-                </InputContainer>
-                <span className={style.text}>{label}</span>
-                <DayPickerInput
-                    formatDate={formatDate}
-                    parseDate={parseDate}
-                    format={dateFormat}
-                    value={startDate ? startDate.toDate() : undefined}
-                    onDayChange={changeDay}
-                    dayPickerProps={{
-                        locale,
-                        localeUtils: MomentLocaleUtils,
-                    }}
-                />
-                <TimePicker
-                    value={startDate}
-                    showSecond={false}
-                    minuteStep={15}
-                    allowEmpty={false}
-                    use12Hours={timeNotation === 'H12'}
-                    onChange={changeStartTime}
-                />
-                {ui.translations.until}
-                <TimePicker
-                    value={endDate}
-                    showSecond={false}
-                    minuteStep={15}
-                    allowEmpty={false}
-                    use12Hours={timeNotation === 'H12'}
-                    onChange={changeEndTime}
+                <TimeRange
+                    // TODO SHOW CALENDAR, TRANSLATION
+                    label={label}
+                    sameDate
+                    setFrom={changeStartTime}
+                    setTo={changeEndTime}
+                    id={id}
+                    from={startDate ? startDate.toDate() : undefined}
+                    to={endDate ? endDate.toDate() : undefined}
                 />
                 <AdditionalLabel title={additionalLabel} />
             </React.Fragment>

@@ -128,7 +128,7 @@ function DateInput(
                         onChange={handleChange}
                         onFocus={handleFocus}
                         onKeyDown={handleKeyDown}
-                        size={jsDateFormat.length + 1}
+                        style={{ minWidth: `${jsDateFormat.length + 1}ch` }}
                         type="text"
                         value={inputValue}
                     />
