@@ -33,7 +33,6 @@ function FormattedTimeRange(
     useClickOutsideHandler(toEditRef, () => setToInEditMode(false), toInEditMode);
 
 
-    // TODO REMOVE EDITABLE CONTENT
     return (
         <React.Fragment>
             {children}
