@@ -190,7 +190,7 @@ abstract class AbstractPagesRest<
                     type = MenuItemTargetType.RESTCALL))
         layout.add(gearMenu)
         layout.addTranslations("reset", "datatable.no-records-found", "date.begin", "date.end",
-                "search.lastMinute", "search.lastHour", "today", "search.sinceYesterday")
+                "search.lastMinute", "search.lastHour", "calendar.today", "search.sinceYesterday")
         layout.addTranslation("search.lastMinutes.10", translateMsg("search.lastMinutes", 10))
         layout.addTranslation("search.lastMinutes.30", translateMsg("search.lastMinutes", 30))
         layout.addTranslation("search.lastHours.4", translateMsg("search.lastHours", 4))
