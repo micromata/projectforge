@@ -87,14 +87,14 @@ function DayRange(
         return (
             <React.Fragment>
                 <TimeRange
-                    // TODO SHOW CALENDAR, TRANSLATION
                     label={label}
+                    from={startDate ? startDate.toDate() : undefined}
+                    id={id}
                     sameDate
                     setFrom={changeStartTime}
                     setTo={changeEndTime}
-                    id={id}
-                    from={startDate ? startDate.toDate() : undefined}
                     to={endDate ? endDate.toDate() : undefined}
+                    toLabel={ui.translations.until}
                 />
                 <AdditionalLabel title={additionalLabel} />
             </React.Fragment>

@@ -17,6 +17,7 @@ function TimeRange(
         setFrom,
         setTo,
         to,
+        toLabel,
     },
 ) {
     return (
@@ -24,22 +25,21 @@ function TimeRange(
             <InputContainer
                 className={styles.from}
                 isActive
-                // TODO TRANSLATION
-                label={`${label || ''} [Von]`}
+                label={label}
                 withMargin
             >
                 <TimeInput
-                    setTime={setFrom}
-                    time={from}
+                    hideDayPicker={hideDayPicker}
                     id={`time-input-${id}-from`}
+                    setTime={setFrom}
                     showDate
+                    time={from}
                 />
             </InputContainer>
             <InputContainer
                 className={styles.to}
                 isActive
-                // TODO TRANSLATION
-                label="[Bis]"
+                label={toLabel || 'until'}
                 withMargin
             >
                 <TimeInput
@@ -49,7 +49,6 @@ function TimeRange(
                     showDate={!sameDate}
                     time={to}
                 />
-                {/* TODO ENABLE DELETE BUTTON */}
                 {onDelete && (
                     <FontAwesomeIcon
                         icon={faTimes}
@@ -72,15 +71,17 @@ TimeRange.propTypes = {
     onDelete: PropTypes.func,
     sameDate: PropTypes.bool,
     to: PropTypes.instanceOf(Date),
+    toLabel: PropTypes.string,
 };
 
 TimeRange.defaultProps = {
     from: undefined,
-    hideDayPicker: true,
+    hideDayPicker: false,
     label: undefined,
     onDelete: undefined,
     sameDate: false,
     to: undefined,
+    toLabel: undefined,
 };
 
 export default TimeRange;

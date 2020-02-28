@@ -217,11 +217,14 @@ function DateTimeRange(
                     {from && to && (
                         <TimeRange
                             from={from}
+                            hideDayPicker
                             id={`date-time-range-${id}`}
+                            label={getTranslation('date.begin', translations)}
                             onDelete={() => onChange({})}
                             setFrom={setFrom}
                             setTo={setTo}
                             to={to}
+                            toLabel={getTranslation('date.end', translations)}
                         />
                     )}
                 </span>
