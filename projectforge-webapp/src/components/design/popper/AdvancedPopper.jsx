@@ -1,7 +1,6 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { useClickOutsideHandler } from '../../../utilities/hooks';
 import style from './Popper.module.scss';
 
 function AdvancedPopper(
@@ -13,6 +12,7 @@ function AdvancedPopper(
         className,
         contentClassName,
         isOpen,
+        onBlur,
         setIsOpen,
         withInput,
         ...props
@@ -24,8 +24,14 @@ function AdvancedPopper(
     const [basicWidth, setBasicWidth] = React.useState(0);
     const [additionalHeight, setAdditionalHeight] = React.useState(0);
     const [additionalWidth, setAdditionalWidth] = React.useState(0);
+    const [currentTimeout, setCurrentTimeout] = React.useState(-1);
 
-    useClickOutsideHandler(reference, setIsOpen, isOpen);
+    // Clear timeout on unmount
+    React.useEffect(() => () => {
+        if (currentTimeout >= 0) {
+            clearTimeout(currentTimeout);
+        }
+    }, []);
 
     React.useLayoutEffect(
         () => {
@@ -54,6 +60,23 @@ function AdvancedPopper(
         ],
     );
 
+    const handleBlur = (event) => {
+        if (reference.current) {
+            if (currentTimeout) {
+                clearTimeout(currentTimeout);
+            }
+
+            // Get new active element after blur
+            setCurrentTimeout(
+                setTimeout(() => setIsOpen(reference.current.contains(document.activeElement)), 1),
+            );
+        }
+
+        if (onBlur) {
+            onBlur(event);
+        }
+    };
+
     const additionalVisible = isOpen && children;
 
     return (
@@ -65,6 +88,11 @@ function AdvancedPopper(
                 className,
             )}
             {...props}
+            onBlur={handleBlur}
+            role="menu"
+            onClick={() => setIsOpen(true)}
+            onKeyDown={undefined}
+            tabIndex={0}
         >
             <div
                 className={classNames(
@@ -72,11 +100,7 @@ function AdvancedPopper(
                     { [style.noBorder]: withInput },
                     contentClassName,
                 )}
-                role="menu"
                 ref={basicReference}
-                tabIndex={0}
-                onClick={() => setIsOpen(true)}
-                onKeyDown={undefined}
             >
                 {basic}
             </div>

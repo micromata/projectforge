@@ -11,6 +11,7 @@
   $transitionTime: .2s;
 
   position: relative;
+  outline: none;
 
   &.isOpen {
     .content {
@@ -28,7 +29,6 @@
     border-radius: 5px;
     box-shadow: $baseShadow;
     transition: box-shadow $transitionTime;
-    outline: none;
 
     &:hover {
       box-shadow: $baseShadow, 0 3px 12px rgba(0, 0, 0, 0.1);
