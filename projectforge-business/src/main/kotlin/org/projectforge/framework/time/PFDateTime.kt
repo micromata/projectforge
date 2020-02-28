@@ -640,7 +640,7 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
          */
         @JvmStatic
         @JvmOverloads
-        fun fromOrNull(date: java.sql.Date?, nowIfNull: Boolean, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
+        fun fromOrNull(date: java.sql.Date?, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
             date ?: return null
             return from(date, timeZone, locale)
         }

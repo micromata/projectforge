@@ -99,11 +99,6 @@ class AddressPagesRest()
         val personalAddress = personalAddressDao.getByAddressId(obj.id)
         if (personalAddress != null) {
             address.isFavoriteCard = personalAddress.isFavorite == true
-            address.isFavoriteBusinessPhone = personalAddress.isFavoriteBusinessPhone == true
-            address.isFavoriteMobilePhone = personalAddress.isFavoriteMobilePhone == true
-            address.isFavoriteFax = personalAddress.isFavoriteFax == true
-            address.isFavoritePrivatePhone = personalAddress.isFavoritePrivatePhone == true
-            address.isFavoritePrivateMobilePhone = personalAddress.isFavoritePrivateMobilePhone == true
         }
         return address
     }
@@ -186,11 +181,6 @@ class AddressPagesRest()
         val personalAddress = PersonalAddressDO()
         personalAddress.address = address
         personalAddress.isFavoriteCard = dto.isFavoriteCard
-        personalAddress.isFavoriteBusinessPhone = dto.isFavoriteBusinessPhone
-        personalAddress.isFavoritePrivatePhone = dto.isFavoritePrivatePhone
-        personalAddress.isFavoriteMobilePhone = dto.isFavoriteMobilePhone
-        personalAddress.isFavoritePrivateMobilePhone = dto.isFavoritePrivateMobilePhone
-        personalAddress.isFavoriteFax = dto.isFavoriteFax
         personalAddressDao.setOwner(personalAddress, getUserId()) // Set current logged in user as owner.
         personalAddressDao.saveOrUpdate(personalAddress)
     }
@@ -236,12 +226,6 @@ class AddressPagesRest()
                 url = "${getRestPath()}/exportAsExcel",
                 tooltipTitle = "address.book.export",
                 tooltip = "address.book.export.tooltip",
-                type = MenuItemTargetType.DOWNLOAD))
-        exportMenu.add(MenuItem("address.exportFavoritePhoneList",
-                i18nKey = "address.book.exportFavoritePhoneList",
-                url = "${getRestPath()}/exportFavoritePhoneList",
-                tooltipTitle = "address.book.exportFavoritePhoneList.tooltip.title",
-                tooltip = "address.book.exportFavoritePhoneList.tooltip.content",
                 type = MenuItemTargetType.DOWNLOAD))
         layout.add(exportMenu, menuIndex)
         layout.getMenuById(GEAR_MENU)?.add(MenuItem("address.exportAppleScript4Notes",
@@ -295,16 +279,7 @@ class AddressPagesRest()
                                 .add(UIInput("organization", lc).enableAutoCompletion(this))
                                 .add(lc, "division", "positionText", "website"))
                         .add(UIFieldset(mdLength = 6, lgLength = 4)
-                                .add(createFavoriteRow("isFavoriteBusinessPhone",
-                                        UIInput("businessPhone", lc)))
-                                .add(createFavoriteRow("isFavoriteMobilePhone",
-                                        UIInput("mobilePhone", lc)))
-                                .add(createFavoriteRow("isFavoriteFax",
-                                        UIInput("fax", lc)))
-                                .add(createFavoriteRow("isFavoritePrivatePhone",
-                                        UIInput("privatePhone", lc)))
-                                .add(createFavoriteRow("isFavoritePrivateMobilePhone",
-                                        UIInput("privateMobilePhone", lc)))))
+                                .add(lc, "businessPhone", "mobilePhone", "fax", "privatePhone", "privateMobilePhone")))
                 .add(UIRow()
                         .add(UIFieldset(mdLength = 6, lgLength = 4, title = "address.heading.businessAddress")
                                 .add(UIInput("addressText", lc, ignoreAdditionalLabel = true).enableAutoCompletion(this))

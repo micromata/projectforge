@@ -90,10 +90,7 @@ open class ProjectForgeCardDAVController : BaseDAVController() {
     @PutChild
     fun updateContact(c: Contact, vcardBytearray: ByteArray?): Contact {
         log.info("updateContact: '${c.name}' with id '${c.id}'.")
-        var c = c
-        log.info("updateContact: " + c.name)
-        c = addressService.updateContact(c, vcardBytearray)
-        return c
+        return addressService.updateContact(c, vcardBytearray)
     }
 
     @Delete

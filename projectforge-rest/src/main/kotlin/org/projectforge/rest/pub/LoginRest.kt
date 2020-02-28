@@ -112,7 +112,7 @@ open class LoginRest {
         log.info("User successfully logged in: " + user.userDisplayName)
         if (loginData.stayLoggedIn == true) {
             val loggedInUser = userService.internalGetById(user.id)
-            val stayLoggedInKey = userAuthenticationsService.getToken(user.id, UserTokenType.STAY_LOGGED_IN_KEY)
+            val stayLoggedInKey = userAuthenticationsService.internalGetToken(user.id, UserTokenType.STAY_LOGGED_IN_KEY)
             val cookie = Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, "${loggedInUser.getId()}:${loggedInUser.username}:$stayLoggedInKey")
             cookieService.addStayLoggedInCookie(request, response, cookie)
         }

@@ -34,8 +34,16 @@ function DayRange(
         return dateEpochSeconds ? timezone(new Date(dateEpochSeconds)) : undefined;
     };
 
-    const [startDate, setStartDate] = React.useState(resolveDate(startDateId));
-    const [endDate, setEndDate] = React.useState(resolveDate(endDateId));
+    const [startDate, setStartDate] = React.useState(undefined);
+    const [endDate, setEndDate] = React.useState(undefined);
+
+    React.useEffect(() => {
+        setStartDate(resolveDate(startDateId));
+    }, [Object.getByString(data, startDateId)]);
+
+    React.useEffect(() => {
+        setEndDate(resolveDate(endDateId));
+    }, [Object.getByString(data, endDateId)]);
 
     return React.useMemo(() => {
         const setFields = (newStartDate, newEndDate) => {

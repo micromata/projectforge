@@ -26,7 +26,11 @@ function DynamicTimestampInput(
     const { data, setData } = React.useContext(DynamicLayoutContext);
 
     const dateStr = Object.getByString(data, id);
-    const [date, setDate] = React.useState(dateStr ? timezone(dateStr) : undefined);
+    const [date, setDate] = React.useState(undefined);
+
+    React.useEffect(() => {
+        setDate(dateStr ? timezone(dateStr) : undefined);
+    }, [dateStr]);
 
     return React.useMemo(() => {
         const setFields = (newDate) => {
