@@ -42,7 +42,7 @@ class SourceFileCheckerTest {
      */
     @Test
     @Throws(IOException::class)
-    fun checkLoggerDeclaraions() {
+    fun checkLoggerDeclarations() {
         var baseDir = File(System.getProperty("user.dir"))
         if (!baseDir.exists() || !baseDir.isDirectory) return
         if (baseDir.name == "projectforge-common") {
