@@ -20,6 +20,7 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.common.development
 
 import org.junit.jupiter.api.Assertions
@@ -31,6 +32,7 @@ import java.nio.charset.StandardCharsets
 
 /**
  * Different source file checks.
+ * @author Kai Reinhard
  */
 class SourceFileCheckerTest {
     /**
