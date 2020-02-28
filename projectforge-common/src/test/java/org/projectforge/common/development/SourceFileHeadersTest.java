@@ -25,7 +25,6 @@ package org.projectforge.common.development;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.projectforge.common.BeanHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +34,7 @@ import java.time.Year;
  * Modifies the file header of each source file containing the license.
  */
 public class SourceFileHeadersTest {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BeanHelper.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SourceFileHeadersTest.class);
 
   private static final int YEAR = Year.now().getValue();
 

@@ -39,8 +39,7 @@ import java.util.TimeZone;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DateHelperTest extends AbstractTestBase {
-  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
-          .getLogger(KeyValuePairWriterTest.class);
+  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DateHelperTest.class);
 
   @Test
   public void testTimeZone() throws ParseException {

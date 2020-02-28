@@ -40,7 +40,7 @@ import java.util.Map;
  */
 @Component
 public class VacationMenuCounterCache extends AbstractCache {
-  private static Logger log = LoggerFactory.getLogger(org.projectforge.business.fibu.kost.KostCache.class);
+  private static Logger log = LoggerFactory.getLogger(VacationMenuCounterCache.class);
 
   @Autowired
   private VacationService vacationService;
