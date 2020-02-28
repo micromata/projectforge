@@ -52,7 +52,7 @@ import java.util.Collection;
 public class AccessCheckerImpl implements AccessChecker, Serializable {
   public static final String I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF = "access.violation.userNotMemberOf";
 
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccessChecker.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccessCheckerImpl.class);
 
   @Autowired
   private UserRightService userRights;

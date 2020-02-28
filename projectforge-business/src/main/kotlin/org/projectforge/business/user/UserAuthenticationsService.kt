@@ -169,6 +169,6 @@ open class UserAuthenticationsService {
         return encrypt(ThreadLocalUserContext.getUserId(), type, data)
     }
 
-    private val log = LoggerFactory.getLogger(UserAuthenticationsDao::class.java)
+    private val log = LoggerFactory.getLogger(UserAuthenticationsService::class.java)
 
 }
