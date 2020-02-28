@@ -201,7 +201,7 @@ TimeInput.propTypes = {
 };
 
 TimeInput.defaultProps = {
-    hideDayPicker: true,
+    hideDayPicker: false,
     precision: 5,
     showDate: false,
     time: undefined,
