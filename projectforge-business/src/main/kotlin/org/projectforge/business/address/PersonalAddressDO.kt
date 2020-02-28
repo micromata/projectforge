@@ -71,21 +71,6 @@ class PersonalAddressDO : AbstractBaseDO<Int>() {
     @get:Column(nullable = false, name = "favorite_card")
     var isFavoriteCard: Boolean = false
 
-    @get:Column(name = "business_phone", nullable = false)
-    var isFavoriteBusinessPhone: Boolean = false
-
-    @get:Column(name = "private_phone", nullable = false)
-    var isFavoritePrivatePhone: Boolean = false
-
-    @get:Column(name = "mobile_phone", nullable = false)
-    var isFavoriteMobilePhone: Boolean = false
-
-    @get:Column(name = "private_mobile_phone", nullable = false)
-    var isFavoritePrivateMobilePhone: Boolean = false
-
-    @get:Column(nullable = false, name = "fax")
-    var isFavoriteFax: Boolean = false
-
     /**
      * Not used as object due to performance reasons.
      */
@@ -98,7 +83,7 @@ class PersonalAddressDO : AbstractBaseDO<Int>() {
      */
     val isFavorite: Boolean
         @Transient
-        get() = (isFavoriteCard || isFavoriteBusinessPhone || isFavoriteFax || isFavoriteMobilePhone || isFavoritePrivatePhone)
+        get() = isFavoriteCard
 
     val ownerId: Int?
         @Transient

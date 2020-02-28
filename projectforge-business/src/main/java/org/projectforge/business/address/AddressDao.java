@@ -501,56 +501,6 @@ public class AddressDao extends BaseDao<AddressDO> {
     return buf.toString();
   }
 
-  public List<PersonalAddressDO> getFavoritePhoneEntries() {
-    final List<PersonalAddressDO> list = personalAddressDao.getList();
-    final List<PersonalAddressDO> result = new ArrayList<>();
-    if (CollectionUtils.isNotEmpty(list)) {
-      for (final PersonalAddressDO entry : list) {
-        if (entry.isFavoriteBusinessPhone()
-                || entry.isFavoriteFax()
-                || entry.isFavoriteMobilePhone()
-                || entry.isFavoritePrivatePhone()) {
-          result.add(entry);
-        }
-      }
-    }
-    return result;
-  }
-
-  /**
-   * Throws UserException, if for example the phone list is empty.
-   */
-  public void exportFavoritePhoneList(final Writer out, final List<PersonalAddressDO> favorites) {
-    log.info("Exporting phone list");
-    final PrintWriter pw = new PrintWriter(out);
-    pw.println("\"Name\",\"Phone number\"");
-    for (final PersonalAddressDO entry : favorites) {
-      final AddressDO address = entry.getAddress();
-      String number = address.getBusinessPhone();
-      if (entry.isFavoriteBusinessPhone() && StringUtils.isNotBlank(number)) {
-        appendPhoneEntry(pw, address, "", number);
-      }
-      number = address.getFax();
-      if (entry.isFavoriteFax() && StringUtils.isNotBlank(number)) {
-        appendPhoneEntry(pw, address, "fax", number);
-      }
-      number = address.getMobilePhone();
-      if (entry.isFavoriteMobilePhone() && StringUtils.isNotBlank(number)) {
-        appendPhoneEntry(pw, address, "mobil", number);
-      }
-      number = address.getPrivateMobilePhone();
-      if (entry.isFavoritePrivateMobilePhone() && StringUtils.isNotBlank(number)) {
-        final String str = StringUtils.isNotBlank(address.getMobilePhone()) ? "mobil privat" : "mobil";
-        appendPhoneEntry(pw, address, str, number);
-      }
-      number = address.getPrivatePhone();
-      if (entry.isFavoritePrivatePhone() && StringUtils.isNotBlank(number)) {
-        appendPhoneEntry(pw, address, "privat", number);
-      }
-    }
-    pw.flush();
-  }
-
   private void print(final PrintWriter pw, final String key, final String value) {
     if (!isGiven(value)) {
       return;
