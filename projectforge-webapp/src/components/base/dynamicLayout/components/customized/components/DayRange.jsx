@@ -12,14 +12,10 @@ import { DynamicLayoutContext } from '../../../context';
 /**
  * Range of day for time sheets.
  */
-// TODO CHECK USED PROPS
 function DayRange(
     {
         additionalLabel,
-        dateFormat,
         id,
-        locale,
-        timeNotation,
         values,
     },
 ) {
@@ -65,20 +61,6 @@ function DayRange(
                 [startDateId]: newStartDate.toDate(),
                 [endDateId]: newEndDate.toDate(),
             });
-        };
-
-        // Sets the start date to the selected date by preserving time of day. Calls setFields as
-        // well.
-        const changeDay = (value) => {
-            const newStartDate = timezone(value);
-            newStartDate.set({
-                hour: startDate.hours(),
-                minute: startDate.minutes(),
-                second: 0,
-                millisecond: 0,
-            });
-
-            setFields(newStartDate, endDate);
         };
 
         const changeStartTime = value => setFields(timezone(value), endDate);
