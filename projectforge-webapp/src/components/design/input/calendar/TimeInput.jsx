@@ -9,8 +9,8 @@ import style from './CalendarInput.module.scss';
 import DateInput from './DateInput';
 import TimeInputUnit from './TimeInputUnit';
 
-const hourRegex = /^([01]?[0-9]|2[0-3]|)$/;
-const minuteRegex = /^([0-5]?[0-9]|)$/;
+const hourRegex = /^(0?([01]?[0-9]|2[0-3]|))$/;
+const minuteRegex = /^(0?[0-5]?[0-9]|)$/;
 
 
 function TimeInput(
@@ -84,8 +84,12 @@ function TimeInput(
         setMinute(Number(target.value));
     };
 
-    const hours = time ? time.getHours() : -1;
-    const minutes = time ? time.getMinutes() : -1;
+    const hours = time ? time.getHours() : 0;
+    const minutes = time ? time.getMinutes() : 0;
+
+    const handleFocus = ({target}) => {
+        target.select();
+    };
 
     return (
         <React.Fragment>
@@ -104,7 +108,6 @@ function TimeInput(
                         role="presentation"
                         className={style.container}
                     >
-                        {/* TODO FIX INPUT TYPING BUG */}
                         <input
                             className={style.hourInput}
                             ref={hourRef}
@@ -115,7 +118,6 @@ function TimeInput(
                             value={formatTimeUnit(hours)}
                         />
                         <span>:</span>
-                        {/* TODO FIX INPUT TYPING BUG */}
                         {/* TODO FOCUS ON TAB IN */}
                         {/* TODO FIX WIDTH, SOME NUMBERS GET CUT OUT */}
                         <input
