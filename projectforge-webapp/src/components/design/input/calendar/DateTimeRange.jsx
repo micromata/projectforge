@@ -5,6 +5,7 @@ import React from 'react';
 import DayPicker from 'react-day-picker';
 import { connect } from 'react-redux';
 import { Col, Row } from '../..';
+import { getTranslation } from '../../../../utilities/layout';
 import style from './CalendarInput.module.scss';
 import TimeRange from './TimeRange';
 
@@ -17,6 +18,7 @@ function DateTimeRange(
         selectors,
         setFrom,
         setTo,
+        translations,
         to,
         ...props
     },
@@ -139,7 +141,7 @@ function DateTimeRange(
 
     const quickSelectors = [
         {
-            label: 'search.lastMinutes',
+            label: 'search.lastMinute',
             id: 'LAST_MINUTE',
         },
         {
@@ -199,7 +201,7 @@ function DateTimeRange(
                                 onClick={handleQuickSelectorClick(selector.id)}
                                 role="presentation"
                             >
-                                {selector.label}
+                                {getTranslation(selector.label, translations)}
                             </li>
                         ))}
                     </ul>
@@ -207,8 +209,8 @@ function DateTimeRange(
             )}
             <Col sm={9}>
                 <span className={style.label}>
-                    {!from && !to && '[date.begin]'}
-                    {from && !to && '[date.end]'}
+                    {!from && !to && getTranslation('date.begin', translations)}
+                    {from && !to && getTranslation('date.end', translations)}
                     {from && to && (
                         <TimeRange
                             from={from}
@@ -253,6 +255,7 @@ DateTimeRange.propTypes = {
     setTo: PropTypes.func,
     selectors: PropTypes.arrayOf(PropTypes.string),
     timeNotation: PropTypes.string,
+    translations: PropTypes.shape({}),
     to: PropTypes.instanceOf(Date),
 };
 
@@ -264,6 +267,7 @@ DateTimeRange.defaultProps = {
     setTo: undefined,
     selectors: undefined,
     timeNotation: 'H24',
+    translations: {},
     to: undefined,
 };
 
