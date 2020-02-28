@@ -1,6 +1,5 @@
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import InputContainer from '../InputContainer';
@@ -21,11 +20,13 @@ function TimeRange(
     },
 ) {
     return (
-        <React.Fragment>
+        <div className={styles.timeRange}>
             <InputContainer
-                className={classNames(styles.timeRange, styles.from)}
+                className={styles.from}
                 isActive
+                // TODO TRANSLATION
                 label={`${label || ''} [Von]`}
+                withMargin
             >
                 <TimeInput
                     setTime={setFrom}
@@ -35,46 +36,51 @@ function TimeRange(
                 />
             </InputContainer>
             <InputContainer
-                className={classNames(styles.timeRange, styles.to)}
+                className={styles.to}
                 isActive
+                // TODO TRANSLATION
                 label="[Bis]"
+                withMargin
             >
                 <TimeInput
                     hideDayPicker={hideDayPicker}
                     id={`time-input-${id}-from`}
                     setTime={setTo}
-                    showDate={sameDate}
+                    showDate={!sameDate}
                     time={to}
                 />
                 {/* TODO ENABLE DELETE BUTTON */}
-                {false && (
+                {onDelete && (
                     <FontAwesomeIcon
                         icon={faTimes}
                         onClick={onDelete}
+                        className={styles.deleteButton}
                     />
                 )}
             </InputContainer>
-        </React.Fragment>
+        </div>
     );
 }
 
 TimeRange.propTypes = {
-    from: PropTypes.instanceOf(Date).isRequired,
     id: PropTypes.string.isRequired,
     setFrom: PropTypes.func.isRequired,
     setTo: PropTypes.func.isRequired,
-    to: PropTypes.instanceOf(Date).isRequired,
+    from: PropTypes.instanceOf(Date),
     hideDayPicker: PropTypes.bool,
     label: PropTypes.string,
     onDelete: PropTypes.func,
     sameDate: PropTypes.bool,
+    to: PropTypes.instanceOf(Date),
 };
 
 TimeRange.defaultProps = {
+    from: undefined,
     hideDayPicker: true,
     label: undefined,
     onDelete: undefined,
     sameDate: false,
+    to: undefined,
 };
 
 export default TimeRange;

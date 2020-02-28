@@ -3,6 +3,7 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
+import { formatTimeUnit } from '../../../../utilities/layout';
 import AdvancedPopper from '../../popper/AdvancedPopper';
 import style from './CalendarInput.module.scss';
 import DateInput from './DateInput';
@@ -83,6 +84,7 @@ function TimeInput(
         setMinute(Number(target.value));
     };
 
+    const minutes = time ? time.getMinutes() : -1;
 
     return (
         <React.Fragment>
@@ -97,25 +99,34 @@ function TimeInput(
             <AdvancedPopper
                 basic={(
                     <div onClick={() => setIsOpen(true)} role="presentation">
+                    <div
+                        onClick={() => setIsOpen(true)}
+                        role="presentation"
+                        className={style.container}
+                    >
+                        {/* TODO FIX INPUT TYPING BUG */}
                         <input
-                            ref={hourRef}
-                            type="number"
-                            min={0}
-                            max={23}
-                            value={time.getHours()}
                             className={style.hourInput}
+                            ref={hourRef}
+                            max={23}
+                            min={0}
                             onChange={handleHourChange}
+                            type="number"
+                            value={formatTimeUnit(hours)}
                         />
                         <span>:</span>
+                        {/* TODO FIX INPUT TYPING BUG */}
+                        {/* TODO FOCUS ON TAB IN */}
+                        {/* TODO FIX WIDTH, SOME NUMBERS GET CUT OUT */}
                         <input
-                            ref={minuteRef}
-                            type="number"
-                            min={0}
-                            max={59}
-                            step={precision}
                             className={style.minuteInput}
+                            ref={minuteRef}
+                            max={59}
+                            min={0}
                             onChange={handleMinuteChange}
-                            value={time.getMinutes()}
+                            step={precision}
+                            type="number"
+                            value={formatTimeUnit(minutes)}
                         />
                     </div>
                 )}
@@ -131,7 +142,7 @@ function TimeInput(
                             <TimeInputUnit
                                 key={`time-input-${id}-hour-${hour}`}
                                 className={style.hour}
-                                selected={time.getHours()}
+                                selected={hours}
                                 onClick={setHour}
                             >
                                 {hour}
@@ -146,7 +157,7 @@ function TimeInput(
                             <TimeInputUnit
                                 key={`time-input-${id}-hour-${hour}`}
                                 className={style.hour}
-                                selected={time.getHours()}
+                                selected={hours}
                                 onClick={setHour}
                             >
                                 {hour}
@@ -162,7 +173,7 @@ function TimeInput(
                                 <TimeInputUnit
                                     key={`time-input-${id}-minute-${minute}`}
                                     className={style.minute}
-                                    selected={time.getMinutes()}
+                                    selected={minutes}
                                     precision={precision}
                                     onClick={setMinute}
                                 >
@@ -180,16 +191,17 @@ TimeInput.propTypes = {
     id: PropTypes.string.isRequired,
     jsDateFormat: PropTypes.string.isRequired,
     setTime: PropTypes.func.isRequired,
-    time: PropTypes.instanceOf(Date).isRequired,
     hideDayPicker: PropTypes.bool,
     precision: PropTypes.oneOf([1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60]),
     showDate: PropTypes.bool,
+    time: PropTypes.instanceOf(Date),
 };
 
 TimeInput.defaultProps = {
     hideDayPicker: true,
     precision: 5,
     showDate: false,
+    time: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({

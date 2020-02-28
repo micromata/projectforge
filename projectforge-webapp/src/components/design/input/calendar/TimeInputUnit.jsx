@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import { formatTimeUnit } from '../../../../utilities/layout';
 
 function TimeInputUnit(
     {
@@ -15,7 +16,7 @@ function TimeInputUnit(
     const distance = children - selected;
     const style = {};
 
-    if (Math.abs(distance) < precision) {
+    if (selected >= 0 && Math.abs(distance) < precision) {
         style.backgroundColor = `rgba(59, 153, 252, ${(precision - Math.abs(distance)) / precision})`;
         style.color = '#fff';
         if (distance < 0) {
@@ -34,7 +35,7 @@ function TimeInputUnit(
             role="presentation"
             {...props}
         >
-            {children}
+            {formatTimeUnit(children)}
         </li>
     );
 }
