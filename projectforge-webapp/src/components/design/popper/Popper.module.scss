@@ -81,6 +81,8 @@
         &.delete {
           text-decoration: underline;
           padding: 0;
+          border-radius: 0;
+          background-color: transparent;
 
           &:hover {
             color: #000;
@@ -88,7 +90,6 @@
 
           &:disabled {
             color: #ccc;
-            background-color: transparent;
             cursor: not-allowed;
           }
         }
