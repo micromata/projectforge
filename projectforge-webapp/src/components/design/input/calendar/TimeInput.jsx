@@ -87,9 +87,7 @@ function TimeInput(
     const hours = time ? time.getHours() : 0;
     const minutes = time ? time.getMinutes() : 0;
 
-    const handleFocus = ({target}) => {
-        target.select();
-    };
+    const handleInputFocus = ({ target }) => target.select();
 
     return (
         <React.Fragment>
@@ -114,6 +112,7 @@ function TimeInput(
                             max={23}
                             min={0}
                             onChange={handleHourChange}
+                            onFocus={handleInputFocus}
                             type="number"
                             value={formatTimeUnit(hours)}
                         />
@@ -126,6 +125,7 @@ function TimeInput(
                             max={59}
                             min={0}
                             onChange={handleMinuteChange}
+                            onFocus={handleInputFocus}
                             step={precision}
                             type="number"
                             value={formatTimeUnit(minutes)}
