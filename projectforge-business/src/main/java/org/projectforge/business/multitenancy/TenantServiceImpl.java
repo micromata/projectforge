@@ -39,7 +39,7 @@ import java.util.Set;
 @Service
 public class TenantServiceImpl implements TenantService
 {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TenantService.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TenantServiceImpl.class);
 
   private static final int DEFAULT_TENANT_ID = 1;
 

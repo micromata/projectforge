@@ -64,5 +64,5 @@ public class BaseDAVAuthenticationController {
     return false;
   }
 
-  private static Logger log = LoggerFactory.getLogger(BaseDAVController.class);
+  private static Logger log = LoggerFactory.getLogger(BaseDAVAuthenticationController.class);
 }
