@@ -155,12 +155,7 @@ public class PersonalAddressDao {
   }
 
   private boolean isEmpty(final PersonalAddressDO obj) {
-    return (!obj.isFavoriteCard())
-            && (!obj.isFavoriteBusinessPhone())
-            && (!obj.isFavoriteMobilePhone())
-            && (!obj.isFavoriteFax())
-            && (!obj.isFavoritePrivatePhone())
-            && (!obj.isFavoritePrivateMobilePhone());
+    return !obj.isFavoriteCard();
   }
 
   /**
