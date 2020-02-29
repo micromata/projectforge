@@ -10,3 +10,6 @@ echo "Building docker file..."
 docker build -t micromata/projectforge .
 
 echo "Run with 'docker run -p 8080:8080 -v ~/ProjectForge:/home/projectforge/ProjectForge micromata/projectforge'"
+
+
+# docker run --name projectforge-postgres -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:11.2
