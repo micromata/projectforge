@@ -32,7 +32,7 @@ import javax.servlet.http.HttpServletRequest
 class BasicAuthenticationData(request: HttpServletRequest, authHeader: String, required: Boolean = false) {
     var username: String? = null
     var password: String? = null
-    private val log = LoggerFactory.getLogger(RestAuthenticationUtils::class.java)
+    private val log = LoggerFactory.getLogger(BasicAuthenticationData::class.java)
 
     init {
         val basic = StringUtils.split(authHeader)
