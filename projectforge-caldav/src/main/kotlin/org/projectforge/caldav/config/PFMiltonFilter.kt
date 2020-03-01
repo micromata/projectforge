@@ -26,6 +26,7 @@ package org.projectforge.caldav.config
 import io.milton.servlet.MiltonFilter
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.caldav.service.SslSessionCache
 import org.projectforge.rest.utils.RequestToJson
 import org.projectforge.web.rest.RestAuthenticationInfo
 import org.projectforge.web.rest.RestAuthenticationUtils
@@ -46,6 +47,8 @@ class PFMiltonFilter : MiltonFilter() {
     private lateinit var restAuthenticationUtils: RestAuthenticationUtils
     @Autowired
     private lateinit var userAuthenticationsService: UserAuthenticationsService
+    @Autowired
+    private lateinit var sslSessionCache: SslSessionCache
 
     companion object {
         private val log = LoggerFactory.getLogger(PFMiltonFilter::class.java)
@@ -60,12 +63,19 @@ class PFMiltonFilter : MiltonFilter() {
     }
 
     private fun authenticate(authInfo: RestAuthenticationInfo) {
-        return restAuthenticationUtils.basicAuthentication(authInfo, UserTokenType.DAV_TOKEN, true) { userString, authenticationToken ->
-            val authenticatedUser = userAuthenticationsService.getUserByToken(authInfo.request, userString, UserTokenType.DAV_TOKEN, authenticationToken)
-            if (authenticatedUser == null) {
-                log.error("Can't authenticate user '$userString' by given token. User name and/or token invalid.")
+        val sslSessionUser = sslSessionCache.getSslSessionUser(authInfo.request)
+        if (sslSessionUser != null) {
+            authInfo.user = sslSessionUser
+        } else {
+            restAuthenticationUtils.basicAuthentication(authInfo, UserTokenType.DAV_TOKEN, true) { userString, authenticationToken ->
+                val authenticatedUser = userAuthenticationsService.getUserByToken(authInfo.request, userString, UserTokenType.DAV_TOKEN, authenticationToken)
+                if (authenticatedUser == null) {
+                    log.error("Can't authenticate user '$userString' by given token. User name and/or token invalid.")
+                } else {
+                    sslSessionCache.registerSslSessionUser(authInfo.request, authenticatedUser)
+                }
+                authenticatedUser
             }
-            authenticatedUser
         }
     }
 
