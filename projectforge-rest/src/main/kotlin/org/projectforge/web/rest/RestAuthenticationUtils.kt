@@ -23,8 +23,6 @@
 
 package org.projectforge.web.rest
 
-import org.apache.commons.codec.binary.Base64
-import org.apache.commons.lang3.StringUtils
 import org.projectforge.SystemStatus
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.multitenancy.TenantRegistry
@@ -51,7 +49,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import java.io.IOException
-import java.nio.charset.StandardCharsets
 import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
@@ -150,26 +147,18 @@ open class RestAuthenticationUtils {
             return
         }
         // Try basic authorization
-        val basic = StringUtils.split(authHeader)
-        if (basic.size != 2 || !StringUtils.equalsIgnoreCase(basic[0], "Basic")) {
-            if (required) {
-                logError(authInfo, "Basic authentication failed, header 'authorization' not in supported format (Basic <base64>).")
-            }
+        val basicAuthenticationData = BasicAuthenticationData(authInfo.request, authHeader)
+        val username = basicAuthenticationData.username
+        val password = basicAuthenticationData.password
+        if (username == null || password == null) {
+            // Logging is done by BasicAuthenticationData.
             return
         }
-        val credentials = String(Base64.decodeBase64(basic[1]), StandardCharsets.UTF_8)
-        val p = credentials.indexOf(":")
-        if (p < 1) {
-            logError(authInfo, "Basic authentication failed, credentials not of format 'user:password'.")
-            return
-        }
-        val username = credentials.substring(0, p).trim { it <= ' ' }
         authInfo.userString = username // required for LoginProtection.incrementFailedLoginTimeOffset
         if (checkLoginProtection(authInfo, userTokenType)) {
             // Access denied (time offset due to failed logins). Logging is done by check method.
             return
         }
-        val password = credentials.substring(p + 1).trim { it <= ' ' }
         authInfo.user = authenticate(username, password)
         if (!authInfo.success) {
             logError(authInfo, "Basic authentication failed for user '$username'.")

@@ -24,6 +24,7 @@
 package org.projectforge.rest.utils
 
 import org.projectforge.framework.ToStringUtil
+import org.projectforge.web.rest.BasicAuthenticationData
 import org.projectforge.web.rest.RestAuthenticationUtils
 import java.security.Principal
 import java.util.*
@@ -86,10 +87,10 @@ class RequestData(request: HttpServletRequest, longForm: Boolean = false) {
 
     init {
         for (attribute in request.attributeNames) {
-            attributes[attribute] = handleSecret(attribute, request.getAttribute(attribute))
+            attributes[attribute] = handleSecret(request, attribute, request.getAttribute(attribute))
         }
         for (header in request.headerNames) {
-            headers[header] = handleSecret(header, request.getHeader(header)) as String
+            headers[header] = handleSecret(request, header, request.getHeader(header)) as String
         }
         if (longForm) {
             locales = mutableListOf()
@@ -100,7 +101,7 @@ class RequestData(request: HttpServletRequest, longForm: Boolean = false) {
             }
         }
         for (parameter in request.parameterNames) {
-            parameters[parameter] = handleSecret(parameter, request.getParameter(parameter)) as String
+            parameters[parameter] = handleSecret(request, parameter, request.getParameter(parameter)) as String
         }
         /*
         for (part in request.parts) {
@@ -108,8 +109,15 @@ class RequestData(request: HttpServletRequest, longForm: Boolean = false) {
         }*/
     }
 
-    private fun <T> handleSecret(name: String?, value: T?): Any? {
+    private fun <T> handleSecret(request: HttpServletRequest, name: String?, value: T?): Any? {
         name ?: return null
+        value ?: return null
+        if (name.toLowerCase() == "authorization" && value is String) {
+            val basicAuthenticationData = BasicAuthenticationData(request, value)
+            if (basicAuthenticationData.username != null) {
+                return basicAuthenticationData.toString()
+            }
+        }
         return if (name.toLowerCase() == "authorization" ||
                 RestAuthenticationUtils.REQUEST_PARAMS_TOKEN.contains(name) ||
                 RestAuthenticationUtils.REQUEST_PARAMS_PASSWORD.contains(name)) {
