@@ -77,25 +77,25 @@ open class ProjectForgeCardDAVController : BaseDAVController() {
     @Get
     @ContactData
     fun getContactData(c: Contact): ByteArray? {
-        log.info("getContactData: '${c.name}' with id '${c.id}'.")
+        log.info("getContactData: '${c.name}' with id ${c.id}.")
         return c.vcardData
     }
 
     @PutChild
-    fun createContact(ab: AddressBook?, vcardBytearray: ByteArray?, newName: String): Contact {
+    fun createContact(ab: AddressBook, vcardBytearray: ByteArray, newName: String): Contact {
         log.info("CreateContact: $newName")
         return addressService.createContact(ab, vcardBytearray)
     }
 
     @PutChild
     fun updateContact(c: Contact, vcardBytearray: ByteArray?): Contact {
-        log.info("updateContact: '${c.name}' with id '${c.id}'.")
+        log.info("updateContact: '${c.name}' with id ${c.id}.")
         return addressService.updateContact(c, vcardBytearray)
     }
 
     @Delete
     fun deleteContact(c: Contact) {
-        log.info("deleteContact: '${c.name}' with id '${c.id}'.")
+        log.info("deleteContact: '${c.name}' with id ${c.id}.")
         addressService.deleteContact(c)
     }
 

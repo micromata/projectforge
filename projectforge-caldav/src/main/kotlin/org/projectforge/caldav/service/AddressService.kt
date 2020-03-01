@@ -23,9 +23,11 @@
 
 package org.projectforge.caldav.service
 
+import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.caldav.model.AddressBook
 import org.projectforge.caldav.model.Contact
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -42,6 +44,9 @@ class AddressService {
     private lateinit var addressCache: AddressCache
 
     @Autowired
+    private lateinit var addressDao: AddressDao
+
+    @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
 
     @Autowired
@@ -52,92 +57,44 @@ class AddressService {
         return addressCache.getContacts(addressBook, favorites)
     }
 
-    fun createContact(ab: AddressBook?, vcardBytearray: ByteArray?): Contact {
+    fun createContact(ab: AddressBook, vcardBytearray: ByteArray): Contact {
         log.warn("Creation of contacts not supported.")
+        /*try {
+            val vcard = vCardService.getVCardFromByteArray(vcardBytearray) ?: return Contact()
+            val address = vCardService.buildAddressDO(vcard)
+            addressDao.save(address)
+            personalAddressDao.save(...) // Add this new address to user's favorites.
+        } catch (e: Exception) {
+            log.error("Exception while creating contact.", e)
+        }*/
         return Contact()
-        /* val user = ab.user
-         try {
-             val vcard = vCardService!!.getVCardFromByteArray(vcardBytearray)
-             val request = vCardService.getAddressObject(vcard)
-             val mapper = ObjectMapper()
-             val json = mapper.writeValueAsString(request)
-             val url = projectforgeServerAddress + ":" + projectforgeServerPort + RestPaths.buildPath(RestPaths.ADDRESS, RestPaths.SAVE_OR_UDATE)
-             val headers = HttpHeaders()
-             headers["Accept"] = MediaType.APPLICATION_JSON_VALUE
-             headers.contentType = MediaType.APPLICATION_JSON
-             headers["authenticationUserId"] = user.pk.toString()
-             headers["authenticationToken"] = user.authenticationToken
-             val entity: HttpEntity<*> = HttpEntity(json, headers)
-             val builder = UriComponentsBuilder.fromHttpUrl(url)
-             val response = restTemplate
-                     .exchange(builder.build().encode().toUri(), HttpMethod.PUT, entity, AddressObject::class.java)
-             val addressObject = response.body
-             log.info("Result of rest call: $addressObject")
-             return convertRestResponse(ab, addressObject)
-         } catch (e: Exception) {
-             log.error("Exception while creating contact.", e)
-         }
-         return null*/
     }
 
     fun updateContact(contact: Contact, vcardBytearray: ByteArray?): Contact {
         log.warn("Updating of contacts not supported.")
-        return Contact()
-        /*val user = contact.addressBook.user
-        try {
-            val vcard = vCardService!!.getVCardFromByteArray(vcardBytearray)
-            val request = vCardService.getAddressObject(vcard)
-            val mapper = ObjectMapper()
-            val json = mapper.writeValueAsString(request)
-            val url = projectforgeServerAddress + ":" + projectforgeServerPort + RestPaths.buildPath(RestPaths.ADDRESS, RestPaths.SAVE_OR_UDATE)
-            val headers = HttpHeaders()
-            headers["Accept"] = MediaType.APPLICATION_JSON_VALUE
-            headers.contentType = MediaType.APPLICATION_JSON
-            headers["authenticationUserId"] = user.pk.toString()
-            headers["authenticationToken"] = user.authenticationToken
-            val entity: HttpEntity<*> = HttpEntity(json, headers)
-            val builder = UriComponentsBuilder.fromHttpUrl(url)
-            val response = restTemplate
-                    .exchange(builder.build().encode().toUri(), HttpMethod.PUT, entity, AddressObject::class.java)
-            val addressObject = response.body
-            log.info("Result of rest call: $addressObject")
-            return convertRestResponse(contact.addressBook, addressObject)
+        /*try {
+            val vcard = vCardService.getVCardFromByteArray(vcardBytearray) ?: return Contact()
+            val address = vCardService.buildAddressDO(vcard)
+            addressDao.update(address)
         } catch (e: Exception) {
             log.error("Exception while updating contact: " + contact.name, e)
-        }
-        return contact*/
+        }*/
+        return Contact()
     }
 
     fun deleteContact(contact: Contact) {
-        log.warn("Updating of contacts not supported.")
-        /*val user = contact.addressBook.user
         try {
-            val vcard = vCardService!!.getVCardFromByteArray(contact.vcardData)
-            val request = vCardService.getAddressObject(vcard)
-            val mapper = ObjectMapper()
-            val json = mapper.writeValueAsString(request)
-            val url = projectforgeServerAddress + ":" + projectforgeServerPort + RestPaths.buildPath(RestPaths.ADDRESS, RestPaths.DELETE)
-            val headers = HttpHeaders()
-            headers["Accept"] = MediaType.APPLICATION_JSON_VALUE
-            headers.contentType = MediaType.APPLICATION_JSON
-            headers["authenticationUserId"] = user.pk.toString()
-            headers["authenticationToken"] = user.authenticationToken
-            val entity: HttpEntity<*> = HttpEntity(json, headers)
-            val builder = UriComponentsBuilder.fromHttpUrl(url)
-            restTemplate
-                    .exchange(builder.build().encode().toUri(), HttpMethod.DELETE, entity, AddressObject::class.java)
-            log.info("Delete contact success.")
+            val vcard = vCardService.getVCardFromByteArray(contact.vcardData) ?: return
+            val personalAddress = personalAddressDao.getByAddressUid(vcard.uid.value)
+            if (personalAddress?.isFavorite == true) {
+                personalAddress.isFavoriteCard = false
+                personalAddressDao.saveOrUpdate(personalAddress)
+                log.info("Contact '${vcard.formattedName.value} removed from ${ThreadLocalUserContext.getUser().username}'s favorite list.")
+            }
         } catch (e: Exception) {
             log.error("Exception while deleting contact: " + contact.name, e)
-        }*/
+        }
     }
-
-    /*private fun convertRestResponse(ab: AddressBook, contactArray: Array<AddressObject>): List<Contact> {
-        val result =  mutableListOf<Contact>()
-        val calObjList = Arrays.asList(*contactArray)
-        calObjList.forEach(Consumer { conObj: AddressObject -> result.add(convertRestResponse(ab, conObj)) })
-        return result
-    }*/
 
     companion object {
         private val log = LoggerFactory.getLogger(AddressService::class.java)
