@@ -1,0 +1,22 @@
+version: "3.7"
+services:
+  projectforge-app:
+    container_name: projectforge-app
+    build: '../app'
+    ports:
+      - "8080:8080"
+    depends_on:
+      - projectforge-database
+  projectforge-db:
+    container_name: projectforge-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pf-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${PGPASSWORD}
+      - POSTGRES_USER=projectforge
+      - PGDATA=/var/lib/postgresql/data/pgdata
+
+volumes:
+  pf-data:
