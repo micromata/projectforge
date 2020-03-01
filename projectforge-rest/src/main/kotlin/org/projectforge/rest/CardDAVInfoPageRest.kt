@@ -28,15 +28,13 @@ import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
-import org.projectforge.ui.UICol
-import org.projectforge.ui.UIFieldset
-import org.projectforge.ui.UILabel
-import org.projectforge.ui.UILayout
+import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/cardDAVInfo")
@@ -46,18 +44,31 @@ class CardDAVInfoPageRest {
     private lateinit var authenticationsService: UserAuthenticationsService
 
     @GetMapping("layout")
-    fun getLayout(@RequestParam("type") type: String?): UILayout {
+    fun getLayout(request: HttpServletRequest, @RequestParam("type") type: String?): UILayout {
+        val username = ThreadLocalUserContext.getUser()?.username ?: "?????"
         val layout = UILayout("address.cardDAV.infopage.title")
                 .add(UIFieldset(length = 12)
                         .add(UILabel(translate("address.cardDAV.infopage.description")))
-                        .add(UICol(length = 6)
-                                .add(UILabel(translate("user"))))
-                        .add(UICol(length = 6)
-                                .add(UILabel(ThreadLocalUserContext.getUser()?.username)))
-                        .add(UICol(length = 6)
-                                .add(UILabel(translate("password"))))
-                        .add(UICol(length = 6)
-                                .add(UILabel(authenticationsService.getToken(ThreadLocalUserContext.getUserId(), UserTokenType.DAV_TOKEN)))))
+                        .add(UIRow()
+                                .add(UICol(length = 4)
+                                        .add(UILabel(translate("user"))))
+                                .add(UICol(length = 8)
+                                        .add(UILabel(username))))
+                        .add(UIRow()
+                                .add(UICol(length = 4)
+                                        .add(UILabel(translate("password"))))
+                                .add(UICol(length = 8)
+                                        .add(UILabel(authenticationsService.getToken(ThreadLocalUserContext.getUserId(), UserTokenType.DAV_TOKEN)))))
+                        .add(UIRow()
+                                .add(UICol(length = 4)
+                                        .add(UILabel("Server")))
+                                .add(UICol(length = 8)
+                                        .add(UILabel(request.serverName))))
+                        .add(UIRow()
+                                .add(UICol(length = 4)
+                                        .add(UILabel("Apple Addressbook")))
+                                .add(UICol(length = 8)
+                                        .add(UILabel("Server path: /users/${username}/addressBooks/default")))))
         return layout
     }
 }
