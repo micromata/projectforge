@@ -26,6 +26,7 @@ package org.projectforge.caldav.config
 import io.milton.servlet.MiltonFilter
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.rest.utils.RequestToJson
 import org.projectforge.web.rest.RestAuthenticationInfo
 import org.projectforge.web.rest.RestAuthenticationUtils
 import org.slf4j.LoggerFactory
@@ -76,6 +77,7 @@ class PFMiltonFilter : MiltonFilter() {
             chain.doFilter(request, response)
         } else {
             log.info("request ${request.requestURI} with method=${request.method} for Milton...")
+            log.info("Request: ${RequestToJson.convert(request)}")
             restAuthenticationUtils.doFilter(request,
                     response,
                     UserTokenType.DAV_TOKEN,

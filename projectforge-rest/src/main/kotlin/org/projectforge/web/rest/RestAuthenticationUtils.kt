@@ -97,7 +97,7 @@ open class RestAuthenticationUtils {
         authInfo.user = authenticate(userString, authenticationToken)
         if (!authInfo.success) {
             if (required) {
-                log.error("Authentication failed for user $userString. Rest call forbidden.")
+                logError(authInfo, "Authentication failed for user $userString. Rest call forbidden.")
             }
         }
     }
@@ -110,7 +110,7 @@ open class RestAuthenticationUtils {
         authInfo.userString = getAttribute(authInfo.request, *userAttributes)
         if (authInfo.userString.isNullOrBlank()) {
             if (required) {
-                log.error("Authentication failed, no user given by request params ${joinToString(userAttributes)}. Rest call forbidden.")
+                logError(authInfo, "Authentication failed, no user given by request params ${joinToString(userAttributes)}. Rest call forbidden.")
             }
             return null
         }
@@ -125,7 +125,7 @@ open class RestAuthenticationUtils {
         val secret = getAttribute(authInfo.request, *secretAttributes)
         if (secret.isNullOrBlank()) {
             // Log message, because userString was found, but authentication token not:
-            log.error("Authentication failed, no user secret (password or token) given by request params ${joinToString(secretAttributes)}. Rest call forbidden.")
+            logError(authInfo, "Authentication failed, no user secret (password or token) given by request params ${joinToString(secretAttributes)}. Rest call forbidden.")
             return null
         }
         return secret
@@ -145,7 +145,7 @@ open class RestAuthenticationUtils {
             if (required) {
                 authInfo.resultCode = HttpStatus.UNAUTHORIZED
                 authInfo.response.setHeader("WWW-Authenticate", "Basic realm=\"Basic authenticaiton required\"")
-                log.error("Basic authentication failed, header 'authorization' not found.")
+                logError(authInfo, "Basic authentication failed, header 'authorization' not found.")
             }
             return
         }
@@ -153,14 +153,14 @@ open class RestAuthenticationUtils {
         val basic = StringUtils.split(authHeader)
         if (basic.size != 2 || !StringUtils.equalsIgnoreCase(basic[0], "Basic")) {
             if (required) {
-                log.error("Basic authentication failed, header 'authorization' not in supported format (Basic <base64>).")
+                logError(authInfo, "Basic authentication failed, header 'authorization' not in supported format (Basic <base64>).")
             }
             return
         }
         val credentials = String(Base64.decodeBase64(basic[1]), StandardCharsets.UTF_8)
         val p = credentials.indexOf(":")
         if (p < 1) {
-            log.error("Basic authentication failed, credentials not of format 'user:password'.")
+            logError(authInfo, "Basic authentication failed, credentials not of format 'user:password'.")
             return
         }
         val username = credentials.substring(0, p).trim { it <= ' ' }
@@ -172,7 +172,7 @@ open class RestAuthenticationUtils {
         val password = credentials.substring(p + 1).trim { it <= ' ' }
         authInfo.user = authenticate(username, password)
         if (!authInfo.success) {
-            log.error("Basic authentication failed for user '$username'.")
+            logError(authInfo, "Basic authentication failed for user '$username'.")
         }
     }
 
@@ -226,7 +226,7 @@ open class RestAuthenticationUtils {
             userAuthenticationsService.getUserByToken(authInfo.request, username!!, userTokenType, authenticationToken)
         }
         if (authInfo.user == null) {
-            log.error("Bad request, user not found: ${authInfo.request.queryString}")
+            logError(authInfo, "Bad request, user not found: ${authInfo.request.queryString}")
             authInfo.resultCode = HttpStatus.BAD_REQUEST
         }
 
@@ -346,6 +346,10 @@ open class RestAuthenticationUtils {
             settings.dateTimeFormat = dateTimeFormat
         }
         return settings
+    }
+
+    private fun logError(authInfo: RestAuthenticationInfo, msg: String) {
+        log.error("$msg (requestUri=${authInfo.request.requestURI}, ${authInfo.request.queryString})")
     }
 
     private val tenantRegistry: TenantRegistry
