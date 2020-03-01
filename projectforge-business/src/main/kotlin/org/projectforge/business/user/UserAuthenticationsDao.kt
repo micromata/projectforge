@@ -125,7 +125,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
                 .setParameter("userId", userId)
                 .setParameter("token", encryptToken(token)))
         if (user != null && !user.hasSystemAccess()) {
-            log.warn("Deleted user tried to login (via token '$type'): $user")
+            log.warn("Deleted user '${user.username}' tried to login (via token '$type').")
             return null
         }
         return user
@@ -147,7 +147,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
                 .setParameter("username", username)
                 .setParameter("token", encryptToken(token)))
         if (user != null && !user.hasSystemAccess()) {
-            log.warn("Deleted user tried to login (via token '$type'): $user")
+            log.warn("Deleted user '${user.username}' tried to login (via token '$type').")
             return null
         }
         return user
