@@ -34,19 +34,16 @@ import ezvcard.parameter.TelephoneType
 import ezvcard.property.*
 import ezvcard.util.PartialDate
 import org.projectforge.business.address.AddressDO
-import org.projectforge.model.rest.AddressObject
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.util.StringUtils
 import java.io.ByteArrayInputStream
 import java.io.IOException
-import java.sql.Date
 import java.time.LocalDate
-import java.util.*
 
 @Service
 class VCardService {
-    fun getVCard(addressDO: AddressDO): ByteArray { //See: https://github.com/mangstadt/ez-vcard
+    fun buildVCard(addressDO: AddressDO): ByteArray { //See: https://github.com/mangstadt/ez-vcard
         val vcard = VCard()
         val uid = Uid("urn:uuid:" + addressDO.uid)
         vcard.uid = uid
@@ -116,86 +113,90 @@ class VCardService {
         return Ezvcard.write(vcard).version(VCardVersion.V3_0).go().toByteArray()
     }
 
-    fun getAddressObject(vcard: VCard): AddressObject {
-        val ao = AddressObject()
-        ao.uid = vcard.uid.value
-        ao.name = vcard.structuredName.family
-        ao.firstName = vcard.structuredName.given
+    fun buildAddressDO(vcard: VCard): AddressDO {
+        val address = AddressDO()
+        address.uid = vcard.uid.value
+        address.name = vcard.structuredName.family
+        address.firstName = vcard.structuredName.given
         if (vcard.structuredName.prefixes != null && vcard.structuredName.prefixes.size > 0) {
-            ao.title = vcard.structuredName.prefixes[0]
+            address.title = vcard.structuredName.prefixes[0]
         }
-        for (address in vcard.addresses) {
-            if (address.types.contains(AddressType.HOME)) {
-                ao.privateAddressText = address.streetAddressFull
-                ao.privateZipCode = address.postalCode
-                ao.privateCity = address.locality
-                ao.privateState = address.region
-                ao.privateCountry = address.country
+        for (vcardAddress in vcard.addresses) {
+            if (vcardAddress.types.contains(AddressType.HOME)) {
+                address.privateAddressText = vcardAddress.streetAddressFull
+                address.privateZipCode = vcardAddress.postalCode
+                address.privateCity = vcardAddress.locality
+                address.privateState = vcardAddress.region
+                address.privateCountry = vcardAddress.country
             }
-            if (address.types.contains(AddressType.WORK)) {
-                ao.addressText = address.streetAddressFull
-                ao.zipCode = address.postalCode
-                ao.city = address.locality
-                ao.state = address.region
-                ao.country = address.country
+            if (vcardAddress.types.contains(AddressType.WORK)) {
+                address.addressText = vcardAddress.streetAddressFull
+                address.zipCode = vcardAddress.postalCode
+                address.city = vcardAddress.locality
+                address.state = vcardAddress.region
+                address.country = vcardAddress.country
             }
-            if (address.types.contains(AddressType.POSTAL)) {
-                ao.postalAddressText = address.streetAddressFull
-                ao.postalZipCode = address.postalCode
-                ao.postalCity = address.locality
-                ao.postalState = address.region
-                ao.postalCountry = address.country
+            if (vcardAddress.types.contains(AddressType.POSTAL)) {
+                address.postalAddressText = vcardAddress.streetAddressFull
+                address.postalZipCode = vcardAddress.postalCode
+                address.postalCity = vcardAddress.locality
+                address.postalState = vcardAddress.region
+                address.postalCountry = vcardAddress.country
             }
         }
         for (telephone in vcard.telephoneNumbers) {
             if (telephone.types.contains(TelephoneType.PAGER)) {
-                ao.privateMobilePhone = addCountryCode(telephone.text)
+                address.privateMobilePhone = addCountryCode(telephone.text)
             }
             if (telephone.types.contains(TelephoneType.HOME) && telephone.types.contains(TelephoneType.VOICE)) {
-                ao.privatePhone = addCountryCode(telephone.text)
+                address.privatePhone = addCountryCode(telephone.text)
             }
             if (telephone.types.contains(TelephoneType.CELL) && telephone.types.contains(TelephoneType.VOICE)) {
-                ao.mobilePhone = addCountryCode(telephone.text)
+                address.mobilePhone = addCountryCode(telephone.text)
             }
             if (telephone.types.contains(TelephoneType.WORK) && telephone.types.contains(TelephoneType.VOICE)) {
-                ao.businessPhone = addCountryCode(telephone.text)
+                address.businessPhone = addCountryCode(telephone.text)
             }
             if (telephone.types.contains(TelephoneType.WORK) && telephone.types.contains(TelephoneType.FAX)) {
-                ao.fax = addCountryCode(telephone.text)
+                address.fax = addCountryCode(telephone.text)
             }
         }
         for (email in vcard.emails) {
             if (email.types.contains(EmailType.HOME)) {
-                ao.privateEmail = email.value
+                address.privateEmail = email.value
             }
             if (email.types.contains(EmailType.WORK)) {
-                ao.email = email.value
+                address.email = email.value
             }
         }
-        ao.website = if (vcard.urls != null && vcard.urls.size > 0) vcard.urls[0].value else null
+        address.website = if (vcard.urls != null && vcard.urls.size > 0) vcard.urls[0].value else null
         val birthday = vcard.birthday
-        if (birthday != null) {
-            ao.birthday = Date(birthday.date.time)
+        val partialDate = birthday?.partialDate
+        if (partialDate != null) {
+            val year = partialDate.year
+            val month = partialDate.month
+            val date = partialDate.date
+            address.birthday = LocalDate.of(year ?: 2000, month ?: 1, date ?: 1)
         }
         for (note in vcard.notes) {
-            ao.comment = if (ao.comment != null) ao.comment else "" + note.value + " "
+            address.comment = if (address.comment != null) address.comment else "" + note.value + " "
         }
-        ao.image = if (vcard.photos != null && vcard.photos.size > 0) Arrays.toString(vcard.photos[0].data) else null
-        if (vcard.organization != null && vcard.organization.values != null && vcard.organization.values.size > 0) {
+        address.imageData = if (!vcard.photos.isNullOrEmpty()) vcard.photos[0].data else null
+        if (vcard.organization?.values?.isNotEmpty() == true) {
             when (vcard.organization.values.size) {
                 3 -> {
-                    ao.positionText = vcard.organization.values[2]
-                    ao.division = vcard.organization.values[1]
-                    ao.organization = vcard.organization.values[0]
+                    address.positionText = vcard.organization.values[2]
+                    address.division = vcard.organization.values[1]
+                    address.organization = vcard.organization.values[0]
                 }
                 2 -> {
-                    ao.division = vcard.organization.values[1]
-                    ao.organization = vcard.organization.values[0]
+                    address.division = vcard.organization.values[1]
+                    address.organization = vcard.organization.values[0]
                 }
-                1 -> ao.organization = vcard.organization.values[0]
+                1 -> address.organization = vcard.organization.values[0]
             }
         }
-        return ao
+        return address
     }
 
     private fun addCountryCode(phonenumber: String?): String? {
@@ -218,17 +219,6 @@ class VCardService {
             log.error("An exception accured while parsing vcard from byte array: " + e.message, e)
         }
         return vcard
-    }
-
-    private fun convertBirthday(birthday: LocalDate?): Birthday? {
-        if (birthday == null) {
-            return null
-        }
-        val date = PartialDate.Builder().year(birthday.year)
-                .month(birthday.monthValue)
-                .date(birthday.dayOfMonth)
-                .build()
-        return Birthday(date)
     }
 
     companion object {

@@ -49,6 +49,8 @@ class CardDAVInfoPageRest {
         val layout = UILayout("address.cardDAV.infopage.title")
                 .add(UIFieldset(length = 12)
                         .add(UILabel(translate("address.cardDAV.infopage.description")))
+                        .add(UILabel(translate("address.cardDAV.infopage.description2")))
+                        .add(UILabel(translate("address.cardDAV.infopage.description3")))
                         .add(UIRow()
                                 .add(UICol(length = 4)
                                         .add(UILabel(translate("user"))))

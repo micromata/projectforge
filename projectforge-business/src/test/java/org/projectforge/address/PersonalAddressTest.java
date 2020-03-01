@@ -34,7 +34,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PersonalAddressTest extends AbstractTestBase {
   @Autowired
@@ -71,6 +72,9 @@ public class PersonalAddressTest extends AbstractTestBase {
     assertEquals(personalAddress.getAddressId(), addressIds[0]);
     assertEquals(personalAddress.getOwnerId(), getUser(AbstractTestBase.ADMIN).getId());
     assertTrue(personalAddress.isFavoriteCard());
+
+    PersonalAddressDO obj = personalAddressDao.getByAddressUid(personalAddress.getAddress().getUid());
+    assertEquals(personalAddress.getId(), obj.getId());
 
     /*
      * txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW); txTemplate.execute(new

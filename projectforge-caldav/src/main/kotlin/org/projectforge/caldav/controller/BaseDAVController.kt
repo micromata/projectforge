@@ -40,6 +40,7 @@ open class BaseDAVController: BaseDAVAuthenticationController() {
 
     @JvmField
     var usersHome: UsersHome? = null
+
     @AccessControlList
     fun getUserPrivs(target: User?, currentUser: User?): List<Priviledge> {
         val result = mutableListOf<Priviledge>()

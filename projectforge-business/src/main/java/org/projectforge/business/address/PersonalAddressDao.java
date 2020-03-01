@@ -207,6 +207,23 @@ public class PersonalAddressDao {
   }
 
   /**
+   * @return the PersonalAddressDO entry assigned to the given address for the context user or null, if not exist.
+   */
+  @SuppressWarnings("unchecked")
+  public PersonalAddressDO getByAddressUid(final String addressUid) {
+    final PFUserDO owner = ThreadLocalUserContext.getUser();
+    Validate.notNull(owner);
+    Validate.notNull(owner.getId());
+    return SQLHelper.ensureUniqueResult(em
+                    .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_UID, PersonalAddressDO.class)
+                    .setParameter("ownerId", owner.getId())
+                    .setParameter("addressUid", addressUid),
+            true,
+            "Multiple personal address book entries for same user (" + owner.getId() + ") and same address ("
+                    + addressUid + "). Should not occur?!");
+  }
+
+  /**
    * @return the list of all PersonalAddressDO entries for the context user.
    */
   public List<PersonalAddressDO> getList() {

@@ -26,6 +26,7 @@ package org.projectforge.business.address
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_BY_OWNER
 import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_BY_OWNER_AND_ADDRESS_ID
+import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_BY_OWNER_AND_ADDRESS_UID
 import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_FAVORITE_ADDRESS_IDS_BY_OWNER
 import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_JOINED_BY_OWNER
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
@@ -52,6 +53,8 @@ import javax.persistence.*
                 query = "from PersonalAddressDO pa where pa.owner.id = :ownerId"),
         NamedQuery(name = FIND_BY_OWNER_AND_ADDRESS_ID,
                 query = "from PersonalAddressDO where owner.id = :ownerId and address.id = :addressId"),
+        NamedQuery(name = FIND_BY_OWNER_AND_ADDRESS_UID,
+                query = "from PersonalAddressDO p where owner.id = :ownerId and address.uid = :addressUid"),
         NamedQuery(name = FIND_JOINED_BY_OWNER,
                 query = "from PersonalAddressDO p join fetch p.address where p.owner.id = :ownerId and p.address.deleted=false order by p.address.name, p.address.firstName"))
 class PersonalAddressDO : AbstractBaseDO<Int>() {
@@ -111,6 +114,7 @@ class PersonalAddressDO : AbstractBaseDO<Int>() {
          */
         internal const val FIND_BY_OWNER = "PersonalAddressDO_FindByOwner"
         internal const val FIND_BY_OWNER_AND_ADDRESS_ID = "PersonalAddressDO_FindByOwnerAndAddressId"
+        internal const val FIND_BY_OWNER_AND_ADDRESS_UID = "PersonalAddressDO_FindByOwnerAndAddressUid"
         internal const val FIND_JOINED_BY_OWNER = "PersonalAddressDO_FindJoinedByOwnerAndAddressId"
     }
 }
