@@ -1,4 +1,5 @@
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faSync } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -37,6 +38,7 @@ function SearchFilter(props) {
         onSearchStringChange,
         onSearchStringDelete,
         onSelectQuickSelection,
+        onSyncButtonClick,
     } = props;
 
     const {
@@ -102,6 +104,13 @@ function SearchFilter(props) {
                         onBlur: onSearchStringBlur,
                         placeholder: ui.translations.search || '',
                         selectOnFocus: newlySwitched,
+                        children: (
+                            <FontAwesomeIcon
+                                icon={faSync}
+                                className={styles.syncButton}
+                                onClick={onSyncButtonClick}
+                            />
+                        ),
                     }}
                     onChange={onSearchStringChange}
                     onSelect={onSelectQuickSelection}
@@ -145,6 +154,7 @@ SearchFilter.propTypes = {
     onSearchStringChange: PropTypes.func.isRequired,
     onSearchStringDelete: PropTypes.func.isRequired,
     onSelectQuickSelection: PropTypes.func.isRequired,
+    onSyncButtonClick: PropTypes.func.isRequired,
 };
 
 SearchFilter.defaultProps = {};
@@ -171,6 +181,7 @@ const actions = dispatch => ({
     onSearchStringChange: completion => dispatch(changeSearchString(completion)),
     onSearchStringDelete: () => dispatch(changeSearchString('')),
     onSelectQuickSelection: ({ id }) => dispatch(openEditPage(id)),
+    onSyncButtonClick: () => dispatch(fetchCurrentList(true)),
 });
 
 export default connect(mapStateToProps, actions)(SearchFilter);
