@@ -38,5 +38,5 @@ class PostData<DTO : Any>(
         /**
          * Server data such as csrf token to exchange between client and server.
          */
-        var serverData: ServerData
+        var serverData: ServerData?
 )
