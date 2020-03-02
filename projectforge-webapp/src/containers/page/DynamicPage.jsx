@@ -15,8 +15,19 @@ function DynamicPage({ match, location }) {
         setLoading(true);
         setError(undefined);
 
+        let { page } = match.params;
+        let { search } = location;
+
+        // React router sometimes doesn't recognise the search.
+        if (page.includes('?')) {
+            // Map the first part of the split to page and the second part to search.
+            [page, search] = page.split('?');
+            // Prepend the question mark.
+            search = `?${search}`;
+        }
+
         fetch(
-            getRestURL(`${match.params.page}/layout${location.search || ''}`, match),
+            getRestURL(`${page}/layout${search || ''}`, match),
             {
                 method: 'GET',
                 credentials: 'include',
