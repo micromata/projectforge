@@ -23,20 +23,23 @@
 
 package org.projectforge.rest.dto
 
+
 /**
- * This object is used by the client to post data for save, update etc.
+ * For exchanging data between server and client especially for edit pages. The client doesn't care about the
+ * content, but sends this data back.
  */
-class PostData<DTO : Any>(
+class ServerData(
         /**
-         * The data object of the edit page.
+         * Due to security reasons regarding Cross-Site-Request-Forgery.
          */
-        var data: DTO,
+        var csrfToken: String? = null,
         /**
-         * Used for watched fields by the client.
+         * If given, after editing/finishing the current page, the frontend should redirect to this caller.
          */
-        var watchFieldsTriggered: Array<String>?,
+        var returnToCaller: String? = null,
         /**
-         * Server data such as csrf token to exchange between client and server.
+         * If given, after editing/finishing the current page, the frontend should redirect to the caller
+         * specified by [returnToCaller] with this query params.
          */
-        var serverData: ServerData
+        var returnToCallerParams: Map<String, String>? = null
 )
