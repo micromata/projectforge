@@ -51,6 +51,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
             return {
                 ...state,
                 isFetching: false,
+                newlySwitched: false,
                 ...payload.response,
             };
         case LIST_FETCH_FAILURE:
