@@ -105,13 +105,19 @@ class NavigationAction extends React.Component {
             case 'DOWNLOAD':
                 return (
                     <React.Fragment>
-                        <NavLink id={id} href={getServiceURL(url)} target="_blank" rel="noopener noreferrer">
+                        <NavLink
+                            id={id}
+                            href={getServiceURL(url)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
                             {content}
                         </NavLink>
                         {tooltipElement}
                     </React.Fragment>
                 );
             case 'LINK':
+            case 'MODAL':
             case 'REDIRECT':
                 return (
                     <React.Fragment>
@@ -120,7 +126,9 @@ class NavigationAction extends React.Component {
                             tag={Link}
                             to={{
                                 pathname: `/${url}`,
-                                state: { background: preferModal ? history.location : undefined },
+                                state: {
+                                    background: type === 'MODAL' ? history.location : undefined,
+                                },
                             }}
                         >
                             {content}
@@ -130,7 +138,12 @@ class NavigationAction extends React.Component {
                 );
             case 'TEXT':
             default:
-                return <span className="nav-link" id={id}>{content}{tooltipElement}</span>;
+                return (
+                    <span className="nav-link" id={id}>
+                        {content}
+                        {tooltipElement}
+                    </span>
+                );
         }
     }
 }

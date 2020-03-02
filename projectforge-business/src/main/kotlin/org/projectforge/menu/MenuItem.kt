@@ -40,10 +40,6 @@ class MenuItem(var id: String? = null,
                var key: String? = null,
                var badge: MenuBadge? = null,
                /**
-                * When [MenuItemTargetType.REDIRECT] the client should open the new page in a model if supported.
-                */
-               var preferModal: Boolean? = null,
-               /**
                 * If not given, the client should assume [MenuItemTargetType.REDIRECT]
                 */
                var type: MenuItemTargetType? = null) {
