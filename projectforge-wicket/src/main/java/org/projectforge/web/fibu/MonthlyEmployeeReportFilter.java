@@ -86,7 +86,7 @@ public class MonthlyEmployeeReportFilter implements Serializable
    */
   public Integer getMonth()
   {
-    if (month < 1) {
+    if (month == null || month < 1) {
       // May occur, if deserialized from old 0-based format.
       month = 1;
     }
