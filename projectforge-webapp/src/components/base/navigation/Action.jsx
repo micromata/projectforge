@@ -1,8 +1,8 @@
+import { faHistory } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHistory } from '@fortawesome/free-solid-svg-icons';
 import history from '../../../utilities/history';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import { NavLink, UncontrolledTooltip } from '../../design';
@@ -51,6 +51,7 @@ class NavigationAction extends React.Component {
             badgeIsFlying,
             entryKey,
             id,
+            preferModal,
             title,
             tooltip,
             type,
@@ -114,7 +115,14 @@ class NavigationAction extends React.Component {
             case 'REDIRECT':
                 return (
                     <React.Fragment>
-                        <NavLink id={id} tag={Link} to={`/${url}`}>
+                        <NavLink
+                            id={id}
+                            tag={Link}
+                            to={{
+                                pathname: `/${url}`,
+                                state: { background: preferModal ? history.location : undefined },
+                            }}
+                        >
                             {content}
                         </NavLink>
                         {tooltipElement}
@@ -135,6 +143,8 @@ NavigationAction.propTypes = {
     badgeIsFlying: PropTypes.bool,
     entryKey: PropTypes.string,
     id: PropTypes.string,
+    preferModal: PropTypes.bool,
+    tooltip: PropTypes.string,
     type: PropTypes.oneOf([
         'REDIRECT',
         'RESTCALL',
@@ -143,7 +153,6 @@ NavigationAction.propTypes = {
         'TEXT',
     ]),
     url: PropTypes.string,
-    tooltip: PropTypes.string,
 };
 
 NavigationAction.defaultProps = {
@@ -151,9 +160,10 @@ NavigationAction.defaultProps = {
     badgeIsFlying: true,
     entryKey: undefined,
     id: undefined,
+    preferModal: false,
+    tooltip: undefined,
     type: 'LINK',
     url: '',
-    tooltip: undefined,
 };
 
 export default NavigationAction;

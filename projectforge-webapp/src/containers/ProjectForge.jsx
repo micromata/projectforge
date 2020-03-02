@@ -5,18 +5,12 @@ import { Route, Router, Switch } from 'react-router-dom';
 import { loadUserStatus, loginUser } from '../actions';
 import LoginView from '../components/authentication/LoginView';
 import Footer from '../components/base/footer';
-import GlobalNavigation from '../components/base/navigation/GlobalNavigation';
 import TopBar from '../components/base/topbar';
-import { Alert } from '../components/design';
 import history from '../utilities/history';
 import prefix from '../utilities/prefix';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
-import CalendarPage from './page/calendar/CalendarPage';
+import AuthorizedRoutes, { wicketRoute } from './AuthorizedRoutes';
 import DynamicPage from './page/DynamicPage';
-import EditPage from './page/edit/EditPage';
-import IndexPage from './page/IndexPage';
-import ListPage from './page/list/ListPage';
-import TaskTreePage from './page/TaskTreePage';
 import { SystemStatusContext, systemStatusContextDefaultValues } from './SystemStatusContext';
 
 function ProjectForge(
@@ -46,64 +40,10 @@ function ProjectForge(
             });
     }, []);
 
-    const wicketRoute = (
-        <Route
-            path="/wa"
-            component={({ location }) => {
-                if (process.env.NODE_ENV === 'development') {
-                    return (
-                        <a href={getServiceURL(`..${location.pathname}`)}>
-                            Redirect to Wicket
-                        </a>
-                    );
-                }
-
-                window.location.reload();
-                return <React.Fragment />;
-            }}
-        />
-    );
     let content;
 
     if (user) {
-        content = (
-            <React.Fragment>
-                <GlobalNavigation />
-                {alertMessage ? (
-                    <Alert color="danger">
-                        {alertMessage}
-                    </Alert>
-                ) : undefined}
-                <Switch>
-                    {wicketRoute}
-                    <Route
-                        exact
-                        path={prefix}
-                        component={IndexPage}
-                    />
-                    <Route
-                        path={`${prefix}calendar`}
-                        component={CalendarPage}
-                    />
-                    <Route
-                        path={`${prefix}taskTree`}
-                        component={TaskTreePage}
-                    />
-                    <Route
-                        path={`${prefix}dynamic/:page`}
-                        component={DynamicPage}
-                    />
-                    <Route
-                        path={`${prefix}:category/edit/:id?`}
-                        component={EditPage}
-                    />
-                    <Route
-                        path={`${prefix}:category`}
-                        component={ListPage}
-                    />
-                </Switch>
-            </React.Fragment>
-        );
+        content = <AuthorizedRoutes />;
     } else {
         content = (
             <Switch>
