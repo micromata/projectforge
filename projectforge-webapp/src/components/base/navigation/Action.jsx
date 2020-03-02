@@ -1,8 +1,8 @@
+import { faHistory } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHistory } from '@fortawesome/free-solid-svg-icons';
 import history from '../../../utilities/history';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import { NavLink, UncontrolledTooltip } from '../../design';
@@ -51,6 +51,7 @@ class NavigationAction extends React.Component {
             badgeIsFlying,
             entryKey,
             id,
+            preferModal,
             title,
             tooltip,
             type,
@@ -104,17 +105,32 @@ class NavigationAction extends React.Component {
             case 'DOWNLOAD':
                 return (
                     <React.Fragment>
-                        <NavLink id={id} href={getServiceURL(url)} target="_blank" rel="noopener noreferrer">
+                        <NavLink
+                            id={id}
+                            href={getServiceURL(url)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
                             {content}
                         </NavLink>
                         {tooltipElement}
                     </React.Fragment>
                 );
             case 'LINK':
+            case 'MODAL':
             case 'REDIRECT':
                 return (
                     <React.Fragment>
-                        <NavLink id={id} tag={Link} to={`/${url}`}>
+                        <NavLink
+                            id={id}
+                            tag={Link}
+                            to={{
+                                pathname: `/${url}`,
+                                state: {
+                                    background: type === 'MODAL' ? history.location : undefined,
+                                },
+                            }}
+                        >
                             {content}
                         </NavLink>
                         {tooltipElement}
@@ -122,7 +138,12 @@ class NavigationAction extends React.Component {
                 );
             case 'TEXT':
             default:
-                return <span className="nav-link" id={id}>{content}{tooltipElement}</span>;
+                return (
+                    <span className="nav-link" id={id}>
+                        {content}
+                        {tooltipElement}
+                    </span>
+                );
         }
     }
 }
@@ -135,15 +156,17 @@ NavigationAction.propTypes = {
     badgeIsFlying: PropTypes.bool,
     entryKey: PropTypes.string,
     id: PropTypes.string,
+    preferModal: PropTypes.bool,
+    tooltip: PropTypes.string,
     type: PropTypes.oneOf([
-        'REDIRECT',
-        'RESTCALL',
         'DOWNLOAD',
         'LINK',
+        'MODAL',
+        'REDIRECT',
+        'RESTCALL',
         'TEXT',
     ]),
     url: PropTypes.string,
-    tooltip: PropTypes.string,
 };
 
 NavigationAction.defaultProps = {
@@ -151,9 +174,10 @@ NavigationAction.defaultProps = {
     badgeIsFlying: true,
     entryKey: undefined,
     id: undefined,
+    preferModal: false,
+    tooltip: undefined,
     type: 'LINK',
     url: '',
-    tooltip: undefined,
 };
 
 export default NavigationAction;
