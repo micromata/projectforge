@@ -135,17 +135,20 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
         exportMenu.add(MenuItem("calendar.exportTimesheets",
                 i18nKey = "plugins.teamcal.export.timesheets",
                 type = MenuItemTargetType.REDIRECT,
-                url = CalendarSubscriptionInfoPageRest.getTimesheetUserUrl()))
+                url = CalendarSubscriptionInfoPageRest.getTimesheetUserUrl(),
+                preferModal = true))
         exportMenu.add(MenuItem("calendar.exportWeekOfYears",
                 i18nKey = "plugins.teamcal.export.weekOfYears",
                 tooltip = "plugins.teamcal.export.weekOfYears.tooltip",
                 type = MenuItemTargetType.REDIRECT,
-                url = CalendarSubscriptionInfoPageRest.getWeekOfYearUrl()))
+                url = CalendarSubscriptionInfoPageRest.getWeekOfYearUrl(),
+                preferModal = true))
         exportMenu.add(MenuItem("calendar.exportHolidays",
                 i18nKey = "plugins.teamcal.export.holidays",
                 tooltip = "plugins.teamcal.export.holidays.tooltip",
                 type = MenuItemTargetType.REDIRECT,
-                url = CalendarSubscriptionInfoPageRest.getHolidaysUrl()))
+                url = CalendarSubscriptionInfoPageRest.getHolidaysUrl(),
+                preferModal = true))
         layout.add(exportMenu, 0)
 
         return LayoutUtils.processListPage(layout, this)
