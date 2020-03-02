@@ -44,7 +44,7 @@ function MagicFilters(
         onResetAllFilters();
     };
 
-    const handleAfterSelectFilter = () => setAllFiltersAreOpen(false);
+    const handleAfterSelectFilter = () => setIsOpen(false);
 
     const searchLowerCase = search.toLowerCase();
     const filteredSearchFilters = searchFilter && searchFilter.content

@@ -14,14 +14,14 @@ function FilterListEntry(
         isSelected,
     },
 ) {
-    const handleSelect = () => {
+    const handleSelect = (event) => {
         if (isSelected) {
             return;
         }
 
         onFilterAdd(id);
-
         afterSelect();
+        event.stopPropagation();
     };
 
     return (
