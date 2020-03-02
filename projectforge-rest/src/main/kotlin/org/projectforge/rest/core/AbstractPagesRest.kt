@@ -36,12 +36,14 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.ServerData
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -105,7 +107,10 @@ abstract class AbstractPagesRest<
      * Contains the layout data returned for the frontend regarding edit pages.
      * @param variables Additional variables / data provided for the edit page.
      */
-    class EditLayoutData(val data: Any?, val ui: UILayout?, var inOutVariables: Map<String, Any>? = null, var variables: Map<String, Any>? = null)
+    class EditLayoutData(val data: Any?,
+                         val ui: UILayout?,
+                         var serverData: ServerData?,
+                         var variables: Map<String, Any>? = null)
 
     /**
      * Contains the data, layout and filter settings served by [getInitialList].
@@ -573,7 +578,11 @@ abstract class AbstractPagesRest<
         val layout = createEditLayout(dto, userAccess)
         layout.addTranslations("changes", "tooltip.selectMe")
         layout.postProcessPageMenu()
-        val result = EditLayoutData(dto, layout)
+        val serverData = ServerData(
+                csrfToken = NumberHelper.getSecureRandomAlphanumeric(20),
+                returnToCaller = "testValue",
+                returnToCallerParams = mapOf("testvar1" to "testval1", "testvar2" to "testval2"))
+        val result = EditLayoutData(dto, layout, serverData)
         onGetItemAndLayout(request, dto, result)
         val additionalVariables = addVariablesForEditPage(dto)
         if (additionalVariables != null)
