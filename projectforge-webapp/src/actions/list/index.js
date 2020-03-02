@@ -66,7 +66,7 @@ const initialCall = (category, dispatch) => {
         .catch(error => dispatch(fetchFailure(category, error.message)));
 };
 
-const fetchData = (category, dispatch, getState) => {
+const fetchData = (category, dispatch, listState) => {
     dispatch(fetchDataBegin(category));
 
     return fetch(
@@ -77,7 +77,7 @@ const fetchData = (category, dispatch, getState) => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(getState().list.categories[category].filter),
+            body: JSON.stringify(listState.categories[category].filter),
         },
     )
         .then(handleHTTPErrors)
@@ -91,12 +91,14 @@ export const dismissCurrentError = () => (dispatch, getState) => dispatch(
 );
 
 export const loadList = category => (dispatch, getState) => {
-    if (getState().list.currentCategory !== category) {
+    const { list } = getState();
+
+    if (list.currentCategory !== category) {
         dispatch(switchCategory(category));
     }
 
     const { search } = history.location;
-    const categoryData = getState().list.categories[category];
+    const categoryData = list.categories[category];
 
     let fn = initialCall;
 
@@ -106,13 +108,18 @@ export const loadList = category => (dispatch, getState) => {
             return Promise.resolve();
         }
 
+        // Abort when filters haven't changed.
+        if (categoryData.lastQueriedFilter === JSON.stringify(categoryData.filter)) {
+            return Promise.resolve();
+        }
+
         // Just update the entries if cached.
         if (categoryData.search === search) {
             fn = fetchData;
         }
     }
 
-    return fn(category, dispatch, getState);
+    return fn(category, dispatch, list);
 };
 
 export const fetchCurrentList = () => (dispatch, getState) => {
