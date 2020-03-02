@@ -15,7 +15,6 @@ import { SystemStatusContext, systemStatusContextDefaultValues } from './SystemS
 
 function ProjectForge(
     {
-        alertMessage,
         user,
         loginUser: login,
         loginInProgress,
@@ -89,13 +88,11 @@ ProjectForge.propTypes = {
     loginUser: PropTypes.func.isRequired,
     loadUserStatus: PropTypes.func.isRequired,
     loginInProgress: PropTypes.bool.isRequired,
-    alertMessage: PropTypes.string,
     loginError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     user: PropTypes.shape({}),
 };
 
 ProjectForge.defaultProps = {
-    alertMessage: undefined,
     loginError: undefined,
     user: undefined,
 };
@@ -104,7 +101,6 @@ const mapStateToProps = state => ({
     loginInProgress: state.authentication.loading,
     loginError: state.authentication.error,
     user: state.authentication.user,
-    alertMessage: state.authentication.alertMessage,
 });
 
 const actions = {
