@@ -6,10 +6,13 @@ FROM openjdk:11
 RUN apt-get update && apt-get -y upgrade
 
 RUN addgroup projectforge && adduser --ingroup projectforge projectforge
-USER projectforge:projectforge
 # ProjectForge's base dir: must be mounted on host file system:
-RUN mkdir $HOME/ProjectForge
-VOLUME $HOME/ProjectForge
+RUN mkdir /ProjectForge
+# Grant access for user projectforge:
+RUN chown projectforge.projectforge /ProjectForge
+VOLUME /ProjectForge
+
+USER projectforge:projectforge
 
 # Don't put fat jar files in docker images: https://phauer.com/2019/no-fat-jar-in-docker-image/
 ARG DEPENDENCY=target/dependency
