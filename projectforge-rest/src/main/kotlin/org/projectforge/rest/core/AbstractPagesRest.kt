@@ -287,7 +287,7 @@ abstract class AbstractPagesRest<
 
     fun validate(request: HttpServletRequest, dbObj: O, postData: PostData<DTO>): List<ValidationError>? {
         val validationErrors = validate(dbObj)
-        if (!sessionCsrfCache.checkToken(request, postData.serverData.csrfToken)) {
+        if (!sessionCsrfCache.checkToken(request, postData.serverData?.csrfToken)) {
             log.warn("*** to be done: Check of CSRF token failed. Uncomment both following lines if implemented by client.")
             //validationErrors.add(ValidationError.create("errorpage.csrfError"))
             //return validationErrors
