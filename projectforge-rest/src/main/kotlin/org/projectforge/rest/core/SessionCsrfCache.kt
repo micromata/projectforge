@@ -24,10 +24,12 @@
 package org.projectforge.rest.core
 
 import mu.KotlinLogging
+import org.projectforge.framework.utils.NumberHelper
 import org.springframework.stereotype.Service
+import javax.servlet.http.HttpServletRequest
 
 /**
- * Caches the session id's of the clients (for up to 5 Minutes). Every 10 Minutes, expired sessions will be removed.
+ * Caches the csrf token per session id's of the clients (for up to 4 Hours). Every hour, expired csrf tokens will be removed.
  */
 @Service
 open class SessionCsrfCache
@@ -36,6 +38,24 @@ open class SessionCsrfCache
         clearEntriesIntervalInMillis = TICKS_PER_HOUR) {
 
     private val log = KotlinLogging.logger {}
+
+    fun checkToken(request: HttpServletRequest, token: String?): Boolean {
+        if (token.isNullOrEmpty() || token.trim().length < 30) {
+            log.info { "Token to short, check faild for session id '${request.session.id}'."}
+            return false
+        }
+        return super.getSessionData(request) == token
+    }
+
+    fun ensureAndGetToken(request: HttpServletRequest): String {
+        var token = super.getSessionData(request)
+        if (token != null) {
+            return token
+        }
+        token = NumberHelper.getSecureRandomAlphanumeric(30)
+        super.registerSessionData(request, token)
+        return token
+    }
 
     override fun entryAsString(entry: String): String {
         return "'${entry.substring(0..9)}...'"
