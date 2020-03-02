@@ -21,42 +21,23 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.caldav.service
+package org.projectforge.rest.core
 
 import mu.KotlinLogging
-import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.rest.core.AbstractSessionCache
 import org.springframework.stereotype.Service
-import javax.servlet.http.HttpServletRequest
 
 /**
  * Caches the session id's of the clients (for up to 5 Minutes). Every 10 Minutes, expired sessions will be removed.
  */
 @Service
-open class SslSessionCache
-    : AbstractSessionCache<PFUserDO>(
-        expireTimeInMillis = 5 * TICKS_PER_MINUTE,
-        clearEntriesIntervalInMillis = 10 * TICKS_PER_MINUTE,
-        sessionType = "SSL session id") {
+open class SessionCsrfCache
+    : AbstractSessionCache<String>(
+        expireTimeInMillis = 4 * TICKS_PER_HOUR,
+        clearEntriesIntervalInMillis = TICKS_PER_HOUR) {
 
     private val log = KotlinLogging.logger {}
 
-    override fun entryAsString(entry: PFUserDO): String {
-        return "'${entry.username}' with id ${entry.id}"
-    }
-
-    override fun equals(entry: PFUserDO, other: PFUserDO): Boolean {
-        return entry.id == other.id
-    }
-
-    override fun getSessionId(request: HttpServletRequest): String? {
-        val sslSessionId = request.getAttribute(REQUEST_ATTRIBUTE_SSL_SESSION_ID) ?: return null
-        if (sslSessionId is String) {
-            return sslSessionId
-        }
-        log.warn { "Oups, Attribute '$REQUEST_ATTRIBUTE_SSL_SESSION_ID' isn't of type String. Ignoring." }
-        return null
+    override fun entryAsString(entry: String): String {
+        return "'${entry.substring(0..9)}...'"
     }
 }
-
-private const val REQUEST_ATTRIBUTE_SSL_SESSION_ID = "javax.servlet.request.ssl_session_id"
