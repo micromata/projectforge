@@ -36,7 +36,6 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
-import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
@@ -157,6 +156,9 @@ abstract class AbstractPagesRest<
 
     @Autowired
     private lateinit var historyService: HistoryService
+
+    @Autowired
+    private lateinit var sessionCsrfCache: SessionCsrfCache
 
     @Autowired
     private lateinit var userPrefService: UserPrefService
@@ -283,8 +285,14 @@ abstract class AbstractPagesRest<
         return validationErrors
     }
 
-    fun validate(dbObj: O, dto: DTO): List<ValidationError>? {
+    fun validate(request: HttpServletRequest, dbObj: O, postData: PostData<DTO>): List<ValidationError>? {
         val validationErrors = validate(dbObj)
+        if (!sessionCsrfCache.checkToken(request, postData.serverData.csrfToken)) {
+            log.warn("*** to be done: Check of CSRF token failed. Uncomment both following lines if implemented by client.")
+            //validationErrors.add(ValidationError.create("errorpage.csrfError"))
+            //return validationErrors
+        }
+        val dto = postData.data
         validate(validationErrors, dto)
         if (validationErrors.isEmpty()) return null
         return validationErrors
@@ -579,7 +587,7 @@ abstract class AbstractPagesRest<
         layout.addTranslations("changes", "tooltip.selectMe")
         layout.postProcessPageMenu()
         val serverData = ServerData(
-                csrfToken = NumberHelper.getSecureRandomAlphanumeric(20),
+                csrfToken = sessionCsrfCache.ensureAndGetToken(request),
                 returnToCaller = "testValue",
                 returnToCallerParams = mapOf("testvar1" to "testval1", "testvar2" to "testval2"))
         val result = EditLayoutData(dto, layout, serverData)
@@ -761,7 +769,7 @@ abstract class AbstractPagesRest<
     @PutMapping(RestPaths.SAVE_OR_UDATE)
     fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(postData.data)
-        return saveOrUpdate(request, baseDao, dbObj, postData, this, validate(dbObj, postData.data))
+        return saveOrUpdate(request, baseDao, dbObj, postData, this, validate(request, dbObj, postData))
     }
 
     /**
@@ -770,7 +778,7 @@ abstract class AbstractPagesRest<
     @PutMapping(RestPaths.UNDELETE)
     fun undelete(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(postData.data)
-        return undelete(request, baseDao, dbObj, postData, this, validate(dbObj, postData.data))
+        return undelete(request, baseDao, dbObj, postData, this, validate(request, dbObj, postData))
     }
 
     /**
@@ -780,7 +788,7 @@ abstract class AbstractPagesRest<
     @DeleteMapping(RestPaths.MARK_AS_DELETED)
     fun markAsDeleted(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(postData.data)
-        return markAsDeleted(request, baseDao, dbObj, postData, this, validate(dbObj, postData.data))
+        return markAsDeleted(request, baseDao, dbObj, postData, this, validate(request, dbObj, postData))
     }
 
     /**
@@ -790,7 +798,7 @@ abstract class AbstractPagesRest<
     @DeleteMapping(RestPaths.DELETE)
     fun delete(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(postData.data)
-        return delete(request, baseDao, dbObj, postData, this, validate(dbObj, postData.data))
+        return delete(request, baseDao, dbObj, postData, this, validate(request, dbObj, postData))
     }
 
     /**
