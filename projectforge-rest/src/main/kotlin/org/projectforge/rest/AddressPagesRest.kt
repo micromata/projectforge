@@ -212,7 +212,7 @@ class AddressPagesRest()
         if (configurationService.isDAVServicesAvailable) {
             exportMenu.add(MenuItem("address.useCardDAVService",
                     i18nKey = "address.cardDAV.infopage.title",
-                    type = MenuItemTargetType.REDIRECT,
+                    type = MenuItemTargetType.MODAL,
                     url = PagesResolver.getDynamicPageUrl(CardDAVInfoPageRest::class.java)))
         }
         exportMenu.add(MenuItem("address.vCardExport",
