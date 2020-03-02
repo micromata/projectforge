@@ -143,6 +143,7 @@ AdvancedPopper.propTypes = {
     className: PropTypes.string,
     contentClassName: PropTypes.string,
     isOpen: PropTypes.bool,
+    onBlur: PropTypes.func,
     withInput: PropTypes.bool,
 };
 
@@ -153,6 +154,7 @@ AdvancedPopper.defaultProps = {
     className: undefined,
     contentClassName: undefined,
     isOpen: false,
+    onBlur: undefined,
     withInput: false,
 };
 
