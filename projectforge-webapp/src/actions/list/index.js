@@ -90,7 +90,7 @@ export const dismissCurrentError = () => (dispatch, getState) => dispatch(
     dismissError(getState().list.currentCategory),
 );
 
-export const loadList = category => (dispatch, getState) => {
+export const loadList = (category, ignoreLastQueriedFilters = false) => (dispatch, getState) => {
     const { list } = getState();
 
     if (list.currentCategory !== category) {
@@ -109,7 +109,10 @@ export const loadList = category => (dispatch, getState) => {
         }
 
         // Abort when filters haven't changed.
-        if (categoryData.lastQueriedFilter === JSON.stringify(categoryData.filter)) {
+        if (
+            !ignoreLastQueriedFilters
+            && categoryData.lastQueriedFilter === JSON.stringify(categoryData.filter)
+        ) {
             return Promise.resolve();
         }
 
@@ -122,10 +125,10 @@ export const loadList = category => (dispatch, getState) => {
     return fn(category, dispatch, list);
 };
 
-export const fetchCurrentList = () => (dispatch, getState) => {
+export const fetchCurrentList = (ignoreLastQueriedFilters = false) => (dispatch, getState) => {
     const category = getState().list.currentCategory;
 
-    loadList(category)(dispatch, getState);
+    loadList(category, ignoreLastQueriedFilters)(dispatch, getState);
 };
 
 export const openEditPage = id => (_, getState) => {
