@@ -159,10 +159,11 @@ NavigationAction.propTypes = {
     preferModal: PropTypes.bool,
     tooltip: PropTypes.string,
     type: PropTypes.oneOf([
-        'REDIRECT',
-        'RESTCALL',
         'DOWNLOAD',
         'LINK',
+        'MODAL',
+        'REDIRECT',
+        'RESTCALL',
         'TEXT',
     ]),
     url: PropTypes.string,
