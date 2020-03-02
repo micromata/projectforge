@@ -84,6 +84,12 @@ function AdvancedPopper(
         }
     };
 
+    const handleClick = ({ target }) => {
+        if (basicReference.current && basicReference.current.contains(target)) {
+            setIsOpen(true);
+        }
+    };
+
     const additionalVisible = isOpen && children;
 
     return (
@@ -97,7 +103,7 @@ function AdvancedPopper(
             {...props}
             onBlur={handleBlur}
             role="menu"
-            onClick={() => setIsOpen(true)}
+            onClick={handleClick}
             onKeyDown={undefined}
             tabIndex={0}
         >
