@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { useClickOutsideHandler } from '../../../utilities/hooks';
 import style from './Popper.module.scss';
 
 function AdvancedPopper(
@@ -25,6 +26,8 @@ function AdvancedPopper(
     const [additionalHeight, setAdditionalHeight] = React.useState(0);
     const [additionalWidth, setAdditionalWidth] = React.useState(0);
     const [currentTimeout, setCurrentTimeout] = React.useState(-1);
+
+    useClickOutsideHandler(reference, setIsOpen, isOpen);
 
     // Clear timeout on unmount
     React.useEffect(() => () => {
