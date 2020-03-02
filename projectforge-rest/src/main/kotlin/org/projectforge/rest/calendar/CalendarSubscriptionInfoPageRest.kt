@@ -63,6 +63,9 @@ class CalendarSubscriptionInfoPageRest {
                         .add(UICol()
                                 .add(UICustomized("calendar.subscriptionInfo",
                                         values = mutableMapOf("subscriptionInfo" to subscriptionInfo))))))
+
+        LayoutUtils.process(layout);
+
         return layout
     }
 
