@@ -62,7 +62,7 @@ class MenuRest {
         myAccountMenu.add(item)
         item.add(MenuItem(MenuItemDefId.FEEDBACK))
         item.add(MenuItem(MenuItemDefId.MY_ACCOUNT))
-        if (systemStatus.developmentMode == true) {
+        if (systemStatus.developmentMode) {
             val vacationAccountItem = MenuItem(MenuItemDefId.VACATION_ACCOUNT)
             vacationAccountItem.url = "${PREFIX}dynamic/vacationAccount"
             item.add(vacationAccountItem)
