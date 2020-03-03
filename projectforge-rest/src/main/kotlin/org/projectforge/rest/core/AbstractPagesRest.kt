@@ -288,9 +288,9 @@ abstract class AbstractPagesRest<
     fun validate(request: HttpServletRequest, dbObj: O, postData: PostData<DTO>): List<ValidationError>? {
         val validationErrors = validate(dbObj)
         if (!sessionCsrfCache.checkToken(request, postData.serverData?.csrfToken)) {
-            log.warn("*** to be done: Check of CSRF token failed. Uncomment both following lines if implemented by client.")
-            //validationErrors.add(ValidationError.create("errorpage.csrfError"))
-            //return validationErrors
+            log.warn("Check of CSRF token failed, a validation error will be shown. Upsert of data declined: ${postData.data}")
+            validationErrors.add(ValidationError.create("errorpage.csrfError"))
+            return validationErrors
         }
         val dto = postData.data
         validate(validationErrors, dto)
@@ -587,9 +587,7 @@ abstract class AbstractPagesRest<
         layout.addTranslations("changes", "tooltip.selectMe")
         layout.postProcessPageMenu()
         val serverData = ServerData(
-                csrfToken = sessionCsrfCache.ensureAndGetToken(request),
-                returnToCaller = "testValue",
-                returnToCallerParams = mapOf("testvar1" to "testval1", "testvar2" to "testval2"))
+                csrfToken = sessionCsrfCache.ensureAndGetToken(request))
         val result = EditLayoutData(dto, layout, serverData)
         onGetItemAndLayout(request, dto, result)
         val additionalVariables = addVariablesForEditPage(dto)
