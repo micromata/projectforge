@@ -109,7 +109,7 @@ export const callAction = ({ responseAction: action }) => (dispatch, getState) =
 
     let status = 0;
 
-    const { data, watchFieldsTriggered } = state.categories[category];
+    const { data, watchFieldsTriggered, serverData } = state.categories[category];
 
     return fetch(
         getServiceURL(action.url),
@@ -120,6 +120,7 @@ export const callAction = ({ responseAction: action }) => (dispatch, getState) =
             body: JSON.stringify({
                 data,
                 watchFieldsTriggered,
+                serverData,
             }),
         },
     )
