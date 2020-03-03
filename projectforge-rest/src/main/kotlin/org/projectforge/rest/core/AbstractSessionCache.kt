@@ -59,6 +59,21 @@ abstract class AbstractSessionCache<T : Any>(
 
     private val cache = mutableListOf<Entry<T>>()
 
+    val size: Int
+        get() {
+            synchronized(cache)
+            {
+                return cache.size
+            }
+        }
+
+    val validSize: Int
+        get() {
+            synchronized(cache) {
+                return cache.filter { !isExpired(it) }.size
+            }
+        }
+
     fun registerSessionData(request: HttpServletRequest, data: T) {
         val sessionId = getSessionId(request) ?: return
         registerSessionData(sessionId, data)
