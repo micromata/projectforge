@@ -70,7 +70,17 @@ class CardDAVInfoPageRest {
                                 .add(UICol(length = 4)
                                         .add(UILabel("Apple Addressbook")))
                                 .add(UICol(length = 8)
-                                        .add(UILabel("Server path: /users/${username}/addressBooks/default")))))
+                                        .add(UILabel("CardDAV account, server path (Catalina): /users/${username}/addressBooks/default"))))
+                        .add(UIRow()
+                                .add(UICol(length = 4)
+                                        .add(UILabel("iOS")))
+                                .add(UICol(length = 8)
+                                        .add(UILabel("CardDAV account"))))
+                        .add(UIRow()
+                                .add(UICol(length = 4)
+                                        .add(UILabel("Thunderbird")))
+                                .add(UICol(length = 8)
+                                        .add(UILabel("CardDAV account")))))
         return layout
     }
 }
