@@ -267,8 +267,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final Select2Choice<EmployeeDO> replacementSelect = new Select2Choice<>(
               Select2SingleChoicePanel.WICKET_ID,
               new PropertyModel<>(data, "replacement"),
-              new DefaultEmployeeWicketProvider(employeeService, checkHRWriteRight(), EmployeeStatus.FEST_ANGESTELLTER, EmployeeStatus.BEFRISTET_ANGESTELLTER,
-                      EmployeeStatus.FREELANCER));
+              new DefaultEmployeeWicketProvider(employeeService, checkHRWriteRight()));
       replacementSelect.setRequired(true).setMarkupId("vacation-replacement").setOutputMarkupId(true);
       replacementSelect.setEnabled(checkEnableInputField());
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), replacementSelect));
