@@ -37,12 +37,24 @@ public abstract class AbstractCache implements Serializable
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractCache.class);
 
+  /**
+   * Milliseconds.
+   */
   public static final long TICKS_PER_SECOND = 1000;
 
+  /**
+   * Milliseconds.
+   */
   public static final long TICKS_PER_MINUTE = TICKS_PER_SECOND * 60;
 
+  /**
+   * Milliseconds.
+   */
   public static final long TICKS_PER_HOUR = TICKS_PER_MINUTE * 60;
 
+  /**
+   * Milliseconds.
+   */
   public static final long TICKS_PER_DAY = 24 * TICKS_PER_HOUR;
 
   protected long expireTime = 60 * TICKS_PER_MINUTE;

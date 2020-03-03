@@ -51,7 +51,6 @@ class NavigationAction extends React.Component {
             badgeIsFlying,
             entryKey,
             id,
-            preferModal,
             title,
             tooltip,
             type,
@@ -156,7 +155,6 @@ NavigationAction.propTypes = {
     badgeIsFlying: PropTypes.bool,
     entryKey: PropTypes.string,
     id: PropTypes.string,
-    preferModal: PropTypes.bool,
     tooltip: PropTypes.string,
     type: PropTypes.oneOf([
         'DOWNLOAD',
@@ -174,7 +172,6 @@ NavigationAction.defaultProps = {
     badgeIsFlying: true,
     entryKey: undefined,
     id: undefined,
-    preferModal: false,
     tooltip: undefined,
     type: 'LINK',
     url: '',

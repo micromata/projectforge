@@ -63,7 +63,7 @@ class PFMiltonFilter : MiltonFilter() {
     }
 
     private fun authenticate(authInfo: RestAuthenticationInfo) {
-        val sslSessionUser = sslSessionCache.getSslSessionUser(authInfo.request)
+        val sslSessionUser = sslSessionCache.getSessionData(authInfo.request)
         if (sslSessionUser != null) {
             authInfo.user = sslSessionUser
         } else {
@@ -72,7 +72,7 @@ class PFMiltonFilter : MiltonFilter() {
                 if (authenticatedUser == null) {
                     log.error("Can't authenticate user '$userString' by given token. User name and/or token invalid.")
                 } else {
-                    sslSessionCache.registerSslSessionUser(authInfo.request, authenticatedUser)
+                    sslSessionCache.registerSessionData(authInfo.request, authenticatedUser)
                 }
                 authenticatedUser
             }
