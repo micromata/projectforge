@@ -28,6 +28,7 @@ import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -43,8 +44,8 @@ class CardDAVInfoPageRest {
     @Autowired
     private lateinit var authenticationsService: UserAuthenticationsService
 
-    @GetMapping("layout")
-    fun getLayout(request: HttpServletRequest, @RequestParam("type") type: String?): UILayout {
+    @GetMapping("dynamic")
+    fun getForm(request: HttpServletRequest, @RequestParam("type") type: String?): FormLayoutData {
         val username = ThreadLocalUserContext.getUser()?.username ?: "?????"
         val layout = UILayout("address.cardDAV.infopage.title")
                 .add(UIFieldset(length = 12)
@@ -81,6 +82,6 @@ class CardDAVInfoPageRest {
                                         .add(UILabel("Thunderbird")))
                                 .add(UICol(length = 8)
                                         .add(UILabel("CardDAV account")))))
-        return layout
+        return FormLayoutData(null, layout, null)
     }
 }
