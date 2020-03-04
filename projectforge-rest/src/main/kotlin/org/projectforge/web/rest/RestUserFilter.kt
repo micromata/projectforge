@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
     @Autowired
-    lateinit var cookieService: CookieService
+    private lateinit var cookieService: CookieService
 
     override fun authenticate(authInfo: RestAuthenticationInfo) {
         restAuthenticationUtils.authenticationByRequestParameter(
