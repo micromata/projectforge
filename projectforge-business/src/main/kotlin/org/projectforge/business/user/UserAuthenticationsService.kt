@@ -52,7 +52,7 @@ open class UserAuthenticationsService {
 
     /**
      * Tries to get user by user id and token. If found, the access will be logged.
-     * @param request Is needed to register [UserAccessLogEntry] if token is used and valid.
+     * @param request Is needed to register [UserAccessLogEntries] if token is used and valid.
      * @see UserAuthenticationsDao.getUserByToken
      */
     open fun getUserByToken(request: HttpServletRequest, userId: Int, type: UserTokenType, token: String?): PFUserDO? {
@@ -63,7 +63,7 @@ open class UserAuthenticationsService {
 
     /**
      * Tries to get user by username and token. If found, the access will be logged.
-     * @param request Is needed to register [UserAccessLogEntry] if token is used and valid.
+     * @param request Is needed to register [UserAccessLogEntries] if token is used and valid.
      * @see UserAuthenticationsDao.getUserByToken
      */
     open fun getUserByToken(request: HttpServletRequest, username: String, type: UserTokenType, token: String?): PFUserDO? {
@@ -100,23 +100,23 @@ open class UserAuthenticationsService {
      */
     open fun renewToken(userId: Int, tokenType: UserTokenType) {
         userAuthenticationsDao.renewToken(userId, tokenType)
-        getUserAccessLogEntries(tokenType, userId).clear()
+        getUserAccessLogEntries(tokenType, userId)?.clear()
     }
 
     /**
      * @param userId Get the token for the given user, or for the context user if id is null.
      */
     @JvmOverloads
-    open fun getUserAccessLogEntries(tokenType: UserTokenType, userId: Int? = null): UserAccessLogEntries {
-        return userPrefService.ensureEntry(USER_PREF_AREA_ACCESS_LOG_ENTRIES, tokenType.name, UserAccessLogEntries(tokenType), true,
-                userId ?: ThreadLocalUserContext.getUserId())
+    open fun getUserAccessLogEntries(tokenType: UserTokenType, userId: Int? = null): UserAccessLogEntries? {
+        val uid = userId ?: ThreadLocalUserContext.getUserId() ?: return null
+        return userPrefService.ensureEntry(USER_PREF_AREA_ACCESS_LOG_ENTRIES, tokenType.name, UserAccessLogEntries(tokenType), true, uid)
     }
 
     /**
      * @param userId If null, ThreadLocalUserContext.getUserId() is used.
      */
     private fun registerLogAccess(request: HttpServletRequest, tokenType: UserTokenType, userId: Int) {
-        val accessEntries = getUserAccessLogEntries(tokenType, userId)
+        val accessEntries = getUserAccessLogEntries(tokenType, userId) ?: return
         accessEntries.update(request)
     }
 

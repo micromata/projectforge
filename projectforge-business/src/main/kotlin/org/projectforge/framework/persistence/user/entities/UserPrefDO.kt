@@ -25,6 +25,7 @@
 
 package org.projectforge.framework.persistence.user.entities
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
@@ -69,6 +70,7 @@ import javax.persistence.*
         NamedQuery(name = FIND_IDS_AND_NAMES_BY_USER_AND_AREA, query = "select id, name from UserPrefDO where user.id=:userId and area=:area order by name"),
         NamedQuery(name = FIND_OTHER_BY_USER_AND_AREA_AND_NAME, query = "from UserPrefDO where id<>:id and user.id=:userId and area=:area and name=:name"))
 class UserPrefDO : AbstractBaseDO<Int>() {
+    @JsonIgnore
     private val log = org.slf4j.LoggerFactory.getLogger(UserPrefDO::class.java)
 
     @IndexedEmbedded(depth = 1)
