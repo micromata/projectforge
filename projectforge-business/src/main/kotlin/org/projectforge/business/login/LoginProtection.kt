@@ -74,7 +74,7 @@ class LoginProtection private constructor() {
      * @param userId          May-be null.
      * @param clientIpAddress May-be null.
      * @param authenticationType Type of authentication (or null) for separating time penalties for different types (DAV, REST_CLIENT and normal login).
-     * @return the time offset for login if exist, otherwise 0.
+     * @return the time offset (in ms) for login if exist, otherwise 0.
      */
     @JvmOverloads
     fun getFailedLoginTimeOffsetIfExists(userId: String?, clientIpAddress: String?, authenticationType: String? = null): Long {
