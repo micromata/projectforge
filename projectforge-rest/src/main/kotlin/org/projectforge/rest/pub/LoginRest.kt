@@ -41,6 +41,7 @@ import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.ui.UILabel
 import org.projectforge.ui.UILayout
 import org.projectforge.ui.UINamedContainer
@@ -79,13 +80,13 @@ open class LoginRest {
     @Autowired
     private lateinit var cookieService: CookieService
 
-    @GetMapping("layout")
-    fun getLayout(): UILayout {
+    @GetMapping("dynamic")
+    fun getForm(): FormLayoutData {
         val layout = UILayout("login.title")
                 .addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
         //.addTranslation("messageOfTheDay")
         layout.add(UINamedContainer("messageOfTheDay").add(UILabel(label = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY))))
-        return layout
+        return FormLayoutData(null, layout, null)
     }
 
     @PostMapping

@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { Modal, ModalBody } from '../../../components/design';
 import history from '../../../utilities/history';
-import EditPage from './EditPage';
+import FormPage from './FormPage';
 
-function EditModal(props) {
+function FormModal(props) {
     const { baseUrl } = props;
 
     return (
@@ -14,16 +14,16 @@ function EditModal(props) {
             className="modal-xl"
         >
             <ModalBody>
-                <EditPage {...props} />
+                <FormPage {...props} />
             </ModalBody>
         </Modal>
     );
 }
 
-EditModal.propTypes = {
+FormModal.propTypes = {
     baseUrl: PropTypes.string.isRequired,
 };
 
-EditModal.defaultProps = {};
+FormModal.defaultProps = {};
 
-export default EditModal;
+export default FormModal;

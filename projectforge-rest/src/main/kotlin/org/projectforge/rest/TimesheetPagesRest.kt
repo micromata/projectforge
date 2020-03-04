@@ -358,7 +358,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
      * or iso date time including any time zone offset.
      * @see PFDateTimeUtils.parse for supported date formats.
      */
-    override fun onGetItemAndLayout(request: HttpServletRequest, dto: Timesheet, editLayoutData: EditLayoutData) {
+    override fun onGetItemAndLayout(request: HttpServletRequest, dto: Timesheet, formLayoutData: FormLayoutData) {
         val startTime = PFDateTimeUtils.parseAndCreateDateTime(request.getParameter("startDate"), numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS)
         if (startTime != null) {
             dto.startTime = startTime.withPrecision(DatePrecision.MINUTE_15).sqlTimestamp
@@ -367,7 +367,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         if (stopTime != null) {
             dto.stopTime = stopTime.withPrecision(DatePrecision.MINUTE_15).sqlTimestamp
         }
-        super.onGetItemAndLayout(request, dto, editLayoutData)
+        super.onGetItemAndLayout(request, dto, formLayoutData)
     }
 
     /**

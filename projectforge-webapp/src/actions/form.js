@@ -1,27 +1,27 @@
-import history from '../../utilities/history';
-import { getObjectFromQuery, getServiceURL, handleHTTPErrors } from '../../utilities/rest';
+import history from '../utilities/history';
+import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
 
-export const EDIT_CALL_ACTION_BEGIN = 'EDIT_CALL_ACTION_BEGIN';
-export const EDIT_CALL_ACTION_SUCCESS = 'EDIT_CALL_ACTION_SUCCESS';
-export const EDIT_CALL_FAILURE = 'EDIT_CALL_FAILURE';
-export const EDIT_CALL_INITIAL_BEGIN = 'EDIT_CALL_INITIAL_BEGIN';
-export const EDIT_CALL_SUCCESS = 'EDIT_CALL_SUCCESS';
-export const EDIT_CHANGE_DATA = 'EDIT_CHANGE_DATA';
-export const EDIT_CHANGE_VARIABLES = 'EDIT_CHANGE_VARIABLES';
-export const EDIT_SWITCH_CATEGORY = 'EDIT_SWITCH_CATEGORY';
+export const FORM_CALL_ACTION_BEGIN = 'FORM_CALL_ACTION_BEGIN';
+export const FORM_CALL_ACTION_SUCCESS = 'FORM_CALL_ACTION_SUCCESS';
+export const FORM_CALL_FAILURE = 'FORM_CALL_FAILURE';
+export const FORM_CALL_INITIAL_BEGIN = 'FORM_CALL_INITIAL_BEGIN';
+export const FORM_CALL_SUCCESS = 'FORM_CALL_SUCCESS';
+export const FORM_CHANGE_DATA = 'FORM_CHANGE_DATA';
+export const FORM_CHANGE_VARIABLES = 'FORM_CHANGE_VARIABLES';
+export const FORM_SWITCH_CATEGORY = 'FORM_SWITCH_CATEGORY';
 
 const callActionBegin = category => ({
-    type: EDIT_CALL_ACTION_BEGIN,
+    type: FORM_CALL_ACTION_BEGIN,
     payload: { category },
 });
 
 const callActionSuccess = category => ({
-    type: EDIT_CALL_ACTION_SUCCESS,
+    type: FORM_CALL_ACTION_SUCCESS,
     payload: { category },
 });
 
 const callFailure = (category, error) => ({
-    type: EDIT_CALL_FAILURE,
+    type: FORM_CALL_FAILURE,
     payload: {
         category,
         error,
@@ -29,7 +29,7 @@ const callFailure = (category, error) => ({
 });
 
 const callInitialBegin = (category, id) => ({
-    type: EDIT_CALL_INITIAL_BEGIN,
+    type: FORM_CALL_INITIAL_BEGIN,
     payload: {
         category,
         id,
@@ -37,7 +37,7 @@ const callInitialBegin = (category, id) => ({
 });
 
 const callSuccess = (category, response) => ({
-    type: EDIT_CALL_SUCCESS,
+    type: FORM_CALL_SUCCESS,
     payload: {
         category,
         response,
@@ -45,7 +45,7 @@ const callSuccess = (category, response) => ({
 });
 
 const changeData = (category, newData) => ({
-    type: EDIT_CHANGE_DATA,
+    type: FORM_CHANGE_DATA,
     payload: {
         category,
         newData,
@@ -53,7 +53,7 @@ const changeData = (category, newData) => ({
 });
 
 const changeVariables = (category, newVariables) => ({
-    type: EDIT_CHANGE_VARIABLES,
+    type: FORM_CHANGE_VARIABLES,
     payload: {
         category,
         newVariables,
@@ -61,7 +61,7 @@ const changeVariables = (category, newVariables) => ({
 });
 
 const switchCategoryWithData = (from, to, newVariables) => ({
-    type: EDIT_SWITCH_CATEGORY,
+    type: FORM_SWITCH_CATEGORY,
     payload: {
         from,
         newVariables,
@@ -69,8 +69,8 @@ const switchCategoryWithData = (from, to, newVariables) => ({
     },
 });
 
-export const loadEditPage = (category, { id, search }) => (dispatch, getState) => {
-    const currentCategory = getState().edit.categories[category];
+export const loadFormPage = (category, id, url) => (dispatch, getState) => {
+    const currentCategory = getState().form.categories[category];
 
     if (currentCategory && currentCategory.isFetching) {
         return Promise.resolve();
@@ -79,13 +79,7 @@ export const loadEditPage = (category, { id, search }) => (dispatch, getState) =
     dispatch(callInitialBegin(category, id));
 
     return fetch(
-        getServiceURL(
-            `${category}/edit`,
-            {
-                ...getObjectFromQuery(search || ''),
-                id,
-            },
-        ),
+        url,
         {
             method: 'GET',
             credentials: 'include',
@@ -102,7 +96,7 @@ export const callAction = ({ responseAction: action }) => (dispatch, getState) =
         return Promise.reject(Error('No response action given.'));
     }
 
-    const { edit: state } = getState();
+    const { form: state } = getState();
     const category = state.currentCategory;
 
     dispatch(callActionBegin(category));
@@ -173,15 +167,15 @@ export const callAction = ({ responseAction: action }) => (dispatch, getState) =
 };
 
 export const setCurrentData = newData => (dispatch, getState) => dispatch(
-    changeData(getState().edit.currentCategory, newData),
+    changeData(getState().form.currentCategory, newData),
 );
 
 export const setCurrentVariables = newVariables => (dispatch, getState) => dispatch(
-    changeVariables(getState().edit.currentCategory, newVariables),
+    changeVariables(getState().form.currentCategory, newVariables),
 );
 
 export const switchFromCurrentCategory = (to, newVariables) => (dispatch, getState) => {
-    const { edit: state } = getState();
+    const { form: state } = getState();
     const from = state.currentCategory;
 
     dispatch(switchCategoryWithData(

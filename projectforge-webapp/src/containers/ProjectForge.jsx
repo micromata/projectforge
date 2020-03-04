@@ -11,6 +11,7 @@ import prefix from '../utilities/prefix';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
 import AuthorizedRoutes, { wicketRoute } from './AuthorizedRoutes';
 import DynamicPage from './page/DynamicPage';
+import FormPage from './page/form/FormPage';
 import { SystemStatusContext, systemStatusContextDefaultValues } from './SystemStatusContext';
 
 function ProjectForge(
@@ -48,8 +49,8 @@ function ProjectForge(
             <Switch>
                 {wicketRoute}
                 <Route
-                    path={`${prefix}:restPrefix/:page`}
-                    component={DynamicPage}
+                    path={`${prefix}:restPrefix/:category/:type?`}
+                    component={FormPage}
                 />
                 <Route
                     path={prefix}

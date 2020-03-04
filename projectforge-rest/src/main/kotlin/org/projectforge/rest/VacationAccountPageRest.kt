@@ -37,6 +37,7 @@ import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.Employee
+import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.LeaveAccountEntry
 import org.projectforge.rest.dto.Vacation
 import org.projectforge.ui.*
@@ -64,8 +65,8 @@ class VacationAccountPageRest {
     @Autowired
     private lateinit var vacationService: VacationService
 
-    @GetMapping("layout")
-    fun getLayout(): UILayout {
+    @GetMapping("dynamic")
+    fun getForm(): FormLayoutData {
         val layout = UILayout("vacation.leaveaccount.title")
         val lc = LayoutContext(VacationDO::class.java)
         layout.addTranslations("employee",
@@ -135,7 +136,8 @@ class VacationAccountPageRest {
                                 .add(UICol(length = 12)
                                         .add(UICustomized("vacation.entries",
                                                 values = vacations))))))
-        return layout
+
+        return FormLayoutData(null, layout, null)
     }
 
     private fun readVacations(variables: MutableMap<String, Any>, id: String, employeeId: Int, year: Int) {

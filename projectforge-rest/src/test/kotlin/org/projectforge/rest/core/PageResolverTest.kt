@@ -52,6 +52,6 @@ class PageResolverTest {
         assertTrue(result.startsWith("react/address/edit?"))
         assertTrue(result.contains("&"))
 
-        assertEquals("react/dynamic/calendarSubscription", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java))
+        assertEquals("react/calendarSubscription/dynamic", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java))
     }
 }
