@@ -77,14 +77,14 @@ object PagesResolver {
         return "$path${getQueryString(params)}"
     }
 
-    private fun getRequestMappingPath(clazz: Class<*>, prefix: String = ""): String? {
+    private fun getRequestMappingPath(clazz: Class<*>, suffix: String = ""): String? {
         val requestMapping = clazz.annotations.find { it is RequestMapping } as? RequestMapping
         if (requestMapping == null) {
             log.error("RequestMapping annotation not found in class '$clazz'.")
             return null
         }
         val subpath = requestMapping.value[0].removePrefix("${Rest.URL}")
-        return "$REACT_PATH$prefix$subpath"
+        return "$REACT_PATH$subpath$suffix"
     }
 
     private fun getQueryString(params: Map<String, Any?>? = null): String {

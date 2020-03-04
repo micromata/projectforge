@@ -41,6 +41,7 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.BaseDTO
+import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.ServerData
 import org.projectforge.ui.*
@@ -101,15 +102,6 @@ abstract class AbstractPagesRest<
     }
 
     class DisplayObject(val id: Any, override val displayName: String?) : DisplayNameCapable
-
-    /**
-     * Contains the layout data returned for the frontend regarding edit pages.
-     * @param variables Additional variables / data provided for the edit page.
-     */
-    class EditLayoutData(val data: Any?,
-                         val ui: UILayout?,
-                         var serverData: ServerData?,
-                         var variables: Map<String, Any>? = null)
 
     /**
      * Contains the data, layout and filter settings served by [getInitialList].
@@ -561,7 +553,7 @@ abstract class AbstractPagesRest<
      */
     @GetMapping(RestPaths.EDIT)
     fun getItemAndLayout(request: HttpServletRequest, @RequestParam("id") id: String?)
-            : ResponseEntity<EditLayoutData> {
+            : ResponseEntity<FormLayoutData> {
         val userAccess = UILayout.UserAccess()
         val item = (if (null != id) {
             getById(id, true, userAccess)
@@ -582,13 +574,13 @@ abstract class AbstractPagesRest<
     open protected fun onBeforeGetItemAndLayout(request: HttpServletRequest, dto: DTO, userAccess: UILayout.UserAccess) {
     }
 
-    protected fun getItemAndLayout(request: HttpServletRequest, dto: DTO, userAccess: UILayout.UserAccess): EditLayoutData {
+    protected fun getItemAndLayout(request: HttpServletRequest, dto: DTO, userAccess: UILayout.UserAccess): FormLayoutData {
         val layout = createEditLayout(dto, userAccess)
         layout.addTranslations("changes", "tooltip.selectMe")
         layout.postProcessPageMenu()
         val serverData = ServerData(
                 csrfToken = sessionCsrfCache.ensureAndGetToken(request))
-        val result = EditLayoutData(dto, layout, serverData)
+        val result = FormLayoutData(dto, layout, serverData)
         onGetItemAndLayout(request, dto, result)
         val additionalVariables = addVariablesForEditPage(dto)
         if (additionalVariables != null)
@@ -600,7 +592,7 @@ abstract class AbstractPagesRest<
      * Will be called after getting the item from the database before creating the layout data. Overwrite this for
      * e. g. parsing the request and preset the item values.
      */
-    protected open fun onGetItemAndLayout(request: HttpServletRequest, dto: DTO, editLayoutData: EditLayoutData) {
+    protected open fun onGetItemAndLayout(request: HttpServletRequest, dto: DTO, formLayoutData: FormLayoutData) {
     }
 
     /**

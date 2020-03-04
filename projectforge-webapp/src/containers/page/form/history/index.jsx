@@ -5,7 +5,7 @@ import LoadingContainer from '../../../../components/design/loading-container';
 import { getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
 import HistoryEntry from './HistoryEntry';
 
-class EditHistory extends React.Component {
+class FormHistory extends React.Component {
     constructor(props) {
         super(props);
 
@@ -99,7 +99,7 @@ class EditHistory extends React.Component {
     }
 }
 
-EditHistory.propTypes = {
+FormHistory.propTypes = {
     category: PropTypes.string.isRequired,
     id: PropTypes.string.isRequired,
     visible: PropTypes.bool,
@@ -108,9 +108,9 @@ EditHistory.propTypes = {
     }),
 };
 
-EditHistory.defaultProps = {
+FormHistory.defaultProps = {
     translations: undefined,
     visible: false,
 };
 
-export default EditHistory;
+export default FormHistory;

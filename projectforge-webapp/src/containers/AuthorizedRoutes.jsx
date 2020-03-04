@@ -8,8 +8,7 @@ import history from '../utilities/history';
 import prefix from '../utilities/prefix';
 import { getServiceURL } from '../utilities/rest';
 import CalendarPage from './page/calendar/CalendarPage';
-import DynamicPage from './page/DynamicPage';
-import EditPage from './page/edit/EditPage';
+import FormPage from './page/form/FormPage';
 import IndexPage from './page/IndexPage';
 import ListPage from './page/list/ListPage';
 import TaskTreePage from './page/TaskTreePage';
@@ -58,12 +57,8 @@ function AuthorizedRoutes(
                 component={TaskTreePage}
             />
             <Route
-                path={`${prefix}dynamic/:page`}
-                component={DynamicPage}
-            />
-            <Route
-                path={`${prefix}:category/edit/:id?`}
-                component={EditPage}
+                path={`${prefix}:category/:type/:id?`}
+                component={FormPage}
             />
             <Route
                 path={`${prefix}:category`}
