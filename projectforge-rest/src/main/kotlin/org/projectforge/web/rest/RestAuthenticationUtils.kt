@@ -31,10 +31,7 @@ import org.projectforge.business.user.UserAccessLogEntries
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
-import org.projectforge.business.user.service.UserPrefService
-import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -63,13 +60,7 @@ import javax.servlet.http.HttpServletResponse
 @Service
 open class RestAuthenticationUtils {
     @Autowired
-    private lateinit var userService: UserService
-    @Autowired
     private lateinit var userAuthenticationsService: UserAuthenticationsService
-    @Autowired
-    private lateinit var userPrefService: UserPrefService
-    @Autowired
-    private lateinit var cookieService: CookieService
     @Autowired
     private lateinit var systemStatus: SystemStatus
 
@@ -267,7 +258,7 @@ open class RestAuthenticationUtils {
     }
 
     @JvmOverloads
-    open fun getUserAccessLogEntries(tokenType: UserTokenType, userId: Int? = null): UserAccessLogEntries {
+    open fun getUserAccessLogEntries(tokenType: UserTokenType, userId: Int? = null): UserAccessLogEntries? {
         return userAuthenticationsService.getUserAccessLogEntries(tokenType, userId)
     }
 
