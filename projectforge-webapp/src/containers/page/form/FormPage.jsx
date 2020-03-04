@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { Route } from 'react-router-dom';
 import {
     callAction,
-    loadEditPage,
+    loadFormPage,
     setCurrentData,
     setCurrentVariables,
     switchFromCurrentCategory,
@@ -14,10 +14,11 @@ import TabNavigation from '../../../components/base/page/edit/TabNavigation';
 import { Alert, Container, TabContent, TabPane } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getTranslation } from '../../../utilities/layout';
+import { getObjectFromQuery, getServiceURL } from '../../../utilities/rest';
 import style from '../../ProjectForge.module.scss';
-import EditHistory from './history';
+import FormHistory from './history';
 
-function EditPage(
+function FormPage(
     {
         category,
         location,
@@ -25,7 +26,7 @@ function EditPage(
         onCallAction,
         onCategorySwitch,
         onDataChange,
-        onNewEditPage,
+        onNewFormPage,
         onVariablesChange,
     },
 ) {
@@ -35,7 +36,11 @@ function EditPage(
         validationErrors,
         variables,
     } = category;
-    const { category: currentCategory, id } = match.params;
+    const {
+        category: currentCategory,
+        id,
+        type,
+    } = match.params;
 
     React.useEffect(
         () => {
@@ -44,10 +49,17 @@ function EditPage(
                 return;
             }
 
-            onNewEditPage(currentCategory, {
+            onNewFormPage(
+                currentCategory,
                 id,
-                search: location.search,
-            });
+                getServiceURL(
+                    `${match.params.restPrefix === 'public' ? '../rsPublic/' : ''}${currentCategory}/${type || 'dynamic'}`,
+                    {
+                        ...getObjectFromQuery(location.search || ''),
+                        id,
+                    },
+                ),
+            );
         },
         [currentCategory, id, location.state],
     );
@@ -66,7 +78,7 @@ function EditPage(
             <Alert color="danger">
                 <ul>
                     {globalErrors.map(({ message, messageId }) => (
-                        <li key={`edit-page-global-validation-${messageId}`}>
+                        <li key={`form-page-global-validation-${messageId}`}>
                             {message}
                         </li>
                     ))}
@@ -81,7 +93,7 @@ function EditPage(
 
     const tabs = [
         {
-            id: 'edit',
+            id: 'form',
             title: ui.title,
             link: match.url,
         },
@@ -103,13 +115,13 @@ function EditPage(
                     <React.Fragment>
                         <TabNavigation
                             tabs={tabs}
-                            activeTab={tabMatch.params.tab || 'edit'}
+                            activeTab={tabMatch.params.tab || 'form'}
                         />
                         <TabContent
-                            activeTab={tabMatch.params.tab || 'edit'}
+                            activeTab={tabMatch.params.tab || 'form'}
                             className={style.tabContent}
                         >
-                            <TabPane tabId="edit">
+                            <TabPane tabId="form">
                                 <Container fluid>
                                     <form>
                                         <DynamicLayout
@@ -136,7 +148,7 @@ function EditPage(
                             && (
                                 <TabPane tabId="history">
                                     <Container fluid>
-                                        <EditHistory
+                                        <FormHistory
                                             category={currentCategory}
                                             id={id}
                                             translations={ui.translations}
@@ -153,7 +165,7 @@ function EditPage(
     );
 }
 
-EditPage.propTypes = {
+FormPage.propTypes = {
     location: PropTypes.shape({
         search: PropTypes.string,
         state: PropTypes.shape({
@@ -165,30 +177,31 @@ EditPage.propTypes = {
             category: PropTypes.string.isRequired,
             id: PropTypes.string,
             tab: PropTypes.string,
+            type: PropTypes.string,
         }).isRequired,
     }).isRequired,
     onCallAction: PropTypes.func.isRequired,
     onCategorySwitch: PropTypes.func.isRequired,
     onDataChange: PropTypes.func.isRequired,
-    onNewEditPage: PropTypes.func.isRequired,
+    onNewFormPage: PropTypes.func.isRequired,
     onVariablesChange: PropTypes.func.isRequired,
     category: PropTypes.shape({}),
 };
 
-EditPage.defaultProps = {
+FormPage.defaultProps = {
     category: {},
 };
 
-const mapStateToProps = ({ edit }, { match }) => ({
-    category: edit.categories[match.params.category],
+const mapStateToProps = ({ form }, { match }) => ({
+    category: form.categories[match.params.category],
 });
 
 const actions = {
     onCallAction: callAction,
     onCategorySwitch: switchFromCurrentCategory,
     onDataChange: setCurrentData,
-    onNewEditPage: loadEditPage,
+    onNewFormPage: loadFormPage,
     onVariablesChange: setCurrentVariables,
 };
 
-export default connect(mapStateToProps, actions)(EditPage);
+export default connect(mapStateToProps, actions)(FormPage);

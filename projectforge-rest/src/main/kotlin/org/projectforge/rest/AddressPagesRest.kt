@@ -39,6 +39,7 @@ import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_AT
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.*
 import org.projectforge.rest.dto.Address
+import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
@@ -115,7 +116,7 @@ class AddressPagesRest()
         return address
     }
 
-    override fun onGetItemAndLayout(request: HttpServletRequest, dto: Address, editLayoutData: EditLayoutData) {
+    override fun onGetItemAndLayout(request: HttpServletRequest, dto: Address, formLayoutData: FormLayoutData) {
         ExpiringSessionAttributes.removeAttribute(request.session, SESSION_IMAGE_ATTR)
     }
 

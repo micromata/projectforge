@@ -13,7 +13,7 @@ import { Route } from 'react-router-dom';
 import LoadingContainer from '../../../components/design/loading-container';
 import history from '../../../utilities/history';
 import { fetchJsonGet, fetchJsonPost } from '../../../utilities/rest';
-import EditModal from '../../page/edit/EditModal';
+import FormModal from '../../page/form/FormModal';
 import {
     dayStyle,
     renderAgendaEvent,
@@ -383,7 +383,7 @@ class CalendarPanel extends React.Component {
                 />
                 <Route
                     path={`${match.url}/:category/edit/:id?`}
-                    render={props => <EditModal baseUrl={match.url} {...props} />}
+                    render={props => <FormModal baseUrl={match.url} {...props} />}
                 />
             </LoadingContainer>
         );
