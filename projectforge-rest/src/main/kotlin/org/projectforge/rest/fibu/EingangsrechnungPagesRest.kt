@@ -40,11 +40,9 @@ class EingangsrechnungPagesRest : AbstractDOPagesRest<EingangsrechnungDO, Eingan
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
-        // TODO:
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(lc, "kreditor", "konto", "referenz", "betreff", "datum", "faelligkeit",
-                                "isBezahlt")
+                        .add(lc, "kreditor", "konto", "referenz", "betreff", "datum", "faelligkeit", "isBezahlt")
                         .add(UITableColumn("netSum", title = translate("fibu.common.netto"), dataType = UIDataType.DECIMAL))
                         .add(UITableColumn("grossSum", title = translate("fibu.rechnung.bruttoBetrag"), dataType = UIDataType.DECIMAL))
                         .add(lc, "bemerkung"))
@@ -75,24 +73,7 @@ class EingangsrechnungPagesRest : AbstractDOPagesRest<EingangsrechnungDO, Eingan
                         .add(UICol()
                                 .add(lc, "besonderheiten")))
                 // Positionen
-                .add(UIList(lc, "positionen", "position")
-                        .add(UIRow()
-                                .add(UICol()
-                                        .add(lc, "position.menge"))
-                                .add(UICol()
-                                        .add(lc, "position.einzelNetto"))
-                                .add(UICol()
-                                        .add(lc, "position.vat"))
-                                .add(UICol()
-                                        .add(lc, "position.netSum"))
-                                .add(UICol()
-                                        .add(lc, "position.vatAmount"))
-                                .add(UICol()
-                                        .add(lc, "position.bruttoSum")))
-                        .add(UIRow()
-                                .add(UICol()
-                                        .add(lc, "text")))
-                        .add(UILabel("TODO: kost1, kost2, netto, prozent")))
+                .add(UICustomized("invoice.position"))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

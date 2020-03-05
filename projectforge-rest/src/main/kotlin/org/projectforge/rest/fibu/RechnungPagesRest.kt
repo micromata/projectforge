@@ -74,6 +74,7 @@ class RechnungPagesRest: AbstractDOPagesRest<RechnungDO, RechnungDao>(RechnungDa
                                 .add(lc, "netSum", "grossSum", "zahlBetrag", "discountMaturity", "discountPercent")))
                 .add(UIRow()
                         .add(UICol()
+                                // TODO: Projekt and Kunde require custom components
                                 .add(lc, "projekt", "kunde", "kundeText", "customerAddress", "customerref1", "attachment",
                                         "periodOfPerformanceBegin", "periodOfPerformanceEnd")))
                 .add(UIRow()
@@ -82,30 +83,8 @@ class RechnungPagesRest: AbstractDOPagesRest<RechnungDO, RechnungDao>(RechnungDa
                         .add(UICol()
                                 .add(lc, "besonderheiten")))
                 // Positionen
-                .add(UIList(lc, "positionen", "position")
-                        .add(UIRow()
-                                .add(UICol()
-                                        .add(lc, "position.auftragsPosition.auftrag"))
-                                .add(UICol()
-                                        .add(lc, "position.menge"))
-                                .add(UICol()
-                                        .add(lc, "position.einzelNetto"))
-                                .add(UICol()
-                                        .add(lc, "position.vat"))
-                                .add(UICol()
-                                        .add(lc, "position.netSum"))
-                                .add(UICol()
-                                        .add(lc, "position.vatAmount"))
-                                .add(UICol()
-                                        .add(lc, "position.bruttoSum")))
-                        .add(UIRow()
-                                .add(UICol()
-                                        .add(lc, "position.text"))
-                                .add(UICol()
-                                        .add(UILabel("TODO: Kostzuweisungen: kost1, kost2, netto, prozent?"))))
-                        .add(UIRow()
-                                .add(UICol()
-                                        .add(lc, "position.periodOfPerformanceType"))))
+                // TODO: Custom component for positions
+                .add(UICustomized("invoice.position"))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

@@ -39,8 +39,8 @@ class GroupAccessPagesRest : AbstractDOPagesRest<GroupTaskAccessDO, AccessDao>(A
      * Initializes new memos for adding.
      */
     override fun newBaseDO(request: HttpServletRequest?): GroupTaskAccessDO {
-        val memo = super.newBaseDO(request)
-        return memo
+        val groupTaskAccess = super.newBaseDO(request)
+        return groupTaskAccess
     }
 
     /**
