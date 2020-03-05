@@ -231,10 +231,9 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     return selectUnique(list);
   }
 
-  public List<UserPrefDO> getUserPrefs() {
-    final PFUserDO user = ThreadLocalUserContext.getUser();
+  public List<UserPrefDO> getUserPrefs(Integer userId) {
     final List<UserPrefDO> list = em.createNamedQuery(UserPrefDO.FIND_BY_USER_ID, UserPrefDO.class)
-            .setParameter("userId", user.getId())
+            .setParameter("userId", userId)
             .getResultList();
     return selectUnique(list);
   }
@@ -550,7 +549,10 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
    */
   @Override
   public Serializable internalSaveOrUpdate(UserPrefDO obj) {
-    Validate.notNull(obj.getUser());
+    if (obj.getUser() == null) {
+      log.warn("User of UserPrefDO is null (can't save it): " + obj);
+      return null;
+    }
     synchronized (this) { // Avoid parallel insert, update, delete operations.
       final UserPrefDO dbUserPref = (UserPrefDO) internalQuery(obj.getUser().getId(), obj.getArea(), obj.getName());
       if (dbUserPref == null) {

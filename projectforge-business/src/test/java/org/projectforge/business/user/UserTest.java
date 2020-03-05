@@ -63,7 +63,7 @@ public class UserTest extends AbstractTestBase {
   @Test
   public void testUserDO() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
-    final PFUserDO user = userService.getByUsername(AbstractTestBase.TEST_ADMIN_USER);
+    final PFUserDO user = userService.getInternalByUsername(AbstractTestBase.TEST_ADMIN_USER);
     assertEquals(user.getUsername(), AbstractTestBase.TEST_ADMIN_USER);
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final PFUserDO user1 = getUser("user1");

@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 
 public class EmployeeBillingExcelImporter
 {
-  private static final Logger log = LoggerFactory.getLogger(EmployeeBillingExcelRow.class);
+  private static final Logger log = LoggerFactory.getLogger(EmployeeBillingExcelImporter.class);
 
   private static final String NAME_OF_EXCEL_SHEET = "employees";
 

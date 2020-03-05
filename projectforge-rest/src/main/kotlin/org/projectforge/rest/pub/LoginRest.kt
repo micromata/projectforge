@@ -30,7 +30,9 @@ import org.projectforge.business.login.LoginResult
 import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.business.multitenancy.TenantRegistry
 import org.projectforge.business.multitenancy.TenantRegistryMap
+import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserService
@@ -39,10 +41,11 @@ import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.ui.UILabel
 import org.projectforge.ui.UILayout
 import org.projectforge.ui.UINamedContainer
-import org.projectforge.web.rest.RestUserFilter.executeLogin
+import org.projectforge.web.rest.AbstractRestUserFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.http.HttpStatus
@@ -72,15 +75,18 @@ open class LoginRest {
     private lateinit var userService: UserService
 
     @Autowired
+    private lateinit var userAuthenticationsService: UserAuthenticationsService
+
+    @Autowired
     private lateinit var cookieService: CookieService
 
-    @GetMapping("layout")
-    fun getLayout(): UILayout {
+    @GetMapping("dynamic")
+    fun getForm(): FormLayoutData {
         val layout = UILayout("login.title")
                 .addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
-                //.addTranslation("messageOfTheDay")
+        //.addTranslation("messageOfTheDay")
         layout.add(UINamedContainer("messageOfTheDay").add(UILabel(label = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY))))
-        return layout
+        return FormLayoutData(null, layout, null)
     }
 
     @PostMapping
@@ -100,19 +106,20 @@ open class LoginRest {
         if (user == null || loginResult.loginResultStatus != LoginResultStatus.SUCCESS) {
             return loginResult.loginResultStatus
         }
-        if (UserFilter.isUpdateRequiredFirst() == true) {
+        if (UserFilter.isUpdateRequiredFirst()) {
             log.warn("******* Update of ProjectForge required first. Please login via old login page. LoginService should be used instead.")
             return LoginResultStatus.FAILED
         }
         log.info("User successfully logged in: " + user.userDisplayName)
         if (loginData.stayLoggedIn == true) {
             val loggedInUser = userService.internalGetById(user.id)
-            val cookie = Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, "${loggedInUser.getId()}:${loggedInUser.username}:${userService.getStayLoggedInKey(user.id)}")
+            val stayLoggedInKey = userAuthenticationsService.internalGetToken(user.id, UserTokenType.STAY_LOGGED_IN_KEY)
+            val cookie = Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, "${loggedInUser.getId()}:${loggedInUser.username}:$stayLoggedInKey")
             cookieService.addStayLoggedInCookie(request, response, cookie)
         }
         // Execute login:
         val userContext = UserContext(PFUserDO.createCopyWithoutSecretFields(user)!!, getUserGroupCache())
-        executeLogin(request, userContext)
+        AbstractRestUserFilter.executeLogin(request, userContext)
         return LoginResultStatus.SUCCESS
     }
 
@@ -135,7 +142,7 @@ open class LoginRest {
 
         val result = loginHandler.checkLogin(loginData.username, loginData.password)
         if (result.getLoginResultStatus() == LoginResultStatus.SUCCESS) {
-            loginProtection.clearLoginTimeOffset(loginData.username, clientIpAddress)
+            loginProtection.clearLoginTimeOffset(result.user?.username, result.user?.id, clientIpAddress)
         } else if (result.getLoginResultStatus() == LoginResultStatus.FAILED) {
             loginProtection.incrementFailedLoginTimeOffset(loginData.username, clientIpAddress)
         }

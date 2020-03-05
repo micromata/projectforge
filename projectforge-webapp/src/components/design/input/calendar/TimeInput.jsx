@@ -3,16 +3,19 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
+import { formatTimeUnit } from '../../../../utilities/layout';
 import AdvancedPopper from '../../popper/AdvancedPopper';
 import style from './CalendarInput.module.scss';
+import DateInput from './DateInput';
 import TimeInputUnit from './TimeInputUnit';
 
-const hourRegex = /^([01]?[0-9]|2[0-3]|)$/;
-const minuteRegex = /^([0-5]?[0-9]|)$/;
+const hourRegex = /^(0?([01]?[0-9]|2[0-3]|))$/;
+const minuteRegex = /^(0?[0-5]?[0-9]|)$/;
 
 
 function TimeInput(
     {
+        hideDayPicker,
         id,
         jsDateFormat,
         precision,
@@ -21,12 +24,6 @@ function TimeInput(
         time,
     },
 ) {
-    // Redirect to TempTimeInput until it's not done.
-    const redirect = true;
-
-    const [hourInputState, setHourInputState] = React.useState(time.getHours());
-    const [minuteInputState, setMinuteInputState] = React.useState(time.getMinutes());
-
     const [isOpen, setIsOpen] = React.useState(false);
     const hourRef = React.useRef(null);
     const minuteRef = React.useRef(null);
@@ -43,6 +40,10 @@ function TimeInput(
     };
 
     const setMinute = (minute) => {
+        if (!minuteRegex.test(minute)) {
+            return;
+        }
+
         if (minute < 0 || minute > 59) {
             return;
         }
@@ -53,18 +54,18 @@ function TimeInput(
         setTime(newTime);
     };
 
-    const handleDateBlur = ({ target }) => {
-        const newDate = moment(target.value, jsDateFormat);
+    const handleDateChange = (newDate) => {
+        const momentDate = moment(newDate, jsDateFormat);
 
-        if (!newDate.isValid()) {
+        if (!momentDate.isValid()) {
             return;
         }
 
         // Manipulating with MomentJS
-        newDate.hour(time.getHours());
-        newDate.minute(time.getMinutes());
+        momentDate.hour(time.getHours());
+        momentDate.minute(time.getMinutes());
 
-        setTime(newDate.toDate());
+        setTime(momentDate.toDate());
     };
 
     const handleHourChange = ({ target }) => {
@@ -72,15 +73,7 @@ function TimeInput(
             return;
         }
 
-        setHourInputState(target.value);
-    };
-
-    const handleHourBlur = ({ target }) => {
-        if (!hourRegex.test(target.value)) {
-            return;
-        }
-
-        setHour(target.value);
+        setHour(Number(target.value));
     };
 
     const handleMinuteChange = ({ target }) => {
@@ -88,122 +81,112 @@ function TimeInput(
             return;
         }
 
-        setMinuteInputState(target.value);
+        setMinute(Number(target.value));
     };
 
-    const handleMinuteKeyDown = ({ target, key }) => {
-        if (target.value === '' && key === 'Backspace' && hourRef.current) {
-            hourRef.current.focus();
-        }
+    const hours = time ? time.getHours() : 0;
+    const minutes = time ? time.getMinutes() : 0;
+
+    const handleInputFocus = ({ target }) => {
+        setIsOpen(true);
+        target.select();
     };
-
-    const handleMinuteBlur = ({ target }) => {
-        if (!minuteRegex.test(target.value)) {
-            return;
-        }
-
-        setMinute(target.value);
-    };
-
-    if (redirect) {
-        return (
-            <React.Fragment>
-                {showDate && (
-                    <input
-                        className={style.tempTimeInput}
-                        onBlur={handleDateBlur}
-                        defaultValue={moment(time)
-                            .format(jsDateFormat)}
-                    />
-                )}
-                <input
-                    className={style.tempTimeInput}
-                    onBlur={handleHourBlur}
-                    onChange={handleHourChange}
-                    value={hourInputState}
-                />
-                <span>:</span>
-                <input
-                    className={style.tempTimeInput}
-                    onBlur={handleMinuteBlur}
-                    onChange={handleMinuteChange}
-                    value={minuteInputState}
-                />
-            </React.Fragment>
-        );
-    }
 
     return (
-        <AdvancedPopper
-            basic={(
-                <div onClick={() => setIsOpen(true)} role="presentation">
-                    <input
-                        ref={hourRef}
-                        value={time.getHours()}
-                        className={style.hourInput}
-                        onChange={handleHourChange}
-                    />
-                    <span>:</span>
-                    <input
-                        ref={minuteRef}
-                        className={style.minuteInput}
-                        onChange={handleMinuteChange}
-                        onKeyDown={handleMinuteKeyDown}
-                        value={time.getMinutes()}
-                    />
-                </div>
+        <React.Fragment>
+            {showDate && (
+                <DateInput
+                    hideDayPicker={hideDayPicker}
+                    noInputContainer
+                    setDate={handleDateChange}
+                    value={time}
+                />
             )}
-            className={style.timeInput}
-            isOpen={isOpen}
-            setIsOpen={setIsOpen}
-        >
-            <ul className={style.hours}>
-                {[...Array(12)
-                    .keys()]
-                    .map(hour => (
-                        <TimeInputUnit
-                            key={`time-input-${id}-hour-${hour}`}
-                            className={style.hour}
-                            selected={time.getHours()}
-                            onClick={setHour}
-                        >
-                            {hour}
-                        </TimeInputUnit>
-                    ))}
-            </ul>
-            <ul className={style.hours}>
-                {[...Array(12)
-                    .keys()]
-                    .map(hour => hour + 12)
-                    .map(hour => (
-                        <TimeInputUnit
-                            key={`time-input-${id}-hour-${hour}`}
-                            className={style.hour}
-                            selected={time.getHours()}
-                            onClick={setHour}
-                        >
-                            {hour}
-                        </TimeInputUnit>
-                    ))}
-            </ul>
-            {precision < 60 && 60 % precision === 0 && (
-                <ul className={classNames(style.minutes, style[`precision-${precision}`])}>
-                    {[...Array(60 / precision)
+            <AdvancedPopper
+                basic={(
+                    <div
+                        onClick={() => setIsOpen(true)}
+                        role="presentation"
+                        className={style.container}
+                    >
+                        <input
+                            className={style.hourInput}
+                            ref={hourRef}
+                            max={23}
+                            min={0}
+                            onChange={handleHourChange}
+                            onFocus={handleInputFocus}
+                            type="number"
+                            value={formatTimeUnit(hours)}
+                        />
+                        <span>:</span>
+                        <input
+                            className={style.minuteInput}
+                            ref={minuteRef}
+                            max={59}
+                            min={0}
+                            onChange={handleMinuteChange}
+                            onFocus={handleInputFocus}
+                            step={precision}
+                            type="number"
+                            value={formatTimeUnit(minutes)}
+                        />
+                    </div>
+                )}
+                className={style.timeInput}
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+                withInput
+            >
+                <ul className={style.hours}>
+                    {[...Array(12)
                         .keys()]
-                        .map(minute => minute * precision)
-                        .map(minute => (
+                        .map(hour => (
                             <TimeInputUnit
-                                key={`time-input-${id}-minute-${minute}`}
-                                className={style.minute}
-                                selected={time.getMinutes()}
-                                onClick={setMinute}
+                                key={`time-input-${id}-hour-${hour}`}
+                                className={style.hour}
+                                selected={hours}
+                                onClick={setHour}
                             >
-                                {minute}
+                                {hour}
                             </TimeInputUnit>
                         ))}
                 </ul>
-            )}
-        </AdvancedPopper>
+                <ul className={style.hours}>
+                    {[...Array(12)
+                        .keys()]
+                        .map(hour => hour + 12)
+                        .map(hour => (
+                            <TimeInputUnit
+                                key={`time-input-${id}-hour-${hour}`}
+                                className={style.hour}
+                                selected={hours}
+                                onClick={setHour}
+                            >
+                                {hour}
+                            </TimeInputUnit>
+                        ))}
+                </ul>
+                {precision < 60 && 60 % precision === 0 && (
+                    <ul className={classNames(style.minutes, style[`precision-${precision}`])}>
+                        {[...Array(60 / precision)
+                            .keys()]
+                            .map(minute => minute * precision)
+                            .map(minute => (
+                                <TimeInputUnit
+                                    key={`time-input-${id}-minute-${minute}`}
+                                    className={style.minute}
+                                    selected={minutes}
+                                    precision={precision}
+                                    onClick={setMinute}
+                                >
+                                    {minute}
+                                </TimeInputUnit>
+                            ))}
+                    </ul>
+                )}
+            </AdvancedPopper>
+        </React.Fragment>
     );
 }
 
@@ -211,14 +194,17 @@ TimeInput.propTypes = {
     id: PropTypes.string.isRequired,
     jsDateFormat: PropTypes.string.isRequired,
     setTime: PropTypes.func.isRequired,
-    time: PropTypes.instanceOf(Date).isRequired,
+    hideDayPicker: PropTypes.bool,
     precision: PropTypes.oneOf([1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60]),
     showDate: PropTypes.bool,
+    time: PropTypes.instanceOf(Date),
 };
 
 TimeInput.defaultProps = {
+    hideDayPicker: false,
     precision: 5,
     showDate: false,
+    time: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({

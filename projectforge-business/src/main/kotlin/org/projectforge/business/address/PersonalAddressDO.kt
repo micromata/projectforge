@@ -26,6 +26,7 @@ package org.projectforge.business.address
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_BY_OWNER
 import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_BY_OWNER_AND_ADDRESS_ID
+import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_BY_OWNER_AND_ADDRESS_UID
 import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_FAVORITE_ADDRESS_IDS_BY_OWNER
 import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_JOINED_BY_OWNER
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
@@ -47,11 +48,13 @@ import javax.persistence.*
             Index(name = "idx_fk_t_personal_address_tenant_id", columnList = "tenant_id")])
 @NamedQueries(
         NamedQuery(name = FIND_FAVORITE_ADDRESS_IDS_BY_OWNER,
-                query = "select pa.address.id from PersonalAddressDO pa where pa.owner.id = :ownerId and pa.favoriteCard = true"),
+                query = "select pa.address.id from PersonalAddressDO pa where pa.owner.id=:ownerId and pa.favoriteCard=true and deleted=false and pa.address.deleted=false"),
         NamedQuery(name = FIND_BY_OWNER,
                 query = "from PersonalAddressDO pa where pa.owner.id = :ownerId"),
         NamedQuery(name = FIND_BY_OWNER_AND_ADDRESS_ID,
                 query = "from PersonalAddressDO where owner.id = :ownerId and address.id = :addressId"),
+        NamedQuery(name = FIND_BY_OWNER_AND_ADDRESS_UID,
+                query = "from PersonalAddressDO p where owner.id = :ownerId and address.uid = :addressUid"),
         NamedQuery(name = FIND_JOINED_BY_OWNER,
                 query = "from PersonalAddressDO p join fetch p.address where p.owner.id = :ownerId and p.address.deleted=false order by p.address.name, p.address.firstName"))
 class PersonalAddressDO : AbstractBaseDO<Int>() {
@@ -71,21 +74,6 @@ class PersonalAddressDO : AbstractBaseDO<Int>() {
     @get:Column(nullable = false, name = "favorite_card")
     var isFavoriteCard: Boolean = false
 
-    @get:Column(name = "business_phone", nullable = false)
-    var isFavoriteBusinessPhone: Boolean = false
-
-    @get:Column(name = "private_phone", nullable = false)
-    var isFavoritePrivatePhone: Boolean = false
-
-    @get:Column(name = "mobile_phone", nullable = false)
-    var isFavoriteMobilePhone: Boolean = false
-
-    @get:Column(name = "private_mobile_phone", nullable = false)
-    var isFavoritePrivateMobilePhone: Boolean = false
-
-    @get:Column(nullable = false, name = "fax")
-    var isFavoriteFax: Boolean = false
-
     /**
      * Not used as object due to performance reasons.
      */
@@ -98,7 +86,7 @@ class PersonalAddressDO : AbstractBaseDO<Int>() {
      */
     val isFavorite: Boolean
         @Transient
-        get() = (isFavoriteCard || isFavoriteBusinessPhone || isFavoriteFax || isFavoriteMobilePhone || isFavoritePrivatePhone)
+        get() = isFavoriteCard
 
     val ownerId: Int?
         @Transient
@@ -126,6 +114,7 @@ class PersonalAddressDO : AbstractBaseDO<Int>() {
          */
         internal const val FIND_BY_OWNER = "PersonalAddressDO_FindByOwner"
         internal const val FIND_BY_OWNER_AND_ADDRESS_ID = "PersonalAddressDO_FindByOwnerAndAddressId"
+        internal const val FIND_BY_OWNER_AND_ADDRESS_UID = "PersonalAddressDO_FindByOwnerAndAddressUid"
         internal const val FIND_JOINED_BY_OWNER = "PersonalAddressDO_FindJoinedByOwnerAndAddressId"
     }
 }

@@ -131,23 +131,6 @@ class AddressServicesRest() {
                 .body(resource)
     }
 
-    @GetMapping("exportFavoritePhoneList")
-    fun exportFavoritePhoneList(): ResponseEntity<Any> {
-        log.info("Exporting personal phone list as txt file.")
-        val list = addressDao.favoritePhoneEntries
-        if (CollectionUtils.isEmpty(list) == true) {
-            return ResponseEntity(ResponseData("address.book.hasNoPhoneNumbers", messageType = MessageType.TOAST, color = UIColor.WARNING), HttpStatus.NOT_FOUND)
-        }
-        val filename = ("ProjectForge-PersonalPhoneList_" + DateHelper.getDateAsFilenameSuffix(Date())
-                + ".txt")
-        val writer = StringWriter()
-        addressDao.exportFavoritePhoneList(writer, list)
-        return ResponseEntity.ok()
-                .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
-                .body(writer.toString())
-    }
-
     @GetMapping("downloadAppleScript")
     fun downloadAppleScript(): ResponseEntity<Any> {
         log.info("Downloading AppleScript.")

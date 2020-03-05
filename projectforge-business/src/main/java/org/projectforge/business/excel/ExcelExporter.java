@@ -34,7 +34,7 @@ import java.util.List;
 
 public class ExcelExporter
 {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportWorkbook.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExcelExporter.class);
 
   private final ExportWorkbook workBook;
 

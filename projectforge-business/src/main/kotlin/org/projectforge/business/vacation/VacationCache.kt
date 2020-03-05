@@ -36,7 +36,7 @@ import javax.persistence.EntityManager
 import javax.persistence.LockModeType
 
 /**
- * The kost2 entries will be cached.
+ * The vacation entries will be cached.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */

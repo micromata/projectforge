@@ -29,6 +29,10 @@ enum class MenuItemTargetType {
      */
     REDIRECT,
     /**
+     * The client should open a model with the given url.
+     */
+    MODAL,
+    /**
      * The client will receive a download file after calling the rest service with the given url.
      */
     DOWNLOAD,

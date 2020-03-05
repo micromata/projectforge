@@ -20,7 +20,6 @@ function FilterListEntry(
         }
 
         onFilterAdd(id);
-
         afterSelect();
     };
 

@@ -91,53 +91,9 @@
       <timezone>-1</timezone>
     </developer>
     <developer>
-      <id>junterstein</id>
-      <name>Johannes Unterstein</name>
-      <email>j.unterstein at micromata.de</email>
-      <organization>Micromata GmbH</organization>
-      <organizationUrl>http://www.micromata.com</organizationUrl>
-      <roles>
-        <role>developer</role>
-      </roles>
-      <timezone>-1</timezone>
-    </developer>
-    <developer>
-      <id>mlauterbach</id>
-      <name>Maximilian Lauterbach</name>
-      <email>m.lauterbach at micromata.de</email>
-      <organization>Micromata GmbH</organization>
-      <organizationUrl>http://www.micromata.com</organizationUrl>
-      <roles>
-        <role>developer</role>
-      </roles>
-      <timezone>-1</timezone>
-    </developer>
-    <developer>
       <id>kommer</id>
       <name>Roger Kommer</name>
       <email>r.kommer.extern at micromata.de</email>
-      <organization>Micromata GmbH</organization>
-      <organizationUrl>http://www.micromata.com</organizationUrl>
-      <roles>
-        <role>developer</role>
-      </roles>
-      <timezone>-1</timezone>
-    </developer>
-    <developer>
-      <id>fblumenstein</id>
-      <name>Florian Blumenstein</name>
-      <email>f.blumenstein at micromata.de</email>
-      <organization>Micromata GmbH</organization>
-      <organizationUrl>http://www.micromata.com</organizationUrl>
-      <roles>
-        <role>developer</role>
-      </roles>
-      <timezone>-1</timezone>
-    </developer>
-    <developer>
-      <id>mhesse</id>
-      <name>Marcel Hesse</name>
-      <email>m.hesse at micromata.de</email>
       <organization>Micromata GmbH</organization>
       <organizationUrl>http://www.micromata.com</organizationUrl>
       <roles>
@@ -217,7 +173,7 @@
     <module>projectforge-caldav</module>
   </modules>
 
-  <profiles>
+  <!--profiles>
     <profile>
       <id>docker</id>
       <modules>
@@ -234,7 +190,7 @@
       </modules>
     </profile>
 
-  </profiles>
+  </profiles-->
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -264,8 +220,9 @@
     <commons-collections.version>4.4</commons-collections.version>
     <aspectjtools.version>1.8.14</aspectjtools.version>
     <flyway.version>6.1.4</flyway.version>
-    <groovy.version>2.4.17</groovy.version>
+    <groovy.version>3.0.1</groovy.version>
     <kotlin.version>1.3.50</kotlin.version>
+    <kotlin-logging.version>1.7.8</kotlin-logging.version>
     <poi.version>4.1.1</poi.version>
     <spring.version>5.2.1.RELEASE</spring.version> <!-- Should match spring boot's parent pom -->
     <spring.boot.version>2.2.0.RELEASE</spring.boot.version><!-- Don't forget to modify also at top in parent. -->
@@ -292,7 +249,7 @@
     <xmlgraphics-commons.version>2.3</xmlgraphics-commons.version>
     <xmlgraphics-batik-codec.version>1.11</xmlgraphics-batik-codec.version>
     <!-- HIBERNATE5 -->
-    <postgresql.version>42.2.8</postgresql.version>
+    <postgresql.version>42.2.10</postgresql.version>
     <hsqldb.version>2.5.0</hsqldb.version>
     <jackson.version>2.9.10</jackson.version>
     <powermock.version>2.0.4</powermock.version>
@@ -311,6 +268,11 @@
       <groupId>org.slf4j</groupId>
       <artifactId>log4j-over-slf4j</artifactId>
       <version>${jlf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.microutils</groupId>
+      <artifactId>kotlin-logging</artifactId>
+      <version>${kotlin-logging.version}</version>
     </dependency>
 
     <!-- TEST -->
@@ -394,6 +356,10 @@
         <exclusion>
           <groupId>junit</groupId>
           <artifactId>junit</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.codehaus.groovy</groupId>
+          <artifactId>groovy-all</artifactId>
         </exclusion>
       </exclusions>
       <scope>test</scope>

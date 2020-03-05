@@ -110,12 +110,7 @@ public enum ConfigurationParam implements IConfigurationParam
   /**
    * Password Flag Check - configuration, that passwords will be checked that passwords have to change each time a new one is entered.
    */
-  PASSWORD_FLAG_CHECK_CHANGE("password.flag.checkChange", ConfigurationType.BOOLEAN, true, true),
-
-  /**
-   * Will enable / disable snow effect.
-   */
-  SNOW_EFFECT_ENABLED("snoweffect.enabled", ConfigurationType.BOOLEAN, true, false);
+  PASSWORD_FLAG_CHECK_CHANGE("password.flag.checkChange", ConfigurationType.BOOLEAN, true, true);
 
   /**
    * Key.

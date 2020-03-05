@@ -37,3 +37,5 @@ test-output
 #Node
 /projectforge-webapp/node_modules
 /ProjectForge
+projectforge-caldav/src/main/resources/milton.license.properties
+projectforge-caldav/src/main/resources/milton.license.sig

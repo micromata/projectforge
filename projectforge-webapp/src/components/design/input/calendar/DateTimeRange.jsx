@@ -1,24 +1,27 @@
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import moment from 'moment';
+import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import React from 'react';
 import DayPicker from 'react-day-picker';
+import MomentLocaleUtils from 'react-day-picker/moment';
 import { connect } from 'react-redux';
 import { Col, Row } from '../..';
+import { getTranslation } from '../../../../utilities/layout';
 import style from './CalendarInput.module.scss';
-import FormattedTimeRange from './FormattedTimeRange';
+import TimeRange from './TimeRange';
 
 function DateTimeRange(
     {
         firstDayOfWeek,
         from,
         id,
+        locale,
         onChange,
         selectors,
         setFrom,
         setTo,
+        translations,
         to,
         ...props
     },
@@ -31,11 +34,20 @@ function DateTimeRange(
         const newFrom = new Date();
 
         switch (interval) {
-            case 'LAST_30_MINUTES':
+            case 'LAST_MINUTE':
+                newFrom.setMinutes(newFrom.getMinutes() - 1);
+                break;
+            case 'LAST_MINUTES_10':
+                newFrom.setMinutes(newFrom.getMinutes() - 10);
+                break;
+            case 'LAST_MINUTES_30':
                 newFrom.setMinutes(newFrom.getMinutes() - 30);
                 break;
             case 'LAST_HOUR':
                 newFrom.setHours(newFrom.getHours() - 1);
+                break;
+            case 'LAST_HOURS_4':
+                newFrom.setHours(newFrom.getHours() - 4);
                 break;
             case 'TODAY':
                 newFrom.setHours(0);
@@ -46,23 +58,17 @@ function DateTimeRange(
                 newFrom.setMinutes(0);
                 newFrom.setDate(newFrom.getDate() - 1);
                 break;
-            case 'LAST_WEEK':
+            case 'LAST_DAYS_3':
+                newFrom.setDate(newFrom.getDate() - 3);
+                break;
+            case 'LAST_DAYS_7':
                 newFrom.setDate(newFrom.getDate() - 7);
                 break;
-            case 'LAST_2_WEEKS':
-                newFrom.setDate(newFrom.getDate() - 14);
+            case 'LAST_DAYS_30':
+                newFrom.setDate(newFrom.getDate() - 30);
                 break;
-            case 'LAST_MONTH':
-                newFrom.setDate(newFrom.getDate() - 31);
-                break;
-            case 'LAST_3_MONTHS':
-                newFrom.setDate(newFrom.getDate() - 92);
-                break;
-            case 'YEAR':
-                newFrom.setMinutes(0);
-                newFrom.setHours(0);
-                newFrom.setDate(1);
-                newFrom.setMonth(0);
+            case 'LAST_DAYS_90':
+                newFrom.setDate(newFrom.getDate() - 90);
                 break;
             default:
         }
@@ -127,7 +133,9 @@ function DateTimeRange(
         setQuickSelector();
 
         onChange({
-            from: firstDayOfMonth,
+            from: moment(firstDayOfMonth)
+                .hours(0)
+                .toDate(),
             to: moment(firstDayOfMonth)
                 .endOf('month')
                 .toDate(),
@@ -136,40 +144,48 @@ function DateTimeRange(
 
     const quickSelectors = [
         {
-            label: '[Letzte 30 Minuten]',
-            id: 'LAST_30_MINUTES',
+            label: 'search.lastMinute',
+            id: 'LAST_MINUTE',
         },
         {
-            label: '[Letzte Stunde]',
+            label: 'search.lastMinutes.10',
+            id: 'LAST_MINUTES_10',
+        },
+        {
+            label: 'search.lastMinutes.30',
+            id: 'LAST_MINUTES_30',
+        },
+        {
+            label: 'search.lastHour',
             id: 'LAST_HOUR',
         },
         {
-            label: '[Heute]',
+            label: 'search.lastHours.4',
+            id: 'LAST_HOURS_4',
+        },
+        {
+            label: 'calendar.today',
             id: 'TODAY',
         },
         {
-            label: '[Seit gestern]',
+            label: 'search.sinceYesterday',
             id: 'SINCE_YESTERDAY',
         },
         {
-            label: '[Letzte Woche]',
-            id: 'LAST_WEEK',
+            label: 'search.lastDays.3',
+            id: 'LAST_DAYS_3',
         },
         {
-            label: '[Letzte 2 Wochen]',
-            id: 'LAST_2_WEEKS',
+            label: 'search.lastDays.7',
+            id: 'LAST_DAYS_7',
         },
         {
-            label: '[Letzten Monat]',
-            id: 'LAST_MONTH',
+            label: 'search.lastDays.30',
+            id: 'LAST_DAYS_30',
         },
         {
-            label: '[Letzte 3 Monate]',
-            id: 'LAST_3_MONTHS',
-        },
-        {
-            label: '[Dieses Jahr]',
-            id: 'YEAR',
+            label: 'search.lastDays.90',
+            id: 'LAST_DAYS_90',
         },
     ];
 
@@ -188,7 +204,7 @@ function DateTimeRange(
                                 onClick={handleQuickSelectorClick(selector.id)}
                                 role="presentation"
                             >
-                                {selector.label}
+                                {getTranslation(selector.label, translations)}
                             </li>
                         ))}
                     </ul>
@@ -196,27 +212,27 @@ function DateTimeRange(
             )}
             <Col sm={9}>
                 <span className={style.label}>
-                    {!from && !to && '[Bitte wähle das Startdatum aus]'}
-                    {from && !to && '[Bitte wähle das Enddatum aus]'}
+                    {!from && !to && getTranslation('date.begin', translations)}
+                    {from && !to && getTranslation('date.end', translations)}
                     {from && to && (
-                        <FormattedTimeRange
+                        <TimeRange
                             from={from}
+                            hideDayPicker
                             id={`date-time-range-${id}`}
+                            label={getTranslation('date.begin', translations)}
+                            onDelete={() => onChange({})}
                             setFrom={setFrom}
                             setTo={setTo}
                             to={to}
-                        >
-                            {' '}
-                            <FontAwesomeIcon
-                                icon={faTimes}
-                                onClick={() => onChange({})}
-                            />
-                        </FormattedTimeRange>
+                            toLabel={getTranslation('date.end', translations)}
+                        />
                     )}
                 </span>
                 <DayPicker
                     className="range"
                     firstDayOfWeek={firstDayOfWeek}
+                    locale={locale}
+                    localeUtils={MomentLocaleUtils}
                     modifiers={{
                         start: from,
                         end: to,
@@ -247,6 +263,7 @@ DateTimeRange.propTypes = {
     setTo: PropTypes.func,
     selectors: PropTypes.arrayOf(PropTypes.string),
     timeNotation: PropTypes.string,
+    translations: PropTypes.shape({}),
     to: PropTypes.instanceOf(Date),
 };
 
@@ -258,6 +275,7 @@ DateTimeRange.defaultProps = {
     setTo: undefined,
     selectors: undefined,
     timeNotation: 'H24',
+    translations: {},
     to: undefined,
 };
 

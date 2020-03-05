@@ -120,6 +120,11 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     override fun transformForDB(dto: Timesheet): TimesheetDO {
         val timesheetDO = TimesheetDO()
         dto.copyTo(timesheetDO)
+        if (timesheetDO.kost2 != null && baseDao.getKost2List(timesheetDO).isNullOrEmpty()) {
+            // Work arround: if kost 2 was selected in client before new task without kost2 assignments was chosen,
+            // the former kost2 selection will be sent by the client.
+            timesheetDO.kost2 = null
+        }
         return timesheetDO
     }
 
@@ -353,7 +358,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
      * or iso date time including any time zone offset.
      * @see PFDateTimeUtils.parse for supported date formats.
      */
-    override fun onGetItemAndLayout(request: HttpServletRequest, dto: Timesheet, editLayoutData: EditLayoutData) {
+    override fun onGetItemAndLayout(request: HttpServletRequest, dto: Timesheet, formLayoutData: FormLayoutData) {
         val startTime = PFDateTimeUtils.parseAndCreateDateTime(request.getParameter("startDate"), numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS)
         if (startTime != null) {
             dto.startTime = startTime.withPrecision(DatePrecision.MINUTE_15).sqlTimestamp
@@ -362,7 +367,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         if (stopTime != null) {
             dto.stopTime = stopTime.withPrecision(DatePrecision.MINUTE_15).sqlTimestamp
         }
-        super.onGetItemAndLayout(request, dto, editLayoutData)
+        super.onGetItemAndLayout(request, dto, formLayoutData)
     }
 
     /**

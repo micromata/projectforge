@@ -1,3 +1,5 @@
+@import './src/assets/style/theming.scss';
+
 // Use :global(...) to force css-modules to not convert #searchFilter.
 :global(#searchString), :global(#magicFiltersSearch) {
   top: -2px;
@@ -61,6 +63,18 @@
           }
         }
       }
+    }
+  }
+
+  .syncButton {
+    position: absolute;
+    right: 1em;
+    bottom: .8em;
+    color: map_get($theme-colors, primary);
+    cursor: pointer;
+
+    &:hover {
+      color: darken(map_get($theme-colors, primary), 15%);
     }
   }
 

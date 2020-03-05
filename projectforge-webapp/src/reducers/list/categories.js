@@ -51,6 +51,8 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
             return {
                 ...state,
                 isFetching: false,
+                lastQueriedFilter: JSON.stringify(payload.response.filter || state.filter),
+                newlySwitched: false,
                 ...payload.response,
             };
         case LIST_FETCH_FAILURE:

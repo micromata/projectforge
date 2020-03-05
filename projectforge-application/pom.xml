@@ -47,6 +47,11 @@
             <artifactId>projectforge-webapp</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.projectforge</groupId>
+            <artifactId>projectforge-caldav</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- BuildIn PF 'Plugins' -->
         <dependency>

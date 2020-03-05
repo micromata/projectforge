@@ -37,13 +37,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 
 /**
- * 
  * @author Wolfgang Jung (W.Jung@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class Crypt
-{
+public class Crypt {
   private final static Logger log = LoggerFactory.getLogger(Crypt.class);
 
   private static final String CRYPTO_ALGORITHM = "AES/ECB/PKCS5Padding";
@@ -52,13 +49,29 @@ public class Crypt
 
   /**
    * Encrypts the given str with AES. The password is first converted using SHA-256.
-   * 
+   *
    * @param password
-   * @param str
+   * @param data
    * @return The base64 encoded result (url safe).
    */
-  public static String encrypt(final String password, final String data)
-  {
+  public static String encrypt(final String password, final String data) {
+    try {
+      return encrypt(password, data.getBytes("UTF-8"));
+    } catch (final Exception ex) {
+      log.error("Exception encountered while trying to encrypt with Algorithm 'AES' and the given password: "
+              + ex.getMessage(), ex);
+      return null;
+    }
+  }
+
+  /**
+   * Encrypts the given str with AES. The password is first converted using SHA-256.
+   *
+   * @param password
+   * @param data
+   * @return The base64 encoded result (url safe).
+   */
+  public static String encrypt(final String password, final byte[] data) {
     initialize();
     try {
       // AES is sometimes not part of Java, therefore use bouncy castle provider:
@@ -66,12 +79,12 @@ public class Crypt
       final byte[] keyValue = getPassword(password);
       final Key key = new SecretKeySpec(keyValue, "AES");
       cipher.init(Cipher.ENCRYPT_MODE, key);
-      final byte[] encVal = cipher.doFinal(data.getBytes("UTF-8"));
+      final byte[] encVal = cipher.doFinal(data);
       final String encryptedValue = Base64.encodeBase64URLSafeString(encVal);
       return encryptedValue;
     } catch (final Exception ex) {
       log.error("Exception encountered while trying to encrypt with Algorithm 'AES' and the given password: "
-          + ex.getMessage(), ex);
+              + ex.getMessage(), ex);
       return null;
     }
   }
@@ -81,8 +94,26 @@ public class Crypt
    * @param encryptedString
    * @return
    */
-  public static String decrypt(final String password, final String encryptedString)
-  {
+  public static String decrypt(final String password, final String encryptedString) {
+    try {
+      final byte[] bytes = decryptBytes(password, encryptedString);
+      if (bytes == null) {
+        return null;
+      }
+      return new String(bytes, "UTF-8");
+    } catch (final Exception ex) {
+      log.error("Exception encountered while trying to encrypt with Algorithm 'AES' and the given password: "
+              + ex.getMessage(), ex);
+      return null;
+    }
+  }
+
+  /**
+   * @param password
+   * @param encryptedString
+   * @return
+   */
+  public static byte[] decryptBytes(final String password, final String encryptedString) {
     initialize();
     try {
       final Cipher cipher = Cipher.getInstance(CRYPTO_ALGORITHM);
@@ -90,21 +121,18 @@ public class Crypt
       final Key key = new SecretKeySpec(keyValue, "AES");
       cipher.init(Cipher.DECRYPT_MODE, key);
       final byte[] decordedValue = Base64.decodeBase64(encryptedString);
-      final byte[] decValue = cipher.doFinal(decordedValue);
-      final String decryptedValue = new String(decValue, "UTF-8");
-      return decryptedValue;
+      return cipher.doFinal(decordedValue);
     } catch (BadPaddingException bpe) {
       log.warn(bpe.getMessage());
       return null;
     } catch (final Exception ex) {
       log.error("Exception encountered while trying to encrypt with Algorithm 'AES' and the given password: "
-          + ex.getMessage(), ex);
+              + ex.getMessage(), ex);
       return null;
     }
   }
 
-  private static byte[] getPassword(final String password)
-  {
+  private static byte[] getPassword(final String password) {
     try {
       final MessageDigest digester = MessageDigest.getInstance("MD5"); // 128 bit. 256 bit (SHA-256) doesn't work on Java versions without required security policy.
       digester.update(password.getBytes("UTF-8"));
@@ -119,8 +147,7 @@ public class Crypt
     }
   }
 
-  private static void initialize()
-  {
+  private static void initialize() {
     synchronized (log) {
       if (!initialized) {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
@@ -131,28 +158,24 @@ public class Crypt
 
   /**
    * Encrypts the given String via SHA crypt algorithm.
-   * 
+   *
    * @param s
    * @return
    */
-  public static String digest(final String s)
-  {
+  public static String digest(final String s) {
     return encode(s, "SHA");
   }
 
-  public static String digest(final String s, final String alg)
-  {
+  public static String digest(final String s, final String alg) {
     return encode(s, alg);
   }
 
-  public static boolean check(final String pass, final String encoded)
-  {
+  public static boolean check(final String pass, final String encoded) {
     final String alg = encoded.substring(0, encoded.indexOf('{'));
     return encoded.equals(encode(pass, alg));
   }
 
-  private static String encode(final String s, final String alg)
-  {
+  private static String encode(final String s, final String alg) {
     try {
       final MessageDigest md = MessageDigest.getInstance(alg);
       md.reset();
@@ -162,8 +185,8 @@ public class Crypt
       String ret = "";
 
       for (int val : d) {
-        final char[] hex = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
-            'F' };
+        final char[] hex = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
+                'F'};
         if (val < 0) {
           val = 256 + val;
         }

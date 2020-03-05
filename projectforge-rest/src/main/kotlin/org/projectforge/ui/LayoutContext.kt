@@ -29,7 +29,7 @@ data class LayoutContext(
          */
         val dataObjectClazz: Class<*>?,
         var idPrefix: String? = null) {
-    private val log = org.slf4j.LoggerFactory.getLogger(ElementsRegistry::class.java)
+    private val log = org.slf4j.LoggerFactory.getLogger(LayoutContext::class.java)
 
     private val listElements = mutableMapOf<String, ElementInfo>()
 

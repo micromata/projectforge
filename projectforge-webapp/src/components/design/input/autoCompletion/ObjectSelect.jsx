@@ -9,6 +9,7 @@ import ObjectAutoCompletion from './ObjectAutoCompletion';
 
 function ObjectSelect(
     {
+        dispatch,
         id,
         label,
         onSelect,
@@ -76,6 +77,7 @@ function ObjectSelect(
 }
 
 ObjectSelect.propTypes = {
+    dispatch: PropTypes.func.isRequired,
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     onSelect: PropTypes.func.isRequired,

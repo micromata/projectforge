@@ -40,7 +40,7 @@ open class LantJdbcSettingsDialog(
         dialogSize: TerminalSize,
         val context: LantGUIContext
 ) : DialogWindow(Texts.JDBC_TITLE) {
-    private val log = org.slf4j.LoggerFactory.getLogger(LantFinalizeScreen::class.java)
+    private val log = org.slf4j.LoggerFactory.getLogger(LantJdbcSettingsDialog::class.java)
 
     private var jdbcUrlTextBox: TextBox
     private var jdbcUserTextBox: TextBox

@@ -157,7 +157,9 @@ function TimesheetTemplatesAndRecents() {
                                                     <TimesheetRecentEntry
                                                         key={hashKey}
                                                         callback={({ variables: newVariables }) => {
-                                                            setVariables(newVariables.task);
+                                                            setVariables({
+                                                                task: newVariables.task,
+                                                            });
                                                             setData(newVariables.data);
                                                             setRecentsVisible(false);
                                                         }}

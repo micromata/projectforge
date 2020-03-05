@@ -39,7 +39,7 @@ public class AddressbookRight extends BaseUserGroupRight<AddressbookDO> {
             UserRightValue.TRUE);
   }
 
-  private boolean checkGlobal(final AddressbookDO obj) {
+  public boolean checkGlobal(final AddressbookDO obj) {
     return obj != null && obj.getId() != null && AddressbookDao.GLOBAL_ADDRESSBOOK_ID == obj.getId();
   }
 
@@ -52,19 +52,5 @@ public class AddressbookRight extends BaseUserGroupRight<AddressbookDO> {
     return super.hasSelectAccess(user, obj)
             || checkGlobal(obj)
             || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ORGA_TEAM);
-  }
-
-  /**
-   * Owners and administrators are able to insert new addressbooks.
-   *
-   * @see UserRightAccessCheck#hasInsertAccess(PFUserDO,
-   * Object)
-   */
-  @Override
-  public boolean hasInsertAccess(final PFUserDO user, final AddressbookDO obj) {
-    return super.hasInsertAccess(user, obj)
-            || checkGlobal(obj)
-            || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.ORGA_TEAM)
-            || hasFullAccess(obj, user.getId());
   }
 }
