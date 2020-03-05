@@ -66,7 +66,7 @@ class UISelect<T>(val id: String,
     class Favorite<T>(val id: T, val name: String)
 
     @Transient
-    private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
+    private val log = org.slf4j.LoggerFactory.getLogger(UISelect::class.java)
 
 
     fun buildValues(i18nEnum: Class<out Enum<*>>): UISelect<T> {

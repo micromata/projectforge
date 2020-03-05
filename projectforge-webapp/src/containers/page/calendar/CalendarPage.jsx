@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import Select from 'react-select';
-import { Card, CardBody, Col, Row } from 'reactstrap';
+import { Card, CardBody, Col, Container, Row } from '../../../components/design';
 import EditableMultiValueLabel from '../../../components/design/EditableMultiValueLabel';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getTranslation } from '../../../utilities/layout';
@@ -190,93 +190,97 @@ class CalendarPage extends React.Component {
         }));
 
         return (
-            <LoadingContainer loading={loading}>
-                <CalendarContext.Provider
-                    value={{
-                        ...calendarContextDefaultValues,
-                        saveUpdateResponseInState: this.saveUpdateResponseInState,
-                    }}
-                >
-                    <Card>
-                        <CardBody>
-                            <form>
-                                <Row>
-                                    <Col sm="11">
-                                        <Select
-                                            closeMenuOnSelect={false}
-                                            components={{
-                                                MultiValueLabel: EditableMultiValueLabel,
-                                            }}
-                                            getOptionLabel={option => (option.title)}
-                                            getOptionValue={option => (option.id)}
-                                            isClearable
-                                            isMulti
-                                            onChange={this.onChange}
-                                            options={options}
-                                            placeholder={translations['select.placeholder']}
-                                            setMultiValue={this.handleMultiValueChange}
-                                            styles={customStyles}
-                                            values={colors}
-                                            value={activeCalendars.map(option => ({
-                                                ...option,
-                                                filterType: 'COLOR_PICKER',
-                                                label: option.title,
-                                            }))}
-                                            // loadOptions={loadOptions}
-                                            // defaultOptions={defaultOptions}
-                                        />
-                                    </Col>
-                                    <Col sm="1" className="d-flex align-items-center">
-                                        <FavoritesPanel
-                                            onFavoriteCreate={this.onFavoriteCreate}
-                                            onFavoriteDelete={this.onFavoriteDelete}
-                                            onFavoriteRename={this.onFavoriteRename}
-                                            onFavoriteSelect={this.onFavoriteSelect}
-                                            onFavoriteUpdate={this.onFavoriteUpdate}
-                                            favorites={filterFavorites}
-                                            translations={translations}
-                                            currentFavoriteId={filter.id}
-                                            isModified={isFilterModified}
-                                            closeOnSelect={false}
-                                            htmlId="calendarFavoritesPopover"
-                                        />
-                                        <CalendarFilterSettings
-                                            listOfDefaultCalendars={listOfDefaultCalendars}
-                                            defaultCalendarId={filter.defaultCalendarId}
-                                            otherTimesheetUsersEnabled={
-                                                filter.otherTimesheetUsersEnabled
-                                            }
-                                            timesheetUser={timesheetUser}
-                                            gridSize={filter.gridSize}
-                                            translations={translations}
-                                            onTimesheetUserChange={this.onTimesheetUserChange}
-                                            onDefaultCalendarChange={this.onDefaultCalendarChange}
-                                            onGridSizeChange={this.onGridSizeChange}
-                                            onVacationGroupsChange={this.onVacationGroupsChange}
-                                            onVacationUsersChange={this.onVacationUsersChange}
-                                            vacationGroups={vacationGroups}
-                                            vacationUsers={vacationUsers}
-                                        />
-                                    </Col>
-                                </Row>
-                            </form>
-                        </CardBody>
-                    </Card>
-                    <CalendarPanel
-                        defaultDate={date}
-                        defaultView={view}
-                        gridSize={filter.gridSize}
-                        activeCalendars={activeCalendars}
-                        timesheetUserId={timesheetUser ? timesheetUser.id : undefined}
-                        topHeight="225px"
-                        translations={translations}
-                        match={match}
-                        location={location}
-                        vacationGroups={vacationGroups}
-                        vacationUsers={vacationUsers}
-                    />
-                </CalendarContext.Provider>
-            </LoadingContainer>
+            <Container fluid>
+                <LoadingContainer loading={loading}>
+                    <CalendarContext.Provider
+                        value={{
+                            ...calendarContextDefaultValues,
+                            saveUpdateResponseInState: this.saveUpdateResponseInState,
+                        }}
+                    >
+                        <Card>
+                            <CardBody>
+                                <form>
+                                    <Row>
+                                        <Col sm="11">
+                                            <Select
+                                                closeMenuOnSelect={false}
+                                                components={{
+                                                    MultiValueLabel: EditableMultiValueLabel,
+                                                }}
+                                                getOptionLabel={option => (option.title)}
+                                                getOptionValue={option => (option.id)}
+                                                isClearable
+                                                isMulti
+                                                onChange={this.onChange}
+                                                options={options}
+                                                placeholder={translations['select.placeholder']}
+                                                setMultiValue={this.handleMultiValueChange}
+                                                styles={customStyles}
+                                                values={colors}
+                                                value={activeCalendars.map(option => ({
+                                                    ...option,
+                                                    filterType: 'COLOR_PICKER',
+                                                    label: option.title,
+                                                }))}
+                                                // loadOptions={loadOptions}
+                                                // defaultOptions={defaultOptions}
+                                            />
+                                        </Col>
+                                        <Col sm="1" className="d-flex align-items-center">
+                                            <FavoritesPanel
+                                                onFavoriteCreate={this.onFavoriteCreate}
+                                                onFavoriteDelete={this.onFavoriteDelete}
+                                                onFavoriteRename={this.onFavoriteRename}
+                                                onFavoriteSelect={this.onFavoriteSelect}
+                                                onFavoriteUpdate={this.onFavoriteUpdate}
+                                                favorites={filterFavorites}
+                                                translations={translations}
+                                                currentFavoriteId={filter.id}
+                                                isModified={isFilterModified}
+                                                closeOnSelect={false}
+                                                htmlId="calendarFavoritesPopover"
+                                            />
+                                            <CalendarFilterSettings
+                                                listOfDefaultCalendars={listOfDefaultCalendars}
+                                                defaultCalendarId={filter.defaultCalendarId}
+                                                otherTimesheetUsersEnabled={
+                                                    filter.otherTimesheetUsersEnabled
+                                                }
+                                                timesheetUser={timesheetUser}
+                                                gridSize={filter.gridSize}
+                                                translations={translations}
+                                                onTimesheetUserChange={this.onTimesheetUserChange}
+                                                onDefaultCalendarChange={
+                                                    this.onDefaultCalendarChange
+                                                }
+                                                onGridSizeChange={this.onGridSizeChange}
+                                                onVacationGroupsChange={this.onVacationGroupsChange}
+                                                onVacationUsersChange={this.onVacationUsersChange}
+                                                vacationGroups={vacationGroups}
+                                                vacationUsers={vacationUsers}
+                                            />
+                                        </Col>
+                                    </Row>
+                                </form>
+                            </CardBody>
+                        </Card>
+                        <CalendarPanel
+                            defaultDate={date}
+                            defaultView={view}
+                            gridSize={filter.gridSize}
+                            activeCalendars={activeCalendars}
+                            timesheetUserId={timesheetUser ? timesheetUser.id : undefined}
+                            topHeight="225px"
+                            translations={translations}
+                            match={match}
+                            location={location}
+                            vacationGroups={vacationGroups}
+                            vacationUsers={vacationUsers}
+                        />
+                    </CalendarContext.Provider>
+                </LoadingContainer>
+            </Container>
         );
     }
 }

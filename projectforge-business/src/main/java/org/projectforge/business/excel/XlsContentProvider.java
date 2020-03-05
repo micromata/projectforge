@@ -28,6 +28,7 @@ import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 
 import java.util.*;
 
@@ -225,6 +226,10 @@ public class XlsContentProvider implements ContentProvider
         poiCell.setCellValue((Calendar) customizedValue);
       } else if (customizedValue instanceof Date) {
         poiCell.setCellValue((Date) customizedValue);
+      } else if (customizedValue instanceof PFDateTime) {
+        poiCell.setCellValue(((PFDateTime) customizedValue).getCalendar());
+      } else if (customizedValue instanceof PFDay) {
+        poiCell.setCellValue(((PFDay) customizedValue).getLocalDate());
       } else if (customizedValue instanceof String) {
         poiCell.setCellValue((String) customizedValue);
       } else {
@@ -236,6 +241,10 @@ public class XlsContentProvider implements ContentProvider
       poiCell.setCellValue((Date) value);
     } else if (value instanceof Calendar) {
       poiCell.setCellValue((Calendar) value);
+    } else if (customizedValue instanceof PFDateTime) {
+      poiCell.setCellValue(((PFDateTime) customizedValue).getCalendar());
+    } else if (customizedValue instanceof PFDay) {
+      poiCell.setCellValue(((PFDay) customizedValue).getLocalDate());
     } else if (value instanceof Boolean) {
       poiCell.setCellValue((Boolean) value);
     } else if (value instanceof Number) {

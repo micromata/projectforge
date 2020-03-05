@@ -41,7 +41,9 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.BaseDTO
+import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.ServerData
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -102,12 +104,6 @@ abstract class AbstractPagesRest<
     class DisplayObject(val id: Any, override val displayName: String?) : DisplayNameCapable
 
     /**
-     * Contains the layout data returned for the frontend regarding edit pages.
-     * @param variables Additional variables / data provided for the edit page.
-     */
-    class EditLayoutData(val data: Any?, val ui: UILayout?, var inOutVariables: Map<String, Any>? = null, var variables: Map<String, Any>? = null)
-
-    /**
      * Contains the data, layout and filter settings served by [getInitialList].
      */
     class InitialListData(
@@ -154,6 +150,9 @@ abstract class AbstractPagesRest<
     private lateinit var historyService: HistoryService
 
     @Autowired
+    private lateinit var sessionCsrfCache: SessionCsrfCache
+
+    @Autowired
     private lateinit var userPrefService: UserPrefService
 
     /**
@@ -189,7 +188,15 @@ abstract class AbstractPagesRest<
                     url = getRestPath("reindexFull"),
                     type = MenuItemTargetType.RESTCALL))
         layout.add(gearMenu)
-        layout.addTranslations("reset", "datatable.no-records-found")
+        layout.addTranslations("reset", "datatable.no-records-found", "date.begin", "date.end",
+                "search.lastMinute", "search.lastHour", "calendar.today", "search.sinceYesterday")
+        layout.addTranslation("search.lastMinutes.10", translateMsg("search.lastMinutes", 10))
+        layout.addTranslation("search.lastMinutes.30", translateMsg("search.lastMinutes", 30))
+        layout.addTranslation("search.lastHours.4", translateMsg("search.lastHours", 4))
+        layout.addTranslation("search.lastDays.3", translateMsg("search.lastDays", 3))
+        layout.addTranslation("search.lastDays.7", translateMsg("search.lastDays", 7))
+        layout.addTranslation("search.lastDays.30", translateMsg("search.lastDays", 30))
+        layout.addTranslation("search.lastDays.90", translateMsg("search.lastDays", 90))
         return layout
     }
 
@@ -270,8 +277,14 @@ abstract class AbstractPagesRest<
         return validationErrors
     }
 
-    fun validate(dbObj: O, dto: DTO): List<ValidationError>? {
+    fun validate(request: HttpServletRequest, dbObj: O, postData: PostData<DTO>): List<ValidationError>? {
         val validationErrors = validate(dbObj)
+        if (!sessionCsrfCache.checkToken(request, postData.serverData?.csrfToken)) {
+            log.warn("Check of CSRF token failed, a validation error will be shown. Upsert of data declined: ${postData.data}")
+            validationErrors.add(ValidationError.create("errorpage.csrfError"))
+            return validationErrors
+        }
+        val dto = postData.data
         validate(validationErrors, dto)
         if (validationErrors.isEmpty()) return null
         return validationErrors
@@ -540,7 +553,7 @@ abstract class AbstractPagesRest<
      */
     @GetMapping(RestPaths.EDIT)
     fun getItemAndLayout(request: HttpServletRequest, @RequestParam("id") id: String?)
-            : ResponseEntity<EditLayoutData> {
+            : ResponseEntity<FormLayoutData> {
         val userAccess = UILayout.UserAccess()
         val item = (if (null != id) {
             getById(id, true, userAccess)
@@ -561,11 +574,13 @@ abstract class AbstractPagesRest<
     open protected fun onBeforeGetItemAndLayout(request: HttpServletRequest, dto: DTO, userAccess: UILayout.UserAccess) {
     }
 
-    protected fun getItemAndLayout(request: HttpServletRequest, dto: DTO, userAccess: UILayout.UserAccess): EditLayoutData {
+    protected fun getItemAndLayout(request: HttpServletRequest, dto: DTO, userAccess: UILayout.UserAccess): FormLayoutData {
         val layout = createEditLayout(dto, userAccess)
         layout.addTranslations("changes", "tooltip.selectMe")
         layout.postProcessPageMenu()
-        val result = EditLayoutData(dto, layout)
+        val serverData = ServerData(
+                csrfToken = sessionCsrfCache.ensureAndGetToken(request))
+        val result = FormLayoutData(dto, layout, serverData)
         onGetItemAndLayout(request, dto, result)
         val additionalVariables = addVariablesForEditPage(dto)
         if (additionalVariables != null)
@@ -577,7 +592,7 @@ abstract class AbstractPagesRest<
      * Will be called after getting the item from the database before creating the layout data. Overwrite this for
      * e. g. parsing the request and preset the item values.
      */
-    protected open fun onGetItemAndLayout(request: HttpServletRequest, dto: DTO, editLayoutData: EditLayoutData) {
+    protected open fun onGetItemAndLayout(request: HttpServletRequest, dto: DTO, formLayoutData: FormLayoutData) {
     }
 
     /**
@@ -744,7 +759,7 @@ abstract class AbstractPagesRest<
     @PutMapping(RestPaths.SAVE_OR_UDATE)
     fun saveOrUpdate(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(postData.data)
-        return saveOrUpdate(request, baseDao, dbObj, postData, this, validate(dbObj, postData.data))
+        return saveOrUpdate(request, baseDao, dbObj, postData, this, validate(request, dbObj, postData))
     }
 
     /**
@@ -753,7 +768,7 @@ abstract class AbstractPagesRest<
     @PutMapping(RestPaths.UNDELETE)
     fun undelete(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(postData.data)
-        return undelete(request, baseDao, dbObj, postData, this, validate(dbObj, postData.data))
+        return undelete(request, baseDao, dbObj, postData, this, validate(request, dbObj, postData))
     }
 
     /**
@@ -763,7 +778,7 @@ abstract class AbstractPagesRest<
     @DeleteMapping(RestPaths.MARK_AS_DELETED)
     fun markAsDeleted(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(postData.data)
-        return markAsDeleted(request, baseDao, dbObj, postData, this, validate(dbObj, postData.data))
+        return markAsDeleted(request, baseDao, dbObj, postData, this, validate(request, dbObj, postData))
     }
 
     /**
@@ -773,7 +788,7 @@ abstract class AbstractPagesRest<
     @DeleteMapping(RestPaths.DELETE)
     fun delete(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
         val dbObj = transformForDB(postData.data)
-        return delete(request, baseDao, dbObj, postData, this, validate(dbObj, postData.data))
+        return delete(request, baseDao, dbObj, postData, this, validate(request, dbObj, postData))
     }
 
     /**

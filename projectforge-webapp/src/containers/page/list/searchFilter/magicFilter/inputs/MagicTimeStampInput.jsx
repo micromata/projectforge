@@ -9,6 +9,7 @@ function MagicTimeStampInput(
         id,
         onChange,
         selectors,
+        translations,
         value,
     },
 ) {
@@ -50,6 +51,7 @@ function MagicTimeStampInput(
                 setFrom={setFrom}
                 setTo={setTo}
                 selectors={selectors}
+                translations={translations}
             />
         </div>
     );
@@ -68,9 +70,12 @@ MagicTimeStampInput.propTypes = {
         from: dateType,
         to: dateType,
     }).isRequired,
+    translations: PropTypes.shape({}),
 };
 
-MagicTimeStampInput.defaultProps = {};
+MagicTimeStampInput.defaultProps = {
+    translations: {},
+};
 
 MagicTimeStampInput.isEmpty = ({ from, to }) => !(from || to);
 
@@ -78,8 +83,6 @@ MagicTimeStampInput.getLabel = (label, { from, to }, { id }) => {
     if (from && to && typeof from !== 'string' && typeof to !== 'string') {
         return (
             <FormattedTimeRange
-                childrenAsPrefix
-                id={`magic-time-stamp-input-${id}`}
                 from={from}
                 to={to}
             >

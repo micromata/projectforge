@@ -35,7 +35,7 @@ import javax.naming.directory.DirContext;
 import java.util.List;
 
 public abstract class LdapLoginHandler implements LoginHandler {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapSlaveLoginHandler.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapLoginHandler.class);
 
   @Autowired
   protected LdapConnector ldapConnector;

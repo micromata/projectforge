@@ -1,15 +1,12 @@
 import timezone from 'moment-timezone';
 import 'moment/min/locales';
 import PropTypes from 'prop-types';
-import TimePicker from 'rc-time-picker';
 import 'rc-time-picker/assets/index.css';
 import React from 'react';
-import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
-import MomentLocaleUtils, { formatDate, parseDate } from 'react-day-picker/moment';
 import { connect } from 'react-redux';
 import AdditionalLabel from '../../../../../design/input/AdditionalLabel';
-import style from '../../../../../design/input/Input.module.scss';
+import TimeRange from '../../../../../design/input/calendar/TimeRange';
 import { DynamicLayoutContext } from '../../../context';
 
 /**
@@ -18,22 +15,28 @@ import { DynamicLayoutContext } from '../../../context';
 function DayRange(
     {
         additionalLabel,
-        dateFormat,
-        locale,
-        timeNotation,
+        id,
         values,
     },
 ) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
     const { startDateId, endDateId, label } = values;
 
-    const resolveDate = (id) => {
-        const dateEpochSeconds = Object.getByString(data, id);
+    const resolveDate = (dateId) => {
+        const dateEpochSeconds = Object.getByString(data, dateId);
         return dateEpochSeconds ? timezone(new Date(dateEpochSeconds)) : undefined;
     };
 
-    const [startDate, setStartDate] = React.useState(resolveDate(startDateId));
-    const [endDate, setEndDate] = React.useState(resolveDate(endDateId));
+    const [startDate, setStartDate] = React.useState(undefined);
+    const [endDate, setEndDate] = React.useState(undefined);
+
+    React.useEffect(() => {
+        setStartDate(resolveDate(startDateId));
+    }, [Object.getByString(data, startDateId)]);
+
+    React.useEffect(() => {
+        setEndDate(resolveDate(endDateId));
+    }, [Object.getByString(data, endDateId)]);
 
     return React.useMemo(() => {
         const setFields = (newStartDate, newEndDate) => {
@@ -60,53 +63,20 @@ function DayRange(
             });
         };
 
-        // Sets the start date to the selected date by preserving time of day. Calls setFields as
-        // well.
-        const changeDay = (value) => {
-            const newStartDate = timezone(value);
-            newStartDate.set({
-                hour: startDate.hours(),
-                minute: startDate.minutes(),
-                second: 0,
-                millisecond: 0,
-            });
-
-            setFields(newStartDate, endDate);
-        };
-
-        const changeStartTime = value => setFields(value, endDate);
-        const changeEndTime = value => setFields(startDate, value);
+        const changeStartTime = value => setFields(timezone(value), endDate);
+        const changeEndTime = value => setFields(startDate, timezone(value));
 
         return (
             <React.Fragment>
-                <span className={style.text}>{label}</span>
-                <DayPickerInput
-                    formatDate={formatDate}
-                    parseDate={parseDate}
-                    format={dateFormat}
-                    value={startDate ? startDate.toDate() : undefined}
-                    onDayChange={changeDay}
-                    dayPickerProps={{
-                        locale,
-                        localeUtils: MomentLocaleUtils,
-                    }}
-                />
-                <TimePicker
-                    value={startDate}
-                    showSecond={false}
-                    minuteStep={15}
-                    allowEmpty={false}
-                    use12Hours={timeNotation === 'H12'}
-                    onChange={changeStartTime}
-                />
-                {ui.translations.until}
-                <TimePicker
-                    value={endDate}
-                    showSecond={false}
-                    minuteStep={15}
-                    allowEmpty={false}
-                    use12Hours={timeNotation === 'H12'}
-                    onChange={changeEndTime}
+                <TimeRange
+                    label={label}
+                    from={startDate ? startDate.toDate() : undefined}
+                    id={id}
+                    sameDate
+                    setFrom={changeStartTime}
+                    setTo={changeEndTime}
+                    to={endDate ? endDate.toDate() : undefined}
+                    toLabel={ui.translations.until}
                 />
                 <AdditionalLabel title={additionalLabel} />
             </React.Fragment>

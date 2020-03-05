@@ -180,8 +180,8 @@ public class TimesheetExport {
               .getFormatString(DateFormatType.DAY_OF_WEEK_SHORT)));
       PFDateTime startTime = PFDateTime.from(timesheet.getStartTime()); // not null
       PFDateTime stopTime = PFDateTime.from(timesheet.getStopTime()); // not null
-      mapping.add(Col.START_TIME, startTime.getUtilDate());
-      mapping.add(Col.STOP_TIME, stopTime.getUtilDate());
+      mapping.add(Col.START_TIME, startTime);
+      mapping.add(Col.STOP_TIME, stopTime);
       final BigDecimal seconds = new BigDecimal(timesheet.getDuration() / 1000); // Seconds
       final BigDecimal duration = seconds.divide(new BigDecimal(60 * 60 * 24), 8, RoundingMode.HALF_UP); // Fraction of day (24 hours)
       mapping.add(Col.DURATION, duration.doubleValue());

@@ -23,7 +23,6 @@
 
 package org.projectforge.business.user
 
-import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.login.Login
@@ -87,12 +86,7 @@ open class UserGroupCache(tenant: TenantDO?, applicationContext: ApplicationCont
 
     fun getGroup(group: ProjectForgeGroup): GroupDO? {
         checkRefresh()
-        for (g in groupMap!!.values) {
-            if (group.equals(g.name)) {
-                return g
-            }
-        }
-        return null
+        return groupMap?.values?.find { group.matches(it.name) }
     }
 
     fun getGroup(groupId: Int?): GroupDO? {
@@ -105,36 +99,30 @@ open class UserGroupCache(tenant: TenantDO?, applicationContext: ApplicationCont
             return null
         }
         // checkRefresh(); Done by getUserMap().
-        val user = if (getUserMap() != null) userMap!![userId] else null // Only null in maintenance mode (if t_user isn't readable).
+        val user = getUserMap()?.let { it[userId] } // Only null in maintenance mode (if t_user isn't readable).
         user?.clearSecretFields()
         return user
     }
 
     fun getUser(username: String): PFUserDO? {
-        if (StringUtils.isEmpty(username)) {
+        if (username.isBlank()) {
             return null
         }
-        for (user in getUserMap()!!.values) {
-            if (username == user!!.username) {
-                user.clearSecretFields()
-                return user
-            }
-        }
-        return null
+        // checkRefresh(); Done by getUserMap().
+        val user = getUserMap()?.values?.find { username == it?.username }
+        user?.clearSecretFields()
+        return user
     }
 
     fun getUserByFullname(fullname: String): PFUserDO? {
-        if (StringUtils.isEmpty(fullname)) {
+        if (fullname.isBlank()) {
             return null
         }
-        for (user in getUserMap()!!.values) {
-            if (fullname == user!!.getFullname()) {
-                user.clearSecretFields()
-                return user
-            }
-        }
-        return null
-    }// checkRefresh(); Done by getUserMap().
+        // checkRefresh(); Done by getUserMap().
+        val user = getUserMap()?.values?.find { fullname == it?.getFullname() }
+        user?.clearSecretFields()
+        return user
+    }
 
     /**
      * @return all users (also deleted users).
@@ -193,16 +181,8 @@ open class UserGroupCache(tenant: TenantDO?, applicationContext: ApplicationCont
             return false
         }
         checkRefresh()
-        val groupSet = getUserGroupIdMap()!![userId] ?: return false
-        for (groupId in groupIds) {
-            if (groupId == null) {
-                continue
-            }
-            if (groupSet.contains(groupId)) {
-                return true
-            }
-        }
-        return false
+        val groupSet = getUserGroupIdMap()?.let { it[userId] } ?: return false
+        return groupIds.any { groupSet.contains(it) }
     }
 
     val isUserMemberOfAdminGroup: Boolean
@@ -242,7 +222,7 @@ open class UserGroupCache(tenant: TenantDO?, applicationContext: ApplicationCont
     }
 
     fun isUserProjectManagerOrAssistantForProject(projekt: ProjektDO?): Boolean {
-        if (projekt == null || projekt.projektManagerGroupId == null) {
+        if (projekt?.projektManagerGroupId == null) {
             return false
         }
         val userId = ThreadLocalUserContext.getUserId()
@@ -291,25 +271,15 @@ open class UserGroupCache(tenant: TenantDO?, applicationContext: ApplicationCont
         }
         require(groups.isNotEmpty())
         for (group in groups) {
-            var result = false
-            result = if (group == ProjectForgeGroup.ADMIN_GROUP) {
-                isUserMemberOfAdminGroup(user.id)
-            } else if (group == ProjectForgeGroup.FINANCE_GROUP) {
-                isUserMemberOfFinanceGroup(user.id)
-            } else if (group == ProjectForgeGroup.PROJECT_MANAGER) {
-                isUserMemberOfProjectManagers(user.id)
-            } else if (group == ProjectForgeGroup.PROJECT_ASSISTANT) {
-                isUserMemberOfProjectAssistant(user.id)
-            } else if (group == ProjectForgeGroup.CONTROLLING_GROUP) {
-                isUserMemberOfControllingGroup(user.id)
-            } else if (group == ProjectForgeGroup.MARKETING_GROUP) {
-                isUserMemberOfMarketingGroup(user.id)
-            } else if (group == ProjectForgeGroup.ORGA_TEAM) {
-                isUserMemberOfOrgaGroup(user.id)
-            } else if (group == ProjectForgeGroup.HR_GROUP) {
-                isUserMemberOfHRGroup(user.id)
-            } else {
-                throw UnsupportedOperationException("Group not yet supported: $group")
+            val result = when (group) {
+                ProjectForgeGroup.ADMIN_GROUP -> isUserMemberOfAdminGroup(user.id)
+                ProjectForgeGroup.FINANCE_GROUP -> isUserMemberOfFinanceGroup(user.id)
+                ProjectForgeGroup.PROJECT_MANAGER -> isUserMemberOfProjectManagers(user.id)
+                ProjectForgeGroup.PROJECT_ASSISTANT -> isUserMemberOfProjectAssistant(user.id)
+                ProjectForgeGroup.CONTROLLING_GROUP -> isUserMemberOfControllingGroup(user.id)
+                ProjectForgeGroup.MARKETING_GROUP -> isUserMemberOfMarketingGroup(user.id)
+                ProjectForgeGroup.ORGA_TEAM -> isUserMemberOfOrgaGroup(user.id)
+                ProjectForgeGroup.HR_GROUP -> isUserMemberOfHRGroup(user.id)
             }
             if (result) {
                 return true
@@ -324,16 +294,11 @@ open class UserGroupCache(tenant: TenantDO?, applicationContext: ApplicationCont
 
     fun getUserRight(userId: Int?, rightId: UserRightId): UserRightDO? {
         val rights = getUserRights(userId) ?: return null
-        for (right in rights) {
-            if (StringUtils.equals(right.rightIdString, rightId.id)) {
-                return right
-            }
-        }
-        return null
+        return rights.find { it.rightIdString == rightId.id }
     }
 
     private val userRightMap: Map<Int, List<UserRightDO>>?
-        private get() {
+        get() {
             checkRefresh()
             return rightMap
         }
@@ -358,7 +323,6 @@ open class UserGroupCache(tenant: TenantDO?, applicationContext: ApplicationCont
         return userGroupIdMap
     }
 
-    @JvmOverloads
     fun getEmployeeId(userId: Int?): Int? {
         userId ?: return null
         checkRefresh()
@@ -408,11 +372,15 @@ open class UserGroupCache(tenant: TenantDO?, applicationContext: ApplicationCont
             user.id ?: continue // Should only occur in test cases.
             if (tenant != null) {
                 if (!tenantChecker.isPartOfTenant(tenant, user)) { // Ignore users not assigned to current tenant.
+                    log.warn("********** User ignored, it seems not to be part of the current tenant: $user")
                     continue
                 }
             }
             val copiedUser = createCopyWithoutSecretFields(user)
             uMap[user.id] = copiedUser
+        }
+        if (users.size != uMap.size) {
+            log.warn("********** Load ${users.size} from the backend, but added only ${uMap.size} users to cache!")
         }
         log.info("Loading all groups ...")
         val groups = Login.getInstance().allGroups
@@ -429,40 +397,46 @@ open class UserGroupCache(tenant: TenantDO?, applicationContext: ApplicationCont
         for (group in groups) {
             if (tenant != null) {
                 if (!tenantChecker.isPartOfTenant(tenant.id, group)) { // Ignore groups not assigned to current tenant.
+                    log.warn("********** Group ignored, it seems not to be part of the current tenant: $group")
                     continue
                 }
             }
             gMap[group.id] = group
-            if (group.assignedUsers != null) {
-                for (user in group.assignedUsers!!) {
-                    if (user != null) {
-                        val groupIdSet = ensureAndGetUserGroupIdMap(ugIdMap, user.id)
-                        groupIdSet.add(group.id)
-                        if (ProjectForgeGroup.ADMIN_GROUP.equals(group.name)) {
-                            log.debug("Adding user '" + user.username + "' as administrator.")
-                            nAdminUsers.add(user.id)
-                        } else if (ProjectForgeGroup.FINANCE_GROUP.equals(group.name)) {
-                            log.debug("Adding user '" + user.username + "' for finance.")
-                            nFinanceUser.add(user.id)
-                        } else if (ProjectForgeGroup.CONTROLLING_GROUP.equals(group.name)) {
-                            log.debug("Adding user '" + user.username + "' for controlling.")
-                            nControllingUsers.add(user.id)
-                        } else if (ProjectForgeGroup.PROJECT_MANAGER.equals(group.name)) {
-                            log.debug("Adding user '" + user.username + "' as project manager.")
-                            nProjectManagers.add(user.id)
-                        } else if (ProjectForgeGroup.PROJECT_ASSISTANT.equals(group.name)) {
-                            log.debug("Adding user '" + user.username + "' as project assistant.")
-                            nProjectAssistants.add(user.id)
-                        } else if (ProjectForgeGroup.MARKETING_GROUP.equals(group.name)) {
-                            log.debug("Adding user '" + user.username + "' as marketing user.")
-                            nMarketingUsers.add(user.id)
-                        } else if (ProjectForgeGroup.ORGA_TEAM.equals(group.name)) {
-                            log.debug("Adding user '" + user.username + "' as orga user.")
-                            nOrgaUsers.add(user.id)
-                        } else if (ProjectForgeGroup.HR_GROUP.equals(group.name)) {
-                            log.debug("Adding user '" + user.username + "' as hr user.")
-                            nhrUsers.add(user.id)
-                        }
+            group.assignedUsers?.forEach { user ->
+                val groupIdSet = ensureAndGetUserGroupIdMap(ugIdMap, user.id)
+                groupIdSet.add(group.id)
+                when {
+                    ProjectForgeGroup.ADMIN_GROUP.matches(group.name) -> {
+                        log.debug("Adding user '" + user.username + "' as administrator.")
+                        nAdminUsers.add(user.id)
+                    }
+                    ProjectForgeGroup.FINANCE_GROUP.matches(group.name) -> {
+                        log.debug("Adding user '" + user.username + "' for finance.")
+                        nFinanceUser.add(user.id)
+                    }
+                    ProjectForgeGroup.CONTROLLING_GROUP.matches(group.name) -> {
+                        log.debug("Adding user '" + user.username + "' for controlling.")
+                        nControllingUsers.add(user.id)
+                    }
+                    ProjectForgeGroup.PROJECT_MANAGER.matches(group.name) -> {
+                        log.debug("Adding user '" + user.username + "' as project manager.")
+                        nProjectManagers.add(user.id)
+                    }
+                    ProjectForgeGroup.PROJECT_ASSISTANT.matches(group.name) -> {
+                        log.debug("Adding user '" + user.username + "' as project assistant.")
+                        nProjectAssistants.add(user.id)
+                    }
+                    ProjectForgeGroup.MARKETING_GROUP.matches(group.name) -> {
+                        log.debug("Adding user '" + user.username + "' as marketing user.")
+                        nMarketingUsers.add(user.id)
+                    }
+                    ProjectForgeGroup.ORGA_TEAM.matches(group.name) -> {
+                        log.debug("Adding user '" + user.username + "' as orga user.")
+                        nOrgaUsers.add(user.id)
+                    }
+                    ProjectForgeGroup.HR_GROUP.matches(group.name) -> {
+                        log.debug("Adding user '" + user.username + "' as hr user.")
+                        nhrUsers.add(user.id)
                     }
                 }
             }

@@ -27,7 +27,6 @@ const Input = React.forwardRef((
     // Initialize inputRef
     let inputRef = React.useRef(null);
     const labelRef = React.useRef(null);
-    const [labelWidth, setLabelWidth] = React.useState(0);
 
     // Override ref with forwarded ref
     if (ref) {
@@ -66,12 +65,6 @@ const Input = React.forwardRef((
         }
     }, [autoFocus]);
 
-    React.useLayoutEffect(() => {
-        if (labelRef.current) {
-            setLabelWidth(labelRef.current.clientWidth + (icon ? 100 : 20));
-        }
-    }, [label]);
-
     return (
         <div
             className={classNames(
@@ -82,12 +75,13 @@ const Input = React.forwardRef((
                     [styles.noStyle]: noStyle,
                 },
             )}
-            style={{ minWidth: labelWidth }}
         >
             <label
                 className={classNames(
+                    styles.inputContainer,
                     {
                         [styles.isActive]: value || isActive,
+                        [styles.withMargin]: !noStyle,
                     },
                     styles[color],
                 )}

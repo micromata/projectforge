@@ -265,5 +265,4 @@ public class AddressbookDao extends BaseDao<AddressbookDO> {
       return addressList;
     });
   }
-
 }

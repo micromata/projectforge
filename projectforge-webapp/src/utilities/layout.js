@@ -13,3 +13,5 @@ export const getTranslation = (key, translations) => {
 
     return translations[key];
 };
+
+export const formatTimeUnit = time => `${time !== undefined && Number(time) < 10 ? '0' : ''}${time}`;

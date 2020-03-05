@@ -13,8 +13,10 @@ function AdvancedPopper(
         className,
         contentClassName,
         isOpen,
+        onBlur,
         setIsOpen,
         withInput,
+        ...props
     },
 ) {
     const reference = React.useRef(null);
@@ -23,8 +25,16 @@ function AdvancedPopper(
     const [basicWidth, setBasicWidth] = React.useState(0);
     const [additionalHeight, setAdditionalHeight] = React.useState(0);
     const [additionalWidth, setAdditionalWidth] = React.useState(0);
+    const [currentTimeout, setCurrentTimeout] = React.useState(-1);
 
     useClickOutsideHandler(reference, setIsOpen, isOpen);
+
+    // Clear timeout on unmount
+    React.useEffect(() => () => {
+        if (currentTimeout >= 0) {
+            clearTimeout(currentTimeout);
+        }
+    }, []);
 
     React.useLayoutEffect(
         () => {
@@ -53,6 +63,33 @@ function AdvancedPopper(
         ],
     );
 
+    const handleBlur = (event) => {
+        if (reference.current) {
+            if (currentTimeout) {
+                clearTimeout(currentTimeout);
+            }
+
+            // Get new active element after blur
+            setCurrentTimeout(
+                setTimeout(() => {
+                    if (!reference.current.contains(document.activeElement)) {
+                        setIsOpen(false);
+                    }
+                }, 1),
+            );
+        }
+
+        if (onBlur) {
+            onBlur(event);
+        }
+    };
+
+    const handleClick = ({ target }) => {
+        if (basicReference.current && basicReference.current.contains(target)) {
+            setIsOpen(true);
+        }
+    };
+
     const additionalVisible = isOpen && children;
 
     return (
@@ -63,6 +100,12 @@ function AdvancedPopper(
                 { [style.isOpen]: additionalVisible },
                 className,
             )}
+            {...props}
+            onBlur={handleBlur}
+            role="menu"
+            onClick={handleClick}
+            onKeyDown={undefined}
+            tabIndex={0}
         >
             <div
                 className={classNames(
@@ -70,11 +113,7 @@ function AdvancedPopper(
                     { [style.noBorder]: withInput },
                     contentClassName,
                 )}
-                role="menu"
                 ref={basicReference}
-                tabIndex={0}
-                onClick={() => setIsOpen(true)}
-                onKeyDown={undefined}
             >
                 {basic}
             </div>
@@ -113,6 +152,7 @@ AdvancedPopper.propTypes = {
     className: PropTypes.string,
     contentClassName: PropTypes.string,
     isOpen: PropTypes.bool,
+    onBlur: PropTypes.func,
     withInput: PropTypes.bool,
 };
 
@@ -123,6 +163,7 @@ AdvancedPopper.defaultProps = {
     className: undefined,
     contentClassName: undefined,
     isOpen: false,
+    onBlur: undefined,
     withInput: false,
 };
 

@@ -66,10 +66,10 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
     if (millis != null) {
       week = PFDateTime.from(millis, null, null, PFDateTime.NumberFormat.EPOCH_MILLIS).getLocalDate();
     } else {
-      week = PFDay.today().getLocalDate();
+      week = null;
     }
     HRPlanningDO planning = null;
-    if (userId != null) {
+    if (userId != null && week != null) {
       // Check if there exists already an entry (deleted or not):
       planning = hrPlanningDao.getEntry(userId, week);
     }
@@ -81,10 +81,10 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
     if (userId != null) {
       getBaseDao().setUser(getData(), userId);
     }
-    getData().setWeek(week);
-    final PFDay day = PFDay.fromOrNow(getData().getWeek());
-    if (!day.isFirstDayOfWeek()) {
-      getData().setWeek(day.getBeginOfWeek().getLocalDate());
+    if (getData().getId() == null) {
+      // New entry:
+      final PFDay day = PFDay.fromOrNow(week).getBeginOfWeek();
+      getData().setWeek(day.getLocalDate());
     }
   }
 

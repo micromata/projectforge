@@ -43,7 +43,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
-import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
@@ -58,11 +57,7 @@ import java.util.*;
 public class UserDao extends BaseDao<PFUserDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserDao.class);
 
-  private static final short AUTHENTICATION_TOKEN_LENGTH = 20;
-
   private static final SortProperty[] DEFAULT_SORT_PROPERTIES = new SortProperty[]{new SortProperty("firstname"), new SortProperty("lastname")};
-
-  private final List<UserChangedListener> userChangedListeners = new LinkedList<>();
 
   @Autowired
   private ApplicationContext applicationContext;
@@ -79,15 +74,6 @@ public class UserDao extends BaseDao<PFUserDO> {
       result.add(PFUserDO.createCopyWithoutSecretFields(user));
     }
     return result;
-  }
-
-  /**
-   * Register given listener. The listener is called every time a user was inserted, updated or deleted.
-   *
-   * @param userChangedListener
-   */
-  public void register(final UserChangedListener userChangedListener) {
-    userChangedListeners.add(userChangedListener);
   }
 
   public QueryFilter getDefaultFilter() {
@@ -259,50 +245,6 @@ public class UserDao extends BaseDao<PFUserDO> {
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterSave(ExtendedBaseDO)
-   */
-  @Override
-  protected void afterSave(final PFUserDO obj) {
-    super.afterSave(obj);
-    for (final UserChangedListener userChangedListener : userChangedListeners) {
-      userChangedListener.afterUserChanged(obj, OperationType.INSERT);
-    }
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterUpdate(ExtendedBaseDO, ExtendedBaseDO)
-   */
-  @Override
-  protected void afterUpdate(final PFUserDO obj, final PFUserDO dbObj) {
-    super.afterUpdate(obj, dbObj);
-    for (final UserChangedListener userChangedListener : userChangedListeners) {
-      userChangedListener.afterUserChanged(obj, OperationType.UPDATE);
-    }
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterUndelete(ExtendedBaseDO)
-   */
-  @Override
-  protected void afterUndelete(final PFUserDO obj) {
-    super.afterUndelete(obj);
-    for (final UserChangedListener userChangedListener : userChangedListeners) {
-      userChangedListener.afterUserChanged(obj, OperationType.UPDATE);
-    }
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterDelete(ExtendedBaseDO)
-   */
-  @Override
-  protected void afterDelete(final PFUserDO obj) {
-    super.afterDelete(obj);
-    for (final UserChangedListener userChangedListener : userChangedListeners) {
-      userChangedListener.afterUserChanged(obj, OperationType.DELETE);
-    }
-  }
-
-  /**
    * @see org.projectforge.framework.persistence.api.BaseDao#afterSaveOrModify(ExtendedBaseDO)
    */
   @Override
@@ -389,24 +331,6 @@ public class UserDao extends BaseDao<PFUserDO> {
     });
   }
 
-  @SuppressWarnings("unchecked")
-  public PFUserDO getUserByStayLoggedInKey(final String username, final String stayLoggedInKey) {
-    final List<PFUserDO> list = em
-            .createNamedQuery(PFUserDO.FIND_BY_USERNAME_AND_STAYLOGGEDINKEY, PFUserDO.class)
-            .setParameter("username", username)
-            .setParameter("stayLoggedInKey", stayLoggedInKey)
-            .getResultList();
-    PFUserDO user = null;
-    if (list != null && !list.isEmpty() && list.get(0) != null) {
-      user = list.get(0);
-    }
-    if (user != null && !user.hasSystemAccess()) {
-      log.warn("Deleted/deactivated user tried to login (via stay-logged-in): " + user);
-      return null;
-    }
-    return user;
-  }
-
   /**
    * Does an user with the given username already exists? Works also for existing users (if username was modified).
    */
@@ -423,55 +347,6 @@ public class UserDao extends BaseDao<PFUserDO> {
               .setParameter("id", user.getId()));
     }
     return dbUser != null;
-  }
-
-  public PFUserDO getUserByAuthenticationToken(final Integer userId, final String authKey) {
-    final PFUserDO user = SQLHelper.ensureUniqueResult(em
-            .createNamedQuery(PFUserDO.FIND_BY_USERID_AND_AUTHENTICATIONTOKEN, PFUserDO.class)
-            .setParameter("id", userId)
-            .setParameter("authenticationToken", authKey));
-    if (user != null && !user.hasSystemAccess()) {
-      log.warn("Deleted user tried to login (via authentication token): " + user);
-      return null;
-    }
-    return user;
-  }
-
-  /**
-   * Returns the user's authentication token if exists (must be not blank with a size >= 10). If not, a new token key
-   * will be generated.
-   */
-  public String getAuthenticationToken(final Integer userId) {
-    final PFUserDO user = internalGetById(userId);
-    if (StringUtils.isBlank(user.getAuthenticationToken()) || user.getAuthenticationToken().trim().length() < 10) {
-      user.setAuthenticationToken(createAuthenticationToken());
-      log.info("Authentication token renewed for user: " + userId + "" + user.getUsername());
-      for (final UserChangedListener userChangedListener : userChangedListeners) {
-        userChangedListener.afterUserChanged(user, OperationType.UPDATE);
-      }
-    }
-    return user.getAuthenticationToken();
-  }
-
-  /**
-   * Renews the user's authentication token (random string sequence).
-   */
-  public void renewAuthenticationToken(final Integer userId) {
-    if (!ThreadLocalUserContext.getUserId().equals(userId)) {
-      // Only admin users are able to renew authentication token of other users:
-      accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
-    }
-    accessChecker.checkRestrictedOrDemoUser(); // Demo users are also not allowed to do this.
-    final PFUserDO user = internalGetById(userId);
-    user.setAuthenticationToken(createAuthenticationToken());
-    log.info("Authentication token renewed for user: " + userId + "" + user.getUsername());
-    for (final UserChangedListener userChangedListener : userChangedListeners) {
-      userChangedListener.afterUserChanged(user, OperationType.UPDATE);
-    }
-  }
-
-  private String createAuthenticationToken() {
-    return NumberHelper.getSecureRandomUrlSaveString(AUTHENTICATION_TOKEN_LENGTH);
   }
 
   public PFUserDO getInternalByName(final String username) {

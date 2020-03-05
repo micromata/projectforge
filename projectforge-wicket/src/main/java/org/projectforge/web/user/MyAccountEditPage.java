@@ -31,7 +31,9 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.user.UserAuthenticationsService;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserTokenType;
 import org.projectforge.business.user.UserXmlPreferencesDao;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.user.service.UserService;
@@ -56,6 +58,9 @@ public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditF
 
   @SpringBean
   private UserService userService;
+
+  @SpringBean
+  private UserAuthenticationsService userAuthenticationsService;
 
   @SpringBean
   private EmployeeService employeeService;
@@ -105,9 +110,6 @@ public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditF
     Integer[] blackListIds = teamCalRestBlackList.stream().map(cal -> cal.getId()).toArray(size -> new Integer[size]);
     userXmlPreferencesDao.saveOrUpdate(ThreadLocalUserContext.getUserId(), TeamCalDO.Companion.getTEAMCALRESTBLACKLIST(), blackListIds, true);
 
-    userXmlPreferencesDao.saveOrUpdate(ThreadLocalUserContext.getUserId(), "disableSnowEffectPermant", form.getDisableSnowEffectPermant(), true);
-    userXmlPreferencesCache.putEntry(ThreadLocalUserContext.getUserId(), "disableSnowEffectPermant", form.getDisableSnowEffectPermant(), true);
-
     final HttpServletRequest request = WicketUtils.getHttpServletRequest(getRequest());
     // Don't trust the form data, use logged in user from the data base instead.
     UserFilter.refreshUser(request);
@@ -139,7 +141,7 @@ public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditF
     }
     ((MySession) getSession()).setLocale(getRequest());
     if (form.invalidateAllStayLoggedInSessions == true) {
-      userService.renewStayLoggedInKey(getData().getId());
+      userAuthenticationsService.renewToken(getData().getId(), UserTokenType.STAY_LOGGED_IN_KEY);
     }
     afterSaveOrUpdate();
     setResponsePage(new MessagePage("message.successfullChanged"));

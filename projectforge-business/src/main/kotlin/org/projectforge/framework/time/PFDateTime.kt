@@ -212,6 +212,9 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         return PFDateTime(dateTime.withNano(nanoOfSecond), locale, precision)
     }
 
+    /**
+     * @see ZonedDateTime.withZoneSameInstant
+     */
     open fun withZoneSameInstant(zone: ZoneId): PFDateTime {
         return PFDateTime(dateTime.withZoneSameInstant(zone), locale, precision)
     }
@@ -287,7 +290,7 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
     }
 
     fun daysBetween(date: LocalDate): Long {
-        return daysBetween(from(date)!!)
+        return daysBetween(from(date))
     }
 
     override fun daysBetween(other: PFDateTime): Long {
@@ -637,7 +640,7 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
          */
         @JvmStatic
         @JvmOverloads
-        fun fromOrNull(date: java.sql.Date?, nowIfNull: Boolean, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
+        fun fromOrNull(date: java.sql.Date?, timeZone: TimeZone? = null, locale: Locale? = null): PFDateTime? {
             date ?: return null
             return from(date, timeZone, locale)
         }

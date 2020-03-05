@@ -226,6 +226,10 @@
           <groupId>commons-logging</groupId>
           <artifactId>commons-logging</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.codehaus.groovy</groupId>
+          <artifactId>groovy-all</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -290,6 +294,10 @@
           <artifactId>commons-codec</artifactId>
           <groupId>commons-codec</groupId>
         </exclusion>
+        <exclusion>
+          <groupId>org.codehaus.groovy</groupId>
+          <artifactId>groovy-all</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <!-- Contains a commons-io dependency -->
@@ -297,6 +305,12 @@
       <groupId>org.mnode.ical4j</groupId>
       <artifactId>ical4j-vcard</artifactId>
       <version>${ical4j-vcard.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.codehaus.groovy</groupId>
+          <artifactId>groovy-all</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.thoughtworks.xstream</groupId>
@@ -314,6 +328,7 @@
       <artifactId>groovy-all</artifactId>
       <version>${groovy.version}</version>
       <scope>compile</scope>
+      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.jfree</groupId>

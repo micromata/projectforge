@@ -11,6 +11,7 @@
   $transitionTime: .2s;
 
   position: relative;
+  outline: none;
 
   &.isOpen {
     .content {
@@ -28,7 +29,6 @@
     border-radius: 5px;
     box-shadow: $baseShadow;
     transition: box-shadow $transitionTime;
-    outline: none;
 
     &:hover {
       box-shadow: $baseShadow, 0 3px 12px rgba(0, 0, 0, 0.1);
@@ -81,6 +81,8 @@
         &.delete {
           text-decoration: underline;
           padding: 0;
+          border-radius: 0;
+          background-color: transparent;
 
           &:hover {
             color: #000;
@@ -88,7 +90,6 @@
 
           &:disabled {
             color: #ccc;
-            background-color: transparent;
             cursor: not-allowed;
           }
         }

@@ -131,21 +131,20 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
         LayoutUtils.addListFilterContainer(layout, "longFormat", "recursive",
                 filterClass = TimesheetFilter::class.java)
 
-        // TODO
         val exportMenu = MenuItem("calendar.export", i18nKey = "export")
         exportMenu.add(MenuItem("calendar.exportTimesheets",
                 i18nKey = "plugins.teamcal.export.timesheets",
-                type = MenuItemTargetType.REDIRECT,
+                type = MenuItemTargetType.MODAL,
                 url = CalendarSubscriptionInfoPageRest.getTimesheetUserUrl()))
         exportMenu.add(MenuItem("calendar.exportWeekOfYears",
                 i18nKey = "plugins.teamcal.export.weekOfYears",
                 tooltip = "plugins.teamcal.export.weekOfYears.tooltip",
-                type = MenuItemTargetType.REDIRECT,
+                type = MenuItemTargetType.MODAL,
                 url = CalendarSubscriptionInfoPageRest.getWeekOfYearUrl()))
         exportMenu.add(MenuItem("calendar.exportHolidays",
                 i18nKey = "plugins.teamcal.export.holidays",
                 tooltip = "plugins.teamcal.export.holidays.tooltip",
-                type = MenuItemTargetType.REDIRECT,
+                type = MenuItemTargetType.MODAL,
                 url = CalendarSubscriptionInfoPageRest.getHolidaysUrl()))
         layout.add(exportMenu, 0)
 

@@ -275,19 +275,10 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
                 final RepeatingView view = new RepeatingView(componentId);
                 item.add(view);
                 final Integer id = address.getId();
-                boolean first = addPhoneNumber(view, id, PhoneType.BUSINESS, address.getBusinessPhone(),
-                        (personalAddress != null && personalAddress.isFavoriteBusinessPhone() == true), false,
-                        IconType.BUILDING, true);
-                first = addPhoneNumber(view, id, PhoneType.MOBILE, address.getMobilePhone(),
-                        (personalAddress != null && personalAddress.isFavoriteMobilePhone() == true), true, IconType.TABLET,
-                        first);
-                first = addPhoneNumber(view, id, PhoneType.PRIVATE, address.getPrivatePhone(),
-                        (personalAddress != null && personalAddress.isFavoritePrivatePhone() == true), false, IconType.HOME,
-                        first);
-                first = addPhoneNumber(view, id, PhoneType.PRIVATE_MOBILE, address.getPrivateMobilePhone(),
-                        (personalAddress != null && personalAddress.isFavoritePrivateMobilePhone() == true), true,
-                        IconType.TABLET,
-                        first);
+                boolean first = addPhoneNumber(view, id, PhoneType.BUSINESS, address.getBusinessPhone(), false, IconType.BUILDING, true);
+                first = addPhoneNumber(view, id, PhoneType.MOBILE, address.getMobilePhone(),true, IconType.TABLET, first);
+                first = addPhoneNumber(view, id, PhoneType.PRIVATE, address.getPrivatePhone(), false, IconType.HOME, first);
+                first = addPhoneNumber(view, id, PhoneType.PRIVATE_MOBILE, address.getPrivateMobilePhone(), true, IconType.TABLET, first);
                 cellItemListener.populateItem(item, componentId, rowModel);
                 item.add(AttributeModifier.append("style", new Model<String>("white-space: nowrap;")));
               }
@@ -400,32 +391,6 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
       exportMenu.addSubMenuEntry(excelExportButton);
     }
     {
-      // Phone list export
-      final SubmitLink exportPhoneListLink = new SubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
-        @Override
-        public void onSubmit() {
-          log.info("Exporting phone list");
-          final List<PersonalAddressDO> list = addressDao.getFavoritePhoneEntries();
-          if (CollectionUtils.isEmpty(list) == true) {
-            form.addError("address.book.hasNoPhoneNumbers");
-            return;
-          }
-          final String filename = "ProjectForge-PersonalPhoneList_" + DateHelper.getDateAsFilenameSuffix(new Date())
-                  + ".txt";
-          final StringWriter writer = new StringWriter();
-          addressDao.exportFavoritePhoneList(writer, list);
-          DownloadUtils.setUTF8CharacterEncoding(getResponse());
-          DownloadUtils.setDownloadTarget(writer.toString().getBytes(), filename);
-        }
-      };
-      final ContentMenuEntryPanel exportPhoneListButton = new ContentMenuEntryPanel(exportMenu.newSubMenuChildId(),
-              exportPhoneListLink,
-              getString("address.book.exportFavoritePhoneList")).setTooltip(
-              getString("address.book.exportFavoritePhoneList.tooltip.title"),
-              getString("address.book.exportFavoritePhoneList.tooltip.content"));
-      exportMenu.addSubMenuEntry(exportPhoneListButton);
-    }
-    {
       final ContentMenuEntryPanel extendedMenu = contentMenuBarPanel.ensureAndAddExtendetMenuEntry();
       // Apple script export
       final SubmitLink appleScriptLink = new SubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
@@ -458,7 +423,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
 
   private boolean addPhoneNumber(final RepeatingView view, final Integer addressId, final PhoneType phoneType,
                                  final String phoneNumber,
-                                 final boolean favoriteNumber, final boolean sendSms, final IconType icon, final boolean first) {
+                                 final boolean sendSms, final IconType icon, final boolean first) {
     if (StringUtils.isBlank(phoneNumber) == true) {
       return first;
     }
@@ -467,7 +432,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
     }
     final AddressListPhoneNumberPanel phoneNumberPanel = new AddressListPhoneNumberPanel(view.newChildId(), this,
             addressId, phoneType,
-            phoneNumber, favoriteNumber, sendSms, icon, first);
+            phoneNumber, sendSms, icon, first);
     view.add(phoneNumberPanel);
     return false;
   }
