@@ -382,7 +382,7 @@ class CalendarPanel extends React.Component {
                     messages={messages}
                 />
                 <Route
-                    path={`${match.url}/:category/edit/:id?`}
+                    path={`${match.url}/:category/:type/:id?`}
                     render={props => <FormModal baseUrl={match.url} {...props} />}
                 />
             </LoadingContainer>
