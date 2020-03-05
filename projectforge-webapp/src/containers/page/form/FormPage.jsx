@@ -36,11 +36,21 @@ function FormPage(
         validationErrors,
         variables,
     } = category;
+    let { search } = location;
+    let { type } = match.params;
     const {
         category: currentCategory,
         id,
-        type,
     } = match.params;
+
+    // React router sometimes doesn't recognise the search.
+    if (type && type.includes('?')) {
+        // Map the first part of the split to page and the second part to search.
+        [type, search] = type.split('?');
+        // Prepend the question mark.
+        search = `?${search}`;
+    }
+
 
     React.useEffect(
         () => {
@@ -55,7 +65,7 @@ function FormPage(
                 getServiceURL(
                     `${match.params.restPrefix === 'public' ? '../rsPublic/' : ''}${currentCategory}/${type || 'dynamic'}`,
                     {
-                        ...getObjectFromQuery(location.search || ''),
+                        ...getObjectFromQuery(search || ''),
                         id,
                     },
                 ),
