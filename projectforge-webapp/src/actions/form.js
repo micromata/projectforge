@@ -44,11 +44,12 @@ const callSuccess = (category, response) => ({
     },
 });
 
-const changeData = (category, newData) => ({
+const changeData = (category, newData, watchFieldsTriggered) => ({
     type: FORM_CHANGE_DATA,
     payload: {
         category,
         newData,
+        watchFieldsTriggered,
     },
 });
 
@@ -166,9 +167,29 @@ export const callAction = ({ responseAction: action }) => (dispatch, getState) =
         .catch(error => dispatch(callFailure(category, error)));
 };
 
-export const setCurrentData = newData => (dispatch, getState) => dispatch(
-    changeData(getState().form.currentCategory, newData),
-);
+export const setCurrentData = newData => (dispatch, getState) => {
+    const { form } = getState();
+    const { categories, currentCategory } = form;
+    const { ui } = categories[currentCategory];
+
+    // Change Data in redux model
+    dispatch(changeData(form.currentCategory, newData));
+
+    // Check for triggered watch fields
+    if (ui.watchFields) {
+        const triggered = Object.keys(newData)
+            .filter(key => ui.watchFields.includes(key));
+
+        if (triggered.length > 0) {
+            callAction({
+                responseAction: {
+                    url: `${currentCategory}/watchFields`,
+                    targetType: 'POST',
+                },
+            })(dispatch, getState);
+        }
+    }
+};
 
 export const setCurrentVariables = newVariables => (dispatch, getState) => dispatch(
     changeVariables(getState().form.currentCategory, newVariables),
