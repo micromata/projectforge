@@ -96,7 +96,7 @@ open class ProjectForgeCalDAVController : BaseDAVController() {
         requestMeeting.createDate = now
         requestMeeting.modifiedDate = now
         requestMeeting.name = newName
-        return calendarService.saveCalendarEvent(requestMeeting)
+        return calendarService.createCalendarEvent(requestMeeting)
     }
 
     @PutChild

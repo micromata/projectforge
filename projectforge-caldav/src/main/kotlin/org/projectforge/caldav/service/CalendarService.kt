@@ -23,30 +23,35 @@
 
 package org.projectforge.caldav.service
 
-import org.apache.commons.codec.binary.Base64
+import mu.KotlinLogging
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.event.TeamEventDao
+import org.projectforge.business.teamcal.event.TeamEventFilter
+import org.projectforge.business.teamcal.event.TeamEventService
+import org.projectforge.business.teamcal.event.ical.ICalGenerator
+import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.caldav.model.Calendar
 import org.projectforge.caldav.model.Meeting
 import org.projectforge.caldav.model.User
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.model.rest.CalendarEventObject
-import org.projectforge.model.rest.RestPaths
-import org.slf4j.LoggerFactory
+import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.util.*
-import java.util.function.Consumer
 
 @Service
 class CalendarService {
+    private val log = KotlinLogging.logger {}
+
     @Autowired
     private lateinit var teamCalDao: TeamCalDao
 
     @Autowired
     private lateinit var teamEventDao: TeamEventDao
+
+    @Autowired
+    private lateinit var teamEventService: TeamEventService
 
     fun getCalendarList(user: User): List<Calendar> {
         if (user.id != ThreadLocalUserContext.getUserId().toLong()) {
@@ -54,114 +59,55 @@ class CalendarService {
         }
         val calendars = teamCalDao.getList(BaseSearchFilter())
         val result = calendars.map { cal ->
-            Calendar(user, cal.id, cal.title ?: "untitled") }
+            Calendar(user, cal.id, cal.title ?: "untitled")
+        }
         return result
     }
 
     fun getCalendarEvents(cal: Calendar): List<Meeting> {
-        var result = mutableListOf<Meeting>()
-        return result
-        /*try {
-            val url = projectforgeServerAddress + ":" + projectforgeServerPort + RestPaths.buildPath(RestPaths.TEAMEVENTS)
-            val headers = HttpHeaders()
-            headers["Accept"] = MediaType.APPLICATION_JSON_VALUE
-            headers["authenticationUserId"] = cal.user.pk.toString()
-            headers["authenticationToken"] = cal.user.authenticationToken
-            val builder = UriComponentsBuilder.fromHttpUrl(url)
-                    .queryParam("calendarIds", cal.id)
-            val entity: HttpEntity<*> = HttpEntity<Any>(headers)
-            val response: HttpEntity<Array<CalendarEventObject>> = restTemplate!!.exchange(builder.build().encode().toUri(), HttpMethod.GET, entity, Array<CalendarEventObject>::class.java)
-            val calendarEventArray = response.body
-            log.info("Result of rest call (" + RestPaths.TEAMEVENTS + ") (Size: " + calendarEventArray.size + ") : " + calendarEventArray)
-            result = convertRestResponse(cal, calendarEventArray)
-        } catch (e: Exception) {
-            log.error("Exception while getting calendar events for calendar: " + cal.name, e)
+        val result = mutableListOf<Meeting>()
+        cal.id ?: return result
+        val filter = TeamEventFilter().setTeamCals(listOf(cal.id))
+        filter.startDate = now().minusDays(1000.toLong()).utilDate
+        val generator = ICalGenerator.exportAllFields()
+        generator.editableVEvent(true)
+        teamEventService.getTeamEventDOList(filter).forEach {
+            result.add(convert(generator, cal, it))
         }
-        return result*/
+        return result
     }
 
-    fun saveCalendarEvent(meeting: Meeting): Meeting? {
-        return sendCalendarEvent(meeting, RestPaths.buildPath(RestPaths.TEAMEVENTS, RestPaths.SAVE))
+    fun createCalendarEvent(meeting: Meeting): Meeting? {
+        log.warn { "Creating of meetings not supported." }
+        return null
     }
 
     fun updateCalendarEvent(meeting: Meeting): Meeting? {
-        return sendCalendarEvent(meeting, RestPaths.buildPath(RestPaths.TEAMEVENTS, RestPaths.UPDATE))
-    }
-
-    private fun sendCalendarEvent(meeting: Meeting, path: String): Meeting? {
-        /*try {
-            val request = convertRestRequest(meeting)
-            val mapper = ObjectMapper()
-            val json = mapper.writeValueAsString(request)
-            val url = "$projectforgeServerAddress:$projectforgeServerPort$path"
-            val headers = HttpHeaders()
-            headers["Accept"] = MediaType.APPLICATION_JSON_VALUE
-            headers.contentType = MediaType.APPLICATION_JSON
-            headers["authenticationUserId"] = meeting.calendar.user.pk.toString()
-            headers["authenticationToken"] = meeting.calendar.user.authenticationToken
-            val entity: HttpEntity<*> = HttpEntity(json, headers)
-            val builder = UriComponentsBuilder.fromHttpUrl(url)
-            val response = restTemplate
-                    .exchange(builder.build().encode().toUri(), HttpMethod.PUT, entity, CalendarEventObject::class.java)
-            val calendarEvent = response.body
-            log.info("Result of rest call: $calendarEvent")
-            return convertRestResponse(meeting.calendar, calendarEvent)
-        } catch (e: Exception) {
-            log.error("Exception while creating calendar event: " + meeting.name, e)
-        }*/
+        log.warn { "Updating of meetings not supported." }
         return null
     }
 
     fun deleteCalendarEvent(meeting: Meeting) {
-        /* try {
-             val request = convertRestRequest(meeting)
-             val mapper = ObjectMapper()
-             val json = mapper.writeValueAsString(request)
-             val url = projectforgeServerAddress + ":" + projectforgeServerPort + RestPaths.buildPath(RestPaths.TEAMEVENTS)
-             val headers = HttpHeaders()
-             headers["Accept"] = MediaType.APPLICATION_JSON_VALUE
-             headers.contentType = MediaType.APPLICATION_JSON
-             headers["authenticationUserId"] = meeting.calendar.user.pk.toString()
-             headers["authenticationToken"] = meeting.calendar.user.authenticationToken
-             val entity: HttpEntity<*> = HttpEntity(json, headers)
-             val builder = UriComponentsBuilder.fromHttpUrl(url)
-             val response = restTemplate
-                     .exchange(builder.build().encode().toUri(), HttpMethod.DELETE, entity, CalendarEventObject::class.java)
-             val calendarEvent = response.body
-             log.info("Result of rest call: $calendarEvent")
-         } catch (e: Exception) {
-             log.error("Exception while creating calendar event: " + meeting.name, e)
-         }*/
+        log.warn { "Deleting of meetings not supported." }
     }
 
-    private fun convertRestResponse(cal: Calendar, calendarEventArray: Array<CalendarEventObject>): List<Meeting?> {
-        val result: MutableList<Meeting?> = ArrayList()
-        val calEventObjList = Arrays.asList(*calendarEventArray)
-        calEventObjList.forEach(Consumer { calEventObj: CalendarEventObject -> result.add(convertRestResponse(cal, calEventObj)) })
-        return result
-    }
-
-    private fun convertRestResponse(cal: Calendar, calendarEvent: CalendarEventObject): Meeting {
+    private fun convert(generator: ICalGenerator, cal: Calendar, event: TeamEventDO): Meeting {
         val result = Meeting(cal)
-        result.uniqueId = calendarEvent.uid
-        result.createDate = calendarEvent.created
-        result.modifiedDate = calendarEvent.lastUpdate
-        result.name = calendarEvent.uid + ".ics"
-        result.icalData = Base64.decodeBase64(calendarEvent.icsData)
+        result.uniqueId = event.uid
+        result.createDate = event.created
+        result.modifiedDate = event.lastUpdate
+        result.name = event.uid + ".ics"
+        result.icalData = generator.getCalendarAsByteStream().toByteArray()
         return result
     }
 
-    private fun convertRestRequest(m: Meeting): CalendarEventObject {
-        val result = CalendarEventObject()
-        result.uid = m.uniqueId
-        result.calendarId = m.calendar.id
-        result.icsData = Base64.encodeBase64String(m.icalData)
-        result.created = m.createDate
-        result.lastUpdate = m.modifiedDate
-        return result
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(CalendarService::class.java)
+    private fun convertRestRequest(meeting: Meeting): TeamEventDO {
+        val event = TeamEventDO()
+        event.uid = meeting.uniqueId
+        teamEventDao.setCalendar(event, meeting.calendar.id)
+        //event.icsData = Base64.encodeBase64String(meeting.icalData)
+        event.created = meeting.createDate
+        event.lastUpdate = meeting.modifiedDate
+        return event
     }
 }
