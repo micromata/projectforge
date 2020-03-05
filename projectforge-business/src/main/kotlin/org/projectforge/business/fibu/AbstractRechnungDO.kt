@@ -69,6 +69,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
      * Wird nur zur Berechnung benutzt und kann für die Anzeige aufgerufen werden. Vorher sollte recalculate aufgerufen
      * werden.
      */
+    @PropertyInfo(i18nKey = "fibu.rechnung.zahlungsZiel")
     @Field(analyze = Analyze.NO)
     @get:Transient
     open var zahlungsZielInTagen: Int? = null
