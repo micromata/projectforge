@@ -8,9 +8,11 @@ import style from './Vacation.module.scss';
 function VacationStatistics() {
     const { data, ui } = React.useContext(DynamicLayoutContext);
 
-    const { statisticsCurrentYear, statisticsPreviousYear } = data.statistics;
-    const current = statisticsCurrentYear;
-    const prev = statisticsPreviousYear;
+    if (!data.statistics) {
+        return <React.Fragment />;
+    }
+
+    const { statisticsCurrentYear: current, statisticsPreviousYear: prev } = data.statistics;
 
     return React.useMemo(
         () => (
@@ -19,18 +21,18 @@ function VacationStatistics() {
                     <Col sm={12}>
                         <Table striped className={style.statistics}>
                             <thead>
-                            <tr className={style.borderBottom}>
-                                <th>{ui.translations['vacation.leaveaccount.title']}</th>
-                                <th className={style.number}>{current.year}</th>
-                                <th className={style.number}>{prev.year}</th>
-                            </tr>
+                                <tr className={style.borderBottom}>
+                                    <th>{ui.translations['vacation.leaveaccount.title']}</th>
+                                    <th className={style.number}>{current.year}</th>
+                                    <th className={style.number}>{prev.year}</th>
+                                </tr>
                             </thead>
                             <tbody>
-                            <tr>
-                                <td>{ui.translations['vacation.annualleave']}</td>
-                                <td className={style.number}>{current.vacationDaysInYearFromContract}</td>
-                                <td className={style.number}>{prev.vacationDaysInYearFromContract}</td>
-                            </tr>
+                                <tr>
+                                    <td>{ui.translations['vacation.annualleave']}</td>
+                                    <td className={style.number}>{current.vacationDaysInYearFromContract}</td>
+                                    <td className={style.number}>{prev.vacationDaysInYearFromContract}</td>
+                                </tr>
                             <tr>
                                 <td>{ui.translations['vacation.previousyearleave']}</td>
                                 <td className={style.number}>{current.remainingLeaveFromPreviousYear}</td>
@@ -91,6 +93,7 @@ function VacationStatistics() {
                 </Row>
             </React.Fragment>
         ),
+        [current, prev],
     );
 }
 
