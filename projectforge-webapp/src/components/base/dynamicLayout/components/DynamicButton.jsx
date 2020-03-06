@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '../../../design';
 import { DynamicLayoutContext } from '../context';
 
-function DynamicActionButton(props) {
+function DynamicButton(props) {
     const {
         default: isDefault,
         title,
@@ -37,15 +37,15 @@ function DynamicActionButton(props) {
     );
 }
 
-DynamicActionButton.propTypes = {
+DynamicButton.propTypes = {
     title: PropTypes.string.isRequired,
     default: PropTypes.bool,
     responseAction: PropTypes.shape({}),
 };
 
-DynamicActionButton.defaultProps = {
+DynamicButton.defaultProps = {
     default: false,
     responseAction: {},
 };
 
-export default DynamicActionButton;
+export default DynamicButton;
