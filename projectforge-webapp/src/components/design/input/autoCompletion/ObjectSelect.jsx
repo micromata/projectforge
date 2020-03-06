@@ -36,8 +36,9 @@ function ObjectSelect(
         handleSelectMeHoverEnd();
     };
 
-    const hasSelectMe = (type === 'USER' && (!value || value.id !== user.id))
-        || (type === 'EMPLOYEE' && (!value || value.id !== user.employeeId));
+    const hasSelectMe = user
+        && ((type === 'USER' && (!value || value.id !== user.id))
+            || (type === 'EMPLOYEE' && (!value || value.id !== user.employeeId)));
 
     let inputProps = {
         label,
@@ -82,29 +83,37 @@ ObjectSelect.propTypes = {
     label: PropTypes.string.isRequired,
     onSelect: PropTypes.func.isRequired,
     type: PropTypes.oneOf(['USER', 'EMPLOYEE', 'OTHER']).isRequired,
-    user: PropTypes.shape({
-        id: PropTypes.number.isRequired,
-        displayName: PropTypes.string.isRequired,
-    }).isRequired,
     translations: PropTypes.shape({
         'tooltip.selectMe': PropTypes.string,
     }),
     url: PropTypes.string,
+    user: PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        displayName: PropTypes.string.isRequired,
+        employeeId: PropTypes.number,
+    }),
     value: PropTypes.shape({}),
 };
 
 ObjectSelect.defaultProps = {
     translations: undefined,
     url: undefined,
+    user: undefined,
     value: undefined,
 };
 
-const mapStateToProps = ({ authentication }) => ({
-    user: {
-        id: authentication.user.userId,
-        employeeId: authentication.user.employeeId,
-        displayName: authentication.user.username,
-    },
-});
+const mapStateToProps = ({ authentication }) => {
+    if (authentication.user) {
+        return {
+            user: {
+                id: authentication.user.userId,
+                employeeId: authentication.user.employeeId,
+                displayName: authentication.user.username,
+            },
+        };
+    }
+
+    return {};
+};
 
 export default connect(mapStateToProps)(ObjectSelect);
