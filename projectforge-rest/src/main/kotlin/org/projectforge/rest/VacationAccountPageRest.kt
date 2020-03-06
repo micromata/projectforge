@@ -26,14 +26,12 @@ package org.projectforge.rest
 import org.projectforge.Const
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.api.EmployeeService
-import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStatsFormatted
 import org.projectforge.common.DateFormatType
-import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTimeUtils
@@ -59,9 +57,6 @@ class VacationAccountPageRest {
             var employee: EmployeeDO? = null,
             var statistics: MutableMap<String, Any>? = null
     )
-
-    @Autowired
-    private lateinit var accessChecker: AccessChecker
 
     @Autowired
     private lateinit var employeeService: EmployeeService
@@ -109,7 +104,7 @@ class VacationAccountPageRest {
         val endOfYearString = PFDateTimeUtils.ensureUsersDateTimeFormat(DateFormatType.DATE_WITHOUT_YEAR).format(endOfYear)
         layout.addTranslation("vacation.previousyearleaveunused", translateMsg("vacation.previousyearleaveunused", endOfYearString))
 
-        val isHRMember = accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.HR_GROUP)
+        val isHRMember = vacationService.hasLoggedInUserHRVacationAccess()
 
         val employeeId: Int? = if (searchEmployeeId != null && isHRMember) {
             searchEmployeeId
