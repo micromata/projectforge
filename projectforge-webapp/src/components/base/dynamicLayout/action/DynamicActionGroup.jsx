@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { colorPropType } from '../../../../utilities/propTypes';
 import { ButtonGroup } from '../../../design';
-import DynamicActionButton from './DynamicActionButton';
+import DynamicButton from '../components/DynamicButton';
 
 export const actionPropType = PropTypes.shape({
     id: PropTypes.string.isRequired,
@@ -20,7 +20,7 @@ function DynamicActionGroup({ actions }) {
     return (
         <ButtonGroup>
             {actions.map(action => (
-                <DynamicActionButton
+                <DynamicButton
                     key={`dynamic-action-button-${action.id}-${action.key}`}
                     {...action}
                 />
