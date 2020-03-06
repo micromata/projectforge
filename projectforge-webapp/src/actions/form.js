@@ -92,7 +92,7 @@ export const loadFormPage = (category, id, url) => (dispatch, getState) => {
         .catch(error => callFailure(category, error));
 };
 
-export const callAction = ({ responseAction: action }) => (dispatch, getState) => {
+export const callAction = ({ responseAction: action, watchFieldsTriggered }) => (dispatch, getState) => {
     if (!action) {
         return Promise.reject(Error('No response action given.'));
     }
@@ -104,7 +104,7 @@ export const callAction = ({ responseAction: action }) => (dispatch, getState) =
 
     let status = 0;
 
-    const { data, watchFieldsTriggered, serverData } = state.categories[category];
+    const { data, serverData } = state.categories[category];
 
     return fetch(
         getServiceURL(action.url),
@@ -177,15 +177,16 @@ export const setCurrentData = newData => (dispatch, getState) => {
 
     // Check for triggered watch fields
     if (ui.watchFields) {
-        const triggered = Object.keys(newData)
+        const watchFieldsTriggered = Object.keys(newData)
             .filter(key => ui.watchFields.includes(key));
 
-        if (triggered.length > 0) {
+        if (watchFieldsTriggered.length > 0) {
             callAction({
                 responseAction: {
                     url: `${currentCategory}/watchFields`,
                     targetType: 'POST',
                 },
+                watchFieldsTriggered,
             })(dispatch, getState);
         }
     }
