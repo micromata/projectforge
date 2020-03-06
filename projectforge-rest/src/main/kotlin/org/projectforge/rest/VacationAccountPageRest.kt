@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationDO
@@ -36,7 +37,6 @@ import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.PagesResolver
-import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.LeaveAccountEntry
 import org.projectforge.rest.dto.Vacation
@@ -51,7 +51,10 @@ import java.time.Year
 @RestController
 @RequestMapping("${Rest.URL}/vacationAccount")
 class VacationAccountPageRest {
-    class Data(var employee: Employee? = null)
+    class Data(
+            var employee: EmployeeDO? = null,
+            var statistics: MutableMap<String, Any>? = null
+    )
 
     @Autowired
     private lateinit var employeeService: EmployeeService
@@ -100,7 +103,7 @@ class VacationAccountPageRest {
         layout.addTranslation("vacation.previousyearleaveunused", translateMsg("vacation.previousyearleaveunused", endOfYearString))
 
         val userPref = getUserPref()
-        var employeeId = userPref.employeeId ?: ThreadLocalUserContext.getUserContext().employeeId
+        val employeeId = userPref.employeeId ?: ThreadLocalUserContext.getUserContext().employeeId
         val employee = employeeService.getById(employeeId)
         val statistics = mutableMapOf<String, Any>()
         val currentStats = vacationService.getVacationStats(employee, Year.now().value)
@@ -128,16 +131,19 @@ class VacationAccountPageRest {
                         .add(UICol(mdLength = 6, smLength = 12)
                                 .add(lc, "employee"))
                         .add(UICol(mdLength = 6, smLength = 12)
-                                .add(UICustomized("vacation.statistics",
-                                        values = statistics))))
+                                .add(UICustomized("vacation.statistics"))))
                 .add(UIRow().add(buttonCol))
                 .add(UIFieldset(length = 12)
                         .add(UIRow()
                                 .add(UICol(length = 12)
                                         .add(UICustomized("vacation.entries",
                                                 values = vacations))))))
+        layout.watchFields.add("employee")
+        LayoutUtils.process(layout)
 
-        return FormLayoutData(null, layout, null)
+        val data = Data(employee = employee, statistics = statistics)
+
+        return FormLayoutData(data, layout, null)
     }
 
     private fun readVacations(variables: MutableMap<String, Any>, id: String, employeeId: Int, year: Int) {
