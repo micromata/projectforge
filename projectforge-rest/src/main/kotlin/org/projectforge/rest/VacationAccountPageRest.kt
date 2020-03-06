@@ -32,6 +32,7 @@ import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStatsFormatted
 import org.projectforge.common.DateFormatType
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTimeUtils
@@ -129,9 +130,9 @@ class VacationAccountPageRest {
             }
         }
         val buttonCol = UICol(length = 6)
-        buttonCol.add(UIButton("add", "add", UIColor.SUCCESS, responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java), targetType = TargetType.REDIRECT)))
+        buttonCol.add(UIButton("add", translate("add"), UIColor.SUCCESS, responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java), targetType = TargetType.REDIRECT)))
         if (currentStats.remainingLeaveFromPreviousYear != prevStats.vacationDaysLeftInYear) {
-            buttonCol.add(UIButton("recalculate", "vacation.recalculateRemainingLeave", UIColor.DANGER,
+            buttonCol.add(UIButton("recalculate", translate("vacation.recalculateRemainingLeave"), UIColor.DANGER,
                     responseAction = ResponseAction("vacationAccount/recalculate", targetType = TargetType.POST)))
         }
 
