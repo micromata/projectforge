@@ -42,7 +42,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.fibu.EmployeeEditForm;
-import org.projectforge.web.rest.RestAuthenticationUtils;
 import org.projectforge.web.teamcal.admin.TeamCalsProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
