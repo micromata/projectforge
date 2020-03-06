@@ -137,6 +137,7 @@ class VacationAccountPageRest {
         buttonCol.add(UIButton("add", "add", UIColor.SUCCESS, responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java), targetType = TargetType.REDIRECT)))
         if (currentStats.remainingLeaveFromPreviousYear != prevStats.vacationDaysLeftInYear) {
             buttonCol.add(UIButton("recalculate", "vacation.recalculateRemainingLeave", UIColor.DANGER,
+                    // TODO CHECK URL SHOULD BE ENDPOINT?
                     responseAction = ResponseAction(PagesResolver.getDynamicPageUrl(this.javaClass, mapOf<String, Any>("recalculate" to true)))))
         }
 
