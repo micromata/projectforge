@@ -132,8 +132,7 @@ class VacationAccountPageRest {
         buttonCol.add(UIButton("add", "add", UIColor.SUCCESS, responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java), targetType = TargetType.REDIRECT)))
         if (currentStats.remainingLeaveFromPreviousYear != prevStats.vacationDaysLeftInYear) {
             buttonCol.add(UIButton("recalculate", "vacation.recalculateRemainingLeave", UIColor.DANGER,
-                    // TODO CHECK URL SHOULD BE ENDPOINT?
-                    responseAction = ResponseAction(PagesResolver.getDynamicPageUrl(this.javaClass, mapOf<String, Any>("recalculate" to true)))))
+                    responseAction = ResponseAction("vacationAccount/recalculate", targetType = TargetType.POST)))
         }
 
         val statisticRow = UIRow()
@@ -183,6 +182,12 @@ class VacationAccountPageRest {
         )
                 .addVariable("data", layoutData.data)
                 .addVariable("ui", layoutData.ui)
+    }
+
+    @PostMapping("recalculate")
+    fun recalculateRemainingLeave(@Valid @RequestBody postdata: PostData<Data>): ResponseAction {
+        // TODO RECALCULATE REMAINING LEAVE. SEE VacationAccountForm.java#L160
+        return ResponseAction(targetType = TargetType.NOTHING)
     }
 
     private fun readVacations(variables: MutableMap<String, Any>, id: String, employeeId: Int, year: Int) {
