@@ -7,9 +7,8 @@ import DynamicValidationManager from './DynamicValidationManager';
 function DynamicRadioButton(
     {
         id,
-        name,
         value,
-        label,
+        ...props
     },
 ) {
     const { data, setData } = React.useContext(DynamicLayoutContext);
@@ -26,10 +25,9 @@ function DynamicRadioButton(
             <DynamicValidationManager id={id}>
                 <RadioButton
                     id={`${id}-${value}`}
-                    name={name}
-                    label={label}
                     checked={checked}
                     onChange={handleCheckboxChange}
+                    {...props}
                 />
             </DynamicValidationManager>
         );
