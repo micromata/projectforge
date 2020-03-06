@@ -5,10 +5,10 @@ import { Col, Row, Table } from 'reactstrap';
 import { DynamicLayoutContext } from '../../../context';
 import style from './Vacation.module.scss';
 
-function VacationStatistics({ values }) {
-    const { ui } = React.useContext(DynamicLayoutContext);
+function VacationStatistics() {
+    const { data, ui } = React.useContext(DynamicLayoutContext);
 
-    const { statisticsCurrentYear, statisticsPreviousYear } = values;
+    const { statisticsCurrentYear, statisticsPreviousYear } = data.statistics;
     const current = statisticsCurrentYear;
     const prev = statisticsPreviousYear;
 

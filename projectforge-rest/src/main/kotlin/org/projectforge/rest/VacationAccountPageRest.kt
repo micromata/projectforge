@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import org.projectforge.Const
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.service.UserPrefService
@@ -35,18 +36,19 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDay
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.LeaveAccountEntry
+import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Vacation
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.time.Month
 import java.time.Year
+import javax.validation.Valid
 
 @RestController
 @RequestMapping("${Rest.URL}/vacationAccount")
@@ -69,7 +71,7 @@ class VacationAccountPageRest {
     private lateinit var vacationService: VacationService
 
     @GetMapping("dynamic")
-    fun getForm(): FormLayoutData {
+    fun getForm(@RequestParam("id") searchEmployeeId: Int? = null): FormLayoutData {
         val layout = UILayout("vacation.leaveaccount.title")
         val lc = LayoutContext(VacationDO::class.java)
         layout.addTranslations("employee",
@@ -102,9 +104,13 @@ class VacationAccountPageRest {
         val endOfYearString = PFDateTimeUtils.ensureUsersDateTimeFormat(DateFormatType.DATE_WITHOUT_YEAR).format(endOfYear)
         layout.addTranslation("vacation.previousyearleaveunused", translateMsg("vacation.previousyearleaveunused", endOfYearString))
 
-        val userPref = getUserPref()
-        val employeeId = userPref.employeeId ?: ThreadLocalUserContext.getUserContext().employeeId
+        // TODO Check user rights
+        // use searchEmployeeId if given or employeeId from user preference as fallback
+        val employeeId: Int? = searchEmployeeId ?: (getUserPref().employeeId
+                ?: ThreadLocalUserContext.getUserContext().employeeId)
+
         val employee = employeeService.getById(employeeId)
+
         val statistics = mutableMapOf<String, Any>()
         val currentStats = vacationService.getVacationStats(employee, Year.now().value)
         val prevStats = vacationService.getVacationStats(employee, Year.now().value - 1)
@@ -128,6 +134,7 @@ class VacationAccountPageRest {
         }
         layout.add(UIFieldset(length = 12)
                 .add(UIRow()
+                        // TODO CHECK USER RIGHTS
                         .add(UICol(mdLength = 6, smLength = 12)
                                 .add(lc, "employee"))
                         .add(UICol(mdLength = 6, smLength = 12)
@@ -144,6 +151,26 @@ class VacationAccountPageRest {
         val data = Data(employee = employee, statistics = statistics)
 
         return FormLayoutData(data, layout, null)
+    }
+
+    @PostMapping(RestPaths.WATCH_FIELDS)
+    fun watchFields(@Valid @RequestBody postData: PostData<Data>): ResponseAction {
+        if (
+                postData.watchFieldsTriggered?.contains("employee") == false
+                || postData.data.employee == null
+        ) {
+            return ResponseAction(targetType = TargetType.NOTHING)
+        }
+
+        val employeeId = postData.data.employee!!.id
+        val layoutData = getForm(employeeId)
+
+        return ResponseAction(
+                url = "/${Const.REACT_APP_PATH}vacationAccount/dynamic/${employeeId}",
+                targetType = TargetType.UPDATE
+        )
+                .addVariable("data", layoutData.data)
+                .addVariable("ui", layoutData.ui)
     }
 
     private fun readVacations(variables: MutableMap<String, Any>, id: String, employeeId: Int, year: Int) {
