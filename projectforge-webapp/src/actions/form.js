@@ -102,6 +102,11 @@ export const callAction = (
         return Promise.reject(Error('No response action given.'));
     }
 
+    if (action.targetType === 'REDIRECT') {
+        history.push(`/${action.url}`);
+        return Promise.resolve();
+    }
+
     const { form: state } = getState();
     const category = state.currentCategory;
 
