@@ -172,7 +172,7 @@ abstract class AbstractPagesRest<
     }
 
     open fun createListLayout(): UILayout {
-        val layout = UILayout("$i18nKeyPrefix.list")
+        val ui = UILayout("$i18nKeyPrefix.list")
         val gearMenu = MenuItem(GEAR_MENU, title = "*")
         gearMenu.add(MenuItem("reindexNewestDatabaseEntries",
                 i18nKey = "menu.reindexNewestDatabaseEntries",
@@ -187,17 +187,17 @@ abstract class AbstractPagesRest<
                     tooltipTitle = "menu.reindexAllDatabaseEntries.tooltip.title",
                     url = getRestPath("reindexFull"),
                     type = MenuItemTargetType.RESTCALL))
-        layout.add(gearMenu)
-        layout.addTranslations("reset", "datatable.no-records-found", "date.begin", "date.end",
+        ui.add(gearMenu)
+        ui.addTranslations("reset", "datatable.no-records-found", "date.begin", "date.end",
                 "search.lastMinute", "search.lastHour", "calendar.today", "search.sinceYesterday")
-        layout.addTranslation("search.lastMinutes.10", translateMsg("search.lastMinutes", 10))
-        layout.addTranslation("search.lastMinutes.30", translateMsg("search.lastMinutes", 30))
-        layout.addTranslation("search.lastHours.4", translateMsg("search.lastHours", 4))
-        layout.addTranslation("search.lastDays.3", translateMsg("search.lastDays", 3))
-        layout.addTranslation("search.lastDays.7", translateMsg("search.lastDays", 7))
-        layout.addTranslation("search.lastDays.30", translateMsg("search.lastDays", 30))
-        layout.addTranslation("search.lastDays.90", translateMsg("search.lastDays", 90))
-        return layout
+        ui.addTranslation("search.lastMinutes.10", translateMsg("search.lastMinutes", 10))
+        ui.addTranslation("search.lastMinutes.30", translateMsg("search.lastMinutes", 30))
+        ui.addTranslation("search.lastHours.4", translateMsg("search.lastHours", 4))
+        ui.addTranslation("search.lastDays.3", translateMsg("search.lastDays", 3))
+        ui.addTranslation("search.lastDays.7", translateMsg("search.lastDays", 7))
+        ui.addTranslation("search.lastDays.30", translateMsg("search.lastDays", 30))
+        ui.addTranslation("search.lastDays.90", translateMsg("search.lastDays", 90))
+        return ui
     }
 
     /**
@@ -229,9 +229,9 @@ abstract class AbstractPagesRest<
 
     open fun createEditLayout(dto: DTO, userAccess: UILayout.UserAccess): UILayout {
         val titleKey = if (getId(dto) != null) "$i18nKeyPrefix.edit" else "$i18nKeyPrefix.add"
-        val layout = UILayout(titleKey)
-        layout.userAccess.copyFrom(userAccess)
-        return layout
+        val ui = UILayout(titleKey)
+        ui.userAccess.copyFrom(userAccess)
+        return ui
     }
 
     open fun validate(validationErrors: MutableList<ValidationError>, dto: DTO) {
@@ -310,18 +310,18 @@ abstract class AbstractPagesRest<
         val favorites = getFilterFavorites()
         val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter))
         resultSet.highlightRowId = userPrefService.getEntry(getCategory(), USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
-        val layout = createListLayout()
+        val ui = createListLayout()
                 .addTranslations("table.showing",
                         "searchFilter",
                         "nothingFound")
-        layout.add(LayoutListFilterUtils.createNamedContainer(this, lc))
-        layout.postProcessPageMenu()
+        ui.add(LayoutListFilterUtils.createNamedContainer(this, lc))
+        ui.postProcessPageMenu()
         if (classicsLinkListUrl != null) {
-            layout.add(MenuItem(CLASSIC_VERSION_MENU, title = "*", url = classicsLinkListUrl, tooltip = translate("goreact.menu.classics")), 0)
+            ui.add(MenuItem(CLASSIC_VERSION_MENU, title = "*", url = classicsLinkListUrl, tooltip = translate("goreact.menu.classics")), 0)
         }
-        layout.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Const.REACT_APP_PATH}${getCategory()}/edit"))
+        ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Const.REACT_APP_PATH}${getCategory()}/edit"))
 
-        return InitialListData(ui = layout,
+        return InitialListData(ui = ui,
                 standardEditPage = "${Const.REACT_APP_PATH}${getCategory()}/edit/:id",
                 quickSelectUrl = quickSelectUrl,
                 data = resultSet,
@@ -563,8 +563,8 @@ abstract class AbstractPagesRest<
         })
                 ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         onBeforeGetItemAndLayout(request, item, userAccess)
-        val layout = getItemAndLayout(request, item, userAccess)
-        return ResponseEntity(layout, HttpStatus.OK)
+        val ui = getItemAndLayout(request, item, userAccess)
+        return ResponseEntity(ui, HttpStatus.OK)
     }
 
     /**
@@ -575,12 +575,12 @@ abstract class AbstractPagesRest<
     }
 
     protected fun getItemAndLayout(request: HttpServletRequest, dto: DTO, userAccess: UILayout.UserAccess): FormLayoutData {
-        val layout = createEditLayout(dto, userAccess)
-        layout.addTranslations("changes", "tooltip.selectMe")
-        layout.postProcessPageMenu()
+        val ui = createEditLayout(dto, userAccess)
+        ui.addTranslations("changes", "tooltip.selectMe")
+        ui.postProcessPageMenu()
         val serverData = ServerData(
                 csrfToken = sessionCsrfCache.ensureAndGetToken(request))
-        val result = FormLayoutData(dto, layout, serverData)
+        val result = FormLayoutData(dto, ui, serverData)
         onGetItemAndLayout(request, dto, result)
         val additionalVariables = addVariablesForEditPage(dto)
         if (additionalVariables != null)
@@ -695,11 +695,11 @@ abstract class AbstractPagesRest<
             }
             // Validation errors or other errors occured, doesn't save. Proceed with editing.
         }
-        val editLayoutData = getItemAndLayout(request, clone, UILayout.UserAccess(false, true))
+        val formLayoutData = getItemAndLayout(request, clone, UILayout.UserAccess(false, true))
         return ResponseEntity(ResponseAction(targetType = TargetType.UPDATE)
-                .addVariable("data", editLayoutData.data)
-                .addVariable("ui", editLayoutData.ui)
-                .addVariable("variables", editLayoutData.variables),
+                .addVariable("data", formLayoutData.data)
+                .addVariable("ui", formLayoutData.ui)
+                .addVariable("variables", formLayoutData.variables),
                 HttpStatus.OK)
     }
 
