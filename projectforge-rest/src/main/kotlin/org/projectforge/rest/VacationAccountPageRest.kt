@@ -26,12 +26,14 @@ package org.projectforge.rest
 import org.projectforge.Const
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.api.EmployeeService
+import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStatsFormatted
 import org.projectforge.common.DateFormatType
+import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTimeUtils
@@ -57,6 +59,9 @@ class VacationAccountPageRest {
             var employee: EmployeeDO? = null,
             var statistics: MutableMap<String, Any>? = null
     )
+
+    @Autowired
+    private lateinit var accessChecker: AccessChecker
 
     @Autowired
     private lateinit var employeeService: EmployeeService
@@ -104,11 +109,13 @@ class VacationAccountPageRest {
         val endOfYearString = PFDateTimeUtils.ensureUsersDateTimeFormat(DateFormatType.DATE_WITHOUT_YEAR).format(endOfYear)
         layout.addTranslation("vacation.previousyearleaveunused", translateMsg("vacation.previousyearleaveunused", endOfYearString))
 
-        // TODO Check user rights
-        // use searchEmployeeId if given or employeeId from user preference as fallback
-        val employeeId: Int? = searchEmployeeId ?: (getUserPref().employeeId
-                ?: ThreadLocalUserContext.getUserContext().employeeId)
+        val isHRMember = accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.HR_GROUP)
 
+        val employeeId: Int? = if (searchEmployeeId != null && isHRMember) {
+            searchEmployeeId
+        } else {
+            getUserPref().employeeId ?: ThreadLocalUserContext.getUserContext().employeeId;
+        }
         val employee = employeeService.getById(employeeId)
 
         val statistics = mutableMapOf<String, Any>()
@@ -127,18 +134,26 @@ class VacationAccountPageRest {
             }
         }
         val buttonCol = UICol(length = 6)
-        buttonCol.add(UIButton("add", "add", UIColor.SUCCESS, responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java))))
+        buttonCol.add(UIButton("add", "add", UIColor.SUCCESS, responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java), targetType = TargetType.REDIRECT)))
         if (currentStats.remainingLeaveFromPreviousYear != prevStats.vacationDaysLeftInYear) {
             buttonCol.add(UIButton("recalculate", "vacation.recalculateRemainingLeave", UIColor.DANGER,
                     responseAction = ResponseAction(PagesResolver.getDynamicPageUrl(this.javaClass, mapOf<String, Any>("recalculate" to true)))))
         }
+
+        val statisticRow = UIRow()
+
+        if (isHRMember) {
+            statisticRow.add(
+                    UICol(mdLength = 6, smLength = 12)
+                            .add(lc, "employee"))
+        }
+
+        statisticRow.add(
+                UICol(mdLength = if (isHRMember) 6 else 12, smLength = 12)
+                .add(UICustomized("vacation.statistics")))
+
         layout.add(UIFieldset(length = 12)
-                .add(UIRow()
-                        // TODO CHECK USER RIGHTS
-                        .add(UICol(mdLength = 6, smLength = 12)
-                                .add(lc, "employee"))
-                        .add(UICol(mdLength = 6, smLength = 12)
-                                .add(UICustomized("vacation.statistics"))))
+                .add(statisticRow)
                 .add(UIRow().add(buttonCol))
                 .add(UIFieldset(length = 12)
                         .add(UIRow()
