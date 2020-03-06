@@ -92,7 +92,12 @@ export const loadFormPage = (category, id, url) => (dispatch, getState) => {
         .catch(error => callFailure(category, error));
 };
 
-export const callAction = ({ responseAction: action, watchFieldsTriggered }) => (dispatch, getState) => {
+export const callAction = (
+    {
+        responseAction: action,
+        watchFieldsTriggered,
+    },
+) => (dispatch, getState) => {
     if (!action) {
         return Promise.reject(Error('No response action given.'));
     }
