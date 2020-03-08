@@ -48,7 +48,7 @@ import javax.persistence.*
             Index(name = "idx_fk_t_personal_address_tenant_id", columnList = "tenant_id")])
 @NamedQueries(
         NamedQuery(name = FIND_FAVORITE_ADDRESS_IDS_BY_OWNER,
-                query = "select pa.address.id from PersonalAddressDO pa where pa.owner.id = :ownerId and pa.favoriteCard = true"),
+                query = "select pa.address.id from PersonalAddressDO pa where pa.owner.id=:ownerId and pa.favoriteCard=true and deleted=false and pa.address.deleted=false"),
         NamedQuery(name = FIND_BY_OWNER,
                 query = "from PersonalAddressDO pa where pa.owner.id = :ownerId"),
         NamedQuery(name = FIND_BY_OWNER_AND_ADDRESS_ID,

@@ -87,7 +87,7 @@ class RequestData(request: HttpServletRequest, longForm: Boolean = false) {
 
     init {
         for (attribute in request.attributeNames) {
-            attributes[attribute] = handleSecret(request, attribute, request.getAttribute(attribute))
+            attributes[attribute] = handleSecret(request, attribute, request.getAttribute(attribute)?.toString())
         }
         for (header in request.headerNames) {
             headers[header] = handleSecret(request, header, request.getHeader(header)) as String
