@@ -24,6 +24,7 @@
 package org.projectforge.rest
 
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.SystemStatus
 import org.projectforge.business.address.*
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.image.ImageService
@@ -209,8 +210,17 @@ class AddressPagesRest()
         if (configurationService.isTelephoneSystemUrlConfigured) {
             layout.add(MenuItem("address.phoneCall", i18nKey = "menu.phoneCall", url = "wa/phoneCall"), menuIndex++)
         }
-        if (smsSenderConfig.isSmsConfigured()) {
-            layout.add(MenuItem("address.writeSMS", i18nKey = "address.tooltip.writeSMS", url = "wa/sendSms"), menuIndex++)
+        if (smsSenderConfig.isSmsConfigured() || SystemStatus.isDevelopmentMode()) {
+            val sendSmsUrl = if (SystemStatus.isDevelopmentMode()) {
+                log.warn("********** React version of texting messages is only available in development mode.")
+                PagesResolver.getDynamicPageUrl(SendTextMessagePageRest::class.java)
+            } else {
+                "wa/sendSms"
+            }
+            layout.add(MenuItem("address.writeSMS",
+                    i18nKey = "address.tooltip.writeSMS",
+                    url = sendSmsUrl),
+                    menuIndex++)
         }
         val exportMenu = MenuItem("address.export", i18nKey = "export")
         if (configurationService.isDAVServicesAvailable) {
