@@ -206,6 +206,9 @@ class AddressPagesRest()
         layout.getTableColumnById("address.addressbookList").formatter = Formatter.ADDRESS_BOOK
         layout.getTableColumnById("address.addressbookList").sortable = false
         var menuIndex = 0
+        if (configurationService.isTelephoneSystemUrlConfigured) {
+            layout.add(MenuItem("address.phoneCall", i18nKey = "menu.phoneCall", url = "wa/phoneCall"), menuIndex++)
+        }
         if (smsSenderConfig.isSmsConfigured()) {
             layout.add(MenuItem("address.writeSMS", i18nKey = "address.tooltip.writeSMS", url = "wa/sendSms"), menuIndex++)
         }
