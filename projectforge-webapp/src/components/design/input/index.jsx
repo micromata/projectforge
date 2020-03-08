@@ -2,7 +2,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
+import UncontrolledTooltip from 'reactstrap/lib/UncontrolledTooltip';
 import { colorPropType } from '../../../utilities/propTypes';
+import TooltipIcon from '../TooltipIcon';
+import AdditionalLabel from './AdditionalLabel';
 import styles from './Input.module.scss';
 
 const Input = React.forwardRef((
@@ -19,6 +22,7 @@ const Input = React.forwardRef((
         onFocus,
         noStyle,
         selectOnFocus,
+        tooltip,
         value,
         ...props
     },
@@ -105,12 +109,19 @@ const Input = React.forwardRef((
                 <span
                     ref={labelRef}
                     className={styles.labelText}
+                    id={`input-label-${id}`}
                 >
                     {label}
+                    {tooltip && <TooltipIcon />}
                 </span>
             </label>
             {additionalLabel && (
                 <span className={styles.additionalLabel}>{additionalLabel}</span>
+            )}
+            {tooltip && (
+                <UncontrolledTooltip placement="auto" target={`input-label-${id}`}>
+                    {tooltip}
+                </UncontrolledTooltip>
             )}
         </div>
     );
@@ -129,6 +140,7 @@ Input.propTypes = {
     onFocus: PropTypes.func,
     noStyle: PropTypes.bool,
     selectOnFocus: PropTypes.bool,
+    tooltip: PropTypes.string,
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
@@ -144,6 +156,7 @@ Input.defaultProps = {
     onFocus: undefined,
     noStyle: false,
     selectOnFocus: false,
+    tooltip: undefined,
     value: undefined,
 };
 

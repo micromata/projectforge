@@ -7,6 +7,7 @@ import CustomizedAddressPhoneNumbers from './components/CustomizedAddressPhoneNu
 import CustomizedConsumptionBar from './components/CustomizedConsumptionBar';
 import CustomizedImageDataPreview from './components/ImageDataPreview';
 import DayRange from './components/DayRange';
+import JiraIssuesLinks from './components/JiraIssuesLinks';
 import TimesheetEditTaskAndKost2 from './components/timesheet/TimesheetEditTaskAndKost2';
 import TimesheetTemplatesAndRecents from './components/timesheet/TimesheetTemplatesAndRecents';
 import CalendarEventReminder from './components/CalendarEventReminder';
@@ -45,6 +46,9 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'dayRange':
             Tag = DayRange;
+            break;
+        case 'jira.issuesLinks':
+            Tag = JiraIssuesLinks;
             break;
         case 'task.consumption':
             Tag = CustomizedConsumptionBar;

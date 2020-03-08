@@ -40,6 +40,7 @@ class DeserializersTest {
         assertEquals("+49 30 12345678", readText(mapper, "\u202D+49 30 12345678\u202C"))
         assertEquals("test test", readText(mapper, " \u202D test \u202Ctest\u202C  "))
         assertEquals("äé 玻璃而不伤身体 faljd", readText(mapper, " \u202Däé 玻璃而不伤身\u202C体 faljd\u202C  "))
+        assertEquals("Line 1\nLine 2", readText(mapper, "\\n Line 1\\nLine 2   "))
     }
 
     private fun readText(mapper: ObjectMapper, text: String?): String? {

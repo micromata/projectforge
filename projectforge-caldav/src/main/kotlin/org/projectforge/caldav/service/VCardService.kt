@@ -70,7 +70,7 @@ class VCardService {
         //adr.setLabel("123 Main St.\nAlbany, NY 54321\nUSA");
         vcard.addAddress(homeAddress)
         vcard.addTelephoneNumber(addressDO.privatePhone, TelephoneType.HOME)
-        vcard.addTelephoneNumber(addressDO.privateMobilePhone, TelephoneType.HOME, TelephoneType.PAGER)
+        vcard.addTelephoneNumber(addressDO.privateMobilePhone, TelephoneType.CELL, TelephoneType.HOME)
         vcard.addEmail(addressDO.privateEmail, EmailType.HOME)
         //Business address
         val businessAddress = Address()
@@ -83,8 +83,8 @@ class VCardService {
         //adr.setLabel("123 Main St.\nAlbany, NY 54321\nUSA");
         vcard.addAddress(businessAddress)
         vcard.addTelephoneNumber(addressDO.businessPhone, TelephoneType.WORK)
-        vcard.addTelephoneNumber(addressDO.mobilePhone, TelephoneType.WORK, TelephoneType.CELL)
-        vcard.addTelephoneNumber(addressDO.fax, TelephoneType.WORK, TelephoneType.FAX)
+        vcard.addTelephoneNumber(addressDO.mobilePhone, TelephoneType.CELL, TelephoneType.WORK)
+        vcard.addTelephoneNumber(addressDO.fax, TelephoneType.FAX, TelephoneType.WORK)
         vcard.addEmail(addressDO.email, EmailType.WORK)
         val organisation = Organization()
         organisation.values.add(if (StringUtils.isEmpty(addressDO.organization) == false) addressDO.organization else "")
@@ -145,27 +145,26 @@ class VCardService {
             }
         }
         for (telephone in vcard.telephoneNumbers) {
-            if (telephone.types.contains(TelephoneType.PAGER)) {
-                address.privateMobilePhone = addCountryCode(telephone.text)
-            }
-            if (telephone.types.contains(TelephoneType.HOME) && telephone.types.contains(TelephoneType.VOICE)) {
-                address.privatePhone = addCountryCode(telephone.text)
-            }
-            if (telephone.types.contains(TelephoneType.CELL) && telephone.types.contains(TelephoneType.VOICE)) {
-                address.mobilePhone = addCountryCode(telephone.text)
-            }
-            if (telephone.types.contains(TelephoneType.WORK) && telephone.types.contains(TelephoneType.VOICE)) {
-                address.businessPhone = addCountryCode(telephone.text)
-            }
-            if (telephone.types.contains(TelephoneType.WORK) && telephone.types.contains(TelephoneType.FAX)) {
-                address.fax = addCountryCode(telephone.text)
+            if (telephone.types.contains(TelephoneType.HOME)) {
+                if (telephone.types.contains(TelephoneType.CELL)) {
+                    address.privateMobilePhone = addCountryCode(telephone.text)
+                } else {
+                    address.privatePhone = addCountryCode(telephone.text)
+                }
+            } else {
+                if (telephone.types.contains(TelephoneType.FAX)) {
+                    address.fax = addCountryCode(telephone.text)
+                } else if (telephone.types.contains(TelephoneType.CELL)) {
+                    address.mobilePhone = addCountryCode(telephone.text)
+                } else  {
+                    address.businessPhone = addCountryCode(telephone.text)
+                }
             }
         }
         for (email in vcard.emails) {
             if (email.types.contains(EmailType.HOME)) {
                 address.privateEmail = email.value
-            }
-            if (email.types.contains(EmailType.WORK)) {
+            } else {
                 address.email = email.value
             }
         }
