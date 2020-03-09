@@ -28,6 +28,7 @@ import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.caldav.service.SslSessionCache
 import org.projectforge.rest.utils.RequestToJson
+import org.projectforge.web.rest.AbstractRestUserFilter
 import org.projectforge.web.rest.RestAuthenticationInfo
 import org.projectforge.web.rest.RestAuthenticationUtils
 import org.slf4j.LoggerFactory
@@ -63,8 +64,14 @@ class PFMiltonFilter : MiltonFilter() {
     }
 
     private fun authenticate(authInfo: RestAuthenticationInfo) {
+        if (log.isDebugEnabled) {
+            log.debug("Trying to authenticate user...")
+        }
         val sslSessionUser = sslSessionCache.getSessionData(authInfo.request)
         if (sslSessionUser != null) {
+            if (log.isDebugEnabled) {
+                log.debug("User found by session id...")
+            }
             authInfo.user = sslSessionUser
         } else {
             restAuthenticationUtils.basicAuthentication(authInfo, UserTokenType.DAV_TOKEN, true) { userString, authenticationToken ->
@@ -81,8 +88,14 @@ class PFMiltonFilter : MiltonFilter() {
 
     @Throws(IOException::class, ServletException::class)
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
+        if (log.isDebugEnabled) {
+            log.debug("Processing request...")
+        }
         request as HttpServletRequest
         if (!DAVMethodsInterceptor.handledByMiltonFilter(request)) {
+            if (log.isDebugEnabled) {
+                log.debug("Request is not for us (no CalDAV or CardDAV-call), processing normal filter chain...")
+            }
             // Not for us:
             chain.doFilter(request, response)
         } else {
