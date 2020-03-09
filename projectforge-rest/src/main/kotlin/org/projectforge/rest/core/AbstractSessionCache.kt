@@ -27,6 +27,8 @@ import mu.KotlinLogging
 import org.projectforge.framework.cache.AbstractCache
 import javax.servlet.http.HttpServletRequest
 
+private val log = KotlinLogging.logger {}
+
 /**
  * Caches the session id's of the clients (for up to 5 Minutes). Every 10 Minutes, expired sessions will be removed.
  */
@@ -54,8 +56,6 @@ abstract class AbstractSessionCache<T : Any>(
                 return _data
             }
     }
-
-    private val log = KotlinLogging.logger {}
 
     private val cache = mutableListOf<Entry<T>>()
 
