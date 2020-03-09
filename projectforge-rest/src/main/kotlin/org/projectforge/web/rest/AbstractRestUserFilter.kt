@@ -23,6 +23,7 @@
 
 package org.projectforge.web.rest
 
+import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.filter.UserFilter
@@ -65,6 +66,9 @@ abstract class AbstractRestUserFilter(val userTokenType: UserTokenType) : Filter
      */
     @Throws(IOException::class, ServletException::class)
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
+        if (log.isDebugEnabled) {
+            log.debug("Processing request...")
+        }
         restAuthenticationUtils.doFilter(request,
                 response,
                 userTokenType,
