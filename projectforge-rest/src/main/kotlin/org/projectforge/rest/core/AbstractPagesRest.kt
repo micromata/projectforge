@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.core
 
+import mu.KotlinLogging
 import org.apache.commons.beanutils.NestedNullException
 import org.apache.commons.beanutils.PropertyUtils
 import org.projectforge.Const
@@ -55,6 +56,8 @@ import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
+private val log = KotlinLogging.logger {}
+
 /**
  * This is the base class for all fronted functionality regarding query, editing etc. It also serves layout
  * data for the frontend.
@@ -73,10 +76,12 @@ abstract class AbstractPagesRest<
     enum class CloneSupport {
         /** No clone support. */
         NONE,
+
         /**
          * Clone button will create a copy (without saving it automatically).
          */
         CLONE,
+
         /**
          * Clone button will create and save a copy and close the window.
          */
@@ -84,8 +89,8 @@ abstract class AbstractPagesRest<
     }
 
     /**
-     * If [getAutoCompletionObjects] is called without a special property to search for, all properties will be searched for,
-     * given by this attribute. If null, an exception is thrown, if [getAutoCompletionObjects] is called without a property.
+     * If [getAutoCompleteObjects] is called without a special property to search for, all properties will be searched for,
+     * given by this attribute. If null, an exception is thrown, if [getAutoCompleteObjects] is called without a property.
      */
     open val autoCompleteSearchFields: Array<String>? = null
 
@@ -217,7 +222,7 @@ abstract class AbstractPagesRest<
      * Relative rest path (without leading /rs
      */
     fun getRestRootPath(subPath: String? = null): String {
-        return "${getRestPath(subPath)}"
+        return getRestPath(subPath)
     }
 
     private fun getCategory(): String {
@@ -571,7 +576,7 @@ abstract class AbstractPagesRest<
      * Will be called after getting the item from the database before calling [onGetItemAndLayout]. No initial layout
      * is available.
      */
-    open protected fun onBeforeGetItemAndLayout(request: HttpServletRequest, dto: DTO, userAccess: UILayout.UserAccess) {
+    protected open fun onBeforeGetItemAndLayout(request: HttpServletRequest, dto: DTO, userAccess: UILayout.UserAccess) {
     }
 
     protected fun getItemAndLayout(request: HttpServletRequest, dto: DTO, userAccess: UILayout.UserAccess): FormLayoutData {
@@ -711,7 +716,7 @@ abstract class AbstractPagesRest<
     /**
      * Might be modified e. g. for edit pages handled in modals (timesheets and calendar events).
      */
-    open protected fun getRestEditPath(): String {
+    protected open fun getRestEditPath(): String {
         return PagesResolver.getEditPageUrl(this::class.java)
     }
 
@@ -749,7 +754,7 @@ abstract class AbstractPagesRest<
         return onWatchFieldsUpdate(request, postData.data, postData.watchFieldsTriggered)
     }
 
-    open protected fun onWatchFieldsUpdate(request: HttpServletRequest, dto: DTO, watchFieldsTriggered: Array<String>?): ResponseAction {
+    protected open fun onWatchFieldsUpdate(request: HttpServletRequest, dto: DTO, watchFieldsTriggered: Array<String>?): ResponseAction {
         return ResponseAction(targetType = TargetType.NOTHING)
     }
 

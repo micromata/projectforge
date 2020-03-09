@@ -23,18 +23,25 @@
 
 package org.projectforge.web.rest
 
+import mu.KotlinLogging
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.rest.Authentication
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+
+private val log = KotlinLogging.logger {}
 
 class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
     @Autowired
     private lateinit var cookieService: CookieService
 
     override fun authenticate(authInfo: RestAuthenticationInfo) {
+        // Try to get the user by session id:
+        authInfo.user = UserFilter.getUser(authInfo.request)
+        if (authInfo.success) {
+            return
+        }
         restAuthenticationUtils.authenticationByRequestParameter(
                 authInfo = authInfo,
                 userAttributes = RestAuthenticationUtils.REQUEST_PARAMS_USERNAME,
@@ -54,11 +61,6 @@ class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
             return
         }
         restAuthenticationUtils.tokenAuthentication(authInfo, UserTokenType.REST_CLIENT, false)
-        if (authInfo.success) {
-            return
-        }
-        // Try to get the user by session id:
-        authInfo.user = UserFilter.getUser(authInfo.request)
         if (authInfo.success) {
             return
         }
@@ -84,9 +86,5 @@ class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
                     + Authentication.AUTHENTICATION_PASSWORD
                     + " is given for rest call: " + requestURI + " . Rest call forbidden.")
         }
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(RestUserFilter::class.java)
     }
 }

@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.SystemStatus
 import org.projectforge.business.address.*
@@ -50,10 +51,11 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
+private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/address")
-class AddressPagesRest()
+class AddressPagesRest
     : AbstractDTOPagesRest<AddressDO, Address, AddressDao>(
         AddressDao::class.java,
         i18nKeyPrefix = "address.title",
