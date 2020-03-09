@@ -110,7 +110,7 @@ open class RestAuthenticationUtils {
             if (required) {
                 logError(authInfo, "Authentication failed, no user given by request params ${joinToString(userAttributes)}. Rest call forbidden.")
             } else if (log.isDebugEnabled) {
-                log.debug("Can't get user String by request parameters '${joinToString(userAttributes)}' (OK).")
+                log.debug("Can't get user String by request parameters ${joinToString(userAttributes)} (OK).")
             }
             return null
         }
@@ -119,7 +119,7 @@ open class RestAuthenticationUtils {
             return null
         }
         if (log.isDebugEnabled) {
-            log.debug("Got user by request parameters '${joinToString(userAttributes)}': ${authInfo.userString}.")
+            log.debug("Got user by request parameters ${joinToString(userAttributes)}: ${authInfo.userString}.")
         }
         return authInfo.userString
     }
@@ -131,7 +131,7 @@ open class RestAuthenticationUtils {
             logError(authInfo, "Authentication failed, no user secret (password or token) given by request params ${joinToString(secretAttributes)}. Rest call forbidden.")
             return null
         } else if (log.isDebugEnabled) {
-            log.debug("Got user secret by request parameters '${joinToString(secretAttributes)}'.")
+            log.debug("Got user secret by request parameters ${joinToString(secretAttributes)}.")
         }
         return secret
     }
