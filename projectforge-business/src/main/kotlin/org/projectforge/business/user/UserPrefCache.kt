@@ -38,7 +38,6 @@ import javax.annotation.PreDestroy
 /**
  * A cache for UserPrefDO, if preferences are modified and accessed very often by the user's normal work
  * (such as current filters in Calendar and list pages etc.)
- * Under construction (not yet in use).
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
