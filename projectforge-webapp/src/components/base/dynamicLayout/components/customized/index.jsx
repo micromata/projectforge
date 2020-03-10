@@ -16,7 +16,8 @@ import VacationEntries from './components/VacationEntries';
 import VacationStatistics from './components/VacationStatistics';
 import CostNumberComponent from "./components/CostNumberComponent";
 import AccessTableComponent from "./components/AccessTableComponent";
-import InvoicePositionsComponent from "./components/InvoicePositionsComponent";
+import InvoicePositionsComponent from "./components/OutgoingInvoicePositionsComponent";
+import IncomingInvoicePositionsComponent from "./components/IncomingInvoicePositionsComponent";
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;
@@ -55,7 +56,10 @@ function DynamicCustomized({ id, ...props }) {
         case 'dayRange':
             Tag = DayRange;
             break;
-        case 'invoice.position':
+        case 'invoice.incomingPosition':
+            Tag = IncomingInvoicePositionsComponent;
+            break;
+        case 'invoice.outgoingPosition':
             Tag = InvoicePositionsComponent;
             break;
         case 'task.consumption':

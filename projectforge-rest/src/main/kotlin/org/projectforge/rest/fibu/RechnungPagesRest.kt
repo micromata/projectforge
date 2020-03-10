@@ -83,8 +83,7 @@ class RechnungPagesRest: AbstractDOPagesRest<RechnungDO, RechnungDao>(RechnungDa
                         .add(UICol()
                                 .add(lc, "besonderheiten")))
                 // Positionen
-                // TODO: Custom component for positions
-                .add(UICustomized("invoice.position"))
+                .add(UICustomized("invoice.outgoingPosition"))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
