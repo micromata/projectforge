@@ -40,7 +40,7 @@ abstract class AbstractDOPagesRest<
         B : BaseDao<O>>(
         baseDaoClazz: Class<B>,
         i18nKeyPrefix: String,
-        cloneSupport: AbstractPagesRest.CloneSupport = AbstractPagesRest.CloneSupport.NONE)
+        cloneSupport: CloneSupport = CloneSupport.NONE)
     : AbstractPagesRest<O, O, B>(baseDaoClazz, i18nKeyPrefix, cloneSupport) {
 
     companion object {

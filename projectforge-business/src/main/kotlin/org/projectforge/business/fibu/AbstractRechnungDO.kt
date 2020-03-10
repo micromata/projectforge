@@ -207,13 +207,13 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
         // Get the highest used number + 1 or take 1 for the first position.
         val nextNumber = abstractPositionen!!.maxBy { it.number }?.number?.plus(1)?.toShort() ?: 1
         position.number = nextNumber
-        setRechnung(position)
+        setAbstractRechnung(position)
         addPositionWithoutCheck(position)
     }
 
     abstract protected fun addPositionWithoutCheck(position: AbstractRechnungsPositionDO)
 
-    abstract fun setRechnung(position: AbstractRechnungsPositionDO)
+    abstract fun setAbstractRechnung(position: AbstractRechnungsPositionDO)
 
     abstract fun ensureAndGetPositionen(): MutableList<out AbstractRechnungsPositionDO>
 

@@ -173,7 +173,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
         position.rechnung = this
     }
 
-    override fun setRechnung(position: AbstractRechnungsPositionDO) {
+    override fun setAbstractRechnung(position: AbstractRechnungsPositionDO) {
         position as RechnungsPositionDO
         position.rechnung = this
     }

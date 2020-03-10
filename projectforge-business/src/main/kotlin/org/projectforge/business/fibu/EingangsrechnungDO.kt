@@ -126,7 +126,7 @@ open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<Eingangsrechnun
     }
 
 
-    override fun setRechnung(position: AbstractRechnungsPositionDO) {
+    override fun setAbstractRechnung(position: AbstractRechnungsPositionDO) {
         position as EingangsrechnungsPositionDO
         position.eingangsrechnung = this
     }

@@ -76,7 +76,7 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable
         // Get the highest used number + 1 or take 0 for the first position.
         val nextIndex = zuweisungen.maxBy { it.index }?.index?.plus(1)?.toShort() ?: 0
         kostZuweisung.index = nextIndex
-        kostZuweisung.setRechnungsPosition(this)
+        kostZuweisung.setAbstractRechnungsPosition(this)
         zuweisungen.add(kostZuweisung)
     }
 
