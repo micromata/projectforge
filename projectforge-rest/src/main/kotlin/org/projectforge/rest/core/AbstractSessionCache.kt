@@ -81,7 +81,7 @@ abstract class AbstractSessionCache<T : Any>(
 
     fun registerSessionData(sessionId: String?, data: T) {
         if (sessionId == null || sessionId.length < 20) {
-            log.info { "$sessionType id to short. Usage denied: ${getSessionIdForLogging(sessionId)}" }
+            log.info { "$storageId: $sessionType id to short. Usage denied: ${getSessionIdForLogging(sessionId)}" }
             return
         }
         synchronized(cache) {
@@ -89,13 +89,13 @@ abstract class AbstractSessionCache<T : Any>(
             if (entry != null) {
                 val cachedData = entry.data // Updates last access, too.
                 if (equals(cachedData, data)) {
-                    log.warn { "$sessionType '${getSessionIdForLogging(sessionId)}' of user ${entryAsString(cachedData)} re-used by different user ${entryAsString(data)}!!!! Re-usage denied." }
+                    log.warn { "$storageId: $sessionType '${getSessionIdForLogging(sessionId)}' of entry ${entryAsString(cachedData)} re-used by different entry ${entryAsString(data)}!!!! Re-usage denied." }
                 } else {
-                    log.info { "$sessionType '${getSessionIdForLogging(sessionId)}' is re-used by user ${entryAsString(data)}." }
+                    log.info { "$storageId: $sessionType '${getSessionIdForLogging(sessionId)}' is re-used for entry ${entryAsString(data)}." }
                 }
                 // last access is updated by call entry.user.
             } else {
-                log.info { "Registering user ${entryAsString(data)} by new $sessionType '${getSessionIdForLogging(sessionId)}'." }
+                log.info { "$storageId: Registering entry ${entryAsString(data)} by new $sessionType '${getSessionIdForLogging(sessionId)}'." }
                 cache.add(Entry(sessionId, data))
             }
         }
@@ -108,18 +108,18 @@ abstract class AbstractSessionCache<T : Any>(
 
     fun getSessionData(sessionId: String?): T? {
         if (sessionId == null || sessionId.length < 20) {
-            log.info { "$sessionType to short. Usage denied: ${getSessionIdForLogging(sessionId)}" }
+            log.info { "$storageId: $sessionType to short. Usage denied: ${getSessionIdForLogging(sessionId)}" }
             return null
         }
         synchronized(cache) {
             val entry = cache.find { it.sessionId == sessionId } ?: return null
             if (isExpired(entry)) {
                 if (log.isDebugEnabled) {
-                    log.debug { "Found expired session user for $sessionType '${getSessionIdForLogging(sessionId)}'." }
+                    log.debug { "$storageId: Found expired session entry for $sessionType '${getSessionIdForLogging(sessionId)}'." }
                 }
                 return null
             }
-            log.info { "Restore logged-in user ${entryAsString(entry._data)} by $sessionType '${getSessionIdForLogging(sessionId)}'." }
+            log.info { "$storageId: Restore entry ${entryAsString(entry._data)} by $sessionType '${getSessionIdForLogging(sessionId)}'." }
             return entry.data
         }
     }
@@ -141,12 +141,15 @@ abstract class AbstractSessionCache<T : Any>(
         return request.session?.id
     }
 
+    private val storageId: String
+        get() = this::class.java.simpleName
+
     /**
      * Show only first 10 chars of ssl session id for security reasons.
      */
     private fun getSessionIdForLogging(sessionId: String?): String {
         sessionId ?: return "null"
-        return if (sessionId.length <= 10) "***" else "${sessionId.substring(0..9)}..."
+        return if (sessionId.length <= 6) "***" else "${sessionId.substring(0..5)}..."
     }
 
     override fun refresh() {
@@ -156,7 +159,7 @@ abstract class AbstractSessionCache<T : Any>(
                 isExpired(it)
             }
             if (log.isDebugEnabled) {
-                log.debug { "${size - cache.size} expired entries removed from SSL session cache." }
+                log.debug { "$storageId ($sessionType): ${size - cache.size} expired entries removed from SSL session cache." }
             }
         }
 
