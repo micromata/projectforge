@@ -56,7 +56,8 @@ import javax.validation.Valid
 class VacationAccountPageRest {
     class Data(
             var employee: EmployeeDO? = null,
-            var statistics: MutableMap<String, Any>? = null
+            var statistics: MutableMap<String, Any>? = null,
+            var vacations: MutableMap<String, Any>? = null
     )
 
     @Autowired
@@ -151,15 +152,14 @@ class VacationAccountPageRest {
         layout.add(UIFieldset(length = 12)
                 .add(statisticRow)
                 .add(UIRow().add(buttonCol))
-                .add(UIFieldset(length = 12)
-                        .add(UIRow()
-                                .add(UICol(length = 12)
-                                        .add(UICustomized("vacation.entries",
-                                                values = vacations))))))
+        ).add(UIFieldset(length = 12)
+                .add(UIRow()
+                        .add(UICol(length = 12)
+                                .add(UICustomized("vacation.entries")))))
         layout.watchFields.add("employee")
         LayoutUtils.process(layout)
 
-        val data = Data(employee = employee, statistics = statistics)
+        val data = Data(employee = employee, statistics = statistics, vacations = vacations)
 
         return FormLayoutData(data, layout, null)
     }
