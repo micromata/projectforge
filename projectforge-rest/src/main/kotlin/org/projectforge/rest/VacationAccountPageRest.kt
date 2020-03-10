@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
+import org.projectforge.business.vacation.repository.RemainingLeaveDao
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStatsFormatted
 import org.projectforge.common.DateFormatType
@@ -71,6 +72,9 @@ class VacationAccountPageRest {
 
     @Autowired
     private lateinit var vacationService: VacationService
+
+    @Autowired
+    private lateinit var remainingLeaveDao: RemainingLeaveDao
 
     @GetMapping("dynamic")
     fun getForm(@RequestParam("id") searchEmployeeId: Int? = null): FormLayoutData {
@@ -173,7 +177,22 @@ class VacationAccountPageRest {
             return ResponseAction(targetType = TargetType.NOTHING)
         }
 
+        return buildResponseAction(postData.data.employee!!.id)
+    }
+
+    @PostMapping("recalculate")
+    fun recalculateRemainingLeave(@Valid @RequestBody postData: PostData<Data>): ResponseAction {
+        if (!this.vacationService.hasLoggedInUserHRVacationAccess() || postData.data.employee == null) {
+            return ResponseAction(targetType = TargetType.NOTHING)
+        }
         val employeeId = postData.data.employee!!.id
+
+        remainingLeaveDao.internalMarkAsDeleted(employeeId, Year.now().value)
+
+        return buildResponseAction(employeeId)
+    }
+
+    private fun buildResponseAction(employeeId: Int): ResponseAction {
         val layoutData = getForm(employeeId)
 
         return ResponseAction(
@@ -183,12 +202,6 @@ class VacationAccountPageRest {
         )
                 .addVariable("data", layoutData.data)
                 .addVariable("ui", layoutData.ui)
-    }
-
-    @PostMapping("recalculate")
-    fun recalculateRemainingLeave(@Valid @RequestBody postdata: PostData<Data>): ResponseAction {
-        // TODO RECALCULATE REMAINING LEAVE. SEE VacationAccountForm.java#L160
-        return ResponseAction(targetType = TargetType.NOTHING)
     }
 
     private fun readVacations(variables: MutableMap<String, Any>, id: String, employeeId: Int, year: Int) {
