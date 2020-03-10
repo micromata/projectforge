@@ -25,16 +25,26 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
+import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/incomingInvoice")
 class EingangsrechnungPagesRest : AbstractDOPagesRest<EingangsrechnungDO, EingangsrechnungDao>(EingangsrechnungDao::class.java, "fibu.eingangsrechnung.title") {
+
+    @Autowired
+    private lateinit var eingangsrechnungDao: EingangsrechnungDao
 
     /**
      * LAYOUT List page
@@ -73,7 +83,14 @@ class EingangsrechnungPagesRest : AbstractDOPagesRest<EingangsrechnungDO, Eingan
                         .add(UICol()
                                 .add(lc, "besonderheiten")))
                 // Positionen
-                .add(UICustomized("invoice.position"))
+                .add(UICustomized("invoice.incomingPosition"))
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    @PostMapping("addPosition")
+    fun addPosition(request: HttpServletRequest, @RequestBody postData: PostData<EingangsrechnungDO>): ResponseEntity<ResponseAction> {
+        val eingangsrechnung = postData.data
+        eingangsrechnung.addPosition(EingangsrechnungsPositionDO())
+        return org.projectforge.rest.core.saveOrUpdate(request, this.eingangsrechnungDao, eingangsrechnung, postData, this, this.validate(eingangsrechnung))
     }
 }
