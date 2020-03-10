@@ -13,8 +13,8 @@ import TimesheetTemplatesAndRecents from './components/timesheet/TimesheetTempla
 import CalendarEventReminder from './components/CalendarEventReminder';
 import CalendarEditExternalSubscription from './components/CalendarEditExternalSubscription';
 import CalendarSubscriptionInfo from './components/CalendarSubscriptionInfo';
-import VacationEntries from './components/VacationEntries';
-import VacationStatistics from './components/VacationStatistics';
+import VacationEntries from './components/vacation/VacationEntries';
+import VacationStatistics from './components/vacation/VacationStatistics';
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;

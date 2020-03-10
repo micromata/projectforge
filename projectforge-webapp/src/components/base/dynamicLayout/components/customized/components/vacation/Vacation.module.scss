@@ -1,0 +1,22 @@
+table.statistics {
+  thead th {
+    font-weight: bold;
+    border-bottom: 1px solid #000;
+  }
+
+  .highlighted {
+    td {
+      font-weight: bold;
+      border-top: 1px solid #000;
+    }
+  }
+
+  .number {
+    text-align: right;
+  }
+}
+
+th.fullWidth {
+  width: 100%;
+}
+
