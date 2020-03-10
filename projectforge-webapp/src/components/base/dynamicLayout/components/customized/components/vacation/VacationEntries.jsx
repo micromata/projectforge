@@ -2,9 +2,9 @@
 import React from 'react';
 import 'react-rrule-generator/build/styles.css';
 import { Col, Row, Table } from 'reactstrap';
-import prefix from '../../../../../../utilities/prefix';
-import history from '../../../../../../utilities/history';
-import { DynamicLayoutContext } from '../../../context';
+import prefix from '../../../../../../../utilities/prefix';
+import history from '../../../../../../../utilities/history';
+import { DynamicLayoutContext } from '../../../../context';
 import style from './Vacation.module.scss';
 
 function handleVacationRowClick(event, id) {
@@ -82,14 +82,14 @@ function LeaveAccountEntriesTable(leaveAccountEntries, translations) {
     );
 }
 
-function VacationEntries({ values }) {
-    const { ui } = React.useContext(DynamicLayoutContext);
+function VacationEntries() {
+    const { data, ui } = React.useContext(DynamicLayoutContext);
 
     const {
         vacationsCurrentYear,
         vacationsPreviousYear,
         leaveAccountEntries,
-    } = values;
+    } = data.vacations;
 
     return React.useMemo(
         () => (
