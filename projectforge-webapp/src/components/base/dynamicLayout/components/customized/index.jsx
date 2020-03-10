@@ -1,20 +1,20 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import BookLendOut from './components/BookLendOut';
+import CalendarEditExternalSubscription from './components/CalendarEditExternalSubscription';
 import CalendarEventRecurrency from './components/CalendarEventRecurrence';
+import CalendarEventReminder from './components/CalendarEventReminder';
+import CalendarSubscriptionInfo from './components/CalendarSubscriptionInfo';
 import CustomizedAddressImage from './components/CustomizedAddressImage';
 import CustomizedAddressPhoneNumbers from './components/CustomizedAddressPhoneNumbers';
 import CustomizedConsumptionBar from './components/CustomizedConsumptionBar';
-import CustomizedImageDataPreview from './components/ImageDataPreview';
 import DayRange from './components/DayRange';
+import CustomizedImageDataPreview from './components/ImageDataPreview';
 import JiraIssuesLinks from './components/JiraIssuesLinks';
 import TimesheetEditTaskAndKost2 from './components/timesheet/TimesheetEditTaskAndKost2';
 import TimesheetTemplatesAndRecents from './components/timesheet/TimesheetTemplatesAndRecents';
-import CalendarEventReminder from './components/CalendarEventReminder';
-import CalendarEditExternalSubscription from './components/CalendarEditExternalSubscription';
-import CalendarSubscriptionInfo from './components/CalendarSubscriptionInfo';
-import VacationEntries from './components/vacation/VacationEntries';
 import VacationStatistics from './components/vacation/VacationStatistics';
+import VacationTable from './components/vacation/VacationTable';
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;
@@ -60,7 +60,7 @@ function DynamicCustomized({ id, ...props }) {
             Tag = TimesheetTemplatesAndRecents;
             break;
         case 'vacation.entries':
-            Tag = VacationEntries;
+            Tag = VacationTable;
             break;
         case 'vacation.statistics':
             Tag = VacationStatistics;

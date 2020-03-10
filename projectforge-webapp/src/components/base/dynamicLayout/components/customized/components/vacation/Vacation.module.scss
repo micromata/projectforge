@@ -4,16 +4,17 @@ table.statistics {
     border-bottom: 1px solid #000;
   }
 
-  .highlighted {
-    td {
-      font-weight: bold;
-      border-top: 1px solid #000;
-    }
+  .highlighted td {
+    font-weight: bold;
   }
+}
 
-  .number {
-    text-align: right;
-  }
+.highlighted td {
+  border-top: 1px solid #000;
+}
+
+.number {
+  text-align: right;
 }
 
 th.fullWidth {
