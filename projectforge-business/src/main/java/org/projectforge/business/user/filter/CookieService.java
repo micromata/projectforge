@@ -80,7 +80,7 @@ public class CookieService {
       }
       // update the cookie, especially the max age
       addStayLoggedInCookie(request, response, stayLoggedInCookie);
-      log.info("User successfully logged in using stay-logged-in method: " + user.getUserDisplayName());
+      log.info("User successfully logged in using stay-logged-in method: " + user.getUserDisplayName() + " (request=" + request.getRequestURI() + ").");
       return new UserContext(PFUserDO.createCopyWithoutSecretFields(user));
     }
     return null;
@@ -93,10 +93,10 @@ public class CookieService {
     stayLoggedInCookie.setMaxAge(COOKIE_MAX_AGE);
     stayLoggedInCookie.setPath("/");
     if (request.isSecure() || isSecureCookieConfigured()) {
-      log.debug("Set secure cookie");
+      log.debug("Set secure cookie (request=" + request.getRequestURI() + ").");
       stayLoggedInCookie.setSecure(true);
     } else {
-      log.debug("Set unsecure cookie");
+      log.debug("Set unsecure cookie (request=" + request.getRequestURI() + ").");
     }
     stayLoggedInCookie.setHttpOnly(true);
     response.addCookie(stayLoggedInCookie); // Refresh cookie.

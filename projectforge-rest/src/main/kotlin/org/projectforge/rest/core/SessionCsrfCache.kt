@@ -41,7 +41,7 @@ open class SessionCsrfCache
 
     fun checkToken(request: HttpServletRequest, token: String?): Boolean {
         if (token.isNullOrEmpty() || token.trim().length < 30) {
-            log.info { "Token to short, check faild for session id '${request.session.id}'."}
+            log.info { "Token to short, check faild for session id '${request.session.id}'." }
             return false
         }
         return super.getSessionData(request) == token
@@ -58,6 +58,6 @@ open class SessionCsrfCache
     }
 
     override fun entryAsString(entry: String): String {
-        return "'${entry.substring(0..9)}...'"
+        return "'${entry.substring(0..5)}...'"
     }
 }
