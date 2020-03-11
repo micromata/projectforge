@@ -196,8 +196,7 @@ class VacationAccountPageRest {
         val layoutData = getForm(employeeId)
 
         return ResponseAction(
-                // TODO USE PageResolver.getDynamicPageUrl WITH ID
-                url = "/${Const.REACT_APP_PATH}vacationAccount/dynamic/${employeeId}",
+                url = "/${PagesResolver.getDynamicPageUrl(this::class.java, id = employeeId)}",
                 targetType = TargetType.UPDATE
         )
                 .addVariable("data", layoutData.data)

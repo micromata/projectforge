@@ -72,9 +72,9 @@ object PagesResolver {
     /**
      * @return Path of react page.
      */
-    fun getDynamicPageUrl(pageRestClass: Class<*>, params: Map<String, Any?>? = null): String {
+    fun getDynamicPageUrl(pageRestClass: Class<*>, params: Map<String, Any?>? = null, id: Int? = null): String {
         val path = getRequestMappingPath(pageRestClass, "/dynamic") ?: return "NOT_FOUND"
-        return "$path${getQueryString(params)}"
+        return "$path/${id ?: ""}${getQueryString(params)}"
     }
 
     private fun getRequestMappingPath(clazz: Class<*>, suffix: String = ""): String? {
@@ -83,7 +83,7 @@ object PagesResolver {
             log.error("RequestMapping annotation not found in class '$clazz'.")
             return null
         }
-        val subpath = requestMapping.value[0].removePrefix("${Rest.URL}")
+        val subpath = requestMapping.value[0].removePrefix(Rest.URL)
         return "$REACT_PATH$subpath$suffix"
     }
 
