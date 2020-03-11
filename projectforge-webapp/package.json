@@ -10,6 +10,7 @@
     "awesome-debounce-promise": "^2.1.0",
     "bootstrap": "^4.3.1",
     "classnames": "^2.2.6",
+    "clipboard-copy": "^3.1.0",
     "eslint-config-airbnb": "^17.1.1",
     "fetch-mock": "^7.3.9",
     "history": "^4.9.0",

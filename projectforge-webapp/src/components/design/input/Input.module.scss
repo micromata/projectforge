@@ -7,7 +7,7 @@ $transitionTime: .2s ease-out;
   position: relative;
   font-size: 1.5rem;
   letter-spacing: .02em;
-  color: #7a7a7a;
+  color: #333;
   margin: 0;
   cursor: text;
   width: 100%;
@@ -30,7 +30,11 @@ $transitionTime: .2s ease-out;
     }
   }
 
-  &:hover {
+  &.readOnly, &.readOnly input {
+    cursor: default;
+  }
+
+  &:hover:not(.readOnly) {
     background-color: #eaeaea;
   }
 
@@ -161,7 +165,7 @@ $transitionTime: .2s ease-out;
   position: relative;
   font-size: 1.5rem;
   letter-spacing: .02em;
-  margin-bottom: 13px;
+  margin-top: 13px;
 
   .checkboxLabel {
     position: relative;
@@ -340,7 +344,6 @@ $transitionTime: .2s ease-out;
   .textAreaLabel {
     width: 100%;
     display: block;
-    margin: 20px 0;
 
     .text {
       position: absolute;
@@ -513,5 +516,35 @@ $transitionTime: .2s ease-out;
         }
       }
     }
+  }
+}
+
+.coverUp {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: linear-gradient(to right, transparent, #F5F5F5 50%);
+}
+
+.icons {
+  position: absolute;
+  right: .5em;
+  color: #777;
+
+  svg {
+    margin-right: .5em;
+
+    &:hover {
+      color: #000;
+    }
+  }
+
+  .success, .success:hover {
+    color: map_get($theme-colors, success);
+  }
+
+  .error, .error:hover {
+    color: map_get($theme-colors, danger);
   }
 }
