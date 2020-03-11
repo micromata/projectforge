@@ -53,6 +53,8 @@ import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
+
+// TODO: Meine Favoriten als Favorit hinterlegen, Favoriten markieren
 @RestController
 @RequestMapping("${Rest.URL}/address")
 class AddressPagesRest
@@ -130,7 +132,9 @@ class AddressPagesRest
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<AddressDO>>? {
         val doubletFilterEntry = source.entries.find { it.field == "doublets" }
+        doubletFilterEntry?.synthetic = true
         val myFavoritesFilterEntry = source.entries.find { it.field == "myFavorites" }
+        myFavoritesFilterEntry?.synthetic = true
         val filters = mutableListOf<CustomResultFilter<AddressDO>>()
         if (doubletFilterEntry?.value?.value == "true") {
             filters.add(DoubletsResultFilter())
@@ -138,7 +142,6 @@ class AddressPagesRest
         if (myFavoritesFilterEntry?.value?.value == "true") {
             filters.add(FavoritesResultFilter(personalAddressDao))
         }
-        source.entries.removeIf { arrayOf("doublets", "myFavorites").contains(it.field) }
         return filters
     }
 

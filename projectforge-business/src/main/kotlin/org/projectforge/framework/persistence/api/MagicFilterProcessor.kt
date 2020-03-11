@@ -52,7 +52,9 @@ object MagicFilterProcessor {
             queryFilter.addFullTextSearch(DBPredicate.modifySearchString(searchString, '*', '%', magicFilter.autoWildcardSearch))
         }
         for (magicFilterEntry in magicFilter.entries) {
-            if (magicFilterEntry.field.isNullOrBlank()) {
+            if (magicFilterEntry.synthetic == true) {
+                continue
+            } else if (magicFilterEntry.field.isNullOrBlank()) {
                 // Full text search (no field given).
                 queryFilter.addFullTextSearch(magicFilterEntry.value.value)
             } else {
