@@ -42,5 +42,5 @@ enum class UIIconType(val icon: Array<String>) {
     /**
      * https://fontawesome.com/icons/times?style=regular
      */
-    TIMES_REGULAR(arrayOf("times", "far"))
+    TIMES_REGULAR(arrayOf("far", "times"))
 }
