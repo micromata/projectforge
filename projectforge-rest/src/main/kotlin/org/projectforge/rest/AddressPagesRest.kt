@@ -209,9 +209,10 @@ class AddressPagesRest
         layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
         layout.getTableColumnById("address.addressbookList").set(formatter = Formatter.ADDRESS_BOOK, sortable = false)
         layout.getTableColumnById("address.isFavoriteCard").set(
-                dataType = UIDataType.BOOLEAN, sortable = false,
-                title = "address.columnHead.myFavorites",
-                tooltip = "address.filter.myFavorites")
+                        sortable = false,
+                        title = "address.columnHead.myFavorites",
+                        tooltip = "address.filter.myFavorites")
+                .setStandardBoolean()
         var menuIndex = 0
         if (configurationService.isTelephoneSystemUrlConfigured) {
             layout.add(MenuItem("address.phoneCall", i18nKey = "menu.phoneCall", url = "wa/phoneCall"), menuIndex++)
