@@ -37,6 +37,7 @@ function ReadonlyField(
     return (
         <React.Fragment>
             <InputContainer
+                className={styles.readOnly}
                 label={label}
                 isActive={Boolean(value)}
                 readOnly
@@ -67,7 +68,7 @@ function ReadonlyField(
                         )}
                     </React.Fragment>
                 )}
-                {value}
+                <p className={styles.value}>{value}</p>
                 {tooltip && (
                     <React.Fragment>
                         <TooltipIcon />
