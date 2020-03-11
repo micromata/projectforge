@@ -11,6 +11,7 @@ function InputContainer(
         color,
         isActive,
         label,
+        readOnly,
         withMargin,
         ...props
     },
@@ -22,6 +23,7 @@ function InputContainer(
                 {
                     [styles.isActive]: isActive,
                     [styles.withMargin]: withMargin,
+                    [styles.readOnly]: readOnly,
                 },
                 styles[color],
                 className,
@@ -44,6 +46,7 @@ InputContainer.propTypes = {
     color: colorPropType,
     isActive: PropTypes.bool,
     label: PropTypes.string,
+    readOnly: PropTypes.bool,
     withMargin: PropTypes.bool,
 };
 
@@ -52,6 +55,7 @@ InputContainer.defaultProps = {
     color: undefined,
     isActive: false,
     label: undefined,
+    readOnly: false,
     withMargin: false,
 };
 
