@@ -25,12 +25,23 @@ package org.projectforge.ui
 
 data class UITableColumn(var id: String,
                          var title: String? = null,
-                         @Transient
-                         var protectTitle: Boolean = false,
+                         var tooltip: String? = null,
                          var dataType: UIDataType = UIDataType.STRING,
                          var sortable: Boolean = true,
                          var formatter: Formatter? = null)
-    : UIElement(UIElementType.TABLE_COLUMN)
+    : UIElement(UIElementType.TABLE_COLUMN) {
+
+    /**
+     * Helper method for setting properties. Null values are ignored.
+     */
+    fun set(title: String? = null, tooltip: String? = null, dataType: UIDataType? = null, sortable: Boolean? = null, formatter: Formatter? = null) {
+        title?.let { this.title = it }
+        tooltip?.let { this.tooltip = it }
+        dataType?.let { this.dataType = it }
+        sortable?.let { this.sortable = it }
+        formatter?.let { this.formatter = it }
+    }
+}
 
 enum class Formatter {
     ADDRESS_BOOK,

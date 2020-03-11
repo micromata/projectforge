@@ -53,8 +53,6 @@ import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
-
-// TODO: Meine Favoriten als Favorit hinterlegen, Favoriten markieren
 @RestController
 @RequestMapping("${Rest.URL}/address")
 class AddressPagesRest
@@ -66,7 +64,7 @@ class AddressPagesRest
     /**
      * For exporting list of addresses.
      */
-    private class ListAddress(val address: AddressDO,
+    private class ListAddress(val address: Address,
                               val id: Int, // Needed for history Service
                               val deleted: Boolean,
                               var imageUrl: String? = null,
@@ -203,14 +201,17 @@ class AddressPagesRest
         addressLC.idPrefix = "address."
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(addressLC, "lastUpdate")
+                        .add(addressLC, "isFavoriteCard", "lastUpdate")
                         .add(UITableColumn("address.imagePreview", "address.image", dataType = UIDataType.CUSTOMIZED))
                         .add(addressLC, "name", "firstName", "organization", "email")
                         .add(UITableColumn("address.phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED, sortable = false))
                         .add(lc, "address.addressbookList"))
         layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
-        layout.getTableColumnById("address.addressbookList").formatter = Formatter.ADDRESS_BOOK
-        layout.getTableColumnById("address.addressbookList").sortable = false
+        layout.getTableColumnById("address.addressbookList").set(formatter = Formatter.ADDRESS_BOOK, sortable = false)
+        layout.getTableColumnById("address.isFavoriteCard").set(
+                dataType = UIDataType.BOOLEAN, sortable = false,
+                title = "address.columnHead.myFavorites",
+                tooltip = "address.filter.myFavorites")
         var menuIndex = 0
         if (configurationService.isTelephoneSystemUrlConfigured) {
             layout.add(MenuItem("address.phoneCall", i18nKey = "menu.phoneCall", url = "wa/phoneCall"), menuIndex++)
@@ -368,7 +369,7 @@ class AddressPagesRest
      */
     override fun processResultSetBeforeExport(resultSet: ResultSet<AddressDO>): ResultSet<*> {
         val newList = resultSet.resultSet.map {
-            ListAddress(it,
+            ListAddress(transformFromDB(it),
                     id = it.id,
                     deleted = it.isDeleted,
                     imageUrl = if (it.imageData != null) "address/image/${it.id}" else null,
