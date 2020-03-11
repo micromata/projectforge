@@ -67,17 +67,13 @@ class Address(var contactStatus: ContactStatus? = null,
               var comment: String? = null,
               var birthday: LocalDate? = null,
               var imageData: ByteArray? = null,
+              var imageDataPreview: ByteArray? = null,
               var instantMessaging: MutableList<LabelValueBean<InstantMessagingType, String>>? = null,
               var addressbookList: MutableSet<Addressbook>? = null,
               /**
                * Is this address a personal favorite of the current logged-in user?
                */
-              var isFavoriteCard: Boolean = false,
-              var isFavoriteBusinessPhone: Boolean = false,
-              var isFavoritePrivatePhone: Boolean = false,
-              var isFavoriteMobilePhone: Boolean = false,
-              var isFavoritePrivateMobilePhone: Boolean = false,
-              var isFavoriteFax: Boolean = false
+              var isFavoriteCard: Boolean = false
 ) : BaseDTO<AddressDO>() {
 
     override fun copyFrom(src: AddressDO) {

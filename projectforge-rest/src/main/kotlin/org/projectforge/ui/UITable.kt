@@ -41,7 +41,6 @@ data class UITable(val id : String, val columns : MutableList<UITableColumn> = m
     fun add(lc: LayoutContext, vararg columnIds: String): UITable {
         columnIds.forEach {
             val col = UITableColumn(it)
-            col.protectTitle = true
             val elementInfo = ElementsRegistry.getElementInfo(lc, it)
             if (elementInfo != null) {
                 col.title = elementInfo.i18nKey
