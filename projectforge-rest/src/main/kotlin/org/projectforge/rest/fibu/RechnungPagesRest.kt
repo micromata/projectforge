@@ -27,14 +27,15 @@ import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDOPagesRest
+import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.dto.Rechnung
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/invoice")
-class RechnungPagesRest: AbstractDOPagesRest<RechnungDO, RechnungDao>(RechnungDao::class.java, "fibu.rechnung.title") {
+class RechnungPagesRest : AbstractDTOPagesRest<RechnungDO, Rechnung, RechnungDao>(RechnungDao::class.java, "fibu.rechnung.title") {
 
     /**
      * LAYOUT List page
@@ -60,7 +61,7 @@ class RechnungPagesRest: AbstractDOPagesRest<RechnungDO, RechnungDao>(RechnungDa
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: RechnungDO, userAccess: UILayout.UserAccess): UILayout {
+    override fun createEditLayout(dto: Rechnung, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "betreff")
                 .add(UIRow()
@@ -85,5 +86,18 @@ class RechnungPagesRest: AbstractDOPagesRest<RechnungDO, RechnungDao>(RechnungDa
                 // Positionen
                 .add(UICustomized("invoice.outgoingPosition"))
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+
+    override fun transformForDB(dto: Rechnung): RechnungDO {
+        val rechnungDO = RechnungDO()
+        dto.copyTo(rechnungDO)
+        return rechnungDO
+    }
+
+    override fun transformFromDB(obj: RechnungDO, editMode: Boolean): Rechnung {
+        val rechnung = Rechnung()
+        rechnung.copyFrom(obj)
+        return rechnung
     }
 }
