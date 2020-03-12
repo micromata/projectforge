@@ -23,8 +23,8 @@
 
 package org.projectforge.rest
 
-import org.projectforge.Const
 import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationDO
@@ -62,7 +62,7 @@ class VacationAccountPageRest {
     )
 
     @Autowired
-    private lateinit var employeeService: EmployeeService
+    private lateinit var employeeDao: EmployeeDao
 
     @Autowired
     private lateinit var leaveAccountEntryDao: LeaveAccountEntryDao
@@ -112,12 +112,17 @@ class VacationAccountPageRest {
 
         val isHRMember = vacationService.hasLoggedInUserHRVacationAccess()
 
-        val employeeId: Int? = if (searchEmployeeId != null && isHRMember) {
-            searchEmployeeId
+        val employeeId: Int? = if (isHRMember) {
+            // If, and only if the current logged in user is a member of HR staff, other employees than self may be chosen:
+            // 1st any given user by request param is used,
+            // 2nd the last chosen user from the user's preferences or, if none given:
+            // 3rd the current loggedin user himself.
+            searchEmployeeId ?: getUserPref().employeeId ?: ThreadLocalUserContext.getUserContext().employeeId
         } else {
-            getUserPref().employeeId ?: ThreadLocalUserContext.getUserContext().employeeId;
+            // For non HR users, only the user himself is assumed.
+            ThreadLocalUserContext.getUserContext().employeeId;
         }
-        val employee = employeeService.getById(employeeId)
+        val employee = employeeDao.internalGetById(employeeId)
 
         val statistics = mutableMapOf<String, Any>()
         val currentStats = vacationService.getVacationStats(employee, Year.now().value)
@@ -144,14 +149,16 @@ class VacationAccountPageRest {
         val statisticRow = UIRow()
 
         if (isHRMember) {
-            statisticRow.add(
-                    UICol(mdLength = 6, smLength = 12)
+            statisticRow
+                    .add(UICol(mdLength = 4, smLength = 12)
                             .add(lc, "employee"))
+                    .add(UICol(mdLength = 8, smLength = 12)
+                            .add(UICustomized("vacation.statistics")))
+        } else {
+            statisticRow.add(UICol(mdLength = 12, smLength = 12)
+                    .add(UICustomized("vacation.statistics")))
         }
 
-        statisticRow.add(
-                UICol(mdLength = if (isHRMember) 6 else 12, smLength = 12)
-                .add(UICustomized("vacation.statistics")))
 
         layout.add(UIFieldset(length = 12)
                 .add(statisticRow)
@@ -170,14 +177,12 @@ class VacationAccountPageRest {
 
     @PostMapping(RestPaths.WATCH_FIELDS)
     fun watchFields(@Valid @RequestBody postData: PostData<Data>): ResponseAction {
-        if (
-                postData.watchFieldsTriggered?.contains("employee") == false
-                || postData.data.employee == null
-        ) {
+        val employeeId = postData.data.employee?.id
+        if (postData.watchFieldsTriggered?.contains("employee") == false || employeeId == null) {
             return ResponseAction(targetType = TargetType.NOTHING)
         }
-
-        return buildResponseAction(postData.data.employee!!.id)
+        getUserPref().employeeId = employeeId
+        return buildResponseAction(employeeId)
     }
 
     @PostMapping("recalculate")
