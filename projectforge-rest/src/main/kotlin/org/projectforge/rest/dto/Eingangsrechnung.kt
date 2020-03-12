@@ -23,10 +23,7 @@
 
 package org.projectforge.rest.dto
 
-import org.projectforge.business.fibu.EingangsrechnungDO
-import org.projectforge.business.fibu.IRechnung
-import org.projectforge.business.fibu.PaymentType
-import org.projectforge.business.fibu.RechnungCalculator
+import org.projectforge.business.fibu.*
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -50,7 +47,7 @@ class Eingangsrechnung(var receiver: String? = null,
                        var discountPercent: BigDecimal? = null,
                        var discountMaturity: LocalDate? = null
 ) : BaseDTO<EingangsrechnungDO>(), IRechnung {
-    override var positionen: List<EingangsrechnungsPosition>? = null
+    override var positionen: MutableList<EingangsrechnungsPosition>? = null
 
     override val netSum: BigDecimal
         get() = RechnungCalculator.calculateNetSum(this)
@@ -67,13 +64,23 @@ class Eingangsrechnung(var receiver: String? = null,
 
     override fun copyFrom(src: EingangsrechnungDO) {
         super.copyFrom(src)
-        // TBD...
-        // Positionen, Konto
+        val list = positionen ?: mutableListOf()
+        src.positionen?.forEach {
+            val pos = EingangsrechnungsPosition()
+            pos.copyFrom(it)
+            list.add(pos)
+        }
+        positionen = list
     }
 
     override fun copyTo(dest: EingangsrechnungDO) {
         super.copyTo(dest)
-        // TBD...
-        // Positionen, Konto
+        val list = dest.positionen ?: mutableListOf()
+        positionen?.forEach {
+            val pos = EingangsrechnungsPositionDO()
+            it.copyTo(pos)
+            list.add(pos)
+        }
+        dest.positionen = list
     }
 }
