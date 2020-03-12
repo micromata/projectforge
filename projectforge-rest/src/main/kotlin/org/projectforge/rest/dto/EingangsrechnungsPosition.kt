@@ -23,9 +23,11 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.business.fibu.IRechnungsPosition
 import org.projectforge.business.fibu.RechnungCalculator
+import org.projectforge.business.fibu.kost.KostZuweisungDO
 import java.math.BigDecimal
 
 class EingangsrechnungsPosition(
@@ -39,4 +41,26 @@ class EingangsrechnungsPosition(
 
     override val netSum: BigDecimal
         get() = RechnungCalculator.calculateNetSum(this)
+
+    override fun copyFrom(src: EingangsrechnungsPositionDO) {
+        super.copyFrom(src)
+        val list = kostZuweisungen ?: mutableListOf()
+        src.kostZuweisungen?.forEach {
+            val pos = KostZuweisung()
+            pos.copyFrom(it)
+            list.add(pos)
+        }
+        kostZuweisungen = list
+    }
+
+    override fun copyTo(dest: EingangsrechnungsPositionDO) {
+        super.copyTo(dest)
+        val list = dest.kostZuweisungen ?: mutableListOf()
+        kostZuweisungen?.forEach {
+            val pos = KostZuweisungDO()
+            it.copyTo(pos)
+            list.add(pos)
+        }
+        dest.kostZuweisungen = list
+    }
 }
