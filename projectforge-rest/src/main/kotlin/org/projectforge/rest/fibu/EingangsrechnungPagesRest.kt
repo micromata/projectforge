@@ -23,25 +23,16 @@
 
 package org.projectforge.rest.fibu
 
-import org.projectforge.business.address.AddressDO
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
-import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDOPagesRest
 import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.dto.Address
 import org.projectforge.rest.dto.Eingangsrechnung
-import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/incomingInvoice")
@@ -107,7 +98,7 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
     }
 
     override fun transformFromDB(obj: EingangsrechnungDO, editMode: Boolean): Eingangsrechnung {
-        val eingangsrechnung= Eingangsrechnung()
+        val eingangsrechnung = Eingangsrechnung()
         eingangsrechnung.copyFrom(obj)
         return eingangsrechnung
     }
