@@ -4,7 +4,7 @@ import { Button, UncontrolledCollapse } from 'reactstrap';
 import { DynamicLayoutContext } from '../../../context';
 
 function OutgoingInvoicePositionsComponent() {
-    const { data } = React.useContext(DynamicLayoutContext);
+    const { data, callAction } = React.useContext(DynamicLayoutContext);
 
     const style64 = {
         width: 64,
@@ -27,6 +27,13 @@ function OutgoingInvoicePositionsComponent() {
         minHeight: 2,
         height: 35.5333,
     };
+
+    const addPosition = () => callAction({
+        responseAction: {
+            url: '/invoice/addPosition',
+            targetType: 'POST',
+        },
+    });
 
     const displayKostZuweisungen = {
 
@@ -201,7 +208,25 @@ function OutgoingInvoicePositionsComponent() {
 
         for(var i = 0; i < positionen.length; i++){
             var position = positionen[i];
-            //var kostZuweisungen = position.kostZuweisungen;
+            var net = position.menge*position.einzelNetto;
+            var vat = net*position.vat;
+
+            var kostZuweisungen = position.kostZuweisungen;
+            var kostZuweisungTable = [];
+
+            if (kostZuweisungen !== undefined) {
+                for (var k = 0; k < kostZuweisungen.length; k++) {
+                    var kostZuweisung = kostZuweisungen[i];
+                    kostZuweisungTable.push(
+                        <tr>
+                            <td>{kostZuweisung.kost1.formattedNumber}</td>
+                            <td>{kostZuweisung.kost2.displayName}</td>
+                            <td>{kostZuweisung.netto}</td>
+                            <td>{(kostZuweisung.netto / net) * 100}%</td>
+                        </tr>
+                    )
+                }
+            }
 
             positions.push(
                 <React.Fragment>
@@ -257,7 +282,7 @@ function OutgoingInvoicePositionsComponent() {
                                             <div className="control-group vertical">
                                                 <label className="control-label">Net</label>
                                                 <div className="controls">
-                                                    <span id="id105">0.00 €</span>
+                                                    <span id="id105">{net} €</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -267,7 +292,7 @@ function OutgoingInvoicePositionsComponent() {
                                             <div className="control-group vertical">
                                                 <label className="control-label">VAT amount </label>
                                                 <div className="controls" style={style105}>
-                                                    <span id="id106">0.00 €</span>
+                                                    <span id="id106">{vat} €</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -276,7 +301,7 @@ function OutgoingInvoicePositionsComponent() {
                                             <div className="control-group vertical">
                                                 <label className="control-label">Gross </label>
                                                 <div className="controls" style={style105}>
-                                                    <span id="id107">0.00 €</span>
+                                                    <span id="id107">{net+vat} €</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -311,7 +336,9 @@ function OutgoingInvoicePositionsComponent() {
                                                     <th>Percent</th>
                                                 </tr>
                                                 </thead>
-                                                <tbody />
+                                                <tbody>
+                                                    {kostZuweisungTable}
+                                                </tbody>
                                             </table>
                                         </div>
 
@@ -346,26 +373,28 @@ function OutgoingInvoicePositionsComponent() {
                             </div>
                         </div>
                     </UncontrolledCollapse>
-
-                    <div className="row">
-                        <button
-                            value="Do it!"
-                            type="submit"
-                            className="btn btn-xs"
-                            data-html="true"
-                            rel="mytooltip-right"
-                            title=""
-                            data-original-title="Add invoice position"
-                        >
-                            Add
-                        </button>
-                    </div>
-
                 </React.Fragment>
             )
         }
 
-        return positions;
+        return (
+            <React.Fragment>
+                {positions}
+                <div className="row">
+                    <button
+                        value="Do it!"
+                        onClick={addPosition}
+                        className="btn btn-xs"
+                        data-html="true"
+                        rel="mytooltip-right"
+                        title=""
+                        data-original-title="Add invoice position"
+                    >
+                        Add
+                    </button>
+                </div>
+            </React.Fragment>
+        );
     }
 
 
