@@ -44,7 +44,7 @@ function Formatter(
                 result = value.formattedNumber;
                 break;
             case CUSTOMER_FORMATTER:
-                result = value.name;
+                result = value.displayName;
                 break;
             case KONTO_FORMATTER:
                 result = `${value.nummer} - ${value.bezeichnung}`;
@@ -54,7 +54,7 @@ function Formatter(
                     .format(dateFormat);
                 break;
             case PROJECT_FORMATTER:
-                result = value.name;
+                result = value.displayName;
                 break;
             case TASK_FORMATTER:
                 result = value.title;
@@ -86,7 +86,6 @@ function Formatter(
         result = moment(value)
             .format(timestampFormatMinutes);
     }
-
     return result;
 }
 
