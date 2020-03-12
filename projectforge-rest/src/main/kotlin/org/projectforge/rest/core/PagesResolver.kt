@@ -35,7 +35,7 @@ object PagesResolver {
 
     private val log = org.slf4j.LoggerFactory.getLogger(PagesResolver::class.java)
 
-    fun getEditPageUrl(pagesRestClass: Class<out AbstractPagesRest<*, *, *>>, id: Int? = null, params: Map<String, Any?>? = null): String {
+    fun getEditPageUrl(pagesRestClass: Class<out AbstractPagesRest<*, *, *>>, id: Int? = null, params: Map<String, Any?>? = null, absolute: Boolean = false): String {
         val path = getRequestMappingPath(pagesRestClass) ?: return "NOT_FOUND"
         val parameters = if (id == null) {
             params
@@ -46,35 +46,38 @@ object PagesResolver {
             map.putAll(params)
             map
         }
+        val prefix = if (absolute) "/" else ""
         if (path.startsWith('/')) {
             return "$path/edit${getQueryString(parameters)}"
         }
-        return "$path/edit${getQueryString(parameters)}"
+        return "$prefix$path/edit${getQueryString(parameters)}"
     }
 
 
     /**
      * @return Path of react page.
      */
-    fun getBasePageUrl(pagesRestClass: Class<out AbstractPagesRest<*, *, *>>, subPath: String? = null, params: Map<String, Any?>? = null): String {
+    fun getBasePageUrl(pagesRestClass: Class<out AbstractPagesRest<*, *, *>>, subPath: String? = null, params: Map<String, Any?>? = null, absolute: Boolean = false): String {
         val path = getRequestMappingPath(pagesRestClass) ?: return "NOT_FOUND"
         val subPathString = if (subPath != null) "/subPath" else ""
-        return "$path$subPathString${getQueryString(params)}"
+        val prefix = if (absolute) "/" else ""
+        return "$prefix$path$subPathString${getQueryString(params)}"
     }
 
     /**
      * @return Path of react page.
      */
-    fun getListPageUrl(pagesRestClass: Class<out AbstractPagesRest<*, *, *>>, params: Map<String, Any?>? = null): String {
-        return getBasePageUrl(pagesRestClass, null, params)
+    fun getListPageUrl(pagesRestClass: Class<out AbstractPagesRest<*, *, *>>, params: Map<String, Any?>? = null, absolute: Boolean = false): String {
+        return getBasePageUrl(pagesRestClass, null, params, absolute)
     }
 
     /**
      * @return Path of react page.
      */
-    fun getDynamicPageUrl(pageRestClass: Class<*>, params: Map<String, Any?>? = null, id: Int? = null): String {
+    fun getDynamicPageUrl(pageRestClass: Class<*>, params: Map<String, Any?>? = null, id: Int? = null, absolute: Boolean = false): String {
         val path = getRequestMappingPath(pageRestClass, "/dynamic") ?: return "NOT_FOUND"
-        return "$path/${id ?: ""}${getQueryString(params)}"
+        val prefix = if (absolute) "/" else ""
+        return "$prefix$path/${id ?: ""}${getQueryString(params)}"
     }
 
     private fun getRequestMappingPath(clazz: Class<*>, suffix: String = ""): String? {

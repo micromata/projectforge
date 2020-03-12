@@ -34,7 +34,7 @@ object RestResolver {
 
     private val log = org.slf4j.LoggerFactory.getLogger(RestResolver::class.java)
 
-    fun getRestUrl(pagesRestClass: Class<out AbstractPagesRest<*, *, *>>, subPath: String? = null, withoutPrefix: Boolean = false): String {
+    fun getRestUrl(pagesRestClass: Class<*>, subPath: String? = null, withoutPrefix: Boolean = false): String {
         val requestMapping = pagesRestClass.annotations.find { it is RequestMapping } as? RequestMapping
         var url = requestMapping?.value?.joinToString("/") { it } ?: "/"
         if (withoutPrefix && url.startsWith("${Rest.URL}/")) {

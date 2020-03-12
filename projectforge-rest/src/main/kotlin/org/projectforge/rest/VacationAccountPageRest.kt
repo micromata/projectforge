@@ -25,7 +25,6 @@ package org.projectforge.rest
 
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
-import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
@@ -113,7 +112,7 @@ class VacationAccountPageRest {
         val isHRMember = vacationService.hasLoggedInUserHRVacationAccess()
 
         val employeeId: Int? = if (isHRMember) {
-            // If, and only if the current logged in user is a member of HR staff, other employees than self may be chosen:
+            // If, and only if the current logged-in user is a member of HR staff, other employees may be chosen:
             // 1st any given user by request param is used,
             // 2nd the last chosen user from the user's preferences or, if none given:
             // 3rd the current loggedin user himself.
@@ -140,7 +139,9 @@ class VacationAccountPageRest {
             }
         }
         val buttonCol = UICol(length = 6)
-        buttonCol.add(UIButton("add", translate("add"), UIColor.SUCCESS, responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java), targetType = TargetType.REDIRECT)))
+        val responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java), targetType = TargetType.REDIRECT)
+        responseAction.addVariable("returnToCaller", "account")
+        buttonCol.add(UIButton("add", translate("add"), UIColor.SUCCESS, responseAction = responseAction))
         if (currentStats.remainingLeaveFromPreviousYear != prevStats.vacationDaysLeftInYear) {
             buttonCol.add(UIButton("recalculate", translate("vacation.recalculateRemainingLeave"), UIColor.DANGER,
                     responseAction = ResponseAction("vacationAccount/recalculate", targetType = TargetType.POST)))
@@ -201,7 +202,7 @@ class VacationAccountPageRest {
         val layoutData = getForm(employeeId)
 
         return ResponseAction(
-                url = "/${PagesResolver.getDynamicPageUrl(this::class.java, id = employeeId)}",
+                url = "${PagesResolver.getDynamicPageUrl(this::class.java, id = employeeId, absolute = true)}",
                 targetType = TargetType.UPDATE
         )
                 .addVariable("data", layoutData.data)

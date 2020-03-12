@@ -12,7 +12,7 @@ function VacationEntries({ entries }) {
                 <tr
                     key={entry.id}
                     className={classNames({ [styles.highlighted]: index === 0 })}
-                    onClick={() => history.push(`${prefix}vacation/edit/${entry.id}`)}
+                    onClick={() => history.push(`${prefix}vacation/edit/${entry.id}?returnToCaller=account`)}
                 >
                     <td>{entry.startDateFormatted}</td>
                     <td>{entry.endDateFormatted}</td>
