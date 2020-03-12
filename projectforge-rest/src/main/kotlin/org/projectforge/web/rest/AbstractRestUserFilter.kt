@@ -23,11 +23,13 @@
 
 package org.projectforge.web.rest
 
+import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.UserContext
+import org.projectforge.rest.utils.RequestLog
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.context.WebApplicationContext
@@ -65,6 +67,9 @@ abstract class AbstractRestUserFilter(val userTokenType: UserTokenType) : Filter
      */
     @Throws(IOException::class, ServletException::class)
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
+        if (log.isDebugEnabled) {
+            log.debug("Processing request ${RequestLog.asString(request as HttpServletRequest)}...")
+        }
         restAuthenticationUtils.doFilter(request,
                 response,
                 userTokenType,

@@ -30,7 +30,6 @@ import org.projectforge.business.user.UserAuthenticationsService;
 import org.projectforge.business.user.UserTokenType;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.stereotype.Service;
@@ -68,7 +67,6 @@ public class CookieService {
         log.warn("Invalid cookie found: " + value);
         return null;
       }
-      final Integer userId = NumberHelper.parseInteger(values[0]);
       final String username = values[1];
       final String stayLoggedInKey = values[2];
       final PFUserDO user = userAuthenticationsService.getUserByToken(request, username, UserTokenType.STAY_LOGGED_IN_KEY, stayLoggedInKey);
@@ -82,7 +80,7 @@ public class CookieService {
       }
       // update the cookie, especially the max age
       addStayLoggedInCookie(request, response, stayLoggedInCookie);
-      log.info("User successfully logged in using stay-logged-in method: " + user.getUserDisplayName());
+      log.info("User successfully logged in using stay-logged-in method: " + user.getUserDisplayName() + " (request=" + request.getRequestURI() + ").");
       return new UserContext(PFUserDO.createCopyWithoutSecretFields(user));
     }
     return null;
@@ -95,10 +93,10 @@ public class CookieService {
     stayLoggedInCookie.setMaxAge(COOKIE_MAX_AGE);
     stayLoggedInCookie.setPath("/");
     if (request.isSecure() || isSecureCookieConfigured()) {
-      log.debug("Set secure cookie");
+      log.debug("Set secure cookie (request=" + request.getRequestURI() + ").");
       stayLoggedInCookie.setSecure(true);
     } else {
-      log.debug("Set unsecure cookie");
+      log.debug("Set unsecure cookie (request=" + request.getRequestURI() + ").");
     }
     stayLoggedInCookie.setHttpOnly(true);
     response.addCookie(stayLoggedInCookie); // Refresh cookie.

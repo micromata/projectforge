@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.annotations.ListIndexBase
@@ -102,6 +103,7 @@ open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<Eingangsrechnun
     @get:Column
     open var customernr: String? = null
 
+    @JsonManagedReference
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, mappedBy = "eingangsrechnung", targetEntity = EingangsrechnungsPositionDO::class)
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)

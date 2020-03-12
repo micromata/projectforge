@@ -71,6 +71,16 @@ class SystemStatus {
         logoFile = configurationService.logoFile
         if (!databaseService.databaseTablesWithEntriesExists())
             setupRequiredFirst = true
+        devMode = developmentMode
+    }
+
+    companion object {
+        private var devMode: Boolean? = null
+
+        @JvmStatic
+        fun isDevelopmentMode(): Boolean {
+            return devMode == true
+        }
     }
 }
 

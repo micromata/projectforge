@@ -23,6 +23,7 @@
 
 package org.projectforge.web.rest
 
+import mu.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.multitenancy.TenantRegistry
@@ -40,7 +41,7 @@ import org.projectforge.rest.Authentication
 import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
 import org.projectforge.rest.converter.DateTimeFormat
-import org.slf4j.LoggerFactory
+import org.projectforge.rest.utils.RequestLog
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -50,6 +51,8 @@ import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Does the authentication stuff for restful requests.
@@ -61,6 +64,7 @@ import javax.servlet.http.HttpServletResponse
 open class RestAuthenticationUtils {
     @Autowired
     private lateinit var userAuthenticationsService: UserAuthenticationsService
+
     @Autowired
     private lateinit var systemStatus: SystemStatus
 
@@ -80,12 +84,21 @@ open class RestAuthenticationUtils {
                                          userTokenType: UserTokenType?,
                                          required: Boolean,
                                          authenticate: (user: String, authenticationToken: String) -> PFUserDO?) {
+        if (log.isDebugEnabled) {
+            logDebug(authInfo, "Trying to authenticate user by request parameters...")
+        }
         val userString = getUserString(authInfo, userAttributes, userTokenType, required) ?: return
         val authenticationToken = getUserSecret(authInfo, secretAttributes) ?: return
         authInfo.user = authenticate(userString, authenticationToken)
         if (!authInfo.success) {
             if (required) {
                 logError(authInfo, "Authentication failed for user $userString. Rest call forbidden.")
+            } else if (log.isDebugEnabled) {
+                logDebug(authInfo, "Can't authenticate user by request parameters (OK).")
+            }
+        } else {
+            if (log.isDebugEnabled) {
+                logDebug(authInfo, "User authenticated successfully by request parameters.")
             }
         }
     }
@@ -99,12 +112,17 @@ open class RestAuthenticationUtils {
         if (authInfo.userString.isNullOrBlank()) {
             if (required) {
                 logError(authInfo, "Authentication failed, no user given by request params ${joinToString(userAttributes)}. Rest call forbidden.")
+            } else if (log.isDebugEnabled) {
+                logDebug(authInfo, "Can't get user String by request parameters ${joinToString(userAttributes)} (OK).")
             }
             return null
         }
         if (checkLoginProtection(authInfo, userTokenType)) {
             // Access denied (time offset due to failed logins). Logging is done by check method.
             return null
+        }
+        if (log.isDebugEnabled) {
+            logDebug(authInfo, "Got user by request parameters ${joinToString(userAttributes)}: ${authInfo.userString}.")
         }
         return authInfo.userString
     }
@@ -115,6 +133,8 @@ open class RestAuthenticationUtils {
             // Log message, because userString was found, but authentication token not:
             logError(authInfo, "Authentication failed, no user secret (password or token) given by request params ${joinToString(secretAttributes)}. Rest call forbidden.")
             return null
+        } else if (log.isDebugEnabled) {
+            logDebug(authInfo, "Got user secret by request parameters ${joinToString(secretAttributes)}.")
         }
         return secret
     }
@@ -128,12 +148,17 @@ open class RestAuthenticationUtils {
                             userTokenType: UserTokenType?,
                             required: Boolean,
                             authenticate: (userString: String, password: String) -> PFUserDO?) {
+        if (log.isDebugEnabled) {
+            logDebug(authInfo, "Trying basic authentication...")
+        }
         val authHeader = getHeader(authInfo.request, "authorization", "Authorization")
         if (authHeader.isNullOrBlank()) {
             if (required) {
                 authInfo.resultCode = HttpStatus.UNAUTHORIZED
                 authInfo.response.setHeader("WWW-Authenticate", "Basic realm=\"Basic authenticaiton required\"")
                 logError(authInfo, "Basic authentication failed, header 'authorization' not found.")
+            } else if (log.isDebugEnabled) {
+                logDebug(authInfo, "Basic authentication failed, no authentication given in header (OK).")
             }
             return
         }
@@ -153,6 +178,8 @@ open class RestAuthenticationUtils {
         authInfo.user = authenticate(username, password)
         if (!authInfo.success) {
             logError(authInfo, "Basic authentication failed for user '$username'.")
+        } else if (log.isDebugEnabled) {
+            logDebug(authInfo, "Basic authentication was successful for user '$username'.")
         }
     }
 
@@ -164,6 +191,9 @@ open class RestAuthenticationUtils {
     fun tokenAuthentication(authInfo: RestAuthenticationInfo,
                             userTokenType: UserTokenType,
                             required: Boolean) {
+        if (log.isDebugEnabled) {
+            logDebug(authInfo, "Trying token based authentication...")
+        }
         val authenticationToken = getAttribute(authInfo.request, *REQUEST_PARAMS_TOKEN)
         getUserString(authInfo, REQUEST_PARAMS_USER_ID, userTokenType, required)
         val userId = NumberHelper.parseInteger(authInfo.userString)
@@ -194,8 +224,10 @@ open class RestAuthenticationUtils {
             if (authInfo.resultCode == null) {
                 // error not yet handled.
                 if (required) {
-                    log.info("User (by request params ${joinToString(userParams)}) and/or authentication tokens (by request params ${joinToString(tokenParams)}) not found. Rest call denied.")
+                    log.info("User not found (by request params ${joinToString(userParams)}) and/or authentication tokens (by request params ${joinToString(tokenParams)}). Rest call denied.")
                     authInfo.resultCode = HttpStatus.BAD_REQUEST
+                } else if (log.isDebugEnabled) {
+                    logDebug(authInfo, "User not found (by request params ${joinToString(userParams)}) and/or authentication tokens (by request params ${joinToString(tokenParams)}) (OK).")
                 }
             }
             return
@@ -206,10 +238,11 @@ open class RestAuthenticationUtils {
             userAuthenticationsService.getUserByToken(authInfo.request, username!!, userTokenType, authenticationToken)
         }
         if (authInfo.user == null) {
-            logError(authInfo, "Bad request, user not found: ${authInfo.request.queryString}")
+            logError(authInfo, "Bad request, user not found by username '$username' or id $userId and token.")
             authInfo.resultCode = HttpStatus.BAD_REQUEST
+        } else if (log.isDebugEnabled) {
+            logDebug(authInfo, "User found by username '$username' or id $userId.")
         }
-
     }
 
     /**
@@ -228,6 +261,9 @@ open class RestAuthenticationUtils {
                  doFilter: () -> Unit) {
         response as HttpServletResponse
         request as HttpServletRequest
+        if (log.isDebugEnabled) {
+            logDebug(request, "Processing request...")
+        }
         if (!systemStatus.upAndRunning) {
             log.error("System isn't up and running, all rest calls are denied. The system is may-be in start-up phase or in maintenance mode.")
             response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)
@@ -329,7 +365,15 @@ open class RestAuthenticationUtils {
     }
 
     private fun logError(authInfo: RestAuthenticationInfo, msg: String) {
-        log.error("$msg (requestUri=${authInfo.request.requestURI}, ${authInfo.request.queryString})")
+        log.error("$msg (requestUri=${RequestLog.asString(authInfo.request)})")
+    }
+
+    private fun logDebug(authInfo: RestAuthenticationInfo, msg: String) {
+        logDebug(authInfo.request, msg)
+    }
+
+    private fun logDebug(request: HttpServletRequest, msg: String) {
+        log.debug("$msg (request=${RequestLog.asString(request)})")
     }
 
     private val tenantRegistry: TenantRegistry
@@ -339,8 +383,6 @@ open class RestAuthenticationUtils {
         get() = tenantRegistry.userGroupCache
 
     companion object {
-        private val log = LoggerFactory.getLogger(RestAuthenticationUtils::class.java)
-
         fun executeLogin(request: HttpServletRequest?, userContext: UserContext?) { // Wicket part: (page.getSession() as MySession).login(userContext, page.getRequest())
             UserFilter.login(request, userContext)
         }
@@ -349,14 +391,17 @@ open class RestAuthenticationUtils {
          * "Authentication-User-Id" and "authenticationUserId".
          */
         val REQUEST_PARAMS_USER_ID = arrayOf(Authentication.AUTHENTICATION_USER_ID, AuthenticationOld.AUTHENTICATION_USER_ID)
+
         /**
          * "Authentication-Token" and "authenticationToken".
          */
         val REQUEST_PARAMS_TOKEN = arrayOf(Authentication.AUTHENTICATION_TOKEN, AuthenticationOld.AUTHENTICATION_TOKEN)
+
         /**
          * "Authentication-Username" and "authenticationUsername".
          */
         val REQUEST_PARAMS_USERNAME = arrayOf(Authentication.AUTHENTICATION_USERNAME, AuthenticationOld.AUTHENTICATION_USERNAME)
+
         /**
          * "Authentication-Password" and "authenticationPassword".
          */

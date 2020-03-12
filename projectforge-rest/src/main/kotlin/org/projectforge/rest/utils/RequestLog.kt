@@ -35,11 +35,16 @@ import javax.servlet.http.Part
 /**
  * Helper class for debugging requests. Converts a given request to json.
  */
-object RequestToJson {
+object RequestLog {
     @JvmStatic
-    fun convert(request: HttpServletRequest, longForm: Boolean = false): String {
+    fun asJson(request: HttpServletRequest, longForm: Boolean = false): String {
         val data = RequestData(request, longForm)
         return ToStringUtil.toJsonString(data)
+    }
+
+    @JvmStatic
+    fun asString(request: HttpServletRequest): String {
+        return request.requestURI
     }
 }
 
@@ -87,7 +92,7 @@ class RequestData(request: HttpServletRequest, longForm: Boolean = false) {
 
     init {
         for (attribute in request.attributeNames) {
-            attributes[attribute] = handleSecret(request, attribute, request.getAttribute(attribute))
+            attributes[attribute] = handleSecret(request, attribute, request.getAttribute(attribute)?.toString())
         }
         for (header in request.headerNames) {
             headers[header] = handleSecret(request, header, request.getHeader(header)) as String

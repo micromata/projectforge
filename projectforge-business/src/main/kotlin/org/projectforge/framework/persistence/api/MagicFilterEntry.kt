@@ -31,7 +31,12 @@ class MagicFilterEntry(
          * Optional name of a field for a field specific search. Null for global search.
          */
         var field: String? = null,
-        stringValue: String? = null) {
+        stringValue: String? = null,
+        /**
+         * Synthetic fields aren't handled automatically by [MagicFilterProcessor]. The handled manually (see AddressPagesRest).
+         */
+        @JsonIgnore
+        var synthetic: Boolean? = false) {
 
     class Value(
             var value: String? = null,

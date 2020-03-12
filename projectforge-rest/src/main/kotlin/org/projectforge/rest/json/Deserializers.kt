@@ -86,7 +86,7 @@ class TextDeserializer : StdDeserializer<String>(String::class.java) {
         text = text.replace("[\\p{Cntrl}&&[^\r\n\t]]".toRegex(), "")
 
         // removes non-printable characters from Unicode
-        text = text.replace("\\p{C}".toRegex(), "")
+        text = text.replace("[\\p{C}&&[^\r\n\t]]".toRegex(), "")
 
         return text.trim { it <= ' ' }
     }

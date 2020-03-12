@@ -130,6 +130,13 @@ public class UserFilter implements Filter {
       return null;
     }
     final UserContext userContext = (UserContext) session.getAttribute(SESSION_KEY_USER);
+    if (log.isDebugEnabled()) {
+      if (userContext != null) {
+        log.debug("User '" + userContext.getUser().getUsername() + "' successfully restored from http session (request=" + request.getRequestURI() + ").");
+      } else {
+        log.debug("User not found in http session (request=" + request.getRequestURI() + ").");
+      }
+    }
     return userContext;
   }
 
@@ -144,23 +151,6 @@ public class UserFilter implements Filter {
     HttpServletRequest request = (HttpServletRequest) req;
     if (log.isDebugEnabled()) {
       log.debug("doFilter " + request.getRequestURI() + ": " + request.getSession().getId());
-      final Cookie[] cookies = request.getCookies();
-      if (cookies != null) {
-        for (final Cookie cookie : cookies) {
-          log.debug("Cookie "
-                  + cookie.getName()
-                  + ", path="
-                  + cookie.getPath()
-                  + ", value="
-                  + cookie.getValue()
-                  + ", secure="
-                  + cookie.getVersion()
-                  + ", maxAge="
-                  + cookie.getMaxAge()
-                  + ", domain="
-                  + cookie.getDomain());
-        }
-      }
     }
     final HttpServletResponse response = (HttpServletResponse) resp;
     UserContext userContext = null;
@@ -170,9 +160,6 @@ public class UserFilter implements Filter {
       MDC.put("userAgent", request.getHeader("User-Agent"));
       if (ignoreFilterFor(request)) {
         // Ignore the filter for this request:
-        if (log.isDebugEnabled()) {
-          log.debug("Ignore: " + request.getRequestURI());
-        }
         chain.doFilter(request, response);
       } else {
         // final boolean sessionTimeout = request.isRequestedSessionIdValid() == false;
@@ -189,6 +176,25 @@ public class UserFilter implements Filter {
         } else if (!updateRequiredFirst) {
           // Ignore stay-logged-in if redirect to update page is required.
           userContext = cookieService.checkStayLoggedIn(request, response);
+          if (log.isDebugEnabled()) {
+            final Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+              for (final Cookie cookie : cookies) {
+                log.debug("Cookie found: "
+                        + cookie.getName()
+                        + ", path="
+                        + cookie.getPath()
+                        + ", value="
+                        + cookie.getValue()
+                        + ", secure="
+                        + cookie.getVersion()
+                        + ", maxAge="
+                        + cookie.getMaxAge()
+                        + ", domain="
+                        + cookie.getDomain());
+              }
+            }
+          }
           if (userContext != null) {
             if (log.isDebugEnabled()) {
               log.debug("User's stay logged-in cookie found: " + request.getRequestURI());
@@ -279,7 +285,10 @@ public class UserFilter implements Filter {
       // } else
       if (StringHelper.startsWith(uri, IGNORE_PREFIX_LOGO, IGNORE_PREFIX_SMS_REVEIVE_SERVLET)) {
         // No access checking for logo and sms receiver servlet.
-        // The sms receiver servlet has its own authentification (key).
+        // The sms receiver servlet has its own authentication (key).
+        if (log.isDebugEnabled()) {
+          log.debug("Ignoring UserFilter for '" + uri + "'. No authentication needed.");
+        }
         return true;
       }
     }
