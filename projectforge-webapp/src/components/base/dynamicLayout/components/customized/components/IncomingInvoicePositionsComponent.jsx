@@ -26,7 +26,7 @@ function IncomingInvoicePositionsComponent() {
 
     const addPosition = () => callAction({
         responseAction: {
-            url: '/incomingInvoice/newPosition',
+            url: '/incomingInvoice/addPosition',
             targetType: 'POST',
         },
     });

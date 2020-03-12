@@ -36,7 +36,6 @@ import ezvcard.util.PartialDate
 import org.projectforge.business.address.AddressDO
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import org.springframework.util.StringUtils
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.time.LocalDate
@@ -51,9 +50,7 @@ class VCardService {
         val n = StructuredName()
         n.family = addressDO.name
         n.given = addressDO.firstName
-        if (StringUtils.isEmpty(addressDO.title) == false) {
-            n.prefixes.add(addressDO.title)
-        }
+        addressDO.title?.let { n.prefixes.add(it) }
         vcard.structuredName = n
         //Home address
         val homeAddress = Address()
@@ -83,13 +80,13 @@ class VCardService {
         //adr.setLabel("123 Main St.\nAlbany, NY 54321\nUSA");
         vcard.addAddress(businessAddress)
         vcard.addTelephoneNumber(addressDO.businessPhone, TelephoneType.WORK)
-        vcard.addTelephoneNumber(addressDO.mobilePhone, TelephoneType.CELL, TelephoneType.WORK)
+        vcard.addTelephoneNumber(addressDO.mobilePhone, TelephoneType.CELL)
         vcard.addTelephoneNumber(addressDO.fax, TelephoneType.FAX, TelephoneType.WORK)
         vcard.addEmail(addressDO.email, EmailType.WORK)
         val organisation = Organization()
-        organisation.values.add(if (StringUtils.isEmpty(addressDO.organization) == false) addressDO.organization else "")
-        organisation.values.add(if (StringUtils.isEmpty(addressDO.division) == false) addressDO.division else "")
-        organisation.values.add(if (StringUtils.isEmpty(addressDO.positionText) == false) addressDO.positionText else "")
+        organisation.values.add(addressDO.organization ?: "")
+        organisation.values.add(addressDO.division ?: "")
+        organisation.values.add(addressDO.positionText ?: "")
         vcard.addOrganization(organisation)
         //Home address
         val postalAddress = Address()
@@ -156,7 +153,7 @@ class VCardService {
                     address.fax = addCountryCode(telephone.text)
                 } else if (telephone.types.contains(TelephoneType.CELL)) {
                     address.mobilePhone = addCountryCode(telephone.text)
-                } else  {
+                } else {
                     address.businessPhone = addCountryCode(telephone.text)
                 }
             }

@@ -23,33 +23,24 @@
 
 package org.projectforge.ui
 
-data class UITable(val id : String, val columns : MutableList<UITableColumn> = mutableListOf()) : UIElement(UIElementType.TABLE) {
-    companion object {
-       fun UIResultSetTable() : UITable {
-           return UITable("resultSet")
-       }
-    }
+import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonValue
 
-    fun add(column: UITableColumn): UITable {
-        columns.add(column)
-        return this
-    }
-
+/**
+ * Defined as Fontawesome icons.
+ */
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
+enum class UIIconType(val icon: Array<String>) {
     /**
-     * For adding columns with the given ids
+     * https://fontawesome.com/icons/check?style=solid
      */
-    fun add(lc: LayoutContext, vararg columnIds: String): UITable {
-        columnIds.forEach {
-            val col = UITableColumn(it)
-            val elementInfo = ElementsRegistry.getElementInfo(lc, it)
-            if (elementInfo != null) {
-                col.title = elementInfo.i18nKey
-                col.dataType = UIDataTypeUtils.getDataType(elementInfo)
-            }
-            if (!lc.idPrefix.isNullOrBlank())
-                col.id = "${lc.idPrefix}${col.id}"
-            add(col)
-        }
-        return this
-    }
+    CHECKED(arrayOf("check")),
+    /**
+     * https://fontawesome.com/icons/times?style=solid
+     */
+    TIMES(arrayOf("times")),
+    /**
+     * https://fontawesome.com/icons/times?style=regular
+     */
+    TIMES_REGULAR(arrayOf("far", "times"))
 }

@@ -1,7 +1,9 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
+import UncontrolledTooltip from 'reactstrap/lib/UncontrolledTooltip';
 import { colorPropType } from '../../../utilities/propTypes';
+import TooltipIcon from '../TooltipIcon';
 import AdditionalLabel from './AdditionalLabel';
 import style from './Input.module.scss';
 
@@ -19,6 +21,7 @@ function TextArea(
         onChange,
         onKeyDown,
         rows,
+        tooltip,
         value,
         ...props
     },
@@ -80,9 +83,17 @@ function TextArea(
                     rows={dynamicRows}
                     value={value}
                 />
-                <span className={style.text}>{label}</span>
+                <span className={style.text} id={`textarea-label-${id}`}>
+                    {label}
+                    {tooltip && <TooltipIcon />}
+                </span>
             </label>
             <AdditionalLabel title={additionalLabel} />
+            {tooltip && (
+                <UncontrolledTooltip placement="auto" target={`textarea-label-${id}`}>
+                    {tooltip}
+                </UncontrolledTooltip>
+            )}
         </div>
     );
 }
@@ -98,6 +109,7 @@ TextArea.propTypes = {
     onChange: PropTypes.func,
     onKeyDown: PropTypes.func,
     rows: PropTypes.number,
+    tooltip: PropTypes.string,
     value: PropTypes.string,
 };
 
@@ -110,6 +122,7 @@ TextArea.defaultProps = {
     onChange: undefined,
     onKeyDown: undefined,
     rows: 3,
+    tooltip: undefined,
     value: undefined,
 };
 

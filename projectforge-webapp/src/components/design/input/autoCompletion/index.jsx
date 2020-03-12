@@ -41,6 +41,7 @@ function AutoCompletion(
         required,
         search,
         searchParameter,
+        tooltip,
         ...props
     },
 ) {
@@ -122,6 +123,7 @@ function AutoCompletion(
                 color: required && !search ? 'danger' : color,
                 ref: searchRef,
                 onKeyDown: handleKeyDown,
+                tooltip,
                 value: search,
             })}
             setIsOpen={setIsOpen}
@@ -161,6 +163,7 @@ AutoCompletion.propTypes = {
     required: PropTypes.bool,
     search: PropTypes.string,
     searchParameter: PropTypes.string,
+    tooltip: PropTypes.string,
 };
 
 AutoCompletion.defaultProps = {
@@ -170,6 +173,7 @@ AutoCompletion.defaultProps = {
     required: false,
     search: '',
     searchParameter: 'search',
+    tooltip: undefined,
 };
 
 export default AutoCompletion;

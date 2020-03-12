@@ -23,7 +23,9 @@
 
 package org.projectforge.rest
 
+import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.SystemStatus
 import org.projectforge.business.address.*
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.image.ImageService
@@ -49,10 +51,11 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
+private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/address")
-class AddressPagesRest()
+class AddressPagesRest
     : AbstractDTOPagesRest<AddressDO, Address, AddressDao>(
         AddressDao::class.java,
         i18nKeyPrefix = "address.title",
@@ -61,7 +64,7 @@ class AddressPagesRest()
     /**
      * For exporting list of addresses.
      */
-    private class ListAddress(val address: AddressDO,
+    private class ListAddress(val address: Address,
                               val id: Int, // Needed for history Service
                               val deleted: Boolean,
                               var imageUrl: String? = null,
@@ -127,7 +130,9 @@ class AddressPagesRest()
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<AddressDO>>? {
         val doubletFilterEntry = source.entries.find { it.field == "doublets" }
+        doubletFilterEntry?.synthetic = true
         val myFavoritesFilterEntry = source.entries.find { it.field == "myFavorites" }
+        myFavoritesFilterEntry?.synthetic = true
         val filters = mutableListOf<CustomResultFilter<AddressDO>>()
         if (doubletFilterEntry?.value?.value == "true") {
             filters.add(DoubletsResultFilter())
@@ -135,7 +140,6 @@ class AddressPagesRest()
         if (myFavoritesFilterEntry?.value?.value == "true") {
             filters.add(FavoritesResultFilter(personalAddressDao))
         }
-        source.entries.removeIf { arrayOf("doublets", "myFavorites").contains(it.field) }
         return filters
     }
 
@@ -197,17 +201,33 @@ class AddressPagesRest()
         addressLC.idPrefix = "address."
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(addressLC, "lastUpdate")
+                        .add(addressLC, "isFavoriteCard", "lastUpdate")
                         .add(UITableColumn("address.imagePreview", "address.image", dataType = UIDataType.CUSTOMIZED))
                         .add(addressLC, "name", "firstName", "organization", "email")
                         .add(UITableColumn("address.phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED, sortable = false))
                         .add(lc, "address.addressbookList"))
         layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
-        layout.getTableColumnById("address.addressbookList").formatter = Formatter.ADDRESS_BOOK
-        layout.getTableColumnById("address.addressbookList").sortable = false
+        layout.getTableColumnById("address.addressbookList").set(formatter = Formatter.ADDRESS_BOOK, sortable = false)
+        layout.getTableColumnById("address.isFavoriteCard").set(
+                        sortable = false,
+                        title = "address.columnHead.myFavorites",
+                        tooltip = "address.filter.myFavorites")
+                .setStandardBoolean()
         var menuIndex = 0
-        if (smsSenderConfig.isSmsConfigured()) {
-            layout.add(MenuItem("address.writeSMS", i18nKey = "address.tooltip.writeSMS", url = "wa/sendSms"), menuIndex++)
+        if (configurationService.isTelephoneSystemUrlConfigured) {
+            layout.add(MenuItem("address.phoneCall", i18nKey = "menu.phoneCall", url = "wa/phoneCall"), menuIndex++)
+        }
+        if (smsSenderConfig.isSmsConfigured() || SystemStatus.isDevelopmentMode()) {
+            val sendSmsUrl = if (SystemStatus.isDevelopmentMode()) {
+                log.warn("********** React version of texting messages is only available in development mode.")
+                PagesResolver.getDynamicPageUrl(SendTextMessagePageRest::class.java)
+            } else {
+                "wa/sendSms"
+            }
+            layout.add(MenuItem("address.writeSMS",
+                    i18nKey = "address.tooltip.writeSMS",
+                    url = sendSmsUrl),
+                    menuIndex++)
         }
         val exportMenu = MenuItem("address.export", i18nKey = "export")
         if (configurationService.isDAVServicesAvailable) {
@@ -350,7 +370,7 @@ class AddressPagesRest()
      */
     override fun processResultSetBeforeExport(resultSet: ResultSet<AddressDO>): ResultSet<*> {
         val newList = resultSet.resultSet.map {
-            ListAddress(it,
+            ListAddress(transformFromDB(it),
                     id = it.id,
                     deleted = it.isDeleted,
                     imageUrl = if (it.imageData != null) "address/image/${it.id}" else null,
