@@ -23,12 +23,16 @@
 
 package org.projectforge.rest.fibu
 
+import org.projectforge.business.address.AddressDO
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
+import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.dto.Address
+import org.projectforge.rest.dto.Eingangsrechnung
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,7 +45,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/incomingInvoice")
-class EingangsrechnungPagesRest : AbstractDOPagesRest<EingangsrechnungDO, EingangsrechnungDao>(EingangsrechnungDao::class.java, "fibu.eingangsrechnung.title") {
+class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Eingangsrechnung, EingangsrechnungDao>(EingangsrechnungDao::class.java, "fibu.eingangsrechnung.title") {
 
     @Autowired
     private lateinit var eingangsrechnungDao: EingangsrechnungDao
@@ -64,7 +68,7 @@ class EingangsrechnungPagesRest : AbstractDOPagesRest<EingangsrechnungDO, Eingan
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: EingangsrechnungDO, userAccess: UILayout.UserAccess): UILayout {
+    override fun createEditLayout(dto: Eingangsrechnung, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "betreff")
                 .add(UIRow()
@@ -87,10 +91,24 @@ class EingangsrechnungPagesRest : AbstractDOPagesRest<EingangsrechnungDO, Eingan
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
+    /*
     @PostMapping("addPosition")
     fun addPosition(request: HttpServletRequest, @RequestBody postData: PostData<EingangsrechnungDO>): ResponseEntity<ResponseAction> {
         val eingangsrechnung = postData.data
         eingangsrechnung.addPosition(EingangsrechnungsPositionDO())
-        return org.projectforge.rest.core.saveOrUpdate(request, this.eingangsrechnungDao, eingangsrechnung, postData, this, this.validate(eingangsrechnung))
+        return org.projectforge.rest.core.saveOrUpdate(request, this.eingangsrechnungDao, EingangsrechnungDO(), postData, this, this.validate(eingangsrechnung))
+    }
+     */
+
+    override fun transformForDB(dto: Eingangsrechnung): EingangsrechnungDO {
+        val eingangsrechnungDO = EingangsrechnungDO()
+        dto.copyTo(eingangsrechnungDO)
+        return eingangsrechnungDO
+    }
+
+    override fun transformFromDB(obj: EingangsrechnungDO, editMode: Boolean): Eingangsrechnung {
+        val eingangsrechnung= Eingangsrechnung()
+        eingangsrechnung.copyFrom(obj)
+        return eingangsrechnung
     }
 }

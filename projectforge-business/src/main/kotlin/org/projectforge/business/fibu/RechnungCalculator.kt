@@ -31,16 +31,16 @@ import java.math.RoundingMode
 object RechnungCalculator {
     private val log = org.slf4j.LoggerFactory.getLogger(RechnungCalculator::class.java)
 
-    fun calculateNetSum(rechnung: AbstractRechnungDO): BigDecimal {
+    fun calculateNetSum(rechnung: IRechnung): BigDecimal {
         var netto = BigDecimal.ZERO
-        rechnung.abstractPositionen?.forEach {
+        rechnung.positionen?.forEach {
             netto = netto.add(it.netSum)
         }
         return netto
     }
 
 
-    fun calculateNetSum(position: AbstractRechnungsPositionDO): BigDecimal {
+    fun calculateNetSum(position: IRechnungsPosition): BigDecimal {
         return if (position.menge != null) {
             if (position.einzelNetto != null) {
                 CurrencyHelper.multiply(position.menge, position.einzelNetto)
@@ -52,7 +52,7 @@ object RechnungCalculator {
         }
     }
 
-    fun calculateVatAmountSum(position: AbstractRechnungsPositionDO): BigDecimal {
+    fun calculateVatAmountSum(position: IRechnungsPosition): BigDecimal {
         val netSum = position.netSum
         return if (position.vat != null) {
             CurrencyHelper.multiply(netSum, position.vat)
@@ -65,10 +65,10 @@ object RechnungCalculator {
      * First all amounts of same VAT will be summarized (for rounding after having the sums) and then each sum per VAT will be rounded and
      * then the total sum will be returned.
      */
-    fun calculateVatAmountSum(rechnung: AbstractRechnungDO): BigDecimal {
+    fun calculateVatAmountSum(rechnung: IRechnung): BigDecimal {
         // Key is the vat percentage and value is the cumulative vat sum.
         val vatAmountSums = mutableMapOf<BigDecimal, BigDecimal>()
-        rechnung.abstractPositionen?.forEach {
+        rechnung.positionen?.forEach {
             var vat = it.vat
             if (!NumberHelper.isZeroOrNull(vat)) {
                 vat = vat!!.stripTrailingZeros() // 19.0 -> 19 for having same vat percentage.
@@ -89,7 +89,7 @@ object RechnungCalculator {
     /**
      * Adds the caluclated vat amount to the net sum amount.
      */
-    fun calculateGrossSum(rechnung: AbstractRechnungDO): BigDecimal {
+    fun calculateGrossSum(rechnung: IRechnung): BigDecimal {
         return rechnung.netSum.plus(calculateVatAmountSum(rechnung))
     }
 

@@ -154,7 +154,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     @get:OneToMany(cascade = [CascadeType.MERGE], fetch = FetchType.EAGER, mappedBy = "rechnung", targetEntity = RechnungsPositionDO::class)
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
-    open var positionen: MutableList<RechnungsPositionDO>? = null
+    override open var positionen: MutableList<RechnungsPositionDO>? = null
 
     override val abstractPositionen: List<AbstractRechnungsPositionDO>?
         @Transient
