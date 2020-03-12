@@ -33,6 +33,8 @@ import org.projectforge.business.vacation.service.VacationStats
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.Vacation
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -148,6 +150,13 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
         }
         updateStats(dto)
         return ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
+    }
+
+    override fun createReturnToCallerResponseAction(returnToCaller: String): ResponseAction {
+        if (returnToCaller == "account") {
+            return ResponseAction(PagesResolver.getDynamicPageUrl(VacationAccountPageRest::class.java, absolute = true))
+        }
+        return super.createReturnToCallerResponseAction(returnToCaller)
     }
 
     private fun updateStats(dto: Vacation) {
