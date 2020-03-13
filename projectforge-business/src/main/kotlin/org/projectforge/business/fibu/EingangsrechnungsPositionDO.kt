@@ -25,6 +25,7 @@ package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.business.fibu.kost.KostZuweisungDO
@@ -33,7 +34,6 @@ import javax.persistence.*
 
 /**
  * Repräsentiert eine Position innerhalb einer Eingangsrechnung.
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
@@ -43,6 +43,7 @@ import javax.persistence.*
         indexes = [Index(name = "idx_fk_t_fibu_eingangsrechnung_position_eingangsrechnung_fk", columnList = "eingangsrechnung_fk"), Index(name = "idx_fk_t_fibu_eingangsrechnung_position_tenant_id", columnList = "tenant_id")])
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
+
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "eingangsrechnung_fk", nullable = false)
     open var eingangsrechnung: EingangsrechnungDO? = null
@@ -55,6 +56,7 @@ open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     @get:JoinColumn(name = "eingangsrechnungs_pos_fk")
     @get:OrderColumn(name = "index")
+    @JsonManagedReference
     @JsonBackReference
     override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
 
