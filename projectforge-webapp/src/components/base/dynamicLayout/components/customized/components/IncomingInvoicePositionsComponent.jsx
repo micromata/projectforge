@@ -1,10 +1,10 @@
 import React from 'react';
-import {connect} from 'react-redux';
-import {Button, UncontrolledCollapse} from 'reactstrap';
-import {DynamicLayoutContext} from '../../../context';
+import { connect } from 'react-redux';
+import { Button, UncontrolledCollapse } from 'reactstrap';
+import { DynamicLayoutContext } from '../../../context';
 
 function IncomingInvoicePositionsComponent() {
-    const {data, callAction} = React.useContext(DynamicLayoutContext);
+    const { data, callAction } = React.useContext(DynamicLayoutContext);
 
     const style105 = {
         width: 105,
@@ -19,7 +19,7 @@ function IncomingInvoicePositionsComponent() {
     };
 
     const textareaStyle = {
-        width: 315,
+        width: 355,
         minHeight: 2,
         height: 35.5333,
     };
@@ -34,8 +34,8 @@ function IncomingInvoicePositionsComponent() {
     const displayKostZuweisungen = {};
 
     function loadPositions() {
-        var positions = [];
-        var positionen = data.positionen;
+        const positions = [];
+        const positionen = data.positionen;
 
         if (positionen === undefined || positionen.length === 0) {
             return (
@@ -43,6 +43,7 @@ function IncomingInvoicePositionsComponent() {
                     <div className="row">
                         <button
                             value="Do it!"
+                            type="submit"
                             onClick={addPosition}
                             className="btn btn-xs"
                             data-html="true"
@@ -57,32 +58,38 @@ function IncomingInvoicePositionsComponent() {
             );
         }
 
-        for (var i = 0; i < positionen.length; i++) {
-            var position = positionen[i];
-            var net = position.menge*position.einzelNetto;
-            var vat = net*position.vat;
+        for (let i = 0; i < positionen.length; i++) {
+            const position = positionen[i];
+            const net = position.menge * position.einzelNetto;
+            const vat = net * position.vat;
 
-            var kostZuweisungen = position.kostZuweisungen;
-            var kostZuweisungTable = [];
+            const kostZuweisungen = position.kostZuweisungen;
+            const kostZuweisungTable = [];
 
             if (kostZuweisungen !== undefined) {
-                for (var k = 0; k < kostZuweisungen.length; k++) {
-                    var kostZuweisung = kostZuweisungen[i];
+                for (let k = 0; k < kostZuweisungen.length; k++) {
+                    const kostZuweisung = kostZuweisungen[i];
                     kostZuweisungTable.push(
                         <tr>
-                            <td>{kostZuweisung.kost1.formattedNumber}</td>
+                            <td>{kostZuweisung.kost1.displayName}</td>
                             <td>{kostZuweisung.kost2.displayName}</td>
                             <td>{kostZuweisung.netto}</td>
-                            <td>{(kostZuweisung.netto / net) * 100}%</td>
-                        </tr>
-                    )
+                            <td>
+                                {(kostZuweisung.netto / net) * 100}
+                                %
+                            </td>
+                        </tr>,
+                    );
                 }
             }
 
             positions.push(
                 <div>
                     <div>
-                        <Button color="primary" id="toggler" style={{marginBottom: '1rem'}}>Pos #{i + 1}</Button>
+                        <Button color="primary" id="toggler" style={{ marginBottom: '1rem' }}>
+                            Pos #
+                            {i + 1}
+                        </Button>
                     </div>
 
                     <UncontrolledCollapse toggler="#toggler">
@@ -95,8 +102,14 @@ function IncomingInvoicePositionsComponent() {
                                             <div className="control-group vertical">
                                                 <label className="control-label" htmlFor="idf8">Quantity</label>
                                                 <div className="controls" style={style105}>
-                                                    <input style={style105} type="text" value={position.menge} autoComplete="off" title=""
-                                                           className="text ac_input"/>
+                                                    <input
+                                                        style={style105}
+                                                        type="text"
+                                                        value={position.menge}
+                                                        autoComplete="off"
+                                                        title=""
+                                                        className="text ac_input"
+                                                    />
                                                 </div>
                                             </div>
                                         </div>
@@ -104,8 +117,14 @@ function IncomingInvoicePositionsComponent() {
                                             <div className="control-group vertical">
                                                 <label className="control-label" htmlFor="idf8">Unit net price</label>
                                                 <div className="controls" style={style105}>
-                                                    <input style={style105} type="text" value={position.einzelNetto} autoComplete="off" title=""
-                                                           className="text ac_input"/>
+                                                    <input
+                                                        style={style105}
+                                                        type="text"
+                                                        value={position.einzelNetto}
+                                                        autoComplete="off"
+                                                        title=""
+                                                        className="text ac_input"
+                                                    />
                                                 </div>
                                             </div>
                                         </div>
@@ -114,8 +133,7 @@ function IncomingInvoicePositionsComponent() {
                                             <div className="control-group vertical">
                                                 <label className="control-label" htmlFor="idf8">VAT</label>
                                                 <div className="controls" style={style105}>
-                                                    <input style={style105} type="text" value={position.vat} autoComplete="off" title=""
-                                                           className="text ac_input"/>
+                                                    <input style={style105} type="text" value={position.vat} autoComplete="off" title="" className="text ac_input" />
                                                 </div>
                                             </div>
                                         </div>
@@ -128,7 +146,10 @@ function IncomingInvoicePositionsComponent() {
                                             <div className="control-group vertical">
                                                 <label className="control-label">Net</label>
                                                 <div className="controls">
-                                                    <span id="id105">{net} €</span>
+                                                    <span id="id105">
+                                                        {net}
+                                                        €
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -138,7 +159,10 @@ function IncomingInvoicePositionsComponent() {
                                             <div className="control-group vertical">
                                                 <label className="control-label">VAT amount </label>
                                                 <div className="controls" style={style105}>
-                                                    <span id="id106">{vat} €</span>
+                                                    <span id="id106">
+                                                        {vat}
+                                                        €
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -147,7 +171,10 @@ function IncomingInvoicePositionsComponent() {
                                             <div className="control-group vertical">
                                                 <label className="control-label">Gross </label>
                                                 <div className="controls" style={style105}>
-                                                    <span id="id107">{net+vat} €</span>
+                                                    <span id="id107">
+                                                        { net + vat }
+                                                        €
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -160,12 +187,12 @@ function IncomingInvoicePositionsComponent() {
                                     <div className="control-group">
                                         <label className="control-label" htmlFor="idfc">Text</label>
                                         <div className="controls" style={style315}>
-                                        <textarea
-                                            id="idfc"
-                                            maxLength="1000"
-                                            className="autogrow"
-                                            style={textareaStyle}
-                                        />
+                                            <textarea
+                                                id="idfc"
+                                                maxLength="1000"
+                                                className="autogrow"
+                                                style={textareaStyle}
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -175,12 +202,12 @@ function IncomingInvoicePositionsComponent() {
                                         <div className="col-sm-6 first has-siblings">
                                             <table className="costassignment" id="id108">
                                                 <thead>
-                                                <tr>
-                                                    <th>Cost 1</th>
-                                                    <th>Cost 2</th>
-                                                    <th>Net</th>
-                                                    <th>Percent</th>
-                                                </tr>
+                                                    <tr>
+                                                        <th>Cost 1</th>
+                                                        <th>Cost 2</th>
+                                                        <th>Net</th>
+                                                        <th>Percent</th>
+                                                    </tr>
                                                 </thead>
                                                 <tbody>
                                                     {kostZuweisungTable}
@@ -189,10 +216,10 @@ function IncomingInvoicePositionsComponent() {
                                         </div>
 
                                         <div className="col-sm-6 not-first">
-                                            <button className="light">
+                                            <button className="light" onClick={displayKostZuweisungen}>
                                                 <span>Edit</span>
                                             </button>
-                                            <span/>
+                                            <span />
                                         </div>
                                     </div>
                                 </div>
@@ -219,8 +246,8 @@ function IncomingInvoicePositionsComponent() {
                             </div>
                         </div>
                     </UncontrolledCollapse>
-                </div>
-            )
+                </div>,
+            );
         }
 
         return (
@@ -229,6 +256,7 @@ function IncomingInvoicePositionsComponent() {
                 <div className="row">
                     <button
                         value="Do it!"
+                        type="submit"
                         onClick={addPosition}
                         className="btn btn-xs"
                         data-html="true"
@@ -245,11 +273,11 @@ function IncomingInvoicePositionsComponent() {
 
 
     return React.useMemo(
-        () => loadPositions()
+        () => loadPositions(),
     );
 }
 
-const mapStateToProps = ({authentication}) => ({
+const mapStateToProps = ({ authentication }) => ({
     user: authentication.user,
 });
 
