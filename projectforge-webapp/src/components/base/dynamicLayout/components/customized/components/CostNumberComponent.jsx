@@ -2,8 +2,8 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { DynamicLayoutContext } from '../../../context';
 
-function CostNumberComponent({ user, jsTimestampFormatMinutes }) {
-    const { data, setData} = React.useContext(DynamicLayoutContext);
+function CostNumberComponent() {
+    const { data, setData } = React.useContext(DynamicLayoutContext);
 
     const handleNummernkreisChange = (event) => {
         // console.log(event.target.value)
@@ -30,44 +30,47 @@ function CostNumberComponent({ user, jsTimestampFormatMinutes }) {
         () => (
             <React.Fragment>
                 <input
-                    id = "nummernkreis"
-                    type = "number"
-                    size = "1"
+                    id="nummernkreis"
+                    type="number"
+                    size="1"
                     maxLength="1"
-                    min = "0"
-                    max = "9"
+                    min="0"
+                    max="9"
                     value={data.nummernkreis.toString()}
                     onChange={handleNummernkreisChange}
-                />.
+                />
+                .
                 <input
-                    id = "bereich"
-                    type = "number"
-                    size = "3"
-                    min = "0"
-                    max = "999"
+                    id="bereich"
+                    type="number"
+                    size="3"
+                    min="0"
+                    max="999"
                     value={data.bereich.toString()}
                     onChange={handleBereichChange}
-                />.
+                />
+                .
                 <input
-                    id = "teilbereich"
-                    type = "number"
-                    size = "2"
-                    min = "0"
-                    max = "99"
+                    id="teilbereich"
+                    type="number"
+                    size="2"
+                    min="0"
+                    max="99"
                     value={data.teilbereich.toString()}
                     onChange={handleTeilbereichChange}
-                />.
+                />
+                .
                 <input
-                    id = "endziffer"
-                    type = "number"
-                    size = "2"
-                    min = "0"
-                    max = "99"
+                    id="endziffer"
+                    type="number"
+                    size="2"
+                    min="0"
+                    max="99"
                     value={data.endziffer.toString()}
                     onChange={handleEndzifferChange}
                 />
             </React.Fragment>
-        )
+        ),
     );
 }
 
