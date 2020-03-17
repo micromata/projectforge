@@ -31,7 +31,9 @@ $transitionTime: .2s ease-out;
   }
 
   &.readOnly, &.readOnly input {
+    border-bottom: none;
     cursor: default;
+    border-radius: 5px;
   }
 
   &:hover:not(.readOnly) {
@@ -535,6 +537,7 @@ $transitionTime: .2s ease-out;
   .icons {
     position: absolute;
     right: .5em;
+    bottom: .5em;
     color: #777;
 
     svg {
