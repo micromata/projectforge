@@ -84,7 +84,9 @@ function ReadonlyField(
                 )}
                 <p className={styles.value}>
                     <span ref={valueRef}>
-                        {coverUp && showCover ? value.substr(0, value.length / 2) : value}
+                        {value && coverUp && showCover
+                            ? `${value.substr(0, value.length / 2)}***`
+                            : (value || '-')}
                     </span>
                     &nbsp;
                 </p>
