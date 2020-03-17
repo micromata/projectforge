@@ -6,6 +6,7 @@ import copy from 'clipboard-copy';
 import PropTypes from 'prop-types';
 import React from 'react';
 import UncontrolledTooltip from 'reactstrap/lib/UncontrolledTooltip';
+import selectNodeText from '../../../utilities/select';
 import TooltipIcon from '../TooltipIcon';
 import AdditionalLabel from './AdditionalLabel';
 import styles from './Input.module.scss';
@@ -28,6 +29,7 @@ function ReadonlyField(
 ) {
     const [showCover, setShowCover] = React.useState(true);
     const [isCopied, setIsCopied] = React.useState(0);
+    const valueRef = React.useRef(null);
 
     const copyValue = () => copy(value)
         .then(() => setIsCopied(1))
@@ -35,12 +37,19 @@ function ReadonlyField(
 
     React.useEffect(() => setIsCopied(0), [value]);
 
+    const handleContainerClick = () => {
+        if (valueRef.current) {
+            selectNodeText(valueRef.current);
+        }
+    };
+
     return (
         <React.Fragment>
             <InputContainer
                 className={styles.readOnly}
                 label={label}
                 isActive
+                onClick={handleContainerClick}
                 readOnly
                 withMargin
                 {...props}
@@ -74,7 +83,9 @@ function ReadonlyField(
                     </React.Fragment>
                 )}
                 <p className={styles.value}>
-                    {coverUp && showCover ? value.substr(0, value.length / 2) : value}
+                    <span ref={valueRef}>
+                        {coverUp && showCover ? value.substr(0, value.length / 2) : value}
+                    </span>
                     &nbsp;
                 </p>
                 {tooltip && (
