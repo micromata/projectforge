@@ -75,11 +75,12 @@ class CardDAVInfoPageRest {
                                         canCopy = true))))
                 .add(UIRow()
                         .add(UICol()
-                                .add(UIReadOnlyField("ios", label = "iOS", canCopy = true)))
+                                .add(UIReadOnlyField("ios", label = "iOS", canCopy = true, coverUp = true)))
                         .add(UICol()
                                 .add(UIReadOnlyField("thunderbird",
                                         label = "Thunderbird",
-                                        canCopy = true))))
+                                        canCopy = true,
+                                        coverUp = true))))
 
         LayoutUtils.process(layout)
 
