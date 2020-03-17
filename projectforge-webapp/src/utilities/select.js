@@ -1,4 +1,6 @@
+// https://stackoverflow.com/a/987376
 const selectNodeText = (node) => {
+    // internet-explorer
     if (document.body.createTextRange) {
         const range = document.body.createTextRange();
         range.moveToElementText(node);
