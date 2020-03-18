@@ -131,7 +131,7 @@ class LayoutUtils {
         fun addListDefaultOptions(group: UIGroup) {
             group
                     .add(UICheckbox("deleted", label = "onlyDeleted", tooltip = "onlyDeleted.tooltip", color = UIColor.DANGER))
-                    //.add(UICheckbox("searchHistory", label = "search.searchHistory", tooltip = "search.searchHistory.additional.tooltip"))
+            //.add(UICheckbox("searchHistory", label = "search.searchHistory", tooltip = "search.searchHistory.additional.tooltip"))
         }
 
         /**
@@ -164,7 +164,8 @@ class LayoutUtils {
                         layout.addAction(UIButton("markAsDeleted",
                                 color = UIColor.DANGER,
                                 outline = true,
-                                responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.MARK_AS_DELETED), targetType = TargetType.DELETE)))
+                                responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.MARK_AS_DELETED), targetType = TargetType.DELETE),
+                                confirmMessage = translate("question.markAsDeletedQuestion")))
                     }
                 }
             } else if (userAccess.delete == true) {
@@ -172,7 +173,8 @@ class LayoutUtils {
                 layout.addAction(UIButton("deleteIt",
                         color = UIColor.DANGER,
                         outline = true,
-                        responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.DELETE), targetType = TargetType.DELETE)))
+                        responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.DELETE), targetType = TargetType.DELETE),
+                        confirmMessage = translate("question.deleteQuestion")))
             }
             if (pagesRest.getId(dto) != null) {
                 if (pagesRest.cloneSupport != AbstractPagesRest.CloneSupport.NONE) {
