@@ -66,21 +66,20 @@ class CardDAVInfoPageRest {
                                         .add(UIReadOnlyField("password", label = "password", coverUp = true))))
                 .add(UIRow()
                         .add(UICol()
-                                .add(UIReadOnlyField("server", label = "server", canCopy = true)))
+                                .add(UIReadOnlyField("server", label = "'Server", canCopy = true)))
                         .add(UICol()
 
                                 .add(UIReadOnlyField("serverPath",
-                                        label = "Apple Addressbook",
-                                        additionalLabel = "CardDAV account, server path (Catalina)",
+                                        label = "'Apple Addressbook",
+                                        additionalLabel = "'CardDAV account, server path (Catalina)",
                                         canCopy = true))))
                 .add(UIRow()
                         .add(UICol()
-                                .add(UIReadOnlyField("ios", label = "iOS", canCopy = true, coverUp = true)))
+                                .add(UIReadOnlyField("ios", label = "'iOS", canCopy = true)))
                         .add(UICol()
                                 .add(UIReadOnlyField("thunderbird",
-                                        label = "Thunderbird",
-                                        canCopy = true,
-                                        coverUp = true))))
+                                        label = "'Thunderbird",
+                                        canCopy = true))))
 
         LayoutUtils.process(layout)
 
