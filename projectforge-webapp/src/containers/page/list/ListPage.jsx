@@ -17,9 +17,9 @@ function ListPage(
     // Only reload the list when the category or search string changes.
     React.useEffect(
         () => {
-            onCategoryChange(match.params.category, true);
+            onCategoryChange(match.params.category, true, (location.state || {}).variables);
         },
-        [match.params.category, location.search],
+        [match.params.category, location.search, location.state],
     );
 
     // TODO ADD ERROR HANDLING
