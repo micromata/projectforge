@@ -70,6 +70,7 @@ function FormPage(
                         id,
                     },
                 ),
+                location.state,
             );
         },
         [currentCategory, id, location.state],

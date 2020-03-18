@@ -70,7 +70,7 @@ const switchCategoryWithData = (from, to, newVariables) => ({
     },
 });
 
-export const loadFormPage = (category, id, url) => (dispatch, getState) => {
+export const loadFormPage = (category, id, url, params = {}) => (dispatch, getState) => {
     const currentCategory = getState().form.categories[category];
 
     if (currentCategory && currentCategory.isFetching) {
@@ -88,7 +88,7 @@ export const loadFormPage = (category, id, url) => (dispatch, getState) => {
     )
         .then(handleHTTPErrors)
         .then(response => response.json())
-        .then(json => dispatch(callSuccess(category, json)))
+        .then(json => dispatch(callSuccess(category, Object.combine(params, json))))
         .catch(error => callFailure(category, error));
 };
 
@@ -103,7 +103,7 @@ export const callAction = (
     }
 
     if (action.targetType === 'REDIRECT') {
-        history.push(`/${action.url}`);
+        history.push(`/${action.url}`, { serverData: action.variables });
         return Promise.resolve();
     }
 
