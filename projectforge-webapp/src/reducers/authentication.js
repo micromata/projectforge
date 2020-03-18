@@ -1,7 +1,7 @@
 import { USER_LOGIN_BEGIN, USER_LOGIN_FAILURE, USER_LOGIN_SUCCESS } from '../actions';
 
 const initialState = {
-    loading: false,
+    loading: true,
     error: null,
     user: null,
 };
