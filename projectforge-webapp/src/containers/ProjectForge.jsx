@@ -55,8 +55,8 @@ function ProjectForge(
             <Switch>
                 {wicketRoute}
                 <Route
-                    path={`${prefix}:restPrefix/:category/:type?`}
-                    component={FormPage}
+                    path={`${prefix}public/:category/:type?`}
+                    render={props => <FormPage {...props} isPublic />}
                 />
                 <Route
                     path={prefix}
