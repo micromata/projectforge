@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationDO
@@ -161,7 +162,8 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
 
     private fun updateStats(dto: Vacation) {
         dto.employee?.let { employee ->
-            val employeeDO = employeeService.getById(employee.id)
+            val employeeDO = EmployeeDO()
+            employeeDO.id = employee.id
             val vacationStats = vacationService.getVacationStats(employeeDO, dto.startDate?.year ?: Year.now().value)
             dto.vacationDaysLeftInYear = vacationStats.vacationDaysLeftInYear
             dto.vacationDaysLeftInYearString = VacationStats.format(vacationStats.vacationDaysLeftInYear)

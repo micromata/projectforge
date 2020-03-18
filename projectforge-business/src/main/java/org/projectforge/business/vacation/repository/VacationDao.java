@@ -24,6 +24,7 @@
 package org.projectforge.business.vacation.repository;
 
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.vacation.VacationFilter;
@@ -76,6 +77,9 @@ public class VacationDao extends BaseDao<VacationDO> {
   private ApplicationContext applicationContext;
 
   @Autowired
+  private EmployeeDao employeeDao;
+
+  @Autowired
   private PfEmgrFactory emgrFactory;
 
   public VacationDao() {
@@ -112,6 +116,10 @@ public class VacationDao extends BaseDao<VacationDO> {
       }
     }
     EmployeeDO employee = obj.getEmployee();
+    if (employee.getUserId() == null) {
+      // Object wasn't loaded from data base:
+      employee = employeeDao.internalGetById(employee.getId());
+    }
     if (employee == null || !Objects.equals(employee.getUserId(), user.getId())) {
       // User is not allowed to modify entries of other users.
       if (throwException) {
@@ -138,7 +146,9 @@ public class VacationDao extends BaseDao<VacationDO> {
   @Override
   protected void onSaveOrModify(VacationDO obj) {
     super.onSaveOrModify(obj);
-    obj.setSpecial(obj.getSpecial() == true); // Avoid null value of special.
+    if (obj.getSpecial() == null) {
+      obj.setSpecial(false); // Avoid null value of special.
+    }
   }
 
   @Override
