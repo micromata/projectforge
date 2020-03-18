@@ -197,6 +197,7 @@ FormPage.propTypes = {
     onNewFormPage: PropTypes.func.isRequired,
     onVariablesChange: PropTypes.func.isRequired,
     category: PropTypes.shape({}),
+    isPublic: PropTypes.bool,
 };
 
 FormPage.defaultProps = {
