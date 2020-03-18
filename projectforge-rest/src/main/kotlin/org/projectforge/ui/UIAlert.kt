@@ -23,24 +23,10 @@
 
 package org.projectforge.ui
 
-enum class UIElementType {
-    ALERT,
-    BUTTON,
-    CHECKBOX,
-    COL,
-    CUSTOMIZED,
-    FIELDSET,
-    FILTER_ELEMENT,
-    GROUP,
-    INPUT,
-    LABEL,
-    LIST,
-    NAMED_CONTAINER,
-    RADIOBUTTON,
-    READONLY_FIELD,
-    ROW,
-    SELECT,
-    TABLE,
-    TABLE_COLUMN,
-    TEXTAREA
-}
+/**
+ * For displaying message boxes.
+ */
+data class UIAlert(
+        var message: String? = null,
+        val color: UIColor? = null)
+        : UIElement(UIElementType.ALERT)
