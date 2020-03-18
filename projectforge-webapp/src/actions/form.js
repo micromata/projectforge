@@ -145,7 +145,7 @@ export const callAction = (
                 case 200:
                     switch (json.targetType) {
                         case 'REDIRECT':
-                            history.push(json.url, json.variables);
+                            history.push(json.url, { variables: json.variables });
                             break;
                         case 'UPDATE':
                             if (json.url) {

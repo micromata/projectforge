@@ -34,9 +34,12 @@ const initialCallBegin = (category, search) => ({
     },
 });
 
-const fetchDataBegin = category => ({
+const fetchDataBegin = (category, variables) => ({
     type: LIST_FETCH_DATA_BEGIN,
-    payload: { category },
+    payload: {
+        category,
+        variables,
+    },
 });
 
 const callSuccess = (category, response) => ({
@@ -66,8 +69,8 @@ const initialCall = (category, dispatch) => {
         .catch(error => dispatch(fetchFailure(category, error.message)));
 };
 
-const fetchData = (category, dispatch, listState) => {
-    dispatch(fetchDataBegin(category));
+const fetchData = (category, dispatch, listState, variables) => {
+    dispatch(fetchDataBegin(category, variables));
 
     return fetch(
         getServiceURL(`${category}/list`),
@@ -90,7 +93,11 @@ export const dismissCurrentError = () => (dispatch, getState) => dispatch(
     dismissError(getState().list.currentCategory),
 );
 
-export const loadList = (category, ignoreLastQueriedFilters = false) => (dispatch, getState) => {
+export const loadList = (
+    category,
+    ignoreLastQueriedFilters = false,
+    variables = undefined,
+) => (dispatch, getState) => {
     const { list } = getState();
 
     if (list.currentCategory !== category) {
@@ -122,7 +129,7 @@ export const loadList = (category, ignoreLastQueriedFilters = false) => (dispatc
         }
     }
 
-    return fn(category, dispatch, list);
+    return fn(category, dispatch, list, variables);
 };
 
 export const fetchCurrentList = (ignoreLastQueriedFilters = false) => (dispatch, getState) => {
