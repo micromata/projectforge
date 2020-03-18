@@ -6,6 +6,7 @@ import { loadUserStatus, loginUser } from '../actions';
 import LoginView from '../components/authentication/LoginView';
 import Footer from '../components/base/footer';
 import TopBar from '../components/base/topbar';
+import LoadingContainer from '../components/design/loading-container';
 import history from '../utilities/history';
 import prefix from '../utilities/prefix';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
@@ -43,6 +44,12 @@ function ProjectForge(
 
     if (user) {
         content = <AuthorizedRoutes />;
+    } else if (loginInProgress) {
+        content = (
+            <LoadingContainer loading>
+                <h1>Logging in...</h1>
+            </LoadingContainer>
+        );
     } else {
         content = (
             <Switch>
