@@ -129,7 +129,7 @@ export const loadList = (
         }
     }
 
-    return fn(category, dispatch, list);
+    return fn(category, dispatch, list, variables);
 };
 
 export const fetchCurrentList = (ignoreLastQueriedFilters = false) => (dispatch, getState) => {
