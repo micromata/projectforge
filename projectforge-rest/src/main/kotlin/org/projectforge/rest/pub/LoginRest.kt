@@ -38,13 +38,14 @@ import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.GlobalConfiguration
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
-import org.projectforge.ui.UILabel
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.UINamedContainer
+import org.projectforge.rest.dto.PostData
+import org.projectforge.ui.*
 import org.projectforge.web.rest.AbstractRestUserFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -64,7 +65,7 @@ import javax.servlet.http.HttpServletResponse
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/login")
 open class LoginRest {
-    data class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
+    class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
 
     private val log = org.slf4j.LoggerFactory.getLogger(LoginRest::class.java)
 
@@ -82,19 +83,24 @@ open class LoginRest {
 
     @GetMapping("dynamic")
     fun getForm(): FormLayoutData {
+        val motd = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
+        val responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST)
         val layout = UILayout("login.title")
-                .addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
-        //.addTranslation("messageOfTheDay")
-        layout.add(UINamedContainer("messageOfTheDay").add(UILabel(label = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY))))
+                .add(UIAlert(motd))
+                .add(UIInput("username", required = true, label = "username", focus = true))
+                .add(UIInput("password", required = true, label = "password", dataType = UIDataType.PASSWORD))
+                .add(UICheckbox("stayLoggedIn", label = "login.stayLoggedIn", tooltip = "login.stayLoggedIn.tooltip"))
+                .add(UIButton("login", translate("login"), UIColor.SUCCESS, responseAction = responseAction, default = true))
+        LayoutUtils.process(layout)
         return FormLayoutData(null, layout, null)
     }
 
     @PostMapping
-    fun login(@RequestBody loginData: LoginData,
-              request: HttpServletRequest,
-              response: HttpServletResponse)
+    fun login(request: HttpServletRequest,
+              response: HttpServletResponse,
+              @RequestBody postData: PostData<LoginData>)
             : ResponseEntity<String> {
-        val loginResultStatus = _login(request, response, loginData)
+        val loginResultStatus = _login(request, response, postData.data)
         if (loginResultStatus == LoginResultStatus.SUCCESS)
             return ResponseEntity.ok("Success")
         return ResponseEntity(HttpStatus.UNAUTHORIZED)
