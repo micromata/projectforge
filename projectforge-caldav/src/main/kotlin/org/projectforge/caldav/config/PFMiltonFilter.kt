@@ -24,13 +24,13 @@
 package org.projectforge.caldav.config
 
 import io.milton.servlet.MiltonFilter
+import mu.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.caldav.service.SslSessionCache
-import org.projectforge.rest.utils.RequestToJson
+import org.projectforge.rest.utils.RequestLog
 import org.projectforge.web.rest.RestAuthenticationInfo
 import org.projectforge.web.rest.RestAuthenticationUtils
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.context.support.WebApplicationContextUtils
@@ -38,39 +38,46 @@ import java.io.IOException
 import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
 
+private val log = KotlinLogging.logger {}
+
 /**
  * Ensuring a white url list for using Milton filter. MiltonFilter at default supports only black list.
  */
 class PFMiltonFilter : MiltonFilter() {
     private lateinit var springContext: WebApplicationContext
+
     @Autowired
     private lateinit var restAuthenticationUtils: RestAuthenticationUtils
+
     @Autowired
     private lateinit var userAuthenticationsService: UserAuthenticationsService
+
     @Autowired
     private lateinit var sslSessionCache: SslSessionCache
-
-    companion object {
-        private val log = LoggerFactory.getLogger(PFMiltonFilter::class.java)
-    }
 
     @Throws(ServletException::class)
     override fun init(filterConfig: FilterConfig) {
         super.init(filterConfig)
         springContext = WebApplicationContextUtils.getRequiredWebApplicationContext(filterConfig.servletContext)
-        val beanFactory = springContext.getAutowireCapableBeanFactory()
+        val beanFactory = springContext.autowireCapableBeanFactory
         beanFactory.autowireBean(this)
     }
 
     private fun authenticate(authInfo: RestAuthenticationInfo) {
+        if (log.isDebugEnabled) {
+            log.debug("Trying to authenticate user (requestUri=${RequestLog.asString(authInfo.request)})...")
+        }
         val sslSessionUser = sslSessionCache.getSessionData(authInfo.request)
         if (sslSessionUser != null) {
+            if (log.isDebugEnabled) {
+                log.debug("User found by session id (requestUri=${RequestLog.asString(authInfo.request)})...")
+            }
             authInfo.user = sslSessionUser
         } else {
             restAuthenticationUtils.basicAuthentication(authInfo, UserTokenType.DAV_TOKEN, true) { userString, authenticationToken ->
                 val authenticatedUser = userAuthenticationsService.getUserByToken(authInfo.request, userString, UserTokenType.DAV_TOKEN, authenticationToken)
                 if (authenticatedUser == null) {
-                    log.error("Can't authenticate user '$userString' by given token. User name and/or token invalid.")
+                    log.error("Can't authenticate user '$userString' by given token. User name and/or token invalid (requestUri=${RequestLog.asString(authInfo.request)}.")
                 } else {
                     sslSessionCache.registerSessionData(authInfo.request, authenticatedUser)
                 }
@@ -83,11 +90,13 @@ class PFMiltonFilter : MiltonFilter() {
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
         request as HttpServletRequest
         if (!DAVMethodsInterceptor.handledByMiltonFilter(request)) {
+            if (log.isDebugEnabled) {
+                log.debug("Request is not for us (neither CalDAV nor CardDAV-call), processing normal filter chain (requestUri=${RequestLog.asString(request)})...")
+            }
             // Not for us:
             chain.doFilter(request, response)
         } else {
-            log.info("request ${request.requestURI} with method=${request.method} for Milton...")
-            log.info("Request: ${RequestToJson.convert(request)}")
+            log.info("Request with method=${request.method} for Milton (requestUri=${RequestLog.asString(request)})...")
             restAuthenticationUtils.doFilter(request,
                     response,
                     UserTokenType.DAV_TOKEN,

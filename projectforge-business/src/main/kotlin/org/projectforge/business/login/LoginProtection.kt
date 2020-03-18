@@ -78,6 +78,9 @@ class LoginProtection private constructor() {
      */
     @JvmOverloads
     fun getFailedLoginTimeOffsetIfExists(userId: String?, clientIpAddress: String?, authenticationType: String? = null): Long {
+        if (log.isDebugEnabled) {
+            log.debug("Checking login protection for user '$userId', client ip address '$clientIpAddress' and authentication type '$authenticationType'.")
+        }
         var userIdOffset: Long = 0
         var ipAddressOffset: Long = 0
         if (userId != null) {
