@@ -23,10 +23,12 @@
 
 package org.projectforge.ui.filter
 
+import mu.KotlinLogging
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.i18n.translate
-import org.projectforge.rest.core.log
 import org.projectforge.ui.UISelectValue
+
+private val log = KotlinLogging.logger {}
 
 open class UIFilterListElement(
         id: String,

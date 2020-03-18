@@ -46,12 +46,21 @@ function AutoCompletion(
     },
 ) {
     const [completions, setCompletions] = React.useState([]);
-    const [isOpen, setIsOpen] = React.useState(false);
+    const [isOpen, setIsOpenState] = React.useState(false);
+    const [wasOpen, setWasOpen] = React.useState(false);
     const [selected, setSelected] = React.useState(0);
     const searchRef = React.useRef(null);
     const [loadCompletions] = React.useState(
         () => AwesomeDebouncePromise(loadCompletionsBounced, debouncedWaitTime),
     );
+
+    const setIsOpen = (state) => {
+        setIsOpenState(state);
+
+        if (state) {
+            setWasOpen(true);
+        }
+    };
 
     const close = () => {
         if (searchRef.current) {
@@ -93,7 +102,7 @@ function AutoCompletion(
     };
 
     React.useEffect(() => {
-        if (url) {
+        if (url && wasOpen) {
             const newAbortController = new AbortController();
 
             loadCompletions({
@@ -109,7 +118,7 @@ function AutoCompletion(
         }
 
         return undefined;
-    }, [url, search]);
+    }, [url, search, wasOpen]);
 
     React.useEffect(() => {
         setSelected(Math.min(completions.length, selected));

@@ -269,7 +269,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 .add(UICustomized("task.consumption"))
                 .add(UIInput("location", lc).enableAutoCompletion(this))
                 .add(descriptionArea)
-        jiraIssuesElement?.let { layout.add(it) }
+        jiraIssuesElement?.let { layout.add(UIRow().add(UICol().add(it))) }
         layout.addTranslations("until", "fibu.kost2", "task")
         Favorites.addTranslations(layout.translations)
         layout.addAction(UIButton("switch",

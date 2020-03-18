@@ -29,6 +29,8 @@ import org.projectforge.rest.core.AbstractSessionCache
 import org.springframework.stereotype.Service
 import javax.servlet.http.HttpServletRequest
 
+private val log = KotlinLogging.logger {}
+
 /**
  * Caches the session id's of the clients (for up to 5 Minutes). Every 10 Minutes, expired sessions will be removed.
  */
@@ -38,8 +40,6 @@ open class SslSessionCache
         expireTimeInMillis = 5 * TICKS_PER_MINUTE,
         clearEntriesIntervalInMillis = 10 * TICKS_PER_MINUTE,
         sessionType = "SSL session id") {
-
-    private val log = KotlinLogging.logger {}
 
     override fun entryAsString(entry: PFUserDO): String {
         return "'${entry.username}' with id ${entry.id}"

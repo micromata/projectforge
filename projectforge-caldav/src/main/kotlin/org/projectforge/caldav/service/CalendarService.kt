@@ -40,10 +40,10 @@ import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
+private val log = KotlinLogging.logger {}
+
 @Service
 class CalendarService {
-    private val log = KotlinLogging.logger {}
-
     @Autowired
     private lateinit var teamCalDao: TeamCalDao
 

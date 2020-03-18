@@ -1,11 +1,16 @@
+import { faCopy, faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
+import { faClipboardCheck } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
+import copy from 'clipboard-copy';
 import PropTypes from 'prop-types';
 import React from 'react';
 import UncontrolledTooltip from 'reactstrap/lib/UncontrolledTooltip';
-import { colorPropType } from '../../../utilities/propTypes';
+import selectNodeText from '../../../utilities/select';
 import TooltipIcon from '../TooltipIcon';
 import AdditionalLabel from './AdditionalLabel';
-import style from './Input.module.scss';
+import styles from './Input.module.scss';
+import InputContainer from './InputContainer';
 
 /**
  * ReadonlyField text (with label and optional tooltip)
@@ -13,9 +18,8 @@ import style from './Input.module.scss';
 function ReadonlyField(
     {
         additionalLabel,
-        className,
-        color,
-        cssClass,
+        canCopy,
+        coverUp,
         id,
         label,
         tooltip,
@@ -23,14 +27,69 @@ function ReadonlyField(
         ...props
     },
 ) {
+    const [showCover, setShowCover] = React.useState(true);
+    const [isCopied, setIsCopied] = React.useState(0);
+    const valueRef = React.useRef(null);
+
+    const copyValue = () => copy(value)
+        .then(() => setIsCopied(1))
+        .catch(() => setIsCopied(-1));
+
+    React.useEffect(() => setIsCopied(0), [value]);
+
+    const handleContainerClick = () => {
+        if (valueRef.current) {
+            selectNodeText(valueRef.current);
+        }
+    };
+
     return (
-        <div className={classNames(style.formGroup, 'form-group', className, cssClass)}>
-            <div
-                id={id}
-                className={style.textArea}
+        <React.Fragment>
+            <InputContainer
+                className={styles.readOnly}
+                label={label}
+                isActive
+                onClick={handleContainerClick}
+                readOnly
+                withMargin
                 {...props}
             >
-                {`${label} ${value}`}
+                {value && (
+                    <React.Fragment>
+                        <div className={styles.icons}>
+                            {coverUp && (
+                                <FontAwesomeIcon
+                                    icon={showCover ? faEye : faEyeSlash}
+                                    onClick={() => setShowCover(!showCover)}
+                                />
+                            )}
+                            {(coverUp || canCopy) && (
+                                <FontAwesomeIcon
+                                    className={classNames({
+                                        [styles.success]: isCopied === 1,
+                                        [styles.error]: isCopied === -1,
+                                    })}
+                                    icon={isCopied === 1 ? faClipboardCheck : faCopy}
+                                    onClick={copyValue}
+                                />
+                            )}
+                        </div>
+                        {coverUp && showCover && (
+                            <div
+                                className={styles.coverUp}
+                                style={{ width: `${value.length + 1}ch` }}
+                            />
+                        )}
+                    </React.Fragment>
+                )}
+                <p className={styles.value}>
+                    <span ref={valueRef}>
+                        {value && coverUp && showCover
+                            ? `${value.substr(0, value.length / 2)}***`
+                            : (value || '-')}
+                    </span>
+                    &nbsp;
+                </p>
                 {tooltip && (
                     <React.Fragment>
                         <TooltipIcon />
@@ -39,9 +98,9 @@ function ReadonlyField(
                         </UncontrolledTooltip>
                     </React.Fragment>
                 )}
-            </div>
+            </InputContainer>
             <AdditionalLabel title={additionalLabel} />
-        </div>
+        </React.Fragment>
     );
 }
 
@@ -49,18 +108,16 @@ ReadonlyField.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     additionalLabel: PropTypes.string,
-    className: PropTypes.string,
-    color: colorPropType,
-    cssClass: PropTypes.string,
+    canCopy: PropTypes.bool,
+    coverUp: PropTypes.bool,
     tooltip: PropTypes.string,
     value: PropTypes.string,
 };
 
 ReadonlyField.defaultProps = {
     additionalLabel: undefined,
-    className: undefined,
-    color: undefined,
-    cssClass: undefined,
+    canCopy: false,
+    coverUp: false,
     tooltip: undefined,
     value: undefined,
 };
