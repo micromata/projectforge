@@ -34,7 +34,7 @@ $transitionTime: .2s ease-out;
     cursor: default;
   }
 
-  &:hover:not(.readOnly) {
+  &:hover:not(.readOnly, .noStyle) {
     background-color: #eaeaea;
   }
 
