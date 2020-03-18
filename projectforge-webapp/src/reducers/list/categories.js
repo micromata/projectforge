@@ -46,6 +46,10 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                 ...state,
                 isFetching: true,
                 error: undefined,
+                variables: {
+                    ...state.variables,
+                    ...payload.variables,
+                }
             };
         case LIST_CALL_SUCCESS:
             return {
