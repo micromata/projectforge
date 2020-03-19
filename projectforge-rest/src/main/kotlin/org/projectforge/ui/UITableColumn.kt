@@ -49,7 +49,7 @@ data class UITableColumn(var id: String,
      * @return this for chaining.
      */
     fun setStandardBoolean(): UITableColumn {
-        valueIconMap = mapOf(true to UIIconType.CHECKED, false to UIIconType.TIMES_REGULAR)
+        valueIconMap = mapOf(true to UIIconType.CHECKED, false to UIIconType.TIMES)
         dataType = UIDataType.BOOLEAN
         return this
     }
