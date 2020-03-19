@@ -28,7 +28,7 @@ function ProjectForge(
     React.useEffect(() => {
         checkAuthentication();
 
-        fetch(getServiceURL('../rsPublic/systemStatus'))
+        fetch(getServiceURL('/rsPublic/systemStatus'))
             .then(handleHTTPErrors)
             .then(response => response.json())
             .then((json) => {

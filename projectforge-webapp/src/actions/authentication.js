@@ -31,7 +31,7 @@ export const loadUserStatus = () => (dispatch) => {
     dispatch(userLoginBegin());
 
     return fetch(
-        getServiceURL('../rs/userStatus'),
+        getServiceURL('userStatus'),
         {
             method: 'GET',
             credentials: 'include',
@@ -53,7 +53,7 @@ export const loadUserStatus = () => (dispatch) => {
 export const login = (username, password, keepSignedIn) => (dispatch) => {
     dispatch(userLoginBegin());
     return fetch(
-        getServiceURL('../rsPublic/login'),
+        getServiceURL('/rsPublic/login'),
         {
             method: 'POST',
             headers: {

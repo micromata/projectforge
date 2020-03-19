@@ -6,9 +6,8 @@ export const debouncedWaitTime = (
     navigator && navigator.connection && navigator.connection.saveData
 ) ? 1000 : 250;
 
-// Cannot achieve coverage of 100% because of testing environment.
-export const baseURL = `${(process.env.NODE_ENV === 'development' ? testServer : '')}/rs`;
-export const publicBaseUrl = `${(process.env.NODE_ENV === 'development' ? testServer : '')}/rsPublic`;
+export const baseURL = process.env.NODE_ENV === 'development' ? testServer : '';
+export const baseRestURL = `${baseURL}/rs`;
 
 export const createQueryParams = params => Object.keys(params)
     .filter(key => params[key] !== undefined)
@@ -16,13 +15,13 @@ export const createQueryParams = params => Object.keys(params)
     .join('&');
 
 export const getServiceURL = (serviceURL, params) => {
-    const top = 'http://localhost:8080';
+    const top = serviceURL.startsWith('/') ? baseURL : `${baseRestURL}/`;
 
     if (params && Object.keys(params).length) {
-        return `${top}/${serviceURL}?${createQueryParams(params)}`;
+        return `${top}${serviceURL}?${createQueryParams(params)}`;
     }
 
-    return `${top}/${serviceURL}`;
+    return `${top}${serviceURL}`;
 };
 
 export const handleHTTPErrors = (response) => {
