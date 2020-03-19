@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 /**
  * DAO für Urlaubsanträge.
  *
- * @author Florian Blumenstein
+ * @author Florian Blumenstein, Kai Reinhard
  */
 @Repository
 public class VacationDao extends BaseDao<VacationDO> {
@@ -102,7 +102,7 @@ public class VacationDao extends BaseDao<VacationDO> {
 
   @Override
   public boolean hasHistoryAccess(PFUserDO user, VacationDO obj, boolean throwException) {
-    if (hasExtendedRights(user, obj) || isOwnEntry(user, obj)) {
+    if (hasHrRights(user, obj) || isOwnEntry(user, obj) || isManager(user, obj)) {
       return true;
     }
     return throwOrReturn(throwException);
@@ -110,7 +110,7 @@ public class VacationDao extends BaseDao<VacationDO> {
 
   @Override
   public boolean hasUserSelectAccess(PFUserDO user, VacationDO obj, boolean throwException) {
-    if (hasExtendedRights(user, obj) || isOwnEntry(user, obj)) {
+    if (hasHrRights(user, obj) || isOwnEntry(user, obj) || isManager(user, obj) || isReplacement(user, obj)) {
       return true;
     }
     if (obj.getEmployee() != null && accessChecker.areUsersInSameGroup(user, obj.getEmployee().getUser())) {
@@ -126,10 +126,23 @@ public class VacationDao extends BaseDao<VacationDO> {
 
   @Override
   public boolean hasUpdateAccess(PFUserDO user, VacationDO obj, VacationDO dbObj, boolean throwException) {
-    if (hasExtendedRights(user, obj)) {
+    if (hasHrRights(user, obj)) {
       return true; // HR staff member are allowed to do everything.
     }
     if (!isOwnEntry(user, obj, dbObj)) {
+      if (dbObj != null && isManager(user, obj, dbObj)) {
+        if (Objects.equals(obj.getStartDate(), dbObj.getStartDate()) &&
+                Objects.equals(obj.getEndDate(), dbObj.getEndDate()) &&
+                obj.getSpecial() == dbObj.getSpecial() &&
+                Objects.equals(obj.getEmployeeId(), dbObj.getEmployeeId()) &&
+                obj.getHalfDayBegin() == dbObj.getHalfDayBegin() &&
+                obj.getHalfDayEnd() == dbObj.getHalfDayEnd() &&
+                (obj.getSpecial() == null || !obj.getSpecial())) {
+          // Manager is only allowed to change status and replacement, but not allowed to approve special vacations.
+          return true;
+        }
+        return throwOrReturn(throwException); // Normal user isn't allowed to insert foreign entries.
+      }
       return throwOrReturn(throwException); // Normal user isn't allowed to insert foreign entries.
     }
     if (obj.getStatus() == VacationStatus.APPROVED) {
@@ -145,7 +158,7 @@ public class VacationDao extends BaseDao<VacationDO> {
 
   @Override
   public boolean hasDeleteAccess(PFUserDO user, VacationDO obj, VacationDO dbObj, boolean throwException) {
-    if (hasExtendedRights(user, obj)) {
+    if (hasHrRights(user, obj)) {
       return true;
     }
     if (!isOwnEntry(user, obj, dbObj)) {
@@ -162,9 +175,8 @@ public class VacationDao extends BaseDao<VacationDO> {
     return accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE);
   }
 
-  private boolean hasExtendedRights(final PFUserDO loggedInUser, final VacationDO obj) {
-    return accessChecker.hasRight(loggedInUser, UserRightId.HR_VACATION, false, UserRightValue.READWRITE) ||
-            obj != null && obj.getManager() != null && Objects.equals(obj.getManager().getUserId(), loggedInUser.getId());
+  private boolean hasHrRights(final PFUserDO loggedInUser, final VacationDO obj) {
+    return accessChecker.hasRight(loggedInUser, UserRightId.HR_VACATION, false, UserRightValue.READWRITE);
   }
 
   private boolean isOwnEntry(final PFUserDO loggedInUser, final VacationDO obj, final VacationDO oldObj) {
@@ -187,6 +199,40 @@ public class VacationDao extends BaseDao<VacationDO> {
       employee = employeeDao.internalGetById(employee.getId());
     }
     return Objects.equals(employee.getUserId(), loggedInUser.getId());
+  }
+
+  private boolean isManager(final PFUserDO loggedInUser, final VacationDO obj, final VacationDO oldObj) {
+    if (!isManager(loggedInUser, obj)) {
+      return false;
+    }
+    if (oldObj != null) {
+      return isManager(loggedInUser, oldObj);
+    }
+    return true;
+  }
+
+  private boolean isManager(final PFUserDO loggedInUser, final VacationDO obj) {
+    EmployeeDO manager = obj.getManager();
+    if (manager == null) {
+      return false;
+    }
+    if (manager.getUserId() == null) {
+      // Object wasn't loaded from data base:
+      manager = employeeDao.internalGetById(manager.getId());
+    }
+    return Objects.equals(manager.getUserId(), loggedInUser.getId());
+  }
+
+  private boolean isReplacement(final PFUserDO loggedInUser, final VacationDO obj) {
+    EmployeeDO replacement = obj.getReplacement();
+    if (replacement == null) {
+      return false;
+    }
+    if (replacement.getUserId() == null) {
+      // Object wasn't loaded from data base:
+      replacement = employeeDao.internalGetById(replacement.getId());
+    }
+    return Objects.equals(replacement.getUserId(), loggedInUser.getId());
   }
 
   private boolean throwOrReturn(boolean throwException) {

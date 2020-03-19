@@ -28,16 +28,17 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
-import org.projectforge.business.user.UserDao
-import org.projectforge.business.user.UserRightId
-import org.projectforge.business.user.UserRightValue
+import org.projectforge.business.fibu.api.EmployeeService
+import org.projectforge.business.user.*
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
+import java.math.BigDecimal
 import java.time.LocalDate
 
 class VacationDaoTest : AbstractTestBase() {
@@ -45,10 +46,19 @@ class VacationDaoTest : AbstractTestBase() {
     private lateinit var employeeDao: EmployeeDao
 
     @Autowired
+    private lateinit var employeeService: EmployeeService
+
+    @Autowired
+    private lateinit var groupDao: GroupDao
+
+    @Autowired
     private lateinit var userDao: UserDao
 
     @Autowired
     private lateinit var vacationDao: VacationDao
+
+    @Autowired
+    private lateinit var vacationService: VacationService
 
     @Test
     fun vacationAccessTest() {
@@ -57,31 +67,55 @@ class VacationDaoTest : AbstractTestBase() {
         val replacement = createEmployee("VacationAccessTest.replacement", false)
         val vacation = createVacation(employee, manager, replacement, VacationStatus.IN_PROGRESS)
         val foreignVacation = createVacation(replacement, manager, manager, VacationStatus.IN_PROGRESS)
-        checkAccess(employee.user, vacation, "own vacation", true, true, true, true, true)
+        checkAccess(employee.user, vacation, "own vacation in progress", true, true, true, true, true)
         checkAccess(employee.user, foreignVacation, "foreign vacation", false, false, false, false, false)
-/*
-        Assertions.assertTrue(vacationDao.hasUserSelectAccess(employee.user, vacation, true))
-        Assertions.assertFalse(vacationDao.hasUpdateAccess(employee.user, vacation, foreignVacation, false), "Update of not approved foreign vacation entries allowed.")
-        Assertions.assertFalse(vacationDao.hasUpdateAccess(employee.user, foreignVacation, vacation, false), "Update of not approved foreign vacation entries allowed.")
-        vacation.status = VacationStatus.APPROVED
-        checkNoInsertUpdateAccess(employee.user, vacation)
-        checkReadAndDeleteAccess(employee.user, vacation)
-        Assertions.assertFalse(vacationDao.hasDeleteAccess(employee.user, vacation, foreignVacation, false))
-        Assertions.assertFalse(vacationDao.hasDeleteAccess(employee.user, foreignVacation, vacation, false))
 
-        val oldVacation = createVacation(employee, manager, replacement, VacationStatus.IN_PROGRESS, future = false)
-        checkReadAndDeleteAccess(employee.user, oldVacation)
-        checkNoInsertUpdateAccess(employee.user, oldVacation)
-        oldVacation.status = VacationStatus.APPROVED
-        Assertions.assertTrue(vacationDao.hasHistoryAccess(employee.user, oldVacation, true), "History access of own vacation entries allowed.")
-        Assertions.assertTrue(vacationDao.hasUserSelectAccess(employee.user, oldVacation, true), "Select access of own vacation entries allowed.")
-        Assertions.assertFalse(vacationDao.hasDeleteAccess(employee.user, oldVacation, oldVacation, true), "Deletion of own old approved vacations not allowed.")
+        checkAccess(employee.user, vacation, "changed foreign vacation", true, true, false, false, true, foreignVacation)
+
+        vacation.status = VacationStatus.APPROVED
+        checkAccess(employee.user, vacation, "own approved vacation", true, false, false, true, true)
+
+        vacation.status = VacationStatus.IN_PROGRESS
+        checkAccess(employee.user, vacation, "changed foreign vacation", true, true, false, false, true, foreignVacation)
+
+        val pastVacation = createVacation(employee, manager, replacement, VacationStatus.IN_PROGRESS, future = false)
+        checkAccess(employee.user, pastVacation, "own past vacation in progress", true, false, false, true, true)
+
+        pastVacation.status = VacationStatus.APPROVED
+        checkAccess(employee.user, pastVacation, "own past approved vacation", true, false, false, false, true)
+
+        // Check self approve
+        vacation.manager = employee
+        val error = VacationValidator.validate(vacationService, vacation, vacation, false)
+        Assertions.assertNotNull(error)
+        Assertions.assertEquals(VacationValidator.Error.NOT_ALLOWED_TO_APPROVE.messageKey, error!!.messageKey)
+        vacation.manager = manager
+        Assertions.assertNull(VacationValidator.validate(vacationService, vacation, vacation, false))
 
         // Check full access of HR staff:
         val hrEmployee = createEmployee("VacationAccessTest.HR", true)
-        checkFullAccess(hrEmployee.user, vacation)
-        checkFullAccess(hrEmployee.user, foreignVacation)
-        checkFullAccess(hrEmployee.user, oldVacation)*/
+        checkAccess(hrEmployee.user, vacation, "hr access", true, true, true, true, true)
+        checkAccess(hrEmployee.user, foreignVacation, "hr access", true, true, true, true, true)
+        checkAccess(hrEmployee.user, pastVacation, "hr access", true, true, true, true, true)
+
+        // Check manager access:
+        val approvedVacation = createVacation(employee, manager, replacement, VacationStatus.IN_PROGRESS)
+        checkAccess(manager.user, approvedVacation, "manager access", true, false, true, false, true, vacation)
+
+        approvedVacation.startDate = approvedVacation.startDate!!.plusDays(1)
+        checkAccess(manager.user, approvedVacation, "manager access", true, false, false, false, true, vacation)
+
+        approvedVacation.startDate = approvedVacation.endDate!!.plusDays(1)
+        checkAccess(manager.user, approvedVacation, "manager access", true, false, false, false, true, vacation)
+
+        approvedVacation.startDate = approvedVacation.startDate!!.minusDays(1)
+        checkAccess(manager.user, approvedVacation, "manager access", true, false, false, false, true, vacation)
+
+        approvedVacation.startDate = approvedVacation.endDate!!.minusDays(1)
+        checkAccess(manager.user, approvedVacation, "manager access", true, false, false, false, true, vacation)
+
+        approvedVacation.special = true
+        checkAccess(manager.user, approvedVacation, "manager access not allowed for special approved vacations", true, false, false, false, true, vacation)
     }
 
     private fun checkAccess(user: PFUserDO?, vacation: VacationDO, msg: String, select: Boolean, insert: Boolean, update: Boolean, delete: Boolean, history: Boolean, dbVacation: VacationDO? = null) {
@@ -159,17 +193,26 @@ class VacationDaoTest : AbstractTestBase() {
     }
 
     private fun createEmployee(name: String, hrAccess: Boolean): EmployeeDO {
+        val loggedInUser = ThreadLocalUserContext.getUser()
+        logon(TEST_ADMIN_USER)
         val user = PFUserDO()
         user.firstname = name
         user.lastname = name
         user.username = "$name.$name"
         if (hrAccess) {
-            user.addRight(UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE))
+            user.addRight(UserRightDO(UserRightId.HR_VACATION, UserRightValue.READWRITE))
         }
-        userDao.internalSave(user)
+        initTestDB.addUser(user);
+        if (hrAccess) {
+            val group = getGroup(ProjectForgeGroup.HR_GROUP.toString())
+            group.assignedUsers!!.add(user)
+            groupDao.update(group)
+        }
         val employee = EmployeeDO()
         employee.user = user
+        employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(2), BigDecimal(30));
         employeeDao.internalSave(employee)
+        logon(loggedInUser)
         return employee
     }
 }
