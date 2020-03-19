@@ -25,6 +25,7 @@ package org.projectforge.business.vacation.service
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.UserDao
@@ -54,25 +55,91 @@ class VacationDaoTest : AbstractTestBase() {
         val employee = createEmployee("VacationAccessTest.normal", false)
         val manager = createEmployee("VacationAccessTest.manager", false)
         val replacement = createEmployee("VacationAccessTest.replacement", false)
-        logon(employee.user)
-        var vacation = VacationDO()
-        vacation.employee = employee
-        vacation.manager = manager
-        vacation.replacement = replacement
-        vacation.startDate = LocalDate.now().plusDays(2)
-        vacation.endDate = LocalDate.now().plusDays(3)
+        val vacation = createVacation(employee, manager, replacement, VacationStatus.IN_PROGRESS)
+        val foreignVacation = createVacation(replacement, manager, manager, VacationStatus.IN_PROGRESS)
+        checkAccess(employee.user, vacation, "own vacation", true, true, true, true, true)
+        checkAccess(employee.user, foreignVacation, "foreign vacation", false, false, false, false, false)
+/*
         Assertions.assertTrue(vacationDao.hasUserSelectAccess(employee.user, vacation, true))
-        vacation.status = VacationStatus.IN_PROGRESS
-        Assertions.assertTrue(vacationDao.hasInsertAccess(employee.user, vacation, true))
+        Assertions.assertFalse(vacationDao.hasUpdateAccess(employee.user, vacation, foreignVacation, false), "Update of not approved foreign vacation entries allowed.")
+        Assertions.assertFalse(vacationDao.hasUpdateAccess(employee.user, foreignVacation, vacation, false), "Update of not approved foreign vacation entries allowed.")
         vacation.status = VacationStatus.APPROVED
-        Assertions.assertFalse(vacationDao.hasInsertAccess(employee.user, vacation, false))
-        try {
-            vacationDao.hasInsertAccess(employee.user, vacation, true)
-            Assertions.fail("Exception expected")
-        } catch (ex: Exception) {
-            // OK
-        }
+        checkNoInsertUpdateAccess(employee.user, vacation)
+        checkReadAndDeleteAccess(employee.user, vacation)
+        Assertions.assertFalse(vacationDao.hasDeleteAccess(employee.user, vacation, foreignVacation, false))
+        Assertions.assertFalse(vacationDao.hasDeleteAccess(employee.user, foreignVacation, vacation, false))
+
+        val oldVacation = createVacation(employee, manager, replacement, VacationStatus.IN_PROGRESS, future = false)
+        checkReadAndDeleteAccess(employee.user, oldVacation)
+        checkNoInsertUpdateAccess(employee.user, oldVacation)
+        oldVacation.status = VacationStatus.APPROVED
+        Assertions.assertTrue(vacationDao.hasHistoryAccess(employee.user, oldVacation, true), "History access of own vacation entries allowed.")
+        Assertions.assertTrue(vacationDao.hasUserSelectAccess(employee.user, oldVacation, true), "Select access of own vacation entries allowed.")
+        Assertions.assertFalse(vacationDao.hasDeleteAccess(employee.user, oldVacation, oldVacation, true), "Deletion of own old approved vacations not allowed.")
+
+        // Check full access of HR staff:
         val hrEmployee = createEmployee("VacationAccessTest.HR", true)
+        checkFullAccess(hrEmployee.user, vacation)
+        checkFullAccess(hrEmployee.user, foreignVacation)
+        checkFullAccess(hrEmployee.user, oldVacation)*/
+    }
+
+    private fun checkAccess(user: PFUserDO?, vacation: VacationDO, msg: String, select: Boolean, insert: Boolean, update: Boolean, delete: Boolean, history: Boolean, dbVacation: VacationDO? = null) {
+        if (select) {
+            Assertions.assertTrue(vacationDao.hasUserSelectAccess(user, vacation, false), "Select access allowed: $msg.")
+        } else {
+            Assertions.assertFalse(vacationDao.hasUserSelectAccess(user, vacation, false), "Select access not allowed: $msg.")
+            try {
+                vacationDao.hasHistoryAccess(user, vacation, true)
+                fail("Exception expected, select access not allowed: $msg.")
+            } catch (ex: Exception) {
+                // OK
+            }
+        }
+        if (insert) {
+            Assertions.assertTrue(vacationDao.hasInsertAccess(user, vacation, false), "Insert access allowed: $msg.")
+        } else {
+            Assertions.assertFalse(vacationDao.hasInsertAccess(user, vacation, false), "Insert access not allowed: $msg.")
+            try {
+                vacationDao.hasInsertAccess(user, vacation, true)
+                fail("Exception expected, insert access not allowed: $msg.")
+            } catch (ex: Exception) {
+                // OK
+            }
+        }
+        if (update) {
+            Assertions.assertTrue(vacationDao.hasUpdateAccess(user, vacation, dbVacation, false), "Update access allowed: $msg.")
+        } else {
+            Assertions.assertFalse(vacationDao.hasUpdateAccess(user, vacation, dbVacation, false), "Update access not allowed: $msg.")
+            try {
+                vacationDao.hasUpdateAccess(user, vacation, dbVacation, true)
+                fail("Exception expected, update access not allowed: $msg.")
+            } catch (ex: Exception) {
+                // OK
+            }
+        }
+        if (delete) {
+            Assertions.assertTrue(vacationDao.hasDeleteAccess(user, vacation, dbVacation, false), "Delete access allowed: $msg.")
+        } else {
+            Assertions.assertFalse(vacationDao.hasDeleteAccess(user, vacation, dbVacation, false), "Delete access not allowed: $msg.")
+            try {
+                vacationDao.hasDeleteAccess(user, vacation, dbVacation, true)
+                fail("Exception expected, delete access not allowed: $msg.")
+            } catch (ex: Exception) {
+                // OK
+            }
+        }
+        if (history) {
+            Assertions.assertTrue(vacationDao.hasHistoryAccess(user, vacation, false), "History access allowed: $msg.")
+        } else {
+            Assertions.assertFalse(vacationDao.hasHistoryAccess(user, vacation, false), "History access not allowed: $msg.")
+            try {
+                vacationDao.hasHistoryAccess(user, vacation, true)
+                fail("Exception expected, history access not allowed: $msg.")
+            } catch (ex: Exception) {
+                // OK
+            }
+        }
     }
 
     private fun createVacation(employee: EmployeeDO, manager: EmployeeDO, replacement: EmployeeDO, status: VacationStatus, future: Boolean = true): VacationDO {
@@ -84,8 +151,8 @@ class VacationDaoTest : AbstractTestBase() {
             vacation.startDate = LocalDate.now().plusDays(2)
             vacation.endDate = LocalDate.now().plusDays(10)
         } else {
-            vacation.startDate = LocalDate.now().plusDays(-10)
-            vacation.endDate = LocalDate.now().plusDays(-2)
+            vacation.startDate = LocalDate.now().minusDays(10)
+            vacation.endDate = LocalDate.now().minusDays(2)
         }
         vacation.status = status
         return vacation

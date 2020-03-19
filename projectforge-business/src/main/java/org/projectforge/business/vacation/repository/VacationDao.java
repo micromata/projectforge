@@ -133,8 +133,12 @@ public class VacationDao extends BaseDao<VacationDO> {
       return throwOrReturn(throwException); // Normal user isn't allowed to insert foreign entries.
     }
     if (obj.getStatus() == VacationStatus.APPROVED) {
-      // Normal user isn't allowed to insert approved entries:
+      // Normal user isn't allowed to insert/update approved entries:
       return throwOrReturn(VacationValidator.Error.NOT_ALLOWED_TO_APPROVE.getMessageKey(), throwException);
+    }
+    if (obj.getStartDate().isBefore(LocalDate.now())) {
+      // Normal user isn't allowed to insert/update old entries.
+      return throwOrReturn(throwException); // Normal user isn't allowed to insert foreign entries.
     }
     return true;
   }
