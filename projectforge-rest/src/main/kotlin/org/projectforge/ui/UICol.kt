@@ -23,30 +23,69 @@
 
 package org.projectforge.ui
 
+/**
+ * Twelve column grid system.
+ */
 open class UICol(
         /**
-         * Length in grid system (1-12)
+         * Length in grid system
          */
-        val length: Int? = null,
+        val length: Length? = null,
         /**
-         * Length for small screens (1-12)
+         * Offset in grid system
          */
-        val smLength: Int? = null,
-        /**
-         * Length for middle sized screens (1-12)
-         */
-        val mdLength: Int? = null,
-        /**
-         * Length for large screens (1-12)
-         */
-        val lgLength: Int? = null,
-        /**
-         * Length for large screens (1-12)
-         */
-        val xlLength: Int? = null,
+        val offset: Length? = null,
         val content: MutableList<UIElement> = mutableListOf(),
         type: UIElementType = UIElementType.COL)
     : UIElement(type) {
+    constructor(
+            /**
+             * Length in grid system (1-12)
+             */
+            length: Int? = null,
+            /**
+             * Length for small screens (1-12)
+             */
+            smLength: Int? = null,
+            /**
+             * Length for middle sized screens (1-12)
+             */
+            mdLength: Int? = null,
+            /**
+             * Length for large screens (1-12)
+             */
+            lgLength: Int? = null,
+            /**
+             * Length for large screens (1-12)
+             */
+            xlLength: Int? = null,
+            content: MutableList<UIElement> = mutableListOf(),
+            type: UIElementType = UIElementType.COL)
+            : this(length = Length(length, smLength, mdLength, lgLength, xlLength), content = content, type = type)
+
+    class Length(
+            /**
+             * Length for extra small screen and up(default) in grid system (1-12)
+             */
+            val xs: Int? = null,
+            /**
+             * Length for small screens (1-12)
+             */
+            val sm: Int? = null,
+            /**
+             * Length for middle sized screens (1-12)
+             */
+            val md: Int? = null,
+            /**
+             * Length for large screens (1-12)
+             */
+            val lg: Int? = null,
+            /**
+             * Length for extra large screens (1-12)
+             */
+            val xl: Int? = null
+    )
+
     fun add(element: UIElement): UICol {
         content.add(element)
         return this
