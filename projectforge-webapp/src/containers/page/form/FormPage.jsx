@@ -64,7 +64,7 @@ function FormPage(
                 currentCategory,
                 id,
                 getServiceURL(
-                    `${isPublic ? '../rsPublic/' : ''}${currentCategory}/${type || 'dynamic'}`,
+                    `${isPublic ? '/rsPublic/' : ''}${currentCategory}/${type || 'dynamic'}`,
                     {
                         ...getObjectFromQuery(search || ''),
                         id,
