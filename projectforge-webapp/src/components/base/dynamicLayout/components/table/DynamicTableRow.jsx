@@ -28,8 +28,8 @@ function DynamicTableRow(
             {columns.map((
                 {
                     id,
-                    formatter,
                     dataType,
+                    ...column
                 },
             ) => (
                 <td key={`table-body-row-${row.id}-column-${id}`}>
@@ -37,10 +37,10 @@ function DynamicTableRow(
                         ? <DynamicCustomized id={id} data={row} />
                         : (
                             <Formatter
-                                formatter={formatter}
                                 data={row}
                                 id={id}
                                 dataType={dataType}
+                                {...column}
                             />
                         )}
                 </td>
