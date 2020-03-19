@@ -31,7 +31,6 @@ function ConsumptionBar({ progress, taskId, identifier }) {
     );
     if (taskId) {
         return (
-            // ToDo: onClick
             <Link to={`/timesheet?taskId=${taskId}`}>
                 {element}
             </Link>
