@@ -188,7 +188,6 @@ FormPage.propTypes = {
         params: PropTypes.shape({
             category: PropTypes.string.isRequired,
             id: PropTypes.string,
-            tab: PropTypes.string,
             type: PropTypes.string,
         }).isRequired,
     }).isRequired,
