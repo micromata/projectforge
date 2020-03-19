@@ -188,7 +188,7 @@ class LayoutUtils {
                             responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.CLONE), targetType = TargetType.POST)))
                 }
                 if (!pagesRest.isDeleted(dto)) {
-                    if (userAccess.insert == true) {
+                    if (userAccess.update == true) {
                         layout.addAction(UIButton("update",
                                 color = UIColor.PRIMARY,
                                 default = true,
