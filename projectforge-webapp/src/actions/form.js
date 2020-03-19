@@ -1,5 +1,6 @@
 import history from '../utilities/history';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
+import { loadUserStatus } from './authentication';
 
 export const FORM_CALL_ACTION_BEGIN = 'FORM_CALL_ACTION_BEGIN';
 export const FORM_CALL_ACTION_SUCCESS = 'FORM_CALL_ACTION_SUCCESS';
@@ -159,6 +160,13 @@ export const callAction = (
                                 window.scrollTo(0, 0);
                             } else {
                                 dispatch(callSuccess(category, json.variables));
+                            }
+                            break;
+                        case 'CHECK_AUTHENTICATION':
+                            loadUserStatus()(dispatch);
+
+                            if (json.url) {
+                                history.push(json.url);
                             }
                             break;
                         case 'NOTHING':

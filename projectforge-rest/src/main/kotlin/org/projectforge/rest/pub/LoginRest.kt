@@ -50,7 +50,6 @@ import org.projectforge.web.rest.AbstractRestUserFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.InetAddress
 import java.net.UnknownHostException
@@ -116,11 +115,22 @@ open class LoginRest {
     fun login(request: HttpServletRequest,
               response: HttpServletResponse,
               @RequestBody postData: PostData<LoginData>)
-            : ResponseEntity<String> {
+            : ResponseAction {
         val loginResultStatus = _login(request, response, postData.data)
-        if (loginResultStatus == LoginResultStatus.SUCCESS)
-            return ResponseEntity.ok("Success")
-        return ResponseEntity(HttpStatus.UNAUTHORIZED)
+
+        if (loginResultStatus == LoginResultStatus.SUCCESS) {
+            var redirectUrl: String? = null
+
+            if (request.getHeader("Referer").endsWith("/react/public/login")) {
+                redirectUrl = "/react/"
+            }
+
+            return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl)
+        }
+
+        response.status = HttpStatus.NOT_ACCEPTABLE.value()
+
+        return ResponseAction(targetType = TargetType.NOTHING, validationErrors = listOf(ValidationError(loginResultStatus.localizedMessage)))
     }
 
     private fun _login(request: HttpServletRequest, response: HttpServletResponse, loginData: LoginData): LoginResultStatus {
