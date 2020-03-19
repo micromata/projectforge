@@ -9,7 +9,7 @@ import { fetchJsonGet } from '../../../utilities/rest';
 import CalendarFilterSettings from '../../panel/calendar/CalendarFilterSettings';
 import CalendarPanel from '../../panel/calendar/CalendarPanel';
 import FavoritesPanel from '../../panel/favorite/FavoritesPanel';
-import { customStyles } from './Calendar.module';
+import customStyles from './Calendar.module';
 import { CalendarContext, defaultValues as calendarContextDefaultValues } from './CalendarContext';
 
 class CalendarPage extends React.Component {
