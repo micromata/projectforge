@@ -1,5 +1,6 @@
 import React from 'react';
 import DynamicCustomized from './customized';
+import DynamicAlert from './DynamicAlert';
 import DynamicButton from './DynamicButton';
 import DynamicFieldset from './DynamicFieldset';
 import DynamicGroup from './DynamicGroup';
@@ -52,6 +53,7 @@ export default (content) => {
 };
 
 // register default components
+registerComponent('ALERT', DynamicAlert);
 registerComponent('BUTTON', DynamicButton);
 registerComponent('CHECKBOX', DynamicCheckbox);
 registerComponent('COL', DynamicGroup);

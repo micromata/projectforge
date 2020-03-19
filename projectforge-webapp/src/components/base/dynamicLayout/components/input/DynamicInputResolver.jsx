@@ -66,6 +66,7 @@ DynamicInputResolver.propTypes = {
         'INT',
         'DECIMAL',
         'NUMBER',
+        'PASSWORD',
     ]).isRequired,
     autoCompletionUrl: PropTypes.string,
 };

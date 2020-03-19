@@ -86,7 +86,7 @@ open class LoginRest {
         val motd = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
         val responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST)
         val layout = UILayout("login.title")
-                .add(UIAlert(motd))
+                .add(UIAlert(motd, color = UIColor.INFO))
                 .add(UIInput("username", required = true, label = "username", focus = true))
                 .add(UIInput("password", required = true, label = "password", dataType = UIDataType.PASSWORD))
                 .add(UICheckbox("stayLoggedIn", label = "login.stayLoggedIn", tooltip = "login.stayLoggedIn.tooltip"))
