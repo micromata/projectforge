@@ -33,6 +33,7 @@ function FormPage(
 ) {
     const {
         data,
+        isFetching,
         ui,
         validationErrors,
         variables,
@@ -138,6 +139,7 @@ function FormPage(
                                         <DynamicLayout
                                             callAction={onCallAction}
                                             data={data}
+                                            isFetching={isFetching}
                                             options={{
                                                 displayPageMenu: id !== undefined,
                                                 setBrowserTitle: true,
