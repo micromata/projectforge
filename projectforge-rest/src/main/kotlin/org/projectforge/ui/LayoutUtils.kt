@@ -166,6 +166,8 @@ class LayoutUtils {
                                 outline = true,
                                 responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.MARK_AS_DELETED), targetType = TargetType.DELETE),
                                 confirmMessage = translate("question.markAsDeletedQuestion")))
+
+                        layout.addTranslations("yes", "cancel")
                     }
                 }
             } else if (userAccess.delete == true) {
@@ -175,6 +177,8 @@ class LayoutUtils {
                         outline = true,
                         responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.DELETE), targetType = TargetType.DELETE),
                         confirmMessage = translate("question.deleteQuestion")))
+
+                layout.addTranslations("yes", "cancel")
             }
             if (pagesRest.getId(dto) != null) {
                 if (pagesRest.cloneSupport != AbstractPagesRest.CloneSupport.NONE) {
