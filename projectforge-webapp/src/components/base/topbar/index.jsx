@@ -14,7 +14,7 @@ function TopBar() {
                 ? (
                     <img
                         className={classNames(style.logo, style.left)}
-                        src={getServiceURL(`../rsPublic/${logoUrl}`)}
+                        src={getServiceURL(`/rsPublic/${logoUrl}`)}
                         alt="Company Logo"
                     />
                 )
