@@ -34,7 +34,6 @@ import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.business.vacation.service.VacationValidator;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
-import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -102,45 +101,102 @@ public class VacationDao extends BaseDao<VacationDO> {
   }
 
   @Override
-  public boolean hasAccess(final PFUserDO user, final VacationDO obj, final VacationDO oldObj,
-                           final OperationType operationType,
-                           final boolean throwException) {
-    if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE) ||
-            obj == null || obj.getManager() != null && Objects.equals(obj.getManager().getUserId(), user.getId())) {
-      // User is HR staff member or assigned manager.
+  public boolean hasHistoryAccess(PFUserDO user, VacationDO obj, boolean throwException) {
+    if (hasExtendedRights(user, obj) || isOwnEntry(user, obj)) {
       return true;
     }
-    if (operationType == OperationType.SELECT) {
-      if (obj.getEmployee() != null && accessChecker.areUsersInSameGroup(user, obj.getEmployee().getUser())) {
-        return true;
-      }
+    return throwOrReturn(throwException);
+  }
+
+  @Override
+  public boolean hasUserSelectAccess(PFUserDO user, VacationDO obj, boolean throwException) {
+    if (hasExtendedRights(user, obj) || isOwnEntry(user, obj)) {
+      return true;
     }
-    EmployeeDO employee = obj.getEmployee();
-    if (employee.getUserId() == null) {
-      // Object wasn't loaded from data base:
-      employee = employeeDao.internalGetById(employee.getId());
+    if (obj.getEmployee() != null && accessChecker.areUsersInSameGroup(user, obj.getEmployee().getUser())) {
+      return true;
     }
-    if (employee == null || !Objects.equals(employee.getUserId(), user.getId())) {
-      // User is not allowed to modify entries of other users.
-      if (throwException) {
-        throw new AccessException("access.exception.userHasNotRight", UserRightId.HR_VACATION, UserRightValue.READWRITE);
-      }
-      return false;
+    return throwOrReturn(throwException);
+  }
+
+  @Override
+  public boolean hasInsertAccess(PFUserDO user, VacationDO obj, boolean throwException) {
+    return hasUpdateAccess(user, obj, null, throwException);
+  }
+
+  @Override
+  public boolean hasUpdateAccess(PFUserDO user, VacationDO obj, VacationDO dbObj, boolean throwException) {
+    if (hasExtendedRights(user, obj)) {
+      return true; // HR staff member are allowed to do everything.
     }
-    // User is owner of given object.
-    if (operationType.isIn(OperationType.INSERT, OperationType.UPDATE, OperationType.UNDELETE)
-            && !obj.isDeleted() && obj.getStatus() == VacationStatus.APPROVED) {
-      if (oldObj == null || oldObj.getStatus() != VacationStatus.APPROVED) {
-        // User tried to insert a new entry as approved or tries to approve a not yet approved entry.
-        throw new AccessException(VacationValidator.Error.NOT_ALLOWED_TO_APPROVE.getMessageKey());
-      }
-      return false;
+    if (!isOwnEntry(user, obj, dbObj)) {
+      return throwOrReturn(throwException); // Normal user isn't allowed to insert foreign entries.
+    }
+    if (obj.getStatus() == VacationStatus.APPROVED) {
+      // Normal user isn't allowed to insert approved entries:
+      return throwOrReturn(VacationValidator.Error.NOT_ALLOWED_TO_APPROVE.getMessageKey(), throwException);
+    }
+    return true;
+  }
+
+  @Override
+  public boolean hasDeleteAccess(PFUserDO user, VacationDO obj, VacationDO dbObj, boolean throwException) {
+    if (hasExtendedRights(user, obj)) {
+      return true;
+    }
+    if (!isOwnEntry(user, obj, dbObj)) {
+      return throwOrReturn(throwException); // Normal user isn't allowed to insert foreign entries.
+    }
+    if (obj.getStatus() == VacationStatus.APPROVED && obj.getStartDate().isBefore(LocalDate.now())) {
+      // The user isn't allowed to delete approved entries of the past.
+      return throwOrReturn(throwException);
     }
     return true;
   }
 
   public boolean hasLoggedInUserHRVacationAccess() {
     return accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE);
+  }
+
+  private boolean hasExtendedRights(final PFUserDO loggedInUser, final VacationDO obj) {
+    return accessChecker.hasRight(loggedInUser, UserRightId.HR_VACATION, false, UserRightValue.READWRITE) ||
+            obj != null && obj.getManager() != null && Objects.equals(obj.getManager().getUserId(), loggedInUser.getId());
+  }
+
+  private boolean isOwnEntry(final PFUserDO loggedInUser, final VacationDO obj, final VacationDO oldObj) {
+    if (!isOwnEntry(loggedInUser, obj)) {
+      return false;
+    }
+    if (oldObj != null) {
+      return isOwnEntry(loggedInUser, oldObj);
+    }
+    return true;
+  }
+
+  private boolean isOwnEntry(final PFUserDO loggedInUser, final VacationDO obj) {
+    EmployeeDO employee = obj.getEmployee();
+    if (employee == null) {
+      return false;
+    }
+    if (employee.getUserId() == null) {
+      // Object wasn't loaded from data base:
+      employee = employeeDao.internalGetById(employee.getId());
+    }
+    return Objects.equals(employee.getUserId(), loggedInUser.getId());
+  }
+
+  private boolean throwOrReturn(boolean throwException) {
+    if (throwException) {
+      throw new AccessException("access.exception.userHasNotRight", UserRightId.HR_VACATION, UserRightValue.READWRITE);
+    }
+    return false;
+  }
+
+  private boolean throwOrReturn(final String messageKey, boolean throwException) {
+    if (throwException) {
+      throw new AccessException(messageKey);
+    }
+    return false;
   }
 
   @Override
