@@ -352,12 +352,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     final Collection<Integer> userGroups = userGroupCache.getUserGroups(user2);
     // No groups found.
     if (userGroups == null) {
-      final Collection<Integer> userGroups2 = userGroupCache.getUserGroups(user1);
-      if (userGroups2 == null) {
-        return true;
-      } else {
         return false;
-      }
     }
     final Collection<Integer> currentUserGroups = userGroupCache.getUserGroups(user1);
     if (currentUserGroups == null) {
