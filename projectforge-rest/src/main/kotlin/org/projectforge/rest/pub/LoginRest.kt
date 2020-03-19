@@ -87,8 +87,16 @@ open class LoginRest {
         val responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST)
         val layout = UILayout("login.title")
                 .add(UIAlert(motd, color = UIColor.INFO, icon = UIIconType.INFO))
-                .add(UIInput("username", required = true, label = "username", focus = true))
-                .add(UIInput("password", required = true, label = "password", dataType = UIDataType.PASSWORD))
+                .add(UIInput("username",
+                        required = true,
+                        label = "username",
+                        focus = true,
+                        autoComplete = UIInput.AutoCompleteType.USERNAME))
+                .add(UIInput("password",
+                        required = true,
+                        label = "password",
+                        dataType = UIDataType.PASSWORD,
+                        autoComplete = UIInput.AutoCompleteType.CURRENT_PASSWORD))
                 .add(UICheckbox("stayLoggedIn", label = "login.stayLoggedIn", tooltip = "login.stayLoggedIn.tooltip"))
                 .add(UIButton("login", translate("login"), UIColor.SUCCESS, responseAction = responseAction, default = true))
         LayoutUtils.process(layout)
