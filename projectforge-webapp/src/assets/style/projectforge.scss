@@ -512,10 +512,12 @@ span.mm-select {
 
 			.react-select__multi-value {
 				background-color: #333;
+				margin: 4px 2px 0 2px;
 
 				.react-select__multi-value__label {
 					color: #fff;
 					font-size: 1em;
+					padding: 0 0 0 6px;
 				}
 
 				.react-select__multi-value__remove {
