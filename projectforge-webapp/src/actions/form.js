@@ -1,6 +1,7 @@
 import history from '../utilities/history';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
 import { loadUserStatus } from './authentication';
+import { addToast } from './toast';
 
 export const FORM_CALL_ACTION_BEGIN = 'FORM_CALL_ACTION_BEGIN';
 export const FORM_CALL_ACTION_SUCCESS = 'FORM_CALL_ACTION_SUCCESS';
@@ -133,7 +134,8 @@ export const callAction = (
         .then((response) => {
             ({ status } = response);
 
-            if (status === 200 || status === 406) {
+            if (response.headers.get('Content-Type')
+                .includes('application/json')) {
                 return response.json();
             }
 
@@ -142,44 +144,43 @@ export const callAction = (
         .then((json) => {
             dispatch(callActionSuccess(category));
 
-            switch (status) {
-                case 200:
-                    switch (json.targetType) {
-                        case 'REDIRECT':
-                            history.push(json.url, { variables: json.variables });
-                            break;
-                        case 'UPDATE':
-                            if (json.url) {
-                                history.push(
-                                    `${json.url}`,
-                                    {
-                                        noReload: true,
-                                        newVariables: json.variables,
-                                    },
-                                );
-                                window.scrollTo(0, 0);
-                            } else {
-                                dispatch(callSuccess(category, json.variables));
-                            }
-                            break;
-                        case 'CHECK_AUTHENTICATION':
-                            loadUserStatus()(dispatch);
-
-                            if (json.url) {
-                                history.push(json.url);
-                            }
-                            break;
-                        case 'NOTHING':
-                        default:
-                            throw Error(`Target Type ${json.targetType} not implemented.`);
+            if (status === 406) {
+                dispatch(callSuccess(category, { validationErrors: json.validationErrors }));
+                window.scrollTo(0, 0);
+                return;
+            }
+            switch (json.targetType) {
+                case 'REDIRECT':
+                    history.push(json.url, { variables: json.variables });
+                    break;
+                case 'UPDATE':
+                    if (json.url) {
+                        history.push(
+                            `${json.url}`,
+                            {
+                                noReload: true,
+                                newVariables: json.variables,
+                            },
+                        );
+                        window.scrollTo(0, 0);
+                    } else {
+                        dispatch(callSuccess(category, json.variables));
                     }
                     break;
-                case 406:
-                    dispatch(callSuccess(category, { validationErrors: json.validationErrors }));
-                    window.scrollTo(0, 0);
+                case 'CHECK_AUTHENTICATION':
+                    loadUserStatus()(dispatch);
+
+                    if (json.url) {
+                        history.push(json.url);
+                    }
+                    break;
+                case 'NOTHING':
+                    break;
+                case 'TOAST':
+                    addToast(json.message.message, json.message.color)(dispatch);
                     break;
                 default:
-                    throw Error(`Error ${status}`);
+                    throw Error(`Error ${status}: TargetType ${json.targetType} not implemented.`);
             }
         })
         .catch(error => dispatch(callFailure(category, error)));

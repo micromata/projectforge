@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { Route, Router, Switch } from 'react-router-dom';
 import { loadUserStatus } from '../actions';
 import Footer from '../components/base/footer';
+import Toasts from '../components/base/Toasts';
 import TopBar from '../components/base/topbar';
 import LoadingContainer from '../components/design/loading-container';
 import history from '../utilities/history';
@@ -90,6 +91,7 @@ function ProjectForge(
                 {content}
             </Router>
             <Footer />
+            <Toasts />
         </SystemStatusContext.Provider>
     );
 }
