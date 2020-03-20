@@ -20,32 +20,27 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+package org.projectforge.business.vacation.model
 
-package org.projectforge.rest.core
-
-import org.projectforge.rest.config.Rest
-import org.springframework.web.bind.annotation.RequestMapping
+import org.projectforge.common.i18n.I18nEnum
 
 /**
- * Helper for getting url of rest calls.
+ * Created by blumenstein on 22.11.16.
  */
-object RestResolver {
-    const val REACT_PATH = "react"
+enum class VacationMode(val key: String) : I18nEnum {
+    OWN("own"), REPLACEMENT("replacement"), MANAGER("manager"), OTHER("other");
 
-    private val log = org.slf4j.LoggerFactory.getLogger(RestResolver::class.java)
+    /**
+     * The key will be used e. g. for i18n.
+     *
+     * @return
+     */
 
-    fun getRestUrl(pagesRestClass: Class<*>, subPath: String? = null, withoutPrefix: Boolean = false): String {
-        val requestMapping = pagesRestClass.annotations.find { it is RequestMapping } as? RequestMapping
-        var url = requestMapping?.value?.joinToString("/") { it } ?: "/"
-        if (withoutPrefix && url.startsWith("${Rest.URL}/")) {
-            url = url.substringAfter("${Rest.URL}/")
-        }
-        if (subPath.isNullOrBlank()) {
-            return url
-        }
-        if (subPath.startsWith('/') || url.endsWith('/')) {
-            return  "${url}$subPath"
-        }
-        return  "${url}/$subPath"
+    /**
+     * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
+     */
+    override fun getI18nKey(): String {
+        return "vacation.$key"
     }
+
 }

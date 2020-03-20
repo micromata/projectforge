@@ -33,6 +33,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
@@ -54,7 +55,6 @@ import org.projectforge.web.doc.DocumentationPage;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.user.ChangePasswordPage;
 import org.projectforge.web.user.MyAccountEditPage;
-import org.projectforge.web.vacation.VacationAccountPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.FeedbackPage;
@@ -195,8 +195,7 @@ public class NavTopPanel extends NavAbstractPanel {
   }
 
   private void addVacationViewLink() {
-    final BookmarkablePageLink<Void> vacationViewLink = new BookmarkablePageLink<Void>("vacationViewLink",
-            VacationAccountPage.class) {
+    final ExternalLink vacationViewLink = new ExternalLink("vacationViewLink", "/react/vacationAccount/dynamic") {
       @Override
       public boolean isVisible() {
         return vacationService.hasAccessToVacationService(ThreadLocalUserContext.getUser(), false);

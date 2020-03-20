@@ -33,6 +33,7 @@ export {
     Modal,
     ModalBody,
     ModalHeader,
+    ModalFooter,
     Nav,
     Navbar,
     NavbarToggler,

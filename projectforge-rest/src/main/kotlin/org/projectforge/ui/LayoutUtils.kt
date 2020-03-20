@@ -131,7 +131,7 @@ class LayoutUtils {
         fun addListDefaultOptions(group: UIGroup) {
             group
                     .add(UICheckbox("deleted", label = "onlyDeleted", tooltip = "onlyDeleted.tooltip", color = UIColor.DANGER))
-                    //.add(UICheckbox("searchHistory", label = "search.searchHistory", tooltip = "search.searchHistory.additional.tooltip"))
+            //.add(UICheckbox("searchHistory", label = "search.searchHistory", tooltip = "search.searchHistory.additional.tooltip"))
         }
 
         /**
@@ -164,7 +164,10 @@ class LayoutUtils {
                         layout.addAction(UIButton("markAsDeleted",
                                 color = UIColor.DANGER,
                                 outline = true,
-                                responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.MARK_AS_DELETED), targetType = TargetType.DELETE)))
+                                responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.MARK_AS_DELETED), targetType = TargetType.DELETE),
+                                confirmMessage = translate("question.markAsDeletedQuestion")))
+
+                        layout.addTranslations("yes", "cancel")
                     }
                 }
             } else if (userAccess.delete == true) {
@@ -172,7 +175,10 @@ class LayoutUtils {
                 layout.addAction(UIButton("deleteIt",
                         color = UIColor.DANGER,
                         outline = true,
-                        responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.DELETE), targetType = TargetType.DELETE)))
+                        responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.DELETE), targetType = TargetType.DELETE),
+                        confirmMessage = translate("question.deleteQuestion")))
+
+                layout.addTranslations("yes", "cancel")
             }
             if (pagesRest.getId(dto) != null) {
                 if (pagesRest.cloneSupport != AbstractPagesRest.CloneSupport.NONE) {
@@ -182,7 +188,7 @@ class LayoutUtils {
                             responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.CLONE), targetType = TargetType.POST)))
                 }
                 if (!pagesRest.isDeleted(dto)) {
-                    if (userAccess.insert == true) {
+                    if (userAccess.update == true) {
                         layout.addAction(UIButton("update",
                                 color = UIColor.PRIMARY,
                                 default = true,
