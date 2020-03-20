@@ -173,7 +173,7 @@ abstract class AbstractPagesRest<
      * Creates a new dto by calling [newBaseDO] and [transformFromDB].
      */
     open fun newBaseDTO(request: HttpServletRequest? = null): DTO {
-        return transformFromDB(newBaseDO())
+        return transformFromDB(newBaseDO(request))
     }
 
     open fun createListLayout(): UILayout {
