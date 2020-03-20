@@ -3,6 +3,7 @@ import React from 'react';
 import { contentPropType } from '../../../../utilities/propTypes';
 import { Col } from '../../../design';
 import { DynamicLayoutContext } from '../context';
+import { buildLengthForColumn, lengthPropType } from './DynamicGroup';
 
 // The Fieldset component enclosed in a col. Very similar to DynamicGroup.
 function DynamicFieldset(props) {
@@ -10,10 +11,7 @@ function DynamicFieldset(props) {
         content,
         title,
         length,
-        smLength,
-        mdLength,
-        lgLength,
-        xlLength,
+        offset,
     } = props;
 
     // Get renderLayout function from context
@@ -22,7 +20,7 @@ function DynamicFieldset(props) {
     // Render a Column around the fieldset and the enclosed layout.
     return React.useMemo(
         () => (
-            <Col xs={length} sm={smLength} md={mdLength} lg={lgLength} xl={{ xlLength }}>
+            <Col {...buildLengthForColumn(length, offset)}>
                 <fieldset>
                     {title ? <legend>{title}</legend> : undefined}
                     {renderLayout(content)}
@@ -36,20 +34,14 @@ function DynamicFieldset(props) {
 DynamicFieldset.propTypes = {
     content: PropTypes.arrayOf(contentPropType).isRequired,
     title: PropTypes.string,
-    length: PropTypes.number,
-    smLength: PropTypes.number,
-    mdLength: PropTypes.number,
-    lgLength: PropTypes.number,
-    xlLength: PropTypes.number,
+    length: lengthPropType,
+    offset: lengthPropType,
 };
 
 DynamicFieldset.defaultProps = {
     title: undefined,
     length: undefined,
-    smLength: undefined,
-    mdLength: undefined,
-    lgLength: undefined,
-    xlLength: undefined,
+    offset: undefined,
 };
 
 export default DynamicFieldset;

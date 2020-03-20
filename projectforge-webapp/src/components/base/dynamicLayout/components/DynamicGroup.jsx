@@ -4,6 +4,17 @@ import { contentPropType } from '../../../../utilities/propTypes';
 import { Col, FormGroup, Row } from '../../../design';
 import { DynamicLayoutContext } from '../context';
 
+export const buildLengthForColumn = (length, offset = undefined) => (offset
+    ? Object.keys(length)
+        .reduce((previousValue, key) => ({
+            ...previousValue,
+            [key]: {
+                size: length[key],
+                offset: offset[key],
+            },
+        }), {})
+    : length);
+
 // A Component to put a tag around dynamic layout content
 function DynamicGroup(props) {
     const {
@@ -28,16 +39,7 @@ function DynamicGroup(props) {
                 if (length) {
                     groupProperties = {
                         ...groupProperties,
-                        ...(offset
-                            ? Object.keys(length)
-                                .reduce((previousValue, key) => ({
-                                    ...previousValue,
-                                    [key]: {
-                                        size: length[key],
-                                        offset: offset[key],
-                                    },
-                                }), {})
-                            : length),
+                        ...(buildLengthForColumn(length, offset)),
                     };
                 }
 
@@ -66,7 +68,7 @@ function DynamicGroup(props) {
     }, [props]);
 }
 
-const lengthPropType = PropTypes.shape({
+export const lengthPropType = PropTypes.shape({
     extraSmall: PropTypes.number,
     small: PropTypes.number,
     medium: PropTypes.number,
