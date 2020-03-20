@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.api
 
 import org.projectforge.business.task.TaskDO
+import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.time.PFDateTimeUtils
@@ -128,6 +129,17 @@ object MagicFilterProcessor {
                 queryFilter.add(QueryFilter.eq(field, valueInt))
             } else {
                 queryFilter.add(QueryFilter.isNull(field))
+            }
+        } else if (I18nEnum::class.java.isAssignableFrom(fieldType)) {
+            val values = magicFilterEntry.value.values
+            if (!values.isNullOrEmpty()) {
+                @Suppress("UNCHECKED_CAST")
+                val enumConstants = fieldType.enumConstants as Array<Enum<*>>
+                val list = values.map { value ->
+                    enumConstants.first { it.name == value }
+                }
+                val predicate = DBPredicate.IsIn(field, *(list.toTypedArray() as Array<*>))
+                queryFilter.add(predicate)
             }
         } else {
             log.warn("Search entry of type '${fieldType.name}' not yet supported for field '$field'.")
