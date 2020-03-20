@@ -49,7 +49,6 @@ import org.projectforge.ui.*
 import org.projectforge.web.rest.AbstractRestUserFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import java.net.InetAddress
 import java.net.UnknownHostException
@@ -128,9 +127,10 @@ open class LoginRest {
             return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl)
         }
 
-        response.status = HttpStatus.NOT_ACCEPTABLE.value()
+        response.status = 400
 
-        return ResponseAction(targetType = TargetType.NOTHING, validationErrors = listOf(ValidationError(loginResultStatus.localizedMessage)))
+        return ResponseAction(targetType = TargetType.TOAST,
+                message = ResponseAction.Message(loginResultStatus.i18nKey, color = UIColor.DANGER))
     }
 
     private fun _login(request: HttpServletRequest, response: HttpServletResponse, loginData: LoginData): LoginResultStatus {
