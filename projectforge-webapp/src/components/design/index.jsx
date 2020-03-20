@@ -41,6 +41,7 @@ export {
     NavLink,
     Popover,
     PopoverBody,
+    Progress,
     Row,
     Spinner,
     TabContent,

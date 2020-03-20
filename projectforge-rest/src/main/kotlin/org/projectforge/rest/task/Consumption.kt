@@ -31,6 +31,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 class Consumption(
         /**
@@ -38,28 +39,34 @@ class Consumption(
          */
         val title: String,
         val status: Status,
+        val percentage: Int?,
         val width: String,
         val id: Int?) {
 
     enum class Status {
         @JsonProperty("progress-done")
         DONE,
+
         @JsonProperty("progress-none")
         NONE,
+
         @JsonProperty("progress-80")
         PROGRESS_80,
+
         @JsonProperty("progress-90")
         PROGRESS_90,
+
         @JsonProperty("progress-overbooked")
         OVERBOOKED,
+
         @JsonProperty("progress-overbooked-min")
         OVERBOOKED_MIN
     }
 
     companion object {
         fun create(node: TaskNode): Consumption? {
-            var maxHours = node.task.maxHours
-            var finished = node.isFinished
+            val maxHours = node.task.maxHours
+            val finished = node.isFinished
             val taskTree = TaskTreeHelper.getTaskTree()
             val maxDays: BigDecimal?
             if (maxHours != null && maxHours.toInt() == 0) {
@@ -68,11 +75,11 @@ class Consumption(
                 maxDays = NumberHelper.setDefaultScale(taskTree.getPersonDays(node))
             }
             var usage = BigDecimal(node.getDuration(taskTree, true)).divide(DateHelper.SECONDS_PER_WORKING_DAY, 2,
-                    BigDecimal.ROUND_HALF_UP)
+                    RoundingMode.HALF_UP)
             usage = NumberHelper.setDefaultScale(usage)
 
             val percentage = if (maxDays != null && maxDays.toDouble() > 0)
-                usage.divide(maxDays, 2, BigDecimal.ROUND_HALF_UP).multiply(NumberHelper.HUNDRED).toInt()
+                usage.divide(maxDays, 2, RoundingMode.HALF_UP).multiply(NumberHelper.HUNDRED).toInt()
             else
                 0
             // TODO: What does 10000 / percentage mean?
@@ -108,7 +115,7 @@ class Consumption(
                         ""
                     }
             val title = "$usageStr$unitStr$maxValueStr"
-            return Consumption(title, status, "$width%", node.taskId)
+            return Consumption(title, status, percentage = percentage, width = "$width%", id = node.taskId)
         }
     }
 }

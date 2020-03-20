@@ -49,7 +49,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                 variables: {
                     ...state.variables,
                     ...payload.variables,
-                }
+                },
             };
         case LIST_CALL_SUCCESS:
             return {
