@@ -51,4 +51,9 @@ enum class UIIconType(@JsonValue val icon: Array<String>) {
      * https://fontawesome.com/icons/times?style=solid
      */
     TIMES(arrayOf("fas", "times")),
+
+    /**
+     * https://fontawesome.com/icons/user-lock?style=solid
+     */
+    USER_LOCK(arrayOf("fas", "user-lock")),
 }

@@ -81,33 +81,7 @@ open class LoginRest {
 
     @GetMapping("dynamic")
     fun getForm(): FormLayoutData {
-        val motd = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
-        val responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST)
-        val layout = UILayout("login.title")
-                .add(UIRow()
-                        .add(UICol(length = UICol.Length(12, md = 6, lg = 4),
-                                offset = UICol.Length(0, md = 3, lg = 4))
-                                .add(UIAlert(motd, color = UIColor.INFO, icon = UIIconType.INFO))
-                                .add(UIInput("username",
-                                        required = true,
-                                        label = "username",
-                                        focus = true,
-                                        autoComplete = UIInput.AutoCompleteType.USERNAME))
-                                .add(UIInput("password",
-                                        required = true,
-                                        label = "password",
-                                        dataType = UIDataType.PASSWORD,
-                                        autoComplete = UIInput.AutoCompleteType.CURRENT_PASSWORD))
-                                .add(UICheckbox("stayLoggedIn",
-                                        label = "login.stayLoggedIn",
-                                        tooltip = "login.stayLoggedIn.tooltip"))
-                                .add(UIButton("login",
-                                        translate("login"),
-                                        UIColor.SUCCESS,
-                                        responseAction = responseAction,
-                                        default = true))))
-        LayoutUtils.process(layout)
-        return FormLayoutData(null, layout, null)
+        return FormLayoutData(null, this.getLoginLayout(), null)
     }
 
     @PostMapping
@@ -128,9 +102,52 @@ open class LoginRest {
         }
 
         response.status = 400
+        return ResponseAction(targetType = TargetType.UPDATE)
+                .addVariable("ui", getLoginLayout(loginResultStatus))
+    }
 
-        return ResponseAction(targetType = TargetType.TOAST,
-                message = ResponseAction.Message(loginResultStatus.i18nKey, color = UIColor.DANGER))
+    private fun getLoginLayout(loginResultStatus: LoginResultStatus? = null): UILayout {
+        val motd = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
+        val responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST)
+
+        val alertGroup = UIRow()
+                .add(UICol(12)
+                        .add(UIAlert(motd, color = UIColor.INFO, icon = UIIconType.INFO)))
+
+        if (loginResultStatus != null) {
+            alertGroup.add(UICol(12)
+                    .add(UIAlert(loginResultStatus.localizedMessage,
+                            color = UIColor.DANGER,
+                            icon = UIIconType.USER_LOCK)))
+        }
+
+        val layout = UILayout("login.title")
+                .add(UIRow()
+                        .add(UICol(length = UICol.Length(12, md = 6, lg = 4),
+                                offset = UICol.Length(0, md = 3, lg = 4))
+                                .add(alertGroup)
+                                .add(UIInput("username",
+                                        required = true,
+                                        label = "username",
+                                        focus = true,
+                                        autoComplete = UIInput.AutoCompleteType.USERNAME))
+                                .add(UIInput("password",
+                                        required = true,
+                                        label = "password",
+                                        dataType = UIDataType.PASSWORD,
+                                        autoComplete = UIInput.AutoCompleteType.CURRENT_PASSWORD))
+                                .add(UICheckbox("stayLoggedIn",
+                                        label = "login.stayLoggedIn",
+                                        tooltip = "login.stayLoggedIn.tooltip"))
+                                .add(UIButton("login",
+                                        translate("login"),
+                                        UIColor.SUCCESS,
+                                        responseAction = responseAction,
+                                        default = true))))
+
+        LayoutUtils.process(layout)
+
+        return layout
     }
 
     private fun _login(request: HttpServletRequest, response: HttpServletResponse, loginData: LoginData): LoginResultStatus {
