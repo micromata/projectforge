@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -25,11 +26,12 @@ function Formatter(
         dataType,
         dateFormat,
         timestampFormatMinutes,
+        valueIconMap,
     },
 ) {
     const value = Object.getByString(data, id);
-    if (!value) {
-        return <React.Fragment/>;
+    if (value === undefined) {
+        return <React.Fragment />;
     }
 
     let result = value;
@@ -85,17 +87,25 @@ function Formatter(
     } else if (dataType === 'DATE') {
         result = moment(value)
             .format(timestampFormatMinutes);
+    } else if (valueIconMap && valueIconMap.length !== 0) {
+        const valueIcon = valueIconMap[value];
+
+        if (valueIcon) {
+            result = <FontAwesomeIcon icon={valueIcon} />;
+        }
     }
+
     return result;
 }
 
 Formatter.propTypes = {
     data: PropTypes.shape({}),
-    id: PropTypes.string,
-    formatter: PropTypes.string,
     dataType: PropTypes.string,
     dateFormat: PropTypes.string,
+    id: PropTypes.string,
+    formatter: PropTypes.string,
     timestampFormatMinutes: PropTypes.string,
+    valueIconMap: PropTypes.shape({}),
 };
 
 Formatter.defaultProps = {
@@ -105,6 +115,7 @@ Formatter.defaultProps = {
     dataType: undefined,
     dateFormat: 'DD/MM/YYYY',
     timestampFormatMinutes: 'DD.MM.YYYY HH:mm',
+    valueIconMap: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({

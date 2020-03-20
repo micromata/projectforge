@@ -27,20 +27,23 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonValue
 
 /**
- * Defined as Fontawesome icons.
+ * Defined as Fontawesome icons. Solid style for default.
+ * Check https://fontawesome.com/icons/ for available non-pro icons.
  */
-@JsonFormat(shape = JsonFormat.Shape.OBJECT)
-enum class UIIconType(val icon: Array<String>) {
+@JsonFormat
+enum class UIIconType(@JsonValue val icon: Array<String>) {
     /**
      * https://fontawesome.com/icons/check?style=solid
      */
-    CHECKED(arrayOf("check")),
+    CHECKED(arrayOf("fas", "check")),
+
     /**
      * https://fontawesome.com/icons/times?style=solid
      */
-    TIMES(arrayOf("times")),
+    TIMES(arrayOf("fas", "times")),
+
     /**
-     * https://fontawesome.com/icons/times?style=regular
+     * https://fontawesome.com/icons/star?style=regular
      */
-    TIMES_REGULAR(arrayOf("far", "times"))
+    STAR_REGULAR(arrayOf("far", "star"))
 }
