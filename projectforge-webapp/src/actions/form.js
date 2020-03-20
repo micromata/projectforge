@@ -70,7 +70,7 @@ const switchCategoryWithData = (from, to, newVariables) => ({
     },
 });
 
-export const loadFormPage = (category, id, url) => (dispatch, getState) => {
+export const loadFormPage = (category, id, url, params = {}) => (dispatch, getState) => {
     const currentCategory = getState().form.categories[category];
 
     if (currentCategory && currentCategory.isFetching) {
@@ -88,13 +88,23 @@ export const loadFormPage = (category, id, url) => (dispatch, getState) => {
     )
         .then(handleHTTPErrors)
         .then(response => response.json())
-        .then(json => dispatch(callSuccess(category, json)))
+        .then(json => dispatch(callSuccess(category, Object.combine(params, json))))
         .catch(error => callFailure(category, error));
 };
 
-export const callAction = ({ responseAction: action }) => (dispatch, getState) => {
+export const callAction = (
+    {
+        responseAction: action,
+        watchFieldsTriggered,
+    },
+) => (dispatch, getState) => {
     if (!action) {
         return Promise.reject(Error('No response action given.'));
+    }
+
+    if (action.targetType === 'REDIRECT') {
+        history.push(`/${action.url}`, { serverData: action.variables });
+        return Promise.resolve();
     }
 
     const { form: state } = getState();
@@ -104,7 +114,7 @@ export const callAction = ({ responseAction: action }) => (dispatch, getState) =
 
     let status = 0;
 
-    const { data, watchFieldsTriggered, serverData } = state.categories[category];
+    const { data, serverData } = state.categories[category];
 
     return fetch(
         getServiceURL(action.url),
@@ -177,15 +187,16 @@ export const setCurrentData = newData => (dispatch, getState) => {
 
     // Check for triggered watch fields
     if (ui.watchFields) {
-        const triggered = Object.keys(newData)
+        const watchFieldsTriggered = Object.keys(newData)
             .filter(key => ui.watchFields.includes(key));
 
-        if (triggered.length > 0) {
+        if (watchFieldsTriggered.length > 0) {
             callAction({
                 responseAction: {
                     url: `${currentCategory}/watchFields`,
                     targetType: 'POST',
                 },
+                watchFieldsTriggered,
             })(dispatch, getState);
         }
     }

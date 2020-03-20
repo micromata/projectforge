@@ -3,7 +3,7 @@ import React from 'react';
 import { colorPropType } from '../../../../utilities/propTypes';
 import { ButtonGroup, Spinner } from '../../../design';
 import { DynamicLayoutContext } from '../context';
-import DynamicActionButton from './DynamicActionButton';
+import DynamicButton from '../components/DynamicButton';
 
 export const actionPropType = PropTypes.shape({
     id: PropTypes.string.isRequired,
@@ -24,7 +24,7 @@ function DynamicActionGroup({ actions }) {
         <React.Fragment>
             <ButtonGroup>
                 {actions.map(action => (
-                    <DynamicActionButton
+                    <DynamicButton
                         key={`dynamic-action-button-${action.id}-${action.key}`}
                         {...action}
                     />

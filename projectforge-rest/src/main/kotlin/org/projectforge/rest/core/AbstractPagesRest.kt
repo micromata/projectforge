@@ -173,7 +173,7 @@ abstract class AbstractPagesRest<
      * Creates a new dto by calling [newBaseDO] and [transformFromDB].
      */
     open fun newBaseDTO(request: HttpServletRequest? = null): DTO {
-        return transformFromDB(newBaseDO())
+        return transformFromDB(newBaseDO(request))
     }
 
     open fun createListLayout(): UILayout {
@@ -555,9 +555,13 @@ abstract class AbstractPagesRest<
      * @param id Id of the item to get or null, for new items (null  will be returned)
      * a group with a separate label and input field will be generated.
      * layout will be also included if the id is not given.
+     * @param returnToCaller This optional parameter defines the caller page of this service to put in server data. After processing this page
+     * the user will be redirect to this given returnToCaller.
      */
     @GetMapping(RestPaths.EDIT)
-    fun getItemAndLayout(request: HttpServletRequest, @RequestParam("id") id: String?)
+    fun getItemAndLayout(request: HttpServletRequest,
+                         @RequestParam("id") id: String?,
+                         @RequestParam("returnToCaller") returnToCaller: String?)
             : ResponseEntity<FormLayoutData> {
         val userAccess = UILayout.UserAccess()
         val item = (if (null != id) {
@@ -568,8 +572,9 @@ abstract class AbstractPagesRest<
         })
                 ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         onBeforeGetItemAndLayout(request, item, userAccess)
-        val ui = getItemAndLayout(request, item, userAccess)
-        return ResponseEntity(ui, HttpStatus.OK)
+        val formLayoutData = getItemAndLayout(request, item, userAccess)
+        formLayoutData.serverData!!.returnToCaller = returnToCaller
+        return ResponseEntity(formLayoutData, HttpStatus.OK)
     }
 
     /**
@@ -583,8 +588,7 @@ abstract class AbstractPagesRest<
         val ui = createEditLayout(dto, userAccess)
         ui.addTranslations("changes", "tooltip.selectMe")
         ui.postProcessPageMenu()
-        val serverData = ServerData(
-                csrfToken = sessionCsrfCache.ensureAndGetToken(request))
+        val serverData = ServerData(csrfToken = sessionCsrfCache.ensureAndGetToken(request))
         val result = FormLayoutData(dto, ui, serverData)
         onGetItemAndLayout(request, dto, result)
         val additionalVariables = addVariablesForEditPage(dto)
@@ -903,7 +907,26 @@ abstract class AbstractPagesRest<
         obj.id?.let {
             userPrefService.putEntry(getCategory(), USER_PREF_PARAM_HIGHLIGHT_ROW, it, false)
         }
-        return ResponseAction("/${Const.REACT_APP_PATH}${getCategory()}").addVariable("id", obj.id ?: -1)
+        val returnToCaller = postData.serverData?.returnToCaller
+        if (!returnToCaller.isNullOrBlank()) {
+            // ReturnToCaller was defined:
+            val responseAction = createReturnToCallerResponseAction(returnToCaller)
+            // Add any caller params if available:
+            postData.serverData?.returnToCallerParams?.forEach {
+                responseAction.addVariable(it.key, it.value)
+            }
+            return responseAction
+        }
+        return ResponseAction(PagesResolver.getListPageUrl(this::class.java, absolute = true))
+                .addVariable("id", obj.id ?: -1)
+    }
+
+    /**
+     * Overwrite this method to replace returnToCaller by URL. At default the given returnToCaller will be used
+     * unmodified as URL.
+     */
+    protected open fun createReturnToCallerResponseAction(returnToCaller: String): ResponseAction {
+        return ResponseAction(returnToCaller)
     }
 
     internal open fun filterList(resultSet: MutableList<O>, filter: MagicFilter): List<O> {
@@ -930,8 +953,4 @@ abstract class AbstractPagesRest<
     abstract fun isDeleted(dto: Any): Boolean
 
     abstract fun isHistorizable(): Boolean
-
-    private class MagicFilterEntries(var entries: MutableList<MagicFilterEntry> = mutableListOf(),
-                                     var name: String? = null,
-                                     var id: Int? = null)
 }

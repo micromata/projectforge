@@ -32,8 +32,12 @@ private val log = KotlinLogging.logger {}
 
 open class UIFilterListElement(
         id: String,
-        var values: List<UISelectValue<String>>? = null
-) : UIFilterElement(id, FilterType.LIST) {
+        var values: List<UISelectValue<String>>? = null,
+        label: String? = null,
+        additionalLabel: String? = null,
+        tooltip: String? = null,
+        defaultFilter: Boolean? = null)
+    : UIFilterElement(id, FilterType.LIST, label = label, additionalLabel = additionalLabel, tooltip = tooltip, defaultFilter = defaultFilter) {
 
     fun buildValues(i18nEnum: Class<out Enum<*>>): UIFilterListElement {
         val newValues = mutableListOf<UISelectValue<String>>()

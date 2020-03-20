@@ -5,7 +5,6 @@ import React from 'react';
 import UncontrolledTooltip from 'reactstrap/lib/UncontrolledTooltip';
 import { colorPropType } from '../../../utilities/propTypes';
 import TooltipIcon from '../TooltipIcon';
-import AdditionalLabel from './AdditionalLabel';
 import styles from './Input.module.scss';
 
 const Input = React.forwardRef((
