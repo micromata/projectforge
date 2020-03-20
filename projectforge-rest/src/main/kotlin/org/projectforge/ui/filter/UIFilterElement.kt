@@ -54,7 +54,7 @@ open class UIFilterElement(
         /**
          * If true, this filter should be permanent visible on client's list view.
          */
-        var isDefaultFilter: Boolean? = null
+        var defaultFilter: Boolean? = null
 ) : UIElement(UIElementType.FILTER_ELEMENT), UILabelledElement {
     enum class FilterType { STRING, DATE, TIME_STAMP, BOOLEAN, OBJECT, LIST }
 

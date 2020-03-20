@@ -28,6 +28,7 @@ import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationDO
+import org.projectforge.business.vacation.model.VacationMode
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.VacationService
@@ -41,7 +42,6 @@ import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Vacation
 import org.projectforge.ui.*
-import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
@@ -134,8 +134,10 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
     }
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
-        //elements.add(UIFilterListElement("status", UIFilterElement.FilterType., translate("address.filter.myFavorites")))
-       // elements.add(UIFilterListElement("assignment", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.doublets")))
+        elements.add(UIFilterListElement("status", label = translate("vacation.status"), defaultFilter = true)
+                .buildValues(VacationStatus::class.java))
+        elements.add(UIFilterListElement("assignment", label = translate("vacation.vacationmode"), defaultFilter = true)
+                .buildValues(VacationMode::class.java))
     }
 
     /**
