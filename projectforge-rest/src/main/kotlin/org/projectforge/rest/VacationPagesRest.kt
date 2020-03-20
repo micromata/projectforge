@@ -29,11 +29,15 @@ import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationMode
+import org.projectforge.business.vacation.model.VacationModeFilter
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStats
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -138,6 +142,20 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
                 .buildValues(VacationStatus::class.java))
         elements.add(UIFilterListElement("assignment", label = translate("vacation.vacationmode"), defaultFilter = true)
                 .buildValues(VacationMode::class.java))
+    }
+
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<VacationDO>>? {
+        val assignmentFilterEntry = source.entries.find { it.field == "assignment" } ?: return null
+        val values = assignmentFilterEntry.value.values
+        if (values.isNullOrEmpty()) {
+            // No values selected.
+            return null
+        }
+        assignmentFilterEntry.synthetic = true
+        val filters = mutableListOf<CustomResultFilter<VacationDO>>()
+        val enums = values.map { VacationMode.valueOf(it) }
+        filters.add(VacationModeFilter(enums))
+        return filters
     }
 
     /**

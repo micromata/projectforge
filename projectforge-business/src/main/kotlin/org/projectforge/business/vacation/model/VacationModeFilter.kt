@@ -20,40 +20,13 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+package org.projectforge.business.vacation.model
 
-package org.projectforge.business.vacation.model;
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 
-import org.projectforge.common.i18n.I18nEnum;
+class VacationModeFilter(val values: List<VacationMode>) : CustomResultFilter<VacationDO> {
 
-/**
- * Created by blumenstein on 22.11.16.
- */
-public enum VacationMode implements I18nEnum
-{
-  OWN("own"), REPLACEMENT("replacement"), MANAGER("manager"), OTHER("other");
-
-  private String key;
-
-  /**
-   * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
-   */
-  public String getI18nKey()
-  {
-    return "vacation." + key;
-  }
-
-  /**
-   * The key will be used e. g. for i18n.
-   *
-   * @return
-   */
-  public String getKey()
-  {
-    return key;
-  }
-
-  VacationMode(String key)
-  {
-    this.key = key;
-  }
+    override fun match(list: MutableList<VacationDO>, element: VacationDO): Boolean {
+        return values.contains(element.getVacationmode())
+    }
 }
