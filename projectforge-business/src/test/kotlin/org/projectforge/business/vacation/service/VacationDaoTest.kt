@@ -62,9 +62,9 @@ class VacationDaoTest : AbstractTestBase() {
 
     @Test
     fun vacationAccessTest() {
-        val employee = createEmployee("VacationAccessTest.normal", false)
-        val manager = createEmployee("VacationAccessTest.manager", false)
-        val replacement = createEmployee("VacationAccessTest.replacement", false)
+        val employee = createEmployee("VacationAccessTest.normal")
+        val manager = createEmployee("VacationAccessTest.manager")
+        val replacement = createEmployee("VacationAccessTest.replacement")
         val vacation = createVacation(employee, manager, replacement, VacationStatus.IN_PROGRESS)
         val foreignVacation = createVacation(replacement, manager, manager, VacationStatus.IN_PROGRESS)
         checkAccess(employee.user, vacation, "own vacation in progress", true, true, true, true, true)
@@ -93,7 +93,7 @@ class VacationDaoTest : AbstractTestBase() {
         Assertions.assertNull(VacationValidator.validate(vacationService, vacation, vacation, false))
 
         // Check full access of HR staff:
-        val hrEmployee = createEmployee("VacationAccessTest.HR", true)
+        val hrEmployee = createEmployee("VacationAccessTest.HR", hrAccess = true)
         checkAccess(hrEmployee.user, vacation, "hr access", true, true, true, true, true)
         checkAccess(hrEmployee.user, foreignVacation, "hr access", true, true, true, true, true)
         checkAccess(hrEmployee.user, pastVacation, "hr access", true, true, true, true, true)
@@ -192,7 +192,7 @@ class VacationDaoTest : AbstractTestBase() {
         return vacation
     }
 
-    private fun createEmployee(name: String, hrAccess: Boolean): EmployeeDO {
+    private fun createEmployee(name: String, hrAccess: Boolean = false): EmployeeDO {
         val loggedInUser = ThreadLocalUserContext.getUser()
         logon(TEST_ADMIN_USER)
         val user = PFUserDO()

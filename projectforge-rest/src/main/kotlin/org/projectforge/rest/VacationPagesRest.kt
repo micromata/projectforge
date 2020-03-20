@@ -32,6 +32,7 @@ import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStats
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -40,6 +41,8 @@ import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Vacation
 import org.projectforge.ui.*
+import org.projectforge.ui.filter.UIFilterElement
+import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -74,7 +77,6 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
     override fun transformFromDB(obj: VacationDO, editMode: Boolean): Vacation {
         val vacation = Vacation()
         vacation.copyFrom(obj)
-        vacation.status = VacationStatus.IN_PROGRESS
         return vacation
     }
 
@@ -129,6 +131,11 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
         layout.getTableColumnById("manager").formatter = Formatter.USER
         layout.getTableColumnById("workingDaysFormatted").title = "vacation.Days"
         return LayoutUtils.processListPage(layout, this)
+    }
+
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        //elements.add(UIFilterListElement("status", UIFilterElement.FilterType., translate("address.filter.myFavorites")))
+       // elements.add(UIFilterListElement("assignment", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.doublets")))
     }
 
     /**
