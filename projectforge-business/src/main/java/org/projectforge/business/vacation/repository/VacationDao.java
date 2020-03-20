@@ -102,15 +102,20 @@ public class VacationDao extends BaseDao<VacationDO> {
 
   @Override
   public boolean hasHistoryAccess(PFUserDO user, VacationDO obj, boolean throwException) {
-    if (hasHrRights(user, obj) || isOwnEntry(user, obj) || isManager(user, obj)) {
+    if (hasHrRights(user) || isOwnEntry(user, obj) || isManager(user, obj)) {
       return true;
     }
     return throwOrReturn(throwException);
   }
 
   @Override
+  public boolean hasUserSelectAccess(PFUserDO user, boolean throwException) {
+    return true;
+  }
+
+  @Override
   public boolean hasUserSelectAccess(PFUserDO user, VacationDO obj, boolean throwException) {
-    if (hasHrRights(user, obj) || isOwnEntry(user, obj) || isManager(user, obj) || isReplacement(user, obj)) {
+    if (hasHrRights(user) || isOwnEntry(user, obj) || isManager(user, obj) || isReplacement(user, obj)) {
       return true;
     }
     if (obj.getEmployee() != null && accessChecker.areUsersInSameGroup(user, obj.getEmployee().getUser())) {
@@ -126,7 +131,7 @@ public class VacationDao extends BaseDao<VacationDO> {
 
   @Override
   public boolean hasUpdateAccess(PFUserDO user, VacationDO obj, VacationDO dbObj, boolean throwException) {
-    if (hasHrRights(user, obj)) {
+    if (hasHrRights(user)) {
       return true; // HR staff member are allowed to do everything.
     }
     if (!isOwnEntry(user, obj, dbObj)) {
@@ -158,7 +163,7 @@ public class VacationDao extends BaseDao<VacationDO> {
 
   @Override
   public boolean hasDeleteAccess(PFUserDO user, VacationDO obj, VacationDO dbObj, boolean throwException) {
-    if (hasHrRights(user, obj)) {
+    if (hasHrRights(user)) {
       return true;
     }
     if (!isOwnEntry(user, obj, dbObj)) {
@@ -175,7 +180,7 @@ public class VacationDao extends BaseDao<VacationDO> {
     return accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE);
   }
 
-  private boolean hasHrRights(final PFUserDO loggedInUser, final VacationDO obj) {
+  public boolean hasHrRights(final PFUserDO loggedInUser) {
     return accessChecker.hasRight(loggedInUser, UserRightId.HR_VACATION, false, UserRightValue.READWRITE);
   }
 
