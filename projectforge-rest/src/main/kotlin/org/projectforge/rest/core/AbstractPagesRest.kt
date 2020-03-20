@@ -953,8 +953,4 @@ abstract class AbstractPagesRest<
     abstract fun isDeleted(dto: Any): Boolean
 
     abstract fun isHistorizable(): Boolean
-
-    private class MagicFilterEntries(var entries: MutableList<MagicFilterEntry> = mutableListOf(),
-                                     var name: String? = null,
-                                     var id: Int? = null)
 }
