@@ -111,10 +111,10 @@ public class WicketUtils {
     String encodedUrl = "";
     try {
       encodedUrl = URLEncoder.encode(url, "UTF-8");
-    } catch (UnsupportedEncodingException ex) {
+    } catch (UnsupportedEncodingException ex){
       log.warn("Error while trying to encode url string: " + ex.getMessage(), ex);
     }
-    throw new RedirectToUrlException("/react/calendar?url=" + encodedUrl);
+    throw new RedirectToUrlException("/react/public/login?url=" + encodedUrl);
   }
 
   public static HttpServletRequest getHttpServletRequest(final Request request) {
