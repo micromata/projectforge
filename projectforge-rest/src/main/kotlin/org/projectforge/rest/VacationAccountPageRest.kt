@@ -144,6 +144,7 @@ class VacationAccountPageRest {
         val buttonCol = UICol(length = 6)
         val responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java), targetType = TargetType.REDIRECT)
         responseAction.addVariable("returnToCaller", "account")
+        // TODO: Add employee for preselecting edit form
         buttonCol.add(UIButton("add", translate("add"), UIColor.SUCCESS, responseAction = responseAction))
         if (this.vacationService.hasLoggedInUserHRVacationAccess() &&
                 currentStats.remainingLeaveFromPreviousYear != prevStats.vacationDaysLeftInYear) {
@@ -172,6 +173,10 @@ class VacationAccountPageRest {
                 .add(UIRow()
                         .add(UICol(length = 12)
                                 .add(UICustomized("vacation.entries")))))
+
+        layout.add(UIFieldset(length = 12, title = "vacation.subscription")
+                .add(UILabel("vacation.subscription.info")))
+
         layout.watchFields.add("employee")
         LayoutUtils.process(layout)
 

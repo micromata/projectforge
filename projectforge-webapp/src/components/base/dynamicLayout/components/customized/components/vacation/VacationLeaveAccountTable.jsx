@@ -28,7 +28,7 @@ function VacationLeaveAccountTable({ entries }) {
                             {entries.map(entry => (
                                 <tr
                                     key={entry.id}
-                                    onClick={() => history.push(`${prefix}leaveAccountEntry/edit/${entry.id}`)}
+                                    onClick={() => history.push(`${prefix}leaveAccountEntry/edit/${entry.id}?returnToCaller=account`)}
                                 >
                                     <td>{entry.dateFormatted}</td>
                                     <td className={style.number}>{entry.amount}</td>
