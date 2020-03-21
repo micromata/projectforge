@@ -141,7 +141,7 @@ class VacationAccountPageRest {
                 vacations["leaveAccountEntries"] = list.map { LeaveAccountEntry(it) }.sortedByDescending { it.date }
             }
         }
-        val buttonCol = UICol(length = 6)
+        val buttonCol = UICol(6)
         val responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java, params = mapOf("employee" to employeeId)), targetType = TargetType.REDIRECT)
         responseAction.addVariable("returnToCaller", "account")
         // TODO: Add employee for preselecting edit form
@@ -156,25 +156,25 @@ class VacationAccountPageRest {
 
         if (isHRMember) {
             statisticRow
-                    .add(UICol(mdLength = 4, smLength = 12)
+                    .add(UICol(UILength(md = 4, sm = 12))
                             .add(lc, "employee"))
-                    .add(UICol(mdLength = 8, smLength = 12)
+                    .add(UICol(UILength(md = 8, sm = 12))
                             .add(UICustomized("vacation.statistics")))
         } else {
-            statisticRow.add(UICol(mdLength = 12, smLength = 12)
+            statisticRow.add(UICol(UILength(md = 12, sm = 12))
                     .add(UICustomized("vacation.statistics")))
         }
 
 
-        layout.add(UIFieldset(length = 12)
+        layout.add(UIFieldset(12)
                 .add(statisticRow)
                 .add(UIRow().add(buttonCol))
-        ).add(UIFieldset(length = 12)
+        ).add(UIFieldset(12)
                 .add(UIRow()
-                        .add(UICol(length = 12)
+                        .add(UICol(12)
                                 .add(UICustomized("vacation.entries")))))
 
-        layout.add(UIFieldset(length = 12, title = "vacation.subscription")
+        layout.add(UIFieldset(12, title = "vacation.subscription")
                 .add(UILabel("vacation.subscription.info")))
 
         layout.watchFields.add("employee")

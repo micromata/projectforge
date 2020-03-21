@@ -38,12 +38,22 @@ enum class UIIconType(@JsonValue val icon: Array<String>) {
     CHECKED(arrayOf("fas", "check")),
 
     /**
+     * https://fontawesome.com/icons/info?style=solid
+     */
+    INFO(arrayOf("fas", "info")),
+
+    /**
+     * https://fontawesome.com/icons/star?style=regular
+     */
+    STAR_REGULAR(arrayOf("far", "star")),
+
+    /**
      * https://fontawesome.com/icons/times?style=solid
      */
     TIMES(arrayOf("fas", "times")),
 
     /**
-     * https://fontawesome.com/icons/star?style=regular
+     * https://fontawesome.com/icons/user-lock?style=solid
      */
-    STAR_REGULAR(arrayOf("far", "star"))
+    USER_LOCK(arrayOf("fas", "user-lock")),
 }

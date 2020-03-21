@@ -4,34 +4,45 @@ import { contentPropType } from '../../../../utilities/propTypes';
 import { Col, FormGroup, Row } from '../../../design';
 import { DynamicLayoutContext } from '../context';
 
+export const buildLengthForColumn = (length, offset = undefined) => (offset
+    ? Object.keys(length)
+        .reduce((previousValue, key) => ({
+            ...previousValue,
+            [key]: {
+                size: length[key],
+                offset: offset[key],
+            },
+        }), {})
+    : length);
+
 // A Component to put a tag around dynamic layout content
 function DynamicGroup(props) {
     const {
         content,
         length,
+        offset,
         type,
-        smLength,
-        mdLength,
-        lgLength,
-        xlLength,
     } = props;
 
     // Get renderLayout function from context.
     const { renderLayout } = React.useContext(DynamicLayoutContext);
 
     return React.useMemo(() => {
-        const groupProperties = {};
+        let groupProperties = {};
 
         // Determine the needed tag.
         let Tag;
         switch (type) {
             case 'COL':
                 Tag = Col;
-                groupProperties.xs = length;
-                groupProperties.sm = smLength;
-                groupProperties.md = mdLength;
-                groupProperties.lg = lgLength;
-                groupProperties.xl = xlLength;
+
+                if (length) {
+                    groupProperties = {
+                        ...groupProperties,
+                        ...(buildLengthForColumn(length, offset)),
+                    };
+                }
+
                 break;
             case 'FRAGMENT':
                 Tag = React.Fragment;
@@ -57,6 +68,14 @@ function DynamicGroup(props) {
     }, [props]);
 }
 
+export const lengthPropType = PropTypes.shape({
+    extraSmall: PropTypes.number,
+    small: PropTypes.number,
+    medium: PropTypes.number,
+    large: PropTypes.number,
+    extraLarge: PropTypes.number,
+});
+
 DynamicGroup.propTypes = {
     content: PropTypes.arrayOf(contentPropType).isRequired,
     type: PropTypes.oneOf([
@@ -66,19 +85,13 @@ DynamicGroup.propTypes = {
         'GROUP',
         'ROW',
     ]).isRequired,
-    length: PropTypes.number,
-    smLength: PropTypes.number,
-    mdLength: PropTypes.number,
-    lgLength: PropTypes.number,
-    xlLength: PropTypes.number,
+    length: lengthPropType,
+    offset: lengthPropType,
 };
 
 DynamicGroup.defaultProps = {
     length: undefined,
-    smLength: undefined,
-    mdLength: undefined,
-    lgLength: undefined,
-    xlLength: undefined,
+    offset: undefined,
 };
 
 export default DynamicGroup;
