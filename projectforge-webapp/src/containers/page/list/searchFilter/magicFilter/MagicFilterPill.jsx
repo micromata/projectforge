@@ -29,7 +29,6 @@ function MagicFilterPill(
 
     const [isOpen, setIsOpen] = React.useState(isNew);
     const [tempValue, setTempValue] = React.useState(() => {
-        console.log(value, MagicInput.defaultValue);
         if (Object.isEmpty(value) && MagicInput.defaultValue !== undefined) {
             return MagicInput.defaultValue;
         }
