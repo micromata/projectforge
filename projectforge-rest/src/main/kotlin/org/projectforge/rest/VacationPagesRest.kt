@@ -24,20 +24,29 @@
 package org.projectforge.rest
 
 import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationDO
+import org.projectforge.business.vacation.model.VacationMode
+import org.projectforge.business.vacation.model.VacationModeFilter
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStats
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
-import org.projectforge.rest.core.RestResolver
+import org.projectforge.rest.dto.Employee
+import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Vacation
 import org.projectforge.ui.*
+import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -52,7 +61,13 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
     private lateinit var employeeService: EmployeeService
 
     @Autowired
+    private lateinit var employeeDao: EmployeeDao
+
+    @Autowired
     private lateinit var userPrefService: UserPrefService
+
+    @Autowired
+    private lateinit var vacationDao: VacationDao
 
     @Autowired
     private lateinit var vacationService: VacationService
@@ -66,17 +81,41 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
     override fun transformFromDB(obj: VacationDO, editMode: Boolean): Vacation {
         val vacation = Vacation()
         vacation.copyFrom(obj)
-        vacation.status = VacationStatus.IN_PROGRESS
         return vacation
     }
 
-    override fun newBaseDO(request: HttpServletRequest?): VacationDO {
+    override fun newBaseDTO(request: HttpServletRequest?): Vacation {
         val vacation = getUserPref()
-        val result = VacationDO()
-        result.employee = vacation.employee
-        result.manager = vacation.manager
-        result.replacement = vacation.replacement
-        return vacation
+        val result = Vacation()
+        val employeeDO = if (vacation.employee != null && vacationDao.hasHrRights(ThreadLocalUserContext.getUser())) {
+            vacation.employee
+        } else {
+            // For non HR staff members, choose always the logged in employee:
+            employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId())
+        }
+        result.employee = createEmployee(employeeDO!!)
+        vacation.manager?.let { result.manager = createEmployee(it) }
+        vacation.replacement?.let { result.replacement = createEmployee(it) }
+        result.status = VacationStatus.IN_PROGRESS
+        return result
+    }
+
+    private fun createEmployee(employeeDO: EmployeeDO?): Employee? {
+        employeeDO?.id ?: return null
+        val employee = Employee()
+        employeeDO.id?.let {
+            employee.copyFromMinimal(employeeDao.internalGetById(it))
+        }
+        return employee
+    }
+
+    override fun afterSave(obj: VacationDO, postData: PostData<Vacation>): ResponseAction {
+        // Save current edited object as user preference for pre-filling the edit form for the next usage.
+        val vacation = getUserPref()
+        vacation.employee = obj.employee
+        vacation.manager = obj.manager
+        vacation.replacement = obj.replacement
+        return super.afterSave(obj, postData)
     }
 
     /**
@@ -98,14 +137,40 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
         return LayoutUtils.processListPage(layout, this)
     }
 
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        elements.add(UIFilterListElement("status", label = translate("vacation.status"), defaultFilter = true)
+                .buildValues(VacationStatus::class.java))
+        elements.add(UIFilterListElement("assignment", label = translate("vacation.vacationmode"), defaultFilter = true)
+                .buildValues(VacationMode::class.java))
+    }
+
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<VacationDO>>? {
+        val assignmentFilterEntry = source.entries.find { it.field == "assignment" } ?: return null
+        val values = assignmentFilterEntry.value.values
+        if (values.isNullOrEmpty()) {
+            // No values selected.
+            return null
+        }
+        assignmentFilterEntry.synthetic = true
+        val filters = mutableListOf<CustomResultFilter<VacationDO>>()
+        val enums = values.map { VacationMode.valueOf(it) }
+        filters.add(VacationModeFilter(enums))
+        return filters
+    }
+
     /**
      * LAYOUT Edit page
      */
     override fun createEditLayout(dto: Vacation, userAccess: UILayout.UserAccess): UILayout {
+        val employeeCol = UICol(6)
+        if (vacationDao.hasHrRights(ThreadLocalUserContext.getUser())) {
+            employeeCol.add(lc, "employee")
+        } else {
+            employeeCol.add(UIReadOnlyField("employee.displayName", label = "vacation.employee"))
+        }
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
-                        .add(UICol(6)
-                                .add(lc, "employee"))
+                        .add(employeeCol)
                         .add(UICol(3)
                                 .add(UIReadOnlyField("workingDaysFormatted", lc, UIDataType.STRING, "vacation.workingdays")))
                         .add(UICol(3)
@@ -178,9 +243,6 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
 
     private fun getUserPref(): VacationDO {
         val vacation = userPrefService.ensureEntry("vacation", "newEntry", VacationDO())
-        if (vacation.employee == null) {
-            vacation.employee = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId())
-        }
         return vacation
     }
 }

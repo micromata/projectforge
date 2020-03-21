@@ -120,17 +120,15 @@
     background-color: #333;
     color: #fff;
 
-    input {
+    svg {
+      color: #fff;
+    }
+
+    input, svg {
       color: #fff;
 
       &::placeholder {
-        color: #eee;
-      }
-    }
-
-    &:hover {
-      input::placeholder {
-        color: #fff;
+        color: #ddd;
       }
     }
   }

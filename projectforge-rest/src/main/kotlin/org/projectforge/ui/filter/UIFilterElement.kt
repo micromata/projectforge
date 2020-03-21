@@ -50,7 +50,11 @@ open class UIFilterElement(
         @Transient
         override val ignoreTooltip: Boolean = false,
         @Transient
-        override val layoutContext: LayoutContext? = null
+        override val layoutContext: LayoutContext? = null,
+        /**
+         * If true, this filter should be permanent visible on client's list view.
+         */
+        var defaultFilter: Boolean? = null
 ) : UIElement(UIElementType.FILTER_ELEMENT), UILabelledElement {
     enum class FilterType { STRING, DATE, TIME_STAMP, BOOLEAN, OBJECT, LIST }
 

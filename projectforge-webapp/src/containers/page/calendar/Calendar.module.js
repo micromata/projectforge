@@ -2,7 +2,7 @@ const getBackgroundColor = ({ style }) => ((style && style.bgColor) ? style.bgCo
 
 const getForegroundColor = ({ style }) => ((style && style.fgColor) ? style.fgColor : '#222');
 
-export const customStyles = {
+const customStyles = {
     control: styles => ({
         ...styles,
     }),
@@ -47,3 +47,5 @@ export const customStyles = {
         },
     }), */
 };
+
+export default customStyles;

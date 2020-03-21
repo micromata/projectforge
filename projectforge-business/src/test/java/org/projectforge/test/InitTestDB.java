@@ -300,7 +300,8 @@ public class InitTestDB {
     user.setUsername(AbstractTestBase.TEST_HR_USER);
     user//
             .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE)); //
+            .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE)) //
+            .addRight(new UserRightDO(UserRightId.HR_VACATION, UserRightValue.READWRITE)); //
     addUser(user);
     user = new PFUserDO();
     user.setUsername(AbstractTestBase.TEST_FULL_ACCESS_USER);
@@ -339,7 +340,7 @@ public class InitTestDB {
             new String[]{AbstractTestBase.TEST_FINANCE_USER, AbstractTestBase.TEST_FULL_ACCESS_USER});
     addGroup(AbstractTestBase.CONTROLLING_GROUP,
             new String[]{AbstractTestBase.TEST_CONTROLLING_USER, AbstractTestBase.TEST_FULL_ACCESS_USER});
-    addGroup(AbstractTestBase.HR_GROUP, new String[]{AbstractTestBase.TEST_FULL_ACCESS_USER});
+    addGroup(AbstractTestBase.HR_GROUP, new String[]{AbstractTestBase.TEST_FULL_ACCESS_USER, AbstractTestBase.TEST_HR_USER });
     addGroup(AbstractTestBase.ORGA_GROUP, new String[]{AbstractTestBase.TEST_FULL_ACCESS_USER});
     addGroup(AbstractTestBase.PROJECT_MANAGER,
             new String[]{AbstractTestBase.TEST_PROJECT_MANAGER_USER, AbstractTestBase.TEST_FULL_ACCESS_USER});

@@ -15,6 +15,7 @@ function MagicFilterPill(
         children,
         id,
         isNew,
+        isRemovable,
         label,
         onFilterDelete,
         onFilterSet,
@@ -56,14 +57,19 @@ function MagicFilterPill(
                         {value && Object.keys(value).length
                             ? MagicInput.getLabel(label, value, props)
                             : label}
-                        <FontAwesomeIcon
-                            icon={faBan}
-                            className={styles.deleteIcon}
-                            onClick={() => onFilterDelete(id)}
-                        />
+                        {isRemovable && (
+                            <FontAwesomeIcon
+                                icon={faBan}
+                                className={styles.deleteIcon}
+                                onClick={() => onFilterDelete(id)}
+                            />
+                        )}
                     </React.Fragment>
                 )}
-                contentClassName={classNames(styles.pill, { [styles.marked]: isOpen || value })}
+                contentClassName={classNames(
+                    styles.pill,
+                    { [styles.marked]: isOpen || !Object.isEmpty(value) },
+                )}
                 actions={(
                     <React.Fragment>
                         <AdvancedPopperAction
@@ -108,6 +114,7 @@ MagicFilterPill.propTypes = {
     translations: PropTypes.shape({}).isRequired,
     children: PropTypes.node,
     isNew: PropTypes.bool,
+    isRemovable: PropTypes.bool,
     filterType: PropTypes.string,
     value: PropTypes.shape({}),
 };
@@ -115,6 +122,7 @@ MagicFilterPill.propTypes = {
 MagicFilterPill.defaultProps = {
     children: undefined,
     isNew: false,
+    isRemovable: false,
     filterType: undefined,
     value: {},
 };
