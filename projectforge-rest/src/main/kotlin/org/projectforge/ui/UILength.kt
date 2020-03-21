@@ -23,17 +23,28 @@
 
 package org.projectforge.ui
 
-class UIFieldset(
+/**
+ * Length definition (for bootstrap grid layout).
+ */
+class UILength(
         /**
-         * Length in grid system
+         * Length for extra small screen and up(default) in grid system (1-12)
          */
-        length: UILength? = null,
+        val xs: Int? = null,
         /**
-         * Offset in grid system
+         * Length for small screens (1-12)
          */
-        offset: UILength? = null,
-        var title: String? = null) :
-        UICol(length, offset, type = UIElementType.FIELDSET) {
-
-    constructor(xsLength: Int, title: String? = null) : this(length = UILength(xsLength), title = title)
-}
+        val sm: Int? = null,
+        /**
+         * Length for middle sized screens (1-12)
+         */
+        val md: Int? = null,
+        /**
+         * Length for large screens (1-12)
+         */
+        val lg: Int? = null,
+        /**
+         * Length for extra large screens (1-12)
+         */
+        val xl: Int? = null
+)
