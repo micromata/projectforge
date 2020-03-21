@@ -95,11 +95,11 @@ open class LoginPageRest {
 
         if (loginResultStatus == LoginResultStatus.SUCCESS) {
             var redirectUrl: String? = null
-
-            if (postData.serverData != null) {
-                redirectUrl = URLDecoder.decode(postData.serverData!!.returnToCaller, "UTF-8")
-            } else if (request.getHeader("Referer").endsWith("/react/public/login")) {
-                redirectUrl = "/react/"
+            val returnToCaller = postData.serverData?.returnToCaller
+            if (!returnToCaller.isNullOrBlank()) {
+                redirectUrl = URLDecoder.decode(returnToCaller, "UTF-8")
+            } else if (request.getHeader("Referer").contains("/public/login")) {
+                redirectUrl = "/${Const.REACT_APP_PATH}calendar"
             }
 
             return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl)
