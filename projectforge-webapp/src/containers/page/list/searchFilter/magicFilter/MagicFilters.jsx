@@ -1,4 +1,10 @@
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import {
+    faChevronCircleDown,
+    faCompass,
+    faFilter,
+    faSearch
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -24,6 +30,10 @@ function MagicFilters(
     const [allFiltersAreOpen, setAllFiltersAreOpen] = React.useState(false);
     const [search, setSearch] = React.useState('');
     const searchRef = React.useRef(null);
+
+    if (!searchFilter) {
+        return <React.Fragment />;
+    }
 
     const setIsOpen = (open) => {
         if (searchRef.current) {
@@ -57,7 +67,71 @@ function MagicFilters(
 
     return (
         <div className={styles.magicFilters}>
-            {searchFilter && filterEntries
+            <div className={styles.magicFilter}>
+                <AdvancedPopper
+                    setIsOpen={setIsOpen}
+                    isOpen={allFiltersAreOpen}
+                    basic={(
+                        <React.Fragment>
+                            {`${translations.searchFilter} `}
+                            <FontAwesomeIcon icon={faFilter} />
+                        </React.Fragment>
+                    )}
+                    className={styles.allFilters}
+                    contentClassName={classNames(
+                        styles.pill,
+                        { [styles.marked]: allFiltersAreOpen },
+                    )}
+                    actions={(
+                        <AdvancedPopperAction
+                            type="delete"
+                            disabled={!(filterEntries.length || searchString)}
+                            onClick={handleAllFiltersDelete}
+                        >
+                            {translations.reset || '???Zurücksetzen???'}
+                        </AdvancedPopperAction>
+                    )}
+                >
+                    <AdvancedPopperInput
+                        forwardRef={searchRef}
+                        autoFocus
+                        dark
+                        id="magicFiltersSearch"
+                        icon={faSearch}
+                        noStyle
+                        onCancel={() => setIsOpen(false)}
+                        onChange={handleSearchChange}
+                        placeholder={translations.search || ''}
+                        selectOnFocus
+                        value={search}
+                    />
+                    <ul className={styles.filterList}>
+                        {filteredSearchFilters.map(({ id, label }) => (
+                            <FilterListEntry
+                                key={`filter-${id}`}
+                                afterSelect={handleAfterSelectFilter}
+                                id={id}
+                                label={label}
+                            />
+                        ))}
+                        {filteredSearchFilters.length === 0 && (
+                            <span className={styles.errorMessage}>
+                                {translations['datatable.no-records-found']}
+                            </span>
+                        )}
+                    </ul>
+                </AdvancedPopper>
+            </div>
+            {searchFilter.content
+                .filter(filter => filter.defaultFilter)
+                .map(filter => (
+                    <MagicFilterPill
+                        key={`magic-filter-default-${filter.id}`}
+                        {...Array.findByField(filterEntries, 'field', filter.id)}
+                        {...filter}
+                    />
+                ))}
+            {filterEntries
                 .map(entry => ({
                     ...Array.findByField(searchFilter.content, 'id', entry.field),
                     ...entry,
@@ -70,69 +144,6 @@ function MagicFilters(
                         isRemovable
                     />
                 ))}
-            {searchFilter && (
-                <React.Fragment>
-                    {searchFilter.content
-                        .filter(filter => filter.defaultFilter)
-                        .map(filter => (
-                            <MagicFilterPill
-                                key={`magic-filter-default-${filter.id}`}
-                                {...Array.findByField(filterEntries, 'field', filter.id)}
-                                {...filter}
-                            />
-                        ))}
-                    <div className={styles.magicFilter}>
-                        <AdvancedPopper
-                            setIsOpen={setIsOpen}
-                            isOpen={allFiltersAreOpen}
-                            basic={translations.searchFilter || ''}
-                            className={styles.allFilters}
-                            contentClassName={classNames(
-                                styles.pill,
-                                { [styles.marked]: allFiltersAreOpen },
-                            )}
-                            actions={(
-                                <AdvancedPopperAction
-                                    type="delete"
-                                    disabled={!(filterEntries.length || searchString)}
-                                    onClick={handleAllFiltersDelete}
-                                >
-                                    {translations.reset || '???Zurücksetzen???'}
-                                </AdvancedPopperAction>
-                            )}
-                        >
-                            <AdvancedPopperInput
-                                forwardRef={searchRef}
-                                autoFocus
-                                dark
-                                id="magicFiltersSearch"
-                                icon={faSearch}
-                                noStyle
-                                onCancel={() => setIsOpen(false)}
-                                onChange={handleSearchChange}
-                                placeholder={translations.search || ''}
-                                selectOnFocus
-                                value={search}
-                            />
-                            <ul className={styles.filterList}>
-                                {filteredSearchFilters.map(({ id, label }) => (
-                                    <FilterListEntry
-                                        key={`filter-${id}`}
-                                        afterSelect={handleAfterSelectFilter}
-                                        id={id}
-                                        label={label}
-                                    />
-                                ))}
-                                {filteredSearchFilters.length === 0 && (
-                                    <span className={styles.errorMessage}>
-                                        {translations['datatable.no-records-found']}
-                                    </span>
-                                )}
-                            </ul>
-                        </AdvancedPopper>
-                    </div>
-                </React.Fragment>
-            )}
         </div>
     );
 }
