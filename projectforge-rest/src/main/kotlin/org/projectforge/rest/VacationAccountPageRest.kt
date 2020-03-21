@@ -142,7 +142,7 @@ class VacationAccountPageRest {
             }
         }
         val buttonCol = UICol(length = 6)
-        val responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java), targetType = TargetType.REDIRECT)
+        val responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java, params = mapOf("employee" to employeeId)), targetType = TargetType.REDIRECT)
         responseAction.addVariable("returnToCaller", "account")
         // TODO: Add employee for preselecting edit form
         buttonCol.add(UIButton("add", translate("add"), UIColor.SUCCESS, responseAction = responseAction))
