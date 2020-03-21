@@ -23,6 +23,7 @@
 
 package org.projectforge.web.wicket;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -102,7 +103,8 @@ public class WicketUtils {
 
     final HttpServletRequest req = (HttpServletRequest)((WebRequest)RequestCycle.get().getRequest()).getContainerRequest();
     final String query = req.getQueryString();
-    if (query != null) {
+    if (StringUtils.isNotBlank(query) && !Character.isDigit(query.charAt(0))) {
+      // Wickets query string like ?3-2.ILinkListener-body-topMenu-logoutLink should be ignored.
       relativeUrl = relativeUrl + "?" + query;
     }
 
@@ -426,7 +428,7 @@ public class WicketUtils {
       } else if (Long.TYPE.equals(objectType) == true) {
         return pageParameters.get(key).toLong();
       } else if (Float.TYPE.equals(objectType) == true) {
-        return new Float(pageParameters.get(key).toDouble());
+        return Float.valueOf((float)pageParameters.get(key).toDouble());
       } else if (Double.TYPE.equals(objectType) == true) {
         return pageParameters.get(key).toDouble();
       } else if (Character.TYPE.equals(objectType) == true) {
