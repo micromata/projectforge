@@ -104,7 +104,7 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals("ROW", jsonValidator.get("layout[2].type"))
         assertEquals("el-3", jsonValidator.get("layout[2].key"))
 
-        assertEquals(6.0, jsonValidator.getDouble("layout[2].content[0].length"))
+        assertEquals(6.0, jsonValidator.getDouble("layout[2].content[0].length.xs"))
         assertEquals("COL", jsonValidator.get("layout[2].content[0].type"))
         assertEquals("el-4", jsonValidator.get("layout[2].content[0].key"))
     }
