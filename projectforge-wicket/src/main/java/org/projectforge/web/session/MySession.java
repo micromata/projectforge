@@ -29,10 +29,14 @@ import org.apache.wicket.core.request.ClientInfo;
 import org.apache.wicket.protocol.http.ClientProperties;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.protocol.http.request.WebClientInfo;
+import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.Request;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.projectforge.Version;
 import org.projectforge.business.multitenancy.TenantService;
+import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.user.service.UserPreferencesHelper;
+import org.projectforge.framework.ToStringUtil;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -41,12 +45,13 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.utils.NumberHelper;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.TimeZone;
 
-public class MySession extends WebSession
-{
+public class MySession extends WebSession {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MySession.class);
 
   private static final long serialVersionUID = -1783696379234637066L;
@@ -78,8 +83,7 @@ public class MySession extends WebSession
    */
   private final String csrfToken;
 
-  public MySession(final Request request)
-  {
+  public MySession(final Request request) {
     super(request);
     setLocale(request);
     final ClientInfo info = getClientInfo();
@@ -101,8 +105,7 @@ public class MySession extends WebSession
     this.csrfToken = NumberHelper.getSecureRandomAlphanumeric(20);
   }
 
-  private void initActualTenant()
-  {
+  private void initActualTenant() {
     if (ThreadLocalUserContext.getUserContext() == null) {
       return;
     }
@@ -123,61 +126,74 @@ public class MySession extends WebSession
     }
   }
 
-  public static MySession get()
-  {
+  public static MySession get() {
     return (MySession) Session.get();
   }
 
   /**
    * @return The logged-in user or null if no user is logged-in.
    */
-  public synchronized PFUserDO getUser()
-  {
+  public synchronized PFUserDO getUser() {
+    if (userContext == null) {
+      // Happens after login via React page or if user isn't logged in.
+      userContext = ThreadLocalUserContext.getUserContext();
+      if (userContext != null && userContext.getUser() != null) {
+        final HttpServletRequest request = ((ServletWebRequest) RequestCycle.get().getRequest()).getContainerRequest();
+        final UserContext sessionUserContext = UserFilter.getUserContext(request);
+        if (sessionUserContext == null || sessionUserContext.getUser() == null) {
+          log.warn("******* User is given in ThreadLocalUserContext, but not given in session. This paranoia setting shouldn't occur. User: "
+                  + ToStringUtil.toJsonString(userContext));
+          return null;
+        }
+        if (!Objects.equals(sessionUserContext.getUser().getId(), userContext.getUser().getId())) {
+          log.warn("******* Security warning: User is given in ThreadLocalUserContext differs from user of session. This paranoia setting shouldn't occur. Thread local user="
+                  + ToStringUtil.toJsonString(userContext)
+                  + ", session user="
+                  + ToStringUtil.toJsonString(sessionUserContext.getUser()));
+          return null;
+        }
+        log.info("User '" + userContext.getUser().getUsername() + "' now also logged-in for Wicket stuff.");
+        userContext = sessionUserContext;
+      }
+    }
     return userContext != null ? userContext.getUser() : null;
   }
 
-  public synchronized UserContext getUserContext()
-  {
+  public synchronized UserContext getUserContext() {
     return userContext;
   }
 
   /**
    * @return the randomized cross site request forgery token
    */
-  public String getCsrfToken()
-  {
+  public String getCsrfToken() {
     return csrfToken;
   }
 
   /**
    * @return The id of the logged-in user or null if no user is logged-in.
    */
-  public synchronized Integer getUserId()
-  {
+  public synchronized Integer getUserId() {
     final PFUserDO user = getUser();
     return user != null ? user.getId() : null;
   }
 
-  public synchronized void setUserContext(final UserContext userContext)
-  {
+  public synchronized void setUserContext(final UserContext userContext) {
     this.userContext = userContext;
     dirty();
   }
 
-  public synchronized boolean isAuthenticated()
-  {
+  public synchronized boolean isAuthenticated() {
     final PFUserDO user = getUser();
     return (user != null);
   }
 
-  public synchronized TimeZone getTimeZone()
-  {
+  public synchronized TimeZone getTimeZone() {
     final PFUserDO user = getUser();
     return user != null ? user.getTimeZoneObject() : Configuration.getInstance().getDefaultTimeZone();
   }
 
-  public String getUserAgent()
-  {
+  public String getUserAgent() {
     return userAgent;
   }
 
@@ -185,8 +201,7 @@ public class MySession extends WebSession
    * @param tenant the currentTenant to set
    * @return this for chaining.
    */
-  public MySession setCurrentTenant(final TenantDO tenant)
-  {
+  public MySession setCurrentTenant(final TenantDO tenant) {
     if (tenant == null) {
       log.warn("Can't switch to current tenant=null!");
       return this;
@@ -196,9 +211,9 @@ public class MySession extends WebSession
       return this;
     }
     if (this.userContext.getCurrentTenant() != null
-        && tenant.getId().equals(this.userContext.getCurrentTenant().getId()) == false) {
+            && tenant.getId().equals(this.userContext.getCurrentTenant().getId()) == false) {
       log.info("User switched the tenant: [" + tenant.getName() + "] (was ["
-          + this.userContext.getCurrentTenant().getName() + "]).");
+              + this.userContext.getCurrentTenant().getName() + "]).");
       this.userContext.setCurrentTenant(tenant);
       UserPreferencesHelper.putEntry(USER_PREF_KEY_CURRENT_TENANT, tenant.getId(), true);
     }
@@ -208,25 +223,22 @@ public class MySession extends WebSession
   /**
    * @return the userAgentOS
    */
-  public UserAgentOS getUserAgentOS()
-  {
+  public UserAgentOS getUserAgentOS() {
     return userAgentOS;
   }
 
   /**
    * @return true, if the user agent device is an iPad, iPhone or iPod.
    */
-  public boolean isIOSDevice()
-  {
+  public boolean isIOSDevice() {
     return this.userAgentDevice != null
-        && this.userAgentDevice.isIn(UserAgentDevice.IPAD, UserAgentDevice.IPHONE, UserAgentDevice.IPOD);
+            && this.userAgentDevice.isIn(UserAgentDevice.IPAD, UserAgentDevice.IPHONE, UserAgentDevice.IPOD);
   }
 
   /**
    * @return true, if the user agent is a mobile agent and ignoreMobileUserAgent isn't set, otherwise false.
    */
-  public boolean isMobileUserAgent()
-  {
+  public boolean isMobileUserAgent() {
     if (ignoreMobileUserAgent == true) {
       return false;
     }
@@ -238,32 +250,28 @@ public class MySession extends WebSession
    *
    * @return
    */
-  public boolean isIgnoreMobileUserAgent()
-  {
+  public boolean isIgnoreMobileUserAgent() {
     return ignoreMobileUserAgent;
   }
 
   /**
    * @return the userAgentBrowser
    */
-  public UserAgentBrowser getUserAgentBrowser()
-  {
+  public UserAgentBrowser getUserAgentBrowser() {
     return userAgentBrowser;
   }
 
   /**
    * @return the userAgentBrowserVersion
    */
-  public String getUserAgentBrowserVersionString()
-  {
+  public String getUserAgentBrowserVersionString() {
     return userAgentBrowserVersionString;
   }
 
   /**
    * @return the userAgentBrowserVersion
    */
-  public Version getUserAgentBrowserVersion()
-  {
+  public Version getUserAgentBrowserVersion() {
     if (userAgentBrowserVersion == null && userAgentBrowserVersionString != null) {
       userAgentBrowserVersion = new Version(userAgentBrowserVersionString);
     }
@@ -273,18 +281,15 @@ public class MySession extends WebSession
   /**
    * @return the userAgentDevice
    */
-  public UserAgentDevice getUserAgentDevice()
-  {
+  public UserAgentDevice getUserAgentDevice() {
     return userAgentDevice;
   }
 
-  public void setIgnoreMobileUserAgent(final boolean ignoreMobileUserAgent)
-  {
+  public void setIgnoreMobileUserAgent(final boolean ignoreMobileUserAgent) {
     this.ignoreMobileUserAgent = ignoreMobileUserAgent;
   }
 
-  public void login(final UserContext userContext, final Request request)
-  {
+  public void login(final UserContext userContext, final Request request) {
     super.replaceSession();
     this.userContext = userContext;
     final PFUserDO user = userContext != null ? userContext.getUser() : null;
@@ -303,13 +308,15 @@ public class MySession extends WebSession
    *
    * @param request
    */
-  public void setLocale(final Request request)
-  {
+  public void setLocale(final Request request) {
+    if (request == null) {
+      // Should only occur on tests.
+      return;
+    }
     setLocale(ThreadLocalUserContext.getLocale(request.getLocale()));
   }
 
-  public void logout()
-  {
+  public void logout() {
     PFUserDO user = userContext != null ? userContext.getUser() : null;
     if (user != null) {
       log.info("User logged out: " + user.getDisplayName());
@@ -321,21 +328,18 @@ public class MySession extends WebSession
     super.invalidateNow();
   }
 
-  public void put(final String name, final Serializable value)
-  {
+  public void put(final String name, final Serializable value) {
     super.setAttribute(name, value);
   }
 
-  public Object get(final String name)
-  {
+  public Object get(final String name) {
     return super.getAttribute(name);
   }
 
   /**
    * @return the clientProperties
    */
-  public ClientProperties getClientProperties()
-  {
+  public ClientProperties getClientProperties() {
     return clientProperties;
   }
 }

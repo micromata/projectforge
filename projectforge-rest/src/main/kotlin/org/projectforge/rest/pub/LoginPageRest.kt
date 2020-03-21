@@ -45,12 +45,14 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.ServerData
 import org.projectforge.ui.*
 import org.projectforge.web.rest.AbstractRestUserFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.web.bind.annotation.*
 import java.net.InetAddress
+import java.net.URLDecoder
 import java.net.UnknownHostException
 import javax.servlet.ServletRequest
 import javax.servlet.http.Cookie
@@ -62,10 +64,10 @@ import javax.servlet.http.HttpServletResponse
  */
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/login")
-open class LoginRest {
+open class LoginPageRest {
     class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
 
-    private val log = org.slf4j.LoggerFactory.getLogger(LoginRest::class.java)
+    private val log = org.slf4j.LoggerFactory.getLogger(LoginPageRest::class.java)
 
     @Autowired
     private lateinit var applicationContext: ApplicationContext
@@ -80,8 +82,8 @@ open class LoginRest {
     private lateinit var cookieService: CookieService
 
     @GetMapping("dynamic")
-    fun getForm(): FormLayoutData {
-        return FormLayoutData(null, this.getLoginLayout(), null)
+    fun getForm(@RequestParam url: String? = null): FormLayoutData {
+        return FormLayoutData(null, this.getLoginLayout(), ServerData(returnToCaller = url))
     }
 
     @PostMapping
@@ -93,9 +95,11 @@ open class LoginRest {
 
         if (loginResultStatus == LoginResultStatus.SUCCESS) {
             var redirectUrl: String? = null
-
-            if (request.getHeader("Referer").endsWith("/react/public/login")) {
-                redirectUrl = "/react/"
+            val returnToCaller = postData.serverData?.returnToCaller
+            if (!returnToCaller.isNullOrBlank()) {
+                redirectUrl = URLDecoder.decode(returnToCaller, "UTF-8")
+            } else if (request.getHeader("Referer").contains("/public/login")) {
+                redirectUrl = "/${Const.REACT_APP_PATH}calendar"
             }
 
             return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl)

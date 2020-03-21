@@ -23,7 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.wicket.*;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.LabeledWebMarkupContainer;
@@ -32,7 +31,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.resource.loader.BundleStringResourceLoader;
 import org.apache.wicket.settings.ResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
@@ -40,12 +38,15 @@ import org.apache.wicket.util.tester.FormTester;
 import org.apache.wicket.util.tester.WicketTester;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
+import org.projectforge.business.login.LoginDefaultHandler;
+import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.persistence.user.api.UserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.web.LoginPage;
 import org.projectforge.web.LoginService;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.session.MySession;
@@ -73,6 +74,9 @@ public class WicketPageTestBase extends AbstractTestBase {
 
   @Autowired
   private LoginService loginService;
+
+  @Autowired
+  private LoginDefaultHandler loginHandler;
 
   /**
    * don't know why, but we chache it...
@@ -166,21 +170,10 @@ public class WicketPageTestBase extends AbstractTestBase {
    * @param password not encrypted.
    */
   public void login(final String username, final String password, final boolean checkDefaultPage) {
-    // start and render the test page
-    tester.startPage(new LoginPage(new PageParameters()));
-    if (ClassUtils.isAssignable(tester.getLastRenderedPage().getClass(), WicketUtils.getDefaultPage()) == true) {
-      // Already logged-in.
-      return;
-    }
-    // assert rendered page class
-    tester.assertRenderedPage(LoginPage.class);
-    final FormTester form = tester.newFormTester("body:form");
-    form.setValue(findComponentByLabel(form, "username"), username);
-    form.setValue(findComponentByLabel(form, "password"), password);
-    form.submit(KEY_LOGINPAGE_BUTTON_LOGIN);
-    if (checkDefaultPage == true) {
-      tester.assertRenderedPage(WicketUtils.getDefaultPage());
-    }
+    final LoginResult result = loginHandler.checkLogin(username, password);
+    UserContext userContext = new UserContext(PFUserDO.createCopyWithoutSecretFields(result.getUser()), getUserGroupCache());
+    ((MySession) tester.getSession()).login(userContext, null);
+    ((MySession) tester.getSession()).setAttribute("UserFilter.user", userContext);
   }
 
   public void loginTestAdmin() {
@@ -312,8 +305,6 @@ public class WicketPageTestBase extends AbstractTestBase {
   protected void logout() {
     loginService.logout((MySession) tester.getSession(), tester.getRequest(), tester.getResponse(),
             userXmlPreferencesCache, WicketSupport.getUserPrefCache());
-    tester.startPage(LoginPage.class);
-    tester.assertRenderedPage(LoginPage.class);
   }
 
 }

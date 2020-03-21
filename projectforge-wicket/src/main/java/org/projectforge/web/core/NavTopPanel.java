@@ -37,6 +37,7 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -48,7 +49,10 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
-import org.projectforge.web.*;
+import org.projectforge.web.LoginService;
+import org.projectforge.web.WicketMenuBuilder;
+import org.projectforge.web.WicketMenuEntry;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.menuconfig.MenuConfig;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.doc.DocumentationPage;
@@ -58,6 +62,7 @@ import org.projectforge.web.user.MyAccountEditPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.FeedbackPage;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 import java.util.Collection;
@@ -184,9 +189,8 @@ public class NavTopPanel extends NavAbstractPanel {
         public void onClick() {
           loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(),
                   userXmlPreferencesCache, WicketSupport.getUserPrefCache());
-          setResponsePage(LoginPage.class);
+          WicketUtils.redirectToLogin(this);
         }
-
       };
       logoutLink.setMarkupId("logout").setOutputMarkupId(true);
       add(logoutLink);
