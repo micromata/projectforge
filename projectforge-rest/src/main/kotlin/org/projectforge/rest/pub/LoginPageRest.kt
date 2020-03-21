@@ -96,10 +96,10 @@ open class LoginPageRest {
         if (loginResultStatus == LoginResultStatus.SUCCESS) {
             var redirectUrl: String? = null
 
-            if (request.getHeader("Referer").endsWith("/react/public/login")) {
-                redirectUrl = "/react/"
-            } else if (postData.serverData != null) {
+            if (postData.serverData != null) {
                 redirectUrl = URLDecoder.decode(postData.serverData!!.returnToCaller, "UTF-8")
+            } else if (request.getHeader("Referer").endsWith("/react/public/login")) {
+                redirectUrl = "/react/"
             }
 
             return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl)
