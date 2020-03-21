@@ -65,7 +65,7 @@ function FormPage(
                 currentCategory,
                 id,
                 getServiceURL(
-                    `${isPublic ? '../rsPublic/' : ''}${currentCategory}/${type || 'dynamic'}`,
+                    `${isPublic ? '/rsPublic/' : ''}${currentCategory}/${type || 'dynamic'}`,
                     {
                         ...getObjectFromQuery(search || ''),
                         id,
@@ -190,7 +190,6 @@ FormPage.propTypes = {
         params: PropTypes.shape({
             category: PropTypes.string.isRequired,
             id: PropTypes.string,
-            tab: PropTypes.string,
             type: PropTypes.string,
         }).isRequired,
     }).isRequired,

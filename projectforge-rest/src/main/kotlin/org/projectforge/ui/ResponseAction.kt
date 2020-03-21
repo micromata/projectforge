@@ -121,5 +121,10 @@ enum class TargetType {
     /**
      * No action by the client required.
      */
-    NOTHING
+    NOTHING,
+
+    /**
+     * The client should fetch the user status to get more information about his current authentication status.
+     */
+    CHECK_AUTHENTICATION,
 }

@@ -603,3 +603,14 @@ div[class$="-multiValue"] {
 		font-size: 14px;
 	}
 }
+
+
+// Toast
+
+.toast {
+	font-size: 1.25rem;
+
+	.toast-header strong {
+		padding-right: 1em;
+	}
+}

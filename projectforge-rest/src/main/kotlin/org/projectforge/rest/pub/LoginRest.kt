@@ -38,18 +38,17 @@ import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.GlobalConfiguration
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
-import org.projectforge.ui.UILabel
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.UINamedContainer
+import org.projectforge.rest.dto.PostData
+import org.projectforge.ui.*
 import org.projectforge.web.rest.AbstractRestUserFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.InetAddress
 import java.net.UnknownHostException
@@ -64,7 +63,7 @@ import javax.servlet.http.HttpServletResponse
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/login")
 open class LoginRest {
-    data class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
+    class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
 
     private val log = org.slf4j.LoggerFactory.getLogger(LoginRest::class.java)
 
@@ -82,22 +81,73 @@ open class LoginRest {
 
     @GetMapping("dynamic")
     fun getForm(): FormLayoutData {
-        val layout = UILayout("login.title")
-                .addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
-        //.addTranslation("messageOfTheDay")
-        layout.add(UINamedContainer("messageOfTheDay").add(UILabel(label = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY))))
-        return FormLayoutData(null, layout, null)
+        return FormLayoutData(null, this.getLoginLayout(), null)
     }
 
     @PostMapping
-    fun login(@RequestBody loginData: LoginData,
-              request: HttpServletRequest,
-              response: HttpServletResponse)
-            : ResponseEntity<String> {
-        val loginResultStatus = _login(request, response, loginData)
-        if (loginResultStatus == LoginResultStatus.SUCCESS)
-            return ResponseEntity.ok("Success")
-        return ResponseEntity(HttpStatus.UNAUTHORIZED)
+    fun login(request: HttpServletRequest,
+              response: HttpServletResponse,
+              @RequestBody postData: PostData<LoginData>)
+            : ResponseAction {
+        val loginResultStatus = _login(request, response, postData.data)
+
+        if (loginResultStatus == LoginResultStatus.SUCCESS) {
+            var redirectUrl: String? = null
+
+            if (request.getHeader("Referer").endsWith("/react/public/login")) {
+                redirectUrl = "/react/"
+            }
+
+            return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl)
+        }
+
+        response.status = 400
+        return ResponseAction(targetType = TargetType.UPDATE)
+                .addVariable("ui", getLoginLayout(loginResultStatus))
+    }
+
+    private fun getLoginLayout(loginResultStatus: LoginResultStatus? = null): UILayout {
+        val motd = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
+        val responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST)
+
+        val formCol = UICol(length = UILength(12, md = 6, lg = 4),
+                offset = UILength(0, md = 3, lg = 4))
+                .add(UIAlert(motd, color = UIColor.INFO, icon = UIIconType.INFO))
+
+        if (loginResultStatus != null) {
+            formCol.add(UIAlert(loginResultStatus.localizedMessage,
+                    color = UIColor.DANGER,
+                    icon = UIIconType.USER_LOCK))
+        }
+
+        formCol
+                .add(UIInput("username",
+                        required = true,
+                        label = "username",
+                        focus = true,
+                        autoComplete = UIInput.AutoCompleteType.USERNAME))
+                .add(UIInput("password",
+                        required = true,
+                        label = "password",
+                        dataType = UIDataType.PASSWORD,
+                        autoComplete = UIInput.AutoCompleteType.CURRENT_PASSWORD))
+                .add(UICheckbox("stayLoggedIn",
+                        label = "login.stayLoggedIn",
+                        tooltip = "login.stayLoggedIn.tooltip"))
+                .add(UIButton("login",
+                        translate("login"),
+                        UIColor.SUCCESS,
+                        responseAction = responseAction,
+                        default = true))
+
+
+        val layout = UILayout("login.title")
+                .add(UIRow()
+                        .add(formCol))
+
+        LayoutUtils.process(layout)
+
+        return layout
     }
 
     private fun _login(request: HttpServletRequest, response: HttpServletResponse, loginData: LoginData): LoginResultStatus {

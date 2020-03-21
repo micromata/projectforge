@@ -2,7 +2,9 @@ import { faHistory } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { loadUserStatus } from '../../../actions';
 import history from '../../../utilities/history';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import { NavLink, UncontrolledTooltip } from '../../design';
@@ -18,7 +20,7 @@ class NavigationAction extends React.Component {
     handleClick(event) {
         event.preventDefault();
 
-        const { type, url } = this.props;
+        const { type, url, loadUserStatus: checkLogin } = this.props;
 
         if (type === 'RESTCALL') {
             fetch(
@@ -34,6 +36,13 @@ class NavigationAction extends React.Component {
                     switch (targetType) {
                         case 'REDIRECT':
                             history.push(redirectUrl);
+                            break;
+                        case 'CHECK_AUTHENTICATION':
+                            checkLogin();
+
+                            if (redirectUrl) {
+                                history.push(redirectUrl);
+                            }
                             break;
                         default:
                             // TODO: HANDLE TOAST MESSAGE
@@ -148,6 +157,7 @@ class NavigationAction extends React.Component {
 }
 
 NavigationAction.propTypes = {
+    loadUserStatus: PropTypes.func.isRequired,
     title: PropTypes.string.isRequired,
     badge: PropTypes.shape({
         counter: PropTypes.number,
@@ -177,4 +187,6 @@ NavigationAction.defaultProps = {
     url: '',
 };
 
-export default NavigationAction;
+const actions = { loadUserStatus };
+
+export default connect(undefined, actions)(NavigationAction);

@@ -47,6 +47,9 @@ export {
     TabContent,
     Table,
     TabPane,
+    Toast,
+    ToastHeader,
+    ToastBody,
     UncontrolledDropdown,
     UncontrolledTooltip,
 } from 'reactstrap';

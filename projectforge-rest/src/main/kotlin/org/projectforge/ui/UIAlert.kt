@@ -23,17 +23,11 @@
 
 package org.projectforge.ui
 
-class UIFieldset(
-        /**
-         * Length in grid system
-         */
-        length: UILength? = null,
-        /**
-         * Offset in grid system
-         */
-        offset: UILength? = null,
-        var title: String? = null) :
-        UICol(length, offset, type = UIElementType.FIELDSET) {
-
-    constructor(xsLength: Int, title: String? = null) : this(length = UILength(xsLength), title = title)
-}
+/**
+ * For displaying message boxes.
+ */
+data class UIAlert(
+        var message: String? = null,
+        val color: UIColor? = null,
+        val icon: UIIconType? = null)
+        : UIElement(UIElementType.ALERT)

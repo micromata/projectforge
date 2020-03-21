@@ -32,6 +32,7 @@ enum class UIDataType {
     EMPLOYEE,
     INT,
     LOCALE,
+    PASSWORD,
     PICTURE,
     STRING,
     TASK,
