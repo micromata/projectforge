@@ -25,7 +25,6 @@ package org.projectforge.config;
 
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.apache.wicket.spring.SpringWebApplicationFactory;
-import org.projectforge.Const;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.caldav.config.PFMiltonInit;
 import org.projectforge.common.EmphasizedLogSupport;
@@ -78,7 +77,7 @@ public class WebXMLInitializer implements ServletContextInitializer {
     pfMiltonInit.init(sc);
 
     boolean filterAfterInternal = false;
-    RestUtils.registerFilter(sc, "UserFilter", UserFilter.class, filterAfterInternal, "/secure/*", "/wa/*", "/" + Const.REACT_APP_PATH + "*");
+    RestUtils.registerFilter(sc, "UserFilter", UserFilter.class, filterAfterInternal, "/secure/*", "/wa/*");
     RestUtils.registerFilter(sc, "springContext", SpringThreadLocalFilter.class, filterAfterInternal, "/secure/*", "/wa/*");
 
     final FilterRegistration wicketApp = RestUtils.registerFilter(sc, "wicket.app", WicketFilter.class, filterAfterInternal, "/wa/*");

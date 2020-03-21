@@ -189,7 +189,7 @@ public class NavTopPanel extends NavAbstractPanel {
         public void onClick() {
           loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(),
                   userXmlPreferencesCache, WicketSupport.getUserPrefCache());
-          WicketUtils.redirectToLogin();
+          WicketUtils.redirectToLogin(this);
         }
       };
       logoutLink.setMarkupId("logout").setOutputMarkupId(true);
