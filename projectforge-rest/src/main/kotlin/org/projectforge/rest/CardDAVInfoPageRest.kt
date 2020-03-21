@@ -53,7 +53,7 @@ class CardDAVInfoPageRest {
     private lateinit var authenticationsService: UserAuthenticationsService
 
     @GetMapping("dynamic")
-    fun getForm(request: HttpServletRequest, @RequestParam("type") type: String?): FormLayoutData {
+    fun getForm(request: HttpServletRequest): FormLayoutData {
         val username = ThreadLocalUserContext.getUser()?.username ?: "?????"
         val layout = UILayout("address.cardDAV.infopage.title")
                 .add(UILabel("address.cardDAV.infopage.description"))
