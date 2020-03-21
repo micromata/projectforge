@@ -269,6 +269,12 @@ class LayoutUtils {
                         val translation = getLabelTransformation(it.title)
                         if (translation != null) it.title = translation
                     }
+                    is UIAlert -> {
+                        val title = getLabelTransformation(it.title)
+                        if (title != null) it.title = title
+                        val message = getLabelTransformation(it.message)
+                        if (message != null) it.message = message
+                    }
                     is UIButton -> {
                         if (it.title == null) {
                             val i18nKey = when (it.id) {

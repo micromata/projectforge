@@ -174,8 +174,7 @@ class VacationAccountPageRest {
                         .add(UICol(12)
                                 .add(UICustomized("vacation.entries")))))
 
-        layout.add(UIFieldset(12, title = "vacation.subscription")
-                .add(UILabel("vacation.subscription.info")))
+        layout.add(UIAlert("vacation.subscription.info", title = "vacation.subscription"))
 
         layout.watchFields.add("employee")
         LayoutUtils.process(layout)

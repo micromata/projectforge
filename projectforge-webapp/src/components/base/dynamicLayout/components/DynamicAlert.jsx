@@ -5,10 +5,20 @@ import { colorPropType } from '../../../../utilities/propTypes';
 import { Alert } from '../../../design';
 
 function DynamicAlert(props) {
-    const { message, color, icon } = props;
+    const {
+        message,
+        title,
+        color,
+        icon,
+    } = props;
 
     return (
         <Alert color={color}>
+            {title && (
+                <h4 className="alert-heading">
+                    {title}
+                </h4>
+            )}
             {icon && (
                 <React.Fragment>
                     <FontAwesomeIcon icon={icon} />
@@ -22,11 +32,13 @@ function DynamicAlert(props) {
 
 DynamicAlert.propTypes = {
     message: PropTypes.string.isRequired,
+    title: PropTypes.string,
     color: colorPropType,
     icon: PropTypes.arrayOf(PropTypes.string),
 };
 
 DynamicAlert.defaultProps = {
+    title: undefined,
     color: undefined,
     icon: undefined,
 };
