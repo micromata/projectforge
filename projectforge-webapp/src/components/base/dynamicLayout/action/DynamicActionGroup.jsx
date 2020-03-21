@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { colorPropType } from '../../../../utilities/propTypes';
-import { ButtonGroup } from '../../../design';
+import { ButtonGroup, Spinner } from '../../../design';
+import { DynamicLayoutContext } from '../context';
 import DynamicButton from '../components/DynamicButton';
 
 export const actionPropType = PropTypes.shape({
@@ -17,15 +18,20 @@ function DynamicActionGroup({ actions }) {
         return <React.Fragment />;
     }
 
+    const { isFetching } = React.useContext(DynamicLayoutContext);
+
     return (
-        <ButtonGroup>
-            {actions.map(action => (
-                <DynamicButton
-                    key={`dynamic-action-button-${action.id}-${action.key}`}
-                    {...action}
-                />
-            ))}
-        </ButtonGroup>
+        <React.Fragment>
+            <ButtonGroup>
+                {actions.map(action => (
+                    <DynamicButton
+                        key={`dynamic-action-button-${action.id}-${action.key}`}
+                        {...action}
+                    />
+                ))}
+            </ButtonGroup>
+            {isFetching && <Spinner color="primary" style={{ marginLeft: '1em' }} />}
+        </React.Fragment>
     );
 }
 

@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import mu.KotlinLogging
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.service.UserPrefService
@@ -50,6 +51,8 @@ import org.springframework.web.bind.annotation.*
 import java.time.Month
 import java.time.Year
 import javax.validation.Valid
+
+private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/vacationAccount")
@@ -141,8 +144,10 @@ class VacationAccountPageRest {
         val buttonCol = UICol(length = 6)
         val responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java), targetType = TargetType.REDIRECT)
         responseAction.addVariable("returnToCaller", "account")
+        // TODO: Add employee for preselecting edit form
         buttonCol.add(UIButton("add", translate("add"), UIColor.SUCCESS, responseAction = responseAction))
-        if (currentStats.remainingLeaveFromPreviousYear != prevStats.vacationDaysLeftInYear) {
+        if (this.vacationService.hasLoggedInUserHRVacationAccess() &&
+                currentStats.remainingLeaveFromPreviousYear != prevStats.vacationDaysLeftInYear) {
             buttonCol.add(UIButton("recalculate", translate("vacation.recalculateRemainingLeave"), UIColor.DANGER,
                     responseAction = ResponseAction("vacationAccount/recalculate", targetType = TargetType.POST)))
         }
@@ -168,6 +173,10 @@ class VacationAccountPageRest {
                 .add(UIRow()
                         .add(UICol(length = 12)
                                 .add(UICustomized("vacation.entries")))))
+
+        layout.add(UIFieldset(length = 12, title = "vacation.subscription")
+                .add(UILabel("vacation.subscription.info")))
+
         layout.watchFields.add("employee")
         LayoutUtils.process(layout)
 
@@ -189,6 +198,7 @@ class VacationAccountPageRest {
     @PostMapping("recalculate")
     fun recalculateRemainingLeave(@Valid @RequestBody postData: PostData<Data>): ResponseAction {
         if (!this.vacationService.hasLoggedInUserHRVacationAccess() || postData.data.employee == null) {
+            log.warn { "User has now HR vacation access. Recalculating of remaining leaves ignored." }
             return ResponseAction(targetType = TargetType.NOTHING)
         }
         val employeeId = postData.data.employee!!.id

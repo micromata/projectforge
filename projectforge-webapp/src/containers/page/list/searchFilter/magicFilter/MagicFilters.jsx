@@ -62,64 +62,76 @@ function MagicFilters(
                     ...Array.findByField(searchFilter.content, 'id', entry.field),
                     ...entry,
                 }))
-                .filter(({ id }) => id !== undefined)
+                .filter(({ id, defaultFilter }) => id !== undefined && !defaultFilter)
                 .map(entry => (
                     <MagicFilterPill
                         key={`magic-filter-${entry.id}`}
                         {...entry}
+                        isRemovable
                     />
                 ))}
             {searchFilter && (
-                <div className={styles.magicFilter}>
-                    <AdvancedPopper
-                        setIsOpen={setIsOpen}
-                        isOpen={allFiltersAreOpen}
-                        basic={translations.searchFilter || ''}
-                        className={styles.allFilters}
-                        contentClassName={classNames(
-                            styles.pill,
-                            { [styles.marked]: allFiltersAreOpen },
-                        )}
-                        actions={(
-                            <AdvancedPopperAction
-                                type="delete"
-                                disabled={!(filterEntries.length || searchString)}
-                                onClick={handleAllFiltersDelete}
-                            >
-                                {translations.reset || '???Zurücksetzen???'}
-                            </AdvancedPopperAction>
-                        )}
-                    >
-                        <AdvancedPopperInput
-                            forwardRef={searchRef}
-                            autoFocus
-                            dark
-                            id="magicFiltersSearch"
-                            icon={faSearch}
-                            noStyle
-                            onCancel={() => setIsOpen(false)}
-                            onChange={handleSearchChange}
-                            placeholder={translations.search || ''}
-                            selectOnFocus
-                            value={search}
-                        />
-                        <ul className={styles.filterList}>
-                            {filteredSearchFilters.map(({ id, label }) => (
-                                <FilterListEntry
-                                    key={`filter-${id}`}
-                                    afterSelect={handleAfterSelectFilter}
-                                    id={id}
-                                    label={label}
-                                />
-                            ))}
-                            {filteredSearchFilters.length === 0 && (
-                                <span className={styles.errorMessage}>
-                                    {translations['datatable.no-records-found'] || '???No Entries found???'}
-                                </span>
+                <React.Fragment>
+                    {searchFilter.content
+                        .filter(filter => filter.defaultFilter)
+                        .map(filter => (
+                            <MagicFilterPill
+                                key={`magic-filter-default-${filter.id}`}
+                                {...Array.findByField(filterEntries, 'field', filter.id)}
+                                {...filter}
+                            />
+                        ))}
+                    <div className={styles.magicFilter}>
+                        <AdvancedPopper
+                            setIsOpen={setIsOpen}
+                            isOpen={allFiltersAreOpen}
+                            basic={translations.searchFilter || ''}
+                            className={styles.allFilters}
+                            contentClassName={classNames(
+                                styles.pill,
+                                { [styles.marked]: allFiltersAreOpen },
                             )}
-                        </ul>
-                    </AdvancedPopper>
-                </div>
+                            actions={(
+                                <AdvancedPopperAction
+                                    type="delete"
+                                    disabled={!(filterEntries.length || searchString)}
+                                    onClick={handleAllFiltersDelete}
+                                >
+                                    {translations.reset || '???Zurücksetzen???'}
+                                </AdvancedPopperAction>
+                            )}
+                        >
+                            <AdvancedPopperInput
+                                forwardRef={searchRef}
+                                autoFocus
+                                dark
+                                id="magicFiltersSearch"
+                                icon={faSearch}
+                                noStyle
+                                onCancel={() => setIsOpen(false)}
+                                onChange={handleSearchChange}
+                                placeholder={translations.search || ''}
+                                selectOnFocus
+                                value={search}
+                            />
+                            <ul className={styles.filterList}>
+                                {filteredSearchFilters.map(({ id, label }) => (
+                                    <FilterListEntry
+                                        key={`filter-${id}`}
+                                        afterSelect={handleAfterSelectFilter}
+                                        id={id}
+                                        label={label}
+                                    />
+                                ))}
+                                {filteredSearchFilters.length === 0 && (
+                                    <span className={styles.errorMessage}>
+                                        {translations['datatable.no-records-found']}
+                                    </span>
+                                )}
+                            </ul>
+                        </AdvancedPopper>
+                    </div>
+                </React.Fragment>
             )}
         </div>
     );

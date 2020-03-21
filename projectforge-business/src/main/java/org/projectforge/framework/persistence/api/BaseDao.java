@@ -368,9 +368,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   @Override
   public O getById(final Serializable id) throws AccessException {
-    if (accessChecker.isRestrictedUser()) {
-      return null;
-    }
+    accessChecker.checkRestrictedUser();
     checkLoggedInUserSelectAccess();
     final O obj = internalGetById(id);
     if (obj == null) {
@@ -507,10 +505,10 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     if (!avoidNullIdCheckBeforeSave) {
       Validate.isTrue(obj.getId() == null);
     }
+    accessChecker.checkRestrictedOrDemoUser();
     beforeSaveOrModify(obj);
     checkPartOfCurrentTenant(obj, OperationType.INSERT);
     checkLoggedInUserInsertAccess(obj);
-    accessChecker.checkRestrictedOrDemoUser();
     Integer result = internalSave(obj);
     //long end = System.currentTimeMillis();
     //log.info("BaseDao.save took: " + (end - begin) + " ms.");
@@ -703,6 +701,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       log.error(msg);
       throw new RuntimeException(msg);
     }
+    accessChecker.checkRestrictedOrDemoUser();
     return internalUpdate(obj, true);
   }
 
@@ -767,10 +766,10 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       log.error(msg);
       throw new RuntimeException(msg);
     }
+    accessChecker.checkRestrictedOrDemoUser();
     final O dbObj = em.find(clazz, obj.getId());
     checkPartOfCurrentTenant(obj, OperationType.DELETE);
     checkLoggedInUserDeleteAccess(obj, dbObj);
-    accessChecker.checkRestrictedOrDemoUser();
     internalMarkAsDeleted(obj);
   }
 
@@ -836,9 +835,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       log.error(msg);
       throw new RuntimeException(msg);
     }
+    accessChecker.checkRestrictedOrDemoUser();
     checkPartOfCurrentTenant(obj, OperationType.INSERT);
     checkLoggedInUserInsertAccess(obj);
-    accessChecker.checkRestrictedOrDemoUser();
     internalUndelete(obj);
   }
 

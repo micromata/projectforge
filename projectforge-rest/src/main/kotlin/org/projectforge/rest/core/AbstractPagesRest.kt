@@ -173,7 +173,7 @@ abstract class AbstractPagesRest<
      * Creates a new dto by calling [newBaseDO] and [transformFromDB].
      */
     open fun newBaseDTO(request: HttpServletRequest? = null): DTO {
-        return transformFromDB(newBaseDO())
+        return transformFromDB(newBaseDO(request))
     }
 
     open fun createListLayout(): UILayout {
@@ -953,8 +953,4 @@ abstract class AbstractPagesRest<
     abstract fun isDeleted(dto: Any): Boolean
 
     abstract fun isHistorizable(): Boolean
-
-    private class MagicFilterEntries(var entries: MutableList<MagicFilterEntry> = mutableListOf(),
-                                     var name: String? = null,
-                                     var id: Int? = null)
 }

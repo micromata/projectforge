@@ -21,39 +21,27 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.vacation.model;
+package org.projectforge.business.vacation.model
 
-import org.projectforge.common.i18n.I18nEnum;
+import org.projectforge.common.i18n.I18nEnum
 
 /**
  * Created by blumenstein on 22.11.16.
  */
-public enum VacationMode implements I18nEnum
-{
-  OWN("own"), REPLACEMENT("replacement"), MANAGER("manager"), OTHER("other");
+enum class VacationMode(val key: String) : I18nEnum {
+    OWN("own"), REPLACEMENT("replacement"), MANAGER("manager"), OTHER("other");
 
-  private String key;
+    /**
+     * The key will be used e. g. for i18n.
+     *
+     * @return
+     */
 
-  /**
-   * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
-   */
-  public String getI18nKey()
-  {
-    return "vacation." + key;
-  }
+    /**
+     * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
+     */
+    override fun getI18nKey(): String {
+        return "vacation.$key"
+    }
 
-  /**
-   * The key will be used e. g. for i18n.
-   *
-   * @return
-   */
-  public String getKey()
-  {
-    return key;
-  }
-
-  VacationMode(String key)
-  {
-    this.key = key;
-  }
 }

@@ -17,6 +17,10 @@ export const defaultValues = {
      */
     data: {},
     /**
+     * @type {Boolean} Is the current layout in a fetching state.
+     */
+    isFetching: false,
+    /**
      * @type {Object} Specify settings for some general layout helpers.
      */
     options: {

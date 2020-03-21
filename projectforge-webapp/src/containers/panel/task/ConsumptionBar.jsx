@@ -1,6 +1,9 @@
-import React from 'react';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { UncontrolledTooltip } from 'reactstrap';
+import { Progress } from '../../../components/design';
 import style from './ConsumptionBar.module.scss';
 
 function ConsumptionBar({ progress, taskId, identifier }) {
@@ -10,16 +13,17 @@ function ConsumptionBar({ progress, taskId, identifier }) {
     const {
         title,
         status,
-        width,
+        percentage,
         id,
     } = progress;
+
     const element = (
         <React.Fragment>
-            <div className={`${style.progress} ${style[status]}`} id={`${identifier}-${id}`}>
-                <div style={{ width }}>
-                    {' '}
-                </div>
-            </div>
+            <Progress
+                value={percentage}
+                className={classNames(style.consumption, style[status])}
+                id={`${identifier}-${id}`}
+            />
             <UncontrolledTooltip placement="right" target={`${identifier}-${id}`}>
                 {title}
             </UncontrolledTooltip>
@@ -27,10 +31,9 @@ function ConsumptionBar({ progress, taskId, identifier }) {
     );
     if (taskId) {
         return (
-            // ToDo: onClick
-            <a href={`/timesheet?taskId=${taskId}`}>
+            <Link to={`/timesheet?taskId=${taskId}`}>
                 {element}
-            </a>
+            </Link>
         );
     }
     return element;
