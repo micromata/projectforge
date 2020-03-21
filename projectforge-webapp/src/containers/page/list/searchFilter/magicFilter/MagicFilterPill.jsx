@@ -41,16 +41,20 @@ function MagicFilterPill(
         setIsOpen(false);
     };
 
-    const handleDelete = () => onFilterDelete(id);
+    const handleDelete = () => {
+        setIsOpen(false);
+        onFilterDelete(id);
+    };
 
     const handleSave = () => {
+        setIsOpen(false);
+
         if (MagicInput.isEmpty(tempValue)) {
             handleDelete();
             return;
         }
 
         onFilterSet(id, tempValue);
-        setIsOpen(false);
     };
 
     return (
