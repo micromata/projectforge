@@ -62,10 +62,10 @@ import javax.servlet.http.HttpServletResponse
  */
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/login")
-open class LoginRest {
+open class LoginPageRest {
     class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
 
-    private val log = org.slf4j.LoggerFactory.getLogger(LoginRest::class.java)
+    private val log = org.slf4j.LoggerFactory.getLogger(LoginPageRest::class.java)
 
     @Autowired
     private lateinit var applicationContext: ApplicationContext

@@ -305,6 +305,10 @@ public class MySession extends WebSession
    */
   public void setLocale(final Request request)
   {
+    if (request == null) {
+      // Should only occur on tests.
+      return;
+    }
     setLocale(ThreadLocalUserContext.getLocale(request.getLocale()));
   }
 

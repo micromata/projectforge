@@ -43,6 +43,7 @@ import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.request.UrlUtils;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.projectforge.Const;
@@ -87,6 +88,10 @@ public class WicketUtils
   static void setContextPath(final String contextPath)
   {
     APPLICATION_CONTEXT = contextPath;
+  }
+
+  public static void redirectToLogin() {
+    throw new RedirectToUrlException("/react/login");
   }
 
   public static HttpServletRequest getHttpServletRequest(final Request request)
