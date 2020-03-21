@@ -28,6 +28,7 @@ package org.projectforge.ui
  */
 data class UIAlert(
         var message: String? = null,
+        var title: String? = null,
         val color: UIColor? = null,
         val icon: UIIconType? = null)
         : UIElement(UIElementType.ALERT)
