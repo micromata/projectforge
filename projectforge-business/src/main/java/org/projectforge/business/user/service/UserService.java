@@ -238,6 +238,7 @@ public class UserService {
 
     createEncryptedPassword(user, newPassword);
     onPasswordChange(user, true);
+    userDao.internalUpdate(user);
     Login.getInstance().passwordChanged(user, newPassword);
     log.info("Password changed for user: " + user.getId() + " - " + user.getUsername());
     return Collections.emptyList();
