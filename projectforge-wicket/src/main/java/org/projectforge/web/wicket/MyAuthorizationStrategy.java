@@ -72,6 +72,6 @@ public class MyAuthorizationStrategy implements IAuthorizationStrategy, IUnautho
   @Override
   public void onUnauthorizedInstantiation(final Component component)
   {
-    WicketUtils.redirectToLogin();
+    WicketUtils.redirectToLogin(component);
   }
 }

@@ -59,7 +59,7 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
   public AbstractSecuredBasePage(final PageParameters parameters) {
     super(parameters);
     if (getUser() == null) {
-      WicketUtils.redirectToLogin();
+      WicketUtils.redirectToLogin(this);
     }
     if (isAccess4restrictedUsersAllowed() == false && getUser().getRestrictedUser() == true) {
       throw new RestartResponseException(ChangePasswordPage.class);

@@ -217,7 +217,7 @@ public class SetupPage extends AbstractUnsecureBasePage
       }.start();
       if (counter > 0) {
         ((MySession) getSession()).logout();
-        WicketUtils.redirectToLogin();
+        WicketUtils.redirectToLogin(this);
       } else {
         error(getString("administration.setup.error.import"));
       }
