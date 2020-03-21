@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
@@ -87,11 +88,18 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
     override fun newBaseDTO(request: HttpServletRequest?): Vacation {
         val vacation = getUserPref()
         val result = Vacation()
-        val employeeDO = if (vacation.employee != null && vacationDao.hasHrRights(ThreadLocalUserContext.getUser())) {
-            vacation.employee
-        } else {
+        var employeeDO: EmployeeDO? = null
+        if (vacationDao.hasHrRights(ThreadLocalUserContext.getUser())) {
+            val employeeId = NumberHelper.parseInteger(request?.getParameter("employee"))
+            if (employeeId != null) {
+                employeeDO = employeeService.getById(employeeId)
+            } else {
+                employeeDO = vacation.employee
+            }
+        }
+        if (employeeDO == null) {
             // For non HR staff members, choose always the logged in employee:
-            employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId())
+            employeeDO = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId())
         }
         result.employee = createEmployee(employeeDO!!)
         vacation.manager?.let { result.manager = createEmployee(it) }
