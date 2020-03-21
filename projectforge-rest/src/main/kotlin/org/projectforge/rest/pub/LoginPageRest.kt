@@ -45,12 +45,14 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.ServerData
 import org.projectforge.ui.*
 import org.projectforge.web.rest.AbstractRestUserFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.web.bind.annotation.*
 import java.net.InetAddress
+import java.net.URLDecoder
 import java.net.UnknownHostException
 import javax.servlet.ServletRequest
 import javax.servlet.http.Cookie
@@ -80,8 +82,8 @@ open class LoginPageRest {
     private lateinit var cookieService: CookieService
 
     @GetMapping("dynamic")
-    fun getForm(): FormLayoutData {
-        return FormLayoutData(null, this.getLoginLayout(), null)
+    fun getForm(@RequestParam url: String? = null): FormLayoutData {
+        return FormLayoutData(null, this.getLoginLayout(), ServerData(returnToCaller = url))
     }
 
     @PostMapping
@@ -96,6 +98,8 @@ open class LoginPageRest {
 
             if (request.getHeader("Referer").endsWith("/react/public/login")) {
                 redirectUrl = "/react/"
+            } else if (postData.serverData != null) {
+                redirectUrl = URLDecoder.decode(postData.serverData!!.returnToCaller, "UTF-8")
             }
 
             return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl)
