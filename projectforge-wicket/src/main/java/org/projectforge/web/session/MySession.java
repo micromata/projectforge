@@ -133,6 +133,10 @@ public class MySession extends WebSession
    */
   public synchronized PFUserDO getUser()
   {
+    if (userContext == null) {
+      // Happens after login via React page or if user isn't logged in.
+      userContext = ThreadLocalUserContext.getUserContext();
+    }
     return userContext != null ? userContext.getUser() : null;
   }
 
