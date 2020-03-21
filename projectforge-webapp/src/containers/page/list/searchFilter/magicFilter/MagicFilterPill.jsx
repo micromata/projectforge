@@ -25,10 +25,17 @@ function MagicFilterPill(
         ...props
     },
 ) {
-    const [isOpen, setIsOpen] = React.useState(isNew);
-    const [tempValue, setTempValue] = React.useState(value);
-
     const MagicInput = useMagicInput(filterType);
+
+    const [isOpen, setIsOpen] = React.useState(isNew);
+    const [tempValue, setTempValue] = React.useState(() => {
+        console.log(value, MagicInput.defaultValue);
+        if (Object.isEmpty(value) && MagicInput.defaultValue !== undefined) {
+            return MagicInput.defaultValue;
+        }
+
+        return value;
+    });
 
     const handleCancel = () => {
         setTempValue(value);

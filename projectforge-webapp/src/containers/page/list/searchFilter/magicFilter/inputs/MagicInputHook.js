@@ -1,45 +1,25 @@
-import React from 'react';
+import MagicCheckboxInput from './MagicCheckboxInput';
 import MagicInputNotImplemented from './MagicInputNotImplemented';
 import MagicObjectInput from './MagicObjectInput';
-import MagicCheckboxInput from './MagicCheckboxInput';
 import MagicSelectInput from './MagicSelectInput';
 import MagicStringInput from './MagicStringInput';
 import MagicTimeStampInput from './MagicTimeStampInput';
 
 const useMagicInput = (type) => {
-    const [inputTag, setInputTag] = React.useState(() => MagicInputNotImplemented);
-
-    React.useEffect(() => {
-        let tag;
-
-        switch (type) {
-            case 'STRING':
-                tag = MagicStringInput;
-                break;
-            case 'LIST':
-                tag = MagicSelectInput;
-                break;
-            case 'TIME_STAMP':
-                tag = MagicTimeStampInput;
-                break;
-            case 'OBJECT':
-                tag = MagicObjectInput;
-                break;
-            case 'BOOLEAN':
-                tag = MagicCheckboxInput;
-                break;
-            default:
-                tag = MagicInputNotImplemented;
-                break;
-        }
-
-        if (tag !== inputTag) {
-            // Important to use a state function to prevent the tag to be called
-            setInputTag(() => tag);
-        }
-    }, [type]);
-
-    return inputTag;
+    switch (type) {
+        case 'STRING':
+            return MagicStringInput;
+        case 'LIST':
+            return MagicSelectInput;
+        case 'TIME_STAMP':
+            return MagicTimeStampInput;
+        case 'OBJECT':
+            return MagicObjectInput;
+        case 'BOOLEAN':
+            return MagicCheckboxInput;
+        default:
+            return MagicInputNotImplemented;
+    }
 };
 
 export default useMagicInput;
