@@ -116,10 +116,10 @@ open class LoginPageRest {
 
         val formCol = UICol(length = UILength(12, md = 6, lg = 4),
                 offset = UILength(0, md = 3, lg = 4))
-                .add(UIAlert(motd, color = UIColor.INFO, icon = UIIconType.INFO))
+                .add(UIAlert("'$motd", color = UIColor.INFO, icon = UIIconType.INFO))
 
         if (loginResultStatus != null) {
-            formCol.add(UIAlert(loginResultStatus.localizedMessage,
+            formCol.add(UIAlert("'${loginResultStatus.localizedMessage}",
                     color = UIColor.DANGER,
                     icon = UIIconType.USER_LOCK))
         }
