@@ -30,61 +30,16 @@ open class UICol(
         /**
          * Length in grid system
          */
-        val length: Length? = null,
+        val length: UILength? = null,
         /**
          * Offset in grid system
          */
-        val offset: Length? = null,
+        val offset: UILength? = null,
         val content: MutableList<UIElement> = mutableListOf(),
         type: UIElementType = UIElementType.COL)
     : UIElement(type) {
-    constructor(
-            /**
-             * Length in grid system (1-12)
-             */
-            length: Int? = null,
-            /**
-             * Length for small screens (1-12)
-             */
-            smLength: Int? = null,
-            /**
-             * Length for middle sized screens (1-12)
-             */
-            mdLength: Int? = null,
-            /**
-             * Length for large screens (1-12)
-             */
-            lgLength: Int? = null,
-            /**
-             * Length for large screens (1-12)
-             */
-            xlLength: Int? = null,
-            content: MutableList<UIElement> = mutableListOf(),
-            type: UIElementType = UIElementType.COL)
-            : this(length = Length(length, smLength, mdLength, lgLength, xlLength), content = content, type = type)
 
-    class Length(
-            /**
-             * Length for extra small screen and up(default) in grid system (1-12)
-             */
-            val xs: Int? = null,
-            /**
-             * Length for small screens (1-12)
-             */
-            val sm: Int? = null,
-            /**
-             * Length for middle sized screens (1-12)
-             */
-            val md: Int? = null,
-            /**
-             * Length for large screens (1-12)
-             */
-            val lg: Int? = null,
-            /**
-             * Length for extra large screens (1-12)
-             */
-            val xl: Int? = null
-    )
+    constructor(xsLength: Int): this(length = UILength(xsLength))
 
     fun add(element: UIElement): UICol {
         content.add(element)

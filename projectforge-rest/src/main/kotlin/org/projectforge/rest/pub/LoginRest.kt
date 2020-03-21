@@ -110,14 +110,14 @@ open class LoginRest {
         val motd = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
         val responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST)
 
-        val formCol = UICol(length = UICol.Length(12, md = 6, lg = 4),
-                offset = UICol.Length(0, md = 3, lg = 4))
+        val formCol = UICol(length = UILength(12, md = 6, lg = 4),
+                offset = UILength(0, md = 3, lg = 4))
                 .add(UIAlert(motd, color = UIColor.INFO, icon = UIIconType.INFO))
 
         if (loginResultStatus != null) {
             formCol.add(UIAlert(loginResultStatus.localizedMessage,
-                            color = UIColor.DANGER,
-                            icon = UIIconType.USER_LOCK))
+                    color = UIColor.DANGER,
+                    icon = UIIconType.USER_LOCK))
         }
 
         formCol
