@@ -24,7 +24,6 @@
 package org.projectforge.web.wicket;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseAtInterceptPageException;
 import org.apache.wicket.authorization.Action;
 import org.apache.wicket.authorization.IAuthorizationStrategy;
 import org.apache.wicket.authorization.IUnauthorizedComponentInstantiationListener;
@@ -32,7 +31,6 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.component.IRequestableComponent;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.IResource;
-import org.projectforge.web.LoginPage;
 import org.projectforge.web.session.MySession;
 
 /**
@@ -74,6 +72,6 @@ public class MyAuthorizationStrategy implements IAuthorizationStrategy, IUnautho
   @Override
   public void onUnauthorizedInstantiation(final Component component)
   {
-      throw new RestartResponseAtInterceptPageException(LoginPage.class);
+    WicketUtils.redirectToLogin();
   }
 }
