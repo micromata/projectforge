@@ -101,8 +101,9 @@ public class ProjectForgeHomeFinder {
     // Try directory defined through user preferences variable:
     final String prefHomeDir = getUserPrefHomeDir();
     if (prefHomeDir != null) {
-      appHomeDir = proceedForced(prefHomeDir,
-              "ProjectForge's home dir is defined as java user preference " + ENV_PROJECTFORGE_HOME + ": $APP_HOME_DIR");
+      appHomeDir = proceed(new File(prefHomeDir),
+              "ProjectForge's home dir is defined as java user preference " + ENV_PROJECTFORGE_HOME + ": $APP_HOME_DIR",
+              false);
       if (appHomeDir != null)
         return appHomeDir;
     }
