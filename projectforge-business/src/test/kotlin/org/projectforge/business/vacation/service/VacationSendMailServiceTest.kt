@@ -31,12 +31,14 @@ import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.UserDao
+import org.projectforge.business.utils.HtmlHelper
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationMode
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.mail.Mail
 import org.projectforge.test.AbstractTestBase
@@ -71,12 +73,22 @@ class VacationSendMailServiceTest : AbstractTestBase() {
         vacation.id = 47114711
         vacation.comment = "This is a really important comment ;-)"
         logon(vacationer.user)
-        val mail = assertMail( vacation, OperationType.INSERT, VacationMode.MANAGER, manager.user!!)
-        // println(mail.content)
+
+        // Check all combinations (4*4*3=48):
+        arrayOf(OperationType.INSERT, OperationType.UPDATE, OperationType.DELETE, OperationType.UNDELETE)
+                .forEach { operationType ->
+                    arrayOf(VacationMode.MANAGER, VacationMode.REPLACEMENT, VacationMode.OWN, VacationMode.OTHER)
+                            .forEach { mode ->
+                                arrayOf(vacationer, manager, replacement).forEach { employee ->
+                                    assertMail(vacation, operationType, mode, employee.user!!)
+                                }
+                            }
+                }
+        //println(assertMail(vacation, OperationType.UPDATE, VacationMode.MANAGER, manager.user!!)!!.content)
     }
 
     private fun assertMail(vacation: VacationDO, operationType: OperationType, vacationMode: VacationMode, receiver: PFUserDO): Mail {
-        val mail = vacationSendMailService.prepareMail(vacation,operationType, vacationMode, receiver)
+        val mail = vacationSendMailService.prepareMail(vacation, operationType, vacationMode, receiver)
         Assertions.assertNotNull(mail)
         mail!!
         val vacationer = vacation.employee!!.user!!
@@ -84,18 +96,22 @@ class VacationSendMailServiceTest : AbstractTestBase() {
         val replacement = vacation.replacement!!.user!!
         Assertions.assertNotNull(mail)
         Assertions.assertEquals(1, mail.to.size)
-        Assertions.assertEquals(manager.email, mail.to[0].address)
-        Assertions.assertEquals(1, mail.cc.size)
-        Assertions.assertEquals(vacationer.email, mail.cc[0].address)
+        Assertions.assertEquals(receiver.email, mail.to[0].address)
+        if (receiver.id != ThreadLocalUserContext.getUserId()) {
+            Assertions.assertEquals(1, mail.cc.size)
+            Assertions.assertEquals(vacationer.email, mail.cc[0].address)
+        } else {
+            Assertions.assertEquals(0, mail.cc.size)
+        }
 
         val vacationInfo = VacationSendMailService.VacationInfo(domainService, vacationService, vacation)
         val i18nArgs = arrayOf(vacationer.getFullname(),
                 vacationInfo.periodText,
-                translate("vacation.mail.modType.${operationType.name.toLowerCase()}"))
-        Assertions.assertEquals(translateMsg("vacation.mail.action.short", *i18nArgs), mail.subject)
+                i18n("vacation.mail.modType.${operationType.name.toLowerCase()}"))
+        Assertions.assertEquals(i18n("vacation.mail.action.short", *i18nArgs), mail.subject)
         assertContent(mail, "${vacation.id}")
-        assertContent(mail, translateMsg("vacation.mail.action", *i18nArgs))
-        assertContent(mail, translateMsg("vacation.mail.reason.${vacationMode.name.toLowerCase()}", vacationer.getFullname()))
+        assertContent(mail, i18n("vacation.mail.action", *i18nArgs))
+        assertContent(mail, i18n("vacation.mail.reason.${vacationMode.name.toLowerCase()}", vacationer.getFullname()))
 
         assertContent(mail, vacationer.getFullname())
         assertContent(mail, manager.getFullname())
@@ -103,7 +119,7 @@ class VacationSendMailServiceTest : AbstractTestBase() {
         assertContent(mail, vacation.comment)
 
         Assertions.assertFalse(mail.content.contains("???"))
-        arrayOf(0,1,2,3).forEach {
+        arrayOf(0, 1, 2, 3).forEach {
             Assertions.assertFalse(mail.content.contains("{$it}"), "At least one message param was not replaced in i18n message ('{$it}'): ${mail.content}")
         }
         return mail
@@ -130,6 +146,14 @@ class VacationSendMailServiceTest : AbstractTestBase() {
         val result = Pair(currentDate, currentDate.plusDays(10))
         currentDate = currentDate.plusDays(11)
         return result
+    }
+
+    private fun i18n(key: String): String {
+        return HtmlHelper.formatText(translate(key), true)
+    }
+
+    private fun i18n(key: String, vararg params: Any): String {
+        return HtmlHelper.formatText(translateMsg(key, *params), true)
     }
 
     companion object {
