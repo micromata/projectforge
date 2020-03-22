@@ -160,7 +160,7 @@ public abstract class AbstractTestBase {
   protected AccessChecker accessChecker;
 
   @Autowired
-  protected InitTestDB initTestDB;
+  public InitTestDB initTestDB;
 
   @Autowired
   protected PfEmgrFactory emf;
