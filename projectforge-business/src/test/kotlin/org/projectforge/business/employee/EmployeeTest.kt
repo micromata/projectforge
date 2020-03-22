@@ -20,6 +20,7 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.business.employee
 
 import org.junit.jupiter.api.AfterEach
@@ -267,7 +268,13 @@ class EmployeeTest : AbstractTestBase() {
     }
 
     companion object {
-        fun createEmployee(employeeService: EmployeeService, employeeDao: EmployeeDao, test: AbstractTestBase, name: String, hrAccess: Boolean = false, groupDao: GroupDao? = null): EmployeeDO {
+        /**
+         * @param mail: Optional mail address of the user.
+         */
+        fun createEmployee(employeeService: EmployeeService, employeeDao: EmployeeDao, test: AbstractTestBase, name: String,
+                           hrAccess: Boolean = false,
+                           groupDao: GroupDao? = null,
+                           email: String? = null): EmployeeDO {
             val loggedInUser = ThreadLocalUserContext.getUser()
             test.logon(TEST_ADMIN_USER)
             val user = PFUserDO()
@@ -275,6 +282,7 @@ class EmployeeTest : AbstractTestBase() {
             user.firstname = useName
             user.lastname = useName
             user.username = useName
+            user.email = email
             if (hrAccess) {
                 user.addRight(UserRightDO(UserRightId.HR_VACATION, UserRightValue.READWRITE))
             }
