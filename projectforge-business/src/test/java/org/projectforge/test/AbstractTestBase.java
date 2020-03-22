@@ -29,6 +29,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.projectforge.Const;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.SystemStatus;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -46,6 +47,7 @@ import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.configuration.GlobalConfiguration;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -195,6 +197,7 @@ public abstract class AbstractTestBase {
   @BeforeAll
   public static void _beforeAll() {
     ProjectForgeApp.internalSetJunitTestMode();
+    I18nHelper.addBundleName(Const.RESOURCE_BUNDLE_NAME);
     initialized = false;
   }
 

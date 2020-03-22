@@ -279,9 +279,9 @@ class EmployeeTest : AbstractTestBase() {
             test.logon(TEST_ADMIN_USER)
             val user = PFUserDO()
             val useName = "${test.javaClass.simpleName}.$name"
-            user.firstname = useName
-            user.lastname = useName
-            user.username = useName
+            user.firstname = "$useName.firstname"
+            user.lastname = "$useName.lastname"
+            user.username = "$useName.username"
             user.email = email
             if (hrAccess) {
                 user.addRight(UserRightDO(UserRightId.HR_VACATION, UserRightValue.READWRITE))
