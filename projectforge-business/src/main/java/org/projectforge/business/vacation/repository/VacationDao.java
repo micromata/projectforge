@@ -30,10 +30,12 @@ import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.vacation.VacationFilter;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
+import org.projectforge.business.vacation.service.VacationSendMailService;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.business.vacation.service.VacationValidator;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
+import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -80,6 +82,9 @@ public class VacationDao extends BaseDao<VacationDO> {
 
   @Autowired
   private PfEmgrFactory emgrFactory;
+
+  @Autowired
+  private VacationSendMailService vacationSendMailService;
 
   public VacationDao() {
     super(VacationDO.class);
@@ -274,6 +279,30 @@ public class VacationDao extends BaseDao<VacationDO> {
     super.onChange(obj, dbObj);
     VacationService service = applicationContext.getBean(VacationService.class);
     service.validate(obj, dbObj, true);
+  }
+
+  @Override
+  protected void afterSave(VacationDO obj) {
+    super.afterSave(obj);
+    vacationSendMailService.checkAndSendMail(obj, OperationType.INSERT);
+  }
+
+  @Override
+  protected void afterUpdate(VacationDO obj, VacationDO dbObj) {
+    super.afterUpdate(obj, dbObj);
+    vacationSendMailService.checkAndSendMail(obj, OperationType.UPDATE, dbObj);
+  }
+
+  @Override
+  protected void afterDelete(VacationDO obj) {
+    super.afterDelete(obj);
+    vacationSendMailService.checkAndSendMail(obj, OperationType.DELETE);
+  }
+
+  @Override
+  protected void afterUndelete(VacationDO obj) {
+    super.afterDelete(obj);
+    vacationSendMailService.checkAndSendMail(obj, OperationType.UNDELETE);
   }
 
   public List<VacationDO> getVacationForPeriod(Integer employeeId, LocalDate startVacationDate, LocalDate endVacationDate, boolean withSpecial) {
