@@ -27,6 +27,7 @@ import com.google.gson.GsonBuilder
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.projectforge.business.book.BookDO
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.json.JsonValidator
 import org.projectforge.rest.AddressPagesRest
 import org.projectforge.rest.BookPagesRest
@@ -92,13 +93,13 @@ class UILayoutTest : AbstractTestBase() {
         val jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
         val jsonValidator = JsonValidator(jsonString)
 
-        assertEquals("???book.title.edit???", jsonValidator.get("title")) // translations not available in test.
+        assertEquals(translate("book.title.edit"), jsonValidator.get("title")) // translations not available in test.
         val title = jsonValidator.getMap("layout[0]")
-        assertField(title, "title", 255.0, "STRING", "???book.title???", type = "INPUT", key = "el-1")
+        assertField(title, "title", 255.0, "STRING", translate("book.title"), type = "INPUT", key = "el-1")
         assertEquals(true, title!!["focus"])
 
         val authors = jsonValidator.getMap("layout[1]")
-        assertField(authors, "authors", 1000.0, null, "???book.authors???", type = "TEXTAREA", key = "el-2")
+        assertField(authors, "authors", 1000.0, null, translate("book.authors"), type = "TEXTAREA", key = "el-2")
         assertNull(jsonValidator.getBoolean("layout[1].focus"))
 
         assertEquals("ROW", jsonValidator.get("layout[2].type"))
@@ -122,14 +123,14 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals(7, jsonValidator.getList("layout[0].columns")?.size)
 
         assertEquals("created", jsonValidator.get("layout[0].columns[0].id"))
-        assertEquals("???created???", jsonValidator.get("layout[0].columns[0].title"))
+        assertEquals(translate("created"), jsonValidator.get("layout[0].columns[0].title"))
         assertEquals("DATE", jsonValidator.get("layout[0].columns[0].dataType"))
         assertEquals(true, jsonValidator.getBoolean("layout[0].columns[0].sortable"))
         assertEquals("TABLE_COLUMN", jsonValidator.get("layout[0].columns[0].type"))
         assertEquals("el-2", jsonValidator.get("layout[0].columns[0].key"))
 
         assertEquals("yearOfPublishing", jsonValidator.get("layout[0].columns[1].id"))
-        assertEquals("???book.yearOfPublishing???", jsonValidator.get("layout[0].columns[1].title"))
+        assertEquals(translate("book.yearOfPublishing"), jsonValidator.get("layout[0].columns[1].title"))
         assertEquals("STRING", jsonValidator.get("layout[0].columns[1].dataType"))
         assertEquals(true, jsonValidator.getBoolean("layout[0].columns[1].sortable"))
         assertNull(jsonValidator.get("layout[0].columns[1].formatter"))
@@ -146,11 +147,11 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals(1, jsonValidator.getList("namedContainers[0].content[0].content")?.size)
 
         assertEquals("deleted", jsonValidator.get("namedContainers[0].content[0].content[0].id"))
-        assertEquals("???onlyDeleted.tooltip???", jsonValidator.get("namedContainers[0].content[0].content[0].tooltip"))
+        assertEquals(translate("onlyDeleted.tooltip"), jsonValidator.get("namedContainers[0].content[0].content[0].tooltip"))
 
         assertEquals(2, jsonValidator.getList("actions")?.size)
         assertEquals("reset", jsonValidator.get("actions[0].id"))
-        assertEquals("???reset???", jsonValidator.get("actions[0].title"))
+        assertEquals(translate("reset"), jsonValidator.get("actions[0].title"))
         assertEquals("SECONDARY", jsonValidator.get("actions[0].color")) // Gson doesn't know JsonProperty of Jacskon (DANGER -> danger.)
         assertEquals("BUTTON", jsonValidator.get("actions[0].type"))
         assertEquals("el-11", jsonValidator.get("actions[0].key"))
