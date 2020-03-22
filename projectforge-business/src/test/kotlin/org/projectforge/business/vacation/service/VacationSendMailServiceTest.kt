@@ -25,6 +25,7 @@ package org.projectforge.business.vacation.service
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.employee.EmployeeTest
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
@@ -36,12 +37,16 @@ import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.mail.Mail
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
 
 class VacationSendMailServiceTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var domainService: DomainService
+
     @Autowired
     private lateinit var employeeDao: EmployeeDao
 
@@ -54,6 +59,9 @@ class VacationSendMailServiceTest : AbstractTestBase() {
     @Autowired
     private lateinit var vacationSendMailService: VacationSendMailService
 
+    @Autowired
+    private lateinit var vacationService: VacationService
+
     @Test
     fun mailTest() {
         val vacationer = createEmployee("vacationer")
@@ -63,28 +71,47 @@ class VacationSendMailServiceTest : AbstractTestBase() {
         vacation.id = 47114711
         vacation.comment = "This is a really important comment ;-)"
         logon(vacationer.user)
-        val mail = vacationSendMailService.prepareMail(vacation, OperationType.INSERT, VacationMode.MANAGER, manager.user!!)
-        Assertions.assertNotNull(mail)
-        Assertions.assertEquals(1, mail!!.to.size)
-        Assertions.assertEquals(manager.user!!.email, mail.to[0].address)
-        Assertions.assertEquals(1, mail.cc.size)
-        Assertions.assertEquals(vacationer.user!!.email, mail.cc[0].address)
+        val mail = assertMail( vacation, OperationType.INSERT, VacationMode.MANAGER, manager.user!!)
+        // println(mail.content)
+    }
 
-        val i18nArgs = arrayOf(vacationer.user!!.getFullname(), translate("vacation.mail.modType.${OperationType.INSERT.name.toLowerCase()}"))
+    private fun assertMail(vacation: VacationDO, operationType: OperationType, vacationMode: VacationMode, receiver: PFUserDO): Mail {
+        val mail = vacationSendMailService.prepareMail(vacation,operationType, vacationMode, receiver)
+        Assertions.assertNotNull(mail)
+        mail!!
+        val vacationer = vacation.employee!!.user!!
+        val manager = vacation.manager!!.user!!
+        val replacement = vacation.replacement!!.user!!
+        Assertions.assertNotNull(mail)
+        Assertions.assertEquals(1, mail.to.size)
+        Assertions.assertEquals(manager.email, mail.to[0].address)
+        Assertions.assertEquals(1, mail.cc.size)
+        Assertions.assertEquals(vacationer.email, mail.cc[0].address)
+
+        val vacationInfo = VacationSendMailService.VacationInfo(domainService, vacationService, vacation)
+        val i18nArgs = arrayOf(vacationer.getFullname(),
+                vacationInfo.periodText,
+                translate("vacation.mail.modType.${operationType.name.toLowerCase()}"))
         Assertions.assertEquals(translateMsg("vacation.mail.action.short", *i18nArgs), mail.subject)
         assertContent(mail, "${vacation.id}")
         assertContent(mail, translateMsg("vacation.mail.action", *i18nArgs))
-        assertContent(mail, translate("vacation.mail.reason.${VacationMode.MANAGER.name.toLowerCase()}"))
+        assertContent(mail, translateMsg("vacation.mail.reason.${vacationMode.name.toLowerCase()}", vacationer.getFullname()))
 
-        Assertions.assertTrue(mail.content.contains(vacationer.user!!.getFullname()))
-        Assertions.assertTrue(mail.content.contains(manager.user!!.getFullname()))
-        Assertions.assertTrue(mail.content.contains(replacement.user!!.getFullname()))
-        Assertions.assertTrue(mail.content.contains(vacation.comment!!))
-        println(mail.content)
+        assertContent(mail, vacationer.getFullname())
+        assertContent(mail, manager.getFullname())
+        assertContent(mail, replacement.getFullname())
+        assertContent(mail, vacation.comment)
+
+        Assertions.assertFalse(mail.content.contains("???"))
+        arrayOf(0,1,2,3).forEach {
+            Assertions.assertFalse(mail.content.contains("{$it}"), "At least one message param was not replaced in i18n message ('{$it}'): ${mail.content}")
+        }
+        return mail
     }
 
-    private fun assertContent(mail: Mail, expectedContent: String) {
-        Assertions.assertTrue(mail.content.contains(expectedContent), "Exprected content '$expectedContent' not found in mail content: ${mail.content}")
+    private fun assertContent(mail: Mail, expectedContent: String?) {
+        expectedContent!!
+        Assertions.assertTrue(mail.content.contains(expectedContent), "Expected content '$expectedContent' not found in mail content: ${mail.content}")
 
     }
 
