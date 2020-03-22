@@ -107,10 +107,12 @@ open class VacationSendMailService {
             return null
         }
         val vacationInfo = VacationInfo(domainService, vacationService, obj)
-        val i18nArgs = arrayOf(vacationInfo.employeeFullname, translate("vacation.mail.modType.${operationType.name.toLowerCase()}"))
+        val i18nArgs = arrayOf(vacationInfo.employeeFullname,
+                vacationInfo.periodText,
+                translate("vacation.mail.modType.${operationType.name.toLowerCase()}"))
         val subject = translateMsg("vacation.mail.action.short", *i18nArgs)
         val action: String = translateMsg("vacation.mail.action", *i18nArgs)
-        val reason: String = translate("vacation.mail.reason.${receiverType.name.toLowerCase()}")
+        val reason: String = translateMsg("vacation.mail.reason.${receiverType.name.toLowerCase()}", vacationInfo.employeeFullname)
         val mailInfo = MailInfo(subject, reason, action)
         val mail = Mail()
         mail.subject = subject
@@ -207,7 +209,7 @@ open class VacationSendMailService {
         // sendMail(subject, content, recipient = recipient)
     }*/
 
-    private class VacationInfo(domainService: DomainService, vacationService: VacationService, val vacation: VacationDO) {
+    internal class VacationInfo(domainService: DomainService, vacationService: VacationService, val vacation: VacationDO) {
         val link = "${domainService.domain}/react/vacation/edit/${vacation.id}"
         val employeeUser = vacation.employee?.user
         val employeeFullname = employeeUser?.getFullname() ?: translate("unknown")
@@ -215,12 +217,12 @@ open class VacationSendMailService {
         val replacementFullname = vacation.replacement?.user?.getFullname() ?: translate("unknown")
         val startDate = dateFormatter.getFormattedDate(vacation.startDate)
         val endDate = dateFormatter.getFormattedDate(vacation.endDate)
-        val periodText = I18nHelper.getLocalizedMessage("vacation.mail.period.fromto", startDate, endDate)
         val halfDayBeginFormatted = translate(vacation.halfDayBegin)
         val halfDayEndFormatted = translate(vacation.halfDayEnd)
         val vacationSpecialFormatted = translate(vacation.special)
         val workingDays = VacationService.getVacationDays(vacation)
         val workingDaysFormatted = VacationStats.format(workingDays)
+        val periodText = I18nHelper.getLocalizedMessage("vacation.mail.period", startDate, endDate, workingDaysFormatted)
         var valid: Boolean = true
 
         init {

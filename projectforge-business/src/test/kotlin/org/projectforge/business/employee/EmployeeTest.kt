@@ -279,8 +279,8 @@ class EmployeeTest : AbstractTestBase() {
             test.logon(TEST_ADMIN_USER)
             val user = PFUserDO()
             val useName = "${test.javaClass.simpleName}.$name"
-            user.firstname = "$useName.firstname"
-            user.lastname = "$useName.lastname"
+            user.firstname = "$name.firstname"
+            user.lastname = "$name.lastname"
             user.username = "$useName.username"
             user.email = email
             if (hrAccess) {
