@@ -76,6 +76,28 @@ public class SendMail {
 
   /**
    * @param composedMessage the message to send
+   * @return true for successful sending, otherwise an exception will be thrown.
+   * @throws UserException          if to address is not given.
+   * @throws InternalErrorException due to technical failures.
+   */
+  public boolean send(final Mail composedMessage) {
+    return send(composedMessage, null, null, true);
+  }
+
+  /**
+   * @param composedMessage the message to send
+   * @param attachments     other attachments to add
+   * @return true for successful sending, otherwise an exception will be thrown.
+   * @throws UserException          if to address is not given.
+   * @throws InternalErrorException due to technical failures.
+   */
+  public boolean send(final Mail composedMessage,
+                      final Collection<? extends MailAttachment> attachments) {
+    return send(composedMessage, null, attachments, true);
+  }
+
+  /**
+   * @param composedMessage the message to send
    * @param icalContent     the ical content to add
    * @param attachments     other attachments to add
    * @return true for successful sending, otherwise an exception will be thrown.
