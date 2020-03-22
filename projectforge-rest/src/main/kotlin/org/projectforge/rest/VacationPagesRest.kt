@@ -167,7 +167,7 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
             yearFilterEntry.synthetic = true
             val value = yearFilterEntry.value.value
             val year = NumberHelper.parseInteger(value)
-            if (year != null && year > 1900 && year < 2999) {
+            if (year != null) {
                 filters.add(VacationYearFilter(year))
             }
         }

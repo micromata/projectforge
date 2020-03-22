@@ -26,6 +26,7 @@ package org.projectforge.business.vacation.service
 import mu.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.DomainService
+import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationMode
 import org.projectforge.business.vacation.model.VacationStatus
@@ -57,6 +58,9 @@ open class VacationSendMailService {
     private lateinit var domainService: DomainService
 
     @Autowired
+    private lateinit var employeeDao: EmployeeDao
+
+    @Autowired
     private lateinit var vacationService: VacationService
 
     @Autowired
@@ -74,7 +78,7 @@ open class VacationSendMailService {
             log.info { "Mail server is not configured. No e-mail notification is sent." }
             return
         }
-        val vacationInfo = VacationInfo(domainService, obj)
+        val vacationInfo = VacationInfo(domainService, employeeDao, obj)
         if (!vacationInfo.valid) {
             return
         }
@@ -117,7 +121,7 @@ open class VacationSendMailService {
      */
     internal fun prepareMail(obj: VacationDO, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?, dbObj: VacationDO? = null,
                              mailTo: String? = null): Mail? {
-        val vacationInfo = VacationInfo(domainService, obj)
+        val vacationInfo = VacationInfo(domainService, employeeDao, obj)
         return prepareMail(vacationInfo, operationType, vacationMode, recipient, dbObj, mailTo)
     }
 
@@ -170,14 +174,14 @@ open class VacationSendMailService {
         return mail
     }
 
-    internal class VacationInfo(domainService: DomainService, val vacation: VacationDO) {
+    internal class VacationInfo(domainService: DomainService, employeeDao: EmployeeDao, val vacation: VacationDO) {
         val link = "${domainService.domain}/react/vacation/edit/${vacation.id}"
         val modifiedByUserFullname = ThreadLocalUserContext.getUser().getFullname()
-        val employeeUser = vacation.employee?.user
+        val employeeUser = employeeDao.internalGetById(vacation.employee?.id)?.user
         val employeeFullname = employeeUser?.getFullname() ?: translate("unknown")
-        val managerUser = vacation.manager?.user
+        val managerUser = employeeDao.internalGetById(vacation.manager?.id)?.user
         val managerFullname = managerUser?.getFullname() ?: translate("unknown")
-        val replacementUser = vacation.replacement?.user
+        val replacementUser = employeeDao.internalGetById(vacation.replacement?.id)?.user
         val replacementFullname = replacementUser?.getFullname() ?: translate("unknown")
         val startDate = dateFormatter.getFormattedDate(vacation.startDate)
         val endDate = dateFormatter.getFormattedDate(vacation.endDate)
