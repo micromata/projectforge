@@ -61,9 +61,6 @@ class VacationSendMailServiceTest : AbstractTestBase() {
     @Autowired
     private lateinit var vacationSendMailService: VacationSendMailService
 
-    @Autowired
-    private lateinit var vacationService: VacationService
-
     @Test
     fun mailTest() {
         val vacationer = createEmployee("vacationer")
@@ -77,7 +74,7 @@ class VacationSendMailServiceTest : AbstractTestBase() {
         // Check all combinations (4*4*3=48):
         arrayOf(OperationType.INSERT, OperationType.UPDATE, OperationType.DELETE, OperationType.UNDELETE)
                 .forEach { operationType ->
-                    arrayOf(VacationMode.MANAGER, VacationMode.REPLACEMENT, VacationMode.OWN, VacationMode.OTHER)
+                    arrayOf(VacationMode.MANAGER, VacationMode.REPLACEMENT, VacationMode.OWN, VacationMode.OTHER, VacationMode.HR)
                             .forEach { mode ->
                                 arrayOf(vacationer, manager, replacement).forEach { employee ->
                                     assertMail(vacation, operationType, mode, employee.user!!)
@@ -104,13 +101,13 @@ class VacationSendMailServiceTest : AbstractTestBase() {
             Assertions.assertEquals(0, mail.cc.size)
         }
 
-        val vacationInfo = VacationSendMailService.VacationInfo(domainService, vacationService, vacation)
+        val vacationInfo = VacationSendMailService.VacationInfo(domainService, vacation)
         val i18nArgs = arrayOf(vacationer.getFullname(),
                 vacationInfo.periodText,
                 i18n("vacation.mail.modType.${operationType.name.toLowerCase()}"))
         Assertions.assertEquals(i18n("vacation.mail.action.short", *i18nArgs), mail.subject)
         assertContent(mail, "${vacation.id}")
-        assertContent(mail, i18n("vacation.mail.action", *i18nArgs))
+        assertContent(mail, i18n("vacation.mail.action", *i18nArgs, vacationInfo.modifiedByUserFullname))
         assertContent(mail, i18n("vacation.mail.reason.${vacationMode.name.toLowerCase()}", vacationer.getFullname()))
 
         assertContent(mail, vacationer.getFullname())

@@ -48,9 +48,20 @@ open class UIFilterListElement(
                 log.error("UIFilterSelectElement supports only enums of type I18nEnum, not '$enum': '${this}'")
             }
         }
-
         values = newValues
+        return this
+    }
 
+    fun buildValues(vararg i18nEnum: Enum<*>): UIFilterListElement {
+        val newValues = mutableListOf<UISelectValue<String>>()
+        i18nEnum.forEach { enum ->
+            if (enum is I18nEnum) {
+                newValues.add(UISelectValue(enum.name, translate(enum.i18nKey)))
+            } else {
+                log.error("UIFilterSelectElement supports only enums of type I18nEnum, not '$enum': '${this}'")
+            }
+        }
+        values = newValues
         return this
     }
 }

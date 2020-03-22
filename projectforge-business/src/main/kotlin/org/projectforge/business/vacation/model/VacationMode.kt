@@ -29,7 +29,11 @@ import org.projectforge.common.i18n.I18nEnum
  * Created by blumenstein on 22.11.16.
  */
 enum class VacationMode(val key: String) : I18nEnum {
-    OWN("own"), REPLACEMENT("replacement"), MANAGER("manager"), OTHER("other");
+    OWN("own"), REPLACEMENT("replacement"), MANAGER("manager"), OTHER("other"),
+    /**
+     * Not for filtering, only used by [org.projectforge.business.vacation.service.VacationSendMailService].
+     */
+    HR("hr");
 
     /**
      * The key will be used e. g. for i18n.
