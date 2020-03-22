@@ -26,6 +26,7 @@ package org.projectforge.business.vacation.service
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import org.projectforge.business.employee.EmployeeTest
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.api.EmployeeService
@@ -62,9 +63,9 @@ class VacationDaoTest : AbstractTestBase() {
 
     @Test
     fun vacationAccessTest() {
-        val employee = createEmployee("VacationAccessTest.normal")
-        val manager = createEmployee("VacationAccessTest.manager")
-        val replacement = createEmployee("VacationAccessTest.replacement")
+        val employee = createEmployee("normal")
+        val manager = createEmployee("Vmanager")
+        val replacement = createEmployee("replacement")
         val vacation = createVacation(employee, manager, replacement, VacationStatus.IN_PROGRESS)
         val foreignVacation = createVacation(replacement, manager, manager, VacationStatus.IN_PROGRESS)
         checkAccess(employee.user, vacation, "own vacation in progress", true, true, true, true, true)
@@ -93,7 +94,7 @@ class VacationDaoTest : AbstractTestBase() {
         Assertions.assertNull(VacationValidator.validate(vacationService, vacation, vacation, false))
 
         // Check full access of HR staff:
-        val hrEmployee = createEmployee("VacationAccessTest.HR", hrAccess = true)
+        val hrEmployee = createEmployee("HR", hrAccess = true)
         checkAccess(hrEmployee.user, vacation, "hr access", true, true, true, true, true)
         checkAccess(hrEmployee.user, foreignVacation, "hr access", true, true, true, true, true)
         checkAccess(hrEmployee.user, pastVacation, "hr access", true, true, true, true, true)
@@ -177,42 +178,25 @@ class VacationDaoTest : AbstractTestBase() {
     }
 
     private fun createVacation(employee: EmployeeDO, manager: EmployeeDO, replacement: EmployeeDO, status: VacationStatus, future: Boolean = true): VacationDO {
-        var vacation = VacationDO()
-        vacation.employee = employee
-        vacation.manager = manager
-        vacation.replacement = replacement
-        if (future) {
-            vacation.startDate = LocalDate.now().plusDays(2)
-            vacation.endDate = LocalDate.now().plusDays(10)
-        } else {
-            vacation.startDate = LocalDate.now().minusDays(10)
-            vacation.endDate = LocalDate.now().minusDays(2)
-        }
-        vacation.status = status
-        return vacation
+        val startDate = if (future) LocalDate.now().plusDays(2) else LocalDate.now().minusDays(10)
+        val endDate = if (future) LocalDate.now().plusDays(10) else LocalDate.now().minusDays(2)
+        return createVacation(employee, manager, replacement, startDate, endDate, status)
     }
 
     private fun createEmployee(name: String, hrAccess: Boolean = false): EmployeeDO {
-        val loggedInUser = ThreadLocalUserContext.getUser()
-        logon(TEST_ADMIN_USER)
-        val user = PFUserDO()
-        user.firstname = name
-        user.lastname = name
-        user.username = "$name.$name"
-        if (hrAccess) {
-            user.addRight(UserRightDO(UserRightId.HR_VACATION, UserRightValue.READWRITE))
+        return EmployeeTest.createEmployee(employeeService, employeeDao, this, name, hrAccess, groupDao)
+    }
+
+    companion object {
+        fun createVacation(vacationer: EmployeeDO, manager: EmployeeDO, replacement: EmployeeDO, startDate: LocalDate, endDate: LocalDate, status: VacationStatus): VacationDO {
+            val vacation = VacationDO()
+            vacation.employee = vacationer
+            vacation.manager = manager
+            vacation.replacement = replacement
+            vacation.startDate = startDate
+            vacation.endDate = endDate
+            vacation.status = status
+            return vacation
         }
-        initTestDB.addUser(user);
-        if (hrAccess) {
-            val group = getGroup(ProjectForgeGroup.HR_GROUP.toString())
-            group.assignedUsers!!.add(user)
-            groupDao.update(group)
-        }
-        val employee = EmployeeDO()
-        employee.user = user
-        employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(2), BigDecimal(30));
-        employeeDao.internalSave(employee)
-        logon(loggedInUser)
-        return employee
     }
 }
