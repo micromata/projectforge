@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.pub
 
+import mu.KotlinLogging
 import org.projectforge.Const
 import org.projectforge.business.login.LoginDefaultHandler
 import org.projectforge.business.login.LoginProtection
@@ -59,6 +60,8 @@ import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+private val log = KotlinLogging.logger {}
+
 /**
  * This rest service should be available without login (public).
  */
@@ -66,8 +69,6 @@ import javax.servlet.http.HttpServletResponse
 @RequestMapping("${Rest.PUBLIC_URL}/login")
 open class LoginPageRest {
     class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
-
-    private val log = org.slf4j.LoggerFactory.getLogger(LoginPageRest::class.java)
 
     @Autowired
     private lateinit var applicationContext: ApplicationContext
