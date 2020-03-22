@@ -27,10 +27,7 @@ import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.service.UserPrefService
-import org.projectforge.business.vacation.model.VacationDO
-import org.projectforge.business.vacation.model.VacationMode
-import org.projectforge.business.vacation.model.VacationModeFilter
-import org.projectforge.business.vacation.model.VacationStatus
+import org.projectforge.business.vacation.model.*
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStats
@@ -47,6 +44,7 @@ import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Vacation
 import org.projectforge.ui.*
+import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
@@ -150,19 +148,29 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
                 .buildValues(VacationStatus::class.java))
         elements.add(UIFilterListElement("assignment", label = translate("vacation.vacationmode"), defaultFilter = true)
                 .buildValues(VacationMode.OWN, VacationMode.REPLACEMENT, VacationMode.MANAGER, VacationMode.OTHER))
+        elements.add(UIFilterElement("year", label = translate("calendar.year"), defaultFilter = true))
     }
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<VacationDO>>? {
-        val assignmentFilterEntry = source.entries.find { it.field == "assignment" } ?: return null
-        val values = assignmentFilterEntry.value.values
-        if (values.isNullOrEmpty()) {
-            // No values selected.
-            return null
-        }
-        assignmentFilterEntry.synthetic = true
         val filters = mutableListOf<CustomResultFilter<VacationDO>>()
-        val enums = values.map { VacationMode.valueOf(it) }
-        filters.add(VacationModeFilter(enums))
+        val assignmentFilterEntry = source.entries.find { it.field == "assignment" }
+        if (assignmentFilterEntry != null) {
+            assignmentFilterEntry.synthetic = true
+            val values = assignmentFilterEntry.value.values
+            if (!values.isNullOrEmpty()) {
+                val enums = values.map { VacationMode.valueOf(it) }
+                filters.add(VacationModeFilter(enums))
+            }
+        }
+        val yearFilterEntry = source.entries.find { it.field == "year" }
+        if (yearFilterEntry != null) {
+            yearFilterEntry.synthetic = true
+            val value = yearFilterEntry.value.value
+            val year = NumberHelper.parseInteger(value)
+            if (year != null && year > 1900 && year < 2999) {
+                filters.add(VacationYearFilter(year))
+            }
+        }
         return filters
     }
 
