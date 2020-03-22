@@ -29,7 +29,6 @@ import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationMode
 import org.projectforge.business.vacation.model.VacationStatus
-import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.i18n.translate
@@ -47,12 +46,12 @@ private val log = KotlinLogging.logger {}
 /**
  * Standard implementation of the vacation service interface.
  *
- * @author Florian Blumenstein
+ * @author Kai Reinhard
  */
 @Service
 open class VacationSendMailService {
     @Autowired
-    private lateinit var configService: ConfigurationService
+    private lateinit var configurationService: ConfigurationService
 
     @Autowired
     private lateinit var domainService: DomainService
@@ -71,25 +70,41 @@ open class VacationSendMailService {
      */
     @JvmOverloads
     open fun checkAndSendMail(obj: VacationDO, operationType: OperationType, dbObj: VacationDO? = null) {
-        log.warn("*** sending notification e-mails for vacations is under construction.")
-/*        if (operationType == OperationType.DELETE) {
-            sendMailToEmployeeAndHR(obj)
+        if (!configurationService.isSendMailConfigured) {
+            log.info { "Mail server is not configured. No e-mail notification is sent." }
             return
         }
-        if (dbObj == null) {
-            sendMailToVacationInvolved(obj, true, false)
+        val vacationInfo = VacationInfo(domainService, obj)
+        if (!vacationInfo.valid) {
             return
         }
-        val currentStatus = obj.status
-        val formerStatus = dbObj.status
-        if (currentStatus == VacationStatus.IN_PROGRESS) {
-            sendMailToVacationInvolved(obj, false, false)
-            return
+        if (obj.special == true && arrayOf(VacationStatus.IN_PROGRESS, VacationStatus.APPROVED).contains(obj.status)) {
+            val hrEmailAddress = configurationService.hrEmailadress
+            if (hrEmailAddress.isNullOrBlank() || !hrEmailAddress.contains("@")) {
+                log.warn { "E-Mail configuration of HR staff isn't configured. Can't notificate HR team for special vacation entries. You may configure the e-mail address under ProjectForge's menu Administration->Configuration." }
+            } else {
+                // Send to HR
+                sendMail(vacationInfo, operationType, VacationMode.HR, null, dbObj, hrEmailAddress)
+            }
         }
-        if (formerStatus != currentStatus) {
-            sendMailToEmployeeAndHR(obj)
-            return
-        }*/
+        val vacationer = vacationInfo.employeeUser!!
+        if (vacationer.id != ThreadLocalUserContext.getUserId()) {
+            sendMail(vacationInfo, operationType, VacationMode.OWN, vacationer, dbObj)
+        }
+        val manager = vacationInfo.managerUser!!
+        if (manager.id != ThreadLocalUserContext.getUserId()) {
+            sendMail(vacationInfo, operationType, VacationMode.MANAGER, manager, dbObj)
+        }
+        val replacement = vacationInfo.replacementUser
+        if (replacement != null) {
+            sendMail(vacationInfo, operationType, VacationMode.REPLACEMENT, replacement, dbObj)
+        }
+    }
+
+    private fun sendMail(vacationInfo: VacationInfo, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?, dbObj: VacationDO? = null,
+                         mailTo: String? = null) {
+        val mail = prepareMail(vacationInfo, operationType, vacationMode, recipient, dbObj, mailTo) ?: return
+        sendMailService.send(mail)
     }
 
     /**
@@ -100,121 +115,70 @@ open class VacationSendMailService {
      * @param obj The object to save.
      * @param dbObj The already existing object in the data base (if updated). For new objects dbObj is null.
      */
-    open fun prepareMail(obj: VacationDO, operationType: OperationType, receiverType: VacationMode, recipient: PFUserDO, dbObj: VacationDO? = null): Mail? {
-        val vacationer = obj.employee?.user
-        if (vacationer == null) {
-            log.warn { "No vacationer set in vacaion entry. Will not send e-mail: ${ToStringUtil.toJsonString(obj)}" }
+    internal fun prepareMail(obj: VacationDO, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?, dbObj: VacationDO? = null,
+                             mailTo: String? = null): Mail? {
+        val vacationInfo = VacationInfo(domainService, obj)
+        return prepareMail(vacationInfo, operationType, vacationMode, recipient, dbObj, mailTo)
+    }
+
+    /**
+     * Especially for testing.
+     *
+     * Analyzes the changes of the given vacation. If necessary, e-mails will be send to the involved
+     * employees (replacement and management).
+     * @param obj The object to save.
+     * @param dbObj The already existing object in the data base (if updated). For new objects dbObj is null.
+     */
+    private fun prepareMail(vacationInfo: VacationInfo, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?, dbObj: VacationDO? = null,
+                            mailTo: String? = null): Mail? {
+        if (!vacationInfo.valid) {
             return null
         }
-        val vacationInfo = VacationInfo(domainService, vacationService, obj)
+        val vacationer = vacationInfo.employeeUser!!
+        val obj = vacationInfo.vacation
+
         val i18nArgs = arrayOf(vacationInfo.employeeFullname,
                 vacationInfo.periodText,
                 translate("vacation.mail.modType.${operationType.name.toLowerCase()}"))
         val subject = translateMsg("vacation.mail.action.short", *i18nArgs)
-        val action: String = translateMsg("vacation.mail.action", *i18nArgs)
-        val reason: String = translateMsg("vacation.mail.reason.${receiverType.name.toLowerCase()}", vacationInfo.employeeFullname)
+        val action: String = translateMsg("vacation.mail.action", *i18nArgs, vacationInfo.modifiedByUserFullname)
+        val reason: String = translateMsg("vacation.mail.reason.${vacationMode.name.toLowerCase()}", vacationInfo.employeeFullname)
         val mailInfo = MailInfo(subject, reason, action)
         val mail = Mail()
         mail.subject = subject
         mail.contentType = Mail.CONTENTTYPE_HTML
-        mail.setTo(recipient)
-
-        val data = mutableMapOf<String, Any>("vacationInfo" to vacationInfo, "vacation" to obj, "mailInfo" to mailInfo)
-        mail.content = sendMailService.renderGroovyTemplate(mail, "mail/vacationMail.html", data, recipient)
-        if (vacationer.id != recipient.id) {
+        var vacationerAsCC = false
+        if (recipient != null) {
+            mail.setTo(recipient)
+            if (vacationer.id != recipient.id) {
+                vacationerAsCC = true
+            }
+        }
+        if (!mailTo.isNullOrBlank()) {
+            mail.setTo(mailTo)
+            vacationerAsCC = true
+        }
+        if (vacationerAsCC) {
             mail.addCC(vacationer.email)
         }
+        if (mail.to.isEmpty()) {
+            log.error { "Oups, whether recipient nor VacationMode.HR is given to prepare mail. No notification is done." }
+            return null
+        }
+        val data = mutableMapOf<String, Any>("vacationInfo" to vacationInfo, "vacation" to obj, "mailInfo" to mailInfo)
+        mail.content = sendMailService.renderGroovyTemplate(mail, "mail/vacationMail.html", data, recipient)
         return mail
     }
 
-        /* OLD code
-        if (isNew && !isDeleted) {
-            i18nSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject", employeeFullName)
-            i18nPMContent = I18nHelper
-                    .getLocalizedMessage("vacation.mail.pm.application", managerFirstName, employeeFullName, periodText, urlOfVacationEditPage)
-        } else if (!isNew && !isDeleted) {
-            i18nSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", employeeFullName)
-            i18nPMContent = I18nHelper
-                    .getLocalizedMessage("vacation.mail.pm.application.edit", managerFirstName, employeeFullName, periodText, urlOfVacationEditPage)
-        } else { // isDeleted
-            i18nSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.deleted", employeeFullName)
-            i18nPMContent = I18nHelper
-                    .getLocalizedMessage("vacation.mail.application.deleted", managerFirstName, employeeFullName, periodText, urlOfVacationEditPage)
-        }
-        // Send mail to manager and employee
-        sendMail(i18nSubject, i18nPMContent,
-                vacationData.manager!!.user!!,
-                vacationData.employee!!.user!!
-        )
-        // Send mail to substitutions and employee
-        val substitutionUser = vacationData.replacement?.user
-        if (substitutionUser != null) {
-            val substitutionFirstName = substitutionUser.firstname
-            val i18nSubContent: String
-            i18nSubContent = if (isNew && !isDeleted) {
-                I18nHelper
-                        .getLocalizedMessage("vacation.mail.sub.application", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage)
-            } else if (!isNew && !isDeleted) {
-                I18nHelper
-                        .getLocalizedMessage("vacation.mail.sub.application.edit", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage)
-            } else { // isDeleted
-                I18nHelper
-                        .getLocalizedMessage("vacation.mail.application.deleted", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage)
-            }
-            sendMail(i18nSubject, i18nSubContent,
-                    substitutionUser,
-                    vacationData.employee!!.user!!
-            )
-        }*/
-
-    /**
-     * Sends an information to employee and HR, that vacation request is approved.
-     *
-     * @param vacationData data
-     */
-    /* OLD code
-    private fun sendMailToEmployeeAndHR(vacationData: VacationDO) {
-        val employeeUser = vacationData.employee?.user
-        val urlOfVacationEditPage = domainService.domain + vacationEditPagePath + "?id=" + vacationData.id
-        val employeeFullName = vacationData.employee?.user?.getFullname()
-        val managerFullName = vacationData.manager?.user?.getFullname()
-        val replacementFullname = vacationData.replacement?.user?.getFullname()
-        val periodI18nKey = if (vacationData.halfDayBegin!!) "vacation.mail.period.halfday" else "vacation.mail.period.fromto"
-        val vacationStartDate = dateFormatter.getFormattedDate(vacationData.startDate)
-        val vacationEndDate = dateFormatter.getFormattedDate(vacationData.endDate)
-        val periodText = I18nHelper.getLocalizedMessage(periodI18nKey, vacationStartDate, vacationEndDate)
-        if (vacationData.status == VacationStatus.APPROVED && configService.hrEmailadress != null) { //Send mail to HR (employee in copy)
-            val subject = I18nHelper.getLocalizedMessage("vacation.mail.subject", employeeFullName) ?: ""
-            val content = I18nHelper.getLocalizedMessage("vacation.mail.hr.approved", employeeFullName, periodText, replacementFullname, managerFullName, urlOfVacationEditPage)
-            // sendMail(subject, content, configService.hrEmailadress, "HR-MANAGEMENT", vacationData.manager?.user, employeeUser)
-        }
-        // Send mail to substitutions and employee
-        val subject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", employeeFullName)
-        val i18nKey = if (vacationData.status == VacationStatus.APPROVED) "vacation.mail.employee.approved" else "vacation.mail.employee.declined"
-        val content = I18nHelper.getLocalizedMessage(i18nKey, employeeFullName, periodText, replacementFullname, urlOfVacationEditPage)
-        val recipients = mutableListOf<PFUserDO>()
-        vacationData.replacement?.user?.let { recipients.add(it) }
-        employeeUser?.let { recipients.add(it) }
-        // sendMail(subject, content, *recipients.toTypedArray())
-    }*/
-
-    /**
-     * Sends an information to vacationer.
-     */
-    /*private fun sendMail(mailInfo: MailInfo, recipient: PFUserDO, receiverType: VacationMode) {
-        if (recipient.id == ThreadLocalUserContext.getUserId()) {
-            // Do not send e-mail to receiver for his own changes.
-            return
-        }
-        // sendMail(subject, content, recipient = recipient)
-    }*/
-
-    internal class VacationInfo(domainService: DomainService, vacationService: VacationService, val vacation: VacationDO) {
+    internal class VacationInfo(domainService: DomainService, val vacation: VacationDO) {
         val link = "${domainService.domain}/react/vacation/edit/${vacation.id}"
+        val modifiedByUserFullname = ThreadLocalUserContext.getUser().getFullname()
         val employeeUser = vacation.employee?.user
         val employeeFullname = employeeUser?.getFullname() ?: translate("unknown")
-        val managerFullname = vacation.manager?.user?.getFullname() ?: translate("unknown")
-        val replacementFullname = vacation.replacement?.user?.getFullname() ?: translate("unknown")
+        val managerUser = vacation.manager?.user
+        val managerFullname = managerUser?.getFullname() ?: translate("unknown")
+        val replacementUser = vacation.replacement?.user
+        val replacementFullname = replacementUser?.getFullname() ?: translate("unknown")
         val startDate = dateFormatter.getFormattedDate(vacation.startDate)
         val endDate = dateFormatter.getFormattedDate(vacation.endDate)
         val halfDayBeginFormatted = translate(vacation.halfDayBegin)
@@ -228,6 +192,10 @@ open class VacationSendMailService {
         init {
             if (employeeUser == null) {
                 log.warn { "Oups, employee not given. Will not send an e-mail for vacation changes: ${vacation}" }
+                valid = false
+            }
+            if (managerUser == null) {
+                log.warn { "Oups, manager not given. Will not send an e-mail for vacation changes: ${vacation}" }
                 valid = false
             }
         }

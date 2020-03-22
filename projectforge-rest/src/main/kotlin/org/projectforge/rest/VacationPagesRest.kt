@@ -149,7 +149,7 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
         elements.add(UIFilterListElement("status", label = translate("vacation.status"), defaultFilter = true)
                 .buildValues(VacationStatus::class.java))
         elements.add(UIFilterListElement("assignment", label = translate("vacation.vacationmode"), defaultFilter = true)
-                .buildValues(VacationMode::class.java))
+                .buildValues(VacationMode.OWN, VacationMode.REPLACEMENT, VacationMode.MANAGER, VacationMode.OTHER))
     }
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<VacationDO>>? {
