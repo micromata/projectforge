@@ -52,8 +52,7 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GroovyEngine
-{
+public class GroovyEngine {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroovyEngine.class);
 
   private Locale locale;
@@ -68,15 +67,13 @@ public class GroovyEngine
 
   private ConfigurationService configurationService;
 
-  public GroovyEngine(ConfigurationService configurationService, final Locale locale, final TimeZone timeZone)
-  {
+  public GroovyEngine(ConfigurationService configurationService, final Locale locale, final TimeZone timeZone) {
     this(configurationService, new HashMap<>(), locale, timeZone);
   }
 
   public GroovyEngine(ConfigurationService configurationService, final Map<String, Object> variables,
-      final Locale locale,
-      final TimeZone timeZone)
-  {
+                      final Locale locale,
+                      final TimeZone timeZone) {
     if (locale != null) {
       this.locale = locale;
     } else {
@@ -93,8 +90,7 @@ public class GroovyEngine
     this.configurationService = configurationService;
   }
 
-  public GroovyEngine(ConfigurationService configurationService, final Map<String, Object> variables)
-  {
+  public GroovyEngine(ConfigurationService configurationService, final Map<String, Object> variables) {
     this(configurationService, variables, null, null);
   }
 
@@ -105,22 +101,20 @@ public class GroovyEngine
    * @param template
    * @return
    */
-  public String preprocessGroovyXml(final String template)
-  {
+  public String preprocessGroovyXml(final String template) {
     if (template == null) {
       return null;
     }
     return template.replaceAll("<groovy>", "<% ").replaceAll("</groovy>", " %>").replaceAll("<groovy-out>", "<%= ")
-        .replaceAll(
-            "</groovy-out>", " %>");
+            .replaceAll(
+                    "</groovy-out>", " %>");
   }
 
   /**
    * @param variables
    * @see Map#putAll(Map)
    */
-  public void putVariables(final Map<String, Object> variables)
-  {
+  public void putVariables(final Map<String, Object> variables) {
     variables.putAll(variables);
   }
 
@@ -129,8 +123,7 @@ public class GroovyEngine
    * @return this for chaining.
    * @see Map#putAll(Map)
    */
-  public GroovyEngine putVariable(final String key, final Object value)
-  {
+  public GroovyEngine putVariable(final String key, final Object value) {
     variables.put(key, value);
     return this;
   }
@@ -139,14 +132,12 @@ public class GroovyEngine
    * @param template
    * @see GroovyExecutor#executeTemplate(String, Map)
    */
-  public String executeTemplate(final String template)
-  {
+  public String executeTemplate(final String template) {
     final String content = replaceIncludes(template).replaceAll("#HURZ1#", "\\\\").replaceAll("#HURZ2#", "\\$"); // see replaceIncludes
     return groovyExecutor.executeTemplate(content, variables);
   }
 
-  private String replaceIncludes(final String template)
-  {
+  private String replaceIncludes(final String template) {
     if (template == null) {
       return null;
     }
@@ -175,13 +166,12 @@ public class GroovyEngine
    * @return
    * @see ConfigXml#getResourceContentAsString(String)
    */
-  public String executeTemplateFile(final String file)
-  {
+  public String executeTemplateFile(final String file) {
     final Object[] res = configurationService.getResourceContentAsString(file);
     final String template = (String) res[0];
     if (template == null) {
       log.error("Template with filename '" + file
-          + "' not found (whether in resource path nor in ProjectForge's application dir.");
+              + "' not found (whether in resource path nor in ProjectForge's application dir.");
       return "";
     }
     return executeTemplate(template);
@@ -194,8 +184,7 @@ public class GroovyEngine
    * @param params
    * @see I18nHelper#getLocalizedMessage(Locale, String, Object...)
    */
-  public String getMessage(final String messageKey, final Object... params)
-  {
+  public String getMessage(final String messageKey, final Object... params) {
     return I18nHelper.getLocalizedMessage(locale, messageKey, params);
   }
 
@@ -205,17 +194,16 @@ public class GroovyEngine
    * @param key
    * @see I18nHelper#getLocalizedString(Locale, String)
    */
-  public String getI18nString(final String key)
-  {
-    return I18nHelper.getLocalizedMessage(locale, key);
+  public String getI18nString(final String key) {
+    final String str = I18nHelper.getLocalizedMessage(locale, key);
+    return htmlFormat ? HtmlHelper.formatText(str, true) : str;
   }
 
   /**
    * @param value
    * @return The value as string using the toString() method or "" if the given value is null.
    */
-  public String getString(final Object value)
-  {
+  public String getString(final Object value) {
     if (value == null) {
       return "";
     }
@@ -226,8 +214,7 @@ public class GroovyEngine
    * @param value
    * @return true if the value is null or instance of NullObject, otherwise false.
    */
-  public boolean isNull(final Object value)
-  {
+  public boolean isNull(final Object value) {
     if (value == null) {
       return true;
     }
@@ -236,10 +223,9 @@ public class GroovyEngine
 
   /**
    * @param value
-   * @see StringUtils#isBlank(String)
+   * @see StringUtils#isBlank(CharSequence)
    */
-  public boolean isBlank(final String value)
-  {
+  public boolean isBlank(final String value) {
     return StringUtils.isBlank(value);
   }
 
@@ -248,8 +234,7 @@ public class GroovyEngine
    * @return true if value is null or value.toString() is blank.
    * @see StringUtils#isBlank(String)
    */
-  public boolean isBlank(final Object value)
-  {
+  public boolean isBlank(final Object value) {
     if (value == null) {
       return true;
     }
@@ -260,8 +245,7 @@ public class GroovyEngine
    * @param value
    * @return Always true.
    */
-  public boolean isBlank(final NullObject value)
-  {
+  public boolean isBlank(final NullObject value) {
     return true;
   }
 
@@ -269,8 +253,7 @@ public class GroovyEngine
    * @param value
    * @see StringUtils#isEmpty(String)
    */
-  public boolean isEmpty(final String value)
-  {
+  public boolean isEmpty(final String value) {
     return StringUtils.isEmpty(value);
   }
 
@@ -279,8 +262,7 @@ public class GroovyEngine
    * @return true if value is null or value.toString() is empty.
    * @see StringUtils#isEmpty(String)
    */
-  public boolean isEmpty(final Object value)
-  {
+  public boolean isEmpty(final Object value) {
     if (value == null) {
       return true;
     }
@@ -291,13 +273,11 @@ public class GroovyEngine
    * @param value
    * @return Always true.
    */
-  public boolean isEmpty(final NullObject value)
-  {
+  public boolean isEmpty(final NullObject value) {
     return true;
   }
 
-  public void log(final String message)
-  {
+  public void log(final String message) {
     log.info(message);
   }
 
@@ -305,8 +285,7 @@ public class GroovyEngine
    * @param value
    * @return The given string itself or "" if value is null.
    */
-  public String getString(final String value)
-  {
+  public String getString(final String value) {
     if (value == null) {
       return "";
     }
@@ -320,8 +299,7 @@ public class GroovyEngine
    * @see I18nHelper#getLocalizedString(Locale, String)
    * @see I18nEnum#getI18nKey()
    */
-  public String getString(final I18nEnum i18nEnum)
-  {
+  public String getString(final I18nEnum i18nEnum) {
     if (i18nEnum == null) {
       return "";
     }
@@ -334,8 +312,7 @@ public class GroovyEngine
    * @param customer
    * @see KostFormatter#formatKunde(KundeDO)
    */
-  public String getString(final KundeDO customer)
-  {
+  public String getString(final KundeDO customer) {
     if (customer == null) {
       return "";
     }
@@ -348,8 +325,7 @@ public class GroovyEngine
    * @param project
    * @see KostFormatter#formatProjekt(ProjektDO)
    */
-  public String getString(final ProjektDO project)
-  {
+  public String getString(final ProjektDO project) {
     if (project == null) {
       return "";
     }
@@ -362,8 +338,7 @@ public class GroovyEngine
    * @param user
    * @see PFUserDO#getFullname()
    */
-  public String getString(final PFUserDO user)
-  {
+  public String getString(final PFUserDO user) {
     if (user == null) {
       return "";
     }
@@ -376,8 +351,7 @@ public class GroovyEngine
    * @param user
    * @see PFUserDO#getFullname()
    */
-  public String getString(final Number value)
-  {
+  public String getString(final Number value) {
     if (value == null) {
       return "";
     }
@@ -390,40 +364,35 @@ public class GroovyEngine
    * @param user
    * @see PFUserDO#getFullname()
    */
-  public String getString(final TaskDO task)
-  {
+  public String getString(final TaskDO task) {
     if (task == null) {
       return "";
     }
     return TaskFormatter.getTaskPath(task.getId(), true, OutputType.PLAIN);
   }
 
-  public String getCurrency(final BigDecimal value)
-  {
+  public String getCurrency(final BigDecimal value) {
     if (value == null) {
       return "";
     }
     return CurrencyFormatter.format(value, locale);
   }
 
-  public String getString(final BigDecimal value)
-  {
+  public String getString(final BigDecimal value) {
     if (value == null) {
       return "";
     }
     return NumberFormatter.format(value, locale);
   }
 
-  public String getString(final LocalDate date)
-  {
+  public String getString(final LocalDate date) {
     if (date == null) {
       return "";
     }
     return DateTimeFormatter.instance().getFormattedDate(date, locale, timeZone);
   }
 
-  public String getString(final java.util.Date date)
-  {
+  public String getString(final java.util.Date date) {
     if (date == null) {
       return "";
     }
