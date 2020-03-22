@@ -209,6 +209,11 @@ public class Mail implements Comparable<Mail>
     }
   }
 
+  public void setTo(String mailAdress)
+  {
+    setTo(mailAdress, null);
+  }
+
   public void setTo(String mailAdress, String realName)
   {
     addTo(mailAdress);
