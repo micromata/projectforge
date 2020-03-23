@@ -11,7 +11,7 @@ import {
     LIST_FILTER_SET,
     LIST_FILTER_SORT,
     LIST_INITIAL_CALL_BEGIN,
-    LIST_SWITCH_CATEGORY,
+    LIST_SWITCH_CATEGORY, USER_LOGIN_BEGIN,
 } from '../../actions';
 
 const initialState = {};
@@ -169,6 +169,8 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
 const reducer = (state = initialState, action) => {
     const { type, payload } = action;
     switch (type) {
+        case USER_LOGIN_BEGIN:
+            return initialState;
         case LIST_DISMISS_ERROR:
         case LIST_INITIAL_CALL_BEGIN:
         case LIST_FETCH_DATA_BEGIN:

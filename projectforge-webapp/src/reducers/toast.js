@@ -1,4 +1,4 @@
-import { TOAST_ADD, TOAST_CLEAR_ALL, TOAST_REMOVE } from '../actions';
+import { TOAST_ADD, TOAST_CLEAR_ALL, TOAST_REMOVE, USER_LOGIN_BEGIN } from '../actions';
 
 const initialState = [];
 
@@ -22,13 +22,9 @@ const reducer = (state = initialState, { type, payload }) => {
                     return toast;
                 }),
             ];
+        case USER_LOGIN_BEGIN:
         case TOAST_CLEAR_ALL:
-            return [
-                ...state.map(toast => ({
-                    ...toast,
-                    dismissed: true,
-                })),
-            ];
+            return initialState;
         default:
             return state;
     }
