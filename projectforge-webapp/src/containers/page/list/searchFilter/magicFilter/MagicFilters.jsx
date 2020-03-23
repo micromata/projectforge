@@ -1,9 +1,4 @@
-import {
-    faChevronCircleDown,
-    faCompass,
-    faFilter,
-    faSearch
-} from '@fortawesome/free-solid-svg-icons';
+import { faFilter, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
