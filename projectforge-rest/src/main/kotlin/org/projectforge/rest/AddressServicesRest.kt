@@ -78,8 +78,8 @@ class AddressServicesRest() {
     private lateinit var languageService: LanguageService
 
     @GetMapping("acLang")
-    fun getLanguages(@RequestParam("search") search: String?): List<LanguageService.Language> {
-        return languageService.getLanguages(search)
+    fun getLanguages(@RequestParam("search") search: String?): List<DisplayLanguage> {
+        return languageService.getLanguages(search).map { DisplayLanguage(it.value, it.label) }
     }
 
     @GetMapping("usedLanguages")
@@ -167,4 +167,6 @@ class AddressServicesRest() {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
                 .body(writer.toString())
     }
+
+    class DisplayLanguage(val id: String, val displayName: String)
 }
