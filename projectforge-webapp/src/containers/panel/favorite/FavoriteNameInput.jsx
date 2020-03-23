@@ -2,7 +2,6 @@ import { faCheckSquare } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Input } from '../../../components/design';
-import style from '../../../components/design/input/Input.module.scss';
 
 function FavoriteNameInput(
     {
