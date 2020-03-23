@@ -75,8 +75,7 @@ function DynamicReactSelect(props) {
         };
 
         const loadOptions = (search, callback) => fetch(
-            // TODO CHANGE URL TO NEW URL REPLACEMENT FORMAT
-            getServiceURL(`${autoCompletion.url}${search}`),
+            getServiceURL(autoCompletion.url.replace(':search', encodeURIComponent(search))),
             {
                 method: 'GET',
                 credentials: 'include',
