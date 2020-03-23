@@ -69,7 +69,7 @@ function MagicFilterPill(
                         {value && Object.keys(value).length
                             ? MagicInput.getLabel(label, value, props)
                             : label}
-                        {isRemovable && (
+                        {(isRemovable || !Object.isEmpty(value)) && (
                             <FontAwesomeIcon
                                 icon={faBan}
                                 className={styles.deleteIcon}
