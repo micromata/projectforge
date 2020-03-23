@@ -259,8 +259,8 @@ class LayoutUtils {
                 when (it) {
                     is UILabelledElement -> {
                         it.label = getLabelTransformation(it.label, it as UIElement)
-                        it.additionalLabel = getLabelTransformation(it.additionalLabel, it, additionalLabel = true)
-                        it.tooltip = getLabelTransformation(it.tooltip)
+                        it.additionalLabel = getLabelTransformation(it.additionalLabel, it, LabelType.ADDITIONAL_LABEL)
+                        it.tooltip = getLabelTransformation(it.tooltip, it, LabelType.TOOLTIP)
                     }
                     is UIFieldset -> {
                         it.title = getLabelTransformation(it.title, it as UIElement)
@@ -317,6 +317,7 @@ class LayoutUtils {
                 is UIInput -> element.id
                 is UICheckbox -> element.id
                 is UIRadioButton -> element.id
+                is UIReadOnlyField -> element.id
                 is UISelect<*> -> element.id
                 is UITextArea -> element.id
                 is UITableColumn -> element.id
@@ -330,22 +331,34 @@ class LayoutUtils {
          * @param label to process
          * @return Modified label or unmodified label.
          */
-        internal fun getLabelTransformation(label: String?, labelledElement: UIElement? = null, additionalLabel: Boolean = false): String? {
+        internal fun getLabelTransformation(label: String?, labelledElement: UIElement? = null, labelType: LabelType? = null): String? {
             if (label == null) {
                 if (labelledElement is UILabelledElement) {
-                    if (additionalLabel && labelledElement.ignoreAdditionalLabel) {
-                        return null
-                    }
                     val layoutSettings = labelledElement.layoutContext
                     if (layoutSettings != null) {
                         val id = getId(labelledElement)
                         if (id != null) {
                             var elementInfo = ElementsRegistry.getElementInfo(layoutSettings, id)
-                            if (!additionalLabel && elementInfo?.i18nKey != null) {
-                                return translate(elementInfo.i18nKey)
-                            }
-                            if (additionalLabel && elementInfo?.additionalI18nKey != null) {
-                                return translate(elementInfo.additionalI18nKey)
+                            when (labelType) {
+                                LabelType.ADDITIONAL_LABEL -> {
+                                    if (labelledElement.ignoreAdditionalLabel) {
+                                        return null
+                                    } else if (elementInfo?.additionalI18nKey != null) {
+                                        return translate(elementInfo.additionalI18nKey)
+                                    }
+                                }
+                                LabelType.TOOLTIP -> {
+                                    if (labelledElement.ignoreTooltip) {
+                                        return null
+                                    } else if (elementInfo?.tooltipI18nKey != null) {
+                                        return translate(elementInfo.tooltipI18nKey)
+                                    }
+                                }
+                                else -> {
+                                    if (elementInfo?.i18nKey != null) {
+                                        return translate(elementInfo.i18nKey)
+                                    }
+                                }
                             }
                         }
                     }
@@ -356,6 +369,7 @@ class LayoutUtils {
                 return label.substring(1)
             return translate(label)
         }
-
     }
+
+    internal enum class LabelType { ADDITIONAL_LABEL, TOOLTIP }
 }
