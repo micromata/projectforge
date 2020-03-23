@@ -24,6 +24,7 @@
 package org.projectforge.rest.calendar
 
 import org.projectforge.business.vacation.VacationCache
+import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
 import org.springframework.beans.factory.annotation.Autowired
@@ -54,7 +55,8 @@ open class VacationProvider {
         val vacations = vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
         vacations.forEach { vacation ->
             val title = "${translate("vacation")}: ${vacation.employee?.user?.getFullname()}"
-            if (!events.any { it.title == title && BigCalendarEvent.samePeriod(it, vacation.startDate, vacation.endDate) }) {
+            if (!events.any { it.title == title && BigCalendarEvent.samePeriod(it, vacation.startDate, vacation.endDate) &&
+                    vacation.status != VacationStatus.REJECTED}) {
                 // Event doesn't yet exist:
                 events.add(BigCalendarEvent(
                         title = title,
