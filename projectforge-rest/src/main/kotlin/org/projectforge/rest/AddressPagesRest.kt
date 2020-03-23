@@ -124,7 +124,7 @@ class AddressPagesRest
     }
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
-        elements.add(UIFilterElement("myFavorites", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.myFavorites")))
+        elements.add(UIFilterElement("myFavorites", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.myFavorites"), defaultFilter = true))
         elements.add(UIFilterElement("doublets", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.doublets")))
     }
 
