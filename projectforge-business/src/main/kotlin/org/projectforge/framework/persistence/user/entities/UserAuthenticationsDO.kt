@@ -77,21 +77,21 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
     /**
      * Token used for calendar exports
      */
-    @PropertyInfo(i18nKey = "user.authentication.token.rest")
+    @PropertyInfo(i18nKey = "user.authenticationToken.calendar_rest", tooltip = "user.authenticationToken.calendar_rest.tooltip")
     @get:Column(name = "calendar_export_token", length = 100, nullable = true)
     open var calendarExportToken: String? = null
 
     /**
      * Token used for CalDAV and CardDAV clients.
      */
-    @PropertyInfo(i18nKey = "user.authentication.token.dav")
+    @PropertyInfo(i18nKey = "user.authenticationToken.dav_token", tooltip = "user.authenticationToken.dav_token.tooltip")
     @get:Column(name = "dav_token", length = 100, nullable = true)
     open var davToken: String? = null
 
     /**
      * Token used for CalDAV and CardDAV clients.
      */
-    @PropertyInfo(i18nKey = "user.authentication.token.restClient")
+    @PropertyInfo(i18nKey = "user.authenticationToken.rest_client", tooltip = "user.authenticationToken.rest_client.tooltip")
     @get:Column(name = "rest_client_token", length = 100, nullable = true)
     open var restClientToken: String? = null
 
