@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.mail.Mail
 import org.projectforge.mail.SendMail
+import org.projectforge.menu.builder.MenuItemDefId
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -175,7 +176,7 @@ open class VacationSendMailService {
     }
 
     internal class VacationInfo(domainService: DomainService, employeeDao: EmployeeDao, val vacation: VacationDO) {
-        val link = "${domainService.domain}/react/vacation/edit/${vacation.id}"
+        val link = "${domainService.domain}/$vacationEditPagePath/${vacation.id}"
         val modifiedByUserFullname = ThreadLocalUserContext.getUser().getFullname()
         val employeeUser = employeeDao.internalGetById(vacation.employee?.id)?.user
         val employeeFullname = employeeUser?.getFullname() ?: translate("unknown")
@@ -208,7 +209,7 @@ open class VacationSendMailService {
     private class MailInfo(val subject: String, val reason: String, val action: String)
 
     companion object {
-        private const val vacationEditPagePath = "/react/vacationAccount"
+        private val vacationEditPagePath = "${MenuItemDefId.VACATION.url}/edit"
         private val dateFormatter = DateTimeFormatter.instance()
     }
 }
