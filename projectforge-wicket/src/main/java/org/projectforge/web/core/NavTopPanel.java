@@ -37,7 +37,6 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -49,6 +48,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.web.LoginService;
 import org.projectforge.web.WicketMenuBuilder;
 import org.projectforge.web.WicketMenuEntry;
@@ -199,7 +199,7 @@ public class NavTopPanel extends NavAbstractPanel {
   }
 
   private void addVacationViewLink() {
-    final ExternalLink vacationViewLink = new ExternalLink("vacationViewLink", "/react/vacationAccount/dynamic") {
+    final ExternalLink vacationViewLink = new ExternalLink("vacationViewLink", "/" + MenuItemDefId.VACATION_ACCOUNT.getUrl()) {
       @Override
       public boolean isVisible() {
         return vacationService.hasAccessToVacationService(ThreadLocalUserContext.getUser(), false);

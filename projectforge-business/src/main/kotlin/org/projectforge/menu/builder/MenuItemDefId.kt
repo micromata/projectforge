@@ -92,8 +92,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     TASK_TREE("menu.taskTree", "wa/taskTree"), //
     TIMESHEET_LIST("menu.timesheetList", "wa/timesheetList"), //
     USER_LIST("menu.userList", "wa/userList"), //
-    VACATION("menu.vacation", "${PREFIX}vacation/dynamic"), //
-    VACATION_ACCOUNT("menu.vacation.leaveaccount", "${PREFIX}vacationAccount"), //
+    VACATION("menu.vacation", "${PREFIX}vacation"), //
+    VACATION_ACCOUNT("menu.vacation.leaveaccount", "${PREFIX}vacationAccount/dynamic"), //
     VISITORBOOK("menu.orga.visitorbook", "wa/wicket/bookmarkable/org.projectforge.web.orga.VisitorbookListPage"), //
 
     SPACE_LIST("menu.spaceList"), //
