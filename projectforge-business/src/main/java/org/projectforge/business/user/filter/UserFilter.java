@@ -112,6 +112,8 @@ public class UserFilter implements Filter {
   public static void logout(final HttpServletRequest request) {
     final HttpSession session = request.getSession();
     session.removeAttribute(SESSION_KEY_USER);
+    session.invalidate();
+    log.info("User logged out.");
   }
 
   public static void refreshUser(final HttpServletRequest request) {
