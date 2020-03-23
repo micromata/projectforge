@@ -139,10 +139,6 @@ body {
 	padding-bottom: 20px;
 }
 
-.form-group {
-	margin-bottom: 2.3rem;
-}
-
 // Forms
 
 fieldset {
@@ -174,6 +170,10 @@ fieldset {
 	&.btn-primary {
 		max-height: 33px;
 	}
+}
+
+.btn-group {
+	margin-top: 1em;
 }
 
 .rbc-btn-group {
