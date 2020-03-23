@@ -23,6 +23,8 @@
 
 package org.projectforge.business.user
 
+import mu.KotlinLogging
+import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
@@ -35,6 +37,8 @@ import org.springframework.stereotype.Component
 import java.util.*
 import javax.annotation.PreDestroy
 
+private val log = KotlinLogging.logger {}
+
 /**
  * A cache for UserPrefDO, if preferences are modified and accessed very often by the user's normal work
  * (such as current filters in Calendar and list pages etc.)
@@ -44,7 +48,6 @@ import javax.annotation.PreDestroy
 @Component
 @DependsOn("entityManagerFactory")
 class UserPrefCache : AbstractCache() {
-    private val log = org.slf4j.LoggerFactory.getLogger(UserPrefCache::class.java)
 
     private val allPreferences = HashMap<Int, UserPrefCacheData>()
 
@@ -69,6 +72,9 @@ class UserPrefCache : AbstractCache() {
             return
         }
         val data = ensureAndGetUserPreferencesData(uid)
+        if (log.isDebugEnabled) {
+            log.debug { "Put value for area '$area' and name '$name' (persistent=$persistent): ${ToStringUtil.toJsonString(value)}" }
+        }
         data.putEntry(area, name, value, persistent)
         checkRefresh() // Should be called at the end of this method for considering changes inside this method.
     }
@@ -136,6 +142,9 @@ class UserPrefCache : AbstractCache() {
             log.info("Oups, user preferences object with area '$area' and name '$name' not cached, can't remove it!")
             return
         }
+        if (log.isDebugEnabled) {
+            log.debug { "Remove entry for area '$area' and name '$name'." }
+        }
         data.removeEntry(area, name)
         if (cacheEntry.persistant)
             userPrefDao.delete(cacheEntry.userPrefDO)
@@ -158,17 +167,26 @@ class UserPrefCache : AbstractCache() {
             userPrefs?.forEach {
                 data.putEntry(it)
             }
-            this.allPreferences[userId] = data
+            if (log.isDebugEnabled) {
+                log.debug { "Created new UserPrefCacheData: ${ToStringUtil.toJsonString(data)}" }
+            }
+            synchronized(allPreferences) {
+                this.allPreferences[userId] = data
+            }
         }
         return data
     }
 
     internal fun getUserPreferencesData(userId: Int): UserPrefCacheData? {
-        return this.allPreferences[userId]
+        synchronized(allPreferences) {
+            return this.allPreferences[userId]
+        }
     }
 
     internal fun setUserPreferencesData(userId: Int, data: UserPrefCacheData) {
-        this.allPreferences[userId] = data
+        synchronized(allPreferences) {
+            this.allPreferences[userId] = data
+        }
     }
 
     /**
@@ -196,6 +214,9 @@ class UserPrefCache : AbstractCache() {
         }
         val data = allPreferences[userId]
         data?.getModifiedPersistentEntries()?.forEach {
+            if (log.isDebugEnabled) {
+                log.debug { "Persisting entry to data base: ${ToStringUtil.toJsonString(it.userPrefDO)}" }
+            }
             userPrefDao.internalSaveOrUpdate(it.userPrefDO)
         }
     }
@@ -209,6 +230,9 @@ class UserPrefCache : AbstractCache() {
     override fun refresh() {
         log.info("Flushing all user preferences to data-base....")
         for (userId in allPreferences.keys) {
+            if (log.isDebugEnabled) {
+                log.debug { "Flushing all user preferences for user $userId." }
+            }
             flushToDB(userId, false)
         }
         log.info("Flushing of user preferences to data-base done.")
@@ -220,8 +244,14 @@ class UserPrefCache : AbstractCache() {
      * @param userId
      */
     fun clear(userId: Int?) {
-        val data = allPreferences[userId] ?: return
-        data.clear()
+        synchronized(allPreferences) {
+            val data = allPreferences[userId] ?: return
+            if (log.isDebugEnabled) {
+                log.debug { "Clearing all user preferences in cache for user $userId." }
+            }
+            allPreferences.remove(userId)
+            data.clear()
+        }
     }
 
     override fun setExpireTimeInMinutes(expireTime: Long) {
