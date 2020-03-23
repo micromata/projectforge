@@ -84,7 +84,8 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
     /**
      * Token used for CalDAV and CardDAV clients.
      */
-    @PropertyInfo(i18nKey = "user.authenticationToken.dav_token", tooltip = "user.authenticationToken.dav_token.tooltip")
+    @PropertyInfo(i18nKey = "user.authenticationToken.dav_token", tooltip = "user.authenticationToken.dav_token" +
+            ".tooltip")
     @get:Column(name = "dav_token", length = 100, nullable = true)
     open var davToken: String? = null
 
@@ -98,6 +99,7 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
     /**
      * Key stored in the cookies for the functionality of stay logged in.
      */
+    @PropertyInfo(i18nKey = "user.authenticationToken.stay_logged_in_key", tooltip = "user.authenticationToken.stay_logged_in_key.tooltip")
     @get:Column(name = "stay_logged_in_key", length = 255)
     open var stayLoggedInKey: String? = null
 
