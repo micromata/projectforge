@@ -6,17 +6,6 @@ import ReactSelect from '../../../../design/react-select/ReactSelect';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from '../input/DynamicValidationManager';
 
-const resolveJSON = (callback, type = undefined) => json => callback(json.map((completion) => {
-    if (type) {
-        return completion;
-    }
-    console.log('hey');
-    return ({
-        value: completion,
-        label: completion,
-    });
-}));
-
 export const extractDataValue = (
     {
         data,
@@ -88,8 +77,7 @@ function DynamicReactSelect(props) {
         )
             .then(handleHTTPErrors)
             .then(response => response.json())
-            .then(resolveJSON(callback, autoCompletion.type));
-        // .then(callback);
+            .then(callback);
 
         const url = autoCompletion ? autoCompletion.url : undefined;
 
