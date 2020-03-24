@@ -10,6 +10,7 @@ const resolveJSON = (callback, type = undefined) => json => callback(json.map((c
     if (type) {
         return completion;
     }
+    console.log('hey');
     return ({
         value: completion,
         label: completion,
@@ -20,6 +21,7 @@ export const extractDataValue = (
     {
         data,
         id,
+        labelProperty,
         multi,
         valueProperty,
         values,
@@ -35,8 +37,8 @@ export const extractDataValue = (
 
     if (typeof dataValue === 'string') {
         return {
-            label: dataValue,
-            value: dataValue,
+            [labelProperty || 'displayName']: dataValue,
+            [valueProperty || 'id']: dataValue,
         };
     }
 
@@ -87,6 +89,7 @@ function DynamicReactSelect(props) {
             .then(handleHTTPErrors)
             .then(response => response.json())
             .then(resolveJSON(callback, autoCompletion.type));
+        // .then(callback);
 
         const url = autoCompletion ? autoCompletion.url : undefined;
 
