@@ -234,8 +234,6 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                         .add(lc, "location", "description"))
         layout.getTableColumnById("timesheet.user").formatter = Formatter.USER
         layout.getTableColumnById("timesheet.task").formatter = Formatter.TASK_PATH
-        LayoutUtils.addListFilterContainer(layout, "longFormat", "recursive",
-                filterClass = TimesheetFilter::class.java)
         return LayoutUtils.processListPage(layout, this)
     }
 

@@ -64,8 +64,6 @@ class PostausgangPagesRest() : AbstractDOPagesRest<PostausgangDO, PostausgangDao
                 .add(UITable.UIResultSetTable()
                         .add(lc, "datum", "empfaenger", "person", "inhalt", "bemerkung", "type"))
         layout.getTableColumnById("datum").formatter = Formatter.DATE
-        LayoutUtils.addListFilterContainer(layout, UILabel("'TODO: date range"),
-                filterClass = PostFilter::class.java)
         return LayoutUtils.processListPage(layout, this)
     }
 

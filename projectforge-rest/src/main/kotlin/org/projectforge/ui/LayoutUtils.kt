@@ -62,19 +62,8 @@ class LayoutUtils {
         /**
          * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
          * i18n-keys (by referring the [org.projectforge.common.anots.PropertyInfo] annotations of clazz).
-         * <br>
-         * If no named container called "filter-options" is found, it will be attached automatically by calling [addListFilterContainer]
          */
         fun processListPage(layout: UILayout, pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>): UILayout {
-            var found = false
-            layout.namedContainers.forEach {
-                if (it.id == "filterOptions") {
-                    found = true // Container found. Don't attach it automatically.
-                }
-            }
-            if (!found) {
-                addListFilterContainer(layout)
-            }
             layout
                     .addAction(UIButton("reset",
                             color = UIColor.SECONDARY,
@@ -89,49 +78,6 @@ class LayoutUtils {
             addCommonTranslations(layout)
             Favorites.addTranslations(layout.translations)
             return layout
-        }
-
-        fun addListFilterContainer(layout: UILayout, vararg elements: Any, filterClass: Class<*>? = null, autoAppendDefaultSettings: Boolean? = true) {
-            val filterGroup = UIGroup()
-            elements.forEach {
-                when (it) {
-                    is UIElement -> {
-                        filterGroup.add(it)
-                        if (filterClass != null && it is UILabelledElement) {
-                            val property = getId(it)
-                            if (property != null) {
-                                val elementInfo = ElementsRegistry.getElementInfo(filterClass, property)
-                                it.label = elementInfo?.i18nKey
-                            }
-                        }
-                        /**
-                         * ID must be set as extended to store in extended map of MagicFilter.
-                         */
-                        if (it is UICheckbox) {
-                            it.id = "extended.${it.id}"
-                        }
-                    }
-                    is String -> {
-                        val element = buildLabelInputElement(LayoutContext(filterClass), it)
-                        if (element != null)
-                            filterGroup.add(element)
-                    }
-                    else -> log.error("Element of type '${it::class.java}' not supported as child of filterContainer.")
-                }
-            }
-            if (autoAppendDefaultSettings == true)
-                addListDefaultOptions(filterGroup)
-            layout.add(UINamedContainer("filterOptions").add(filterGroup))
-        }
-
-        /**
-         * Adds the both checkboxes "only deleted" and "search history" to the given group. This is automatically called
-         * by processListPage and appended to the first group found in named container "filter-options".
-         */
-        fun addListDefaultOptions(group: UIGroup) {
-            group
-                    .add(UICheckbox("deleted", label = "onlyDeleted", tooltip = "onlyDeleted.tooltip", color = UIColor.DANGER))
-            //.add(UICheckbox("searchHistory", label = "search.searchHistory", tooltip = "search.searchHistory.additional.tooltip"))
         }
 
         /**
@@ -240,9 +186,9 @@ class LayoutUtils {
                 return
             if (!elementInfo.i18nKey.isNullOrEmpty())
                 element.label = elementInfo.i18nKey
-            if (!elementInfo.additionalI18nKey.isNullOrEmpty() && element.ignoreAdditionalLabel != true)
+            if (!elementInfo.additionalI18nKey.isNullOrEmpty() && !element.ignoreAdditionalLabel)
                 element.additionalLabel = elementInfo.additionalI18nKey
-            if (!elementInfo.tooltipI18nKey.isNullOrEmpty() && element.ignoreTooltip != true)
+            if (!elementInfo.tooltipI18nKey.isNullOrEmpty() && !element.ignoreTooltip)
                 element.tooltip = elementInfo.tooltipI18nKey
         }
 
@@ -338,7 +284,7 @@ class LayoutUtils {
                     if (layoutSettings != null) {
                         val id = getId(labelledElement)
                         if (id != null) {
-                            var elementInfo = ElementsRegistry.getElementInfo(layoutSettings, id)
+                            val elementInfo = ElementsRegistry.getElementInfo(layoutSettings, id)
                             when (labelType) {
                                 LabelType.ADDITIONAL_LABEL -> {
                                     if (labelledElement.ignoreAdditionalLabel) {
