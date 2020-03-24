@@ -5,6 +5,7 @@ import RadioButton from '../../../../../../components/design/input/RadioButton';
 
 function MagicSelectInput(
     {
+        id,
         multi,
         onChange,
         value,
@@ -20,6 +21,7 @@ function MagicSelectInput(
                     key={`magic-select-${selectValue}`}
                     id={`magic-select-${selectValue}`}
                     label={displayName}
+                    name={id}
                     onChange={() => {
                         if (multi) {
                             const oldValues = value.values || [];
@@ -46,10 +48,12 @@ MagicSelectInput.propTypes = {
         value: PropTypes.string,
         label: PropTypes.string,
     })).isRequired,
+    id: PropTypes.string,
     multi: PropTypes.bool,
 };
 
 MagicSelectInput.defaultProps = {
+    id: undefined,
     multi: true,
 };
 
