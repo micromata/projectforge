@@ -58,6 +58,8 @@ object MagicFilterProcessor {
             } else if (magicFilterEntry.field.isNullOrBlank()) {
                 // Full text search (no field given).
                 queryFilter.addFullTextSearch(magicFilterEntry.value.value)
+            } else if (magicFilterEntry.field == "pageSize") {
+                queryFilter.maxRows = NumberHelper.parseInteger(magicFilterEntry.value.value) ?: magicFilter.maxRows
             } else {
                 // Field search.
                 createFieldSearchEntry(entityClass, queryFilter, magicFilterEntry, magicFilter.autoWildcardSearch)
