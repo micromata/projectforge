@@ -1,27 +1,35 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { CheckBox } from '../../../../../../components/design';
+import RadioButton from '../../../../../../components/design/input/RadioButton';
 
 function MagicSelectInput(
     {
+        multi,
         onChange,
         value,
         values,
     },
 ) {
+    const Tag = multi ? CheckBox : RadioButton;
+
     return (
         <React.Fragment>
             {values.map(({ id: selectValue, displayName }) => (
-                <CheckBox
+                <Tag
                     key={`magic-select-${selectValue}`}
                     id={`magic-select-${selectValue}`}
                     label={displayName}
                     onChange={() => {
-                        const oldValues = value.values || [];
-                        if (oldValues.includes(selectValue)) {
-                            onChange({ values: oldValues.filter(v => v !== selectValue) });
+                        if (multi) {
+                            const oldValues = value.values || [];
+                            if (oldValues.includes(selectValue)) {
+                                onChange({ values: oldValues.filter(v => v !== selectValue) });
+                            } else {
+                                onChange({ values: [...oldValues, selectValue] });
+                            }
                         } else {
-                            onChange({ values: [...oldValues, selectValue] });
+                            onChange({ values: [selectValue] });
                         }
                     }}
                     checked={Boolean(value.values && value.values.includes(selectValue))}
@@ -38,9 +46,12 @@ MagicSelectInput.propTypes = {
         value: PropTypes.string,
         label: PropTypes.string,
     })).isRequired,
+    multi: PropTypes.bool,
 };
 
-MagicSelectInput.defaultProps = {};
+MagicSelectInput.defaultProps = {
+    multi: true,
+};
 
 MagicSelectInput.isEmpty = ({ values }) => !values || values.length === 0;
 
