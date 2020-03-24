@@ -378,11 +378,11 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     override fun onGetItemAndLayout(request: HttpServletRequest, dto: Timesheet, formLayoutData: FormLayoutData) {
         val startTime = PFDateTimeUtils.parseAndCreateDateTime(request.getParameter("startDate"), numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS)
         if (startTime != null) {
-            dto.startTime = startTime.withPrecision(DatePrecision.MINUTE_15).sqlTimestamp
+            dto.startTime = startTime.withPrecision(DatePrecision.MINUTE_5).sqlTimestamp
         }
         val stopTime = PFDateTimeUtils.parseAndCreateDateTime(request.getParameter("endDate"), numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS)
         if (stopTime != null) {
-            dto.stopTime = stopTime.withPrecision(DatePrecision.MINUTE_15).sqlTimestamp
+            dto.stopTime = stopTime.withPrecision(DatePrecision.MINUTE_5).sqlTimestamp
         }
         super.onGetItemAndLayout(request, dto, formLayoutData)
     }
