@@ -128,8 +128,6 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
         layout.getTableColumnById("owner").formatter = Formatter.USER
         layout.getTableColumnById("lastUpdate").formatter = Formatter.TIMESTAMP_MINUTES
         layout.getTableColumnById("accessStatusString").title = "access.title.heading"
-        LayoutUtils.addListFilterContainer(layout, "longFormat", "recursive",
-                filterClass = TimesheetFilter::class.java)
 
         val exportMenu = MenuItem("calendar.export", i18nKey = "export")
         exportMenu.add(MenuItem("calendar.exportTimesheets",
