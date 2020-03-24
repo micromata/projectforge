@@ -25,6 +25,8 @@ package org.projectforge.rest
 
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.projectforge.Const
+import org.projectforge.business.fibu.KundeDao
+import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.systeminfo.SystemInfoCache
 import org.projectforge.business.task.TaskTree
@@ -82,6 +84,12 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
 
     @Autowired
     private lateinit var kost2Dao: Kost2Dao
+
+    @Autowired
+    private lateinit var kundeDao: KundeDao
+
+    @Autowired
+    private lateinit var projektDao: ProjektDao
 
     @Autowired
     private lateinit var teamEventRest: TeamEventPagesRest
@@ -268,13 +276,20 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 .add(UIInput("location", lc).enableAutoCompletion(this))
                 .add(descriptionArea)
         jiraIssuesElement?.let { layout.add(UIRow().add(UICol().add(it))) }
-        layout.addTranslations("until", "fibu.kost2", "task")
         Favorites.addTranslations(layout.translations)
         layout.addAction(UIButton("switch",
                 title = translate("plugins.teamcal.switchToTeamEventButton"),
                 color = UIColor.DARK,
                 responseAction = ResponseAction(getRestRootPath("switch2CalendarEvent"), targetType = TargetType.POST)))
-        layout.addTranslations("templates", "search.search", "fibu.kunde", "fibu.projekt", "timesheet.description", "timesheet.location")
+        layout.addTranslations("templates",
+                "search.search",
+                "fibu.kost2",
+                "fibu.kunde",
+                "fibu.projekt",
+                "task",
+                "timesheet.description",
+                "timesheet.location",
+                "until")
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
@@ -299,10 +314,25 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 ts.user!!.copyFromMinimal(user)
             }
             if (it.kost2Id != null) {
-                val kost2 = kost2Dao.internalGetById(it.kost2Id)
-                if (kost2 != null) {
-                    ts.kost2 = Kost2()
-                    ts.kost2!!.copyFromMinimal(kost2)
+                val kost2DO = kost2Dao.internalGetById(it.kost2Id)
+                if (kost2DO != null) {
+                    val kost2 = Kost2()
+                    ts.kost2 = kost2
+                    kost2.copyFromMinimal(kost2DO)
+                    kost2DO.projektId?.let {projektId ->
+                        val projektDO = projektDao.internalGetById(projektId)
+                        if (projektDO != null) {
+                            val projekt = Projekt(projektId, name = projektDO.name)
+                            kost2.projekt = projekt
+                            projektDO.kundeId?.let { kundeId ->
+                                val kundeDO = kundeDao.internalGetById(kundeId)
+                                if (kundeDO != null) {
+                                    val kunde = Kunde(kundeId, name = kundeDO.name)
+                                    projekt.kunde = kunde
+                                }
+                            }
+                        }
+                    }
                 }
             }
             val hcb = HashCodeBuilder()

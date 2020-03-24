@@ -26,7 +26,8 @@ package org.projectforge.rest.dto
 import org.projectforge.business.fibu.ProjektDO
 
 class Projekt(id: Int? = null,
-              displayName: String? = null)
+              displayName: String? = null,
+              var name: String? = null)
     : BaseDTODisplayObject<ProjektDO>(id, displayName = displayName) {
     var kunde: Kunde? = null
 }
