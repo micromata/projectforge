@@ -11,11 +11,11 @@ function MagicSelectInput(
 ) {
     return (
         <React.Fragment>
-            {values.map(({ value: selectValue, label }) => (
+            {values.map(({ id: selectValue, displayName }) => (
                 <CheckBox
                     key={`magic-select-${selectValue}`}
                     id={`magic-select-${selectValue}`}
-                    label={label}
+                    label={displayName}
                     onChange={() => {
                         const oldValues = value.values || [];
                         if (oldValues.includes(selectValue)) {
@@ -46,7 +46,7 @@ MagicSelectInput.isEmpty = ({ values }) => !values || values.length === 0;
 
 MagicSelectInput.getLabel = (label, { values }, { values: dataValues }) => `${label}: ${values
     // Find Labels for selected items by values
-    .map(v => dataValues.find(dv => dv.value === v).label)
+    .map(v => dataValues.find(dv => dv.id === v).displayName)
     .join(', ')}`;
 
 export default MagicSelectInput;
