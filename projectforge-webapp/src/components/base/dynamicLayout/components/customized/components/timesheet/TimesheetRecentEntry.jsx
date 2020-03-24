@@ -10,15 +10,15 @@ const filterRecent = (
         location,
         description,
     },
-) => (
-    (kost2 && kost2.formattedNumber && kost2.formattedNumber.includes(search))
-    || (
-        task && task.title && task.title.toLowerCase()
-            .includes(search)
-    )
-    || (location && location.includes(search))
-    || (description && location.includes(search))
-);
+) => {
+    const kost2Number = kost2 ? kost2.formattedNumber : undefined;
+    const projekt = kost2 ? kost2.projekt : undefined;
+    const kunde = projekt ? projekt.kunde : undefined;
+    const projektName = projekt ? projekt.name : undefined;
+    const kundeName = kunde ? kunde.name : undefined;
+    const str = `${task.title}|${kost2Number}|${projektName}|${kundeName}|${location}|${description}`.toLocaleLowerCase();
+    return str.includes(search.toLocaleLowerCase());
+};
 
 function TimesheetRecentEntry(
     {
@@ -55,12 +55,18 @@ function TimesheetRecentEntry(
         .then(callback)
         .catch(error => alert(`Internal error: ${error}`));
 
+    const projekt = kost2 ? kost2.projekt : undefined;
+    const kunde = projekt ? projekt.kunde : undefined;
+
     return (
         <tr onClick={handleRowClick}>
-            {cost2Visible && <td>{kost2 ? kost2.formattedNumber : ''}</td>}
-            {/* TODO ADD DATA */}
-            <td>???</td>
-            <td>???</td>
+            {cost2Visible && (
+                <React.Fragment>
+                    <td>{kost2 ? kost2.formattedNumber : ''}</td>
+                    <td>{kunde ? kunde.name : ''}</td>
+                    <td>{projekt ? projekt.name : ''}</td>
+                </React.Fragment>
+            )}
             <td>{task ? task.title : ''}</td>
             <td>{location || ''}</td>
             <td>{description || ''}</td>

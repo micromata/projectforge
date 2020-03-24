@@ -126,10 +126,9 @@ function TimesheetTemplatesAndRecents() {
                         >
                             <Card>
                                 <CardBody>
-                                    TODO TRANSLATIONS & SHOW KUNDE/PROJEKT
                                     <Input
                                         id="taskRecentSearch"
-                                        label="[Suche]"
+                                        label={ui.translations['search.search']}
                                         value={search}
                                         onChange={handleSearchChange}
                                         icon={faSearch}
@@ -137,14 +136,16 @@ function TimesheetTemplatesAndRecents() {
                                     <Table striped hover responsive>
                                         <thead>
                                             <tr>
-                                                {recents.cost2Visible
-                                                    ? <th>[Kost2]</th>
-                                                    : undefined}
-                                                <th>[Kunde]</th>
-                                                <th>[Projekt]</th>
+                                                {recents.cost2Visible && (
+                                                    <React.Fragment>
+                                                        <th>{ui.translations['fibu.kost2']}</th>
+                                                        <th>{ui.translations['fibu.kunde']}</th>
+                                                        <th>{ui.translations['fibu.projekt']}</th>
+                                                    </React.Fragment>
+                                                )}
                                                 <th>{ui.translations.task}</th>
-                                                <th>[Ort]</th>
-                                                <th>[Tätigkeitsbericht]</th>
+                                                <th>{ui.translations['timesheet.location']}</th>
+                                                <th>{ui.translations['timesheet.description']}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
