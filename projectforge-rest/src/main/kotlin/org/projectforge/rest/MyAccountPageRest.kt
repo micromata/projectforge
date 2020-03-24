@@ -132,7 +132,7 @@ class MyAccountPageRest {
     private fun addAuthenticationToken(lc: LayoutContext, id: String): UIRow {
         return UIRow()
                 .add(UICol(9)
-                        .add(UIReadOnlyField(id, lc, canCopy = true, coverUp = true, ignoreTooltip = true))
+                        .add(UIReadOnlyField(id, lc, canCopy = true, coverUp = true))
                 )
                 .add(UICol(3)
                         .add(UIButton("renew",
