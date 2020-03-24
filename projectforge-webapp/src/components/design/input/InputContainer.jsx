@@ -47,7 +47,7 @@ InputContainer.propTypes = {
     className: PropTypes.string,
     color: colorPropType,
     isActive: PropTypes.bool,
-    label: PropTypes.string,
+    label: PropTypes.node,
     readOnly: PropTypes.bool,
     withMargin: PropTypes.bool,
 };
