@@ -1,52 +1,85 @@
 <html>
 #INCLUDE{mail/mailHead.html}
 <body>
-#INCLUDE{mail/mailOpening.html}
-<br />
-<%= pf.getString(mailInfo.action) %>
-<br />
-<%= pf.getString(mailInfo.reason) %>
-<br />
-<%= pf.getI18nString("vacation.mail.link") %>: <a href="${vacationInfo.link}">${vacationInfo.link}</a>
-<br />
-<table class="form">
-  <tr>
-    <th><%= pf.getI18nString("vacation.vacationer") %></th>
-    <td><%= pf.getString(vacationInfo.employeeFullname) %></td>
-    <th><%= pf.getI18nString("vacation.workingdays") %></th>
-    <td><%= pf.getString(vacationInfo.workingDaysFormatted) %></td>
-  </tr>
-  <tr>
-    <th><%= pf.getI18nString("vacation.startdate") %></th>
-    <td><%= pf.getString(vacationInfo.startDate) %></td>
-    <th><%= pf.getI18nString("vacation.halfDayBegin") %></th>
-    <td><%= pf.getString(vacationInfo.halfDayBeginFormatted) %></td>
-  </tr>
-  <tr>
-    <th><%= pf.getI18nString("vacation.enddate") %></th>
-    <td><%= pf.getString(vacationInfo.endDate) %></td>
-    <th><%= pf.getI18nString("vacation.halfDayEnd") %></th>
-    <td><%= pf.getString(vacationInfo.halfDayEndFormatted) %></td>
-  </tr>
-  <tr>
-    <th><%= pf.getI18nString("vacation.replacement") %></th>
-    <td><%= pf.getString(vacationInfo.replacementFullname) %></td>
-    <th><%= pf.getI18nString("vacation.special") %></th>
-    <td><%= pf.getString(vacationInfo.vacationSpecialFormatted) %></td>
-  </tr>
-  <tr>
-    <th><%= pf.getI18nString("vacation.manager") %></th>
-    <td><%= pf.getString(vacationInfo.managerFullname) %></td>
-    <th><%= pf.getI18nString("vacation.status") %></th>
-    <td><%= pf.getString(vacation.status) %></td>
-  </tr>
-  <tr>
-    <th><%= pf.getI18nString("comment") %></th>
-    <td colspan="3"><%= pf.getString(vacation.comment) %></td>
-  </tr>
-</table>
+<div id="mail">
+  <div class="container">
+    <div class="content">
+      #INCLUDE{mail/mailOpening.html}
+      <p>
+        <%= pf.getString(mailInfo.action) %>
+        <%= pf.getString(mailInfo.reason) %>
+      </p>
+      <table>
+        <tr>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.vacationer") %></span>
+            <span class="value"><%= pf.getString(vacationInfo.employeeFullname) %></span>
+          </td>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.workingdays") %></span>
+            <span class="value"><%= pf.getString(vacationInfo.workingDaysFormatted) %></span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.startdate") %></span>
+            <span class="value"><%= pf.getString(vacationInfo.startDate) %></span>
+          </td>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.halfDayBegin") %></span>
+            <span class="value"><%= pf.getString(vacationInfo.halfDayBeginFormatted) %></span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.enddate") %></span>
+            <span class="value"><%= pf.getString(vacationInfo.endDate) %></span>
+          </td>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.halfDayEnd") %></span>
+            <span class="value"><%= pf.getString(vacationInfo.halfDayEndFormatted) %></span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.replacement") %></span>
+            <span class="value"><%= pf.getString(vacationInfo.replacementFullname) %></span>
+          </td>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.special") %></span>
+            <span class="value"><%= pf.getString(vacationInfo.vacationSpecialFormatted) %></span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.manager") %></span>
+            <span class="value"><%= pf.getString(vacationInfo.managerFullname) %></span>
+          </td>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.status") %></span>
+            <span class="value"><%= pf.getString(vacation.status) %></span>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <span class="title"><%= pf.getI18nString("comment") %></span>
+            <span class="value"><%= pf.getString(vacation.comment) %></span>
+          </td>
+        </tr>
+      </table>
+      <a
+              href="${vacationInfo.link}"
+              class="button"
+              target="_blank"
+              rel="noreferrer"
+      >
+        <%= pf.getI18nString("vacation.mail.link") %>
+      </a>
 
-#INCLUDE{mail/mailClosing.html}
-#INCLUDE{mail/mailFooter.html}
+      #INCLUDE{mail/mailClosing.html}
+      #INCLUDE{mail/mailFooter.html}
+    </div>
+  </div>
+</div>
 </body>
 </html>
