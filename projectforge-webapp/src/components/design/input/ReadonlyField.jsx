@@ -47,7 +47,20 @@ function ReadonlyField(
         <React.Fragment>
             <InputContainer
                 className={styles.readOnly}
-                label={label}
+                label={(
+                    <React.Fragment>
+                        {label}
+                        {tooltip && (
+                            <React.Fragment>
+                                <TooltipIcon />
+                                <UncontrolledTooltip placement="auto" target={id}>
+                                    {tooltip}
+                                </UncontrolledTooltip>
+                            </React.Fragment>
+                        )}
+                    </React.Fragment>
+                )}
+                id={id}
                 isActive
                 onClick={handleContainerClick}
                 readOnly
@@ -90,14 +103,6 @@ function ReadonlyField(
                     </span>
                     &nbsp;
                 </p>
-                {tooltip && (
-                    <React.Fragment>
-                        <TooltipIcon />
-                        <UncontrolledTooltip placement="auto" target={id}>
-                            {tooltip}
-                        </UncontrolledTooltip>
-                    </React.Fragment>
-                )}
             </InputContainer>
             <AdditionalLabel title={additionalLabel} />
         </React.Fragment>
