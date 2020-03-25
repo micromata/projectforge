@@ -178,10 +178,13 @@ open class VacationSendMailService {
         val modifiedByUserFullname = ThreadLocalUserContext.getUser().getFullname()
         val employeeUser = employeeDao.internalGetById(vacation.employee?.id)?.user
         var employeeFullname = employeeUser?.getFullname() ?: "unknown"
+        val employeeMail = employeeUser?.email
         val managerUser = employeeDao.internalGetById(vacation.manager?.id)?.user
         var managerFullname = managerUser?.getFullname() ?: "unknown"
+        val managerMail = managerUser?.email
         val replacementUser = employeeDao.internalGetById(vacation.replacement?.id)?.user
         var replacementFullname = replacementUser?.getFullname() ?: "unknown"
+        val replacementMail = replacementUser?.email
         val startDate = dateFormatter.getFormattedDate(vacation.startDate)
         val endDate = dateFormatter.getFormattedDate(vacation.endDate)
         lateinit var halfDayBeginFormatted: String
