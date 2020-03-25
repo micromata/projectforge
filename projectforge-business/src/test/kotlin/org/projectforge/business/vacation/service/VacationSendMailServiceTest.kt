@@ -85,7 +85,7 @@ class VacationSendMailServiceTest : AbstractTestBase() {
                                 }
                             }
                 }
-        println(assertMail(vacation, OperationType.UPDATE, VacationMode.MANAGER, manager.user!!).content)
+        // println(assertMail(vacation, OperationType.UPDATE, VacationMode.MANAGER, manager.user!!).content)
     }
 
     private fun assertMail(vacation: VacationDO, operationType: OperationType, vacationMode: VacationMode, receiver: PFUserDO): Mail {
