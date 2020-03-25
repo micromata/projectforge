@@ -25,22 +25,27 @@ package org.projectforge.rest
 
 import mu.KotlinLogging
 import org.projectforge.Const
+import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
 import org.projectforge.framework.time.DateTimeFormatter
+import org.projectforge.framework.time.TimeNotation
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -50,6 +55,9 @@ private val log = KotlinLogging.logger {}
 class MyAccountPageRest {
     @Autowired
     private lateinit var authenticationsService: UserAuthenticationsService
+
+    @Autowired
+    private lateinit var employeeService: EmployeeService
 
     @Autowired
     private lateinit var groupService: GroupService
@@ -67,8 +75,16 @@ class MyAccountPageRest {
             var stayLoggedInKey: String? = null,
             var groups: String? = null,
             var lastLogin: String? = null,
-            var locale: Locale? = null
-    )
+            var locale: Locale? = null,
+            var dateFormat: String? = null,
+            var excelDateFormat: String? = null,
+            var timeNotation: TimeNotation? = null,
+            var timeZone: TimeZone? = null,
+            var personalPhoneIdentifiers: String? = null,
+            var sshPublicKey: String? = null
+    ) {
+        val employee = Employee()
+    }
 
     @GetMapping("dynamic")
     fun getForm(): FormLayoutData {
@@ -86,14 +102,43 @@ class MyAccountPageRest {
         data.stayLoggedInKey = authenticationsService.getToken(userId, UserTokenType.STAY_LOGGED_IN_KEY)
         data.groups = groupService.getGroupnames(userId)
         data.locale = ThreadLocalUserContext.getLocale() ?: Locale("DEFAULT")
+        data.dateFormat = user.dateFormat
+        data.excelDateFormat = user.excelDateFormat
+        data.timeNotation = user.timeNotation
+        data.timeZone = user.timeZone
+        data.personalPhoneIdentifiers = user.personalPhoneIdentifiers
+        data.sshPublicKey = user.sshPublicKey
 
         data.lastLogin = DateTimeFormatter.instance().getFormattedDateTime(user.lastLogin)
+
+        val employee = employeeService.getEmployeeByUserId(userId)
+        data.employee.let {
+            it.street = employee.street
+            it.zipCode = employee.zipCode
+            it.country = employee.country
+            it.state = employee.state
+            it.birthday = employee.birthday
+            it.accountHolder = employee.accountHolder
+            it.iban = employee.iban
+            it.bic = employee.bic
+        }
 
         val locales = Const.LOCALIZATIONS.map { UISelectValue(Locale(it), translate("locale.$it")) }.toMutableList()
         locales.add(0, UISelectValue(Locale("DEFAULT"), translate("user.defaultLocale")))
 
-        layout.add(UIRow()
-                        .add(UIFieldset(UILength(lg = 6))
+        val today = LocalDate.now()
+        val formats = Configuration.getInstance().dateFormats
+        val dateFormats = formats.map { createUISelectValue(it, today) }.toMutableList()
+        val excelDateFormats = formats.map { createUISelectValue(it, today, true) }.toMutableList()
+
+        val timeNotations = listOf(
+                UISelectValue(TimeNotation.H12, translate("timeNotation.12")),
+                UISelectValue(TimeNotation.H24, translate("timeNotation.24"))
+        )
+
+        layout.add(UIFieldset(12)
+                .add(UIRow()
+                        .add(UICol(UILength(lg = 6))
                                 .add(UIReadOnlyField("username", userLC))
                                 .add(UIInput("firstname", userLC))
                                 .add(UIInput("lastname", userLC))
@@ -102,31 +147,72 @@ class MyAccountPageRest {
                                 .add(addAuthenticationToken(authenticationsLC, "davToken"))
                                 .add(addAuthenticationToken(authenticationsLC, "restClientToken"))
                         )
-                        .add(UIFieldset(UILength(lg = 6))
-                                .add(UIReadOnlyField("lastLogin", dataLC, label = "login.lastLogin"))
-                                .add(UISelect("locale", dataLC, label = "user.locale", required = true, values = locales))
-                        ))
-                .add(UIFieldset(12)
-                        .add(UIReadOnlyField("groups", dataLC, label = "user.assignedGroups"))
+                        .add(UICol(UILength(lg = 6))
+                                .add(UIReadOnlyField("lastLogin", userLC))
+                                .add(UISelect("locale", userLC, required = true, values = locales))
+                                .add(UISelect("dateFormat", userLC, required = false, values = dateFormats))
+                                .add(UISelect("excelDateFormat", userLC, required = false, values = excelDateFormats))
+                                .add(UISelect("timeNotation", userLC, required = false, values = timeNotations))
+                                .add(UIInput("timeZone", userLC))
+                                .add(UIInput("personalPhoneIdentifiers", userLC))
+                        )
                 )
+        )
+                .add(UIFieldset(12, "fibu.employee")
+                        .add(UIRow()
+                                .add(UICol(UILength(md = 4))
+                                        .add(UIInput("employee.street", dataLC, label = "fibu.employee.street"))
+                                        .add(UIInput("employee.zipCode", dataLC, label = "fibu.employee.zipCode"))
+                                        .add(UIInput("employee.city", dataLC, label = "fibu.employee.city"))
+                                )
+                                .add(UICol(UILength(md = 4))
+                                        .add(UIInput("employee.country", dataLC, label = "fibu.employee.country"))
+                                        .add(UIInput("employee.state", dataLC, label = "fibu.employee.state"))
+                                        .add(UIInput("employee.birthday", dataLC, label = "fibu.employee.birthday"))
+                                )
+                                .add(UICol(UILength(md = 4))
+                                        .add(UIInput("employee.accountHolder", dataLC, label = "fibu.employee.accountHolder"))
+                                        .add(UIInput("employee.iban", dataLC, label = "fibu.employee.iban"))
+                                        .add(UIInput("employee.bic", dataLC, label = "fibu.employee.bic"))
+                                )
+                        )
+                )
+                .add(UIFieldset(12)
+                        .add(UIReadOnlyField("groups", label = "user.assignedGroups"))
+                )
+                .add(UIFieldset(12)
+                        .add(UITextArea("sshPublicKey", userLC))
+                )
+        /*
+            teamCalCache.allFullAccessCalendars
+            val teamCalBlackListIds: Array<Int> = userXmlPreferencesDao
+                    .getDeserializedUserPreferencesByUserId(userId, TEAMCALRESTBLACKLIST, Array<Int>::class.java)
+            if (teamCalBlackListIds != null && teamCalBlackListIds.size > 0) {
+                Arrays.stream(teamCalBlackListIds).forEach { calId: Int? -> teamCalRestWhiteList.remove(teamCalCache.getCalendar(calId)) }
+            }
+            val calendars: org.wicketstuff.select2.Select2MultiChoice<TeamCalDO> = org.wicketstuff.select2.Select2MultiChoice(
+                    fieldSet.getSelect2MultiChoiceId(),
+                    org.apache.wicket.model.PropertyModel(this, "teamCalRestWhiteList"),
+                    TeamCalsProvider(teamCalCache, true))
+            calendars.setMarkupId("calenders").setOutputMarkupId(true)
+            fieldSet.add(calendars)
+            */
 
-        // Datumsformat
-        //Exceldatumsformat
-        //Uhrzeitformat
-        //Zeitzone
-        //Telefonkennungen
-        //MEB Mobilfunknummern
-
-        // Kalender Whitelist für Kalendersoftware
-
-        // Beschreibung
-        // SSH public key
         LayoutUtils.process(layout)
 
         // Passwort ändern
         //WLAN/Samba Passwort ändern
 
         return FormLayoutData(data, layout, null)
+    }
+
+    private fun createUISelectValue(pattern: String, today: LocalDate, excelDateFormat: Boolean = false): UISelectValue<String> {
+        val str = if (excelDateFormat) {
+            pattern.replace('Y', 'y').replace('D', 'd')
+        } else {
+            pattern
+        }
+        return UISelectValue(pattern, "$str: ${java.time.format.DateTimeFormatter.ofPattern(pattern).format(today)}")
     }
 
     private fun addAuthenticationToken(lc: LayoutContext, id: String): UIRow {
