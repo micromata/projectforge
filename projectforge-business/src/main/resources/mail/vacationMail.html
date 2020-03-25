@@ -12,8 +12,10 @@
       <table>
         <tr>
           <td>
-            <span class="title"><%= pf.getI18nString("vacation.vacationer") %></span>
-            <span class="value"><%= pf.getString(vacationInfo.employeeFullname) %></span>
+            <a href="mailto:${vacationInfo.employeeMail}">
+              <span class="title"><%= pf.getI18nString("vacation.vacationer") %></span>
+              <span class="value"><%= pf.getString(vacationInfo.employeeFullname) %></span>
+            </a>
           </td>
           <td>
             <span class="title"><%= pf.getI18nString("vacation.workingdays") %></span>
@@ -42,8 +44,10 @@
         </tr>
         <tr>
           <td>
-            <span class="title"><%= pf.getI18nString("vacation.replacement") %></span>
-            <span class="value"><%= pf.getString(vacationInfo.replacementFullname) %></span>
+            <a href="mailto:${vacationInfo.replacementMail}">
+              <span class="title"><%= pf.getI18nString("vacation.replacement") %></span>
+              <span class="value"><%= pf.getString(vacationInfo.replacementFullname) %></span>
+            </a>
           </td>
           <td>
             <span class="title"><%= pf.getI18nString("vacation.special") %></span>
@@ -52,8 +56,10 @@
         </tr>
         <tr>
           <td>
-            <span class="title"><%= pf.getI18nString("vacation.manager") %></span>
-            <span class="value"><%= pf.getString(vacationInfo.managerFullname) %></span>
+            <a href="mailto:${vacationInfo.managerMail}">
+              <span class="title"><%= pf.getI18nString("vacation.manager") %></span>
+              <span class="value"><%= pf.getString(vacationInfo.managerFullname) %></span>
+            </a>
           </td>
           <td>
             <span class="title"><%= pf.getI18nString("vacation.status") %></span>
