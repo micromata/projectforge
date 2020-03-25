@@ -25,6 +25,7 @@ package org.projectforge.rest
 
 import mu.KotlinLogging
 import org.projectforge.Const
+import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.UserAuthenticationsService
@@ -93,8 +94,9 @@ class MyAccountPageRest {
         val data = MyAccountData(user.username, user.firstname, user.lastname)
 
         val layout = UILayout("user.myAccount.title.edit")
-        val userLC = LayoutContext(PFUserDO::class.java)
         val dataLC = LayoutContext(MyAccountData::class.java)
+        val employeeLC = LayoutContext(EmployeeDO::class.java)
+        val userLC = LayoutContext(PFUserDO::class.java)
         val authenticationsLC = LayoutContext(UserAuthenticationsDO::class.java)
         data.calendarExportToken = authenticationsService.getToken(userId, UserTokenType.CALENDAR_REST)
         data.davToken = authenticationsService.getToken(userId, UserTokenType.DAV_TOKEN)
@@ -140,9 +142,8 @@ class MyAccountPageRest {
                 .add(UIRow()
                         .add(UICol(UILength(lg = 6))
                                 .add(UIReadOnlyField("username", userLC))
-                                .add(UIInput("firstname", userLC))
-                                .add(UIInput("lastname", userLC))
-                                .add(addAuthenticationToken(authenticationsLC, "stayLoggedInKey"))
+                                .add(userLC, "firstname", "lastname")
+                                .add(addAuthenticationToken(authenticationsLC, "stayLoggedInKey", "login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip"))
                                 .add(addAuthenticationToken(authenticationsLC, "calendarExportToken"))
                                 .add(addAuthenticationToken(authenticationsLC, "davToken"))
                                 .add(addAuthenticationToken(authenticationsLC, "restClientToken"))
@@ -153,28 +154,15 @@ class MyAccountPageRest {
                                 .add(UISelect("dateFormat", userLC, required = false, values = dateFormats))
                                 .add(UISelect("excelDateFormat", userLC, required = false, values = excelDateFormats))
                                 .add(UISelect("timeNotation", userLC, required = false, values = timeNotations))
-                                .add(UIInput("timeZone", userLC))
-                                .add(UIInput("personalPhoneIdentifiers", userLC))
+                                .add(userLC, "timeZone", "personalPhoneIdentifiers")
                         )
                 )
         )
                 .add(UIFieldset(12, "fibu.employee")
                         .add(UIRow()
-                                .add(UICol(UILength(md = 4))
-                                        .add(UIInput("employee.street", dataLC, label = "fibu.employee.street"))
-                                        .add(UIInput("employee.zipCode", dataLC, label = "fibu.employee.zipCode"))
-                                        .add(UIInput("employee.city", dataLC, label = "fibu.employee.city"))
-                                )
-                                .add(UICol(UILength(md = 4))
-                                        .add(UIInput("employee.country", dataLC, label = "fibu.employee.country"))
-                                        .add(UIInput("employee.state", dataLC, label = "fibu.employee.state"))
-                                        .add(UIInput("employee.birthday", dataLC, label = "fibu.employee.birthday"))
-                                )
-                                .add(UICol(UILength(md = 4))
-                                        .add(UIInput("employee.accountHolder", dataLC, label = "fibu.employee.accountHolder"))
-                                        .add(UIInput("employee.iban", dataLC, label = "fibu.employee.iban"))
-                                        .add(UIInput("employee.bic", dataLC, label = "fibu.employee.bic"))
-                                )
+                                .add(UICol(UILength(md = 4)).add(employeeLC, "employee.street", "employee.zipCode", "employee.city"))
+                                .add(UICol(UILength(md = 4)).add(employeeLC, "employee.country", "employee.state", "employee.birthday"))
+                                .add(UICol(UILength(md = 4)).add(employeeLC, "employee.accountHolder", "employee.iban", "employee.bic"))
                         )
                 )
                 .add(UIFieldset(12)
@@ -215,7 +203,7 @@ class MyAccountPageRest {
         return UISelectValue(pattern, "$str: ${java.time.format.DateTimeFormatter.ofPattern(pattern).format(today)}")
     }
 
-    private fun addAuthenticationToken(lc: LayoutContext, id: String): UIRow {
+    private fun addAuthenticationToken(lc: LayoutContext, id: String, tooltip: String? = null): UIRow {
         return UIRow()
                 .add(UICol(9)
                         .add(UIReadOnlyField(id, lc, canCopy = true, coverUp = true, ignoreTooltip = true))
@@ -223,11 +211,13 @@ class MyAccountPageRest {
                 .add(UICol(3)
                         .add(UIButton("renew",
                                 title = translate("user.authenticationToken.renew"),
+                                tooltip = tooltip ?: "user.authenticationToken.renew.tooltip",
                                 confirmMessage = translate("user.authenticationToken.renew.securityQuestion"),
                                 color = UIColor.DANGER,
                                 responseAction = ResponseAction("/rs/renew", targetType = TargetType.TOAST)))
                         .add(UIButton("usage",
                                 title = translate("user.authenticationToken.button.showUsage"),
+                                tooltip = "user.authenticationToken.button.showUsage.tooltip",
                                 color = UIColor.LINK,
                                 responseAction = ResponseAction("/rs/usage", targetType = TargetType.POST)))
                 )
