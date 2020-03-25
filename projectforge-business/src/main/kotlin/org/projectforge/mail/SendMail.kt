@@ -23,6 +23,7 @@
 package org.projectforge.mail
 
 import de.micromata.genome.util.validation.ValContext
+import mu.KotlinLogging
 import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.configuration.ConfigurationService
@@ -32,7 +33,6 @@ import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
@@ -50,6 +50,8 @@ import javax.mail.internet.MimeMessage
 import javax.mail.internet.MimeMultipart
 import javax.mail.util.ByteArrayDataSource
 
+private val log = KotlinLogging.logger {}
+
 /**
  * Helper class for creating and transporting E-Mails. Groovy script is use-able for e-mail template mechanism.
  *
@@ -58,10 +60,11 @@ import javax.mail.util.ByteArrayDataSource
 @Service
 class SendMail {
     @Autowired
-    private val configurationService: ConfigurationService? = null
+    private lateinit var configurationService: ConfigurationService
 
     @Autowired
-    private val domainService: DomainService? = null
+    private lateinit var domainService: DomainService
+
     private val random = Random()
 
     /**
@@ -75,12 +78,7 @@ class SendMail {
              attachments: Collection<MailAttachment>?): Boolean {
         return send(composedMessage, null, attachments, true)
     }
-    /**
-     * @param composedMessage the message to send
-     * @return true for successful sending, otherwise an exception will be thrown.
-     * @throws UserException          if to address is not given.
-     * @throws InternalErrorException due to technical failures.
-     */
+
     /**
      * @param composedMessage the message to send
      * @param icalContent     the ical content to add
@@ -101,7 +99,7 @@ class SendMail {
             log.error("No to address given. Sending of mail cancelled: $composedMessage")
             throw UserException("mail.error.missingToAddress")
         }
-        val cf = configurationService!!.createMailSessionLocalSettingsConfigModel()
+        val cf = configurationService.createMailSessionLocalSettingsConfigModel()
         if (cf == null || !cf.isEmailEnabled) {
             log.error("No e-mail host configured. E-Mail not sent: $composedMessage")
             return false
@@ -115,8 +113,8 @@ class SendMail {
     }
 
     private val session: Session
-        private get() {
-            val cf = configurationService!!.createMailSessionLocalSettingsConfigModel()
+        get() {
+            val cf = configurationService.createMailSessionLocalSettingsConfigModel()
             if (!cf.isEmailEnabled) {
                 log.error("Sending email is not enabled")
                 throw InternalErrorException("mail.error.exception")
@@ -156,7 +154,7 @@ class SendMail {
                         composedMessage.cc.toTypedArray())
             }
             val subject = composedMessage.subject
-            val sendMailConfig = configurationService!!.sendMailConfiguration
+            val sendMailConfig = configurationService.sendMailConfiguration
             message.setSubject(subject, sendMailConfig.charset)
             message.sentDate = Date()
             if (StringUtils.isBlank(icalContent) && attachments == null) {
@@ -245,35 +243,39 @@ class SendMail {
      * @param data
      * @see GroovyEngine.executeTemplateFile
      */
-    fun renderGroovyTemplate(composedMessage: Mail?, groovyTemplate: String,
-                             data: MutableMap<String?, Any?>,
-                             recipient: PFUserDO): String {
+    fun renderGroovyTemplate(composedMessage: Mail, groovyTemplate: String,
+                             data: MutableMap<String, Any>,
+                             title: String,
+                             recipient: PFUserDO?): String {
         val user = ThreadLocalUserContext.getUser()
         data["createdLabel"] = ThreadLocalUserContext.getLocalizedString("created")
         data["loggedInUser"] = user
-        data["recipient"] = recipient
+        data["title"] = title
+        recipient?.let { data["recipient"] = it }
         data["msg"] = composedMessage
         log.debug("groovyTemplate=$groovyTemplate")
-        val logoBasename = configurationService!!.logoBasename
-        // data.put("logoUrl", )
-        val engine = GroovyEngine(configurationService, data, recipient.locale,
-                recipient.timeZoneObject)
+        data.put("baseUrl", buildUrl(""))
+        if (configurationService.isLogoFileValid) {
+            val logoBasename = configurationService.logoBasename
+            data.put("logoUrl", buildUrl("rsPublic/$logoBasename"))
+        }
+        val engine = GroovyEngine(configurationService, data, recipient?.locale, recipient?.timeZoneObject)
         return engine.executeTemplateFile(groovyTemplate)
     }
 
     fun buildUrl(subPath: String?): String {
-        return ""
+        return "${domainService.domain}/$subPath"
     }
 
     companion object {
         private const val STANDARD_SUBJECT_PREFIX = "[ProjectForge] "
-        private val log = LoggerFactory.getLogger(SendMail::class.java)
 
         /**
          * Get the ProjectForge standard subject: "[ProjectForge] ..."
          *
          * @param subject
          */
+        @JvmStatic
         fun getProjectForgeSubject(subject: String): String {
             return STANDARD_SUBJECT_PREFIX + subject
         }

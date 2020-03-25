@@ -150,8 +150,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
   /**
    * Sends an e-mail to the projekt manager if exists and is not equals to the logged in user.
    */
-  public void sendNotification(final ToDoDO todo, final String requestUrl)
-  {
+  public void sendNotification(final ToDoDO todo, final String requestUrl) {
     if (!configurationService.isSendMailConfigured()) {
       // Can't send e-mail because no send mail is configured.
       return;
@@ -186,8 +185,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
   }
 
   private void sendNotification(final PFUserDO recipient, final ToDoDO toDo, final Map<String, Object> data,
-      final boolean checkAccess)
-  {
+                                final boolean checkAccess) {
     if (checkAccess && !hasUserSelectAccess(recipient, toDo, false)) {
       log.info("Recipient '"
               + recipient.getFullname()
@@ -209,15 +207,18 @@ public class ToDoDao extends BaseDao<ToDoDO> {
     subject.append(I18nHelper.getLocalizedMessage(locale, "plugins.todo.todo")).append(": ");
     subject.append(toDo.getSubject());
     msg.setProjectForgeSubject(subject.toString());
-    final String content = sendMail.renderGroovyTemplate(msg, "mail/todoChangeNotification.html", data, recipient);
+    final String content = sendMail.renderGroovyTemplate(msg,
+            "mail/todoChangeNotification.html",
+            data,
+            I18nHelper.getLocalizedMessage("plugins.todo.todo"),
+            recipient);
     msg.setContent(content);
     msg.setContentType(Mail.CONTENTTYPE_HTML);
     sendMail.send(msg, null, null);
   }
 
   @Override
-  protected void onSave(final ToDoDO obj)
-  {
+  protected void onSave(final ToDoDO obj) {
     if (!Objects.equals(ThreadLocalUserContext.getUserId(), obj.getAssigneeId())) {
       // To-do is changed by other user than assignee, so set recent flag for this to-do for the assignee.
       obj.setRecent(true);
@@ -225,8 +226,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
   }
 
   @Override
-  protected void onChange(final ToDoDO obj, final ToDoDO dbObj)
-  {
+  protected void onChange(final ToDoDO obj, final ToDoDO dbObj) {
     if (!Objects.equals(ThreadLocalUserContext.getUserId(), obj.getAssigneeId())) {
       // To-do is changed by other user than assignee, so set recent flag for this to-do for the assignee.
       final ToDoDO copyOfDBObj = new ToDoDO();

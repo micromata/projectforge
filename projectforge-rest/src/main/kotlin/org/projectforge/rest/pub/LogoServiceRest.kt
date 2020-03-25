@@ -75,7 +75,7 @@ class LogoServiceRest {
         }
         try {
             return FileUtils.readFileToByteArray(logoFile)
-        } catch(ex: IOException) {
+        } catch (ex: IOException) {
             log.error("Error while reading logo file '${CanonicalFileUtils.absolutePath(logoFile)}': ${ex.message}")
             throw ex
         }
@@ -87,16 +87,15 @@ class LogoServiceRest {
         private var _logoUrl: String? = null
         internal val logoUrl: String? // Rest url for downloading the logo if configured.
             get() {
+                val configurationService = ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
                 if (!logoUrlInitialized) {
-                    val configurationService = ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
-                    val configuredFile = configurationService.logoFile
-                    _logoUrl = createBaseUrl(configuredFile)
-                    if (!_logoUrl.isNullOrBlank() && !isLogoFileValid()) {
+                    val _logoUrl = configurationService.logoBasename
+                    if (!_logoUrl.isNullOrBlank() && !configurationService.isLogoFileValid) {
                         log.error("Logo file configured but not readable: '${CanonicalFileUtils.absolutePath(logoFile)}'.")
                     }
                     logoUrlInitialized = true
                 }
-                return if (isLogoFileValid()) _logoUrl else null
+                return if (configurationService.isLogoFileValid()) _logoUrl else null
             }
 
         private var logoFileInitialized = false
@@ -105,34 +104,10 @@ class LogoServiceRest {
             get() {
                 if (!logoFileInitialized) {
                     val configurationService = ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
-                    var filename: String? = configurationService.logoFile
-                    if (!filename.isNullOrBlank()) {
-                        if (!File(filename).isAbsolute()) {
-                            filename = configurationService.getResourceDir() + "/images/" + filename
-                        }
-                        val file = File(filename)
-                        _logoFile = file
-                    }
+                    _logoFile = configurationService.logoFileObject
                     logoFileInitialized = true
                 }
                 return _logoFile
             }
-
-        private fun isLogoFileValid() : Boolean {
-            val file = logoFile
-            return file != null && file.canRead() && file.isFile
-        }
-
-        fun createBaseUrl(logoPath: String?): String? {
-            return if (logoPath.isNullOrBlank()) {
-                null
-            } else if (logoPath.endsWith(".png")) {
-                "logo.png"
-            } else if (logoPath.endsWith(".jpg") || logoPath.endsWith(".jpeg")) {
-                "logo.jpg"
-            } else {
-                "logo.gif"
-            }
-        }
     }
 }

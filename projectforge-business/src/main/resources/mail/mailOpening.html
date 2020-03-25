@@ -1,13 +1,6 @@
-<a
-        href="https://projectforge.micromata.de/react/calendar"
-        target="_blank"
-        rel="noreferrer"
->
-    <img
-            src="http://localhost:8080/rsPublic/logo.png"
-            class="logo"
-            alt="Logo"
-    >
-</a>
-<!--<h1 class="title">???Mail Title???</h1>-->
+<% if (pf.isVariableGiven("logoUrl")) { %>
+<a href="<%= pf.getString(baseUrl) %>" target="_blank" rel="noreferrer">
+    <img src="<%= pf.getString(logoUrl) %>" class="logo" alt="Logo">
+</a> <% } %>
+<h1 class="title"><%= pf.getString(title) %></h1>
 <p><%= pf.getMessage("mail.template.opening", recipient.fullname) %></p>

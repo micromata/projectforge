@@ -32,6 +32,7 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.OperationType;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.MessageParam;
 import org.projectforge.framework.i18n.MessageParamType;
 import org.projectforge.framework.i18n.UserException;
@@ -596,7 +597,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     }
     msg.setProjectForgeSubject(subject);
     data.put("subject", subject);
-    final String content = sendMail.renderGroovyTemplate(msg, "mail/orderChangeNotification.html", data, contactPerson);
+    final String content = sendMail.renderGroovyTemplate(msg, "mail/orderChangeNotification.html", data, I18nHelper.getLocalizedMessage("fibu.auftrag"), contactPerson);
     msg.setContent(content);
     msg.setContentType(Mail.CONTENTTYPE_HTML);
     return sendMail.send(msg, null, null);
