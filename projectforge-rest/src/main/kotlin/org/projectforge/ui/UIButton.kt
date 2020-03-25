@@ -39,5 +39,6 @@ data class UIButton(val id: String,
                     /**
                      * If given the frontend should display a confirmation dialog containing this message.
                      */
+                    var tooltip: String? = null,
                     val confirmMessage: String? = null)
     : UIElement(UIElementType.BUTTON)

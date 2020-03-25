@@ -241,6 +241,9 @@ class LayoutUtils {
                                 it.title = translate(i18nKey)
                             }
                         }
+                        val tooltip = getLabelTransformation(it.tooltip)
+                        if (tooltip != null) it.tooltip = tooltip
+
                     }
                     is UIList -> {
                         // Translate position label
