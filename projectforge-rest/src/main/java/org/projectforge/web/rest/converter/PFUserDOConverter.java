@@ -62,7 +62,7 @@ public class PFUserDOConverter
     user.setFirstName(userDO.getFirstname());
     user.setLastName(userDO.getLastname());
     user.setEmail(userDO.getEmail());
-    TimeZone timeZone = userDO.getTimeZoneObject();
+    TimeZone timeZone = userDO.getTimeZone();
     if (timeZone == null) {
       timeZone = Configuration.getInstance().getDefaultTimeZone();
     }

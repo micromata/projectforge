@@ -90,7 +90,7 @@ public class SystemService {
             ThreadLocalUserContext.getUser().getLocale() :
             ThreadLocalUserContext.getLocale();
     TimeZone timeZone = ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getTimeZone() != null ?
-            TimeZone.getTimeZone(ThreadLocalUserContext.getUser().getTimeZone()) :
+            TimeZone.getTimeZone(ThreadLocalUserContext.getUser().getTimeZoneString()) :
             ThreadLocalUserContext.getTimeZone();
     VersionCheck versionCheck = new VersionCheck(AppVersion.VERSION.toString(), locale, timeZone);
     try {

@@ -40,9 +40,9 @@ import java.util.TimeZone;
 /**
  * Text field contains a ajax autocompletion text field for choosing and displaying a time zone. The time zones of all
  * users will be shown as favorite list.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TimeZoneField extends PFAutoCompleteTextField<TimeZone>
 {
@@ -70,7 +70,7 @@ public class TimeZoneField extends PFAutoCompleteTextField<TimeZone>
     timeZones = getAsTimeZoneObjects(availableTimeZones);
     final List<String> favoritesIds = new ArrayList<String>();
     for (final PFUserDO user : TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().getAllUsers()) {
-      final String timeZone = user.getTimeZone();
+      final String timeZone = user.getTimeZoneString();
       if (timeZone == null) {
         continue;
       }

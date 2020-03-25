@@ -335,7 +335,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     // Time zone
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("timezone"));
     final TimeZoneField timeZone = new TimeZoneField(fs.getTextFieldId(),
-            new PropertyModel<TimeZone>(user, "timeZoneObject"));
+            new PropertyModel<TimeZone>(user, "timeZone"));
     fs.addKeyboardHelpIcon(gridBuilder.getString("tooltip.autocomplete.timeZone"));
     fs.add(timeZone);
   }

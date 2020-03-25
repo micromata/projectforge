@@ -270,7 +270,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
         get() {
             val user = this.creator ?: return DateHelper.UTC
 
-            return user.timeZoneObject
+            return user.timeZone
         }
 
     /**
