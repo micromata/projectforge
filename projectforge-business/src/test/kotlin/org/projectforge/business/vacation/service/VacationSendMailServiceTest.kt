@@ -111,9 +111,6 @@ class VacationSendMailServiceTest : AbstractTestBase() {
                 i18n("vacation.mail.modType.${operationType.name.toLowerCase()}"))
         Assertions.assertEquals(i18n("vacation.mail.action.short", *i18nArgs), mail.subject)
         assertContent(mail, "${vacation.id}")
-        assertContent(mail, i18n("vacation.mail.action", *i18nArgs, vacationInfo.modifiedByUserFullname))
-        assertContent(mail, i18n("vacation.mail.reason.${vacationMode.name.toLowerCase()}", vacationer.getFullname()))
-
         assertContent(mail, vacationer.getFullname())
         assertContent(mail, manager.getFullname())
         assertContent(mail, replacement.getFullname())
