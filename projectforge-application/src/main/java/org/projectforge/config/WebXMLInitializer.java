@@ -33,6 +33,7 @@ import org.projectforge.rest.config.CORSFilter;
 import org.projectforge.rest.config.Rest;
 import org.projectforge.rest.config.RestUtils;
 import org.projectforge.security.SecurityHeaderFilter;
+import org.projectforge.web.OrphanedLinkFilter;
 import org.projectforge.web.debug.SessionSerializableChecker;
 import org.projectforge.web.doc.TutorialFilter;
 import org.projectforge.web.filter.ResponseHeaderFilter;
@@ -73,6 +74,11 @@ public class WebXMLInitializer implements ServletContextInitializer {
     final FilterRegistration securityHeaderFilter = sc.addFilter("SecurityHeaderFilter", SecurityHeaderFilter.class);
     securityHeaderFilter.addMappingForUrlPatterns(null, false, "/*");
     securityHeaderFilter.setInitParameter(SecurityHeaderFilter.PARAM_CSP_HEADER_VALUE, cspHeaderValue);
+
+    /*
+     * Redirect orphaned links from former versions of ProjectForge (e. g. if link in e-mails were changed due to migrations or refactoring.
+     */
+    sc.addFilter("redirectOrphanedLinks", new OrphanedLinkFilter()).addMappingForUrlPatterns(null, false, "/*");
 
     pfMiltonInit.init(sc);
 

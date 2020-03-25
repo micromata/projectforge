@@ -31,6 +31,7 @@ import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationMode
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -173,7 +174,7 @@ open class VacationSendMailService {
     }
 
     internal class VacationInfo(sendMail: SendMail, employeeDao: EmployeeDao, val vacation: VacationDO) {
-        val link = sendMail.buildUrl("$vacationEditPagePath/${vacation.id}")
+        val link = getLinkToVacationEntry(vacation.id)
         val modifiedByUserFullname = ThreadLocalUserContext.getUser().getFullname()
         val employeeUser = employeeDao.internalGetById(vacation.employee?.id)?.user
         var employeeFullname = employeeUser?.getFullname() ?: "unknown"
@@ -218,6 +219,21 @@ open class VacationSendMailService {
     private class MailInfo(val subject: String, val reason: String, val action: String)
 
     companion object {
+        private var _linkToVacationEntry: String? = null
+        private val linkToVacationEntry: String
+            get() {
+                if (_linkToVacationEntry == null) {
+                    val sendMail = ApplicationContextProvider.getApplicationContext().getBean(SendMail::class.java)
+                    _linkToVacationEntry = sendMail.buildUrl("$vacationEditPagePath/")
+                }
+                return _linkToVacationEntry!!
+            }
+        fun getLinkToVacationEntry(id: String) : String {
+            return "$linkToVacationEntry$id?returnToCaller=account"
+        }
+        fun getLinkToVacationEntry(id: Int) : String {
+            return getLinkToVacationEntry(id.toString())
+        }
         private val vacationEditPagePath = "${MenuItemDefId.VACATION.url}/edit"
         private val dateFormatter = DateTimeFormatter.instance()
         private var _defaultLocale: Locale? = null
