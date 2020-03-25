@@ -6,8 +6,8 @@
     <div class="content">
       #INCLUDE{mail/mailOpening.html}
       <p>
-        <%= pf.getString(mailInfo.action) %>
-        <%= pf.getString(mailInfo.reason) %>
+        <%= pf.getMessage("vacation.mail.action", vacationInfo.formatEmployee(), "<b>${vacationInfo.periodText}</b>", mailInfo.operation, vacationInfo.formatModifiedByUser()) %>
+        <%= pf.getMessage("vacation.mail.reason.${mailInfo.mode}", vacationInfo.formatEmployee()) %>
       </p>
       <table>
         <tr>
