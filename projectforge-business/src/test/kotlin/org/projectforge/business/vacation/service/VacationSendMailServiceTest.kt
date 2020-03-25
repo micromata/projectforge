@@ -41,6 +41,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.mail.Mail
+import org.projectforge.mail.SendMail
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
@@ -54,6 +55,9 @@ class VacationSendMailServiceTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var employeeService: EmployeeService
+
+    @Autowired
+    private lateinit var sendMail: SendMail
 
     @Autowired
     private lateinit var userDao: UserDao
@@ -81,7 +85,7 @@ class VacationSendMailServiceTest : AbstractTestBase() {
                                 }
                             }
                 }
-        //println(assertMail(vacation, OperationType.UPDATE, VacationMode.MANAGER, manager.user!!)!!.content)
+        println(assertMail(vacation, OperationType.UPDATE, VacationMode.MANAGER, manager.user!!).content)
     }
 
     private fun assertMail(vacation: VacationDO, operationType: OperationType, vacationMode: VacationMode, receiver: PFUserDO): Mail {
@@ -101,7 +105,7 @@ class VacationSendMailServiceTest : AbstractTestBase() {
             Assertions.assertEquals(0, mail.cc.size)
         }
 
-        val vacationInfo = VacationSendMailService.VacationInfo(domainService, employeeDao, vacation)
+        val vacationInfo = VacationSendMailService.VacationInfo(sendMail, employeeDao, vacation)
         val i18nArgs = arrayOf(vacationer.getFullname(),
                 vacationInfo.periodText,
                 i18n("vacation.mail.modType.${operationType.name.toLowerCase()}"))
@@ -114,8 +118,9 @@ class VacationSendMailServiceTest : AbstractTestBase() {
         assertContent(mail, manager.getFullname())
         assertContent(mail, replacement.getFullname())
         assertContent(mail, vacation.comment)
+        assertContent(mail, translate("vacation"))
 
-        Assertions.assertFalse(mail.content.contains("???"))
+        Assertions.assertFalse(mail.content.contains("???"), "Unexpected content '???' in mail content: ${mail.content}")
         arrayOf(0, 1, 2, 3).forEach {
             Assertions.assertFalse(mail.content.contains("{$it}"), "At least one message param was not replaced in i18n message ('{$it}'): ${mail.content}")
         }

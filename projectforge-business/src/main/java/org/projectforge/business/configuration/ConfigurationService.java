@@ -34,6 +34,7 @@ import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.mail.SendMailConfig;
 
 import javax.net.ssl.SSLSocketFactory;
+import java.io.File;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
@@ -63,8 +64,6 @@ public interface ConfigurationService {
   boolean isSecurityConfigured();
 
   SecurityConfig getSecurityConfig();
-
-  String getLogoFile();
 
   String getCurrencySymbol();
 
@@ -159,4 +158,15 @@ public interface ConfigurationService {
   boolean isDAVServicesAvailable();
 
   void setDAVServicesAvailable(boolean dAVServicesAvailable);
+
+  boolean isLogoFileValid();
+
+  /**
+   * @return logo.png, logo.gif or logo.jpg (dependent on configured filename) or null, if no valid logo file was defined.
+   */
+  String getLogoBasename();
+
+  String getLogoFile();
+
+  File getLogoFileObject();
 }

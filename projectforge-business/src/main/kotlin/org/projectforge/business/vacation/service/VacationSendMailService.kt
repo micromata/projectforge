@@ -25,15 +25,13 @@ package org.projectforge.business.vacation.service
 
 import mu.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
-import org.projectforge.business.configuration.DomainService
+import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationMode
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.I18nHelper
-import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateTimeFormatter
@@ -42,6 +40,7 @@ import org.projectforge.mail.SendMail
 import org.projectforge.menu.builder.MenuItemDefId
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -56,16 +55,13 @@ open class VacationSendMailService {
     private lateinit var configurationService: ConfigurationService
 
     @Autowired
-    private lateinit var domainService: DomainService
-
-    @Autowired
     private lateinit var employeeDao: EmployeeDao
 
     @Autowired
     private lateinit var vacationService: VacationService
 
     @Autowired
-    private lateinit var sendMailService: SendMail
+    private lateinit var sendMail: SendMail
 
     /**
      * Analyzes the changes of the given vacation. If necessary, e-mails will be send to the involved
@@ -79,7 +75,7 @@ open class VacationSendMailService {
             log.info { "Mail server is not configured. No e-mail notification is sent." }
             return
         }
-        val vacationInfo = VacationInfo(domainService, employeeDao, obj)
+        val vacationInfo = VacationInfo(sendMail, employeeDao, obj)
         if (!vacationInfo.valid) {
             return
         }
@@ -109,7 +105,7 @@ open class VacationSendMailService {
     private fun sendMail(vacationInfo: VacationInfo, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?, dbObj: VacationDO? = null,
                          mailTo: String? = null) {
         val mail = prepareMail(vacationInfo, operationType, vacationMode, recipient, dbObj, mailTo) ?: return
-        sendMailService.send(mail)
+        sendMail.send(mail)
     }
 
     /**
@@ -122,7 +118,7 @@ open class VacationSendMailService {
      */
     internal fun prepareMail(obj: VacationDO, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?, dbObj: VacationDO? = null,
                              mailTo: String? = null): Mail? {
-        val vacationInfo = VacationInfo(domainService, employeeDao, obj)
+        val vacationInfo = VacationInfo(sendMail, employeeDao, obj)
         return prepareMail(vacationInfo, operationType, vacationMode, recipient, dbObj, mailTo)
     }
 
@@ -139,15 +135,16 @@ open class VacationSendMailService {
         if (!vacationInfo.valid) {
             return null
         }
+        vacationInfo.updateI18n(recipient)
         val vacationer = vacationInfo.employeeUser!!
         val obj = vacationInfo.vacation
 
         val i18nArgs = arrayOf(vacationInfo.employeeFullname,
                 vacationInfo.periodText,
-                translate("vacation.mail.modType.${operationType.name.toLowerCase()}"))
-        val subject = translateMsg("vacation.mail.action.short", *i18nArgs)
-        val action: String = translateMsg("vacation.mail.action", *i18nArgs, vacationInfo.modifiedByUserFullname)
-        val reason: String = translateMsg("vacation.mail.reason.${vacationMode.name.toLowerCase()}", vacationInfo.employeeFullname)
+                translate(recipient, "vacation.mail.modType.${operationType.name.toLowerCase()}"))
+        val subject = translate(recipient, "vacation.mail.action.short", *i18nArgs)
+        val action: String = translate(recipient, "vacation.mail.action", *i18nArgs, vacationInfo.modifiedByUserFullname)
+        val reason: String = translate(recipient, "vacation.mail.reason.${vacationMode.name.toLowerCase()}", vacationInfo.employeeFullname)
         val mailInfo = MailInfo(subject, reason, action)
         val mail = Mail()
         mail.subject = subject
@@ -171,28 +168,40 @@ open class VacationSendMailService {
             return null
         }
         val data = mutableMapOf<String, Any>("vacationInfo" to vacationInfo, "vacation" to obj, "mailInfo" to mailInfo)
-        mail.content = sendMailService.renderGroovyTemplate(mail, "mail/vacationMail.html", data, recipient)
+        mail.content = sendMail.renderGroovyTemplate(mail, "mail/vacationMail.html", data, translate(recipient, "vacation"), recipient)
         return mail
     }
 
-    internal class VacationInfo(domainService: DomainService, employeeDao: EmployeeDao, val vacation: VacationDO) {
-        val link = "${domainService.domain}/$vacationEditPagePath/${vacation.id}"
+    internal class VacationInfo(sendMail: SendMail, employeeDao: EmployeeDao, val vacation: VacationDO) {
+        val link = sendMail.buildUrl("$vacationEditPagePath/${vacation.id}")
         val modifiedByUserFullname = ThreadLocalUserContext.getUser().getFullname()
         val employeeUser = employeeDao.internalGetById(vacation.employee?.id)?.user
-        val employeeFullname = employeeUser?.getFullname() ?: translate("unknown")
+        var employeeFullname = employeeUser?.getFullname() ?: "unknown"
         val managerUser = employeeDao.internalGetById(vacation.manager?.id)?.user
-        val managerFullname = managerUser?.getFullname() ?: translate("unknown")
+        var managerFullname = managerUser?.getFullname() ?: "unknown"
         val replacementUser = employeeDao.internalGetById(vacation.replacement?.id)?.user
-        val replacementFullname = replacementUser?.getFullname() ?: translate("unknown")
+        var replacementFullname = replacementUser?.getFullname() ?: "unknown"
         val startDate = dateFormatter.getFormattedDate(vacation.startDate)
         val endDate = dateFormatter.getFormattedDate(vacation.endDate)
-        val halfDayBeginFormatted = translate(vacation.halfDayBegin)
-        val halfDayEndFormatted = translate(vacation.halfDayEnd)
-        val vacationSpecialFormatted = translate(vacation.special)
+        lateinit var halfDayBeginFormatted: String
+        lateinit var halfDayEndFormatted: String
+        lateinit var vacationSpecialFormatted: String
         val workingDays = VacationService.getVacationDays(vacation)
         val workingDaysFormatted = VacationStats.format(workingDays)
         val periodText = I18nHelper.getLocalizedMessage("vacation.mail.period", startDate, endDate, workingDaysFormatted)
         var valid: Boolean = true
+
+        /**
+         * E-Mail be be sent to recipients with different locales.
+         */
+        fun updateI18n(recipient: PFUserDO?) {
+            employeeFullname = employeeUser?.getFullname() ?: translate(recipient, "unknown")
+            managerFullname = managerUser?.getFullname() ?: translate(recipient, "unknown")
+            replacementFullname = replacementUser?.getFullname() ?: translate(recipient, "unknown")
+            halfDayBeginFormatted = translate(recipient, vacation.halfDayBegin)
+            halfDayEndFormatted = translate(recipient, vacation.halfDayEnd)
+            vacationSpecialFormatted = translate(recipient, vacation.special)
+        }
 
         init {
             if (employeeUser == null) {
@@ -211,5 +220,22 @@ open class VacationSendMailService {
     companion object {
         private val vacationEditPagePath = "${MenuItemDefId.VACATION.url}/edit"
         private val dateFormatter = DateTimeFormatter.instance()
+        private var _defaultLocale: Locale? = null
+        private val defaultLocale: Locale
+            get() {
+                if (_defaultLocale == null) {
+                    _defaultLocale = ConfigurationServiceAccessor.get().defaultLocale ?: Locale.getDefault()
+                }
+                return _defaultLocale!!
+            }
+
+        private fun translate(recipient: PFUserDO?, i18nKey: String, vararg params: Any): String {
+            val locale = recipient?.locale ?: defaultLocale
+            return I18nHelper.getLocalizedMessage(locale, i18nKey, *params)
+        }
+
+        private fun translate(recipient: PFUserDO?, value: Boolean?): String {
+            return translate(recipient, if (value == true) "yes" else "no")
+        }
     }
 }
