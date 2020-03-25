@@ -28,9 +28,11 @@ import org.projectforge.Const
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.login.Login
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -38,16 +40,19 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.TimeNotation
+import org.projectforge.menu.MenuItem
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.util.*
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -66,7 +71,11 @@ class MyAccountPageRest {
     @Autowired
     private lateinit var userDao: UserDao
 
+    @Autowired
+    private lateinit var userService: UserService
+
     class MyAccountData(
+            var userId: Int? = null,
             var username: String? = null,
             var firstname: String? = null,
             var lastname: String? = null,
@@ -87,14 +96,48 @@ class MyAccountPageRest {
         val employee = Employee()
     }
 
+    @PostMapping
+    fun save(request: HttpServletRequest,
+             response: HttpServletResponse,
+             @RequestBody postData: PostData<MyAccountData>)
+            : ResponseAction {
+        val data = postData.data
+        check(ThreadLocalUserContext.getUserId() == data.userId) { "Oups, MyAccountEditPage is called with another than the logged in user!" }
+        val user = userDao.internalGetById(data.userId)
+        user.firstname = data.firstname ?: user.firstname
+        user.lastname = data.lastname ?: user.lastname
+        user.locale = data.locale ?: user.locale
+        user.dateFormat = data.dateFormat
+        user.excelDateFormat = data.excelDateFormat
+        user.timeNotation = data.timeNotation ?: user.timeNotation
+        user.timeZone = data.timeZone ?: user.timeZone
+        user.personalPhoneIdentifiers = userService.getNormalizedPersonalPhoneIdentifiers(data.personalPhoneIdentifiers)
+        userService.updateMyAccount(user)
+        val employee = data.employee
+        if (employee != null) {
+            val employeeDO = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId())
+            check(employeeDO?.userId == data.userId) { "Oups, MyAccountEditPage is called with another employee than the logged in employee!" }
+            val employeeId = employeeDO.id
+            employeeService.updateAttribute(employeeId, employee.iban, "iban")
+            employeeService.updateAttribute(employeeId, employee.bic, "bic")
+            employeeService.updateAttribute(employeeId, employee.accountHolder, "accountHolder")
+            employeeService.updateAttribute(employeeId, employee.street, "street")
+            employeeService.updateAttribute(employeeId, employee.state, "state")
+            employeeService.updateAttribute(employeeId, employee.city, "city")
+            employeeService.updateAttribute(employeeId, employee.zipCode, "zipCode")
+            employeeService.updateAttribute(employeeId, employee.country, "country")
+            employeeService.updateAttribute(employeeId, employee.birthday, "birthday")
+        }
+        return ResponseAction("/${Const.REACT_APP_PATH}calendar")
+    }
+
     @GetMapping("dynamic")
     fun getForm(): FormLayoutData {
         val userId = ThreadLocalUserContext.getUserId()
         val user = userDao.getById(userId)
-        val data = MyAccountData(user.username, user.firstname, user.lastname)
+        val data = MyAccountData(userId, user.username, user.firstname, user.lastname)
 
         val layout = UILayout("user.myAccount.title.edit")
-        val dataLC = LayoutContext(MyAccountData::class.java)
         val employeeLC = LayoutContext(EmployeeDO::class.java)
         val userLC = LayoutContext(PFUserDO::class.java)
         val authenticationsLC = LayoutContext(UserAuthenticationsDO::class.java)
@@ -139,14 +182,17 @@ class MyAccountPageRest {
         )
 
         layout.add(UIFieldset(12)
+                .add(UILabel("'TODO Fin: Update button should send PostData.data, Context menu (React), Tooltip buttons (React), Label Readonly field at top (React), Kai: actions for buttons, time zone field, save button."))
                 .add(UIRow()
                         .add(UICol(UILength(lg = 6))
                                 .add(UIReadOnlyField("username", userLC))
                                 .add(userLC, "firstname", "lastname")
-                                .add(addAuthenticationToken(authenticationsLC, "stayLoggedInKey", "login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip"))
-                                .add(addAuthenticationToken(authenticationsLC, "calendarExportToken"))
-                                .add(addAuthenticationToken(authenticationsLC, "davToken"))
-                                .add(addAuthenticationToken(authenticationsLC, "restClientToken"))
+                                .add(addAuthenticationToken(authenticationsLC, "stayLoggedInKey",
+                                        UserTokenType.STAY_LOGGED_IN_KEY,
+                                        "login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip"))
+                                .add(addAuthenticationToken(authenticationsLC, "calendarExportToken", UserTokenType.CALENDAR_REST))
+                                .add(addAuthenticationToken(authenticationsLC, "davToken", UserTokenType.DAV_TOKEN))
+                                .add(addAuthenticationToken(authenticationsLC, "restClientToken", UserTokenType.REST_CLIENT))
                         )
                         .add(UICol(UILength(lg = 6))
                                 .add(UIReadOnlyField("lastLogin", userLC))
@@ -171,6 +217,13 @@ class MyAccountPageRest {
                 .add(UIFieldset(12)
                         .add(UITextArea("sshPublicKey", userLC))
                 )
+                .add(UIButton("update",
+                        translate("update"),
+                        UIColor.SUCCESS,
+                        responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
+                        default = true)
+                )
+
         /*
             teamCalCache.allFullAccessCalendars
             val teamCalBlackListIds: Array<Int> = userXmlPreferencesDao
@@ -186,10 +239,12 @@ class MyAccountPageRest {
             fieldSet.add(calendars)
             */
 
-        LayoutUtils.process(layout)
+        layout.add(MenuItem("changePassword", i18nKey = "menu.changePassword", url = "wa/changePassword"))
+        if (Login.getInstance().isWlanPasswordChangeSupported(user)) {
+            layout.add(MenuItem("changeWlanPassword", i18nKey = "menu.changeWlanPassword", url = "wa/wicket/bookmarkable/org.projectforge.web.user.ChangeWlanPasswordPage"))
+        }
 
-        // Passwort ändern
-        //WLAN/Samba Passwort ändern
+        LayoutUtils.process(layout)
 
         return FormLayoutData(data, layout, null)
     }
@@ -203,7 +258,7 @@ class MyAccountPageRest {
         return UISelectValue(pattern, "$str: ${java.time.format.DateTimeFormatter.ofPattern(pattern).format(today)}")
     }
 
-    private fun addAuthenticationToken(lc: LayoutContext, id: String, tooltip: String? = null): UIRow {
+    private fun addAuthenticationToken(lc: LayoutContext, id: String, token: UserTokenType, tooltip: String? = null): UIRow {
         return UIRow()
                 .add(UICol(9)
                         .add(UIReadOnlyField(id, lc, canCopy = true, coverUp = true, ignoreTooltip = true))
@@ -214,7 +269,7 @@ class MyAccountPageRest {
                                 tooltip = tooltip ?: "user.authenticationToken.renew.tooltip",
                                 confirmMessage = translate("user.authenticationToken.renew.securityQuestion"),
                                 color = UIColor.DANGER,
-                                responseAction = ResponseAction("/rs/renew", targetType = TargetType.TOAST)))
+                                responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.TOAST)))
                         .add(UIButton("usage",
                                 title = translate("user.authenticationToken.button.showUsage"),
                                 tooltip = "user.authenticationToken.button.showUsage.tooltip",
