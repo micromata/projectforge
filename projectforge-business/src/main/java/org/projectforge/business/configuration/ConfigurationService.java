@@ -162,9 +162,10 @@ public interface ConfigurationService {
   boolean isLogoFileValid();
 
   /**
+   * Transforms the logo file name to a synthetic filename usable for e. g. rest calls: "micromata.png" -> "logon.png".
    * @return logo.png, logo.gif or logo.jpg (dependent on configured filename) or null, if no valid logo file was defined.
    */
-  String getLogoBasename();
+  String getSyntheticLogoName();
 
   String getLogoFile();
 

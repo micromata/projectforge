@@ -256,7 +256,7 @@ class SendMail {
         log.debug("groovyTemplate=$groovyTemplate")
         data.put("baseUrl", buildUrl(""))
         if (configurationService.isLogoFileValid) {
-            val logoBasename = configurationService.logoBasename
+            val logoBasename = configurationService.syntheticLogoName
             data.put("logoUrl", buildUrl("rsPublic/$logoBasename"))
         }
         val engine = GroovyEngine(configurationService, data, recipient?.locale, recipient?.timeZoneObject)
