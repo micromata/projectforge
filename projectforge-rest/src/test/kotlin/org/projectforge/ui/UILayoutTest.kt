@@ -137,26 +137,14 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals("TABLE_COLUMN", jsonValidator.get("layout[0].columns[1].type"))
         assertEquals("el-3", jsonValidator.get("layout[0].columns[1].key"))
 
-        assertEquals(1, jsonValidator.getList("namedContainers")?.size)
-        assertEquals("filterOptions", jsonValidator.get("namedContainers[0].id"))
-        assertEquals("NAMED_CONTAINER", jsonValidator.get("namedContainers[0].type"))
-        assertEquals("nc-1", jsonValidator.get("namedContainers[0].key"))
-
-        assertEquals(1, jsonValidator.getList("namedContainers[0].content")?.size)
-
-        assertEquals(1, jsonValidator.getList("namedContainers[0].content[0].content")?.size)
-
-        assertEquals("deleted", jsonValidator.get("namedContainers[0].content[0].content[0].id"))
-        assertEquals(translate("onlyDeleted.tooltip"), jsonValidator.get("namedContainers[0].content[0].content[0].tooltip"))
-
         assertEquals(2, jsonValidator.getList("actions")?.size)
         assertEquals("reset", jsonValidator.get("actions[0].id"))
         assertEquals(translate("reset"), jsonValidator.get("actions[0].title"))
-        assertEquals("SECONDARY", jsonValidator.get("actions[0].color")) // Gson doesn't know JsonProperty of Jacskon (DANGER -> danger.)
+        assertEquals("SECONDARY", jsonValidator.get("actions[0].color")) // Gson doesn't know JsonProperty of Jackson (DANGER -> danger.)
         assertEquals("BUTTON", jsonValidator.get("actions[0].type"))
-        assertEquals("el-11", jsonValidator.get("actions[0].key"))
+        assertEquals("el-9", jsonValidator.get("actions[0].key"))
 
-        assertEquals("PRIMARY", jsonValidator.get("actions[1].color")) // Gson doesn't know JsonProperty of Jacskon.
+        assertEquals("PRIMARY", jsonValidator.get("actions[1].color")) // Gson doesn't know JsonProperty of Jackson.
     }
 
     private fun assertField(element: Map<String, *>?, id: String, maxLength: Double, dataType: String?, label: String, type: String, key: String) {
