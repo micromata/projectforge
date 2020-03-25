@@ -20,6 +20,7 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.mail
 
 import de.micromata.genome.util.validation.ValContext
