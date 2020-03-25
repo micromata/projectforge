@@ -182,7 +182,7 @@ class MyAccountPageRest {
         )
 
         layout.add(UIFieldset(12)
-                .add(UILabel("'TODO Fin: Update button should send PostData.data, Context menu (React), Tooltip buttons (React), Label Readonly field at top (React), Kai: actions for buttons, time zone field, save button."))
+                .add(UILabel("'TODO Fin: Update button should send PostData.data, MA-Daten lassen sich nicht editieren, Context menu (React), Tooltip buttons (React), Label Readonly field at top (React), Kai: actions for buttons, time zone field, save button."))
                 .add(UIRow()
                         .add(UICol(UILength(lg = 6))
                                 .add(UIReadOnlyField("username", userLC))
