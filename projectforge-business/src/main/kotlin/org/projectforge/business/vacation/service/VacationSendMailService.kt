@@ -144,9 +144,9 @@ open class VacationSendMailService {
                 vacationInfo.periodText,
                 translate(recipient, "vacation.mail.modType.${operationType.name.toLowerCase()}"))
         val subject = translate(recipient, "vacation.mail.action.short", *i18nArgs)
-        val action: String = translate(recipient, "vacation.mail.action", *i18nArgs, vacationInfo.modifiedByUserFullname)
-        val reason: String = translate(recipient, "vacation.mail.reason.${vacationMode.name.toLowerCase()}", vacationInfo.employeeFullname)
-        val mailInfo = MailInfo(subject, reason, action)
+        val operation = translate(recipient, "vacation.mail.modType.${operationType.name.toLowerCase()}")
+        val mode = vacationMode.name.toLowerCase()
+        val mailInfo = MailInfo(subject, operation, mode)
         val mail = Mail()
         mail.subject = subject
         mail.contentType = Mail.CONTENTTYPE_HTML
@@ -168,14 +168,16 @@ open class VacationSendMailService {
             log.error { "Oups, whether recipient nor VacationMode.HR is given to prepare mail. No notification is done." }
             return null
         }
-        val data = mutableMapOf<String, Any>("vacationInfo" to vacationInfo, "vacation" to obj, "mailInfo" to mailInfo)
+        val data = mutableMapOf("vacationInfo" to vacationInfo, "vacation" to obj, "mailInfo" to mailInfo)
         mail.content = sendMail.renderGroovyTemplate(mail, "mail/vacationMail.html", data, translate(recipient, "vacation"), recipient)
         return mail
     }
 
     internal class VacationInfo(sendMail: SendMail, employeeDao: EmployeeDao, val vacation: VacationDO) {
         val link = getLinkToVacationEntry(vacation.id)
-        val modifiedByUserFullname = ThreadLocalUserContext.getUser().getFullname()
+        val modifiedByUser = ThreadLocalUserContext.getUser()
+        val modifiedByUserFullname = modifiedByUser.getFullname()
+        val modifiedByUserMail = modifiedByUser.email
         val employeeUser = employeeDao.internalGetById(vacation.employee?.id)?.user
         var employeeFullname = employeeUser?.getFullname() ?: "unknown"
         val employeeMail = employeeUser?.email
@@ -217,9 +219,33 @@ open class VacationSendMailService {
                 valid = false
             }
         }
+
+        fun formatModifiedByUser(): String {
+            return formatUserWithMail(this.modifiedByUserFullname, this.modifiedByUserMail)
+        }
+
+        fun formatEmployee(): String {
+            return formatUserWithMail(this.employeeFullname, this.employeeMail)
+        }
+
+        fun formatManager(): String {
+            return formatUserWithMail(this.managerFullname, this.managerMail)
+        }
+
+        fun formatReplacement(): String {
+            return formatUserWithMail(this.replacementFullname, this.replacementMail)
+        }
+
+        fun formatUserWithMail(name: String, mail: String? = null): String {
+            if (mail == null) {
+                return name
+            }
+
+            return "<a href=\"mailto:${mail}\">${name}</a>"
+        }
     }
 
-    private class MailInfo(val subject: String, val reason: String, val action: String)
+    private class MailInfo(val subject: String, val operation: String, val mode: String)
 
     companion object {
         private var _linkToVacationEntry: String? = null
