@@ -148,12 +148,12 @@ public class ThreadLocalUserContext {
   /**
    * @return The timeZone of the user if exists, otherwise default timezone of the Configuration
    * @see #getUser()
-   * @see PFUserDO#getTimeZoneObject()
+   * @see PFUserDO#getTimeZone()
    * @see Configuration#getDefaultTimeZone()
    */
   public static TimeZone getTimeZone() {
     if (getUser() != null) {
-      return getUser().getTimeZoneObject();
+      return getUser().getTimeZone();
     }
     if (Configuration.getInstance() != null) {
       return Configuration.getInstance().getDefaultTimeZone();
@@ -164,7 +164,7 @@ public class ThreadLocalUserContext {
   /**
    * @return The timeZone of the user if exists, otherwise default timezone of the Configuration
    * @see #getUser()
-   * @see PFUserDO#getTimeZoneObject()
+   * @see PFUserDO#getTimeZone()
    * @see Configuration#getDefaultTimeZone()
    */
   public static ZoneId getZoneId() {

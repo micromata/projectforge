@@ -62,7 +62,7 @@ class UtilDateConverterTest {
         @BeforeAll
         @JvmStatic
         fun setup() {
-            TestSetup.init().setTimeZone(PFDateTimeUtils.TIMEZONE_UTC)
+            TestSetup.init().timeZone = PFDateTimeUtils.TIMEZONE_UTC
         }
     }
 }

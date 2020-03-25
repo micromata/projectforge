@@ -184,6 +184,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column
     open var loginFailures: Int = 0
 
+    @PropertyInfo(i18nKey = "user.locale")
     @get:Column
     open var locale: Locale? = null
 
@@ -191,44 +192,36 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
      * Ensures time zone. If no time zone is given for the user, the configured default time zone is returned.
      * @see Configuration.getDefaultTimeZone
      */
-    @PropertyInfo(i18nKey = "timezone")
-    private var _timeZoneObject: TimeZone? = null
+    private var _timeZone: TimeZone? = null
 
-    val timeZoneObject: TimeZone
-        @Transient
-        get() =
-            _timeZoneObject ?: Configuration.getInstance().defaultTimeZone
+    @get:PropertyInfo(i18nKey = "timezone")
+    @get:Transient
+    var timeZone: TimeZone
+        get() = _timeZone ?: Configuration.getInstance().defaultTimeZone
+        set(value) {
+            _timeZone = value
+        }
 
     /**
      * For example "Europe/Berlin" if time zone is given otherwise empty string.
      */
-    @Column(name = "time_zone")
-    open fun getTimeZone(): String? {
-        return _timeZoneObject?.id
-    }
-
-    open fun setTimeZone(timeZoneId: String?) {
-        if (!timeZoneId.isNullOrBlank()) {
-            _timeZoneObject = TimeZone.getTimeZone(timeZoneId)
-        } else {
-            _timeZoneObject = null
+    @get:Column(name = "time_zone")
+    var timeZoneString: String?
+        get() = _timeZone?.id
+        set(value) {
+            if (!value.isNullOrBlank()) {
+                _timeZone = TimeZone.getTimeZone(value)
+            } else {
+                _timeZone = null
+            }
         }
-    }
-
-    fun setTimeZone(timeZone: TimeZone?) {
-        setTimeZoneObject(timeZone)
-    }
-
-    fun setTimeZoneObject(timeZone: TimeZone?) {
-        _timeZoneObject = timeZone
-    }
 
     /**
      * For example "Europe/Berlin" if time zone is given otherwise empty string.
      */
     val timeZoneDisplayName: String
         @Transient
-        get() = timeZoneObject.displayName
+        get() = timeZone.displayName
 
     val dateTimeZone: PFDateTime
         @Transient
@@ -250,7 +243,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
      *  * dd/MM/yyyy: 21/02/2011, British and French format (day of month first)
      *  * MM/dd/yyyy: 02/21/2011, American format (month first)
      */
-    @PropertyInfo(i18nKey = "dateformat")
+    @PropertyInfo(i18nKey = "dateFormat")
     @get:Column(name = "date_format", length = 20)
     open var dateFormat: String? = null
 
@@ -261,7 +254,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
      *  * DD/MM/YYYY: 21/02/2011, British and French format (day of month first)
      *  * MM/DD/YYYY: 02/21/2011, American format (month first)
      */
-    @PropertyInfo(i18nKey = "dateformat.xls")
+    @PropertyInfo(i18nKey = "dateFormat.xls")
     @get:Column(name = "excel_date_format", length = 20)
     open var excelDateFormat: String? = null
 
@@ -292,7 +285,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
      * Eine kommaseparierte Liste mit den Kennungen des/der Telefon(e) des Mitarbeiters an der unterstützten
      * Telefonanlage,  zur Direktwahl aus ProjectForge heraus.
      */
-    @PropertyInfo(i18nKey = "user.personalPhoneIdentifiers")
+    @PropertyInfo(i18nKey = "user.personalPhoneIdentifiers", tooltip = "user.personalPhoneIdentifiers.tooltip.content")
     @get:Column(name = "personal_phone_identifiers", length = 255)
     open var personalPhoneIdentifiers: String? = null
 
@@ -510,6 +503,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
         const val FIND_BY_USERNAME = "PFUserDO_FindByUsername"
 
         const val SELECT_ID_MEB_MOBILE_NUMBERS = "PFUserDO_SelectIdMebMobilenumbers"
+
         /**
          * For detecting the existing of given username in the database for other user than given. Avoids duplicate usernames.
          */

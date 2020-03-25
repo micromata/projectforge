@@ -190,7 +190,7 @@ public class MySession extends WebSession {
 
   public synchronized TimeZone getTimeZone() {
     final PFUserDO user = getUser();
-    return user != null ? user.getTimeZoneObject() : Configuration.getInstance().getDefaultTimeZone();
+    return user != null ? user.getTimeZone() : Configuration.getInstance().getDefaultTimeZone();
   }
 
   public String getUserAgent() {

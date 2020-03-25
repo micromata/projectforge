@@ -294,7 +294,7 @@ public class SendMail {
       data.put("logoUrl", buildUrl("rsPublic/" + logoBasename));
     }
     final GroovyEngine engine = new GroovyEngine(configurationService, data, recipient.getLocale(),
-            recipient.getTimeZoneObject());
+            recipient.getTimeZone());
     return engine.executeTemplateFile(groovyTemplate);
   }
 
