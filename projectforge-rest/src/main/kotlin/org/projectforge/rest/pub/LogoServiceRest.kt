@@ -89,13 +89,13 @@ class LogoServiceRest {
             get() {
                 val configurationService = ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
                 if (!logoUrlInitialized) {
-                    val _logoUrl = configurationService.logoBasename
+                    _logoUrl = configurationService.syntheticLogoName
                     if (!_logoUrl.isNullOrBlank() && !configurationService.isLogoFileValid) {
                         log.error("Logo file configured but not readable: '${CanonicalFileUtils.absolutePath(logoFile)}'.")
                     }
                     logoUrlInitialized = true
                 }
-                return if (configurationService.isLogoFileValid()) _logoUrl else null
+                return if (configurationService.isLogoFileValid) _logoUrl else null
             }
 
         private var logoFileInitialized = false

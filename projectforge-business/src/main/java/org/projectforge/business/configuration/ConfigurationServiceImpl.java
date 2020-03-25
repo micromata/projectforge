@@ -709,7 +709,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @Override
-  public String getLogoBasename() {
+  public String getSyntheticLogoName() {
     final String logoFile = getLogoFile();
     if (StringUtils.isBlank(logoFile)) {
       return null;
