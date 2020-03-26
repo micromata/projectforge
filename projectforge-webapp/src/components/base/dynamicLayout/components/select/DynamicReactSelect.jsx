@@ -21,7 +21,11 @@ export const extractDataValue = (
         // For react-select it seems to be important, that the current selected element matches
         // its value of the values list.
         const valueOfArray = (typeof dataValue === 'object') ? dataValue[valueProperty] : dataValue;
-        dataValue = values.find(it => it[valueProperty] === valueOfArray);
+        const value = values.find(it => it[valueProperty] === valueOfArray);
+
+        if (value) {
+            dataValue = value;
+        }
     }
 
     if (typeof dataValue === 'string') {
