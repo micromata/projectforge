@@ -96,9 +96,32 @@
             width: 100%;
         }
 
+        tr.even {
+            background-color: #eee;
+        }
+
         td {
             padding-top: .25em;
+        }
+
+        tr th {
+            padding-top: 1.5em;
+        }
+
+        tr:first-child th {
+            padding-top: 0;
+        }
+
+        td, th {
+            text-align: left;
+        }
+
+        table.width-2 td {
             width: 50%;
+        }
+
+        table.width-3 td {
+            width: 33%;
         }
 
         td span.title {
@@ -112,6 +135,15 @@
             display: block;
             color: #111;
             font-weight: 400;
+        }
+
+        .no-wrap {
+            white-space: nowrap;
+        }
+
+        h3 {
+            margin-bottom: 0;
+            text-align: left;
         }
     </style>
 </head>
