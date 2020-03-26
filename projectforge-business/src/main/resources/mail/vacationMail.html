@@ -9,7 +9,7 @@
         <%= pf.getMessage("vacation.mail.action", vacationInfo.formatEmployee(), "<b>${vacationInfo.periodText}</b>", mailInfo.operation, vacationInfo.formatModifiedByUser()) %>
         <%= pf.getMessage("vacation.mail.reason.${mailInfo.mode}", vacationInfo.formatEmployee()) %>
       </p>
-      <table>
+      <table class="width-2">
         <tr>
           <td>
             <a href="mailto:${vacationInfo.employeeMail}">
