@@ -23,9 +23,13 @@
 
 package org.projectforge.rest
 
+import org.projectforge.Const
 import org.projectforge.business.user.UserDao
+import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.TimeNotation
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.User
@@ -33,6 +37,8 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
+import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 
@@ -80,9 +86,8 @@ class UserPagesRest
                                 .add(lc, "username", "firstname", "lastname", "organization", "email",
                                         /*"authenticationToken",*/
                                         "jiraUsername", "hrPlanning", "deactivated"/*, "password"*/))
-                        .add(UICol()
-                                .add(lc, /*"lastLogin", "language", */ "dateformat", "dateformat.xls", "timeNotation",
-                                        "_timeZoneObject", "personalPhoneIdentifiers", "sshPublicKey")))
+                        .add(createUserSettingsCol(UILength(1)))
+                        .add(UICol().add(lc, "sshPublicKey")))
                 /*.add(UISelect<Int>("readonlyAccessUsers", lc,
                         multi = true,
                         label = "user.assignedGroups",
@@ -111,5 +116,40 @@ class UserPagesRest
             return list.filter { !it.deactivated } // Remove deactivated users when returning all.
         }
         return list
+    }
+
+    companion object {
+        internal fun createUserSettingsCol(uiLength: UILength): UICol {
+            val userLC = LayoutContext(PFUserDO::class.java)
+
+            val locales = Const.LOCALIZATIONS.map { UISelectValue(Locale(it), translate("locale.$it")) }.toMutableList()
+            locales.add(0, UISelectValue(Locale("DEFAULT"), translate("user.defaultLocale")))
+
+            val today = LocalDate.now()
+            val formats = Configuration.getInstance().dateFormats
+            val dateFormats = formats.map { createUISelectValue(it, today) }.toMutableList()
+            val excelDateFormats = formats.map { createUISelectValue(it, today, true) }.toMutableList()
+
+            val timeNotations = listOf(
+                    UISelectValue(TimeNotation.H12, translate("timeNotation.12")),
+                    UISelectValue(TimeNotation.H24, translate("timeNotation.24"))
+            )
+
+            return UICol().add(UIReadOnlyField("lastLogin", userLC))
+                    .add(userLC, "timeZone", "personalPhoneIdentifiers")
+                    .add(UISelect("locale", userLC, required = true, values = locales))
+                    .add(UISelect("dateFormat", userLC, required = false, values = dateFormats))
+                    .add(UISelect("excelDateFormat", userLC, required = false, values = excelDateFormats))
+                    .add(UISelect("timeNotation", userLC, required = false, values = timeNotations))
+        }
+
+        private fun createUISelectValue(pattern: String, today: LocalDate, excelDateFormat: Boolean = false): UISelectValue<String> {
+            val str = if (excelDateFormat) {
+                pattern.replace('y', 'Y').replace('d', 'D')
+            } else {
+                pattern
+            }
+            return UISelectValue(str, "$str: ${java.time.format.DateTimeFormatter.ofPattern(pattern).format(today)}")
+        }
     }
 }

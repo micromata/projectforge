@@ -23,6 +23,7 @@
 
 package org.projectforge.business.user
 
+import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -32,6 +33,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import javax.servlet.http.HttpServletRequest
+
+private val log = KotlinLogging.logger {}
 
 private const val USER_PREF_AREA_ACCESS_LOG_ENTRIES = "Authentication.accessLog"
 
@@ -168,7 +171,4 @@ open class UserAuthenticationsService {
     open fun encrypt(type: UserTokenType, data: String): String? {
         return encrypt(ThreadLocalUserContext.getUserId(), type, data)
     }
-
-    private val log = LoggerFactory.getLogger(UserAuthenticationsService::class.java)
-
 }
