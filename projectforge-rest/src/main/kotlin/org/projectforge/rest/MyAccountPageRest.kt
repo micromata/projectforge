@@ -33,7 +33,6 @@ import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.service.UserService
-import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -49,7 +48,6 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
-import java.time.LocalDate
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -206,6 +204,7 @@ class MyAccountPageRest {
             layout.add(MenuItem("changeWlanPassword", i18nKey = "menu.changeWlanPassword", url = "wa/wicket/bookmarkable/org.projectforge.web.user.ChangeWlanPasswordPage"))
         }
 
+        layout.addTranslations("cancel", "yes")
         LayoutUtils.process(layout)
 
         return FormLayoutData(data, layout, null)
