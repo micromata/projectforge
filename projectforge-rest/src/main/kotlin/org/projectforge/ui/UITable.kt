@@ -44,7 +44,7 @@ data class UITable(val id : String, val columns : MutableList<UITableColumn> = m
             val elementInfo = ElementsRegistry.getElementInfo(lc, it)
             if (elementInfo != null) {
                 col.title = elementInfo.i18nKey
-                col.dataType = UIDataTypeUtils.getDataType(elementInfo)
+                col.dataType = UIDataTypeUtils.ensureDataType(elementInfo)
             }
             if (!lc.idPrefix.isNullOrBlank())
                 col.id = "${lc.idPrefix}${col.id}"
