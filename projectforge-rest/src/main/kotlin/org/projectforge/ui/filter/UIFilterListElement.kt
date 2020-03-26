@@ -36,6 +36,10 @@ open class UIFilterListElement(
         label: String? = null,
         additionalLabel: String? = null,
         tooltip: String? = null,
+        /**
+         * If true, multi values may selectable, otherwise only one value is selectable (DropDownChoice).
+         */
+        var multi: Boolean? = true,
         defaultFilter: Boolean? = null)
     : UIFilterElement(id, FilterType.LIST, label = label, additionalLabel = additionalLabel, tooltip = tooltip, defaultFilter = defaultFilter) {
 
