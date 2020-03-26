@@ -44,6 +44,7 @@ import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Vacation
 import org.projectforge.ui.*
+import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
@@ -149,6 +150,8 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
         elements.add(UIFilterListElement("assignment", label = translate("vacation.vacationmode"), defaultFilter = true)
                 .buildValues(VacationMode.OWN, VacationMode.REPLACEMENT, VacationMode.MANAGER, VacationMode.OTHER))
         elements.add(UIFilterElement("year", label = translate("calendar.year"), defaultFilter = true))
+        elements.add(UIFilterBooleanElement("special", label = translate("vacation.special")))
+        elements.add(UIFilterElement("period", label = translate("timePeriod"), filterType = UIFilterElement.FilterType.DATE))
     }
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<VacationDO>>? {
