@@ -122,20 +122,22 @@ class UILayoutTest : AbstractTestBase() {
 
         assertEquals(7, jsonValidator.getList("layout[0].columns")?.size)
 
-        assertEquals("created", jsonValidator.get("layout[0].columns[0].id"))
-        assertEquals(translate("created"), jsonValidator.get("layout[0].columns[0].title"))
-        assertEquals("DATE", jsonValidator.get("layout[0].columns[0].dataType"))
-        assertEquals(true, jsonValidator.getBoolean("layout[0].columns[0].sortable"))
-        assertEquals("TABLE_COLUMN", jsonValidator.get("layout[0].columns[0].type"))
-        assertEquals("el-2", jsonValidator.get("layout[0].columns[0].key"))
+        var idx = findIndexed(jsonValidator, "created","layout[0].columns[#idx#].id")
+        assertEquals("created", jsonValidator.get("layout[0].columns[$idx].id"))
+        assertEquals(translate("created"), jsonValidator.get("layout[0].columns[$idx].title"))
+        assertEquals("TIMESTAMP", jsonValidator.get("layout[0].columns[$idx].dataType"))
+        assertEquals(true, jsonValidator.getBoolean("layout[0].columns[$idx].sortable"))
+        assertEquals("TABLE_COLUMN", jsonValidator.get("layout[0].columns[$idx].type"))
+        assertEquals("el-2", jsonValidator.get("layout[0].columns[$idx].key"))
 
-        assertEquals("yearOfPublishing", jsonValidator.get("layout[0].columns[1].id"))
-        assertEquals(translate("book.yearOfPublishing"), jsonValidator.get("layout[0].columns[1].title"))
-        assertEquals("STRING", jsonValidator.get("layout[0].columns[1].dataType"))
-        assertEquals(true, jsonValidator.getBoolean("layout[0].columns[1].sortable"))
+        idx = findIndexed(jsonValidator, "yearOfPublishing", "layout[0].columns[#idx#].id")
+        assertEquals("yearOfPublishing", jsonValidator.get("layout[0].columns[$idx].id"))
+        assertEquals(translate("book.yearOfPublishing"), jsonValidator.get("layout[0].columns[$idx].title"))
+        assertEquals("STRING", jsonValidator.get("layout[0].columns[$idx].dataType"))
+        assertEquals(true, jsonValidator.getBoolean("layout[0].columns[$idx].sortable"))
         assertNull(jsonValidator.get("layout[0].columns[1].formatter"))
-        assertEquals("TABLE_COLUMN", jsonValidator.get("layout[0].columns[1].type"))
-        assertEquals("el-3", jsonValidator.get("layout[0].columns[1].key"))
+        assertEquals("TABLE_COLUMN", jsonValidator.get("layout[0].columns[$idx].type"))
+        assertEquals("el-3", jsonValidator.get("layout[0].columns[$idx].key"))
 
         assertEquals(2, jsonValidator.getList("actions")?.size)
         assertEquals("reset", jsonValidator.get("actions[0].id"))
@@ -145,6 +147,15 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals("el-9", jsonValidator.get("actions[0].key"))
 
         assertEquals("PRIMARY", jsonValidator.get("actions[1].color")) // Gson doesn't know JsonProperty of Jackson.
+    }
+
+    private fun findIndexed(jsonValidator: JsonValidator, field: String, path: String): Int {
+        for (i in 0..10) {
+            if (jsonValidator.get(path.replace("#idx#", "$i")) == field) {
+                return i
+            }
+        }
+        org.junit.jupiter.api.fail("Indexed element '$field' not found in path '$path'.")
     }
 
     private fun assertField(element: Map<String, *>?, id: String, maxLength: Double, dataType: String?, label: String, type: String, key: String) {
