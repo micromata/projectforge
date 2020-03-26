@@ -104,6 +104,7 @@ function MagicFilterPill(
                 <div className={styles.content}>
                     <MagicInput
                         label={label}
+                        filterType={filterType}
                         id={id}
                         onChange={setTempValue}
                         onSubmit={handleSave}

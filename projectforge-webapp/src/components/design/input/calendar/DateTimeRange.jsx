@@ -15,6 +15,7 @@ function DateTimeRange(
     {
         firstDayOfWeek,
         from,
+        hideTimeInput,
         id,
         locale,
         onChange,
@@ -191,7 +192,7 @@ function DateTimeRange(
 
     return (
         <Row>
-            {selectors.includes('UNTIL_NOW') && (
+            {selectors && selectors.includes('UNTIL_NOW') && (
                 <Col sm={3}>
                     <ul className={style.quickSelectors}>
                         {quickSelectors.map(selector => (
@@ -218,6 +219,7 @@ function DateTimeRange(
                         <TimeRange
                             from={from}
                             hideDayPicker
+                            hideTimeInput={hideTimeInput}
                             id={`date-time-range-${id}`}
                             label={getTranslation('date.begin', translations)}
                             onDelete={() => onChange({})}
@@ -237,7 +239,7 @@ function DateTimeRange(
                         start: from,
                         end: to,
                     }}
-                    showWeekNumbers={selectors.includes('WEEK')}
+                    showWeekNumbers={selectors && selectors.includes('WEEK')}
                     numberOfMonths={2}
                     onCaptionClick={handleMonthClick}
                     onDayClick={handleDayClick}
@@ -256,6 +258,7 @@ function DateTimeRange(
 DateTimeRange.propTypes = {
     onChange: PropTypes.func.isRequired,
     id: PropTypes.string.isRequired,
+    hideTimeInput: PropTypes.bool,
     firstDayOfWeek: PropTypes.number,
     from: PropTypes.instanceOf(Date),
     locale: PropTypes.string,
@@ -268,6 +271,7 @@ DateTimeRange.propTypes = {
 };
 
 DateTimeRange.defaultProps = {
+    hideTimeInput: false,
     firstDayOfWeek: 1,
     from: undefined,
     locale: 'en',

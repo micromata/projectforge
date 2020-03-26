@@ -6,6 +6,7 @@ import FormattedTimeRange
 
 function MagicTimeStampInput(
     {
+        filterType,
         id,
         onChange,
         selectors,
@@ -45,6 +46,7 @@ function MagicTimeStampInput(
     return (
         <div style={{ width: 700 }}>
             <DateTimeRange
+                hideTimeInput={filterType === 'DATE'}
                 id={id}
                 onChange={onChange}
                 {...value}
@@ -63,17 +65,19 @@ const dateType = PropTypes.oneOfType([
 ]);
 
 MagicTimeStampInput.propTypes = {
+    filterType: PropTypes.oneOf(['TIME_STAMP', 'DATE']).isRequired,
     id: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
-    selectors: PropTypes.arrayOf(PropTypes.string).isRequired,
     value: PropTypes.shape({
         from: dateType,
         to: dateType,
     }).isRequired,
+    selectors: PropTypes.arrayOf(PropTypes.string),
     translations: PropTypes.shape({}),
 };
 
 MagicTimeStampInput.defaultProps = {
+    selectors: undefined,
     translations: {},
 };
 

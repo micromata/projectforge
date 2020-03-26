@@ -41,6 +41,7 @@ function FormattedTimeRange(
                 date={from}
                 onClick={handleFromClick}
             />
+            -
             <FormattedDateTime
                 slot="TO"
                 date={to}
