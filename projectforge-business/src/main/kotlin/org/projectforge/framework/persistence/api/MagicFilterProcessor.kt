@@ -59,7 +59,9 @@ object MagicFilterProcessor {
                 // Full text search (no field given).
                 queryFilter.addFullTextSearch(magicFilterEntry.value.value)
             } else if (magicFilterEntry.field == "pageSize") {
-                queryFilter.maxRows = NumberHelper.parseInteger(magicFilterEntry.value.value) ?: magicFilter.maxRows
+                val values = magicFilterEntry.value.values
+                val pageSize = if (!values.isNullOrEmpty()) NumberHelper.parseInteger(values[0]) else NumberHelper.parseInteger("${magicFilterEntry.value}")
+                queryFilter.maxRows = pageSize ?: magicFilter.maxRows
             } else {
                 // Field search.
                 createFieldSearchEntry(entityClass, queryFilter, magicFilterEntry, magicFilter.autoWildcardSearch)
