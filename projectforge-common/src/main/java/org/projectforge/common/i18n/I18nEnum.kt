@@ -21,21 +21,23 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.common.i18n;
+package org.projectforge.common.i18n
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public interface I18nEnum {
-  String getI18nKey();
+interface I18nEnum {
+    val i18nKey: String?
 
-  /**
-   * Used for accessing i18n keys through reflection.
-   * @param clazz The class name of the I18nEnum (e. g. org.projectforge.business.books.BookStatus)
-   * @param value The value to set (e. g. 'MISSED').
-   */
-  @SuppressWarnings("unchecked")
-  static Enum<? extends I18nEnum> create(Class clazz, String value) {
-    return Enum.valueOf((Class<Enum>) clazz, value);
-  }
+    companion object {
+        /**
+         * Used for accessing i18n keys through reflection.
+         * @param clazz The class name of the I18nEnum (e. g. org.projectforge.business.books.BookStatus)
+         * @param value The value to set (e. g. 'MISSED').
+         */
+        fun create(clazz: Class<*>, value: String?): Enum<*>? {
+            value ?: return null
+            return clazz.enumConstants.first { it.toString() == value } as? Enum<*>
+        }
+    }
 }

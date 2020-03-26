@@ -21,32 +21,29 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api;
+package org.projectforge.framework.persistence.api
 
-import org.projectforge.common.i18n.I18nEnum;
+import org.projectforge.common.i18n.I18nEnum
 
 /**
  * An User right.
- * 
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-public interface IUserRightId extends I18nEnum
-{
-  /**
-   * ID of the right
-   * 
-   * @return
-   */
-  String getId();
+interface IUserRightId : I18nEnum {
+    /**
+     * ID of the right
+     *
+     * @return
+     */
+    val id: String?
 
-  /**
-   * how to order.
-   * 
-   * @return
-   */
-  String getOrderString();
+    /**
+     * how to order.
+     *
+     * @return
+     */
+    val orderString: String?
 
-  int compareTo(IUserRightId o);
-
+    operator fun compareTo(o: IUserRightId?): Int
 }
