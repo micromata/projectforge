@@ -30,6 +30,7 @@ import org.projectforge.common.i18n.I18nEnum
  */
 enum class VacationMode(val key: String) : I18nEnum {
     OWN("own"), REPLACEMENT("replacement"), MANAGER("manager"), OTHER("other"),
+
     /**
      * Not for filtering, only used by [org.projectforge.business.vacation.service.VacationSendMailService].
      */
@@ -40,12 +41,6 @@ enum class VacationMode(val key: String) : I18nEnum {
      *
      * @return
      */
-
-    /**
-     * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
-     */
-    override fun getI18nKey(): String {
-        return "vacation.$key"
-    }
-
+    override val i18nKey: String
+        get() = "vacation.$key"
 }

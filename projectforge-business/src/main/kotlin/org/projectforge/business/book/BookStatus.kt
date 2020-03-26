@@ -34,10 +34,12 @@ enum class BookStatus(
      * Book is present at the office ore lend out is known.
      */
     PRESENT("present"),
+
     /**
      * Book not found (especially after an inventory).
      */
     MISSED("missed"),
+
     /**
      * Book is disposed.
      */
@@ -47,7 +49,6 @@ enum class BookStatus(
     /**
      * @return The full i18n key including the i18n prefix "book.status.".
      */
-    override fun getI18nKey(): String {
-        return "book.status.$key"
-    }
+    override val i18nKey: String
+        get() = "book.status.$key"
 }
