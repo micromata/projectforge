@@ -11,6 +11,7 @@ const useMagicInput = (type) => {
             return MagicStringInput;
         case 'LIST':
             return MagicSelectInput;
+        case 'DATE':
         case 'TIME_STAMP':
             return MagicTimeStampInput;
         case 'OBJECT':
