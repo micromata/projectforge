@@ -57,10 +57,10 @@ class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) 
         if (!value.values.isNullOrEmpty()) {
             jgen.writeArrayFieldStart("values")
             value.values?.forEach {
-                if (it.value != null) {
+                if (it.id != null) {
                     jgen.writeStartObject()
-                    JacksonUtils.writeField(jgen, value.valueProperty, it.value) // Custom serialization needed.
-                    jgen.writeStringField(value.labelProperty, it.label)         // Custom serialization needed.
+                    JacksonUtils.writeField(jgen, value.valueProperty, it.id) // Custom serialization needed.
+                    jgen.writeStringField(value.labelProperty, it.displayName)         // Custom serialization needed.
                     jgen.writeEndObject()
                 }
             }

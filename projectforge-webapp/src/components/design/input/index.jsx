@@ -73,10 +73,7 @@ const Input = React.forwardRef((
             className={classNames(
                 styles.inputField,
                 className,
-                {
-                    [styles.noLabel]: !label,
-                    [styles.noStyle]: noStyle,
-                },
+                { [styles.noLabel]: !label },
             )}
         >
             <label
@@ -85,6 +82,7 @@ const Input = React.forwardRef((
                     {
                         [styles.isActive]: value || isActive,
                         [styles.withMargin]: !noStyle,
+                        [styles.noStyle]: noStyle,
                     },
                     styles[color],
                 )}
