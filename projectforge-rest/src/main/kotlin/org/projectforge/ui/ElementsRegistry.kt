@@ -94,7 +94,10 @@ object ElementsRegistry {
                         PFUserDO::class.java, EmployeeDO::class.java, TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
                         Integer::class.java, BigDecimal::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
                         Locale::class.java,
-                        TimeZone::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        TimeZone::class.java -> {
+                             UISelect<TimeZone>(property, required = elementInfo.required, layoutContext = lc,
+                                    autoCompletion = AutoCompletion<String>(url = "timeZones/ac?search=:search"))
+                        }
                         else -> null
                     }
         }
