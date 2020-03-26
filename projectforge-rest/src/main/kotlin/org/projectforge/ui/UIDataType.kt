@@ -37,5 +37,6 @@ enum class UIDataType {
     STRING,
     TASK,
     TIMESTAMP,
+    TIMEZONE,
     USER
 }

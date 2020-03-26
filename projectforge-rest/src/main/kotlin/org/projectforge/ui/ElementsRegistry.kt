@@ -93,7 +93,8 @@ object ElementsRegistry {
 
                         PFUserDO::class.java, EmployeeDO::class.java, TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
                         Integer::class.java, BigDecimal::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
-                        Locale::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        Locale::class.java,
+                        TimeZone::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
                         else -> null
                     }
         }
@@ -119,21 +120,7 @@ object ElementsRegistry {
     }
 
     private fun getDataType(elementInfo: ElementInfo): UIDataType? {
-        return when (elementInfo.propertyType) {
-            String::class.java -> UIDataType.STRING
-            Boolean::class.java, java.lang.Boolean::class.java -> UIDataType.BOOLEAN
-            Date::class.java -> UIDataType.TIMESTAMP
-            LocalDate::class.java,
-            java.sql.Date::class.java -> UIDataType.DATE
-            java.sql.Timestamp::class.java -> UIDataType.TIMESTAMP
-            PFUserDO::class.java -> UIDataType.USER
-            EmployeeDO::class.java -> UIDataType.EMPLOYEE
-            Integer::class.java -> UIDataType.INT
-            BigDecimal::class.java -> UIDataType.DECIMAL
-            TaskDO::class.java -> UIDataType.TASK
-            Locale::class.java -> UIDataType.LOCALE
-            else -> null
-        }
+        return UIDataTypeUtils.getDataType(elementInfo)
     }
 
     internal fun getElementInfo(lc: LayoutContext, property: String): ElementInfo? {
