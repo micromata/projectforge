@@ -206,7 +206,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
      * For example "Europe/Berlin" if time zone is given otherwise empty string.
      */
     @get:Column(name = "time_zone")
-    var timeZoneString: String?
+    open var timeZoneString: String?
         get() = _timeZone?.id
         set(value) {
             if (!value.isNullOrBlank()) {
