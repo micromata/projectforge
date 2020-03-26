@@ -389,6 +389,7 @@ class VacationServiceTest : AbstractTestBase() {
         user.firstname = name
         user.lastname = name
         user.username = "$name.$name"
+        user.email = "$name@devnull.com"
         userDao.internalSave(user)
         val employee = EmployeeDO()
         employee.user = user
