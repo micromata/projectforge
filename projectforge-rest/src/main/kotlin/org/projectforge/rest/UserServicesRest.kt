@@ -24,12 +24,14 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
+import org.projectforge.business.user.UserAccessLogEntries
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
+import org.projectforge.web.rest.UserAccessLogEntry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -44,10 +46,29 @@ open class UserServicesRest {
     @Autowired
     private lateinit var userAuthenticationsService: UserAuthenticationsService
 
+    class AccessLogEntries(userAccessLogEntries: UserAccessLogEntries?) {
+        val tokenType: UserTokenType? = userAccessLogEntries?.tokenType
+        var entries = userAccessLogEntries?.sortedList()
+    }
+
     @GetMapping("renewToken")
     fun renewToken(@RequestParam("token", required = true) tokenString: String): ResponseAction {
-        val token = UserTokenType.valueOf(tokenString)
-        userAuthenticationsService.renewToken(ThreadLocalUserContext.getUserId(), token)
-        return ResponseAction(message = ResponseAction.Message("user.authenticationToken.renew.successful"), targetType = TargetType.TOAST)
+        val tokenType = UserTokenType.valueOf(tokenString)
+        val variable = when (tokenType) {
+            UserTokenType.CALENDAR_REST -> "calendarExportToken"
+            UserTokenType.DAV_TOKEN -> "davToken"
+            UserTokenType.REST_CLIENT -> "restClientToken"
+            UserTokenType.STAY_LOGGED_IN_KEY -> "stayLoggedInKey"
+        }
+        val newToken = userAuthenticationsService.getToken(ThreadLocalUserContext.getUserId(), tokenType)
+        userAuthenticationsService.renewToken(ThreadLocalUserContext.getUserId(), tokenType)
+        return ResponseAction(message = ResponseAction.Message("user.authenticationToken.renew.successful"), targetType = TargetType.UPDATE)
+                .addVariable(variable, newToken)
+    }
+
+    @GetMapping("tokenAccess")
+    fun getTokenAccess(@RequestParam("token", required = true) tokenString: String): AccessLogEntries {
+        val tokenType = UserTokenType.valueOf(tokenString)
+        return AccessLogEntries(userAuthenticationsService.getUserAccessLogEntries(tokenType))
     }
 }

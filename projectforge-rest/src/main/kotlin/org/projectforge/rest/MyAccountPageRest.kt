@@ -51,8 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.util.*
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -93,13 +91,11 @@ class MyAccountPageRest {
             var personalPhoneIdentifiers: String? = null,
             var sshPublicKey: String? = null
     ) {
-        val employee = Employee()
+        var employee: Employee? = null
     }
 
     @PostMapping
-    fun save(request: HttpServletRequest,
-             response: HttpServletResponse,
-             @RequestBody postData: PostData<MyAccountData>)
+    fun save(@RequestBody postData: PostData<MyAccountData>)
             : ResponseAction {
         val data = postData.data
         check(ThreadLocalUserContext.getUserId() == data.userId) { "Oups, MyAccountEditPage is called with another than the logged in user!" }
@@ -113,8 +109,7 @@ class MyAccountPageRest {
         user.timeZone = data.timeZone ?: user.timeZone
         user.personalPhoneIdentifiers = userService.getNormalizedPersonalPhoneIdentifiers(data.personalPhoneIdentifiers)
         userService.updateMyAccount(user)
-        val employee = data.employee
-        if (employee != null) {
+        data.employee?.let { employee ->
             val employeeDO = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId())
             check(employeeDO?.userId == data.userId) { "Oups, MyAccountEditPage is called with another employee than the logged in employee!" }
             val employeeId = employeeDO.id
@@ -157,32 +152,22 @@ class MyAccountPageRest {
         data.lastLogin = DateTimeFormatter.instance().getFormattedDateTime(user.lastLogin)
 
         val employee = employeeService.getEmployeeByUserId(userId)
-        data.employee.let {
-            it.street = employee.street
-            it.zipCode = employee.zipCode
-            it.country = employee.country
-            it.state = employee.state
-            it.birthday = employee.birthday
-            it.accountHolder = employee.accountHolder
-            it.iban = employee.iban
-            it.bic = employee.bic
+        if (employee != null) {
+            data.employee = Employee()
+            data.employee!!.let {
+                it.street = employee.street
+                it.zipCode = employee.zipCode
+                it.country = employee.country
+                it.state = employee.state
+                it.birthday = employee.birthday
+                it.accountHolder = employee.accountHolder
+                it.iban = employee.iban
+                it.bic = employee.bic
+            }
         }
 
-        val locales = Const.LOCALIZATIONS.map { UISelectValue(Locale(it), translate("locale.$it")) }.toMutableList()
-        locales.add(0, UISelectValue(Locale("DEFAULT"), translate("user.defaultLocale")))
-
-        val today = LocalDate.now()
-        val formats = Configuration.getInstance().dateFormats
-        val dateFormats = formats.map { createUISelectValue(it, today) }.toMutableList()
-        val excelDateFormats = formats.map { createUISelectValue(it, today, true) }.toMutableList()
-
-        val timeNotations = listOf(
-                UISelectValue(TimeNotation.H12, translate("timeNotation.12")),
-                UISelectValue(TimeNotation.H24, translate("timeNotation.24"))
-        )
-
         layout.add(UIFieldset(12)
-                .add(UILabel("'TODO Fin: Update button should send PostData.data, MA-Daten lassen sich nicht editieren, Context menu (React), Tooltip buttons (React), Label Readonly field at top (React), Kai: actions for buttons, time zone field, save button."))
+                .add(UILabel("'TODO Fin: Update button should send PostData.data, MA-Daten lassen sich nicht editieren, Context menu (React), Tooltip buttons (React), Label Readonly field at top (React), Kai: time zone field"))
                 .add(UIRow()
                         .add(UICol(UILength(lg = 6))
                                 .add(UIReadOnlyField("username", userLC))
@@ -194,14 +179,7 @@ class MyAccountPageRest {
                                 .add(addAuthenticationToken(authenticationsLC, "davToken", UserTokenType.DAV_TOKEN))
                                 .add(addAuthenticationToken(authenticationsLC, "restClientToken", UserTokenType.REST_CLIENT))
                         )
-                        .add(UICol(UILength(lg = 6))
-                                .add(UIReadOnlyField("lastLogin", userLC))
-                                .add(UISelect("locale", userLC, required = true, values = locales))
-                                .add(UISelect("dateFormat", userLC, required = false, values = dateFormats))
-                                .add(UISelect("excelDateFormat", userLC, required = false, values = excelDateFormats))
-                                .add(UISelect("timeNotation", userLC, required = false, values = timeNotations))
-                                .add(userLC, "timeZone", "personalPhoneIdentifiers")
-                        )
+                        .add(UserPagesRest.createUserSettingsCol(UILength(lg = 6)))
                 )
         )
                 .add(UIFieldset(12, "fibu.employee")
@@ -224,21 +202,6 @@ class MyAccountPageRest {
                         default = true)
                 )
 
-        /*
-            teamCalCache.allFullAccessCalendars
-            val teamCalBlackListIds: Array<Int> = userXmlPreferencesDao
-                    .getDeserializedUserPreferencesByUserId(userId, TEAMCALRESTBLACKLIST, Array<Int>::class.java)
-            if (teamCalBlackListIds != null && teamCalBlackListIds.size > 0) {
-                Arrays.stream(teamCalBlackListIds).forEach { calId: Int? -> teamCalRestWhiteList.remove(teamCalCache.getCalendar(calId)) }
-            }
-            val calendars: org.wicketstuff.select2.Select2MultiChoice<TeamCalDO> = org.wicketstuff.select2.Select2MultiChoice(
-                    fieldSet.getSelect2MultiChoiceId(),
-                    org.apache.wicket.model.PropertyModel(this, "teamCalRestWhiteList"),
-                    TeamCalsProvider(teamCalCache, true))
-            calendars.setMarkupId("calenders").setOutputMarkupId(true)
-            fieldSet.add(calendars)
-            */
-
         layout.add(MenuItem("changePassword", i18nKey = "menu.changePassword", url = "wa/changePassword"))
         if (Login.getInstance().isWlanPasswordChangeSupported(user)) {
             layout.add(MenuItem("changeWlanPassword", i18nKey = "menu.changeWlanPassword", url = "wa/wicket/bookmarkable/org.projectforge.web.user.ChangeWlanPasswordPage"))
@@ -247,15 +210,6 @@ class MyAccountPageRest {
         LayoutUtils.process(layout)
 
         return FormLayoutData(data, layout, null)
-    }
-
-    private fun createUISelectValue(pattern: String, today: LocalDate, excelDateFormat: Boolean = false): UISelectValue<String> {
-        val str = if (excelDateFormat) {
-            pattern.replace('Y', 'y').replace('D', 'd')
-        } else {
-            pattern
-        }
-        return UISelectValue(pattern, "$str: ${java.time.format.DateTimeFormatter.ofPattern(pattern).format(today)}")
     }
 
     private fun addAuthenticationToken(lc: LayoutContext, id: String, token: UserTokenType, tooltip: String? = null): UIRow {
@@ -269,12 +223,12 @@ class MyAccountPageRest {
                                 tooltip = tooltip ?: "user.authenticationToken.renew.tooltip",
                                 confirmMessage = translate("user.authenticationToken.renew.securityQuestion"),
                                 color = UIColor.DANGER,
-                                responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.TOAST)))
-                        .add(UIButton("usage",
+                                responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.GET)))
+                        .add(UIButton("access",
                                 title = translate("user.authenticationToken.button.showUsage"),
                                 tooltip = "user.authenticationToken.button.showUsage.tooltip",
                                 color = UIColor.LINK,
-                                responseAction = ResponseAction("/rs/usage", targetType = TargetType.POST)))
+                                responseAction = ResponseAction("/rs/tokenAccess?token=${token}", targetType = TargetType.GET)))
                 )
     }
 }
