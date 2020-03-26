@@ -55,6 +55,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.mail.SendMail;
 import org.projectforge.registry.Registry;
 import org.projectforge.web.WicketSupport;
 import org.springframework.beans.BeansException;
@@ -198,6 +199,7 @@ public abstract class AbstractTestBase {
   public static void _beforeAll() {
     ProjectForgeApp.internalSetJunitTestMode();
     I18nHelper.addBundleName(Const.RESOURCE_BUNDLE_NAME);
+    SendMail.internalSetTestMode();
     initialized = false;
   }
 

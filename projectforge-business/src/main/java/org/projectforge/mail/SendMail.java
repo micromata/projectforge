@@ -198,7 +198,11 @@ public class SendMail {
       }
 
       message.saveChanges(); // don't forget this
-      Transport.send(message);
+      if (testMode) {
+        log.info("Test mode, do not really send e-mails (OK only for test cases).");
+      } else {
+        Transport.send(message);
+      }
 
     } catch (final Exception ex) {
       log.error("While creating and sending message: " + composedMessage.toString(), ex);
@@ -302,4 +306,9 @@ public class SendMail {
     return domainService.getDomain() + "/" + subPath;
   }
 
+  private static boolean testMode = false;
+
+  public static void internalSetTestMode() {
+    testMode = true;
+  }
 }

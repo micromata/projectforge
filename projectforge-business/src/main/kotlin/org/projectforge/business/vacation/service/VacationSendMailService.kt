@@ -165,7 +165,7 @@ open class VacationSendMailService {
             mail.addCC(vacationer.email)
         }
         if (mail.to.isEmpty()) {
-            log.error { "Oups, whether recipient nor VacationMode.HR is given to prepare mail. No notification is done." }
+            log.error { "Oups, neither recipient nor VacationMode.HR is given to prepare mail. No notification is done." }
             return null
         }
         val data = mutableMapOf("vacationInfo" to vacationInfo, "vacation" to obj, "mailInfo" to mailInfo)
