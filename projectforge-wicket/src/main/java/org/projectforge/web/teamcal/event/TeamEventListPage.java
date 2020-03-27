@@ -37,23 +37,20 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.web.teamcal.admin.TeamCalsProvider;
 import org.projectforge.web.wicket.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @ListPage(editPage = TeamEventEditPage.class)
 public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamEventDao, TeamEventDO> implements
-    IListPageColumnsCreator<TeamEventDO>
-{
+        IListPageColumnsCreator<TeamEventDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventListPage.class);
 
   public static final String PARAM_CALENDARS = "cals";
@@ -69,13 +66,11 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
   /**
    *
    */
-  public TeamEventListPage(final PageParameters parameters)
-  {
+  public TeamEventListPage(final PageParameters parameters) {
     super(parameters, "plugins.teamcal.event");
   }
 
-  protected void onFormInit()
-  {
+  protected void onFormInit() {
     final String str = WicketUtils.getAsString(getPageParameters(), PARAM_CALENDARS);
     if (StringUtils.isNotBlank(str) == true) {
       final Collection<TeamCalDO> teamCals = new TeamCalsProvider(teamCalCache).getSortedCalendars(str);
@@ -83,8 +78,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
     }
   }
 
-  private List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals)
-  {
+  private List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals) {
     final List<Integer> list = new ArrayList<Integer>();
     if (teamCals != null) {
       for (final TeamCalDO cal : teamCals) {
@@ -96,62 +90,55 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
 
   /**
    * @see org.projectforge.web.wicket.IListPageColumnsCreator#createColumns(org.apache.wicket.markup.html.WebPage,
-   *      boolean)
+   * boolean)
    */
   @SuppressWarnings("serial")
   @Override
-  public List<IColumn<TeamEventDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
-  {
+  public List<IColumn<TeamEventDO, String>> createColumns(final WebPage returnToPage, final boolean sortable) {
     final List<IColumn<TeamEventDO, String>> columns = new ArrayList<IColumn<TeamEventDO, String>>();
 
-    final CellItemListener<TeamEventDO> cellItemListener = new CellItemListener<TeamEventDO>()
-    {
+    final CellItemListener<TeamEventDO> cellItemListener = new CellItemListener<TeamEventDO>() {
       @Override
       public void populateItem(final Item<ICellPopulator<TeamEventDO>> item, final String componentId,
-          final IModel<TeamEventDO> rowModel)
-      {
+                               final IModel<TeamEventDO> rowModel) {
         final TeamEventDO teamEvent = rowModel.getObject();
         appendCssClasses(item, teamEvent.getId(), teamEvent.isDeleted());
       }
     };
 
     columns.add(new CellItemListenerPropertyColumn<TeamEventDO>(getString("plugins.teamcal.calendar"), null, "calendar",
-        cellItemListener)
-    {
+            cellItemListener) {
       /**
        * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
        *      java.lang.String, org.apache.wicket.model.IModel)
        */
       @Override
       public void populateItem(final Item<ICellPopulator<TeamEventDO>> item, final String componentId,
-          final IModel<TeamEventDO> rowModel)
-      {
+                               final IModel<TeamEventDO> rowModel) {
         final TeamEventDO teamEvent = rowModel.getObject();
         final TeamCalDO calendar = teamEvent.getCalendar();
         item.add(
-            new ListSelectActionPanel(componentId, rowModel, TeamEventEditPage.class, teamEvent.getId(), returnToPage,
-                calendar != null ? calendar.getTitle() : ""));
+                new ListSelectActionPanel(componentId, rowModel, TeamEventEditPage.class, teamEvent.getId(), returnToPage,
+                        calendar != null ? calendar.getTitle() : ""));
         cellItemListener.populateItem(item, componentId, rowModel);
         addRowClick(item);
       }
     });
 
     columns.add(new CellItemListenerPropertyColumn<TeamEventDO>(getString("plugins.teamcal.event.subject"),
-        getSortable("subject", sortable),
-        "subject", cellItemListener));
+            getSortable("subject", sortable),
+            "subject", cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<TeamEventDO>(getString("plugins.teamcal.event.beginDate"),
-        getSortable("startDate", sortable), "startDate", cellItemListener));
+            getSortable("startDate", sortable), "startDate", cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<TeamEventDO>(getString("plugins.teamcal.event.endDate"),
-        getSortable("endDate", sortable),
-        "endDate", cellItemListener));
+            getSortable("endDate", sortable),
+            "endDate", cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<TeamEventDO>(getString("plugins.teamcal.event.allDay"),
-        getSortable("allDay", sortable),
-        "allDay", cellItemListener)
-    {
+            getSortable("allDay", sortable),
+            "allDay", cellItemListener) {
       @Override
       public void populateItem(final Item<ICellPopulator<TeamEventDO>> item, final String componentId,
-          final IModel<TeamEventDO> rowModel)
-      {
+                               final IModel<TeamEventDO> rowModel) {
         final TeamEventDO event = rowModel.getObject();
         item.add(WicketUtils.createBooleanLabel(getRequestCycle(), componentId, event.getAllDay() == true));
         cellItemListener.populateItem(item, componentId, rowModel);
@@ -164,8 +151,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
    * @see org.projectforge.web.wicket.AbstractListPage#onSearchSubmit()
    */
   @Override
-  protected boolean onSearchSubmit()
-  {
+  protected boolean onSearchSubmit() {
     getFilter().setTeamCals(getCalIdList(form.calendarsListHelper.getAssignedItems()));
     return super.onSearchSubmit();
   }
@@ -174,30 +160,29 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
    * @see org.projectforge.web.wicket.AbstractListPage#select(java.lang.String, java.lang.Object)
    */
   @Override
-  public void select(final String property, final Object selectedValue)
-  {
+  public void select(final String property, final Object selectedValue) {
     if (property.startsWith("quickSelect.") == true) { // month".equals(property) == true) {
-      final Date date = (Date) selectedValue;
-      form.getSearchFilter().setStartDate(date);
-      final DateHolder dateHolder = new DateHolder(date);
-      if (property.endsWith(".month") == true) {
-        dateHolder.setEndOfMonth();
-      } else if (property.endsWith(".week") == true) {
-        dateHolder.setEndOfWeek();
-      } else {
-        log.error("Property '" + property + "' not supported for selection.");
+      PFDateTime date = PFDateTime.fromOrNullAny(selectedValue);
+      if (date != null) {
+        form.getSearchFilter().setStartDate(date.getUtilDate());
+        if (property.endsWith(".month") == true) {
+          date = date.getEndOfMonth();
+        } else if (property.endsWith(".week") == true) {
+          date = date.getEndOfWeek();
+        } else {
+          log.error("Property '" + property + "' not supported for selection.");
+        }
+        form.getSearchFilter().setEndDate(date.getUtilDate());
+        form.startDate.markModelAsChanged();
+        form.endDate.markModelAsChanged();
+        refresh();
       }
-      form.getSearchFilter().setEndDate(dateHolder.getUtilDate());
-      form.startDate.markModelAsChanged();
-      form.endDate.markModelAsChanged();
-      refresh();
     } else {
       super.select(property, selectedValue);
     }
   }
 
-  protected TeamEventFilter getFilter()
-  {
+  protected TeamEventFilter getFilter() {
     return form.getFilter();
   }
 
@@ -205,8 +190,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
    * @see org.projectforge.web.wicket.AbstractListPage#getBaseDao()
    */
   @Override
-  public TeamEventDao getBaseDao()
-  {
+  public TeamEventDao getBaseDao() {
     return teamEventDao;
   }
 
@@ -214,8 +198,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
    * @see org.projectforge.web.wicket.AbstractListPage#newListForm(org.projectforge.web.wicket.AbstractListPage)
    */
   @Override
-  protected TeamEventListForm newListForm(final AbstractListPage<?, ?, ?> parentPage)
-  {
+  protected TeamEventListForm newListForm(final AbstractListPage<?, ?, ?> parentPage) {
     return new TeamEventListForm(this);
   }
 
@@ -223,8 +206,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
    * @see org.projectforge.web.wicket.AbstractListPage#init()
    */
   @Override
-  protected void init()
-  {
+  protected void init() {
     dataTable = createDataTable(createColumns(this, true), "lastUpdate", SortOrder.DESCENDING);
     form.add(dataTable);
   }

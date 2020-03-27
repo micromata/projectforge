@@ -24,6 +24,7 @@
 package org.projectforge.web.wicket.components;
 
 import org.apache.wicket.model.IModel;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
 
 import java.time.LocalDate;
@@ -42,10 +43,10 @@ public class LocalDateModel implements IModel<Date> {
 
   @Override
   public Date getObject() {
-    LocalDate result = model.getObject();
+    final PFDateTime result = PFDateTime.fromOrNullAny(model.getObject());
     if (result == null)
       return null;
-    return PFDay.from(result).getSqlDate();
+    return result.getSqlDate();
   }
 
   @Override

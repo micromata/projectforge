@@ -354,6 +354,7 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
     }
 
     private var _utilDate: Date? = null
+
     /**
      * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
@@ -366,6 +367,7 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         }
 
     private var _calendar: Calendar? = null
+
     /**
      * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
@@ -380,6 +382,7 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         }
 
     private var _sqlTimestamp: java.sql.Timestamp? = null
+
     /**
      * @return The date as java.sql.Timestamp. java.sql.Timestamp is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
@@ -406,6 +409,7 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         }
 
     private var _localDate: LocalDate? = null
+
     /**
      * @return The date as LocalDate. LocalDate is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
@@ -494,7 +498,8 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         @JvmStatic
         @JvmOverloads
         fun from(localDateTime: LocalDateTime, zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime {
-            return PFDateTime(ZonedDateTime.of(localDateTime, zoneId ?: getUsersZoneId()), locale ?: getUsersLocale(), null)
+            return PFDateTime(ZonedDateTime.of(localDateTime, zoneId ?: getUsersZoneId()), locale
+                    ?: getUsersLocale(), null)
         }
 
         /**
@@ -534,7 +539,8 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         @JvmOverloads
         fun from(localDate: LocalDate, zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime {
             val localDateTime = LocalDateTime.of(localDate, LocalTime.MIDNIGHT)
-            return PFDateTime(ZonedDateTime.of(localDateTime, zoneId ?: getUsersZoneId()), locale ?: getUsersLocale(), null)
+            return PFDateTime(ZonedDateTime.of(localDateTime, zoneId ?: getUsersZoneId()), locale
+                    ?: getUsersLocale(), null)
         }
 
         /**
@@ -645,6 +651,37 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
             return from(date, timeZone, locale)
         }
 
+        /**
+         * @param date Date to convert or null.
+         * @return PFDateTime from given date or null, if given [localDate] is null...
+         */
+        @JvmStatic
+        fun fromOrNullAny(date: Any?): PFDateTime? {
+            date ?: return null
+            return fromAny(date)
+        }
+
+        /**
+         * Converts date of type [LocalDate], [LocalDateTime], [Date], [java.sql.Date], [Long] and [Instant].
+         * @param date Date to transform (must not be null).
+         * @return PFDateTime from given date...
+         * @throws java.lang.IllegalStateException if date is null.
+         */
+        @JvmStatic
+        fun fromAny(date: Any): PFDateTime {
+            return when (date) {
+                is LocalDate -> from(date)
+                is LocalDateTime -> from(date)
+                is Long -> from(date)
+                is Date -> from(date)
+                is Instant -> from(date)
+                is java.sql.Date -> from(date)
+                else -> {
+                    throw IllegalArgumentException("date of type ${date::class.java} not supported: $date")
+                }
+            }
+        }
+
         @JvmStatic
         @JvmOverloads
         fun now(zoneId: ZoneId? = null, locale: Locale? = null): PFDateTime {
@@ -680,7 +717,6 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
                      zoneId: ZoneId = getUsersZoneId(), locale: Locale = getUsersLocale()): PFDateTime {
             return withDate(year, month.value, day, hour, minute, second, millisecond, zoneId, locale)
         }
-
 
 
         private val log = org.slf4j.LoggerFactory.getLogger(PFDateTime::class.java)
