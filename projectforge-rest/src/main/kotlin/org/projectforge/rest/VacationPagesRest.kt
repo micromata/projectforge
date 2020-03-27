@@ -36,6 +36,7 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -172,6 +173,15 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
             val year = NumberHelper.parseInteger(value)
             if (year != null) {
                 filters.add(VacationYearFilter(year))
+            }
+        }
+        val periodFilterEntry = source.entries.find { it.field == "period" }
+        if (periodFilterEntry != null) {
+            periodFilterEntry.synthetic = true
+            val fromDate = PFDayUtils.parseDate(periodFilterEntry.value.fromValue)
+            val toDate = PFDayUtils.parseDate(periodFilterEntry.value.toValue)
+            if (fromDate != null) {
+                filters.add(VacationPeriodFilter(fromDate, toDate))
             }
         }
         return filters
