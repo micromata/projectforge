@@ -48,6 +48,7 @@ import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.WicketSupport;
@@ -490,8 +491,8 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   public void select(final String property, final Object selectedValue) {
     if ("reindexFromDate".equals(property) == true) {
       // Date selected.
-      final Date date = (Date) selectedValue;
-      form.reindexFromDate = date;
+      final PFDateTime date = PFDateTime.fromAny(selectedValue);
+      form.reindexFromDate = date.getUtilDate();
       form.reindexFromDatePanel.markModelAsChanged();
     } else {
       log.error("Property '" + property + "' not supported for selection.");
