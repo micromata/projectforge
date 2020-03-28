@@ -42,6 +42,7 @@ import java.net.MalformedURLException
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.*
 import java.util.jar.JarInputStream
 
@@ -84,6 +85,7 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
         }
         val context: ArchiveContext = de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner.ArchiveContextImpl(true, collector)
         val surl = url.toString()
+        log.info("Scanning module '$surl'...")
         if (surl.contains("!")) {
             var customUrlStr = url.toString()
             if (surl.startsWith("jar:") == false) {
@@ -96,7 +98,9 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
             if (customUrlStr.lastIndexOf('!') > customUrlStr.indexOf('!')) {
                 customUrlStr = customUrlStr.substring(0, customUrlStr.lastIndexOf('!'))
             }
-            log.info("Custom URL: $customUrlStr")
+            if (log.isDebugEnabled) {
+                log.debug("Custom URL: $customUrlStr")
+            }
             try {
                 val customUrl = URL(customUrlStr)
                 val descriptor = buildArchiveDescriptor(customUrl, true)
@@ -277,7 +281,7 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
             return
         }
         log.info("*********** ProjectForge seems to be started from inside an IDE (entities of plugins have to be added now. This is OK, if started from IDE).")
-        var path = Path.of(rootUrl.toURI())
+        var path = Paths.get(rootUrl.toURI())
         do {
             if (path.fileName.toString() == "projectforge-business") {
                 path = path.parent
@@ -294,7 +298,7 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
                 directoryStream.forEach {
                     val dirString = it.toString()
                     if (dirString.contains("org.projectforge.plugins") && embeddedPlugins.any { dirString.contains(it) }) {
-                        val url = it.resolve(Path.of("target", "classes")).toUri().toURL()
+                        val url = it.resolve(Paths.get("target", "classes")).toUri().toURL()
                         try {
                             visitUrl(url, collector, urlmatcher)
                             loadedUrls.add(url)
