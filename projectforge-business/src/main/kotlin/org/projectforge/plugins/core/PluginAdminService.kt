@@ -30,7 +30,6 @@ import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.framework.persistence.database.DatabaseService
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
@@ -64,6 +63,9 @@ open class PluginAdminService {
 
     private val afterCreatedActivePluginsCallback: MutableList<PluginCallback> = ArrayList()
 
+    /**
+     * List of all activated plugins.
+     */
     open val activePlugins: List<AbstractPlugin>
         get() {
             val pluginsRegistry = PluginsRegistry.instance()
@@ -71,7 +73,7 @@ open class PluginAdminService {
         }
 
     /**
-     * All installed plugin services.
+     * All installed plugin services (activated as well as not activated ones).
      *
      * @return the plugin services
      */
@@ -84,7 +86,7 @@ open class PluginAdminService {
             registeredSpringPlugins.forEach { pluginServiceSet.add(it) }
 
             val availablePlugins: MutableList<AvailablePlugin> = ArrayList()
-            val activated = activatedPlugins
+            val activated = readActivatedPluginsFromConfiguration
             pluginServiceSet.forEach { pluginService ->
                 val ap = AvailablePlugin(pluginService, activated.contains(pluginService.pluginId))
                 availablePlugins.add(ap)
@@ -101,7 +103,7 @@ open class PluginAdminService {
      * @return the active plugins
      */
     open fun storePluginToBeActivated(id: String, activate: Boolean): Boolean {
-        val activated = activatedPlugins
+        val activated = readActivatedPluginsFromConfiguration
         if (activate) {
             activated.add(id)
         } else {
@@ -124,11 +126,12 @@ open class PluginAdminService {
     }
 
     /**
-     * read LocalSettings pf.plugins.active. If not defined, uses ConfigurationParam.
+     * Get activated plugins from configuraton.
      *
-     * @return the active plugins
+     * @return the activated plugins as list of id strings.
+     * @see [GlobalConfiguration.getStringValue]
      */
-    private val activatedPlugins: MutableList<String>
+    private val readActivatedPluginsFromConfiguration: MutableList<String>
         get() {
             val plugins = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.PLUGIN_ACTIVATED)
             if (plugins.isNullOrBlank()) {
@@ -144,17 +147,18 @@ open class PluginAdminService {
         initializeActivePlugins(true)
     }
 
-    open fun initializeAllPluginsForUnittest() {
+    open fun initializeAllPluginsForUnitTest() {
         initializeActivePlugins(false)
     }
 
     private fun initializeActivePlugins(onlyConfiguredActive: Boolean) {
         val plugins = availablePlugins
         for (plugin in plugins) {
-            log.info("Plugin found: " + plugin.projectForgePluginService.pluginName)
             if (onlyConfiguredActive && !plugin.isActivated) {
+                log.info("Skipping not activated plugin '${plugin.projectForgePluginService.pluginName}'.")
                 continue
             }
+            log.info("Processing activated plugin activated: '${plugin.projectForgePluginService.pluginName}'.")
             activatePlugin(plugin.projectForgePluginService)
         }
     }
@@ -170,7 +174,6 @@ open class PluginAdminService {
         for (callback in afterCreatedActivePluginsCallback) {
             callback.call(plugin)
         }
-        log.info("Plugin activated: " + projectForgePluginService.pluginId)
     }
 
     open fun addExecuteAfterActivePluginCreated(run: PluginCallback) {
@@ -182,8 +185,7 @@ open class PluginAdminService {
         val updateEntry = plugin.initializationUpdateEntry
         if (updateEntry != null) {
             if (!updateEntry.isInitial) {
-                log.error("The given UpdateEntry returned by plugin.getInitializationUpdateEntry() is not initial! Please use constructor without parameter version: "
-                        + plugin.javaClass)
+                log.error("The given UpdateEntry returned by plugin.getInitializationUpdateEntry() is not initial! Please use constructor without parameter version: ${plugin.javaClass}")
             }
             systemUpdater.register(updateEntry)
         }
@@ -191,11 +193,7 @@ open class PluginAdminService {
         if (updateEntries != null) {
             for (entry in updateEntries) {
                 if (entry.isInitial) {
-                    log.error(
-                            "The given UpdateEntry returned by plugin.getUpdateEntries() is initial! Please use constructor with parameter version: "
-                                    + plugin.javaClass
-                                    + ": "
-                                    + entry.description)
+                    log.error("The given UpdateEntry returned by plugin.getUpdateEntries() is initial! Please use constructor with parameter version: ${plugin.javaClass}: ${entry.description}")
                 }
             }
             systemUpdater.register(updateEntries)
