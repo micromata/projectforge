@@ -57,9 +57,9 @@ public class PluginListForm extends AbstractStandardForm<PluginListForm, PluginL
   protected void init()
   {
     super.init();
-    List<AvailablePlugin> availabl = pluginAdminService.getAvailablePlugins();
+    List<AvailablePlugin> available = pluginAdminService.getAvailablePlugins();
 
-    for (AvailablePlugin pp : availabl) {
+    for (AvailablePlugin pp : available) {
       gridBuilder.newGridPanel();
       gridBuilder.newSplitPanel(GridSize.SPAN2);
       DivPanel section = gridBuilder.getPanel();

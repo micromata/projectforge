@@ -64,8 +64,8 @@ public class VacationMenuCounterCache extends AbstractCache {
    */
   @Override
   protected void refresh() {
-    log.info("Initializing FFDeptCounterCache ...");
+    log.info("Initializing VacationMenuCounterCache ...");
     openMenuCounter.clear();
-    log.info("Initializing of FFDeptCounterCache done.");
+    log.info("Initializing of VacationMenuCounterCache done.");
   }
 }

@@ -132,7 +132,7 @@ public class WicketPageTestBase extends AbstractTestBase {
     }
 
     private void addPluginResources() {
-      for (AbstractPlugin plugin : pluginAdminService.getActivePlugin()) {
+      for (AbstractPlugin plugin : pluginAdminService.getActivePlugins()) {
         for (String bundleName : plugin.getResourceBundleNames()) {
           addResourceBundle(bundleName);
         }

@@ -141,7 +141,7 @@ public class XmlDump {
    * @return Only for test cases.
    */
   public XStreamSavingConverter restoreDatabase(final Reader reader) {
-    final List<AbstractPlugin> plugins = pluginAdminService.getActivePlugin();
+    final List<AbstractPlugin> plugins = pluginAdminService.getActivePlugins();
     final XStreamSavingConverter xstreamSavingConverter = new XStreamSavingConverter() {
 
       @Override
