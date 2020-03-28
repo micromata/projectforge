@@ -31,7 +31,6 @@ import org.projectforge.plugins.core.PFPluginService;
  */
 public class PluginTemplatePFPluginService implements PFPluginService
 {
-
   @Override
   public String getPluginId()
   {
@@ -56,4 +55,8 @@ public class PluginTemplatePFPluginService implements PFPluginService
     return new PluginTemplatePlugin();
   }
 
+  @Override
+  public boolean isBuiltIn() {
+    return true;
+  }
 }

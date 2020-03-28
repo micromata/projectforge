@@ -78,4 +78,8 @@ public class IhkExportPFPluginService implements PFPluginService
     return new IhkExportPlugin();
   }
 
+  @Override
+  public boolean isBuiltIn() {
+    return true;
+  }
 }

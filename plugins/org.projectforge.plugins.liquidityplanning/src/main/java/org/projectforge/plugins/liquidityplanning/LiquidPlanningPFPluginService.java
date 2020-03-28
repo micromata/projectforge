@@ -42,13 +42,13 @@ public class LiquidPlanningPFPluginService implements PFPluginService
   @Override
   public String getPluginName()
   {
-    return "Liquidplanning";
+    return "Liquidity planning";
   }
 
   @Override
   public String getPluginDescription()
   {
-    return "Liquid planning plugin";
+    return "Liquidity planning plugin";
   }
 
   @Override
@@ -57,4 +57,8 @@ public class LiquidPlanningPFPluginService implements PFPluginService
     return new LiquidityPlanningPlugin();
   }
 
+  @Override
+  public boolean isBuiltIn() {
+    return true;
+  }
 }

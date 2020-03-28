@@ -21,46 +21,46 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.core;
+package org.projectforge.plugins.core
 
 /**
  * A service, which is registered via JDK ServiceLoader.
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
+ * @author Kai Reinhard
  */
-public interface PFPluginService
-{
-  /**
-   * A short id of this plugin.
-   *
-   * @return
-   */
-  String getPluginId();
+interface PFPluginService {
+    /**
+     * A short id of this plugin.
+     *
+     * @return
+     */
+    val pluginId: String?
 
-  /**
-   * Name of the plugin
-   *
-   * @return
-   */
-  String getPluginName();
+    /**
+     * Name of the plugin
+     *
+     * @return
+     */
+    val pluginName: String?
 
-  /**
-   * Short explanation of the plugin.
-   *
-   * @return
-   */
-  String getPluginDescription();
+    /**
+     * Short explanation of the plugin.
+     *
+     * @return
+     */
+    val pluginDescription: String?
 
-  /**
-   * Creates the plugin instance.
-   *
-   * @return the abstract plugin
-   */
-  AbstractPlugin createPluginInstance();
+    /**
+     * Creates the plugin instance.
+     *
+     * @return the abstract plugin
+     */
+    fun createPluginInstance(): AbstractPlugin
 
-  default boolean isBuildIn()
-  {
-    return false;
-  }
+    /**
+     * There are some plugins built-in in ProjectForge. External plugins should return false (default).
+     */
+    val isBuiltIn: Boolean
+        get() = false
 }

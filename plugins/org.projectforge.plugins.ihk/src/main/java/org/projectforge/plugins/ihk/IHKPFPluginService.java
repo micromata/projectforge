@@ -56,4 +56,8 @@ public class IHKPFPluginService implements PFPluginService
     return new IHKPlugin();
   }
 
+  @Override
+  public boolean isBuiltIn() {
+    return true;
+  }
 }
