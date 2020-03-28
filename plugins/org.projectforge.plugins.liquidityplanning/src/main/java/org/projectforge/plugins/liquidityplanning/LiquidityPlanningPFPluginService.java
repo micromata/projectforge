@@ -21,42 +21,39 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.plugintemplate;
+package org.projectforge.plugins.liquidityplanning;
 
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PFPluginService;
 
 /**
- * @author Florian Blumenstein
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-public class PluginTemplatePFPluginService implements PFPluginService
+public class LiquidityPlanningPFPluginService implements PFPluginService
 {
+
   @Override
   public String getPluginId()
   {
-    return PluginTemplatePlugin.ID;
+
+    return "liquidplanning";
   }
 
   @Override
   public String getPluginName()
   {
-    return "PluginTemplate";
+    return "Liquidity planning";
   }
 
   @Override
   public String getPluginDescription()
   {
-    return "Template for PF PlugIn";
+    return "Liquidity planning plugin";
   }
 
   @Override
   public AbstractPlugin createPluginInstance()
   {
-    return new PluginTemplatePlugin();
-  }
-
-  @Override
-  public boolean isBuiltIn() {
-    return true;
+    return new LiquidityPlanningPlugin();
   }
 }

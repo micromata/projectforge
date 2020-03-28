@@ -29,7 +29,7 @@ import org.projectforge.plugins.core.PFPluginService;
 /**
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-public class LicenceManagementPFPluginService implements PFPluginService
+public class LicenseManagementPFPluginService implements PFPluginService
 {
 
   @Override
@@ -55,10 +55,5 @@ public class LicenceManagementPFPluginService implements PFPluginService
   public AbstractPlugin createPluginInstance()
   {
     return new LicenseManagementPlugin();
-  }
-
-  @Override
-  public boolean isBuiltIn() {
-    return true;
   }
 }

@@ -36,7 +36,7 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import java.util.List;
 
 /**
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  */
@@ -101,10 +101,6 @@ public class PluginListForm extends AbstractStandardForm<PluginListForm, PluginL
           SingleButtonPanel.DANGER);
       if (pp.isActivated() == true) {
         buttonPanel.setClassnames(SingleButtonPanel.SUCCESS);
-      }
-      if (pp.isBuildIn() == true) {
-        buttonPanel.setEnabled(false);
-        button.setEnabled(false);
       }
       section.add(buttonPanel);
     }

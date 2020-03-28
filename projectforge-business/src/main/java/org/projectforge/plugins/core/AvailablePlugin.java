@@ -35,19 +35,14 @@ public class AvailablePlugin
 
   private boolean activated;
 
-  private boolean buildIn;
-
   public AvailablePlugin()
   {
-
   }
 
-  public AvailablePlugin(PFPluginService projectForgePluginService, boolean activated, boolean buildIn)
+  public AvailablePlugin(PFPluginService projectForgePluginService, boolean activated)
   {
-
     this.projectForgePluginService = projectForgePluginService;
     this.activated = activated;
-    this.buildIn = buildIn;
   }
 
   public PFPluginService getProjectForgePluginService()
@@ -69,15 +64,4 @@ public class AvailablePlugin
   {
     this.activated = activated;
   }
-
-  public boolean isBuildIn()
-  {
-    return buildIn;
-  }
-
-  public void setBuildIn(boolean buildIn)
-  {
-    this.buildIn = buildIn;
-  }
-
 }

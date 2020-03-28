@@ -57,9 +57,4 @@ public class FinancialFairPlayPFPluginService implements PFPluginService
   {
     return new FinancialFairPlayPlugin();
   }
-
-  @Override
-  public boolean isBuiltIn() {
-    return true;
-  }
 }
