@@ -84,7 +84,7 @@ public class PluginAdminService
 
     List<AvailablePlugin> ret = new ArrayList<>();
     for (PFPluginService e : ls) {
-      AvailablePlugin ap = new AvailablePlugin(e, activated.contains(e.getPluginId()), e.isBuiltIn());
+      AvailablePlugin ap = new AvailablePlugin(e, activated.contains(e.getPluginId()));
       ret.add(ap);
     }
     return ret;
@@ -157,7 +157,7 @@ public class PluginAdminService
     List<AvailablePlugin> plugins = getAvailablePlugins();
     for (AvailablePlugin plugin : plugins) {
       LOG.info("Plugin found: " + plugin.getProjectForgePluginService().getPluginName());
-      if (onlyConfiguredActive && !plugin.isActivated() && !plugin.isBuildIn()) {
+      if (onlyConfiguredActive && !plugin.isActivated()) {
         continue;
       }
       activatePlugin(plugin.getProjectForgePluginService());

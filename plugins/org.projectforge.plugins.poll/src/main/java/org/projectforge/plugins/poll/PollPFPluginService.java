@@ -54,9 +54,4 @@ public class PollPFPluginService implements PFPluginService
   {
     return new PollPlugin();
   }
-
-  @Override
-  public boolean isBuiltIn() {
-    return true;
-  }
 }

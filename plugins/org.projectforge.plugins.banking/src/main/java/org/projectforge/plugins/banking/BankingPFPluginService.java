@@ -58,9 +58,4 @@ public class BankingPFPluginService implements PFPluginService
   {
     return new BankingPlugin();
   }
-
-  @Override
-  public boolean isBuiltIn() {
-    return true;
-  }
 }

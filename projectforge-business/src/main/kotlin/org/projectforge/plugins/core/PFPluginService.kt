@@ -57,10 +57,4 @@ interface PFPluginService {
      * @return the abstract plugin
      */
     fun createPluginInstance(): AbstractPlugin
-
-    /**
-     * There are some plugins built-in in ProjectForge. External plugins should return false (default).
-     */
-    val isBuiltIn: Boolean
-        get() = false
 }

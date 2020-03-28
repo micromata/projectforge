@@ -56,9 +56,4 @@ public class SkillmatrixPFPluginService implements PFPluginService
   {
     return new SkillMatrixPlugin();
   }
-
-  @Override
-  public boolean isBuiltIn() {
-    return true;
-  }
 }

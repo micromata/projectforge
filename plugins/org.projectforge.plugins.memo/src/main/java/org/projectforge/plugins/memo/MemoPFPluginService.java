@@ -75,9 +75,4 @@ public class MemoPFPluginService implements PFPluginService
   {
     return new MemoPlugin();
   }
-
-  @Override
-  public boolean isBuiltIn() {
-    return true;
-  }
 }
