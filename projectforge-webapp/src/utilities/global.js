@@ -20,6 +20,48 @@ Object.getByString = (object, multiKey) => {
     return obj;
 };
 
+Object.convertPathKeys = (object) => {
+    const newObject = {};
+
+    Object.keys(object)
+        .forEach((key) => {
+            if (key.includes('.')) {
+                const path = key.split('.');
+
+                const subObject = newObject[path[0]];
+                if (subObject !== undefined) {
+                    subObject[path[1]] = object[key];
+                } else {
+                    newObject[path[0]] = { [path[1]]: object[key] };
+                }
+            } else {
+                newObject[key] = object[key];
+            }
+        });
+
+    return newObject;
+};
+
+Object.convertToSubObjects = object => Object.keys(object)
+    .reduce((previousValue, key) => {
+        if (key.includes('.')) {
+            const path = key.split('.');
+
+            return {
+                ...previousValue,
+                [path[0]]: {
+                    ...previousValue[path[0]],
+                    [path[1]]: object[key],
+                },
+            };
+        }
+
+        return {
+            ...previousValue,
+            [key]: object[key],
+        };
+    }, {});
+
 Object.isEmpty = object => Object.keys(object).length === 0;
 
 Object.isObject = object => typeof object === 'object';
