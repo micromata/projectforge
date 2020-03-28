@@ -210,6 +210,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     this.fontsDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.fontsDirectory);
     ensureDir(new File(fontsDirectory));
 
+    final String pluginsDir = FileHelper.getAbsolutePath(applicationHomeDir, "plugins");
+    ensureDir(new File(pluginsDir));
+
     setupKeyStores();
 
     GlobalConfiguration.createConfiguration(this);
