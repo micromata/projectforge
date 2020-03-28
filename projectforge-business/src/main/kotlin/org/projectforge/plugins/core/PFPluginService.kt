@@ -35,14 +35,14 @@ interface PFPluginService {
      *
      * @return
      */
-    val pluginId: String?
+    val pluginId: String
 
     /**
      * Name of the plugin
      *
      * @return
      */
-    val pluginName: String?
+    val pluginName: String
 
     /**
      * Short explanation of the plugin.
