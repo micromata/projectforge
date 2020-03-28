@@ -11,6 +11,15 @@ link:index{outfilesuffix}[Top]
 
 :sectnums:
 
+== Adding external plugins
+ProjectForge supports external 3rd party plugins:
+1. Place your jars e. g. in `/home/kai/ProjectForge/plugins`
+2. Tell ProjectForge where it is. You may have to options:
+   a. Run ProjectForge from command line with option `-Dloader.home=/home/kai/ProjectForge`, or
+   b. Set the environment variable before starting ProjectForge: `export LOADER_HOME=/home/kai/ProjectForge`.
+3. Start ProjectForge and activate the plugin as admin in the ProjectForge's web app under menu Admin->plugins.
+4. Restart ProjectForge.
+
 == Reverse Proxy Setup
 
 The recommended way of setting up ProjectForge is to use a reverse proxy to do the SSL termination. This document focueses on using the NGINX web server software to  accomplish this.
@@ -22,8 +31,8 @@ All of the commands below should be run with `root` privileges.
 
 1. Install Nginx: `$ apt-get install nginx`
 2. Get an SSL certificate(use only one of the options below)
-2.1 Create self signed certificate: `$ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/projectforge.key -out /etc/ssl/projectforge.crt`
-2.2 Generate an SSL certificate https://letsencrypt.org/getting-started/[using Letsencrypt], note that the path in the NGINX configuration below needs to be changed when using Letsencrypt.
+   a. Create self signed certificate: `$ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/projectforge.key -out /etc/ssl/projectforge.crt`
+   b. Generate an SSL certificate https://letsencrypt.org/getting-started/[using Letsencrypt], note that the path in the NGINX configuration below needs to be changed when using Letsencrypt.
 3. Generate secure Diffie-Hellman parameters for key exchange (this will take a long time): `$ openssl dhparam -out /etc/nginx/dhparam.pem 4096`
 
 ===== secure domain for setup through htpasswd (optional)
@@ -32,7 +41,7 @@ All of the commands below should be run with `root` privileges.
 
 ==== Configure Nginx
 
-To use NGINX as a reverse proxy, it's necessary to create a configuration file. The standard path for NGINX configurations is `/etc/nginx/sites-available/`, so let's create the file `/etc/nginx/sites-available/projectforge` with the content listed below. 
+To use NGINX as a reverse proxy, it's necessary to create a configuration file. The standard path for NGINX configurations is `/etc/nginx/sites-available/`, so let's create the file `/etc/nginx/sites-available/projectforge` with the content listed below.
 If you want to use `.htaccess` to blok access to the installation, you need to remove the comment character (`#`) in front of the `auth_basic` and `auth_basic_file` parameters.
 If you want to use HSTS (which makes browsers show an error page when the SSL certificate is invalid and/or nonexistent), remove the comment character (`#`) in front of the `add_header Strict-Transport-Security` parameter.
 
@@ -54,9 +63,9 @@ server {
   ssl_certificate     /etc/ssl/projectforge.crt;
   ssl_certificate_key /etc/ssl/projectforge.key;
   ssl on;
-  
+
   ssl_protocols TLSv1.2;
-  ssl_prefer_server_ciphers on; 
+  ssl_prefer_server_ciphers on;
   ssl_dhparam /etc/nginx/dhparam.pem;
   ssl_ciphers EECDH+AESGCM:EDH+AESGCM;
   ssl_ecdh_curve secp384r1; # Requires nginx >= 1.1.0
@@ -68,7 +77,7 @@ server {
   add_header X-Frame-Options DENY;
   add_header X-Content-Type-Options nosniff;
   add_header X-XSS-Protection "1; mode=block";
-  
+
   #add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
 
   location / {
@@ -87,7 +96,7 @@ server {
 }
 ----
 
-To activate the NGINX configuration, you'll need to symlink the configuration file we just created to `/etc/nginx/sites-enabled`. This can be done by using the following command: 
+To activate the NGINX configuration, you'll need to symlink the configuration file we just created to `/etc/nginx/sites-enabled`. This can be done by using the following command:
 
 ```bash
 $ ln -sv /etc/nginx/sites-available/projectforge /etc/nginx/sites-enabled/projectforge
