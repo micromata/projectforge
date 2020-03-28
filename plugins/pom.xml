@@ -12,7 +12,7 @@
     <module>org.projectforge.plugins.plugintemplate</module>
     <module>org.projectforge.plugins.memo</module>
     <module>org.projectforge.plugins.todo</module>
-    <module>org.projectforge.plugins.skillmatrix</module>
+    <!--module>org.projectforge.plugins.skillmatrix</module-->
     <module>org.projectforge.plugins.marketing</module>
     <module>org.projectforge.plugins.banking</module>
     <module>org.projectforge.plugins.liquidityplanning</module>
