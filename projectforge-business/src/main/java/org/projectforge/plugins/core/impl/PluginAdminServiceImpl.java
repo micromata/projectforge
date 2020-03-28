@@ -60,6 +60,9 @@ public class PluginAdminServiceImpl implements PluginAdminService
   @Autowired
   private DatabaseService databaseService;
 
+  @Autowired
+  private List<PFPluginService> list;
+
   private List<PluginCallback> afterCreatedActivePluginsCallback = new ArrayList<>();
 
   @Override
@@ -116,6 +119,7 @@ public class PluginAdminServiceImpl implements PluginAdminService
   {
     List<AvailablePlugin> plugins = getAvailablePlugins();
     for (AvailablePlugin plugin : plugins) {
+      LOG.info("Plugin found: " + plugin.getProjectForgePluginService().getPluginName());
       if (onlyConfiguredActive && !plugin.isActivated() && !plugin.isBuildIn()) {
         continue;
       }
