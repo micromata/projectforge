@@ -110,8 +110,8 @@ open class LantDirectoryBrowser(
         return selectedFile
     }
 
-    protected open fun validResult(path: String, dir: String): File? {
-        val dir = File(pathTextBox.text, dirTextBox.text)
+    protected open fun validResult(pathString: String, dirString: String): File? {
+        val dir = File(pathString, dirString)
         if (!dir.exists() && dir.parentFile?.exists() != true) {
             MessageDialog.showMessageDialog(textGUI, Texts.ERROR_TITLE, Texts.ERROR_DIR_NOT_EXISTS, MessageDialogButton.OK)
             return null

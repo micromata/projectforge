@@ -103,8 +103,8 @@ open class ForecastExport { // open needed by Wicket.
         val excelDateFormat = ThreadLocalUserContext.getUser()?.excelDateFormat ?: ExcelDateFormats.EXCEL_DEFAULT_DATE
         val dateFormat = DateTimeFormatter.ofPattern(DateFormats.getFormatString(DateFormatType.DATE_SHORT))!!
         val currencyFormat = NumberHelper.getCurrencyFormat(ThreadLocalUserContext.getLocale())
-        val currencyCellStyle = workbook.createOrGetCellStyle("DataFormat.currency")!!
-        val percentageCellStyle = workbook.createOrGetCellStyle("DataFormat.percentage")!!
+        val currencyCellStyle = workbook.createOrGetCellStyle("DataFormat.currency")
+        val percentageCellStyle = workbook.createOrGetCellStyle("DataFormat.percentage")
         val writerContext = ExcelWriterContext(I18n(Const.RESOURCE_BUNDLE_NAME, ThreadLocalUserContext.getLocale()), workbook)
         val orderMap = mutableMapOf<Int, AuftragDO>()
         val orderPositionMap = mutableMapOf<Int, AuftragsPositionDO>()
@@ -122,7 +122,7 @@ open class ForecastExport { // open needed by Wicket.
     @Throws(IOException::class)
     open fun export(origFilter: AuftragFilter): ByteArray? {
         val baseDateParam = origFilter.periodOfPerformanceStartDate
-        val baseDate = if (baseDateParam != null) PFDay.from(baseDateParam)!!.beginOfMonth else PFDay.now().beginOfYear
+        val baseDate = if (baseDateParam != null) PFDay.from(baseDateParam).beginOfMonth else PFDay.now().beginOfYear
         val prioYearBaseDate = baseDate.plusYears(-1) // One day back for getting all invoices.
 
         val filter = AuftragFilter()

@@ -23,7 +23,6 @@
 
 package org.projectforge.business.vacation
 
-import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.business.user.*
 import org.projectforge.business.vacation.model.LeaveAccountEntryDO
 import org.projectforge.framework.access.AccessChecker
@@ -42,7 +41,6 @@ class VacationRight(accessChecker: AccessChecker) : UserRightAccessCheck<LeaveAc
 
     override fun hasAccess(user: PFUserDO, obj: LeaveAccountEntryDO, oldObj: LeaveAccountEntryDO,
                            operationType: OperationType): Boolean {
-        val userGroupCache = TenantRegistryMap.getInstance().tenantRegistry.userGroupCache
         if (operationType == OperationType.SELECT) {
             if (accessChecker.hasRight(user, id, UserRightValue.READWRITE)) {
                 return true

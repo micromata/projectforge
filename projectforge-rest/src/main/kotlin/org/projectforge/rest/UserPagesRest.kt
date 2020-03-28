@@ -110,7 +110,7 @@ class UserPagesRest
     override val autoCompleteSearchFields = arrayOf("username", "firstname", "lastname", "email")
 
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<PFUserDO> {
-        var list = super.queryAutocompleteObjects(request, filter)
+        val list = super.queryAutocompleteObjects(request, filter)
         if (filter.searchString.isNullOrBlank() || request.getParameter(AutoCompletion.SHOW_ALL_PARAM) != "true") {
             // Show deactivated users only if search string is given or param SHOW_ALL_PARAM is true:
             return list.filter { !it.deactivated } // Remove deactivated users when returning all.
@@ -135,7 +135,7 @@ class UserPagesRest
                     UISelectValue(TimeNotation.H24, translate("timeNotation.24"))
             )
 
-            return UICol().add(UIReadOnlyField("lastLogin", userLC))
+            return UICol(uiLength).add(UIReadOnlyField("lastLogin", userLC))
                     .add(userLC, "timeZone", "personalPhoneIdentifiers")
                     .add(UISelect("locale", userLC, required = true, values = locales))
                     .add(UISelect("dateFormat", userLC, required = false, values = dateFormats))

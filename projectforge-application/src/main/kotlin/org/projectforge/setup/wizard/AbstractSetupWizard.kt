@@ -24,10 +24,9 @@
 package org.projectforge.setup.wizard
 
 import org.projectforge.setup.SetupData
-import java.io.File
 
 
-abstract class AbstractSetupWizard(presetAppHomeDir: File? = null) {
+abstract class AbstractSetupWizard {
     protected var currentScreen: ScreenID = ScreenID.CHOOSE_DIR
         private set
 
