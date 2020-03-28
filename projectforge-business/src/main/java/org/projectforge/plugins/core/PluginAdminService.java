@@ -23,45 +23,194 @@
 
 package org.projectforge.plugins.core;
 
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.continuousdb.SystemUpdater;
+import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.framework.configuration.ConfigurationDao;
+import org.projectforge.framework.configuration.ConfigurationParam;
+import org.projectforge.framework.configuration.GlobalConfiguration;
+import org.projectforge.framework.configuration.entities.ConfigurationDO;
+import org.projectforge.framework.persistence.database.DatabaseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.ApplicationContext;
+
+import java.util.*;
 
 /**
  * For administration of plugins.
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  */
-public interface PluginAdminService
+public class PluginAdminService
 {
-  List<AbstractPlugin> getActivePlugin();
+  private static final Logger LOG = LoggerFactory.getLogger(PluginAdminService.class);
+
+  @Autowired
+  private ConfigurationDao configurationDao;
+
+  @Autowired
+  private ApplicationContext applicationContext;
+
+  @Autowired
+  private DatabaseService databaseService;
+
+  @Autowired
+  private List<PFPluginService> list;
+
+  private List<PluginCallback> afterCreatedActivePluginsCallback = new ArrayList<>();
+
+  public List<AbstractPlugin> getActivePlugin()
+  {
+    PluginsRegistry pluginsRegistry = PluginsRegistry.instance();
+    return pluginsRegistry.getPlugins();
+  }
 
   /**
    * All installed plugin services.
    *
    * @return the plugin services
    */
-  List<AvailablePlugin> getAvailablePlugins();
+  public List<AvailablePlugin> getAvailablePlugins()
+  {
+
+    Set<String> activated = getActivePlugins();
+    ServiceLoader<PFPluginService> ls = ServiceLoader.load(PFPluginService.class);
+
+    List<AvailablePlugin> ret = new ArrayList<>();
+    for (PFPluginService e : ls) {
+      AvailablePlugin ap = new AvailablePlugin(e, activated.contains(e.getPluginId()), e.isBuiltIn());
+      ret.add(ap);
+    }
+    return ret;
+  }
 
   /**
    * Store a plugin as activated.
-   * 
+   * read LocalSettings pf.plugins.active. If not defined, uses ConfigurationParam.
+   *
    * @param id
    * @param activate
-   * @return
+   * @return the active plugins
    */
-  boolean storePluginToBeActivated(String id, boolean activate);
+  public boolean storePluginToBeActivated(String id, boolean activate)
+  {
+    Set<String> active = getActivePlugins();
+    if (activate) {
+      active.add(id);
+    } else {
+      active.remove(id);
+    }
+    String sval = StringUtils.join(active, ",");
+    ConfigurationDO configuration = configurationDao.getEntry(ConfigurationParam.PLUGIN_ACTIVATED);
+    if (configuration == null) {
+      configuration = new ConfigurationDO();
+      ConfigurationParam param = ConfigurationParam.PLUGIN_ACTIVATED;
+      configuration.setParameter(param.getKey());
+      configuration.setConfigurationType(param.getType());
+      configuration.setGlobal(param.isGlobal());
+
+    }
+
+    configuration.setStringValue(sval);
+    configurationDao.saveOrUpdate(configuration);
+    GlobalConfiguration.getInstance().forceReload();
+    return false;
+  }
+
+  /**
+   * read LocalSettings pf.plugins.active. If not defined, uses ConfigurationParam.
+   *
+   * @return the active plugins
+   */
+  public Set<String> getActivePlugins()
+  {
+    String activateds = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.PLUGIN_ACTIVATED);
+    String[] sa = new String[0];
+    if (!StringUtils.isBlank(activateds)) {
+      sa = StringUtils.split(activateds, ", ");
+    }
+    Set<String> activated = new TreeSet<>(Arrays.asList(sa));
+    return activated;
+  }
 
   /**
    * Will be active plugins
    */
-  void initializeActivePlugins();
-
-  void initializeAllPluginsForUnittest();
-
-  public static interface PluginCallback
+  public void initializeActivePlugins()
   {
-    void call(AbstractPlugin plugin);
+    initializeActivePlugins(true);
   }
 
-  void addExecuteAfterActivePluginCreated(PluginCallback run);
+  public void initializeAllPluginsForUnittest()
+  {
+    initializeActivePlugins(false);
+  }
+
+  protected void initializeActivePlugins(boolean onlyConfiguredActive)
+  {
+    List<AvailablePlugin> plugins = getAvailablePlugins();
+    for (AvailablePlugin plugin : plugins) {
+      LOG.info("Plugin found: " + plugin.getProjectForgePluginService().getPluginName());
+      if (onlyConfiguredActive && !plugin.isActivated() && !plugin.isBuildIn()) {
+        continue;
+      }
+      activatePlugin(plugin.getProjectForgePluginService());
+    }
+
+  }
+
+  protected void activatePlugin(PFPluginService projectForgePluginService)
+  {
+    AbstractPlugin plugin = projectForgePluginService.createPluginInstance();
+    AutowireCapableBeanFactory factory = applicationContext.getAutowireCapableBeanFactory();
+    factory.initializeBean(plugin, projectForgePluginService.getPluginId());
+    factory.autowireBean(plugin);
+    PluginsRegistry.instance().register(plugin);
+    plugin.init();
+    setSystemUpdater(plugin);
+    for (PluginCallback callback : afterCreatedActivePluginsCallback) {
+      callback.call(plugin);
+    }
+    LOG.info("Plugin activated: " + projectForgePluginService.getPluginId());
+  }
+
+  public void addExecuteAfterActivePluginCreated(PluginCallback run)
+  {
+    afterCreatedActivePluginsCallback.add(run);
+  }
+
+  private void setSystemUpdater(AbstractPlugin plugin)
+  {
+    SystemUpdater systemUpdater = databaseService.getSystemUpdater();
+    final UpdateEntry updateEntry = plugin.getInitializationUpdateEntry();
+    if (updateEntry != null) {
+      if (!updateEntry.isInitial()) {
+        LOG.error(
+                "The given UpdateEntry returned by plugin.getInitializationUpdateEntry() is not initial! Please use constructor without parameter version: "
+                        + plugin.getClass());
+      }
+      systemUpdater.register(updateEntry);
+    }
+    final List<UpdateEntry> updateEntries = plugin.getUpdateEntries();
+    if (updateEntries != null) {
+      for (final UpdateEntry entry : updateEntries) {
+        if (entry.isInitial()) {
+          LOG.error(
+                  "The given UpdateEntry returned by plugin.getUpdateEntries() is initial! Please use constructor with parameter version: "
+                          + plugin.getClass()
+                          + ": "
+                          + entry.getDescription());
+        }
+      }
+      systemUpdater.register(updateEntries);
+    }
+  }
+
+  public static interface PluginCallback {
+    void call(AbstractPlugin plugin);
+  }
 }
