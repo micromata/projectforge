@@ -56,7 +56,7 @@ public class GroovyEngineTest extends AbstractTestBase {
   protected void beforeAll() {
     I18nHelper.addBundleName(WicketApplication.RESOURCE_BUNDLE_NAME);
     WebRegistry.getInstance().init();
-    pluginAdminService.initializeAllPluginsForUnittest();
+    pluginAdminService.initializeAllPluginsForUnitTest();
   }
 
   @Test
