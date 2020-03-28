@@ -6,7 +6,8 @@ import {
     FORM_CALL_SUCCESS,
     FORM_CHANGE_DATA,
     FORM_CHANGE_VARIABLES,
-    FORM_SWITCH_CATEGORY, USER_LOGIN_BEGIN,
+    FORM_SWITCH_CATEGORY,
+    USER_LOGIN_BEGIN,
 } from '../../actions';
 
 const initialState = {};
@@ -66,10 +67,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
         case FORM_CHANGE_DATA:
             return {
                 ...state,
-                data: {
-                    ...state.data,
-                    ...payload.newData,
-                },
+                data: Object.combine(state.data, payload.newData),
             };
         case FORM_CHANGE_VARIABLES:
             return {

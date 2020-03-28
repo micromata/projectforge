@@ -192,7 +192,7 @@ export const setCurrentData = newData => (dispatch, getState) => {
     const { ui } = categories[currentCategory];
 
     // Change Data in redux model
-    dispatch(changeData(form.currentCategory, newData));
+    dispatch(changeData(form.currentCategory, Object.convertPathKeys(newData)));
 
     // Check for triggered watch fields
     if (ui.watchFields) {
