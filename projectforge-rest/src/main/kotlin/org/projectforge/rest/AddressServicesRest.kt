@@ -24,9 +24,7 @@
 package org.projectforge.rest
 
 import de.micromata.merlin.utils.ReplaceUtils
-import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.io.IOUtils
-import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressExport
 import org.projectforge.business.address.PersonalAddressDao
@@ -52,12 +50,12 @@ import javax.servlet.http.HttpServletRequest
  */
 @RestController
 @RequestMapping("${Rest.URL}/address")
-class AddressServicesRest() {
+class AddressServicesRest {
 
     companion object {
-        internal val SESSION_IMAGE_ATTR = "uploadedAddressImage"
-        private val APPLE_SCRIPT_DIR = "misc/"
-        private val APPLE_SCRIPT_FOR_ADDRESS_BOOK = "AddressBookRemoveNotesOfClassWork.scpt"
+        internal const val SESSION_IMAGE_ATTR = "uploadedAddressImage"
+        private const val APPLE_SCRIPT_DIR = "misc/"
+        private const val APPLE_SCRIPT_FOR_ADDRESS_BOOK = "AddressBookRemoveNotesOfClassWork.scpt"
     }
 
     private val log = org.slf4j.LoggerFactory.getLogger(AddressServicesRest::class.java)
@@ -91,7 +89,7 @@ class AddressServicesRest() {
     fun exportFavoritesVCards(): ResponseEntity<Any> {
         log.info("Exporting personal address book as vcards.")
         val list = addressDao.favoriteVCards
-        if (CollectionUtils.isEmpty(list) == true) {
+        if (list.isNullOrEmpty()) {
             return ResponseEntity(ResponseData("address.book.hasNoVCards", messageType = MessageType.TOAST, color = UIColor.WARNING), HttpStatus.NOT_FOUND)
         }
         val filename = ("ProjectForge-PersonalAddressBook_" + DateHelper.getDateAsFilenameSuffix(Date())
@@ -112,13 +110,13 @@ class AddressServicesRest() {
     fun exportFavoritesExcel(request: HttpServletRequest): ResponseEntity<Any> {
         log.info("Exporting personal address book as Excel file.")
         val list = addressDao.favoriteVCards.map { it.address!! }
-        val resultSet = ResultSet<AddressDO>(list, list.size)
+        val resultSet = ResultSet(list, list.size)
         addressRest.processResultSetBeforeExport(resultSet)
 
-        val personalAddressMap = personalAddressDao.getPersonalAddressByAddressId()
+        val personalAddressMap = personalAddressDao.personalAddressByAddressId
 
         val xls = addressExport.export(list, personalAddressMap)
-        if (xls == null || xls.size == 0) {
+        if (xls == null || xls.isEmpty()) {
             return ResponseEntity(ResponseData("address.book.hasNoVCards", messageType = MessageType.TOAST, color = UIColor.WARNING), HttpStatus.NOT_FOUND)
         }
         val filename = ("ProjectForge-AddressExport_" + DateHelper.getDateAsFilenameSuffix(Date())

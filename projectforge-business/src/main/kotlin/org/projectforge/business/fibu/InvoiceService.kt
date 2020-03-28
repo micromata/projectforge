@@ -110,10 +110,10 @@ open class InvoiceService {
             variables.put("table", "") // Marker for finding table (should be removed).
             variables.put("Rechnungsadresse", data.customerAddress)
             val type = if (lang.isNullOrEmpty()) {
-                I18nHelper.getLocalizedMessage(data.typ?.i18nKey) ?: ""
+                I18nHelper.getLocalizedMessage(data.typ?.i18nKey)
             } else {
                 val locale = Locale(lang)
-                I18nHelper.getLocalizedMessage(locale, data.typ?.i18nKey) ?: ""
+                I18nHelper.getLocalizedMessage(locale, data.typ?.i18nKey)
             }
             variables.put("Typ", type)
             variables.put("Kundenreferenz", data.customerref1)

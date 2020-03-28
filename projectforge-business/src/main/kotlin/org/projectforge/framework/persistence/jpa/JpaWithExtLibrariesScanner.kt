@@ -79,8 +79,8 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
         return collector.toScanResult()
     }
 
-    protected fun visitUrl(url: URL, collector: ScanResultCollector, urlMatcher: Matcher<String?>) {
-        if (urlMatcher.match(url.toString()) == false) {
+    private fun visitUrl(url: URL, collector: ScanResultCollector, urlMatcher: Matcher<String?>) {
+        if (!urlMatcher.match(url.toString())) {
             return
         }
         val context: ArchiveContext = de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner.ArchiveContextImpl(true, collector)
@@ -88,7 +88,7 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
         log.info("Scanning module '$surl'...")
         if (surl.contains("!")) {
             var customUrlStr = url.toString()
-            if (surl.startsWith("jar:") == false) {
+            if (!surl.startsWith("jar:")) {
                 customUrlStr = "jar:$customUrlStr"
             }
             // Remove the trail after the second '!', otherwise a file not found exception will be thrown.
@@ -115,16 +115,16 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
         }
     }
 
-    fun fixUrlToOpen(url: URL): URL {
+    private fun fixUrlToOpen(url: URL): URL {
         var surl = url.toString()
         val orgurl = surl
-        if (surl.endsWith("!/") == true) {
+        if (surl.endsWith("!/")) {
             surl = surl.substring(0, surl.length - 2)
         }
-        if (StringUtils.startsWith(surl, "jar:jar:file:") == true) {
+        if (StringUtils.startsWith(surl, "jar:jar:file:")) {
             surl = surl.substring("jar:jar:".length)
         }
-        if (StringUtils.startsWith(surl, "jar:file:") == true) {
+        if (StringUtils.startsWith(surl, "jar:file:")) {
             surl = surl.substring("jar:".length)
         }
         return try {
@@ -146,10 +146,9 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
      * @param collector the collector to use
      */
     private fun handleClassManifestClassPath(url: URL, collector: ScanResultCollector, urlMatcher: Matcher<String?>) {
-        var urls = url.toString()
         val urltoopen = fixUrlToOpen(url)
-        urls = urltoopen.toString()
-        if (urls.endsWith(".jar") == false) {
+        val urls = urltoopen.toString()
+        if (!urls.endsWith(".jar")) {
             return
         }
         try {
@@ -158,7 +157,7 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
                     val manifest = jarStream.manifest ?: return
                     val attr = manifest.mainAttributes
                     val `val` = attr.getValue("Class-Path")
-                    if (StringUtils.isBlank(`val`) == true) {
+                    if (StringUtils.isBlank(`val`)) {
                         return
                     }
                     val entries = StringUtils.split(`val`, " \t\n")
@@ -173,16 +172,16 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
         }
     }
 
-    protected fun visitExternUrls(environment: ScanEnvironment, collector: ScanResultCollector, loadedUrls: MutableSet<URL>) {
+    private fun visitExternUrls(environment: ScanEnvironment, collector: ScanResultCollector, loadedUrls: MutableSet<URL>) {
         val matcherexppr = getPersistenceProperties(environment).getProperty(EXTLIBURLMATCHER)
         var urlmatcher = CommonMatchers.always<String?>()
-        if (StringUtils.isNotBlank(matcherexppr) == true) {
+        if (StringUtils.isNotBlank(matcherexppr)) {
             urlmatcher = BooleanListRulesFactory<String?>().createMatcher(matcherexppr)
         }
-        val prov = loadJpaExtScannerUrlProvider(environment, collector)
+        val prov = loadJpaExtScannerUrlProvider(environment)
         val urls = prov!!.scannUrls
         for (url in urls) {
-            if (loadedUrls.contains(url) == true) {
+            if (loadedUrls.contains(url)) {
                 continue
             }
             try {
@@ -196,7 +195,7 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
     }
 
     private fun getPersistenceProperties(environment: ScanEnvironment): Properties {
-        if (environment is StandardJpaScanEnvironmentImpl == false) {
+        if (environment !is StandardJpaScanEnvironmentImpl) {
             log.warn("environment is not StandardJpaScanEnvironmentImpl: " + environment.javaClass)
             return Properties()
         }
@@ -205,15 +204,14 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
         return pud.properties
     }
 
-    protected fun loadJpaExtScannerUrlProvider(environment: ScanEnvironment,
-                                               collector: ScanResultCollector?): JpaExtScannerUrlProvider? {
+    private fun loadJpaExtScannerUrlProvider(environment: ScanEnvironment): JpaExtScannerUrlProvider? {
         val properties = getPersistenceProperties(environment)
         val provider = properties.getProperty(EXTLIBURLPROVIDER)
-        return if (StringUtils.isBlank(provider) == true) {
+        return if (StringUtils.isBlank(provider)) {
             null
         } else try {
             val clazz = Class.forName(provider)
-            clazz.newInstance() as JpaExtScannerUrlProvider
+            clazz.getDeclaredConstructor().newInstance() as JpaExtScannerUrlProvider
         } catch (ex: Exception) {
             log.error("Cannot create JpaExtScannerUrlProvider: " + ex.message, ex)
             null
@@ -227,7 +225,7 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
             descriptor = archiveDescriptorFactory.buildArchiveDescriptor(url)
             archiveDescriptorCache[url.toString()] = ArchiveDescriptorInfo(descriptor, isRootUrl)
         } else {
-            validateReuse(descriptorInfo, isRootUrl)
+            validateReuse()
             descriptor = descriptorInfo.archiveDescriptor
         }
         return descriptor
@@ -235,17 +233,17 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
 
     // This needs to be protected and attributes/constructor visible in case
     // a custom scanner needs to override validateReuse.
-    protected class ArchiveDescriptorInfo(val archiveDescriptor: ArchiveDescriptor, val isRoot: Boolean)
+    private class ArchiveDescriptorInfo(val archiveDescriptor: ArchiveDescriptor, val isRoot: Boolean)
 
-    protected fun validateReuse(descriptor: ArchiveDescriptorInfo?, root: Boolean) {
+    private fun validateReuse() {
         // is it really reasonable that a single url be processed multiple times?
         // for now, throw an exception, mainly because I am interested in situations where this might happen
         throw IllegalStateException("ArchiveDescriptor reused; can URLs be processed multiple times?")
     }
 
     class ArchiveContextImpl(private val isRootUrl: Boolean, scanResultCollector: ScanResultCollector?) : ArchiveContext {
-        private val classEntryHandler: ClassFileArchiveEntryHandler
-        private val packageEntryHandler: PackageInfoArchiveEntryHandler
+        private val classEntryHandler = ClassFileArchiveEntryHandler(scanResultCollector)
+        private val packageEntryHandler = PackageInfoArchiveEntryHandler(scanResultCollector)
         private val fileEntryHandler: ArchiveEntryHandler
         override fun isRootUrl(): Boolean {
             return isRootUrl
@@ -253,18 +251,20 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
 
         override fun obtainArchiveEntryHandler(entry: ArchiveEntry): ArchiveEntryHandler {
             val nameWithinArchive = entry.nameWithinArchive
-            return if (nameWithinArchive.endsWith("package-info.class")) {
-                packageEntryHandler
-            } else if (nameWithinArchive.endsWith(".class")) {
-                classEntryHandler
-            } else {
-                fileEntryHandler
+            return when {
+                nameWithinArchive.endsWith("package-info.class") -> {
+                    packageEntryHandler
+                }
+                nameWithinArchive.endsWith(".class") -> {
+                    classEntryHandler
+                }
+                else -> {
+                    fileEntryHandler
+                }
             }
         }
 
         init {
-            classEntryHandler = ClassFileArchiveEntryHandler(scanResultCollector)
-            packageEntryHandler = PackageInfoArchiveEntryHandler(scanResultCollector)
             fileEntryHandler = NonClassFileArchiveEntryHandler(scanResultCollector)
         }
     }
@@ -281,24 +281,24 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
             return
         }
         log.info("*********** ProjectForge seems to be started from inside an IDE (entities of plugins have to be added now. This is OK, if started from IDE).")
-        var path = Paths.get(rootUrl.toURI())
-        do {
+        var path: Path? = Paths.get(rootUrl.toURI())
+        while (path != null) {
             if (path.fileName.toString() == "projectforge-business") {
                 path = path.parent
                 break
             }
             path = path.parent
-        } while (path != null)
+        }
         if (path == null) {
             return
         }
         val pluginsPath = path.resolve("plugins")
         try {
             Files.newDirectoryStream(pluginsPath).use { directoryStream ->
-                directoryStream.forEach {
-                    val dirString = it.toString()
+                directoryStream.forEach { p ->
+                    val dirString = p.toString()
                     if (dirString.contains("org.projectforge.plugins") && embeddedPlugins.any { dirString.contains(it) }) {
-                        val url = it.resolve(Paths.get("target", "classes")).toUri().toURL()
+                        val url = p.resolve(Paths.get("target", "classes")).toUri().toURL()
                         try {
                             visitUrl(url, collector, urlmatcher)
                             loadedUrls.add(url)

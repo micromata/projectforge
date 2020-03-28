@@ -46,7 +46,7 @@ class LantSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
     private val terminal: Terminal
     private val chooseDirectoryScreen: LantChooseDirectoryScreen
     private val finalizeScreen: LantFinalizeScreen
-    val lanternaScreen: Screen
+    private val lanternaScreen: Screen
 
     init {
         // Setup terminal and screen layers

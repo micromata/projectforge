@@ -57,7 +57,8 @@ class ProjectForgeCalendarSearchService(builderEnt: HttpManagerBuilderEnt?) : Ca
     private var schedulingColName = "cals"
     private var inboxName = "inbox"
     private var outBoxName = "outbox"
-    var usersBasePath = "/users/"
+    private var usersBasePath = "/users/"
+
     @Throws(NotAuthorizedException::class, BadRequestException::class)
     override fun findCalendarResources(calendar: CalendarResource, start: Date, end: Date): List<ICalResource> {
         return findCalendarResources(calendar, start, end, null)
@@ -67,8 +68,8 @@ class ProjectForgeCalendarSearchService(builderEnt: HttpManagerBuilderEnt?) : Ca
     override fun findCalendarResources(calendar: CalendarResource, start: Date, end: Date,
                                        propFilter: SimpleImmutableEntry<String, String>?): List<ICalResource> {
         log.info("Find calender resources of '{}'/'{}' within time window from '{}' to '{}'", calendar.name, calendar.uniqueId,
-                if (start != null) LOG_FORMAT.format(start) else "null",
-                if (end != null) LOG_FORMAT.format(end) else "null")
+                LOG_FORMAT.format(start),
+                LOG_FORMAT.format(end))
         // build a list of all calendar resources
         val list: MutableList<ICalResource> = ArrayList()
         for (r in calendar.children) {
@@ -172,7 +173,7 @@ class ProjectForgeCalendarSearchService(builderEnt: HttpManagerBuilderEnt?) : Ca
             if (event.end.before(start)) {
                 log.debug("Event is before start: {} < {}",
                         if (event.end != null) LOG_FORMAT.format(event.end) else "null",
-                        if (start != null) LOG_FORMAT.format(start) else "null")
+                        LOG_FORMAT.format(start))
                 return true
             }
         }
@@ -180,7 +181,7 @@ class ProjectForgeCalendarSearchService(builderEnt: HttpManagerBuilderEnt?) : Ca
             if (event.start.after(end)) {
                 log.debug("Event is after end: {} < {}",
                         if (event.start != null) LOG_FORMAT.format(event.start) else "null",
-                        if (end != null) LOG_FORMAT.format(end) else "null")
+                        LOG_FORMAT.format(end))
                 return true
             }
         }
@@ -358,10 +359,9 @@ class ProjectForgeCalendarSearchService(builderEnt: HttpManagerBuilderEnt?) : Ca
                 log.trace("Look for calendars in home")
                 for (rColCal in rCalHome.children) {
                     if (rColCal is CalendarResource) {
-                        val cal = rColCal
-                        val eventsInRange = findCalendarResources(cal, start, finish, null)
+                        val eventsInRange = findCalendarResources(rColCal, start, finish, null)
                         if (log.isTraceEnabled) {
-                            log.trace("Process calendar: " + cal.name + " events in range=" + eventsInRange.size)
+                            log.trace("Process calendar: " + rColCal.name + " events in range=" + eventsInRange.size)
                             log.trace("  range= $start - $finish")
                         }
                         for (event in eventsInRange) {
@@ -425,7 +425,7 @@ class ProjectForgeCalendarSearchService(builderEnt: HttpManagerBuilderEnt?) : Ca
     }
 
     private val resourceFactory: ResourceFactory?
-        private get() {
+        get() {
             if (rFactory == null) {
                 rFactory = builderEnt.resourceFactory
             }

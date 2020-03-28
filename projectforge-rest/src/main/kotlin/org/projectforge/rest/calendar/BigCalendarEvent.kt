@@ -74,7 +74,7 @@ class BigCalendarEvent(val title: String?,
                  */
                 dbId: Int? = null)
             : this(title, asStartDate(start), asEndDate(end),
-            allDay, desc, location, tooltip, formattedDuration, outOfRange, fgColor, bgColor, cssClass, category, readOnly)
+            allDay, desc, location, tooltip, formattedDuration, outOfRange, fgColor, bgColor, cssClass, category, readOnly, uid, dbId)
 
     /**
      * Must be unique in the list of events. The index of the list will be used: 'e-1', 'e-2', ...

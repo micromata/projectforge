@@ -59,12 +59,11 @@ class KontenplanExcelImporter {
             storage.logger.info("Ignoring sheet '$NAME_OF_EXCEL_SHEET' for importing Buchungssätze, no valid head row found.")
             return
         }
-        val importedSheet = ImportedSheet<KontoDO>(storage, sheet, ImportLogger.Level.WARN, "'${sheet.excelWorkbook.filename}':", log)
+        val importedSheet = ImportedSheet(storage, sheet, ImportLogger.Level.WARN, "'${sheet.excelWorkbook.filename}':", log)
         storage.addSheet(importedSheet)
         importedSheet.name = NAME_OF_EXCEL_SHEET
         importedSheet.logger.addValidationErrors(sheet)
         val it = sheet.dataRowIterator
-        val year = 0
         while (it.hasNext()) {
             val row = it.next()
             val element = MyImportedElement(importedSheet, row.rowNum, KontoDO::class.java,
