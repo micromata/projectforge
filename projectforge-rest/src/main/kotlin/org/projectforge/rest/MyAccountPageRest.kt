@@ -41,20 +41,26 @@ import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.menu.MenuItem
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
+import org.projectforge.rest.core.SessionCsrfCache
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.ServerData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
+import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/myAccount")
-class MyAccountPageRest {
+class MyAccountPageRest: AbstractDynamicPageRest() {
     @Autowired
     private lateinit var authenticationsService: UserAuthenticationsService
 
@@ -93,8 +99,9 @@ class MyAccountPageRest {
     }
 
     @PostMapping
-    fun save(@RequestBody postData: PostData<MyAccountData>)
-            : ResponseAction {
+    fun save(request: HttpServletRequest, @RequestBody postData: PostData<MyAccountData>)
+            : ResponseEntity<ResponseAction>? {
+        validateCsrfToken(request, postData)?.let { return it }
         val data = postData.data
         check(ThreadLocalUserContext.getUserId() == data.userId) { "Oups, MyAccountEditPage is called with another than the logged in user!" }
         val user = userDao.internalGetById(data.userId)
@@ -121,11 +128,11 @@ class MyAccountPageRest {
             employeeService.updateAttribute(employeeId, employee.country, "country")
             employeeService.updateAttribute(employeeId, employee.birthday, "birthday")
         }
-        return ResponseAction("/${Const.REACT_APP_PATH}calendar")
+        return ResponseEntity(ResponseAction("/${Const.REACT_APP_PATH}calendar"), HttpStatus.OK)
     }
 
     @GetMapping("dynamic")
-    fun getForm(): FormLayoutData {
+    fun getForm(request: HttpServletRequest): FormLayoutData {
         val userId = ThreadLocalUserContext.getUserId()
         val user = userDao.getById(userId)
         val data = MyAccountData(userId, user.username, user.firstname, user.lastname)
@@ -207,7 +214,7 @@ class MyAccountPageRest {
         layout.addTranslations("cancel", "yes")
         LayoutUtils.process(layout)
 
-        return FormLayoutData(data, layout, null)
+        return FormLayoutData(data, layout, createServerData(request))
     }
 
     private fun addAuthenticationToken(lc: LayoutContext, id: String, token: UserTokenType, tooltip: String? = null): UIRow {
