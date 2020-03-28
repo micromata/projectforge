@@ -107,7 +107,7 @@ class AddressServicesRest {
      * Exports favorites addresses.
      */
     @GetMapping("exportFavoritesExcel")
-    fun exportFavoritesExcel(request: HttpServletRequest): ResponseEntity<Any> {
+    fun exportFavoritesExcel(): ResponseEntity<Any> {
         log.info("Exporting personal address book as Excel file.")
         val list = addressDao.favoriteVCards.map { it.address!! }
         val resultSet = ResultSet(list, list.size)

@@ -55,7 +55,7 @@ import javax.servlet.http.HttpServletRequest
 @RequestMapping("${Rest.URL}/task")
 class TaskServicesRest {
     class Kost2(val id: Int, val title: String)
-    class OrderPosition(val number: Int, val personDays: Int?, val title: String, status: AuftragsPositionsStatus?)
+    class OrderPosition(val number: Int, val personDays: Int?, val title: String, val status: AuftragsPositionsStatus?)
     class Order(val number: String,
                 val title: String,
                 val text: String,
