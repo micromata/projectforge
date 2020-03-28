@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 
@@ -45,6 +46,7 @@ import java.util.*;
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  */
+@Service
 public class PluginAdminService
 {
   private static final Logger LOG = LoggerFactory.getLogger(PluginAdminService.class);
