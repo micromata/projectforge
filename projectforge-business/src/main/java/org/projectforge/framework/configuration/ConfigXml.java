@@ -106,16 +106,6 @@ public class ConfigXml {
 
   private AccountingConfig accountingConfig;
 
-  /**
-   * Separated list of main classes (separated by white chars and or ',').
-   */
-  String pluginMainClasses;
-
-  // Please note: If you change the name of this member field don't forget to change the PLUGIN_CONFIGS_FIELD_NAME below.
-  private List<ConfigurationData> plugins;
-
-  private static final String PLUGIN_CONFIGS_FIELD_NAME = "plugins";
-
   public static ConfigXml getInstance() {
     if (instance == null) {
       throw new IllegalStateException("Configuration is not yet configured");
@@ -221,12 +211,6 @@ public class ConfigXml {
           final ConfigXml cfg = (ConfigXml) reader.read(xml);
           final String warnings = reader.getWarnings();
           copyDeclaredFields(null, this.getClass(), cfg, this);
-          if (CollectionUtils.isNotEmpty(cfg.plugins)) {
-            for (final ConfigurationData srcData : cfg.plugins) {
-              final ConfigurationData destData = this.getPluginConfig(srcData.getClass());
-              copyDeclaredFields(destData.getClass().getName() + ".", srcData.getClass(), srcData, destData);
-            }
-          }
           msg = "Config file '" + getConfigFilePath() + "' successfully read.";
           if (warnings != null) {
             msg += "\n" + warnings;
@@ -334,8 +318,6 @@ public class ConfigXml {
             }
             buf.append(".");
             copyDeclaredFields(buf.toString(), srcFieldValue.getClass(), srcFieldValue, destFieldValue, ignoreFields);
-          } else if (PLUGIN_CONFIGS_FIELD_NAME.equals(field.getName())) {
-            // Do nothing.
           } else {
             field.set(dest, srcFieldValue);
             if (field.isAnnotationPresent(ConfigXmlSecretField.class)) {
@@ -512,36 +494,6 @@ public class ConfigXml {
 
   public List<ConfigureHoliday> getHolidays() {
     return holidays;
-  }
-
-  /**
-   * Here you can define a list of main classes of type AbstractPlugin. These classes will be initialized on startup.
-   * Multiple entries should be separated by white chars and/or ','.
-   *
-   * @return
-   */
-  public String[] getPluginMainClasses() {
-    return StringUtils.split(pluginMainClasses, " \r\n\t,");
-  }
-
-  /**
-   * If no such plugin config exist, a new instance is created and returned.
-   *
-   * @return the pluginConfigs
-   */
-  public ConfigurationData getPluginConfig(final Class<? extends ConfigurationData> configClass) {
-    if (plugins == null) {
-      plugins = new ArrayList<>();
-    } else {
-      for (final ConfigurationData configData : plugins) {
-        if (configData != null && configClass.isAssignableFrom(configData.getClass())) {
-          return configData;
-        }
-      }
-    }
-    final ConfigurationData config = (ConfigurationData) BeanHelper.newInstance(configClass);
-    plugins.add(config);
-    return config;
   }
 
   /**
