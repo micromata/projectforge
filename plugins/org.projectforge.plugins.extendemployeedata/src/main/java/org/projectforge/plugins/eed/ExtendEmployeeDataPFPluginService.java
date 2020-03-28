@@ -58,4 +58,8 @@ public class ExtendEmployeeDataPFPluginService implements PFPluginService
     return new ExtendEmployeeDataPlugin();
   }
 
+  @Override
+  public boolean isBuiltIn() {
+    return true;
+  }
 }

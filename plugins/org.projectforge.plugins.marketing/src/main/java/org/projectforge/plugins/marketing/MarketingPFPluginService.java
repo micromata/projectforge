@@ -57,4 +57,8 @@ public class MarketingPFPluginService implements PFPluginService
     return new MarketingPlugin();
   }
 
+  @Override
+  public boolean isBuiltIn() {
+    return true;
+  }
 }

@@ -81,7 +81,7 @@ public class PluginAdminServiceImpl implements PluginAdminService
 
     List<AvailablePlugin> ret = new ArrayList<>();
     for (PFPluginService e : ls) {
-      AvailablePlugin ap = new AvailablePlugin(e, activated.contains(e.getPluginId()), e.isBuildIn());
+      AvailablePlugin ap = new AvailablePlugin(e, activated.contains(e.getPluginId()), e.isBuiltIn());
       ret.add(ap);
     }
     return ret;

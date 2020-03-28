@@ -31,11 +31,9 @@ import org.projectforge.plugins.core.PFPluginService;
  */
 public class PollPFPluginService implements PFPluginService
 {
-
   @Override
   public String getPluginId()
   {
-
     return "poll";
   }
 
@@ -57,4 +55,8 @@ public class PollPFPluginService implements PFPluginService
     return new PollPlugin();
   }
 
+  @Override
+  public boolean isBuiltIn() {
+    return true;
+  }
 }

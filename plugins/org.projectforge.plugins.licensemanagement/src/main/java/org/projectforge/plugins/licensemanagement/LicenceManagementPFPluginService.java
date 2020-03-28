@@ -57,4 +57,8 @@ public class LicenceManagementPFPluginService implements PFPluginService
     return new LicenseManagementPlugin();
   }
 
+  @Override
+  public boolean isBuiltIn() {
+    return true;
+  }
 }

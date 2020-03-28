@@ -58,4 +58,8 @@ public class TodoPFPluginService implements PFPluginService
     return new ToDoPlugin();
   }
 
+  @Override
+  public boolean isBuiltIn() {
+    return true;
+  }
 }
