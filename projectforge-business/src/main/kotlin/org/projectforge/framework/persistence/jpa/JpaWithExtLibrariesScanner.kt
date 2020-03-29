@@ -37,6 +37,7 @@ import org.hibernate.boot.archive.scan.spi.Scanner
 import org.hibernate.boot.archive.spi.*
 import org.hibernate.jpa.boot.internal.StandardJpaScanEnvironmentImpl
 import org.hibernate.jpa.boot.spi.PersistenceUnitDescriptor
+import java.io.File
 import java.io.IOException
 import java.net.MalformedURLException
 import java.net.URL
@@ -297,7 +298,7 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
             Files.newDirectoryStream(pluginsPath).use { directoryStream ->
                 directoryStream.forEach { p ->
                     val dirString = p.toString()
-                    if (dirString.contains("org.projectforge.plugins") && embeddedPlugins.any { dirString.contains(it) }) {
+                    if (File(dirString).isDirectory && dirString.contains("org.projectforge.plugins") && embeddedPlugins.any { dirString.contains(it) }) {
                         val url = p.resolve(Paths.get("target", "classes")).toUri().toURL()
                         try {
                             visitUrl(url, collector, urlmatcher)
