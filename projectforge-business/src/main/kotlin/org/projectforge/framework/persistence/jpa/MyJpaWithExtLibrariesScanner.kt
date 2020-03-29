@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.jpa
 
 import de.micromata.genome.jpa.impl.JpaExtScannerUrlProvider
+import de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner
 import de.micromata.genome.util.bean.PrivateBeanUtils
 import de.micromata.genome.util.matcher.BooleanListRulesFactory
 import de.micromata.genome.util.matcher.CommonMatchers
@@ -60,12 +61,12 @@ private val log = KotlinLogging.logger {}
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  * @author Florian Blumenstein
  */
-class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDescriptorFactory: ArchiveDescriptorFactory = StandardArchiveDescriptorFactory.INSTANCE) : Scanner {
+class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDescriptorFactory: ArchiveDescriptorFactory = StandardArchiveDescriptorFactory.INSTANCE) : Scanner {
     private val archiveDescriptorCache: MutableMap<String, ArchiveDescriptorInfo> = HashMap()
     override fun scan(environment: ScanEnvironment, options: ScanOptions, parameters: ScanParameters): ScanResult {
         val collector = ScanResultCollector(environment, options, parameters)
         if (environment.nonRootUrls != null) {
-            val context: ArchiveContext = de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner.ArchiveContextImpl(false, collector)
+            val context: ArchiveContext = JpaWithExtLibrariesScanner.ArchiveContextImpl(false, collector)
             for (url in environment.nonRootUrls) {
                 val descriptor = buildArchiveDescriptor(url, false)
                 descriptor.visitArchive(context)
@@ -84,7 +85,7 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
         if (!urlMatcher.match(url.toString())) {
             return
         }
-        val context: ArchiveContext = de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner.ArchiveContextImpl(true, collector)
+        val context: ArchiveContext = JpaWithExtLibrariesScanner.ArchiveContextImpl(true, collector)
         val surl = url.toString()
         log.info("Scanning module '$surl'...")
         if (surl.contains("!")) {
@@ -147,14 +148,14 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
      * @param collector the collector to use
      */
     private fun handleClassManifestClassPath(url: URL, collector: ScanResultCollector, urlMatcher: Matcher<String?>) {
-        val urltoopen = fixUrlToOpen(url)
-        val urls = urltoopen.toString()
+        val urlToOpen = fixUrlToOpen(url)
+        val urls = urlToOpen.toString()
         if (!urls.endsWith(".jar")) {
             return
         }
         try {
-            urltoopen.openStream().use { `is` ->
-                JarInputStream(`is`).use { jarStream ->
+            urlToOpen.openStream().use { inputStream ->
+                JarInputStream(inputStream).use { jarStream ->
                     val manifest = jarStream.manifest ?: return
                     val attr = manifest.mainAttributes
                     val `val` = attr.getValue("Class-Path")
@@ -192,7 +193,7 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
                 log.warn("Cannot scan " + url + "; " + ex.message)
             }
         }
-        workarroundForIDEStart(environment, collector, urlmatcher, loadedUrls)
+        //workarroundForIDEStart(environment, collector, urlmatcher, loadedUrls)
     }
 
     private fun getPersistenceProperties(environment: ScanEnvironment): Properties {
@@ -245,7 +246,7 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
     class ArchiveContextImpl(private val isRootUrl: Boolean, scanResultCollector: ScanResultCollector?) : ArchiveContext {
         private val classEntryHandler = ClassFileArchiveEntryHandler(scanResultCollector)
         private val packageEntryHandler = PackageInfoArchiveEntryHandler(scanResultCollector)
-        private val fileEntryHandler: ArchiveEntryHandler
+        private val fileEntryHandler = NonClassFileArchiveEntryHandler(scanResultCollector)
         override fun isRootUrl(): Boolean {
             return isRootUrl
         }
@@ -263,10 +264,6 @@ class JpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDe
                     fileEntryHandler
                 }
             }
-        }
-
-        init {
-            fileEntryHandler = NonClassFileArchiveEntryHandler(scanResultCollector)
         }
     }
 

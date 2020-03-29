@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.poll;
 
+import org.projectforge.business.user.UserPrefAreaRegistry;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.menu.builder.MenuItemDef;
@@ -74,6 +75,10 @@ public class PollPlugin extends AbstractPlugin {
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
+  public PollPlugin() {
+    super("poll", "poll", "Fuer die Durchfuehrung von Anfragen");
+  }
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
@@ -117,7 +122,8 @@ public class PollPlugin extends AbstractPlugin {
     addResourceBundle(RESOURCE_BUNDLE_NAME);
 
     // Register favorite entries (the user can modify these templates/favorites via 'own settings'):
-    USER_PREF_AREA = registerUserPrefArea("POLL_FAVORITE", PollDO.class, "poll.favorite");
+    USER_PREF_AREA = new UserPrefArea("POLL_FAVORITE", PollDO.class, "poll.favorite");
+    UserPrefAreaRegistry.instance().register(USER_PREF_AREA);
     // CalendarFeed.registerFeedHook(new TeamCalCalendarFeedHook());
   }
 
