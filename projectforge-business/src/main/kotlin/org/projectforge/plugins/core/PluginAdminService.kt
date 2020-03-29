@@ -58,15 +58,18 @@ open class PluginAdminService {
     /**
      * All plugins registered as Spring components (activated as well as not activated ones).
      */
-    lateinit var availablePlugins: List<AbstractPlugin>
+    private lateinit var allPlugins: List<AbstractPlugin>
+
+    open val availablePlugins: List<AbstractPlugin>
+        get() = allPlugins
 
     private val afterCreatedActivePluginsCallback: MutableList<PluginCallback> = ArrayList()
 
     @PostConstruct
     private fun postConstruct() {
-        val pluginNames=  applicationContext.getBeanNamesForType(AbstractPlugin::class.java)
-        availablePlugins = pluginNames.map { applicationContext.getBean(it, AbstractPlugin::class.java) }
-        log.info { "Plugins found: ${availablePlugins.joinToString { it.id }}." }
+        val pluginNames = applicationContext.getBeanNamesForType(AbstractPlugin::class.java)
+        allPlugins = pluginNames.map { applicationContext.getBean(it, AbstractPlugin::class.java) }
+        log.info { "Plugins found: ${allPlugins.joinToString { it.id }}." }
     }
 
     /**
@@ -115,7 +118,7 @@ open class PluginAdminService {
      * @return the activated plugins as list of id strings.
      * @see [GlobalConfiguration.getStringValue]
      */
-    val activatedPluginsFromConfiguration: MutableList<String>
+    open val activatedPluginsFromConfiguration: MutableList<String>
         get() {
             val plugins = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.PLUGIN_ACTIVATED)
             if (plugins.isNullOrBlank()) {
@@ -136,7 +139,7 @@ open class PluginAdminService {
     }
 
     private fun initializeActivePlugins(onlyConfiguredActive: Boolean) {
-        val plugins = availablePlugins
+        val plugins = allPlugins
         val activatedPluginsByConfig = activatedPluginsFromConfiguration
         for (plugin in plugins) {
             if (onlyConfiguredActive && !activatedPluginsByConfig.contains(plugin.info.id)) {
