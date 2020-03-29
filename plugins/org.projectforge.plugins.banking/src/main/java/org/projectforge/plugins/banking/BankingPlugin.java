@@ -62,6 +62,10 @@ public class BankingPlugin extends AbstractPlugin {
 
   // private BankAccountBalanceDao addressCampaignValueDao;
 
+  public BankingPlugin() {
+    super("banking", "Banking", "Under construction: List of bank accounts and transfers.");
+  }
+
   @Override
   protected void initialize() {
     // DatabaseUpdateDao is needed by the updater:

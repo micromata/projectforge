@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
 import java.util.*
+import javax.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 
@@ -57,10 +58,16 @@ open class PluginAdminService {
     /**
      * All plugins registered as Spring components (activated as well as not activated ones).
      */
-    @Autowired
     lateinit var availablePlugins: List<AbstractPlugin>
 
     private val afterCreatedActivePluginsCallback: MutableList<PluginCallback> = ArrayList()
+
+    @PostConstruct
+    private fun postConstruct() {
+        val pluginNames=  applicationContext.getBeanNamesForType(AbstractPlugin::class.java)
+        availablePlugins = pluginNames.map { applicationContext.getBean(it, AbstractPlugin::class.java) }
+        log.info { "Plugins found: ${availablePlugins.joinToString { it.id }}." }
+    }
 
     /**
      * List of all activated plugins.
