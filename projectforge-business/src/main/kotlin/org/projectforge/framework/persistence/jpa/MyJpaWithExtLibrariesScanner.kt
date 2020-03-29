@@ -51,7 +51,7 @@ import java.util.jar.JarInputStream
 /**
  * Plugins to load, if ProjectForge is started from IDE. If not started from IDE, all loaded jars will be scanned automatically.
  */
-private val embeddedPlugins = arrayOf("extendedemployeedata", "ihk", "licensemanagement", "liquidityplanning", "marketing", "memo", "todo")
+private val embeddedPlugins4IDEStart = arrayOf("extendedemployeedata", "ihk", "licensemanagement", "liquidityplanning", "marketing", "memo", "todo")
 
 private val log = KotlinLogging.logger {}
 
@@ -60,9 +60,17 @@ private val log = KotlinLogging.logger {}
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  * @author Florian Blumenstein
+ * @author Kai Reinhard
  */
 class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDescriptorFactory: ArchiveDescriptorFactory = StandardArchiveDescriptorFactory.INSTANCE) : Scanner {
     private val archiveDescriptorCache: MutableMap<String, ArchiveDescriptorInfo> = HashMap()
+    init {
+        if (_instance != null) {
+            log.error { "Can't register instance twice." }
+        } else {
+            _instance = this
+        }
+    }
     override fun scan(environment: ScanEnvironment, options: ScanOptions, parameters: ScanParameters): ScanResult {
         if (log.isDebugEnabled) {
             log.debug { "Method scan (1)." }
@@ -232,6 +240,7 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
         if (!INTERNAL_TEST_MODE) {
             workarroundForIDEStart(environment, collector, urlmatcher, loadedUrls)
         }
+        scanPlugins(environment, collector, urlmatcher, loadedUrls)
     }
 
     private fun getPersistenceProperties(environment: ScanEnvironment): Properties {
@@ -305,6 +314,9 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
         }
     }
 
+    private fun scanPlugins(environment: ScanEnvironment, collector: ScanResultCollector, urlmatcher: Matcher<String?>, loadedUrls: MutableSet<URL>) {
+    }
+
     /**
      * Workarround, because if started in Intellij, the entities of the plugins are not scanned for Hibernate.
      */
@@ -339,7 +351,7 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
             Files.newDirectoryStream(pluginsPath).use { directoryStream ->
                 directoryStream.forEach { p ->
                     val dirString = p.toString()
-                    if (File(dirString).isDirectory && dirString.contains("org.projectforge.plugins") && embeddedPlugins.any { dirString.contains(it) }) {
+                    if (File(dirString).isDirectory && dirString.contains("org.projectforge.plugins") && embeddedPlugins4IDEStart.any { dirString.contains(it) }) {
                         val url = p.resolve(Paths.get("target", "classes")).toUri().toURL()
                         try {
                             if (log.isDebugEnabled) {
@@ -374,6 +386,10 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
         fun setInternalSetUnitTestMode() {
             INTERNAL_TEST_MODE = true;
         }
+
+        private var _instance: MyJpaWithExtLibrariesScanner? = null
+        val instance: MyJpaWithExtLibrariesScanner
+            get() = _instance!!
     }
 
 }
