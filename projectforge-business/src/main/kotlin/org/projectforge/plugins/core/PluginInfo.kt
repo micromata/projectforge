@@ -27,7 +27,7 @@ package org.projectforge.plugins.core
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  * @author Kai Reinhard
  */
-abstract class PluginInfo(
+class PluginInfo(
         /**
          * A short id of this plugin. Must be unique. This id string is referred for activation of plugins
          * in ProjectForges configuration.

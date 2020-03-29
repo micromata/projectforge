@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-class MemoPlugin : AbstractPlugin(MemoPluginInfo()) {
+class MemoPlugin : AbstractPlugin(ID, "Memo", "Personal text memos of users.") {
 
     @Autowired
     private lateinit var memoDao: MemoDao
@@ -82,6 +82,7 @@ class MemoPlugin : AbstractPlugin(MemoPluginInfo()) {
         get() = MemoPluginUpdates.getInitializationUpdateEntry()
 
     companion object {
+        const val ID = "memo"
         val RESOURCE_BUNDLE_NAME = "MemoI18nResources"
 
         // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of

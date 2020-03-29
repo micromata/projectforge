@@ -63,7 +63,7 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin {
   private DatabaseService databaseService;
 
   public ExtendEmployeeDataPlugin() {
-    super(new ExtendEmployeeDataPluginInfo());
+    super("extendemployeedata", "ExtendEmployeeData", "PlugIn for extended employee data");
   }
 
   /**

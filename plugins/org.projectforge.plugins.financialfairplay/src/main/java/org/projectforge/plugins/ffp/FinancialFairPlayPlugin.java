@@ -66,7 +66,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin {
   private FFPDeptCounterCache ffpDeptCounterCache;
 
   public FinancialFairPlayPlugin() {
-    super(new FinancialFairPlayPluginInfo());
+    super(ID, "FinancialFairPlay", "PlugIn for organize financial fairplay (out-dated).");
   }
 
   /**

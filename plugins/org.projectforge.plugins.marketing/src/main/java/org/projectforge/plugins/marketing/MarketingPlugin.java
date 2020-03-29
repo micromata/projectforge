@@ -66,7 +66,7 @@ public class MarketingPlugin extends AbstractPlugin {
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
   public MarketingPlugin() {
-    super(new MarketingPluginInfo());
+    super("marketing", "Marketing", "Marketing plugin for address campaigns.");
   }
 
   @Override

@@ -60,7 +60,7 @@ public class LiquidityPlanningPlugin extends AbstractPlugin {
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
   public LiquidityPlanningPlugin() {
-    super(new LiquidityPlanningPluginInfo());
+    super("liquidplanning", "Liquidity planning", "Liquidity planning based on expected payments and invoices with probabilities.");
   }
 
   /**

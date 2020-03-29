@@ -58,7 +58,7 @@ public class LicenseManagementPlugin extends AbstractPlugin {
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
   public LicenseManagementPlugin() {
-    super(new LicenseManagementPluginInfo());
+    super("licenseManagementPlugin", "LicenseManagementPlugin", "For managing software licenses, keys and usage.");
   }
 
   /**

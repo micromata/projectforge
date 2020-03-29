@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.todo;
 
+import org.projectforge.business.user.UserPrefAreaRegistry;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.menu.builder.MenuItemDef;
@@ -58,7 +59,7 @@ public class ToDoPlugin extends AbstractPlugin {
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
   public ToDoPlugin() {
-    super(new TodoPluginInfo());
+    super("todo", "To-do", "To-do's may shared by users, groups etc. with notification per e-mail on changes.");
   }
 
   /**
@@ -86,6 +87,9 @@ public class ToDoPlugin extends AbstractPlugin {
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME);
+
+    USER_PREF_AREA = new UserPrefArea("TODO_FAVORITE", ToDoDO.class, "todo.favorite");
+    UserPrefAreaRegistry.instance().register(USER_PREF_AREA);
   }
 
   /**

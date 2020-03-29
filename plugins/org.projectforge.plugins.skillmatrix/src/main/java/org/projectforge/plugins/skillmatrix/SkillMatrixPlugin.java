@@ -93,7 +93,7 @@ public class SkillMatrixPlugin extends AbstractPlugin {
   private GroupService groupService;
 
   public SkillMatrixPlugin() {
-    super(new SkillmatrixPluginInfo());
+    super("skillmatrix", "Skillmatrix", "Plugin to manage user skills (out-dated, will be replaced by skills plugin).");
   }
 
   /**
