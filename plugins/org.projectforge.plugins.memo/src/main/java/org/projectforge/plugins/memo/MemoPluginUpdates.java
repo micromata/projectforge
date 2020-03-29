@@ -34,18 +34,14 @@ import org.projectforge.framework.persistence.database.DatabaseService;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class MemoPluginUpdates
-{
+public class MemoPluginUpdates {
   static DatabaseService databaseService;
 
   @SuppressWarnings("serial")
-  public static UpdateEntry getInitializationUpdateEntry()
-  {
-    return new UpdateEntryImpl(new MemoPluginInfo().getId(), "2011-03-08", "Adds table T_PLUGIN_MEMO.")
-    {
+  public static UpdateEntry getInitializationUpdateEntry() {
+    return new UpdateEntryImpl(MemoPlugin.ID, "2011-03-08", "Adds table T_PLUGIN_MEMO.") {
       @Override
-      public UpdatePreCheckStatus runPreCheck()
-      {
+      public UpdatePreCheckStatus runPreCheck() {
         // Does the data-base table already exist?
         // Check only the oldest table.
         if (databaseService.doTablesExist(MemoDO.class)) {
@@ -57,8 +53,7 @@ public class MemoPluginUpdates
       }
 
       @Override
-      public UpdateRunningStatus runUpdate()
-      {
+      public UpdateRunningStatus runUpdate() {
         // Create initial data-base table:
         new SchemaGenerator(databaseService).add(MemoDO.class).createSchema();
         databaseService.createMissingIndices();

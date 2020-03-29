@@ -43,9 +43,12 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
+ * @param pluginId See. [PluginInfo]
+ * @param pluginName See. [PluginInfo]
+ * @param pluginDescription See. [PluginInfo]
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-abstract class AbstractPlugin(val info: PluginInfo) {
+abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescription: String) {
     @Autowired
     protected lateinit var applicationContext: ApplicationContext
 
@@ -59,6 +62,11 @@ abstract class AbstractPlugin(val info: PluginInfo) {
 
     @Autowired
     protected lateinit var userRights: UserRightService
+
+    val id: String
+        get() = info.id
+
+    val info = PluginInfo(pluginId, this::class.java, pluginName, pluginDescription)
 
     val resourceBundleNames = mutableListOf<String>()
 

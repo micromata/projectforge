@@ -49,7 +49,7 @@ public class IhkExportPlugin extends AbstractPlugin {
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
   public IhkExportPlugin() {
-    super(new IhkExportPluginInfo());
+    super("ihkexport", "IHK-Export", "Ausbildungsnachweise drucken");
   }
 
   @Override
