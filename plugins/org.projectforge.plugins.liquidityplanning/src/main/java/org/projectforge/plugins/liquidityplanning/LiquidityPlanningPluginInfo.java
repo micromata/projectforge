@@ -21,40 +21,16 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.eed;
+package org.projectforge.plugins.liquidityplanning;
 
-import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.plugins.core.PFPluginService;
+import org.projectforge.plugins.core.PluginInfo;
 
 /**
- *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
+ * @author Kai Reinhard
  */
-public class ExtendEmployeeDataPFPluginService implements PFPluginService
-{
-
-  @Override
-  public String getPluginId()
-  {
-    return "extendemployeedata";
-  }
-
-  @Override
-  public String getPluginName()
-  {
-    return "ExtendEmployeeData";
-  }
-
-  @Override
-  public String getPluginDescription()
-  {
-    return "PlugIn for extended employee data";
-  }
-
-  @Override
-  public AbstractPlugin createPluginInstance()
-  {
-    return new ExtendEmployeeDataPlugin();
+public class LiquidityPlanningPluginInfo extends PluginInfo {
+  public LiquidityPlanningPluginInfo() {
+    super("liquidplanning", LiquidityPlanningPlugin.class, "Liquidity planning", "Liquidity planning based on expected payments and invoices with probabilities.");
   }
 }

@@ -21,60 +21,16 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.ihkexport;
+package org.projectforge.plugins.memo;
 
-import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.plugins.core.PFPluginService;
+import org.projectforge.plugins.core.PluginInfo;
 
 /**
- * The Class MemoPFPluginService.
- *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
+ * @author Kai Reinhard
  */
-public class IhkExportPFPluginService implements PFPluginService
-{
-
-  /**
-   * {@inheritDoc}
-   *
-   */
-
-  @Override
-  public String getPluginId()
-  {
-    return "ihkexport";
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   */
-
-  @Override
-  public String getPluginName()
-  {
-    return "IHK-Export";
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   */
-
-  @Override
-  public String getPluginDescription()
-  {
-    return "Ausbildungsnachweise drucken";
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   */
-
-  @Override
-  public AbstractPlugin createPluginInstance()
-  {
-    return new IhkExportPlugin();
+public class MemoPluginInfo extends PluginInfo {
+  public MemoPluginInfo() {
+    super("memo", MemoPlugin.class, "Memo", "Personal text memos of users.");
   }
 }

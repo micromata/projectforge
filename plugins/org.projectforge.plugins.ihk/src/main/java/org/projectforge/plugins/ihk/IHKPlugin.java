@@ -51,6 +51,10 @@ public class IHKPlugin extends AbstractPlugin {
   @Autowired
   private TimesheetDao ihkDao;
 
+  public IHKPlugin() {
+    super(new IHKPFPluginInfo());
+  }
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */

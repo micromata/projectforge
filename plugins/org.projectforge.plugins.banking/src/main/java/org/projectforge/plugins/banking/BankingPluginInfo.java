@@ -21,40 +21,17 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.core
+package org.projectforge.plugins.banking;
+
+import org.projectforge.plugins.core.AbstractPlugin;
+import org.projectforge.plugins.core.PluginInfo;
 
 /**
- * A service, which is registered via JDK ServiceLoader.
- *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  * @author Kai Reinhard
  */
-interface PFPluginService {
-    /**
-     * A short id of this plugin.
-     *
-     * @return
-     */
-    val pluginId: String
-
-    /**
-     * Name of the plugin
-     *
-     * @return
-     */
-    val pluginName: String
-
-    /**
-     * Short explanation of the plugin.
-     *
-     * @return
-     */
-    val pluginDescription: String?
-
-    /**
-     * Creates the plugin instance.
-     *
-     * @return the abstract plugin
-     */
-    fun createPluginInstance(): AbstractPlugin
+public class BankingPluginInfo extends PluginInfo {
+  BankingPluginInfo() {
+    super("banking", MemoPlugin.class, "Banking", "Under construction: List of bank accounts and transfers.");
+  }
 }

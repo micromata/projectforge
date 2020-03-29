@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-class MemoPlugin : AbstractPlugin() {
+class MemoPlugin : AbstractPlugin(MemoPluginInfo()) {
 
     @Autowired
     private lateinit var memoDao: MemoDao
@@ -55,14 +55,14 @@ class MemoPlugin : AbstractPlugin() {
         MemoPluginUpdates.databaseService = databaseService
         memoDao = applicationContext.getBean("memoDao") as MemoDao
         // Register it:
-        register(ID, MemoDao::class.java, memoDao, "plugins.memo")
+        register(MemoDao::class.java, memoDao, "plugins.memo")
 
         // Register the web part:
-        pluginWicketRegistrationService.registerWeb(ID, MemoListPage::class.java, MemoEditPage::class.java)
+        pluginWicketRegistrationService.registerWeb(info.id, MemoListPage::class.java, MemoEditPage::class.java)
 
         // Register the menu entry as sub menu entry of the misc menu:
         // Both: Wicket and React
-        pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef(ID, "plugins.memo.menu", "${Const.REACT_APP_PATH}memo"), MemoListPage::class.java)
+        pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef(info.id, "plugins.memo.menu", "${Const.REACT_APP_PATH}memo"), MemoListPage::class.java)
         // Later: React only:
         // menuCreator.add(parentId, menuItemDef);
 
@@ -78,13 +78,10 @@ class MemoPlugin : AbstractPlugin() {
         this.memoDao = memoDao
     }
 
-    override fun getInitializationUpdateEntry(): UpdateEntry? {
-        return MemoPluginUpdates.getInitializationUpdateEntry()
-    }
+    override val initializationUpdateEntry: UpdateEntry?
+        get() = MemoPluginUpdates.getInitializationUpdateEntry()
 
     companion object {
-        val ID = "memo"
-
         val RESOURCE_BUNDLE_NAME = "MemoI18nResources"
 
         // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of

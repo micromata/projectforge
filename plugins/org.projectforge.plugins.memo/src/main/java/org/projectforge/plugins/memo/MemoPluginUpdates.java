@@ -41,7 +41,7 @@ public class MemoPluginUpdates
   @SuppressWarnings("serial")
   public static UpdateEntry getInitializationUpdateEntry()
   {
-    return new UpdateEntryImpl(MemoPlugin.Companion.getID(), "2011-03-08", "Adds table T_PLUGIN_MEMO.")
+    return new UpdateEntryImpl(new MemoPluginInfo().getId(), "2011-03-08", "Adds table T_PLUGIN_MEMO.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()

@@ -21,39 +21,16 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.liquidityplanning;
+package org.projectforge.plugins.marketing;
 
-import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.plugins.core.PFPluginService;
+import org.projectforge.plugins.core.PluginInfo;
 
 /**
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
+ * @author Kai Reinhard
  */
-public class LiquidityPlanningPFPluginService implements PFPluginService
-{
-
-  @Override
-  public String getPluginId()
-  {
-
-    return "liquidplanning";
-  }
-
-  @Override
-  public String getPluginName()
-  {
-    return "Liquidity planning";
-  }
-
-  @Override
-  public String getPluginDescription()
-  {
-    return "Liquidity planning plugin";
-  }
-
-  @Override
-  public AbstractPlugin createPluginInstance()
-  {
-    return new LiquidityPlanningPlugin();
+public class MarketingPluginInfo extends PluginInfo {
+  public MarketingPluginInfo() {
+    super("marketing", MarketingPlugin.class, "Marketing", "Marketing plugin for address campaigns.");
   }
 }

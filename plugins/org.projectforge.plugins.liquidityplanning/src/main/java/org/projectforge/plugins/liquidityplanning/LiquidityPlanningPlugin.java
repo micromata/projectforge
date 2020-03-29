@@ -59,6 +59,10 @@ public class LiquidityPlanningPlugin extends AbstractPlugin {
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
+  public LiquidityPlanningPlugin() {
+    super(new LiquidityPlanningPluginInfo());
+  }
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */

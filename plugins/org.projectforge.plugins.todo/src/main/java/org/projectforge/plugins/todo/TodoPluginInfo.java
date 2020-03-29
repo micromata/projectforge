@@ -21,39 +21,16 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.marketing;
+package org.projectforge.plugins.todo;
 
-import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.plugins.core.PFPluginService;
+import org.projectforge.plugins.core.PluginInfo;
 
 /**
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
+ * @author Kai Reinhard
  */
-public class MarketingPFPluginService implements PFPluginService
-{
-
-  @Override
-  public String getPluginId()
-  {
-
-    return "marketing";
-  }
-
-  @Override
-  public String getPluginName()
-  {
-    return "Marketing";
-  }
-
-  @Override
-  public String getPluginDescription()
-  {
-    return "Marketing plugin";
-  }
-
-  @Override
-  public AbstractPlugin createPluginInstance()
-  {
-    return new MarketingPlugin();
+public class TodoPluginInfo extends PluginInfo {
+  public TodoPluginInfo() {
+    super("todo", ToDoPlugin.class, "To-do", "To-do's may shared by users, groups etc. with notification per e-mail on changes.");
   }
 }

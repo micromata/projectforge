@@ -21,41 +21,21 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.banking;
-
-import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.plugins.core.PFPluginService;
+package org.projectforge.plugins.core
 
 /**
- * Banking plugin.
- *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
+ * @author Kai Reinhard
  */
-public class BankingPFPluginService implements PFPluginService
-{
-
-  @Override
-  public String getPluginId()
-  {
-    return "banking";
-  }
-
-  @Override
-  public String getPluginName()
-  {
-    return getPluginId();
-  }
-
-  @Override
-  public String getPluginDescription()
-  {
-    return getPluginName();
-  }
-
-  @Override
-  public AbstractPlugin createPluginInstance()
-  {
-    return new BankingPlugin();
-  }
-}
+abstract class PluginInfo(
+        /**
+         * A short id of this plugin. Must be unique. This id string is referred for activation of plugins
+         * in ProjectForges configuration.
+         */
+        val id: String,
+        val clazz: Class<out AbstractPlugin>,
+        val name: String,
+        /**
+         * A short description of the plugin.
+         */
+        val description: String)

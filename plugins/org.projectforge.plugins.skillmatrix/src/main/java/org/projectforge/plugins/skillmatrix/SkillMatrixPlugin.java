@@ -92,6 +92,10 @@ public class SkillMatrixPlugin extends AbstractPlugin {
   @Autowired
   private GroupService groupService;
 
+  public SkillMatrixPlugin() {
+    super(new SkillmatrixPluginInfo());
+  }
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */

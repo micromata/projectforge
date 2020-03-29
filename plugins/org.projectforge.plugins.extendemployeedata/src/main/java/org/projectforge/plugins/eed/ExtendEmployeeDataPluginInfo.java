@@ -21,40 +21,16 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.todo;
+package org.projectforge.plugins.eed;
 
-import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.plugins.core.PFPluginService;
+import org.projectforge.plugins.core.PluginInfo;
 
 /**
- *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
+ * @author Kai Reinhard
  */
-public class TodoPFPluginService implements PFPluginService
-{
-
-  @Override
-  public String getPluginId()
-  {
-    return "todo";
-  }
-
-  @Override
-  public String getPluginName()
-  {
-    return "Todo";
-  }
-
-  @Override
-  public String getPluginDescription()
-  {
-    return "Manage Todos";
-  }
-
-  @Override
-  public AbstractPlugin createPluginInstance()
-  {
-    return new ToDoPlugin();
+public class ExtendEmployeeDataPluginInfo extends PluginInfo {
+  public ExtendEmployeeDataPluginInfo() {
+    super("extendemployeedata", ExtendEmployeeDataPlugin.class, "ExtendEmployeeData", "PlugIn for extended employee data");
   }
 }

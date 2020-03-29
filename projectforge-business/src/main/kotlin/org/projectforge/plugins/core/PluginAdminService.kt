@@ -55,11 +55,10 @@ open class PluginAdminService {
     private lateinit var databaseService: DatabaseService
 
     /**
-     * All plugins registered as Spring services/components. External plugins should be declared as Spring services.
-     * Built-in plugins will also be found by [ServiceLoader.load].
+     * All plugins registered as Spring components (activated as well as not activated ones).
      */
     @Autowired
-    private lateinit var registeredSpringPlugins: List<PFPluginService>
+    lateinit var availablePlugins: List<AbstractPlugin>
 
     private val afterCreatedActivePluginsCallback: MutableList<PluginCallback> = ArrayList()
 
@@ -73,28 +72,6 @@ open class PluginAdminService {
         }
 
     /**
-     * All installed plugin services (activated as well as not activated ones).
-     *
-     * @return the plugin services
-     */
-    open val availablePlugins: List<AvailablePlugin>
-        get() {
-            // Set for not adding plugins twice:
-            val pluginServiceSet = mutableSetOf<PFPluginService>()
-            val serviceLoader = ServiceLoader.load(PFPluginService::class.java)
-            serviceLoader.forEach { pluginServiceSet.add(it) }
-            registeredSpringPlugins.forEach { pluginServiceSet.add(it) }
-
-            val availablePlugins: MutableList<AvailablePlugin> = ArrayList()
-            val activated = readActivatedPluginsFromConfiguration
-            pluginServiceSet.forEach { pluginService ->
-                val ap = AvailablePlugin(pluginService, activated.contains(pluginService.pluginId))
-                availablePlugins.add(ap)
-            }
-            return availablePlugins
-        }
-
-    /**
      * Store a plugin as activated.
      * read LocalSettings pf.plugins.active. If not defined, uses ConfigurationParam.
      *
@@ -103,7 +80,7 @@ open class PluginAdminService {
      * @return the active plugins
      */
     open fun storePluginToBeActivated(id: String, activate: Boolean): Boolean {
-        val activated = readActivatedPluginsFromConfiguration
+        val activated = activatedPluginsFromConfiguration
         if (activate) {
             activated.add(id)
         } else {
@@ -126,12 +103,12 @@ open class PluginAdminService {
     }
 
     /**
-     * Get activated plugins from configuraton.
+     * Get activated plugins from configuration by reading values.
      *
      * @return the activated plugins as list of id strings.
      * @see [GlobalConfiguration.getStringValue]
      */
-    private val readActivatedPluginsFromConfiguration: MutableList<String>
+    val activatedPluginsFromConfiguration: MutableList<String>
         get() {
             val plugins = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.PLUGIN_ACTIVATED)
             if (plugins.isNullOrBlank()) {
@@ -153,21 +130,18 @@ open class PluginAdminService {
 
     private fun initializeActivePlugins(onlyConfiguredActive: Boolean) {
         val plugins = availablePlugins
+        val activatedPluginsByConfig = activatedPluginsFromConfiguration
         for (plugin in plugins) {
-            if (onlyConfiguredActive && !plugin.isActivated) {
-                log.info("Skipping not activated plugin '${plugin.projectForgePluginService.pluginName}'.")
+            if (onlyConfiguredActive && !activatedPluginsByConfig.contains(plugin.info.id)) {
+                log.info("Skipping not activated plugin '${plugin.info.name}'.")
                 continue
             }
-            log.info("Processing activated plugin activated: '${plugin.projectForgePluginService.pluginName}'.")
-            activatePlugin(plugin.projectForgePluginService)
+            log.info("Processing activated plugin activated: '${plugin.info.name}'.")
+            activatePlugin(plugin)
         }
     }
 
-    private fun activatePlugin(projectForgePluginService: PFPluginService) {
-        val plugin = projectForgePluginService.createPluginInstance()
-        val factory = applicationContext.autowireCapableBeanFactory
-        factory.initializeBean(plugin, projectForgePluginService.pluginId)
-        factory.autowireBean(plugin)
+    private fun activatePlugin(plugin: AbstractPlugin) {
         PluginsRegistry.instance().register(plugin)
         plugin.init()
         setSystemUpdater(plugin)

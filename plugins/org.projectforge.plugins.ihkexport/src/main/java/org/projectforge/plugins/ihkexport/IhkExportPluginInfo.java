@@ -21,47 +21,12 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.core;
+package org.projectforge.plugins.ihkexport;
 
-/**
- * Status of a plugin
- *
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
- */
-public class AvailablePlugin
-{
-  private PFPluginService projectForgePluginService;
+import org.projectforge.plugins.core.PluginInfo;
 
-  private boolean activated;
-
-  public AvailablePlugin()
-  {
-  }
-
-  public AvailablePlugin(PFPluginService projectForgePluginService, boolean activated)
-  {
-    this.projectForgePluginService = projectForgePluginService;
-    this.activated = activated;
-  }
-
-  public PFPluginService getProjectForgePluginService()
-  {
-    return projectForgePluginService;
-  }
-
-  public void setProjectForgePluginService(PFPluginService projectForgePluginService)
-  {
-    this.projectForgePluginService = projectForgePluginService;
-  }
-
-  public boolean isActivated()
-  {
-    return activated;
-  }
-
-  public void setActivated(boolean activated)
-  {
-    this.activated = activated;
+public class IhkExportPluginInfo extends PluginInfo {
+  public IhkExportPluginInfo() {
+    super("ihkexport", IhkExportPlugin.class, "IHK-Export", "Ausbildungsnachweise drucken");
   }
 }

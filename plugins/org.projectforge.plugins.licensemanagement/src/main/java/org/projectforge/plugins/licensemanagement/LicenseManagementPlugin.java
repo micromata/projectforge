@@ -57,6 +57,10 @@ public class LicenseManagementPlugin extends AbstractPlugin {
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
+  public LicenseManagementPlugin() {
+    super(new LicenseManagementPluginInfo());
+  }
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
