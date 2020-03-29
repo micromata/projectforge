@@ -49,6 +49,7 @@ import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.database.DatabaseService;
+import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
@@ -197,6 +198,7 @@ public abstract class AbstractTestBase {
 
   @BeforeAll
   public static void _beforeAll() {
+    MyJpaWithExtLibrariesScanner.setInternalSetUnitTestMode();
     ProjectForgeApp.internalSetJunitTestMode();
     I18nHelper.addBundleName(Const.RESOURCE_BUNDLE_NAME);
     SendMail.internalSetTestMode();

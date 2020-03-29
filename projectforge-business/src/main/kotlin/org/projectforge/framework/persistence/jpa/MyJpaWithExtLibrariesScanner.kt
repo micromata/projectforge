@@ -64,17 +64,26 @@ private val log = KotlinLogging.logger {}
 class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDescriptorFactory: ArchiveDescriptorFactory = StandardArchiveDescriptorFactory.INSTANCE) : Scanner {
     private val archiveDescriptorCache: MutableMap<String, ArchiveDescriptorInfo> = HashMap()
     override fun scan(environment: ScanEnvironment, options: ScanOptions, parameters: ScanParameters): ScanResult {
+        if (log.isDebugEnabled) {
+            log.debug { "Method scan (1)." }
+        }
         val collector = ScanResultCollector(environment, options, parameters)
         if (environment.nonRootUrls != null) {
             val context: ArchiveContext = JpaWithExtLibrariesScanner.ArchiveContextImpl(false, collector)
             for (url in environment.nonRootUrls) {
                 val descriptor = buildArchiveDescriptor(url, false)
+                if (log.isDebugEnabled) {
+                    log.debug { "Method scan (2): call ArchiveDescriptor.visitArchive for url $url" }
+                }
                 descriptor.visitArchive(context)
             }
         }
         val loadedUrls: MutableSet<URL> = HashSet()
         val rootUrl = environment.rootUrl
         if (rootUrl != null) {
+            if (log.isDebugEnabled) {
+                log.debug { "Method scan (3): call visitUrl for rootUrl $rootUrl" }
+            }
             visitUrl(rootUrl, collector, CommonMatchers.always())
         }
         visitExternUrls(environment, collector, loadedUrls)
@@ -82,7 +91,13 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
     }
 
     private fun visitUrl(url: URL, collector: ScanResultCollector, urlMatcher: Matcher<String?>) {
+        if (log.isDebugEnabled) {
+            log.debug { "Method visitUrl (1) for url $url" }
+        }
         if (!urlMatcher.match(url.toString())) {
+            if (log.isDebugEnabled) {
+                log.debug { "Method visitUrl (2): url doesn't match: '$url'" }
+            }
             return
         }
         val context: ArchiveContext = JpaWithExtLibrariesScanner.ArchiveContextImpl(true, collector)
@@ -101,7 +116,7 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
                 customUrlStr = customUrlStr.substring(0, customUrlStr.lastIndexOf('!'))
             }
             if (log.isDebugEnabled) {
-                log.debug("Custom URL: $customUrlStr")
+                log.debug("Method visitUrl (3): custom url: $customUrlStr")
             }
             try {
                 val customUrl = URL(customUrlStr)
@@ -112,6 +127,9 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
             }
         } else {
             val descriptor = buildArchiveDescriptor(url, true)
+            if (log.isDebugEnabled) {
+                log.debug { "Method visitUrl (4): calling ArchiveDescriptor.visitArchive for url: '$url'" }
+            }
             descriptor.visitArchive(context)
             handleClassManifestClassPath(url, collector, urlMatcher)
         }
@@ -132,7 +150,7 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
         return try {
             val ret = URL(surl)
             if (log.isDebugEnabled) {
-                log.debug { "Patches url from $orgurl to $surl" }
+                log.debug { "fixUrlToOpen: url from $orgurl patched to $surl" }
             }
             ret
         } catch (ex: MalformedURLException) {
@@ -150,7 +168,13 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
     private fun handleClassManifestClassPath(url: URL, collector: ScanResultCollector, urlMatcher: Matcher<String?>) {
         val urlToOpen = fixUrlToOpen(url)
         val urls = urlToOpen.toString()
+        if (log.isDebugEnabled) {
+            log.debug { "Method handleClassManifestClassPath (1) for url '$url'" }
+        }
         if (!urls.endsWith(".jar")) {
+            if (log.isDebugEnabled) {
+                log.debug { "Method handleClassManifestClassPath (2) aborted, no jar: '$url'" }
+            }
             return
         }
         try {
@@ -165,6 +189,9 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
                     val entries = StringUtils.split(`val`, " \t\n")
                     for (entry in entries) {
                         val surl = URL(entry)
+                        if (log.isDebugEnabled) {
+                            log.debug { "Method handleClassManifestClassPath (3), calling visitUrl for url '$surl'" }
+                        }
                         visitUrl(surl, collector, urlMatcher)
                     }
                 }
@@ -175,6 +202,9 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
     }
 
     private fun visitExternUrls(environment: ScanEnvironment, collector: ScanResultCollector, loadedUrls: MutableSet<URL>) {
+        if (log.isDebugEnabled) {
+            log.debug { "Method visitExternUrls (1)" }
+        }
         val matcherexppr = getPersistenceProperties(environment).getProperty(EXTLIBURLMATCHER)
         var urlmatcher = CommonMatchers.always<String?>()
         if (StringUtils.isNotBlank(matcherexppr)) {
@@ -184,7 +214,13 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
         val urls = prov!!.scannUrls
         for (url in urls) {
             if (loadedUrls.contains(url)) {
+                if (log.isDebugEnabled) {
+                    log.debug { "Method visitExternUrls (2), skipping url which was already visited: '$url'" }
+                }
                 continue
+            }
+            if (log.isDebugEnabled) {
+                log.debug { "Method visitExternUrls (3), call visitUrl for url '$url'" }
             }
             try {
                 visitUrl(url, collector, urlmatcher)
@@ -193,7 +229,9 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
                 log.warn("Cannot scan " + url + "; " + ex.message)
             }
         }
-        //workarroundForIDEStart(environment, collector, urlmatcher, loadedUrls)
+        if (!INTERNAL_TEST_MODE) {
+            workarroundForIDEStart(environment, collector, urlmatcher, loadedUrls)
+        }
     }
 
     private fun getPersistenceProperties(environment: ScanEnvironment): Properties {
@@ -272,10 +310,16 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
      */
     private fun workarroundForIDEStart(environment: ScanEnvironment, collector: ScanResultCollector, urlmatcher: Matcher<String?>, loadedUrls: MutableSet<URL>) {
         if (!loadedUrls.isNullOrEmpty() && loadedUrls.any { it.toExternalForm().contains("org.projectforge.plugins.") }) {
+            if (log.isDebugEnabled) {
+                log.debug { "Method workarroundForIDEStart (1) aborted, no matching urls found." }
+            }
             return
         }
         val rootUrl = environment.rootUrl ?: return
         if (!rootUrl.toExternalForm().matches("file:.*target.classes.*".toRegex())) {
+            if (log.isDebugEnabled) {
+                log.debug { "Method workarroundForIDEStart (2) aborted, skipping target/classes: $rootUrl" }
+            }
             return
         }
         log.info("*********** ProjectForge seems to be started from inside an IDE (entities of plugins have to be added now. This is OK, if started from IDE).")
@@ -298,6 +342,9 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
                     if (File(dirString).isDirectory && dirString.contains("org.projectforge.plugins") && embeddedPlugins.any { dirString.contains(it) }) {
                         val url = p.resolve(Paths.get("target", "classes")).toUri().toURL()
                         try {
+                            if (log.isDebugEnabled) {
+                                log.debug { "Method workarroundForIDEStart (3), calling visitUrl for url: $url" }
+                            }
                             visitUrl(url, collector, urlmatcher)
                             loadedUrls.add(url)
                         } catch (ex: Exception) {
@@ -320,6 +367,13 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
          * Url matcher expression
          */
         const val EXTLIBURLMATCHER = "de.micromata.genome.jpa.extlibrary.urlmatcher"
+
+        private var INTERNAL_TEST_MODE = false
+
+        @JvmStatic
+        fun setInternalSetUnitTestMode() {
+            INTERNAL_TEST_MODE = true;
+        }
     }
 
 }
