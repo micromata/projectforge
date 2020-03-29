@@ -48,11 +48,15 @@ public class IhkExportPlugin extends AbstractPlugin {
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
+  public IhkExportPlugin() {
+    super(new IhkExportPluginInfo());
+  }
+
   @Override
   protected void initialize() {
 
     // Register it:
-    register(ID, TimesheetDao.class, ihkExportDao, "plugins.ihkexport");
+    register(TimesheetDao.class, ihkExportDao, "plugins.ihkexport");
 
     // Register the web part:
     pluginWicketRegistrationService.registerWeb(ID);

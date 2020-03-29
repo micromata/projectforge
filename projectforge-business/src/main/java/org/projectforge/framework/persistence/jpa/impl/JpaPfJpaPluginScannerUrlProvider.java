@@ -27,7 +27,7 @@ import de.micromata.genome.jpa.impl.JpaExtScannerUrlProvider;
 import de.micromata.genome.util.matcher.CommonMatchers;
 import de.micromata.genome.util.matcher.Matcher;
 import de.micromata.genome.util.matcher.StringMatchers;
-import org.projectforge.plugins.core.PFPluginService;
+import org.projectforge.plugins.core.PluginInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,9 +56,9 @@ public class JpaPfJpaPluginScannerUrlProvider implements JpaExtScannerUrlProvide
         StringMatchers.containsString("/target/"),
         StringMatchers.containsString("/plugins/"),
         StringMatchers.containsString("org.projectforge"));
-    ServiceLoader<PFPluginService> ls = ServiceLoader.load(PFPluginService.class);
-    for (PFPluginService ps : ls) {
-      Class<? extends PFPluginService> clazz = ps.getClass();
+    ServiceLoader<PluginInfo> ls = ServiceLoader.load(PluginInfo.class);
+    for (PluginInfo ps : ls) {
+      Class<? extends PluginInfo> clazz = ps.getClass();
       ClassLoader cls = ps.getClass().getClassLoader();
       if (cls instanceof URLClassLoader) {
         URLClassLoader urlcls = (URLClassLoader) cls;

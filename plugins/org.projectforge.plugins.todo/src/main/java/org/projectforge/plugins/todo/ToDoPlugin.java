@@ -57,6 +57,10 @@ public class ToDoPlugin extends AbstractPlugin {
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
+  public ToDoPlugin() {
+    super(new TodoPluginInfo());
+  }
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
@@ -82,9 +86,6 @@ public class ToDoPlugin extends AbstractPlugin {
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME);
-
-    // Register favorite entries (the user can modify these templates/favorites via 'own settings'):
-    USER_PREF_AREA = registerUserPrefArea("TODO_FAVORITE", ToDoDO.class, "todo.favorite");
   }
 
   /**

@@ -21,39 +21,16 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.skillmatrix;
+package org.projectforge.plugins.licensemanagement;
 
-import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.plugins.core.PFPluginService;
+import org.projectforge.plugins.core.PluginInfo;
 
 /**
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
+ * @author Kai Reinhard
  */
-public class SkillmatrixPFPluginService implements PFPluginService
-{
-
-  @Override
-  public String getPluginId()
-  {
-
-    return "skillmatrix";
-  }
-
-  @Override
-  public String getPluginName()
-  {
-    return "Skillmatrix";
-  }
-
-  @Override
-  public String getPluginDescription()
-  {
-    return "Plugin to manage user skills";
-  }
-
-  @Override
-  public AbstractPlugin createPluginInstance()
-  {
-    return new SkillMatrixPlugin();
+public class LicenseManagementPluginInfo extends PluginInfo {
+  public LicenseManagementPluginInfo() {
+    super("licenseManagementPlugin", LicenseManagementPlugin.class, "LicenseManagementPlugin", "For managing software licenses, keys and usage.");
   }
 }

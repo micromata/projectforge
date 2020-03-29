@@ -21,58 +21,16 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.memo;
+package org.projectforge.plugins.skillmatrix;
 
-import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.plugins.core.PFPluginService;
+import org.projectforge.plugins.core.PluginInfo;
 
 /**
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
+ * @author Kai Reinhard
  */
-public class MemoPFPluginService implements PFPluginService
-{
-
-  /**
-   * {@inheritDoc}
-   *
-   */
-
-  @Override
-  public String getPluginId()
-  {
-    return "memo";
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   */
-
-  @Override
-  public String getPluginName()
-  {
-    return "Memo";
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   */
-
-  @Override
-  public String getPluginDescription()
-  {
-    return "Memo description";
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   */
-
-  @Override
-  public AbstractPlugin createPluginInstance()
-  {
-    return new MemoPlugin();
+public class SkillmatrixPluginInfo extends PluginInfo {
+  public SkillmatrixPluginInfo() {
+    super("skillmatrix", SkillMatrixPlugin.class, "Skillmatrix", "Plugin to manage user skills (out-dated, will be replaced by skills plugin).");
   }
 }

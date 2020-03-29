@@ -65,6 +65,10 @@ public class MarketingPlugin extends AbstractPlugin {
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
+  public MarketingPlugin() {
+    super(new MarketingPluginInfo());
+  }
+
   @Override
   protected void initialize() {
     // DatabaseUpdateDao is needed by the updater:

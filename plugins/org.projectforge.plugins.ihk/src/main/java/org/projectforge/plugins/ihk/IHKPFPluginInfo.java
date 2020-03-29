@@ -23,36 +23,13 @@
 
 package org.projectforge.plugins.ihk;
 
-import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.plugins.core.PFPluginService;
+import org.projectforge.plugins.core.PluginInfo;
 
 /**
  * Created by mnuhn on 05.12.2019
  */
-public class IHKPFPluginService implements PFPluginService
-{
-
-  @Override
-  public String getPluginId()
-  {
-    return IHKPlugin.ID;
-  }
-
-  @Override
-  public String getPluginName()
-  {
-    return "IHK";
-  }
-
-  @Override
-  public String getPluginDescription()
-  {
-    return "IHK PF PlugIn";
-  }
-
-  @Override
-  public AbstractPlugin createPluginInstance()
-  {
-    return new IHKPlugin();
+public class IHKPFPluginInfo extends PluginInfo {
+  public IHKPFPluginInfo() {
+    super(IHKPlugin.ID, IHKPlugin.class, "IHK", "IHK PlugIn der Micromata Azubis.");
   }
 }
