@@ -230,13 +230,13 @@ class MyAccountPageRest: AbstractDynamicPageRest() {
                         .add(UIReadOnlyField(id, lc, canCopy = true, coverUp = true))
                 )
                 .add(UICol(3)
-                        .add(UIButton("renew",
+                        .add(UIButton("${id}-renew",
                                 title = translate("user.authenticationToken.renew"),
                                 tooltip = tooltip ?: "user.authenticationToken.renew.tooltip",
                                 confirmMessage = translate("user.authenticationToken.renew.securityQuestion"),
                                 color = UIColor.DANGER,
                                 responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.GET)))
-                        .add(UIButton("access",
+                        .add(UIButton("${id}-access",
                                 title = translate("user.authenticationToken.button.showUsage"),
                                 tooltip = "user.authenticationToken.button.showUsage.tooltip",
                                 color = UIColor.LINK,

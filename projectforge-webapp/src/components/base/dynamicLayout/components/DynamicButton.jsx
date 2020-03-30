@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import { UncontrolledTooltip } from 'reactstrap';
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from '../../../design';
 import { DynamicLayoutContext } from '../context';
 
@@ -7,7 +8,9 @@ function DynamicButton(props) {
     const {
         confirmMessage,
         default: isDefault,
+        id,
         title,
+        tooltip,
         responseAction,
         ...stylingProps
     } = props;
@@ -76,9 +79,15 @@ function DynamicButton(props) {
                 {...stylingProps}
                 onClick={handleClick}
                 type={type}
+                id={id}
             >
                 {title}
             </Button>
+            {tooltip && id && (
+                <UncontrolledTooltip placement="auto" target={id}>
+                    {tooltip}
+                </UncontrolledTooltip>
+            )}
         </React.Fragment>
     );
 }
@@ -87,13 +96,17 @@ DynamicButton.propTypes = {
     title: PropTypes.string.isRequired,
     confirmMessage: PropTypes.string,
     default: PropTypes.bool,
+    id: PropTypes.string,
     responseAction: PropTypes.shape({}),
+    tooltip: PropTypes.string,
 };
 
 DynamicButton.defaultProps = {
     confirmMessage: undefined,
     default: false,
+    id: undefined,
     responseAction: {},
+    tooltip: undefined,
 };
 
 export default DynamicButton;
