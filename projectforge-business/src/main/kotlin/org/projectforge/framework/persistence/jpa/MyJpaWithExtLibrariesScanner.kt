@@ -71,13 +71,7 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
             log.debug { "Method scan (1)." }
         }
         val collector = ScanResultCollector(environment, options, parameters)
-        /*
-        val matcherexppr = getPersistenceProperties(environment).getProperty(EXTLIBURLMATCHER)
-        urlMatcher = CommonMatchers.always<String?>()
-        if (StringUtils.isNotBlank(matcherexppr)) {
-            urlMatcher = BooleanListRulesFactory<String?>().createMatcher(matcherexppr)
-        }
-*/
+
         if (environment.nonRootUrls != null) {
             val context: ArchiveContext = JpaWithExtLibrariesScanner.ArchiveContextImpl(false, collector)
             for (url in environment.nonRootUrls) {
