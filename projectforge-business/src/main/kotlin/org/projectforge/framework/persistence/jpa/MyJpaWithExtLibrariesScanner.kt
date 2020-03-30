@@ -38,6 +38,8 @@ import org.hibernate.boot.archive.scan.spi.Scanner
 import org.hibernate.boot.archive.spi.*
 import org.hibernate.jpa.boot.internal.StandardJpaScanEnvironmentImpl
 import org.hibernate.jpa.boot.spi.PersistenceUnitDescriptor
+import org.projectforge.plugins.core.PluginAdminService
+import org.springframework.context.ApplicationContext
 import java.io.File
 import java.io.IOException
 import java.net.MalformedURLException
@@ -64,6 +66,7 @@ private val log = KotlinLogging.logger {}
  */
 class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archiveDescriptorFactory: ArchiveDescriptorFactory = StandardArchiveDescriptorFactory.INSTANCE) : Scanner {
     private val archiveDescriptorCache: MutableMap<String, ArchiveDescriptorInfo> = HashMap()
+
     init {
         if (_instance != null) {
             log.error { "Can't register instance twice." }
@@ -71,11 +74,18 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
             _instance = this
         }
     }
+
     override fun scan(environment: ScanEnvironment, options: ScanOptions, parameters: ScanParameters): ScanResult {
         if (log.isDebugEnabled) {
             log.debug { "Method scan (1)." }
         }
-        val collector = ScanResultCollector(environment, options, parameters)
+        this.collector = ScanResultCollector(environment, options, parameters)
+        val matcherexppr = getPersistenceProperties(environment).getProperty(EXTLIBURLMATCHER)
+        urlMatcher = CommonMatchers.always<String?>()
+        if (StringUtils.isNotBlank(matcherexppr)) {
+            urlMatcher = BooleanListRulesFactory<String?>().createMatcher(matcherexppr)
+        }
+
         if (environment.nonRootUrls != null) {
             val context: ArchiveContext = JpaWithExtLibrariesScanner.ArchiveContextImpl(false, collector)
             for (url in environment.nonRootUrls) {
@@ -86,19 +96,17 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
                 descriptor.visitArchive(context)
             }
         }
-        val loadedUrls: MutableSet<URL> = HashSet()
         val rootUrl = environment.rootUrl
         if (rootUrl != null) {
             if (log.isDebugEnabled) {
                 log.debug { "Method scan (3): call visitUrl for rootUrl $rootUrl" }
             }
-            visitUrl(rootUrl, collector, CommonMatchers.always())
+            visitUrl(rootUrl, CommonMatchers.always())
         }
-        visitExternUrls(environment, collector, loadedUrls)
         return collector.toScanResult()
     }
 
-    private fun visitUrl(url: URL, collector: ScanResultCollector, urlMatcher: Matcher<String?>) {
+    private fun visitUrl(url: URL, urlMatcher: Matcher<String?>) {
         if (log.isDebugEnabled) {
             log.debug { "Method visitUrl (1) for url $url" }
         }
@@ -139,7 +147,7 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
                 log.debug { "Method visitUrl (4): calling ArchiveDescriptor.visitArchive for url: '$url'" }
             }
             descriptor.visitArchive(context)
-            handleClassManifestClassPath(url, collector, urlMatcher)
+            handleClassManifestClassPath(url)
         }
     }
 
@@ -173,7 +181,7 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
      * @param url the url
      * @param collector the collector to use
      */
-    private fun handleClassManifestClassPath(url: URL, collector: ScanResultCollector, urlMatcher: Matcher<String?>) {
+    private fun handleClassManifestClassPath(url: URL) {
         val urlToOpen = fixUrlToOpen(url)
         val urls = urlToOpen.toString()
         if (log.isDebugEnabled) {
@@ -200,47 +208,13 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
                         if (log.isDebugEnabled) {
                             log.debug { "Method handleClassManifestClassPath (3), calling visitUrl for url '$surl'" }
                         }
-                        visitUrl(surl, collector, urlMatcher)
+                        visitUrl(surl, urlMatcher)
                     }
                 }
             }
         } catch (ex: IOException) {
             log.warn("JpaScan; Cannot open jar: " + url + ": " + ex.message)
         }
-    }
-
-    private fun visitExternUrls(environment: ScanEnvironment, collector: ScanResultCollector, loadedUrls: MutableSet<URL>) {
-        if (log.isDebugEnabled) {
-            log.debug { "Method visitExternUrls (1)" }
-        }
-        val matcherexppr = getPersistenceProperties(environment).getProperty(EXTLIBURLMATCHER)
-        var urlmatcher = CommonMatchers.always<String?>()
-        if (StringUtils.isNotBlank(matcherexppr)) {
-            urlmatcher = BooleanListRulesFactory<String?>().createMatcher(matcherexppr)
-        }
-        val prov = loadJpaExtScannerUrlProvider(environment)
-        val urls = prov!!.scannUrls
-        for (url in urls) {
-            if (loadedUrls.contains(url)) {
-                if (log.isDebugEnabled) {
-                    log.debug { "Method visitExternUrls (2), skipping url which was already visited: '$url'" }
-                }
-                continue
-            }
-            if (log.isDebugEnabled) {
-                log.debug { "Method visitExternUrls (3), call visitUrl for url '$url'" }
-            }
-            try {
-                visitUrl(url, collector, urlmatcher)
-                loadedUrls.add(url)
-            } catch (ex: Exception) {
-                log.warn("Cannot scan " + url + "; " + ex.message)
-            }
-        }
-        if (!INTERNAL_TEST_MODE) {
-            workarroundForIDEStart(environment, collector, urlmatcher, loadedUrls)
-        }
-        scanPlugins(environment, collector, urlmatcher, loadedUrls)
     }
 
     private fun getPersistenceProperties(environment: ScanEnvironment): Properties {
@@ -251,20 +225,6 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
         val pud = PrivateBeanUtils.readField(environment,
                 "persistenceUnitDescriptor") as PersistenceUnitDescriptor
         return pud.properties
-    }
-
-    private fun loadJpaExtScannerUrlProvider(environment: ScanEnvironment): JpaExtScannerUrlProvider? {
-        val properties = getPersistenceProperties(environment)
-        val provider = properties.getProperty(EXTLIBURLPROVIDER)
-        return if (StringUtils.isBlank(provider)) {
-            null
-        } else try {
-            val clazz = Class.forName(provider)
-            clazz.getDeclaredConstructor().newInstance() as JpaExtScannerUrlProvider
-        } catch (ex: Exception) {
-            log.error("Cannot create JpaExtScannerUrlProvider: " + ex.message, ex)
-            null
-        }
     }
 
     private fun buildArchiveDescriptor(url: URL, isRootUrl: Boolean): ArchiveDescriptor {
@@ -314,7 +274,41 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
         }
     }
 
-    private fun scanPlugins(environment: ScanEnvironment, collector: ScanResultCollector, urlmatcher: Matcher<String?>, loadedUrls: MutableSet<URL>) {
+    fun scanPlugins(pluginAdminService: PluginAdminService) {
+        // pluginAdminService.activePlugins isn't yet initialized!
+        val activatedPlugins = pluginAdminService.activatedPluginsFromConfiguration
+        pluginAdminService.availablePlugins.forEach { plugin ->
+            if (activatedPlugins.contains(plugin.id)) {
+                val locationUrl = plugin::class.java.protectionDomain.codeSource.location
+                val locationString = locationUrl.toExternalForm()
+                if (locationString.matches("file:.*target.classes.*".toRegex())) {
+                    var path: Path? = Paths.get(locationUrl.toURI())
+                    while (path != null) {
+                        if (path.fileName.toString() == "classes") {
+                            path = path.parent
+                            break
+                        }
+                        path = path.parent
+                    }
+                    if (path == null) {
+                        log.warn{ "Can't scan plugin '${plugin.id}. Unknown classpath format (classes expected): '${locationUrl}'" }
+                    } else {
+                        val classesUrl = path.resolve("classes").toUri().toURL()
+                        visitUrl(classesUrl, urlMatcher)
+                        loadedUrls.add(classesUrl)
+                    }
+                } else if (locationString.endsWith(".jar")) {
+                    visitUrl(locationUrl, urlMatcher)
+                    loadedUrls.add(locationUrl)
+                } else {
+                    log.warn{ "Can't scan plugin '${plugin.id}. Unknown classpath format: '${locationUrl}'. classes directory or jar file is only supported." }
+                }
+            } else {
+                if (log.isDebugEnabled) {
+                    log.debug { "scanPlugins: Skipping non-active plugin '${plugin.id}'." }
+                }
+            }
+        }
     }
 
     /**
@@ -357,7 +351,7 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
                             if (log.isDebugEnabled) {
                                 log.debug { "Method workarroundForIDEStart (3), calling visitUrl for url: $url" }
                             }
-                            visitUrl(url, collector, urlmatcher)
+                            visitUrl(url, urlmatcher)
                             loadedUrls.add(url)
                         } catch (ex: Exception) {
                             log.warn("Cannot scan " + url + "; " + ex.message)
@@ -368,6 +362,11 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
         } catch (ex: IOException) {
         }
     }
+
+    private lateinit var collector: ScanResultCollector     // Needed for later call by PluginAdminService
+    private lateinit var urlMatcher: Matcher<String?>    // Needed for later call by PluginAdminService
+    private val loadedUrls = mutableSetOf<URL>()    // Needed for later call by PluginAdminService
+
 
     companion object {
         /**
