@@ -40,14 +40,13 @@ import org.projectforge.framework.persistence.user.entities.UserAuthenticationsD
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
-import org.projectforge.rest.core.SessionCsrfCache
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.dto.ServerData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -206,13 +205,21 @@ class MyAccountPageRest: AbstractDynamicPageRest() {
                         default = true)
                 )
 
-        layout.add(MenuItem("changePassword", i18nKey = "menu.changePassword", url = "wa/changePassword"))
+        layout.add(MenuItem("changePassword",
+                i18nKey = "menu.changePassword",
+                url = "wa/changePassword",
+                type = MenuItemTargetType.REDIRECT))
         if (Login.getInstance().isWlanPasswordChangeSupported(user)) {
-            layout.add(MenuItem("changeWlanPassword", i18nKey = "menu.changeWlanPassword", url = "wa/wicket/bookmarkable/org.projectforge.web.user.ChangeWlanPasswordPage"))
+            layout.add(MenuItem("changeWlanPassword",
+                    i18nKey = "menu.changeWlanPassword",
+                    url = "wa/wicket/bookmarkable/org.projectforge.web.user.ChangeWlanPasswordPage",
+                    type = MenuItemTargetType.REDIRECT))
         }
 
         layout.addTranslations("cancel", "yes")
         LayoutUtils.process(layout)
+
+        layout.postProcessPageMenu()
 
         return FormLayoutData(data, layout, createServerData(request))
     }

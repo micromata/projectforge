@@ -142,7 +142,7 @@ function FormPage(
                                             data={data}
                                             isFetching={isFetching}
                                             options={{
-                                                displayPageMenu: id !== undefined,
+                                                displayPageMenu: ui.pageMenu !== undefined,
                                                 setBrowserTitle: true,
                                                 showActionButtons: true,
                                                 showPageMenuTitle: false,
