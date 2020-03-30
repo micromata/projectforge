@@ -36,7 +36,8 @@ import java.util.*
 object I18nHelper {
     private val log = LoggerFactory.getLogger(I18nHelper::class.java)
     private val BUNDLE_NAMES: MutableSet<String> = HashSet()
-    private var i18nService: I18nService? = null
+    private lateinit var i18nService: I18nService
+
     @JvmStatic
     fun addBundleName(bundleName: String) {
         BUNDLE_NAMES.add(bundleName)
@@ -47,12 +48,12 @@ object I18nHelper {
         get() = BUNDLE_NAMES
 
     @JvmStatic
-    fun getI18nService(): I18nService? {
+    fun getI18nService(): I18nService {
         return i18nService
     }
 
     @JvmStatic
-    fun setI18nService(i18nService: I18nService?) {
+    fun setI18nService(i18nService: I18nService) {
         I18nHelper.i18nService = i18nService
     }
 
@@ -82,16 +83,16 @@ object I18nHelper {
 
     private fun getLocalizedString(locale: Locale, i18nKey: String): String {
         try {
-            val translation = BUNDLE_NAMES.stream()
-                    .map { bundleName: String -> getLocalizedString(bundleName, locale, i18nKey) }
-                    .filter { obj: String? -> Objects.nonNull(obj) }
-                    .findFirst()
-            if (translation.isPresent) {
-                return translation.get()
+            for (bundleName in BUNDLE_NAMES) {
+                val translation = getLocalizedString(bundleName, locale, i18nKey)
+                if (translation != null) {
+                    return translation
+                }
             }
         } catch (ex: Exception) { // MissingResourceException or NullpointerException
-            log.warn("Resource key '$i18nKey' not found for locale '$locale'")
+            log.warn("Resource key '$i18nKey' not found for locale '$locale' in bundles ${BUNDLE_NAMES.joinToString { it }}: ${ex.message}")
         }
+        log.warn("Resource key '$i18nKey' not found for locale '$locale' in bundles ${BUNDLE_NAMES.joinToString { it }}")
         return "???$i18nKey???"
     }
 
@@ -101,10 +102,11 @@ object I18nHelper {
             return if (bundle.containsKey(i18nKey)) {
                 bundle.getString(i18nKey)
             } else {
-                i18nService!!.getAdditionalString(i18nKey, locale)
+                null
+                //i18nService.getAdditionalString(i18nKey, locale)
             }
         } catch (ex: Exception) {
-            log.warn("Resource key '$i18nKey' not found for locale '$locale'")
+            log.warn("Resource key '$i18nKey' not found for locale '$locale' in bundle '$bundleName': ${ex.message}")
         }
         return null
     }
