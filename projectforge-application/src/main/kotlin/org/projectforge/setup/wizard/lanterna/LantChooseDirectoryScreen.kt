@@ -96,8 +96,8 @@ class LantChooseDirectoryScreen(context: LantGUIContext) : LantAbstractWizardWin
                     preselectedDirname = preselectedDirname,
                     context = context
             ) {
-                override fun validResult(path: String, dir: String): File? {
-                    val dir = super.validResult(path, dir)
+                override fun validResult(pathString: String, dirString: String): File? {
+                    val dir = super.validResult(pathString, dirString)
                     if (dir != null && ProjectForgeHomeFinder.isProjectForgeSourceCodeRepository(dir)) {
                         MessageDialog.showMessageDialog(textGUI, Texts.ERROR_TITLE, Texts.ERROR_DIR_IS_SOURCE_REPO, MessageDialogButton.OK)
                         return null

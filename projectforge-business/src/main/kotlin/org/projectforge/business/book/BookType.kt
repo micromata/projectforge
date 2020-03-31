@@ -43,7 +43,6 @@ enum class BookType(
     /**
      * @return The full i18n key including the i18n prefix "book.type.".
      */
-    override fun getI18nKey(): String {
-        return "book.type.$key"
-    }
+    override val i18nKey: String
+        get() = "book.type.$key"
 }

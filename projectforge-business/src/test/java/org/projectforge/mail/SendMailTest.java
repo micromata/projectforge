@@ -102,7 +102,7 @@ public class SendMailTest
   {
     final Mail message = new Mail();
     PFUserDO toUser;
-    message.setTo(null);
+    message.setTo((PFUserDO)null);
     final String icalContent = null;
     final Collection<? extends MailAttachment> attachments = null;
     try {

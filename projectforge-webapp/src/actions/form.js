@@ -1,5 +1,7 @@
 import history from '../utilities/history';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
+import { loadUserStatus } from './authentication';
+import { addToast } from './toast';
 
 export const FORM_CALL_ACTION_BEGIN = 'FORM_CALL_ACTION_BEGIN';
 export const FORM_CALL_ACTION_SUCCESS = 'FORM_CALL_ACTION_SUCCESS';
@@ -70,7 +72,7 @@ const switchCategoryWithData = (from, to, newVariables) => ({
     },
 });
 
-export const loadFormPage = (category, id, url) => (dispatch, getState) => {
+export const loadFormPage = (category, id, url, params = {}) => (dispatch, getState) => {
     const currentCategory = getState().form.categories[category];
 
     if (currentCategory && currentCategory.isFetching) {
@@ -88,13 +90,23 @@ export const loadFormPage = (category, id, url) => (dispatch, getState) => {
     )
         .then(handleHTTPErrors)
         .then(response => response.json())
-        .then(json => dispatch(callSuccess(category, json)))
+        .then(json => dispatch(callSuccess(category, Object.combine(params, json))))
         .catch(error => callFailure(category, error));
 };
 
-export const callAction = ({ responseAction: action }) => (dispatch, getState) => {
+export const callAction = (
+    {
+        responseAction: action,
+        watchFieldsTriggered,
+    },
+) => (dispatch, getState) => {
     if (!action) {
         return Promise.reject(Error('No response action given.'));
+    }
+
+    if (action.targetType === 'REDIRECT') {
+        history.push(`/${action.url}`, { serverData: action.variables });
+        return Promise.resolve();
     }
 
     const { form: state } = getState();
@@ -104,7 +116,7 @@ export const callAction = ({ responseAction: action }) => (dispatch, getState) =
 
     let status = 0;
 
-    const { data, watchFieldsTriggered, serverData } = state.categories[category];
+    const { data, serverData } = state.categories[category];
 
     return fetch(
         getServiceURL(action.url),
@@ -122,7 +134,8 @@ export const callAction = ({ responseAction: action }) => (dispatch, getState) =
         .then((response) => {
             ({ status } = response);
 
-            if (status === 200 || status === 406) {
+            if (response.headers.get('Content-Type')
+                .includes('application/json')) {
                 return response.json();
             }
 
@@ -131,37 +144,43 @@ export const callAction = ({ responseAction: action }) => (dispatch, getState) =
         .then((json) => {
             dispatch(callActionSuccess(category));
 
-            switch (status) {
-                case 200:
-                    switch (json.targetType) {
-                        case 'REDIRECT':
-                            history.push(json.url, json.variables);
-                            break;
-                        case 'UPDATE':
-                            if (json.url) {
-                                history.push(
-                                    `${json.url}`,
-                                    {
-                                        noReload: true,
-                                        newVariables: json.variables,
-                                    },
-                                );
-                                window.scrollTo(0, 0);
-                            } else {
-                                dispatch(callSuccess(category, json.variables));
-                            }
-                            break;
-                        case 'NOTHING':
-                        default:
-                            throw Error(`Target Type ${json.targetType} not implemented.`);
+            if (status === 406) {
+                dispatch(callSuccess(category, { validationErrors: json.validationErrors }));
+                window.scrollTo(0, 0);
+                return;
+            }
+            switch (json.targetType) {
+                case 'REDIRECT':
+                    history.push(json.url, { variables: json.variables });
+                    break;
+                case 'UPDATE':
+                    if (json.url) {
+                        history.push(
+                            `${json.url}`,
+                            {
+                                noReload: true,
+                                newVariables: json.variables,
+                            },
+                        );
+                        window.scrollTo(0, 0);
+                    } else {
+                        dispatch(callSuccess(category, json.variables));
                     }
                     break;
-                case 406:
-                    dispatch(callSuccess(category, { validationErrors: json.validationErrors }));
-                    window.scrollTo(0, 0);
+                case 'CHECK_AUTHENTICATION':
+                    loadUserStatus()(dispatch);
+
+                    if (json.url) {
+                        history.push(json.url);
+                    }
+                    break;
+                case 'NOTHING':
+                    break;
+                case 'TOAST':
+                    addToast(json.message.message, json.message.color)(dispatch);
                     break;
                 default:
-                    throw Error(`Error ${status}`);
+                    throw Error(`Error ${status}: TargetType ${json.targetType} not implemented.`);
             }
         })
         .catch(error => dispatch(callFailure(category, error)));
@@ -173,19 +192,20 @@ export const setCurrentData = newData => (dispatch, getState) => {
     const { ui } = categories[currentCategory];
 
     // Change Data in redux model
-    dispatch(changeData(form.currentCategory, newData));
+    dispatch(changeData(form.currentCategory, Object.convertPathKeys(newData)));
 
     // Check for triggered watch fields
     if (ui.watchFields) {
-        const triggered = Object.keys(newData)
+        const watchFieldsTriggered = Object.keys(newData)
             .filter(key => ui.watchFields.includes(key));
 
-        if (triggered.length > 0) {
+        if (watchFieldsTriggered.length > 0) {
             callAction({
                 responseAction: {
                     url: `${currentCategory}/watchFields`,
                     targetType: 'POST',
                 },
+                watchFieldsTriggered,
             })(dispatch, getState);
         }
     }

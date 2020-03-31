@@ -57,6 +57,7 @@ class AddressService {
         return addressCache.getContacts(addressBook, favorites)
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun createContact(ab: AddressBook, vcardBytearray: ByteArray): Contact {
         log.warn("Creation of contacts not supported.")
         /*try {
@@ -70,6 +71,7 @@ class AddressService {
         return Contact()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun updateContact(contact: Contact, vcardBytearray: ByteArray?): Contact {
         log.warn("Updating of contacts not supported.")
         /*try {

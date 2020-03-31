@@ -29,7 +29,6 @@ import org.apache.wicket.markup.html.WebPage;
 import org.projectforge.framework.persistence.DaoConst;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.registry.Registry;
-import org.projectforge.web.LoginPage;
 import org.projectforge.web.access.AccessEditPage;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.*;
@@ -83,12 +82,6 @@ import java.util.Map;
 public class WebRegistry
 {
   public static final WebRegistry instance = new WebRegistry();
-
-  public static final String BOOKMARK_LOGIN = "login";
-
-  private static final String BOOKMARK_MOBILE_PREFIX = "m-";
-
-  public static final String BOOKMARK_MOBILE_LOGIN = BOOKMARK_MOBILE_PREFIX + BOOKMARK_LOGIN;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WebRegistry.class);
 
@@ -331,7 +324,6 @@ public class WebRegistry
     addMountPage("doc", DocumentationPage.class);
     addMountPage("error", ErrorPage.class);
     addMountPage("feedback", FeedbackPage.class);
-    addMountPage(BOOKMARK_LOGIN, LoginPage.class);
     addMountPage("monthlyEmployeeReport", MonthlyEmployeeReportPage.class);
     addMountPage("myAccount", MyAccountEditPage.class);
     addMountPage("personalStatistics", PersonalStatisticsPage.class);

@@ -31,10 +31,12 @@ $transitionTime: .2s ease-out;
   }
 
   &.readOnly, &.readOnly input {
+    border-bottom: none;
     cursor: default;
+    border-radius: 5px;
   }
 
-  &:hover:not(.readOnly) {
+  &:hover:not(.readOnly):not(.noStyle) {
     background-color: #eaeaea;
   }
 
@@ -44,7 +46,7 @@ $transitionTime: .2s ease-out;
     font-size: 1.1em;
     transition: transform $transitionTime, color $transitionTime;
     position: absolute;
-    bottom: .5em;
+    top: .8em;
     left: 1rem;
     transform-origin: 0 0;
     transform: translateY(0);
@@ -101,6 +103,25 @@ $transitionTime: .2s ease-out;
   }
 
   label {
+
+    &.noStyle {
+      padding: 0;
+      background-color: transparent;
+      border: none;
+      border-radius: 0;
+
+      .icon {
+        font-size: 1.25em;
+        top: 0;
+        bottom: 0;
+        left: 0;
+
+        & ~ input, & ~ .labelText {
+          margin-left: 2.5rem;
+          width: calc(100% - 2.5rem);
+        }
+      }
+    }
     .icon {
       position: absolute;
       font-size: 1.3em;
@@ -126,29 +147,6 @@ $transitionTime: .2s ease-out;
       padding: 0;
       box-shadow: none;
       transition: box-shadow .3s;
-    }
-  }
-
-  &.noStyle {
-    margin-top: 0;
-
-    label {
-      padding: 0;
-      background-color: transparent;
-      border: none;
-      border-radius: 0;
-
-      .icon {
-        font-size: 1.25em;
-        top: 0;
-        bottom: 0;
-        left: 0;
-
-        & ~ input, & ~ .labelText {
-          margin-left: 2.5rem;
-          width: calc(100% - 2.5rem);
-        }
-      }
     }
   }
 }
@@ -535,6 +533,7 @@ $transitionTime: .2s ease-out;
   .icons {
     position: absolute;
     right: .5em;
+    bottom: .5em;
     color: #777;
 
     svg {

@@ -30,7 +30,6 @@ import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -39,7 +38,6 @@ import java.util.List;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Component
 public class MarketingPlugin extends AbstractPlugin {
   public static final String ADDRESS_CAMPAIGN_ID = "addressCampaign";
 
@@ -64,6 +62,10 @@ public class MarketingPlugin extends AbstractPlugin {
 
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
+
+  public MarketingPlugin() {
+    super("marketing", "Marketing", "Marketing plugin for address campaigns.");
+  }
 
   @Override
   protected void initialize() {

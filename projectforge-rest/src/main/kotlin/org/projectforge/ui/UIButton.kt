@@ -23,17 +23,22 @@
 
 package org.projectforge.ui
 
-data class UIButton(val id : String,
+data class UIButton(val id: String,
                     /** May be null for standard buttons. For standard buttons the title will be set dependent on the id. */
-                    var title : String? = null,
-                    val color : UIColor? = null,
-                    var outline : Boolean? = null,
+                    var title: String? = null,
+                    val color: UIColor? = null,
+                    var outline: Boolean? = null,
                     /**
                      * There should be one default button in every form, used if the user hits return.
                      */
-                    val default : Boolean? = null,
+                    val default: Boolean? = null,
                     /**
                      * Tell the client of what to do after clicking this button.
                      */
-                    val responseAction: ResponseAction? = null)
+                    val responseAction: ResponseAction? = null,
+                    /**
+                     * If given the frontend should display a confirmation dialog containing this message.
+                     */
+                    var tooltip: String? = null,
+                    val confirmMessage: String? = null)
     : UIElement(UIElementType.BUTTON)

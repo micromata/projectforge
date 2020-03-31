@@ -33,5 +33,13 @@ data class UIReadOnlyField(val id: String,
                            @Transient
                            override val ignoreAdditionalLabel: Boolean = false,
                            @Transient
-                           override val ignoreTooltip: Boolean = false)
+                           override val ignoreTooltip: Boolean = false,
+                           /**
+                            * For copying values.
+                            */
+                           val canCopy: Boolean? = null,
+                           /**
+                            * Hide password fields.
+                            */
+                           val coverUp: Boolean? = null)
     : UIElement(UIElementType.READONLY_FIELD), UILabelledElement

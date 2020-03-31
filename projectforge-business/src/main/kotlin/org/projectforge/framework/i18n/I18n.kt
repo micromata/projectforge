@@ -37,6 +37,13 @@ fun translateMsg(ex: UserException): String {
     return translate(ex.i18nKey)
 }
 
+/**
+ * Translates true values to 'yes' and false/null values to 'no'. (Using the user's language.)
+ */
+fun translate(value: Boolean?): String {
+    return translate(if (value == true) "yes" else "no")
+}
+
 fun translateMsg(i18nKey: String, vararg params: Any): String {
     return I18nHelper.getLocalizedMessage(i18nKey, *params)
 }

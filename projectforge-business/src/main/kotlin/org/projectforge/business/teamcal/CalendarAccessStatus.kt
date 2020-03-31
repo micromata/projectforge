@@ -34,8 +34,6 @@ enum class CalendarAccessStatus(val key: String) : I18nEnum {
     /**
      * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
      */
-    override fun getI18nKey(): String {
-        return "plugins.teamcal.$key"
-    }
-
+    override val i18nKey: String
+        get() = "plugins.teamcal.$key"
 }

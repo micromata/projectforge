@@ -33,6 +33,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
@@ -47,17 +48,21 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
-import org.projectforge.web.*;
+import org.projectforge.menu.builder.MenuItemDefId;
+import org.projectforge.web.LoginService;
+import org.projectforge.web.WicketMenuBuilder;
+import org.projectforge.web.WicketMenuEntry;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.menuconfig.MenuConfig;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.doc.DocumentationPage;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.user.ChangePasswordPage;
 import org.projectforge.web.user.MyAccountEditPage;
-import org.projectforge.web.vacation.VacationAccountPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.FeedbackPage;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 import java.util.Collection;
@@ -184,9 +189,8 @@ public class NavTopPanel extends NavAbstractPanel {
         public void onClick() {
           loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(),
                   userXmlPreferencesCache, WicketSupport.getUserPrefCache());
-          setResponsePage(LoginPage.class);
+          WicketUtils.redirectToLogin(this);
         }
-
       };
       logoutLink.setMarkupId("logout").setOutputMarkupId(true);
       add(logoutLink);
@@ -195,8 +199,7 @@ public class NavTopPanel extends NavAbstractPanel {
   }
 
   private void addVacationViewLink() {
-    final BookmarkablePageLink<Void> vacationViewLink = new BookmarkablePageLink<Void>("vacationViewLink",
-            VacationAccountPage.class) {
+    final ExternalLink vacationViewLink = new ExternalLink("vacationViewLink", "/" + MenuItemDefId.VACATION_ACCOUNT.getUrl()) {
       @Override
       public boolean isVisible() {
         return vacationService.hasAccessToVacationService(ThreadLocalUserContext.getUser(), false);

@@ -23,7 +23,7 @@
             <property name="hibernate.search.lucene_version" value="LUCENE_CURRENT"/>
 
             <property name="hibernate.archive.scanner"
-                      value="de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner"/>
+                      value="org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner"/>
             <property name="de.micromata.genome.jpa.extlibrary.urlprovider"
                       value="org.projectforge.framework.persistence.jpa.impl.JpaPfJpaPluginScannerUrlProvider"/>
             <property name="de.micromata.genome.jpa.extlibrary.urlmatcher"

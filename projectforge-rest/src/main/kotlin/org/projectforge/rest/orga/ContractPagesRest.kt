@@ -63,8 +63,6 @@ class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(Contrac
                 .add(UITable.UIResultSetTable()
                         .add(lc, "number", "date", "type", "status", "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate"))
         layout.getTableColumnById("date").formatter = Formatter.DATE
-        LayoutUtils.addListFilterContainer(layout, UILabel("'TODO: date range"),
-                filterClass = ContractFilter::class.java)
         return LayoutUtils.processListPage(layout, this)
     }
 

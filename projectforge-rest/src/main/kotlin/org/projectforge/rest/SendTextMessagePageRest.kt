@@ -64,7 +64,7 @@ class SendTextMessagePageRest {
         val layout = UILayout("address.sendSms.title")
         val lc = LayoutContext(Data::class.java)
 
-        val buttonCol = UICol(length = 6)
+        val buttonCol = UICol(6)
         buttonCol.add(UIButton("send", translate("send"),
                 UIColor.SUCCESS,
                 responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java))))
@@ -72,11 +72,11 @@ class SendTextMessagePageRest {
                 label = translate("address.sendSms.phoneNumber"),
                 tooltip = translate("address.sendSms.phoneNumber.info"),
                 autoCompletion = AutoCompletion<String>(url = "address/acLang?search=:search"))
-        layout.add(UIFieldset(length = 12)
+        layout.add(UIFieldset(12)
                 .add(UIRow()
-                        .add(UICol(mdLength = 6, smLength = 12)
+                        .add(UICol(UILength(md = 6, sm = 12))
                                 .add(numberField)
-                                .add(UICol(mdLength = 6, smLength = 12)
+                                .add(UICol(UILength(md = 6, sm = 12))
                                         .add(UITextArea("message", lc, label = translate("address.sendSms.message"))))))
                 .add(UIRow().add(buttonCol)))
 

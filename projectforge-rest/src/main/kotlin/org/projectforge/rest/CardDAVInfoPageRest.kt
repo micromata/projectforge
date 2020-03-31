@@ -25,7 +25,6 @@ package org.projectforge.rest
 
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.FormLayoutData
@@ -41,47 +40,58 @@ import javax.servlet.http.HttpServletRequest
 @RequestMapping("${Rest.URL}/cardDAVInfo")
 class CardDAVInfoPageRest {
 
+    class Data(
+            var user: String? = null,
+            var password: String? = null,
+            var server: String? = null,
+            var serverPath: String? = null,
+            var ios: String? = null,
+            var thunderbird: String? = null
+    )
+
     @Autowired
     private lateinit var authenticationsService: UserAuthenticationsService
 
     @GetMapping("dynamic")
-    fun getForm(request: HttpServletRequest, @RequestParam("type") type: String?): FormLayoutData {
+    fun getForm(request: HttpServletRequest): FormLayoutData {
         val username = ThreadLocalUserContext.getUser()?.username ?: "?????"
         val layout = UILayout("address.cardDAV.infopage.title")
-                .add(UIFieldset(length = 12)
-                        .add(UILabel(translate("address.cardDAV.infopage.description")))
-                        .add(UILabel(translate("address.cardDAV.infopage.description2")))
-                        .add(UILabel(translate("address.cardDAV.infopage.description3")))
+                .add(UILabel("address.cardDAV.infopage.description"))
+                .add(UILabel("address.cardDAV.infopage.description2"))
+                .add(UILabel("address.cardDAV.infopage.description3"))
                         .add(UIRow()
-                                .add(UICol(length = 4)
-                                        .add(UILabel(translate("user"))))
-                                .add(UICol(length = 8)
-                                        .add(UILabel(username))))
-                        .add(UIRow()
-                                .add(UICol(length = 4)
-                                        .add(UILabel(translate("password"))))
-                                .add(UICol(length = 8)
-                                        .add(UILabel(authenticationsService.getToken(ThreadLocalUserContext.getUserId(), UserTokenType.DAV_TOKEN)))))
-                        .add(UIRow()
-                                .add(UICol(length = 4)
-                                        .add(UILabel("Server")))
-                                .add(UICol(length = 8)
-                                        .add(UILabel(request.serverName))))
-                        .add(UIRow()
-                                .add(UICol(length = 4)
-                                        .add(UILabel("Apple Addressbook")))
-                                .add(UICol(length = 8)
-                                        .add(UILabel("CardDAV account, server path (Catalina): /users/${username}/addressBooks/default"))))
-                        .add(UIRow()
-                                .add(UICol(length = 4)
-                                        .add(UILabel("iOS")))
-                                .add(UICol(length = 8)
-                                        .add(UILabel("CardDAV account"))))
-                        .add(UIRow()
-                                .add(UICol(length = 4)
-                                        .add(UILabel("Thunderbird")))
-                                .add(UICol(length = 8)
-                                        .add(UILabel("CardDAV account")))))
-        return FormLayoutData(null, layout, null)
+                                .add(UICol()
+                                        .add(UIReadOnlyField("user", label = "user")))
+                                .add(UICol()
+                                        .add(UIReadOnlyField("password", label = "password", coverUp = true))))
+                .add(UIRow()
+                        .add(UICol()
+                                .add(UIReadOnlyField("server", label = "'Server", canCopy = true)))
+                        .add(UICol()
+
+                                .add(UIReadOnlyField("serverPath",
+                                        label = "'Apple Addressbook",
+                                        additionalLabel = "'CardDAV account, server path (Catalina)",
+                                        canCopy = true))))
+                .add(UIRow()
+                        .add(UICol()
+                                .add(UIReadOnlyField("ios", label = "'iOS", canCopy = true)))
+                        .add(UICol()
+                                .add(UIReadOnlyField("thunderbird",
+                                        label = "'Thunderbird",
+                                        canCopy = true))))
+
+        LayoutUtils.process(layout)
+
+        val data = Data(
+                user = username,
+                password = authenticationsService.getToken(ThreadLocalUserContext.getUserId(), UserTokenType.DAV_TOKEN),
+                server = request.serverName,
+                serverPath = "/users/${username}/addressBooks/default",
+                ios = "CardDAV account",
+                thunderbird = "CardDAV account"
+        )
+
+        return FormLayoutData(data, layout, null)
     }
 }

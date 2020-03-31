@@ -128,8 +128,6 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
         layout.getTableColumnById("owner").formatter = Formatter.USER
         layout.getTableColumnById("lastUpdate").formatter = Formatter.TIMESTAMP_MINUTES
         layout.getTableColumnById("accessStatusString").title = "access.title.heading"
-        LayoutUtils.addListFilterContainer(layout, "longFormat", "recursive",
-                filterClass = TimesheetFilter::class.java)
 
         val exportMenu = MenuItem("calendar.export", i18nKey = "export")
         exportMenu.add(MenuItem("calendar.exportTimesheets",
@@ -159,27 +157,27 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
         val subscriptionInfo = CalendarSubscriptionInfo(translate("plugins.teamcal.subscription"), dto.accessStatus)
         subscriptionInfo.initUrls(calendarFeedService, dto.id)
         val layout = super.createEditLayout(dto, userAccess)
-                .add(UIFieldset(mdLength = 12, lgLength = 12)
+                .add(UIFieldset(UILength(md = 12, lg = 12))
                         .add(UIRow()
                                 .add(UICol()
                                         .add(UIInput("title", lc))
                                         .add(lc, "description")
                                         .add(UICustomized("calendar.editExternalSubscription",
                                                 values = mutableMapOf("intervals" to intervals))))))
-                .add(UIFieldset(mdLength = 12, lgLength = 12, title = "access.title.heading")
+                .add(UIFieldset(UILength(md = 12, lg = 12), title = "access.title.heading")
                         .add(UIRow()
-                                .add(UICol(mdLength = 6)
+                                .add(UICol(UILength(md = 6))
                                         .add(lc, "owner")))
                         .add(UIRow()
-                                .add(UIFieldset(length = 6, title = "access.users")
+                                .add(UIFieldset(6, title = "access.users")
                                         .add(UISelect.createUserSelect(lc, "fullAccessUsers", true, "plugins.teamcal.fullAccess"))
                                         .add(UISelect.createUserSelect(lc, "readonlyAccessUsers", true, "plugins.teamcal.readonlyAccess"))
                                         .add(UISelect.createUserSelect(lc, "minimalAccessUsers", true, "plugins.teamcal.minimalAccess", tooltip = "plugins.teamcal.minimalAccess.users.hint")))
-                                .add(UIFieldset(length = 6, title = "access.groups")
+                                .add(UIFieldset(6, title = "access.groups")
                                         .add(UISelect.createGroupSelect(lc, "fullAccessGroups", true, "plugins.teamcal.fullAccess"))
                                         .add(UISelect.createGroupSelect(lc, "readonlyAccessGroups", true, "plugins.teamcal.readonlyAccess"))
                                         .add(UISelect.createGroupSelect(lc, "minimalAccessGroups", true, "plugins.teamcal.minimalAccess", tooltip = "plugins.teamcal.minimalAccess.groups.hint")))))
-                .add(UIFieldset(mdLength = 12, lgLength = 12, title = "vacation")
+                .add(UIFieldset(UILength(md = 12, lg = 12), title = "vacation")
                         .add(UIRow()
                                 .add(UICol()
                                         .add(UISelect.createUserSelect(lc, "includeLeaveDaysForUsers", true)))
@@ -187,7 +185,7 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
                                         .add(UISelect.createGroupSelect(lc, "includeLeaveDaysForGroups", true)))))
         if (dto.id != null) {
             // Show subscription barcode and url only for existing entries.
-            layout.add(UIFieldset(mdLength = 12, lgLength = 12)
+            layout.add(UIFieldset(UILength(md = 12, lg = 12))
                     .add(UIRow()
                             .add(UICol()
                                     .add(UICustomized("calendar.subscriptionInfo",

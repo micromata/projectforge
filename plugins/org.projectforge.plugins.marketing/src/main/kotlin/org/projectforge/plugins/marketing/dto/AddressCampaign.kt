@@ -33,7 +33,7 @@ class AddressCampaign(id: Int? = null,
                       created: Date? = null,
                       lastUpdate: Date? = null,
                       tenant: Tenant? = null,
-                      title: String? = null,
-                      values: String? = null,
-                      comment: String? = null)
+                      var title: String? = null,
+                      var values: String? = null,
+                      var comment: String? = null)
     : BaseDTO<AddressCampaignDO>(id, deleted, created, lastUpdate, tenant)

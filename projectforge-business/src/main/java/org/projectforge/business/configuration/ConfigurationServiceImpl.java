@@ -44,6 +44,7 @@ import javax.annotation.PostConstruct;
 import javax.net.ssl.*;
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -208,6 +209,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
     this.fontsDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.fontsDirectory);
     ensureDir(new File(fontsDirectory));
+
+    final String pluginsDir = FileHelper.getAbsolutePath(applicationHomeDir, "plugins");
+    ensureDir(new File(pluginsDir));
 
     setupKeyStores();
 
@@ -616,7 +620,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   }
 
 
-
   @Override
   public String getHREmailadress() {
     ConfigurationDO hrMailaddress = configDao.getEntry(ConfigurationParam.HR_MAILADDRESS);
@@ -700,5 +703,44 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
   void setCurrencySymbol(String currencySymbol) {
     this.currencySymbol = currencySymbol;
+  }
+
+  @Override
+  public boolean isLogoFileValid() {
+    final File logoFile = getLogoFileObject();
+    return logoFile != null && logoFile.canRead() && logoFile.isFile();
+  }
+
+  @Override
+  public String getSyntheticLogoName() {
+    final String logoFile = getLogoFile();
+    if (StringUtils.isBlank(logoFile)) {
+      return null;
+    }
+    if (logoFile.endsWith(".png")) {
+      return "logo.png";
+    }
+    if (logoFile.endsWith(".jpg") || logoFile.endsWith(".jpeg")) {
+      return "logo.jpg";
+    }
+    return "logo.gif";
+  }
+
+  private File logoFileObject;
+
+  @Override
+  public File getLogoFileObject() {
+    if (logoFileObject != null) {
+      return logoFileObject;
+    }
+    if (StringUtils.isBlank(logoFile)) {
+      return null;
+    }
+    File file = new File(logoFile);
+    if (!file.isAbsolute()) {
+      file = Paths.get(getResourceDir(), "images", logoFile).toFile();
+    }
+    logoFileObject = file;
+    return file;
   }
 }

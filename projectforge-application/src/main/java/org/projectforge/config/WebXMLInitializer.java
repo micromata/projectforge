@@ -25,7 +25,6 @@ package org.projectforge.config;
 
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.apache.wicket.spring.SpringWebApplicationFactory;
-import org.projectforge.Const;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.caldav.config.PFMiltonInit;
 import org.projectforge.common.EmphasizedLogSupport;
@@ -34,6 +33,7 @@ import org.projectforge.rest.config.CORSFilter;
 import org.projectforge.rest.config.Rest;
 import org.projectforge.rest.config.RestUtils;
 import org.projectforge.security.SecurityHeaderFilter;
+import org.projectforge.web.OrphanedLinkFilter;
 import org.projectforge.web.debug.SessionSerializableChecker;
 import org.projectforge.web.doc.TutorialFilter;
 import org.projectforge.web.filter.ResponseHeaderFilter;
@@ -75,10 +75,15 @@ public class WebXMLInitializer implements ServletContextInitializer {
     securityHeaderFilter.addMappingForUrlPatterns(null, false, "/*");
     securityHeaderFilter.setInitParameter(SecurityHeaderFilter.PARAM_CSP_HEADER_VALUE, cspHeaderValue);
 
+    /*
+     * Redirect orphaned links from former versions of ProjectForge (e. g. if link in e-mails were changed due to migrations or refactoring.
+     */
+    sc.addFilter("redirectOrphanedLinks", new OrphanedLinkFilter()).addMappingForUrlPatterns(null, false, "/*");
+
     pfMiltonInit.init(sc);
 
     boolean filterAfterInternal = false;
-    RestUtils.registerFilter(sc, "UserFilter", UserFilter.class, filterAfterInternal, "/secure/*", "/wa/*", "/" + Const.REACT_APP_PATH + "*");
+    RestUtils.registerFilter(sc, "UserFilter", UserFilter.class, filterAfterInternal, "/secure/*", "/wa/*");
     RestUtils.registerFilter(sc, "springContext", SpringThreadLocalFilter.class, filterAfterInternal, "/secure/*", "/wa/*");
 
     final FilterRegistration wicketApp = RestUtils.registerFilter(sc, "wicket.app", WicketFilter.class, filterAfterInternal, "/wa/*");

@@ -53,16 +53,10 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- BuildIn PF 'Plugins' -->
+        <!-- Built-Iin PF 'Plugins' -->
         <dependency>
             <groupId>org.projectforge</groupId>
             <artifactId>org.projectforge.plugins.extendemployeedata</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.projectforge</groupId>
-            <artifactId>org.projectforge.plugins.financialfairplay</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
@@ -104,12 +98,6 @@
         </dependency>
         <dependency>
             <groupId>org.projectforge</groupId>
-            <artifactId>org.projectforge.plugins.skillmatrix</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.projectforge</groupId>
             <artifactId>org.projectforge.plugins.todo</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
@@ -128,6 +116,19 @@
             <version>${kotlin.version}</version>
         </dependency>
     </dependencies>
+    <profiles>
+        <!-- https://stackoverflow.com/questions/37833877/intellij-spring-boot-propertieslauncher -->
+        <profile>
+            <id>intellij-properties-launcher</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-loader</artifactId>
+                    <version>${spring.boot.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
     <build>
         <resources>
             <resource>
@@ -146,20 +147,6 @@
                     <layout>ZIP</layout>
                     <!-- UNCOMMENT IF WANT TO BUILD WAR FILE-->
                     <!--<layout>WAR</layout>-->
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectforge</groupId>
-                            <artifactId>org.projectforge.plugins.banking</artifactId>
-                        </exclude>
-                        <exclude>
-                            <groupId>org.projectforge</groupId>
-                            <artifactId>org.projectforge.plugins.plugintemplate</artifactId>
-                        </exclude>
-                        <exclude>
-                            <groupId>org.projectforge</groupId>
-                            <artifactId>org.projectforge.plugins.poll</artifactId>
-                        </exclude>
-                    </excludes>
                     <requiresUnpack>
                         <!-- Needed for running Kotlin scripts from spring-boot fat jar: -->
                         <dependency>

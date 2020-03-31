@@ -32,10 +32,6 @@ import javax.swing.*
 internal object SwingUtils {
     private val log = org.slf4j.LoggerFactory.getLogger(SwingUtils::class.java)
 
-    fun addEmptySpace(panel: JPanel) {
-        //panel.add(EmptySpace(TerminalSize(0, 1)))
-    }
-
     fun constraints(x: Int, y: Int,
                     width: Int = 1,
                     height: Int = 1,

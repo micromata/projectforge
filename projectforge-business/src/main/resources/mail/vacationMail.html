@@ -1,0 +1,91 @@
+<html>
+#INCLUDE{mail/mailHead.html}
+<body>
+<div id="mail">
+  <div class="container">
+    <div class="content">
+      #INCLUDE{mail/mailOpening.html}
+      <p>
+        <%= pf.getMessage("vacation.mail.action", vacationInfo.formatEmployee(), "<b>${vacationInfo.periodText}</b>", mailInfo.operation, vacationInfo.formatModifiedByUser()) %>
+        <%= pf.getMessage("vacation.mail.reason.${mailInfo.mode}", vacationInfo.formatEmployee()) %>
+      </p>
+      <table class="width-2">
+        <tr>
+          <td>
+            <a href="mailto:${vacationInfo.employeeMail}">
+              <span class="title"><%= pf.getI18nString("vacation.vacationer") %></span>
+              <span class="value"><%= pf.getString(vacationInfo.employeeFullname) %></span>
+            </a>
+          </td>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.workingdays") %></span>
+            <span class="value"><%= pf.getString(vacationInfo.workingDaysFormatted) %></span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.startdate") %></span>
+            <span class="value"><%= pf.getString(vacationInfo.startDate) %></span>
+          </td>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.halfDayBegin") %></span>
+            <span class="value"><%= pf.getString(vacationInfo.halfDayBeginFormatted) %></span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.enddate") %></span>
+            <span class="value"><%= pf.getString(vacationInfo.endDate) %></span>
+          </td>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.halfDayEnd") %></span>
+            <span class="value"><%= pf.getString(vacationInfo.halfDayEndFormatted) %></span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <a href="mailto:${vacationInfo.replacementMail}">
+              <span class="title"><%= pf.getI18nString("vacation.replacement") %></span>
+              <span class="value"><%= pf.getString(vacationInfo.replacementFullname) %></span>
+            </a>
+          </td>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.special") %></span>
+            <span class="value"><%= pf.getString(vacationInfo.vacationSpecialFormatted) %></span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <a href="mailto:${vacationInfo.managerMail}">
+              <span class="title"><%= pf.getI18nString("vacation.manager") %></span>
+              <span class="value"><%= pf.getString(vacationInfo.managerFullname) %></span>
+            </a>
+          </td>
+          <td>
+            <span class="title"><%= pf.getI18nString("vacation.status") %></span>
+            <span class="value"><%= pf.getString(vacation.status) %></span>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <span class="title"><%= pf.getI18nString("comment") %></span>
+            <span class="value"><%= pf.getString(vacation.comment) %></span>
+          </td>
+        </tr>
+      </table>
+      <a
+              href="${vacationInfo.link}"
+              class="button"
+              target="_blank"
+              rel="noreferrer"
+      >
+        <%= pf.getI18nString("vacation.mail.link") %>
+      </a>
+
+      #INCLUDE{mail/mailClosing.html}
+      #INCLUDE{mail/mailFooter.html}
+    </div>
+  </div>
+</div>
+</body>
+</html>

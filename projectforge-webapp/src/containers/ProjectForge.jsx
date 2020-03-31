@@ -2,10 +2,11 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Route, Router, Switch } from 'react-router-dom';
-import { loadUserStatus, loginUser } from '../actions';
-import LoginView from '../components/authentication/LoginView';
+import { loadUserStatus } from '../actions';
 import Footer from '../components/base/footer';
+import Toasts from '../components/base/Toasts';
 import TopBar from '../components/base/topbar';
+import LoadingContainer from '../components/design/loading-container';
 import history from '../utilities/history';
 import prefix from '../utilities/prefix';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
@@ -16,9 +17,7 @@ import { SystemStatusContext, systemStatusContextDefaultValues } from './SystemS
 function ProjectForge(
     {
         user,
-        loginUser: login,
         loginInProgress,
-        loginError,
         loadUserStatus: checkAuthentication,
     },
 ) {
@@ -27,7 +26,7 @@ function ProjectForge(
     React.useEffect(() => {
         checkAuthentication();
 
-        fetch(getServiceURL('../rsPublic/systemStatus'))
+        fetch(getServiceURL('/rsPublic/systemStatus'))
             .then(handleHTTPErrors)
             .then(response => response.json())
             .then((json) => {
@@ -43,24 +42,36 @@ function ProjectForge(
 
     if (user) {
         content = <AuthorizedRoutes />;
+    } else if (loginInProgress) {
+        content = (
+            <LoadingContainer loading>
+                <h1>Logging in...</h1>
+            </LoadingContainer>
+        );
     } else {
         content = (
             <Switch>
                 {wicketRoute}
                 <Route
-                    path={`${prefix}:restPrefix/:category/:type?`}
-                    component={FormPage}
+                    path={`${prefix}public/:category/:type?`}
+                    render={props => <FormPage {...props} isPublic />}
                 />
                 <Route
                     path={prefix}
-                    render={props => (
-                        <LoginView
-                            // TODO REPLACE OLD LOGIN VIEW WITH DYNAMIC PAGE
+                    render={({ match, location, ...props }) => (
+                        <FormPage
                             {...props}
-                            motd="[Please try user demo with password demo123. Have a lot of fun!]"
-                            login={login}
-                            loading={loginInProgress}
-                            error={loginError}
+                            location={location}
+                            isPublic
+                            match={{
+                                ...match,
+                                // Disable FormPage Tabs
+                                url: location.pathname,
+                                // Set Category to login
+                                params: {
+                                    category: 'login',
+                                },
+                            }}
                         />
                     )}
                 />
@@ -80,31 +91,27 @@ function ProjectForge(
                 {content}
             </Router>
             <Footer />
+            <Toasts />
         </SystemStatusContext.Provider>
     );
 }
 
 ProjectForge.propTypes = {
-    loginUser: PropTypes.func.isRequired,
     loadUserStatus: PropTypes.func.isRequired,
     loginInProgress: PropTypes.bool.isRequired,
-    loginError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     user: PropTypes.shape({}),
 };
 
 ProjectForge.defaultProps = {
-    loginError: undefined,
     user: undefined,
 };
 
 const mapStateToProps = state => ({
     loginInProgress: state.authentication.loading,
-    loginError: state.authentication.error,
     user: state.authentication.user,
 });
 
 const actions = {
-    loginUser,
     loadUserStatus,
 };
 

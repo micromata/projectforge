@@ -59,7 +59,7 @@ internal class UserPrefCacheData {
                 userPref.area = area
                 userPref.name = name
                 userPref.user = ThreadLocalUserContext.getUser()
-                cacheEntry = CacheEntry(userPref, persistent)
+                cacheEntry = CacheEntry(userPref, persistent, true)
                 entries.add(cacheEntry)
             }
             cacheEntry.userPrefDO.valueObject = value

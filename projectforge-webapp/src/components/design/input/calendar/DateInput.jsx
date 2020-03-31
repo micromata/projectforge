@@ -142,7 +142,11 @@ function DateInput(
         return input;
     }
 
-    const handleDayPickerClick = (day, { selected }) => setDate(selected ? undefined : day);
+    const handleDayPickerClick = (day, { selected }) => {
+        setDate(selected ? undefined : day);
+
+        setIsOpen(false);
+    };
 
     return (
         <AdvancedPopper

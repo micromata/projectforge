@@ -112,6 +112,8 @@ public class UserFilter implements Filter {
   public static void logout(final HttpServletRequest request) {
     final HttpSession session = request.getSession();
     session.removeAttribute(SESSION_KEY_USER);
+    session.invalidate();
+    log.info("User logged out.");
   }
 
   public static void refreshUser(final HttpServletRequest request) {
@@ -220,7 +222,7 @@ public class UserFilter implements Filter {
             if (StringUtils.isNotBlank(queryString)) {
               url = url + "?" + URLEncoder.encode(queryString, "UTF-8");
             }
-            response.sendRedirect("/wa/login?url=" + url);
+            response.sendRedirect("/react/public/login?url=" + url);
           }
         }
       }

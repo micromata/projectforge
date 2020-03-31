@@ -65,6 +65,10 @@ public class FinancialFairPlayPlugin extends AbstractPlugin {
   @Autowired
   private FFPDeptCounterCache ffpDeptCounterCache;
 
+  public FinancialFairPlayPlugin() {
+    super(ID, "FinancialFairPlay", "PlugIn for organize financial fairplay (out-dated).");
+  }
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
@@ -73,7 +77,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin {
     FinancialFairPlayPluginUpdates.applicationContext = applicationContext;
 
     // Register it:
-    register(ID, FFPEventDao.class, eventService.getEventDao(), "plugins.financialfairplay");
+    register(FFPEventDao.class, eventService.getEventDao(), "plugins.financialfairplay");
 
     // Register the web part:
     pluginWicketRegistrationService.registerWeb(ID);

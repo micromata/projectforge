@@ -26,8 +26,10 @@ package org.projectforge.rest.hr
 import org.projectforge.business.vacation.model.LeaveAccountEntryDO
 import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
 import org.projectforge.framework.i18n.translate
+import org.projectforge.rest.VacationAccountPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -64,5 +66,12 @@ class LeaveAccountEntryPagesRest() : AbstractDOPagesRest<LeaveAccountEntryDO, Le
         val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "employee", "date", "amount", "description")
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    override fun createReturnToCallerResponseAction(returnToCaller: String): ResponseAction {
+        if (returnToCaller == "account") {
+            return ResponseAction(PagesResolver.getDynamicPageUrl(VacationAccountPageRest::class.java, absolute = true))
+        }
+        return super.createReturnToCallerResponseAction(returnToCaller)
     }
 }

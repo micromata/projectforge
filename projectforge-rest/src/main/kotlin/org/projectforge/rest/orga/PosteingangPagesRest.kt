@@ -65,8 +65,6 @@ class PosteingangPagesRest() : AbstractDOPagesRest<PosteingangDO, PosteingangDao
                 .add(UITable.UIResultSetTable()
                         .add(lc, "datum", "absender", "person", "inhalt", "bemerkung", "type"))
         layout.getTableColumnById("datum").formatter = Formatter.DATE
-        LayoutUtils.addListFilterContainer(layout, UILabel("'TODO: date range"),
-                filterClass = PostFilter::class.java)
         return LayoutUtils.processListPage(layout, this)
     }
 
@@ -81,9 +79,9 @@ class PosteingangPagesRest() : AbstractDOPagesRest<PosteingangDO, PosteingangDao
         val inhalt = UIInput("inhalt", lc).enableAutoCompletion(this)
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
-                        .add(UICol(length = 2)
+                        .add(UICol(2)
                                 .add(lc, "datum"))
-                        .add(UICol(length = 10)
+                        .add(UICol(10)
                                 .add(lc, "type")))
                 .add(sender)
                 .add(person)

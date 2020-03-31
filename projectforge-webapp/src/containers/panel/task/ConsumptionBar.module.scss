@@ -1,3 +1,10 @@
+@import "../../../assets/style/theming";
+
+.consumption {
+  width: 20em;
+  margin-top: 20px;
+}
+
 div.progress {
   margin-top: 5px;
   margin-bottom: 0;
@@ -29,7 +36,7 @@ div.progress-done {
 }
 
 div.progress-done div {
-  background-color: #099900;
+  background-color: map_get($theme-colors, success);
 }
 
 div.progress-80 {
@@ -37,7 +44,7 @@ div.progress-80 {
 }
 
 div.progress-80 div {
-  background-color: #ffff00;
+  background-color: map_get($theme-colors, info);
 }
 
 div.progress-90 {
@@ -45,19 +52,19 @@ div.progress-90 {
 }
 
 div.progress-90 div {
-  background-color: #ff8000;
+  background-color: map_get($theme-colors, warning);
 }
 
 div.progress-overbooked {
-  background-color: #ff0000;
+  background-color: map_get($theme-colors, danger);
 }
 
 div.progress-overbooked div {
-  background-color: #ff8000;
+  background-color: map_get($theme-colors, warning);
 }
 
 div.progress-overbooked-min {
-  background-color: #ff0000;
+  background-color: map_get($theme-colors, danger);
 }
 
 div.progress-overbooked-min div {

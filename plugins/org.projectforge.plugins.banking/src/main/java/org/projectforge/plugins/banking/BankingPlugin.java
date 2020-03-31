@@ -37,7 +37,6 @@ import org.springframework.stereotype.Component;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Component
 public class BankingPlugin extends AbstractPlugin {
   public static final String BANK_ACCOUNT_ID = "bankAccount";
 
@@ -61,6 +60,10 @@ public class BankingPlugin extends AbstractPlugin {
   PluginWicketRegistrationService pluginWicketRegistrationService;
 
   // private BankAccountBalanceDao addressCampaignValueDao;
+
+  public BankingPlugin() {
+    super("banking", "Banking", "Under construction: List of bank accounts and transfers.");
+  }
 
   @Override
   protected void initialize() {

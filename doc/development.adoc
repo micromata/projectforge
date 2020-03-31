@@ -627,5 +627,28 @@ Simple example (addresses) with more fields and UI layout with more fieldsets an
 |Data transfer object for the client. For simple objects, the BaseDO object may be used for the REST-CRUD functionality. For more complex objects providing special functionality, the usage of a DTO is required/recommended.
 |===
 
+== Writing own plugins
+Refer https://github.com/micromata/projectforge-plugins[ProjectForge-plugins on GitHub] for examples.
 
-For creating own entities a description for smart plugins with a minimum of code is under construction.
+* `org.projectforge.plugins.skills` as an Kotlin plugin.
+* will comming soon as an Java plugin.
+
+=== Starting your plugin from command line
+
+1. Build jar file by calling `mvn clean install`.
+2. Copy jar file to plugins folder of ProjectForge home, e. g. `/home/kai/ProjectForge/plugins`.
+3. Tell ProjectForge where it is. You may have to options:
+   a. Run ProjectForge from command line with option `-Dloader.home=/home/kai/ProjectForge`, or
+   b. Set the environment variable before starting ProjectForge: `export LOADER_HOME=/home/kai/ProjectForge`.
+4. Start ProjectForge and activate the plugin as admin in the ProjectForge's web app under menu Admin->plugins.
+5. Restart ProjectForge.
+
+=== Starting and debugging in IntelliJ
+
+The loader home stuff doesn't work if you start ProjectForge's main in IntelliJ.
+Following the solution described in https://stackoverflow.com/questions/37833877/intellij-spring-boot-propertieslauncher[Stack overflow]:
+1. Enable profile `intellij-properties-launcher` in maven tab.
+2. Edit launch configuration:
+  a. Main class: `org.springframework.boot.loader.PropertiesLauncher`. Please note, the configuration is marked faulty, but it works.
+  b. VM options: `-Xms2000m -Xmx2000m -Dloader.home=/home/kai/ProjectForge -Dloader.main=org.projectforge.start.ProjectForgeApplication`
+  c. Environment variables: `LOADER_HOME=/home/kai/ProjectForge`

@@ -113,11 +113,7 @@ class CalendarSubscriptionServiceRest {
     private lateinit var vacationCache: VacationCache
 
     @GetMapping
-    fun exportCalendar(request: HttpServletRequest,
-                       response: HttpServletResponse,
-                       @RequestParam("user") userIdString: String?,
-                       @RequestParam("q") q: String?)
-            : ResponseEntity<Any> {
+    fun exportCalendar(request: HttpServletRequest): ResponseEntity<Any> {
         var logMessage: String? = null
         try {
             val userId = ThreadLocalUserContext.getUserId() ?: run {

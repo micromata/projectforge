@@ -221,7 +221,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
 
   private void addPluginResources()
   {
-    for (AbstractPlugin plugin : pluginAdminService.getActivePlugin()) {
+    for (AbstractPlugin plugin : pluginAdminService.getActivePlugins()) {
       final List<String> resourceBundleNames = plugin.getResourceBundleNames();
       resourceBundleNames.forEach(this::addResourceBundle);
     }

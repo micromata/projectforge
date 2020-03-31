@@ -24,6 +24,7 @@
 package org.projectforge.ui
 
 enum class UIElementType {
+    ALERT,
     BUTTON,
     CHECKBOX,
     COL,

@@ -5,7 +5,6 @@ import React from 'react';
 import UncontrolledTooltip from 'reactstrap/lib/UncontrolledTooltip';
 import { colorPropType } from '../../../utilities/propTypes';
 import TooltipIcon from '../TooltipIcon';
-import AdditionalLabel from './AdditionalLabel';
 import styles from './Input.module.scss';
 
 const Input = React.forwardRef((
@@ -74,10 +73,7 @@ const Input = React.forwardRef((
             className={classNames(
                 styles.inputField,
                 className,
-                {
-                    [styles.noLabel]: !label,
-                    [styles.noStyle]: noStyle,
-                },
+                { [styles.noLabel]: !label },
             )}
         >
             <label
@@ -86,6 +82,7 @@ const Input = React.forwardRef((
                     {
                         [styles.isActive]: value || isActive,
                         [styles.withMargin]: !noStyle,
+                        [styles.noStyle]: noStyle,
                     },
                     styles[color],
                 )}

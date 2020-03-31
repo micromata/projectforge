@@ -23,17 +23,40 @@
 
 package org.projectforge.ui
 
+import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.task.TaskDO
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.*
 
 class UIDataTypeUtils {
     companion object {
-        internal fun getDataType(elementInfo: ElementInfo?): UIDataType {
-            if (elementInfo == null)
-                return UIDataType.STRING
+        /**
+         * Determine [UIDataType] by property type.
+         * @return mapped type or [UIDataType.STRING] if no mapping found.
+         */
+        internal fun ensureDataType(elementInfo: ElementInfo?): UIDataType {
+            return getDataType(elementInfo) ?: UIDataType.STRING
+        }
+
+        internal fun getDataType(elementInfo: ElementInfo?): UIDataType? {
+            elementInfo ?: return null
             return when (elementInfo.propertyType) {
-                Date::class.java -> UIDataType.DATE
+                String::class.java -> UIDataType.STRING
+                Boolean::class.java, java.lang.Boolean::class.java -> UIDataType.BOOLEAN
+                Date::class.java -> UIDataType.TIMESTAMP
+                LocalDate::class.java,
+                java.sql.Date::class.java -> UIDataType.DATE
+                java.sql.Timestamp::class.java -> UIDataType.TIMESTAMP
+                PFUserDO::class.java -> UIDataType.USER
+                EmployeeDO::class.java -> UIDataType.EMPLOYEE
+                Integer::class.java -> UIDataType.INT
+                BigDecimal::class.java -> UIDataType.DECIMAL
+                TaskDO::class.java -> UIDataType.TASK
                 Locale::class.java -> UIDataType.LOCALE
-                else -> UIDataType.STRING
+                TimeZone::class.java -> UIDataType.TIMEZONE
+                else -> null
             }
         }
     }

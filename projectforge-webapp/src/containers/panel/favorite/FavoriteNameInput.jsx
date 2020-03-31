@@ -2,8 +2,6 @@ import { faCheckSquare } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Input } from '../../../components/design';
-import style from '../../../components/design/input/Input.module.scss';
-import FavoriteActionButton from './FavoriteActionButton';
 
 function FavoriteNameInput(
     {
@@ -20,20 +18,26 @@ function FavoriteNameInput(
 
     const handleCreateClick = () => onSave(filterName);
 
+    const handleKeyDown = ({ key }) => {
+        if (key === 'Enter') {
+            onSave(filterName);
+        }
+    };
+
     return (
         <React.Fragment>
             <Input
                 label={label}
+                icon={faCheckSquare}
+                iconProps={{
+                    size: 'lg',
+                    onClick: handleCreateClick,
+                }}
                 id={id}
                 onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
                 value={filterName}
                 {...props}
-            />
-            <FavoriteActionButton
-                className={style.saveIcon}
-                icon={faCheckSquare}
-                size="lg"
-                onClick={handleCreateClick}
             />
         </React.Fragment>
     );

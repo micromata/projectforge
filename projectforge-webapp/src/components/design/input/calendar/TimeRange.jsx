@@ -10,6 +10,7 @@ function TimeRange(
     {
         from,
         hideDayPicker,
+        hideTimeInput,
         id,
         label,
         onDelete,
@@ -30,6 +31,7 @@ function TimeRange(
             >
                 <TimeInput
                     hideDayPicker={hideDayPicker}
+                    hideTimeInput={hideTimeInput}
                     id={`time-input-${id}-from`}
                     setTime={setFrom}
                     showDate
@@ -44,6 +46,7 @@ function TimeRange(
             >
                 <TimeInput
                     hideDayPicker={hideDayPicker}
+                    hideTimeInput={hideTimeInput}
                     id={`time-input-${id}-from`}
                     setTime={setTo}
                     showDate={!sameDate}
@@ -67,6 +70,7 @@ TimeRange.propTypes = {
     setTo: PropTypes.func.isRequired,
     from: PropTypes.instanceOf(Date),
     hideDayPicker: PropTypes.bool,
+    hideTimeInput: PropTypes.bool,
     label: PropTypes.string,
     onDelete: PropTypes.func,
     sameDate: PropTypes.bool,
@@ -77,6 +81,7 @@ TimeRange.propTypes = {
 TimeRange.defaultProps = {
     from: undefined,
     hideDayPicker: false,
+    hideTimeInput: false,
     label: undefined,
     onDelete: undefined,
     sameDate: false,

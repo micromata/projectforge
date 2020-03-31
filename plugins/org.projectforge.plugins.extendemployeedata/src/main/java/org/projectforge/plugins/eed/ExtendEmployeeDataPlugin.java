@@ -62,6 +62,10 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin {
   @Autowired
   private DatabaseService databaseService;
 
+  public ExtendEmployeeDataPlugin() {
+    super("extendemployeedata", "ExtendEmployeeData", "PlugIn for extended employee data");
+  }
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
@@ -69,7 +73,7 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin {
   protected void initialize() {
     ExtendedEmployeeDataPluginUpdates.databaseService = databaseService;
     // Register it:
-    register(ID, EmployeeDao.class, employeeDao, "plugins.extendemployeedata");
+    register(EmployeeDao.class, employeeDao, "plugins.extendemployeedata");
 
     // Register the web part:
     pluginWicketRegistrationService.registerWeb(ID);

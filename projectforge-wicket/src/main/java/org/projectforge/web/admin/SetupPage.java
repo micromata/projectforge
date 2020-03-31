@@ -44,7 +44,6 @@ import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.web.LoginPage;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.AbstractUnsecureBasePage;
@@ -218,7 +217,7 @@ public class SetupPage extends AbstractUnsecureBasePage
       }.start();
       if (counter > 0) {
         ((MySession) getSession()).logout();
-        setResponsePage(LoginPage.class);
+        WicketUtils.redirectToLogin(this);
       } else {
         error(getString("administration.setup.error.import"));
       }

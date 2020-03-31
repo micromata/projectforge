@@ -13,8 +13,8 @@ function MagicCheckboxInput(
     return (
         <CheckBox
             id={`magic-checkbox-${id}`}
-            onChange={({ target }) => onChange({ value: target.checked })}
-            checked={value.value === true}
+            onChange={({ target }) => onChange({ value: target.checked.toString() })}
+            checked={value.value === 'true'}
             label={label}
         />
     );
@@ -29,8 +29,10 @@ MagicCheckboxInput.propTypes = {
 
 MagicCheckboxInput.defaultProps = {};
 
-MagicCheckboxInput.isEmpty = ({ value }) => !value;
+MagicCheckboxInput.isEmpty = ({ value }) => value === 'false';
 
 MagicCheckboxInput.getLabel = label => label;
+
+MagicCheckboxInput.defaultValue = { value: 'true' };
 
 export default MagicCheckboxInput;

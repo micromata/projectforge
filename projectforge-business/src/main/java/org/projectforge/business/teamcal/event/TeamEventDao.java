@@ -578,22 +578,24 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     }
     // Following period extension is needed due to all day events which are stored in UTC. The additional events in the result list not
     // matching the time period have to be removed by caller!
-    Date startDate = filter.getStartDate();
-    if (startDate != null) {
-      startDate = new Date(startDate.getTime() - ONE_DAY);
+    PFDateTime date = PFDateTime.fromOrNull(filter.getStartDate());
+    Date startDate = null;
+    if (date != null) {
+      startDate = date.getBeginOfDay().getUtilDate();
     }
-    Date endDate = filter.getEndDate();
-    if (endDate != null) {
-      endDate = new Date(endDate.getTime() + ONE_DAY);
+    date = PFDateTime.fromOrNull(filter.getEndDate());
+    Date endDate = null;
+    if (date != null) {
+      endDate = date.getEndOfDay().getUtilDate();
     }
     // limit events to load to chosen date view.
     if (startDate != null && endDate != null) {
       if (!filter.isOnlyRecurrence()) {
         queryFilter.add(QueryFilter.or(
-                (QueryFilter.or(QueryFilter.between("startDate", startDate, endDate),
-                        QueryFilter.between("endDate", startDate, endDate))),
+                QueryFilter.between("startDate", startDate, endDate),
+                QueryFilter.between("endDate", startDate, endDate),
                 // get events whose duration overlap with chosen duration.
-                (QueryFilter.and(QueryFilter.le("startDate", startDate), QueryFilter.ge("endDate", endDate)))));
+                QueryFilter.and(QueryFilter.le("startDate", startDate), QueryFilter.ge("endDate", endDate))));
       } else {
         queryFilter.add(
                 // "startDate" < endDate && ("recurrenceUntil" == null || "recurrenceUntil" > startDate)

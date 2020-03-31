@@ -111,10 +111,17 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
    * Gets all names of entries of the given area for the current logged in user
    */
   public String[] getPrefNames(final UserPrefArea area) {
+    return getPrefNames(area.getId());
+  }
+
+  /**
+   * Gets all names of entries of the given area for the current logged in user
+   */
+  public String[] getPrefNames(final String area) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     List<String> names = em.createNamedQuery(UserPrefDO.FIND_NAMES_BY_USER_AND_AREA, String.class)
             .setParameter("userId", user.getId())
-            .setParameter("area", area.getId())
+            .setParameter("area", area)
             .getResultList();
     final String[] result = new String[names.size()];
     int i = 0;

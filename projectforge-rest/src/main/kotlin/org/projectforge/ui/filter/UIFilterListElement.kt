@@ -32,8 +32,16 @@ private val log = KotlinLogging.logger {}
 
 open class UIFilterListElement(
         id: String,
-        var values: List<UISelectValue<String>>? = null
-) : UIFilterElement(id, FilterType.LIST) {
+        var values: List<UISelectValue<String>>? = null,
+        label: String? = null,
+        additionalLabel: String? = null,
+        tooltip: String? = null,
+        /**
+         * If true, multi values may selectable, otherwise only one value is selectable (DropDownChoice).
+         */
+        var multi: Boolean? = true,
+        defaultFilter: Boolean? = null)
+    : UIFilterElement(id, FilterType.LIST, label = label, additionalLabel = additionalLabel, tooltip = tooltip, defaultFilter = defaultFilter) {
 
     fun buildValues(i18nEnum: Class<out Enum<*>>): UIFilterListElement {
         val newValues = mutableListOf<UISelectValue<String>>()
@@ -44,9 +52,20 @@ open class UIFilterListElement(
                 log.error("UIFilterSelectElement supports only enums of type I18nEnum, not '$enum': '${this}'")
             }
         }
-
         values = newValues
+        return this
+    }
 
+    fun buildValues(vararg i18nEnum: Enum<*>): UIFilterListElement {
+        val newValues = mutableListOf<UISelectValue<String>>()
+        i18nEnum.forEach { enum ->
+            if (enum is I18nEnum) {
+                newValues.add(UISelectValue(enum.name, translate(enum.i18nKey)))
+            } else {
+                log.error("UIFilterSelectElement supports only enums of type I18nEnum, not '$enum': '${this}'")
+            }
+        }
+        values = newValues
         return this
     }
 }

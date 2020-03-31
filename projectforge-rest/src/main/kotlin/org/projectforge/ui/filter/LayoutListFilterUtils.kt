@@ -23,21 +23,26 @@
 
 package org.projectforge.ui.filter
 
+import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.ui.*
+
+private val log = KotlinLogging.logger {}
+
+private val PAGE_SIZES = intArrayOf(25, 50, 100, 250, 500, 1000)
 
 /**
  * Utils for the Layout classes for handling filter settings in list views.
  */
 class LayoutListFilterUtils {
     companion object {
-        internal val log = org.slf4j.LoggerFactory.getLogger(LayoutListFilterUtils::class.java)
 
         fun createNamedContainer(pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>,
                                  lc: LayoutContext): UINamedContainer {
@@ -57,6 +62,8 @@ class LayoutListFilterUtils {
             elements.add(UIFilterElement(MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.fieldName,
                     label = translate(MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.i18nKey)))
             elements.add(UIFilterElement("deleted", UIFilterElement.FilterType.BOOLEAN, translate("deleted")))
+
+            elements.add(UIFilterListElement("pageSize", pageValues, translate("label.pageSize"), multi = false, defaultFilter = true))
 
             val baseDao = pagesRest.baseDao
             val searchFields = baseDao.searchFields
@@ -113,5 +120,7 @@ class LayoutListFilterUtils {
                 sb.append(" (").append(translate(elInfo.additionalI18nKey)).append(")")
             }
         }
+
+        private val pageValues = PAGE_SIZES.map { UISelectValue("$it", NumberFormatter.format(it)) }
     }
 }

@@ -86,22 +86,22 @@ class AutoCompletion<T>(
          * @return category/autosearch?search=:search)
          */
         fun getAutoCompletionUrl(category: String, additionalParamString: String = ""): String {
-            return "$category/${AutoCompletion.AUTOCOMPLETE_OBJECT}?${additionalParamString}search=" // :search"
+            return "$category/${AUTOCOMPLETE_OBJECT}?${additionalParamString}search=:search"
         }
 
         /**
-         * @return category/autosearch?search=
+         * @return category/autosearch?search=:search
          */
         fun getAutoCompletion4Users(showOnlyActiveUsers: Boolean = true): AutoCompletion<Int> {
             val additionalParamString = if (showOnlyActiveUsers) "" else "$SHOW_ALL_PARAM=true&"
-            return AutoCompletion<Int>(url = getAutoCompletionUrl("user", additionalParamString), type = AutoCompletion.Type.USER.name)
+            return AutoCompletion(url = getAutoCompletionUrl("user", additionalParamString), type = Type.USER.name)
         }
 
         /**
-         * @return category/autosearch?search=
+         * @return category/autosearch?search=:search
          */
         fun getAutoCompletion4Groups(): AutoCompletion<Int> {
-            return AutoCompletion<Int>(url = getAutoCompletionUrl("group"), type = AutoCompletion.Type.GROUP.name)
+            return AutoCompletion(url = getAutoCompletionUrl("group"), type = Type.GROUP.name)
         }
     }
 }

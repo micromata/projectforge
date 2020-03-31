@@ -68,7 +68,7 @@ class SystemStatus {
     private fun postConstruct() {
         messageOfTheDay = GlobalConfiguration.getInstance()
                 .getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
-        logoFile = configurationService.logoFile
+        logoFile = configurationService.syntheticLogoName
         if (!databaseService.databaseTablesWithEntriesExists())
             setupRequiredFirst = true
         devMode = developmentMode

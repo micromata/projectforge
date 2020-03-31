@@ -8,18 +8,18 @@ import SearchFilter from './searchFilter/SearchFilter';
 
 function ListPage(
     {
-        match,
-        location,
-        onCategoryChange,
         category,
+        location,
+        match,
+        onCategoryChange,
     },
 ) {
     // Only reload the list when the category or search string changes.
     React.useEffect(
         () => {
-            onCategoryChange(match.params.category);
+            onCategoryChange(match.params.category, true, (location.state || {}).variables);
         },
-        [match.params.category, location.search],
+        [match.params.category, location.search, location.state],
     );
 
     // TODO ADD ERROR HANDLING
