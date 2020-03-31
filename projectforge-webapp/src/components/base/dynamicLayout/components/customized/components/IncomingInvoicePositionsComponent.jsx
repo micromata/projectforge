@@ -26,7 +26,7 @@ function IncomingInvoicePositionsComponent() {
 
     const addPosition = () => callAction({
         responseAction: {
-            url: '/incomingInvoice/addPosition',
+            url: 'react/incomingInvoice/addPosition',
             targetType: 'POST',
         },
     });
@@ -67,7 +67,7 @@ function IncomingInvoicePositionsComponent() {
             const kostZuweisungTable = [];
 
             if (kostZuweisungen !== undefined) {
-                for (let k = 0; k < kostZuweisungen.length; k++) {
+                for (let k = 0; k < kostZuweisungen.length; k + 1) {
                     const kostZuweisung = kostZuweisungen[i];
                     kostZuweisungTable.push(
                         <tr>
