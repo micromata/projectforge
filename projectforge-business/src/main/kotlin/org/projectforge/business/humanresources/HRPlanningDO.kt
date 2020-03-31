@@ -354,7 +354,7 @@ open class HRPlanningDO : DefaultBaseDO() {
          */
         fun getFirstDayOfWeek(date: LocalDate): LocalDate {
             var day = PFDay.from(date)
-            day = day!!.beginOfWeek
+            day = day.beginOfWeek
             return day.localDate
         }
 

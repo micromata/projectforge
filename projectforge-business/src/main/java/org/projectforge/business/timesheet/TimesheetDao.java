@@ -340,7 +340,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
     Validate.isTrue(cal.get(Calendar.MILLISECOND) == 0, "Millis of " + name + " is not 0!");
     Validate.isTrue(cal.get(Calendar.SECOND) == 0, "Seconds of " + name + " is not 0!");
     final int m = cal.get(Calendar.MINUTE);
-    Validate.isTrue(m == 0 || m == 15 || m == 30 || m == 45, "Minutes of " + name + " must be 0, 15, 30 or 45");
+    Validate.isTrue(m % 5 == 0, "Minutes of " + name + " must be 00, 5, 10, ..., 55");
   }
 
   /**

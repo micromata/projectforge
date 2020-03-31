@@ -90,12 +90,12 @@ open class LantJdbcSettingsDialog(
                     jdbcUrlTextBox.text = defaultJdbcUrl
                 },
                 Button(Texts.BUTTON_OK) {
-                    val jdbcSettings = SetupData.JdbcSettings()
-                    jdbcSettings.driverClass = "org.postgresql.Driver"
-                    jdbcSettings.jdbcUrl = jdbcUrlTextBox.text
-                    jdbcSettings.user = jdbcUserTextBox.text
-                    jdbcSettings.password = jdbcPasswordBox.text
-                    context.setupData.jdbcSettings = jdbcSettings
+                    val settings = SetupData.JdbcSettings()
+                    settings.driverClass = "org.postgresql.Driver"
+                    settings.jdbcUrl = jdbcUrlTextBox.text
+                    settings.user = jdbcUserTextBox.text
+                    settings.password = jdbcPasswordBox.text
+                    context.setupData.jdbcSettings = settings
                     context.setupData.useEmbeddedDatabase = false
                     finalizeWindow.redraw()
                     close()

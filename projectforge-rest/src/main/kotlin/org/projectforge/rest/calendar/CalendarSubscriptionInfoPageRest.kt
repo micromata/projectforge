@@ -59,7 +59,7 @@ class CalendarSubscriptionInfoPageRest {
         }
         val layout = UILayout("plugins.teamcal.subscription")
         layout.addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
-        layout.add(UIFieldset(mdLength = 12, lgLength = 12)
+        layout.add(UIFieldset(UILength(md = 12, lg = 12))
                 .add(UIRow()
                         .add(UICol()
                                 .add(UICustomized("calendar.subscriptionInfo",

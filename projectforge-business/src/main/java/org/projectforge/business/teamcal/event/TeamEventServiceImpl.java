@@ -379,7 +379,11 @@ public class TeamEventServiceImpl implements TeamEventService {
     }
 
     // set mail content
-    final String content = sendMail.renderGroovyTemplate(msg, "mail/teamEventEmail.html", dataMap, ThreadLocalUserContext.getUser());
+    final String content = sendMail.renderGroovyTemplate(msg,
+            "mail/teamEventEmail.html",
+            dataMap,
+            I18nHelper.getLocalizedMessage("plugins.teamcal.event.title.heading"),
+            ThreadLocalUserContext.getUser());
     msg.setContent(content);
 
     // create iCal
@@ -429,10 +433,10 @@ public class TeamEventServiceImpl implements TeamEventService {
 
     if (attendee.getUser() != null) {
       locale = attendee.getUser().getLocale() != null ? attendee.getUser().getLocale() : ThreadLocalUserContext.getLocale(null);
-      timezone = attendee.getUser().getTimeZoneObject();
+      timezone = attendee.getUser().getTimeZone();
     } else {
       locale = sender.getLocale() != null ? sender.getLocale() : ThreadLocalUserContext.getLocale(null);
-      timezone = sender.getTimeZoneObject();
+      timezone = sender.getTimeZone();
     }
 
     // TODO rework!

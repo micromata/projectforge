@@ -36,7 +36,6 @@ import org.springframework.stereotype.Component;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Component
 public class IhkExportPlugin extends AbstractPlugin {
   public static final String ID = "ihkexport";
 
@@ -48,11 +47,15 @@ public class IhkExportPlugin extends AbstractPlugin {
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
+  public IhkExportPlugin() {
+    super("ihkexport", "IHK-Export", "Ausbildungsnachweise drucken");
+  }
+
   @Override
   protected void initialize() {
 
     // Register it:
-    register(ID, TimesheetDao.class, ihkExportDao, "plugins.ihkexport");
+    register(TimesheetDao.class, ihkExportDao, "plugins.ihkexport");
 
     // Register the web part:
     pluginWicketRegistrationService.registerWeb(ID);

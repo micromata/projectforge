@@ -155,7 +155,7 @@ private fun handleExcepction(msg: String, ex: Exception): ResponseEntity<Respons
         val errors = listOf(error)
         return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)
     } else {
-        log.error("$msg: message='${ex.message}'")
+        log.error("$msg: message='${ex.message}'", ex)
         val error = ValidationError(ex.message)
         val errors = listOf(error)
         return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)

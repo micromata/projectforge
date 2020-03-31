@@ -114,7 +114,7 @@ public class JodaDateConverterTest
 
   private void convertToObjectGerman(final DateTimeZone timeZone)
   {
-    contextUser.setTimeZone(timeZone.getID());
+    contextUser.setTimeZoneString(timeZone.getID());
     contextUser.setDateFormat("dd.MM.yyyy");
     final JodaDateConverter conv = new JodaDateConverter();
     assertNull(conv.convertToObject("", Locale.GERMAN));
@@ -163,7 +163,7 @@ public class JodaDateConverterTest
 
   private void convertToObjectEnglish(final DateTimeZone timeZone)
   {
-    contextUser.setTimeZone(timeZone.getID());
+    contextUser.setTimeZoneString(timeZone.getID());
     contextUser.setDateFormat("MM/dd/yyyy");
     final JodaDateConverter conv = new JodaDateConverter();
     DateMidnight testDate = createDate(1970, DateTimeConstants.OCTOBER, 21, timeZone);

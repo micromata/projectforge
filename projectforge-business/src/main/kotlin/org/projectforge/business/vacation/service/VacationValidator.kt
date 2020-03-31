@@ -83,11 +83,16 @@ object VacationValidator {
     internal fun validate(vacationService: VacationService, vacation: VacationDO, dbVacation: VacationDO? = null, throwException: Boolean = false): Error? {
         val startDate = vacation.startDate
         val endDate = vacation.endDate
-        val employee = vacation.employee
         if (startDate == null || endDate == null) {
             return returnOrThrow(Error.DATE_NOT_SET, throwException)
         }
+
+        val employee = vacation.employee
         require(employee != null)
+        val manager = vacation.manager
+        if (manager == null || manager.id == employee.id) {
+            return returnOrThrow(Error.NOT_ALLOWED_TO_APPROVE, throwException)
+        }
         val year = startDate.year
         if (endDate.isBefore(startDate)) {
             return returnOrThrow(Error.END_DATE_BEFORE_START_DATE, throwException)

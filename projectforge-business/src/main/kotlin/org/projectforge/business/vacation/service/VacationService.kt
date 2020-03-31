@@ -66,8 +66,7 @@ import javax.persistence.PersistenceContext
  * @author Florian Blumenstein, Kai Reinhard
  */
 @Service
-open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPersistenceService<VacationDO>, IDao<VacationDO> {
-    // CorePersistenceServiceImpl, IPersistenceService and IDao is needed for VacationListPage (Wicket)
+open class VacationService {
     @Autowired
     private lateinit var vacationDao: VacationDao
     @Autowired
@@ -435,56 +434,5 @@ open class VacationService : CorePersistenceServiceImpl<Int, VacationDO>(), IPer
             }
             return numberOfWorkingDays
         }
-    }
-
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //
-    // CorePersistenceServiceImpl, IPersistenceService and IDao stuff (needed by VacationListPage/Wicket).
-    //
-    // To be removed after migration from Wicket to React:
-
-    override fun hasInsertAccess(user: PFUserDO): Boolean {
-        return true
-    }
-
-    override fun hasLoggedInUserInsertAccess(): Boolean {
-        return vacationDao.hasLoggedInUserInsertAccess()
-    }
-
-    override fun hasLoggedInUserInsertAccess(obj: VacationDO, throwException: Boolean): Boolean {
-        return vacationDao.hasLoggedInUserInsertAccess(obj, throwException)
-    }
-
-    override fun hasLoggedInUserUpdateAccess(obj: VacationDO, dbObj: VacationDO, throwException: Boolean): Boolean {
-        return vacationDao.hasLoggedInUserUpdateAccess(obj, dbObj, throwException)
-    }
-
-    override fun hasLoggedInUserDeleteAccess(obj: VacationDO, dbObj: VacationDO, throwException: Boolean): Boolean {
-        return vacationDao.hasLoggedInUserDeleteAccess(obj, dbObj, throwException)
-    }
-
-    override fun hasDeleteAccess(user: PFUserDO, obj: VacationDO, dbObj: VacationDO, throwException: Boolean): Boolean {
-        return vacationDao.hasDeleteAccess(user, obj, dbObj, throwException)
-    }
-
-    override fun rebuildDatabaseIndex4NewestEntries() {
-        vacationDao.rebuildDatabaseIndex4NewestEntries()
-    }
-
-    override fun rebuildDatabaseIndex() {
-        vacationDao.rebuildDatabaseIndex()
-    }
-
-    override fun getAutocompletion(property: String, searchString: String): List<String> {
-        return vacationDao.getAutocompletion(property, searchString)
-    }
-
-    override fun getList(filter: BaseSearchFilter): List<VacationDO> {
-        return vacationDao.getList(filter)
-    }
-
-    override fun getDisplayHistoryEntries(obj: VacationDO): List<DisplayHistoryEntry> {
-        return vacationDao.getDisplayHistoryEntries(obj)
     }
 }

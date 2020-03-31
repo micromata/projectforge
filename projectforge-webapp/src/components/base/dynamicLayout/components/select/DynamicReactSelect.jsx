@@ -6,20 +6,11 @@ import ReactSelect from '../../../../design/react-select/ReactSelect';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from '../input/DynamicValidationManager';
 
-const resolveJSON = (callback, type = undefined) => json => callback(json.map((completion) => {
-    if (type) {
-        return completion;
-    }
-    return ({
-        value: completion,
-        label: completion,
-    });
-}));
-
 export const extractDataValue = (
     {
         data,
         id,
+        labelProperty,
         multi,
         valueProperty,
         values,
@@ -30,13 +21,17 @@ export const extractDataValue = (
         // For react-select it seems to be important, that the current selected element matches
         // its value of the values list.
         const valueOfArray = (typeof dataValue === 'object') ? dataValue[valueProperty] : dataValue;
-        dataValue = values.find(it => it[valueProperty] === valueOfArray);
+        const value = values.find(it => it[valueProperty] === valueOfArray);
+
+        if (value) {
+            dataValue = value;
+        }
     }
 
     if (typeof dataValue === 'string') {
         return {
-            label: dataValue,
-            value: dataValue,
+            [labelProperty || 'displayName']: dataValue,
+            [valueProperty || 'id']: dataValue,
         };
     }
 
@@ -75,8 +70,7 @@ function DynamicReactSelect(props) {
         };
 
         const loadOptions = (search, callback) => fetch(
-            // TODO CHANGE URL TO NEW URL REPLACEMENT FORMAT
-            getServiceURL(`${autoCompletion.url}${search}`),
+            getServiceURL(autoCompletion.url.replace(':search', encodeURIComponent(search))),
             {
                 method: 'GET',
                 credentials: 'include',
@@ -87,7 +81,7 @@ function DynamicReactSelect(props) {
         )
             .then(handleHTTPErrors)
             .then(response => response.json())
-            .then(resolveJSON(callback, autoCompletion.type));
+            .then(callback);
 
         const url = autoCompletion ? autoCompletion.url : undefined;
 

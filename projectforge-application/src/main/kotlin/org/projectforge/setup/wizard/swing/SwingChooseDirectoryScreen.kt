@@ -69,8 +69,8 @@ class SwingChooseDirectoryScreen(context: SwingGUIContext) : SwingAbstractWizard
             chooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
             chooser.isAcceptAllFileFilterUsed = false
             if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                var dir = File(chooser.selectedFile, "ProjectForge")
-                context.setupData.applicationHomeDir = CanonicalFileUtils.absolute(dir)
+                val selectedDir = File(chooser.selectedFile, "ProjectForge")
+                context.setupData.applicationHomeDir = CanonicalFileUtils.absolute(selectedDir)
                 redraw()
                 nextIfDirExists()
             }

@@ -77,16 +77,19 @@ class CalendarService {
         return result
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun createCalendarEvent(meeting: Meeting): Meeting? {
         log.warn { "Creating of meetings not supported." }
         return null
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun updateCalendarEvent(meeting: Meeting): Meeting? {
         log.warn { "Updating of meetings not supported." }
         return null
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun deleteCalendarEvent(meeting: Meeting) {
         log.warn { "Deleting of meetings not supported." }
     }
@@ -97,7 +100,7 @@ class CalendarService {
         result.createDate = event.created
         result.modifiedDate = event.lastUpdate
         result.name = event.uid + ".ics"
-        result.icalData = generator.getCalendarAsByteStream().toByteArray()
+        result.icalData = generator.calendarAsByteStream.toByteArray()
         return result
     }
 

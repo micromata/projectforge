@@ -23,30 +23,24 @@
 
 package org.projectforge.ui
 
+/**
+ * Twelve column grid system.
+ */
 open class UICol(
         /**
-         * Length in grid system (1-12)
+         * Length in grid system
          */
-        val length: Int? = null,
+        val length: UILength? = null,
         /**
-         * Length for small screens (1-12)
+         * Offset in grid system
          */
-        val smLength: Int? = null,
-        /**
-         * Length for middle sized screens (1-12)
-         */
-        val mdLength: Int? = null,
-        /**
-         * Length for large screens (1-12)
-         */
-        val lgLength: Int? = null,
-        /**
-         * Length for large screens (1-12)
-         */
-        val xlLength: Int? = null,
+        val offset: UILength? = null,
         val content: MutableList<UIElement> = mutableListOf(),
         type: UIElementType = UIElementType.COL)
     : UIElement(type) {
+
+    constructor(xsLength: Int): this(length = UILength(xsLength))
+
     fun add(element: UIElement): UICol {
         content.add(element)
         return this

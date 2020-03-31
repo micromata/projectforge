@@ -1,14 +1,16 @@
 import React from 'react';
 import DynamicCustomized from './customized';
+import DynamicAlert from './DynamicAlert';
+import DynamicButton from './DynamicButton';
 import DynamicFieldset from './DynamicFieldset';
 import DynamicGroup from './DynamicGroup';
 import DynamicLabel from './DynamicLabel';
+import DynamicList from './DynamicList';
 import DynamicCheckbox from './input/DynamicCheckbox';
 import DynamicInputResolver from './input/DynamicInputResolver';
 import DynamicRadioButton from './input/DynamicRadioButton';
-import DynamicTextArea from './input/DynamicTextArea';
 import DynamicReadonlyField from './input/DynamicReadonlyField';
-import DynamicList from './DynamicList';
+import DynamicTextArea from './input/DynamicTextArea';
 import DynamicReactSelect from './select/DynamicReactSelect';
 import DynamicTable from './table/DynamicTable';
 
@@ -51,6 +53,8 @@ export default (content) => {
 };
 
 // register default components
+registerComponent('ALERT', DynamicAlert);
+registerComponent('BUTTON', DynamicButton);
 registerComponent('CHECKBOX', DynamicCheckbox);
 registerComponent('COL', DynamicGroup);
 registerComponent('FRAGMENT', DynamicGroup);

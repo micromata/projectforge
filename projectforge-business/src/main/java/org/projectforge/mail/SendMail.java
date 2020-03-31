@@ -26,8 +26,10 @@ package org.projectforge.mail;
 import de.micromata.genome.util.runtime.config.MailSessionLocalSettingsConfigModel;
 import de.micromata.genome.util.validation.ValContext;
 import de.micromata.genome.util.validation.ValMessage;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.scripting.GroovyEngine;
 import org.projectforge.framework.i18n.InternalErrorException;
 import org.projectforge.framework.i18n.UserException;
@@ -54,14 +56,16 @@ import java.util.concurrent.CompletableFuture;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-public class SendMail
-{
+public class SendMail {
   private static final String STANDARD_SUBJECT_PREFIX = "[ProjectForge] ";
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SendMail.class);
 
   @Autowired
   private ConfigurationService configurationService;
+
+  @Autowired
+  private DomainService domainService;
 
   private Random random = new Random();
 
@@ -70,28 +74,47 @@ public class SendMail
    *
    * @param subject
    */
-  public static String getProjectForgeSubject(final String subject)
-  {
+  public static String getProjectForgeSubject(final String subject) {
     return STANDARD_SUBJECT_PREFIX + subject;
   }
 
   /**
    * @param composedMessage the message to send
-   * @param icalContent the ical content to add
-   * @param attachments other attachments to add
+   * @return true for successful sending, otherwise an exception will be thrown.
+   * @throws UserException          if to address is not given.
+   * @throws InternalErrorException due to technical failures.
+   */
+  public boolean send(final Mail composedMessage) {
+    return send(composedMessage, null, null, true);
+  }
+
+  /**
+   * @param composedMessage the message to send
+   * @param attachments     other attachments to add
+   * @return true for successful sending, otherwise an exception will be thrown.
+   * @throws UserException          if to address is not given.
+   * @throws InternalErrorException due to technical failures.
+   */
+  public boolean send(final Mail composedMessage,
+                      final Collection<? extends MailAttachment> attachments) {
+    return send(composedMessage, null, attachments, true);
+  }
+
+  /**
+   * @param composedMessage the message to send
+   * @param icalContent     the ical content to add
+   * @param attachments     other attachments to add
    * @return true for successful sending, otherwise an exception will be thrown.
    * @throws UserException          if to address is not given.
    * @throws InternalErrorException due to technical failures.
    */
   public boolean send(final Mail composedMessage, final String icalContent,
-      final Collection<? extends MailAttachment> attachments)
-  {
+                      final Collection<? extends MailAttachment> attachments) {
     return send(composedMessage, icalContent, attachments, true);
   }
 
   public boolean send(final Mail composedMessage, final String icalContent,
-      final Collection<? extends MailAttachment> attachments, boolean async)
-  {
+                      final Collection<? extends MailAttachment> attachments, boolean async) {
     if (composedMessage == null) {
       log.error("No message object of type org.projectforge.mail.Mail given. E-Mail not sent.");
       return false;
@@ -116,8 +139,7 @@ public class SendMail
     return true;
   }
 
-  private Session getSession()
-  {
+  private Session getSession() {
     MailSessionLocalSettingsConfigModel cf = configurationService.createMailSessionLocalSettingsConfigModel();
     if (!cf.isEmailEnabled()) {
       log.error("Sending email is not enabled");
@@ -141,8 +163,7 @@ public class SendMail
   }
 
   private void sendIt(final Mail composedMessage, final String icalContent,
-      final Collection<? extends MailAttachment> attachments)
-  {
+                      final Collection<? extends MailAttachment> attachments) {
     log.info("Start sending e-mail message: " + StringUtils.join(composedMessage.getTo(), ", "));
     try {
       final Session session = getSession();
@@ -153,7 +174,11 @@ public class SendMail
         message.setFrom();
       }
       message.setRecipients(Message.RecipientType.TO,
-          composedMessage.getTo().toArray(new Address[composedMessage.getTo().size()]));
+              composedMessage.getTo().toArray(new Address[composedMessage.getTo().size()]));
+      if (CollectionUtils.isNotEmpty(composedMessage.getCC())) {
+        message.setRecipients(Message.RecipientType.CC,
+                composedMessage.getCC().toArray(new Address[composedMessage.getCC().size()]));
+      }
       final String subject = composedMessage.getSubject();
       final SendMailConfig sendMailConfig = configurationService.getSendMailConfiguration();
       message.setSubject(subject, sendMailConfig.getCharset());
@@ -173,7 +198,11 @@ public class SendMail
       }
 
       message.saveChanges(); // don't forget this
-      Transport.send(message);
+      if (testMode) {
+        log.info("Test mode, do not really send e-mails (OK only for test cases).");
+      } else {
+        Transport.send(message);
+      }
 
     } catch (final Exception ex) {
       log.error("While creating and sending message: " + composedMessage.toString(), ex);
@@ -183,9 +212,8 @@ public class SendMail
   }
 
   private MimeMultipart createMailAttachmentContent(MimeMessage message, final Mail composedMessage, final String icalContent,
-      final Collection<? extends MailAttachment> attachments,
-      final SendMailConfig sendMailConfig) throws MessagingException
-  {
+                                                    final Collection<? extends MailAttachment> attachments,
+                                                    final SendMailConfig sendMailConfig) throws MessagingException {
     // create and fill the first message part
     final MimeBodyPart mbp1 = new MimeBodyPart();
     String type = "text/";
@@ -212,7 +240,7 @@ public class SendMail
       icalBodyPart.setHeader("Content-Class", "urn:content-  classes:calendarmessage");
       icalBodyPart.setHeader("Content-ID", "calendar_message");
       icalBodyPart.setDataHandler(new DataHandler(
-          new ByteArrayDataSource(icalContent.getBytes(), "text/calendar")));
+              new ByteArrayDataSource(icalContent.getBytes(), "text/calendar")));
       final String s = Integer.toString(random.nextInt(Integer.MAX_VALUE));
       icalBodyPart.setFileName("ICal-" + s + ".ics");
 
@@ -252,18 +280,35 @@ public class SendMail
    * @see GroovyEngine#executeTemplateFile(String)
    */
   public String renderGroovyTemplate(final Mail composedMessage, final String groovyTemplate,
-      final Map<String, Object> data,
-      final PFUserDO recipient)
-  {
+                                     final Map<String, Object> data,
+                                     final String title,
+                                     final PFUserDO recipient) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     data.put("createdLabel", ThreadLocalUserContext.getLocalizedString("created"));
     data.put("loggedInUser", user);
-    data.put("recipient", recipient);
+    data.put("title", title);
+    if (recipient != null) {
+      data.put("recipient", recipient);
+    }
     data.put("msg", composedMessage);
     log.debug("groovyTemplate=" + groovyTemplate);
+    data.put("baseUrl", buildUrl(""));
+    if (configurationService.isLogoFileValid()) {
+      final String logoBasename = configurationService.getSyntheticLogoName();
+      data.put("logoUrl", buildUrl("rsPublic/" + logoBasename));
+    }
     final GroovyEngine engine = new GroovyEngine(configurationService, data, recipient.getLocale(),
-        recipient.getTimeZoneObject());
+            recipient.getTimeZone());
     return engine.executeTemplateFile(groovyTemplate);
   }
 
+  public String buildUrl(String subPath) {
+    return domainService.getDomain() + "/" + subPath;
+  }
+
+  private static boolean testMode = false;
+
+  public static void internalSetTestMode() {
+    testMode = true;
+  }
 }

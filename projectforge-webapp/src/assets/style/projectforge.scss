@@ -139,10 +139,6 @@ body {
 	padding-bottom: 20px;
 }
 
-.form-group {
-	margin-bottom: 2.3rem;
-}
-
 // Forms
 
 fieldset {
@@ -177,7 +173,7 @@ fieldset {
 }
 
 .btn-group {
-	margin-top: 20px;
+	margin-top: 1em;
 }
 
 .rbc-btn-group {
@@ -490,7 +486,7 @@ span.mm-select {
 			border: none;
 			border-bottom: 2px solid #bbb;
 			border-radius: 5px 5px 0 0;
-			padding-top: 1.3em;
+			padding-top: 1em;
 			margin: 0;
 
 			&.react-select__control--is-focused {
@@ -499,21 +495,29 @@ span.mm-select {
 				box-shadow: none;
 			}
 
+			.react-select__value-container {
+				padding-bottom: 1px;
+			}
+
 			.react-select__single-value {
 				font-size: 15px;
+				top: 1.3em;
 			}
 
 			.react-select__indicator {
 				color: #009BA3;
 				cursor: default;
+				padding: 0 8px;
 			}
 
 			.react-select__multi-value {
 				background-color: #333;
+				margin: 4px 2px 0 2px;
 
 				.react-select__multi-value__label {
 					color: #fff;
 					font-size: 1em;
+					padding: 0 0 0 6px;
 				}
 
 				.react-select__multi-value__remove {
@@ -530,7 +534,7 @@ span.mm-select {
 		&.hasValue {
 			.react-select__label {
 				color: #666;
-				transform: translateY(-.8em) scale(0.75);
+				transform: translateY(-.55em) scale(0.75);
 			}
 
 			.react-select__control {
@@ -597,5 +601,16 @@ span.mm-select {
 div[class$="-multiValue"] {
 	div[role=button] {
 		font-size: 14px;
+	}
+}
+
+
+// Toast
+
+.toast {
+	font-size: 1.25rem;
+
+	.toast-header strong {
+		padding-right: 1em;
 	}
 }

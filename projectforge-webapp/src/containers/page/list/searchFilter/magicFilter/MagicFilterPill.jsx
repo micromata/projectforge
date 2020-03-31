@@ -15,6 +15,7 @@ function MagicFilterPill(
         children,
         id,
         isNew,
+        isRemovable,
         label,
         onFilterDelete,
         onFilterSet,
@@ -25,25 +26,37 @@ function MagicFilterPill(
     },
 ) {
     const [isOpen, setIsOpen] = React.useState(isNew);
-    const [tempValue, setTempValue] = React.useState(value);
+    const [tempValue, setTempValue] = React.useState({});
 
     const MagicInput = useMagicInput(filterType);
+
+    React.useEffect(() => {
+        if (Object.isEmpty(value) && MagicInput.defaultValue !== undefined) {
+            setTempValue(MagicInput.defaultValue);
+        } else {
+            setTempValue(value);
+        }
+    }, [value]);
 
     const handleCancel = () => {
         setTempValue(value);
         setIsOpen(false);
     };
 
-    const handleDelete = () => onFilterDelete(id);
+    const handleDelete = () => {
+        setIsOpen(false);
+        onFilterDelete(id);
+    };
 
     const handleSave = () => {
+        setIsOpen(false);
+
         if (MagicInput.isEmpty(tempValue)) {
             handleDelete();
             return;
         }
 
         onFilterSet(id, tempValue);
-        setIsOpen(false);
     };
 
     return (
@@ -56,14 +69,19 @@ function MagicFilterPill(
                         {value && Object.keys(value).length
                             ? MagicInput.getLabel(label, value, props)
                             : label}
-                        <FontAwesomeIcon
-                            icon={faBan}
-                            className={styles.deleteIcon}
-                            onClick={() => onFilterDelete(id)}
-                        />
+                        {(isRemovable || !Object.isEmpty(value)) && (
+                            <FontAwesomeIcon
+                                icon={faBan}
+                                className={styles.deleteIcon}
+                                onClick={() => onFilterDelete(id)}
+                            />
+                        )}
                     </React.Fragment>
                 )}
-                contentClassName={classNames(styles.pill, { [styles.marked]: isOpen || value })}
+                contentClassName={classNames(
+                    styles.pill,
+                    { [styles.marked]: isOpen || !Object.isEmpty(value) },
+                )}
                 actions={(
                     <React.Fragment>
                         <AdvancedPopperAction
@@ -86,6 +104,7 @@ function MagicFilterPill(
                 <div className={styles.content}>
                     <MagicInput
                         label={label}
+                        filterType={filterType}
                         id={id}
                         onChange={setTempValue}
                         onSubmit={handleSave}
@@ -108,6 +127,7 @@ MagicFilterPill.propTypes = {
     translations: PropTypes.shape({}).isRequired,
     children: PropTypes.node,
     isNew: PropTypes.bool,
+    isRemovable: PropTypes.bool,
     filterType: PropTypes.string,
     value: PropTypes.shape({}),
 };
@@ -115,6 +135,7 @@ MagicFilterPill.propTypes = {
 MagicFilterPill.defaultProps = {
     children: undefined,
     isNew: false,
+    isRemovable: false,
     filterType: undefined,
     value: {},
 };

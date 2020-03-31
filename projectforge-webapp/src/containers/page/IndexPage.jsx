@@ -121,66 +121,6 @@ class IndexPage extends React.Component {
                         </Card>
                     </Col>
                 </Row>
-                <Row>
-                    <Col>
-                        <p
-                            style={{
-                                marginTop: '10ex',
-                                marginBottom: '5ex',
-                                color: 'red',
-                                fontWeight: 'bold',
-                                fontSize: '18px',
-                            }}
-                        >
-                            To-do&apos;s (most have to be done before going public)
-                        </p>
-                    </Col>
-                </Row>
-                <Row>
-                    <Col>
-                        <h1>ToDo&apos;s (F.)</h1>
-                        <ol>
-                            <li>
-                                Can&apos;t delete last calendar.
-                            </li>
-                            <li>
-                                Modification of text searches (in all fields, non field-specific)
-                                is not possible.
-                            </li>
-                            <li>
-                                Return key closes the popover, another Return click submits the
-                                filter and requests a new list?
-                            </li>
-                            <li>
-                                main.chunk.js with hash sum / version id, use service worker for
-                                caching app
-                            </li>
-                            <li>
-                                Backlog: Timepicker (substituion of current used),
-                                and date-range picker.
-                            </li>
-                        </ol>
-                    </Col>
-                    <Col>
-                        <h1>ToDo&apos;s (both)</h1>
-                        <ol>
-                            <li>Magic filter in list pages</li>
-                            <li>
-                                TaskTree
-                                <mark>Keine Tasks gefunden</mark>
-                                translation. task/tree
-                            </li>
-                            <li>
-                                Markdown (AsciiDoc) View component for displaying dynamic content.
-                            </li>
-                            <li>List pagination and sorting</li>
-                            <li>Selection component for time of day (timesheets, cal events)</li>
-                            <li>
-                                Registration of customized containers (e. g. for external plugins)
-                            </li>
-                        </ol>
-                    </Col>
-                </Row>
             </Container>
         );
     }

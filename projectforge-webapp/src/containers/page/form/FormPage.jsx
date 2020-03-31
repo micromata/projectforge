@@ -21,6 +21,7 @@ import FormHistory from './history';
 function FormPage(
     {
         category,
+        isPublic,
         location,
         match,
         onCallAction,
@@ -32,6 +33,7 @@ function FormPage(
 ) {
     const {
         data,
+        isFetching,
         ui,
         validationErrors,
         variables,
@@ -63,12 +65,13 @@ function FormPage(
                 currentCategory,
                 id,
                 getServiceURL(
-                    `${match.params.restPrefix === 'public' ? '../rsPublic/' : ''}${currentCategory}/${type || 'dynamic'}`,
+                    `${isPublic ? '/rsPublic/' : ''}${currentCategory}/${type || 'dynamic'}`,
                     {
                         ...getObjectFromQuery(search || ''),
                         id,
                     },
                 ),
+                location.state,
             );
         },
         [currentCategory, id, location.state],
@@ -137,8 +140,9 @@ function FormPage(
                                         <DynamicLayout
                                             callAction={onCallAction}
                                             data={data}
+                                            isFetching={isFetching}
                                             options={{
-                                                displayPageMenu: id !== undefined,
+                                                displayPageMenu: ui.pageMenu !== undefined,
                                                 setBrowserTitle: true,
                                                 showActionButtons: true,
                                                 showPageMenuTitle: false,
@@ -186,7 +190,6 @@ FormPage.propTypes = {
         params: PropTypes.shape({
             category: PropTypes.string.isRequired,
             id: PropTypes.string,
-            tab: PropTypes.string,
             type: PropTypes.string,
         }).isRequired,
     }).isRequired,
@@ -196,10 +199,12 @@ FormPage.propTypes = {
     onNewFormPage: PropTypes.func.isRequired,
     onVariablesChange: PropTypes.func.isRequired,
     category: PropTypes.shape({}),
+    isPublic: PropTypes.bool,
 };
 
 FormPage.defaultProps = {
     category: {},
+    isPublic: false,
 };
 
 const mapStateToProps = ({ form }, { match }) => ({

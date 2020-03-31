@@ -75,6 +75,6 @@ open class LogoutRest {
         if (stayLoggedInCookie != null) {
             response.addCookie(stayLoggedInCookie)
         }
-        return ResponseAction(url = "/wa/login", targetType = TargetType.REDIRECT)
+        return ResponseAction(url = "/react/public/login", targetType = TargetType.CHECK_AUTHENTICATION)
     }
 }

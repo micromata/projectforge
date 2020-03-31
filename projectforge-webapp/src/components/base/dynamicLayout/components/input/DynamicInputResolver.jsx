@@ -41,6 +41,10 @@ function DynamicInputResolver({ dataType, autoCompletionUrl, ...props }) {
             Tag = DynamicInput;
             additionalProps.type = 'number';
             break;
+        case 'PASSWORD':
+            Tag = DynamicInput;
+            additionalProps.type = 'password';
+            break;
         default:
             return <span>{`${dataType} Input is not implemented.`}</span>;
     }
@@ -62,6 +66,7 @@ DynamicInputResolver.propTypes = {
         'INT',
         'DECIMAL',
         'NUMBER',
+        'PASSWORD',
     ]).isRequired,
     autoCompletionUrl: PropTypes.string,
 };

@@ -41,6 +41,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.prefs.Preferences;
 
 /**
  * Helper for finding ProjectForge's home directory:<br/>
@@ -96,6 +97,16 @@ public class ProjectForgeHomeFinder {
             "ProjectForge's home dir is defined as system environment variable $" + ENV_PROJECTFORGE_HOME + ": $APP_HOME_DIR");
     if (appHomeDir != null)
       return appHomeDir;
+
+    // Try directory defined through user preferences variable:
+    final String prefHomeDir = getUserPrefHomeDir();
+    if (prefHomeDir != null) {
+      appHomeDir = proceed(new File(prefHomeDir),
+              "ProjectForge's home dir is defined as java user preference " + ENV_PROJECTFORGE_HOME + ": $APP_HOME_DIR",
+              false);
+      if (appHomeDir != null)
+        return appHomeDir;
+    }
 
     // Try directory where the executable jar resides:
     appHomeDir = searchAndProceed(new File(System.getProperty("user.home")),
@@ -156,6 +167,8 @@ public class ProjectForgeHomeFinder {
   private File proceed(File appHomeDir, String logMessage, boolean forceDirectory) {
     if (appHomeDir != null) {
       if (isProjectForgeConfigured(appHomeDir)) {
+        log.info(logMessage.replace("$APP_HOME_DIR", appHomeDir.getPath()));
+        saveUserPrefHomeDir(appHomeDir);
         return appHomeDir;
       }
       if (!forceDirectory) {
@@ -167,13 +180,13 @@ public class ProjectForgeHomeFinder {
       if (userAcceptsGraphicalTerminal == null) {
         String answer;
         if (GraphicsEnvironment.isHeadless()) {
-           answer = new ConsoleTimeoutReader("Do you want to enter the setup wizard (Y/n)?", "y")
+          answer = new ConsoleTimeoutReader("Do you want to enter the setup wizard (Y/n)?", "y")
                   .ask();
         } else {
           answer = new ConsoleTimeoutReader("Do you want to enter the setup wizard? (1), 2, 3\n *(1) Graphical wizard (default)\n  (2) Console based wizard\n  (3) Abort", "1") {
             @Override
             protected boolean answerValid(String answer) {
-              return StringUtils.equalsAny(answer,"1", "2", "3");
+              return StringUtils.equalsAny(answer, "1", "2", "3");
             }
           }.ask();
         }
@@ -193,7 +206,9 @@ public class ProjectForgeHomeFinder {
           } else {
             setupData = SwingSetupWizard.run(appHomeDir);
           }
-          return ProjectForgeInitializer.initialize(setupData);
+          appHomeDir = ProjectForgeInitializer.initialize(setupData);
+          saveUserPrefHomeDir(appHomeDir);
+          return appHomeDir;
         } catch (Exception ex) {
           log.error("Error while initializing new ProjectForge home: " + ex.getMessage(), ex);
           ProjectForgeApplication.giveUpAndSystemExit("Error while initializing new ProjectForge home: " + CanonicalFileUtils.absolutePath(appHomeDir));
@@ -336,9 +351,9 @@ public class ProjectForgeHomeFinder {
     //int recursiveCounter = 100; // Soft links may result in endless loops.
     //do {
     return current.exists()
-        && new File(current, "projectforge-application").exists()
-        && new File(current, "projectforge-business").exists()
-        && new File(current, "projectforge-common").exists();
+            && new File(current, "projectforge-application").exists()
+            && new File(current, "projectforge-business").exists()
+            && new File(current, "projectforge-common").exists();
     //   current = current.getParentFile();
     // } while (current != null && --recursiveCounter > 0);
   }
@@ -355,5 +370,22 @@ public class ProjectForgeHomeFinder {
    */
   public static boolean isProjectForgeConfigured(File dir) {
     return dir != null && dir.exists() && new File(dir, "projectforge.properties").exists();
+  }
+
+  private String getUserPrefHomeDir() {
+    final Preferences preferences = Preferences.userNodeForPackage(this.getClass());
+    return preferences.get(ENV_PROJECTFORGE_HOME, null);
+  }
+
+  private void saveUserPrefHomeDir(File homeDir) {
+    final Preferences preferences = Preferences.userNodeForPackage(this.getClass());
+    final String savedHomeDir = preferences.get(ENV_PROJECTFORGE_HOME, null);
+    final String absolutePath = homeDir.getAbsolutePath();
+    if (absolutePath.equals(savedHomeDir)) {
+      // Value is unchanged, not needed to save.
+      return;
+    }
+    log.info("Saving ProjectForge's home dir as user preferences (for next start): " + absolutePath);
+    preferences.put(ENV_PROJECTFORGE_HOME, absolutePath);
   }
 }

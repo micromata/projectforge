@@ -238,6 +238,7 @@ public class UserService {
 
     createEncryptedPassword(user, newPassword);
     onPasswordChange(user, true);
+    userDao.internalUpdate(user);
     Login.getInstance().passwordChanged(user, newPassword);
     log.info("Password changed for user: " + user.getId() + " - " + user.getUsername());
     return Collections.emptyList();
@@ -455,8 +456,12 @@ public class UserService {
   }
 
   public String getNormalizedPersonalPhoneIdentifiers(final PFUserDO user) {
-    if (StringUtils.isNotBlank(user.getPersonalPhoneIdentifiers())) {
-      final String[] ids = getPersonalPhoneIdentifiers(user);
+    return getNormalizedPersonalPhoneIdentifiers(user.getPersonalPhoneIdentifiers());
+  }
+
+  public String getNormalizedPersonalPhoneIdentifiers(final String personalPhoneIdentifiers) {
+    if (StringUtils.isNotBlank(personalPhoneIdentifiers)) {
+      final String[] ids = getPersonalPhoneIdentifiers(personalPhoneIdentifiers);
       if (ids != null) {
         final StringBuilder buf = new StringBuilder();
         boolean first = true;
@@ -475,7 +480,11 @@ public class UserService {
   }
 
   public String[] getPersonalPhoneIdentifiers(final PFUserDO user) {
-    final String[] tokens = StringUtils.split(user.getPersonalPhoneIdentifiers(), ", ;|");
+    return getPersonalPhoneIdentifiers(user.getPersonalPhoneIdentifiers());
+  }
+
+  public String[] getPersonalPhoneIdentifiers(final String personalPhoneIdentifiers) {
+    final String[] tokens = StringUtils.split(personalPhoneIdentifiers, ", ;|");
     if (tokens == null) {
       return null;
     }

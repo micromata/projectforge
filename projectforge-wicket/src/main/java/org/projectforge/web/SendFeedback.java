@@ -23,6 +23,7 @@
 
 package org.projectforge.web;
 
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
@@ -33,8 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class SendFeedback
-{
+public class SendFeedback {
   @Autowired
   private SendMail sendMail;
 
@@ -42,11 +42,10 @@ public class SendFeedback
 
   /**
    * Sender will be set automatically to logged in context user, if not given.
-   * 
+   *
    * @param data
    */
-  public boolean send(final SendFeedbackData data)
-  {
+  public boolean send(final SendFeedbackData data) {
     if (data.getSender() == null) {
       data.setSender(ThreadLocalUserContext.getUser().getFullname());
     }
@@ -55,8 +54,11 @@ public class SendFeedback
     msg.addTo(data.getReceiver());
     msg.setProjectForgeSubject(data.getSubject());
     params.put("subject", data.getSubject());
-    final String content = sendMail.renderGroovyTemplate(msg, "mail/feedback.txt", params,
-        ThreadLocalUserContext.getUser());
+    final String content = sendMail.renderGroovyTemplate(msg,
+            "mail/feedback.txt",
+            params,
+            I18nHelper.getLocalizedMessage("administration.configuration.param.feedbackEMail.label"),
+            ThreadLocalUserContext.getUser());
     msg.setContent(content);
     msg.setContentType(Mail.CONTENTTYPE_TEXT);
     return sendMail.send(msg, null, null);
@@ -64,12 +66,11 @@ public class SendFeedback
 
   /**
    * TSendFeedbackData will be added automatically.
-   * 
+   *
    * @param key
    * @param value
    */
-  public void addParameter(final String key, final Object value)
-  {
+  public void addParameter(final String key, final Object value) {
     params.put(key, value);
   }
 }

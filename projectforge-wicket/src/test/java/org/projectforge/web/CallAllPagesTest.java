@@ -67,7 +67,6 @@ public class CallAllPagesTest extends WicketPageTestBase
   {
     MenuCreator.Companion.setTestCase(true);
     _testAllMountedPages();
-    testPage(LoginPage.class);
     clearDatabase();
     testPage(SetupPage.class);
   }

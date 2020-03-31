@@ -24,11 +24,13 @@
 package org.projectforge.business.vacation.repository;
 
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.vacation.VacationFilter;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
+import org.projectforge.business.vacation.service.VacationSendMailService;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.business.vacation.service.VacationValidator;
 import org.projectforge.framework.access.AccessChecker;
@@ -52,7 +54,7 @@ import java.util.stream.Collectors;
 /**
  * DAO für Urlaubsanträge.
  *
- * @author Florian Blumenstein
+ * @author Florian Blumenstein, Kai Reinhard
  */
 @Repository
 public class VacationDao extends BaseDao<VacationDO> {
@@ -76,7 +78,13 @@ public class VacationDao extends BaseDao<VacationDO> {
   private ApplicationContext applicationContext;
 
   @Autowired
+  private EmployeeDao employeeDao;
+
+  @Autowired
   private PfEmgrFactory emgrFactory;
+
+  @Autowired
+  private VacationSendMailService vacationSendMailService;
 
   public VacationDao() {
     super(VacationDO.class);
@@ -98,35 +106,77 @@ public class VacationDao extends BaseDao<VacationDO> {
   }
 
   @Override
-  public boolean hasAccess(final PFUserDO user, final VacationDO obj, final VacationDO oldObj,
-                           final OperationType operationType,
-                           final boolean throwException) {
-    if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE) ||
-            obj == null || obj.getManager() != null && Objects.equals(obj.getManager().getUserId(), user.getId())) {
-      // User is HR staff member or assigned manager.
+  public boolean hasHistoryAccess(PFUserDO user, VacationDO obj, boolean throwException) {
+    if (hasHrRights(user) || isOwnEntry(user, obj) || isManager(user, obj)) {
       return true;
     }
-    if (operationType == OperationType.SELECT) {
-      if (obj.getEmployee() != null && accessChecker.areUsersInSameGroup(user, obj.getEmployee().getUser())) {
-        return true;
-      }
+    return throwOrReturn(throwException);
+  }
+
+  @Override
+  public boolean hasUserSelectAccess(PFUserDO user, boolean throwException) {
+    return true;
+  }
+
+  @Override
+  public boolean hasUserSelectAccess(PFUserDO user, VacationDO obj, boolean throwException) {
+    if (hasHrRights(user) || isOwnEntry(user, obj) || isManager(user, obj) || isReplacement(user, obj)) {
+      return true;
     }
-    EmployeeDO employee = obj.getEmployee();
-    if (employee == null || !Objects.equals(employee.getUserId(), user.getId())) {
-      // User is not allowed to modify entries of other users.
-      if (throwException) {
-        throw new AccessException("access.exception.userHasNotRight", UserRightId.HR_VACATION, UserRightValue.READWRITE);
-      }
-      return false;
+    if (obj.getEmployee() != null && accessChecker.areUsersInSameGroup(user, obj.getEmployee().getUser())) {
+      return true;
     }
-    // User is owner of given object.
-    if (operationType.isIn(OperationType.INSERT, OperationType.UPDATE, OperationType.UNDELETE)
-            && !obj.isDeleted() && obj.getStatus() == VacationStatus.APPROVED) {
-      if (oldObj == null || oldObj.getStatus() != VacationStatus.APPROVED) {
-        // User tried to insert a new entry as approved or tries to approve a not yet approved entry.
-        throw new AccessException(VacationValidator.Error.NOT_ALLOWED_TO_APPROVE.getMessageKey());
+    return throwOrReturn(throwException);
+  }
+
+  @Override
+  public boolean hasInsertAccess(PFUserDO user, VacationDO obj, boolean throwException) {
+    return hasUpdateAccess(user, obj, null, throwException);
+  }
+
+  @Override
+  public boolean hasUpdateAccess(PFUserDO user, VacationDO obj, VacationDO dbObj, boolean throwException) {
+    if (hasHrRights(user)) {
+      return true; // HR staff member are allowed to do everything.
+    }
+    if (!isOwnEntry(user, obj, dbObj)) {
+      if (dbObj != null && isManager(user, obj, dbObj)) {
+        if (Objects.equals(obj.getStartDate(), dbObj.getStartDate()) &&
+                Objects.equals(obj.getEndDate(), dbObj.getEndDate()) &&
+                obj.getSpecial() == dbObj.getSpecial() &&
+                Objects.equals(obj.getEmployeeId(), dbObj.getEmployeeId()) &&
+                obj.getHalfDayBegin() == dbObj.getHalfDayBegin() &&
+                obj.getHalfDayEnd() == dbObj.getHalfDayEnd() &&
+                (obj.getSpecial() == null || !obj.getSpecial())) {
+          // Manager is only allowed to change status and replacement, but not allowed to approve special vacations.
+          return true;
+        }
+        return throwOrReturn(throwException); // Normal user isn't allowed to insert foreign entries.
       }
-      return false;
+      return throwOrReturn(throwException); // Normal user isn't allowed to insert foreign entries.
+    }
+    if (obj.getStatus() == VacationStatus.APPROVED) {
+      // Normal user isn't allowed to insert/update approved entries:
+      return throwOrReturn(VacationValidator.Error.NOT_ALLOWED_TO_APPROVE.getMessageKey(), throwException);
+    }
+    if (obj.getStartDate().isBefore(LocalDate.now())) {
+      // Normal user isn't allowed to insert/update old entries.
+      return throwOrReturn(throwException); // Normal user isn't allowed to insert foreign entries.
+    }
+    return true;
+  }
+
+  @Override
+  public boolean hasDeleteAccess(PFUserDO user, VacationDO obj, VacationDO dbObj, boolean throwException) {
+    if (hasHrRights(user)) {
+      return true;
+    }
+    if (!isOwnEntry(user, obj, dbObj)) {
+      return throwOrReturn(throwException); // Normal user isn't allowed to insert foreign entries.
+    }
+    if (obj.getStatus() == VacationStatus.APPROVED && obj.getStartDate().isBefore(LocalDate.now())) {
+      // The user isn't allowed to delete approved entries of the past.
+      return throwOrReturn(throwException);
     }
     return true;
   }
@@ -135,10 +185,86 @@ public class VacationDao extends BaseDao<VacationDO> {
     return accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE);
   }
 
+  public boolean hasHrRights(final PFUserDO loggedInUser) {
+    return accessChecker.hasRight(loggedInUser, UserRightId.HR_VACATION, false, UserRightValue.READWRITE);
+  }
+
+  private boolean isOwnEntry(final PFUserDO loggedInUser, final VacationDO obj, final VacationDO oldObj) {
+    if (!isOwnEntry(loggedInUser, obj)) {
+      return false;
+    }
+    if (oldObj != null) {
+      return isOwnEntry(loggedInUser, oldObj);
+    }
+    return true;
+  }
+
+  private boolean isOwnEntry(final PFUserDO loggedInUser, final VacationDO obj) {
+    EmployeeDO employee = obj.getEmployee();
+    if (employee == null) {
+      return false;
+    }
+    if (employee.getUserId() == null) {
+      // Object wasn't loaded from data base:
+      employee = employeeDao.internalGetById(employee.getId());
+    }
+    return Objects.equals(employee.getUserId(), loggedInUser.getId());
+  }
+
+  private boolean isManager(final PFUserDO loggedInUser, final VacationDO obj, final VacationDO oldObj) {
+    if (!isManager(loggedInUser, obj)) {
+      return false;
+    }
+    if (oldObj != null) {
+      return isManager(loggedInUser, oldObj);
+    }
+    return true;
+  }
+
+  private boolean isManager(final PFUserDO loggedInUser, final VacationDO obj) {
+    EmployeeDO manager = obj.getManager();
+    if (manager == null) {
+      return false;
+    }
+    if (manager.getUserId() == null) {
+      // Object wasn't loaded from data base:
+      manager = employeeDao.internalGetById(manager.getId());
+    }
+    return Objects.equals(manager.getUserId(), loggedInUser.getId());
+  }
+
+  private boolean isReplacement(final PFUserDO loggedInUser, final VacationDO obj) {
+    EmployeeDO replacement = obj.getReplacement();
+    if (replacement == null) {
+      return false;
+    }
+    if (replacement.getUserId() == null) {
+      // Object wasn't loaded from data base:
+      replacement = employeeDao.internalGetById(replacement.getId());
+    }
+    return Objects.equals(replacement.getUserId(), loggedInUser.getId());
+  }
+
+  private boolean throwOrReturn(boolean throwException) {
+    if (throwException) {
+      throw new AccessException("access.exception.userHasNotRight", UserRightId.HR_VACATION, UserRightValue.READWRITE);
+    }
+    return false;
+  }
+
+  private boolean throwOrReturn(final String messageKey, boolean throwException) {
+    if (throwException) {
+      throw new AccessException(messageKey);
+    }
+    return false;
+  }
+
   @Override
   protected void onSaveOrModify(VacationDO obj) {
     super.onSaveOrModify(obj);
-    obj.setSpecial(obj.getSpecial() == true); // Avoid null value of special.
+    if (obj.getSpecial() == null) {
+      obj.setSpecial(false); // Avoid null value of special.
+    }
   }
 
   @Override
@@ -153,6 +279,30 @@ public class VacationDao extends BaseDao<VacationDO> {
     super.onChange(obj, dbObj);
     VacationService service = applicationContext.getBean(VacationService.class);
     service.validate(obj, dbObj, true);
+  }
+
+  @Override
+  protected void afterSave(VacationDO obj) {
+    super.afterSave(obj);
+    vacationSendMailService.checkAndSendMail(obj, OperationType.INSERT);
+  }
+
+  @Override
+  protected void afterUpdate(VacationDO obj, VacationDO dbObj) {
+    super.afterUpdate(obj, dbObj);
+    vacationSendMailService.checkAndSendMail(obj, OperationType.UPDATE, dbObj);
+  }
+
+  @Override
+  protected void afterDelete(VacationDO obj) {
+    super.afterDelete(obj);
+    vacationSendMailService.checkAndSendMail(obj, OperationType.DELETE);
+  }
+
+  @Override
+  protected void afterUndelete(VacationDO obj) {
+    super.afterDelete(obj);
+    vacationSendMailService.checkAndSendMail(obj, OperationType.UNDELETE);
   }
 
   public List<VacationDO> getVacationForPeriod(Integer employeeId, LocalDate startVacationDate, LocalDate endVacationDate, boolean withSpecial) {

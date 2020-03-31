@@ -40,7 +40,7 @@ import java.time.Month
 import java.time.ZonedDateTime
 
 @Component
-class TimesheetEventsProvider() {
+class TimesheetEventsProvider {
     private val log = org.slf4j.LoggerFactory.getLogger(TimesheetEventsProvider::class.java)
 
     @Autowired
@@ -82,7 +82,7 @@ class TimesheetEventsProvider() {
         for (timesheet in timesheets) {
             val startTime = PFDateTime.fromOrNow(timesheet.startTime)
             val stopTime = PFDateTime.fromOrNow(timesheet.stopTime)
-            if (stopTime!!.isBefore(start) || startTime!!.isAfter(end) == true) {
+            if (stopTime.isBefore(start) || startTime.isAfter(end) == true) {
                 // Time sheet doesn't match time period start - end.
                 continue
             }

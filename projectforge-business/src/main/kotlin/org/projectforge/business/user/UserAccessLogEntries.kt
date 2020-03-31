@@ -35,7 +35,7 @@ private const val MAX_SIZE = 20
  * Access to rest services will be logged, including UserAgent string, IP, used type of token and timestamp for
  * checking unauthorized access.
  */
-class UserAccessLogEntries(tokenType: UserTokenType) {
+class UserAccessLogEntries(val tokenType: UserTokenType) {
     private var entries = mutableSetOf<UserAccessLogEntry>()
     var logAccessName: String
         private set

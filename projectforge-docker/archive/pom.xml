@@ -90,12 +90,6 @@
                   </includes>
                 </resource>
                 <resource>
-                  <directory>${basedir}/../plugins/org.projectforge.plugins.skillmatrix/target</directory>
-                  <includes>
-                    <include>org.projectforge.plugins.skillmatrix-${project.version}.jar</include>
-                  </includes>
-                </resource>
-                <resource>
                   <directory>${basedir}/../plugins/org.projectforge.plugins.todo/target</directory>
                   <includes>
                     <include>org.projectforge.plugins.todo-${project.version}.jar</include>

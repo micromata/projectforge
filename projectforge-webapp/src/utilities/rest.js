@@ -1,4 +1,4 @@
-const testServer = 'http://localhost:8080/rs';
+const testServer = 'http://localhost:8080';
 
 // Save Data when saveData mode is enabled.
 // https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData
@@ -6,8 +6,8 @@ export const debouncedWaitTime = (
     navigator && navigator.connection && navigator.connection.saveData
 ) ? 1000 : 250;
 
-// Cannot achieve coverage of 100% because of testing environment.
-export const baseURL = (process.env.NODE_ENV === 'development' ? testServer : '/rs');
+export const baseURL = process.env.NODE_ENV === 'development' ? testServer : '';
+export const baseRestURL = `${baseURL}/rs`;
 
 export const createQueryParams = params => Object.keys(params)
     .filter(key => params[key] !== undefined)
@@ -15,11 +15,13 @@ export const createQueryParams = params => Object.keys(params)
     .join('&');
 
 export const getServiceURL = (serviceURL, params) => {
+    const top = serviceURL.startsWith('/') ? baseURL : `${baseRestURL}/`;
+
     if (params && Object.keys(params).length) {
-        return `${baseURL}/${serviceURL}?${createQueryParams(params)}`;
+        return `${top}${serviceURL}?${createQueryParams(params)}`;
     }
 
-    return `${baseURL}/${serviceURL}`;
+    return `${top}${serviceURL}`;
 };
 
 export const handleHTTPErrors = (response) => {

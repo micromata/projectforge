@@ -23,7 +23,9 @@
 
 package org.projectforge.menu.builder
 
+import mu.KotlinLogging
 import org.projectforge.Const
+import org.projectforge.SystemStatus
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.datev.DatevImportDao
@@ -51,13 +53,13 @@ import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+private val log = KotlinLogging.logger {}
+
 /**
  * The menu creator contain all menu entries and provides the method [build] for building the user's customized menu.
  */
 @Component
 class MenuCreator {
-
-    private val log = org.slf4j.LoggerFactory.getLogger(MenuCreator::class.java)
 
     internal class MenuItemDefHolder {
         internal val menuItems: MutableList<MenuItemDef> = mutableListOf()
@@ -94,6 +96,7 @@ class MenuCreator {
 
     companion object {
         const val REACT_PREFIX: String = Const.REACT_APP_PATH
+
         /**
          * If test cases fails, try to set testCase to true.
          */
@@ -132,14 +135,36 @@ class MenuCreator {
     fun add(parentId: String, menuItemDef: MenuItemDef): MenuItemDef {
         val parent = findById(parentId)
                 ?: throw java.lang.IllegalArgumentException("Can't append menu '${menuItemDef.id}' to parent '$parentId'. Parent not found.")
-        // Check if ID already exists
+        return add(parent, menuItemDef)
+    }
+
+    /**
+     * Registers menu entry definition. It's important that a parent menu entry item definition is registered before its
+     * sub menu entry items.
+     *
+     * @param menuItemDef
+     * @return this for chaining.
+     */
+    fun add(parentId: MenuItemDefId, menuItemDef: MenuItemDef): MenuItemDef {
+        val parent = findById(parentId)
+                ?: throw java.lang.IllegalArgumentException("Can't append menu '${menuItemDef.id}' to parent '$parentId'. Parent not found.")
+        return add(parent, menuItemDef)
+    }
+
+    /**
+     * Registers menu entry definition. It's important that a parent menu entry item definition is registered before its
+     * sub menu entry items.
+     *
+     * @param menuItemDef
+     * @return this for chaining.
+     */
+    fun add(parent: MenuItemDef, menuItemDef: MenuItemDef): MenuItemDef {
         if (findById(parent, menuItemDef.id) != null) {
             throw IllegalArgumentException(("Duplicated menu ID '${menuItemDef.id}' for entry '${menuItemDef.i18nKey}'"))
         }
         parent.add(menuItemDef)
         return menuItemDef
     }
-
 
     fun findById(menuItemDefId: MenuItemDefId): MenuItemDef? {
         return findById(menuItemDefId.id)
@@ -232,8 +257,8 @@ class MenuCreator {
         // Human resources
         //
         menuItemDefHolder.add(MenuItemDef(MenuItemDefId.HR,
-                checkAccess =
-                { isInGroup(ProjectForgeGroup.HR_GROUP) }))
+                        checkAccess =
+                        { isInGroup(ProjectForgeGroup.HR_GROUP) }))
                 .add(MenuItemDef(MenuItemDefId.EMPLOYEE_LIST,
                         requiredUserRightId = EmployeeDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
                 .add(MenuItemDef(MenuItemDefId.EMPLOYEE_SALARY_LIST,
@@ -246,7 +271,7 @@ class MenuCreator {
         // Financial and administrative
         //
         val fibuMenu = menuItemDefHolder.add(MenuItemDef(MenuItemDefId.FIBU,
-                checkAccess = { isInGroup(*FIBU_ORGA_GROUPS) }))
+                        checkAccess = { isInGroup(*FIBU_ORGA_GROUPS) }))
                 .add(MenuItemDef(MenuItemDefId.OUTGOING_INVOICE_LIST,
                         checkAccess = {
                             hasRight(RechnungDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
@@ -259,7 +284,7 @@ class MenuCreator {
                         }))
         if (Configuration.getInstance().isCostConfigured) {
             fibuMenu.add(MenuItemDef(MenuItemDefId.CUSTOMER_LIST,
-                    checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) }))
+                            checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) }))
                     .add(MenuItemDef(MenuItemDefId.PROJECT_LIST,
                             checkAccess = {
                                 hasRight(ProjektDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
@@ -277,8 +302,8 @@ class MenuCreator {
         // COST
         //
         menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COST, requiredGroups = *FIBU_ORGA_HR_GROUPS,
-                checkAccess =
-                { Configuration.getInstance().isCostConfigured }))
+                        checkAccess =
+                        { Configuration.getInstance().isCostConfigured }))
                 .add(MenuItemDef(MenuItemDefId.ACCOUNT_LIST,
                         checkAccess =
                         {
@@ -309,9 +334,9 @@ class MenuCreator {
         // REPORTING
         //
         val reportingMenu = menuItemDefHolder.add(MenuItemDef(MenuItemDefId.REPORTING,
-                checkAccess = {
-                    isInGroup(*FIBU_ORGA_HR_GROUPS)
-                }))
+                        checkAccess = {
+                            isInGroup(*FIBU_ORGA_HR_GROUPS)
+                        }))
                 .add(MenuItemDef(MenuItemDefId.SCRIPT_LIST,
                         requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
                 .add(MenuItemDef(MenuItemDefId.SCRIPTING,
@@ -320,9 +345,9 @@ class MenuCreator {
                         requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
         // Only visible if cost is configured:
         reportingMenu.add(MenuItemDef(MenuItemDefId.ACCOUNTING_RECORD_LIST,
-                requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP),
-                checkAccess =
-                { Configuration.getInstance().isCostConfigured }))
+                        requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP),
+                        checkAccess =
+                        { Configuration.getInstance().isCostConfigured }))
                 .add(MenuItemDef(MenuItemDefId.DATEV_IMPORT,
                         requiredUserRightId = DatevImportDao.USER_RIGHT_ID, requiredUserRightValues = arrayOf(UserRightValue.TRUE),
                         checkAccess =
@@ -333,7 +358,7 @@ class MenuCreator {
         // ORGA
         //
         menuItemDefHolder.add(MenuItemDef(MenuItemDefId.ORGA,
-                requiredGroups = *FIBU_ORGA_HR_GROUPS))
+                        requiredGroups = *FIBU_ORGA_HR_GROUPS))
                 .add(MenuItemDef(MenuItemDefId.OUTBOX_LIST,
                         requiredUserRightId = PostausgangDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
                 .add(MenuItemDef(MenuItemDefId.INBOX_LIST,
@@ -348,7 +373,13 @@ class MenuCreator {
         // ADMINISTRATION
         //
         val adminMenu = menuItemDefHolder.add(MenuItemDef(MenuItemDefId.ADMINISTRATION, visibleForRestrictedUsers = true))
-                .add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
+        if (SystemStatus.isDevelopmentMode()) {
+            log.warn("********** React version of my account is only available in development mode.")
+            adminMenu.add(MenuItemDef("MY_ACCOUNT", "menu.myAccount", "${REACT_PREFIX}myAccount/dynamic"))
+        } else {
+            adminMenu.add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
+        }
+        adminMenu
                 .add(MenuItemDef(MenuItemDefId.MY_PREFERENCES))
                 .add(MenuItemDef(MenuItemDefId.VACATION_ACCOUNT,
                         checkAccess =
@@ -375,7 +406,7 @@ class MenuCreator {
         if (configurationService.securityConfig?.isSqlConsoleAvailable == true) {
             // Only available in development mode or if SQL console is configured in SecurityConfig.
             adminMenu.add(MenuItemDef(MenuItemDefId.SQL_CONSOLE,
-                    requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+                            requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
                     .add(MenuItemDef(MenuItemDefId.GROOVY_CONSOLE,
                             requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
                     .add(MenuItemDef(MenuItemDefId.LUCENE_CONSOLE,

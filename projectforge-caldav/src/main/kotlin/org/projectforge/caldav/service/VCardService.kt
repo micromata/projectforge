@@ -149,12 +149,16 @@ class VCardService {
                     address.privatePhone = addCountryCode(telephone.text)
                 }
             } else {
-                if (telephone.types.contains(TelephoneType.FAX)) {
-                    address.fax = addCountryCode(telephone.text)
-                } else if (telephone.types.contains(TelephoneType.CELL)) {
-                    address.mobilePhone = addCountryCode(telephone.text)
-                } else {
-                    address.businessPhone = addCountryCode(telephone.text)
+                when {
+                    telephone.types.contains(TelephoneType.FAX) -> {
+                        address.fax = addCountryCode(telephone.text)
+                    }
+                    telephone.types.contains(TelephoneType.CELL) -> {
+                        address.mobilePhone = addCountryCode(telephone.text)
+                    }
+                    else -> {
+                        address.businessPhone = addCountryCode(telephone.text)
+                    }
                 }
             }
         }
@@ -196,13 +200,11 @@ class VCardService {
     }
 
     private fun addCountryCode(phonenumber: String?): String? {
-        var result: String? = ""
-        result = if (phonenumber != null && phonenumber.startsWith("0")) {
+        return if (phonenumber != null && phonenumber.startsWith("0")) {
             phonenumber.replaceFirst("0".toRegex(), "+49")
         } else {
             phonenumber
         }
-        return result
     }
 
     fun getVCardFromByteArray(vcardBytearray: ByteArray?): VCard? {

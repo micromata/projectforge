@@ -28,6 +28,8 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.TimeNotation
+import java.util.*
 
 class User(id: Int? = null,
            displayName: String? = null,
@@ -36,7 +38,13 @@ class User(id: Int? = null,
            var lastname: String? = null,
            var description: String? = null,
            var email: String? = null,
-           var deactivated: Boolean = false
+           var deactivated: Boolean = false,
+           var timeZone: TimeZone? = null,
+           var locale: Locale? = null,
+           var dateFormat: String? = null,
+           var excelDateFormat: String? = null,
+           var timeNotation: TimeNotation? = null,
+           var personalPhoneIdentifiers: String? = null
 ) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName) {
     override fun copyFromMinimal(src: PFUserDO) {
         super.copyFromMinimal(src)

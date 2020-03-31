@@ -23,8 +23,11 @@
 
 package org.projectforge.rest.core
 
+import mu.KotlinLogging
 import org.projectforge.rest.config.Rest
 import org.springframework.web.bind.annotation.RequestMapping
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Helper for getting url of rest calls.
@@ -32,20 +35,26 @@ import org.springframework.web.bind.annotation.RequestMapping
 object RestResolver {
     const val REACT_PATH = "react"
 
-    private val log = org.slf4j.LoggerFactory.getLogger(RestResolver::class.java)
+    fun getRestUrl(pagesRestClass: Class<*>, subPath: String? = null, withoutPrefix: Boolean = false): String {
+        return getUrl(pagesRestClass, Rest.URL, subPath, withoutPrefix)
+    }
 
-    fun getRestUrl(pagesRestClass: Class<out AbstractPagesRest<*, *, *>>, subPath: String? = null, withoutPrefix: Boolean = false): String {
+    fun getPublicRestUrl(pagesRestClass: Class<*>, subPath: String? = null, withoutPrefix: Boolean = false): String {
+        return getUrl(pagesRestClass, Rest.PUBLIC_URL, subPath, withoutPrefix)
+    }
+
+    private fun getUrl(pagesRestClass: Class<*>, path: String? = null, subPath: String? = null, withoutPrefix: Boolean = false): String {
         val requestMapping = pagesRestClass.annotations.find { it is RequestMapping } as? RequestMapping
         var url = requestMapping?.value?.joinToString("/") { it } ?: "/"
-        if (withoutPrefix && url.startsWith("${Rest.URL}/")) {
-            url = url.substringAfter("${Rest.URL}/")
+        if (withoutPrefix && url.startsWith("$path/")) {
+            url = url.substringAfter("$path/")
         }
         if (subPath.isNullOrBlank()) {
             return url
         }
         if (subPath.startsWith('/') || url.endsWith('/')) {
-            return  "${url}$subPath"
+            return "${url}$subPath"
         }
-        return  "${url}/$subPath"
+        return "${url}/$subPath"
     }
 }

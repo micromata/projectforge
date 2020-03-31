@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import mu.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.Menu
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
+private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/menu")
@@ -61,7 +63,12 @@ class MenuRest {
         val item = MenuItem("username", ThreadLocalUserContext.getUser()?.getFullname())
         myAccountMenu.add(item)
         item.add(MenuItem(MenuItemDefId.FEEDBACK))
-        item.add(MenuItem(MenuItemDefId.MY_ACCOUNT))
+        if (SystemStatus.isDevelopmentMode()) {
+            log.warn("********** React version of my account is only available in development mode.")
+            item.add(MenuItemDef("MY_ACCOUNT", "menu.myAccount", "${MenuCreator.REACT_PREFIX}myAccount/dynamic"))
+        } else {
+            item.add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
+        }
         if (systemStatus.developmentMode) {
             val vacationAccountItem = MenuItem(MenuItemDefId.VACATION_ACCOUNT)
             vacationAccountItem.url = "${PREFIX}vacationAccount/dynamic"

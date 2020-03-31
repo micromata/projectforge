@@ -31,14 +31,12 @@ import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.registry.RegistryEntry;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Component
 public class LicenseManagementPlugin extends AbstractPlugin {
   public static final String ID = "licenseManagement";
 
@@ -56,6 +54,10 @@ public class LicenseManagementPlugin extends AbstractPlugin {
 
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
+
+  public LicenseManagementPlugin() {
+    super("licenseManagementPlugin", "LicenseManagementPlugin", "For managing software licenses, keys and usage.");
+  }
 
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
