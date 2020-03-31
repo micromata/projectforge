@@ -42,7 +42,7 @@ class EingangsrechnungPagesRest : AbstractDOPagesRest<EingangsrechnungDO, Eingan
     override fun createListLayout(): UILayout {
         // TODO:
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "kreditor", "konto", "referenz", "betreff", "datum", "faelligkeit",
                                 "isBezahlt")
                         .add(UITableColumn("netSum", title = translate("fibu.common.netto"), dataType = UIDataType.DECIMAL))

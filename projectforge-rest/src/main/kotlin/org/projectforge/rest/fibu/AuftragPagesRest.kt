@@ -41,7 +41,7 @@ class AuftragPagesRest() : AbstractDOPagesRest<AuftragDO, AuftragDao>(AuftragDao
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "nummer", "kunde", "projekt", "titel", "positionen")
                         .add(UITableColumn("personDays", title = translate("projectmanagement.personDays"),
                                 dataType = UIDataType.DECIMAL))

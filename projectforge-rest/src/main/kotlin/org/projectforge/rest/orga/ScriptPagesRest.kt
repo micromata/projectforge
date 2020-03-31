@@ -40,7 +40,7 @@ class ScriptPagesRest: AbstractDOPagesRest<ScriptDO, ScriptDao>(baseDaoClazz = S
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "name", "description", "parameter"))
         return LayoutUtils.processListPage(layout, this)
     }
