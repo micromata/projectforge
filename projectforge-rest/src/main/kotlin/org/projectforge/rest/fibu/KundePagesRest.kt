@@ -51,10 +51,14 @@ class KundePagesRest
         return kundeDO
     }
 
+    override val classicsLinkListUrl: String?
+        get() = "wa/customerList"
+
     /**
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
+        // TODO: First column is kost
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(lc, "nummer", "identifier", "name", "division", "konto", "status", "description"))
@@ -66,6 +70,7 @@ class KundePagesRest
      * LAYOUT Edit page
      */
     override fun createEditLayout(dto: Kunde, userAccess: UILayout.UserAccess): UILayout {
+        // TODO: Updating a customer results in an "undefined" id
         val konto = UIInput("konto", lc, tooltip = "fibu.kunde.konto.tooltip")
 
         val layout = super.createEditLayout(dto, userAccess)

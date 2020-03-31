@@ -59,7 +59,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     COST1_LIST("menu.fibu.kost1", "${PREFIX}cost1"), //
     COST2_LIST("menu.fibu.kost2", "${PREFIX}cost2"), //
     COST2_TYPE_LIST("menu.fibu.kost2arten", "wa/cost2TypeList"), //
-    CUSTOMER_LIST("menu.fibu.kunden", "wa/customerList"), //
+    CUSTOMER_LIST("menu.fibu.kunden", "${PREFIX}customer"), //
     DATEV_IMPORT("menu.fibu.datevImport", "wa/datevImport"), //
     DOCUMENTATION("menu.documentation"), //
     EMPLOYEE_LIST("menu.fibu.employees", "wa/employeeList"), //
