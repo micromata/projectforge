@@ -37,7 +37,6 @@ import org.springframework.stereotype.Component;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Component
 public class BankingPlugin extends AbstractPlugin {
   public static final String BANK_ACCOUNT_ID = "bankAccount";
 

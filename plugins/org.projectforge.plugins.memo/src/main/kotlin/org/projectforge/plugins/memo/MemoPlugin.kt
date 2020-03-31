@@ -38,7 +38,6 @@ import org.springframework.stereotype.Component
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Component
 class MemoPlugin : AbstractPlugin(ID, "Memo", "Personal text memos of users.") {
 
     @Autowired
@@ -53,7 +52,6 @@ class MemoPlugin : AbstractPlugin(ID, "Memo", "Personal text memos of users.") {
     override fun initialize() {
         // DatabaseUpdateDao is needed by the updater:
         MemoPluginUpdates.databaseService = databaseService
-        memoDao = applicationContext.getBean("memoDao") as MemoDao
         // Register it:
         register(MemoDao::class.java, memoDao, "plugins.memo")
 
