@@ -32,12 +32,10 @@ import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.registry.RegistryEntry;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Component
 public class ToDoPlugin extends AbstractPlugin {
   public static final String ID = "toDo";
 
@@ -69,7 +67,6 @@ public class ToDoPlugin extends AbstractPlugin {
   protected void initialize() {
     // DatabaseUpdateDao is needed by the updater:
     ToDoPluginUpdates.databaseService = databaseService;
-    toDoDao = (ToDoDao) applicationContext.getBean("toDoDao");
     final RegistryEntry entry = new RegistryEntry(ID, ToDoDao.class, toDoDao, "plugins.todo");
     // The ToDoDao is automatically available by the scripting engine!
     register(entry); // Insert at second position after Address entry (for SearchPage).

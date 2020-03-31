@@ -67,8 +67,10 @@ open class PluginAdminService {
 
     @PostConstruct
     private fun postConstruct() {
-        val pluginNames = applicationContext.getBeanNamesForType(AbstractPlugin::class.java)
-        allPlugins = pluginNames.map { applicationContext.getBean(it, AbstractPlugin::class.java) }
+        val serviceLoader: ServiceLoader<AbstractPlugin> = ServiceLoader.load(AbstractPlugin::class.java)
+        allPlugins = serviceLoader.toList()
+        // val pluginNames = applicationContext.getBeanNamesForType(AbstractPlugin::class.java)
+        // allPlugins = pluginNames.map { applicationContext.getBean(it, AbstractPlugin::class.java) }
         log.info { "Plugins found: ${allPlugins.joinToString { it.id }}." }
     }
 
@@ -152,6 +154,9 @@ open class PluginAdminService {
     }
 
     private fun activatePlugin(plugin: AbstractPlugin) {
+        val factory = applicationContext.autowireCapableBeanFactory
+        factory.initializeBean(plugin, plugin.id)
+        factory.autowireBean(plugin)
         PluginsRegistry.instance().register(plugin)
         plugin.init()
         setSystemUpdater(plugin)

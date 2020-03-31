@@ -36,7 +36,6 @@ import org.springframework.stereotype.Component;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Component
 public class IhkExportPlugin extends AbstractPlugin {
   public static final String ID = "ihkexport";
 

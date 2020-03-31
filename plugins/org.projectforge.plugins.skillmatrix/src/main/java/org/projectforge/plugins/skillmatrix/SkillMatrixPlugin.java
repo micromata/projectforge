@@ -30,12 +30,10 @@ import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
  */
-@Component
 public class SkillMatrixPlugin extends AbstractPlugin {
   public static final String ID_SKILL_TOP_LEVEL = "skillTopLevel";
 
