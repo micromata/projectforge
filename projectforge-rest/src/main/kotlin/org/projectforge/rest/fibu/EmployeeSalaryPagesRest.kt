@@ -56,7 +56,7 @@ class EmployeeSalaryPagesRest
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "month")
                         .add(UITableColumn("fibu.employee.user.lastname", "name"))
                         .add(UITableColumn("fibu.employee.user.firstname", "firstName"))

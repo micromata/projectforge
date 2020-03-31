@@ -51,7 +51,7 @@ class VisitorbookPagesRest: AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vis
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "id", "lastname", "firstname", "company", "visitortype", "arrive", "depart", "contactPersons"))
         return LayoutUtils.processListPage(layout, this)
     }

@@ -54,7 +54,7 @@ class AddressCampaignPagesRest: AbstractDTOPagesRest<AddressCampaignDO, AddressC
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "created", "lastUpdate", "title", "values", "comment"))
         return LayoutUtils.processListPage(layout, this)
     }

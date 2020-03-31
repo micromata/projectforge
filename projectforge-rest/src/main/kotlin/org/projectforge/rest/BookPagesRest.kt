@@ -62,7 +62,7 @@ class BookPagesRest() : AbstractDOPagesRest<BookDO, BookDao>(BookDao::class.java
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy"))
         layout.getTableColumnById("lendOutBy").formatter = Formatter.USER
         return LayoutUtils.processListPage(layout, this)

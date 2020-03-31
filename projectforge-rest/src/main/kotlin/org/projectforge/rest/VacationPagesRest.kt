@@ -131,7 +131,7 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "employee", "startDate", "endDate", "vacationModeString", "statusString", "workingDaysFormatted",
                                 "special", "replacement", "manager", "comment"))
         layout.getTableColumnById("employee").formatter = Formatter.EMPLOYEE

@@ -74,7 +74,7 @@ class AddressBookPagesRest : AbstractDTOPagesRest<AddressbookDO, Addressbook, Ad
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "title", "description", "owner", "accessright", "last_update"))
         layout.getTableColumnById("owner").formatter = Formatter.USER
         layout.getTableColumnById("last_update").formatter = Formatter.TIMESTAMP_MINUTES

@@ -37,7 +37,9 @@ import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
  */
 abstract class AbstractDOPagesRest<
         O : ExtendedBaseDO<Int>,
-        B : BaseDao<O>>(
+        B : BaseDao<O>>
+@JvmOverloads
+constructor(
         baseDaoClazz: Class<B>,
         i18nKeyPrefix: String,
         cloneSupport: AbstractPagesRest.CloneSupport = AbstractPagesRest.CloneSupport.NONE)
