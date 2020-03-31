@@ -135,14 +135,36 @@ class MenuCreator {
     fun add(parentId: String, menuItemDef: MenuItemDef): MenuItemDef {
         val parent = findById(parentId)
                 ?: throw java.lang.IllegalArgumentException("Can't append menu '${menuItemDef.id}' to parent '$parentId'. Parent not found.")
-        // Check if ID already exists
+        return add(parent, menuItemDef)
+    }
+
+    /**
+     * Registers menu entry definition. It's important that a parent menu entry item definition is registered before its
+     * sub menu entry items.
+     *
+     * @param menuItemDef
+     * @return this for chaining.
+     */
+    fun add(parentId: MenuItemDefId, menuItemDef: MenuItemDef): MenuItemDef {
+        val parent = findById(parentId)
+                ?: throw java.lang.IllegalArgumentException("Can't append menu '${menuItemDef.id}' to parent '$parentId'. Parent not found.")
+        return add(parent, menuItemDef)
+    }
+
+    /**
+     * Registers menu entry definition. It's important that a parent menu entry item definition is registered before its
+     * sub menu entry items.
+     *
+     * @param menuItemDef
+     * @return this for chaining.
+     */
+    fun add(parent: MenuItemDef, menuItemDef: MenuItemDef): MenuItemDef {
         if (findById(parent, menuItemDef.id) != null) {
             throw IllegalArgumentException(("Duplicated menu ID '${menuItemDef.id}' for entry '${menuItemDef.i18nKey}'"))
         }
         parent.add(menuItemDef)
         return menuItemDef
     }
-
 
     fun findById(menuItemDefId: MenuItemDefId): MenuItemDef? {
         return findById(menuItemDefId.id)
