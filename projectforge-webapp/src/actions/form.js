@@ -46,12 +46,11 @@ const callSuccess = (category, response) => ({
     },
 });
 
-const changeData = (category, newData, watchFieldsTriggered) => ({
+const changeData = (category, newData) => ({
     type: FORM_CHANGE_DATA,
     payload: {
         category,
         newData,
-        watchFieldsTriggered,
     },
 });
 
