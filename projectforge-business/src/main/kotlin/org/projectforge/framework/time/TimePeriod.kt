@@ -25,6 +25,8 @@ package org.projectforge.framework.time
 
 import org.projectforge.framework.ToStringUtil.Companion.toJsonString
 import java.io.Serializable
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.util.*
 
@@ -102,10 +104,33 @@ class TimePeriod @JvmOverloads constructor(var fromDate: Date? = null, var toDat
 
     companion object {
         private const val serialVersionUID = -4928251035721502776L
+
+        /**
+         * @return duration in millis.
+         */
         fun getDuration(fromDate: Date?, toDate: Date?): Long {
             return if (fromDate == null || toDate == null || toDate.before(fromDate)) {
                 0
             } else toDate.time - fromDate.time
+        }
+
+        /**
+         * @return duration in rounded hours.
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun getDurationHours(fromDate: Date?, toDate: Date?, roundUnit: ROUND_UNIT = ROUND_UNIT.INT, roundingMode: RoundingMode = RoundingMode.HALF_UP ): BigDecimal {
+            if (fromDate == null || toDate == null || toDate.before(fromDate)) {
+                return BigDecimal.ZERO
+            }
+            val millis = toDate.time - fromDate.time
+            return when (roundUnit) {
+                ROUND_UNIT.INT -> BigDecimal(millis).divide(MILLIS_PER_HOUR, 0, roundingMode)
+                ROUND_UNIT.HALF -> BigDecimal(millis).multiply(BD_2).divide(MILLIS_PER_HOUR, 0, roundingMode).divide(BD_2, 1, roundingMode)
+                ROUND_UNIT.QUARTER -> BigDecimal(millis).multiply(BD_4).divide(MILLIS_PER_HOUR, 0, roundingMode).divide(BD_4, 2, roundingMode)
+                ROUND_UNIT.FIFTH -> BigDecimal(millis).multiply(BD_5).divide(MILLIS_PER_HOUR, 0, roundingMode).divide(BD_5, 1, roundingMode)
+                ROUND_UNIT.TENTH -> BigDecimal(millis).multiply(BigDecimal.TEN).divide(MILLIS_PER_HOUR, 0, roundingMode).divide(BigDecimal.TEN, 1, roundingMode)
+            }
         }
 
         /**
@@ -150,6 +175,12 @@ class TimePeriod @JvmOverloads constructor(var fromDate: Date? = null, var toDat
             }
             return intArrayOf(days, hours, minutes)
         }
+
+        private val MILLIS_PER_HOUR = BigDecimal(1000 * 60 * 60)
+        private val BD_2 = BigDecimal(2)
+        private val BD_4 = BigDecimal(4)
+        private val BD_5 = BigDecimal(5)
     }
 
+    enum class ROUND_UNIT { INT, HALF, QUARTER, FIFTH, TENTH }
 }
