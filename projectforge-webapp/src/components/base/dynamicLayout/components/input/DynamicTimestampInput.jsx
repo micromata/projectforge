@@ -15,7 +15,7 @@ function DynamicTimestampInput(
         ...props
     },
 ) {
-    const { data, setData } = React.useContext(DynamicLayoutContext);
+    const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
     const dateStr = Object.getByString(data, id);
     const [date, setDate] = React.useState(undefined);
@@ -35,7 +35,7 @@ function DynamicTimestampInput(
                     {...props}
                 >
                     <TimeInput
-                        id={id}
+                        id={`${ui.uid}-${id}`}
                         setTime={newDate => setData({ [id]: newDate })}
                         showDate
                         time={date ? date.toDate() : undefined}

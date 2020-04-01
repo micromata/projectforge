@@ -71,7 +71,7 @@ function DayRange(
                 <TimeRange
                     label={label}
                     from={startDate ? startDate.toDate() : undefined}
-                    id={id}
+                    id={`${ui.uid}-${id}`}
                     sameDate
                     setFrom={changeStartTime}
                     setTo={changeEndTime}

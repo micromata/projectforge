@@ -5,7 +5,7 @@ import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from './DynamicValidationManager';
 
 function DynamicInput({ id, focus, ...props }) {
-    const { data, setData } = React.useContext(DynamicLayoutContext);
+    const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
     const value = Object.getByString(data, id) || '';
 
@@ -16,7 +16,7 @@ function DynamicInput({ id, focus, ...props }) {
         return (
             <DynamicValidationManager id={id}>
                 <Input
-                    id={id}
+                    id={`${ui.uid}-${id}`}
                     onChange={handleInputChange}
                     autoFocus={focus}
                     {...props}
