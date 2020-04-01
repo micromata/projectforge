@@ -10,6 +10,18 @@ function CostNumber24Component() {
         setData({ bereich: event.target.value });
     };
 
+    const handleNummerChange = (event) => {
+        // console.log(event.target.value)
+        setData({ nummer: event.target.value });
+    };
+
+    function ensureBereich() {
+        if (data.bereich === undefined) {
+            return '0';
+        }
+        return data.bereich.toString();
+    }
+
 
     return React.useMemo(
         () => (
@@ -22,11 +34,19 @@ function CostNumber24Component() {
                     size="3"
                     min="0"
                     max="999"
-                    value={data.bereich.toString()}
+                    value={ensureBereich}
                     onChange={handleBereichChange}
                 />
                 .
-                ##
+                <input
+                    id="nummer"
+                    type="number"
+                    size="2"
+                    min="0"
+                    max="99"
+                    value={data.nummer.toString()}
+                    onChange={handleNummerChange}
+                />
                 .
                 ##
             </React.Fragment>
