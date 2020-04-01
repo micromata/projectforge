@@ -64,7 +64,7 @@ class ResponseAction(val url: String? = null,
     init {
         this.variables = variables
         if (message != null && targetType == null) {
-            targetType = TargetType.TOAST
+            targetType = TargetType.NOTHING
         } else if (!url.isNullOrEmpty() && targetType == null) {
             targetType = TargetType.REDIRECT
         }
@@ -95,10 +95,6 @@ enum class TargetType {
      */
     DOWNLOAD,
     /**
-     * Show the result message as toast message.
-     */
-    TOAST,
-    /**
      * The client should update all values / states. The values to update are given as variable.
      */
     UPDATE,
@@ -125,6 +121,11 @@ enum class TargetType {
      * The client should open the new url in a modal.
      */
     MODAL,
+
+    /**
+     * The client should close a modal, when one is open.
+     */
+    CLOSE_MODAL,
 
     /**
      * No action by the client required.

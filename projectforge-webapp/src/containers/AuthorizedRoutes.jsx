@@ -79,7 +79,7 @@ function AuthorizedRoutes(
                 <Modal
                     size="xl"
                     isOpen
-                    toggle={() => history.push(background.pathname, { background: undefined })}
+                    toggle={() => history.push(background)}
                 >
                     <ModalBody>
                         {routes(location)}

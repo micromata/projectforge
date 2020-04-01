@@ -23,32 +23,69 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.user.UserAuthenticationsService
+import org.projectforge.business.user.UserTokenType
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.dto.FormLayoutData
-import org.projectforge.ui.LayoutUtils
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.UIReadOnlyField
+import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/tokenInfo")
 class TokenInfoPageRest : AbstractDynamicPageRest() {
+    @Autowired
+    private lateinit var authenticationsService: UserAuthenticationsService
 
-    class TokenInfoData(var info: String? = null)
+    class TokenInfoData(var info: String? = null,
+                        val token: String? = null)
 
     @GetMapping("dynamic")
-    fun getForm(request: HttpServletRequest): FormLayoutData {
-        // TODO REPLACE STRING
-        val data = TokenInfoData("Test String")
+    fun getForm(request: HttpServletRequest, @RequestParam("token") token: UserTokenType): FormLayoutData {
+        val userId = ThreadLocalUserContext.getUserId()
 
-        val layout = UILayout("info")
+        val data = TokenInfoData(authenticationsService.getUserAccessLogEntries(token, userId)?.asText("\n\n"),
+                authenticationsService.getToken(userId, token))
 
-        layout.add(UIReadOnlyField(id = "info"))
+        val layout = UILayout("user.authenticationToken.button.showUsage")
 
+        val tokenId = when (token) {
+            UserTokenType.CALENDAR_REST -> "calendarExportToken"
+            UserTokenType.DAV_TOKEN -> "davToken"
+            UserTokenType.REST_CLIENT -> "restClientToken"
+            UserTokenType.STAY_LOGGED_IN_KEY -> "stayLoggedInKey"
+        }
+
+        val elementInfo = ElementsRegistry.getElementInfo(UserAuthenticationsDO::class.java, tokenId)
+
+        layout
+                .add(UIReadOnlyField("token",
+                        label = elementInfo?.i18nKey,
+                        canCopy = true, coverUp = true,
+                        tooltip = elementInfo?.tooltipI18nKey))
+                .add(UIReadOnlyField(id = "info", label = "user.authenticationToken.button.showUsage.tooltip"))
+
+        layout.addAction(UIButton("${token}-cancel",
+                title = translate("cancel"),
+                color = UIColor.SECONDARY,
+                outline = true,
+                responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL)))
+        layout.addAction(UIButton("${token}-renew",
+                title = translate("user.authenticationToken.renew"),
+                tooltip = "user.authenticationToken.renew.tooltip",
+                confirmMessage = translate("user.authenticationToken.renew.securityQuestion"),
+                color = UIColor.DANGER,
+                responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.GET)))
+
+        layout.addTranslations("cancel", "yes")
         LayoutUtils.process(layout)
 
         return FormLayoutData(data, layout, createServerData(request))
