@@ -79,7 +79,7 @@ function DynamicButton(props) {
                 {...stylingProps}
                 onClick={handleClick}
                 type={type}
-                id={id}
+                id={`${ui.uid}-${id}`}
             >
                 {title}
             </Button>
