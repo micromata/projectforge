@@ -76,7 +76,8 @@ Object.combine = (o1, o2) => ({
             v1: o1[key],
             v2: o2[key],
         }))
-        .filter(({ v1, v2 }) => typeof v1 === 'object' && typeof v2 === 'object')
+        .filter(({ v1, v2 }) => typeof v1 === 'object' && !(v1 instanceof Date)
+            && typeof v2 === 'object' && !(v2 instanceof Date))
         .reduce((previousValue, currentValue) => ({
             ...previousValue,
             [currentValue.key]: {
