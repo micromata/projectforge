@@ -74,7 +74,12 @@ function FormPage(
                 location.state,
             );
         },
-        [currentCategory, id, location.state],
+        [
+            currentCategory,
+            id,
+            location.state && location.state.noReload,
+            location.state && location.state.newVariables,
+        ],
     );
 
     const globalValidation = React.useMemo(() => {
