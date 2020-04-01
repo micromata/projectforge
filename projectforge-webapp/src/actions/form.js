@@ -104,86 +104,100 @@ export const callAction = (
         return Promise.reject(Error('No response action given.'));
     }
 
-    if (action.targetType === 'REDIRECT') {
-        history.push(`/${action.url}`, { serverData: action.variables });
-        return Promise.resolve();
-    }
-
     const { form: state } = getState();
     const category = state.currentCategory;
 
-    dispatch(callActionBegin(category));
+    switch (action.targetType) {
+        case 'REDIRECT':
+        case 'MODAL': {
+            const historyState = { serverData: action.variables };
 
-    let status = 0;
-
-    const { data, serverData } = state.categories[category];
-
-    return fetch(
-        getServiceURL(action.url),
-        {
-            method: action.targetType,
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                data,
-                watchFieldsTriggered,
-                serverData,
-            }),
-        },
-    )
-        .then((response) => {
-            ({ status } = response);
-
-            if (response.headers.get('Content-Type')
-                .includes('application/json')) {
-                return response.json();
+            if (action.targetType === 'MODAL') {
+                historyState.background = history.location;
             }
 
-            throw Error(`Error ${status}`);
-        })
-        .then((json) => {
-            dispatch(callActionSuccess(category));
-
-            if (status === 406) {
-                dispatch(callSuccess(category, { validationErrors: json.validationErrors }));
+            history.push(action.url, historyState);
+            break;
+        }
+        case 'UPDATE':
+            if (action.url) {
+                history.push(
+                    `${action.url}`,
+                    {
+                        noReload: true,
+                        newVariables: action.variables,
+                    },
+                );
                 window.scrollTo(0, 0);
-                return;
+            } else {
+                dispatch(callSuccess(category, action.variables));
             }
-            switch (json.targetType) {
-                case 'REDIRECT':
-                    history.push(json.url, { variables: json.variables });
-                    break;
-                case 'UPDATE':
-                    if (json.url) {
-                        history.push(
-                            `${json.url}`,
-                            {
-                                noReload: true,
-                                newVariables: json.variables,
-                            },
-                        );
-                        window.scrollTo(0, 0);
-                    } else {
-                        dispatch(callSuccess(category, json.variables));
+            break;
+        case 'CHECK_AUTHENTICATION':
+            return loadUserStatus()(dispatch)
+                .then(() => {
+                    if (action.url) {
+                        history.push(action.url);
                     }
-                    break;
-                case 'CHECK_AUTHENTICATION':
-                    loadUserStatus()(dispatch);
+                });
+        case 'NOTHING':
+            break;
+        case 'TOAST':
+            addToast(action.message.message, action.message.color)(dispatch);
+            break;
+        case 'DELETE':
+        case 'POST':
+        case 'GET':
+        case 'PUT': {
+            dispatch(callActionBegin(category));
 
-                    if (json.url) {
-                        history.push(json.url);
+            let status = 0;
+
+            const { data, serverData } = state.categories[category];
+
+            return fetch(
+                getServiceURL(action.url),
+                {
+                    method: action.targetType,
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        data,
+                        watchFieldsTriggered,
+                        serverData,
+                    }),
+                },
+            )
+                .then((response) => {
+                    ({ status } = response);
+
+                    if (response.headers.get('Content-Type')
+                        .includes('application/json')) {
+                        return response.json();
                     }
-                    break;
-                case 'NOTHING':
-                    break;
-                case 'TOAST':
-                    addToast(json.message.message, json.message.color)(dispatch);
-                    break;
-                default:
-                    throw Error(`Error ${status}: TargetType ${json.targetType} not implemented.`);
-            }
-        })
-        .catch(error => dispatch(callFailure(category, error)));
+
+                    throw Error(`Error ${status}`);
+                })
+                .then((json) => {
+                    dispatch(callActionSuccess(category));
+
+                    if (status === 406) {
+                        dispatch(callSuccess(
+                            category,
+                            { validationErrors: json.validationErrors },
+                        ));
+                        window.scrollTo(0, 0);
+                        return Promise.resolve();
+                    }
+
+                    return callAction({ responseAction: json })(dispatch, getState);
+                })
+                .catch(error => dispatch(callFailure(category, error)));
+        }
+        default:
+            return Promise.reject(Error(`TargetType ${action.targetType} not implemented.`));
+    }
+    return Promise.resolve();
 };
 
 export const setCurrentData = newData => (dispatch, getState) => {
