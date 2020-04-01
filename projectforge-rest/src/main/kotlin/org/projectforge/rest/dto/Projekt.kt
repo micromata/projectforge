@@ -24,10 +24,20 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.business.fibu.ProjektStatus
 
 class Projekt(id: Int? = null,
               displayName: String? = null,
-              var name: String? = null)
+              var nummer: Int = 0,
+              var name: String? = null,
+              var identifier: String? = null,
+              var status: ProjektStatus? = null)
     : BaseDTODisplayObject<ProjektDO>(id, displayName = displayName) {
     var kunde: Kunde? = null
+    var konto: Konto? = null
+    var task: Task? = null
+    var projektManagerGroup: Group? = null
+    var nummernkreis: Int = 0
+    var bereich: Int? = 0
+    var kost: String? = null
 }

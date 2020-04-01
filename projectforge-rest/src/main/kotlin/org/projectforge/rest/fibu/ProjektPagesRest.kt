@@ -25,6 +25,7 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
+import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Projekt
@@ -40,9 +41,13 @@ class ProjektPagesRest
         "fibu.projekt.title") {
 
     override fun transformFromDB(obj: ProjektDO, editMode: Boolean): Projekt {
-        val kunde = Projekt(null, obj.displayName)
-        kunde.copyFrom(obj)
-        return kunde
+        val projekt = Projekt(null, obj.displayName)
+        projekt.copyFrom(obj)
+        projekt.kost = obj.kost
+        projekt.nummernkreis = obj.nummernkreis
+        projekt.bereich = obj.bereich
+        projekt.kunde?.copyFrom(obj.kunde!!)
+        return projekt
     }
 
     override fun transformForDB(dto: Projekt): ProjektDO {
@@ -57,9 +62,9 @@ class ProjektPagesRest
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(lc, "nummer", "identifier", "kunde", "name", "kunde.division", "konto", "status",
-                                "projektManagerGroup", "Kost2Art?", "description"))
+                        .add(lc, "kost", "identifier", "kunde.name", "name", "kunde.division", "task", "konto", "status", "projektManagerGroup", "internKost2_4", "description"))
         layout.getTableColumnById("konto").formatter = Formatter.KONTO
+        layout.getTableColumnById("task").formatter = Formatter.TASK_PATH
         layout.getTableColumnById("projektManagerGroup").formatter = Formatter.GROUP
         return LayoutUtils.processListPage(layout, this)
     }
@@ -68,18 +73,17 @@ class ProjektPagesRest
      * LAYOUT Edit page
      */
     override fun createEditLayout(dto: Projekt, userAccess: UILayout.UserAccess): UILayout {
-        val konto = UIInput("konto", lc, tooltip = "fibu.kunde.konto.tooltip")
+        val konto = UIInput("konto", lc, tooltip = "fibu.projekt.konto.tooltip")
 
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
-                                .add(lc, "nummer")
-                                .add(UILabel("TODO: Customer selection"))
-                                .add(UILabel("TODO: Koststellen"))
+                                .add(UICustomized("cost.number24"))
+                                .add(UISelect.createCustomerSelect(lc, "kunde", false, "fibu.kunde"))
                                 .add(konto)
-                                .add(lc, "name", "identifier")
-                                .add(UILabel("TODO: Structure Element"))
-                                .add(lc, "projektManagerGroup", "projectManager", "headOfBusinessManager", "description")
+                                .add(lc, "name", "identifier", "task")
+                                .add(UISelect.createGroupSelect(lc, "projektManagerGroup", false, "fibu.projekt.projektManagerGroup"))
+                                .add(lc, "projectManager", "headOfBusinessManager", "description")
                                 .add(UILabel("TODO: Kost 2 Types"))))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
