@@ -87,7 +87,7 @@ class ResponseAction(val url: String? = null,
 
 enum class TargetType {
     /**
-     * The client should redirect to the given url. If no type is given, REDIRECT is used as default.
+     * The client should redirect to the given url(url should be absolute). If no type is given, REDIRECT is used as default.
      */
     REDIRECT,
     /**
@@ -110,14 +110,22 @@ enum class TargetType {
      * The client should call the given url with http method PUT.
      */
     PUT,
+
     /**
      * The client should call the given url with http method POST.
      */
     POST,
+
     /**
      * The client should call the given url with http method DELETE.
      */
     DELETE,
+
+    /**
+     * The client should open the new url in a modal.
+     */
+    MODAL,
+
     /**
      * No action by the client required.
      */

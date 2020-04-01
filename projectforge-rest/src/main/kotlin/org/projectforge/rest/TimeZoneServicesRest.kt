@@ -24,15 +24,8 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.business.user.UserAccessLogEntries
-import org.projectforge.business.user.UserAuthenticationsService
-import org.projectforge.business.user.UserTokenType
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.TimeZoneService
-import org.projectforge.ui.ResponseAction
-import org.projectforge.ui.TargetType
-import org.projectforge.web.rest.UserAccessLogEntry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping

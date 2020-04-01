@@ -67,7 +67,7 @@ class SendTextMessagePageRest {
         val buttonCol = UICol(6)
         buttonCol.add(UIButton("send", translate("send"),
                 UIColor.SUCCESS,
-                responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java))))
+                responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java, absolute = true))))
         val numberField = UISelect<String>("cellPhoneNumber", lc,
                 label = translate("address.sendSms.phoneNumber"),
                 tooltip = translate("address.sendSms.phoneNumber.info"),
@@ -79,6 +79,8 @@ class SendTextMessagePageRest {
                                 .add(UICol(UILength(md = 6, sm = 12))
                                         .add(UITextArea("message", lc, label = translate("address.sendSms.message"))))))
                 .add(UIRow().add(buttonCol)))
+
+        LayoutUtils.process(layout)
 
         return FormLayoutData(null, layout, null)
     }

@@ -142,7 +142,7 @@ class VacationAccountPageRest {
             }
         }
         val buttonCol = UICol(6)
-        val responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java, params = mapOf("employee" to employeeId)), targetType = TargetType.REDIRECT)
+        val responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java, params = mapOf("employee" to employeeId), absolute = true), targetType = TargetType.REDIRECT)
         responseAction.addVariable("returnToCaller", "account")
         // TODO: Add employee for preselecting edit form
         buttonCol.add(UIButton("add", translate("add"), UIColor.SUCCESS, responseAction = responseAction))
@@ -211,7 +211,7 @@ class VacationAccountPageRest {
         val layoutData = getForm(employeeId)
 
         return ResponseAction(
-                url = "${PagesResolver.getDynamicPageUrl(this::class.java, id = employeeId, absolute = true)}",
+                url = PagesResolver.getDynamicPageUrl(this::class.java, id = employeeId, absolute = true),
                 targetType = TargetType.UPDATE
         )
                 .addVariable("data", layoutData.data)
