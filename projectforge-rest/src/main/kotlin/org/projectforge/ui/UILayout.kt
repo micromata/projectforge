@@ -25,6 +25,7 @@ package org.projectforge.ui
 
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.menu.MenuItem
+import kotlin.random.Random
 
 class UILayout {
     class UserAccess(
@@ -75,6 +76,11 @@ class UILayout {
     val pageMenu = mutableListOf<MenuItem>()
 
     val watchFields = mutableListOf<String>()
+
+    /**
+     * UID usable by the client for having unique dialoque ids.
+     */
+    val uid = System.currentTimeMillis()
 
     /**
      * All required translations for the frontend dependent on the logged-in-user's language.
