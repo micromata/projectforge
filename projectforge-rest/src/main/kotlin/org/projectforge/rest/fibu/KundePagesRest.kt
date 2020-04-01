@@ -42,6 +42,7 @@ class KundePagesRest
     override fun transformFromDB(obj: KundeDO, editMode: Boolean): Kunde {
         val kunde = Kunde()
         kunde.copyFrom(obj)
+        kunde.kost = obj.kost
         return kunde
     }
 
@@ -61,7 +62,7 @@ class KundePagesRest
         // TODO: First column is kost
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(lc, "nummer", "identifier", "name", "division", "konto", "status", "description"))
+                        .add(lc, "kost", "identifier", "name", "division", "konto", "status", "description"))
         layout.getTableColumnById("konto").formatter = Formatter.KONTO
         return LayoutUtils.processListPage(layout, this)
     }
@@ -81,4 +82,6 @@ class KundePagesRest
                                 .add(lc, "identifier", "division", "description", "status")))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
+
+    override val autoCompleteSearchFields = arrayOf("name")
 }

@@ -36,4 +36,5 @@ class Kunde(id: Int? = null,
             var konto: Konto? = null
 ) : BaseDTODisplayObject<KundeDO>(id, displayName = displayName) {
     var nummer: Int? = id
+    var kost: String? = null
 }
