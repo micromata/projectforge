@@ -30,6 +30,7 @@ import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.test.TestSetup;
 
+import java.math.RoundingMode;
 import java.time.Month;
 import java.util.Date;
 import java.util.Locale;
@@ -46,7 +47,37 @@ public class TimePeriodTest {
   }
 
   @Test
-  public void testTimePeriod() {
+  void testDurationHours() {
+    checkDurationHours("1", 0.5, TimePeriod.ROUND_UNIT.INT, RoundingMode.HALF_UP);
+    checkDurationHours("0", 0.4, TimePeriod.ROUND_UNIT.INT, RoundingMode.HALF_UP);
+
+    checkDurationHours("0.0", 0.24, TimePeriod.ROUND_UNIT.HALF, RoundingMode.HALF_UP);
+    checkDurationHours("0.5", 0.25, TimePeriod.ROUND_UNIT.HALF, RoundingMode.HALF_UP);
+    checkDurationHours("0.5", 0.74, TimePeriod.ROUND_UNIT.HALF, RoundingMode.HALF_UP);
+    checkDurationHours("1.0", 0.75, TimePeriod.ROUND_UNIT.HALF, RoundingMode.HALF_UP);
+
+    checkDurationHours("0.00", 0.12, TimePeriod.ROUND_UNIT.QUARTER, RoundingMode.HALF_UP);
+    checkDurationHours("0.25", 0.13, TimePeriod.ROUND_UNIT.QUARTER, RoundingMode.HALF_UP);
+    checkDurationHours("7.75", 7.87, TimePeriod.ROUND_UNIT.QUARTER, RoundingMode.HALF_UP);
+    checkDurationHours("8.00", 7.88, TimePeriod.ROUND_UNIT.QUARTER, RoundingMode.HALF_UP);
+
+    checkDurationHours("0.0", 0.09, TimePeriod.ROUND_UNIT.FIFTH, RoundingMode.HALF_UP);
+    checkDurationHours("0.2", 0.1, TimePeriod.ROUND_UNIT.FIFTH, RoundingMode.HALF_UP);
+    checkDurationHours("7.8", 7.76, TimePeriod.ROUND_UNIT.FIFTH, RoundingMode.HALF_UP);
+
+    checkDurationHours("0.0", 0.04, TimePeriod.ROUND_UNIT.TENTH, RoundingMode.HALF_UP);
+    checkDurationHours("0.1", 0.05, TimePeriod.ROUND_UNIT.TENTH, RoundingMode.HALF_UP);
+    checkDurationHours("1.0", 0.95, TimePeriod.ROUND_UNIT.TENTH, RoundingMode.HALF_UP);
+  }
+
+  private void checkDurationHours(String expected, double hours, TimePeriod.ROUND_UNIT rounUnit, RoundingMode roundingMode) {
+    Date start = new Date();
+    Date end = new Date(start.getTime() + (int) (hours * 1000 * 3600));
+    assertEquals(expected, TimePeriod.getDurationHours(start, end, rounUnit, roundingMode).toString());
+  }
+
+  @Test
+  void testTimePeriod() {
     final PFDateTime dateTime1 = PFDateTime.from(new Date(), null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE).withDate(1970, Month.NOVEMBER, 21, 0, 0, 0);
 
     PFDateTime dateTime2 = dateTime1.withHour(10);
