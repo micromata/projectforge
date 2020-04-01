@@ -55,11 +55,9 @@ function DayRange(
                 newEndDate.add(1, 'days');
             }
 
-            setStartDate(newStartDate);
-            setEndDate(newEndDate);
             setData({
-                [startDateId]: newStartDate.toDate(),
-                [endDateId]: newEndDate.toDate(),
+                [startDateId]: newStartDate.toDate().toISOString(),
+                [endDateId]: newEndDate.toDate().toISOString(),
             });
         };
 
