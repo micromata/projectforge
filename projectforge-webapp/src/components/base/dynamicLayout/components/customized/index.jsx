@@ -19,6 +19,7 @@ import InvoicePositionsComponent from './components/OutgoingInvoicePositionsComp
 import IncomingInvoicePositionsComponent from './components/IncomingInvoicePositionsComponent';
 import VacationStatistics from './components/vacation/VacationStatistics';
 import VacationTable from './components/vacation/VacationTable';
+import CostNumber24Component from './components/CostNumber24Component';
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;
@@ -53,6 +54,9 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'cost.number':
             Tag = CostNumberComponent;
+            break;
+        case 'cost.number24':
+            Tag = CostNumber24Component;
             break;
         case 'dayRange':
             Tag = DayRange;
