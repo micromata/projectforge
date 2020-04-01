@@ -25,7 +25,7 @@ export const clearAllToasts = () => ({
 export const addToast = (
     message,
     color = undefined,
-    stay = false,
+    stay = true,
 ) => (dispatch) => {
     const id = revisedRandomId();
 

@@ -528,6 +528,10 @@ $transitionTime: .2s ease-out;
 
   .value {
     margin: 0;
+
+    span {
+      white-space: pre-wrap;
+    }
   }
 
   .icons {

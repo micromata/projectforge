@@ -107,6 +107,10 @@ export const callAction = (
     const { form: state } = getState();
     const category = state.currentCategory;
 
+    if (action.message) {
+        addToast(action.message.message, action.message.color)(dispatch);
+    }
+
     switch (action.targetType) {
         case 'REDIRECT':
         case 'MODAL': {
@@ -119,6 +123,11 @@ export const callAction = (
             history.push(action.url, historyState);
             break;
         }
+        case 'CLOSE_MODAL':
+            if (history.location.state && history.location.state.background) {
+                history.push(history.location.state.background);
+            }
+            break;
         case 'UPDATE':
             if (action.url) {
                 history.push(
@@ -141,9 +150,6 @@ export const callAction = (
                     }
                 });
         case 'NOTHING':
-            break;
-        case 'TOAST':
-            addToast(action.message.message, action.message.color)(dispatch);
             break;
         case 'DELETE':
         case 'POST':
