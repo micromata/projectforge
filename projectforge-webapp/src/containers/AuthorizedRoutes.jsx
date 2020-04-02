@@ -3,7 +3,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Route, Switch, useLocation } from 'react-router-dom';
 import GlobalNavigation from '../components/base/navigation/GlobalNavigation';
-import { Alert, Modal, ModalBody } from '../components/design';
+import { Alert, Container, Modal, ModalBody } from '../components/design';
 import history from '../utilities/history';
 import prefix from '../utilities/prefix';
 import { getServiceURL } from '../utilities/rest';
@@ -70,9 +70,11 @@ function AuthorizedRoutes(
         <React.Fragment>
             <GlobalNavigation />
             {alertMessage ? (
-                <Alert color="danger">
-                    {alertMessage}
-                </Alert>
+                <Container fluid>
+                    <Alert color="danger">
+                        {alertMessage}
+                    </Alert>
+                </Container>
             ) : undefined}
             {routes(background || location)}
             {background && (
@@ -99,7 +101,7 @@ AuthorizedRoutes.defaultProps = {
 };
 
 const mapStateToProps = ({ authentication }) => ({
-    alertMessage: authentication.alertMesage,
+    alertMessage: authentication.alertMessage,
 });
 
 export default connect(mapStateToProps)(AuthorizedRoutes);
