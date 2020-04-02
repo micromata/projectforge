@@ -51,6 +51,9 @@ class KontoPagesRest
         return kontoDO
     }
 
+    override val classicsLinkListUrl: String?
+        get() = "wa/accountList"
+
     /**
      * LAYOUT List page
      */
