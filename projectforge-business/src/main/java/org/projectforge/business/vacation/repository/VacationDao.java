@@ -23,6 +23,7 @@
 
 package org.projectforge.business.vacation.repository;
 
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.user.UserRightId;
@@ -167,6 +168,17 @@ public class VacationDao extends BaseDao<VacationDO> {
   }
 
   @Override
+  public void afterLoad(VacationDO obj) {
+    if (StringUtils.isNotBlank(obj.getComment())) {
+      final PFUserDO user = ThreadLocalUserContext.getUser();
+      if (!isOwnEntry(user, obj) && !hasUpdateAccess(user, obj, obj, false)) {
+        // Entry is not own entry and user has no update access to it, so hide comment due to data privacy.
+        obj.setComment("...");
+      }
+    }
+  }
+
+  @Override
   public boolean hasDeleteAccess(PFUserDO user, VacationDO obj, VacationDO dbObj, boolean throwException) {
     if (hasHrRights(user)) {
       return true;
@@ -305,7 +317,8 @@ public class VacationDao extends BaseDao<VacationDO> {
     vacationSendMailService.checkAndSendMail(obj, OperationType.UNDELETE);
   }
 
-  public List<VacationDO> getVacationForPeriod(Integer employeeId, LocalDate startVacationDate, LocalDate endVacationDate, boolean withSpecial) {
+  public List<VacationDO> getVacationForPeriod(Integer employeeId, LocalDate startVacationDate, LocalDate
+          endVacationDate, boolean withSpecial) {
     List<VacationDO> result = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee.id = :employeeId AND v.endDate >= :startDate AND v.startDate <= :endDate";
       List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employeeId", employeeId,
@@ -316,7 +329,8 @@ public class VacationDao extends BaseDao<VacationDO> {
     return result;
   }
 
-  public List<VacationDO> getVacationForPeriod(EmployeeDO employee, LocalDate startVacationDate, LocalDate endVacationDate, boolean withSpecial) {
+  public List<VacationDO> getVacationForPeriod(EmployeeDO employee, LocalDate startVacationDate, LocalDate
+          endVacationDate, boolean withSpecial) {
     return getVacationForPeriod(employee.getId(), startVacationDate, endVacationDate, withSpecial);
   }
 
