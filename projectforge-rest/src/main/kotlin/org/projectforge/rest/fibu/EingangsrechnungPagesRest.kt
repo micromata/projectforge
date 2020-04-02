@@ -44,6 +44,18 @@ import javax.servlet.http.HttpServletRequest
 @RequestMapping("${Rest.URL}/incomingInvoice")
 class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Eingangsrechnung, EingangsrechnungDao>(EingangsrechnungDao::class.java, "fibu.eingangsrechnung.title") {
 
+    override fun transformForDB(dto: Eingangsrechnung): EingangsrechnungDO {
+        val eingangsrechnungDO = EingangsrechnungDO()
+        dto.copyTo(eingangsrechnungDO)
+        return eingangsrechnungDO
+    }
+
+    override fun transformFromDB(obj: EingangsrechnungDO, editMode: Boolean): Eingangsrechnung {
+        val eingangsrechnung = Eingangsrechnung()
+        eingangsrechnung.copyFrom(obj)
+        return eingangsrechnung
+    }
+
     @Autowired
     private lateinit var eingangsrechnungDao: EingangsrechnungDao
 
@@ -88,22 +100,13 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-    /*@PostMapping("addPosition")
-    fun addPosition(request: HttpServletRequest, @RequestBody postData: PostData<EingangsrechnungDO>): ResponseEntity<ResponseAction> {
-        val eingangsrechnung = postData.data
-        eingangsrechnung.addPosition(EingangsrechnungsPositionDO())
-        return saveOrUpdate(request, this.eingangsrechnungDao, EingangsrechnungDO(), postData, this, this.validate(eingangsrechnung))
-    }*/
-
-    override fun transformForDB(dto: Eingangsrechnung): EingangsrechnungDO {
-        val eingangsrechnungDO = EingangsrechnungDO()
-        dto.copyTo(eingangsrechnungDO)
-        return eingangsrechnungDO
-    }
-
-    override fun transformFromDB(obj: EingangsrechnungDO, editMode: Boolean): Eingangsrechnung {
-        val eingangsrechnung = Eingangsrechnung()
-        eingangsrechnung.copyFrom(obj)
-        return eingangsrechnung
+    @PostMapping("addPosition")
+    fun addPosition(request: HttpServletRequest, @RequestBody postData: PostData<Eingangsrechnung>): ResponseEntity<ResponseAction> {
+        val eingangsrechnung = EingangsrechnungDO()
+        var newPosition = EingangsrechnungsPositionDO()
+        postData.data.copyTo(eingangsrechnung)
+        eingangsrechnung.addPosition(newPosition)
+        postData.data.copyFrom(eingangsrechnung)
+        return org.projectforge.rest.core.saveOrUpdate(request, this.eingangsrechnungDao, eingangsrechnung, postData, this, this.validate(eingangsrechnung))
     }
 }

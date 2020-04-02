@@ -43,7 +43,7 @@ class HRPlanningListPagesRest : AbstractDOPagesRest<HRPlanningEntryDO, HRPlannin
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "planning.user", "planning.week", "planning.formattedWeekOfYear", "projekt.kunde.name", "projektNameOrStatus", "priority", "probability", "planning.totalHours", "totalHours", "unassignedHours", "mondayHours", "tuesdayHours", "wednesdayHours", "thursdayHours", "fridayHours", "weekendHours", "description"))
         return LayoutUtils.processListPage(layout, this)
     }
