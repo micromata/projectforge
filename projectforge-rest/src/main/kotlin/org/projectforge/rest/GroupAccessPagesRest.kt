@@ -48,7 +48,7 @@ class GroupAccessPagesRest : AbstractDOPagesRest<GroupTaskAccessDO, AccessDao>(A
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "task.title", "group.name", "isRecursive", "description"))
         return LayoutUtils.processListPage(layout, this)
     }

@@ -40,7 +40,7 @@ class FFPDebtPagesRest : AbstractDOPagesRest<FFPDebtDO, FFPDebtDao>(FFPDebtDao::
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "event.eventDate", "event.title", "from", "to",
                                 "value", "isApprovedByFrom", "isApprovedByTo"))
         layout.getTableColumnById("from").formatter = Formatter.USER
