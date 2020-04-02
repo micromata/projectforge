@@ -228,9 +228,9 @@ public class DatabaseService {
     } catch (Exception e) {
       log.warn("Something went wrong while checking for default tenant: " + e.getMessage());
     }
-    log.info("Adding default tenant.");
     String insertDefaultTenant = "INSERT INTO t_tenant(PK, CREATED, DELETED, LAST_UPDATE, DEFAULT_TENANT, NAME, SHORTNAME, DESCRIPTION, TENANT_ID) "
             + "VALUES (1,'2016-03-17 14:00:00',FALSE,'2016-03-17 14:00:00',TRUE,'Default tenant','Default tenant','defaultTenant',1)";
+    log.info("Adding default tenant: " + insertDefaultTenant);
     jdbcTemplate.execute(insertDefaultTenant);
     log.info("Adding default tenant finished.");
     tenantService.resetTenantTableStatus();
@@ -258,7 +258,7 @@ public class DatabaseService {
                     + "VALUES (1, CURRENT_TIMESTAMP, false, CURRENT_TIMESTAMP, 'The global addressbook', 'Global', 1, "
                     + (user != null && user.getId() != null ? user.getId() : ThreadLocalUserContext.getUserId()) + ")";
     jdbcTemplate.execute(insertGlobal);
-    log.info("Adding global addressbook finished.");
+    log.info("Adding global addressbook finished: " + insertGlobal);
     return addressbookDao.getGlobalAddressbook();
   }
 
@@ -887,34 +887,6 @@ public class DatabaseService {
     return counter;
   }
 
-  public void insertInto(final String table, final String[] columns, final Object[] values) {
-    final StringBuffer buf = new StringBuffer();
-    buf.append("insert into ").append(table).append(" (").append(StringHelper.listToString(",", columns))
-            .append(") values (");
-    boolean first = true;
-    for (Object value : values) {
-      first = StringHelper.append(buf, first, "?", ",");
-    }
-    buf.append(")");
-    final DatabaseExecutor jdbc = getDatabaseExecutor();
-    final String sql = buf.toString();
-    log.info(sql + "; values = " + StringHelper.listToString(", ", values));
-    jdbc.update(sql, values);
-  }
-
-  /**
-   * @param regionId
-   * @param version
-   * @return true, if any entry for the given regionId and version is found in the database table t_database_update.
-   */
-  public boolean isVersionUpdated(final String regionId, final String version) {
-    accessCheck(false);
-    final DatabaseExecutor jdbc = getDatabaseExecutor();
-    final int result = jdbc.queryForInt("select count(*) from t_database_update where region_id=? and version=?",
-            regionId, version);
-    return result > 0;
-  }
-
   /**
    * Creates the given database index if not already exists.
    *
@@ -929,21 +901,6 @@ public class DatabaseService {
       final String jdbcString = "CREATE INDEX " + name + " ON " + table + "(" + attributes + ");";
       execute(jdbcString, false);
       log.info(jdbcString);
-      return true;
-    } catch (final Throwable ex) {
-      // Index does already exist (or an error has occurred).
-      return false;
-    }
-  }
-
-  /**
-   * @param name
-   * @return true, if the index was dropped, false if an error has occured or the index does not exist.
-   */
-  public boolean dropIndex(final String name) {
-    accessCheck(true);
-    try {
-      execute("DROP INDEX " + name);
       return true;
     } catch (final Throwable ex) {
       // Index does already exist (or an error has occurred).
