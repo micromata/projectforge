@@ -44,6 +44,7 @@ import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.proxy.HibernateProxy;
+import org.projectforge.framework.ToStringUtil;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO;
@@ -371,7 +372,8 @@ public class BaseDaoJpaAdapter {
               modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
             }
           } else {
-            log.error("Can't get id though can't copy the BaseDO (see error message above about HHH-3502).");
+            log.error("Can't get id though can't copy the BaseDO (see error message above about HHH-3502), or id not given for "
+                    + srcFieldValue.getClass() + ": " + ToStringUtil.toJsonString(srcFieldValue));
           }
         } else if (srcFieldValue instanceof LocalDate) {
           if (destFieldValue == null) {
@@ -390,7 +392,7 @@ public class BaseDaoJpaAdapter {
             field.set(dest, srcFieldValue);
             modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
           } else {
-            final PFDay srcDay = PFDay.from((java.sql.Date)srcFieldValue);
+            final PFDay srcDay = PFDay.from((java.sql.Date) srcFieldValue);
             final PFDay destDay = PFDay.from((Date) destFieldValue);
             if (!srcDay.isSameDay(destDay)) {
               field.set(dest, srcDay.getSqlDate());
