@@ -229,7 +229,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         lc.idPrefix = "timesheet."
         val layout = super.createListLayout()
                 .add(UILabel("'${translate("timesheet.totalDuration")}: tbd.")) // See TimesheetListForm
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "user")
                         .add(UITableColumn("timesheet.kost2.project.customer", "fibu.kunde", formatter = Formatter.CUSTOMER))
                         .add(UITableColumn("timesheet.kost2.project", "fibu.projekt", formatter = Formatter.PROJECT))

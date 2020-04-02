@@ -92,7 +92,7 @@ function DynamicReactSelect(props) {
                     onFavoriteSelect={onFavoriteSelect}
                     favorites={favorites}
                     translations={ui.translations}
-                    htmlId={`dynamicFavoritesPopover-${id}`}
+                    htmlId={`dynamicFavoritesPopover-${ui.uid}-${id}`}
                 />
             );
         }

@@ -239,7 +239,7 @@ class CalendarPanel extends React.Component {
             },
             (json) => {
                 const { url } = json;
-                history.push(`${match.url}/${url}`);
+                history.push(`${match.url}${url}`);
             });
     }
 

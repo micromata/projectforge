@@ -12,12 +12,12 @@ function DynamicAutoCompletion(
         ...props
     },
 ) {
-    const { data, setData } = React.useContext(DynamicLayoutContext);
+    const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
     return React.useMemo(() => (
         <DynamicValidationManager id={id}>
             <TextAutoCompletion
-                inputId={id}
+                inputId={`${ui.uid}-${id}`}
                 inputProps={{ label }}
                 onChange={completion => setData({ [id]: completion })}
                 url={url}

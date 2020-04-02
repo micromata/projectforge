@@ -213,6 +213,10 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
         var urlmatcher = CommonMatchers.always<String?>()
         if (StringUtils.isNotBlank(matcherexppr)) {
             urlmatcher = BooleanListRulesFactory<String?>().createMatcher(matcherexppr)
+            if (!externalUrlMatcherLogged) {
+                log.info("Using url matcher '$matcherexppr' for external urls.")
+                externalUrlMatcherLogged = true // Don't log mutliple times.
+            }
         }
         val prov = loadJpaExtScannerUrlProvider(environment)
         val urls = prov!!.scannUrls
@@ -410,6 +414,8 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
         const val EXTLIBURLMATCHER = "de.micromata.genome.jpa.extlibrary.urlmatcher"
 
         private var INTERNAL_TEST_MODE = false
+
+        private var externalUrlMatcherLogged = false
 
         @JvmStatic
         fun setInternalSetUnitTestMode() {

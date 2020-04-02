@@ -69,10 +69,11 @@ private val log = KotlinLogging.logger {}
 abstract class AbstractPagesRest<
         O : ExtendedBaseDO<Int>,
         DTO : Any, // DTO may be equals to O if no special data transfer objects are used.
-        B : BaseDao<O>>(
-        private val baseDaoClazz: Class<B>,
-        private val i18nKeyPrefix: String,
-        val cloneSupport: CloneSupport = CloneSupport.NONE) {
+        B : BaseDao<O>>
+@JvmOverloads
+constructor(private val baseDaoClazz: Class<B>,
+            private val i18nKeyPrefix: String,
+            val cloneSupport: CloneSupport = CloneSupport.NONE) {
     enum class CloneSupport {
         /** No clone support. */
         NONE,

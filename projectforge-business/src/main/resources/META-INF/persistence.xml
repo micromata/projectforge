@@ -27,7 +27,7 @@
             <property name="de.micromata.genome.jpa.extlibrary.urlprovider"
                       value="org.projectforge.framework.persistence.jpa.impl.JpaPfJpaPluginScannerUrlProvider"/>
             <property name="de.micromata.genome.jpa.extlibrary.urlmatcher"
-                      value="-*,+/target/*,+*org.projectforge*"/>
+                      value="-*,+/target/*,+*org.projectforge*,+*/plugins/*.jar"/>
 
             <property name="hibernate.cache.use_second_level_cache" value="true"/>
             <property name="hibernate.cache.use_query_cache" value="true"/>

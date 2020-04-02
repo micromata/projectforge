@@ -23,7 +23,6 @@
 
 package org.projectforge.rest.orga
 
-import org.projectforge.business.orga.PostFilter
 import org.projectforge.business.orga.PostType
 import org.projectforge.business.orga.PostausgangDO
 import org.projectforge.business.orga.PostausgangDao
@@ -64,7 +63,7 @@ class PostausgangPagesRest() : AbstractDOPagesRest<PostausgangDO, PostausgangDao
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "datum", "empfaenger", "person", "inhalt", "bemerkung", "type"))
         layout.getTableColumnById("datum").formatter = Formatter.DATE
         return LayoutUtils.processListPage(layout, this)

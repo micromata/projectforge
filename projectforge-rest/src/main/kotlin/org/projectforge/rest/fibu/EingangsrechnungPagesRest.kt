@@ -25,14 +25,20 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
+import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Eingangsrechnung
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/incomingInvoice")
@@ -46,7 +52,7 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "kreditor", "konto", "referenz", "betreff", "datum", "faelligkeit", "isBezahlt")
                         .add(UITableColumn("netSum", title = translate("fibu.common.netto"), dataType = UIDataType.DECIMAL))
                         .add(UITableColumn("grossSum", title = translate("fibu.rechnung.bruttoBetrag"), dataType = UIDataType.DECIMAL))
@@ -82,14 +88,12 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-    /*
-    @PostMapping("addPosition")
+    /*@PostMapping("addPosition")
     fun addPosition(request: HttpServletRequest, @RequestBody postData: PostData<EingangsrechnungDO>): ResponseEntity<ResponseAction> {
         val eingangsrechnung = postData.data
         eingangsrechnung.addPosition(EingangsrechnungsPositionDO())
-        return org.projectforge.rest.core.saveOrUpdate(request, this.eingangsrechnungDao, EingangsrechnungDO(), postData, this, this.validate(eingangsrechnung))
-    }
-     */
+        return saveOrUpdate(request, this.eingangsrechnungDao, EingangsrechnungDO(), postData, this, this.validate(eingangsrechnung))
+    }*/
 
     override fun transformForDB(dto: Eingangsrechnung): EingangsrechnungDO {
         val eingangsrechnungDO = EingangsrechnungDO()

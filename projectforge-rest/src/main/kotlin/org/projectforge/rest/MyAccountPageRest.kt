@@ -43,6 +43,7 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.FormLayoutData
@@ -240,7 +241,10 @@ class MyAccountPageRest: AbstractDynamicPageRest() {
                                 title = translate("user.authenticationToken.button.showUsage"),
                                 tooltip = "user.authenticationToken.button.showUsage.tooltip",
                                 color = UIColor.LINK,
-                                responseAction = ResponseAction("/rs/tokenAccess?token=${token}", targetType = TargetType.GET)))
+                                responseAction = ResponseAction(
+                                        PagesResolver.getDynamicPageUrl(TokenInfoPageRest::class.java,
+                                                mapOf("token" to token), absolute = true),
+                                        targetType = TargetType.MODAL)))
                 )
     }
 }

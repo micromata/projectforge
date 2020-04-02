@@ -281,7 +281,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
           (DateTimePanelSettings) DateTimePanelSettings.get().withSelectStartStopTime(true)
               .withTargetType(java.sql.Timestamp.class)
               .withRequired(true),
-          DatePrecision.MINUTE_15);
+          DatePrecision.MINUTE_5);
       dependentFormComponentsWithCost2[0] = dependentFormComponentsWithoutCost2[0] = startDateTimePanel;
       fs.add(startDateTimePanel);
       WicketUtils.addTooltip(startDateTimePanel.getDateField(), new Model<String>()
@@ -313,8 +313,8 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
       dependentFormComponentsWithCost2[1] = dependentFormComponentsWithoutCost2[1] = stopHourOfDayDropDownChoice;
       final DropDownChoice<Integer> stopMinuteDropDownChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
           new PropertyModel<>(this, "stopMinute"),
-          DateTimePanel.getMinutesRenderer(DatePrecision.MINUTE_15).getValues(),
-          DateTimePanel.getMinutesRenderer(DatePrecision.MINUTE_15));
+          DateTimePanel.getMinutesRenderer(DatePrecision.MINUTE_5).getValues(),
+          DateTimePanel.getMinutesRenderer(DatePrecision.MINUTE_5));
       stopMinuteDropDownChoice.setNullValid(false);
       stopMinuteDropDownChoice.setRequired(true);
       fs.add(stopMinuteDropDownChoice);
@@ -509,7 +509,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
 
   /**
    * Used also by TimesheetMassUpdateForm.
-   * 
+   *
    * @param timesheetDao
    * @param kost2List
    * @param data
@@ -542,7 +542,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
   public void onBeforeRender()
   {
     super.onBeforeRender();
-    final DateHolder stopDateHolder = new DateHolder(data.getStopTime(), DatePrecision.MINUTE_15);
+    final DateHolder stopDateHolder = new DateHolder(data.getStopTime(), DatePrecision.MINUTE_5);
     stopHourOfDay = stopDateHolder.getHourOfDay();
     stopMinute = stopDateHolder.getMinute();
   }
@@ -593,7 +593,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
   }
 
   /**
-   * 
+   *
    * @return
    */
   protected TimesheetEditFilter initTimesheetFilter()

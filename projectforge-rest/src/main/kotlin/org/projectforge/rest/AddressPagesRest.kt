@@ -200,7 +200,7 @@ class AddressPagesRest
         val addressLC = LayoutContext(lc)
         addressLC.idPrefix = "address."
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(addressLC, "isFavoriteCard", "lastUpdate")
                         .add(UITableColumn("address.imagePreview", "address.image", dataType = UIDataType.CUSTOMIZED))
                         .add(addressLC, "name", "firstName", "organization", "email")

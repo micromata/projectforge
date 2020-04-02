@@ -193,7 +193,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     @Transient
     fun setStartDate(startDate: Date?): TimesheetDO {
         if (startDate != null) {
-            val date = PFDateTime.from(startDate).withPrecision(DatePrecision.MINUTE_15)
+            val date = PFDateTime.from(startDate).withPrecision(DatePrecision.MINUTE_5)
             this.startTime = date.sqlTimestamp
         } else {
             this.stopTime = null
@@ -217,7 +217,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     @Transient
     fun setStopDate(stopDate: Date?): TimesheetDO {
         if (stopDate != null) {
-            val date = PFDateTime.from(stopDate).withPrecision(DatePrecision.MINUTE_15)
+            val date = PFDateTime.from(stopDate).withPrecision(DatePrecision.MINUTE_5)
             this.stopTime = date.sqlTimestamp
         } else {
             this.stopTime = null

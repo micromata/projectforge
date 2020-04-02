@@ -17,16 +17,15 @@ export const wicketRoute = (
     <Route
         path="/wa"
         component={({ location }) => {
-            if (process.env.NODE_ENV === 'development') {
-                return (
-                    <a href={getServiceURL(`..${location.pathname}`)}>
-                        Redirect to Wicket
-                    </a>
-                );
+            if (process.env.NODE_ENV !== 'development') {
+                window.location.reload();
             }
 
-            window.location.reload();
-            return <React.Fragment />;
+            return (
+                <a href={getServiceURL(`..${location.pathname}`)}>
+                    Redirect to Wicket
+                </a>
+            );
         }}
     />
 );
@@ -80,7 +79,7 @@ function AuthorizedRoutes(
                 <Modal
                     size="xl"
                     isOpen
-                    toggle={() => history.push(background.pathname, { background: undefined })}
+                    toggle={() => history.push(background)}
                 >
                     <ModalBody>
                         {routes(location)}

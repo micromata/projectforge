@@ -40,7 +40,7 @@ class AccountingRecordPagesRest: AbstractDOPagesRest<BuchungssatzDO, Buchungssat
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "formattedSatzNummer", "betrag", "beleg", "kost1", "kost2", "konto", "gegenKonto",
                                 "sh", "text", "comment"))
         layout.getTableColumnById("kost1").formatter = Formatter.COST1

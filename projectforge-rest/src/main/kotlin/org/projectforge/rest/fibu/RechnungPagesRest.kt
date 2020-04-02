@@ -42,7 +42,7 @@ class RechnungPagesRest : AbstractDTOPagesRest<RechnungDO, Rechnung, RechnungDao
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "nummer", "kunde", "projekt", "account", "betreff", "datum", "faelligkeit",
                                 "bezahlDatum", "periodOfPerformanceBegin", "periodOfPerformanceEnd")
                         .add(UITableColumn("netSum", title = translate("fibu.common.netto"), dataType = UIDataType.DECIMAL))

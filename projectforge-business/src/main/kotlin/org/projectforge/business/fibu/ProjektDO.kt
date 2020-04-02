@@ -35,8 +35,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import javax.persistence.*
 
 /**
- * Projekte sind Kunden zugeordnet und haben eine zweistellige Nummer. Sie sind Bestandteile von KOST2 (5. und 6.
- * Ziffer).
+ * Projekte sind Kunden zugeordnet und haben eine zweistellige Nummer. Sie sind Bestandteile von KOST2 (5. und 6. Ziffer).
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */

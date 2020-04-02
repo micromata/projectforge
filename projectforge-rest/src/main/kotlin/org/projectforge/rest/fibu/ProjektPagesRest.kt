@@ -61,8 +61,8 @@ class ProjektPagesRest
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
-                        .add(lc, "kost", "identifier", "kunde.name", "name", "kunde.division", "task", "konto", "status", "projektManagerGroup", "internKost2_4", "description"))
+                .add(UITable.createUIResultSetTable()
+                        .add(lc, "nummer", "identifier", "kunde", "name", "kunde.division", "konto", "status", "projektManagerGroup", "Kost2Art?", "description"))
         layout.getTableColumnById("konto").formatter = Formatter.KONTO
         layout.getTableColumnById("task").formatter = Formatter.TASK_PATH
         layout.getTableColumnById("projektManagerGroup").formatter = Formatter.GROUP

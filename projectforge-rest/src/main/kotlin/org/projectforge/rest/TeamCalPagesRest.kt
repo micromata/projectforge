@@ -29,7 +29,6 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.admin.right.TeamCalRight
 import org.projectforge.business.teamcal.externalsubscription.SubscriptionUpdateInterval
 import org.projectforge.business.teamcal.service.CalendarFeedService
-import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
@@ -122,7 +121,7 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "title", "externalSubscriptionUrlAnonymized", "description", "owner",
                                 "accessStatusString", "lastUpdate"))//, "externalSubscription"))
         layout.getTableColumnById("owner").formatter = Formatter.USER

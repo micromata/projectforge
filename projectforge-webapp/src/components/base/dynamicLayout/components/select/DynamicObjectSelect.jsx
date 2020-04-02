@@ -18,7 +18,7 @@ function DynamicObjectSelect(
     return (
         <DynamicValidationManager id={id}>
             <ObjectSelect
-                id={id}
+                id={`${ui.uid}-${id}`}
                 onSelect={handleSelect}
                 translations={ui.translations}
                 value={data[id] || {}}

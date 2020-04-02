@@ -69,7 +69,7 @@ class GroupPagesRest: AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::c
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "name", "organization", "description", "assignedUsers", "ldapValues"))
         return LayoutUtils.processListPage(layout, this)
     }

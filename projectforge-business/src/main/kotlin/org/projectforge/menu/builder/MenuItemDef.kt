@@ -35,7 +35,9 @@ import org.projectforge.menu.MenuItem
  * Defines one menu item once. The [MenuCreator] creates the user menu item from this definition dynamically dependent
  * e. g. on the user's access.
  */
-class MenuItemDef(
+class MenuItemDef
+@JvmOverloads
+constructor(
         /**
          * Needed for unique keys for React frontend.
          */
