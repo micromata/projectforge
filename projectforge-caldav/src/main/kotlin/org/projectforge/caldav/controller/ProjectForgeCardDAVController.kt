@@ -24,12 +24,15 @@
 package org.projectforge.caldav.controller
 
 import io.milton.annotations.*
+import mu.KotlinLogging
 import org.projectforge.caldav.model.*
 import org.projectforge.caldav.service.AddressService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 
 // curl -A "CoreDAV" --user "kai:xxxx" -H "Content-Type: text/xml" -H "Depth: 1" --data "<propfind xmlns='DAV:'><prop><address-data xmlns='urn:ietf:params:xml:ns:carddav'/></prop></propfind>" -X PROPFIND "http://localhost:8080/users/kai/addressBooks/default"
+
+private val log = KotlinLogging.logger {}
 
 @ResourceController
 open class ProjectForgeCardDAVController : BaseDAVController() {
@@ -77,7 +80,9 @@ open class ProjectForgeCardDAVController : BaseDAVController() {
     @Get
     @ContactData
     fun getContactData(c: Contact): ByteArray? {
-        log.info("getContactData: '${c.name}' with id ${c.id}.")
+        if (log.isDebugEnabled) {
+            log.debug("getContactData: '${c.name}' with id ${c.id}.")
+        }
         return c.vcardData
     }
 
@@ -97,10 +102,6 @@ open class ProjectForgeCardDAVController : BaseDAVController() {
     fun deleteContact(c: Contact) {
         log.info("deleteContact: '${c.name}' with id ${c.id}.")
         addressService.deleteContact(c)
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(ProjectForgeCardDAVController::class.java)
     }
 
     init {
