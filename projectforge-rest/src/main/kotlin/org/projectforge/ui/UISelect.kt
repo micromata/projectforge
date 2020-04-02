@@ -118,5 +118,15 @@ class UISelect<T>(val id: String,
                     autoCompletion = AutoCompletion.getAutoCompletion4Customers(),
                     tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey)
         }
+
+        fun createProjectSelect(lc: LayoutContext,id:String, multi: Boolean, label: String? = null, additionalLabel: String? = null, tooltip: String? = null): UISelect<Int> {
+            return UISelect<Int>(id,
+                    lc,
+                    multi = multi,
+                    label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
+                    additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
+                    autoCompletion = AutoCompletion.getAutoCompletion4Projects(),
+                    tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey)
+        }
     }
 }

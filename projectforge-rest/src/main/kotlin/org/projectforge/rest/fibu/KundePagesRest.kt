@@ -82,5 +82,5 @@ class KundePagesRest
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-    override val autoCompleteSearchFields = arrayOf("name")
+    override val autoCompleteSearchFields = arrayOf("name", "identifier")
 }
