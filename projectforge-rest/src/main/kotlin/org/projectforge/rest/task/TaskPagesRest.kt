@@ -68,7 +68,7 @@ class TaskPagesRest
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "title"))
         return LayoutUtils.processListPage(layout, this)
     }

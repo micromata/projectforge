@@ -144,7 +144,7 @@ class CalendarServicesRest {
             } else {
                 "timesheet"
             }
-            url = "$category/edit?startDate=$startDate&endDate=$endDate"
+            url = "/$category/edit?startDate=$startDate&endDate=$endDate"
             if (defaultCalendarId != null && defaultCalendarId > 0) {
                 url = "$url&calendar=$defaultCalendarId"
             }
@@ -154,7 +154,7 @@ class CalendarServicesRest {
             val dbId = NumberHelper.parseInteger(dbIdParam)
             val dbIdString = if (dbId != null && dbId >= 0) "$dbId" else ""
             val uidString = if (uidParam.isNullOrBlank()) "" else URLEncoder.encode(uidParam, "UTF-8")
-            url = "$category/edit/$dbIdString$uidString?startDate=$startDate&endDate=$endDate"
+            url = "/$category/edit/$dbIdString$uidString?startDate=$startDate&endDate=$endDate"
             if (category != "timesheet" && origStartDate != null) {
                 url = "$url&origStartDate=$origStartDate&origEndDate=$origEndDate"
             }

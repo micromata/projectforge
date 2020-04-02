@@ -25,7 +25,6 @@ package org.projectforge.rest.orga
 
 import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractDao
-import org.projectforge.business.orga.ContractFilter
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
@@ -60,7 +59,7 @@ class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(Contrac
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "number", "date", "type", "status", "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate"))
         layout.getTableColumnById("date").formatter = Formatter.DATE
         return LayoutUtils.processListPage(layout, this)

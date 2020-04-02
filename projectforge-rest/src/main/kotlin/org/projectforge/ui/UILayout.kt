@@ -77,6 +77,11 @@ class UILayout {
     val watchFields = mutableListOf<String>()
 
     /**
+     * UID usable by the client for having unique dialoque ids.
+     */
+    val uid = "layout${System.currentTimeMillis()}"
+
+    /**
      * All required translations for the frontend dependent on the logged-in-user's language.
      */
     val translations = mutableMapOf<String, String>()
@@ -141,6 +146,7 @@ class UILayout {
      * Convenient method for adding a bunch of UIInput fields with the given ids.
      * @param createRowCol If true (default), the elements will be surrounded with [UIRow] and [UICol] each, otherwise not.
      */
+    @JvmOverloads
     fun add(layoutSettings: LayoutContext, vararg ids: String, createRowCol: Boolean = false): UILayout {
         ids.forEach {
             val element = LayoutUtils.buildLabelInputElement(layoutSettings, it)

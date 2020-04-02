@@ -11,12 +11,13 @@ const filterRecent = (
         description,
     },
 ) => {
-    const kost2Number = kost2 ? kost2.formattedNumber : undefined;
-    const projekt = kost2 ? kost2.projekt : undefined;
-    const kunde = projekt ? projekt.kunde : undefined;
-    const projektName = projekt ? projekt.name : undefined;
-    const kundeName = kunde ? kunde.name : undefined;
-    const str = `${task.title}|${kost2Number}|${projektName}|${kundeName}|${location}|${description}`.toLocaleLowerCase();
+    const kost2Number = kost2 ? kost2.formattedNumber : '';
+    const projekt = kost2 ? kost2.projekt : '';
+    const kunde = projekt ? projekt.kunde : '';
+    const projektName = projekt ? projekt.name : '';
+    const kundeName = kunde ? kunde.name : '';
+    const taskTitle = task ? task.title : '';
+    const str = `${taskTitle}|${kost2Number}|${projektName}|${kundeName}|${location}|${description}`.toLocaleLowerCase();
     return str.includes(search.toLocaleLowerCase());
 };
 

@@ -53,8 +53,8 @@ function AdvancedPopper(
             if (reference.current) {
                 const { top, left } = reference.current.getBoundingClientRect();
 
-                setAdditionalHeight(window.innerHeight - top - basicHeight - 64);
-                setAdditionalWidth(window.innerWidth - left - basicWidth - 16);
+                setAdditionalHeight(document.body.clientHeight - top - basicHeight - 64);
+                setAdditionalWidth(document.body.clientWidth - left - basicWidth - 16);
             }
         },
         [

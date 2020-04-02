@@ -41,6 +41,7 @@ class LayoutUtils {
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
 
+        @JvmStatic
         fun addCommonTranslations(translations: MutableMap<String, String>) {
             addTranslations("select.placeholder", "calendar.today", "task.title.list.select", translations = translations)
         }
@@ -50,6 +51,7 @@ class LayoutUtils {
          * i18n-keys (by referring the [org.projectforge.common.anots.PropertyInfo] annotations of clazz).
          * @return List of all elements used in the layout.
          */
+        @JvmStatic
         fun process(layout: UILayout): List<Any?> {
             val elements = processAllElements(layout.getAllElements())
             var counter = 0
@@ -63,6 +65,8 @@ class LayoutUtils {
          * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
          * i18n-keys (by referring the [org.projectforge.common.anots.PropertyInfo] annotations of clazz).
          */
+        @JvmOverloads
+        @JvmStatic
         fun processListPage(layout: UILayout, pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>): UILayout {
             layout
                     .addAction(UIButton("reset",
@@ -87,6 +91,8 @@ class LayoutUtils {
          * Calls also fun [process].
          * @see LayoutUtils.process
          */
+        @JvmOverloads
+        @JvmStatic
         fun <O : ExtendedBaseDO<Int>> processEditPage(layout: UILayout, dto: Any, pagesRest: AbstractPagesRest<O, *, out BaseDao<O>>)
                 : UILayout {
             layout.addAction(UIButton("cancel",

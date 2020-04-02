@@ -55,8 +55,6 @@ function DayRange(
                 newEndDate.add(1, 'days');
             }
 
-            setStartDate(newStartDate);
-            setEndDate(newEndDate);
             setData({
                 [startDateId]: newStartDate.toDate(),
                 [endDateId]: newEndDate.toDate(),
@@ -71,7 +69,7 @@ function DayRange(
                 <TimeRange
                     label={label}
                     from={startDate ? startDate.toDate() : undefined}
-                    id={id}
+                    id={`${ui.uid}-${id}`}
                     sameDate
                     setFrom={changeStartTime}
                     setTo={changeEndTime}

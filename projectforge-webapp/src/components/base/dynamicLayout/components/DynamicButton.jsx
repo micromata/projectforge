@@ -79,12 +79,12 @@ function DynamicButton(props) {
                 {...stylingProps}
                 onClick={handleClick}
                 type={type}
-                id={id}
+                id={`${ui.uid}-${id}`}
             >
                 {title}
             </Button>
             {tooltip && id && (
-                <UncontrolledTooltip placement="auto" target={id}>
+                <UncontrolledTooltip placement="auto" target={`${ui.uid}-${id}`}>
                     {tooltip}
                 </UncontrolledTooltip>
             )}

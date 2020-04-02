@@ -43,7 +43,7 @@ class HRPlanningPagesRest : AbstractDOPagesRest<HRPlanningDO, HRPlanningDao>(HRP
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "user", "sum", "rest"))
         return LayoutUtils.processListPage(layout, this)
     }

@@ -25,6 +25,7 @@ package org.projectforge.plugins.core
 
 import mu.KotlinLogging
 import org.apache.commons.lang3.Validate
+import org.flywaydb.core.Flyway
 import org.projectforge.business.user.UserRight
 import org.projectforge.business.user.UserXmlPreferencesDao
 import org.projectforge.continuousdb.UpdateEntry
@@ -39,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import java.io.Serializable
 import java.util.*
+import javax.sql.DataSource
 
 private val log = KotlinLogging.logger {}
 
@@ -59,6 +61,9 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
 
     @Autowired
     protected lateinit var accessChecker: AccessChecker
+
+    @Autowired
+    protected lateinit var dataSource: DataSource
 
     @Autowired
     protected lateinit var userRights: UserRightService
@@ -86,6 +91,7 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
             initializedPlugins.add(this.javaClass)
             log.info("Initializing plugin: $javaClass")
             initialize()
+            flywayInit()
         }
     }
 
@@ -156,6 +162,54 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
         userRights.addRight(right)
         return this
     }
+
+    /**
+     * Initializes Flyway mechanism, if any flyway script or migration class is found.
+     * Searches for classpath in [buildFlywayClasspath].
+     */
+    protected open fun flywayInit() {
+        val flywayClasspath = buildFlywayClasspath()
+        if (flywayClasspath.isEmpty()) {
+            if (this::class.java.`package`.name.contains("org.projectforge.plugins"))
+            log.info { "No flyway scripts found, so no automatically database initialization and migration is done by plugin '$id' (might be OK)." }
+            return
+        }
+        log.info("Initializing flyway with locations for plugin '$id': ${flywayClasspath.joinToString(",") { it }}")
+        val flyway = Flyway.configure()
+                .dataSource(dataSource)
+                .table("t_flyway_${id}_schema_version")
+                .locations(*flywayClasspath)
+                .baselineVersion(flywayBaselineVersion)
+                .baselineOnMigrate(true)
+                .load()
+        flyway.migrate()
+    }
+
+    protected open val flywayBaselineVersion: String
+        get() = "0.1"
+
+
+    /**
+     * Tries to find flyway init and migration scripts (sql as well as Java/Kotlin) in classpath:
+     * '/flyway/${plugin.id}/init/common', '/flyway/${plugin.id}/init/${db-vendor}',
+     * '/flyway/${plugin.id}/migrate/common', '/flyway/${plugin.id}/migrate/${db-vendor}' and
+     * '/${plugin.package}/flyway/dbmigration'
+     */
+    protected open fun buildFlywayClasspath(): Array<String> {
+        val vendor = dataSource.connection.metaData.databaseProductName.toLowerCase()
+        // Class.packageName since java 9, but want to be compatible with Java 8:
+        val packageLocation = this::class.java.`package`.name.replace('.', '/')
+        return arrayOf(
+                "/flyway/$id/init/common",
+                "/flyway/$id/init/$vendor",
+                "/flyway/$id/migrate/common",
+                "/flyway/$id/migrate/$vendor",
+                "/$packageLocation/flyway/dbmigration")
+                .filter { this::class.java.getResource(it) != null }
+                .map { "classpath:$it" }
+                .toTypedArray()
+    }
+
 
     /**
      * Override this method if an update entry for initialization does exist. This will be called, if the plugin runs the

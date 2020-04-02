@@ -59,9 +59,8 @@ class KundePagesRest
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
-        // TODO: First column is kost
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "kost", "identifier", "name", "division", "konto", "status", "description"))
         layout.getTableColumnById("konto").formatter = Formatter.KONTO
         return LayoutUtils.processListPage(layout, this)

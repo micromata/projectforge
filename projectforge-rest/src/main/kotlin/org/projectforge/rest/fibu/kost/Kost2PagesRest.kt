@@ -59,7 +59,7 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "formattedNumber", "kost2Art", "kost2Art.fakturiert", "workFraction",
                                 "projekt.kunde", "projekt", "kostentraegerStatus", "description", "comment"))
         layout.getTableColumnById("projekt").formatter = Formatter.PROJECT

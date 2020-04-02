@@ -40,7 +40,7 @@ class LiquidityEntryPagesRest: AbstractDOPagesRest<LiquidityEntryDO, LiquidityEn
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "dateOfPayment", "amount", "paid", "subject", "comment"))
         layout.getTableColumnById("dateOfPayment").formatter = Formatter.DATE
         return LayoutUtils.processListPage(layout, this)
