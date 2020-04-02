@@ -64,14 +64,14 @@ public class CookieService {
       }
       final String[] values = value.split(":");
       if (values.length != 3) {
-        log.warn("Invalid cookie found: " + value);
+        log.warn("Invalid cookie found: " + StringUtils.abbreviate(value, 10));
         return null;
       }
       final String username = values[1];
       final String stayLoggedInKey = values[2];
       final PFUserDO user = userAuthenticationsService.getUserByToken(request, username, UserTokenType.STAY_LOGGED_IN_KEY, stayLoggedInKey);
       if (user == null) {
-        log.warn("Invalid cookie found (user not found, stay-logged-in key, maybe renewed and/or user password changed): " + value);
+        log.warn("Invalid cookie found (user not found, stay-logged-in key, maybe renewed and/or user password changed): " + StringUtils.abbreviate(value, 10));
         return null;
       }
       if (!Login.getInstance().checkStayLoggedIn(user)) {
