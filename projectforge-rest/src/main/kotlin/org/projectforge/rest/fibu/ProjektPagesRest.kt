@@ -56,6 +56,9 @@ class ProjektPagesRest
         return projektDO
     }
 
+    override val classicsLinkListUrl: String?
+        get() = "wa/projectList"
+
     /**
      * LAYOUT List page
      */
@@ -85,6 +88,9 @@ class ProjektPagesRest
                                 .add(UISelect.createGroupSelect(lc, "projektManagerGroup", false, "fibu.projekt.projektManagerGroup"))
                                 .add(lc, "projectManager", "headOfBusinessManager", "description")
                                 .add(UILabel("TODO: Kost 2 Types"))))
+
         return LayoutUtils.processEditPage(layout, dto, this)
     }
+
+    override val autoCompleteSearchFields = arrayOf("name", "identifier")
 }

@@ -47,7 +47,7 @@ class AutoCompletion<T>(
     /**
      * Pre-defined types of autocompletion objects as information for the clients.
      */
-    enum class Type { USER, GROUP, CUSTOMER }
+    enum class Type { USER, GROUP, CUSTOMER, PROJECT }
     class Entry<T>(val value: T,
                    /**
                     * The title to display.
@@ -109,6 +109,13 @@ class AutoCompletion<T>(
          */
         fun getAutoCompletion4Customers(): AutoCompletion<Int> {
             return AutoCompletion(url = getAutoCompletionUrl("customer"), type = Type.CUSTOMER.name)
+        }
+
+        /**
+         * @return category/autosearch?search=:search
+         */
+        fun getAutoCompletion4Projects(): AutoCompletion<Int> {
+            return AutoCompletion(url = getAutoCompletionUrl("project"), type = Type.PROJECT.name)
         }
     }
 }

@@ -26,6 +26,7 @@ package org.projectforge.rest.fibu.kost
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
+import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -38,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("${Rest.URL}/cost2")
 class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::class.java, "fibu.kost2.title") {
+
     override fun transformFromDB(obj: Kost2DO, editMode: Boolean): Kost2 {
         val kost2 = Kost2()
         kost2.copyFrom(obj)
@@ -73,7 +75,7 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
-                                .add(lc, "projekt")
+                                .add(UISelect.createProjectSelect(lc, "projekt", false, "fibu.projekt"))
                                 .add(UICustomized("cost.number"))
                                 .add(lc, "workFraction", "description", "comment", "kostentraegerStatus")))
         return LayoutUtils.processEditPage(layout, dto, this)
