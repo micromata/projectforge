@@ -236,7 +236,7 @@ class MyAccountPageRest: AbstractDynamicPageRest() {
                                 tooltip = tooltip ?: "user.authenticationToken.renew.tooltip",
                                 confirmMessage = translate("user.authenticationToken.renew.securityQuestion"),
                                 color = UIColor.DANGER,
-                                responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.GET)))
+                                responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.POST)))
                         .add(UIButton("${id}-access",
                                 title = translate("user.authenticationToken.button.showUsage"),
                                 tooltip = "user.authenticationToken.button.showUsage.tooltip",

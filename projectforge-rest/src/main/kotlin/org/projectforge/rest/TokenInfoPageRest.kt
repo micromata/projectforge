@@ -83,7 +83,7 @@ class TokenInfoPageRest : AbstractDynamicPageRest() {
                 tooltip = "user.authenticationToken.renew.tooltip",
                 confirmMessage = translate("user.authenticationToken.renew.securityQuestion"),
                 color = UIColor.DANGER,
-                responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.GET)))
+                responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.POST)))
 
         layout.addTranslations("cancel", "yes")
         LayoutUtils.process(layout)

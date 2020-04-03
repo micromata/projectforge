@@ -31,7 +31,10 @@ function DynamicButton(props) {
     };
 
     const toggleShowConfirmMessage = () => setShowConfirmMessage(!showConfirmMessage);
-    const confirmAction = () => callAction(props);
+    const confirmAction = () => {
+        callAction(props);
+        setShowConfirmMessage(false);
+    };
 
     React.useEffect(() => {
         if (showConfirmMessage) {

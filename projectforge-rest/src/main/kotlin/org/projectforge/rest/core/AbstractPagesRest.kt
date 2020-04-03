@@ -41,6 +41,7 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
@@ -285,9 +286,8 @@ constructor(private val baseDaoClazz: Class<B>,
 
     fun validate(request: HttpServletRequest, dbObj: O, postData: PostData<DTO>): List<ValidationError>? {
         val validationErrors = validate(dbObj)
-        if (!sessionCsrfCache.checkToken(request, postData.serverData?.csrfToken)) {
-            log.warn("Check of CSRF token failed, a validation error will be shown. Upsert of data declined: ${postData.data}")
-            validationErrors.add(ValidationError.create("errorpage.csrfError"))
+        RestUtils.checkCsrfToken(request, sessionCsrfCache, postData.serverData?.csrfToken, "Upsert", postData.data)?.let {
+            validationErrors.add(it)
             return validationErrors
         }
         val dto = postData.data
