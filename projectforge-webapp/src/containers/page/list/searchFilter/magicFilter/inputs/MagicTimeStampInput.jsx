@@ -83,12 +83,12 @@ MagicTimeStampInput.defaultProps = {
 
 MagicTimeStampInput.isEmpty = ({ from, to }) => !(from || to);
 
-MagicTimeStampInput.getLabel = (label, { from, to }, { id }) => {
-    if (from && to && typeof from !== 'string' && typeof to !== 'string') {
+MagicTimeStampInput.getLabel = (label, { from, to }) => {
+    if (from && to) {
         return (
             <FormattedTimeRange
-                from={from}
-                to={to}
+                from={typeof from === 'string' ? new Date(from) : from}
+                to={typeof to === 'string' ? new Date(to) : to}
             >
                 {`${label}: `}
             </FormattedTimeRange>
