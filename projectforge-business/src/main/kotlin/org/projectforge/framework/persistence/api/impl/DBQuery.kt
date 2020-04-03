@@ -142,6 +142,7 @@ open class DBQuery {
                             && baseDao.containsLong(idSet, next)
                             && match(list, customResultFilters, resultPredicates, next)) {
                         // Current result object fits the modified query:
+                        baseDao.afterLoad(next)
                         list.add(next)
                         if (++resultCounter >= filter.maxRows) {
                             break
@@ -157,6 +158,7 @@ open class DBQuery {
                     // Current result object wasn't yet proceeded.
                     ensureUniqueSet.add(next.id) // Mark current object as already proceeded (ensure uniqueness)
                     if (!checkAccess || baseDao.hasSelectAccess(next, loggedInUser, superAdmin) && match(list, customResultFilters, resultPredicates, next)) {
+                        baseDao.afterLoad(next)
                         list.add(next)
                         if (++resultCounter >= filter.maxRows) {
                             break

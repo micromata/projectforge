@@ -109,7 +109,7 @@ public class ICalParser
       // parse calendar
       this.calendar = builder.build(iCalReader);
     } catch (IOException | ParserException e) {
-      log.error("An unknown error occurred while parsing an ICS file", e);
+      log.error("An unknown error occurred while parsing an ICS file: " + e.getMessage());
       return false;
     }
     return this.parse(this.calendar);
