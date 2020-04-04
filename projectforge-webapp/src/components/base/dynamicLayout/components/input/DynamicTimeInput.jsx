@@ -7,7 +7,7 @@ import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from './DynamicValidationManager';
 import TimeInput from '../../../../design/input/calendar/TimeInput';
 
-function DynamicTimestampInput(
+function DynamicTimeInput(
     {
         id,
         ...props
@@ -50,10 +50,10 @@ function DynamicTimestampInput(
     ), [time, setData]);
 }
 
-DynamicTimestampInput.propTypes = {
+DynamicTimeInput.propTypes = {
     id: PropTypes.string.isRequired,
 };
 
-DynamicTimestampInput.defaultProps = {};
+DynamicTimeInput.defaultProps = {};
 
-export default DynamicTimestampInput;
+export default DynamicTimeInput;
