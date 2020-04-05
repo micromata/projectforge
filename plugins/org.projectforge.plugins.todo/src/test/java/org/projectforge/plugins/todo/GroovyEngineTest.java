@@ -80,6 +80,8 @@ public class GroovyEngineTest extends AbstractTestBase {
     ToDoDO todo = new ToDoDO();
     todo.setType(ToDoType.IMPROVEMENT);
     todo.setPriority(Priority.HIGH);
+    todo.setReporter(user);
+    todo.setAssignee(user);
     engine.putVariable("todo", todo);
     engine.putVariable("title", "ToDo");
     engine.putVariable("history", new ArrayList<DisplayHistoryEntry>());
