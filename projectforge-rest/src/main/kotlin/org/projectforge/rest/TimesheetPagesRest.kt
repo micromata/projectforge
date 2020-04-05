@@ -30,7 +30,10 @@ import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.systeminfo.SystemInfoCache
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
-import org.projectforge.business.timesheet.*
+import org.projectforge.business.timesheet.TimesheetDO
+import org.projectforge.business.timesheet.TimesheetDao
+import org.projectforge.business.timesheet.TimesheetFavoritesService
+import org.projectforge.business.timesheet.TimesheetRecentService
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.DateFormatType
@@ -179,9 +182,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     override fun afterEdit(obj: TimesheetDO, postData: PostData<Timesheet>): ResponseAction {
         // Save time sheet as recent time sheet
         val timesheet = postData.data
-        timesheetRecentService.addRecentTimesheet(TimesheetRecentEntry(transformForDB(timesheet)))
-        timesheetRecentService.addRecentTaskId(timesheet.task?.id)
-        timesheetRecentService.addRecentLocation(timesheet.location)
+        timesheetRecentService.addRecentTimesheet(transformForDB(timesheet))
 
         return ResponseAction("/${Const.REACT_APP_PATH}calendar")
                 .addVariable("date", obj.startTime)
@@ -210,7 +211,11 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     override fun getAutoCompletionForProperty(@RequestParam("property") property: String, @RequestParam("search") searchString: String?)
             : List<String> {
         if (property == "location") {
-            return baseDao.getLocationAutocompletion(searchString)
+            val toLowerSearch = searchString?.toLowerCase()
+            if (toLowerSearch.isNullOrBlank()) {
+                return timesheetRecentService.getRecentLocations()
+            }
+            return timesheetRecentService.getRecentLocations().filter { it.toLowerCase().contains(toLowerSearch) }
         }
         return super.getAutoCompletionForProperty(property, searchString)
     }

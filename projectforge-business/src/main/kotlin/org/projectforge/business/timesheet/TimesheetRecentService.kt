@@ -49,32 +49,33 @@ open class TimesheetRecentService {
         return getRecentTimesheetsQueue(ThreadLocalUserContext.getUserId()).recent
     }
 
+    /**
+     * Adds given timesheet to recent queue as well as any location and/or task id if given.
+     */
+    open fun addRecentTimesheet(timesheet: TimesheetDO) {
+        addRecentTimesheet(TimesheetRecentEntry(timesheet))
+    }
+
     open fun addRecentTimesheet(entry: TimesheetRecentEntry) {
         if (entry.description.isNullOrBlank() && entry.location.isNullOrBlank() && entry.taskId == null) {
             // Don't append empty entries.
             return
         }
         getRecentTimesheetsQueue(ThreadLocalUserContext.getUserId()).append(entry)
+        if (!entry.location.isNullOrBlank()) {
+            getRecentLocationsQueue(ThreadLocalUserContext.getUserId()).append(entry.location)
+        }
+        entry.taskId?.let {
+            getRecentTaskIdsQueue(ThreadLocalUserContext.getUserId()).append(it)
+        }
     }
 
     open fun getRecentLocations(): List<String> {
         return getRecentLocationsQueue(ThreadLocalUserContext.getUserId()).recentList ?: emptyList()
     }
 
-    open fun addRecentLocation(location: String?) {
-        if (location.isNullOrBlank()) {
-            return
-        }
-        getRecentLocationsQueue(ThreadLocalUserContext.getUserId()).append(location)
-    }
-
     open fun getRecentTaskIds(): List<Int> {
         return getRecentTaskIdsQueue(ThreadLocalUserContext.getUserId()).recentList ?: emptyList()
-    }
-
-    open fun addRecentTaskId(taskId: Int?) {
-        taskId ?: return
-        getRecentTaskIdsQueue(ThreadLocalUserContext.getUserId()).append(taskId)
     }
 
     private fun getRecentTimesheetsQueue(userId: Int): RecentQueue<TimesheetRecentEntry> {
@@ -173,8 +174,9 @@ open class TimesheetRecentService {
     }
 
     companion object {
-        private const val PREF_AREA = "timesheet"
         private const val MAX_RECENT = 50
         private const val YEARS_AGO = 1L
+
+        private val PREF_AREA = TimesheetRecentService::class.java.name
     }
 }

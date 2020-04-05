@@ -363,9 +363,7 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
     }
     // Save time sheet as recent time sheet
     final TimesheetDO timesheet = getData();
-    timesheetRecentService.addRecentTimesheet(new TimesheetRecentEntry(timesheet));
-    timesheetRecentService.addRecentTaskId(timesheet.getTaskId());
-    timesheetRecentService.addRecentLocation(timesheet.getLocation());
+    timesheetRecentService.addRecentTimesheet(timesheet);
     // Does the user want to store this time sheet as template?
     if (BooleanUtils.isTrue(form.saveAsTemplate) == true) {
       final UserPrefEditPage userPrefEditPage = new UserPrefEditPage(UserPrefArea.TIMESHEET_TEMPLATE, getData());
