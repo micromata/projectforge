@@ -261,7 +261,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             }
         }
         val layout = super.createEditLayout(dto, userAccess)
-                .add(UICustomized("timesheet.edit.templatesAndRecents"))
+                .add(UICustomized("timesheet.edit.templatesAndRecent"))
                 .add(UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2")))
                 .add(lc, "user")
                 .add(dayRange)
@@ -290,8 +290,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     /**
      * @return The list fo recent edited time sheets of the current logged in user.
      */
-    @GetMapping("recents")
-    fun getRecents(): RecentTimesheets {
+    @GetMapping("recent")
+    fun getRecent(): RecentTimesheets {
         val recentTimesheets = timesheetRecentService.getRecentTimesheets()
         var counter = 1
         val timesheets = recentTimesheets.map {

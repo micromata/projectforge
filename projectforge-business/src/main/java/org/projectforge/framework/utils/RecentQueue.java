@@ -39,7 +39,7 @@ public class RecentQueue<T> implements Serializable
 
   protected int maxSize = 25;
 
-  protected List<T> recents;
+  protected List<T> recentList;
 
   public RecentQueue()
   {
@@ -64,13 +64,13 @@ public class RecentQueue<T> implements Serializable
    */
   public T get(Integer pos)
   {
-    if (CollectionUtils.isEmpty(recents)) {
+    if (CollectionUtils.isEmpty(recentList)) {
       return null;
     }
     if (pos == null) {
-      return recents.get(0);
-    } else if (pos >= 0 && pos < recents.size()) {
-      return recents.get(pos);
+      return recentList.get(0);
+    } else if (pos >= 0 && pos < recentList.size()) {
+      return recentList.get(pos);
     }
     return null;
   }
@@ -82,42 +82,42 @@ public class RecentQueue<T> implements Serializable
   public void addOnly(T entry)
   {
     synchronized (this) {
-      if (recents == null) {
-        recents = new ArrayList<>();
+      if (recentList == null) {
+        recentList = new ArrayList<>();
       }
     }
-    if (recents.indexOf(entry) == -1) {
-      recents.add(entry);
+    if (recentList.indexOf(entry) == -1) {
+      recentList.add(entry);
     }
   }
 
   public RecentQueue<T> append(T entry)
   {
     synchronized (this) {
-      if (recents == null) {
-        recents = new ArrayList<>();
+      if (recentList == null) {
+        recentList = new ArrayList<>();
       }
     }
-    int idx = recents.indexOf(entry);
+    int idx = recentList.indexOf(entry);
     if (idx >= 0) {
       // Prevent duplicate entry:
-      recents.remove(idx);
+      recentList.remove(idx);
     }
-    while (recents.size() >= maxSize && recents.size() > 0) {
-      recents.remove(recents.size() - 1);
+    while (recentList.size() >= maxSize && recentList.size() > 0) {
+      recentList.remove(recentList.size() - 1);
     }
-    recents.add(0, entry);
+    recentList.add(0, entry);
     return this;
   }
 
-  public List<T> getRecents()
+  public List<T> getRecentList()
   {
-    return recents;
+    return recentList;
   }
 
-  public void setRecents(List<T> recents)
+  public void setRecentList(List<T> recentList)
   {
-    this.recents = recents;
+    this.recentList = recentList;
   }
 
   public void setMaxSize(int maxSize)
@@ -127,9 +127,9 @@ public class RecentQueue<T> implements Serializable
 
   public int size()
   {
-    if (recents == null) {
+    if (recentList == null) {
       return 0;
     }
-    return recents.size();
+    return recentList.size();
   }
 }
