@@ -83,15 +83,11 @@ object I18nHelper {
 
     private fun getLocalizedString(locale: Locale?, i18nKey: String): String {
         val lc = locale ?: ThreadLocalUserContext.getLocale()
-        try {
-            for (bundleName in BUNDLE_NAMES) {
-                val translation = getLocalizedString(bundleName, lc, i18nKey)
-                if (translation != null) {
-                    return translation
-                }
+        for (bundleName in BUNDLE_NAMES) {
+            val translation = getLocalizedString(bundleName, lc, i18nKey)
+            if (translation != null) {
+                return translation
             }
-        } catch (ex: Exception) { // MissingResourceException or NullpointerException
-            log.warn("Resource key '$i18nKey' not found for locale '$locale' in bundles ${BUNDLE_NAMES.joinToString { it }}: ${ex.message}")
         }
         log.warn("Resource key '$i18nKey' not found for locale '$locale' in bundles ${BUNDLE_NAMES.joinToString { it }}")
         return "???$i18nKey???"
@@ -107,7 +103,7 @@ object I18nHelper {
                 //i18nService.getAdditionalString(i18nKey, locale)
             }
         } catch (ex: Exception) {
-            log.warn("Resource key '$i18nKey' not found for locale '$locale' in bundle '$bundleName': ${ex.message}")
+            log.warn("Exception while trying to access key '$i18nKey' for locale '$locale' and bundle '$bundleName': ${ex.message}")
         }
         return null
     }
