@@ -325,7 +325,6 @@ public class WebRegistry
     addMountPage("error", ErrorPage.class);
     addMountPage("feedback", FeedbackPage.class);
     addMountPage("monthlyEmployeeReport", MonthlyEmployeeReportPage.class);
-    addMountPage("myAccount", MyAccountEditPage.class);
     addMountPage("personalStatistics", PersonalStatisticsPage.class);
     addMountPage("phoneCall", PhoneCallPage.class);
     addMountPage("reportObjectives", ReportObjectivesPage.class);
