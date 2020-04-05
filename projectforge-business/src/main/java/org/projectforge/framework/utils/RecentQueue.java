@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.utils;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.io.Serializable;
@@ -39,6 +40,7 @@ public class RecentQueue<T> implements Serializable
 
   protected int maxSize = 25;
 
+  @XStreamAlias("recents") // Was named recents in former version (before 2020-04-05.
   protected List<T> recentList;
 
   public RecentQueue()
