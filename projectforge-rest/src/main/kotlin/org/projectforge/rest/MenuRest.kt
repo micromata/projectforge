@@ -63,19 +63,8 @@ class MenuRest {
         val item = MenuItem("username", ThreadLocalUserContext.getUser()?.getFullname())
         myAccountMenu.add(item)
         item.add(MenuItem(MenuItemDefId.FEEDBACK))
-        if (SystemStatus.isDevelopmentMode()) {
-            log.warn("********** React version of my account is only available in development mode.")
-            item.add(MenuItemDef("MY_ACCOUNT", "menu.myAccount", "${MenuCreator.REACT_PREFIX}myAccount/dynamic"))
-        } else {
-            item.add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
-        }
-        if (systemStatus.developmentMode) {
-            val vacationAccountItem = MenuItem(MenuItemDefId.VACATION_ACCOUNT)
-            vacationAccountItem.url = "${PREFIX}vacationAccount/dynamic"
-            item.add(vacationAccountItem)
-        } else {
-            item.add(MenuItem(MenuItemDefId.VACATION_ACCOUNT))
-        }
+        item.add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
+        item.add(MenuItem(MenuItemDefId.VACATION_ACCOUNT))
         item.add(MenuItem(MenuItemDefId.LOGOUT, type = MenuItemTargetType.RESTCALL))
         item.subMenu?.forEach { it.postProcess() }
         return Menus(mainMenu, favoritesMenu, myAccountMenu)
