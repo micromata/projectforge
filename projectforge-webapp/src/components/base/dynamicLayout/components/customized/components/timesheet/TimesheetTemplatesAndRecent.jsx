@@ -132,6 +132,7 @@ function TimesheetTemplatesAndRecent() {
                                         value={search}
                                         onChange={handleSearchChange}
                                         icon={faSearch}
+                                        selectOnFocus
                                     />
                                     <Table striped hover responsive>
                                         <thead>
