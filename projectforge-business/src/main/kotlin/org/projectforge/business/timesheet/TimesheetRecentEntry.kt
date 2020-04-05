@@ -21,22 +21,34 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.dto
+package org.projectforge.business.timesheet
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import org.projectforge.business.timesheet.TimesheetDO
-import java.util.*
+import com.thoughtworks.xstream.annotations.XStreamAlias
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute
 
-@JsonIgnoreProperties(value = ["reminderDuration", "reminderDurationUnit"])
-class Timesheet(var task: Task? = null,
-                var location: String? = null,
-                var description: String? = null,
-                var user: User? = null,
-                var kost2: Kost2? = null,
-                var startTime: Date? = null,
-                var stopTime: Date? = null,
-                /**
-                 * A counter (incremented by one for each recent entry) usable by React as key.
-                 */
-                var counter: Int? = null
-) : BaseDTO<TimesheetDO>()
+/**
+ *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ */
+@XStreamAlias("timesheetPrefEntry")
+data class TimesheetRecentEntry
+@JvmOverloads
+constructor(
+        @XStreamAsAttribute
+        var taskId: Int? = null,
+        @XStreamAsAttribute
+        var userId: Int? = null,
+        @XStreamAsAttribute
+        var kost2Id: Int? = null,
+        @XStreamAsAttribute
+        var location: String? = null,
+        @XStreamAsAttribute
+        var description: String? = null) {
+
+    constructor(timesheet: TimesheetDO) : this(
+            taskId = timesheet.taskId,
+            userId = timesheet.userId,
+            kost2Id = timesheet.kost2Id,
+            location = timesheet.location,
+            description = timesheet.description)
+}

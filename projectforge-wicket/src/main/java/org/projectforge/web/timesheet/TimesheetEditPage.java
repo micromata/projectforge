@@ -23,8 +23,8 @@
 
 package org.projectforge.web.timesheet;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -36,8 +36,8 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
-import org.projectforge.business.timesheet.TimesheetPrefData;
-import org.projectforge.business.timesheet.TimesheetPrefEntry;
+import org.projectforge.business.timesheet.TimesheetRecentEntry;
+import org.projectforge.business.timesheet.TimesheetRecentService;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
@@ -56,12 +56,11 @@ import java.util.*;
 
 @EditPage(defaultReturnPage = TimesheetListPage.class)
 public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEditForm, TimesheetDao>
-    implements ISelectCallerPage
-{
+        implements ISelectCallerPage {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetEditPage.class);
 
-  protected static final String[] BOOKMARKABLE_SELECT_PROPERTIES = new String[] { "p.taskId|task", "p.userId|user",
-      "p.kost2Id|kost2" };
+  protected static final String[] BOOKMARKABLE_SELECT_PROPERTIES = new String[]{"p.taskId|task", "p.userId|user",
+          "p.kost2Id|kost2"};
 
   /**
    * Key for preset the start date.
@@ -98,10 +97,14 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
    */
   public static final String PARAMETER_KEY_USER = "user";
 
-  /** Max length of combo box entries. */
+  /**
+   * Max length of combo box entries.
+   */
   static final int MAX_LENGTH_OF_RECENT_TASKS = 80;
 
-  /** The first recent block contains entries in chronological order. */
+  /**
+   * The first recent block contains entries in chronological order.
+   */
   static final int SIZE_OF_FIRST_RECENT_BLOCK = 5;
 
   private static final long serialVersionUID = -8192471994161712577L;
@@ -112,24 +115,24 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
   private TimesheetDao timesheetDao;
 
   @SpringBean
+  private TimesheetRecentService timesheetRecentService;
+
+  @SpringBean
   KostCache kostCache;
 
-  private static final TeamcalTimesheetPluginComponentHook[] HOOK_ARRAY = { new TeamcalTimesheetPluginComponentHook() };
+  private static final TeamcalTimesheetPluginComponentHook[] HOOK_ARRAY = {new TeamcalTimesheetPluginComponentHook()};
 
-  public TimesheetEditPage(final TimesheetDO timesheet)
-  {
+  public TimesheetEditPage(final TimesheetDO timesheet) {
     super(new PageParameters(), "timesheet");
     init(timesheet);
   }
 
-  public TimesheetEditPage(final PageParameters parameters)
-  {
+  public TimesheetEditPage(final PageParameters parameters) {
     super(parameters, "timesheet");
     init();
   }
 
-  void preInit()
-  {
+  void preInit() {
     if (isNew() == true) {
       final PageParameters parameters = getPageParameters();
       final Integer taskId = WicketUtils.getAsInteger(parameters, PARAMETER_KEY_TASK_ID);
@@ -170,12 +173,10 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
     }
 
     if (isNew() == true) {
-      final TimesheetPrefData pref = getTimesheetPrefData();
-      TimesheetPrefEntry entry = null;
-      if (pref != null) {
-        entry = pref.getRecentEntry();
-        if (getData().getTaskId() == null && entry != null) {
-          getBaseDao().setTask(getData(), entry.getTaskId());
+      final TimesheetRecentEntry recent = timesheetRecentService.getRecentTimesheet();
+      if (recent != null) {
+        if (getData().getTaskId() == null && recent != null) {
+          getBaseDao().setTask(getData(), recent.getTaskId());
         }
       }
       if (getData().getUserId() == null) {
@@ -185,14 +186,12 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
   }
 
   @Override
-  protected TimesheetDao getBaseDao()
-  {
+  protected TimesheetDao getBaseDao() {
     return timesheetDao;
   }
 
   @Override
-  public void setResponsePage()
-  {
+  public void setResponsePage() {
     super.setResponsePage();
     if (returnToPage instanceof CalendarPage) {
       // Display the date of this time sheet in the CalendarPage (usefull if the time sheet was moved).
@@ -201,8 +200,7 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
   }
 
   @Override
-  protected TimesheetEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final TimesheetDO data)
-  {
+  protected TimesheetEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final TimesheetDO data) {
     return new TimesheetEditForm(this, data);
   }
 
@@ -211,20 +209,17 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
    *
    * @return
    */
-  protected List<TimesheetDO> getRecentTimesheets()
-  {
-    final TimesheetPrefData data = getTimesheetPrefData();
+  protected List<TimesheetDO> getRecentTimesheets() {
+    final List<TimesheetRecentEntry> recentEntries = timesheetRecentService.getRecentTimesheets();
     final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
-    if (data != null && data.getRecents() != null) {
-      for (final TimesheetPrefEntry entry : data.getRecents()) {
+    if (CollectionUtils.isNotEmpty(recentEntries)) {
+      for (final TimesheetRecentEntry entry : recentEntries) {
         final TimesheetDO sheet = getRecentSheet(entry);
         list.add(sheet);
       }
-      Collections.sort(list, new Comparator<TimesheetDO>()
-      {
+      Collections.sort(list, new Comparator<TimesheetDO>() {
         @Override
-        public int compare(final TimesheetDO t1, final TimesheetDO t2)
-        {
+        public int compare(final TimesheetDO t1, final TimesheetDO t2) {
           final Kost2DO kost1 = t1.getKost2();
           final Kost2DO kost2 = t2.getKost2();
           final ProjektDO project1 = kost1 != null ? kost1.getProjekt() : null;
@@ -232,16 +227,16 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
           final String kunde1 = project1 != null && project1.getKunde() != null ? project1.getKunde().getName() : null;
           final String kunde2 = project2 != null && project2.getKunde() != null ? project2.getKunde().getName() : null;
           return new CompareToBuilder().append(kunde1, kunde2)
-              .append(project1 != null ? project1.getName() : null, project2 != null ? project2.getName() : null)
-              .append(t1.getTask() != null ? t1.getTask().getTitle() : null,
-                  t2.getTask() != null ? t2.getTask().getTitle() : null)
-              .toComparison();
+                  .append(project1 != null ? project1.getName() : null, project2 != null ? project2.getName() : null)
+                  .append(t1.getTask() != null ? t1.getTask().getTitle() : null,
+                          t2.getTask() != null ? t2.getTask().getTitle() : null)
+                  .toComparison();
         }
       });
       // Don't show recent block for new users if all entries are already displayed.
-      if (data.getRecents().size() > SIZE_OF_FIRST_RECENT_BLOCK) {
+      if (recentEntries.size() > SIZE_OF_FIRST_RECENT_BLOCK) {
         int i = 0;
-        for (final TimesheetPrefEntry entry : data.getRecents()) {
+        for (final TimesheetRecentEntry entry : recentEntries) {
           final TimesheetDO sheet = getRecentSheet(entry);
           list.add(i, sheet);
           if (i++ >= SIZE_OF_FIRST_RECENT_BLOCK) {
@@ -256,17 +251,11 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
   /**
    * Gets the recent locations.
    */
-  public List<String> getRecentLocations()
-  {
-    final TimesheetPrefData data = getTimesheetPrefData();
-    if (data != null) {
-      return data.getRecentLocations();
-    }
-    return null;
+  public List<String> getRecentLocations() {
+    return timesheetRecentService.getRecentLocations();
   }
 
-  private TimesheetDO getRecentSheet(final TimesheetPrefEntry entry)
-  {
+  private TimesheetDO getRecentSheet(final TimesheetRecentEntry entry) {
     final TimesheetDO sheet = new TimesheetDO();
     final TaskDO task = getTaskTree().getTaskById(entry.getTaskId());
     sheet.setTask(task);
@@ -279,9 +268,8 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
     return sheet;
   }
 
-  protected TimesheetPrefData getTimesheetPrefData()
-  {
-    return form.timesheetPageSupport.getTimesheetPrefData();
+  protected TimesheetRecentEntry getTimesheetRecentEntry() {
+    return form.timesheetPageSupport.getTimesheetRecentEntry();
   }
 
   /**
@@ -291,20 +279,15 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
    * @see org.projectforge.web.wicket.AbstractEditPage#cloneData()
    */
   @Override
-  protected void cloneData()
-  {
+  protected void cloneData() {
     super.cloneData();
     final TimesheetDO timesheet = getData();
     getBaseDao().setUser(timesheet, getUser().getId());
     form.userSelectPanel.markTextFieldModelAsChanged();
   }
 
-  /**
-   * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
-   */
   @Override
-  public void select(final String property, final Object selectedValue)
-  {
+  public void select(final String property, final Object selectedValue) {
     if ("taskId".equals(property) == true) {
       final Integer id;
       if (selectedValue instanceof String) {
@@ -339,8 +322,7 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
   @Override
-  public void unselect(final String property)
-  {
+  public void unselect(final String property) {
     if ("taskId".equals(property) == true) {
       getData().setTask(null);
       form.refresh();
@@ -359,26 +341,21 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
    * @see org.projectforge.web.fibu.ISelectCallerPage#cancelSelection(java.lang.String)
    */
   @Override
-  public void cancelSelection(final String property)
-  {
+  public void cancelSelection(final String property) {
     // Do nothing.
   }
 
   @Override
-  public AbstractSecuredBasePage afterSaveOrUpdate()
-  {
+  public AbstractSecuredBasePage afterSaveOrUpdate() {
     // clean ignore location if needed
     if (form != null && form.getFilter() != null && getData() != null) {
       form.getFilter().removeIgnoredLocation(getData().getLocation());
     }
     // Save time sheet as recent time sheet
-    final TimesheetPrefData pref = getTimesheetPrefData();
     final TimesheetDO timesheet = getData();
-    pref.appendRecentEntry(timesheet);
-    pref.appendRecentTask(timesheet.getTaskId());
-    if (StringUtils.isNotBlank(timesheet.getLocation()) == true) {
-      pref.appendRecentLocation(timesheet.getLocation());
-    }
+    timesheetRecentService.addRecentTimesheet(new TimesheetRecentEntry(timesheet));
+    timesheetRecentService.addRecentTaskId(timesheet.getTaskId());
+    timesheetRecentService.addRecentLocation(timesheet.getLocation());
     // Does the user want to store this time sheet as template?
     if (BooleanUtils.isTrue(form.saveAsTemplate) == true) {
       final UserPrefEditPage userPrefEditPage = new UserPrefEditPage(UserPrefArea.TIMESHEET_TEMPLATE, getData());
@@ -389,29 +366,24 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
   }
 
   @Override
-  protected String[] getBookmarkableInitialProperties()
-  {
+  protected String[] getBookmarkableInitialProperties() {
     return BOOKMARKABLE_SELECT_PROPERTIES;
   }
 
   @Override
-  protected void onPreEdit()
-  {
+  protected void onPreEdit() {
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 
-  public static List<TimesheetPluginComponentHook> getPluginHooks()
-  {
+  public static List<TimesheetPluginComponentHook> getPluginHooks() {
     return Collections.unmodifiableList(Arrays.asList(HOOK_ARRAY));
   }
 
-  private TaskTree getTaskTree()
-  {
+  private TaskTree getTaskTree() {
     if (taskTree == null) {
       taskTree = TaskTreeHelper.getTaskTree();
     }
