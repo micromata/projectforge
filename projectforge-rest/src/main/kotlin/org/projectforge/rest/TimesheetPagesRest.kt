@@ -290,8 +290,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     /**
      * @return The list fo recent edited time sheets of the current logged in user.
      */
-    @GetMapping("recent")
-    fun getRecent(): RecentTimesheets {
+    @GetMapping("recentList")
+    fun getRecentList(): RecentTimesheets {
         val recentTimesheets = timesheetRecentService.getRecentTimesheets()
         var counter = 1
         val timesheets = recentTimesheets.map {
