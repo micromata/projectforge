@@ -56,7 +56,7 @@ function DynamicCustomized({ id, ...props }) {
         case 'timesheet.edit.taskAndKost2':
             Tag = TimesheetEditTaskAndKost2;
             break;
-        case 'timesheet.edit.templatesAndRecents':
+        case 'timesheet.edit.templatesAndRecent':
             Tag = TimesheetTemplatesAndRecent;
             break;
         case 'vacation.entries':

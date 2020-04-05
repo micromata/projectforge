@@ -116,7 +116,7 @@ public class SendSmsForm extends AbstractStandardForm<SendSmsData, SendSmsPage>
       @Override
       protected List<String> getFavorites()
       {
-        return getRecentSearchTermsQueue().getRecents();
+        return getRecentSearchTermsQueue().getRecentList();
       }
     };
     numberTextField.withMatchContains(true).withMinChars(2).withFocus(true);

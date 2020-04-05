@@ -44,10 +44,10 @@ public class RecentScriptCalls
 
   public ScriptCallData getScriptCallData(final String scriptName)
   {
-    if (recentQueue.getRecents() == null) {
+    if (recentQueue.getRecent() == null) {
       return null;
     }
-    for (final ScriptCallData data : recentQueue.getRecents()) {
+    for (final ScriptCallData data : recentQueue.getRecentList()) {
       if (scriptName.equals(data.getScriptName())) {
         return data;
       }

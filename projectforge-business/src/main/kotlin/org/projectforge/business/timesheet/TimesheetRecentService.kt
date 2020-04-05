@@ -42,7 +42,7 @@ class TimesheetRecentService {
     private lateinit var timesheetDao: TimesheetDao
 
     fun getRecentTimesheets(): List<TimesheetRecentEntry> {
-        return getRecentTimesheetsQueue(ThreadLocalUserContext.getUserId()).recents
+        return getRecentTimesheetsQueue(ThreadLocalUserContext.getUserId()).recentList
     }
 
     fun getRecentTimesheet(): TimesheetRecentEntry? {
@@ -58,7 +58,7 @@ class TimesheetRecentService {
     }
 
     fun getRecentLocations(): List<String> {
-        return getRecentLocationsQueue(ThreadLocalUserContext.getUserId()).recents
+        return getRecentLocationsQueue(ThreadLocalUserContext.getUserId()).recentList
     }
 
     fun addRecentLocation(location: String?) {
@@ -69,7 +69,7 @@ class TimesheetRecentService {
     }
 
     fun getRecentTaskIds(): List<Int> {
-        return getRecentTaskIdsQueue(ThreadLocalUserContext.getUserId()).recents
+        return getRecentTaskIdsQueue(ThreadLocalUserContext.getUserId()).recentList
     }
 
     fun addRecentTaskId(taskId: Int?) {

@@ -111,8 +111,8 @@ public class ScriptExecuteForm extends AbstractStandardForm<ScriptDO, ScriptExec
 
   private void prefillParameters()
   {
-    final RecentScriptCalls recents = parentPage.getRecentScriptCalls();
-    final ScriptCallData scriptCallData = recents.getScriptCallData(data.getName());
+    final RecentScriptCalls recentCalls = parentPage.getRecentScriptCalls();
+    final ScriptCallData scriptCallData = recentCalls.getScriptCallData(data.getName());
     if (scriptCallData != null && scriptCallData.getScriptParameter() != null) {
       for (final ScriptParameter recentParameter : scriptCallData.getScriptParameter()) {
         for (final ScriptParameter parameter : scriptParameters) {
