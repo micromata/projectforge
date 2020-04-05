@@ -56,7 +56,7 @@ import javax.persistence.*
         NamedQuery(name = TimesheetDO.SELECT_USED_LOCATIONS_BY_USER_AND_LOCATION_SEARCHSTRING,
                 query = "select distinct location from TimesheetDO where deleted=false and user.id=:userId and lastUpdate>:lastUpdate and lower(location) like :locationSearch order by location"),
         NamedQuery(name = TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE,
-                query = "select distinct location from TimesheetDO where deleted=false and user.id=:userId and lastUpdate>:lastUpdate and location!=null and location!='' order by lastUpdate desc"))
+                query = "select distinct location from TimesheetDO where deleted=false and user.id=:userId and lastUpdate>:lastUpdate and location!=null and location!='' order by location"))
 open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
 
     @PropertyInfo(i18nKey = "task")

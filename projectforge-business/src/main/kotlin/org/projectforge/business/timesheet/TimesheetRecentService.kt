@@ -34,22 +34,22 @@ import org.springframework.stereotype.Service
 private val log = KotlinLogging.logger {}
 
 @Service
-class TimesheetRecentService {
+open class TimesheetRecentService {
     @Autowired
     private lateinit var userPrefService: UserPrefService
 
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
 
-    fun getRecentTimesheets(): List<TimesheetRecentEntry> {
-        return getRecentTimesheetsQueue(ThreadLocalUserContext.getUserId()).recentList
+    open fun getRecentTimesheets(): List<TimesheetRecentEntry> {
+        return getRecentTimesheetsQueue(ThreadLocalUserContext.getUserId()).recentList ?: emptyList()
     }
 
-    fun getRecentTimesheet(): TimesheetRecentEntry? {
+    open fun getRecentTimesheet(): TimesheetRecentEntry? {
         return getRecentTimesheetsQueue(ThreadLocalUserContext.getUserId()).recent
     }
 
-    fun addRecentTimesheet(entry: TimesheetRecentEntry) {
+    open fun addRecentTimesheet(entry: TimesheetRecentEntry) {
         if (entry.description.isNullOrBlank() && entry.location.isNullOrBlank() && entry.taskId == null) {
             // Don't append empty entries.
             return
@@ -57,22 +57,22 @@ class TimesheetRecentService {
         getRecentTimesheetsQueue(ThreadLocalUserContext.getUserId()).append(entry)
     }
 
-    fun getRecentLocations(): List<String> {
-        return getRecentLocationsQueue(ThreadLocalUserContext.getUserId()).recentList
+    open fun getRecentLocations(): List<String> {
+        return getRecentLocationsQueue(ThreadLocalUserContext.getUserId()).recentList ?: emptyList()
     }
 
-    fun addRecentLocation(location: String?) {
+    open fun addRecentLocation(location: String?) {
         if (location.isNullOrBlank()) {
             return
         }
         getRecentLocationsQueue(ThreadLocalUserContext.getUserId()).append(location)
     }
 
-    fun getRecentTaskIds(): List<Int> {
-        return getRecentTaskIdsQueue(ThreadLocalUserContext.getUserId()).recentList
+    open fun getRecentTaskIds(): List<Int> {
+        return getRecentTaskIdsQueue(ThreadLocalUserContext.getUserId()).recentList ?: emptyList()
     }
 
-    fun addRecentTaskId(taskId: Int?) {
+    open fun addRecentTaskId(taskId: Int?) {
         taskId ?: return
         getRecentTaskIdsQueue(ThreadLocalUserContext.getUserId()).append(taskId)
     }
@@ -97,7 +97,7 @@ class TimesheetRecentService {
         } catch (ex: Exception) {
             log.error("Unexpected exception while getting recent $id for user #$userId: ${ex.message}.", ex)
         }
-        if (recentQueue == null) {
+        if (recentQueue == null || recentQueue.size() == 0) {
             recentQueue = RecentQueue()
             // Put as volatile entry (will be created after restart oder re-login.
             userPrefService.putEntry(PREF_AREA, id, recentQueue, false, userId)
