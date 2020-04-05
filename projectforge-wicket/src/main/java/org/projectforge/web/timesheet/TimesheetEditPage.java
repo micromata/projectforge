@@ -25,6 +25,7 @@ package org.projectforge.web.timesheet;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -175,8 +176,17 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
     if (isNew() == true) {
       final TimesheetRecentEntry recent = timesheetRecentService.getRecentTimesheet();
       if (recent != null) {
-        if (getData().getTaskId() == null && recent != null) {
+        if (getData().getTaskId() == null) {
           getBaseDao().setTask(getData(), recent.getTaskId());
+        }
+        if (getData().getKost2Id() == null) {
+          getBaseDao().setKost2(getData(), recent.getKost2Id());
+        }
+        if (StringUtils.isBlank(getData().getLocation())) {
+          getData().setLocation(recent.getLocation());
+        }
+        if (StringUtils.isBlank(getData().getDescription())) {
+          getData().setDescription(recent.getDescription());
         }
       }
       if (getData().getUserId() == null) {
