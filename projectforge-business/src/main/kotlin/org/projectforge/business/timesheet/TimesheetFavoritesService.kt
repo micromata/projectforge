@@ -25,17 +25,18 @@
 
 package org.projectforge.business.timesheet
 
+import mu.KotlinLogging
 import org.projectforge.business.user.UserPrefDao
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.persistence.user.api.UserPrefArea
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 
-@Component
+private val log = KotlinLogging.logger {}
+
+@Service
 class TimesheetFavoritesService {
-    private val log = org.slf4j.LoggerFactory.getLogger(TimesheetFavoritesService::class.java)
-
     @Autowired
     private lateinit var userPrefDao: UserPrefDao
 

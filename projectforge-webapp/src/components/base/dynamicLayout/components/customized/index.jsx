@@ -12,7 +12,7 @@ import DayRange from './components/DayRange';
 import CustomizedImageDataPreview from './components/ImageDataPreview';
 import JiraIssuesLinks from './components/JiraIssuesLinks';
 import TimesheetEditTaskAndKost2 from './components/timesheet/TimesheetEditTaskAndKost2';
-import TimesheetTemplatesAndRecents from './components/timesheet/TimesheetTemplatesAndRecents';
+import TimesheetTemplatesAndRecent from './components/timesheet/TimesheetTemplatesAndRecent';
 import VacationStatistics from './components/vacation/VacationStatistics';
 import VacationTable from './components/vacation/VacationTable';
 
@@ -57,7 +57,7 @@ function DynamicCustomized({ id, ...props }) {
             Tag = TimesheetEditTaskAndKost2;
             break;
         case 'timesheet.edit.templatesAndRecents':
-            Tag = TimesheetTemplatesAndRecents;
+            Tag = TimesheetTemplatesAndRecent;
             break;
         case 'vacation.entries':
             Tag = VacationTable;

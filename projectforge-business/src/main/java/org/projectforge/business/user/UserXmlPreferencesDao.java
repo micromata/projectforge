@@ -33,7 +33,6 @@ import org.projectforge.business.scripting.xstream.ScriptCallData;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskFilter;
-import org.projectforge.business.timesheet.TimesheetPrefData;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -78,8 +77,7 @@ public class UserXmlPreferencesDao {
 
   @PostConstruct
   private void init() {
-    xstream.processAnnotations(new Class<?>[]{UserXmlPreferencesMap.class, TaskFilter.class, TimesheetPrefData.class,
-            ScriptCallData.class, RecentScriptCalls.class});
+    xstream.processAnnotations(new Class<?>[]{UserXmlPreferencesMap.class, TaskFilter.class, ScriptCallData.class, RecentScriptCalls.class});
     registerConverter(UserDao.class, PFUserDO.class, 20);
     registerConverter(GroupDao.class, GroupDO.class, 19);
     registerConverter(TaskDao.class, TaskDO.class, 18);

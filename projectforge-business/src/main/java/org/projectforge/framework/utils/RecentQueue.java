@@ -51,6 +51,13 @@ public class RecentQueue<T> implements Serializable
   }
 
   /**
+   * Get the recent entries (the newest). Is equivalent to get(0).
+   */
+  public T getRecent() {
+    return get(0);
+  }
+
+  /**
    * Does not throw IndexOutOfBoundsException.
    * @param pos
    * @return Entry of recent list if exist, otherwise null.
