@@ -39,3 +39,5 @@ test-output
 /ProjectForge
 projectforge-caldav/src/main/resources/milton.license.properties
 projectforge-caldav/src/main/resources/milton.license.sig
+derby.log
+projectforge-repository/jackrabbit
