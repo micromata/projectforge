@@ -654,3 +654,11 @@ Following the solution described in https://stackoverflow.com/questions/37833877
   c. Environment variables: `LOADER_HOME=/home/kai/ProjectForge`
 
 For debugging you may attach the plugin to your IntelliJ classpath.
+
+
+=== Limitations in Plugins
+
+* Own customized components are not yet supported in UILayout for external plugins. We're working on this issue.
+
+All other functionality
+seems to be available.
