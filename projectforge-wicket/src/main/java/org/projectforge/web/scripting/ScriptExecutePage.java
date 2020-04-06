@@ -252,9 +252,9 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
   }
 
   protected void storeRecentScriptCalls() {
-    final RecentScriptCalls recents = getRecentScriptCalls();
+    final RecentScriptCalls recentCalls = getRecentScriptCalls();
     final ScriptCallData scriptCallData = new ScriptCallData(getScript().getName(), form.scriptParameters);
-    recents.append(scriptCallData);
+    recentCalls.append(scriptCallData);
   }
 
   protected RecentScriptCalls getRecentScriptCalls() {

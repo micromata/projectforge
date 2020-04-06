@@ -225,7 +225,7 @@ public class AddressListForm extends AbstractListForm<AddressFilter, AddressList
       @Override
       protected List<String> getRecentUserInputs()
       {
-        return parentPage.getRecentSearchTermsQueue().getRecents();
+        return parentPage.getRecentSearchTermsQueue().getRecentList();
       }
 
       @Override

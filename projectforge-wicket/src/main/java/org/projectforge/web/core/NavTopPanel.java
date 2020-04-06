@@ -58,7 +58,6 @@ import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.doc.DocumentationPage;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.user.ChangePasswordPage;
-import org.projectforge.web.user.MyAccountEditPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.FeedbackPage;
@@ -174,10 +173,9 @@ public class NavTopPanel extends NavAbstractPanel {
         final BookmarkablePageLink<Void> changePasswordLink = new BookmarkablePageLink<Void>("myAccountLink",
                 ChangePasswordPage.class);
         add(changePasswordLink);
-        addVacationViewLink();
+        addVacationViewLink().setVisible(false);
       } else {
-        final BookmarkablePageLink<Void> myAccountLink = new BookmarkablePageLink<Void>("myAccountLink",
-                MyAccountEditPage.class);
+        final ExternalLink myAccountLink = new ExternalLink("myAccountLink", "/" + MenuItemDefId.MY_ACCOUNT.getUrl());
         add(myAccountLink);
         addVacationViewLink();
       }
@@ -198,7 +196,7 @@ public class NavTopPanel extends NavAbstractPanel {
     addCompleteMenu();
   }
 
-  private void addVacationViewLink() {
+  private ExternalLink addVacationViewLink() {
     final ExternalLink vacationViewLink = new ExternalLink("vacationViewLink", "/" + MenuItemDefId.VACATION_ACCOUNT.getUrl()) {
       @Override
       public boolean isVisible() {
@@ -206,6 +204,7 @@ public class NavTopPanel extends NavAbstractPanel {
       }
     };
     add(vacationViewLink);
+    return vacationViewLink;
   }
 
   @SuppressWarnings("serial")
