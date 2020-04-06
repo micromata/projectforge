@@ -118,7 +118,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
       @Override
       protected List<String> getRecentUserInputs()
       {
-        return getRecentCustomers().getRecents();
+        return getRecentCustomers().getRecentList();
       }
 
       @Override

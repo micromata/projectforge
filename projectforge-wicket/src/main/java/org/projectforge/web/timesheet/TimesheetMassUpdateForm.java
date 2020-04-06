@@ -33,6 +33,7 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
+import org.projectforge.business.timesheet.TimesheetRecentService;
 import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.wicket.AbstractMassEditForm;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
@@ -54,6 +55,9 @@ public class TimesheetMassUpdateForm extends AbstractMassEditForm<TimesheetDO, T
 
   @SpringBean
   private TimesheetDao timesheetDao;
+
+  @SpringBean
+  private TimesheetRecentService timesheetRecentService;
 
   protected boolean updateTask;
 
@@ -103,7 +107,7 @@ public class TimesheetMassUpdateForm extends AbstractMassEditForm<TimesheetDO, T
       kost2Fieldset.add(kost2Choice);
     }
     {
-      timesheetPageSupport.addLocation();
+      timesheetPageSupport.addLocation(timesheetRecentService);
     }
   }
 

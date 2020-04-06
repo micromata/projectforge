@@ -188,7 +188,7 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
 
       @Override
       protected List<String> getRecentUserInputs() {
-        return getRecentSearchTermsQueue().getRecents();
+        return getRecentSearchTermsQueue().getRecentList();
       }
 
       @Override

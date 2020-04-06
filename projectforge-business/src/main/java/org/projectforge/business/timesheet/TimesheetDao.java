@@ -675,16 +675,15 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
   /**
    * Get all locations of the user's time sheet (not deleted ones) with modification date within last year.
    *
-   * @param maxResults Limit the result to the recent locations.
+   * @param sinceDate Limit the result to the recent locations of time sheet updated after sinceDate.
    * @return result as Json object.
    */
-  public Collection<String> getRecentLocation(final int maxResults) {
+  public Collection<String> getRecentLocation(final Date sinceDate) {
     checkLoggedInUserSelectAccess();
     log.info("Get recent locations from the database.");
-    PFDateTime oneYearAgo = PFDateTime.now().minusDays(365);
     return em.createNamedQuery(TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE, String.class)
             .setParameter("userId", ThreadLocalUserContext.getUserId())
-            .setParameter("lastUpdate", oneYearAgo.getUtilDate())
+            .setParameter("lastUpdate", sinceDate)
             .getResultList();
   }
 
