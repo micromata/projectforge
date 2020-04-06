@@ -48,7 +48,7 @@ class LocalTimeSerializer : StdSerializer<LocalTime>(LocalTime::class.java) {
             jgen.writeNull()
             return
         }
-        val dateFormatAsString = jsonDateFormatter.format(value)
+        val dateFormatAsString = jsonTimeFormatter.format(value)
         jgen.writeString(dateFormatAsString)
     }
 }
