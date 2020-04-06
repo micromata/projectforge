@@ -21,37 +21,34 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.scripting.xstream;
+package org.projectforge.business.timesheet
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import org.projectforge.framework.utils.RecentQueue;
+import com.thoughtworks.xstream.annotations.XStreamAlias
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute
 
+/**
+ *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ */
+@XStreamAlias("timesheetPrefEntry")
+data class TimesheetRecentEntry
+@JvmOverloads
+constructor(
+        @XStreamAsAttribute
+        var taskId: Int? = null,
+        @XStreamAsAttribute
+        var userId: Int? = null,
+        @XStreamAsAttribute
+        var kost2Id: Int? = null,
+        @XStreamAsAttribute
+        var location: String? = null,
+        @XStreamAsAttribute
+        var description: String? = null) {
 
-@XStreamAlias("RecentScriptCalls")
-public class RecentScriptCalls
-{
-  private RecentQueue<ScriptCallData> recentQueue;
-
-  public RecentScriptCalls()
-  {
-    recentQueue = new RecentQueue<>();
-  }
-
-  public void append(final ScriptCallData data)
-  {
-    recentQueue.append(data);
-  }
-
-  public ScriptCallData getScriptCallData(final String scriptName)
-  {
-    if (recentQueue.getRecent() == null) {
-      return null;
-    }
-    for (final ScriptCallData data : recentQueue.getRecentList()) {
-      if (scriptName.equals(data.getScriptName())) {
-        return data;
-      }
-    }
-    return null;
-  }
+    constructor(timesheet: TimesheetDO) : this(
+            taskId = timesheet.taskId,
+            userId = timesheet.userId,
+            kost2Id = timesheet.kost2Id,
+            location = timesheet.location,
+            description = timesheet.description)
 }

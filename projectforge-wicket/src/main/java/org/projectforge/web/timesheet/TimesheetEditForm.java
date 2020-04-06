@@ -49,6 +49,7 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
+import org.projectforge.business.timesheet.TimesheetRecentService;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.user.UserPrefDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -90,6 +91,9 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
 
   @SpringBean
   private TimesheetDao timesheetDao;
+
+  @SpringBean
+  private TimesheetRecentService timesheetRecentService;
 
   @SpringBean
   private UserFormatter userFormatter;
@@ -337,7 +341,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
       }));
     }
     {
-      final AbstractFieldsetPanel<?> fs = timesheetPageSupport.addLocation(filter);
+      final AbstractFieldsetPanel<?> fs = timesheetPageSupport.addLocation(timesheetRecentService, filter);
       locationTextField = (PFAutoCompleteMaxLengthTextField) fs.getStoreObject();
       locationTextField.withDeletableItem(true);
     }

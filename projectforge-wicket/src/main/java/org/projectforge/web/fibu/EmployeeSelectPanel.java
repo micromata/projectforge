@@ -110,7 +110,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
       @Override
       protected List<String> getRecentUserInputs()
       {
-        return getRecentEmployees().getRecents();
+        return getRecentEmployees().getRecentList();
       }
 
       @Override
