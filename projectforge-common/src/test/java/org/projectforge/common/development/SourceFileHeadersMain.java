@@ -78,6 +78,7 @@ public class SourceFileHeadersMain {
     validateAndFixHeaders(new File(baseDir, "projectforge-caldav").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-common").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-model").getAbsolutePath(), true, autoFixFiles);
+    validateAndFixHeaders(new File(baseDir, "projectforge-repository").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-rest").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-wicket").getAbsolutePath(), true, autoFixFiles);
     final File[] files = new File(baseDir, "plugins").listFiles();
