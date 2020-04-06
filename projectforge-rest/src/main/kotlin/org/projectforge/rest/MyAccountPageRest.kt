@@ -113,20 +113,21 @@ class MyAccountPageRest: AbstractDynamicPageRest() {
         user.timeNotation = data.timeNotation ?: user.timeNotation
         user.timeZone = data.timeZone ?: user.timeZone
         user.personalPhoneIdentifiers = userService.getNormalizedPersonalPhoneIdentifiers(data.personalPhoneIdentifiers)
+        user.sshPublicKey = data.sshPublicKey
         userService.updateMyAccount(user)
         data.employee?.let { employee ->
             val employeeDO = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId())
             check(employeeDO?.userId == data.userId) { "Oups, MyAccountEditPage is called with another employee than the logged in employee!" }
-            val employeeId = employeeDO.id
-            employeeService.updateAttribute(employeeId, employee.iban, "iban")
-            employeeService.updateAttribute(employeeId, employee.bic, "bic")
-            employeeService.updateAttribute(employeeId, employee.accountHolder, "accountHolder")
-            employeeService.updateAttribute(employeeId, employee.street, "street")
-            employeeService.updateAttribute(employeeId, employee.state, "state")
-            employeeService.updateAttribute(employeeId, employee.city, "city")
-            employeeService.updateAttribute(employeeId, employee.zipCode, "zipCode")
-            employeeService.updateAttribute(employeeId, employee.country, "country")
-            employeeService.updateAttribute(employeeId, employee.birthday, "birthday")
+            val userId = data.userId
+            employeeService.updateAttribute(userId, employee.iban, "iban")
+            employeeService.updateAttribute(userId, employee.bic, "bic")
+            employeeService.updateAttribute(userId, employee.accountHolder, "accountHolder")
+            employeeService.updateAttribute(userId, employee.street, "street")
+            employeeService.updateAttribute(userId, employee.state, "state")
+            employeeService.updateAttribute(userId, employee.city, "city")
+            employeeService.updateAttribute(userId, employee.zipCode, "zipCode")
+            employeeService.updateAttribute(userId, employee.country, "country")
+            employeeService.updateAttribute(userId, employee.birthday, "birthday")
         }
         return ResponseEntity(ResponseAction("/${Const.REACT_APP_PATH}calendar"), HttpStatus.OK)
     }

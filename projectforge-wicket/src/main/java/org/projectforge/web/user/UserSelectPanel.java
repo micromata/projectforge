@@ -107,7 +107,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
       @Override
       protected List<String> getRecentUserInputs()
       {
-        return getRecentUsers().getRecents();
+        return getRecentUsers().getRecentList();
       }
 
       @Override

@@ -38,6 +38,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.PagesResolver
@@ -147,7 +148,7 @@ class VacationAccountPageRest {
         // TODO: Add employee for preselecting edit form
         buttonCol.add(UIButton("add", translate("add"), UIColor.SUCCESS, responseAction = responseAction))
         if (this.vacationService.hasLoggedInUserHRVacationAccess() &&
-                currentStats.remainingLeaveFromPreviousYear != prevStats.vacationDaysLeftInYear) {
+                !NumberHelper.isEqual(currentStats.remainingLeaveFromPreviousYear, prevStats.vacationDaysLeftInYear)) {
             buttonCol.add(UIButton("recalculate", translate("vacation.recalculateRemainingLeave"), UIColor.DANGER,
                     responseAction = ResponseAction("vacationAccount/recalculate", targetType = TargetType.POST)))
         }
