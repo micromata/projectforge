@@ -23,21 +23,32 @@
 
 package org.projectforge.rest.config
 
+import mu.KotlinLogging
 import org.projectforge.common.StringHelper
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.projectforge.rest.core.SessionCsrfCache
+import org.projectforge.ui.ValidationError
 import javax.servlet.Filter
 import javax.servlet.FilterRegistration
 import javax.servlet.ServletContext
+import javax.servlet.http.HttpServletRequest
+
+private val log = KotlinLogging.logger {}
 
 object RestUtils {
-    private val log: Logger = LoggerFactory.getLogger(RestUtils::class.java)
-
     @JvmStatic
     fun registerFilter(sc: ServletContext, name: String, filterClass: Class<out Filter?>, isMatchAfter: Boolean, vararg patterns: String?): FilterRegistration {
         val filterRegistration: FilterRegistration = sc.addFilter(name, filterClass)
         filterRegistration.addMappingForUrlPatterns(null, isMatchAfter, *patterns)
         log.info("Registering filter '" + name + "' of class '" + filterClass.name + "' for urls: " + StringHelper.listToString(", ", *patterns))
         return filterRegistration
+    }
+
+    @JvmStatic
+    fun checkCsrfToken(request: HttpServletRequest, sessionCsrfCache: SessionCsrfCache, csrfToken: String?, logInfo: String, logData: Any?): ValidationError? {
+        if (!sessionCsrfCache.checkToken(request, csrfToken)) {
+            log.warn("Check of CSRF token failed, a validation error will be shown. $logInfo declined: ${logData}")
+            return ValidationError.create("errorpage.csrfError")
+        }
+        return null
     }
 }

@@ -76,7 +76,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     LOGOUT("menu.logout", url = "logout"), //
     MEB("menu.meb", "wa/mebList"), //
     MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "wa/monthlyEmployeeReport"), //
-    MY_ACCOUNT("menu.myAccount", "wa/myAccount"), //
+    MY_ACCOUNT("menu.myAccount", "${PREFIX}myAccount/dynamic"), //
     MY_PREFERENCES("menu.myPreferences", "wa/userPrefList"), //
     ORDER_LIST("menu.fibu.orderbook", "wa/orderBookList"), //
     OUTBOX_LIST("menu.orga.postausgang", "${PREFIX}outgoingMail"), //

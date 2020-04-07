@@ -279,8 +279,11 @@ class CalendarFilterServicesRest {
         return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
     }
 
+    /**
+     * @param userIdString Change user for displaying time sheets if allowed. If null, no time sheets will be displayed.
+     */
     @GetMapping("changeTimesheetUser")
-    fun changeTimesheetUser(@RequestParam("userId", required = true) userIdString: String): Map<String, Any> {
+    fun changeTimesheetUser(@RequestParam("userId") userIdString: String?): Map<String, Any> {
         val currentFilter = getCurrentFilter()
         val userId = NumberHelper.parseInteger(userIdString)
         if (timesheetDao.showTimesheetsOfOtherUsers()) {

@@ -78,12 +78,6 @@ class TokenInfoPageRest : AbstractDynamicPageRest() {
                 color = UIColor.SECONDARY,
                 outline = true,
                 responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL)))
-        layout.addAction(UIButton("${token}-renew",
-                title = translate("user.authenticationToken.renew"),
-                tooltip = "user.authenticationToken.renew.tooltip",
-                confirmMessage = translate("user.authenticationToken.renew.securityQuestion"),
-                color = UIColor.DANGER,
-                responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.GET)))
 
         layout.addTranslations("cancel", "yes")
         LayoutUtils.process(layout)

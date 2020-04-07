@@ -118,7 +118,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
       @Override
       protected List<String> getRecentUserInputs()
       {
-        return getRecentProjects().getRecents();
+        return getRecentProjects().getRecentList();
       }
 
       @Override

@@ -23,7 +23,6 @@
 
 package org.projectforge.rest
 
-import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.projectforge.Const
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDao
@@ -31,7 +30,10 @@ import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.systeminfo.SystemInfoCache
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
-import org.projectforge.business.timesheet.*
+import org.projectforge.business.timesheet.TimesheetDO
+import org.projectforge.business.timesheet.TimesheetDao
+import org.projectforge.business.timesheet.TimesheetFavoritesService
+import org.projectforge.business.timesheet.TimesheetRecentService
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.DateFormatType
@@ -66,11 +68,6 @@ import javax.validation.Valid
 class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, TimesheetDao>(TimesheetDao::class.java, "timesheet.title",
         cloneSupport = CloneSupport.AUTOSAVE) {
 
-    companion object {
-        private const val PREF_AREA = "timesheet"
-        private const val PREF_EDIT_NAME = "edit.recent"
-    }
-
     @Value("\${calendar.useNewCalendarEvents}")
     private var useNewCalendarEvents: Boolean = false
 
@@ -99,6 +96,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
 
     @Autowired
     private lateinit var timesheetFavoritesService: TimesheetFavoritesService
+
+    @Autowired
+    private lateinit var timesheetRecentService: TimesheetRecentService
 
     private val taskTree: TaskTree
         /** Lazy init, because test cases failed due to NPE in TenantRegistryMap. */
@@ -159,19 +159,18 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         }
         val userId = RestHelper.parseInt(request, "userId") // Optional parameter given to edit page
         sheet.user = User.getUser(userId)
-        val pref = getTimesheetPrefData()
-        val entry = pref.recentEntry
-        if (entry != null) {
-            if (entry.taskId != null) {
-                sheet.task = Task.getTask(entry.taskId, ThreadLocalUserContext.getUser())
-                if (entry.kost2Id != null) {
-                    sheet.kost2 = Kost2.getkost2(entry.kost2Id)
+        val recentEntry = timesheetRecentService.getRecentTimesheet();
+        if (recentEntry != null) {
+            if (recentEntry.taskId != null) {
+                sheet.task = Task.getTask(recentEntry.taskId, ThreadLocalUserContext.getUser())
+                if (recentEntry.kost2Id != null) {
+                    sheet.kost2 = Kost2.getkost2(recentEntry.kost2Id)
                 }
             }
-            sheet.location = entry.location
-            sheet.description = entry.description
-            if (sheet.user == null && entry.userId != null) {
-                sheet.user = User.getUser(entry.userId)
+            sheet.location = recentEntry.location
+            sheet.description = recentEntry.description
+            if (sheet.user == null && recentEntry.userId != null) {
+                sheet.user = User.getUser(recentEntry.userId)
             }
         }
         if (sheet.user == null) {
@@ -182,13 +181,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
 
     override fun afterEdit(obj: TimesheetDO, postData: PostData<Timesheet>): ResponseAction {
         // Save time sheet as recent time sheet
-        val pref = getTimesheetPrefData()
         val timesheet = postData.data
-        pref.appendRecentEntry(transformForDB(timesheet))
-        pref.appendRecentTask(timesheet.task?.id)
-        if (!timesheet.location.isNullOrBlank()) {
-            pref.appendRecentLocation(timesheet.location)
-        }
+        timesheetRecentService.addRecentTimesheet(transformForDB(timesheet))
 
         return ResponseAction("/${Const.REACT_APP_PATH}calendar")
                 .addVariable("date", obj.startTime)
@@ -217,7 +211,11 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     override fun getAutoCompletionForProperty(@RequestParam("property") property: String, @RequestParam("search") searchString: String?)
             : List<String> {
         if (property == "location") {
-            return baseDao.getLocationAutocompletion(searchString)
+            val toLowerSearch = searchString?.toLowerCase()
+            if (toLowerSearch.isNullOrBlank()) {
+                return timesheetRecentService.getRecentLocations()
+            }
+            return timesheetRecentService.getRecentLocations().filter { it.toLowerCase().contains(toLowerSearch) }
         }
         return super.getAutoCompletionForProperty(property, searchString)
     }
@@ -262,13 +260,13 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 jiraIdentifiers.forEach {
                     jiraIssues[it] = JiraUtils.buildJiraIssueBrowseLinkUrl(it)
                 }
-                jiraIssuesElement= UICustomized("jira.issuesLinks")
+                jiraIssuesElement = UICustomized("jira.issuesLinks")
                 jiraIssuesElement.add("jiraIssues", jiraIssues)
                 descriptionArea.tooltip = "tooltip.jiraSupport.field.content"
             }
         }
         val layout = super.createEditLayout(dto, userAccess)
-                .add(UICustomized("timesheet.edit.templatesAndRecents"))
+                .add(UICustomized("timesheet.edit.templatesAndRecent"))
                 .add(UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2")))
                 .add(lc, "user")
                 .add(dayRange)
@@ -289,6 +287,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 "task",
                 "timesheet.description",
                 "timesheet.location",
+                "timesheet.recent",
                 "until")
         return LayoutUtils.processEditPage(layout, dto, this)
     }
@@ -296,10 +295,11 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     /**
      * @return The list fo recent edited time sheets of the current logged in user.
      */
-    @GetMapping("recents")
-    fun getRecents(): RecentTimesheets {
-        val pref = getTimesheetPrefData()
-        val timesheets = pref.recents.map {
+    @GetMapping("recentList")
+    fun getRecentList(): RecentTimesheets {
+        val recentTimesheets = timesheetRecentService.getRecentTimesheets()
+        var counter = 1
+        val timesheets = recentTimesheets.map {
             val ts = Timesheet()
             ts.location = it.location
             ts.description = it.description
@@ -319,7 +319,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                     val kost2 = Kost2()
                     ts.kost2 = kost2
                     kost2.copyFromMinimal(kost2DO)
-                    kost2DO.projektId?.let {projektId ->
+                    kost2DO.projektId?.let { projektId ->
                         val projektDO = projektDao.internalGetById(projektId)
                         if (projektDO != null) {
                             val projekt = Projekt(projektId, name = projektDO.name)
@@ -335,16 +335,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                     }
                 }
             }
-            val hcb = HashCodeBuilder()
-            hcb.append(ts.kost2?.id)
-                    .append(ts.task?.id)
-                    .append(ts.user?.id)
-                    .append(ts.location)
-                    .append(ts.description)
-            ts.hashKey = hcb.toHashCode()
+            ts.counter = counter++
             ts
         }
-        return RecentTimesheets(timesheets, SystemInfoCache.instance().isCost2EntriesExists())
+        return RecentTimesheets(timesheets, SystemInfoCache.instance().isCost2EntriesExists)
     }
 
     @PostMapping("selectRecent")
@@ -425,19 +419,6 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 "timesheetFavorites" to timesheetFavoritesService.getList())
     }
 
-    private fun getTimesheetPrefData(): TimesheetPrefData {
-        var pref: TimesheetPrefData? = userPrefService.getEntry(PREF_AREA, PREF_EDIT_NAME, TimesheetPrefData::class.java)
-        if (pref == null) {
-            val oldPrefKey = "org.projectforge.web.timesheet.TimesheetEditPage" // From Wicket version.
-            pref = userPrefService.userXmlPreferencesService.getEntry(TimesheetPrefData::class.java, oldPrefKey)
-            if (pref == null) {
-                pref = TimesheetPrefData()
-            }
-            userPrefService.putEntry(PREF_AREA, PREF_EDIT_NAME, pref)
-        }
-        return pref
-    }
-
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         val element = UIFilterElement("kost2.nummer")
         element.label = element.id // Default label if no translation will be found below.
@@ -445,5 +426,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 i18nKey = "fibu.kost2.nummer",
                 parent = ElementInfo("kost2", i18nKey = "fibu.kost2")))
         elements.add(element)
+    }
+
+    companion object {
+        private const val PREF_AREA = "timesheet"
+        private const val PREF_EDIT_NAME = "edit.recent"
     }
 }
