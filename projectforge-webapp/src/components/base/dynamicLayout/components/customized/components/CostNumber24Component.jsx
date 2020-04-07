@@ -26,6 +26,8 @@ function CostNumber24Component() {
     return React.useMemo(
         () => (
             <React.Fragment>
+                Projektnummer
+                <br />
                 {data.nummernkreis}
                 .
                 <input

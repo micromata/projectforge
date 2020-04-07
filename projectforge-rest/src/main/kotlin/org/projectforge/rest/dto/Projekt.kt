@@ -25,6 +25,7 @@ package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektStatus
+import org.projectforge.reporting.Kost2Art
 
 class Projekt(id: Int? = null,
               displayName: String? = null,
@@ -40,4 +41,5 @@ class Projekt(id: Int? = null,
     var nummernkreis: Int = 0
     var bereich: Int? = 0
     var kost: String? = null
+    var kost2Arts: List<Kost2Art>? = null
 }

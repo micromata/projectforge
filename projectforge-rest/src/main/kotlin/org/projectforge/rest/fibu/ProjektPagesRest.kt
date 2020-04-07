@@ -26,10 +26,12 @@ package org.projectforge.rest.fibu
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.reporting.impl.Kost2ArtImpl
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Projekt
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -40,13 +42,18 @@ class ProjektPagesRest
         ProjektDao::class.java,
         "fibu.projekt.title") {
 
+    @Autowired
+    private val kostCache: KostCache? = null
+
     override fun transformFromDB(obj: ProjektDO, editMode: Boolean): Projekt {
         val projekt = Projekt(null, obj.displayName)
         projekt.copyFrom(obj)
+        projekt.kost2Arts = kostCache?.getAllKost2Arts(obj.id)
         projekt.kost = obj.kost
         projekt.nummernkreis = obj.nummernkreis
         projekt.bereich = obj.bereich
         projekt.kunde?.copyFrom(obj.kunde!!)
+
         return projekt
     }
 
@@ -86,8 +93,13 @@ class ProjektPagesRest
                                 .add(konto)
                                 .add(lc, "name", "identifier", "task")
                                 .add(UISelect.createGroupSelect(lc, "projektManagerGroup", false, "fibu.projekt.projektManagerGroup"))
-                                .add(lc, "projectManager", "headOfBusinessManager", "description")
-                                .add(UILabel("TODO: Kost 2 Types"))))
+                                .add(lc, "projectManager", "headOfBusinessManager", "description")))
+
+        dto.kost2Arts?.forEach {
+            var uiCheckbox = UICheckbox("selected", label = it.name)
+            layout.add(UIRow().add(UICol().add(uiCheckbox)))
+        }
+
 
         return LayoutUtils.processEditPage(layout, dto, this)
     }
