@@ -26,91 +26,111 @@ package org.projectforge.repository
 import mu.KotlinLogging
 import org.apache.jackrabbit.commons.JcrUtils
 import org.springframework.stereotype.Service
-import javax.jcr.*
+import javax.jcr.Node
+import javax.jcr.Repository
+import javax.jcr.Session
+import javax.jcr.SimpleCredentials
 
 private val log = KotlinLogging.logger {}
 
 @Service
 open class RepositoryService {
     /**
-     * @param path Path, nodes are separated by '/', e. g. "world/germany".
-     * @param subPath optional sub node of node specified by path.
+     * @param parentNodePath Path, nodes are separated by '/', e. g. "world/germany". The nodes of this path must already exist.
+     * For creating top level nodes, set parentNode to null, empty string or "/".
+     * @param relPath optional sub node of node specified by path.
      */
+    open fun ensureNode(parentNodePath: String?, relPath: String): String {
+        return runInSession<String> { session ->
+            val node = getNode(session, parentNodePath, relPath, true)
+            val path = node.path
+            session.save()
+            path
+        }
+    }
+
     @JvmOverloads
-    open fun ensureNode(path: String, subPath: String? = null): String {
-        var resultPath: String? = null
+    open fun storeProperty(parentNodePath: String?, relPath: String, name: String, value: String, ensureRelNode: Boolean = true) {
         runInSession { session ->
-            val root: Node = session.rootNode
-            val fullPath = if (subPath.isNullOrBlank()) {
-                path
-            } else {
-                "$path/$subPath"
-            }
-            var current: Node = root
-            fullPath.split("/").forEach {
-                current = ensureNode(current, it)
-            }
-            resultPath = current.path
+            val node = getNode(session, parentNodePath, relPath, ensureRelNode)
+            node.setProperty(name, value)
             session.save()
         }
-        return resultPath!!
+    }
+
+    open fun retrieveProperty(parentNodePath: String?, relPath: String, name: String): String? {
+        return runInSession { session ->
+            getNodeOrNull(session, parentNodePath, relPath, false)?.getProperty(name)?.string
+        }
+    }
+
+    private fun getNode(session: Session, parentNodePath: String?, relPath: String, ensureRelNode: Boolean = true): Node {
+        return getNodeOrNull(session, parentNodePath, relPath, ensureRelNode)
+                ?: throw IllegalArgumentException("Can't find node ${getFullPath(parentNodePath, relPath)}.")
+    }
+
+    private fun getNodeOrNull(session: Session, parentNodePath: String?, relPath: String, ensureRelNode: Boolean = true): Node? {
+        val parentNode = if (parentNodePath.isNullOrBlank() || parentNodePath == "/") {
+            session.rootNode
+        } else if (isAbsolute(parentNodePath)) {
+            session.getNode(parentNodePath)
+        } else {
+            session.rootNode.getNode(parentNodePath)
+        }
+        return if (ensureRelNode) {
+            ensureNode(parentNode, relPath)
+        } else if (parentNode.hasNode(relPath)) {
+            parentNode.getNode(relPath)
+        } else {
+            null
+        }
     }
 
     private fun ensureNode(parentNode: Node, relPath: String): Node {
-        if (!parentNode.hasNode(relPath)) {
-            log.info { "Creating node ${parentNode.path}/$relPath." }
-            return parentNode.addNode(relPath)
-        }
-        return parentNode.getNode(relPath)
-    }
-
-    open fun store(path: String) {
-        runInSession { session ->
-            val node: Node = if (path.startsWith("/")) {
-                session.getNode(path)
+        var current: Node = parentNode
+        relPath.split("/").forEach {
+            current = if (current.hasNode(it)) {
+                current.getNode(it)
             } else {
-                session.rootNode.getNode(path)
+                log.info { "Creating node ${getFullPath(parentNode, it)}." }
+                current.addNode(it)
             }
-            node.setProperty("message", "Hello, World!")
-            session.save()
         }
+        return current
     }
 
-    open fun retrieve(path: String) {
-        runInSession { session ->
-            val node: Node = session.rootNode.getNode(path)
-            System.out.println(node.path)
-            System.out.println(node.getProperty("message").string)
-        }
+    /**
+     * return true if given path starts with '/'-
+     */
+    private fun isAbsolute(path: String): Boolean {
+        return path.startsWith("/")
     }
 
-    fun test() {
-        val repository: Repository = JcrUtils.getRepository()
-        val session: Session = repository.login(GuestCredentials())
-        try {
-            val user: String = session.getUserID()
-            val name: String = repository.getDescriptor(Repository.REP_NAME_DESC)
-            println("Logged in as $user to a $name repository.")
-        } finally {
-            session.logout()
-        }
+    private fun getFullPath(parentNode: Node, relPath: String): String {
+        val parentPath = parentNode.path
+        return getFullPath(parentPath, relPath)
     }
 
-    private fun runInSession(method: (session: Session) -> Unit) {
+    private fun getFullPath(parentPath: String?, relPath: String): String {
+        parentPath ?: return relPath
+        return if (parentPath.endsWith("/")) "$parentPath$relPath" else "$parentPath/$relPath"
+    }
+
+    private fun <T> runInSession(method: (session: Session) -> T): T {
         val session: Session = repository.login(credentials)
         try {
-            method(session)
+            return method(session)
         } finally {
             session.logout()
         }
     }
 
-    private val repository: Repository
-    private val credentials: Credentials
+    private lateinit var repository: Repository
 
-    init {
-        log.info { "Initializing Jcr repository." }
-        repository = JcrUtils.getRepository()
-        credentials = SimpleCredentials("admin", "admin".toCharArray())
+    private val credentials = SimpleCredentials("admin", "admin".toCharArray())
+
+    fun init(parameters: Map<String, String>) {
+        log.info { "Initializing Jcr repository: ${parameters.entries.joinToString { "${it.key}='${it.value}'" }}" }
+        repository = JcrUtils.getRepository(parameters)
     }
 }

@@ -23,20 +23,50 @@
 
 package org.projectforge.repository
 
-import org.junit.jupiter.api.Test
+import mu.KotlinLogging
+import org.apache.jackrabbit.commons.JcrUtils
+import org.junit.jupiter.api.*
+import java.io.File
+
+private val log = KotlinLogging.logger {}
 
 class RepositoryTest {
 
+    companion object {
+        private lateinit var repoService: RepositoryService
+        private val repoDir = createTempDir()
+
+        @BeforeAll
+        @JvmStatic
+        fun setUp() {
+            repoService = RepositoryService()
+            repoService.init(mapOf(JcrUtils.REPOSITORY_URI to repoDir.toURI().toString()))
+            // repoDir.deleteOnExit() // Doesn't work reliable.
+        }
+
+        @AfterAll
+        @JvmStatic
+        fun tearDown() {
+            log.info { "Deleting JackRabbit test repo: $repoDir." }
+            Assertions.assertTrue(repoDir.deleteRecursively(), "Couldn't delte JackRabbit test repo: $repoDir.")
+        }
+    }
+
     @Test
     fun test() {
-        val service = RepositoryService()
-        service.ensureNode("hello/world")
-        service.store("hello/world")
-        service.retrieve("hello/world")
+        try {
+            repoService.ensureNode("world/europe", "germany")
+            fail("Exception expected, because node 'world/europe' doesn't exist.")
+        } catch(ex: Exception) {
+            // OK, hello/world doesn't exist.
+        }
+        Assertions.assertEquals("/world/europe", repoService.ensureNode(null, "world/europe"))
+        repoService.storeProperty("world/europe", "germany", "key", "value")
+        Assertions.assertEquals("value", repoService.retrieveProperty("world/europe/", "germany","key"))
 
-        val path = service.ensureNode("hello/world/test", "id")
+       /* val path = repoService.ensureNode("world/europe", "germany/id")
         println(path)
-        service.store(path)
-        service.retrieve("hello/world/test/id")
+        repoService.store(path)
+        repoService.retrieve("world/europe/germany/id")*/
     }
 }
