@@ -55,7 +55,8 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "formattedNumber", "description", "kostentraegerStatus"))
+                        .add(UITableColumn("formattedNumber", title = "fibu.kost1"))
+                        .add(lc, "description", "kostentraegerStatus"))
         return LayoutUtils.processListPage(layout, this)
     }
 
