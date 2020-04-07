@@ -43,7 +43,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
 
     // Sub menus in alphabetical order:
     ACCESS_LIST("menu.accessList", "wa/accessList"), //
-    ACCOUNT_LIST("menu.fibu.konten", "${PREFIX}konto"), //
+    ACCOUNT_LIST("menu.fibu.konten", "${PREFIX}account"), //
     ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", "wa/accountingRecordList"), //
     ADDRESSBOOK_LIST("menu.addressbookList", "${PREFIX}addressBook"), //
     ADDRESS_LIST("menu.addressList", "${PREFIX}address"), //
