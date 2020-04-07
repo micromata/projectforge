@@ -24,6 +24,7 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.kost.Kost2ArtDO
+import org.projectforge.common.StringHelper
 import java.math.BigDecimal
 
 class Kost2Art(
@@ -35,4 +36,16 @@ class Kost2Art(
         var projektStandard: Boolean = false,
         var description: String? = null
 ) : BaseDTODisplayObject<Kost2ArtDO>(id, displayName = displayName) {
+    protected var selected: Boolean = false
+    protected var existsAlready: Boolean = false
+
+    fun getFormattedId(): String {
+        return StringHelper.format2DigitNumber(id!!)
+    }
+
+    operator fun compareTo(o: Kost2Art): Int {
+        return this.compareTo(o)
+    }
+
+
 }
