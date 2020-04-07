@@ -55,11 +55,11 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable
 
     @PropertyInfo(i18nKey = "fibu.rechnung.position.einzelNetto")
     @get:Column(name = "einzel_netto", scale = 2, precision = 18)
-    override open var einzelNetto: BigDecimal? = null
+    override var einzelNetto: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.mehrwertSteuerSatz")
     @get:Column(scale = 5, precision = 10)
-    override open var vat: BigDecimal? = null
+    override var vat: BigDecimal? = null
 
     @get:Transient
     abstract var kostZuweisungen: MutableList<KostZuweisungDO>?
