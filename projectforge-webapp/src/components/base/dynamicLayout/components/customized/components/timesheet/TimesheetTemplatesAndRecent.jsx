@@ -14,7 +14,7 @@ import Input from '../../../../../../design/input';
 import { DynamicLayoutContext } from '../../../../context';
 import TimesheetRecentEntry, { filterRecent } from './TimesheetRecentEntry';
 
-function TimesheetTemplatesAndRecents() {
+function TimesheetTemplatesAndRecent() {
     const {
         data,
         setData,
@@ -27,27 +27,27 @@ function TimesheetTemplatesAndRecents() {
         setTimesheetFavorites,
     ] = React.useState(variables.timesheetFavorites);
 
-    const [recentsVisible, setRecentsVisible] = React.useState(false);
-    const recentsRef = React.useRef(null);
-    const [recents, setRecents] = React.useState({ timesheets: [] });
+    const [recentListVisible, setRecentListVisible] = React.useState(false);
+    const recentListRef = React.useRef(null);
+    const [recentList, setRecentList] = React.useState({ timesheets: [] });
     const [search, setSearch] = React.useState('');
 
     React.useEffect(
         () => {
             fetch(
-                getServiceURL('timesheet/recents'),
+                getServiceURL('timesheet/recentList'),
                 { credentials: 'include' },
             )
                 .then(handleHTTPErrors)
                 .then(body => body.json())
-                .then(setRecents)
-                .catch(() => setRecents({ timesheets: [] }));
+                .then(setRecentList)
+                .catch(() => setRecentList({ timesheets: [] }));
         },
         [],
     );
 
     // Handle mouse events
-    useClickOutsideHandler(recentsRef, () => setRecentsVisible(false), recentsVisible);
+    useClickOutsideHandler(recentListRef, () => setRecentListVisible(false), recentListVisible);
 
     const handleSearchChange = ({ target }) => setSearch(target.value);
 
@@ -93,7 +93,7 @@ function TimesheetTemplatesAndRecents() {
             );
 
             const toggleModal = () => {
-                setRecentsVisible(!recentsVisible);
+                setRecentListVisible(!recentListVisible);
             };
 
             return (
@@ -108,16 +108,16 @@ function TimesheetTemplatesAndRecents() {
                         htmlId="timesheetFavoritesPopover"
                         favoriteButtonText={`${ui.translations.templates} | `}
                     />
-                    <span ref={recentsRef}>
+                    <span ref={recentListRef}>
                         <Button
                             color="link"
                             className="selectPanelIconLinks"
                             onClick={toggleModal}
                         >
-                            Recents
+                            {ui.translations['timesheet.recent']}
                         </Button>
                         <Collapse
-                            isOpen={recentsVisible}
+                            isOpen={recentListVisible}
                             style={{
                                 maxHeight: '600px',
                                 overflow: 'scroll',
@@ -132,11 +132,12 @@ function TimesheetTemplatesAndRecents() {
                                         value={search}
                                         onChange={handleSearchChange}
                                         icon={faSearch}
+                                        selectOnFocus
                                     />
                                     <Table striped hover responsive>
                                         <thead>
                                             <tr>
-                                                {recents.cost2Visible && (
+                                                {recentList.cost2Visible && (
                                                     <React.Fragment>
                                                         <th>{ui.translations['fibu.kost2']}</th>
                                                         <th>{ui.translations['fibu.kunde']}</th>
@@ -149,22 +150,22 @@ function TimesheetTemplatesAndRecents() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {recents.timesheets
+                                            {recentList.timesheets
                                                 .filter(recent => filterRecent(
                                                     search.toLowerCase(),
                                                     recent,
                                                 ))
-                                                .map(({ hashKey, ...recent }) => (
+                                                .map(({ counter, ...recent }) => (
                                                     <TimesheetRecentEntry
-                                                        key={hashKey}
+                                                        key={counter}
                                                         callback={({ variables: newVariables }) => {
                                                             setVariables({
                                                                 task: newVariables.task,
                                                             });
                                                             setData(newVariables.data);
-                                                            setRecentsVisible(false);
+                                                            setRecentListVisible(false);
                                                         }}
-                                                        cost2Visible={recents.cost2Visible}
+                                                        cost2Visible={recentList.cost2Visible}
                                                         data={data}
                                                         recent={recent}
                                                     />
@@ -180,9 +181,9 @@ function TimesheetTemplatesAndRecents() {
         },
         [
             data,
-            recents,
-            recentsRef,
-            recentsVisible,
+            recentList,
+            recentListRef,
+            recentListVisible,
             search,
             setData,
             setTimesheetFavorites,
@@ -193,8 +194,8 @@ function TimesheetTemplatesAndRecents() {
     );
 }
 
-TimesheetTemplatesAndRecents.propTypes = {};
+TimesheetTemplatesAndRecent.propTypes = {};
 
-TimesheetTemplatesAndRecents.defaultProps = {};
+TimesheetTemplatesAndRecent.defaultProps = {};
 
-export default TimesheetTemplatesAndRecents;
+export default TimesheetTemplatesAndRecent;

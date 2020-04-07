@@ -36,7 +36,7 @@ class Timesheet(var task: Task? = null,
                 var startTime: Date? = null,
                 var stopTime: Date? = null,
                 /**
-                 * An hash key built of location, description, kost2 and user, if needed by React frontend.
+                 * A counter (incremented by one for each recent entry) usable by React as key.
                  */
-                var hashKey: Int? = null
+                var counter: Int? = null
 ) : BaseDTO<TimesheetDO>()

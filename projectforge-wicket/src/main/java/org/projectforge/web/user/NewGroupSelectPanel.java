@@ -111,7 +111,7 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
       @Override
       protected List<String> getRecentUserInputs()
       {
-        return getRecentCustomers().getRecents();
+        return getRecentCustomers().getRecentList();
       }
 
       @Override

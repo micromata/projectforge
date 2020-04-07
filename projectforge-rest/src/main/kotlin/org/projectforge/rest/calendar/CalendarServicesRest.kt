@@ -138,7 +138,8 @@ class CalendarServicesRest {
         var url: String
         var category: String? = categoryParam
         if (action == "slotSelected") {
-            val defaultCalendarId = calendarFilterServicesRest.getCurrentFilter().defaultCalendarId
+            val currentFilter = calendarFilterServicesRest.getCurrentFilter()
+            val defaultCalendarId = currentFilter.defaultCalendarId
             category = if (defaultCalendarId != null && defaultCalendarId > 0) {
                 if (useNewCalendarEvents) "calEvent" else "teamEvent"
             } else {
@@ -147,6 +148,8 @@ class CalendarServicesRest {
             url = "/$category/edit?startDate=$startDate&endDate=$endDate"
             if (defaultCalendarId != null && defaultCalendarId > 0) {
                 url = "$url&calendar=$defaultCalendarId"
+            } else {
+                url = "$url&userId=${currentFilter.timesheetUserId}"
             }
         } else if (action == "resize" || action == "dragAndDrop") {
             val origStartDate = if (startDate != null) RestHelper.parseJSDateTime(origStartDateParam)?.javaScriptString else null

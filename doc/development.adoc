@@ -630,8 +630,8 @@ Simple example (addresses) with more fields and UI layout with more fieldsets an
 == Writing own plugins
 Refer https://github.com/micromata/projectforge-plugins[ProjectForge-plugins on GitHub] for examples.
 
-* `org.projectforge.plugins.skills` as an Kotlin plugin.
-* will comming soon as an Java plugin.
+* KTMemo as an Kotlin plugin.
+* JMemo as an Java plugin.
 
 === Starting your plugin from command line
 
@@ -652,3 +652,13 @@ Following the solution described in https://stackoverflow.com/questions/37833877
   a. Main class: `org.springframework.boot.loader.PropertiesLauncher`. Please note, the configuration is marked faulty, but it works.
   b. VM options: `-Xms2000m -Xmx2000m -Dloader.home=/home/kai/ProjectForge -Dloader.main=org.projectforge.start.ProjectForgeApplication`
   c. Environment variables: `LOADER_HOME=/home/kai/ProjectForge`
+
+For debugging you may attach the plugin to your IntelliJ classpath.
+
+
+=== Limitations in Plugins
+
+* Own customized components are not yet supported in UILayout for external plugins. We're working on this issue.
+
+All other functionality
+seems to be available.

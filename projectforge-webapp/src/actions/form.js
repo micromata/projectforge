@@ -160,17 +160,23 @@ export const callAction = (
 
             const { data, serverData } = state.categories[category];
 
+            let body;
+
+            if (action.targetType !== 'GET') {
+                body = JSON.stringify({
+                    data,
+                    watchFieldsTriggered,
+                    serverData,
+                });
+            }
+
             return fetch(
                 getServiceURL(action.url),
                 {
                     method: action.targetType,
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        data,
-                        watchFieldsTriggered,
-                        serverData,
-                    }),
+                    body,
                 },
             )
                 .then((response) => {
