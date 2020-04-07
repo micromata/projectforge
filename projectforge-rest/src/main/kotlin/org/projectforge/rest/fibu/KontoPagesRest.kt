@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("${Rest.URL}/konto")
+@RequestMapping("${Rest.URL}/account")
 class KontoPagesRest
     : AbstractDTOPagesRest<KontoDO, Konto, KontoDao>(
         KontoDao::class.java,
