@@ -32,24 +32,45 @@ private val log = KotlinLogging.logger {}
 
 @Service
 open class RepositoryService {
-    open fun ensureNode(path: String): Node {
-        var node: Node? = null
+    /**
+     * @param path Path, nodes are separated by '/', e. g. "world/germany".
+     * @param subPath optional sub node of node specified by path.
+     */
+    @JvmOverloads
+    open fun ensureNode(path: String, subPath: String? = null): String {
+        var resultPath: String? = null
         runInSession { session ->
             val root: Node = session.rootNode
-            node = if (!root.hasNode(path)) {
-                log.info { "Creating node $path." }
-                root.addNode(path)
+            val fullPath = if (subPath.isNullOrBlank()) {
+                path
             } else {
-                root.getNode(path)
+                "$path/$subPath"
             }
+            var current: Node = root
+            fullPath.split("/").forEach {
+                current = ensureNode(current, it)
+            }
+            resultPath = current.path
             session.save()
         }
-        return node!!
+        return resultPath!!
+    }
+
+    private fun ensureNode(parentNode: Node, relPath: String): Node {
+        if (!parentNode.hasNode(relPath)) {
+            log.info { "Creating node ${parentNode.path}/$relPath." }
+            return parentNode.addNode(relPath)
+        }
+        return parentNode.getNode(relPath)
     }
 
     open fun store(path: String) {
         runInSession { session ->
-            val node: Node = session.rootNode.getNode(path)
+            val node: Node = if (path.startsWith("/")) {
+                session.getNode(path)
+            } else {
+                session.rootNode.getNode(path)
+            }
             node.setProperty("message", "Hello, World!")
             session.save()
         }
