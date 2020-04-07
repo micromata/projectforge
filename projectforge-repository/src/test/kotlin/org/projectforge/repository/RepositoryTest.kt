@@ -33,5 +33,10 @@ class RepositoryTest {
         service.ensureNode("hello/world")
         service.store("hello/world")
         service.retrieve("hello/world")
+
+        val path = service.ensureNode("hello/world/test", "id")
+        println(path)
+        service.store(path)
+        service.retrieve("hello/world/test/id")
     }
 }
