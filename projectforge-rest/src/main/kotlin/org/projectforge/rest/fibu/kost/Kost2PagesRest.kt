@@ -32,6 +32,8 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Kost1
 import org.projectforge.rest.dto.Kost2
+import org.projectforge.rest.dto.Kunde
+import org.projectforge.rest.dto.Projekt
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -44,6 +46,17 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
         val kost2 = Kost2()
         kost2.copyFrom(obj)
         kost2.formattedNumber = KostFormatter.format(obj)
+        if(obj.projekt != null){
+            kost2.projekt = Projekt()
+            kost2.projekt!!.copyFrom(obj.projekt!!)
+            if(obj.projekt!!.kunde != null){
+                kost2.projekt!!.kunde = Kunde()
+                kost2.projekt!!.kunde!!.copyFrom(obj.projekt!!.kunde!!)
+            }
+        }
+        if(obj.kost2Art != null){
+            kost2.kost2Art!!.copyFrom(obj.kost2Art!!)
+        }
         return kost2
     }
 
@@ -62,9 +75,9 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "formattedNumber", "kost2Art", "kost2Art.fakturiert", "workFraction",
-                                "projekt.kunde", "projekt", "kostentraegerStatus", "description", "comment"))
-        layout.getTableColumnById("projekt").formatter = Formatter.PROJECT
+                        .add(UITableColumn("formattedNumber", title = "fibu.kost2"))
+                        .add(UITableColumn("kost2Art.name", title = "fibu.kost2.art"))
+                        .add(lc, "kost2Art.fakturiert", "workFraction", "projekt.kunde.name", "projekt.name", "kostentraegerStatus", "description", "comment"))
         return LayoutUtils.processListPage(layout, this)
     }
 
