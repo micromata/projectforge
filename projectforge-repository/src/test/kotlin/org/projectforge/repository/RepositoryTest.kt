@@ -76,6 +76,23 @@ class RepositoryTest {
         checkFile(file, file.id, "unkown")
         checkFile(file, "unkown", file.fileName)
 
+        val unknownFile = FileObject()
+        unknownFile.id = "unknown id"
+        unknownFile.fileName = "unknown filename"
+        unknownFile.parentNodePath = file.parentNodePath
+        unknownFile.relPath = file.relPath
+        Assertions.assertFalse(repoService.retrieveFile(unknownFile))
+        unknownFile.id = file.id
+        unknownFile.relPath = "unknown"
+        Assertions.assertFalse(repoService.retrieveFile(unknownFile))
+        unknownFile.parentNodePath = "unknown"
+        try {
+            Assertions.assertFalse(repoService.retrieveFile(unknownFile))
+            fail("Exception expected, because parent path not found.")
+        } catch (ex: Exception) {
+            // OK
+        }
+
         /* val path = repoService.ensureNode("world/europe", "germany/id")
          println(path)
          repoService.store(path)
