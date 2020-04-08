@@ -96,6 +96,15 @@ open class RepositoryService {
         }
     }
 
+
+    open fun getNodeInfo(absPath: String, recursive: Boolean = false): NodeInfo {
+        return runInSession { session ->
+            log.info { "Getting node info of path '$absPath'..." }
+            val node = session.getNode(absPath)
+            NodeInfo(node, recursive)
+        }
+    }
+
     private fun getFilesNode(session: Session, parentNodePath: String?, relPath: String?, ensureFilesNode: Boolean = false): Node? {
         val parentNode = getNodeOrNull(session, parentNodePath, relPath)
         if (parentNode == null) {
@@ -109,7 +118,7 @@ open class RepositoryService {
         }
     }
 
-    private fun getFiles(filesNode: Node?): List<FileObject> {
+    internal fun getFiles(filesNode: Node?): List<FileObject> {
         filesNode ?: return emptyList()
         val fileNodes = filesNode.nodes
         if (fileNodes == null || !fileNodes.hasNext()) {
@@ -118,25 +127,28 @@ open class RepositoryService {
         val result = mutableListOf<FileObject>()
         while (fileNodes.hasNext()) {
             val node = fileNodes.nextNode()
-            val fileObject = FileObject()
-            fileObject.fileName = node.getProperty(PROPERTY_FILENAME)?.string
-            fileObject.id = node.name
-            fileObject.size = node.getProperty(PROPERTY_FILESIZE)?.long?.toInt()
-            result.add(fileObject)
+            if (node.hasProperty(PROPERTY_FILENAME)) {
+                val fileObject = FileObject()
+                fileObject.fileName = node.getProperty(PROPERTY_FILENAME)?.string
+                fileObject.id = node.name
+                fileObject.size = node.getProperty(PROPERTY_FILESIZE)?.long?.toInt()
+                result.add(fileObject)
+            }
         }
         return result
     }
 
-    private fun findFile(filesNode: Node?, id: String?, fileName: String?): Node? {
+    internal fun findFile(filesNode: Node?, id: String?, fileName: String?): Node? {
         filesNode ?: return null
         if (!filesNode.hasNodes()) {
             return null
         }
-        val nodesIterator = filesNode.nodes
-        while (nodesIterator.hasNext()) {
-            val node = nodesIterator.nextNode()
-            if (node.name == id || node.getProperty(PROPERTY_FILENAME).string == fileName) {
-                return node
+        filesNode.nodes?.let {
+            while (it.hasNext()) {
+                val node = it.nextNode()
+                if (node.name == id || node.getProperty(PROPERTY_FILENAME).string == fileName) {
+                    return node
+                }
             }
         }
         return null
@@ -150,23 +162,32 @@ open class RepositoryService {
                 log.warn { "File not found in repository: $file" }
                 false
             } else {
-                log.info { "Reading file from repository: $file..." }
                 file.fileName = node.getProperty(PROPERTY_FILENAME).string
                 file.id = node.name
-                var binary: Binary? = null
-                try {
-                    binary = node.getProperty(PROPERTY_FILECONTENT)?.binary
-                    file.content = binary?.stream?.readBytes()
-                } finally {
-                    binary?.dispose()
-                }
-                log.info { "Got file from repository: $file..." }
+                file.content = getFileContent(node)
                 true
             }
         }
     }
 
-    private fun getNode(session: Session, parentNodePath: String?, relPath: String?, ensureRelNode: Boolean = true): Node {
+    internal fun getFileContent(node: Node?): ByteArray? {
+        node ?: return null
+        log.info { "Reading file from repository: ${node.path}..." }
+        var binary: Binary? = null
+        var content: ByteArray?
+        try {
+            binary = node.getProperty(PROPERTY_FILECONTENT)?.binary
+            content = binary?.stream?.readBytes()
+        } finally {
+            binary?.dispose()
+        }
+        if (content != null) {
+            log.info { "Got file from repository: ${node.path}..." }
+        }
+        return content
+    }
+
+    internal fun getNode(session: Session, parentNodePath: String?, relPath: String?, ensureRelNode: Boolean = true): Node {
         return getNodeOrNull(session, parentNodePath, relPath, ensureRelNode)
                 ?: throw IllegalArgumentException("Can't find node ${getFullPath(parentNodePath, relPath)}.")
     }
@@ -219,13 +240,13 @@ open class RepositoryService {
             random.nextBytes(bytes)
             val sb = StringBuilder()
             for (i in 0 until PROPERTY_RANDOM_ID_LENGTH) {
-                sb.append(ALPHA_NUMERICS_CHARSET[(bytes[i].toInt() and 0xFF) % PROPERTY_RANDOM_ID_LENGTH])
+                sb.append(ALPHA_CHARSET[(bytes[i].toInt() and 0xFF) % PROPERTY_RANDOM_ID_LENGTH])
             }
             return sb.toString()
         }
 
     private fun <T> runInSession(method: (session: Session) -> T): T {
-        val session: Session = repository.login(credentials)
+        val session: Session = login()
         try {
             return method(session)
         } finally {
@@ -233,9 +254,24 @@ open class RepositoryService {
         }
     }
 
-    private lateinit var repository: Repository
+    /*
+    private fun decoder(base64: ByteArray?): ByteArray? {
+        base64 ?: return null
+        return decoder(base64.toString(StandardCharsets.UTF_8))
+    }
 
-    private val credentials = SimpleCredentials("admin", "admin".toCharArray())
+    private fun decoder(base64Str: String): ByteArray? {
+        return Base64.getDecoder().decode(base64Str)
+    }
+    */
+
+    internal lateinit var repository: Repository
+
+    internal val credentials = SimpleCredentials("admin", "admin".toCharArray())
+
+    internal fun login(): Session {
+        return repository.login(credentials)
+    }
 
     fun init(parameters: Map<String, String>) {
         if (log.isDebugEnabled) {
@@ -247,12 +283,13 @@ open class RepositoryService {
     }
 
     companion object {
+        const val RESTORE_SECURITY_CONFIRMATION_IN_KNOW_WHAT_I_M_DOING_REPO_MAY_BE_DESTROYED = "Yes, I want to restore the repo and know what I'm doing. The repo may be lost."
         internal const val NODENAME_FILES = "__FILES"
         private const val PROPERTY_FILENAME = "fileName"
         private const val PROPERTY_FILECONTENT = "content"
         private const val PROPERTY_FILESIZE = "size"
-        private const val PROPERTY_RANDOM_ID_LENGTH = 10
-        private val ALPHA_NUMERICS_CHARSET: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+        private const val PROPERTY_RANDOM_ID_LENGTH = 20
+        private val ALPHA_CHARSET: Array<Char> = ('a'..'z').toList().toTypedArray()
 
         internal fun getFullPath(parentPath: String?, relPath: String?): String? {
             if (parentPath == null && relPath == null) {
