@@ -57,16 +57,45 @@ class RepositoryTest {
         try {
             repoService.ensureNode("world/europe", "germany")
             fail("Exception expected, because node 'world/europe' doesn't exist.")
-        } catch(ex: Exception) {
+        } catch (ex: Exception) {
             // OK, hello/world doesn't exist.
         }
         Assertions.assertEquals("/world/europe", repoService.ensureNode(null, "world/europe"))
         repoService.storeProperty("world/europe", "germany", "key", "value")
-        Assertions.assertEquals("value", repoService.retrieveProperty("world/europe/", "germany","key"))
+        Assertions.assertEquals("value", repoService.retrievePropertyString("world/europe/", "germany", "key"))
 
-       /* val path = repoService.ensureNode("world/europe", "germany/id")
-        println(path)
-        repoService.store(path)
-        repoService.retrieve("world/europe/germany/id")*/
+        val file = FileObject()
+        file.fileName = "pom.xml"
+        file.parentNodePath = "/world/europe"
+        file.relPath = "germany"
+        file.content = File(file.fileName).readBytes()
+        repoService.storeFile(file)
+
+        checkFile(file, null, file.fileName)
+        checkFile(file, file.id, null)
+        checkFile(file, file.id, "unkown")
+        checkFile(file, "unkown", file.fileName)
+
+        /* val path = repoService.ensureNode("world/europe", "germany/id")
+         println(path)
+         repoService.store(path)
+         repoService.retrieve("world/europe/germany/id")*/
     }
+
+    private fun checkFile(expected: FileObject, id: String?, fileName: String?) {
+        val file = FileObject()
+        file.id = id
+        file.fileName = fileName
+        file.parentNodePath = expected.parentNodePath
+        file.relPath = expected.relPath
+        Assertions.assertTrue(repoService.retrieveFile(file))
+        Assertions.assertEquals(expected.size, file.size)
+        Assertions.assertEquals(expected.id, file.id)
+        Assertions.assertEquals(expected.fileName, file.fileName)
+        Assertions.assertEquals(expected.content!!.size, file.content!!.size)
+        for (idx in expected.content!!.indices) {
+            Assertions.assertEquals(expected.content!![idx], file.content!![idx])
+        }
+    }
+
 }
