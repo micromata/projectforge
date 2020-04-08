@@ -26,7 +26,16 @@ package org.projectforge.repository
 import mu.KotlinLogging
 import org.apache.jackrabbit.commons.JcrUtils
 import org.junit.jupiter.api.*
+import java.io.BufferedOutputStream
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.nio.charset.StandardCharsets
+import java.util.*
+import java.util.zip.GZIPInputStream
+import java.util.zip.GZIPOutputStream
+import java.util.zip.ZipOutputStream
+import javax.jcr.ImportUUIDBehavior
 
 private val log = KotlinLogging.logger {}
 
@@ -93,19 +102,65 @@ class RepositoryTest {
             // OK
         }
 
-        /* val path = repoService.ensureNode("world/europe", "germany/id")
-         println(path)
-         repoService.store(path)
-         repoService.retrieve("world/europe/germany/id")*/
+        val repoBackupService = RepositoryBackupService()
+        repoBackupService.repositoryService = repoService
+
+        val gzFile = createTempFile(suffix = ".gz")
+        GZIPOutputStream(FileOutputStream(gzFile)).use {
+            repoBackupService.backupDocumentView("/world", it, skipBinary = false, noRecurse = false)
+        }
+        println(gzFile.absoluteFile)
+        // Create second repository:
+        val backupRepoService = RepositoryService()
+        val backupRepoDir = createTempDir()
+        backupRepoService.init(mapOf(JcrUtils.REPOSITORY_URI to backupRepoDir.toURI().toString()))
+        GZIPInputStream(FileInputStream(gzFile)).buffered().use {
+            repoBackupService.restore("/", it, RepositoryService.RESTORE_SECURITY_CONFIRMATION_IN_KNOW_WHAT_I_M_DOING_REPO_MAY_BE_DESTROYED,
+                    ImportUUIDBehavior.IMPORT_UUID_COLLISION_REMOVE_EXISTING)
+        }
+
+        val ba = GZIPInputStream(FileInputStream(gzFile)).buffered().use {
+            it.readAllBytes()
+        }
+        println(ba.toString(StandardCharsets.UTF_8))
+        val root = backupRepoService.getNodeInfo("/", true)
+        println(root)
+
+        val testFile = FileObject()
+        testFile.parentNodePath = file.parentNodePath
+        testFile.relPath = file.relPath
+        testFile.id = file.id
+        backupRepoService.retrieveFile(testFile)
+        println(decoder(testFile.content))
+
+        checkFile(file, null, file.fileName, backupRepoService)
+        gzFile.delete()
     }
 
-    private fun checkFile(expected: FileObject, id: String?, fileName: String?) {
+    fun decoder(base64: ByteArray?): String? {
+        base64 ?: return null
+        return decoder(base64.toString(StandardCharsets.UTF_8))
+    }
+
+    fun decoder(base64Str: String): String {
+        val imageByteArray = Base64.getDecoder().decode(base64Str)
+        return imageByteArray.toString(StandardCharsets.UTF_8)
+        //File(pathFile).writeBytes(imageByteArray)
+    }
+
+    fun encoder(filePath: String): String{
+        val bytes = File(filePath).readBytes()
+        val base64 = Base64.getEncoder().encodeToString(bytes)
+        return base64
+    }
+
+    private fun checkFile(expected: FileObject, id: String?, fileName: String?, repo: RepositoryService = repoService) {
         val file = FileObject()
         file.id = id
         file.fileName = fileName
         file.parentNodePath = expected.parentNodePath
         file.relPath = expected.relPath
-        Assertions.assertTrue(repoService.retrieveFile(file))
+        Assertions.assertTrue(repo.retrieveFile(file))
         Assertions.assertEquals(expected.size, file.size)
         Assertions.assertEquals(expected.id, file.id)
         Assertions.assertEquals(expected.fileName, file.fileName)
@@ -114,5 +169,4 @@ class RepositoryTest {
             Assertions.assertEquals(expected.content!![idx], file.content!![idx])
         }
     }
-
 }
