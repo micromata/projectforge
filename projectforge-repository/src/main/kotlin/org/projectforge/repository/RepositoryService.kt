@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.apache.jackrabbit.commons.JcrUtils
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
+import java.io.OutputStream
 import java.security.SecureRandom
 import javax.jcr.*
 
@@ -149,7 +150,7 @@ open class RepositoryService {
                 log.warn { "File not found in repository: $file" }
                 false
             } else {
-                log.info { "Reading file from repository: $file" }
+                log.info { "Reading file from repository: $file..." }
                 file.fileName = node.getProperty(PROPERTY_FILENAME).string
                 file.id = node.name
                 var binary: Binary? = null
@@ -159,6 +160,7 @@ open class RepositoryService {
                 } finally {
                     binary?.dispose()
                 }
+                log.info { "Got file from repository: $file..." }
                 true
             }
         }
@@ -236,6 +238,10 @@ open class RepositoryService {
     private val credentials = SimpleCredentials("admin", "admin".toCharArray())
 
     fun init(parameters: Map<String, String>) {
+        if (log.isDebugEnabled) {
+            log.debug { "Setting system property: derby.stream.error.field=${DerbyUtil::class.java.name}.DEV_NULL" }
+        }
+        System.setProperty("derby.stream.error.field", "${DerbyUtil::class.java.name}.DEV_NULL")
         log.info { "Initializing Jcr repository: ${parameters.entries.joinToString { "${it.key}='${it.value}'" }}" }
         repository = JcrUtils.getRepository(parameters)
     }
@@ -254,6 +260,14 @@ open class RepositoryService {
             }
             parentPath ?: return relPath
             return if (parentPath.endsWith("/")) "$parentPath$relPath" else "$parentPath/$relPath"
+        }
+    }
+
+    // https://stackoverflow.com/questions/1004327/getting-rid-of-derby-log
+    object DerbyUtil {
+        @JvmField
+        val DEV_NULL: OutputStream = object : OutputStream() {
+            override fun write(b: Int) {}
         }
     }
 }
