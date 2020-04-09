@@ -67,6 +67,7 @@ open class HRPlanningDO : DefaultBaseDO() {
     /**
      * @return The first day of the week.
      */
+    @PropertyInfo(i18nKey = "calendar.year")
     @Field(analyze = Analyze.NO)
     @get:Column(name = "week", nullable = false)
     open var week: LocalDate? = null
