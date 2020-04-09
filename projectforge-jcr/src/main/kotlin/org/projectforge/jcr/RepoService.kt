@@ -128,17 +128,13 @@ open class RepoService {
         while (fileNodes.hasNext()) {
             val node = fileNodes.nextNode()
             if (node.hasProperty(PROPERTY_FILENAME)) {
-                val fileObject = FileObject()
-                fileObject.fileName = node.getProperty(PROPERTY_FILENAME)?.string
-                fileObject.id = node.name
-                fileObject.size = node.getProperty(PROPERTY_FILESIZE)?.long?.toInt()
-                result.add(fileObject)
+                result.add(FileObject(node))
             }
         }
         return result
     }
 
-    internal fun findFile(filesNode: Node?, id: String?, fileName: String?): Node? {
+    internal fun findFile(filesNode: Node?, id: String?, fileName: String? = null): Node? {
         filesNode ?: return null
         if (!filesNode.hasNodes()) {
             return null
@@ -187,12 +183,12 @@ open class RepoService {
         return content
     }
 
-    internal fun getNode(session: Session, parentNodePath: String?, relPath: String?, ensureRelNode: Boolean = true): Node {
+    internal fun getNode(session: Session, parentNodePath: String?, relPath: String? = null, ensureRelNode: Boolean = true): Node {
         return getNodeOrNull(session, parentNodePath, relPath, ensureRelNode)
                 ?: throw IllegalArgumentException("Can't find node ${getFullPath(parentNodePath, relPath)}.")
     }
 
-    private fun getNodeOrNull(session: Session, parentNodePath: String?, relPath: String?, ensureRelNode: Boolean = true): Node? {
+    internal fun getNodeOrNull(session: Session, parentNodePath: String?, relPath: String? = null, ensureRelNode: Boolean = true): Node? {
         val parentNode = if (parentNodePath.isNullOrBlank() || parentNodePath == "/") {
             session.rootNode
         } else if (isAbsolute(parentNodePath)) {
@@ -265,29 +261,36 @@ open class RepoService {
     }
     */
 
-    internal lateinit var repository: Repository
+    private lateinit var repository: Repository
 
-    internal val credentials = SimpleCredentials("admin", "admin".toCharArray())
+    private val credentials = SimpleCredentials("admin", "admin".toCharArray())
+
+    private var initialized = false
 
     internal fun login(): Session {
         return repository.login(credentials)
     }
 
     fun init(parameters: Map<String, String>) {
-        if (log.isDebugEnabled) {
-            log.debug { "Setting system property: derby.stream.error.field=${DerbyUtil::class.java.name}.DEV_NULL" }
+        synchronized(this) {
+            if (initialized) {
+                throw IllegalArgumentException("Can't initialize repo twice! repo=$this")
+            }
+            initialized = true
+            if (log.isDebugEnabled) {
+                log.debug { "Setting system property: derby.stream.error.field=${DerbyUtil::class.java.name}.DEV_NULL" }
+            }
+            System.setProperty("derby.stream.error.field", "${DerbyUtil::class.java.name}.DEV_NULL")
+            log.info { "Initializing Jcr repository: ${parameters.entries.joinToString { "${it.key}='${it.value}'" }}" }
+            repository = JcrUtils.getRepository(parameters)
         }
-        System.setProperty("derby.stream.error.field", "${DerbyUtil::class.java.name}.DEV_NULL")
-        log.info { "Initializing Jcr repository: ${parameters.entries.joinToString { "${it.key}='${it.value}'" }}" }
-        repository = JcrUtils.getRepository(parameters)
     }
 
     companion object {
-        const val RESTORE_SECURITY_CONFIRMATION_IN_KNOW_WHAT_I_M_DOING_REPO_MAY_BE_DESTROYED = "Yes, I want to restore the repo and know what I'm doing. The repo may be lost."
         internal const val NODENAME_FILES = "__FILES"
-        private const val PROPERTY_FILENAME = "fileName"
-        private const val PROPERTY_FILECONTENT = "content"
-        private const val PROPERTY_FILESIZE = "size"
+        internal const val PROPERTY_FILENAME = "fileName"
+        internal const val PROPERTY_FILESIZE = "size"
+        internal const val PROPERTY_FILECONTENT = "content"
         private const val PROPERTY_RANDOM_ID_LENGTH = 20
         private val ALPHA_CHARSET: Array<Char> = ('a'..'z').toList().toTypedArray()
 
@@ -296,6 +299,7 @@ open class RepoService {
                 return null
             }
             parentPath ?: return relPath
+            relPath ?: return parentPath
             return if (parentPath.endsWith("/")) "$parentPath$relPath" else "$parentPath/$relPath"
         }
     }

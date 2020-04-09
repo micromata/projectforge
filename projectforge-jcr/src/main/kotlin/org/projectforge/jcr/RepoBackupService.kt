@@ -24,13 +24,16 @@
 package org.projectforge.jcr
 
 import mu.KotlinLogging
+import org.apache.commons.io.FilenameUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+import javax.jcr.Binary
+import javax.jcr.ImportUUIDBehavior
 import javax.jcr.Node
 import javax.jcr.Session
 
@@ -41,22 +44,6 @@ private val log = KotlinLogging.logger {}
 open class RepoBackupService {
     @Autowired
     internal lateinit var repoService: RepoService
-
-    open fun backupSystemView(absPath: String, ostream: OutputStream, skipBinary: Boolean = false, noRecurse: Boolean = false) {
-        return runInSession { session ->
-            log.info { "Creating backup of system view of path '$absPath'..." }
-            session.exportSystemView(absPath, ostream, skipBinary, noRecurse)
-        }
-    }
-
-    open fun backupDocumentView(absPath: String, ostream: OutputStream, skipBinary: Boolean = false, noRecurse: Boolean = false) {
-        return runInSession { session ->
-            log.info { "Creating backup of document view of path '$absPath'..." }
-            val node = repoService.getNode(session, absPath, null)
-            println(NodeInfo(node, true))
-            session.exportDocumentView(absPath, ostream, skipBinary, noRecurse)
-        }
-    }
 
     open fun backupAsZipArchive(absPath: String, archiveName: String, zipOut: ZipOutputStream) {
         val archivNameWithoutExtension = if (archiveName.contains('.')) {
@@ -72,6 +59,77 @@ open class RepoBackupService {
         }
     }
 
+    open fun restoreBackupFromZipArchive(absPath: String, zipIn: ZipInputStream, securityConfirmation: String) {
+        if (securityConfirmation != RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED) {
+            throw IllegalArgumentException("You must use the correct security confirmation if you know what you're doing. The repo content may be lost after restoring!")
+        }
+        return runInSession { session ->
+            log.info { "Restoring backup of document view and binaries of path '$absPath'..." }
+            var repositoryXmlHandled = false
+            var zipEntry = zipIn.nextEntry
+            while (zipEntry != null) {
+                if (zipEntry.isDirectory) {
+                    zipEntry = zipIn.nextEntry
+                    continue
+                }
+                val fileName = FilenameUtils.getName(zipEntry.name)
+                if (!repositoryXmlHandled) {
+                    if (fileName == "repository.xml") {
+                        log.info { "Restoring nodes from '${zipEntry.name}..." }
+                        val xml = zipIn.readBytes()
+                        session.workspace.importXML(absPath, ByteArrayInputStream(xml), ImportUUIDBehavior.IMPORT_UUID_COLLISION_REPLACE_EXISTING)
+                        session.save()
+                        repositoryXmlHandled = true
+                        zipEntry = zipIn.nextEntry
+                        continue
+                    }
+                }
+                val filesPath = getFilesPath(zipEntry.name)
+                if (!filesPath.isNullOrBlank() && !IGNORE_FILES.contains(fileName)) {
+                    if (log.isDebugEnabled) {
+                        log.debug { "Restoring file content (binary) '${zipEntry.name}', $fileName..." }
+                    }
+                    val filesNode = repoService.getNodeOrNull(session, filesPath)
+                    if (filesNode == null) {
+                        log.error { "Can't determine node '$filesNode'. Can't restore binary '${zipEntry.name}'." }
+                        zipEntry = zipIn.nextEntry
+                        continue
+                    }
+                    val fileNode = repoService.findFile(filesNode, FilenameUtils.getBaseName(zipEntry.name))
+                    if (fileNode == null) {
+                        log.error { "Can't determine node '$fileNode'. Can't restore binary '${zipEntry.name}'." }
+                        zipEntry = zipIn.nextEntry
+                        continue
+                    }
+                    if (!repositoryXmlHandled) {
+                        throw IllegalArgumentException("Sorry, can't restore binaries. repository.xml must be read first (placed before restoring binaries in zip file)!")
+                    }
+                    val fileObject = FileObject(fileNode)
+                    log.info { "Restoring file '${zipEntry.name}': $fileObject"}
+                    val content = zipIn.readBytes()
+                    val inputStream = ByteArrayInputStream(content)
+                    val bin: Binary = session.valueFactory.createBinary(inputStream)
+                    fileNode.setProperty(RepoService.PROPERTY_FILECONTENT, session.valueFactory.createValue(bin))
+                    session.save()
+                }
+                zipEntry = zipIn.nextEntry
+            }
+            zipIn.closeEntry()
+        }
+    }
+
+    private fun getFilesPath(fileName: String): String? {
+        if (!fileName.contains(RepoService.NODENAME_FILES)) {
+            return null
+        }
+        var archiveName = fileName.substring(fileName.indexOf('/'))
+        if (archiveName.startsWith("//")) {
+            archiveName = archiveName.substring(1)
+        }
+        archiveName = archiveName.substring(0, archiveName.indexOf(RepoService.NODENAME_FILES) - 1)
+        return "$archiveName/${RepoService.NODENAME_FILES}"
+    }
+
     private fun writeToZip(node: Node, archiveName: String, zipOut: ZipOutputStream) {
         val fileList = repoService.getFiles(node)
         if (!fileList.isNullOrEmpty()) {
@@ -80,10 +138,12 @@ open class RepoBackupService {
                 val content = repoService.getFileContent(fileNode)
                 if (content != null) {
                     val fileName = PFJcrUtils.createSafeFilename(it)
-                    zipOut.putNextEntry(createZipEntry(archiveName, "${node.path}", fileName))
+                    zipOut.putNextEntry(createZipEntry(archiveName, node.path, fileName))
                     zipOut.write(content)
                 }
             }
+            zipOut.putNextEntry(createZipEntry(archiveName, node.path, "files.json"))
+            zipOut.write(PFJcrUtils.toJson(FileObjectList(fileList)).toByteArray(StandardCharsets.UTF_8))
             zipOut.putNextEntry(createZipEntry(archiveName, node.path, "files.txt"))
             val fileListAsString = fileList.joinToString(separator = "\n") { "${PFJcrUtils.createSafeFilename(it)} ${PFJcrUtils.formatBytes(it.size)} ${it.fileName}" }
             zipOut.write(fileListAsString.toByteArray(StandardCharsets.UTF_8))
@@ -102,16 +162,6 @@ open class RepoBackupService {
         return ZipEntry("$archiveName/${path.joinToString(separator = "/") { it ?: "" }}")
     }
 
-    open fun restore(absPath: String, istream: InputStream, securityConfirmation: String, uuidBehavior: Int) {
-        if (securityConfirmation != RepoService.RESTORE_SECURITY_CONFIRMATION_IN_KNOW_WHAT_I_M_DOING_REPO_MAY_BE_DESTROYED) {
-            throw IllegalArgumentException("You must use the correct security confirmation if you know what you're doing. The repo content may be lost after restoring!")
-        }
-        return runInSession { session ->
-            log.info { "Restoring repository in path '$absPath'..." }
-            session.workspace.importXML(absPath, istream, uuidBehavior)
-        }
-    }
-
     private fun <T> runInSession(method: (session: Session) -> T): T {
         val session: Session = repoService.login()
         try {
@@ -119,5 +169,11 @@ open class RepoBackupService {
         } finally {
             session.logout()
         }
+    }
+
+    companion object {
+        const val RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED = "Yes, I want to restore the repo and know what I'm doing. The repo may be lost."
+
+        private val IGNORE_FILES = arrayOf("node.json", "files.txt", "files.json")
     }
 }

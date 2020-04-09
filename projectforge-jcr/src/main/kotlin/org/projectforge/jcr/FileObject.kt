@@ -23,10 +23,27 @@
 
 package org.projectforge.jcr
 
+import javax.jcr.Node
+
 /**
  * Files in the content repository may addressed by location (parent node) and id or location and filename.
  */
-class FileObject {
+class FileObject() {
+    @JvmOverloads
+    constructor(parentNodePath: String, relPath:String? = null, id: String? = null, fileName: String? = null) : this() {
+        this.parentNodePath = parentNodePath
+        this.relPath = relPath
+        this.id = id
+        this.fileName = fileName
+    }
+
+    internal constructor(node: Node) : this() {
+        fileName = node.getProperty(RepoService.PROPERTY_FILENAME)?.string
+        parentNodePath = node.path
+        id = node.name
+        size = node.getProperty(RepoService.PROPERTY_FILESIZE)?.long?.toInt()
+    }
+
     /**
      * The UTF-8 filename.
      */

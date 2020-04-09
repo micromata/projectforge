@@ -33,10 +33,10 @@ import java.io.File
 private val log = KotlinLogging.logger {}
 
 class RepoTest {
-    private val repoDir = TestUtils.deleteAndCreateTestFile("testRepo")
     private val repoService = RepoService()
 
     init {
+        val repoDir = TestUtils.deleteAndCreateTestFile("testRepo")
         repoService.init(mapOf(JcrUtils.REPOSITORY_URI to repoDir.toURI().toString()))
     }
 

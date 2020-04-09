@@ -33,17 +33,19 @@ import javax.jcr.Value
 class ValueInfo {
     internal constructor(value: Value?) {
         value ?: return
-        name = value.string
         type = PropertyTypeEnum.convert(value.type)
-        string = value.string
-        boolean = value.boolean
-        date = value.date
-        decimal = value.decimal
-        double = value.double
-        long = value.long
+        when (type) {
+            PropertyTypeEnum.BOOLEAN -> boolean = value.boolean
+            PropertyTypeEnum.STRING -> string = value.string
+            PropertyTypeEnum.DATE -> date = value.date
+            PropertyTypeEnum.DECIMAL -> decimal = value.decimal
+            PropertyTypeEnum.DOUBLE -> double = value.double
+            PropertyTypeEnum.LONG -> long = value.long
+            PropertyTypeEnum.BINARY -> {}
+            else -> string = value.string
+        }
     }
 
-    var name: String? = null
     var type: PropertyTypeEnum? = null
     var boolean: Boolean? = null
     var string: String? = null
