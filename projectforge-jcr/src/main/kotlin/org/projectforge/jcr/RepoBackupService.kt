@@ -37,9 +37,9 @@ import javax.jcr.Session
 private val log = KotlinLogging.logger {}
 
 @Service
-open class RepositoryBackupService {
+open class RepoBackupService {
     @Autowired
-    internal lateinit var repositoryService: RepositoryService
+    internal lateinit var repoService: RepoService
 
     open fun backupSystemView(absPath: String, ostream: OutputStream, skipBinary: Boolean = false, noRecurse: Boolean = false) {
         return runInSession { session ->
@@ -51,7 +51,7 @@ open class RepositoryBackupService {
     open fun backupDocumentView(absPath: String, ostream: OutputStream, skipBinary: Boolean = false, noRecurse: Boolean = false) {
         return runInSession { session ->
             log.info { "Creating backup of document view of path '$absPath'..." }
-            val node = repositoryService.getNode(session, absPath, null)
+            val node = repoService.getNode(session, absPath, null)
             println(NodeInfo(node, true))
             session.exportDocumentView(absPath, ostream, skipBinary, noRecurse)
         }
@@ -63,14 +63,14 @@ open class RepositoryBackupService {
             val zipEntry = ZipEntry("repository.xml")
             zipOut.putNextEntry(zipEntry)
             session.exportDocumentView(absPath, zipOut, true, false)
-            findAndZipBinaries(repositoryService.getNode(session, absPath, null), zipOut)
+            findAndZipBinaries(repoService.getNode(session, absPath, null), zipOut)
         }
     }
 
     private fun findAndZipBinaries(node: Node, zipOut: ZipOutputStream) {
-        repositoryService.getFiles(node).forEach {
-            val fileNode = repositoryService.findFile(node, it.id, null)
-            val content =repositoryService.getFileContent(fileNode)
+        repoService.getFiles(node).forEach {
+            val fileNode = repoService.findFile(node, it.id, null)
+            val content =repoService.getFileContent(fileNode)
             if (content != null) {
                 val zipEntry = ZipEntry(node.path + "/" + it.id)
                 zipOut.putNextEntry(zipEntry)
@@ -85,7 +85,7 @@ open class RepositoryBackupService {
     }
 
     open fun restore(absPath: String, istream: InputStream, securityConfirmation: String, uuidBehavior: Int) {
-        if (securityConfirmation != RepositoryService.RESTORE_SECURITY_CONFIRMATION_IN_KNOW_WHAT_I_M_DOING_REPO_MAY_BE_DESTROYED) {
+        if (securityConfirmation != RepoService.RESTORE_SECURITY_CONFIRMATION_IN_KNOW_WHAT_I_M_DOING_REPO_MAY_BE_DESTROYED) {
             throw IllegalArgumentException("You must use the correct security confirmation if you know what you're doing. The repo content may be lost after restoring!")
         }
         return runInSession { session ->
@@ -95,7 +95,7 @@ open class RepositoryBackupService {
     }
 
     private fun <T> runInSession(method: (session: Session) -> T): T {
-        val session: Session = repositoryService.login()
+        val session: Session = repoService.login()
         try {
             return method(session)
         } finally {

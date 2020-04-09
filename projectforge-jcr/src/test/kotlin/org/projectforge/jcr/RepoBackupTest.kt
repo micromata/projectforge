@@ -35,20 +35,20 @@ import java.util.zip.ZipOutputStream
 
 private val log = KotlinLogging.logger {}
 
-class RepositoryBackupTest {
+class RepoBackupTest {
 
     companion object {
-        private lateinit var repoService: RepositoryService
-        private lateinit var repoBackupService: RepositoryBackupService
+        private lateinit var repoService: RepoService
+        private lateinit var repoBackupService: RepoBackupService
         private val repoDir = createTempDir()
 
         @BeforeAll
         @JvmStatic
         fun setUp() {
-            repoService = RepositoryService()
+            repoService = RepoService()
             repoService.init(mapOf(JcrUtils.REPOSITORY_URI to repoDir.toURI().toString()))
-            repoBackupService = RepositoryBackupService()
-            repoBackupService.repositoryService = repoService
+            repoBackupService = RepoBackupService()
+            repoBackupService.repoService = repoService
             // repoDir.deleteOnExit() // Doesn't work reliable.
         }
 
