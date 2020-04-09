@@ -165,7 +165,7 @@
     <module>projectforge-common</module>
     <module>projectforge-model</module>
     <module>projectforge-business</module>
-    <module>projectforge-repository</module>
+    <module>projectforge-jcr</module>
     <module>projectforge-rest</module>
     <module>projectforge-webapp</module>
     <module>projectforge-wicket</module>
@@ -181,7 +181,7 @@
         <module>projectforge-common</module>
         <module>projectforge-model</module>
         <module>projectforge-business</module>
-        <module>projectforge-repository</module>
+        <module>projectforge-jcr</module>
         <module>projectforge-rest</module>
         <module>projectforge-webapp</module>
         <module>projectforge-wicket</module>

@@ -21,12 +21,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.repository
+package org.projectforge.jcr
 
 import mu.KotlinLogging
 import org.apache.jackrabbit.commons.JcrUtils
 import org.junit.jupiter.api.*
-import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -34,7 +33,6 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
-import java.util.zip.ZipOutputStream
 import javax.jcr.ImportUUIDBehavior
 
 private val log = KotlinLogging.logger {}

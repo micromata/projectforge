@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.repository
+package org.projectforge.jcr
 
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired

@@ -21,9 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.repository
+package org.projectforge.jcr
 
-import java.lang.StringBuilder
 import javax.jcr.Node
 
 /**
@@ -48,9 +47,5 @@ class NodeInfo {
 
     override fun toString(): String {
       return "name=[$name],children=[${children?.joinToString { it.toString() }}]"
-    }
-
-    private fun toString(sb: StringBuilder) {
-
     }
 }
