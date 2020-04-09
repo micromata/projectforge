@@ -85,7 +85,7 @@ class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(Contrac
                                 .add(title)
                                 .add(lc, "type", "status"))
                         .add(UICol()
-                                .add(lc, "reference", "resubmissionOnDate", "dueDate", "signingDate", "validFrom")))
+                                .add(lc, "reference", "resubmissionOnDate", "dueDate", "signingDate", "validFrom", "validUntil")))
                 .add(UIRow()
                         .add(UICol()
                                 .add(coContractorA)
