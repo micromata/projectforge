@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/visitorBook")
-class VisitorbookPagesRest: AbstractDTOPagesRest<VisitorbookDO, Visitorbook, VisitorbookDao>(VisitorbookDao::class.java, "orga.posteingang.title") {
+class VisitorbookPagesRest: AbstractDTOPagesRest<VisitorbookDO, Visitorbook, VisitorbookDao>(VisitorbookDao::class.java, "orga.visitorbook.title") {
     override fun transformForDB(dto: Visitorbook): VisitorbookDO {
         val visitorbookDO = VisitorbookDO()
         dto.copyTo(visitorbookDO)
