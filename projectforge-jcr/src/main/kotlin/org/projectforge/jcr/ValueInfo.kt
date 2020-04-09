@@ -23,30 +23,32 @@
 
 package org.projectforge.jcr
 
-import javax.jcr.Node
+import java.math.BigDecimal
+import java.util.*
+import javax.jcr.Value
 
 /**
  * For information.
  */
-class NodeInfo {
-    internal constructor(node: Node, recursive: Boolean = true) {
-        name = node.name
-        if (recursive) {
-            node.nodes?.let {
-                val nodes = mutableListOf<NodeInfo>()
-                while (it.hasNext()) {
-                    nodes.add(NodeInfo(it.nextNode()))
-                }
-                children = nodes
-            }
-        }
+class ValueInfo {
+    internal constructor(value: Value?) {
+        value ?: return
+        name = value.string
+        type = PropertyTypeEnum.convert(value.type)
+        string = value.string
+        boolean = value.boolean
+        date = value.date
+        decimal = value.decimal
+        double = value.double
+        long = value.long
     }
 
     var name: String? = null
-    var children: List<NodeInfo>? = null
-    var properties: List<PropertyInfo>? = null
-
-    override fun toString(): String {
-      return PFJcrUtils.toJson(this)
-    }
+    var type: PropertyTypeEnum? = null
+    var boolean: Boolean? = null
+    var string: String? = null
+    var date: Calendar? = null
+    var decimal: BigDecimal? = null
+    var double: Double? = null
+    var long: Long? = null
 }

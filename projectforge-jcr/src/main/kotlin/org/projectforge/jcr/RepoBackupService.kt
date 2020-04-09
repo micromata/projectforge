@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.charset.StandardCharsets
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import javax.jcr.Node
@@ -57,31 +58,48 @@ open class RepoBackupService {
         }
     }
 
-    open fun backupAsZipArchive(absPath: String, zipOut: ZipOutputStream) {
+    open fun backupAsZipArchive(absPath: String, archiveName: String, zipOut: ZipOutputStream) {
+        val archivNameWithoutExtension = if (archiveName.contains('.')) {
+            archiveName.substring(0, archiveName.indexOf('.'))
+        } else {
+            archiveName
+        }
         return runInSession { session ->
-            log.info { "Creating backup of document view and binaries of path '$absPath'..." }
-            val zipEntry = ZipEntry("repository.xml")
-            zipOut.putNextEntry(zipEntry)
+            log.info { "Creating backup of document view and binaries of path '$absPath' as '$archiveName'..." }
+            zipOut.putNextEntry(createZipEntry(archivNameWithoutExtension, "repository.xml"))
             session.exportDocumentView(absPath, zipOut, true, false)
-            findAndZipBinaries(repoService.getNode(session, absPath, null), zipOut)
+            writeToZip(repoService.getNode(session, absPath, null), archivNameWithoutExtension, zipOut)
         }
     }
 
-    private fun findAndZipBinaries(node: Node, zipOut: ZipOutputStream) {
-        repoService.getFiles(node).forEach {
-            val fileNode = repoService.findFile(node, it.id, null)
-            val content =repoService.getFileContent(fileNode)
-            if (content != null) {
-                val zipEntry = ZipEntry(node.path + "/" + it.id)
-                zipOut.putNextEntry(zipEntry)
-                zipOut.write(content)
+    private fun writeToZip(node: Node, archiveName: String, zipOut: ZipOutputStream) {
+        val fileList = repoService.getFiles(node)
+        if (!fileList.isNullOrEmpty()) {
+            fileList.forEach {
+                val fileNode = repoService.findFile(node, it.id, null)
+                val content = repoService.getFileContent(fileNode)
+                if (content != null) {
+                    val fileName = PFJcrUtils.createSafeFilename(it)
+                    zipOut.putNextEntry(createZipEntry(archiveName, "${node.path}", fileName))
+                    zipOut.write(content)
+                }
             }
+            zipOut.putNextEntry(createZipEntry(archiveName, node.path, "files.txt"))
+            val fileListAsString = fileList.joinToString(separator = "\n") { "${PFJcrUtils.createSafeFilename(it)} ${PFJcrUtils.formatBytes(it.size)} ${it.fileName}" }
+            zipOut.write(fileListAsString.toByteArray(StandardCharsets.UTF_8))
         }
+        val nodeInfo = NodeInfo(node, false)
+        zipOut.putNextEntry(createZipEntry(archiveName, node.path, "node.json"))
+        zipOut.write(PFJcrUtils.toJson(nodeInfo).toByteArray(StandardCharsets.UTF_8))
         node.nodes?.let {
             while (it.hasNext()) {
-                findAndZipBinaries(it.nextNode(), zipOut)
+                writeToZip(it.nextNode(), archiveName, zipOut)
             }
         }
+    }
+
+    private fun createZipEntry(archiveName: String, vararg path: String?): ZipEntry {
+        return ZipEntry("$archiveName/${path.joinToString(separator = "/") { it ?: "" }}")
     }
 
     open fun restore(absPath: String, istream: InputStream, securityConfirmation: String, uuidBehavior: Int) {
