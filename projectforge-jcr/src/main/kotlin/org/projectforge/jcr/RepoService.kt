@@ -36,9 +36,17 @@ private val log = KotlinLogging.logger {}
 
 @Service
 open class RepoService {
+    private lateinit var repository: Repository
+
+    private val credentials = SimpleCredentials("admin", "admin".toCharArray())
+
+    private var initialized = false
+
+    internal lateinit var mainNodeName: String
+
     /**
      * @param parentNodePath Path, nodes are separated by '/', e. g. "world/germany". The nodes of this path must already exist.
-     * For creating top level nodes, set parentNode to null, empty string or "/".
+     * For creating top level nodes (direct child of main node), set parentNode to null, empty string or "/".
      * @param relPath Sub node parent node to create if not exists. Null value results in nop.
      */
     open fun ensureNode(parentNodePath: String?, relPath: String?): String? {
@@ -108,7 +116,7 @@ open class RepoService {
     private fun getFilesNode(session: Session, parentNodePath: String?, relPath: String?, ensureFilesNode: Boolean = false): Node? {
         val parentNode = getNodeOrNull(session, parentNodePath, relPath)
         if (parentNode == null) {
-            log.warn { "Can't get files of not existing parent node '${getFullPath(parentNode, relPath)}." }
+            log.warn { "Can't get files of not existing parent node '${getAbsolutePath(parentNode, relPath)}." }
             return null
         }
         return if (ensureFilesNode || parentNode.hasNode(NODENAME_FILES)) {
@@ -185,16 +193,16 @@ open class RepoService {
 
     internal fun getNode(session: Session, parentNodePath: String?, relPath: String? = null, ensureRelNode: Boolean = true): Node {
         return getNodeOrNull(session, parentNodePath, relPath, ensureRelNode)
-                ?: throw IllegalArgumentException("Can't find node ${getFullPath(parentNodePath, relPath)}.")
+                ?: throw IllegalArgumentException("Can't find node ${getAbsolutePath(parentNodePath, relPath)}.")
     }
 
     internal fun getNodeOrNull(session: Session, parentNodePath: String?, relPath: String? = null, ensureRelNode: Boolean = true): Node? {
-        val parentNode = if (parentNodePath.isNullOrBlank() || parentNodePath == "/") {
-            session.rootNode
-        } else if (isAbsolute(parentNodePath)) {
-            session.getNode(parentNodePath)
-        } else {
-            session.rootNode.getNode(parentNodePath)
+        val absolutePath = getAbsolutePath(parentNodePath)
+        val parentNode = try {
+            session.getNode(absolutePath)
+        } catch (ex: Exception) {
+            log.error { "Can't get node '$absolutePath'. ${ex::class.java.name}: ${ex.message}." }
+            return null
         }
         return when {
             ensureRelNode -> ensureNode(parentNode, relPath)
@@ -203,30 +211,28 @@ open class RepoService {
         }
     }
 
-    private fun ensureNode(parentNode: Node, relPath: String?): Node {
+    private fun getAbsolutePath(nodePath: String?): String {
+        val path = nodePath?.removePrefix("/")?.removePrefix("$mainNodeName")?.removePrefix("/") ?: ""
+        return "/$mainNodeName/$path"
+    }
+
+    private fun getAbsolutePath(parentNode: Node, relPath: String?): String? {
+        val parentPath = parentNode.path
+        return getAbsolutePath(parentPath, relPath)
+    }
+
+    internal fun ensureNode(parentNode: Node, relPath: String?): Node {
         relPath ?: return parentNode
         var current: Node = parentNode
         relPath.split("/").forEach {
             current = if (current.hasNode(it)) {
                 current.getNode(it)
             } else {
-                log.info { "Creating node ${getFullPath(parentNode, it)}." }
+                log.info { "Creating node ${getAbsolutePath(parentNode, it)}." }
                 current.addNode(it)
             }
         }
         return current
-    }
-
-    /**
-     * return true if given path starts with '/'-
-     */
-    private fun isAbsolute(path: String): Boolean {
-        return path.startsWith("/")
-    }
-
-    private fun getFullPath(parentNode: Node, relPath: String?): String? {
-        val parentPath = parentNode.path
-        return getFullPath(parentPath, relPath)
     }
 
     private val createRandomId: String
@@ -250,39 +256,48 @@ open class RepoService {
         }
     }
 
-    /*
-    private fun decoder(base64: ByteArray?): ByteArray? {
-        base64 ?: return null
-        return decoder(base64.toString(StandardCharsets.UTF_8))
-    }
+/*
+private fun decoder(base64: ByteArray?): ByteArray? {
+    base64 ?: return null
+    return decoder(base64.toString(StandardCharsets.UTF_8))
+}
 
-    private fun decoder(base64Str: String): ByteArray? {
-        return Base64.getDecoder().decode(base64Str)
-    }
-    */
-
-    private lateinit var repository: Repository
-
-    private val credentials = SimpleCredentials("admin", "admin".toCharArray())
-
-    private var initialized = false
+private fun decoder(base64Str: String): ByteArray? {
+    return Base64.getDecoder().decode(base64Str)
+}
+*/
 
     internal fun login(): Session {
         return repository.login(credentials)
     }
 
-    fun init(parameters: Map<String, String>) {
+    /**
+     * @param mainNodeName All activities (working with nodes) will done under topNode. TopNode should be given for backing up and
+     * restoring. By default "ProjectForge" is used.
+     */
+    fun init(parameters: Map<String, String>, mainNodeName: String = "ProjectForge") {
         synchronized(this) {
             if (initialized) {
                 throw IllegalArgumentException("Can't initialize repo twice! repo=$this")
+            }
+            if (mainNodeName.isNullOrBlank()) {
+                throw IllegalArgumentException("Top node shouldn't be empty!")
             }
             initialized = true
             if (log.isDebugEnabled) {
                 log.debug { "Setting system property: derby.stream.error.field=${DerbyUtil::class.java.name}.DEV_NULL" }
             }
             System.setProperty("derby.stream.error.field", "${DerbyUtil::class.java.name}.DEV_NULL")
-            log.info { "Initializing Jcr repository: ${parameters.entries.joinToString { "${it.key}='${it.value}'" }}" }
+            log.info { "Initializing JCR repository with main node '$mainNodeName': ${parameters.entries.joinToString { "${it.key}='${it.value}'" }}" }
+            this.mainNodeName = mainNodeName
             repository = JcrUtils.getRepository(parameters)
+            runInSession { session ->
+                if (!session.rootNode.hasNode(mainNodeName)) {
+                    log.info { "Creating top level node '$mainNodeName'." }
+                    session.rootNode.addNode(mainNodeName)
+                }
+                session.save()
+            }
         }
     }
 
@@ -294,7 +309,7 @@ open class RepoService {
         private const val PROPERTY_RANDOM_ID_LENGTH = 20
         private val ALPHA_CHARSET: Array<Char> = ('a'..'z').toList().toTypedArray()
 
-        internal fun getFullPath(parentPath: String?, relPath: String?): String? {
+        internal fun getAbsolutePath(parentPath: String?, relPath: String?): String? {
             if (parentPath == null && relPath == null) {
                 return null
             }

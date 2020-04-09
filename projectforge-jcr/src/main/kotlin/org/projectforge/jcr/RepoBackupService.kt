@@ -45,7 +45,10 @@ open class RepoBackupService {
     @Autowired
     internal lateinit var repoService: RepoService
 
-    open fun backupAsZipArchive(absPath: String, archiveName: String, zipOut: ZipOutputStream) {
+    /**
+     * @param absPath If not given, [RepoService.mainNodeName] is used.
+     */
+    open fun backupAsZipArchive(archiveName: String, zipOut: ZipOutputStream, absPath: String = "/${repoService.mainNodeName}") {
         val archivNameWithoutExtension = if (archiveName.contains('.')) {
             archiveName.substring(0, archiveName.indexOf('.'))
         } else {
@@ -53,13 +56,28 @@ open class RepoBackupService {
         }
         return runInSession { session ->
             log.info { "Creating backup of document view and binaries of path '$absPath' as '$archiveName'..." }
+
+            // Write README.TXT
+            zipOut.putNextEntry(createZipEntry(archivNameWithoutExtension, "README.TXT"))
+            val readme = this::class.java.getResource("/backupReadme.txt").readText()
+            zipOut.write(readme.toByteArray(StandardCharsets.UTF_8))
+
+            val topNode = repoService.getNode(session, absPath, null)
+            // Using repository.json if repository.xml doesn't work.
+            zipOut.putNextEntry(createZipEntry(archivNameWithoutExtension, "repository.json"))
+            zipOut.write(PFJcrUtils.toJson(NodeInfo(topNode, recursive = true)).toByteArray(StandardCharsets.UTF_8))
             zipOut.putNextEntry(createZipEntry(archivNameWithoutExtension, "repository.xml"))
             session.exportDocumentView(absPath, zipOut, true, false)
-            writeToZip(repoService.getNode(session, absPath, null), archivNameWithoutExtension, zipOut)
+            writeToZip(topNode, archivNameWithoutExtension, zipOut)
         }
     }
 
-    open fun restoreBackupFromZipArchive(absPath: String, zipIn: ZipInputStream, securityConfirmation: String) {
+    /**
+     * @param absPath If not given, [RepoService.mainNodeName] is used (only used for creation of repository.xml).
+     */
+    @JvmOverloads
+    open fun restoreBackupFromZipArchive(zipIn: ZipInputStream, securityConfirmation: String, useJson: Boolean = false,
+                                         absPath: String = "/${repoService.mainNodeName}") {
         if (securityConfirmation != RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED) {
             throw IllegalArgumentException("You must use the correct security confirmation if you know what you're doing. The repo content may be lost after restoring!")
         }
@@ -74,10 +92,19 @@ open class RepoBackupService {
                 }
                 val fileName = FilenameUtils.getName(zipEntry.name)
                 if (!repositoryXmlHandled) {
-                    if (fileName == "repository.xml") {
-                        log.info { "Restoring nodes from '${zipEntry.name}..." }
+                    if (!useJson && fileName == "repository.xml") {
+                        log.info { "Restoring nodes from '${zipEntry.name}'..." }
                         val xml = zipIn.readBytes()
                         session.workspace.importXML(absPath, ByteArrayInputStream(xml), ImportUUIDBehavior.IMPORT_UUID_COLLISION_REPLACE_EXISTING)
+                        session.save()
+                        repositoryXmlHandled = true
+                        zipEntry = zipIn.nextEntry
+                        continue
+                    } else if (useJson && fileName == "repository.json") {
+                        log.info { "Restoring nodes from '${zipEntry.name}'..." }
+                        val json = zipIn.readBytes().toString(StandardCharsets.UTF_8)
+                        val topNode = PFJcrUtils.fromJson(json, NodeInfo::class.java)
+                        restoreNode(session.rootNode, topNode)
                         session.save()
                         repositoryXmlHandled = true
                         zipEntry = zipIn.nextEntry
@@ -105,7 +132,7 @@ open class RepoBackupService {
                         throw IllegalArgumentException("Sorry, can't restore binaries. repository.xml must be read first (placed before restoring binaries in zip file)!")
                     }
                     val fileObject = FileObject(fileNode)
-                    log.info { "Restoring file '${zipEntry.name}': $fileObject"}
+                    log.info { "Restoring file '${zipEntry.name}': $fileObject" }
                     val content = zipIn.readBytes()
                     val inputStream = ByteArrayInputStream(content)
                     val bin: Binary = session.valueFactory.createBinary(inputStream)
@@ -115,6 +142,16 @@ open class RepoBackupService {
                 zipEntry = zipIn.nextEntry
             }
             zipIn.closeEntry()
+        }
+    }
+
+    private fun restoreNode(parentNode: Node, nodeInfo: NodeInfo) {
+        val node = repoService.ensureNode(parentNode, nodeInfo.name)
+        nodeInfo.properties?.forEach {
+            it.addToNode(node)
+        }
+        nodeInfo.children?.forEach {
+            restoreNode(node, it)
         }
     }
 
@@ -174,6 +211,6 @@ open class RepoBackupService {
     companion object {
         const val RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED = "Yes, I want to restore the repo and know what I'm doing. The repo may be lost."
 
-        private val IGNORE_FILES = arrayOf("node.json", "files.txt", "files.json")
+        private val IGNORE_FILES = arrayOf("README.txt", "node.json", "files.txt", "files.json")
     }
 }
