@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.repository
+package org.projectforge.jcr
 
 /**
  * Files in the content repository may addressed by location (parent node) and id or location and filename.
