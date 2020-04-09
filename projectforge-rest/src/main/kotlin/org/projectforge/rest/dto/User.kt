@@ -51,6 +51,10 @@ class User(id: Int? = null,
         this.username = src.username
     }
 
+    fun initialize(obj: PFUserDO) {
+        copyFrom(obj)
+    }
+
     companion object {
         private val userDao = ApplicationContextProvider.getApplicationContext().getBean(UserDao::class.java)
 
