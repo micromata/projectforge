@@ -53,12 +53,12 @@ open class ContractDO : DefaultBaseDO() {
     @get:Column(name = "c_date")
     open var date: LocalDate? = null
 
-    @PropertyInfo(i18nKey = "legalAffaires.contract.validity")
+    @PropertyInfo(i18nKey = "legalAffaires.contract.validity.from")
     @Field(analyze = Analyze.NO)
     @get:Column(name = "valid_from")
     open var validFrom: LocalDate? = null
 
-    @PropertyInfo(i18nKey = "legalAffaires.contract.validity")
+    @PropertyInfo(i18nKey = "legalAffaires.contract.validity.until")
     @Field(analyze = Analyze.NO)
     @get:Column(name = "valid_until")
     open var validUntil: LocalDate? = null
