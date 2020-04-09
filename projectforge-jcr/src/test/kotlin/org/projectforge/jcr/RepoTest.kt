@@ -25,42 +25,23 @@ package org.projectforge.jcr
 
 import mu.KotlinLogging
 import org.apache.jackrabbit.commons.JcrUtils
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.nio.charset.StandardCharsets
-import java.util.*
-import java.util.zip.GZIPInputStream
-import java.util.zip.GZIPOutputStream
-import javax.jcr.ImportUUIDBehavior
 
 private val log = KotlinLogging.logger {}
 
 class RepoTest {
+    private val repoDir = TestUtils.deleteAndCreateTestFile("testRepo")
+    private val repoService = RepoService()
 
-    companion object {
-        private lateinit var repoService: RepoService
-        private val repoDir = createTempDir(prefix = this::class.java.simpleName)
-
-        @BeforeAll
-        @JvmStatic
-        fun setUp() {
-            repoService = RepoService()
-            repoService.init(mapOf(JcrUtils.REPOSITORY_URI to repoDir.toURI().toString()))
-            // repoDir.deleteOnExit() // Doesn't work reliable.
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun tearDown() {
-            log.info { "Deleting JackRabbit test repo: $repoDir." }
-            Assertions.assertTrue(repoDir.deleteRecursively(), "Couldn't delte JackRabbit test repo: $repoDir.")
-        }
+    init {
+        repoService.init(mapOf(JcrUtils.REPOSITORY_URI to repoDir.toURI().toString()))
     }
 
     @Test
-    fun test() {
+    fun repoTest() {
         try {
             repoService.ensureNode("world/europe", "germany")
             fail("Exception expected, because node 'world/europe' doesn't exist.")
@@ -99,57 +80,6 @@ class RepoTest {
         } catch (ex: Exception) {
             // OK
         }
-
-        val repoBackupService = RepoBackupService()
-        repoBackupService.repoService = repoService
-
-        val gzFile = createTempFile(prefix = this::class.java.simpleName, suffix = ".gz")
-        GZIPOutputStream(FileOutputStream(gzFile)).use {
-            repoBackupService.backupDocumentView("/world", it, skipBinary = false, noRecurse = false)
-        }
-        println(gzFile.absoluteFile)
-        // Create second repository:
-        val backupRepoService = RepoService()
-        val backupRepoDir = createTempDir(prefix = this::class.java.simpleName)
-        backupRepoService.init(mapOf(JcrUtils.REPOSITORY_URI to backupRepoDir.toURI().toString()))
-        GZIPInputStream(FileInputStream(gzFile)).buffered().use {
-            repoBackupService.restore("/", it, RepoService.RESTORE_SECURITY_CONFIRMATION_IN_KNOW_WHAT_I_M_DOING_REPO_MAY_BE_DESTROYED,
-                    ImportUUIDBehavior.IMPORT_UUID_COLLISION_REMOVE_EXISTING)
-        }
-
-        val ba = GZIPInputStream(FileInputStream(gzFile)).buffered().use {
-            it.readAllBytes()
-        }
-        println(ba.toString(StandardCharsets.UTF_8))
-        val root = backupRepoService.getNodeInfo("/", true)
-        println(root)
-
-        val testFile = FileObject()
-        testFile.parentNodePath = file.parentNodePath
-        testFile.relPath = file.relPath
-        testFile.id = file.id
-        backupRepoService.retrieveFile(testFile)
-        println(decoder(testFile.content))
-
-        checkFile(file, null, file.fileName, backupRepoService)
-        gzFile.delete()
-    }
-
-    fun decoder(base64: ByteArray?): String? {
-        base64 ?: return null
-        return decoder(base64.toString(StandardCharsets.UTF_8))
-    }
-
-    fun decoder(base64Str: String): String {
-        val imageByteArray = Base64.getDecoder().decode(base64Str)
-        return imageByteArray.toString(StandardCharsets.UTF_8)
-        //File(pathFile).writeBytes(imageByteArray)
-    }
-
-    fun encoder(filePath: String): String{
-        val bytes = File(filePath).readBytes()
-        val base64 = Base64.getEncoder().encodeToString(bytes)
-        return base64
     }
 
     private fun checkFile(expected: FileObject, id: String?, fileName: String?, repo: RepoService = repoService) {

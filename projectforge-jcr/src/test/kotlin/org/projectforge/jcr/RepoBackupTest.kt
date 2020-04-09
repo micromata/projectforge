@@ -25,12 +25,8 @@ package org.projectforge.jcr
 
 import mu.KotlinLogging
 import org.apache.jackrabbit.commons.JcrUtils
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import java.io.File
 import java.io.FileOutputStream
-import java.nio.file.Paths
 import java.util.zip.ZipOutputStream
 
 private val log = KotlinLogging.logger {}
@@ -38,46 +34,13 @@ private val log = KotlinLogging.logger {}
 private const val MODULE_NAME = "projectforge-jcr"
 
 class RepoBackupTest {
+    private  var repoService= RepoService()
+    private  var repoBackupService = RepoBackupService()
+    private val repoDir = TestUtils.deleteAndCreateTestFile("testBackupRepo")
 
-    companion object {
-        private lateinit var repoService: RepoService
-        private lateinit var repoBackupService: RepoBackupService
-        private val repoDir: File
-        private val location: String
-        private val testOutDir: File
-
-        init {
-            var uriString = this::class.java.protectionDomain.codeSource.location.toString().removeSuffix("/src/main/kotlin/org/projectforge/jcr")
-            Assertions.assertTrue(uriString.startsWith("file:"), "We're not running in a normal file system. Can't proceed with tests.")
-            uriString = uriString.removePrefix("file:")
-            Assertions.assertTrue(uriString.contains("/$MODULE_NAME"), "Where we're running? '/$MODULE_NAME' expected in path to find sources for testing, but not found '$uriString'.")
-            // Determine location of module projectforge-jcr
-            while (uriString.contains("/$MODULE_NAME/")) {
-                uriString = uriString.substring(0, uriString.lastIndexOf('/'))
-            }
-            location = uriString
-            val testDir = File(location, "test")
-            testOutDir = File(testDir, "out")
-            if (!testOutDir.exists()) {
-                testOutDir.mkdirs()
-            }
-            repoDir = deleteAndCreateTestFile("testRepo")
-        }
-
-        internal fun deleteAndCreateTestFile(name: String): File {
-            val file = File(testOutDir, name)
-            file.deleteRecursively()
-            return file
-        }
-
-        @BeforeAll
-        @JvmStatic
-        fun setUp() {
-            repoService = RepoService()
-            repoService.init(mapOf(JcrUtils.REPOSITORY_URI to repoDir.toURI().toString()))
-            repoBackupService = RepoBackupService()
-            repoBackupService.repoService = repoService
-        }
+    init {
+        repoService.init(mapOf(JcrUtils.REPOSITORY_URI to repoDir.toURI().toString()))
+        repoBackupService.repoService = repoService
     }
 
     @Test
@@ -94,7 +57,7 @@ class RepoBackupTest {
         fileObject = createFileObject("/world/europe", "germany", "test", "files", "logo.png")
         repoService.storeFile(fileObject)
 
-        val zipFile = deleteAndCreateTestFile("fullbackup.zip")
+        val zipFile = TestUtils.deleteAndCreateTestFile("fullbackup.zip")
         println("Creating zip file: ${zipFile.absolutePath}")
         ZipOutputStream(FileOutputStream(zipFile)).use {
             repoBackupService.backupAsZipArchive("/world", zipFile.name, it)
@@ -106,11 +69,7 @@ class RepoBackupTest {
         fileObject.fileName = path.last()
         fileObject.parentNodePath = parentNodePath
         fileObject.relPath = relPath
-        fileObject.content = determineFile(*path).readBytes()
+        fileObject.content = TestUtils.determineFile(*path).readBytes()
         return fileObject
-    }
-
-    private fun determineFile(vararg path: String): File {
-        return Paths.get(location, *path).toFile()
     }
 }
