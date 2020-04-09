@@ -36,4 +36,8 @@ class Konto(var nummer: Int? = null,
         nummer = src.nummer
         bezeichnung = src.bezeichnung
     }
+
+    fun initialize(obj: KontoDO) {
+        copyFrom(obj)
+    }
 }

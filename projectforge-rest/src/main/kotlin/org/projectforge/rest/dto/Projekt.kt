@@ -42,4 +42,13 @@ class Projekt(id: Int? = null,
     var bereich: Int? = 0
     var kost: String? = null
     var kost2Arts: List<Kost2Art>? = null
+
+
+    fun initialize(obj: ProjektDO) {
+        copyFrom(obj)
+
+        if(obj.kunde != null){
+            this.kunde!!.initialize(obj.kunde!!)
+        }
+    }
 }

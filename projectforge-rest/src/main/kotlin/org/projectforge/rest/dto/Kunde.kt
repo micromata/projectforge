@@ -32,9 +32,18 @@ class Kunde(id: Int? = null,
             var identifier: String? = null,
             var division: String? = null,
             var status: KundeStatus? = null,
-            var description: String? = null,
-            var konto: Konto? = null
+            var description: String? = null
 ) : BaseDTODisplayObject<KundeDO>(id, displayName = displayName) {
     var nummer: Int? = id
     var kost: String? = null
+    var konto: Konto? = null
+
+    fun initialize(obj: KundeDO) {
+        copyFrom(obj)
+
+        if(obj.konto != null){
+            this.konto!!.initialize(obj.konto!!)
+        }
+
+    }
 }
