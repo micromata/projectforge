@@ -23,30 +23,32 @@
 
 package org.projectforge.jcr
 
-import javax.jcr.Node
+import javax.jcr.PropertyType
 
-/**
- * For information.
- */
-class NodeInfo {
-    internal constructor(node: Node, recursive: Boolean = true) {
-        name = node.name
-        if (recursive) {
-            node.nodes?.let {
-                val nodes = mutableListOf<NodeInfo>()
-                while (it.hasNext()) {
-                    nodes.add(NodeInfo(it.nextNode()))
+enum class PropertyTypeEnum(val value: Int) {
+    BINARY(PropertyType.BINARY),
+    BOOLEAN(PropertyType.BOOLEAN),
+    DATE(PropertyType.DATE),
+    DECIMAL(PropertyType.DECIMAL),
+    DOUBLE(PropertyType.DOUBLE),
+    LONG(PropertyType.LONG),
+    NAME(PropertyType.NAME),
+    PATH(PropertyType.PATH),
+    REFERENCE(PropertyType.REFERENCE),
+    STRING(PropertyType.STRING),
+    UNDEFINED(PropertyType.UNDEFINED),
+    URI(PropertyType.URI),
+    WEAKREFERENCE(PropertyType.WEAKREFERENCE);
+
+    companion object {
+        fun convert(type: Int?): PropertyTypeEnum? {
+            type ?: return null
+            values().forEach {
+                if (type == it.value) {
+                    return it
                 }
-                children = nodes
             }
+            return null
         }
-    }
-
-    var name: String? = null
-    var children: List<NodeInfo>? = null
-    var properties: List<PropertyInfo>? = null
-
-    override fun toString(): String {
-      return PFJcrUtils.toJson(this)
     }
 }

@@ -41,7 +41,7 @@ class RepoTest {
 
     companion object {
         private lateinit var repoService: RepoService
-        private val repoDir = createTempDir()
+        private val repoDir = createTempDir(prefix = this::class.java.simpleName)
 
         @BeforeAll
         @JvmStatic
@@ -103,14 +103,14 @@ class RepoTest {
         val repoBackupService = RepoBackupService()
         repoBackupService.repoService = repoService
 
-        val gzFile = createTempFile(suffix = ".gz")
+        val gzFile = createTempFile(prefix = this::class.java.simpleName, suffix = ".gz")
         GZIPOutputStream(FileOutputStream(gzFile)).use {
             repoBackupService.backupDocumentView("/world", it, skipBinary = false, noRecurse = false)
         }
         println(gzFile.absoluteFile)
         // Create second repository:
         val backupRepoService = RepoService()
-        val backupRepoDir = createTempDir()
+        val backupRepoDir = createTempDir(prefix = this::class.java.simpleName)
         backupRepoService.init(mapOf(JcrUtils.REPOSITORY_URI to backupRepoDir.toURI().toString()))
         GZIPInputStream(FileInputStream(gzFile)).buffered().use {
             repoBackupService.restore("/", it, RepoService.RESTORE_SECURITY_CONFIRMATION_IN_KNOW_WHAT_I_M_DOING_REPO_MAY_BE_DESTROYED,

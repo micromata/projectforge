@@ -23,30 +23,24 @@
 
 package org.projectforge.jcr
 
-import javax.jcr.Node
+import com.fasterxml.jackson.annotation.JsonAlias
+import javax.jcr.Property
 
 /**
  * For information.
  */
-class NodeInfo {
-    internal constructor(node: Node, recursive: Boolean = true) {
-        name = node.name
-        if (recursive) {
-            node.nodes?.let {
-                val nodes = mutableListOf<NodeInfo>()
-                while (it.hasNext()) {
-                    nodes.add(NodeInfo(it.nextNode()))
-                }
-                children = nodes
-            }
+class PropertyInfo {
+    internal constructor(property: Property) {
+        name = property.name
+        property.value?.let {
+            value = ValueInfo(it)
+        }
+        property.values?.let {
+            values = it.map { ValueInfo(it) }.toTypedArray()
         }
     }
 
     var name: String? = null
-    var children: List<NodeInfo>? = null
-    var properties: List<PropertyInfo>? = null
-
-    override fun toString(): String {
-      return PFJcrUtils.toJson(this)
-    }
+    var value: ValueInfo? = null
+    var values: Array<ValueInfo>? = null
 }
