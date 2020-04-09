@@ -77,7 +77,7 @@ class FileObject() {
      * the file node with id as name resists.
      */
     val location: String?
-        get() = RepoService.getFullPath(parentNodePath, relPath)
+        get() = ".../${RepoService.getAbsolutePath(parentNodePath, relPath)}"
 
     /**
      * The location is built of parentNodePath and relPath.

@@ -28,8 +28,8 @@ import javax.jcr.Node
 /**
  * For information.
  */
-class NodeInfo {
-    internal constructor(node: Node, recursive: Boolean = true) {
+class NodeInfo() {
+    internal constructor(node: Node, recursive: Boolean = true): this() {
         name = node.name
         if (recursive) {
             node.nodes?.let {

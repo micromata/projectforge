@@ -23,14 +23,17 @@
 
 package org.projectforge.jcr
 
-import com.fasterxml.jackson.annotation.JsonAlias
+import mu.KotlinLogging
+import javax.jcr.Node
 import javax.jcr.Property
+
+private val log = KotlinLogging.logger {}
 
 /**
  * For information.
  */
-class PropertyInfo {
-    internal constructor(property: Property) {
+class PropertyInfo() {
+    internal constructor(property: Property): this() {
         name = property.name
         if (property.isMultiple) {
             property.values?.let {
@@ -40,6 +43,24 @@ class PropertyInfo {
             property.value?.let {
                 value = ValueInfo(it)
             }
+        }
+    }
+
+    fun addToNode(node: Node) {
+        value?.let {
+            when (it.type) {
+                PropertyTypeEnum.BOOLEAN -> node.setProperty(name, it.boolean == true)
+                PropertyTypeEnum.STRING -> node.setProperty(name, it.string)
+                PropertyTypeEnum.DATE ->  node.setProperty(name, it.date)
+                PropertyTypeEnum.DECIMAL ->  node.setProperty(name, it.decimal)
+                PropertyTypeEnum.DOUBLE ->  node.setProperty(name, it.double ?: 0.0)
+                PropertyTypeEnum.LONG ->  node.setProperty(name, it.long ?: 0L)
+                PropertyTypeEnum.BINARY -> {} // Attachments will not handled here.
+                else -> {} // Not known and used by ProjectForge (might be internal property).
+            }
+        }
+        values?.let {
+            log.error { "Restoring values as array not supported. Skipping for node '$node.path'." }
         }
     }
 

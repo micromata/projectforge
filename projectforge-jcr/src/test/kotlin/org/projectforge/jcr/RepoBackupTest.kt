@@ -64,7 +64,7 @@ class RepoBackupTest {
         val zipFile = TestUtils.deleteAndCreateTestFile("fullbackup.zip")
         println("Creating zip file: ${zipFile.absolutePath}")
         ZipOutputStream(FileOutputStream(zipFile)).use {
-            repoBackupService.backupAsZipArchive("/world", zipFile.name, it)
+            repoBackupService.backupAsZipArchive(zipFile.name, it)
         }
 
         val repo2Service = RepoService()
@@ -74,10 +74,11 @@ class RepoBackupTest {
         repo2BackupService.repoService = repo2Service
 
         ZipInputStream(FileInputStream(zipFile)).use {
-            repo2BackupService.restoreBackupFromZipArchive("/", it, RepoBackupService.RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED)
+            repo2BackupService.restoreBackupFromZipArchive(it, RepoBackupService.RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED,
+                    useJson = true)
         }
         ZipOutputStream(FileOutputStream(TestUtils.deleteAndCreateTestFile("fullbackupFromRestored.zip"))).use {
-            repo2BackupService.backupAsZipArchive("/world", "fullbackupFromRestored", it)
+            repo2BackupService.backupAsZipArchive("fullbackupFromRestored", it)
         }
 
         Assertions.assertEquals("value", repo2Service.retrievePropertyString("world/europe/", "germany", "key"))

@@ -30,8 +30,8 @@ import javax.jcr.Value
 /**
  * For information.
  */
-class ValueInfo {
-    internal constructor(value: Value?) {
+class ValueInfo() {
+    internal constructor(value: Value?): this() {
         value ?: return
         type = PropertyTypeEnum.convert(value.type)
         when (type) {
