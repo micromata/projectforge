@@ -25,7 +25,6 @@ package org.projectforge.jcr
 
 import mu.KotlinLogging
 import org.apache.jackrabbit.commons.JcrUtils
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -45,7 +44,7 @@ class RepoBackupTest {
         private lateinit var repoBackupService: RepoBackupService
         private val repoDir: File
         private val location: String
-        private val testDir: File
+        private val testOutDir: File
 
         init {
             var uriString = this::class.java.protectionDomain.codeSource.location.toString().removeSuffix("/src/main/kotlin/org/projectforge/jcr")
@@ -57,12 +56,16 @@ class RepoBackupTest {
                 uriString = uriString.substring(0, uriString.lastIndexOf('/'))
             }
             location = uriString
-            testDir = File(location, "test")
+            val testDir = File(location, "test")
+            testOutDir = File(testDir, "out")
+            if (!testOutDir.exists()) {
+                testOutDir.mkdirs()
+            }
             repoDir = deleteAndCreateTestFile("testRepo")
         }
 
         internal fun deleteAndCreateTestFile(name: String): File {
-            val file = File(testDir, name)
+            val file = File(testOutDir, name)
             file.deleteRecursively()
             return file
         }
@@ -88,12 +91,14 @@ class RepoBackupTest {
         fileObject = createFileObject("/world/europe", "germany", "src", "test", "resources", "logback-test.xml")
         repoService.storeFile(fileObject)
 
+        fileObject = createFileObject("/world/europe", "germany", "test", "files", "logo.png")
+        repoService.storeFile(fileObject)
+
         val zipFile = deleteAndCreateTestFile("fullbackup.zip")
         println("Creating zip file: ${zipFile.absolutePath}")
         ZipOutputStream(FileOutputStream(zipFile)).use {
             repoBackupService.backupAsZipArchive("/world", zipFile.name, it)
         }
-        //zipFile.delete()
     }
 
     private fun createFileObject(parentNodePath: String, relPath: String, vararg path: String): FileObject {
