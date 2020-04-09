@@ -35,7 +35,7 @@ import javax.jcr.*
 private val log = KotlinLogging.logger {}
 
 @Service
-open class RepositoryService {
+open class RepoService {
     /**
      * @param parentNodePath Path, nodes are separated by '/', e. g. "world/germany". The nodes of this path must already exist.
      * For creating top level nodes, set parentNode to null, empty string or "/".

@@ -42,7 +42,7 @@ class FileObject {
         }
 
     /**
-     * An unique random alpha-numeric string. This id will internally also used as child node name of [RepositoryService.NODENAME_FILES].
+     * An unique random alpha-numeric string. This id will internally also used as child node name of [RepoService.NODENAME_FILES].
      * Leave this id null for new files to store.
      */
     var id: String? = null
@@ -56,11 +56,11 @@ class FileObject {
     /**
      * The location (as path) of the file in the content repository.
      *
-     * This node specified by this location contains a child node named [RepositoryService.NODENAME_FILES], where
+     * This node specified by this location contains a child node named [RepoService.NODENAME_FILES], where
      * the file node with id as name resists.
      */
     val location: String?
-        get() = RepositoryService.getFullPath(parentNodePath, relPath)
+        get() = RepoService.getFullPath(parentNodePath, relPath)
 
     /**
      * The location is built of parentNodePath and relPath.

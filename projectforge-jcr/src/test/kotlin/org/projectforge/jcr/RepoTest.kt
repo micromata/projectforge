@@ -37,16 +37,16 @@ import javax.jcr.ImportUUIDBehavior
 
 private val log = KotlinLogging.logger {}
 
-class RepositoryTest {
+class RepoTest {
 
     companion object {
-        private lateinit var repoService: RepositoryService
+        private lateinit var repoService: RepoService
         private val repoDir = createTempDir()
 
         @BeforeAll
         @JvmStatic
         fun setUp() {
-            repoService = RepositoryService()
+            repoService = RepoService()
             repoService.init(mapOf(JcrUtils.REPOSITORY_URI to repoDir.toURI().toString()))
             // repoDir.deleteOnExit() // Doesn't work reliable.
         }
@@ -100,8 +100,8 @@ class RepositoryTest {
             // OK
         }
 
-        val repoBackupService = RepositoryBackupService()
-        repoBackupService.repositoryService = repoService
+        val repoBackupService = RepoBackupService()
+        repoBackupService.repoService = repoService
 
         val gzFile = createTempFile(suffix = ".gz")
         GZIPOutputStream(FileOutputStream(gzFile)).use {
@@ -109,11 +109,11 @@ class RepositoryTest {
         }
         println(gzFile.absoluteFile)
         // Create second repository:
-        val backupRepoService = RepositoryService()
+        val backupRepoService = RepoService()
         val backupRepoDir = createTempDir()
         backupRepoService.init(mapOf(JcrUtils.REPOSITORY_URI to backupRepoDir.toURI().toString()))
         GZIPInputStream(FileInputStream(gzFile)).buffered().use {
-            repoBackupService.restore("/", it, RepositoryService.RESTORE_SECURITY_CONFIRMATION_IN_KNOW_WHAT_I_M_DOING_REPO_MAY_BE_DESTROYED,
+            repoBackupService.restore("/", it, RepoService.RESTORE_SECURITY_CONFIRMATION_IN_KNOW_WHAT_I_M_DOING_REPO_MAY_BE_DESTROYED,
                     ImportUUIDBehavior.IMPORT_UUID_COLLISION_REMOVE_EXISTING)
         }
 
@@ -152,7 +152,7 @@ class RepositoryTest {
         return base64
     }
 
-    private fun checkFile(expected: FileObject, id: String?, fileName: String?, repo: RepositoryService = repoService) {
+    private fun checkFile(expected: FileObject, id: String?, fileName: String?, repo: RepoService = repoService) {
         val file = FileObject()
         file.id = id
         file.fileName = fileName
