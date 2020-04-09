@@ -114,9 +114,9 @@ public class MenuItemRegistry implements Serializable {
     register(MenuItemDefId.REPORT_OBJECTIVES, ReportObjectivesPage.class);
     register(MenuItemDefId.ACCOUNTING_RECORD_LIST, AccountingRecordListPage.class);
     register(MenuItemDefId.DATEV_IMPORT, DatevImportPage.class);
-    register(MenuItemDefId.OUTBOX_LIST, PostausgangListPage.class);
-    register(MenuItemDefId.INBOX_LIST, PosteingangListPage.class);
-    register(MenuItemDefId.CONTRACTS, ContractListPage.class);
+    //register(MenuItemDefId.OUTBOX_LIST, PostausgangListPage.class);
+    //register(MenuItemDefId.INBOX_LIST, PosteingangListPage.class);
+    //register(MenuItemDefId.CONTRACTS, ContractListPage.class);
     register(MenuItemDefId.VISITORBOOK, VisitorbookListPage.class);
     register(MenuItemDefId.MY_PREFERENCES, UserPrefListPage.class);
     register(MenuItemDefId.CHANGE_PASSWORD, ChangePasswordPage.class);
