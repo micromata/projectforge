@@ -26,17 +26,26 @@ package org.projectforge.rest.hr
 import org.projectforge.business.humanresources.HRPlanningEntryDO
 import org.projectforge.business.humanresources.HRPlanningEntryDao
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDOPagesRest
-import org.projectforge.ui.LayoutUtils
-import org.projectforge.ui.UILabel
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.UITable
+import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.dto.HRPlanningEntry
+import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/hrPlanningList")
-class HRPlanningListPagesRest : AbstractDOPagesRest<HRPlanningEntryDO, HRPlanningEntryDao>(HRPlanningEntryDao::class.java, "hr.planning.title") {
+class HRPlanningListPagesRest : AbstractDTOPagesRest<HRPlanningEntryDO, HRPlanningEntry, HRPlanningEntryDao>(HRPlanningEntryDao::class.java, "hr.planning.title") {
+    override fun transformFromDB(obj: HRPlanningEntryDO, editMode: Boolean): HRPlanningEntry {
+        val hrPlanningEntry = HRPlanningEntry()
+        hrPlanningEntry.initialize(obj)
+        return hrPlanningEntry
+    }
+
+    override fun transformForDB(dto: HRPlanningEntry): HRPlanningEntryDO {
+        val hrPlanningEntryDO = HRPlanningEntryDO()
+        dto.copyTo(hrPlanningEntryDO)
+        return hrPlanningEntryDO
+    }
 
     /**
      * LAYOUT List page
@@ -44,14 +53,21 @@ class HRPlanningListPagesRest : AbstractDOPagesRest<HRPlanningEntryDO, HRPlannin
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "planning.user", "planning.week", "planning.formattedWeekOfYear", "projekt.kunde.name", "projektNameOrStatus", "priority", "probability", "planning.totalHours", "totalHours", "unassignedHours", "mondayHours", "tuesdayHours", "wednesdayHours", "thursdayHours", "fridayHours", "weekendHours", "description"))
+                        .add(lc, "planning.user", "planning.week")
+                        .add(UITableColumn("planning.formattedWeekOfYear", "calendar.weekOfYearShortLabel"))
+                        .add(lc, "projekt.kunde.name")
+                        .add(UITableColumn("projektNameOrStatus", "fibu.projekt"))
+                        .add(lc, "priority", "probability")
+                        .add(UITableColumn("planning.totalHours", "hr.planning.total"))
+                        .add(UITableColumn("totalHours", "hr.planning.sum"))
+                        .add(lc, "unassignedHours", "mondayHours", "tuesdayHours", "wednesdayHours", "thursdayHours", "fridayHours", "weekendHours", "description"))
         return LayoutUtils.processListPage(layout, this)
     }
 
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: HRPlanningEntryDO, userAccess: UILayout.UserAccess): UILayout {
+    override fun createEditLayout(dto: HRPlanningEntry, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UILabel("TODO"))
         return LayoutUtils.processEditPage(layout, dto, this)
