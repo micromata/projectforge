@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.module.SimpleModule
 import mu.KotlinLogging
+import java.io.IOException
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.NumberFormat
@@ -18,13 +19,18 @@ object PFJcrUtils {
     private val mapper = ObjectMapper()
 
     fun toJson(obj: Any): String {
-        try {
-            return mapper.writeValueAsString(obj)
+        return try {
+            mapper.writeValueAsString(obj)
         } catch (ex: Exception) {
             val id = System.currentTimeMillis()
             log.error("Exception while serializing object of type '${obj::class.java.simpleName}' #$id: ${ex.message}", ex)
-            return "[*** Exception while serializing object of type '${obj::class.java.simpleName}', see log files #$id for more details.]"
+            "[*** Exception while serializing object of type '${obj::class.java.simpleName}', see log files #$id for more details.]"
         }
+    }
+
+    @Throws(IOException::class)
+    fun <T> fromJson(json: String?, classOfT: Class<T>?): T {
+        return mapper.readValue(json, classOfT)
     }
 
     init {

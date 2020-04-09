@@ -32,11 +32,14 @@ import javax.jcr.Property
 class PropertyInfo {
     internal constructor(property: Property) {
         name = property.name
-        property.value?.let {
-            value = ValueInfo(it)
-        }
-        property.values?.let {
-            values = it.map { ValueInfo(it) }.toTypedArray()
+        if (property.isMultiple) {
+            property.values?.let {
+                values = it.map { ValueInfo(it) }.toTypedArray()
+            }
+        } else {
+            property.value?.let {
+                value = ValueInfo(it)
+            }
         }
     }
 

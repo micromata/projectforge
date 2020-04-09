@@ -25,8 +25,11 @@ package org.projectforge.jcr
 
 import mu.KotlinLogging
 import org.apache.jackrabbit.commons.JcrUtils
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 private val log = KotlinLogging.logger {}
@@ -34,11 +37,11 @@ private val log = KotlinLogging.logger {}
 private const val MODULE_NAME = "projectforge-jcr"
 
 class RepoBackupTest {
-    private  var repoService= RepoService()
-    private  var repoBackupService = RepoBackupService()
-    private val repoDir = TestUtils.deleteAndCreateTestFile("testBackupRepo")
+    private var repoService = RepoService()
+    private var repoBackupService = RepoBackupService()
 
     init {
+        val repoDir = TestUtils.deleteAndCreateTestFile("testBackupRepo")
         repoService.init(mapOf(JcrUtils.REPOSITORY_URI to repoDir.toURI().toString()))
         repoBackupService.repoService = repoService
     }
@@ -56,11 +59,34 @@ class RepoBackupTest {
 
         fileObject = createFileObject("/world/europe", "germany", "test", "files", "logo.png")
         repoService.storeFile(fileObject)
+        val logoFile = fileObject.content!!
 
         val zipFile = TestUtils.deleteAndCreateTestFile("fullbackup.zip")
         println("Creating zip file: ${zipFile.absolutePath}")
         ZipOutputStream(FileOutputStream(zipFile)).use {
             repoBackupService.backupAsZipArchive("/world", zipFile.name, it)
+        }
+
+        val repo2Service = RepoService()
+        val repo2BackupService = RepoBackupService()
+        val repo2Dir = TestUtils.deleteAndCreateTestFile("testBackupRepo2")
+        repo2Service.init(mapOf(JcrUtils.REPOSITORY_URI to repo2Dir.toURI().toString()))
+        repo2BackupService.repoService = repo2Service
+
+        ZipInputStream(FileInputStream(zipFile)).use {
+            repo2BackupService.restoreBackupFromZipArchive("/", it, RepoBackupService.RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED)
+        }
+        ZipOutputStream(FileOutputStream(TestUtils.deleteAndCreateTestFile("fullbackupFromRestored.zip"))).use {
+            repo2BackupService.backupAsZipArchive("/world", "fullbackupFromRestored", it)
+        }
+
+        Assertions.assertEquals("value", repo2Service.retrievePropertyString("world/europe/", "germany", "key"))
+
+        fileObject = FileObject("/world/europe", "germany", fileName = "logo.png")
+        repo2Service.retrieveFile(fileObject)
+        Assertions.assertEquals(logoFile.size, fileObject.content!!.size)
+        for (idx in logoFile.indices) {
+            Assertions.assertEquals(logoFile[idx], fileObject.content!![idx])
         }
     }
 

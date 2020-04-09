@@ -23,37 +23,9 @@
 
 package org.projectforge.jcr
 
-import javax.jcr.Node
-
-/**
- * For information.
- */
-class NodeInfo {
-    internal constructor(node: Node, recursive: Boolean = true) {
-        name = node.name
-        if (recursive) {
-            node.nodes?.let {
-                val nodes = mutableListOf<NodeInfo>()
-                while (it.hasNext()) {
-                    nodes.add(NodeInfo(it.nextNode()))
-                }
-                children = nodes
-            }
-        }
-        if (node.properties?.hasNext() == true) {
-            val props = mutableListOf<PropertyInfo>()
-            properties = props
-            node.properties.let {
-                while (it.hasNext()) {
-                    props.add(PropertyInfo(it.nextProperty()))
-                }
-            }
-        }
-    }
-
-    var name: String? = null
-    var children: List<NodeInfo>? = null
-    var properties: List<PropertyInfo>? = null
+class FileObjectList
+@JvmOverloads
+constructor(var files: List<FileObject>? = null) {
 
     override fun toString(): String {
         return PFJcrUtils.toJson(this)
