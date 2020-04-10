@@ -23,6 +23,11 @@
     </dependency>
     <dependency>
       <groupId>org.projectforge</groupId>
+      <artifactId>projectforge-jcr</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
       <artifactId>projectforge-model</artifactId>
       <version>${project.version}</version>
     </dependency>

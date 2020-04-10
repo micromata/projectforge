@@ -24,7 +24,6 @@
 package org.projectforge.jcr
 
 import mu.KotlinLogging
-import org.apache.jackrabbit.commons.JcrUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -37,7 +36,7 @@ class RepoTest {
 
     init {
         val repoDir = TestUtils.deleteAndCreateTestFile("testRepo")
-        repoService.init(repoDir.toURI().toString())
+        repoService.init(repoDir)
     }
 
     @Test
@@ -48,7 +47,8 @@ class RepoTest {
         } catch (ex: Exception) {
             // OK, hello/world doesn't exist.
         }
-        Assertions.assertEquals("/world/europe", repoService.ensureNode(null, "world/europe"))
+        val main = repoService.mainNodeName
+        Assertions.assertEquals("/$main/world/europe", repoService.ensureNode(null, "world/europe"))
         repoService.storeProperty("world/europe", "germany", "key", "value")
         Assertions.assertEquals("value", repoService.retrievePropertyString("world/europe/", "germany", "key"))
 
@@ -74,12 +74,9 @@ class RepoTest {
         unknownFile.relPath = "unknown"
         Assertions.assertFalse(repoService.retrieveFile(unknownFile))
         unknownFile.parentNodePath = "unknown"
-        try {
-            Assertions.assertFalse(repoService.retrieveFile(unknownFile))
-            fail("Exception expected, because parent path not found.")
-        } catch (ex: Exception) {
-            // OK
-        }
+        Assertions.assertFalse(repoService.retrieveFile(unknownFile))
+
+        repoService.shutdown()
     }
 
     private fun checkFile(expected: FileObject, id: String?, fileName: String?, repo: RepoService = repoService) {

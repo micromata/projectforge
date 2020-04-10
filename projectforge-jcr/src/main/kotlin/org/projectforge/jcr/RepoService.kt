@@ -24,25 +24,53 @@
 package org.projectforge.jcr
 
 import mu.KotlinLogging
-import org.apache.jackrabbit.commons.JcrUtils
-import org.apache.jackrabbit.core.query.lucene.SearchIndex
+import org.apache.jackrabbit.oak.Oak
+import org.apache.jackrabbit.oak.jcr.Jcr
+import org.apache.jackrabbit.oak.plugins.document.DocumentNodeStore
+import org.apache.jackrabbit.oak.segment.SegmentNodeStoreBuilders
+import org.apache.jackrabbit.oak.segment.file.FileStore
+import org.apache.jackrabbit.oak.segment.file.FileStoreBuilder
+import org.apache.jackrabbit.oak.spi.state.NodeStore
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
+import java.io.File
 import java.io.OutputStream
 import java.security.SecureRandom
-import javax.jcr.*
+import javax.annotation.PreDestroy
+import javax.jcr.Binary
+import javax.jcr.Node
+import javax.jcr.Repository
+import javax.jcr.Session
+
 
 private val log = KotlinLogging.logger {}
 
 @Service
 open class RepoService {
-    private lateinit var repository: Repository
+    internal lateinit var repository: Repository
 
-    private val credentials = SimpleCredentials("admin", "admin".toCharArray())
+    internal var fileStore: FileStore? = null
 
-    private var initialized = false
+    internal var fileStoreLocation: File? = null
+
+    private var nodeStore: NodeStore? = null
 
     internal lateinit var mainNodeName: String
+
+    @PreDestroy
+    fun shutdown() {
+        log.info { "Shutting down jcr repository." }
+        fileStore?.let {
+            it.cleanup()
+            log.info { "Jcr stats: ${FileStoreInfo(this)}" }
+            it.close()
+        }
+        nodeStore?.let {
+            if (it is DocumentNodeStore) {
+                it.dispose()
+            }
+        }
+    }
 
     /**
      * @param parentNodePath Path, nodes are separated by '/', e. g. "world/germany". The nodes of this path must already exist.
@@ -113,8 +141,8 @@ open class RepoService {
         }
     }
 
-    private fun getFilesNode(session: Session, parentNodePath: String?, relPath: String?, ensureFilesNode: Boolean = false): Node? {
-        val parentNode = getNodeOrNull(session, parentNodePath, relPath)
+    private fun getFilesNode(sessionWrapper: SessionWrapper, parentNodePath: String?, relPath: String?, ensureFilesNode: Boolean = false): Node? {
+        val parentNode = getNodeOrNull(sessionWrapper, parentNodePath, relPath)
         if (parentNode == null) {
             log.warn { "Can't get files of not existing parent node '${getAbsolutePath(parentNode, relPath)}." }
             return null
@@ -191,12 +219,12 @@ open class RepoService {
         return content
     }
 
-    internal fun getNode(session: Session, parentNodePath: String?, relPath: String? = null, ensureRelNode: Boolean = true): Node {
+    internal fun getNode(session: SessionWrapper, parentNodePath: String?, relPath: String? = null, ensureRelNode: Boolean = true): Node {
         return getNodeOrNull(session, parentNodePath, relPath, ensureRelNode)
                 ?: throw IllegalArgumentException("Can't find node ${getAbsolutePath(parentNodePath, relPath)}.")
     }
 
-    internal fun getNodeOrNull(session: Session, parentNodePath: String?, relPath: String? = null, ensureRelNode: Boolean = true): Node? {
+    internal fun getNodeOrNull(session: SessionWrapper, parentNodePath: String?, relPath: String? = null, ensureRelNode: Boolean = true): Node? {
         val absolutePath = getAbsolutePath(parentNodePath)
         val parentNode = try {
             session.getNode(absolutePath)
@@ -247,8 +275,8 @@ open class RepoService {
             return sb.toString()
         }
 
-    private fun <T> runInSession(method: (session: Session) -> T): T {
-        val session: Session = login()
+    private fun <T> runInSession(method: (sessionWrapper: SessionWrapper) -> T): T {
+        val session = SessionWrapper(this)
         try {
             return method(session)
         } finally {
@@ -256,35 +284,33 @@ open class RepoService {
         }
     }
 
-    internal fun login(): Session {
-        return repository.login(credentials)
-    }
-
-    fun init(repositoryPath: String) {
-        init(mapOf(JcrUtils.REPOSITORY_URI to repositoryPath))
-    }
-
     /**
      * @param mainNodeName All activities (working with nodes) will done under topNode. TopNode should be given for backing up and
      * restoring. By default "ProjectForge" is used.
      */
-    fun init(parameters: Map<String, String>, mainNodeName: String = "ProjectForge") {
+    @JvmOverloads
+    fun init(repositoryDir: File, mainNodeName: String = "ProjectForge") {
         synchronized(this) {
-            if (initialized) {
+            if (nodeStore != null) {
                 throw IllegalArgumentException("Can't initialize repo twice! repo=$this")
             }
             if (mainNodeName.isNullOrBlank()) {
                 throw IllegalArgumentException("Top node shouldn't be empty!")
             }
-            initialized = true
             if (log.isDebugEnabled) {
                 log.debug { "Setting system property: derby.stream.error.field=${DerbyUtil::class.java.name}.DEV_NULL" }
             }
             System.setProperty("derby.stream.error.field", "${DerbyUtil::class.java.name}.DEV_NULL")
-            log.info { "Initializing JCR repository with main node '$mainNodeName': ${parameters.entries.joinToString { "${it.key}='${it.value}'" }}" }
+            log.info { "Initializing JCR repository with main node '$mainNodeName' in: ${repositoryDir.absolutePath}" }
             this.mainNodeName = mainNodeName
-            SearchIndex
-            repository = JcrUtils.getRepository(parameters)
+
+            FileStoreBuilder.fileStoreBuilder(repositoryDir).build().let { fileStore ->
+                this.fileStore = fileStore
+                this.fileStoreLocation = repositoryDir
+                nodeStore = SegmentNodeStoreBuilders.builder(fileStore).build()
+                repository = Jcr(Oak(nodeStore)).createRepository()
+            }
+
             runInSession { session ->
                 if (!session.rootNode.hasNode(mainNodeName)) {
                     log.info { "Creating top level node '$mainNodeName'." }
@@ -293,6 +319,11 @@ open class RepoService {
                 session.save()
             }
         }
+    }
+
+    internal fun close(session: Session) {
+        session.save();
+        fileStore?.let { it.close() }
     }
 
     companion object {
