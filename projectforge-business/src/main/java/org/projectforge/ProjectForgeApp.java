@@ -42,6 +42,7 @@ import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
+import org.projectforge.jcr.RepoBackupService;
 import org.projectforge.jcr.RepoService;
 import org.projectforge.registry.Registry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,6 +106,7 @@ public class ProjectForgeApp {
                   Environment environment,
                   UserXmlPreferencesCache userXmlPreferencesCache,
                   RepoService repoService,
+                  RepoBackupService repoBackupService,
                   SystemInfoCache systemInfoCache,
                   SystemStatus systemStatus) {
     this.applicationContext = applicationContext;
@@ -113,6 +115,7 @@ public class ProjectForgeApp {
     this.environment = environment;
     this.userXmlPreferencesCache = userXmlPreferencesCache;
     repoService.init(new File(ConfigXml.getInstance().getJcrDirectory()));
+    repoBackupService.setBackupDirectory(new File(ConfigXml.getInstance().getBackupDirectory()));
     this.systemInfoCache = systemInfoCache;
     this.systemStatus = systemStatus;
   }

@@ -21,14 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.jobs
+package org.projectforge.jcr
 
 import mu.KotlinLogging
-import org.projectforge.business.meb.MebJobExecutor
-import org.projectforge.framework.configuration.ConfigXml
-import org.projectforge.framework.persistence.history.HibernateSearchReindexer
-import org.projectforge.framework.time.PFDateTime
-import org.projectforge.jcr.RepoBackupService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -38,38 +33,21 @@ import java.util.zip.ZipOutputStream
 
 private val log = KotlinLogging.logger {}
 
-/**
- * Job should be scheduled nightly.
- *
- * @author Florian Blumenstein
- * @author Kai Reinhard
- */
 @Component
-class CronNightlyJob {
+class BackupJob {
     @Autowired
-    private lateinit var hibernateSearchReindexer: HibernateSearchReindexer
+    private lateinit var repoBackupService: RepoBackupService
 
-    @Autowired
-    private var mebJobExecutor: MebJobExecutor? = null
-
-    //@Scheduled(cron = "0 30 2 * * *")
-    @Scheduled(cron = "\${projectforge.cron.nightly}")
+    // projectforge.cron.jrcBackup=0 30 0 * * *
+    @Scheduled(cron = "\${projectforge.cron.jrcBackup}")
     fun execute() {
-        log.info("Nightly job started.")
-
-        try {
-            hibernateSearchReindexer.execute()
-        } catch (ex: Throwable) {
-            log.error("While executing hibernate search re-index job: " + ex.message, ex)
+        log.info("JCR backup job started.")
+        val time = System.currentTimeMillis()
+        val backupFile = RepoBackupService.backupFilename
+        val zipFile = File(repoBackupService.backupDirectory, backupFile)
+        ZipOutputStream(FileOutputStream(zipFile)).use {
+            repoBackupService.backupAsZipArchive(zipFile.name, it)
         }
-        if (mebJobExecutor != null) {
-            try {
-                mebJobExecutor!!.execute(true)
-            } catch (ex: Throwable) {
-                log.error("While executing MEB job: " + ex.message, ex)
-            }
-        }
-
-        log.info("Nightly job job finished.")
+        log.info("JCR backup job finished after ${(System.currentTimeMillis() - time)/1000} seconds.")
     }
 }

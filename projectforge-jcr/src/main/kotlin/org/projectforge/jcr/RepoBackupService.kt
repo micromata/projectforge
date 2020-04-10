@@ -28,7 +28,12 @@ import org.apache.commons.io.FilenameUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
+import java.io.File
 import java.nio.charset.StandardCharsets
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -40,6 +45,11 @@ private val log = KotlinLogging.logger {}
 
 @Service
 open class RepoBackupService {
+    /**
+     * Where to put the nigthly backups of the jcr as zip files?
+     */
+    var backupDirectory: File? = null
+
     @Autowired
     internal lateinit var repoService: RepoService
 
@@ -201,5 +211,11 @@ open class RepoBackupService {
         internal const val BACKUP_README = "/backupReadme.txt"
 
         private val IGNORE_FILES = arrayOf("README.txt", "node.json", "files.txt", "files.json")
+
+        val backupFilename: String
+            get() {
+                val nowAsIsoString = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").withZone(ZoneOffset.UTC))
+                return "projectforge-jcr-backup-$nowAsIsoString.zip"
+            }
     }
 }
