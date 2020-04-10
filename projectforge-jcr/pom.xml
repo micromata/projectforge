@@ -19,6 +19,10 @@
         </license>
     </licenses>
 
+    <properties>
+        <jackrabbit-oak.version>1.6.20</jackrabbit-oak.version>
+    </properties>
+
     <build>
         <finalName>projectforge-jcr</finalName>
         <plugins>
@@ -71,12 +75,16 @@
                     <execution>
                         <id>java-compile</id>
                         <phase>compile</phase>
-                        <goals> <goal>compile</goal> </goals>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
                     </execution>
                     <execution>
                         <id>java-test-compile</id>
                         <phase>test-compile</phase>
-                        <goals> <goal>testCompile</goal> </goals>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -100,8 +108,13 @@
         <!-- Jackrabbit content repository -->
         <dependency>
             <groupId>org.apache.jackrabbit</groupId>
-            <artifactId>jackrabbit-core</artifactId>
-            <version>2.21.0</version>
+            <artifactId>oak-jcr</artifactId>
+            <version>${jackrabbit-oak.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.jackrabbit</groupId>
+            <artifactId>oak-segment-tar</artifactId>
+            <version>${jackrabbit-oak.version}</version>
         </dependency>
 
         <dependency>

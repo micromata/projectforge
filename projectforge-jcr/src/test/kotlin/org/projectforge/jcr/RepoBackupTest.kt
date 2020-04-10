@@ -42,7 +42,7 @@ class RepoBackupTest {
 
     init {
         val repoDir = TestUtils.deleteAndCreateTestFile("testBackupRepo")
-        repoService.init(repoDir.toURI().toString())
+        repoService.init(repoDir)
         repoBackupService.repoService = repoService
     }
 
@@ -69,12 +69,11 @@ class RepoBackupTest {
         val repo2Service = RepoService()
         val repo2BackupService = RepoBackupService()
         val repo2Dir = TestUtils.deleteAndCreateTestFile("testBackupRepo2")
-        repo2Service.init(repo2Dir.toURI().toString())
+        repo2Service.init(repo2Dir)
         repo2BackupService.repoService = repo2Service
 
         ZipInputStream(FileInputStream(zipFile)).use {
-            repo2BackupService.restoreBackupFromZipArchive(it, RepoBackupService.RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED,
-                    useJson = true)
+            repo2BackupService.restoreBackupFromZipArchive(it, RepoBackupService.RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED)
         }
         ZipOutputStream(FileOutputStream(TestUtils.deleteAndCreateTestFile("fullbackupFromRestored.zip"))).use {
             repo2BackupService.backupAsZipArchive("fullbackupFromRestored", it)
@@ -88,6 +87,9 @@ class RepoBackupTest {
         for (idx in logoFile.indices) {
             Assertions.assertEquals(logoFile[idx], fileObject.content!![idx])
         }
+
+        repoService.shutdown()
+        repo2Service.shutdown()
     }
 
     private fun createFileObject(parentNodePath: String, relPath: String, vararg path: String): FileObject {
