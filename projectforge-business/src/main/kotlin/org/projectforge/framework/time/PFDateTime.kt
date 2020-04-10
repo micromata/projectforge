@@ -254,6 +254,12 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         get() = format(isoDateTimeFormatterMilli)
 
     /**
+     * Date part as ISO string for filenames: "yyyy-MM-dd_HH-mm-ss" in UTC.
+     */
+    val iso4FilenamesFormatterMinutes: String
+        get() = format(isoDateTime4FilenamesFormatterMinutes)
+
+    /**
      * Date as JavaScript string: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" (UTC).
      */
     val javaScriptString: String
@@ -726,6 +732,7 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         internal val isoDateTimeFormatterSeconds = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC)
         internal val isoDateTimeFormatterMilli = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneOffset.UTC)
         internal val jsDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC)
+        internal val isoDateTime4FilenamesFormatterMinutes = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").withZone(ZoneOffset.UTC)
         // private val jsonDateTimeFormatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern)
     }
 }
