@@ -25,12 +25,12 @@ package org.projectforge.jcr
 
 import mu.KotlinLogging
 import org.apache.jackrabbit.commons.JcrUtils
+import org.apache.jackrabbit.core.query.lucene.SearchIndex
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.OutputStream
 import java.security.SecureRandom
 import javax.jcr.*
-
 
 private val log = KotlinLogging.logger {}
 
@@ -256,19 +256,12 @@ open class RepoService {
         }
     }
 
-/*
-private fun decoder(base64: ByteArray?): ByteArray? {
-    base64 ?: return null
-    return decoder(base64.toString(StandardCharsets.UTF_8))
-}
-
-private fun decoder(base64Str: String): ByteArray? {
-    return Base64.getDecoder().decode(base64Str)
-}
-*/
-
     internal fun login(): Session {
         return repository.login(credentials)
+    }
+
+    fun init(repositoryPath: String) {
+        init(mapOf(JcrUtils.REPOSITORY_URI to repositoryPath))
     }
 
     /**
@@ -290,6 +283,7 @@ private fun decoder(base64Str: String): ByteArray? {
             System.setProperty("derby.stream.error.field", "${DerbyUtil::class.java.name}.DEV_NULL")
             log.info { "Initializing JCR repository with main node '$mainNodeName': ${parameters.entries.joinToString { "${it.key}='${it.value}'" }}" }
             this.mainNodeName = mainNodeName
+            SearchIndex
             repository = JcrUtils.getRepository(parameters)
             runInSession { session ->
                 if (!session.rootNode.hasNode(mainNodeName)) {

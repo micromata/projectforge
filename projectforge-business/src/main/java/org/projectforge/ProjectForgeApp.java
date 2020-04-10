@@ -37,10 +37,12 @@ import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.common.StringModifier;
 import org.projectforge.continuousdb.DatabaseSupport;
 import org.projectforge.export.MyXlsExportContext;
+import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
+import org.projectforge.jcr.RepoService;
 import org.projectforge.registry.Registry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -102,6 +104,7 @@ public class ProjectForgeApp {
                   DomainService domainService,
                   Environment environment,
                   UserXmlPreferencesCache userXmlPreferencesCache,
+                  RepoService repoService,
                   SystemInfoCache systemInfoCache,
                   SystemStatus systemStatus) {
     this.applicationContext = applicationContext;
@@ -109,6 +112,7 @@ public class ProjectForgeApp {
     this.domainService = domainService;
     this.environment = environment;
     this.userXmlPreferencesCache = userXmlPreferencesCache;
+    repoService.init(new File(ConfigXml.getInstance().getJcrDirectory()).toURI().toString());
     this.systemInfoCache = systemInfoCache;
     this.systemStatus = systemStatus;
   }

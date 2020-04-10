@@ -26,7 +26,6 @@ package org.projectforge.business.orga
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
 
 import javax.persistence.*
-import java.util.List
 
 @Entity
 @DiscriminatorValue("1")

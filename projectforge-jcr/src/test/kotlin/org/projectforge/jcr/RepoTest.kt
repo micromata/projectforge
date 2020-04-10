@@ -37,7 +37,7 @@ class RepoTest {
 
     init {
         val repoDir = TestUtils.deleteAndCreateTestFile("testRepo")
-        repoService.init(mapOf(JcrUtils.REPOSITORY_URI to repoDir.toURI().toString()))
+        repoService.init(repoDir.toURI().toString())
     }
 
     @Test

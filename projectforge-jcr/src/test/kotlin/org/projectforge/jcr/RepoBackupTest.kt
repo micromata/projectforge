@@ -42,7 +42,7 @@ class RepoBackupTest {
 
     init {
         val repoDir = TestUtils.deleteAndCreateTestFile("testBackupRepo")
-        repoService.init(mapOf(JcrUtils.REPOSITORY_URI to repoDir.toURI().toString()))
+        repoService.init(repoDir.toURI().toString())
         repoBackupService.repoService = repoService
     }
 
@@ -62,7 +62,6 @@ class RepoBackupTest {
         val logoFile = fileObject.content!!
 
         val zipFile = TestUtils.deleteAndCreateTestFile("fullbackup.zip")
-        println("Creating zip file: ${zipFile.absolutePath}")
         ZipOutputStream(FileOutputStream(zipFile)).use {
             repoBackupService.backupAsZipArchive(zipFile.name, it)
         }
@@ -70,7 +69,7 @@ class RepoBackupTest {
         val repo2Service = RepoService()
         val repo2BackupService = RepoBackupService()
         val repo2Dir = TestUtils.deleteAndCreateTestFile("testBackupRepo2")
-        repo2Service.init(mapOf(JcrUtils.REPOSITORY_URI to repo2Dir.toURI().toString()))
+        repo2Service.init(repo2Dir.toURI().toString())
         repo2BackupService.repoService = repo2Service
 
         ZipInputStream(FileInputStream(zipFile)).use {
