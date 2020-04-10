@@ -59,6 +59,13 @@ class CronNightlyJob {
     @Scheduled(cron = "\${projectforge.cron.nightly}")
     fun execute() {
         log.info("Nightly job started.")
+
+        val backupFile = "projectforge-jcr-backup-${PFDateTime.now().iso4FilenamesFormatterMinutes}.zip"
+        val zipFile = File(ConfigXml.getInstance().backupDirectory, backupFile)
+        ZipOutputStream(FileOutputStream(zipFile)).use {
+            repoBackupService.backupAsZipArchive(zipFile.name, it)
+        }
+
         try {
             hibernateSearchReindexer.execute()
         } catch (ex: Throwable) {
@@ -72,11 +79,6 @@ class CronNightlyJob {
             }
         }
 
-        val backupFile = "projectforge-jcr-backup-${PFDateTime.now().iso4FilenamesFormatterMinutes}.zip"
-        val zipFile = File(ConfigXml.getInstance().backupDirectory, backupFile)
-        ZipOutputStream(FileOutputStream(zipFile)).use {
-            repoBackupService.backupAsZipArchive(zipFile.name, it)
-        }
         log.info("Nightly job job finished.")
     }
 }

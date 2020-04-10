@@ -112,6 +112,13 @@
             <groupId>org.wicketstuff</groupId>
             <artifactId>wicketstuff-select2</artifactId>
             <version>${wicket.version}</version>
+            <exclusions>
+                <exclusion>
+                    <!-- Incompatible with older version 15 of jackrabbit. -->
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
