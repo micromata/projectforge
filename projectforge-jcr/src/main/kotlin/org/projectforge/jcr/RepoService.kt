@@ -61,7 +61,8 @@ open class RepoService {
     fun shutdown() {
         log.info { "Shutting down jcr repository." }
         fileStore?.let {
-            it.cleanup()
+            it.flush()
+            it.gc()
             log.info { "Jcr stats: ${FileStoreInfo(this)}" }
             it.close()
         }

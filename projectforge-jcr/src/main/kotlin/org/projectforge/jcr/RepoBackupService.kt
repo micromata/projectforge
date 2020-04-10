@@ -57,7 +57,7 @@ open class RepoBackupService {
 
             // Write README.TXT
             zipOut.putNextEntry(createZipEntry(archivNameWithoutExtension, "README.TXT"))
-            val readme = this::class.java.getResource("/backupReadme.txt").readText()
+            val readme = this::class.java.getResource(BACKUP_README).readText()
             zipOut.write(readme.toByteArray(StandardCharsets.UTF_8))
 
             val topNode = repoService.getNode(session, absPath, null)
@@ -197,6 +197,8 @@ open class RepoBackupService {
 
     companion object {
         const val RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED = "Yes, I want to restore the repo and know what I'm doing. The repo may be lost."
+
+        internal const val BACKUP_README = "/backupReadme.txt"
 
         private val IGNORE_FILES = arrayOf("README.txt", "node.json", "files.txt", "files.json")
     }
