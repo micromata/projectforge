@@ -24,10 +24,6 @@
 package org.projectforge.jcr
 
 import mu.KotlinLogging
-import org.apache.jackrabbit.oak.segment.file.FileStore
-import org.apache.jackrabbit.oak.segment.file.FileStoreStats
-import javax.jcr.Node
-import javax.jcr.Property
 
 private val log = KotlinLogging.logger {}
 
