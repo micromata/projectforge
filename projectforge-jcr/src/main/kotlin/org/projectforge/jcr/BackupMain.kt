@@ -27,22 +27,28 @@ import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.LoggerContext
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.io.FileInputStream
-import java.util.zip.ZipInputStream
+import java.io.FileOutputStream
+import java.util.zip.ZipOutputStream
 
 class BackupMain {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            if (args.size != 2) {
+            if (args.isEmpty() || args.size > 2) {
                 printHelp()
                 return
             }
-            val backupFile = checkBackupFile(args[0]) ?: return
-            val repositoryLocation = checkRepoDir(args[1]) ?: return
+            val repositoryLocation = checkRepoDir(args[0]) ?: return
+            val backupFile =
+                    if (args.size == 2) {
+                        checkBackupFileWriteable(File(args[1], RepoBackupService.backupFilename).absolutePath)
+                    } else {
+                        checkBackupFileWriteable(RepoBackupService.backupFilename)
+                    }
+            backupFile ?: return
             val repoBackupService = prepare(repositoryLocation)
-            ZipInputStream(FileInputStream(backupFile)).use {
-                repoBackupService.restoreBackupFromZipArchive(it, RepoBackupService.RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED)
+            ZipOutputStream(FileOutputStream(backupFile)).use {
+                repoBackupService.backupAsZipArchive(backupFile.name, it)
             }
             shutdown(repoBackupService)
         }
@@ -79,10 +85,21 @@ class BackupMain {
             return dir
         }
 
-        internal fun checkBackupFile(filePath: String): File? {
+        internal fun checkBackupFileReadable(filePath: String): File? {
             val file = File(filePath)
             if (!file.exists() || !file.canRead()) {
                 println("****** Can't read from backup file: ${file.absolutePath}")
+                printHelp()
+                return null
+            }
+            println("Using backup archive: ${file.absolutePath}")
+            return file
+        }
+
+        internal fun checkBackupFileWriteable(filePath: String): File? {
+            val file = File(filePath)
+            if (file.exists() || file.canWrite()) {
+                println("****** Can't write backup file: ${file.absolutePath}")
                 printHelp()
                 return null
             }

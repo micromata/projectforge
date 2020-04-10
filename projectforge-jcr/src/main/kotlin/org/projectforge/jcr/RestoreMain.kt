@@ -23,10 +23,6 @@
 
 package org.projectforge.jcr
 
-import ch.qos.logback.classic.Level
-import ch.qos.logback.classic.LoggerContext
-import org.slf4j.LoggerFactory
-import java.io.File
 import java.io.FileInputStream
 import java.util.zip.ZipInputStream
 
@@ -38,14 +34,13 @@ class RestoreMain {
                 BackupMain.printHelp()
                 return
             }
-            val backupFile = BackupMain.checkBackupFile(args[0]) ?: return
-            val repositoryLocation = BackupMain.checkRepoDir(args[1]) ?: return
+            val repositoryLocation = BackupMain.checkRepoDir(args[0]) ?: return
+            val backupFile = BackupMain.checkBackupFileReadable(args[1]) ?: return
             val repoBackupService = BackupMain.prepare(repositoryLocation)
             ZipInputStream(FileInputStream(backupFile)).use {
                 repoBackupService.restoreBackupFromZipArchive(it, RepoBackupService.RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED)
             }
             BackupMain.shutdown(repoBackupService)
         }
-
     }
 }
