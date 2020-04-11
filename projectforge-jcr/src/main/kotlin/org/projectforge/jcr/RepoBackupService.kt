@@ -30,7 +30,6 @@ import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.nio.charset.StandardCharsets
-import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -165,7 +164,7 @@ open class RepoBackupService {
     }
 
     private fun writeToZip(node: Node, archiveName: String, zipOut: ZipOutputStream) {
-        val fileList = repoService.getFiles(node)
+        val fileList = repoService.getFileInfos(node)
         if (!fileList.isNullOrEmpty()) {
             fileList.forEach {
                 val fileNode = repoService.findFile(node, it.id, null)

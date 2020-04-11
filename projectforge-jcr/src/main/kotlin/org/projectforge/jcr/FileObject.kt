@@ -30,7 +30,7 @@ import javax.jcr.Node
  */
 class FileObject() {
     @JvmOverloads
-    constructor(parentNodePath: String, relPath:String? = null, id: String? = null, fileName: String? = null) : this() {
+    constructor(parentNodePath: String?, relPath:String? = null, id: String? = null, fileName: String? = null) : this() {
         this.parentNodePath = parentNodePath
         this.relPath = relPath
         this.id = id
@@ -71,13 +71,13 @@ class FileObject() {
         internal set
 
     /**
-     * The location (as path) of the file in the content repository.
+     * The location (as path) of the file in the content repository. The location is relative to main node.
      *
      * This node specified by this location contains a child node named [RepoService.NODENAME_FILES], where
      * the file node with id as name resists.
      */
     val location: String?
-        get() = ".../${RepoService.getAbsolutePath(parentNodePath, relPath)}"
+        get() = "${RepoService.getAbsolutePath(parentNodePath, relPath)}"
 
     /**
      * The location is built of parentNodePath and relPath.
