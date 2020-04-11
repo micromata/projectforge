@@ -34,6 +34,7 @@ import org.apache.jackrabbit.oak.spi.state.NodeStore
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.InputStream
 import java.io.OutputStream
 import java.security.SecureRandom
 import javax.annotation.PreDestroy
@@ -103,13 +104,21 @@ open class RepoService {
         }
     }
 
+    /**
+     * Content of file should be given as [FileObject.content].
+     */
     open fun storeFile(fileObject: FileObject) {
+        val content = fileObject.content ?: ByteArray(0) // Assuming 0 byte file if no content is given.
+        val inputStream = ByteArrayInputStream(content)
+        return storeFile(fileObject, inputStream)
+    }
+
+    open fun storeFile(fileObject: FileObject, content: InputStream) {
         val parentNodePath = fileObject.parentNodePath
         val relPath = fileObject.relPath
         if (parentNodePath == null || relPath == null) {
             throw IllegalArgumentException("Parent node path and/or relPath not given. Can't determine location of file to store: $fileObject")
         }
-        val content = fileObject.content ?: ByteArray(0) // Assuming 0 byte file if no content is given.
         runInSession { session ->
             val node = getNode(session, parentNodePath, relPath, false)
             val filesNode = ensureNode(node, NODENAME_FILES)
@@ -119,20 +128,38 @@ open class RepoService {
             val fileNode = filesNode.addNode(id)
             fileNode.setProperty(PROPERTY_FILENAME, fileObject.fileName)
             fileObject.size?.let { fileNode.setProperty(PROPERTY_FILESIZE, it.toLong()) }
-            val inputStream = ByteArrayInputStream(content)
-            val bin: Binary = session.valueFactory.createBinary(inputStream)
+            val bin: Binary = session.valueFactory.createBinary(content)
             fileNode.setProperty(PROPERTY_FILECONTENT, session.valueFactory.createValue(bin))
             session.save()
         }
     }
 
-    open fun getFiles(parentNodePath: String?, relPath: String?): List<FileObject> {
+    /**
+     * @return list of file infos without content.
+     */
+    @JvmOverloads
+    open fun getFileInfos(parentNodePath: String?, relPath: String? = null): List<FileObject>? {
         return runInSession { session ->
             val filesNode = getFilesNode(session, parentNodePath, relPath)
-            getFiles(filesNode)
+            getFileInfos(filesNode)
         }
     }
 
+    /**
+     * @return file info without content.
+     */
+    @JvmOverloads
+    open fun getFileInfo(parentNodePath: String?, relPath: String? = null, id: String? = null, fileName: String? = null): FileObject? {
+        return runInSession { session ->
+            val filesNode = getFilesNode(session, parentNodePath, relPath)
+            val node = findFile(filesNode, id, fileName)
+            if (node != null) {
+                FileObject(node)
+            } else {
+                null
+            }
+        }
+    }
 
     open fun getNodeInfo(absPath: String, recursive: Boolean = false): NodeInfo {
         return runInSession { session ->
@@ -155,11 +182,11 @@ open class RepoService {
         }
     }
 
-    internal fun getFiles(filesNode: Node?): List<FileObject> {
-        filesNode ?: return emptyList()
+    internal fun getFileInfos(filesNode: Node?): List<FileObject>? {
+        filesNode ?: return null
         val fileNodes = filesNode.nodes
         if (fileNodes == null || !fileNodes.hasNext()) {
-            return emptyList()
+            return null
         }
         val result = mutableListOf<FileObject>()
         while (fileNodes.hasNext()) {
@@ -203,21 +230,39 @@ open class RepoService {
         }
     }
 
+    open fun retrieveFileInputStream(file: FileObject): InputStream? {
+        return runInSession { session ->
+            val filesNode = getFilesNode(session, file.parentNodePath, file.relPath, false)
+            val node = findFile(filesNode, file.id, file.fileName)
+            if (node == null) {
+                log.warn { "File not found in repository: $file" }
+                null
+            } else {
+                getFileInputStream(node)
+            }
+        }
+    }
+
     internal fun getFileContent(node: Node?): ByteArray? {
+        val content = getFileInputStream(node)?.use {
+            it.readBytes()
+        }
+        if (content != null) {
+            log.info { "Got file from repository: ${node?.path}..." }
+        }
+        return content
+    }
+
+    internal fun getFileInputStream(node: Node?): InputStream? {
         node ?: return null
         log.info { "Reading file from repository: ${node.path}..." }
         var binary: Binary? = null
-        var content: ByteArray?
         try {
             binary = node.getProperty(PROPERTY_FILECONTENT)?.binary
-            content = binary?.stream?.readBytes()
+            return binary?.stream
         } finally {
             binary?.dispose()
         }
-        if (content != null) {
-            log.info { "Got file from repository: ${node.path}..." }
-        }
-        return content
     }
 
     internal fun getNode(session: SessionWrapper, parentNodePath: String?, relPath: String? = null, ensureRelNode: Boolean = true): Node {
@@ -241,7 +286,7 @@ open class RepoService {
     }
 
     private fun getAbsolutePath(nodePath: String?): String {
-        val path = nodePath?.removePrefix("/")?.removePrefix("$mainNodeName")?.removePrefix("/") ?: ""
+        val path = nodePath?.removePrefix("/")?.removePrefix(mainNodeName)?.removePrefix("/") ?: ""
         return "/$mainNodeName/$path"
     }
 
@@ -295,7 +340,7 @@ open class RepoService {
             if (nodeStore != null) {
                 throw IllegalArgumentException("Can't initialize repo twice! repo=$this")
             }
-            if (mainNodeName.isNullOrBlank()) {
+            if (mainNodeName.isBlank()) {
                 throw IllegalArgumentException("Top node shouldn't be empty!")
             }
             if (log.isDebugEnabled) {
@@ -323,8 +368,8 @@ open class RepoService {
     }
 
     internal fun close(session: Session) {
-        session.save();
-        fileStore?.let { it.close() }
+        session.save()
+        fileStore?.close()
     }
 
     companion object {
