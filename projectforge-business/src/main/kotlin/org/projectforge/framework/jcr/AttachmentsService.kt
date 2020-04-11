@@ -79,8 +79,8 @@ open class AttachmentsService {
     }
 
     open fun deleteAttachment(baseDO: BaseDO<*>, subPath: String? = null, id: String?): Boolean {
-        log.error { "Deleting of attachmengs isn't yet implemented." }
-        return false
+        val fileObject = FileObject(getPath(baseDO), subPath, id = id)
+        return repoService.deleteFile(fileObject)
     }
 
     /**
