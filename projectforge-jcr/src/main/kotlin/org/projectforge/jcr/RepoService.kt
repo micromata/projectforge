@@ -134,6 +134,28 @@ open class RepoService {
         }
     }
 
+    open fun deleteFile(fileObject: FileObject): Boolean {
+        return runInSession { session ->
+            val node = getNode(session, fileObject.parentNodePath, fileObject.relPath, false)
+            if (!node.hasNode(NODENAME_FILES)) {
+                log.error { "Can't delete file, because '$NODENAME_FILES' not found for node '${node.path}': $fileObject" }
+                false
+            } else {
+                val filesNode = node.getNode(NODENAME_FILES)
+                val fileNode = findFile(filesNode, fileObject.id, fileObject.fileName)
+                if (fileNode == null) {
+                    log.info { "Nothing to delete, file node doesn't exit: $fileObject" }
+                    false
+                } else {
+                    log.info { "Deleting file: $fileObject" }
+                    fileNode.remove()
+                    session.save()
+                    true
+                }
+            }
+        }
+    }
+
     /**
      * @return list of file infos without content.
      */
@@ -253,7 +275,7 @@ open class RepoService {
         return content
     }
 
-    internal fun getFileInputStream(node: Node?): InputStream? {
+    private fun getFileInputStream(node: Node?): InputStream? {
         node ?: return null
         log.info { "Reading file from repository: ${node.path}..." }
         var binary: Binary? = null
