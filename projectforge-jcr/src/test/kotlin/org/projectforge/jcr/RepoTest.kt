@@ -28,6 +28,8 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.io.File
+import java.io.FileOutputStream
+import java.util.zip.ZipOutputStream
 
 private val log = KotlinLogging.logger {}
 
@@ -76,6 +78,18 @@ class RepoTest {
         unknownFile.parentNodePath = "unknown"
         Assertions.assertFalse(repoService.retrieveFile(unknownFile))
 
+        file.fileName = "pom.xml"
+        file.parentNodePath = "/world/europe"
+        file.relPath = "germany"
+        Assertions.assertTrue(repoService.retrieveFile(file))
+        Assertions.assertTrue(repoService.deleteFile(file))
+        Assertions.assertFalse(repoService.retrieveFile(file))
+
+        val repoBackupService = RepoBackupService()
+        repoBackupService.repoService = repoService
+        ZipOutputStream(FileOutputStream(TestUtils.deleteAndCreateTestFile("fullbackupRepoTest.zip"))).use {
+            repoBackupService.backupAsZipArchive("fullbackupRepoTest", it)
+        }
         repoService.shutdown()
     }
 
