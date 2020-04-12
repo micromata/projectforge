@@ -81,6 +81,11 @@ object NumberHelper {
         return format
     }
 
+    @JvmStatic
+    fun formatBytes(bytes: Int?): String {
+        return formatBytes(bytes?.toLong())
+    }
+
     /**
      * Pretty output of bytes, "1023 bytes", "1.1 kb", "523 kb", "1.7 Mb", "143 Gb" etc.
      *
@@ -88,7 +93,8 @@ object NumberHelper {
      * @return
      */
     @JvmStatic
-    fun formatBytes(bytes: Long): String {
+    fun formatBytes(bytes: Long?): String {
+        bytes ?: return "--"
         if (bytes < KILO_BYTES) {
             return "$bytes bytes"
         }
