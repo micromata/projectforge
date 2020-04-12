@@ -8,18 +8,17 @@ import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
 function DynamicAttachmentList(
     {
         id,
-        value,
-        ...props
+        listId,
+        restBaseUrl,
     },
 ) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
-    const changeFile = (files) => {
-        console.log("Upload");
-
+    const uploadFile = (files) => {
+        console.log(`${restBaseUrl}/upload/${id}/${listId}`);
         /*fetch(
             // Set the image with id -1, so the image will be set in the session.
-            getServiceURL('address/uploadImage/-1'),
+            getServiceURL(uploadUrl),
             {
                 credentials: 'include',
                 method: 'POST',
@@ -33,7 +32,7 @@ function DynamicAttachmentList(
                 const fileReader = new FileReader();
 
                 fileReader.onload = ({ currentTarget }) => {
-                    setSrc(currentTarget.result);
+                    setSrc(currentTarget.result);calenda
                     setLoading(false);
                 };
 
@@ -48,7 +47,7 @@ function DynamicAttachmentList(
     return React.useMemo(() => {
         const { attachments } = data;
         return (
-            <DropArea setFiles={changeFile}>
+            <DropArea setFiles={uploadFile}>
                 {ui.translations['file.upload.dropArea']}
                 {attachments && attachments.length > 0 && (
                     <Table striped hover>
@@ -59,23 +58,21 @@ function DynamicAttachmentList(
                                 <th>{ui.translations.description}</th>
                                 <th>{ui.translations.created}</th>
                                 <th>{ui.translations.createdBy}</th>
-                                <th>{ui.translations.modified}</th>
-                                <th>{ui.translations.modifiedBy}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {attachments.map(entry => (
                                 <tr
                                     key={entry.id}
-                                    onClick={() => window.open('http://localosdf/dlskfsjd.pdf', '_blank')}
+                                    onClick={() => window.open(getServiceURL(`/rs/${restBaseUrl}/download/${id}/${listId}`, {
+                                        fileId: entry.id,
+                                    }), '_blank')}
                                 >
                                     <td>{entry.name}</td>
                                     <td>{entry.sizeHumanReadable}</td>
                                     <td>{entry.description}</td>
-                                    <td>{entry.created}</td>
+                                    <td>{entry.createdFormatted}</td>
                                     <td>{entry.createdByUser}</td>
-                                    <td>{entry.lastUpdate}</td>
-                                    <td>{entry.lastUpdateByUser}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -87,7 +84,9 @@ function DynamicAttachmentList(
 }
 
 DynamicAttachmentList.propTypes = {
-    id: PropTypes.string.isRequired,
+    id: PropTypes.number.isRequired,
+    listId: PropTypes.string.isRequired,
+    restBaseUrl: PropTypes.string.isRequired,
     readOnly: PropTypes.bool,
 };
 

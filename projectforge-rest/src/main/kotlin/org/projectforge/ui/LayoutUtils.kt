@@ -24,6 +24,7 @@
 package org.projectforge.ui
 
 import org.projectforge.favorites.Favorites
+import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDao
@@ -260,6 +261,10 @@ class LayoutUtils {
                         if (!layout.translations.containsKey("attachment.filename")) {
                             layout.addTranslations("attachment.filename", "attachment.size", "created", "createdBy", "description", "file.upload.dropArea", "modified", "modifiedBy")
                         }
+                        if (layout.restBaseUrl.isNullOrBlank() && it.restBaseUrl.isNullOrBlank()) {
+                            log.warn("Dear developer: You must set layout.restBaseUrl or UIListElementList.restBaseUrl if you're using UIAttachmentList! Upload and downloading attachments will not work: ${ToStringUtil.toJsonString(layout)}")
+                        }
+                        it.restBaseUrl = layout.restBaseUrl
                     }
                 }
             }

@@ -37,6 +37,7 @@ import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.security.SecureRandom
+import java.util.*
 import javax.annotation.PreDestroy
 import javax.jcr.Binary
 import javax.jcr.Node
@@ -107,13 +108,15 @@ open class RepoService {
     /**
      * Content of file should be given as [FileObject.content].
      */
-    open fun storeFile(fileObject: FileObject) {
+    @JvmOverloads
+    open fun storeFile(fileObject: FileObject, user: String? = null) {
         val content = fileObject.content ?: ByteArray(0) // Assuming 0 byte file if no content is given.
         val inputStream = ByteArrayInputStream(content)
-        return storeFile(fileObject, inputStream)
+        return storeFile(fileObject, inputStream, user)
     }
 
-    open fun storeFile(fileObject: FileObject, content: InputStream) {
+    @JvmOverloads
+    open fun storeFile(fileObject: FileObject, content: InputStream, user: String? = null) {
         val parentNodePath = fileObject.parentNodePath
         val relPath = fileObject.relPath
         if (parentNodePath == null || relPath == null) {
@@ -126,6 +129,10 @@ open class RepoService {
             fileObject.id = id
             log.info { "Storing file: $fileObject" }
             val fileNode = filesNode.addNode(id)
+            fileObject.created = Date()
+            fileObject.createdByUser = user
+            fileObject.lastUpdate = fileObject.created
+            fileObject.lastUpdateByUser = user
             fileObject.copyTo(fileNode)
             val bin: Binary = session.valueFactory.createBinary(content)
             fileNode.setProperty(PROPERTY_FILECONTENT, session.valueFactory.createValue(bin))
