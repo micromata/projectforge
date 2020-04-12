@@ -127,6 +127,7 @@ open class RepoService {
             log.info { "Storing file: $fileObject" }
             val fileNode = filesNode.addNode(id)
             fileNode.setProperty(PROPERTY_FILENAME, fileObject.fileName)
+            fileNode.setProperty(PROPERTY_FILEDESC, fileObject.description ?: "")
             fileObject.size?.let { fileNode.setProperty(PROPERTY_FILESIZE, it.toLong()) }
             val bin: Binary = session.valueFactory.createBinary(content)
             fileNode.setProperty(PROPERTY_FILECONTENT, session.valueFactory.createValue(bin))
@@ -244,7 +245,8 @@ open class RepoService {
                 log.warn { "File not found in repository: $file" }
                 false
             } else {
-                file.fileName = node.getProperty(PROPERTY_FILENAME).string
+                file.fileName = node.getProperty(PROPERTY_FILENAME)?.string
+                file.description = node.getProperty(PROPERTY_FILEDESC)?.string
                 file.id = node.name
                 file.content = getFileContent(node)
                 true
@@ -397,6 +399,7 @@ open class RepoService {
     companion object {
         internal const val NODENAME_FILES = "__FILES"
         internal const val PROPERTY_FILENAME = "fileName"
+        internal const val PROPERTY_FILEDESC = "fileDescription"
         internal const val PROPERTY_FILESIZE = "size"
         internal const val PROPERTY_FILECONTENT = "content"
         private const val PROPERTY_RANDOM_ID_LENGTH = 20

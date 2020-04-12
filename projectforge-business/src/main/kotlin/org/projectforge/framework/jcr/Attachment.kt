@@ -41,6 +41,7 @@ class Attachment() {
     @get:JsonProperty
     val sizeHumanReadable: String
         get() = NumberHelper.formatBytes(size)
+    var description: String? = null
 
     /**
      * Location of file as path to node in JCR.
@@ -51,5 +52,6 @@ class Attachment() {
         this.name = fileObject.fileName
         this.size = fileObject.size
         this.location = fileObject.location
+        this.description = fileObject.description
     }
 }

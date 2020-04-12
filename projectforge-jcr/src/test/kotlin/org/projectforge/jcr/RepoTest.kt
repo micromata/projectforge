@@ -56,6 +56,7 @@ class RepoTest {
 
         val file = FileObject()
         file.fileName = "pom.xml"
+        file.description = "This is the maven pom file."
         file.parentNodePath = "/world/europe"
         file.relPath = "germany"
         file.content = File(file.fileName).readBytes()
@@ -103,6 +104,7 @@ class RepoTest {
         Assertions.assertEquals(expected.size, file.size)
         Assertions.assertEquals(expected.id, file.id)
         Assertions.assertEquals(expected.fileName, file.fileName)
+        Assertions.assertEquals(expected.description, file.description)
         Assertions.assertEquals(expected.content!!.size, file.content!!.size)
         for (idx in expected.content!!.indices) {
             Assertions.assertEquals(expected.content!![idx], file.content!![idx])
