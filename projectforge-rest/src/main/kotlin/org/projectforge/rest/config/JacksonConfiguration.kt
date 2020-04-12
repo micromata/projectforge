@@ -108,7 +108,7 @@ open class JacksonConfiguration {
 
         init {
             registerAllowedUnknownGlobalProperties("displayName")
-            registerAllowedUnknownProperties(Attachment::class.java, "sizeHumanReadable")
+            registerAllowedUnknownProperties(Attachment::class.java, "sizeHumanReadable", "createdFormatted", "lastUpdateFormatted")
             registerAllowedUnknownProperties(PFUserDO::class.java, "fullname")
             registerAllowedUnknownProperties(KundeDO::class.java, "id")
             // reminderDuration* will be there after function switchToTimesheet is used:

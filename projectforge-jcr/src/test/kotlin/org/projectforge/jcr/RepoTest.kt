@@ -111,9 +111,9 @@ class RepoTest {
         Assertions.assertEquals(expected.fileName, file.fileName)
         Assertions.assertEquals(expected.description, file.description)
         Assertions.assertEquals(expected.created, file.created)
-        Assertions.assertEquals(expected.createdByUser, file.createdByUser)
+        Assertions.assertEquals(expected.createdByUser ?: "", file.createdByUser)
         Assertions.assertEquals(expected.lastUpdate, file.lastUpdate)
-        Assertions.assertEquals(expected.lastUpdateByUser, file.lastUpdateByUser)
+        Assertions.assertEquals(expected.lastUpdateByUser ?: "", file.lastUpdateByUser)
         Assertions.assertEquals(expected.description, file.description)
         Assertions.assertEquals(expected.content!!.size, file.content!!.size)
         for (idx in expected.content!!.indices) {

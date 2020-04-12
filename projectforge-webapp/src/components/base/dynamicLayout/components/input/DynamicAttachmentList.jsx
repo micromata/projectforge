@@ -3,7 +3,7 @@ import React from 'react';
 import { Table } from '../../../../design';
 import { DynamicLayoutContext } from '../../context';
 import DropArea from '../../../../design/droparea';
-import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
+import { getServiceURL } from '../../../../../utilities/rest';
 
 function DynamicAttachmentList(
     {
@@ -13,6 +13,7 @@ function DynamicAttachmentList(
     },
 ) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
+    const { attachments } = data;
 
     const uploadFile = (files) => {
         const formData = new FormData();
@@ -29,52 +30,59 @@ function DynamicAttachmentList(
     };
 
     return React.useMemo(() => {
-        const { attachments } = data;
-        return (
-            <DropArea setFiles={uploadFile}>
-                {ui.translations['file.upload.dropArea']}
-                {attachments && attachments.length > 0 && (
-                    <Table striped hover>
-                        <thead>
-                            <tr>
-                                <th>{ui.translations['attachment.filename']}</th>
-                                <th>{ui.translations['attachment.size']}</th>
-                                <th>{ui.translations.description}</th>
-                                <th>{ui.translations.created}</th>
-                                <th>{ui.translations.createdBy}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {attachments.map(entry => (
-                                <tr
-                                    key={entry.id}
-                                    onClick={() => window.open(getServiceURL(`/rs/${restBaseUrl}/download/${id}/${listId}`, {
-                                        fileId: entry.id,
-                                    }), '_blank')}
-                                >
-                                    <td>{entry.name}</td>
-                                    <td>{entry.sizeHumanReadable}</td>
-                                    <td>{entry.description}</td>
-                                    <td>{entry.createdFormatted}</td>
-                                    <td>{entry.createdByUser}</td>
+        if (id && id > 0) {
+            return (
+                <DropArea setFiles={uploadFile}>
+                    {ui.translations['file.upload.dropArea']}
+                    {attachments && attachments.length > 0 && (
+                        <Table striped hover>
+                            <thead>
+                                <tr>
+                                    <th>{ui.translations['attachment.filename']}</th>
+                                    <th>{ui.translations['attachment.size']}</th>
+                                    <th>{ui.translations.description}</th>
+                                    <th>{ui.translations.created}</th>
+                                    <th>{ui.translations.createdBy}</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </Table>
-                )}
-            </DropArea>
+                            </thead>
+                            <tbody>
+                                {attachments.map(entry => (
+                                    <tr
+                                        key={entry.id}
+                                        onClick={() => window.open(getServiceURL(`/rs/${restBaseUrl}/download/${id}/${listId}`, {
+                                            fileId: entry.id,
+                                        }), '_blank')}
+                                    >
+                                        <td>{entry.name}</td>
+                                        <td>{entry.sizeHumanReadable}</td>
+                                        <td>{entry.description}</td>
+                                        <td>{entry.createdFormatted}</td>
+                                        <td>{entry.createdByUser}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+                    )}
+                </DropArea>
+            );
+        }
+        return (
+            <React.Fragment>
+                {ui.translations['attachment.onlyAvailableAfterSave']}
+            </React.Fragment>
         );
-    }, [setData]);
+    }, [setData, id, attachments]);
 }
 
 DynamicAttachmentList.propTypes = {
-    id: PropTypes.number.isRequired,
+    id: PropTypes.number,
     listId: PropTypes.string.isRequired,
     restBaseUrl: PropTypes.string.isRequired,
     readOnly: PropTypes.bool,
 };
 
 DynamicAttachmentList.defaultProps = {
+    id: undefined, // Undefined for new object.
     readOnly: false,
 };
 

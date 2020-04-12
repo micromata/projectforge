@@ -29,8 +29,9 @@ package org.projectforge.ui
 class UIAttachmentList(
         /**
          * The id of the object (pk) where the attachments are belonging to.
+         * Null for new objects, meaning, that now upload is available and an hint is shown.
          */
-        val id: Int,
+        val id: Int?,
         /**
          * id to identify attachments list by server, especially if multiple lists of attachments are
          * used for one page.
