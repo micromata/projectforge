@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Table } from '../../../../design';
+import { Button, Table } from '../../../../design';
 import { DynamicLayoutContext } from '../../context';
 import DropArea from '../../../../design/droparea';
 import { getServiceURL } from '../../../../../utilities/rest';
@@ -29,6 +29,10 @@ function DynamicAttachmentList(
         );
     };
 
+    const deleteFile = (file) => {
+        console.log(file)
+    };
+
     return React.useMemo(() => {
         if (id && id > 0) {
             return (
@@ -43,6 +47,7 @@ function DynamicAttachmentList(
                                     <th>{ui.translations.description}</th>
                                     <th>{ui.translations.created}</th>
                                     <th>{ui.translations.createdBy}</th>
+                                    <th>{' '}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -58,6 +63,11 @@ function DynamicAttachmentList(
                                         <td>{entry.description}</td>
                                         <td>{entry.createdFormatted}</td>
                                         <td>{entry.createdByUser}</td>
+                                        <td>
+                                            <Button color="danger" onClick={() => deleteFile(entry.id)}>
+                                                {ui.translations.delete}
+                                            </Button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
