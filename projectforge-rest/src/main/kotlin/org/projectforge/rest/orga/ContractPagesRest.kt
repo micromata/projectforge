@@ -25,15 +25,16 @@ package org.projectforge.rest.orga
 
 import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractDao
-import org.projectforge.business.vacation.model.VacationYearFilter
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDOPagesRest
+import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.dto.Contract
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.web.bind.annotation.RequestMapping
@@ -43,7 +44,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/contract")
-class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(ContractDao::class.java, "legalAffaires.contract.title") {
+class ContractPagesRest() : AbstractDTOPagesRest<ContractDO, Contract, ContractDao>(ContractDao::class.java, "legalAffaires.contract.title") {
     /**
      * Initializes new outbox mails for adding.
      */
@@ -53,7 +54,20 @@ class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(Contrac
         return contract
     }
 
-    override fun validate(validationErrors: MutableList<ValidationError>, dto: ContractDO) {
+
+    override fun transformForDB(dto: Contract): ContractDO {
+        val contractDO = ContractDO()
+        dto.copyTo(contractDO)
+        return contractDO
+    }
+
+    override fun transformFromDB(obj: ContractDO, editMode: Boolean): Contract {
+        val contract = Contract()
+        contract.copyFrom(obj)
+        return contract
+    }
+
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: Contract) {
         val date = PFDay.fromOrNull(dto.date)
         if (date != null && PFDay.now().isBefore(date)) { // No dates in the future accepted.
             validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "date"))
@@ -77,7 +91,7 @@ class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(Contrac
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<ContractDO>>? {
         val filters = mutableListOf<CustomResultFilter<ContractDO>>()
-        source.entries.find { it.field == "year" }?.let {entry ->
+        source.entries.find { it.field == "year" }?.let { entry ->
             entry.synthetic = true
             NumberHelper.parseInteger(entry.value.value)?.let { year ->
                 target.setYearAndMonth("date", year, -1)
@@ -86,11 +100,10 @@ class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(Contrac
         return filters
     }
 
-
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: ContractDO, userAccess: UILayout.UserAccess): UILayout {
+    override fun createEditLayout(dto: Contract, userAccess: UILayout.UserAccess): UILayout {
         val title = UIInput("title", lc).enableAutoCompletion(this)
         val coContractorA = UIInput("coContractorA", lc).enableAutoCompletion(this)
         val coContractorB = UIInput("coContractorB", lc).enableAutoCompletion(this)
@@ -121,6 +134,23 @@ class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(Contrac
                                 .add(contractPersonB)
                                 .add(signerB)))
                 .add(lc, "text", "filing")
+                .add(UIAttachmentList())
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    override fun onBeforeGetItemAndLayout(request: HttpServletRequest, dto: Contract, userAccess: UILayout.UserAccess) {
+        val attachment1 = Attachment()
+        attachment1.id ="id1"
+        attachment1.name = "contract.pdf"
+        attachment1.location ="org./..."
+        attachment1.size = 2345678
+        val attachment2 = Attachment()
+        attachment2.id ="id2"
+        attachment2.name = "agb.pdf"
+        attachment2.location ="org./.../agb"
+        attachment2.size = 98765
+
+        dto.attachments = mutableListOf(attachment1, attachment2)
+        super.onBeforeGetItemAndLayout(request, dto, userAccess)
     }
 }

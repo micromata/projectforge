@@ -45,6 +45,7 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.common.BeanHelper
+import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.json.*
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -107,6 +108,7 @@ open class JacksonConfiguration {
 
         init {
             registerAllowedUnknownGlobalProperties("displayName")
+            registerAllowedUnknownProperties(Attachment::class.java, "sizeHumanReadable")
             registerAllowedUnknownProperties(PFUserDO::class.java, "fullname")
             registerAllowedUnknownProperties(KundeDO::class.java, "id")
             // reminderDuration* will be there after function switchToTimesheet is used:
