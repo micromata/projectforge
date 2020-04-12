@@ -39,6 +39,7 @@ class FileObject() {
 
     internal constructor(node: Node) : this() {
         fileName = node.getProperty(RepoService.PROPERTY_FILENAME)?.string
+        description = node.getProperty(RepoService.PROPERTY_FILEDESC)?.string
         parentNodePath = node.path
         id = node.name
         size = node.getProperty(RepoService.PROPERTY_FILESIZE)?.long?.toInt()
@@ -69,6 +70,11 @@ class FileObject() {
      */
     var size: Int? = null
         internal set
+
+    /**
+     * Optional description.
+     */
+    var description: String? = null
 
     /**
      * The location (as path) of the file in the content repository. The location is relative to main node.
