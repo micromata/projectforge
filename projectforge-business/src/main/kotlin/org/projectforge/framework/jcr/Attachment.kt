@@ -23,6 +23,8 @@
 
 package org.projectforge.framework.jcr
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileObject
 
 
@@ -36,9 +38,16 @@ class Attachment() {
     var id: String? = null
     var name: String? = null
     var size: Int? = null
+    @get:JsonProperty
+    val sizeHumanReadable: String
+        get() = NumberHelper.formatBytes(size)
+
+    /**
+     * Location of file as path to node in JCR.
+     */
     var location: String? = null
 
-    constructor(fileObject: FileObject): this() {
+    constructor(fileObject: FileObject) : this() {
         this.name = fileObject.fileName
         this.size = fileObject.size
         this.location = fileObject.location
