@@ -27,27 +27,24 @@ import mu.KotlinLogging
 import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractDao
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.jcr.RepoService
+import org.projectforge.jcr.FileObject
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Contract
 import org.projectforge.ui.*
-import org.projectforge.ui.Formatter
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.io.Resource
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import java.io.InputStream
 import java.time.LocalDate
-import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -56,7 +53,7 @@ private val log = KotlinLogging.logger {}
 @RequestMapping("${Rest.URL}/contract")
 class ContractPagesRest() : AbstractDTOPagesRest<ContractDO, Contract, ContractDao>(ContractDao::class.java, "legalAffaires.contract.title") {
     @Autowired
-    private lateinit var repoService: RepoService
+    private lateinit var attachmentsService: AttachmentsService
 
     /**
      * Initializes new outbox mails for adding.
@@ -77,6 +74,9 @@ class ContractPagesRest() : AbstractDTOPagesRest<ContractDO, Contract, ContractD
     override fun transformFromDB(obj: ContractDO, editMode: Boolean): Contract {
         val contract = Contract()
         contract.copyFrom(obj)
+        if (editMode) {
+            contract.attachments = attachmentsService.getAttachments(obj)
+        }
         return contract
     }
 
@@ -148,45 +148,22 @@ class ContractPagesRest() : AbstractDTOPagesRest<ContractDO, Contract, ContractD
                                 .add(signerB)))
                 .add(lc, "text", "filing")
                 .add(UIFieldset(title = "attachment.list")
-                        .add(UIAttachmentList(dto.id!!)))
+                        .add(UIAttachmentList(dto.id)))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-    override fun onBeforeGetItemAndLayout(request: HttpServletRequest, dto: Contract, userAccess: UILayout.UserAccess) {
-        val attachment1 = Attachment()
-        attachment1.id = "id1"
-        attachment1.name = "contract.pdf"
-        attachment1.location = "org./..."
-        attachment1.size = 2345678
-        attachment1.created = Date()
-        attachment1.lastUpdate = Date()
-        attachment1.createdByUser = "Kai Reinhard"
-        attachment1.lastUpdateByUser = "Fin Reinhard"
-        val attachment2 = Attachment()
-        attachment2.id = "id2"
-        attachment2.name = "agb.pdf"
-        attachment2.location = "org./.../agb"
-        attachment2.size = 98765
-        attachment2.description = "dfkjaldfjadsl fadsjf kladsj flöadsjf öladsj flödsajf lödasj flösdajf ldsajfalds kfj dsalöfds"
-
-        dto.attachments = mutableListOf(attachment1, attachment2)
-        super.onBeforeGetItemAndLayout(request, dto, userAccess)
-    }
-
-    override fun handleUpload(id: Int, listId: String?, filename: String?, file: MultipartFile): String? {
-        val loggedInUser = ThreadLocalUserContext.getUser()
+    override fun handleUpload(id: Int, filename: String?, file: MultipartFile, listId: String?): String? {
         val contract = baseDao.getById(id)
-        baseDao.hasUpdateAccess(loggedInUser, contract, contract, true)
-        storeFile(id, file, listId)
+        baseDao.hasLoggedInUserUpdateAccess(contract, contract, true)
+        attachmentsService.addAttachment(contract, fileName = file.originalFilename, inputStream = file.inputStream)
         return null
     }
 
-    override fun handleDownload(id: Int, fileId: String, listId: String?): Pair<Resource, String>? {
+    override fun handleDownload(id: Int, fileId: String, listId: String?): Pair<FileObject, InputStream?>? {
         val contract = baseDao.getById(id) // Check select access.
         if (contract != null) {
-            return retrieveFile(id, fileId, listId)
+            return attachmentsService.getAttachmentInputStream(contract, fileId) ?: return null
         }
-        log.error { "Can't download file of contract #$id, because user has no access to contract under this id or contract doesn't exist." }
         return null
     }
 }

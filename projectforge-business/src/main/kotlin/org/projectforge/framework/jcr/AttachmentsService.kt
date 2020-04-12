@@ -24,7 +24,10 @@
 package org.projectforge.framework.jcr
 
 import mu.KotlinLogging
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileObject
 import org.projectforge.jcr.RepoService
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,16 +45,18 @@ open class AttachmentsService {
     private lateinit var repoService: RepoService
 
     open fun getAttachments(idObject: IdObject<*>, subPath: String? = null): List<Attachment>? {
-        return repoService.getFileInfos(getPath(idObject), subPath)?.map { Attachment(it) }
+        return repoService.getFileInfos(getPath(idObject), subPath ?: DEFAULT_NODE)?.map { createAttachment(it) }
     }
 
-    open fun getAttachmentInfo(idObject: IdObject<*>, subPath: String? = null, id: String? = null, name: String? = null): Attachment? {
-        val fileObject = repoService.getFileInfo(getPath(idObject), subPath, id = id, fileName = name) ?: return null
-        return Attachment(fileObject)
+    open fun getAttachmentInfo(idObject: IdObject<*>, id: String? = null, fileName: String? = null, subPath: String? = null): Attachment? {
+        val fileObject = repoService.getFileInfo(getPath(idObject), subPath ?: DEFAULT_NODE, id = id, fileName = fileName)
+                ?: return null
+        return createAttachment(fileObject)
     }
 
-    open fun getAttachmentContent(idObject: IdObject<*>, subPath: String? = null, id: String? = null, name: String? = null): ByteArray? {
-        val fileObject = repoService.getFileInfo(getPath(idObject), subPath, id = id, fileName = name) ?: return null
+    open fun getAttachmentContent(idObject: IdObject<*>, id: String? = null, fileName: String? = null, subPath: String? = null): ByteArray? {
+        val fileObject = repoService.getFileInfo(getPath(idObject), subPath ?: DEFAULT_NODE, id = id, fileName = fileName)
+                ?: return null
         return if (repoService.retrieveFile(fileObject)) {
             fileObject.content
         } else {
@@ -59,26 +64,35 @@ open class AttachmentsService {
         }
     }
 
-    open fun getAttachmentInputStream(idObject: IdObject<*>, subPath: String? = null, id: String? = null, name: String? = null): InputStream? {
-        val fileObject = repoService.getFileInfo(getPath(idObject), subPath, id = id, fileName = name) ?: return null
-        return repoService.retrieveFileInputStream(fileObject)
+    open fun getAttachmentInputStream(idObject: IdObject<*>, id: String? = null, fileName: String? = null, subPath: String? = null): Pair<FileObject, InputStream>? {
+        val fileObject = repoService.getFileInfo(getPath(idObject), subPath ?: DEFAULT_NODE, id = id, fileName = fileName)
+        val inputStream = if (fileObject != null) {
+            repoService.retrieveFileInputStream(fileObject)
+        } else {
+            null
+        }
+        if (fileObject == null || inputStream == null) {
+            log.error { "Can't download file of ${idObject::class.java.name} #$id, because user has no access to this object or it doesn't exist." }
+            return null
+        }
+        return Pair(fileObject, inputStream)
     }
 
-    open fun addAttachment(idObject: IdObject<*>, subPath: String? = null, name: String, content: ByteArray): Attachment {
-        val fileObject = FileObject(getPath(idObject), subPath, fileName = name)
+    open fun addAttachment(idObject: IdObject<*>, fileName: String?, content: ByteArray, subPath: String? = null): Attachment {
+        val fileObject = FileObject(getPath(idObject), subPath ?: DEFAULT_NODE, fileName = fileName)
         fileObject.content = content
-        return Attachment(fileObject)
-
+        return createAttachment(fileObject)
     }
 
-    open fun addAttachment(idObject: IdObject<*>, subPath: String? = null, name: String, content: InputStream): Attachment {
-        val fileObject = FileObject(getPath(idObject), subPath, fileName = name)
-        repoService.storeFile(fileObject, content)
-        return Attachment(fileObject)
+    open fun addAttachment(idObject: IdObject<*>, fileName: String?, inputStream: InputStream, subPath: String? = null): Attachment {
+        repoService.ensureNode(null, getPath(idObject))
+        val fileObject = FileObject(getPath(idObject), subPath ?: DEFAULT_NODE, fileName = fileName)
+        repoService.storeFile(fileObject, inputStream, ThreadLocalUserContext.getUserId()!!.toString())
+        return createAttachment(fileObject)
     }
 
-    open fun deleteAttachment(idObject: IdObject<*>, subPath: String? = null, id: String?): Boolean {
-        val fileObject = FileObject(getPath(idObject), subPath, id = id)
+    open fun deleteAttachment(idObject: IdObject<*>, id: String?, subPath: String? = null): Boolean {
+        val fileObject = FileObject(getPath(idObject), subPath ?: DEFAULT_NODE, id = id)
         return repoService.deleteFile(fileObject)
     }
 
@@ -88,5 +102,20 @@ open class AttachmentsService {
      */
     open fun getPath(idObject: IdObject<*>): String {
         return "${idObject::class.java.name}/${idObject.id}"
+    }
+
+    private fun createAttachment(fileObject: FileObject): Attachment {
+        val attachment = Attachment(fileObject)
+        NumberHelper.parseInteger(fileObject.createdByUser)?.let {
+            attachment.createdByUser = UserGroupCache.tenantInstance.getUser(it)?.getFullname()
+        }
+        NumberHelper.parseInteger(fileObject.lastUpdateByUser)?.let {
+            attachment.lastUpdateByUser = UserGroupCache.tenantInstance.getUser(it)?.getFullname()
+        }
+        return attachment
+    }
+
+    companion object {
+        const val DEFAULT_NODE = "attachments"
     }
 }

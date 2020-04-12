@@ -167,12 +167,14 @@ open class RepoBackupService {
         val fileList = repoService.getFileInfos(node)
         if (!fileList.isNullOrEmpty()) {
             fileList.forEach {
-                val fileNode = repoService.findFile(node, it.id, null)
-                val content = repoService.getFileContent(fileNode)
-                if (content != null) {
-                    val fileName = PFJcrUtils.createSafeFilename(it)
-                    zipOut.putNextEntry(createZipEntry(archiveName, node.path, fileName))
-                    zipOut.write(content)
+                repoService.findFile(node, it.id, null)?.let {fileNode ->
+                    val fileObject = FileObject(fileNode)
+                    val content = repoService.getFileContent(fileNode, fileObject)
+                    if (content != null) {
+                        val fileName = PFJcrUtils.createSafeFilename(it)
+                        zipOut.putNextEntry(createZipEntry(archiveName, node.path, fileName))
+                        zipOut.write(content)
+                    }
                 }
             }
             zipOut.putNextEntry(createZipEntry(archiveName, node.path, "files.json"))

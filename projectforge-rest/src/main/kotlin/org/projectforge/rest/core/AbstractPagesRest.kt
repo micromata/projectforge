@@ -37,9 +37,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.jcr.FileObject
-import org.projectforge.jcr.RepoService
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
@@ -61,6 +59,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import java.io.InputStream
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
@@ -116,7 +115,7 @@ constructor(private val baseDaoClazz: Class<B>,
         const val USER_PREF_PARAM_HIGHLIGHT_ROW = "highlightedRow"
     }
 
-    class DisplayObject(val id: Any, override val displayName: String?) : DisplayNameCapable
+    class DisplayObject(val id: Any?, override val displayName: String?) : DisplayNameCapable
 
     /**
      * Contains the data, layout and filter settings served by [getInitialList].
@@ -163,9 +162,6 @@ constructor(private val baseDaoClazz: Class<B>,
 
     @Autowired
     private lateinit var historyService: HistoryService
-
-    @Autowired
-    private lateinit var repoService: RepoService
 
     @Autowired
     private lateinit var sessionCsrfCache: SessionCsrfCache
@@ -962,7 +958,7 @@ constructor(private val baseDaoClazz: Class<B>,
             ResponseEntity<String> {
         val filename = file.originalFilename
         log.info { "User tries to upload attachment: id='$id', listId='$listId', filename='$filename', page='${this::class.java.name}'." }
-        handleUpload(id, listId, filename, file)?.let {
+        handleUpload(id, filename = filename, file = file, listId = listId)?.let {
             log.warn { it }
             return ResponseEntity(it, HttpStatus.BAD_REQUEST)
         }
@@ -974,17 +970,8 @@ constructor(private val baseDaoClazz: Class<B>,
      * @return null if upload was successful, otherwise error message to log and to return to client.
      * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
      */
-    protected open fun handleUpload(id: Int, listId: String?, filename: String?, file: MultipartFile): String? {
+    protected open fun handleUpload(id: Int, filename: String?, file: MultipartFile, listId: String? = null): String? {
         return "Upload not supported by ${this::class.java.name}."
-    }
-
-    protected fun storeFile(id: Int, file: MultipartFile, listId: String? = null) {
-        val fileObject = FileObject()
-        fileObject.fileName = file.originalFilename
-        fileObject.parentNodePath = "${baseDao.doClass.name}/$id"
-        repoService.ensureNode(null, fileObject.parentNodePath)
-        fileObject.relPath = listId
-        repoService.storeFile(fileObject, file.inputStream, ThreadLocalUserContext.getUserId()!!.toString())
     }
 
     /**
@@ -996,16 +983,17 @@ constructor(private val baseDaoClazz: Class<B>,
      */
     @GetMapping("download/{id}/{listId}")
     fun downloadAttachment(@PathVariable("id", required = true) id: Int,
-                           @PathVariable("listId") listId: String?,
-                           @RequestParam("fileId", required = true) fileId: String): ResponseEntity<Resource> {
+                           @RequestParam("fileId", required = true) fileId: String,
+                           @PathVariable("listId") listId: String?)
+            : ResponseEntity<Resource> {
         log.info { "User tries to download attachment: id='$id', listId='$listId', fileId='$fileId', page='${this::class.java.name}'." }
-        val result = handleDownload(id, fileId, listId) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        val resource = result.first
-        val filename = result.second
+        val result = handleDownload(id, fileId = fileId, listId = listId) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        val filename = result.first.fileName ?: "file"
+        val inputStream = result.second ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("application/octet-stream"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
-                .body(resource)
+                .body(InputStreamResource(inputStream))
     }
 
     /**
@@ -1013,18 +1001,9 @@ constructor(private val baseDaoClazz: Class<B>,
      * @return null if download not possible, otherwise pair of resource and filename to return to the client.
      * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
      */
-    protected open fun handleDownload(id: Int, fileId: String, listId: String?): Pair<Resource, String>? {
+    protected open fun handleDownload(id: Int, fileId: String, listId: String? = null): Pair<FileObject, InputStream?>? {
         log.error { "Download not supported by ${this::class.java.name}." }
         return null
-    }
-
-    protected fun retrieveFile(id: Int, fileId: String, listId: String? = null): Pair<Resource, String>? {
-        val fileObject = FileObject()
-        fileObject.id = fileId
-        fileObject.parentNodePath = "${baseDao.doClass.name}/$id"
-        fileObject.relPath = listId
-        val inputStream = repoService.retrieveFileInputStream(fileObject) ?: return null
-        return Pair(InputStreamResource(inputStream), fileObject.fileName ?: "file")
     }
 
     /**

@@ -120,7 +120,7 @@ open class RepoService {
         val parentNodePath = fileObject.parentNodePath
         val relPath = fileObject.relPath
         if (parentNodePath == null || relPath == null) {
-            throw IllegalArgumentException("Parent node path and/or relPath not given. Can't determine location of file to store: $fileObject")
+            throw IllegalArgumentException("Parent node path and relPath not given. Can't determine location of file to store: $fileObject")
         }
         runInSession { session ->
             val node = getNode(session, parentNodePath, relPath, true)
@@ -248,47 +248,44 @@ open class RepoService {
         return null
     }
 
-    open fun retrieveFile(file: FileObject): Boolean {
+    open fun retrieveFile(fileObject: FileObject): Boolean {
         return runInSession { session ->
-            val filesNode = getFilesNode(session, file.parentNodePath, file.relPath, false)
-            val node = findFile(filesNode, file.id, file.fileName)
+            val filesNode = getFilesNode(session, fileObject.parentNodePath, fileObject.relPath, false)
+            val node = findFile(filesNode, fileObject.id, fileObject.fileName)
             if (node == null) {
-                log.warn { "File not found in repository: $file" }
+                log.warn { "File not found in repository: $fileObject" }
                 false
             } else {
-                file.copyFrom(node)
-                file.content = getFileContent(node)
+                fileObject.copyFrom(node)
+                fileObject.content = getFileContent(node, fileObject)
                 true
             }
         }
     }
 
-    open fun retrieveFileInputStream(file: FileObject): InputStream? {
+    open fun retrieveFileInputStream(fileObject: FileObject): InputStream? {
         return runInSession { session ->
-            val filesNode = getFilesNode(session, file.parentNodePath, file.relPath, false)
-            val node = findFile(filesNode, file.id, file.fileName)
+            val filesNode = getFilesNode(session, fileObject.parentNodePath, fileObject.relPath, false)
+            val node = findFile(filesNode, fileObject.id, fileObject.fileName)
             if (node == null) {
-                log.warn { "File not found in repository: $file" }
+                log.warn { "File not found in repository: $fileObject" }
                 null
             } else {
-                getFileInputStream(node)
+                getFileInputStream(node, fileObject)
             }
         }
     }
 
-    internal fun getFileContent(node: Node?): ByteArray? {
-        val content = getFileInputStream(node)?.use {
+    internal fun getFileContent(node: Node?, fileObject: FileObject): ByteArray? {
+        val content = getFileInputStream(node, fileObject)?.use {
             it.readBytes()
-        }
-        if (content != null) {
-            log.info { "Got file from repository: ${node?.path}..." }
         }
         return content
     }
 
-    private fun getFileInputStream(node: Node?): InputStream? {
+    private fun getFileInputStream(node: Node?, fileObject: FileObject): InputStream? {
         node ?: return null
-        log.info { "Reading file from repository: ${node.path}..." }
+        log.info { "Reading file from repository '${node.path}': '${fileObject.fileName}'..." }
         var binary: Binary? = null
         try {
             binary = node.getProperty(PROPERTY_FILECONTENT)?.binary
