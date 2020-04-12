@@ -15,33 +15,17 @@ function DynamicAttachmentList(
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
     const uploadFile = (files) => {
-        console.log(`${restBaseUrl}/upload/${id}/${listId}`);
-        /*fetch(
+        const formData = new FormData();
+        formData.append('file', files[0]);
+        fetch(
             // Set the image with id -1, so the image will be set in the session.
-            getServiceURL(uploadUrl),
+            getServiceURL(`${restBaseUrl}/upload/${id}/${listId}`),
             {
                 credentials: 'include',
                 method: 'POST',
                 body: formData,
             },
-        )
-            .then(handleHTTPErrors)
-            .then(() => {
-                setData({ imageData: [1] });
-
-                const fileReader = new FileReader();
-
-                fileReader.onload = ({ currentTarget }) => {
-                    setSrc(currentTarget.result);calenda
-                    setLoading(false);
-                };
-
-                fileReader.readAsDataURL(files[0]);
-            })
-            .catch((catchError) => {
-                setError(catchError);
-                setLoading(false);
-            });*/
+        );
     };
 
     return React.useMemo(() => {

@@ -37,6 +37,9 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.jcr.FileObject
+import org.projectforge.jcr.RepoService
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
@@ -50,6 +53,7 @@ import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
+import org.springframework.core.io.InputStreamResource
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -159,6 +163,9 @@ constructor(private val baseDaoClazz: Class<B>,
 
     @Autowired
     private lateinit var historyService: HistoryService
+
+    @Autowired
+    private lateinit var repoService: RepoService
 
     @Autowired
     private lateinit var sessionCsrfCache: SessionCsrfCache
@@ -709,7 +716,7 @@ constructor(private val baseDaoClazz: Class<B>,
             }
             // Validation errors or other errors occured, doesn't save. Proceed with editing.
         }
-        val formLayoutData = getItemAndLayout(request, clone, UILayout.UserAccess(false, true))
+        val formLayoutData = getItemAndLayout(request, clone, UILayout.UserAccess(history = false, insert = true))
         return ResponseEntity(ResponseAction(targetType = TargetType.UPDATE)
                 .addVariable("data", formLayoutData.data)
                 .addVariable("ui", formLayoutData.ui)
@@ -967,8 +974,17 @@ constructor(private val baseDaoClazz: Class<B>,
      * @return null if upload was successful, otherwise error message to log and to return to client.
      * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
      */
-    protected open fun handleUpload(id: Int, listId: String?, filename: String, file: MultipartFile): String? {
+    protected open fun handleUpload(id: Int, listId: String?, filename: String?, file: MultipartFile): String? {
         return "Upload not supported by ${this::class.java.name}."
+    }
+
+    protected fun storeFile(id: Int, file: MultipartFile, listId: String? = null) {
+        val fileObject = FileObject()
+        fileObject.fileName = file.originalFilename
+        fileObject.parentNodePath = "${baseDao.doClass.name}/$id"
+        repoService.ensureNode(null, fileObject.parentNodePath)
+        fileObject.relPath = listId
+        repoService.storeFile(fileObject, file.inputStream, ThreadLocalUserContext.getUserId()!!.toString())
     }
 
     /**
@@ -983,7 +999,7 @@ constructor(private val baseDaoClazz: Class<B>,
                            @PathVariable("listId") listId: String?,
                            @RequestParam("fileId", required = true) fileId: String): ResponseEntity<Resource> {
         log.info { "User tries to download attachment: id='$id', listId='$listId', fileId='$fileId', page='${this::class.java.name}'." }
-        val result = handleDownload(id, listId, fileId) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        val result = handleDownload(id, fileId, listId) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         val resource = result.first
         val filename = result.second
         return ResponseEntity.ok()
@@ -997,9 +1013,18 @@ constructor(private val baseDaoClazz: Class<B>,
      * @return null if download not possible, otherwise pair of resource and filename to return to the client.
      * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
      */
-    protected open fun handleDownload(id: Int, listId: String?, filename: String): Pair<Resource, String>? {
+    protected open fun handleDownload(id: Int, fileId: String, listId: String?): Pair<Resource, String>? {
         log.error { "Download not supported by ${this::class.java.name}." }
         return null
+    }
+
+    protected fun retrieveFile(id: Int, fileId: String, listId: String? = null): Pair<Resource, String>? {
+        val fileObject = FileObject()
+        fileObject.id = fileId
+        fileObject.parentNodePath = "${baseDao.doClass.name}/$id"
+        fileObject.relPath = listId
+        val inputStream = repoService.retrieveFileInputStream(fileObject) ?: return null
+        return Pair(InputStreamResource(inputStream), fileObject.fileName ?: "file")
     }
 
     /**
