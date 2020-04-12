@@ -23,8 +23,11 @@
 
 package org.projectforge.jcr
 
+import mu.KotlinLogging
 import java.util.*
 import javax.jcr.Node
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Files in the content repository may addressed by location (parent node) and id or location and filename.
@@ -56,6 +59,9 @@ class FileObject() {
         lastUpdateByUser = node.getProperty(RepoService.PROPERTY_LAST_UPDATE_BY_USER)?.string
         id = node.name
         size = node.getProperty(RepoService.PROPERTY_FILESIZE)?.long?.toInt()
+        if (log.isDebugEnabled) {
+            log.debug { "Restoring: ${PFJcrUtils.toJson(this)}" }
+        }
     }
 
     /**
@@ -69,6 +75,7 @@ class FileObject() {
         node.setProperty(RepoService.PROPERTY_LAST_UPDATE, PFJcrUtils.convertToString(lastUpdate) ?: "")
         node.setProperty(RepoService.PROPERTY_LAST_UPDATE_BY_USER, lastUpdateByUser ?: "")
         size?.let { node.setProperty(RepoService.PROPERTY_FILESIZE, it.toLong()) }
+        log.info { "Storing file info: ${PFJcrUtils.toJson(this)}" }
     }
 
     /**

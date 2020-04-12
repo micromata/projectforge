@@ -123,7 +123,7 @@ open class RepoService {
             throw IllegalArgumentException("Parent node path and/or relPath not given. Can't determine location of file to store: $fileObject")
         }
         runInSession { session ->
-            val node = getNode(session, parentNodePath, relPath, false)
+            val node = getNode(session, parentNodePath, relPath, true)
             val filesNode = ensureNode(node, NODENAME_FILES)
             val id = fileObject.id ?: createRandomId
             fileObject.id = id
@@ -133,9 +133,15 @@ open class RepoService {
             fileObject.createdByUser = user
             fileObject.lastUpdate = fileObject.created
             fileObject.lastUpdateByUser = user
+            var bin: Binary? = null
+            try {
+                bin = session.valueFactory.createBinary(content)
+                fileNode.setProperty(PROPERTY_FILECONTENT, bin)
+                fileObject.size = bin?.size?.toInt()
+            } finally {
+                bin?.dispose()
+            }
             fileObject.copyTo(fileNode)
-            val bin: Binary = session.valueFactory.createBinary(content)
-            fileNode.setProperty(PROPERTY_FILECONTENT, session.valueFactory.createValue(bin))
             session.save()
         }
     }
@@ -329,7 +335,7 @@ open class RepoService {
             current = if (current.hasNode(it)) {
                 current.getNode(it)
             } else {
-                log.info { "Creating node ${getAbsolutePath(parentNode, it)}." }
+                log.info { "Creating node ${getAbsolutePath(current, it)}." }
                 current.addNode(it)
             }
         }
