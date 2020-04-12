@@ -50,11 +50,18 @@ class UILayout {
         }
     }
 
-    constructor(title: String) {
+    /**
+     * @param restBaseUrl is needed, if [UIAttachmentList] is used.
+     */
+    constructor(title: String, restBaseUrl: String? = null) {
         this.title = LayoutUtils.getLabelTransformation(title)
+        this.restBaseUrl = restBaseUrl
     }
 
     var title: String?
+
+    var restBaseUrl: String? = null
+
     /**
      * UserAccess only for displaying purposes. The real user access will be definitely checked before persisting any
      * data.

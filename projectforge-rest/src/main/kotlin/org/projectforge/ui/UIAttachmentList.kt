@@ -28,11 +28,16 @@ package org.projectforge.ui
  */
 class UIAttachmentList(
         /**
+         * The id of the object (pk) where the attachments are belonging to.
+         */
+        val id: Int,
+        /**
          * id to identify attachments list by server, especially if multiple lists of attachments are
          * used for one page.
          * Default is 'attachments'.
          */
-        val id: String = "attachments",
+        val listId: String = "attachments",
+        var restBaseUrl: String? = null,
         /**
          * If true, only download of attachments is allowed.
          */

@@ -24,8 +24,8 @@
 package org.projectforge.framework.jcr
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import org.projectforge.business.ldap.PFUserDOConverter
-import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.common.DateFormatType
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileObject
 import java.util.*
@@ -41,14 +41,29 @@ class Attachment() {
     var id: String? = null
     var name: String? = null
     var size: Int? = null
+
     @get:JsonProperty
     val sizeHumanReadable: String
         get() = NumberHelper.formatBytes(size)
     var description: String? = null
 
     var created: Date? = null
+
+    /**
+     * Date of creation in user's timezone and date format.
+     */
+    @get:JsonProperty
+    val createdFormatted: String
+        get() = PFDateTime.fromOrNull(created)?.format(DateFormatType.DATE_TIME_MINUTES) ?: ""
     var createdByUser: String? = null
+
     var lastUpdate: Date? = null
+    /**
+     * Date of last update in user's timezone and date format.
+     */
+    @get:JsonProperty
+    val lastUpdateFormatted: String
+        get() = PFDateTime.fromOrNull(lastUpdate)?.format(DateFormatType.DATE_TIME_MINUTES) ?: ""
     var lastUpdateByUser: String? = null
 
     /**

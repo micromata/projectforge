@@ -32,14 +32,20 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.rest.AddressImageServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.dto.Contract
 import org.projectforge.ui.*
 import org.projectforge.ui.Formatter
 import org.projectforge.ui.filter.UIFilterElement
+import org.springframework.core.io.Resource
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDate
 import java.util.*
 import javax.servlet.http.HttpServletRequest
@@ -137,7 +143,7 @@ class ContractPagesRest() : AbstractDTOPagesRest<ContractDO, Contract, ContractD
                                 .add(signerB)))
                 .add(lc, "text", "filing")
                 .add(UIFieldset(title = "attachment.list")
-                        .add(UIAttachmentList()))
+                        .add(UIAttachmentList(dto.id!!)))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
@@ -160,5 +166,29 @@ class ContractPagesRest() : AbstractDTOPagesRest<ContractDO, Contract, ContractD
 
         dto.attachments = mutableListOf(attachment1, attachment2)
         super.onBeforeGetItemAndLayout(request, dto, userAccess)
+    }
+
+    override fun handleUpload(id:Int, listId: String?, filename: String, file: MultipartFile): String? {
+        /*
+        baseDao.hasLoggedInUserUpdateAccess()
+        val bytes = file.bytes
+        if (id == null || id < 0) {
+            val session = request.session
+            ExpiringSessionAttributes.setAttribute(session, AddressImageServicesRest.SESSION_IMAGE_ATTR, bytes, 1)
+        } else {
+            val address = addressDao.getById(id)
+            if (address == null)
+                return ResponseEntity("Not found.", HttpStatus.NOT_FOUND)
+            address.imageData = bytes
+            addressDao.update(address)
+            log.info("New image for address $id (${address.fullName}) saved.")
+        }
+        return ResponseEntity("OK", HttpStatus.OK)
+*/
+        return super.handleUpload(id, listId, filename, file)
+    }
+
+    override fun handleDownload(id: Int, listId: String?, filename: String): Pair<Resource, String>? {
+        return super.handleDownload(id, listId, filename)
     }
 }

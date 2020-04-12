@@ -50,9 +50,13 @@ import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
+import org.springframework.core.io.Resource
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
@@ -236,7 +240,7 @@ constructor(private val baseDaoClazz: Class<B>,
 
     open fun createEditLayout(dto: DTO, userAccess: UILayout.UserAccess): UILayout {
         val titleKey = if (getId(dto) != null) "$i18nKeyPrefix.edit" else "$i18nKeyPrefix.add"
-        val ui = UILayout(titleKey)
+        val ui = UILayout(titleKey, getRestPath())
         ui.userAccess.copyFrom(userAccess)
         return ui
     }
@@ -935,6 +939,67 @@ constructor(private val baseDaoClazz: Class<B>,
         //      return resultSet.take(filter.maxRows)
         //  }
         return resultSet
+    }
+
+    /**
+     * Upload service e. g. for [UIAttachmentList].
+     * @param id Object id where the uploaded file should belong to.
+     * @param listId Usable for handling different upload areas for one page. If only one attachment list is needed, you may
+     * ignore this value.
+     */
+    @PostMapping("upload/{id}/{listId}")
+    fun uploadAttachment(@PathVariable("id", required = true) id: Int,
+                         @PathVariable("listId") listId: String?,
+                         @RequestParam("file") file: MultipartFile,
+                         request: HttpServletRequest):
+            ResponseEntity<String> {
+        val filename = file.originalFilename
+        log.info { "User tries to upload attachment: id='$id', listId='$listId', filename='$filename', page='${this::class.java.name}'." }
+        handleUpload(id, listId, filename, file)?.let {
+            log.warn { it }
+            return ResponseEntity(it, HttpStatus.BAD_REQUEST)
+        }
+        return ResponseEntity("OK", HttpStatus.OK)
+    }
+
+    /**
+     * Implement this method for handling uploads of attachments. Don't forget to check the user's access!
+     * @return null if upload was successful, otherwise error message to log and to return to client.
+     * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
+     */
+    protected open fun handleUpload(id: Int, listId: String?, filename: String, file: MultipartFile): String? {
+        return "Upload not supported by ${this::class.java.name}."
+    }
+
+    /**
+     * Download service e. g. for [UIAttachmentList].
+     * @param id Object id where the downloaded file is belonging to.
+     * @param listId Usable for handling different upload areas for one page. If only one attachment list is needed, you may
+     * ignore this value.
+     * @param fileId The fileId to identify the desired attachment.
+     */
+    @GetMapping("download/{id}/{listId}")
+    fun downloadAttachment(@PathVariable("id", required = true) id: Int,
+                           @PathVariable("listId") listId: String?,
+                           @RequestParam("fileId", required = true) fileId: String): ResponseEntity<Resource> {
+        log.info { "User tries to download attachment: id='$id', listId='$listId', fileId='$fileId', page='${this::class.java.name}'." }
+        val result = handleDownload(id, listId, fileId) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        val resource = result.first
+        val filename = result.second
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/octet-stream"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+                .body(resource)
+    }
+
+    /**
+     * Implement this method for handling download of attachments. Don't forget to check the user's access!
+     * @return null if download not possible, otherwise pair of resource and filename to return to the client.
+     * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
+     */
+    protected open fun handleDownload(id: Int, listId: String?, filename: String): Pair<Resource, String>? {
+        log.error { "Download not supported by ${this::class.java.name}." }
+        return null
     }
 
     /**
