@@ -259,7 +259,7 @@ class LayoutUtils {
                     }
                     is UIAttachmentList -> {
                         if (!layout.translations.containsKey("attachment.filename")) {
-                            layout.addTranslations("attachment.filename", "attachment.onlyAvailableAfterSave", "attachment.size", "created", "createdBy", "description", "file.upload.dropArea", "modified", "modifiedBy")
+                            layout.addTranslations("attachment.filename", "attachment.onlyAvailableAfterSave", "attachment.size", "created", "createdBy", "delete", "description", "file.upload.dropArea", "modified", "modifiedBy")
                         }
                         if (layout.restBaseUrl.isNullOrBlank() && it.restBaseUrl.isNullOrBlank()) {
                             log.warn("Dear developer: You must set layout.restBaseUrl or UIListElementList.restBaseUrl if you're using UIAttachmentList! Upload and downloading attachments will not work: ${ToStringUtil.toJsonString(layout)}")
