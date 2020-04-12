@@ -53,14 +53,14 @@ fun translateMsg(i18nKey: String, vararg params: Any): String {
  */
 fun autoTranslate(text: String?): String {
     if (text == null) return "???"
-    if (text.startsWith("'") == true)
+    if (text.startsWith("'"))
         return text.substring(1)
     return translate(text)
 }
 
 fun addTranslations(vararg i18nKeys: String, translations: MutableMap<String, String> = mutableMapOf()): MutableMap<String, String> {
     i18nKeys.forEach {
-        translations.put(it, translate(it))
+        translations[it] = translate(it)
     }
     return translations
 }
