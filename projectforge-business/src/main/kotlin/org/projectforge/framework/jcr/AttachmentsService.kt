@@ -23,9 +23,14 @@
 
 package org.projectforge.framework.jcr
 
+import de.micromata.genome.db.jpa.history.entities.EntityOpType
 import mu.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileObject
@@ -42,6 +47,9 @@ private val log = KotlinLogging.logger {}
 @Service
 open class AttachmentsService {
     @Autowired
+    private lateinit var emgrFactory: PfEmgrFactory
+
+    @Autowired
     private lateinit var repoService: RepoService
 
     open fun getAttachments(idObject: IdObject<*>, subPath: String? = null): List<Attachment>? {
@@ -49,13 +57,15 @@ open class AttachmentsService {
     }
 
     open fun getAttachmentInfo(idObject: IdObject<*>, id: String? = null, fileName: String? = null, subPath: String? = null): Attachment? {
-        val fileObject = repoService.getFileInfo(getPath(idObject), subPath ?: DEFAULT_NODE, id = id, fileName = fileName)
+        val fileObject = repoService.getFileInfo(getPath(idObject), subPath
+                ?: DEFAULT_NODE, id = id, fileName = fileName)
                 ?: return null
         return createAttachment(fileObject)
     }
 
     open fun getAttachmentContent(idObject: IdObject<*>, id: String? = null, fileName: String? = null, subPath: String? = null): ByteArray? {
-        val fileObject = repoService.getFileInfo(getPath(idObject), subPath ?: DEFAULT_NODE, id = id, fileName = fileName)
+        val fileObject = repoService.getFileInfo(getPath(idObject), subPath
+                ?: DEFAULT_NODE, id = id, fileName = fileName)
                 ?: return null
         return if (repoService.retrieveFile(fileObject)) {
             fileObject.content
@@ -65,7 +75,8 @@ open class AttachmentsService {
     }
 
     open fun getAttachmentInputStream(idObject: IdObject<*>, id: String? = null, fileName: String? = null, subPath: String? = null): Pair<FileObject, InputStream>? {
-        val fileObject = repoService.getFileInfo(getPath(idObject), subPath ?: DEFAULT_NODE, id = id, fileName = fileName)
+        val fileObject = repoService.getFileInfo(getPath(idObject), subPath
+                ?: DEFAULT_NODE, id = id, fileName = fileName)
         val inputStream = if (fileObject != null) {
             repoService.retrieveFileInputStream(fileObject)
         } else {
@@ -88,12 +99,23 @@ open class AttachmentsService {
         repoService.ensureNode(null, getPath(idObject))
         val fileObject = FileObject(getPath(idObject), subPath ?: DEFAULT_NODE, fileName = fileName)
         repoService.storeFile(fileObject, inputStream, ThreadLocalUserContext.getUserId()!!.toString())
+        if (idObject is DefaultBaseDO) {
+            HistoryBaseDaoAdapter.createHistoryEntry(idObject, idObject.id, EntityOpType.Insert, ThreadLocalUserContext.getUserId().toString(),
+                    subPath ?: DEFAULT_NODE, Attachment::class.java, null, fileName)
+        }
         return createAttachment(fileObject)
     }
 
     open fun deleteAttachment(idObject: IdObject<*>, id: String?, subPath: String? = null): Boolean {
         val fileObject = FileObject(getPath(idObject), subPath ?: DEFAULT_NODE, id = id)
-        return repoService.deleteFile(fileObject)
+        val result = repoService.deleteFile(fileObject)
+        if (result) {
+            if (idObject is DefaultBaseDO) {
+                HistoryBaseDaoAdapter.createHistoryEntry(idObject, idObject.id, EntityOpType.Deleted, ThreadLocalUserContext.getUserId().toString(),
+                        subPath ?: DEFAULT_NODE, Attachment::class.java, null, fileObject.fileName)
+            }
+        }
+        return result
     }
 
     /**
