@@ -23,28 +23,19 @@
 
 package org.projectforge.ui
 
-enum class UIElementType {
-    ALERT,
-    /**
-     * Attachments including list view, downloading, uploading and deleting files.
-     */
-    ATTACHMENT_LIST,
-    BUTTON,
-    CHECKBOX,
-    COL,
-    CUSTOMIZED,
-    FIELDSET,
-    FILTER_ELEMENT,
-    GROUP,
-    INPUT,
-    LABEL,
-    LIST,
-    NAMED_CONTAINER,
-    RADIOBUTTON,
-    READONLY_FIELD,
-    ROW,
-    SELECT,
-    TABLE,
-    TABLE_COLUMN,
-    TEXTAREA
+/**
+ * List of attachments including upload, download and remove functionality.
+ */
+class UIAttachmentList(
+        /**
+         * id to identify attachments list by server, especially if multiple lists of attachments are
+         * used for one page.
+         * Default is 'attachments'.
+         */
+        val id: String = "attachments",
+        /**
+         * If true, only download of attachments is allowed.
+         */
+        val readOnly: Boolean = false) :
+        UIElement(type = UIElementType.ATTACHMENT_LIST) {
 }
