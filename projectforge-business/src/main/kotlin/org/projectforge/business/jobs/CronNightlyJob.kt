@@ -25,16 +25,10 @@ package org.projectforge.business.jobs
 
 import mu.KotlinLogging
 import org.projectforge.business.meb.MebJobExecutor
-import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer
-import org.projectforge.framework.time.PFDateTime
-import org.projectforge.jcr.RepoBackupService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import java.io.File
-import java.io.FileOutputStream
-import java.util.zip.ZipOutputStream
 
 private val log = KotlinLogging.logger {}
 
