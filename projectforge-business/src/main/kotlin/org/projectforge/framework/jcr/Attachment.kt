@@ -24,8 +24,11 @@
 package org.projectforge.framework.jcr
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.projectforge.business.ldap.PFUserDOConverter
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileObject
+import java.util.*
 
 
 /**
@@ -43,6 +46,11 @@ class Attachment() {
         get() = NumberHelper.formatBytes(size)
     var description: String? = null
 
+    var created: Date? = null
+    var createdByUser: String? = null
+    var lastUpdate: Date? = null
+    var lastUpdateByUser: String? = null
+
     /**
      * Location of file as path to node in JCR.
      */
@@ -53,5 +61,9 @@ class Attachment() {
         this.size = fileObject.size
         this.location = fileObject.location
         this.description = fileObject.description
+        this.created = fileObject.created
+        this.createdByUser = fileObject.createdByUser
+        this.lastUpdate = fileObject.lastUpdate
+        this.lastUpdateByUser = fileObject.lastUpdateByUser
     }
 }

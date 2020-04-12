@@ -11,6 +11,10 @@ import java.io.IOException
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.NumberFormat
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -33,6 +37,18 @@ object PFJcrUtils {
         return mapper.readValue(json, classOfT)
     }
 
+    fun convertToDate(isoString: String?): Date? {
+        if (isoString.isNullOrBlank()) {
+            return null
+        }
+        return Date.from(Instant.from(jsDateTimeFormatter.parse(isoString)))
+    }
+
+    fun convertToString(date: Date?): String? {
+        date ?: return null
+        return jsDateTimeFormatter.format(date.toInstant())
+    }
+
     init {
         mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
         mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
@@ -48,7 +64,7 @@ object PFJcrUtils {
         if (fileName.isNullOrBlank() || !fileName.contains('.') || fileName.endsWith('.')) {
             return "${fileObject.id}.file"
         }
-        val extension = fileName.substring(fileName.lastIndexOf('.')  + 1)
+        val extension = fileName.substring(fileName.lastIndexOf('.') + 1)
         return "${fileObject.id}.${convertToSafeFilenameExtension(extension)}"
     }
 
@@ -107,4 +123,6 @@ object PFJcrUtils {
     private const val GIGA_BYTES = MEGA_BYTES * 1024
     private val GB_BD = BigDecimal(GIGA_BYTES)
     private val TWENTY = BigDecimal(20)
+
+    private val jsDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC)
 }

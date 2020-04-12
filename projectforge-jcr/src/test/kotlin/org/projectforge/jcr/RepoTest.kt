@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.io.File
 import java.io.FileOutputStream
+import java.util.*
 import java.util.zip.ZipOutputStream
 
 private val log = KotlinLogging.logger {}
@@ -60,6 +61,10 @@ class RepoTest {
         file.parentNodePath = "/world/europe"
         file.relPath = "germany"
         file.content = File(file.fileName).readBytes()
+        file.created = Date()
+        file.createdByUser = "fin"
+        file.lastUpdate = Date()
+        file.lastUpdateByUser = "kai"
         repoService.storeFile(file)
 
         checkFile(file, null, file.fileName)
@@ -104,6 +109,11 @@ class RepoTest {
         Assertions.assertEquals(expected.size, file.size)
         Assertions.assertEquals(expected.id, file.id)
         Assertions.assertEquals(expected.fileName, file.fileName)
+        Assertions.assertEquals(expected.description, file.description)
+        Assertions.assertEquals(expected.created, file.created)
+        Assertions.assertEquals(expected.createdByUser, file.createdByUser)
+        Assertions.assertEquals(expected.lastUpdate, file.lastUpdate)
+        Assertions.assertEquals(expected.lastUpdateByUser, file.lastUpdateByUser)
         Assertions.assertEquals(expected.description, file.description)
         Assertions.assertEquals(expected.content!!.size, file.content!!.size)
         for (idx in expected.content!!.indices) {
