@@ -33,6 +33,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.ui.*
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
@@ -81,9 +82,7 @@ class LayoutListFilterUtils {
                     } else {
                         element = UIFilterElement(it)
                         element.label = element.id // Default label if no translation will be found below.
-                        if (BaseDO::class.java.isAssignableFrom(elInfo.propertyType)) {
-                            element.filterType = UIFilterElement.FilterType.OBJECT
-                        }
+                        element.determine(elInfo.propertyType)
                     }
                     element as UILabelledElement
                     element.label = getLabel(elInfo)

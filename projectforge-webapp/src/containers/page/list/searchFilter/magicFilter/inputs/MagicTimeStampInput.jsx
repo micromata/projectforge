@@ -65,7 +65,7 @@ const dateType = PropTypes.oneOfType([
 ]);
 
 MagicTimeStampInput.propTypes = {
-    filterType: PropTypes.oneOf(['TIME_STAMP', 'DATE']).isRequired,
+    filterType: PropTypes.oneOf(['TIMESTAMP', 'DATE']).isRequired,
     id: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
     value: PropTypes.shape({

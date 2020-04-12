@@ -23,10 +23,13 @@
 
 package org.projectforge.ui.filter
 
+import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UIElement
 import org.projectforge.ui.UIElementType
 import org.projectforge.ui.UILabelledElement
+import java.time.LocalDate
+import java.util.*
 
 /**
  * An element for the UI specifying a filter attribute which may be added by the user to the search string.
@@ -56,9 +59,26 @@ open class UIFilterElement(
          */
         var defaultFilter: Boolean? = null
 ) : UIElement(UIElementType.FILTER_ELEMENT), UILabelledElement {
-    enum class FilterType { STRING, DATE, TIME_STAMP, BOOLEAN, OBJECT, LIST }
+    enum class FilterType { STRING, DATE, TIMESTAMP, BOOLEAN, OBJECT, LIST }
 
     init {
         key = id
+    }
+
+    fun determine(propertyType: Class<*>) {
+        if (BaseDO::class.java.isAssignableFrom(propertyType)) {
+            filterType = UIFilterElement.FilterType.OBJECT
+            return
+        }
+        when (propertyType) {
+            Boolean::class.java, java.lang.Boolean::class.java ->
+                filterType = FilterType.BOOLEAN
+            Date::class.java ->
+                filterType = FilterType.TIMESTAMP
+            LocalDate::class.java ->
+                filterType = FilterType.DATE
+            java.sql.Timestamp::class.java ->
+                filterType = FilterType.TIMESTAMP
+        }
     }
 }
