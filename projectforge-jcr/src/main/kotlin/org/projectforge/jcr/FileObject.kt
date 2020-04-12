@@ -23,6 +23,7 @@
 
 package org.projectforge.jcr
 
+import java.util.*
 import javax.jcr.Node
 
 /**
@@ -30,19 +31,44 @@ import javax.jcr.Node
  */
 class FileObject() {
     @JvmOverloads
-    constructor(parentNodePath: String?, relPath:String? = null, id: String? = null, fileName: String? = null) : this() {
+    constructor(parentNodePath: String?, relPath: String? = null, id: String? = null, fileName: String? = null) : this() {
         this.parentNodePath = parentNodePath
         this.relPath = relPath
         this.id = id
         this.fileName = fileName
     }
 
-    internal constructor(node: Node) : this() {
+    internal constructor(node: Node, parentNodePath: String? = null, relPath: String? = null) : this() {
+        this.copyFrom(node)
+        this.parentNodePath = parentNodePath ?: node.path
+        this.relPath = relPath
+    }
+
+    /**
+     * Copies all fields from node to this, excluding content and path setting (parent path as well as relative path).
+     */
+    internal fun copyFrom(node: Node) {
         fileName = node.getProperty(RepoService.PROPERTY_FILENAME)?.string
         description = node.getProperty(RepoService.PROPERTY_FILEDESC)?.string
-        parentNodePath = node.path
+        created = PFJcrUtils.convertToDate(node.getProperty(RepoService.PROPERTY_CREATED)?.string)
+        createdByUser = node.getProperty(RepoService.PROPERTY_CREATED_BY_USER)?.string
+        lastUpdate = PFJcrUtils.convertToDate(node.getProperty(RepoService.PROPERTY_LAST_UPDATE)?.string)
+        lastUpdateByUser = node.getProperty(RepoService.PROPERTY_LAST_UPDATE_BY_USER)?.string
         id = node.name
         size = node.getProperty(RepoService.PROPERTY_FILESIZE)?.long?.toInt()
+    }
+
+    /**
+     * Copies all fields from this to node, excluding content and id/name.
+     */
+    internal fun copyTo(node: Node) {
+        node.setProperty(RepoService.PROPERTY_FILENAME, fileName)
+        node.setProperty(RepoService.PROPERTY_FILEDESC, description ?: "")
+        node.setProperty(RepoService.PROPERTY_CREATED, PFJcrUtils.convertToString(created) ?: "")
+        node.setProperty(RepoService.PROPERTY_CREATED_BY_USER, createdByUser ?: "")
+        node.setProperty(RepoService.PROPERTY_LAST_UPDATE, PFJcrUtils.convertToString(lastUpdate) ?: "")
+        node.setProperty(RepoService.PROPERTY_LAST_UPDATE_BY_USER, lastUpdateByUser ?: "")
+        size?.let { node.setProperty(RepoService.PROPERTY_FILESIZE, it.toLong()) }
     }
 
     /**
@@ -75,6 +101,14 @@ class FileObject() {
      * Optional description.
      */
     var description: String? = null
+
+    var created: Date? = null
+
+    var lastUpdate: Date? = null
+
+    var createdByUser: String? = null
+
+    var lastUpdateByUser: String? = null
 
     /**
      * The location (as path) of the file in the content repository. The location is relative to main node.

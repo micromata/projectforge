@@ -126,9 +126,7 @@ open class RepoService {
             fileObject.id = id
             log.info { "Storing file: $fileObject" }
             val fileNode = filesNode.addNode(id)
-            fileNode.setProperty(PROPERTY_FILENAME, fileObject.fileName)
-            fileNode.setProperty(PROPERTY_FILEDESC, fileObject.description ?: "")
-            fileObject.size?.let { fileNode.setProperty(PROPERTY_FILESIZE, it.toLong()) }
+            fileObject.copyTo(fileNode)
             val bin: Binary = session.valueFactory.createBinary(content)
             fileNode.setProperty(PROPERTY_FILECONTENT, session.valueFactory.createValue(bin))
             session.save()
@@ -177,7 +175,7 @@ open class RepoService {
             val filesNode = getFilesNode(session, parentNodePath, relPath)
             val node = findFile(filesNode, id, fileName)
             if (node != null) {
-                FileObject(node)
+                FileObject(node, parentNodePath, relPath)
             } else {
                 null
             }
@@ -193,7 +191,7 @@ open class RepoService {
     }
 
     private fun getFilesNode(sessionWrapper: SessionWrapper, parentNodePath: String?, relPath: String?, ensureFilesNode: Boolean = false): Node? {
-        val parentNode = getNodeOrNull(sessionWrapper, parentNodePath, relPath)
+        val parentNode = getNodeOrNull(sessionWrapper, parentNodePath, relPath, false)
         if (parentNode == null) {
             log.warn { "Can't get files of not existing parent node '${getAbsolutePath(parentNode, relPath)}." }
             return null
@@ -205,7 +203,7 @@ open class RepoService {
         }
     }
 
-    internal fun getFileInfos(filesNode: Node?): List<FileObject>? {
+    internal fun getFileInfos(filesNode: Node?, parentNodePath: String? = null, relPath: String? = null): List<FileObject>? {
         filesNode ?: return null
         val fileNodes = filesNode.nodes
         if (fileNodes == null || !fileNodes.hasNext()) {
@@ -215,7 +213,7 @@ open class RepoService {
         while (fileNodes.hasNext()) {
             val node = fileNodes.nextNode()
             if (node.hasProperty(PROPERTY_FILENAME)) {
-                result.add(FileObject(node))
+                result.add(FileObject(node, parentNodePath ?: node.path, relPath))
             }
         }
         return result
@@ -245,9 +243,7 @@ open class RepoService {
                 log.warn { "File not found in repository: $file" }
                 false
             } else {
-                file.fileName = node.getProperty(PROPERTY_FILENAME)?.string
-                file.description = node.getProperty(PROPERTY_FILEDESC)?.string
-                file.id = node.name
+                file.copyFrom(node)
                 file.content = getFileContent(node)
                 true
             }
@@ -399,9 +395,13 @@ open class RepoService {
     companion object {
         internal const val NODENAME_FILES = "__FILES"
         internal const val PROPERTY_FILENAME = "fileName"
-        internal const val PROPERTY_FILEDESC = "fileDescription"
         internal const val PROPERTY_FILESIZE = "size"
         internal const val PROPERTY_FILECONTENT = "content"
+        internal const val PROPERTY_CREATED = "created"
+        internal const val PROPERTY_CREATED_BY_USER = "createdByUser"
+        internal const val PROPERTY_FILEDESC = "fileDescription"
+        internal const val PROPERTY_LAST_UPDATE = "lastUpdate"
+        internal const val PROPERTY_LAST_UPDATE_BY_USER = "lastUpdateByUser"
         private const val PROPERTY_RANDOM_ID_LENGTH = 20
         private val ALPHA_CHARSET: Array<Char> = ('a'..'z').toList().toTypedArray()
 
