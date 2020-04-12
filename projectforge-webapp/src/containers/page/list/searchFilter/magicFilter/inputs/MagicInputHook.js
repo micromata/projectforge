@@ -12,7 +12,7 @@ const useMagicInput = (type) => {
         case 'LIST':
             return MagicSelectInput;
         case 'DATE':
-        case 'TIME_STAMP':
+        case 'TIMESTAMP':
             return MagicTimeStampInput;
         case 'OBJECT':
             return MagicObjectInput;
