@@ -1,15 +1,18 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import { connect } from 'react-redux';
 import { Button, Table } from '../../../../design';
 import { DynamicLayoutContext } from '../../context';
 import DropArea from '../../../../design/droparea';
-import { getServiceURL } from '../../../../../utilities/rest';
+import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
+import { callAction } from '../../../../../actions';
 
 function DynamicAttachmentList(
     {
         id,
         listId,
         restBaseUrl,
+        onCallAction,
     },
 ) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
@@ -26,11 +29,17 @@ function DynamicAttachmentList(
                 method: 'POST',
                 body: formData,
             },
-        );
+        )
+            .then(handleHTTPErrors)
+            .then(response => response.json())
+            .then(json => onCallAction({ responseAction: json }))
+            .catch((catchError) => {
+                alert(catchError);
+            });
     };
 
     const deleteFile = (file) => {
-        console.log(file)
+        console.log(file);
     };
 
     return React.useMemo(() => {
@@ -89,6 +98,7 @@ DynamicAttachmentList.propTypes = {
     listId: PropTypes.string.isRequired,
     restBaseUrl: PropTypes.string.isRequired,
     readOnly: PropTypes.bool,
+    onCallAction: PropTypes.func.isRequired,
 };
 
 DynamicAttachmentList.defaultProps = {
@@ -96,4 +106,8 @@ DynamicAttachmentList.defaultProps = {
     readOnly: false,
 };
 
-export default DynamicAttachmentList;
+const actions = {
+    onCallAction: callAction,
+};
+
+export default connect(undefined, actions)(DynamicAttachmentList);
