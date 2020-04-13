@@ -953,8 +953,7 @@ constructor(private val baseDaoClazz: Class<B>,
     @PostMapping("upload/{id}/{listId}")
     fun uploadAttachment(@PathVariable("id", required = true) id: Int,
                          @PathVariable("listId") listId: String?,
-                         @RequestParam("file") file: MultipartFile,
-                         request: HttpServletRequest):
+                         @RequestParam("file") file: MultipartFile):
             ResponseEntity<String> {
         val filename = file.originalFilename
         log.info { "User tries to upload attachment: id='$id', listId='$listId', filename='$filename', page='${this::class.java.name}'." }
@@ -992,7 +991,7 @@ constructor(private val baseDaoClazz: Class<B>,
         val inputStream = result.second ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("application/octet-stream"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=\"${filename.replace('"', '_')}\"")
                 .body(InputStreamResource(inputStream))
     }
 

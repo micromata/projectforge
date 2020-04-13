@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.dto
 
-import org.projectforge.business.orga.ContractDO
+import org.projectforge.business.orga.Contract
 import org.projectforge.business.orga.ContractStatus
 import org.projectforge.framework.jcr.Attachment
 import java.time.LocalDate
@@ -48,4 +48,4 @@ class Contract(var number: Int? = null,
                var resubmissionOnDate: LocalDate? = null,
                var dueDate: LocalDate? = null,
                var attachments: List<Attachment>? = null
-) : BaseDTO<ContractDO>()
+) : BaseDTO<Contract>()

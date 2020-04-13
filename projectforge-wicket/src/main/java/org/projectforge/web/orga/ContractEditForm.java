@@ -28,7 +28,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.orga.ContractDO;
+import org.projectforge.business.orga.Contract;
 import org.projectforge.business.orga.ContractStatus;
 import org.projectforge.business.orga.ContractType;
 import org.projectforge.framework.utils.NumberHelper;
@@ -44,7 +44,7 @@ import org.slf4j.Logger;
 import java.time.LocalDate;
 import java.util.List;
 
-public class ContractEditForm extends AbstractEditForm<ContractDO, ContractEditPage>
+public class ContractEditForm extends AbstractEditForm<Contract, ContractEditPage>
 {
   private static final long serialVersionUID = -2138017238114715368L;
 
@@ -58,7 +58,7 @@ public class ContractEditForm extends AbstractEditForm<ContractDO, ContractEditP
   @SpringBean
   private ConfigurationService configurationService;
 
-  public ContractEditForm(final ContractEditPage parentPage, final ContractDO data)
+  public ContractEditForm(final ContractEditPage parentPage, final Contract data)
   {
     super(parentPage, data);
   }

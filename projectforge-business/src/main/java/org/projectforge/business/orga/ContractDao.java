@@ -43,14 +43,14 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-public class ContractDao extends BaseDao<ContractDO> {
+public class ContractDao extends BaseDao<Contract> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_CONTRACTS;
   private final static int START_NUMBER = 1000;
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ContractDao.class);
   private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"title", "coContractorA", "coContractorB", "contractPersonA", "contractPersonB", "signerA", "signerB"};
 
   public ContractDao() {
-    super(ContractDO.class);
+    super(Contract.class);
     userRightId = USER_RIGHT_ID;
   }
 
@@ -61,7 +61,7 @@ public class ContractDao extends BaseDao<ContractDO> {
   }
 
   @Override
-  public List<ContractDO> getList(final BaseSearchFilter filter) throws AccessException {
+  public List<Contract> getList(final BaseSearchFilter filter) throws AccessException {
     final ContractFilter myFilter;
     if (filter instanceof ContractFilter) {
       myFilter = (ContractFilter) filter;
@@ -86,7 +86,7 @@ public class ContractDao extends BaseDao<ContractDO> {
    * List of all years with contracts: select min(date), max(date) from t_contract.
    */
   public int[] getYears() {
-    final Tuple minMaxDate =  SQLHelper.ensureUniqueResult(em.createNamedQuery(ContractDO.SELECT_MIN_MAX_DATE, Tuple.class));
+    final Tuple minMaxDate =  SQLHelper.ensureUniqueResult(em.createNamedQuery(Contract.SELECT_MIN_MAX_DATE, Tuple.class));
     return SQLHelper.getYears(minMaxDate.get(0), minMaxDate.get(1));
   }
 
@@ -94,7 +94,7 @@ public class ContractDao extends BaseDao<ContractDO> {
    * A given contract number must be consecutively numbered.
    */
   @Override
-  protected void onSaveOrModify(final ContractDO obj) {
+  protected void onSaveOrModify(final Contract obj) {
     if (obj.getNumber() == null) {
       throw new UserException("validation.required.valueNotPresent", new MessageParam("legalAffaires.contract.number",
               MessageParamType.I18N_KEY)).setCausedByField("number");
@@ -106,7 +106,7 @@ public class ContractDao extends BaseDao<ContractDO> {
         throw new UserException("legalAffaires.contract.error.numberNotConsecutivelyNumbered").setCausedByField("number");
       }
     } else {
-      ContractDO other =  SQLHelper.ensureUniqueResult(em.createNamedQuery(ContractDO.FIND_OTHER_BY_NUMBER, ContractDO.class)
+      Contract other =  SQLHelper.ensureUniqueResult(em.createNamedQuery(Contract.FIND_OTHER_BY_NUMBER, Contract.class)
               .setParameter("number", obj.getNumber())
               .setParameter("id", obj.getId()));
       if (other != null) {
@@ -122,15 +122,15 @@ public class ContractDao extends BaseDao<ContractDO> {
    *                 assured that this contract has an unchanged number.
    */
   @SuppressWarnings("unchecked")
-  public Integer getNextNumber(final ContractDO contract) {
+  public Integer getNextNumber(final Contract contract) {
     if (contract.getId() != null) {
-      final ContractDO orig = internalGetById(contract.getId());
+      final Contract orig = internalGetById(contract.getId());
       if (orig.getNumber() != null) {
         contract.setNumber(orig.getNumber());
         return orig.getNumber();
       }
     }
-    final List<Integer> list = em.createQuery("select max(t.number) from ContractDO t").getResultList();
+    final List<Integer> list = em.createQuery("select max(t.number) from Contract t").getResultList();
     Validate.notNull(list);
     if (list.size() == 0 || list.get(0) == null) {
       log.info("First entry of ContractDO");
@@ -141,7 +141,7 @@ public class ContractDao extends BaseDao<ContractDO> {
   }
 
   @Override
-  public ContractDO newInstance() {
-    return new ContractDO();
+  public Contract newInstance() {
+    return new Contract();
   }
 }

@@ -39,6 +39,10 @@ class Attachment() {
      * Unique id, set by jcr
      */
     var id: String? = null
+
+    /**
+     * Filename.
+     */
     var name: String? = null
     var size: Int? = null
 
