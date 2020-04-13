@@ -100,7 +100,7 @@ export const callAction = (
     },
 ) => (dispatch, getState) => {
     if (!action) {
-        return Promise.reject(Error('No response action given.'));
+        return Promise.resolve();
     }
 
     const { form: state } = getState();

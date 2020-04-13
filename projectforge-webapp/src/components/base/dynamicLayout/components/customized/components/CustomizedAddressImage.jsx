@@ -107,9 +107,10 @@ function CustomizedAddressImage() {
                         )
                         : undefined}
                     {image}
-                    <DropArea setFiles={changeFile}>
-                        {ui.translations['file.upload.dropArea']}
-                    </DropArea>
+                    <DropArea
+                        setFiles={changeFile}
+                        title={ui.translations['file.upload.dropArea']}
+                    />
                 </LoadingContainer>
             );
         },
