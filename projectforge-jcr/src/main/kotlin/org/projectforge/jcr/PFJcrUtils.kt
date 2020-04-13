@@ -22,6 +22,15 @@ object PFJcrUtils {
 
     private val mapper = ObjectMapper()
 
+    /**
+     * Each data object with attachments should have it's own node name. Don't use class name as category, because after
+     * refactoring packages, attachments are not assignable anymore.
+     * @return "org.projectforge.[category]"
+     */
+    fun getJcrNodeName(category: String): String {
+        return "org.projectforge.$category"
+    }
+
     fun toJson(obj: Any): String {
         return try {
             mapper.writeValueAsString(obj)
@@ -62,10 +71,10 @@ object PFJcrUtils {
     fun createSafeFilename(fileObject: FileObject): String {
         val fileName = fileObject.fileName
         if (fileName.isNullOrBlank() || !fileName.contains('.') || fileName.endsWith('.')) {
-            return "${fileObject.id}.file"
+            return "${fileObject.fileId}.file"
         }
         val extension = fileName.substring(fileName.lastIndexOf('.') + 1)
-        return "${fileObject.id}.${convertToSafeFilenameExtension(extension)}"
+        return "${fileObject.fileId}.${convertToSafeFilenameExtension(extension)}"
     }
 
     fun convertToSafeFilenameExtension(extension: String): String {

@@ -34,10 +34,10 @@ private val log = KotlinLogging.logger {}
  */
 class FileObject() {
     @JvmOverloads
-    constructor(parentNodePath: String?, relPath: String? = null, id: String? = null, fileName: String? = null) : this() {
+    constructor(parentNodePath: String?, relPath: String? = null, fileId: String? = null, fileName: String? = null) : this() {
         this.parentNodePath = parentNodePath
         this.relPath = relPath
-        this.id = id
+        this.fileId = fileId
         this.fileName = fileName
     }
 
@@ -57,7 +57,7 @@ class FileObject() {
         createdByUser = node.getProperty(RepoService.PROPERTY_CREATED_BY_USER)?.string
         lastUpdate = PFJcrUtils.convertToDate(node.getProperty(RepoService.PROPERTY_LAST_UPDATE)?.string)
         lastUpdateByUser = node.getProperty(RepoService.PROPERTY_LAST_UPDATE_BY_USER)?.string
-        id = node.name
+        fileId = node.name
         size = node.getProperty(RepoService.PROPERTY_FILESIZE)?.long?.toInt()
         if (log.isDebugEnabled) {
             log.debug { "Restoring: ${PFJcrUtils.toJson(this)}" }
@@ -96,7 +96,7 @@ class FileObject() {
      * An unique random alpha-numeric string. This id will internally also used as child node name of [RepoService.NODENAME_FILES].
      * Leave this id null for new files to store.
      */
-    var id: String? = null
+    var fileId: String? = null
 
     /**
      * The file size if known (length of content).
@@ -137,6 +137,6 @@ class FileObject() {
     var relPath: String? = null
 
     override fun toString(): String {
-        return "location=[$location],id=[$id],fileName=[$fileName],size=[$size]"
+        return "location=[$location],id=[$fileId],fileName=[$fileName],size=[$size]"
     }
 }

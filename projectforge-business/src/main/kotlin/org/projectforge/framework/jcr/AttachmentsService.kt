@@ -54,20 +54,39 @@ open class AttachmentsService {
     @Autowired
     private lateinit var repoService: RepoService
 
-    open fun getAttachments(idObject: IdObject<*>, subPath: String? = null): List<Attachment>? {
-        return repoService.getFileInfos(getPath(idObject), subPath ?: DEFAULT_NODE)?.map { createAttachment(it) }
+    /**
+     * @param path Unique path of data object.
+     * @param id Id of data object.
+     */
+    @JvmOverloads
+    open fun getAttachments(path: String, id: Any, subPath: String? = null): List<Attachment>? {
+        return repoService.getFileInfos(getPath(path, id), subPath ?: DEFAULT_NODE)?.map { createAttachment(it) }
     }
 
-    open fun getAttachmentInfo(idObject: IdObject<*>, id: String? = null, fileName: String? = null, subPath: String? = null): Attachment? {
-        val fileObject = repoService.getFileInfo(getPath(idObject), subPath
-                ?: DEFAULT_NODE, id = id, fileName = fileName)
+    /**
+     * @param path Unique path of data object.
+     * @param id Id of data object.
+     */
+    @JvmOverloads
+    open fun getAttachmentInfo(path: String, id: Any, fileId: String, subPath: String? = null): Attachment? {
+        val fileObject = repoService.getFileInfo(
+                getPath(path, id),
+                subPath ?: DEFAULT_NODE,
+                fileId = fileId)
                 ?: return null
         return createAttachment(fileObject)
     }
 
-    open fun getAttachmentContent(idObject: IdObject<*>, id: String? = null, fileName: String? = null, subPath: String? = null): ByteArray? {
-        val fileObject = repoService.getFileInfo(getPath(idObject), subPath
-                ?: DEFAULT_NODE, id = id, fileName = fileName)
+    /**
+     * @param path Unique path of data object.
+     * @param id Id of data object.
+     */
+    @JvmOverloads
+    open fun getAttachmentContent(path: String, id: Any, fileId: String, subPath: String? = null): ByteArray? {
+        val fileObject = repoService.getFileInfo(
+                getPath(path, id),
+                subPath ?: DEFAULT_NODE,
+                fileId = fileId)
                 ?: return null
         return if (repoService.retrieveFile(fileObject)) {
             fileObject.content
@@ -76,77 +95,153 @@ open class AttachmentsService {
         }
     }
 
-    open fun getAttachmentInputStream(idObject: IdObject<*>, id: String? = null, fileName: String? = null, subPath: String? = null): Pair<FileObject, InputStream>? {
-        val fileObject = repoService.getFileInfo(getPath(idObject), subPath
-                ?: DEFAULT_NODE, id = id, fileName = fileName)
+    /**
+     * @param path Unique path of data object.
+     * @param id Id of data object.
+     */
+    @JvmOverloads
+    open fun getAttachmentInputStream(path: String, id: Any, fileId: String, subPath: String? = null)
+            : Pair<FileObject, InputStream>? {
+        val fileObject = repoService.getFileInfo(
+                getPath(path, id),
+                subPath ?: DEFAULT_NODE,
+                fileId = fileId)
         val inputStream = if (fileObject != null) {
             repoService.retrieveFileInputStream(fileObject)
         } else {
             null
         }
         if (fileObject == null || inputStream == null) {
-            log.error { "Can't download file of ${idObject::class.java.name} #$id, because user has no access to this object or it doesn't exist." }
+            log.error { "Can't download file of ${getPath(path, id)} #$fileId, because user has no access to this object or it doesn't exist." }
             return null
         }
         return Pair(fileObject, inputStream)
     }
 
-    open fun addAttachment(idObject: IdObject<*>, fileName: String?, content: ByteArray, baseDao: BaseDao<*>? = null, subPath: String? = null): Attachment {
-        val fileObject = FileObject(getPath(idObject), subPath ?: DEFAULT_NODE, fileName = fileName)
+    /**
+     * @param path Unique path of data object.
+     * @param id Id of data object.
+     */
+    @JvmOverloads
+    open fun addAttachment(path: String, id: Any, fileName: String?, content: ByteArray, enableSearchIndex: Boolean, subPath: String? = null): Attachment {
+        val fileObject = FileObject(
+                getPath(path, id),
+                subPath ?: DEFAULT_NODE,
+                fileName = fileName)
+        developerWarning(path, id, "addAttachment", enableSearchIndex)
         fileObject.content = content
         repoService.storeFile(fileObject, ThreadLocalUserContext.getUserId()!!.toString())
-        updateAttachmentsInfo(idObject, baseDao, subPath)
         return createAttachment(fileObject)
     }
 
-    open fun addAttachment(idObject: IdObject<*>, fileName: String?, inputStream: InputStream, baseDao: BaseDao<*>? = null, subPath: String? = null): Attachment {
-        repoService.ensureNode(null, getPath(idObject))
-        val fileObject = FileObject(getPath(idObject), subPath ?: DEFAULT_NODE, fileName = fileName)
+    /**
+     * @param path Unique path of data object.
+     * @param id Id of data object.
+     */
+    @JvmOverloads
+    open fun <O : ExtendedBaseDO<Int>> addAttachment(path: String,
+                                                     id: Any,
+                                                     fileName: String?,
+                                                     content: ByteArray,
+                                                     baseDao: BaseDao<O>,
+                                                     obj: O,
+                                                     subPath: String? = null)
+            : Attachment {
+        val attachment = addAttachment(path, id, fileName, content, false, subPath)
+        updateAttachmentsInfo(path, id, baseDao, obj, subPath)
+        return attachment
+    }
+
+    /**
+     * @param path Unique path of data object.
+     * @param id Id of data object.
+     */
+    @JvmOverloads
+    open fun addAttachment(path: String, id: Any, fileName: String?, inputStream: InputStream, enableSearchIndex: Boolean, subPath: String? = null): Attachment {
+        developerWarning(path, id, "addAttachment", enableSearchIndex)
+        repoService.ensureNode(null, getPath(path, id))
+        val fileObject = FileObject(getPath(path, id), subPath ?: DEFAULT_NODE, fileName = fileName)
         repoService.storeFile(fileObject, inputStream, ThreadLocalUserContext.getUserId()!!.toString())
-        updateAttachmentsInfo(idObject, baseDao, subPath)
-        if (idObject is DefaultBaseDO) {
-            HistoryBaseDaoAdapter.createHistoryEntry(idObject, idObject.id, EntityOpType.Insert, ThreadLocalUserContext.getUserId().toString(),
+        return createAttachment(fileObject)
+    }
+
+    /**
+     * @param path Unique path of data object.
+     * @param id Id of data object.
+     */
+    @JvmOverloads
+    open fun <O : ExtendedBaseDO<Int>> addAttachment(path: String,
+                                                     id: Any,
+                                                     fileName: String?,
+                                                     inputStream: InputStream,
+                                                     baseDao: BaseDao<O>,
+                                                     obj: O,
+                                                     subPath: String? = null)
+            : Attachment {
+        val attachment = addAttachment(path, id, fileName, inputStream, false)
+        updateAttachmentsInfo(path, id, baseDao, obj, subPath)
+        if (obj is DefaultBaseDO) {
+            HistoryBaseDaoAdapter.createHistoryEntry(obj, obj.id, EntityOpType.Insert, ThreadLocalUserContext.getUserId().toString(),
                     subPath ?: DEFAULT_NODE, Attachment::class.java, null, fileName)
         }
-        return createAttachment(fileObject)
+        return attachment
     }
 
-    open fun deleteAttachment(idObject: IdObject<*>, id: String?, baseDao: BaseDao<*>? = null, subPath: String? = null): Boolean {
-        val fileObject = FileObject(getPath(idObject), subPath ?: DEFAULT_NODE, id = id)
+    /**
+     * @param path Unique path of data object.
+     * @param id Id of data object.
+     */
+    @JvmOverloads
+    open fun deleteAttachment(path: String, id: Any, fileId: String, enableSearchIndex: Boolean, subPath: String? = null)
+            : Boolean {
+        developerWarning(path, id, "deleteAttachment", enableSearchIndex)
+        val fileObject = FileObject(getPath(path, id), subPath ?: DEFAULT_NODE, fileId = fileId)
+        return repoService.deleteFile(fileObject)
+    }
+
+    /**
+     * @param path Unique path of data object.
+     * @param id Id of data object.
+     */
+    @JvmOverloads
+    open fun <O : ExtendedBaseDO<Int>> deleteAttachment(path: String,
+                                                        id: Any,
+                                                        fileId: String,
+                                                        baseDao: BaseDao<O>,
+                                                        obj: O,
+                                                        subPath: String? = null)
+            : Boolean {
+        val fileObject = FileObject(getPath(path, id), subPath ?: DEFAULT_NODE, fileId = fileId)
         val result = repoService.deleteFile(fileObject)
         if (result) {
-            if (idObject is DefaultBaseDO) {
-                HistoryBaseDaoAdapter.createHistoryEntry(idObject, idObject.id, EntityOpType.Deleted, ThreadLocalUserContext.getUserId().toString(),
+            if (id is Number) {
+                HistoryBaseDaoAdapter.createHistoryEntry(obj, id, EntityOpType.Deleted, ThreadLocalUserContext.getUserId().toString(),
                         subPath ?: DEFAULT_NODE, Attachment::class.java, null, fileObject.fileName)
             }
-            updateAttachmentsInfo(idObject, baseDao, subPath)
+            updateAttachmentsInfo(path, id, baseDao, obj, subPath)
         }
         return result
     }
 
     /**
-     * Path will be idObject.classname/id.
+     * Path will be path/id.
      * @return path relative to main node ProjectForge.
      */
-    open fun getPath(idObject: IdObject<*>): String {
-        return "${idObject::class.java.name}/${idObject.id}"
+    open fun getPath(path: String, id: Any): String {
+        return "$path/$id"
     }
 
-    private fun <O : ExtendedBaseDO<Int>> updateAttachmentsInfo(idObj: IdObject<*>, baseDao: BaseDao<O>?, subPath: String? = null) {
-        if (idObj !is AttachmentsInfo) {
+    private fun <O : ExtendedBaseDO<Int>> updateAttachmentsInfo(path: String,
+                                                                id: Any,
+                                                                baseDao: BaseDao<O>,
+                                                                obj: O,
+                                                                subPath: String? = null) {
+        if (obj !is AttachmentsInfo) {
             return // Nothing to do.
         }
-        if (baseDao == null) {
-            val msg = "Can't update search index of ${idObj::class.java.name}. Dear developer, please specify baseDao!"
-            if (SystemStatus.isDevelopmentMode()) {
-                throw UnsupportedOperationException(msg)
-            }
-            log.warn { msg }
-            return
-        }
-        val dbObj = baseDao.getById(idObj.id)
+        val dbObj = baseDao.getById(obj.id)
         if (dbObj is AttachmentsInfo) {
-            val attachments = getAttachments(idObj, subPath)
+            val attachments = getAttachments(path, id, subPath)
             if (attachments != null) {
                 dbObj.attachmentNames = attachments.joinToString(separator = " ") { "${it.name}" }
                 dbObj.attachmentIds = attachments.joinToString(separator = " ") { "${it.id}" }
@@ -175,6 +270,16 @@ open class AttachmentsService {
             attachment.lastUpdateByUser = UserGroupCache.tenantInstance.getUser(it)?.getFullname()
         }
         return attachment
+    }
+
+    private fun developerWarning(path: String, id: Any, method: String, enableSearchIndex: Boolean) {
+        if (enableSearchIndex) {
+            val msg = "Can't update search index of ${getPath(path, id)}. Dear developer, call method '$method' with data object and baseDao instead!"
+            if (SystemStatus.isDevelopmentMode()) {
+                throw UnsupportedOperationException(msg)
+            }
+            log.warn { msg }
+        }
     }
 
     companion object {

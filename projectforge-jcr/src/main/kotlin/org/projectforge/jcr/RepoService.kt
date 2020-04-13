@@ -125,10 +125,10 @@ open class RepoService {
         runInSession { session ->
             val node = getNode(session, parentNodePath, relPath, true)
             val filesNode = ensureNode(node, NODENAME_FILES)
-            val id = fileObject.id ?: createRandomId
-            fileObject.id = id
+            val fileId = fileObject.fileId ?: createRandomId
+            fileObject.fileId = fileId
             log.info { "Storing file: $fileObject" }
-            val fileNode = filesNode.addNode(id)
+            val fileNode = filesNode.addNode(fileId)
             fileObject.created = Date()
             fileObject.createdByUser = user
             fileObject.lastUpdate = fileObject.created
@@ -154,7 +154,7 @@ open class RepoService {
                 false
             } else {
                 val filesNode = node.getNode(NODENAME_FILES)
-                val fileNode = findFile(filesNode, fileObject.id, fileObject.fileName)
+                val fileNode = findFile(filesNode, fileObject.fileId, fileObject.fileName)
                 if (fileNode == null) {
                     log.info { "Nothing to delete, file node doesn't exit: $fileObject" }
                     false
@@ -183,10 +183,10 @@ open class RepoService {
      * @return file info without content.
      */
     @JvmOverloads
-    open fun getFileInfo(parentNodePath: String?, relPath: String? = null, id: String? = null, fileName: String? = null): FileObject? {
+    open fun getFileInfo(parentNodePath: String?, relPath: String? = null, fileId: String? = null, fileName: String? = null): FileObject? {
         return runInSession { session ->
             val filesNode = getFilesNode(session, parentNodePath, relPath)
-            val node = findFile(filesNode, id, fileName)
+            val node = findFile(filesNode, fileId, fileName)
             if (node != null) {
                 FileObject(node, parentNodePath, relPath)
             } else {
@@ -232,7 +232,7 @@ open class RepoService {
         return result
     }
 
-    internal fun findFile(filesNode: Node?, id: String?, fileName: String? = null): Node? {
+    internal fun findFile(filesNode: Node?, fileId: String?, fileName: String? = null): Node? {
         filesNode ?: return null
         if (!filesNode.hasNodes()) {
             return null
@@ -240,7 +240,7 @@ open class RepoService {
         filesNode.nodes?.let {
             while (it.hasNext()) {
                 val node = it.nextNode()
-                if (node.name == id || node.getProperty(PROPERTY_FILENAME).string == fileName) {
+                if (node.name == fileId || node.getProperty(PROPERTY_FILENAME).string == fileName) {
                     return node
                 }
             }
@@ -251,7 +251,7 @@ open class RepoService {
     open fun retrieveFile(fileObject: FileObject): Boolean {
         return runInSession { session ->
             val filesNode = getFilesNode(session, fileObject.parentNodePath, fileObject.relPath, false)
-            val node = findFile(filesNode, fileObject.id, fileObject.fileName)
+            val node = findFile(filesNode, fileObject.fileId, fileObject.fileName)
             if (node == null) {
                 log.warn { "File not found in repository: $fileObject" }
                 false
@@ -266,7 +266,7 @@ open class RepoService {
     open fun retrieveFileInputStream(fileObject: FileObject): InputStream? {
         return runInSession { session ->
             val filesNode = getFilesNode(session, fileObject.parentNodePath, fileObject.relPath, false)
-            val node = findFile(filesNode, fileObject.id, fileObject.fileName)
+            val node = findFile(filesNode, fileObject.fileId, fileObject.fileName)
             if (node == null) {
                 log.warn { "File not found in repository: $fileObject" }
                 null

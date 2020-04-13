@@ -76,7 +76,7 @@ class Attachment() {
     var location: String? = null
 
     constructor(fileObject: FileObject) : this() {
-        this.id = fileObject.id
+        this.id = fileObject.fileId
         this.name = fileObject.fileName
         this.size = fileObject.size
         this.description = fileObject.description

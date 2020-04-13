@@ -167,7 +167,7 @@ open class RepoBackupService {
         val fileList = repoService.getFileInfos(node)
         if (!fileList.isNullOrEmpty()) {
             fileList.forEach {
-                repoService.findFile(node, it.id, null)?.let {fileNode ->
+                repoService.findFile(node, it.fileId, null)?.let { fileNode ->
                     val fileObject = FileObject(fileNode)
                     val content = repoService.getFileContent(fileNode, fileObject)
                     if (content != null) {

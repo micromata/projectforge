@@ -34,8 +34,11 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileObject
+import org.projectforge.jcr.PFJcrUtils
+import org.projectforge.rest.AttachmentPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.Contract
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterElement
@@ -51,32 +54,28 @@ private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/contract")
-class ContractPagesRest() : AbstractDTOPagesRest<ContractDO, Contract, ContractDao>(ContractDao::class.java, "legalAffaires.contract.title") {
+class ContractPagesRest : AbstractDTOPagesRest<ContractDO, Contract, ContractDao>(ContractDao::class.java, "legalAffaires.contract.title") {
     @Autowired
     private lateinit var attachmentsService: AttachmentsService
 
     /**
      * Initializes new outbox mails for adding.
      */
-    override fun newBaseDO(request: HttpServletRequest?): org.projectforge.business.orga.ContractDO {
+    override fun newBaseDO(request: HttpServletRequest?): ContractDO {
         val contract = super.newBaseDO(request)
         contract.date = LocalDate.now()
         return contract
     }
 
-
-    override fun transformForDB(dto: Contract): org.projectforge.business.orga.ContractDO {
-        val contractDO = org.projectforge.business.orga.ContractDO()
+    override fun transformForDB(dto: Contract): ContractDO {
+        val contractDO = ContractDO()
         dto.copyTo(contractDO)
         return contractDO
     }
 
-    override fun transformFromDB(obj: org.projectforge.business.orga.ContractDO, editMode: Boolean): Contract {
+    override fun transformFromDB(obj: ContractDO, editMode: Boolean): Contract {
         val contract = Contract()
         contract.copyFrom(obj)
-        if (editMode) {
-            contract.attachments = attachmentsService.getAttachments(obj)
-        }
         return contract
     }
 
@@ -102,8 +101,8 @@ class ContractPagesRest() : AbstractDTOPagesRest<ContractDO, Contract, ContractD
         elements.add(UIFilterElement("year", label = translate("calendar.year"), defaultFilter = true))
     }
 
-    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<org.projectforge.business.orga.ContractDO>>? {
-        val filters = mutableListOf<CustomResultFilter<org.projectforge.business.orga.ContractDO>>()
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<ContractDO>>? {
+        val filters = mutableListOf<CustomResultFilter<ContractDO>>()
         source.entries.find { it.field == "year" }?.let { entry ->
             entry.synthetic = true
             NumberHelper.parseInteger(entry.value.value)?.let { year ->
@@ -152,23 +151,15 @@ class ContractPagesRest() : AbstractDTOPagesRest<ContractDO, Contract, ContractD
                                 .add(lc, "filing")))
                 .add(UIFieldset(title = "attachment.list")
                         .add(UIAttachmentList(dto.id,
-                                // TODO BUILD MODAL INFO PAGE
-                                rowClickAction = ResponseAction("/attachment/dynamic", TargetType.MODAL))))
+                                rowClickAction = ResponseAction(
+                                        PagesResolver.getDynamicPageUrl(AttachmentPageRest::class.java),
+                                        TargetType.MODAL))))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-    override fun handleUpload(id: Int, filename: String?, file: MultipartFile, listId: String?): String? {
-        val contract = baseDao.getById(id)
-        baseDao.hasLoggedInUserUpdateAccess(contract, contract, true)
-        attachmentsService.addAttachment(contract, fileName = file.originalFilename, inputStream = file.inputStream, baseDao = baseDao)
-        return null
-    }
-
-    override fun handleDownload(id: Int, fileId: String, listId: String?): Pair<FileObject, InputStream?>? {
-        val contract = baseDao.getById(id) // Check select access.
-        if (contract != null) {
-            return attachmentsService.getAttachmentInputStream(contract, fileId) ?: return null
-        }
-        return null
-    }
+    /**
+     * Enable attachments for this entity.
+     */
+    override val jcrPath: String?
+        get() = PFJcrUtils.getJcrNodeName("contract")
 }
