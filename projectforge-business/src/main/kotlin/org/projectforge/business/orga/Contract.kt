@@ -23,12 +23,15 @@
 
 package org.projectforge.business.orga
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.search.annotations.Analyze
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.FieldBridge
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.time.LocalDate
 import javax.persistence.*
@@ -42,9 +45,9 @@ import javax.persistence.*
         uniqueConstraints = [UniqueConstraint(columnNames = ["number", "tenant_id"])],
         indexes = [javax.persistence.Index(name = "idx_fk_t_contract_tenant_id", columnList = "tenant_id")])
 @NamedQueries(
-        NamedQuery(name = ContractDO.FIND_OTHER_BY_NUMBER, query = "from ContractDO where number=:number and id<>:id"),
-        NamedQuery(name = ContractDO.SELECT_MIN_MAX_DATE, query = "select min(date), max(date) from ContractDO"))
-open class ContractDO : DefaultBaseDO() {
+        NamedQuery(name = Contract.FIND_OTHER_BY_NUMBER, query = "from Contract where number=:number and id<>:id"),
+        NamedQuery(name = Contract.SELECT_MIN_MAX_DATE, query = "select min(date), max(date) from Contract"))
+open class Contract : DefaultBaseDO(), AttachmentsInfo {
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.number")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
@@ -141,6 +144,24 @@ open class ContractDO : DefaultBaseDO() {
     @Field(analyze = Analyze.NO)
     @get:Column(name = "due_date")
     open var dueDate: LocalDate? = null
+
+    @JsonIgnore
+    @Field
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachment_names")
+    override var attachmentNames: String? = null
+
+    @JsonIgnore
+    @Field
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachment_ids")
+    override var attachmentIds: String? = null
+
+    @JsonIgnore
+    @Field
+    @field:NoHistory
+    @get:Column(length = 10000, name = "number_of_attachments")
+    override var numbOfAttachments: Int? = null
 
     companion object {
         internal const val FIND_OTHER_BY_NUMBER = "ContractDO_FindOtherByNumber"

@@ -25,9 +25,11 @@ package org.projectforge.framework.jcr
 
 import de.micromata.genome.db.jpa.history.entities.EntityOpType
 import mu.KotlinLogging
+import org.projectforge.SystemStatus
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.IdObject
-import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
@@ -89,16 +91,19 @@ open class AttachmentsService {
         return Pair(fileObject, inputStream)
     }
 
-    open fun addAttachment(idObject: IdObject<*>, fileName: String?, content: ByteArray, subPath: String? = null): Attachment {
+    open fun addAttachment(idObject: IdObject<*>, fileName: String?, content: ByteArray, baseDao: BaseDao<*>? = null, subPath: String? = null): Attachment {
         val fileObject = FileObject(getPath(idObject), subPath ?: DEFAULT_NODE, fileName = fileName)
         fileObject.content = content
+        repoService.storeFile(fileObject, ThreadLocalUserContext.getUserId()!!.toString())
+        updateAttachmentsInfo(idObject, baseDao, subPath)
         return createAttachment(fileObject)
     }
 
-    open fun addAttachment(idObject: IdObject<*>, fileName: String?, inputStream: InputStream, subPath: String? = null): Attachment {
+    open fun addAttachment(idObject: IdObject<*>, fileName: String?, inputStream: InputStream, baseDao: BaseDao<*>? = null, subPath: String? = null): Attachment {
         repoService.ensureNode(null, getPath(idObject))
         val fileObject = FileObject(getPath(idObject), subPath ?: DEFAULT_NODE, fileName = fileName)
         repoService.storeFile(fileObject, inputStream, ThreadLocalUserContext.getUserId()!!.toString())
+        updateAttachmentsInfo(idObject, baseDao, subPath)
         if (idObject is DefaultBaseDO) {
             HistoryBaseDaoAdapter.createHistoryEntry(idObject, idObject.id, EntityOpType.Insert, ThreadLocalUserContext.getUserId().toString(),
                     subPath ?: DEFAULT_NODE, Attachment::class.java, null, fileName)
@@ -106,7 +111,7 @@ open class AttachmentsService {
         return createAttachment(fileObject)
     }
 
-    open fun deleteAttachment(idObject: IdObject<*>, id: String?, subPath: String? = null): Boolean {
+    open fun deleteAttachment(idObject: IdObject<*>, id: String?, baseDao: BaseDao<*>? = null, subPath: String? = null): Boolean {
         val fileObject = FileObject(getPath(idObject), subPath ?: DEFAULT_NODE, id = id)
         val result = repoService.deleteFile(fileObject)
         if (result) {
@@ -114,6 +119,7 @@ open class AttachmentsService {
                 HistoryBaseDaoAdapter.createHistoryEntry(idObject, idObject.id, EntityOpType.Deleted, ThreadLocalUserContext.getUserId().toString(),
                         subPath ?: DEFAULT_NODE, Attachment::class.java, null, fileObject.fileName)
             }
+            updateAttachmentsInfo(idObject, baseDao, subPath)
         }
         return result
     }
@@ -124,6 +130,40 @@ open class AttachmentsService {
      */
     open fun getPath(idObject: IdObject<*>): String {
         return "${idObject::class.java.name}/${idObject.id}"
+    }
+
+    private fun <O : ExtendedBaseDO<Int>> updateAttachmentsInfo(idObj: IdObject<*>, baseDao: BaseDao<O>?, subPath: String? = null) {
+        if (idObj !is AttachmentsInfo) {
+            return // Nothing to do.
+        }
+        if (baseDao == null) {
+            val msg = "Can't update search index of ${idObj::class.java.name}. Dear developer, please specify baseDao!"
+            if (SystemStatus.isDevelopmentMode()) {
+                throw UnsupportedOperationException(msg)
+            }
+            log.warn { msg }
+            return
+        }
+        val dbObj = baseDao.getById(idObj.id)
+        if (dbObj is AttachmentsInfo) {
+            val attachments = getAttachments(idObj, subPath)
+            if (attachments != null) {
+                dbObj.attachmentNames = attachments.joinToString(separator = " ") { "${it.name}" }
+                dbObj.attachmentIds = attachments.joinToString(separator = " ") { "${it.id}" }
+                dbObj.numbOfAttachments = attachments.size
+            } else {
+                dbObj.attachmentNames = null
+                dbObj.attachmentIds = null
+                dbObj.numbOfAttachments = null
+            }
+            baseDao.update(dbObj)
+        } else {
+            val msg = "Can't update search index of ${dbObj::class.java.name}. Dear developer, it's not of type ${AttachmentsInfo::class.java.name}!"
+            if (SystemStatus.isDevelopmentMode()) {
+                throw UnsupportedOperationException(msg)
+            }
+            log.warn { msg }
+        }
     }
 
     private fun createAttachment(fileObject: FileObject): Attachment {

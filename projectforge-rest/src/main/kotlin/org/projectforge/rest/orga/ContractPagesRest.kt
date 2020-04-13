@@ -24,7 +24,6 @@
 package org.projectforge.rest.orga
 
 import mu.KotlinLogging
-import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractDao
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsService
@@ -36,7 +35,6 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileObject
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.dto.Contract
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
@@ -51,27 +49,27 @@ private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/contract")
-class ContractPagesRest() : AbstractDTOPagesRest<ContractDO, Contract, ContractDao>(ContractDao::class.java, "legalAffaires.contract.title") {
+class ContractPagesRest() : AbstractDTOPagesRest<org.projectforge.business.orga.Contract, Contract, ContractDao>(ContractDao::class.java, "legalAffaires.contract.title") {
     @Autowired
     private lateinit var attachmentsService: AttachmentsService
 
     /**
      * Initializes new outbox mails for adding.
      */
-    override fun newBaseDO(request: HttpServletRequest?): ContractDO {
+    override fun newBaseDO(request: HttpServletRequest?): org.projectforge.business.orga.Contract {
         val contract = super.newBaseDO(request)
         contract.date = LocalDate.now()
         return contract
     }
 
 
-    override fun transformForDB(dto: Contract): ContractDO {
-        val contractDO = ContractDO()
+    override fun transformForDB(dto: Contract): org.projectforge.business.orga.Contract {
+        val contractDO = org.projectforge.business.orga.Contract()
         dto.copyTo(contractDO)
         return contractDO
     }
 
-    override fun transformFromDB(obj: ContractDO, editMode: Boolean): Contract {
+    override fun transformFromDB(obj: org.projectforge.business.orga.Contract, editMode: Boolean): Contract {
         val contract = Contract()
         contract.copyFrom(obj)
         if (editMode) {
@@ -102,8 +100,8 @@ class ContractPagesRest() : AbstractDTOPagesRest<ContractDO, Contract, ContractD
         elements.add(UIFilterElement("year", label = translate("calendar.year"), defaultFilter = true))
     }
 
-    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<ContractDO>>? {
-        val filters = mutableListOf<CustomResultFilter<ContractDO>>()
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<org.projectforge.business.orga.Contract>>? {
+        val filters = mutableListOf<CustomResultFilter<org.projectforge.business.orga.Contract>>()
         source.entries.find { it.field == "year" }?.let { entry ->
             entry.synthetic = true
             NumberHelper.parseInteger(entry.value.value)?.let { year ->
@@ -158,7 +156,7 @@ class ContractPagesRest() : AbstractDTOPagesRest<ContractDO, Contract, ContractD
     override fun handleUpload(id: Int, filename: String?, file: MultipartFile, listId: String?): String? {
         val contract = baseDao.getById(id)
         baseDao.hasLoggedInUserUpdateAccess(contract, contract, true)
-        attachmentsService.addAttachment(contract, fileName = file.originalFilename, inputStream = file.inputStream)
+        attachmentsService.addAttachment(contract, fileName = file.originalFilename, inputStream = file.inputStream, baseDao = baseDao)
         return null
     }
 
