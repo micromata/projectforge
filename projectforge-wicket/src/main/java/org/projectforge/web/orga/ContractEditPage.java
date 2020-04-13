@@ -25,7 +25,7 @@ package org.projectforge.web.orga;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.orga.Contract;
+import org.projectforge.business.orga.ContractDO;
 import org.projectforge.business.orga.ContractDao;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.AbstractEditPage;
@@ -34,7 +34,7 @@ import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = ContractListPage.class)
-public class ContractEditPage extends AbstractEditPage<Contract, ContractEditForm, ContractDao>
+public class ContractEditPage extends AbstractEditPage<ContractDO, ContractEditForm, ContractDao>
 {
   private static final long serialVersionUID = 4375220914096256551L;
 
@@ -68,7 +68,7 @@ public class ContractEditPage extends AbstractEditPage<Contract, ContractEditFor
   protected void cloneData()
   {
     super.cloneData();
-    final Contract contract = getData();
+    final ContractDO contract = getData();
     contract.setNumber(null);
     contract.setDate(new DayHolder().getLocalDate());
     form.numberField.modelChanged();
@@ -81,7 +81,7 @@ public class ContractEditPage extends AbstractEditPage<Contract, ContractEditFor
   }
 
   @Override
-  protected ContractEditForm newEditForm(final AbstractEditPage< ? , ? , ? > parentPage, final Contract data)
+  protected ContractEditForm newEditForm(final AbstractEditPage< ? , ? , ? > parentPage, final ContractDO data)
   {
     return new ContractEditForm(this, data);
   }

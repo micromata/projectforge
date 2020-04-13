@@ -45,9 +45,9 @@ import javax.persistence.*
         uniqueConstraints = [UniqueConstraint(columnNames = ["number", "tenant_id"])],
         indexes = [javax.persistence.Index(name = "idx_fk_t_contract_tenant_id", columnList = "tenant_id")])
 @NamedQueries(
-        NamedQuery(name = Contract.FIND_OTHER_BY_NUMBER, query = "from Contract where number=:number and id<>:id"),
-        NamedQuery(name = Contract.SELECT_MIN_MAX_DATE, query = "select min(date), max(date) from Contract"))
-open class Contract : DefaultBaseDO(), AttachmentsInfo {
+        NamedQuery(name = ContractDO.FIND_OTHER_BY_NUMBER, query = "from ContractDO where number=:number and id<>:id"),
+        NamedQuery(name = ContractDO.SELECT_MIN_MAX_DATE, query = "select min(date), max(date) from ContractDO"))
+open class ContractDO : DefaultBaseDO(), AttachmentsInfo {
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.number")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
