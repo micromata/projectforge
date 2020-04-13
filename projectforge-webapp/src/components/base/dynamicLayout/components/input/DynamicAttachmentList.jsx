@@ -45,7 +45,7 @@ function DynamicAttachmentList(
     return React.useMemo(() => {
         if (id && id > 0) {
             return (
-                <DropArea setFiles={uploadFile}>
+                <DropArea setFiles={uploadFile} noStyle>
                     {ui.translations['file.upload.dropArea']}
                     {attachments && attachments.length > 0 && (
                         <Table striped hover>
