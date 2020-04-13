@@ -124,7 +124,14 @@ export const callAction = (
         }
         case 'CLOSE_MODAL':
             if (history.location.state && history.location.state.background) {
-                history.push(history.location.state.background);
+                history.push({
+                    ...history.location.state.background,
+                    state: {
+                        ...history.location.state.background.state,
+                        noReload: true,
+                        newVariables: action.variables,
+                    },
+                });
             }
             break;
         case 'UPDATE':
