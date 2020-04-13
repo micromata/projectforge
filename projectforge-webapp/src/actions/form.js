@@ -251,12 +251,17 @@ export const switchFromCurrentCategory = (to, newVariables) => (dispatch, getSta
     const { form: state } = getState();
     const from = state.currentCategory;
 
+    let variables;
+
+    if (state.categories[to] && newVariables) {
+        variables = Object.combine(state.categories[to], newVariables);
+    } else {
+        variables = state.categories[to] || newVariables;
+    }
+
     dispatch(switchCategoryWithData(
         from,
         to,
-        {
-            ...state[from],
-            ...newVariables,
-        },
+        variables,
     ));
 };
