@@ -35,6 +35,7 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.jcr.FileObject
@@ -43,10 +44,7 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
-import org.projectforge.rest.dto.BaseDTO
-import org.projectforge.rest.dto.FormLayoutData
-import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.dto.ServerData
+import org.projectforge.rest.dto.*
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -113,6 +111,7 @@ constructor(private val baseDaoClazz: Class<B>,
         const val CLASSIC_VERSION_MENU = "CLASSIC"
         const val CREATE_MENU = "CREATE"
         const val USER_PREF_PARAM_HIGHLIGHT_ROW = "highlightedRow"
+        protected val DEFAULT_LIST_OF_ATTACHMENTS = arrayOf(AttachmentsService.DEFAULT_NODE)
     }
 
     class DisplayObject(val id: Any?, override val displayName: String?) : DisplayNameCapable
@@ -159,6 +158,9 @@ constructor(private val baseDaoClazz: Class<B>,
 
     @Autowired
     private lateinit var applicationContext: ApplicationContext
+
+    @Autowired
+    private lateinit var attachmentsService: AttachmentsService
 
     @Autowired
     private lateinit var historyService: HistoryService
@@ -540,9 +542,16 @@ constructor(private val baseDaoClazz: Class<B>,
     }
 
     protected fun getById(id: Int?, editMode: Boolean = false, userAccess: UILayout.UserAccess? = null): DTO? {
+        id ?: return null
         val item = baseDao.getById(id) ?: return null
         checkUserAccess(item, userAccess)
-        return transformFromDB(item, editMode)
+        val result = transformFromDB(item, editMode)
+        jcrPath?.let {
+            if (result is AttachmentsSupport) {
+                result.attachments = attachmentsService.getAttachments(it, id)
+            }
+        }
+        return result
     }
 
     protected fun checkUserAccess(obj: O?, userAccess: UILayout.UserAccess?) {
@@ -945,6 +954,23 @@ constructor(private val baseDaoClazz: Class<B>,
     }
 
     /**
+     * If attachments are supported ([jcrPath] must be given), this list returns all allowed lists of attachments.
+     * At default, only one attachmentlist name [AttachmentsService.DEFAULT_NODE] is supported: [DEFAULT_LIST_OF_ATTACHMENTS].
+     * Override this method only, if you have multiple attachment lists for this entity.
+     */
+    open val supportedAttachmentList: Array<String>
+        get() = DEFAULT_LIST_OF_ATTACHMENTS
+
+    /**
+     * An unique id which is used as parent node for all attachments. ProjectForge's objects use [PFJcrUtils.getJcrNodeName]
+     * for creating unique nodes.
+     * @return unique jcr path if attachments are supported or null, if no attachment support is given (download, upload and list).
+     * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
+     */
+    open val jcrPath: String?
+        get() = null
+
+    /**
      * Upload service e. g. for [UIAttachmentList].
      * @param id Object id where the uploaded file should belong to.
      * @param listId Usable for handling different upload areas for one page. If only one attachment list is needed, you may
@@ -957,6 +983,7 @@ constructor(private val baseDaoClazz: Class<B>,
             ResponseEntity<String> {
         val filename = file.originalFilename
         log.info { "User tries to upload attachment: id='$id', listId='$listId', filename='$filename', page='${this::class.java.name}'." }
+        checkJcrActivity(listId)
         handleUpload(id, filename = filename, file = file, listId = listId)?.let {
             log.warn { it }
             return ResponseEntity(it, HttpStatus.BAD_REQUEST)
@@ -970,7 +997,10 @@ constructor(private val baseDaoClazz: Class<B>,
      * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
      */
     protected open fun handleUpload(id: Int, filename: String?, file: MultipartFile, listId: String? = null): String? {
-        return "Upload not supported by ${this::class.java.name}."
+        val item = baseDao.getById(id)
+        baseDao.hasLoggedInUserUpdateAccess(item, item, true)
+        attachmentsService.addAttachment(jcrPath!!, id, fileName = file.originalFilename, inputStream = file.inputStream, baseDao = baseDao, obj = item)
+        return null
     }
 
     /**
@@ -986,6 +1016,7 @@ constructor(private val baseDaoClazz: Class<B>,
                            @PathVariable("listId") listId: String?)
             : ResponseEntity<Resource> {
         log.info { "User tries to download attachment: id='$id', listId='$listId', fileId='$fileId', page='${this::class.java.name}'." }
+        checkJcrActivity(listId)
         val result = handleDownload(id, fileId = fileId, listId = listId) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         val filename = result.first.fileName ?: "file"
         val inputStream = result.second ?: return ResponseEntity(HttpStatus.NOT_FOUND)
@@ -1001,8 +1032,21 @@ constructor(private val baseDaoClazz: Class<B>,
      * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
      */
     protected open fun handleDownload(id: Int, fileId: String, listId: String? = null): Pair<FileObject, InputStream?>? {
-        log.error { "Download not supported by ${this::class.java.name}." }
-        return null
+        val item = baseDao.getById(id) ?: return null // Check acces‚s
+        return attachmentsService.getAttachmentInputStream(jcrPath!!, id, fileId)
+    }
+
+    private fun checkJcrActivity(listId: String? = null) {
+        if (jcrPath == null) {
+            val msg = "Attachments are not supported by this entity: ${baseDao.doClass::class.java.name}."
+            log.error { "$msg For developers: you must specify jcrPath in yours *PagesRest." }
+            throw UnsupportedOperationException(msg)
+        }
+        if (listId != null && !supportedAttachmentList.contains(listId)) {
+            val msg = "Attachments are not supported by this entity ${baseDao.doClass::class.java.name} for list '$listId'."
+            log.error { "$msg For developers: you must add this listId to supportedAttachmentList of yours *PagesRest." }
+            throw UnsupportedOperationException(msg)
+        }
     }
 
     /**

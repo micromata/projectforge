@@ -68,17 +68,17 @@ class RepoTest {
         repoService.storeFile(file)
 
         checkFile(file, null, file.fileName)
-        checkFile(file, file.id, null)
-        checkFile(file, file.id, "unkown")
+        checkFile(file, file.fileId, null)
+        checkFile(file, file.fileId, "unkown")
         checkFile(file, "unkown", file.fileName)
 
         val unknownFile = FileObject()
-        unknownFile.id = "unknown id"
+        unknownFile.fileId = "unknown id"
         unknownFile.fileName = "unknown filename"
         unknownFile.parentNodePath = file.parentNodePath
         unknownFile.relPath = file.relPath
         Assertions.assertFalse(repoService.retrieveFile(unknownFile))
-        unknownFile.id = file.id
+        unknownFile.fileId = file.fileId
         unknownFile.relPath = "unknown"
         Assertions.assertFalse(repoService.retrieveFile(unknownFile))
         unknownFile.parentNodePath = "unknown"
@@ -101,13 +101,13 @@ class RepoTest {
 
     private fun checkFile(expected: FileObject, id: String?, fileName: String?, repo: RepoService = repoService) {
         val file = FileObject()
-        file.id = id
+        file.fileId = id
         file.fileName = fileName
         file.parentNodePath = expected.parentNodePath
         file.relPath = expected.relPath
         Assertions.assertTrue(repo.retrieveFile(file))
         Assertions.assertEquals(expected.size, file.size)
-        Assertions.assertEquals(expected.id, file.id)
+        Assertions.assertEquals(expected.fileId, file.fileId)
         Assertions.assertEquals(expected.fileName, file.fileName)
         Assertions.assertEquals(expected.description, file.description)
         Assertions.assertEquals(expected.created, file.created)
