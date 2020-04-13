@@ -1,21 +1,26 @@
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { connect } from 'react-redux';
-import { Button, Table } from '../../../../design';
-import { DynamicLayoutContext } from '../../context';
-import DropArea from '../../../../design/droparea';
 import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
-import { callAction } from '../../../../../actions';
+import { Button, Table } from '../../../../design';
+import DropArea from '../../../../design/droparea';
+import { DynamicLayoutContext } from '../../context';
 
 function DynamicAttachmentList(
     {
         id,
         listId,
         restBaseUrl,
-        onCallAction,
+        rowClickAction,
     },
 ) {
-    const { data, setData, ui } = React.useContext(DynamicLayoutContext);
+    const {
+        callAction,
+        data,
+        setData,
+        ui,
+    } = React.useContext(DynamicLayoutContext);
     const { attachments } = data;
 
     const uploadFile = (files) => {
@@ -32,21 +37,39 @@ function DynamicAttachmentList(
         )
             .then(handleHTTPErrors)
             .then(response => response.json())
-            .then(json => onCallAction({ responseAction: json }))
+            .then(json => callAction({ responseAction: json }))
             .catch((catchError) => {
                 alert(catchError);
             });
     };
 
-    const deleteFile = (file) => {
-        console.log(file);
+    const handleRowClick = (event) => {
+        event.stopPropagation();
+        callAction({ responseAction: rowClickAction });
+    };
+
+    const handleDownload = entryId => (event) => {
+        event.stopPropagation();
+        window.open(
+            getServiceURL(`/rs/${restBaseUrl}/download/${id}/${listId}`, {
+                fileId: entryId,
+            }), '_blank',
+        );
+    };
+
+    const handleDelete = entryId => (event) => {
+        event.stopPropagation();
+        console.log(entryId);
     };
 
     return React.useMemo(() => {
         if (id && id > 0) {
             return (
-                <DropArea setFiles={uploadFile} noStyle>
-                    {ui.translations['file.upload.dropArea']}
+                <DropArea
+                    setFiles={uploadFile}
+                    noStyle
+                    title={ui.translations['file.upload.dropArea']}
+                >
                     {attachments && attachments.length > 0 && (
                         <Table striped hover>
                             <thead>
@@ -61,19 +84,27 @@ function DynamicAttachmentList(
                             </thead>
                             <tbody>
                                 {attachments.map(entry => (
-                                    <tr
-                                        key={entry.id}
-                                        onClick={() => window.open(getServiceURL(`/rs/${restBaseUrl}/download/${id}/${listId}`, {
-                                            fileId: entry.id,
-                                        }), '_blank')}
-                                    >
-                                        <td>{entry.name}</td>
+                                    <tr key={entry.id} onClick={handleRowClick}>
+                                        <td>
+                                            <span
+                                                role="presentation"
+                                                onKeyDown={() => {
+                                                }}
+                                                onClick={handleDownload(entry.id)}
+                                            >
+                                                {`${entry.name} `}
+                                                <FontAwesomeIcon icon={faDownload} />
+                                            </span>
+                                        </td>
                                         <td>{entry.sizeHumanReadable}</td>
                                         <td>{entry.description}</td>
                                         <td>{entry.createdFormatted}</td>
                                         <td>{entry.createdByUser}</td>
                                         <td>
-                                            <Button color="danger" onClick={() => deleteFile(entry.id)}>
+                                            <Button
+                                                color="danger"
+                                                onClick={handleDelete(entry.id)}
+                                            >
                                                 {ui.translations.delete}
                                             </Button>
                                         </td>
@@ -94,20 +125,17 @@ function DynamicAttachmentList(
 }
 
 DynamicAttachmentList.propTypes = {
-    id: PropTypes.number,
     listId: PropTypes.string.isRequired,
     restBaseUrl: PropTypes.string.isRequired,
+    id: PropTypes.number,
     readOnly: PropTypes.bool,
-    onCallAction: PropTypes.func.isRequired,
+    rowClickAction: PropTypes.shape({}),
 };
 
 DynamicAttachmentList.defaultProps = {
     id: undefined, // Undefined for new object.
     readOnly: false,
+    rowClickAction: undefined,
 };
 
-const actions = {
-    onCallAction: callAction,
-};
-
-export default connect(undefined, actions)(DynamicAttachmentList);
+export default DynamicAttachmentList;

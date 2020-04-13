@@ -42,6 +42,7 @@ class UIAttachmentList(
         /**
          * If true, only download of attachments is allowed.
          */
-        val readOnly: Boolean = false) :
+        val readOnly: Boolean = false,
+        val rowClickAction: ResponseAction? = null) :
         UIElement(type = UIElementType.ATTACHMENT_LIST) {
 }

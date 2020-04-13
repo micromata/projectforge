@@ -151,7 +151,9 @@ class ContractPagesRest() : AbstractDTOPagesRest<ContractDO, Contract, ContractD
                         .add(UIFieldset(UILength(lg = 6))
                                 .add(lc, "filing")))
                 .add(UIFieldset(title = "attachment.list")
-                        .add(UIAttachmentList(dto.id)))
+                        .add(UIAttachmentList(dto.id,
+                                // TODO BUILD MODAL INFO PAGE
+                                rowClickAction = ResponseAction("/attachment/dynamic", TargetType.MODAL))))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 

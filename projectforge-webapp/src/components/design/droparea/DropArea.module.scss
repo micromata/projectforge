@@ -18,13 +18,16 @@ div.dropArea {
     display: table-cell;
     vertical-align: middle;
     margin-top: 20px;
+    cursor: pointer;
 
     .icon {
       margin-right: 10px;
     }
+  }
 
-    * {
-      text-align: left;
+  &.inDrag {
+    div.background {
+      background-color: #eee;
     }
   }
 
@@ -33,13 +36,6 @@ div.dropArea {
     border-radius: 5px;
     display: table;
     cursor: pointer;
-
-    &.inDrag {
-
-      div.background {
-        background-color: #eee;
-      }
-    }
 
     div.background {
       background-color: #F1F1F1;
