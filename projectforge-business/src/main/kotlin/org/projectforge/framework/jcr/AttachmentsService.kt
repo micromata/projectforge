@@ -244,7 +244,7 @@ open class AttachmentsService {
             val attachments = getAttachments(path, id, subPath)
             if (attachments != null) {
                 dbObj.attachmentNames = attachments.joinToString(separator = " ") { "${it.name}" }
-                dbObj.attachmentIds = attachments.joinToString(separator = " ") { "${it.id}" }
+                dbObj.attachmentIds = attachments.joinToString(separator = " ") { "${it.fileId}" }
                 dbObj.numbOfAttachments = attachments.size
             } else {
                 dbObj.attachmentNames = null

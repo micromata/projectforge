@@ -38,7 +38,7 @@ class Attachment() {
     /**
      * Unique id, set by jcr
      */
-    var id: String? = null
+    var fileId: String? = null
 
     /**
      * Filename.
@@ -76,7 +76,7 @@ class Attachment() {
     var location: String? = null
 
     constructor(fileObject: FileObject) : this() {
-        this.id = fileObject.fileId
+        this.fileId = fileObject.fileId
         this.name = fileObject.fileName
         this.size = fileObject.size
         this.description = fileObject.description
