@@ -46,8 +46,7 @@ class UIDataTypeUtils {
                 String::class.java -> UIDataType.STRING
                 Boolean::class.java, java.lang.Boolean::class.java -> UIDataType.BOOLEAN
                 Date::class.java -> UIDataType.TIMESTAMP
-                LocalDate::class.java,
-                java.sql.Date::class.java -> UIDataType.DATE
+                LocalDate::class.java, java.sql.Date::class.java -> UIDataType.DATE
                 java.sql.Timestamp::class.java -> UIDataType.TIMESTAMP
                 PFUserDO::class.java -> UIDataType.USER
                 EmployeeDO::class.java -> UIDataType.EMPLOYEE

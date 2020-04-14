@@ -23,6 +23,10 @@
 
 package org.projectforge.common.i18n
 
+import mu.KotlinLogging
+
+private val log = KotlinLogging.logger {}
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -37,7 +41,12 @@ interface I18nEnum {
          */
         fun create(clazz: Class<*>, value: String?): Enum<*>? {
             value ?: return null
-            return clazz.enumConstants.first { it.toString() == value } as? Enum<*>
+            return try {
+                clazz.enumConstants.first { it.toString() == value } as? Enum<*>
+            } catch (ex: Exception) {
+                log.error("Can't find enum name '$value' in ${clazz.enumConstants?.joinToString { "$it" }} of class '${clazz.name}")
+                null
+            }
         }
     }
 }

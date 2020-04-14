@@ -23,7 +23,10 @@
 
 package org.projectforge.business.orga
 
-import org.hibernate.search.annotations.*
+import org.hibernate.search.annotations.Analyze
+import org.hibernate.search.annotations.Field
+import org.hibernate.search.annotations.FieldBridge
+import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO

@@ -27,6 +27,7 @@ import de.micromata.genome.db.jpa.history.api.DiffEntry
 import de.micromata.genome.db.jpa.history.api.HistoryEntry
 import de.micromata.genome.db.jpa.history.entities.EntityOpType
 import de.micromata.genome.db.jpa.history.entities.PropertyOpType
+import mu.KotlinLogging
 import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.i18n.I18nEnum
@@ -38,13 +39,13 @@ import org.springframework.stereotype.Component
 import java.lang.reflect.Field
 import java.util.*
 
+private val log = KotlinLogging.logger {}
+
 /**
  * History entries will be transformed into human readable formats.
  */
 @Component
 class HistoryService {
-    private val log = org.slf4j.LoggerFactory.getLogger(HistoryService::class.java)
-
     data class DisplayHistoryEntry(
             var modifiedAt: Date? = null,
             var timeAgo: String? = null,
@@ -118,7 +119,7 @@ class HistoryService {
         if (value == null) {
             return ""
         }
-        val i18nEnum = I18nEnum.create(field.type, value) as I18nEnum
+        val i18nEnum = I18nEnum.create(field.type, value) as? I18nEnum ?: return value
         return translate(i18nEnum.i18nKey)
     }
 

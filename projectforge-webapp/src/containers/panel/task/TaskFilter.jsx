@@ -23,6 +23,7 @@ function TaskFilter(
             event.target.blur();
             setIsOpen(false);
             handleSubmitButton(event);
+            event.preventDefault();
         }
     };
 
