@@ -33,7 +33,6 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.jcr.FileObject
 import org.projectforge.jcr.PFJcrUtils
 import org.projectforge.rest.AttachmentPageRest
 import org.projectforge.rest.config.Rest
@@ -45,8 +44,6 @@ import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.multipart.MultipartFile
-import java.io.InputStream
 import java.time.LocalDate
 import javax.servlet.http.HttpServletRequest
 

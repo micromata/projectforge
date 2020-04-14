@@ -104,6 +104,7 @@ constructor(private val baseDaoClazz: Class<B>,
     @PostConstruct
     private fun postConstruct() {
         this.lc = LayoutContext(baseDao.doClass)
+        PagesResolver.register(category, this)
     }
 
     companion object {
@@ -136,9 +137,20 @@ constructor(private val baseDaoClazz: Class<B>,
 
     private var _baseDao: B? = null
 
-    private var category: String? = null
+    private var _category: String? = null
 
-    private val userPrefArea = getCategory()
+    /**
+     * Category should be unique and is e. g. used as react path.
+     */
+    val category: String
+        get() {
+            if (_category == null) {
+                _category = getRestPath().removePrefix("${Rest.URL}/")
+            }
+            return _category!!
+        }
+
+    private val userPrefArea = category
 
     /**
      * The layout context is needed to examine the data objects for maxLength, nullable, dataType etc.
@@ -236,13 +248,6 @@ constructor(private val baseDaoClazz: Class<B>,
         return getRestPath(subPath)
     }
 
-    private fun getCategory(): String {
-        if (category == null) {
-            category = getRestPath().removePrefix("${Rest.URL}/")
-        }
-        return category!!
-    }
-
     open fun createEditLayout(dto: DTO, userAccess: UILayout.UserAccess): UILayout {
         val titleKey = if (getId(dto) != null) "$i18nKeyPrefix.edit" else "$i18nKeyPrefix.add"
         val ui = UILayout(titleKey, getRestPath())
@@ -324,7 +329,7 @@ constructor(private val baseDaoClazz: Class<B>,
     protected fun getInitialList(filter: MagicFilter): InitialListData {
         val favorites = getFilterFavorites()
         val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter))
-        resultSet.highlightRowId = userPrefService.getEntry(getCategory(), USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
+        resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
         val ui = createListLayout()
                 .addTranslations("table.showing",
                         "searchFilter",
@@ -334,10 +339,10 @@ constructor(private val baseDaoClazz: Class<B>,
         if (classicsLinkListUrl != null) {
             ui.add(MenuItem(CLASSIC_VERSION_MENU, title = "*", url = classicsLinkListUrl, tooltip = translate("goreact.menu.classics")), 0)
         }
-        ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Const.REACT_APP_PATH}${getCategory()}/edit"))
+        ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Const.REACT_APP_PATH}$category/edit"))
 
         return InitialListData(ui = ui,
-                standardEditPage = "${Const.REACT_APP_PATH}${getCategory()}/edit/:id",
+                standardEditPage = "${Const.REACT_APP_PATH}$category/edit/:id",
                 quickSelectUrl = quickSelectUrl,
                 data = resultSet,
                 filter = filter,
@@ -382,7 +387,7 @@ constructor(private val baseDaoClazz: Class<B>,
         val list = getList(this, baseDao, filter)
         saveCurrentFilter(filter)
         val resultSet = processResultSetBeforeExport(list)
-        resultSet.highlightRowId = userPrefService.getEntry(getCategory(), USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
+        resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
         return resultSet
     }
 
@@ -668,7 +673,7 @@ constructor(private val baseDaoClazz: Class<B>,
     @GetMapping(AutoCompletion.AUTOCOMPLETE_OBJECT)
     open fun getAutoCompleteObjects(request: HttpServletRequest, @RequestParam("search") searchString: String?, @RequestParam("maxResults") maxResults: Int?): List<DisplayObject> {
         if (autoCompleteSearchFields.isNullOrEmpty()) {
-            throw RuntimeException("Can't call getAutoCompletion without property, because no autoCompleteSearchFields are configured by the developers for this entity.")
+            throw RestException("Can't call getAutoCompletion without property.", "No autoCompleteSearchFields are configured by the developers for this entity.")
         }
         val filter = createAutoCompleteObjectsFilter(request)
         val modifiedSearchString = searchString?.split(' ', '\t', '\n')?.joinToString(" ") { "+$it*" }
@@ -922,7 +927,7 @@ constructor(private val baseDaoClazz: Class<B>,
      */
     internal open fun afterEdit(obj: O, postData: PostData<DTO>): ResponseAction {
         obj.id?.let {
-            userPrefService.putEntry(getCategory(), USER_PREF_PARAM_HIGHLIGHT_ROW, it, false)
+            userPrefService.putEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, it, false)
         }
         val returnToCaller = postData.serverData?.returnToCaller
         if (!returnToCaller.isNullOrBlank()) {
@@ -962,7 +967,7 @@ constructor(private val baseDaoClazz: Class<B>,
         get() = DEFAULT_LIST_OF_ATTACHMENTS
 
     /**
-     * An unique id which is used as parent node for all attachments. ProjectForge's objects use [PFJcrUtils.getJcrNodeName]
+     * An unique id which is used as parent node for all attachments. ProjectForge's objects use [org.projectforge.jcr.PFJcrUtils.getJcrNodeName]
      * for creating unique nodes.
      * @return unique jcr path if attachments are supported or null, if no attachment support is given (download, upload and list).
      * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
@@ -998,7 +1003,9 @@ constructor(private val baseDaoClazz: Class<B>,
      */
     protected open fun handleUpload(id: Int, filename: String?, file: MultipartFile, listId: String? = null): String? {
         val item = baseDao.getById(id)
-        baseDao.hasLoggedInUserUpdateAccess(item, item, true)
+        if (item == null || !baseDao.hasLoggedInUserUpdateAccess(item, item, false)) {
+            throw RestException("Entity with id $id isn't accessible for category '$category' for uploading attachements or doesn't exist.", "User without access or id unknown.")
+        }
         attachmentsService.addAttachment(jcrPath!!, id, fileName = file.originalFilename, inputStream = file.inputStream, baseDao = baseDao, obj = item)
         return null
     }
@@ -1032,20 +1039,18 @@ constructor(private val baseDaoClazz: Class<B>,
      * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
      */
     protected open fun handleDownload(id: Int, fileId: String, listId: String? = null): Pair<FileObject, InputStream?>? {
-        val item = baseDao.getById(id) ?: return null // Check acces‚s
+        baseDao.getById(id)
+                ?: throw RestException("Entity with id $id isn't accessible for category '$category' for downloading attachements or doesn't exist.", "User without access or id unknown.")
+
         return attachmentsService.getAttachmentInputStream(jcrPath!!, id, fileId)
     }
 
-    private fun checkJcrActivity(listId: String? = null) {
+    fun checkJcrActivity(listId: String? = null) {
         if (jcrPath == null) {
-            val msg = "Attachments are not supported by this entity: ${baseDao.doClass::class.java.name}."
-            log.error { "$msg For developers: you must specify jcrPath in yours *PagesRest." }
-            throw UnsupportedOperationException(msg)
+            throw RestException("Attachments are not supported by this entity: ${baseDao.doClass.name}.", "You must specify jcrPath in yours *PagesRest.")
         }
         if (listId != null && !supportedAttachmentList.contains(listId)) {
-            val msg = "Attachments are not supported by this entity ${baseDao.doClass::class.java.name} for list '$listId'."
-            log.error { "$msg For developers: you must add this listId to supportedAttachmentList of yours *PagesRest." }
-            throw UnsupportedOperationException(msg)
+            throw RestException("Attachments are not supported by entity ${baseDao.doClass.name} for list '$listId'.", "You must add this listId to supportedAttachmentList of yours *PagesRest.")
         }
     }
 
