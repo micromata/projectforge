@@ -61,7 +61,8 @@ class KundePagesRest
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "kost", "identifier", "name", "division", "konto", "status", "description"))
+                        .add(UITableColumn("kost", title = "fibu.kunde.nummer"))
+                        .add(lc, "identifier", "name", "division", "konto", "status", "description"))
         layout.getTableColumnById("konto").formatter = Formatter.KONTO
         return LayoutUtils.processListPage(layout, this)
     }
