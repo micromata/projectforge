@@ -25,7 +25,6 @@ package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektStatus
-import org.projectforge.reporting.Kost2Art
 
 class Projekt(id: Int? = null,
               displayName: String? = null,
@@ -34,21 +33,66 @@ class Projekt(id: Int? = null,
               var identifier: String? = null,
               var status: ProjektStatus? = null)
     : BaseDTODisplayObject<ProjektDO>(id, displayName = displayName) {
-    var kunde: Kunde? = null
-    var konto: Konto? = null
-    var task: Task? = null
+    var kunde: Kunde? = Kunde()
+    var konto: Konto? = Konto()
+    var task: Task? = Task()
     var projektManagerGroup: Group? = null
     var nummernkreis: Int = 0
     var bereich: Int? = 0
     var kost: String? = null
-    var kost2Arts: List<Kost2Art>? = null
+    var kost2Arts: MutableList<Kost2Art>? = ArrayList()
+    var kost2Arten: String? = null
 
 
     fun initialize(obj: ProjektDO) {
         copyFrom(obj)
 
+        this.kost = obj.kost
+        this.nummernkreis = obj.nummernkreis
+        this.bereich = obj.bereich
+
         if(obj.kunde != null){
             this.kunde!!.initialize(obj.kunde!!)
+        }
+
+        if(obj.konto != null){
+            this.konto!!.initialize(obj.konto!!)
+        }
+
+        if(obj.task != null){
+            this.task!!.copyFromMinimal(obj.task!!)
+        }
+    }
+
+    fun getKost2ArtsAsString(): String {
+        if (kost2Arts == null) {
+            return ""
+        }
+        val buf = StringBuilder()
+        var first = true
+        for (value in kost2Arts!!) {
+            if (first) {
+                first = false
+            } else {
+                buf.append(", ")
+            }
+            buf.append(value.getFormattedId())
+        }
+        return buf.toString()
+    }
+
+    fun transformKost2(allKost2Arts: List<org.projectforge.reporting.Kost2Art>?) {
+        for (kost2 in allKost2Arts!!){
+            val kost2Art = Kost2Art()
+            kost2Art.id = kost2.id
+            kost2Art.name = kost2.name
+            kost2Art.description = kost2.description
+            kost2Art.fakturiert = kost2.isFakturiert
+            kost2Art.projektStandard = kost2.isProjektStandard
+            kost2Art.deleted = kost2.isDeleted
+            kost2Art.selected = kost2.isSelected
+            kost2Art.existsAlready = kost2.isExistsAlready
+            kost2Arts!!.add(kost2Art)
         }
     }
 }

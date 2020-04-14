@@ -36,8 +36,8 @@ class Kost2Art(
         var projektStandard: Boolean = false,
         var description: String? = null
 ) : BaseDTODisplayObject<Kost2ArtDO>(id, displayName = displayName) {
-    protected var selected: Boolean = false
-    protected var existsAlready: Boolean = false
+    var selected: Boolean = false
+    var existsAlready: Boolean = false
 
     fun getFormattedId(): String {
         return StringHelper.format2DigitNumber(id!!)
