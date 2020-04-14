@@ -12,7 +12,6 @@ function DynamicAttachmentList(
         id,
         listId,
         restBaseUrl,
-        rowClickAction,
     },
 ) {
     const {
@@ -43,9 +42,14 @@ function DynamicAttachmentList(
             });
     };
 
-    const handleRowClick = (event) => {
+    const handleRowClick = entry => (event) => {
         event.stopPropagation();
-        callAction({ responseAction: rowClickAction });
+        callAction({
+            responseAction: {
+                targetType: 'MODAL',
+                url: `/react/attachment/dynamic/${id}?category=contract&fileId=${entry.fileId}&listId=${listId}`,
+            },
+        });
     };
 
     const handleDownload = entryId => (event) => {
@@ -84,13 +88,13 @@ function DynamicAttachmentList(
                             </thead>
                             <tbody>
                                 {attachments.map(entry => (
-                                    <tr key={entry.id} onClick={handleRowClick}>
+                                    <tr key={entry.fileId} onClick={handleRowClick(entry)}>
                                         <td>
                                             <span
                                                 role="presentation"
                                                 onKeyDown={() => {
                                                 }}
-                                                onClick={handleDownload(entry.id)}
+                                                onClick={handleDownload(entry.fileId)}
                                             >
                                                 {`${entry.name} `}
                                                 <FontAwesomeIcon icon={faDownload} />
@@ -103,7 +107,7 @@ function DynamicAttachmentList(
                                         <td>
                                             <Button
                                                 color="danger"
-                                                onClick={handleDelete(entry.id)}
+                                                onClick={handleDelete(entry.fileId)}
                                             >
                                                 {ui.translations.delete}
                                             </Button>
