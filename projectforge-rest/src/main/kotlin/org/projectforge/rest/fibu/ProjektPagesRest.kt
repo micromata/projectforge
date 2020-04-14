@@ -26,7 +26,6 @@ package org.projectforge.rest.fibu
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.KostCache
-import org.projectforge.reporting.impl.Kost2ArtImpl
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Projekt
@@ -47,12 +46,9 @@ class ProjektPagesRest
 
     override fun transformFromDB(obj: ProjektDO, editMode: Boolean): Projekt {
         val projekt = Projekt(null, obj.displayName)
-        projekt.copyFrom(obj)
-        projekt.kost2Arts = kostCache?.getAllKost2Arts(obj.id)
-        projekt.kost = obj.kost
-        projekt.nummernkreis = obj.nummernkreis
-        projekt.bereich = obj.bereich
-        projekt.kunde?.copyFrom(obj.kunde!!)
+        projekt.initialize(obj)
+        projekt.transformKost2(kostCache?.getAllKost2Arts(obj.id))
+        projekt.kost2Arten = projekt.getKost2ArtsAsString()
 
         return projekt
     }
@@ -72,7 +68,10 @@ class ProjektPagesRest
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "kost", "identifier", "kunde.name", "name", "kunde.division", "task", "konto", "status", "projektManagerGroup", "Kost2Art?", "description"))
+                        .add(UITableColumn("kost", title = "fibu.projekt.nummer"))
+                        .add(lc, "identifier", "kunde.name", "name", "kunde.division", "task", "konto", "status", "projektManagerGroup")
+                        .add(UITableColumn("kost2Arten", title = "fibu.kost2art.kost2arten"))
+                        .add(lc,"description"))
         layout.getTableColumnById("konto").formatter = Formatter.KONTO
         layout.getTableColumnById("task").formatter = Formatter.TASK_PATH
         layout.getTableColumnById("projektManagerGroup").formatter = Formatter.GROUP
@@ -96,7 +95,11 @@ class ProjektPagesRest
                                 .add(lc, "projectManager", "headOfBusinessManager", "description")))
 
         dto.kost2Arts?.forEach {
-            var uiCheckbox = UICheckbox("selected", label = it.name)
+            var label = it.getFormattedId() + " " + it.name
+            if(!it.fakturiert){
+                label += " (nf)"
+            }
+            val uiCheckbox = UICheckbox("" + it.getFormattedId(), label = label)
             layout.add(UIRow().add(UICol().add(uiCheckbox)))
         }
 
