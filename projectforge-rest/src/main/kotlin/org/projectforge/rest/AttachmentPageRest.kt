@@ -24,15 +24,16 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestException
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
-import org.projectforge.ui.LayoutUtils
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.UIReadOnlyField
+import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -68,10 +69,39 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
         pagesRest.baseDao.getById(id)
                 ?: throw RestException("Entity with id $id not accessible for category '$category' or doesn't exist.", "User without access or id unknown.")
         val data = attachmentsService.getAttachmentInfo(pagesRest.jcrPath!!, id, fileId, listId)
-        val layout = UILayout("user.authenticationToken.button.showUsage")
+                ?: throw RestException("Attachment '$fileId' for object with id $id not found for category '$category' and list '$listId'.", "Attachment not found.")
+        val layout = UILayout("attachment")
+
+        val lc = LayoutContext(Attachment::class.java)
 
         layout
-                .add(UIReadOnlyField("token", label = "'hurzel'"))
+                .add(lc, "name")
+                .add(UITextArea("description", lc))
+                .add(UIRow()
+                        .add(UICol(UILength(md = 6))
+                                .add(UIReadOnlyField("sizeHumanReadable", label = "attachment.fileSize")))
+                        .add(UICol(UILength(md = 6))
+                                .add(UIReadOnlyField("fileId", label = "attachment.fileId"))))
+                .add(UIRow()
+                        .add(UICol(UILength(md = 6))
+                                .add(UIReadOnlyField("createdFormatted", label = "created"))
+                                .add(UIReadOnlyField("createdByUser", label = "createdBy")))
+                        .add(UICol(UILength(md = 6))
+                                .add(UIReadOnlyField("lastUpdateFormatted", label = "modified"))
+                                .add(UIReadOnlyField("lastUpdateByUser", label = "modifiedBy"))))
+
+                .addAction(UIButton("delete",
+                        translate("delete"),
+                        UIColor.DANGER,
+                        confirmMessage = translate("file.panel.deleteExistingFile.heading"),
+                        responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
+                        default = true))
+                .addAction(UIButton("update",
+                        translate("update"),
+                        UIColor.SUCCESS,
+                        responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
+                        default = true)
+                )
         LayoutUtils.process(layout)
 
         return FormLayoutData(data, layout, createServerData(request))

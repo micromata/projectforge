@@ -25,6 +25,7 @@ package org.projectforge.framework.jcr
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.common.DateFormatType
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileObject
@@ -38,17 +39,21 @@ class Attachment() {
     /**
      * Unique id, set by jcr
      */
+    @PropertyInfo(i18nKey = "attachment.fileId")
     var fileId: String? = null
 
     /**
      * Filename.
      */
+    @PropertyInfo(i18nKey = "attachment.fileName")
     var name: String? = null
     var size: Int? = null
 
     @get:JsonProperty
     val sizeHumanReadable: String
         get() = NumberHelper.formatBytes(size)
+
+    @PropertyInfo(i18nKey = "description")
     var description: String? = null
 
     var created: Date? = null
