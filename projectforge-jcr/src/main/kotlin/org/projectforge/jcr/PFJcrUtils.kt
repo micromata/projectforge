@@ -22,15 +22,6 @@ object PFJcrUtils {
 
     private val mapper = ObjectMapper()
 
-    /**
-     * Each data object with attachments should have it's own node name. Don't use class name as category, because after
-     * refactoring packages, attachments are not assignable anymore.
-     * @return "org.projectforge.[category]"
-     */
-    fun getJcrNodeName(category: String): String {
-        return "org.projectforge.$category"
-    }
-
     fun toJson(obj: Any): String {
         return try {
             mapper.writeValueAsString(obj)

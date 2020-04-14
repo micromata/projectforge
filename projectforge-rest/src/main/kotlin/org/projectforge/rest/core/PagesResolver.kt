@@ -91,7 +91,7 @@ object PagesResolver {
         pagesRegistry[category] = pagesRest
     }
 
-    fun getPagesRest(category: String): AbstractPagesRest<*, *, *>? {
+    fun getPagesRest(category: String): AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>? {
         return pagesRegistry[category]
     }
 

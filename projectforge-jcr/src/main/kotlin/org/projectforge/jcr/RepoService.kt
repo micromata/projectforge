@@ -195,6 +195,39 @@ open class RepoService {
         }
     }
 
+    /**
+     * Change fileName and/or description if given.
+     * @return new file info without content.
+     */
+    @JvmOverloads
+    open fun changeFileInfo(fileObject: FileObject, newFileName: String? = null, newDescription: String?): FileObject? {
+        return runInSession { session ->
+            val node = getNode(session, fileObject.parentNodePath, fileObject.relPath, false)
+            if (!node.hasNode(NODENAME_FILES)) {
+                log.error { "Can't change file info, because '$NODENAME_FILES' not found for node '${node.path}': $fileObject" }
+                null
+            } else {
+                val filesNode = node.getNode(NODENAME_FILES)
+                val fileNode = findFile(filesNode, fileObject.fileId, fileObject.fileName)
+                if (fileNode == null) {
+                    log.error { "Can't change file info, file node doesn't exit: $fileObject" }
+                    null
+                } else {
+                    if (!newFileName.isNullOrBlank()) {
+                        log.info{"Changing file name to '$newFileName' for: $fileObject"}
+                        fileNode.setProperty(PROPERTY_FILENAME, newFileName)
+                    }
+                    if (newDescription != null) {
+                        log.info{"Changing file description to '$newDescription' for: $fileObject"}
+                        fileNode.setProperty(PROPERTY_FILEDESC, newDescription)
+                    }
+                    session.save()
+                    FileObject(fileNode)
+                }
+            }
+        }
+    }
+
     open fun getNodeInfo(absPath: String, recursive: Boolean = false): NodeInfo {
         return runInSession { session ->
             log.info { "Getting node info of path '$absPath'..." }

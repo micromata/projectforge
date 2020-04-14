@@ -24,21 +24,21 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
+import org.projectforge.Const
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.PagesResolver
-import org.projectforge.rest.core.RestException
-import org.projectforge.rest.core.RestResolver
+import org.projectforge.rest.core.*
 import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -52,6 +52,37 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var attachmentsService: AttachmentsService
 
+    class AttachmentPageData(var category: String,
+                             var id: Int,
+                             var fileId: String,
+                             var listId: String? = null) {
+        lateinit var attachment: Attachment
+    }
+
+    @PostMapping
+    fun save(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentPageData>)
+            : ResponseEntity<ResponseAction>? {
+        validateCsrfToken(request, postData)?.let { return it }
+        val data = postData.data
+        val attachment = data.attachment
+        val pagesRest = getPagesRest(data.category, data.listId)
+        log.warn("*************** Do check access by pagesRest *************")
+        getAttachment(pagesRest, data) // Check attachment availability
+        val obj = getDataObject(pagesRest, data.id) // Check data object availability.
+
+        attachmentsService.changeFileInfo(pagesRest.jcrPath!!, data.fileId, pagesRest.baseDao, obj, attachment.name, attachment.description, data.listId)
+        //attachmentsService.getAttachmentInfo(pages)
+        return ResponseEntity(ResponseAction("/${Const.REACT_APP_PATH}calendar"), HttpStatus.OK)
+    }
+
+    @PostMapping("delete")
+    fun delete(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentPageData>)
+            : ResponseEntity<ResponseAction>? {
+        validateCsrfToken(request, postData)?.let { return it }
+        log.warn("*************** Do check access by pagesRest *************")
+        return ResponseEntity(ResponseAction("/${Const.REACT_APP_PATH}calendar"), HttpStatus.OK)
+    }
+
     /**
      * The react path of this should look like: 'react/attachment/dynamic/42?category=contract...'
      * @param id: Id of data object with attachments.
@@ -63,38 +94,41 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
                 @RequestParam("listId") listId: String?,
                 request: HttpServletRequest): FormLayoutData? {
         log.info { "User tries to edit/view details of attachment: category='$category', id='$id', listId='$listId', fileId='$fileId', page='${this::class.java.name}'." }
-        val pagesRest = PagesResolver.getPagesRest(category)
-                ?: throw UnsupportedOperationException("PagesRest class for category '$category' not known (registerd).")
-        pagesRest.checkJcrActivity(listId)
-        pagesRest.baseDao.getById(id)
-                ?: throw RestException("Entity with id $id not accessible for category '$category' or doesn't exist.", "User without access or id unknown.")
-        val data = attachmentsService.getAttachmentInfo(pagesRest.jcrPath!!, id, fileId, listId)
-                ?: throw RestException("Attachment '$fileId' for object with id $id not found for category '$category' and list '$listId'.", "Attachment not found.")
+        log.warn("*************** Do check access by pagesRest *************")
+        val pagesRest = getPagesRest(category, listId)
+        getDataObject(pagesRest, id) // Check data object availability.
+        val data = AttachmentPageData(category = category, id = id, fileId = fileId, listId = listId)
+        data.attachment = getAttachment(pagesRest, data)
         val layout = UILayout("attachment")
 
         val lc = LayoutContext(Attachment::class.java)
 
         layout
-                .add(lc, "name")
-                .add(UITextArea("description", lc))
+                .add(lc, "attachment.name")
+                .add(UITextArea("attachment.description", lc))
                 .add(UIRow()
                         .add(UICol(UILength(md = 6))
-                                .add(UIReadOnlyField("sizeHumanReadable", label = "attachment.fileSize")))
+                                .add(UIReadOnlyField("attachment.sizeHumanReadable", label = "attachment.fileSize")))
                         .add(UICol(UILength(md = 6))
-                                .add(UIReadOnlyField("fileId", label = "attachment.fileId"))))
+                                .add(UIReadOnlyField("attachment.fileId", label = "attachment.fileId"))))
                 .add(UIRow()
                         .add(UICol(UILength(md = 6))
-                                .add(UIReadOnlyField("createdFormatted", label = "created"))
-                                .add(UIReadOnlyField("createdByUser", label = "createdBy")))
+                                .add(UIReadOnlyField("attachment.createdFormatted", label = "created"))
+                                .add(UIReadOnlyField("attachment.createdByUser", label = "createdBy")))
                         .add(UICol(UILength(md = 6))
-                                .add(UIReadOnlyField("lastUpdateFormatted", label = "modified"))
-                                .add(UIReadOnlyField("lastUpdateByUser", label = "modifiedBy"))))
+                                .add(UIReadOnlyField("attachment.lastUpdateFormatted", label = "modified"))
+                                .add(UIReadOnlyField("attachment.lastUpdateByUser", label = "modifiedBy"))))
 
+                .addAction(UIButton("download",
+                        translate("download"),
+                        UIColor.LINK,
+                        responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java, "download"), targetType = TargetType.POST),
+                        default = true))
                 .addAction(UIButton("delete",
                         translate("delete"),
                         UIColor.DANGER,
                         confirmMessage = translate("file.panel.deleteExistingFile.heading"),
-                        responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
+                        responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java, "delete"), targetType = TargetType.POST),
                         default = true))
                 .addAction(UIButton("update",
                         translate("update"),
@@ -105,5 +139,23 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
         LayoutUtils.process(layout)
 
         return FormLayoutData(data, layout, createServerData(request))
+    }
+
+    private fun getPagesRest(category: String, listId: String?): AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>> {
+        val pagesRest = PagesResolver.getPagesRest(category)
+                ?: throw UnsupportedOperationException("PagesRest class for category '$category' not known (registered).")
+        pagesRest.checkJcrActivity(listId)
+        return pagesRest
+    }
+
+    private fun getAttachment(pagesRest: AbstractPagesRest<*, *, *>, data: AttachmentPageData): Attachment {
+        return attachmentsService.getAttachmentInfo(pagesRest.jcrPath!!, data.id, data.fileId, data.listId)
+                ?: throw RestException("Attachment '$data.fileId' for object with id $data.id not found for category '$data.category' and list '$data.listId'.", "Attachment not found.")
+    }
+
+    private fun getDataObject(pagesRest: AbstractPagesRest<*, *, *>, id: Int): ExtendedBaseDO<Int> {
+        return pagesRest.baseDao.getById(id)
+                ?: throw RestException("Entity with id $id not accessible for category '$pagesRest.category' or doesn't exist.", "User without access or id unknown.")
+
     }
 }

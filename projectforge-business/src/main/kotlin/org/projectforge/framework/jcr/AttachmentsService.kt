@@ -136,19 +136,17 @@ open class AttachmentsService {
 
     /**
      * @param path Unique path of data object.
-     * @param id Id of data object.
      */
     @JvmOverloads
-    open fun <O : ExtendedBaseDO<Int>> addAttachment(path: String,
-                                                     id: Any,
-                                                     fileName: String?,
-                                                     content: ByteArray,
-                                                     baseDao: BaseDao<O>,
-                                                     obj: O,
-                                                     subPath: String? = null)
+    open fun addAttachment(path: String,
+                           fileName: String?,
+                           content: ByteArray,
+                           baseDao: BaseDao<out ExtendedBaseDO<Int>>,
+                           obj: ExtendedBaseDO<Int>,
+                           subPath: String? = null)
             : Attachment {
-        val attachment = addAttachment(path, id, fileName, content, false, subPath)
-        updateAttachmentsInfo(path, id, baseDao, obj, subPath)
+        val attachment = addAttachment(path, obj.id, fileName, content, false, subPath)
+        updateAttachmentsInfo(path, baseDao, obj, subPath)
         return attachment
     }
 
@@ -167,19 +165,17 @@ open class AttachmentsService {
 
     /**
      * @param path Unique path of data object.
-     * @param id Id of data object.
      */
     @JvmOverloads
-    open fun <O : ExtendedBaseDO<Int>> addAttachment(path: String,
-                                                     id: Any,
-                                                     fileName: String?,
-                                                     inputStream: InputStream,
-                                                     baseDao: BaseDao<O>,
-                                                     obj: O,
-                                                     subPath: String? = null)
+    open fun addAttachment(path: String,
+                           fileName: String?,
+                           inputStream: InputStream,
+                           baseDao: BaseDao<out ExtendedBaseDO<Int>>,
+                           obj: ExtendedBaseDO<Int>,
+                           subPath: String? = null)
             : Attachment {
-        val attachment = addAttachment(path, id, fileName, inputStream, false)
-        updateAttachmentsInfo(path, id, baseDao, obj, subPath)
+        val attachment = addAttachment(path, obj.id, fileName, inputStream, false)
+        updateAttachmentsInfo(path, baseDao, obj, subPath)
         if (obj is DefaultBaseDO) {
             HistoryBaseDaoAdapter.createHistoryEntry(obj, obj.id, EntityOpType.Insert, ThreadLocalUserContext.getUserId().toString(),
                     subPath ?: DEFAULT_NODE, Attachment::class.java, null, fileName)
@@ -201,24 +197,60 @@ open class AttachmentsService {
 
     /**
      * @param path Unique path of data object.
+     */
+    @JvmOverloads
+    open fun deleteAttachment(path: String,
+                              fileId: String,
+                              baseDao: BaseDao<out ExtendedBaseDO<Int>>,
+                              obj: ExtendedBaseDO<Int>,
+                              subPath: String? = null)
+            : Boolean {
+        val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId)
+        val result = repoService.deleteFile(fileObject)
+        if (result) {
+            HistoryBaseDaoAdapter.createHistoryEntry(obj, obj.id, EntityOpType.Deleted, ThreadLocalUserContext.getUserId().toString(),
+                    subPath ?: DEFAULT_NODE, Attachment::class.java, null, fileObject.fileName)
+            updateAttachmentsInfo(path, baseDao, obj, subPath)
+        }
+        return result
+    }
+
+    /**
+     * @param path Unique path of data object.
      * @param id Id of data object.
      */
     @JvmOverloads
-    open fun <O : ExtendedBaseDO<Int>> deleteAttachment(path: String,
-                                                        id: Any,
-                                                        fileId: String,
-                                                        baseDao: BaseDao<O>,
-                                                        obj: O,
-                                                        subPath: String? = null)
-            : Boolean {
+    open fun changeFileInfo(path: String, id: Any, fileId: String, enableSearchIndex: Boolean, newFileName: String?, newDescription: String?, subPath: String? = null)
+            : FileObject? {
+        developerWarning(path, id, "changeProperty", enableSearchIndex)
         val fileObject = FileObject(getPath(path, id), subPath ?: DEFAULT_NODE, fileId = fileId)
-        val result = repoService.deleteFile(fileObject)
-        if (result) {
-            if (id is Number) {
-                HistoryBaseDaoAdapter.createHistoryEntry(obj, id, EntityOpType.Deleted, ThreadLocalUserContext.getUserId().toString(),
-                        subPath ?: DEFAULT_NODE, Attachment::class.java, null, fileObject.fileName)
+        return repoService.changeFileInfo(fileObject, newFileName, newDescription)
+    }
+
+    /**
+     * @param path Unique path of data object.
+     */
+    @JvmOverloads
+    open fun changeFileInfo(path: String,
+                            fileId: String,
+                            baseDao: BaseDao<out ExtendedBaseDO<Int>>,
+                            obj: ExtendedBaseDO<Int>,
+                            newFileName: String?,
+                            newDescription: String?,
+                            subPath: String? = null)
+            : FileObject? {
+        val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId)
+        val result = repoService.changeFileInfo(fileObject, newFileName, newDescription)
+        if (result != null) {
+            if (!newFileName.isNullOrBlank()) {
+                HistoryBaseDaoAdapter.createHistoryEntry(obj, obj.id, EntityOpType.Update, ThreadLocalUserContext.getUserId().toString(),
+                        subPath ?: DEFAULT_NODE, Attachment::class.java, fileObject.fileName, newFileName)
             }
-            updateAttachmentsInfo(path, id, baseDao, obj, subPath)
+            if (newDescription != null) {
+                HistoryBaseDaoAdapter.createHistoryEntry(obj, obj.id, EntityOpType.Update, ThreadLocalUserContext.getUserId().toString(),
+                        subPath ?: DEFAULT_NODE, Attachment::class.java, fileObject.description, newDescription)
+            }
+            updateAttachmentsInfo(path, baseDao, obj, subPath)
         }
         return result
     }
@@ -231,17 +263,16 @@ open class AttachmentsService {
         return "$path/$id"
     }
 
-    private fun <O : ExtendedBaseDO<Int>> updateAttachmentsInfo(path: String,
-                                                                id: Any,
-                                                                baseDao: BaseDao<O>,
-                                                                obj: O,
-                                                                subPath: String? = null) {
+    private fun updateAttachmentsInfo(path: String,
+                                      baseDao: BaseDao<out ExtendedBaseDO<Int>>,
+                                      obj: ExtendedBaseDO<Int>,
+                                      subPath: String? = null) {
         if (obj !is AttachmentsInfo) {
             return // Nothing to do.
         }
         val dbObj = baseDao.getById(obj.id)
         if (dbObj is AttachmentsInfo) {
-            val attachments = getAttachments(path, id, subPath)
+            val attachments = getAttachments(path, obj.id, subPath)
             if (attachments != null) {
                 dbObj.attachmentNames = attachments.joinToString(separator = " ") { "${it.name}" }
                 dbObj.attachmentIds = attachments.joinToString(separator = " ") { "${it.fileId}" }
@@ -251,7 +282,7 @@ open class AttachmentsService {
                 dbObj.attachmentIds = null
                 dbObj.numbOfAttachments = null
             }
-            baseDao.update(dbObj)
+            baseDao.updateAny(dbObj)
         } else {
             val msg = "Can't update search index of ${dbObj::class.java.name}. Dear developer, it's not of type ${AttachmentsInfo::class.java.name}!"
             if (SystemStatus.isDevelopmentMode()) {
