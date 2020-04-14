@@ -42,7 +42,6 @@ import org.projectforge.jcr.FileObject
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
-import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.dto.*
 import org.projectforge.ui.*
@@ -137,20 +136,11 @@ constructor(private val baseDaoClazz: Class<B>,
 
     private var _baseDao: B? = null
 
-    private var _category: String? = null
-
     /**
-     * Category should be unique and is e. g. used as react path.
+     * Category should be unique and is e. g. used as react path. At default it's [BaseDao.identifier].
      */
-    val category: String
-        get() {
-            if (_category == null) {
-                _category = getRestPath().removePrefix("${Rest.URL}/")
-            }
-            return _category!!
-        }
-
-    private val userPrefArea = category
+    open val category: String
+        get() = baseDao.identifier
 
     /**
      * The layout context is needed to examine the data objects for maxLength, nullable, dataType etc.
@@ -395,14 +385,14 @@ constructor(private val baseDaoClazz: Class<B>,
         var favorites: Favorites<MagicFilter>? = null
         try {
             @Suppress("UNCHECKED_CAST", "USELESS_ELVIS")
-            favorites = userPrefService.getEntry(userPrefArea, Favorites.PREF_NAME_LIST, Favorites::class.java) as? Favorites<MagicFilter>
+            favorites = userPrefService.getEntry(category, Favorites.PREF_NAME_LIST, Favorites::class.java) as? Favorites<MagicFilter>
         } catch (ex: Exception) {
             log.error("Exception while getting user preferred favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
         }
         if (favorites == null) {
             // Creating empty filter list (user has no filter list yet):
             favorites = Favorites()
-            userPrefService.putEntry(userPrefArea, Favorites.PREF_NAME_LIST, favorites)
+            userPrefService.putEntry(category, Favorites.PREF_NAME_LIST, favorites)
         }
         return favorites
     }
@@ -417,7 +407,7 @@ constructor(private val baseDaoClazz: Class<B>,
     }
 
     private fun getCurrentFilter(): MagicFilter {
-        var currentFilter = userPrefService.getEntry(userPrefArea, Favorites.PREF_NAME_CURRENT, MagicFilter::class.java)
+        var currentFilter = userPrefService.getEntry(category, Favorites.PREF_NAME_CURRENT, MagicFilter::class.java)
         if (currentFilter == null) {
             currentFilter = MagicFilter()
             saveCurrentFilter(currentFilter)
@@ -429,7 +419,7 @@ constructor(private val baseDaoClazz: Class<B>,
     }
 
     private fun saveCurrentFilter(currentFilter: MagicFilter) {
-        userPrefService.putEntry(userPrefArea, Favorites.PREF_NAME_CURRENT, currentFilter)
+        userPrefService.putEntry(category, Favorites.PREF_NAME_CURRENT, currentFilter)
     }
 
     @GetMapping("filter/select")
@@ -967,13 +957,22 @@ constructor(private val baseDaoClazz: Class<B>,
         get() = DEFAULT_LIST_OF_ATTACHMENTS
 
     /**
-     * An unique id which is used as parent node for all attachments. ProjectForge's objects use [org.projectforge.jcr.PFJcrUtils.getJcrNodeName]
-     * for creating unique nodes.
+     * An unique id which is used as parent node for all attachments. Use [enableJcrPath] for creating unique nodes.
      * @return unique jcr path if attachments are supported or null, if no attachment support is given (download, upload and list).
      * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
      */
-    open val jcrPath: String?
-        get() = null
+    open var jcrPath: String? = null
+
+    /**
+     * Each data object with attachments should have it's own node name. Don't use class name as category, because after
+     * refactoring packages, attachments are not assignable anymore.
+     * @param prefix Define a prefix for having uniqueness. At default 'org.projectforge' is used.
+     * @return "$prefix.$category"
+     */
+    @JvmOverloads
+    fun enableJcrPath(prefix: String = "org.projectforge") {
+        jcrPath = "$prefix.$category"
+    }
 
     /**
      * Upload service e. g. for [UIAttachmentList].
@@ -1006,7 +1005,7 @@ constructor(private val baseDaoClazz: Class<B>,
         if (item == null || !baseDao.hasLoggedInUserUpdateAccess(item, item, false)) {
             throw RestException("Entity with id $id isn't accessible for category '$category' for uploading attachements or doesn't exist.", "User without access or id unknown.")
         }
-        attachmentsService.addAttachment(jcrPath!!, id, fileName = file.originalFilename, inputStream = file.inputStream, baseDao = baseDao, obj = item)
+        attachmentsService.addAttachment(jcrPath!!, fileName = file.originalFilename, inputStream = file.inputStream, baseDao = baseDao, obj = item)
         return null
     }
 

@@ -45,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -54,6 +55,14 @@ private val log = KotlinLogging.logger {}
 class ContractPagesRest : AbstractDTOPagesRest<ContractDO, Contract, ContractDao>(ContractDao::class.java, "legalAffaires.contract.title") {
     @Autowired
     private lateinit var attachmentsService: AttachmentsService
+
+    @PostConstruct
+    private fun postConstruct() {
+        /**
+         * Enable attachments for this entity.
+         */
+        enableJcrPath()
+    }
 
     /**
      * Initializes new outbox mails for adding.
@@ -153,10 +162,4 @@ class ContractPagesRest : AbstractDTOPagesRest<ContractDO, Contract, ContractDao
                                         TargetType.MODAL))))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
-
-    /**
-     * Enable attachments for this entity.
-     */
-    override val jcrPath: String?
-        get() = PFJcrUtils.getJcrNodeName("contract")
 }
