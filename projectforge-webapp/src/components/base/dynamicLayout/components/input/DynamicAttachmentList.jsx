@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
-import { Button, Table } from '../../../../design';
+import { Table } from '../../../../design';
 import DropArea from '../../../../design/droparea';
 import { DynamicLayoutContext } from '../../context';
 
@@ -61,11 +61,6 @@ function DynamicAttachmentList(
         );
     };
 
-    const handleDelete = entryId => (event) => {
-        event.stopPropagation();
-        console.log(entryId);
-    };
-
     return React.useMemo(() => {
         if (id && id > 0) {
             return (
@@ -83,7 +78,6 @@ function DynamicAttachmentList(
                                     <th>{ui.translations.description}</th>
                                     <th>{ui.translations.created}</th>
                                     <th>{ui.translations.createdBy}</th>
-                                    <th>{' '}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -104,14 +98,6 @@ function DynamicAttachmentList(
                                         <td>{entry.description}</td>
                                         <td>{entry.createdFormatted}</td>
                                         <td>{entry.createdByUser}</td>
-                                        <td>
-                                            <Button
-                                                color="danger"
-                                                onClick={handleDelete(entry.fileId)}
-                                            >
-                                                {ui.translations.delete}
-                                            </Button>
-                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

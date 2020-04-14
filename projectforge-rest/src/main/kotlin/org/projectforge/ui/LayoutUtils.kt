@@ -249,6 +249,9 @@ class LayoutUtils {
                                 it.title = translate(i18nKey)
                             }
                         }
+                        if (!it.confirmMessage.isNullOrBlank()) {
+                            layout.addTranslations("cancel", "yes")
+                        }
                         val tooltip = getLabelTransformation(it.tooltip)
                         if (tooltip != null) it.tooltip = tooltip
 
