@@ -24,6 +24,7 @@
 package org.projectforge.rest.core
 
 import mu.KotlinLogging
+import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.utils.ExceptionStackTracePrinter
 import org.projectforge.rest.utils.RequestLog
 import org.springframework.core.annotation.AnnotationUtils
@@ -44,7 +45,7 @@ internal class GlobalDefaultExceptionHandler {
         // If the exception is annotated with @ResponseStatus rethrow it and let
         // the framework handle it.
         if (AnnotationUtils.findAnnotation(ex.javaClass, ResponseStatus::class.java) != null) throw ex
-        val additionalExcptionMessage = if (ex is RestException) " technical=${ex.technicalMessage}" else ""
+        val additionalExcptionMessage = if (ex is TechnicalException && ex.technicalMessage != null) " technical=${ex.technicalMessage}" else ""
         val exceptionMessage = "${ex::class.java.name}: ${ex.message}$additionalExcptionMessage"
         log.error("Exception while processing request: ${ex.message} Request: ${RequestLog.asJson(request)},\nexception=$exceptionMessage\n${ExceptionStackTracePrinter.toString(ex, false)}")
         return ResponseEntity(ex.message!!, HttpStatus.BAD_REQUEST)

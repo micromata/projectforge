@@ -21,18 +21,18 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.core
+package org.projectforge.framework.api
 
 import mu.KotlinLogging
 
 private val log = KotlinLogging.logger {}
 
 /**
- * [Exception.message] is return to the client as rest answer.
+ * [Exception.message] may be displayed for the client as a technical message. Both, [message] and [technicalMessage] should be logged.
  */
-class RestException(message: String,
-                    /**
+class TechnicalException(message: String,
+                         /**
                      * Message used for logging (will not be returned to client).
                      */
-                    val technicalMessage: String) : Exception(message) {
+                    val technicalMessage: String? = null) : Exception(message) {
 }

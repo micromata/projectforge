@@ -200,7 +200,7 @@ open class RepoService {
      * @return new file info without content.
      */
     @JvmOverloads
-    open fun changeFileInfo(fileObject: FileObject, newFileName: String? = null, newDescription: String?): FileObject? {
+    open fun changeFileInfo(fileObject: FileObject, user: String, newFileName: String? = null, newDescription: String?): FileObject? {
         return runInSession { session ->
             val node = getNode(session, fileObject.parentNodePath, fileObject.relPath, false)
             if (!node.hasNode(NODENAME_FILES)) {
@@ -213,13 +213,20 @@ open class RepoService {
                     log.error { "Can't change file info, file node doesn't exit: $fileObject" }
                     null
                 } else {
+                    var modified = false
                     if (!newFileName.isNullOrBlank()) {
-                        log.info{"Changing file name to '$newFileName' for: $fileObject"}
+                        log.info { "Changing file name to '$newFileName' for: $fileObject" }
                         fileNode.setProperty(PROPERTY_FILENAME, newFileName)
+                        modified = true
                     }
                     if (newDescription != null) {
-                        log.info{"Changing file description to '$newDescription' for: $fileObject"}
+                        log.info { "Changing file description to '$newDescription' for: $fileObject" }
                         fileNode.setProperty(PROPERTY_FILEDESC, newDescription)
+                        modified = true
+                    }
+                    if (modified) {
+                        fileNode.setProperty(PROPERTY_LAST_UPDATE_BY_USER, user)
+                        fileNode.setProperty(PROPERTY_LAST_UPDATE, PFJcrUtils.convertToString( Date()) ?: "")
                     }
                     session.save()
                     FileObject(fileNode)

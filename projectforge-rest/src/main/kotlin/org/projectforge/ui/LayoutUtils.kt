@@ -31,7 +31,9 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.model.rest.RestPaths
+import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.RestResolver
 
 /**
  * Utils for the Layout classes for handling auto max-length (get from JPA entities) and translations as well as
@@ -261,13 +263,9 @@ class LayoutUtils {
                         it.positionLabel = translate(it.positionLabel)
                     }
                     is UIAttachmentList -> {
-                        if (!layout.translations.containsKey("attachment.filename")) {
-                            layout.addTranslations("attachment.filename", "attachment.onlyAvailableAfterSave", "attachment.size", "created", "createdBy", "delete", "description", "file.upload.dropArea", "modified", "modifiedBy")
+                        if (!layout.translations.containsKey("attachment.fileName")) {
+                            layout.addTranslations("attachment.fileName", "attachment.onlyAvailableAfterSave", "attachment.size", "created", "createdBy", "delete", "description", "file.upload.dropArea", "modified", "modifiedBy")
                         }
-                        if (layout.restBaseUrl.isNullOrBlank() && it.restBaseUrl.isNullOrBlank()) {
-                            log.warn("Dear developer: You must set layout.restBaseUrl or UIListElementList.restBaseUrl if you're using UIAttachmentList! Upload and downloading attachments will not work: ${ToStringUtil.toJsonString(layout)}")
-                        }
-                        it.restBaseUrl = layout.restBaseUrl
                     }
                 }
             }

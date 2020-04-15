@@ -156,10 +156,7 @@ class ContractPagesRest : AbstractDTOPagesRest<ContractDO, Contract, ContractDao
                         .add(UIFieldset(UILength(lg = 6))
                                 .add(lc, "filing")))
                 .add(UIFieldset(title = "attachment.list")
-                        .add(UIAttachmentList(dto.id,
-                                rowClickAction = ResponseAction(
-                                        PagesResolver.getDynamicPageUrl(AttachmentPageRest::class.java),
-                                        TargetType.MODAL))))
+                        .add(UIAttachmentList(category, dto.id)))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

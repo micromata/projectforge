@@ -32,13 +32,14 @@ import org.projectforge.favorites.Favorites
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
-import org.projectforge.jcr.FileObject
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
@@ -48,15 +49,9 @@ import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
-import org.springframework.core.io.InputStreamResource
-import org.springframework.core.io.Resource
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.multipart.MultipartFile
-import java.io.InputStream
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
@@ -111,7 +106,6 @@ constructor(private val baseDaoClazz: Class<B>,
         const val CLASSIC_VERSION_MENU = "CLASSIC"
         const val CREATE_MENU = "CREATE"
         const val USER_PREF_PARAM_HIGHLIGHT_ROW = "highlightedRow"
-        protected val DEFAULT_LIST_OF_ATTACHMENTS = arrayOf(AttachmentsService.DEFAULT_NODE)
     }
 
     class DisplayObject(val id: Any?, override val displayName: String?) : DisplayNameCapable
@@ -543,7 +537,7 @@ constructor(private val baseDaoClazz: Class<B>,
         val result = transformFromDB(item, editMode)
         jcrPath?.let {
             if (result is AttachmentsSupport) {
-                result.attachments = attachmentsService.getAttachments(it, id)
+                result.attachments = attachmentsService.getAttachments(it, id, attachmentsAccessChecker)
             }
         }
         return result
@@ -663,7 +657,7 @@ constructor(private val baseDaoClazz: Class<B>,
     @GetMapping(AutoCompletion.AUTOCOMPLETE_OBJECT)
     open fun getAutoCompleteObjects(request: HttpServletRequest, @RequestParam("search") searchString: String?, @RequestParam("maxResults") maxResults: Int?): List<DisplayObject> {
         if (autoCompleteSearchFields.isNullOrEmpty()) {
-            throw RestException("Can't call getAutoCompletion without property.", "No autoCompleteSearchFields are configured by the developers for this entity.")
+            throw TechnicalException("Can't call getAutoCompletion without property.", "No autoCompleteSearchFields are configured by the developers for this entity.")
         }
         val filter = createAutoCompleteObjectsFilter(request)
         val modifiedSearchString = searchString?.split(' ', '\t', '\n')?.joinToString(" ") { "+$it*" }
@@ -949,109 +943,30 @@ constructor(private val baseDaoClazz: Class<B>,
     }
 
     /**
-     * If attachments are supported ([jcrPath] must be given), this list returns all allowed lists of attachments.
-     * At default, only one attachmentlist name [AttachmentsService.DEFAULT_NODE] is supported: [DEFAULT_LIST_OF_ATTACHMENTS].
-     * Override this method only, if you have multiple attachment lists for this entity.
-     */
-    open val supportedAttachmentList: Array<String>
-        get() = DEFAULT_LIST_OF_ATTACHMENTS
-
-    /**
      * An unique id which is used as parent node for all attachments. Use [enableJcrPath] for creating unique nodes.
      * @return unique jcr path if attachments are supported or null, if no attachment support is given (download, upload and list).
      * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
      */
-    open var jcrPath: String? = null
+    var jcrPath: String? = null
+        protected set
 
     /**
-     * Each data object with attachments should have it's own node name. Don't use class name as category, because after
-     * refactoring packages, attachments are not assignable anymore.
+     * Call this method for enabling jcr support.
      * @param prefix Define a prefix for having uniqueness. At default 'org.projectforge' is used.
-     * @return "$prefix.$category"
+     * @param supportedListIds Each entitiy may support multiple lists of attachments. This specifies the available lists in
+     * *addition* to [AttachmentsDaoAccessChecker.DEFAULT_LIST_OF_ATTACHMENTS].
      */
     @JvmOverloads
-    fun enableJcrPath(prefix: String = "org.projectforge") {
+    fun enableJcrPath(supportedListIds: Array<String>? = null, prefix: String = "org.projectforge") {
         jcrPath = "$prefix.$category"
+        attachmentsAccessChecker = AttachmentsDaoAccessChecker(baseDao, jcrPath, supportedListIds)
     }
 
     /**
-     * Upload service e. g. for [UIAttachmentList].
-     * @param id Object id where the uploaded file should belong to.
-     * @param listId Usable for handling different upload areas for one page. If only one attachment list is needed, you may
-     * ignore this value.
+     * Might be initialized by [enableJcrPath] with default dao access checker.
      */
-    @PostMapping("upload/{id}/{listId}")
-    fun uploadAttachment(@PathVariable("id", required = true) id: Int,
-                         @PathVariable("listId") listId: String?,
-                         @RequestParam("file") file: MultipartFile):
-            ResponseEntity<String> {
-        val filename = file.originalFilename
-        log.info { "User tries to upload attachment: id='$id', listId='$listId', filename='$filename', page='${this::class.java.name}'." }
-        checkJcrActivity(listId)
-        handleUpload(id, filename = filename, file = file, listId = listId)?.let {
-            log.warn { it }
-            return ResponseEntity(it, HttpStatus.BAD_REQUEST)
-        }
-        return ResponseEntity("OK", HttpStatus.OK)
-    }
-
-    /**
-     * Implement this method for handling uploads of attachments. Don't forget to check the user's access!
-     * @return null if upload was successful, otherwise error message to log and to return to client.
-     * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
-     */
-    protected open fun handleUpload(id: Int, filename: String?, file: MultipartFile, listId: String? = null): String? {
-        val item = baseDao.getById(id)
-        if (item == null || !baseDao.hasLoggedInUserUpdateAccess(item, item, false)) {
-            throw RestException("Entity with id $id isn't accessible for category '$category' for uploading attachements or doesn't exist.", "User without access or id unknown.")
-        }
-        attachmentsService.addAttachment(jcrPath!!, fileName = file.originalFilename, inputStream = file.inputStream, baseDao = baseDao, obj = item)
-        return null
-    }
-
-    /**
-     * Download service e. g. for [UIAttachmentList].
-     * @param id Object id where the downloaded file is belonging to.
-     * @param listId Usable for handling different upload areas for one page. If only one attachment list is needed, you may
-     * ignore this value.
-     * @param fileId The fileId to identify the desired attachment.
-     */
-    @GetMapping("download/{id}/{listId}")
-    fun downloadAttachment(@PathVariable("id", required = true) id: Int,
-                           @RequestParam("fileId", required = true) fileId: String,
-                           @PathVariable("listId") listId: String?)
-            : ResponseEntity<Resource> {
-        log.info { "User tries to download attachment: id='$id', listId='$listId', fileId='$fileId', page='${this::class.java.name}'." }
-        checkJcrActivity(listId)
-        val result = handleDownload(id, fileId = fileId, listId = listId) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        val filename = result.first.fileName ?: "file"
-        val inputStream = result.second ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("application/octet-stream"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=\"${filename.replace('"', '_')}\"")
-                .body(InputStreamResource(inputStream))
-    }
-
-    /**
-     * Implement this method for handling download of attachments. Don't forget to check the user's access!
-     * @return null if download not possible, otherwise pair of resource and filename to return to the client.
-     * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
-     */
-    protected open fun handleDownload(id: Int, fileId: String, listId: String? = null): Pair<FileObject, InputStream?>? {
-        baseDao.getById(id)
-                ?: throw RestException("Entity with id $id isn't accessible for category '$category' for downloading attachements or doesn't exist.", "User without access or id unknown.")
-
-        return attachmentsService.getAttachmentInputStream(jcrPath!!, id, fileId)
-    }
-
-    fun checkJcrActivity(listId: String? = null) {
-        if (jcrPath == null) {
-            throw RestException("Attachments are not supported by this entity: ${baseDao.doClass.name}.", "You must specify jcrPath in yours *PagesRest.")
-        }
-        if (listId != null && !supportedAttachmentList.contains(listId)) {
-            throw RestException("Attachments are not supported by entity ${baseDao.doClass.name} for list '$listId'.", "You must add this listId to supportedAttachmentList of yours *PagesRest.")
-        }
-    }
+    lateinit var attachmentsAccessChecker: AttachmentsDaoAccessChecker<O>
+        protected set
 
     /**
      * Implement on how to transform dto objects to data base objects (ExtendedBaseDO).
