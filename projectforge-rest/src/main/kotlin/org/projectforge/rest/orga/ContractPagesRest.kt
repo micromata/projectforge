@@ -33,11 +33,8 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.jcr.PFJcrUtils
-import org.projectforge.rest.AttachmentPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.Contract
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterElement
@@ -61,7 +58,7 @@ class ContractPagesRest : AbstractDTOPagesRest<ContractDO, Contract, ContractDao
         /**
          * Enable attachments for this entity.
          */
-        enableJcrPath()
+        enableJcr()
     }
 
     /**

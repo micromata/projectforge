@@ -951,7 +951,7 @@ constructor(private val baseDaoClazz: Class<B>,
     }
 
     /**
-     * An unique id which is used as parent node for all attachments. Use [enableJcrPath] for creating unique nodes.
+     * An unique id which is used as parent node for all attachments. Use [enableJcr] for creating unique nodes.
      * @return unique jcr path if attachments are supported or null, if no attachment support is given (download, upload and list).
      * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
      */
@@ -967,7 +967,7 @@ constructor(private val baseDaoClazz: Class<B>,
      * *addition* to [AttachmentsDaoAccessChecker.DEFAULT_LIST_OF_ATTACHMENTS].
      */
     @JvmOverloads
-    fun enableJcrPath(supportedListIds: Array<String>? = null, prefix: String = "org.projectforge", identifier: String? = null) {
+    fun enableJcr(supportedListIds: Array<String>? = null, prefix: String = "org.projectforge", identifier: String? = null) {
         jcrPath = if (identifier != null) {
             "$prefix.${identifier}"
         } else {
@@ -977,7 +977,7 @@ constructor(private val baseDaoClazz: Class<B>,
     }
 
     /**
-     * Might be initialized by [enableJcrPath] with default dao access checker.
+     * Might be initialized by [enableJcr] with default dao access checker.
      */
     lateinit var attachmentsAccessChecker: AttachmentsDaoAccessChecker<O>
         protected set
