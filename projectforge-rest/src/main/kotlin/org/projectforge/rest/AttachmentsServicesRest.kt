@@ -81,7 +81,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
                 pagesRest.attachmentsAccessChecker, data.listId)
         val list = attachmentsService.getAttachments(pagesRest.jcrPath!!, data.id, pagesRest.attachmentsAccessChecker, data.listId)
         return ResponseEntity.ok()
-                .body(ResponseAction(targetType = TargetType.CLOSE_MODAL)
+                .body(ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
                         .addVariable("data", ResponseData(list)))
     }
 
@@ -111,7 +111,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
                 accessChecker = pagesRest.attachmentsAccessChecker)
         val list = attachmentsService.getAttachments(pagesRest.jcrPath!!, id, pagesRest.attachmentsAccessChecker, listId)
         return ResponseEntity.ok()
-                .body(ResponseAction(targetType = TargetType.UPDATE)
+                .body(ResponseAction(targetType = TargetType.UPDATE, merge = true)
                         .addVariable("data", ResponseData(list)))
     }
 
@@ -125,7 +125,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         attachmentsService.deleteAttachment(pagesRest.jcrPath!!, data.fileId, pagesRest.baseDao, obj, pagesRest.attachmentsAccessChecker, data.listId)
         val list = attachmentsService.getAttachments(pagesRest.jcrPath!!, data.id, pagesRest.attachmentsAccessChecker, data.listId)
         return ResponseEntity.ok()
-                .body(ResponseAction(targetType = TargetType.CLOSE_MODAL)
+                .body(ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
                         .addVariable("data", ResponseData(list)))
     }
 
