@@ -731,6 +731,17 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   /**
+   * Thin wrapper for generic usage.
+   *
+   * @return true, if modifications were done, false if no modification detected.
+   * @see #internalUpdate(ExtendedBaseDO, boolean)
+   */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
+  public ModificationStatus internalUpdateAny(final Object obj) throws AccessException {
+    return internalUpdate((O) obj);
+  }
+
+  /**
    * This method is for internal use e. g. for updating objects without check access.
    *
    * @return true, if modifications were done, false if no modification detected.

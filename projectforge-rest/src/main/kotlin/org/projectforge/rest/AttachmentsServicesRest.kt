@@ -40,7 +40,6 @@ import org.projectforge.ui.UIAttachmentList
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -96,10 +95,12 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
                          @PathVariable("id", required = true) id: Int,
                          @PathVariable("listId") listId: String?,
                          @RequestParam("file") file: MultipartFile)
+    //@RequestParam("files") files: Array<MultipartFile>)
             : ResponseEntity<ResponseAction>? {
+        val pagesRest = getPagesRest(category, listId)
+        //files.forEach { file ->
         val filename = file.originalFilename
         log.info { "User tries to upload attachment: id='$id', listId='$listId', filename='$filename', page='${this::class.java.name}'." }
-        val pagesRest = getPagesRest(category, listId)
 
         val obj = getDataObject(pagesRest, id) // Check data object availability.
         attachmentsService.addAttachment(
@@ -109,6 +110,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
                 baseDao = pagesRest.baseDao,
                 obj = obj,
                 accessChecker = pagesRest.attachmentsAccessChecker)
+        //}
         val list = attachmentsService.getAttachments(pagesRest.jcrPath!!, id, pagesRest.attachmentsAccessChecker, listId)
         return ResponseEntity.ok()
                 .body(ResponseAction(targetType = TargetType.UPDATE, merge = true)

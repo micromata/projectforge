@@ -148,20 +148,24 @@ open class ContractDO : DefaultBaseDO(), AttachmentsInfo {
     @JsonIgnore
     @Field
     @field:NoHistory
-    @get:Column(length = 10000, name = "attachment_names")
-    override var attachmentNames: String? = null
+    @get:Column(length = 10000, name = "attachments_names")
+    override var attachmentsNames: String? = null
 
     @JsonIgnore
     @Field
     @field:NoHistory
-    @get:Column(length = 10000, name = "attachment_ids")
-    override var attachmentIds: String? = null
+    @get:Column(length = 10000, name = "attachments_ids")
+    override var attachmentsIds: String? = null
 
     @JsonIgnore
-    @Field
     @field:NoHistory
-    @get:Column(length = 10000, name = "number_of_attachments")
-    override var numbOfAttachments: Int? = null
+    @get:Column(length = 10000, name = "attachments_size")
+    override var attachmentsSize: Int? = null
+
+    @PropertyInfo(i18nKey = "attachment")
+    @JsonIgnore
+    @get:Column(length = 10000, name = "attachments_last_user_action")
+    override var attachmentsLastUserAction: String? = null
 
     companion object {
         internal const val FIND_OTHER_BY_NUMBER = "ContractDO_FindOtherByNumber"

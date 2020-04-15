@@ -12,7 +12,6 @@ function DynamicAttachmentList(
         category,
         id,
         listId,
-        restBaseUrl,
     },
 ) {
     const {

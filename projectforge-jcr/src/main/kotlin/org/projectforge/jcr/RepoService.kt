@@ -160,6 +160,7 @@ open class RepoService {
                     false
                 } else {
                     log.info { "Deleting file: $fileObject" }
+                    fileObject.copyFrom(fileNode)
                     fileNode.remove()
                     session.save()
                     true
