@@ -24,21 +24,19 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.Const
+import org.projectforge.SystemStatus
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsService
-import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.*
+import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
-import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -50,38 +48,7 @@ private val log = KotlinLogging.logger {}
 @RequestMapping("${Rest.URL}/attachment")
 class AttachmentPageRest : AbstractDynamicPageRest() {
     @Autowired
-    private lateinit var attachmentsService: AttachmentsService
-
-    class AttachmentPageData(var category: String,
-                             var id: Int,
-                             var fileId: String,
-                             var listId: String? = null) {
-        lateinit var attachment: Attachment
-    }
-
-    @PostMapping
-    fun save(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentPageData>)
-            : ResponseEntity<ResponseAction>? {
-        validateCsrfToken(request, postData)?.let { return it }
-        val data = postData.data
-        val attachment = data.attachment
-        val pagesRest = getPagesRest(data.category, data.listId)
-        log.warn("*************** Do check access by pagesRest *************")
-        getAttachment(pagesRest, data) // Check attachment availability
-        val obj = getDataObject(pagesRest, data.id) // Check data object availability.
-
-        attachmentsService.changeFileInfo(pagesRest.jcrPath!!, data.fileId, pagesRest.baseDao, obj, attachment.name, attachment.description, data.listId)
-        //attachmentsService.getAttachmentInfo(pages)
-        return ResponseEntity(ResponseAction("/${Const.REACT_APP_PATH}calendar"), HttpStatus.OK)
-    }
-
-    @PostMapping("delete")
-    fun delete(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentPageData>)
-            : ResponseEntity<ResponseAction>? {
-        validateCsrfToken(request, postData)?.let { return it }
-        log.warn("*************** Do check access by pagesRest *************")
-        return ResponseEntity(ResponseAction("/${Const.REACT_APP_PATH}calendar"), HttpStatus.OK)
-    }
+    private lateinit var services: AttachmentsServicesRest
 
     /**
      * The react path of this should look like: 'react/attachment/dynamic/42?category=contract...'
@@ -94,11 +61,10 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
                 @RequestParam("listId") listId: String?,
                 request: HttpServletRequest): FormLayoutData? {
         log.info { "User tries to edit/view details of attachment: category='$category', id='$id', listId='$listId', fileId='$fileId', page='${this::class.java.name}'." }
-        log.warn("*************** Do check access by pagesRest *************")
-        val pagesRest = getPagesRest(category, listId)
-        getDataObject(pagesRest, id) // Check data object availability.
-        val data = AttachmentPageData(category = category, id = id, fileId = fileId, listId = listId)
-        data.attachment = getAttachment(pagesRest, data)
+        val pagesRest = services.getPagesRest(category, listId)
+        services.getDataObject(pagesRest, id) // Check data object availability.
+        val data = AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
+        data.attachment = services.getAttachment(pagesRest, data)
         val layout = UILayout("attachment")
 
         val lc = LayoutContext(Attachment::class.java)
@@ -119,43 +85,29 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
                                 .add(UIReadOnlyField("attachment.lastUpdateFormatted", label = "modified"))
                                 .add(UIReadOnlyField("attachment.lastUpdateByUser", label = "modifiedBy"))))
 
-                .addAction(UIButton("download",
-                        translate("download"),
-                        UIColor.LINK,
-                        responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java, "download"), targetType = TargetType.POST),
-                        default = true))
-                .addAction(UIButton("delete",
-                        translate("delete"),
-                        UIColor.DANGER,
-                        confirmMessage = translate("file.panel.deleteExistingFile.heading"),
-                        responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java, "delete"), targetType = TargetType.POST),
-                        default = true))
+        if (SystemStatus.isDevelopmentMode()) {
+            log.warn { "*************** To implement: DOWNLOAD target not yet supported by src/actions/form.js:216: callAction"}
+            layout.addAction(UIButton("download",
+                    translate("download"),
+                    UIColor.LINK,
+                    responseAction = ResponseAction(RestResolver.getRestUrl(AttachmentsServicesRest::class.java, "download/$category/$id?fileId=$fileId&listId=$listId"),
+                            targetType = TargetType.DOWNLOAD),
+                    default = true))
+        }
+        layout.addAction(UIButton("delete",
+                translate("delete"),
+                UIColor.DANGER,
+                confirmMessage = translate("file.panel.deleteExistingFile.heading"),
+                responseAction = ResponseAction(RestResolver.getRestUrl(AttachmentsServicesRest::class.java, "delete"), targetType = TargetType.POST),
+                default = true))
                 .addAction(UIButton("update",
                         translate("update"),
                         UIColor.SUCCESS,
-                        responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
+                        responseAction = ResponseAction(RestResolver.getRestUrl(AttachmentsServicesRest::class.java, "modify"), targetType = TargetType.POST),
                         default = true)
                 )
         LayoutUtils.process(layout)
 
         return FormLayoutData(data, layout, createServerData(request))
-    }
-
-    private fun getPagesRest(category: String, listId: String?): AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>> {
-        val pagesRest = PagesResolver.getPagesRest(category)
-                ?: throw UnsupportedOperationException("PagesRest class for category '$category' not known (registered).")
-        pagesRest.checkJcrActivity(listId)
-        return pagesRest
-    }
-
-    private fun getAttachment(pagesRest: AbstractPagesRest<*, *, *>, data: AttachmentPageData): Attachment {
-        return attachmentsService.getAttachmentInfo(pagesRest.jcrPath!!, data.id, data.fileId, data.listId)
-                ?: throw RestException("Attachment '$data.fileId' for object with id $data.id not found for category '$data.category' and list '$data.listId'.", "Attachment not found.")
-    }
-
-    private fun getDataObject(pagesRest: AbstractPagesRest<*, *, *>, id: Int): ExtendedBaseDO<Int> {
-        return pagesRest.baseDao.getById(id)
-                ?: throw RestException("Entity with id $id not accessible for category '$pagesRest.category' or doesn't exist.", "User without access or id unknown.")
-
     }
 }

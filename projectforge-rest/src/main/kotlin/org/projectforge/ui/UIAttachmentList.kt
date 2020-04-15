@@ -23,10 +23,19 @@
 
 package org.projectforge.ui
 
+import org.projectforge.framework.ToStringUtil
+import org.projectforge.rest.AttachmentsServicesRest
+import org.projectforge.rest.core.RestResolver
+
 /**
  * List of attachments including upload, download and remove functionality.
  */
 class UIAttachmentList(
+        /**
+         * Simply use [org.projectforge.rest.core.AbstractPagesRest.category] if using in pages rest. Otherwise
+         * the category/jcrPath is required here.
+         */
+        var category: String,
         /**
          * The id of the object (pk) where the attachments are belonging to.
          * Null for new objects, meaning, that now upload is available and an hint is shown.
@@ -38,11 +47,8 @@ class UIAttachmentList(
          * Default is 'attachments'.
          */
         val listId: String = "attachments",
-        var restBaseUrl: String? = null,
         /**
          * If true, only download of attachments is allowed.
          */
-        val readOnly: Boolean = false,
-        val rowClickAction: ResponseAction? = null) :
-        UIElement(type = UIElementType.ATTACHMENT_LIST) {
-}
+        val readOnly: Boolean = false) :
+        UIElement(type = UIElementType.ATTACHMENT_LIST)

@@ -9,6 +9,7 @@ import { DynamicLayoutContext } from '../../context';
 
 function DynamicAttachmentList(
     {
+        category,
         id,
         listId,
         restBaseUrl,
@@ -27,7 +28,7 @@ function DynamicAttachmentList(
         formData.append('file', files[0]);
         fetch(
             // Set the image with id -1, so the image will be set in the session.
-            getServiceURL(`${restBaseUrl}/upload/${id}/${listId}`),
+            getServiceURL(`attachments/upload/${category}/${id}/${listId}`),
             {
                 credentials: 'include',
                 method: 'POST',
@@ -47,7 +48,7 @@ function DynamicAttachmentList(
         callAction({
             responseAction: {
                 targetType: 'MODAL',
-                url: `/react/attachment/dynamic/${id}?category=contract&fileId=${entry.fileId}&listId=${listId}`,
+                url: `/react/attachment/dynamic/${id}?category=${category}&fileId=${entry.fileId}&listId=${listId}`,
             },
         });
     };
@@ -55,8 +56,9 @@ function DynamicAttachmentList(
     const handleDownload = entryId => (event) => {
         event.stopPropagation();
         window.open(
-            getServiceURL(`/rs/${restBaseUrl}/download/${id}/${listId}`, {
+            getServiceURL(`/rs/attachments/download/${category}/${id}`, {
                 fileId: entryId,
+                listId,
             }), '_blank',
         );
     };
@@ -73,7 +75,7 @@ function DynamicAttachmentList(
                         <Table striped hover>
                             <thead>
                                 <tr>
-                                    <th>{ui.translations['attachment.filename']}</th>
+                                    <th>{ui.translations['attachment.fileName']}</th>
                                     <th>{ui.translations['attachment.size']}</th>
                                     <th>{ui.translations.description}</th>
                                     <th>{ui.translations.created}</th>
@@ -115,17 +117,15 @@ function DynamicAttachmentList(
 }
 
 DynamicAttachmentList.propTypes = {
+    category: PropTypes.string.isRequired,
     listId: PropTypes.string.isRequired,
-    restBaseUrl: PropTypes.string.isRequired,
     id: PropTypes.number,
     readOnly: PropTypes.bool,
-    rowClickAction: PropTypes.shape({}),
 };
 
 DynamicAttachmentList.defaultProps = {
     id: undefined, // Undefined for new object.
     readOnly: false,
-    rowClickAction: undefined,
 };
 
 export default DynamicAttachmentList;

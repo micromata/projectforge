@@ -59,7 +59,8 @@ open class AttachmentsService {
      * @param id Id of data object.
      */
     @JvmOverloads
-    open fun getAttachments(path: String, id: Any, subPath: String? = null): List<Attachment>? {
+    open fun getAttachments(path: String, id: Any, accessChecker: AttachmentsAccessChecker?, subPath: String? = null): List<Attachment>? {
+        accessChecker?.checkSelectAccess(ThreadLocalUserContext.getUser(), path = path, id = id, subPath = subPath)
         return repoService.getFileInfos(getPath(path, id), subPath ?: DEFAULT_NODE)?.map { createAttachment(it) }
     }
 
@@ -68,7 +69,8 @@ open class AttachmentsService {
      * @param id Id of data object.
      */
     @JvmOverloads
-    open fun getAttachmentInfo(path: String, id: Any, fileId: String, subPath: String? = null): Attachment? {
+    open fun getAttachmentInfo(path: String, id: Any, fileId: String, accessChecker: AttachmentsAccessChecker, subPath: String? = null): Attachment? {
+        accessChecker.checkSelectAccess(ThreadLocalUserContext.getUser(), path = path, id = id, subPath = subPath)
         val fileObject = repoService.getFileInfo(
                 getPath(path, id),
                 subPath ?: DEFAULT_NODE,
@@ -82,7 +84,8 @@ open class AttachmentsService {
      * @param id Id of data object.
      */
     @JvmOverloads
-    open fun getAttachmentContent(path: String, id: Any, fileId: String, subPath: String? = null): ByteArray? {
+    open fun getAttachmentContent(path: String, id: Any, fileId: String, accessChecker: AttachmentsAccessChecker, subPath: String? = null): ByteArray? {
+        accessChecker.checkDownloadAccess(ThreadLocalUserContext.getUser(), path = path, id = id, fileId = fileId, subPath = subPath)
         val fileObject = repoService.getFileInfo(
                 getPath(path, id),
                 subPath ?: DEFAULT_NODE,
@@ -100,8 +103,9 @@ open class AttachmentsService {
      * @param id Id of data object.
      */
     @JvmOverloads
-    open fun getAttachmentInputStream(path: String, id: Any, fileId: String, subPath: String? = null)
+    open fun getAttachmentInputStream(path: String, id: Any, fileId: String, accessChecker: AttachmentsAccessChecker, subPath: String? = null)
             : Pair<FileObject, InputStream>? {
+        accessChecker.checkDownloadAccess(ThreadLocalUserContext.getUser(), path = path, id = id, fileId = fileId, subPath = subPath)
         val fileObject = repoService.getFileInfo(
                 getPath(path, id),
                 subPath ?: DEFAULT_NODE,
@@ -123,7 +127,14 @@ open class AttachmentsService {
      * @param id Id of data object.
      */
     @JvmOverloads
-    open fun addAttachment(path: String, id: Any, fileName: String?, content: ByteArray, enableSearchIndex: Boolean, subPath: String? = null): Attachment {
+    open fun addAttachment(path: String,
+                           id: Any,
+                           fileName: String?,
+                           content: ByteArray,
+                           enableSearchIndex: Boolean,
+                           accessChecker: AttachmentsAccessChecker,
+                           subPath: String? = null): Attachment {
+        accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = id, subPath = subPath)
         val fileObject = FileObject(
                 getPath(path, id),
                 subPath ?: DEFAULT_NODE,
@@ -143,9 +154,11 @@ open class AttachmentsService {
                            content: ByteArray,
                            baseDao: BaseDao<out ExtendedBaseDO<Int>>,
                            obj: ExtendedBaseDO<Int>,
+                           accessChecker: AttachmentsAccessChecker,
                            subPath: String? = null)
             : Attachment {
-        val attachment = addAttachment(path, obj.id, fileName, content, false, subPath)
+        accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = obj.id, subPath = subPath)
+        val attachment = addAttachment(path, obj.id, fileName, content, false, accessChecker, subPath)
         updateAttachmentsInfo(path, baseDao, obj, subPath)
         return attachment
     }
@@ -155,8 +168,15 @@ open class AttachmentsService {
      * @param id Id of data object.
      */
     @JvmOverloads
-    open fun addAttachment(path: String, id: Any, fileName: String?, inputStream: InputStream, enableSearchIndex: Boolean, subPath: String? = null): Attachment {
+    open fun addAttachment(path: String,
+                           id: Any,
+                           fileName: String?,
+                           inputStream: InputStream,
+                           enableSearchIndex: Boolean,
+                           accessChecker: AttachmentsAccessChecker,
+                           subPath: String? = null): Attachment {
         developerWarning(path, id, "addAttachment", enableSearchIndex)
+        accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = id, subPath = subPath)
         repoService.ensureNode(null, getPath(path, id))
         val fileObject = FileObject(getPath(path, id), subPath ?: DEFAULT_NODE, fileName = fileName)
         repoService.storeFile(fileObject, inputStream, ThreadLocalUserContext.getUserId()!!.toString())
@@ -172,9 +192,11 @@ open class AttachmentsService {
                            inputStream: InputStream,
                            baseDao: BaseDao<out ExtendedBaseDO<Int>>,
                            obj: ExtendedBaseDO<Int>,
+                           accessChecker: AttachmentsAccessChecker,
                            subPath: String? = null)
             : Attachment {
-        val attachment = addAttachment(path, obj.id, fileName, inputStream, false)
+        accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = obj.id, subPath = subPath)
+        val attachment = addAttachment(path, obj.id, fileName, inputStream, false, accessChecker, subPath)
         updateAttachmentsInfo(path, baseDao, obj, subPath)
         if (obj is DefaultBaseDO) {
             HistoryBaseDaoAdapter.createHistoryEntry(obj, obj.id, EntityOpType.Insert, ThreadLocalUserContext.getUserId().toString(),
@@ -188,9 +210,15 @@ open class AttachmentsService {
      * @param id Id of data object.
      */
     @JvmOverloads
-    open fun deleteAttachment(path: String, id: Any, fileId: String, enableSearchIndex: Boolean, subPath: String? = null)
+    open fun deleteAttachment(path: String,
+                              id: Any,
+                              fileId: String,
+                              enableSearchIndex: Boolean,
+                              accessChecker: AttachmentsAccessChecker,
+                              subPath: String? = null)
             : Boolean {
         developerWarning(path, id, "deleteAttachment", enableSearchIndex)
+        accessChecker.checkDeleteAccess(ThreadLocalUserContext.getUser(), path = path, id = id, fileId = fileId, subPath = subPath)
         val fileObject = FileObject(getPath(path, id), subPath ?: DEFAULT_NODE, fileId = fileId)
         return repoService.deleteFile(fileObject)
     }
@@ -203,13 +231,15 @@ open class AttachmentsService {
                               fileId: String,
                               baseDao: BaseDao<out ExtendedBaseDO<Int>>,
                               obj: ExtendedBaseDO<Int>,
+                              accessChecker: AttachmentsAccessChecker,
                               subPath: String? = null)
             : Boolean {
+        accessChecker.checkDeleteAccess(ThreadLocalUserContext.getUser(), path = path, id = obj.id, fileId = fileId, subPath = subPath)
         val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId)
         val result = repoService.deleteFile(fileObject)
         if (result) {
             HistoryBaseDaoAdapter.createHistoryEntry(obj, obj.id, EntityOpType.Deleted, ThreadLocalUserContext.getUserId().toString(),
-                    subPath ?: DEFAULT_NODE, Attachment::class.java, null, fileObject.fileName)
+                    "${subPath ?: DEFAULT_NODE}/${fileObject.fileName}", Attachment::class.java, null, null)
             updateAttachmentsInfo(path, baseDao, obj, subPath)
         }
         return result
@@ -220,11 +250,19 @@ open class AttachmentsService {
      * @param id Id of data object.
      */
     @JvmOverloads
-    open fun changeFileInfo(path: String, id: Any, fileId: String, enableSearchIndex: Boolean, newFileName: String?, newDescription: String?, subPath: String? = null)
+    open fun changeFileInfo(path: String,
+                            id: Any,
+                            fileId: String,
+                            enableSearchIndex: Boolean,
+                            newFileName: String?,
+                            newDescription: String?,
+                            accessChecker: AttachmentsAccessChecker,
+                            subPath: String? = null)
             : FileObject? {
         developerWarning(path, id, "changeProperty", enableSearchIndex)
+        accessChecker.checkUpdateAccess(ThreadLocalUserContext.getUser(), path = path, id = id, fileId = fileId, subPath = subPath)
         val fileObject = FileObject(getPath(path, id), subPath ?: DEFAULT_NODE, fileId = fileId)
-        return repoService.changeFileInfo(fileObject, newFileName, newDescription)
+        return repoService.changeFileInfo(fileObject, user = ThreadLocalUserContext.getUserId()!!.toString(), newFileName = newFileName, newDescription =  newDescription)
     }
 
     /**
@@ -237,18 +275,20 @@ open class AttachmentsService {
                             obj: ExtendedBaseDO<Int>,
                             newFileName: String?,
                             newDescription: String?,
+                            accessChecker: AttachmentsAccessChecker,
                             subPath: String? = null)
             : FileObject? {
+        accessChecker.checkUpdateAccess(ThreadLocalUserContext.getUser(), path = path, id = obj.id, fileId = fileId, subPath = subPath)
         val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId)
-        val result = repoService.changeFileInfo(fileObject, newFileName, newDescription)
+        val result = repoService.changeFileInfo(fileObject, ThreadLocalUserContext.getUserId()!!.toString(), newFileName, newDescription)
         if (result != null) {
             if (!newFileName.isNullOrBlank()) {
                 HistoryBaseDaoAdapter.createHistoryEntry(obj, obj.id, EntityOpType.Update, ThreadLocalUserContext.getUserId().toString(),
-                        subPath ?: DEFAULT_NODE, Attachment::class.java, fileObject.fileName, newFileName)
+                        "${subPath ?: DEFAULT_NODE}/${fileObject.fileName}", Attachment::class.java, fileObject.fileName, newFileName)
             }
             if (newDescription != null) {
                 HistoryBaseDaoAdapter.createHistoryEntry(obj, obj.id, EntityOpType.Update, ThreadLocalUserContext.getUserId().toString(),
-                        subPath ?: DEFAULT_NODE, Attachment::class.java, fileObject.description, newDescription)
+                        "${subPath ?: DEFAULT_NODE}/${fileObject.fileName}", Attachment::class.java, fileObject.description, newDescription)
             }
             updateAttachmentsInfo(path, baseDao, obj, subPath)
         }
@@ -272,7 +312,7 @@ open class AttachmentsService {
         }
         val dbObj = baseDao.getById(obj.id)
         if (dbObj is AttachmentsInfo) {
-            val attachments = getAttachments(path, obj.id, subPath)
+            val attachments = getAttachments(path, obj.id, null, subPath)
             if (attachments != null) {
                 dbObj.attachmentNames = attachments.joinToString(separator = " ") { "${it.name}" }
                 dbObj.attachmentIds = attachments.joinToString(separator = " ") { "${it.fileId}" }

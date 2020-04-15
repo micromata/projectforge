@@ -35,16 +35,22 @@ private val log = KotlinLogging.logger {}
 object RestResolver {
     const val REACT_PATH = "react"
 
-    fun getRestUrl(pagesRestClass: Class<*>, subPath: String? = null, withoutPrefix: Boolean = false): String {
-        return getUrl(pagesRestClass, Rest.URL, subPath, withoutPrefix)
+    /**
+     * Uses class annotation [RequestMapping] to determine rest url of given class.
+     */
+    fun getRestUrl(restClass: Class<*>, subPath: String? = null, withoutPrefix: Boolean = false): String {
+        return getUrl(restClass, Rest.URL, subPath, withoutPrefix)
     }
 
-    fun getPublicRestUrl(pagesRestClass: Class<*>, subPath: String? = null, withoutPrefix: Boolean = false): String {
-        return getUrl(pagesRestClass, Rest.PUBLIC_URL, subPath, withoutPrefix)
+    /**
+     * Uses class annotation [RequestMapping] to determine rest url of given class.
+     */
+    fun getPublicRestUrl(restClass: Class<*>, subPath: String? = null, withoutPrefix: Boolean = false): String {
+        return getUrl(restClass, Rest.PUBLIC_URL, subPath, withoutPrefix)
     }
 
-    private fun getUrl(pagesRestClass: Class<*>, path: String? = null, subPath: String? = null, withoutPrefix: Boolean = false): String {
-        val requestMapping = pagesRestClass.annotations.find { it is RequestMapping } as? RequestMapping
+    private fun getUrl(restClass: Class<*>, path: String? = null, subPath: String? = null, withoutPrefix: Boolean = false): String {
+        val requestMapping = restClass.annotations.find { it is RequestMapping } as? RequestMapping
         var url = requestMapping?.value?.joinToString("/") { it } ?: "/"
         if (withoutPrefix && url.startsWith("$path/")) {
             url = url.substringAfter("$path/")
