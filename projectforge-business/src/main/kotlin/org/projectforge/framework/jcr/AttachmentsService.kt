@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.jcr
 
-import de.micromata.genome.db.jpa.history.entities.EntityOpType
 import mu.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.user.UserGroupCache
@@ -31,7 +30,6 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
@@ -198,9 +196,10 @@ open class AttachmentsService {
         accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = obj.id, subPath = subPath)
         val attachment = addAttachment(path, obj.id, fileName, inputStream, false, accessChecker, subPath)
         updateAttachmentsInfo(path, baseDao, obj, subPath)
-        if (obj is DefaultBaseDO) {
-            HistoryBaseDaoAdapter.createHistoryEntry(obj, obj.id, EntityOpType.Insert, ThreadLocalUserContext.getUserId().toString(),
-                    subPath ?: DEFAULT_NODE, Attachment::class.java, null, fileName)
+        if (obj is DefaultBaseDO && obj is AttachmentsInfo) {
+            val dbObj = baseDao.getById(obj.id) as AttachmentsInfo
+            dbObj.attachmentsLastUserAction = "Attachment uploaded: '$fileName'."
+            baseDao.internalUpdateAny(dbObj)
         }
         return attachment
     }
@@ -238,8 +237,11 @@ open class AttachmentsService {
         val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId)
         val result = repoService.deleteFile(fileObject)
         if (result) {
-            HistoryBaseDaoAdapter.createHistoryEntry(obj, obj.id, EntityOpType.Deleted, ThreadLocalUserContext.getUserId().toString(),
-                    "${subPath ?: DEFAULT_NODE}/${fileObject.fileName}", Attachment::class.java, null, null)
+            if (obj is DefaultBaseDO && obj is AttachmentsInfo) {
+                val dbObj = baseDao.getById(obj.id) as AttachmentsInfo
+                dbObj.attachmentsLastUserAction = "Attachment '${fileObject.fileName}' deleted."
+                baseDao.internalUpdateAny(dbObj)
+            }
             updateAttachmentsInfo(path, baseDao, obj, subPath)
         }
         return result
@@ -262,7 +264,7 @@ open class AttachmentsService {
         developerWarning(path, id, "changeProperty", enableSearchIndex)
         accessChecker.checkUpdateAccess(ThreadLocalUserContext.getUser(), path = path, id = id, fileId = fileId, subPath = subPath)
         val fileObject = FileObject(getPath(path, id), subPath ?: DEFAULT_NODE, fileId = fileId)
-        return repoService.changeFileInfo(fileObject, user = ThreadLocalUserContext.getUserId()!!.toString(), newFileName = newFileName, newDescription =  newDescription)
+        return repoService.changeFileInfo(fileObject, user = ThreadLocalUserContext.getUserId()!!.toString(), newFileName = newFileName, newDescription = newDescription)
     }
 
     /**
@@ -282,13 +284,12 @@ open class AttachmentsService {
         val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId)
         val result = repoService.changeFileInfo(fileObject, ThreadLocalUserContext.getUserId()!!.toString(), newFileName, newDescription)
         if (result != null) {
-            if (!newFileName.isNullOrBlank()) {
-                HistoryBaseDaoAdapter.createHistoryEntry(obj, obj.id, EntityOpType.Update, ThreadLocalUserContext.getUserId().toString(),
-                        "${subPath ?: DEFAULT_NODE}/${fileObject.fileName}", Attachment::class.java, fileObject.fileName, newFileName)
-            }
-            if (newDescription != null) {
-                HistoryBaseDaoAdapter.createHistoryEntry(obj, obj.id, EntityOpType.Update, ThreadLocalUserContext.getUserId().toString(),
-                        "${subPath ?: DEFAULT_NODE}/${fileObject.fileName}", Attachment::class.java, fileObject.description, newDescription)
+            val fileNameChanged = if (!newFileName.isNullOrBlank()) "filename='$newFileName'" else null
+            val descriptionChanged = if (newDescription != null) "description='$newDescription'" else null
+            if (obj is DefaultBaseDO && obj is AttachmentsInfo) {
+                val dbObj = baseDao.getById(obj.id) as AttachmentsInfo
+                dbObj.attachmentsLastUserAction = "Attachment infos changed of file '${result.fileName}': ${fileNameChanged ?: " "}${descriptionChanged ?: ""}".trim()
+                baseDao.internalUpdateAny(dbObj)
             }
             updateAttachmentsInfo(path, baseDao, obj, subPath)
         }
@@ -318,13 +319,13 @@ open class AttachmentsService {
             }
             val attachments = getAttachments(path, obj.id, null)//, subPath)
             if (attachments != null) {
-                dbObj.attachmentNames = attachments.joinToString(separator = " ") { "${it.name}" }
-                dbObj.attachmentIds = attachments.joinToString(separator = " ") { "${it.fileId}" }
-                dbObj.numbOfAttachments = attachments.size
+                dbObj.attachmentsNames = attachments.joinToString(separator = " ") { "${it.name}" }
+                dbObj.attachmentsIds = attachments.joinToString(separator = " ") { "${it.fileId}" }
+                dbObj.attachmentsSize = attachments.size
             } else {
-                dbObj.attachmentNames = null
-                dbObj.attachmentIds = null
-                dbObj.numbOfAttachments = null
+                dbObj.attachmentsNames = null
+                dbObj.attachmentsIds = null
+                dbObj.attachmentsSize = null
             }
             baseDao.updateAny(dbObj)
         } else {

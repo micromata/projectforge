@@ -31,15 +31,20 @@ interface AttachmentsInfo {
     /**
      * Field for adding filenames of attachments to search index.
      */
-    var attachmentNames: String?
+    var attachmentsNames: String?
 
     /**
      * Field for adding file ids of attachments to search index.
      */
-    var attachmentIds: String?
+    var attachmentsIds: String?
 
     /**
      * The number of attachments attached to this data object.
      */
-    var numbOfAttachments: Int?
+    var attachmentsSize: Int?
+
+    /**
+     * You may add here the action done by the user for creating history entries, if data object is historizable.
+     */
+    var attachmentsLastUserAction: String?
 }
