@@ -43,6 +43,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
+import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.dto.*
 import org.projectforge.ui.*
@@ -130,11 +131,18 @@ constructor(private val baseDaoClazz: Class<B>,
 
     private var _baseDao: B? = null
 
+    private var _category: String? = null
+
     /**
-     * Category should be unique and is e. g. used as react path. At default it's [BaseDao.identifier].
+     * Category should be unique and is e. g. used as react path. At default it's the dir of the url definined in class annotation [RequestMapping].
      */
-    open val category: String
-        get() = baseDao.identifier
+    val category: String
+        get() {
+            if (_category == null) {
+                _category = getRestPath().removePrefix("${Rest.URL}/")
+            }
+            return _category!!
+        }
 
     /**
      * The layout context is needed to examine the data objects for maxLength, nullable, dataType etc.
@@ -952,13 +960,19 @@ constructor(private val baseDaoClazz: Class<B>,
 
     /**
      * Call this method for enabling jcr support.
+     * jcr part will be set to '$prefix.${baseDao.identifier}', must be unique.
      * @param prefix Define a prefix for having uniqueness. At default 'org.projectforge' is used.
+     * @param identifier Uses [BaseDao.identifier] at default value.
      * @param supportedListIds Each entitiy may support multiple lists of attachments. This specifies the available lists in
      * *addition* to [AttachmentsDaoAccessChecker.DEFAULT_LIST_OF_ATTACHMENTS].
      */
     @JvmOverloads
-    fun enableJcrPath(supportedListIds: Array<String>? = null, prefix: String = "org.projectforge") {
-        jcrPath = "$prefix.$category"
+    fun enableJcrPath(supportedListIds: Array<String>? = null, prefix: String = "org.projectforge", identifier: String? = null) {
+        jcrPath = if (identifier != null) {
+            "$prefix.${identifier}"
+        } else {
+            "$prefix.${baseDao.identifier}"
+        }
         attachmentsAccessChecker = AttachmentsDaoAccessChecker(baseDao, jcrPath, supportedListIds)
     }
 
