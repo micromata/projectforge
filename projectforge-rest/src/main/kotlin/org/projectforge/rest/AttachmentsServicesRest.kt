@@ -111,7 +111,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
                 accessChecker = pagesRest.attachmentsAccessChecker)
         val list = attachmentsService.getAttachments(pagesRest.jcrPath!!, id, pagesRest.attachmentsAccessChecker, listId)
         return ResponseEntity.ok()
-                .body(ResponseAction(targetType = TargetType.CLOSE_MODAL)
+                .body(ResponseAction(targetType = TargetType.UPDATE)
                         .addVariable("data", ResponseData(list)))
     }
 
