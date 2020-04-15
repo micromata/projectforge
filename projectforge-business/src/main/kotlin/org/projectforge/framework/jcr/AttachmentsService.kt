@@ -312,7 +312,11 @@ open class AttachmentsService {
         }
         val dbObj = baseDao.getById(obj.id)
         if (dbObj is AttachmentsInfo) {
-            val attachments = getAttachments(path, obj.id, null, subPath)
+            // TODO: multiple subPath support (all attachments of all lists should be used for indexing).
+            if (subPath != null) {
+                log.warn("********* Support of multiple lists in attachments not yet supported by search index.")
+            }
+            val attachments = getAttachments(path, obj.id, null)//, subPath)
             if (attachments != null) {
                 dbObj.attachmentNames = attachments.joinToString(separator = " ") { "${it.name}" }
                 dbObj.attachmentIds = attachments.joinToString(separator = " ") { "${it.fileId}" }
