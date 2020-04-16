@@ -78,7 +78,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     /**
      * Freitextfeld, falls Kunde nicht aus Liste gewählt werden kann bzw. für Rückwärtskompatibilität mit alten Kunden.
      */
-    @PropertyInfo(i18nKey = "fibu.kunde")
+    @PropertyInfo(i18nKey = "fibu.kunde.text")
     @Field
     @get:Column(name = "kunde_text")
     open var kundeText: String? = null
