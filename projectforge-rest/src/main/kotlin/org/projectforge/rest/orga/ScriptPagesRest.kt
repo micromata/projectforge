@@ -27,13 +27,27 @@ import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.business.scripting.ScriptDao
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
+import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.dto.Script
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/script")
-class ScriptPagesRest: AbstractDOPagesRest<ScriptDO, ScriptDao>(baseDaoClazz = ScriptDao::class.java, i18nKeyPrefix = "scripting.title") {
+class ScriptPagesRest: AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(baseDaoClazz = ScriptDao::class.java, i18nKeyPrefix = "scripting.title") {
+    override fun transformForDB(dto: Script): ScriptDO {
+        val scriptDO = ScriptDO()
+        dto.copyTo(scriptDO)
+        return scriptDO
+    }
+
+    override fun transformFromDB(obj: ScriptDO, editMode: Boolean): Script {
+        val script = Script()
+        script.copyFrom(obj)
+        script.parameter = obj.getParameterNames(true)
+        return script
+    }
 
     /**
      * LAYOUT List page
@@ -41,14 +55,15 @@ class ScriptPagesRest: AbstractDOPagesRest<ScriptDO, ScriptDao>(baseDaoClazz = S
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "name", "description", "parameter"))
+                        .add(lc, "name", "description")
+                        .add(UITableColumn("parameter", title = "scripting.script.parameter")))
         return LayoutUtils.processListPage(layout, this)
     }
 
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: ScriptDO, userAccess: UILayout.UserAccess): UILayout {
+    override fun createEditLayout(dto: Script, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
