@@ -59,9 +59,9 @@ import java.util.stream.Collectors;
  */
 @Repository
 public class VacationDao extends BaseDao<VacationDO> {
-  private final static String META_SQL = " AND v.special = false AND v.deleted = :deleted AND v.tenant = :tenant";
+  private final static String META_SQL = " AND v.special = false AND v.deleted = :deleted AND v.tenant = :tenant order by startDate desc";
 
-  private final static String META_SQL_WITH_SPECIAL = " AND v.deleted = :deleted AND v.tenant = :tenant";
+  private final static String META_SQL_WITH_SPECIAL = " AND v.deleted = :deleted AND v.tenant = :tenant order by startDate desc";
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"employee.user.firstname", "employee.user.lastname"};
 
