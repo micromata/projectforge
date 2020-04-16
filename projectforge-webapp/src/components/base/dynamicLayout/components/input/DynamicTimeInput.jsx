@@ -1,15 +1,13 @@
-import timezone from 'moment-timezone';
 import 'moment/min/locales';
 import PropTypes from 'prop-types';
 import 'rc-time-picker/assets/index.css';
 import React from 'react';
-import 'react-day-picker/lib/style.css';
-import DateTimeInput from '../../../../design/input/calendar/DateTimeInput';
 import InputContainer from '../../../../design/input/InputContainer';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from './DynamicValidationManager';
+import TimeInput from '../../../../design/input/calendar/TimeInput';
 
-function DynamicTimestampInput(
+function DynamicTimeInput(
     {
         id,
         ...props
@@ -17,12 +15,18 @@ function DynamicTimestampInput(
 ) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
-    const dateStr = Object.getByString(data, id);
-    const [date, setDate] = React.useState(undefined);
+    const timeStr = Object.getByString(data, id);
+    const [time, setTime] = React.useState([0, 0]);
+
 
     React.useEffect(() => {
-        setDate(dateStr ? timezone(dateStr) : undefined);
-    }, [dateStr]);
+        const timeTuple = timeStr && timeStr.split(':').map(part => Number(part));
+        setTime(timeTuple && timeTuple.length >= 2 ? timeTuple.slice(0, 2) : [0, 0]);
+    }, [timeStr]);
+
+    const handleChange = (newTime) => {
+        setData({ [id]: `${newTime.join(':')}:00` });
+    };
 
     return React.useMemo(() => (
         <React.Fragment>
@@ -32,24 +36,24 @@ function DynamicTimestampInput(
                     isActive
                     style={{ display: 'flex' }}
                     withMargin
+                    id={`${ui.uid}-${id}`}
                     {...props}
                 >
-                    <DateTimeInput
-                        id={`${ui.uid}-${id}`}
-                        setTime={newDate => setData({ [id]: newDate })}
-                        showDate
-                        time={date ? date.toDate() : undefined}
+                    <TimeInput
+                        id={id}
+                        value={time}
+                        onChange={handleChange}
                     />
                 </InputContainer>
             </DynamicValidationManager>
         </React.Fragment>
-    ), [date, setData]);
+    ), [time, setData]);
 }
 
-DynamicTimestampInput.propTypes = {
+DynamicTimeInput.propTypes = {
     id: PropTypes.string.isRequired,
 };
 
-DynamicTimestampInput.defaultProps = {};
+DynamicTimeInput.defaultProps = {};
 
-export default DynamicTimestampInput;
+export default DynamicTimeInput;

@@ -5,6 +5,7 @@ import DynamicTaskSelect from '../select/task';
 import DynamicAutoCompletion from './DynamicAutoCompletion';
 import DynamicDateInput from './DynamicDateInput';
 import DynamicInput from './DynamicInput';
+import DynamicTimeInput from './DynamicTimeInput';
 import DynamicTimestampInput from './DynamicTimestampInput';
 
 // All types of 'INPUT' will be resolved here.
@@ -45,6 +46,9 @@ function DynamicInputResolver({ dataType, autoCompletionUrl, ...props }) {
             Tag = DynamicInput;
             additionalProps.type = 'password';
             break;
+        case 'TIME':
+            Tag = DynamicTimeInput;
+            break;
         default:
             return <span>{`${dataType} Input is not implemented.`}</span>;
     }
@@ -67,6 +71,7 @@ DynamicInputResolver.propTypes = {
         'DECIMAL',
         'NUMBER',
         'PASSWORD',
+        'TIME',
     ]).isRequired,
     autoCompletionUrl: PropTypes.string,
 };
