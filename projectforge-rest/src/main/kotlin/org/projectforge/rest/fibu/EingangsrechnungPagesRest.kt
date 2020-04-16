@@ -65,12 +65,13 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "kreditor", "konto", "referenz", "betreff", "datum", "faelligkeit", "isBezahlt")
-                        .add(UITableColumn("netSum", title = translate("fibu.common.netto"), dataType = UIDataType.DECIMAL))
-                        .add(UITableColumn("grossSum", title = translate("fibu.rechnung.bruttoBetrag"), dataType = UIDataType.DECIMAL))
+                        .add(lc, "kreditor", "konto", "referenz", "betreff", "datum", "faelligkeit", "bezahlDatum")
+                        .add(UITableColumn("netSum", title = "fibu.common.netto"))
+                        .add(UITableColumn("grossSum", title = "fibu.rechnung.bruttoBetrag"))
                         .add(lc, "bemerkung"))
         layout.getTableColumnById("konto").formatter = Formatter.KONTO
         layout.getTableColumnById("faelligkeit").formatter = Formatter.DATE
+        layout.getTableColumnById("bezahlDatum").formatter = Formatter.DATE
         return LayoutUtils.processListPage(layout, this)
     }
 
