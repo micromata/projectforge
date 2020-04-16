@@ -21,23 +21,30 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.ui
+package org.projectforge.framework.utils
 
-enum class UIDataType {
-    AMOUNT,
-    BOOLEAN,
-    CUSTOMIZED,
-    DATE,
-    DECIMAL,
-    EMPLOYEE,
+/**
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ */
+enum class RoundUnit {
+    /**
+     * Round to integers.
+     */
     INT,
-    LOCALE,
-    PASSWORD,
-    PICTURE,
-    STRING,
-    TASK,
-    TIME,
-    TIMESTAMP,
-    TIMEZONE,
-    USER
+    /**
+     * Round to 0, 0.5, 1, 1.5, ...
+     */
+    HALF,
+    /**
+     * Round to 0, 0.25, 0.5, 0.75, 1, ...
+     */
+    QUARTER,
+    /**
+     * Round to 0, 0.2, 0.4, 0.6, 0.8, 1, ...
+     */
+    FIFTH,
+    /**
+     * Round to 0, 0.1, 0.2, 0.3, 0.4, 0.5, ..., 1, ...
+     */
+    TENTH
 }
