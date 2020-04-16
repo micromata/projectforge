@@ -32,4 +32,10 @@ class Visitorbook(var lastname: String? = null,
                   var company: String? = null,
                   var contactPersons: Set<EmployeeDO>? = null,
                   var visitortype: VisitorType? = null
-) : BaseDTO<VisitorbookDO>()
+) : BaseDTO<VisitorbookDO>() {
+
+    var arrive: String? = null
+
+    var depart: String? = null
+
+}
