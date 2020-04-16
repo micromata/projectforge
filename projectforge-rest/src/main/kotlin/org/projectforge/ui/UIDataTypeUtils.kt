@@ -28,6 +28,7 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalTime
 import java.util.*
 
 class UIDataTypeUtils {
@@ -55,6 +56,7 @@ class UIDataTypeUtils {
                 TaskDO::class.java -> UIDataType.TASK
                 Locale::class.java -> UIDataType.LOCALE
                 TimeZone::class.java -> UIDataType.TIMEZONE
+                LocalTime::class.java -> UIDataType.TIME
                 else -> null
             }
         }
