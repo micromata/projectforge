@@ -56,7 +56,7 @@ class Projekt(id: Int? = null,
         }
 
         if(obj.konto != null){
-            this.konto!!.initialize(obj.konto!!)
+            this.konto!!.copyFrom(obj.konto!!)
         }
 
         if(obj.task != null){

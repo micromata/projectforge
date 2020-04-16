@@ -32,11 +32,11 @@ class Buchungssatz(
         }
 
         if(obj.konto != null){
-            this.konto!!.initialize(obj.konto!!)
+            this.konto!!.copyFrom(obj.konto!!)
         }
 
         if(obj.gegenKonto != null){
-            this.gegenKonto!!.initialize(obj.gegenKonto!!)
+            this.gegenKonto!!.copyFrom(obj.gegenKonto!!)
         }
     }
 }

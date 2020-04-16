@@ -42,7 +42,7 @@ class Kunde(id: Int? = null,
         copyFrom(obj)
 
         if(obj.konto != null){
-            this.konto!!.initialize(obj.konto!!)
+            this.konto!!.copyFrom(obj.konto!!)
         }
 
     }
