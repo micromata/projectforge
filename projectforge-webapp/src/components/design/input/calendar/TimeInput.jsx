@@ -17,7 +17,6 @@ function TimeInput({
     const hourRef = React.useRef(null);
     const minuteRef = React.useRef(null);
 
-    // const timeTuple = value.split(':');
     const hours = (value && value[0]) || 12;
     const minutes = (value && value[1]) || 0;
 
