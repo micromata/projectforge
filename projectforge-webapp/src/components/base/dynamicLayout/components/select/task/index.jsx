@@ -176,6 +176,7 @@ function DynamicTaskSelect(
                         onTaskSelect={setTask}
                         shortForm
                         showRootForAdmins={showRootForAdmins}
+                        consumptionBarClickable={false}
                         visible={panelVisible}
                     />
                 </Collapse>
