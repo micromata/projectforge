@@ -57,6 +57,7 @@ import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.sql.Timestamp
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
@@ -168,6 +169,7 @@ class ToStringUtil {
             module.addSerializer(Timestamp::class.java, TimestampSerializer(UtilDateFormat.ISO_DATE_TIME_MILLIS))
             module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
             module.addSerializer(LocalDate::class.java, LocalDateSerializer())
+            module.addSerializer(LocalTime::class.java, LocalTimeSerializer())
             module.addSerializer(TenantDO::class.java, TenantSerializer())
             module.addSerializer(AddressbookDO::class.java, AddressbookSerializer())
             module.addSerializer(AbstractLazyInitializer::class.java, HibernateProxySerializer())

@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import InputContainer from '../InputContainer';
 import styles from './CalendarInput.module.scss';
-import TimeInput from './TimeInput';
+import DateTimeInput from './DateTimeInput';
 
 function TimeRange(
     {
@@ -29,7 +29,7 @@ function TimeRange(
                 label={label}
                 withMargin
             >
-                <TimeInput
+                <DateTimeInput
                     hideDayPicker={hideDayPicker}
                     hideTimeInput={hideTimeInput}
                     id={`time-input-${id}-from`}
@@ -44,7 +44,7 @@ function TimeRange(
                 label={toLabel || 'until'}
                 withMargin
             >
-                <TimeInput
+                <DateTimeInput
                     hideDayPicker={hideDayPicker}
                     hideTimeInput={hideTimeInput}
                     id={`time-input-${id}-from`}
