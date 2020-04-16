@@ -23,17 +23,25 @@
 
 package org.projectforge.rest.orga
 
-import org.projectforge.business.orga.*
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService
+import org.projectforge.business.orga.VisitorbookDO
+import org.projectforge.business.orga.VisitorbookDao
+import org.projectforge.business.orga.VisitorbookTimedDO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Visitorbook
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/visitorBook")
-class VisitorbookPagesRest: AbstractDTOPagesRest<VisitorbookDO, Visitorbook, VisitorbookDao>(VisitorbookDao::class.java, "orga.visitorbook.title") {
+class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, VisitorbookDao>(VisitorbookDao::class.java, "orga.visitorbook.title") {
+
+    @Autowired
+    private val timeableService: TimeableService? = null
+
     override fun transformForDB(dto: Visitorbook): VisitorbookDO {
         val visitorbookDO = VisitorbookDO()
         dto.copyTo(visitorbookDO)
@@ -43,6 +51,15 @@ class VisitorbookPagesRest: AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vis
     override fun transformFromDB(obj: VisitorbookDO, editMode: Boolean): Visitorbook {
         val visitorbook = Visitorbook()
         visitorbook.copyFrom(obj)
+
+        val timeableAttributes = timeableService!!.getTimeableAttrRowsForGroupName<Int, VisitorbookTimedDO>(obj, "timeofvisit")
+        if (timeableAttributes != null && timeableAttributes.size > 0) {
+            val sortedList = timeableService.sortTimeableAttrRowsByDateDescending(timeableAttributes)
+            val newestEntry = sortedList[0]
+            visitorbook.arrive = if (newestEntry.getAttribute("arrive") != null) newestEntry.getAttribute("arrive", String::class.java) else ""
+            visitorbook.depart = if (newestEntry.getAttribute("depart") != null) newestEntry.getAttribute("depart", String::class.java) else ""
+        }
+
         return visitorbook
     }
 
@@ -52,7 +69,10 @@ class VisitorbookPagesRest: AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vis
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "id", "lastname", "firstname", "company", "visitortype", "arrive", "depart", "contactPersons"))
+                        .add(lc, "id", "lastname", "firstname", "company", "visitortype")
+                        .add(UITableColumn("arrive", title = "orga.visitorbook.arrive"))
+                        .add(UITableColumn("depart", title = "orga.visitorbook.depart"))
+                        .add(lc, "contactPersons"))
         return LayoutUtils.processListPage(layout, this)
     }
 
