@@ -63,7 +63,6 @@ import org.springframework.context.annotation.Configuration
 import java.math.BigDecimal
 import java.sql.Timestamp
 import java.time.LocalDate
-import java.time.LocalTime
 
 /**
  * Base configuration of all Spring rest calls. Unknown properties not avoidable by the client might be registered through
@@ -159,9 +158,6 @@ open class JacksonConfiguration {
         }
         module.addSerializer(LocalDate::class.java, LocalDateSerializer())
         module.addDeserializer(LocalDate::class.java, LocalDateDeserializer())
-
-        module.addSerializer(LocalTime::class.java, LocalTimeSerializer())
-        module.addDeserializer(LocalTime::class.java, LocalTimeDeserializer())
 
         module.addSerializer(PFDateTime::class.java, PFDateTimeSerializer())
         module.addDeserializer(PFDateTime::class.java, PFDateTimeDeserializer())
