@@ -36,7 +36,6 @@ enum class UIDataType {
     PICTURE,
     STRING,
     TASK,
-    TIME,
     TIMESTAMP,
     TIMEZONE,
     USER
