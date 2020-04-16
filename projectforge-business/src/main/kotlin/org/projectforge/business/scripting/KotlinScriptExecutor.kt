@@ -43,7 +43,7 @@ object KotlinScriptExecutor {
             "import org.projectforge.framework.i18n.translate",
             "import org.projectforge.framework.i18n.translateMsg",
             "import org.projectforge.framework.time.*",
-            "import org.projectforge.framework.utils.NumberHelper",
+            "import org.projectforge.framework.utils.*",
             "import org.projectforge.business.fibu.*",
             "import org.projectforge.business.task.*",
             "import org.projectforge.business.timesheet.*",
