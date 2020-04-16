@@ -59,6 +59,9 @@ class Rechnung(var nummer: Int? = null,
     override val vatAmountSum: BigDecimal
         get() = RechnungCalculator.calculateVatAmountSum(this)
 
+    var orders: Int? = null
+        get() = positionen?.size
+
 
     val isBezahlt: Boolean
         get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
@@ -75,6 +78,7 @@ class Rechnung(var nummer: Int? = null,
             list.add(pos)
         }
         positionen = list
+        orders = positionen!!.size
     }
 
     override fun copyTo(dest: RechnungDO) {

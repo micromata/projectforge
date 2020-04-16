@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("${Rest.URL}/invoice")
+@RequestMapping("${Rest.URL}/outgoingInvoice")
 class RechnungPagesRest : AbstractDTOPagesRest<RechnungDO, Rechnung, RechnungDao>(RechnungDao::class.java, "fibu.rechnung.title") {
 
     /**
@@ -43,12 +43,14 @@ class RechnungPagesRest : AbstractDTOPagesRest<RechnungDO, Rechnung, RechnungDao
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "nummer", "kunde", "projekt", "account", "betreff", "datum", "faelligkeit",
+                        .add(lc, "nummer", "kunde", "projekt", "konto", "betreff", "datum", "faelligkeit",
                                 "bezahlDatum", "periodOfPerformanceBegin", "periodOfPerformanceEnd")
-                        .add(UITableColumn("netSum", title = translate("fibu.common.netto"), dataType = UIDataType.DECIMAL))
-                        .add(UITableColumn("grossSum", title = translate("fibu.rechnung.bruttoBetrag"), dataType = UIDataType.DECIMAL))
-                        .add(lc, "orders", "bemerkung", "status"))
+                        .add(UITableColumn("netSum", title = "fibu.common.netto"))
+                        .add(UITableColumn("grossSum", title = "fibu.rechnung.bruttoBetrag"))
+                        .add(UITableColumn("orders", title = "fibu.auftrag.auftraege", dataType = UIDataType.INT))
+                        .add(lc, "bemerkung", "status"))
         layout.getTableColumnById("kunde").formatter = Formatter.CUSTOMER
+        layout.getTableColumnById("konto").formatter = Formatter.KONTO
         layout.getTableColumnById("projekt").formatter = Formatter.PROJECT
         layout.getTableColumnById("datum").formatter = Formatter.DATE
         layout.getTableColumnById("faelligkeit").formatter = Formatter.DATE
@@ -68,16 +70,16 @@ class RechnungPagesRest : AbstractDTOPagesRest<RechnungDO, Rechnung, RechnungDao
                         .add(UICol()
                                 .add(lc, "nummer", "typ"))
                         .add(UICol()
-                                .add(lc, "status", "account"))
+                                .add(lc, "status", "konto"))
                         .add(UICol()
                                 .add(lc, "datum", "vatAmountSum", "bezahlDatum", "faelligkeit"))
                         .add(UICol()
                                 .add(lc, "netSum", "grossSum", "zahlBetrag", "discountMaturity", "discountPercent")))
                 .add(UIRow()
                         .add(UICol()
-                                // TODO: Projekt and Kunde require custom components
-                                .add(lc, "projekt", "kunde", "kundeText", "customerAddress", "customerref1", "attachment",
-                                        "periodOfPerformanceBegin", "periodOfPerformanceEnd")))
+                                .add(UISelect.createProjectSelect(lc, "projekt", false))
+                                .add(UISelect.createCustomerSelect(lc, "kunde", false))
+                                .add(lc, "kundeText", "customerAddress", "customerref1", "attachment", "periodOfPerformanceBegin", "periodOfPerformanceEnd")))
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "bemerkung"))
