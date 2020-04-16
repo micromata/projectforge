@@ -16,6 +16,9 @@ function DateTimeInput(
         time,
     },
 ) {
+    const hours = time ? time.getHours() : 0;
+    const minutes = time ? time.getMinutes() : 0;
+
     const handleDateChange = (newDate) => {
         const momentDate = moment(newDate, jsDateFormat);
 
@@ -24,8 +27,8 @@ function DateTimeInput(
         }
 
         // Manipulating with MomentJS
-        momentDate.hour(time.getHours());
-        momentDate.minute(time.getMinutes());
+        momentDate.hour(hours);
+        momentDate.minute(minutes);
 
         setTime(momentDate.toDate());
     };
@@ -55,7 +58,7 @@ function DateTimeInput(
             )}
             {!hideTimeInput && (
                 <TimeInput
-                    value={[time.getHours(), time.getMinutes()]}
+                    value={[hours, minutes]}
                     onChange={handleTimeChange}
                     precision={precision}
                 />
