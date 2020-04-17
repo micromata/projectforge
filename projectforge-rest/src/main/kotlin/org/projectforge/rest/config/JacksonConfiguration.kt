@@ -85,6 +85,7 @@ open class JacksonConfiguration {
          * Properties (field) sent by any client and unknown by the server will result in an exception and BAD_REQUEST.
          * In special cases you may add properties, which should be simply ignored.
          */
+        @JvmStatic
         fun registerAllowedUnknownProperties(clazz: Class<*>, vararg properties: String) {
             synchronized(allowedUnknownProperties) {
                 val set = allowedUnknownProperties[clazz]
@@ -100,6 +101,7 @@ open class JacksonConfiguration {
          * Properties (field) sent by any client and unknown by the server will result in an exception and BAD_REQUEST.
          * In special cases you may add properties, which should be simply ignored.
          */
+        @JvmStatic
         fun registerAllowedUnknownGlobalProperties(vararg properties: String) {
             synchronized(allowedUnknownGlobalProperties) {
                 allowedUnknownGlobalProperties.addAll(properties)
