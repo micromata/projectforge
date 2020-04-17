@@ -4,7 +4,7 @@ import { Button, UncontrolledCollapse } from 'reactstrap';
 import { DynamicLayoutContext } from '../../../context';
 
 function IncomingInvoicePositionsComponent() {
-    const { data, callAction } = React.useContext(DynamicLayoutContext);
+    const { data, setData, callAction } = React.useContext(DynamicLayoutContext);
 
     const style105 = {
         width: 105,
@@ -31,7 +31,15 @@ function IncomingInvoicePositionsComponent() {
         },
     });
 
-    const displayKostZuweisungen = {};
+    const handleQuantityChange = (pos, event) => {
+        console.log(pos);
+        const positionen = data.positionen;
+        const position = positionen[pos];
+        position.menge = event.target.value;
+        setData({ positionen: positionen });
+    };
+
+    const displayKostZuweisungen = () => null;
 
     function loadPositions() {
         const positions = [];
@@ -60,6 +68,7 @@ function IncomingInvoicePositionsComponent() {
 
         for (let i = 0; i < positionen.length; i++) {
             const position = positionen[i];
+            console.log(position)
             const net = position.menge * position.einzelNetto;
             const vat = net * position.vat;
 
@@ -67,7 +76,7 @@ function IncomingInvoicePositionsComponent() {
             const kostZuweisungTable = [];
 
             if (kostZuweisungen !== undefined) {
-                for (let k = 0; k < kostZuweisungen.length; k + 1) {
+                for (let k = 0; k < kostZuweisungen.length; k++) {
                     const kostZuweisung = kostZuweisungen[i];
                     kostZuweisungTable.push(
                         <tr>
@@ -103,12 +112,14 @@ function IncomingInvoicePositionsComponent() {
                                                 <label className="control-label" htmlFor="idf8">Quantity</label>
                                                 <div className="controls" style={style105}>
                                                     <input
+                                                        id="quantity_{$i}"
                                                         style={style105}
                                                         type="text"
                                                         value={position.menge}
                                                         autoComplete="off"
                                                         title=""
                                                         className="text ac_input"
+                                                        onChange={e => handleQuantityChange(i, e)}
                                                     />
                                                 </div>
                                             </div>
@@ -236,8 +247,8 @@ function IncomingInvoicePositionsComponent() {
                                     <div className="control-group">
                                         <label className="control-label" htmlFor="idfe">Period of performance</label>
                                         <div className="controls controls-row" style={style838}>
-                                            <select>
-                                                <option selected="selected" value="SEEABOVE">see above</option>
+                                            <select defaultValue="SEEABOVE">
+                                                <option value="SEEABOVE">see above</option>
                                                 <option value="OWN">own</option>
                                             </select>
                                         </div>
