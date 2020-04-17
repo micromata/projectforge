@@ -70,6 +70,10 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     @Autowired
     private lateinit var vacationSendMailService: VacationSendMailService
 
+    init {
+        supportAfterUpdate = true
+    }
+
     override fun getAdditionalSearchFields(): Array<String> {
         return ADDITIONAL_SEARCH_FIELDS
     }
@@ -85,7 +89,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     override fun hasHistoryAccess(user: PFUserDO, obj: VacationDO, throwException: Boolean): Boolean {
         return if (hasHrRights(user) || isOwnEntry(user, obj) || isManager(user, obj)) {
             true
-        } else throwOrReturn(throwException)
+        } else throwOrReturnFalse(throwException)
     }
 
     override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {
@@ -98,7 +102,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         }
         return if (obj.employee != null && accessChecker.areUsersInSameGroup(user, obj.employee!!.user)) {
             true
-        } else throwOrReturn(throwException)
+        } else throwOrReturnFalse(throwException)
     }
 
     override fun hasInsertAccess(user: PFUserDO, obj: VacationDO, throwException: Boolean): Boolean {
@@ -111,25 +115,69 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         }
         if (obj.startDate!!.isBefore(LocalDate.now())) {
             // User aren't allowed to insert/update old entries.
-            return throwOrReturn(throwException)
+            return throwOrReturnFalse(throwException)
+        }
+        obj.status?.let {
+            if (!getAllowedStatus(user, obj).contains(it)) {
+                return throwOrReturnFalse(throwException)
+            }
         }
         if (!isOwnEntry(user, obj, dbObj)) {
             return if (dbObj != null && isManager(user, obj, dbObj)) {
                 if (obj.startDate == dbObj.startDate &&
                         obj.endDate == dbObj.endDate && obj.special === dbObj.special &&
-                        obj.employeeId == dbObj.employeeId && obj.halfDayBegin === dbObj.halfDayBegin && obj.halfDayEnd === dbObj.halfDayEnd &&
-                        (obj.special != true)) {
-                    // Manager is only allowed to change status and replacement, but not allowed to approve special vacations.
-                    true
-                } else throwOrReturn(throwException)
+                        obj.employeeId == dbObj.employeeId && obj.halfDayBegin === dbObj.halfDayBegin && obj.halfDayEnd === dbObj.halfDayEnd) {
+                    if (obj.special != true) {
+                        // Manager is only allowed to change status and replacement, but not allowed to approve special vacations.
+                        true
+                    } else {
+                        if (obj.status == dbObj.status || obj.status != VacationStatus.APPROVED) {
+                            true
+                        } else {
+                            throwOrReturnFalse(throwException)
+                        }
+                    }
+                } else throwOrReturnFalse(throwException)
                 // Normal user isn't allowed to insert foreign entries.
-            } else throwOrReturn(throwException)
+            } else throwOrReturnFalse(throwException)
             // Normal user isn't allowed to insert foreign entries.
         }
         return if (obj.status == VacationStatus.APPROVED) {
             // Normal user isn't allowed to insert/update approved entries:
-            throwOrReturn(VacationValidator.Error.NOT_ALLOWED_TO_APPROVE.messageKey, throwException)
+            throwOrReturnFalse(VacationValidator.Error.NOT_ALLOWED_TO_APPROVE.messageKey, throwException)
         } else true
+    }
+
+    /**
+     * Gets all available status values for given user.
+     */
+    open fun getAllowedStatus(user: PFUserDO, vacation: VacationDO): List<VacationStatus> {
+        if (hasHrRights(user)) {
+            return VacationStatus.values().toList() // All status values for HR staff.
+        }
+        val status = vacation.status
+        vacation.startDate?.let {
+            if (it.isBefore(LocalDate.now())) {
+                // Users aren't allowed to change old entries.
+                return if (status != null) listOf(status) else emptyList()// Don't change status
+            }
+        }
+        if (isManager(user, vacation)) {
+            if (vacation.special == true) {
+                return if (status == null || status != VacationStatus.APPROVED) {
+                    listOf(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED)
+                } else {
+                    listOf(status, VacationStatus.IN_PROGRESS, VacationStatus.REJECTED)
+                }
+                // return listOf(vacation.status ?: VacationStatus.IN_PROGRESS) // manager may only reject special vacation.
+            }
+            return VacationStatus.values().toList() // All status values for manager.
+        }
+        if (status == VacationStatus.APPROVED) {
+            return listOf(VacationStatus.APPROVED) // Approved entries are only allowed to delete.
+        }
+        // If not approved, these status values are allowed for employees:
+        return listOf(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED)
     }
 
     override fun afterLoad(obj: VacationDO) {
@@ -147,11 +195,11 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
             return true
         }
         if (!isOwnEntry(user, obj, dbObj)) {
-            return throwOrReturn(throwException) // Normal user isn't allowed to insert foreign entries.
+            return throwOrReturnFalse(throwException) // Normal user isn't allowed to insert foreign entries.
         }
         return if (obj.status == VacationStatus.APPROVED && obj.startDate!!.isBefore(LocalDate.now())) {
             // The user isn't allowed to delete approved entries of the past.
-            throwOrReturn(throwException)
+            throwOrReturnFalse(throwException)
         } else true
     }
 
@@ -202,14 +250,14 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         return replacement.userId == loggedInUser.id
     }
 
-    private fun throwOrReturn(throwException: Boolean): Boolean {
+    private fun throwOrReturnFalse(throwException: Boolean): Boolean {
         if (throwException) {
             throw AccessException("access.exception.userHasNotRight", UserRightId.HR_VACATION, UserRightValue.READWRITE)
         }
         return false
     }
 
-    private fun throwOrReturn(messageKey: String, throwException: Boolean): Boolean {
+    private fun throwOrReturnFalse(messageKey: String, throwException: Boolean): Boolean {
         if (throwException) {
             throw AccessException(messageKey)
         }
