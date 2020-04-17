@@ -807,9 +807,9 @@ constructor(private val baseDaoClazz: Class<B>,
      * @return ResponseAction
      */
     @PostMapping(RestPaths.CANCEL)
-    fun cancelEdit(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseAction {
+    fun onCancelEdit(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseAction {
         val dbObj = transformForDB(postData.data)
-        return cancelEdit(request, dbObj, postData, getRestPath())
+        return onCancelEdit(request, dbObj, postData, getRestPath())
     }
 
     /**
@@ -825,86 +825,86 @@ constructor(private val baseDaoClazz: Class<B>,
     /**
      * Called before save, update, delete, markAsDeleted and undelete.
      */
-    internal open fun beforeDatabaseAction(request: HttpServletRequest, obj: O, postData: PostData<DTO>, operation: OperationType) {
+    internal open fun onBeforeDatabaseAction(request: HttpServletRequest, obj: O, postData: PostData<DTO>, operation: OperationType) {
     }
 
     /**
      * Called before save and update.
      */
-    internal open fun beforeSaveOrUpdate(request: HttpServletRequest, obj: O, postData: PostData<DTO>) {
+    internal open fun onBeforeSaveOrUpdate(request: HttpServletRequest, obj: O, postData: PostData<DTO>) {
     }
 
     /**
      * Called after save and update.
      */
-    internal open fun afterSaveOrUpdate(obj: O, postData: PostData<DTO>) {
+    internal open fun onAfterSaveOrUpdate(obj: O, postData: PostData<DTO>) {
     }
 
     /**
-     * Will only be called on success. Simply call [afterEdit].
+     * Will only be called on success. Simply call [onAfterEdit].
      */
-    internal open fun afterSave(obj: O, postData: PostData<DTO>): ResponseAction {
-        return afterEdit(obj, postData)
+    internal open fun onAfterSave(obj: O, postData: PostData<DTO>): ResponseAction {
+        return onAfterEdit(obj, postData)
     }
 
     /**
-     * Will only be called on success. Simply call [afterEdit].
+     * Will only be called on success. Simply call [onAfterEdit].
      */
-    internal open fun afterUpdate(obj: O, postData: PostData<DTO>): ResponseAction {
-        return afterEdit(obj, postData)
+    internal open fun onAfterUpdate(obj: O, postData: PostData<DTO>): ResponseAction {
+        return onAfterEdit(obj, postData)
     }
 
     /**
      * Called before delete (not markAsDeleted!).
      */
-    internal open fun beforeDelete(request: HttpServletRequest, obj: O, postData: PostData<DTO>) {
+    internal open fun onBeforeDelete(request: HttpServletRequest, obj: O, postData: PostData<DTO>) {
     }
 
     /**
-     * Will only be called on success. Simply call [afterEdit].
+     * Will only be called on success. Simply call [onAfterEdit].
      */
-    internal open fun afterDelete(obj: O, postData: PostData<DTO>): ResponseAction {
-        return afterEdit(obj, postData)
+    internal open fun onAfterDelete(obj: O, postData: PostData<DTO>): ResponseAction {
+        return onAfterEdit(obj, postData)
     }
 
     /**
      * Called before markAsDeleted.
      */
-    internal open fun beforeMarkAsDeleted(request: HttpServletRequest, obj: O, postData: PostData<DTO>) {
+    internal open fun onBeforeMarkAsDeleted(request: HttpServletRequest, obj: O, postData: PostData<DTO>) {
     }
 
     /**
-     * Will only be called on success. Simply call [afterEdit].
+     * Will only be called on success. Simply call [onAfterEdit].
      */
-    internal open fun afterMarkAsDeleted(obj: O, postData: PostData<DTO>): ResponseAction {
-        return afterEdit(obj, postData)
+    internal open fun onAfterMarkAsDeleted(obj: O, postData: PostData<DTO>): ResponseAction {
+        return onAfterEdit(obj, postData)
     }
 
     /**
      * Called before undelete.
      */
-    internal open fun beforeUndelete(request: HttpServletRequest, obj: O, postData: PostData<DTO>) {
+    internal open fun onBeforeUndelete(request: HttpServletRequest, obj: O, postData: PostData<DTO>) {
     }
 
     /**
-     * Will only be called on success. Simply call [afterEdit].
+     * Will only be called on success. Simply call [onAfterEdit].
      */
-    internal open fun afterUndelete(obj: O, postData: PostData<DTO>): ResponseAction {
-        return afterEdit(obj, postData)
+    internal open fun onAfterUndelete(obj: O, postData: PostData<DTO>): ResponseAction {
+        return onAfterEdit(obj, postData)
     }
 
     /**
-     * Will only be called on success. Simply call [afterEdit].
+     * Will only be called on success. Simply call [onAfterEdit].
      */
-    internal open fun cancelEdit(request: HttpServletRequest, obj: O, postData: PostData<DTO>, restPath: String): ResponseAction {
-        return afterEdit(obj, postData)
+    internal open fun onCancelEdit(request: HttpServletRequest, obj: O, postData: PostData<DTO>, restPath: String): ResponseAction {
+        return onAfterEdit(obj, postData)
     }
 
     /**
      * Will be called after create, update, delete, markAsDeleted, undelete and cancel.
      * @return ResponseAction with the url of the standard list page.
      */
-    internal open fun afterEdit(obj: O, postData: PostData<DTO>): ResponseAction {
+    internal open fun onAfterEdit(obj: O, postData: PostData<DTO>): ResponseAction {
         obj.id?.let {
             userPrefService.putEntry(getCategory(), USER_PREF_PARAM_HIGHLIGHT_ROW, it, false)
         }
