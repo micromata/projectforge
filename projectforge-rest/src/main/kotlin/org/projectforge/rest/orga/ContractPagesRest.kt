@@ -23,27 +23,51 @@
 
 package org.projectforge.rest.orga
 
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractDao
-import org.projectforge.business.vacation.model.VacationYearFilter
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDOPagesRest
+import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterElement
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/contract")
-class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(ContractDao::class.java, "legalAffaires.contract.title") {
+class ContractPagesRest
+    : AbstractDTOPagesRest<ContractDO, Contract, ContractDao>(ContractDao::class.java, "legalAffaires.contract.title") {
+    @Autowired
+    private lateinit var configurationService: ConfigurationService
+
+    @PostConstruct
+    private fun postConstruct() {
+        JacksonConfiguration.registerAllowedUnknownProperties(Contract::class.java, "statusAsString")
+    }
+
+    override fun transformForDB(dto: Contract): ContractDO {
+        val contractDO = ContractDO()
+        dto.copyTo(contractDO)
+        return contractDO
+    }
+
+    override fun transformFromDB(obj: ContractDO, editMode: Boolean): Contract {
+        val contract = Contract()
+        contract.copyFrom(obj)
+        return contract
+    }
+
     /**
      * Initializes new outbox mails for adding.
      */
@@ -53,7 +77,7 @@ class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(Contrac
         return contract
     }
 
-    override fun validate(validationErrors: MutableList<ValidationError>, dto: ContractDO) {
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: Contract) {
         val date = PFDay.fromOrNull(dto.date)
         if (date != null && PFDay.now().isBefore(date)) { // No dates in the future accepted.
             validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "date"))
@@ -66,7 +90,7 @@ class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(Contrac
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "number", "date", "type", "status", "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate"))
+                        .add(lc, "number", "date", "type", "statusAsString", "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate"))
         layout.getTableColumnById("date").formatter = Formatter.DATE
         return LayoutUtils.processListPage(layout, this)
     }
@@ -77,7 +101,7 @@ class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(Contrac
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<ContractDO>>? {
         val filters = mutableListOf<CustomResultFilter<ContractDO>>()
-        source.entries.find { it.field == "year" }?.let {entry ->
+        source.entries.find { it.field == "year" }?.let { entry ->
             entry.synthetic = true
             NumberHelper.parseInteger(entry.value.value)?.let { year ->
                 target.setYearAndMonth("date", year, -1)
@@ -90,22 +114,26 @@ class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(Contrac
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: ContractDO, userAccess: UILayout.UserAccess): UILayout {
-        val title = UIInput("title", lc).enableAutoCompletion(this)
+    override fun createEditLayout(dto: Contract, userAccess: UILayout.UserAccess): UILayout {
+        val title = UIInput("title", lc, focus = true).enableAutoCompletion(this)
         val coContractorA = UIInput("coContractorA", lc).enableAutoCompletion(this)
         val coContractorB = UIInput("coContractorB", lc).enableAutoCompletion(this)
         val contractPersonA = UIInput("contractPersonA", lc).enableAutoCompletion(this)
         val contractPersonB = UIInput("contractPersonB", lc).enableAutoCompletion(this)
         val signerA = UIInput("signerA", lc).enableAutoCompletion(this)
         val signerB = UIInput("signerB", lc).enableAutoCompletion(this)
-
+        val number = UIReadOnlyField("number", lc)
+        val contractTypes = configurationService.contractTypes.map {
+            UISelectValue(it.value, it.label)
+        }
 
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UIFieldset(UILength(md = 6))
-                                .add(lc, "number")
+                                .add(number)
                                 .add(title)
-                                .add(lc, "type", "status", "reference"))
+                                .add(UISelect("type", lc, values = contractTypes))
+                                .add(lc, "status", "reference"))
                         .add(UIFieldset(UILength(md = 6))
                                 .add(lc, "date", "resubmissionOnDate", "dueDate", "signingDate")
                                 .add(UIRow()
