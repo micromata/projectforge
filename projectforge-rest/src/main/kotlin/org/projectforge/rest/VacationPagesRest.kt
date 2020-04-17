@@ -117,13 +117,13 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
         return employee
     }
 
-    override fun afterSave(obj: VacationDO, postData: PostData<Vacation>): ResponseAction {
+    override fun onAfterSave(obj: VacationDO, postData: PostData<Vacation>): ResponseAction {
         // Save current edited object as user preference for pre-filling the edit form for the next usage.
         val vacation = getUserPref()
         vacation.employee = obj.employee
         vacation.manager = obj.manager
         vacation.replacement = obj.replacement
-        return super.afterSave(obj, postData)
+        return super.onAfterSave(obj, postData)
     }
 
     /**
