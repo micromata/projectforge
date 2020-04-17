@@ -43,6 +43,9 @@ data class UIInput(val id: String,
                    override val ignoreAdditionalLabel: Boolean = false,
                    @Transient
                    override val ignoreTooltip: Boolean = false,
+                   /**
+                    * AutoComplete Types for HTML Input fields.
+                    */
                    val autoComplete: AutoCompleteType? = null)
     : UIElement(UIElementType.INPUT), UILabelledElement {
     var autoCompletionUrl: String? = null

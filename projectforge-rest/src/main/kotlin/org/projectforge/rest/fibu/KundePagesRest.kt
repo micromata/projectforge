@@ -25,12 +25,19 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
+import org.projectforge.rest.AddressServicesRest
+import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.dto.Konto
 import org.projectforge.rest.dto.Kunde
+import org.projectforge.rest.orga.Contract
 import org.projectforge.ui.*
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import javax.annotation.PostConstruct
 
 @RestController
 @RequestMapping("${Rest.URL}/customer")
@@ -39,10 +46,15 @@ class KundePagesRest
         KundeDao::class.java,
         "fibu.kunde.title") {
 
+    @PostConstruct
+    private fun postConstruct() {
+        JacksonConfiguration.registerAllowedUnknownProperties(Kunde::class.java, "statusAsString")
+    }
+
+
     override fun transformFromDB(obj: KundeDO, editMode: Boolean): Kunde {
         val kunde = Kunde()
         kunde.copyFrom(obj)
-        kunde.kost = obj.kost
         return kunde
     }
 
@@ -52,9 +64,6 @@ class KundePagesRest
         return kundeDO
     }
 
-    override val classicsLinkListUrl: String?
-        get() = "wa/customerList"
-
     /**
      * LAYOUT List page
      */
@@ -62,7 +71,7 @@ class KundePagesRest
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
                         .add(UITableColumn("kost", title = "fibu.kunde.nummer"))
-                        .add(lc, "identifier", "name", "division", "konto", "status", "description"))
+                        .add(lc, "identifier", "name", "division", "konto", "statusAsString", "description"))
         layout.getTableColumnById("konto").formatter = Formatter.KONTO
         return LayoutUtils.processListPage(layout, this)
     }
@@ -71,8 +80,10 @@ class KundePagesRest
      * LAYOUT Edit page
      */
     override fun createEditLayout(dto: Kunde, userAccess: UILayout.UserAccess): UILayout {
-        // TODO: Updating a customer results in an "undefined" id
-        val konto = UIInput("konto", lc, tooltip = "fibu.kunde.konto.tooltip")
+        val kto = UIInput("konto", lc, tooltip = "fibu.kunde.konto.tooltip")
+        val konto = UISelect<Konto>("konto", lc,
+                autoCompletion = AutoCompletion<Konto>(url = "account/acDebitors?search=:search"))
+
 
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()

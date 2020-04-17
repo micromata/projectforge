@@ -12,15 +12,21 @@ class HRPlanning(
         var totalUnassignedHours: BigDecimal? = null,
         var user: User? = null
 ) : BaseDTO<HRPlanningDO>() {
+
+    /**
+     * @see copyFrom
+     */
+    constructor(src: HRPlanningDO) : this() {
+        copyFrom(src)
+    }
+
     override fun copyFrom(src: HRPlanningDO) {
         super.copyFrom(src)
         formattedWeekOfYear = src.formattedWeekOfYear
         totalHours = src.totalHours
         totalUnassignedHours = src.totalUnassignedHours
         src.user?.let {
-            val user = User()
-            user.copyFromMinimal(it)
-            this.user = user
+            this.user = User(it)
         }
     }
 }

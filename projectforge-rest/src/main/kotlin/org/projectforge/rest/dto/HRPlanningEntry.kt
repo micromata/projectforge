@@ -24,9 +24,7 @@ class HRPlanningEntry(
     override fun copyFrom(src: HRPlanningEntryDO) {
         super.copyFrom(src)
         src.planning?.let {
-            val planning = HRPlanning()
-            planning.copyFrom(it)
-            this.planning = planning
+            this.planning = HRPlanning(it)
         }
         src.projekt?.let {
             val projekt = Projekt()

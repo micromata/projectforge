@@ -42,6 +42,13 @@ class Kost2(
         var kost2Art: Kost2Art? = null
 ) : BaseDTODisplayObject<Kost2DO>(id, displayName = displayName) {
 
+    /**
+     * @see copyFromMinimal
+     */
+    constructor(src: Kost2DO) : this() {
+        copyFromMinimal(src)
+    }
+
     override fun copyFromMinimal(src: Kost2DO) {
         super.copyFromMinimal(src)
         nummernkreis = src.nummernkreis

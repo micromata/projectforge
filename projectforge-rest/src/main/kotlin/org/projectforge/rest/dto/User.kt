@@ -46,6 +46,14 @@ class User(id: Int? = null,
            var timeNotation: TimeNotation? = null,
            var personalPhoneIdentifiers: String? = null
 ) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName) {
+
+    /**
+     * @see copyFromMinimal
+     */
+    constructor(src: PFUserDO) : this() {
+        copyFromMinimal(src)
+    }
+
     override fun copyFromMinimal(src: PFUserDO) {
         super.copyFromMinimal(src)
         this.username = src.username
@@ -75,7 +83,7 @@ class User(id: Int? = null,
          */
         fun toUserList(str: String?): List<User>? {
             if (str.isNullOrBlank()) return null
-            return toIntArray(str)?.map {  User(it, "???") }
+            return toIntArray(str)?.map { User(it, "???") }
         }
 
         /**
