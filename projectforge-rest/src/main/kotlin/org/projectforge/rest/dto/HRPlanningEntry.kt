@@ -17,23 +17,24 @@ class HRPlanningEntry(
         var fridayHours: BigDecimal? = null,
         var weekendHours: BigDecimal? = null,
         var description: String? = null
-): BaseDTO<HRPlanningEntryDO>() {
-    var planning: HRPlanning? = HRPlanning()
-    var projekt: Projekt? = Projekt()
+) : BaseDTO<HRPlanningEntryDO>() {
+    var planning: HRPlanning? = null
+    var projekt: Projekt? = null
 
-    fun initialize(obj: HRPlanningEntryDO){
-        copyFrom(obj)
-
-        if(obj.planning != null){
-            planning!!.initialize(obj.planning!!)
+    override fun copyFrom(src: HRPlanningEntryDO) {
+        super.copyFrom(src)
+        src.planning?.let {
+            val planning = HRPlanning()
+            planning.copyFrom(it)
+            this.planning = planning
         }
-
-        if(obj.projekt != null){
-            projekt!!.initialize(obj.projekt!!)
+        src.projekt?.let {
+            val projekt = Projekt()
+            projekt.copyFrom(it)
+            this.projekt = projekt
         }
-
-        projektNameOrStatus = obj.projektNameOrStatus
-        totalHours = obj.totalHours
-        unassignedHours = obj.unassignedHours
+        projektNameOrStatus = src.projektNameOrStatus
+        totalHours = src.totalHours
+        unassignedHours = src.unassignedHours
     }
 }

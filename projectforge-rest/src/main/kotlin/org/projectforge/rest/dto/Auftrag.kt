@@ -3,6 +3,9 @@ package org.projectforge.rest.dto
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragsPositionDO
 import org.projectforge.business.fibu.AuftragsStatus
+import org.projectforge.framework.utils.CurrencyHelper
+import org.projectforge.framework.utils.NumberFormatter
+import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.time.LocalDate
@@ -26,7 +29,7 @@ class Auftrag(
         var periodOfPerformanceEnd: LocalDate? = null,
         var probabilityOfOccurrence: Int? = null,
         var auftragsStatus: AuftragsStatus? = null
-): BaseDTO<AuftragDO>() {
+) : BaseDTO<AuftragDO>() {
     var pos: String? = null
 
     var formattedNettoSumme: String? = null
@@ -37,28 +40,24 @@ class Auftrag(
     override fun copyFrom(src: AuftragDO) {
         super.copyFrom(src)
 
-        if(src.kunde != null){
-            kunde!!.initialize(src.kunde!!)
+        src.kunde?.let {
+            val kunde = Kunde()
+            kunde.copyFrom(it)
+            this.kunde = kunde
         }
-
-        if(src.projekt != null){
-            projekt!!.initialize(src.projekt!!)
+        src.projekt?.let {
+            val projekt = Projekt()
+            projekt.copyFrom(it)
+            this.projekt = projekt
         }
 
         positionen = src.positionen
         personDays = src.personDays
         assignedPersons = src.assignedPersons
-        formattedNettoSumme = formatBigDecimal(src.nettoSumme)
-        formattedBeauftragtNettoSumme = formatBigDecimal(src.beauftragtNettoSumme)
-        formattedFakturiertSum = formatBigDecimal(src.fakturiertSum)
-        formattedZuFakturierenSum = formatBigDecimal(src.zuFakturierenSum)
-
+        formattedNettoSumme = NumberFormatter.formatCurrency(src.nettoSumme)
+        formattedBeauftragtNettoSumme = NumberFormatter.formatCurrency(src.beauftragtNettoSumme)
+        formattedFakturiertSum = NumberFormatter.formatCurrency(src.fakturiertSum)
+        formattedZuFakturierenSum = NumberFormatter.formatCurrency(src.zuFakturierenSum)
         pos = "#" + positionen?.size
-    }
-
-    private fun formatBigDecimal(value: BigDecimal?): String {
-        value ?: return ""
-        val df = DecimalFormat("#,###.## €")
-        return df.format(value)
     }
 }

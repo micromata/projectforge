@@ -45,11 +45,8 @@ class ProjektPagesRest
     private val kostCache: KostCache? = null
 
     override fun transformFromDB(obj: ProjektDO, editMode: Boolean): Projekt {
-        val projekt = Projekt(null, obj.displayName)
-        projekt.initialize(obj)
-        projekt.transformKost2(kostCache?.getAllKost2Arts(obj.id))
-        projekt.kost2Arten = projekt.getKost2ArtsAsString()
-
+        val projekt = Projekt()
+        projekt.copyFrom(obj)
         return projekt
     }
 

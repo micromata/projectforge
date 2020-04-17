@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController
 class HRPlanningListPagesRest : AbstractDTOPagesRest<HRPlanningEntryDO, HRPlanningEntry, HRPlanningEntryDao>(HRPlanningEntryDao::class.java, "hr.planning.title") {
     override fun transformFromDB(obj: HRPlanningEntryDO, editMode: Boolean): HRPlanningEntry {
         val hrPlanningEntry = HRPlanningEntry()
-        hrPlanningEntry.initialize(obj)
+        hrPlanningEntry.copyFrom(obj)
         return hrPlanningEntry
     }
 

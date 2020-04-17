@@ -46,7 +46,7 @@ class AccountingRecordPagesRest: AbstractDTOPagesRest<BuchungssatzDO, Buchungssa
 
     override fun transformFromDB(obj: BuchungssatzDO, editMode: Boolean): Buchungssatz {
         val buchungssatz = Buchungssatz()
-        buchungssatz.initialize(obj)
+        buchungssatz.copyFrom(obj)
         return buchungssatz
     }
 

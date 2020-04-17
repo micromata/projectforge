@@ -36,8 +36,4 @@ class Konto(var nummer: Int? = null,
         nummer = src.nummer
         bezeichnung = src.bezeichnung
     }
-
-    override fun copyFrom(src: KontoDO) {
-        super.copyFrom(src)
-    }
 }

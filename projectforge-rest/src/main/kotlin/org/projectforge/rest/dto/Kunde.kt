@@ -28,22 +28,17 @@ import org.projectforge.business.fibu.KundeStatus
 
 class Kunde(id: Int? = null,
             displayName: String? = null,
+            var nummer: Int? = null,
+            var kost: String? = null,
+            var konto: Konto? = null,
             var name: String? = null,
             var identifier: String? = null,
             var division: String? = null,
             var status: KundeStatus? = null,
             var description: String? = null
 ) : BaseDTODisplayObject<KundeDO>(id, displayName = displayName) {
-    var nummer: Int? = id
-    var kost: String? = null
-    var konto: Konto? = null
-
-    fun initialize(obj: KundeDO) {
-        copyFrom(obj)
-
-        if(obj.konto != null){
-            this.konto!!.copyFrom(obj.konto!!)
-        }
-
+    override fun copyFrom(src: KundeDO) {
+        super.copyFrom(src)
+        nummer = id
     }
 }
