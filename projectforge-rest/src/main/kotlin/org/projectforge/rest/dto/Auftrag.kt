@@ -41,14 +41,10 @@ class Auftrag(
         super.copyFrom(src)
 
         src.kunde?.let {
-            val kunde = Kunde()
-            kunde.copyFrom(it)
-            this.kunde = kunde
+            this.kunde = Kunde(it)
         }
         src.projekt?.let {
-            val projekt = Projekt()
-            projekt.copyFrom(it)
-            this.projekt = projekt
+            this.projekt = Projekt(it)
         }
 
         positionen = src.positionen

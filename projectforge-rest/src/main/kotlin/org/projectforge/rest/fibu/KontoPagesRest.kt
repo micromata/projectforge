@@ -25,12 +25,19 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.KontoDao
+import org.projectforge.business.fibu.KontoStatus
+import org.projectforge.business.fibu.kost.AccountingConfig
+import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.utils.IntRanges
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Konto
 import org.projectforge.ui.*
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.util.*
 
 @RestController
 @RequestMapping("${Rest.URL}/account")
@@ -53,6 +60,34 @@ class KontoPagesRest
 
     override val classicsLinkListUrl: String?
         get() = "wa/accountList"
+
+    @GetMapping("ac")
+    fun getAccounts(@RequestParam("search") search: String?): List<Konto> {
+        return getAccounts(search)
+    }
+
+    @GetMapping("acDebitors")
+    fun getDebitorAccounts(@RequestParam("search") search: String?): List<Konto> {
+        return getAccounts(search, AccountingConfig.getInstance().debitorsAccountNumberRanges)
+    }
+
+    @GetMapping("acCreditors")
+    fun getCreditorAccounts(@RequestParam("search") search: String?): List<Konto> {
+        return getAccounts(search, AccountingConfig.getInstance().creditorsAccountNumberRanges)
+    }
+
+    private fun getAccounts(search: String?, accountRanges: IntRanges? = null): List<Konto> {
+        val filter = BaseSearchFilter()
+        filter.setSearchFields("nummer", "bezeichnung", "description")
+        filter.searchString = search
+        val list: List<KontoDO> = baseDao.getList(filter)
+        if (accountRanges == null) {
+            return list.map { Konto(it) }
+        }
+        return list.filter { konto ->
+            konto.status != KontoStatus.NONACTIVE && accountRanges.doesMatch(konto.nummer)
+        }.map { Konto(it) }
+    }
 
     /**
      * LAYOUT List page

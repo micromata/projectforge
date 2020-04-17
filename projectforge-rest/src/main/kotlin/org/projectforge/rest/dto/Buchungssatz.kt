@@ -22,24 +22,16 @@ class Buchungssatz(
             this.satznr = src.formattedSatzNummer
         }
         src.kost1?.let {
-            val kost1 = Kost1()
-            kost1.copyFrom(it)
-            this.kost1 = kost1
+            this.kost1 = Kost1(it)
         }
         src.kost2?.let {
-            val kost2 = Kost2()
-            kost2.copyFrom(it)
-            this.kost2 = kost2
+            this.kost2 = Kost2(it)
         }
         src.konto?.let {
-            val konto = Konto()
-            konto.copyFrom(it)
-            this.konto = konto
+            this.konto = Konto(it)
         }
         src.gegenKonto?.let {
-            val konto = Konto()
-            konto.copyFrom(it)
-            this.gegenKonto = konto
+            this.gegenKonto = Konto(it)
         }
     }
 }

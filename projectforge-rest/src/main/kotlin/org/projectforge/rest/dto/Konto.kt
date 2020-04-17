@@ -31,6 +31,14 @@ class Konto(var nummer: Int? = null,
             var description: String? = null,
             var status: KontoStatus? = null
 ) : BaseDTODisplayObject<KontoDO>() {
+
+    /**
+     * @see copyFromMinimal
+     */
+    constructor(src: KontoDO) : this() {
+        this.copyFromMinimal(src)
+    }
+
     override fun copyFromMinimal(src: KontoDO) {
         super.copyFromMinimal(src)
         nummer = src.nummer

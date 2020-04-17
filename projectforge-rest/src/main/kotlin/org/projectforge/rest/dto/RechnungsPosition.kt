@@ -34,10 +34,18 @@ class RechnungsPosition(
         override var vat: BigDecimal? = null
 
 ) : BaseDTO<RechnungsPositionDO>(), IRechnungsPosition {
+
     var kostZuweisungen: MutableList<KostZuweisung>? = null
 
     override val netSum: BigDecimal
         get() = RechnungCalculator.calculateNetSum(this)
+
+    /**
+     * @see copyFrom
+     */
+    constructor(src: RechnungsPositionDO): this() {
+        copyFrom(src)
+    }
 
     override fun copyFrom(src: RechnungsPositionDO) {
         super.copyFrom(src)

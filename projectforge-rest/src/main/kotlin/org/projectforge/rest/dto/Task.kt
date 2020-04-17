@@ -60,6 +60,13 @@ class Task(id: Int? = null,
            var ganttPredecessor: Task? = null
 ) : BaseDTODisplayObject<TaskDO>(id, displayName = displayName) {
 
+    /**
+     * @see copyFromMinimal
+     */
+    constructor(src: TaskDO): this() {
+        copyFromMinimal(src)
+    }
+
     override fun copyFromMinimal(src: TaskDO) {
         super.copyFromMinimal(src)
         title = src.title

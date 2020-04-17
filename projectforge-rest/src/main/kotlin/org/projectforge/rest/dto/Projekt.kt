@@ -41,41 +41,28 @@ class Projekt(id: Int? = null,
               var kost2Arts: List<Kost2Art>? = null)
     : BaseDTODisplayObject<ProjektDO>(id, displayName = displayName) {
 
+    /**
+     * @see copyFromMinimal
+     */
+    constructor(src: ProjektDO): this() {
+        copyFromMinimal(src)
+    }
+
     override fun copyFrom(src: ProjektDO) {
         super.copyFrom(src)
         src.kunde?.let {
-            val kunde = Kunde()
-            kunde.copyFrom(it)
-            this.kunde = kunde
+            this.kunde = Kunde(it)
         }
         src.konto?.let {
-            val konto = Konto()
-            konto.copyFrom(it)
-            this.konto = konto
+            this.konto = Konto(it)
         }
         src.task?.let {
-            val task = Task()
-            task.copyFrom(it)
-            this.task = task
+            this.task = Task(it)
         }
     }
 
-    fun getKost2ArtsAsString(): String {
-        if (kost2Arts == null) {
-            return ""
-        }
-        val buf = StringBuilder()
-        var first = true
-        for (value in kost2Arts!!) {
-            if (first) {
-                first = false
-            } else {
-                buf.append(", ")
-            }
-            buf.append(value.getFormattedId())
-        }
-        return buf.toString()
-    }
+    val kost2ArtsAsString: String
+        get() = kost2Arts?.joinToString { it.getFormattedId() } ?: ""
 
     fun transformKost2(allKost2Arts: List<org.projectforge.reporting.Kost2Art>?) {
         for (kost2 in allKost2Arts!!) {

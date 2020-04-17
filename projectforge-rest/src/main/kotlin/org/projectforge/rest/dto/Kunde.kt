@@ -23,22 +23,45 @@
 
 package org.projectforge.rest.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeStatus
+import org.projectforge.framework.i18n.translate
 
 class Kunde(id: Int? = null,
             displayName: String? = null,
             var nummer: Int? = null,
-            var kost: String? = null,
-            var konto: Konto? = null,
             var name: String? = null,
             var identifier: String? = null,
             var division: String? = null,
             var status: KundeStatus? = null,
-            var description: String? = null
+            var description: String? = null,
+            var konto: Konto? = null,
+            var kost: String? = null
 ) : BaseDTODisplayObject<KundeDO>(id, displayName = displayName) {
+
+    @get:JsonProperty
+    val statusAsString: String?
+        get() {
+            status?.let { return translate(it.i18nKey) }
+            return null
+        }
+
+    /**
+     * @see copyFromMinimal
+     */
+    constructor(src: KundeDO): this() {
+        copyFromMinimal(src)
+    }
+
     override fun copyFrom(src: KundeDO) {
         super.copyFrom(src)
-        nummer = id
+        this.id = src.nummer
+        this.kost = src.kost
+        src.konto?.let {
+            val konto = Konto()
+            konto.copyFromMinimal(it)
+            this.konto = konto
+        }
     }
 }

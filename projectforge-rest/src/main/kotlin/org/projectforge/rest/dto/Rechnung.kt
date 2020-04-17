@@ -83,9 +83,7 @@ class Rechnung(var nummer: Int? = null,
         super.copyFrom(src)
         val list = positionen ?: mutableListOf()
         src.positionen?.forEach {
-            val pos = RechnungsPosition()
-            pos.copyFrom(it)
-            list.add(pos)
+            list.add(RechnungsPosition(it))
         }
         positionen = list
         orders = positionen!!.size
