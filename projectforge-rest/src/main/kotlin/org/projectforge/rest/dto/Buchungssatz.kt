@@ -9,34 +9,37 @@ class Buchungssatz(
         var beleg: String? = null,
         var sh: SHType? = null,
         var text: String? = null,
-        var comment: String? = null
-): BaseDTO<BuchungssatzDO>(){
-    var kost1: Kost1? = Kost1()
-    var kost2: Kost2? = Kost2()
-    var konto: Konto? = Konto()
-    var gegenKonto: Konto? = Konto()
+        var comment: String? = null,
+        var kost1: Kost1? = null,
+        var kost2: Kost2? = null,
+        var konto: Konto? = null,
+        var gegenKonto: Konto? = null
+) : BaseDTO<BuchungssatzDO>() {
 
-    fun initialize(obj: BuchungssatzDO){
-        copyFrom(obj)
-
-        if(obj.year != null && obj.month != null){
-            this.satznr = obj.formattedSatzNummer
+    override fun copyFrom(src: BuchungssatzDO) {
+        super.copyFrom(src)
+        if (src.year != null && src.month != null) {
+            this.satznr = src.formattedSatzNummer
         }
-
-        if(obj.kost1 != null){
-            this.kost1!!.copyFrom(obj.kost1!!)
+        src.kost1?.let {
+            val kost1 = Kost1()
+            kost1.copyFrom(it)
+            this.kost1 = kost1
         }
-
-        if(obj.kost2 != null){
-            this.kost2!!.copyFrom(obj.kost2!!)
+        src.kost2?.let {
+            val kost2 = Kost2()
+            kost2.copyFrom(it)
+            this.kost2 = kost2
         }
-
-        if(obj.konto != null){
-            this.konto!!.copyFrom(obj.konto!!)
+        src.konto?.let {
+            val konto = Konto()
+            konto.copyFrom(it)
+            this.konto = konto
         }
-
-        if(obj.gegenKonto != null){
-            this.gegenKonto!!.copyFrom(obj.gegenKonto!!)
+        src.gegenKonto?.let {
+            val konto = Konto()
+            konto.copyFrom(it)
+            this.gegenKonto = konto
         }
     }
 }

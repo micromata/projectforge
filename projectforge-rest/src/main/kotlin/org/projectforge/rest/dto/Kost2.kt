@@ -23,7 +23,6 @@
 
 package org.projectforge.rest.dto
 
-import org.projectforge.business.fibu.kost.Kost2ArtDO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostentraegerStatus
@@ -38,10 +37,10 @@ class Kost2(
         var endziffer: Int = 0,
         var kostentraegerStatus: KostentraegerStatus? = null,
         var description: String? = null,
-        var formattedNumber: String? = null
+        var formattedNumber: String? = null,
+        var projekt: Projekt? = null,
+        var kost2Art: Kost2Art? = null
 ) : BaseDTODisplayObject<Kost2DO>(id, displayName = displayName) {
-    var projekt: Projekt? = null
-    var kost2Art: Kost2Art? = null
 
     override fun copyFromMinimal(src: Kost2DO) {
         super.copyFromMinimal(src)

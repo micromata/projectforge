@@ -24,8 +24,8 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.*
+import org.projectforge.framework.utils.NumberFormatter
 import java.math.BigDecimal
-import java.text.DecimalFormat
 import java.time.LocalDate
 
 class Rechnung(var nummer: Int? = null,
@@ -89,9 +89,9 @@ class Rechnung(var nummer: Int? = null,
         }
         positionen = list
         orders = positionen!!.size
-        formattedNetSum = this.formatBigDecimal(netSum)
-        formattedGrossSum = this.formatBigDecimal(grossSum)
-        formattedVatAmountSum = this.formatBigDecimal(vatAmountSum)
+        formattedNetSum = NumberFormatter.formatCurrency(netSum)
+        formattedGrossSum = NumberFormatter.formatCurrency(grossSum)
+        formattedVatAmountSum = NumberFormatter.formatCurrency(vatAmountSum)
     }
 
     override fun copyTo(dest: RechnungDO) {
@@ -103,11 +103,5 @@ class Rechnung(var nummer: Int? = null,
             list.add(pos)
         }
         dest.positionen = list
-    }
-
-    private fun formatBigDecimal(value: BigDecimal?): String {
-        value ?: return ""
-        val df = DecimalFormat("#,###.## €")
-        return df.format(value)
     }
 }

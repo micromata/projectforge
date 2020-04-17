@@ -64,7 +64,6 @@ open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, DisplayNam
     open var nummer: Int? = null
 
     @Transient
-    @JsonProperty("id")
     override fun getId(): Int? {
         return nummer
     }

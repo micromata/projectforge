@@ -31,36 +31,32 @@ class Projekt(id: Int? = null,
               var nummer: Int = 0,
               var name: String? = null,
               var identifier: String? = null,
-              var status: ProjektStatus? = null)
+              var status: ProjektStatus? = null,
+              var kunde: Kunde? = null,
+              var konto: Konto? = null,
+              var task: Task? = null,
+              var projektManagerGroup: Group? = null,
+              var nummernkreis: Int? = null,
+              var bereich: Int? = null,
+              var kost2Arts: List<Kost2Art>? = null)
     : BaseDTODisplayObject<ProjektDO>(id, displayName = displayName) {
-    var kunde: Kunde? = Kunde()
-    var konto: Konto? = Konto()
-    var task: Task? = Task()
-    var projektManagerGroup: Group? = null
-    var nummernkreis: Int = 0
-    var bereich: Int? = 0
-    var kost: String? = null
-    var kost2Arts: MutableList<Kost2Art>? = ArrayList()
-    var kost2Arten: String? = null
 
-
-    fun initialize(obj: ProjektDO) {
-        copyFrom(obj)
-
-        this.kost = obj.kost
-        this.nummernkreis = obj.nummernkreis
-        this.bereich = obj.bereich
-
-        if(obj.kunde != null){
-            this.kunde!!.initialize(obj.kunde!!)
+    override fun copyFrom(src: ProjektDO) {
+        super.copyFrom(src)
+        src.kunde?.let {
+            val kunde = Kunde()
+            kunde.copyFrom(it)
+            this.kunde = kunde
         }
-
-        if(obj.konto != null){
-            this.konto!!.copyFrom(obj.konto!!)
+        src.konto?.let {
+            val konto = Konto()
+            konto.copyFrom(it)
+            this.konto = konto
         }
-
-        if(obj.task != null){
-            this.task!!.copyFromMinimal(obj.task!!)
+        src.task?.let {
+            val task = Task()
+            task.copyFrom(it)
+            this.task = task
         }
     }
 
@@ -82,7 +78,7 @@ class Projekt(id: Int? = null,
     }
 
     fun transformKost2(allKost2Arts: List<org.projectforge.reporting.Kost2Art>?) {
-        for (kost2 in allKost2Arts!!){
+        for (kost2 in allKost2Arts!!) {
             val kost2Art = Kost2Art()
             kost2Art.id = kost2.id
             kost2Art.name = kost2.name
@@ -92,7 +88,6 @@ class Projekt(id: Int? = null,
             kost2Art.deleted = kost2.isDeleted
             kost2Art.selected = kost2.isSelected
             kost2Art.existsAlready = kost2.isExistsAlready
-            kost2Arts!!.add(kost2Art)
         }
     }
 }
