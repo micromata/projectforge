@@ -197,6 +197,9 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
         } else {
             employeeCol.add(UIReadOnlyField("employee.displayName", label = "vacation.employee"))
         }
+        val obj = VacationDO()
+        dto.copyTo(obj)
+        val availableStatusValues = vacationDao.getAllowedStatus(ThreadLocalUserContext.getUser(), obj)
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(employeeCol)
@@ -223,7 +226,8 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
                         .add(UICol(6)
                                 .add(lc, "manager"))
                         .add(UICol(6)
-                                .add(lc, "status")))
+                                .add(UISelect("status", lc,
+                                        values = availableStatusValues.map { UISelectValue(it.name, translate(it.i18nKey)) }))))
                 .add(lc, "comment")
 
         layout.watchFields.addAll(arrayOf("startDate", "endDate", "halfDayBegin", "halfDayEnd"))
