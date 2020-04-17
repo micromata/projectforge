@@ -835,6 +835,18 @@ constructor(private val baseDaoClazz: Class<B>,
     }
 
     /**
+     * Called before save.
+     */
+    internal open fun onBeforeSave(request: HttpServletRequest, obj: O, postData: PostData<DTO>) {
+    }
+
+    /**
+     * Called before update.
+     */
+    internal open fun onBeforeUpdate(request: HttpServletRequest, obj: O, postData: PostData<DTO>) {
+    }
+
+    /**
      * Called after save and update.
      */
     internal open fun onAfterSaveOrUpdate(obj: O, postData: PostData<DTO>) {

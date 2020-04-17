@@ -23,9 +23,9 @@
 
 package org.projectforge.rest.orga
 
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractDao
-import org.projectforge.business.vacation.model.VacationYearFilter
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -36,6 +36,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterElement
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
@@ -44,6 +45,9 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/contract")
 class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(ContractDao::class.java, "legalAffaires.contract.title") {
+    @Autowired
+    private lateinit var configurationService: ConfigurationService
+
     /**
      * Initializes new outbox mails for adding.
      */
@@ -77,7 +81,7 @@ class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(Contrac
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<ContractDO>>? {
         val filters = mutableListOf<CustomResultFilter<ContractDO>>()
-        source.entries.find { it.field == "year" }?.let {entry ->
+        source.entries.find { it.field == "year" }?.let { entry ->
             entry.synthetic = true
             NumberHelper.parseInteger(entry.value.value)?.let { year ->
                 target.setYearAndMonth("date", year, -1)
@@ -98,14 +102,18 @@ class ContractPagesRest() : AbstractDOPagesRest<ContractDO, ContractDao>(Contrac
         val contractPersonB = UIInput("contractPersonB", lc).enableAutoCompletion(this)
         val signerA = UIInput("signerA", lc).enableAutoCompletion(this)
         val signerB = UIInput("signerB", lc).enableAutoCompletion(this)
-
+        val number = UIReadOnlyField("number", lc)
+        val contractTypes = configurationService.contractTypes.map {
+            UISelectValue(it.value, it.label)
+        }
 
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UIFieldset(UILength(md = 6))
-                                .add(lc, "number")
+                                .add(number)
                                 .add(title)
-                                .add(lc, "type", "status", "reference"))
+                                .add(UISelect("type", lc, values = contractTypes))
+                                .add(lc, "status", "reference"))
                         .add(UIFieldset(UILength(md = 6))
                                 .add(lc, "date", "resubmissionOnDate", "dueDate", "signingDate")
                                 .add(UIRow()

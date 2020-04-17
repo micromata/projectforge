@@ -27,9 +27,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessException;
-import org.projectforge.framework.i18n.MessageParam;
-import org.projectforge.framework.i18n.MessageParamType;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.framework.i18n.*;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
@@ -95,17 +93,15 @@ public class ContractDao extends BaseDao<ContractDO> {
    */
   @Override
   protected void onSaveOrModify(final ContractDO obj) {
-    if (obj.getNumber() == null) {
-      throw new UserException("validation.required.valueNotPresent", new MessageParam("legalAffaires.contract.number",
-              MessageParamType.I18N_KEY)).setCausedByField("number");
-    }
     if (obj.getId() == null) {
       // New contract
       final Integer next = getNextNumber(obj);
-      if (next.intValue() != obj.getNumber().intValue()) {
-        throw new UserException("legalAffaires.contract.error.numberNotConsecutivelyNumbered").setCausedByField("number");
-      }
+      obj.setNumber(next);
     } else {
+      if (obj.getNumber() == null) {
+        throw new UserException("validation.required.valueNotPresent", new MessageParam("legalAffaires.contract.number",
+                MessageParamType.I18N_KEY)).setCausedByField("number");
+      }
       ContractDO other =  SQLHelper.ensureUniqueResult(em.createNamedQuery(ContractDO.FIND_OTHER_BY_NUMBER, ContractDO.class)
               .setParameter("number", obj.getNumber())
               .setParameter("id", obj.getId()));
