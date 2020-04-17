@@ -33,17 +33,17 @@ function IncomingInvoicePositionsComponent() {
 
     const handleQuantityChange = (pos, event) => {
         console.log(pos);
-        const positionen = data.positionen;
+        const { positionen } = data;
         const position = positionen[pos];
         position.menge = event.target.value;
-        setData({ positionen: positionen });
+        setData({ positionen });
     };
 
     const displayKostZuweisungen = () => null;
 
     function loadPositions() {
         const positions = [];
-        const positionen = data.positionen;
+        const { positionen } = data;
 
         if (positionen === undefined || positionen.length === 0) {
             return (
@@ -68,11 +68,11 @@ function IncomingInvoicePositionsComponent() {
 
         for (let i = 0; i < positionen.length; i++) {
             const position = positionen[i];
-            console.log(position)
+            console.log(position);
             const net = position.menge * position.einzelNetto;
             const vat = net * position.vat;
 
-            const kostZuweisungen = position.kostZuweisungen;
+            const { kostZuweisungen } = position;
             const kostZuweisungTable = [];
 
             if (kostZuweisungen !== undefined) {
