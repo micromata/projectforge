@@ -28,13 +28,26 @@ import org.projectforge.business.fibu.AuftragDao
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
+import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.dto.Auftrag
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/order")
-class AuftragPagesRest() : AbstractDOPagesRest<AuftragDO, AuftragDao>(AuftragDao::class.java, "fibu.auftrag.title") {
+class AuftragPagesRest: AbstractDTOPagesRest<AuftragDO, Auftrag, AuftragDao>(AuftragDao::class.java, "fibu.auftrag.title") {
+    override fun transformForDB(dto: Auftrag): AuftragDO {
+        val auftragDO = AuftragDO()
+        dto.copyTo(auftragDO)
+        return auftragDO
+    }
+
+    override fun transformFromDB(obj: AuftragDO, editMode: Boolean): Auftrag {
+        val auftrag = Auftrag()
+        auftrag.copyFrom(obj)
+        return auftrag
+    }
 
     /**
      * LAYOUT List page
@@ -42,24 +55,24 @@ class AuftragPagesRest() : AbstractDOPagesRest<AuftragDO, AuftragDao>(AuftragDao
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "nummer", "kunde", "projekt", "titel", "positionen")
-                        .add(UITableColumn("personDays", title = translate("projectmanagement.personDays"),
+                        .add(lc, "nummer")
+                        .add(UITableColumn("kunde.displayName", title = "fibu.kunde"))
+                        .add(UITableColumn("projekt.displayName", title = "fibu.projekt"))
+                        .add(lc, "titel")
+                        .add(UITableColumn("pos", title = "label.position.short"))
+                        .add(UITableColumn("personDays", title = "projectmanagement.personDays",
                                 dataType = UIDataType.DECIMAL))
                         .add(lc, "referenz")
-                        .add(UITableColumn("assignedPersons", title = translate("fibu.common.assignedPersons"),
+                        .add(UITableColumn("assignedPersons", title = "fibu.common.assignedPersons",
                                 dataType = UIDataType.STRING))
                         .add(lc, "erfassungsDatum", "entscheidungsDatum")
-                        .add(UITableColumn("nettoSumme", title = translate("fibu.auftrag.nettoSumme"),
+                        .add(UITableColumn("formattedNettoSumme", title = "fibu.auftrag.nettoSumme",
                                 dataType = UIDataType.DECIMAL))
-                        .add(UITableColumn("beauftragtNettoSumme", title = translate("fibu.auftrag.commissioned"),
+                        .add(UITableColumn("formattedBeauftragtNettoSumme", title = "fibu.auftrag.commissioned",
                                 dataType = UIDataType.DECIMAL))
-                        .add(lc,"fakturiertSum")
-                        .add(UITableColumn("zuFakturierenSum", title = translate("fibu.tobeinvoiced"),
-                                dataType = UIDataType.DECIMAL))
+                        .add(UITableColumn("formattedFakturiertSum", title = "fibu.fakturiert"))
+                        .add(UITableColumn("formattedZuFakturierenSum", title = "fibu.tobeinvoiced"))
                         .add(lc, "periodOfPerformanceBegin", "periodOfPerformanceEnd", "probabilityOfOccurrence", "auftragsStatus"))
-        layout.getTableColumnById("kunde").formatter = Formatter.CUSTOMER
-        layout.getTableColumnById("projekt").formatter = Formatter.PROJECT
-        layout.getTableColumnById("positionen").formatter = Formatter.AUFTRAG_POSITION
         layout.getTableColumnById("erfassungsDatum").formatter = Formatter.DATE
         layout.getTableColumnById("entscheidungsDatum").formatter = Formatter.DATE
         layout.getTableColumnById("periodOfPerformanceBegin").formatter = Formatter.DATE
@@ -70,7 +83,7 @@ class AuftragPagesRest() : AbstractDOPagesRest<AuftragDO, AuftragDao>(AuftragDao
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: AuftragDO, userAccess: UILayout.UserAccess): UILayout {
+    override fun createEditLayout(dto: Auftrag, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()

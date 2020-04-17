@@ -98,7 +98,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
     @get:ListIndexBase(1)
     open var positionen: MutableList<AuftragsPositionDO>? = null
 
-    @PropertyInfo(i18nKey = "fibu.auftrag.status")
+    @PropertyInfo(i18nKey = "status")
     @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "status", length = 30)
