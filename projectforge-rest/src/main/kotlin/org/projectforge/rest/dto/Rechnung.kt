@@ -25,6 +25,7 @@ package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.*
 import java.math.BigDecimal
+import java.text.DecimalFormat
 import java.time.LocalDate
 
 class Rechnung(var nummer: Int? = null,
@@ -59,8 +60,17 @@ class Rechnung(var nummer: Int? = null,
     override val vatAmountSum: BigDecimal
         get() = RechnungCalculator.calculateVatAmountSum(this)
 
+    val grossSum: BigDecimal
+        get() = RechnungCalculator.calculateGrossSum(this)
+
     var orders: Int? = null
         get() = positionen?.size
+
+    var formattedNetSum: String? = null
+
+    var formattedVatAmountSum: String? = null
+
+    var formattedGrossSum: String? = null
 
 
     val isBezahlt: Boolean
@@ -79,6 +89,9 @@ class Rechnung(var nummer: Int? = null,
         }
         positionen = list
         orders = positionen!!.size
+        formattedNetSum = this.formatBigDecimal(netSum)
+        formattedGrossSum = this.formatBigDecimal(grossSum)
+        formattedVatAmountSum = this.formatBigDecimal(vatAmountSum)
     }
 
     override fun copyTo(dest: RechnungDO) {
@@ -90,5 +103,11 @@ class Rechnung(var nummer: Int? = null,
             list.add(pos)
         }
         dest.positionen = list
+    }
+
+    private fun formatBigDecimal(value: BigDecimal?): String {
+        value ?: return ""
+        val df = DecimalFormat("#,###.## €")
+        return df.format(value)
     }
 }

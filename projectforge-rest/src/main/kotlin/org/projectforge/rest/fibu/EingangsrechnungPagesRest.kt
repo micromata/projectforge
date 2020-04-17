@@ -34,10 +34,7 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
 
 @RestController
@@ -66,8 +63,8 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "kreditor", "konto", "referenz", "betreff", "datum", "faelligkeit", "bezahlDatum")
-                        .add(UITableColumn("netSum", title = "fibu.common.netto"))
-                        .add(UITableColumn("grossSum", title = "fibu.rechnung.bruttoBetrag"))
+                        .add(UITableColumn("formattedNetSum", title = "fibu.common.netto"))
+                        .add(UITableColumn("formattedGrossSum", title = "fibu.rechnung.bruttoBetrag"))
                         .add(lc, "bemerkung"))
         layout.getTableColumnById("konto").formatter = Formatter.KONTO
         layout.getTableColumnById("faelligkeit").formatter = Formatter.DATE

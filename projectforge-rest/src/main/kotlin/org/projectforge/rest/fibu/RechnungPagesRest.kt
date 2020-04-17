@@ -45,8 +45,8 @@ class RechnungPagesRest : AbstractDTOPagesRest<RechnungDO, Rechnung, RechnungDao
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "nummer", "kunde", "projekt", "konto", "betreff", "datum", "faelligkeit",
                                 "bezahlDatum", "periodOfPerformanceBegin", "periodOfPerformanceEnd")
-                        .add(UITableColumn("netSum", title = "fibu.common.netto"))
-                        .add(UITableColumn("grossSum", title = "fibu.rechnung.bruttoBetrag"))
+                        .add(UITableColumn("formattedNetSum", title = "fibu.common.netto"))
+                        .add(UITableColumn("formattedGrossSum", title = "fibu.rechnung.bruttoBetrag"))
                         .add(UITableColumn("orders", title = "fibu.auftrag.auftraege", dataType = UIDataType.INT))
                         .add(lc, "bemerkung", "status"))
         layout.getTableColumnById("kunde").formatter = Formatter.CUSTOMER
