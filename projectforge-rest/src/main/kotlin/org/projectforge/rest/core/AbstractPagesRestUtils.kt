@@ -68,6 +68,11 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
         }
         val isNew = obj.id == null || obj.created == null // obj.created is needed for KundeDO (id isn't null for inserting new customers).
         pagesRest.onBeforeSaveOrUpdate(request, obj, postData)
+        if (isNew) {
+            pagesRest.onBeforeSave(request, obj, postData)
+        } else {
+            pagesRest.onBeforeUpdate(request, obj, postData)
+        }
         pagesRest.onBeforeDatabaseAction(request, obj, postData, if (obj.id != null) OperationType.UPDATE else OperationType.INSERT)
         baseDao.saveOrUpdate(obj) ?: obj.id
         pagesRest.onAfterSaveOrUpdate(obj, postData)
