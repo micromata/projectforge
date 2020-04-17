@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.apache.commons.lang3.StringUtils
 import org.apache.lucene.analysis.standard.ClassicAnalyzer
 import org.hibernate.search.annotations.Analyzer
@@ -63,6 +64,7 @@ open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, DisplayNam
     open var nummer: Int? = null
 
     @Transient
+    @JsonProperty("id")
     override fun getId(): Int? {
         return nummer
     }
