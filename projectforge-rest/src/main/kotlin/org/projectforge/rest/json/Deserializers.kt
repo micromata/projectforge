@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.node.IntNode
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.rest.dto.Kost2
+import org.projectforge.rest.dto.*
 import java.math.BigDecimal
 
 /**
@@ -114,12 +114,37 @@ private fun getId(p: JsonParser): Int? {
     }
 }
 
-/**
- * Deserialization for Kost2.
- */
+class Kost1Deserializer : StdDeserializer<Kost1>(Kost1::class.java) {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Kost1? {
+        val id = getId(p) ?: return null
+        return Kost1(id)
+    }
+}
+
 class Kost2Deserializer : StdDeserializer<Kost2>(Kost2::class.java) {
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Kost2? {
         val id = getId(p) ?: return null
         return Kost2(id)
+    }
+}
+
+class KontoDeserializer : StdDeserializer<Konto>(Konto::class.java) {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Konto? {
+        val id = getId(p) ?: return null
+        return Konto(id)
+    }
+}
+
+class KundeDeserializer : StdDeserializer<Kunde>(Kunde::class.java) {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Kunde? {
+        val id = getId(p) ?: return null
+        return Kunde(id)
+    }
+}
+
+class ProjektDeserializer : StdDeserializer<Projekt>(Projekt::class.java) {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Projekt? {
+        val id = getId(p) ?: return null
+        return Projekt(id)
     }
 }
