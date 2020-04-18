@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu.kost;
 
+import org.hsqldb.rights.User;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -95,7 +96,8 @@ public class Kost1Dao extends BaseDao<Kost1DO> {
   @SuppressWarnings("unchecked")
   @Override
   protected void onSaveOrModify(final Kost1DO obj) {
-    Kost1DO other = null;
+    Kost1DO other;
+    verifyKost(obj);
     if (obj.getId() == null) {
       // New entry
       other = getKost1(obj.getNummernkreis(), obj.getBereich(), obj.getTeilbereich(), obj.getEndziffer());
@@ -111,6 +113,20 @@ public class Kost1Dao extends BaseDao<Kost1DO> {
     if (other != null) {
       throw new UserException("fibu.kost.error.collision");
     }
+  }
+
+  private void verifyKost(Kost1DO obj) {
+    if (obj.getNummernkreis() < 0 || obj.getNummernkreis() > 9)
+      throw new UserException("fibu.kost.error.invalidKost");
+
+    if (obj.getBereich() < 0 || obj.getBereich() > 999)
+      throw new UserException("fibu.kost.error.invalidKost");
+
+    if (obj.getTeilbereich() < 0 || obj.getTeilbereich() > 99)
+      throw new UserException("fibu.kost.error.invalidKost");
+
+    if (obj.getEndziffer() < 0 || obj.getEndziffer() > 99)
+      throw new UserException("fibu.kost.error.invalidKost");
   }
 
   @Override

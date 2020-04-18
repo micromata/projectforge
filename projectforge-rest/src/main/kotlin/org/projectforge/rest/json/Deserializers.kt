@@ -25,12 +25,14 @@ package org.projectforge.rest.json
 
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.node.IntNode
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.rest.dto.Kost2
+import org.projectforge.rest.config.AbstractIdObjectDeserializer
+import org.projectforge.rest.dto.*
 import java.math.BigDecimal
 
 /**
@@ -105,21 +107,52 @@ class PFUserDODeserializer : StdDeserializer<PFUserDO>(PFUserDO::class.java) {
     }
 }
 
-private fun getId(p: JsonParser): Int? {
-    val node: JsonNode = p.codec.readTree(p)
-    return if (node.has("id")) {
-        (node.get("id") as IntNode).numberValue() as Int
-    } else {
-        node.asInt()
+class CustomerDeserializer(private val defaultDeserialize: JsonDeserializer<*>) : AbstractIdObjectDeserializer<Customer>(defaultDeserialize) {
+    override fun newDelegatingInstance(newDelegatee: JsonDeserializer<*>?): JsonDeserializer<*> {
+        return CustomerDeserializer(defaultDeserialize);
+    }
+
+    override fun create(id: Int): Customer {
+        return Customer(id)
     }
 }
 
-/**
- * Deserialization for Kost2.
- */
-class Kost2Deserializer : StdDeserializer<Kost2>(Kost2::class.java) {
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Kost2? {
-        val id = getId(p) ?: return null
+class KontoDeserializer(private val defaultDeserialize: JsonDeserializer<*>) : AbstractIdObjectDeserializer<Konto>(defaultDeserialize) {
+    override fun newDelegatingInstance(newDelegatee: JsonDeserializer<*>?): JsonDeserializer<*> {
+        return KontoDeserializer(defaultDeserialize);
+    }
+
+    override fun create(id: Int): Konto {
+        return Konto(id)
+    }
+}
+
+class ProjectDeserializer(private val defaultDeserialize: JsonDeserializer<*>) : AbstractIdObjectDeserializer<Project>(defaultDeserialize) {
+    override fun newDelegatingInstance(newDelegatee: JsonDeserializer<*>?): JsonDeserializer<*> {
+        return KontoDeserializer(defaultDeserialize);
+    }
+
+    override fun create(id: Int): Project {
+        return Project(id)
+    }
+}
+
+class Kost1Deserializer(private val defaultDeserialize: JsonDeserializer<*>) : AbstractIdObjectDeserializer<Kost1>(defaultDeserialize) {
+    override fun newDelegatingInstance(newDelegatee: JsonDeserializer<*>?): JsonDeserializer<*> {
+        return Kost1Deserializer(defaultDeserialize);
+    }
+
+    override fun create(id: Int): Kost1 {
+        return Kost1(id)
+    }
+}
+
+class Kost2Deserializer(private val defaultDeserialize: JsonDeserializer<*>) : AbstractIdObjectDeserializer<Kost2>(defaultDeserialize) {
+    override fun newDelegatingInstance(newDelegatee: JsonDeserializer<*>?): JsonDeserializer<*> {
+        return Kost2Deserializer(defaultDeserialize);
+    }
+
+    override fun create(id: Int): Kost2 {
         return Kost2(id)
     }
 }

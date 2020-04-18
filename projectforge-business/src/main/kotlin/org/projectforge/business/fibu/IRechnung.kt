@@ -21,13 +21,17 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.dto
+package org.projectforge.business.fibu
 
-import org.projectforge.business.fibu.ProjektDO
+import java.math.BigDecimal
+import java.time.LocalDate
 
-class Projekt(id: Int? = null,
-              displayName: String? = null,
-              var name: String? = null)
-    : BaseDTODisplayObject<ProjektDO>(id, displayName = displayName) {
-    var kunde: Kunde? = null
+/**
+ * Needed by [RechnungCalculator].
+ */
+interface IRechnung {
+    var zahlBetrag: BigDecimal?
+    val netSum: BigDecimal
+    val vatAmountSum: BigDecimal
+    val positionen: List<out IRechnungsPosition>?
 }

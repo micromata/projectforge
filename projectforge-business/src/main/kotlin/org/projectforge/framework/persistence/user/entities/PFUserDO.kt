@@ -129,8 +129,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
 
     /**
      * A super admin is able to administer tenants. For tenants the user must be assigned to PF_Admin if he should be an
-     * administrator of the tenant's objects. This flag is therefore independent of the right to administer objects of
-     * tenants itself.
+     * administrator of the tenant's objects. This flag is therefore independent of the right to administer objects of tenants itself.
      */
     @get:Column(name = "super_admin", nullable = false, columnDefinition = "boolean DEFAULT false")
     open var superAdmin: Boolean = false

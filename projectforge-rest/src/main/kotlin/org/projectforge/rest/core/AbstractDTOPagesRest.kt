@@ -41,7 +41,7 @@ abstract class AbstractDTOPagesRest<
         B : BaseDao<O>>(
         baseDaoClazz: Class<B>,
         i18nKeyPrefix: String,
-        cloneSupport: AbstractPagesRest.CloneSupport = AbstractPagesRest.CloneSupport.NONE)
+        cloneSupport: CloneSupport = CloneSupport.NONE)
     : AbstractPagesRest<O, DTO, B>(baseDaoClazz, i18nKeyPrefix, cloneSupport) {
 
     /**
