@@ -37,9 +37,17 @@ class Kost2(
         var endziffer: Int = 0,
         var kostentraegerStatus: KostentraegerStatus? = null,
         var description: String? = null,
-        var formattedNumber: String? = null
+        var formattedNumber: String? = null,
+        var project: Project? = null,
+        var kost2Art: Kost2Art? = null
 ) : BaseDTODisplayObject<Kost2DO>(id, displayName = displayName) {
-    var projekt: Projekt? = null
+
+    /**
+     * @see copyFromMinimal
+     */
+    constructor(src: Kost2DO) : this() {
+        copyFromMinimal(src)
+    }
 
     override fun copyFromMinimal(src: Kost2DO) {
         super.copyFromMinimal(src)

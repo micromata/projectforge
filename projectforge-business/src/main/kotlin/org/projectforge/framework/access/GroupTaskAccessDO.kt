@@ -31,6 +31,7 @@ import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.task.TaskDO
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
@@ -58,6 +59,7 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
     @get:JoinColumn(name = "group_id")
     open var group: GroupDO? = null
 
+    @PropertyInfo(i18nKey = "task")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(cascade = [CascadeType.MERGE], targetEntity = TaskDO::class)
     @get:JoinColumn(name = "task_id")
@@ -67,13 +69,16 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
      * If true then the group rights are also valid for all sub tasks. If false, then each sub task needs its own
      * definition.
      */
+    @PropertyInfo(i18nKey = "recursive")
     @get:Column
     open var isRecursive = true
 
+    @PropertyInfo(i18nKey = "description")
     @Field
     @get:Column(name = "description", length = 4000)
     open var description: String? = null
 
+    @PropertyInfo(i18nKey = "access.type")
     @field:NoHistory
     @get:OneToMany(cascade = [CascadeType.MERGE, CascadeType.REMOVE], fetch = FetchType.EAGER, orphanRemoval = true)
     @get:JoinColumn(name = "group_task_access_fk", insertable = true, updatable = true)

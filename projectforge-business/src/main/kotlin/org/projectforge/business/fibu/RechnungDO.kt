@@ -78,7 +78,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     /**
      * Freitextfeld, falls Kunde nicht aus Liste gewählt werden kann bzw. für Rückwärtskompatibilität mit alten Kunden.
      */
-    @PropertyInfo(i18nKey = "fibu.kunde")
+    @PropertyInfo(i18nKey = "fibu.kunde.text")
     @Field
     @get:Column(name = "kunde_text")
     open var kundeText: String? = null
@@ -154,7 +154,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     @get:OneToMany(cascade = [CascadeType.MERGE], fetch = FetchType.EAGER, mappedBy = "rechnung", targetEntity = RechnungsPositionDO::class)
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
-    open var positionen: MutableList<RechnungsPositionDO>? = null
+    override open var positionen: MutableList<RechnungsPositionDO>? = null
 
     override val abstractPositionen: List<AbstractRechnungsPositionDO>?
         @Transient
@@ -173,7 +173,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
         position.rechnung = this
     }
 
-    override fun setRechnung(position: AbstractRechnungsPositionDO) {
+    override fun setAbstractRechnung(position: AbstractRechnungsPositionDO) {
         position as RechnungsPositionDO
         position.rechnung = this
     }

@@ -27,10 +27,8 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier
 import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -53,9 +51,7 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.calendar.ICalendarEventDeserializer
 import org.projectforge.rest.calendar.TeamCalDOSerializer
 import org.projectforge.rest.config.JacksonConfiguration.Companion.registerAllowedUnknownProperties
-import org.projectforge.rest.dto.CalEvent
-import org.projectforge.rest.dto.Kost2
-import org.projectforge.rest.dto.TeamEvent
+import org.projectforge.rest.dto.*
 import org.projectforge.rest.json.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -80,6 +76,36 @@ open class JacksonConfiguration {
         private val allowedUnknownGlobalProperties = mutableSetOf<String>()
 
         private val globalPropertiesBlackList = mutableMapOf<Class<*>, MutableSet<String>>()
+
+        private val registeredSerializers = mutableListOf<Pair<Class<Any>, JsonSerializer<Any>>>()
+
+        private val registeredDeserializers = mutableListOf<Pair<Class<Any>, JsonDeserializer<Any>>>()
+
+        private val registeredDelegatingDeserializers = mutableListOf<Pair<Class<*>, Class<out AbstractIdObjectDeserializer<*>>>>()
+
+        /**
+         * Plugins may register your own serializers on startup.
+         */
+        @JvmStatic
+        fun register(cls: Class<Any>, serializer: JsonSerializer<Any>) {
+            registeredSerializers.add(Pair(cls, serializer))
+        }
+
+        /**
+         * Plugins may register your own deserializers on startup.
+         */
+        @JvmStatic
+        fun register(cls: Class<Any>, deserializer: JsonDeserializer<Any>) {
+            registeredDeserializers.add(Pair(cls, deserializer))
+        }
+
+        /**
+         * Plugins may register your own deserializers on startup.
+         */
+        @JvmStatic
+        fun registeredDelegatingDeserializer(cls: Class<*>, delegatingDeserializerClass: Class<out AbstractIdObjectDeserializer<*>>) {
+            registeredDelegatingDeserializers.add(Pair(cls, delegatingDeserializerClass))
+        }
 
         /**
          * Properties (field) sent by any client and unknown by the server will result in an exception and BAD_REQUEST.
@@ -114,9 +140,15 @@ open class JacksonConfiguration {
             registerAllowedUnknownProperties(KundeDO::class.java, "id")
             // reminderDuration* will be there after function switchToTimesheet is used:
             registerAllowedUnknownProperties(TimesheetDO::class.java, "reminderDuration", "reminderDurationUnit")
-            registerAllowedUnknownProperties(Kost2DO::class.java,  "nummernkreis", "teilbereich", "bereich", "endziffer", "formattedNumber")
-            registerAllowedUnknownProperties(TeamEvent::class.java,  "task") // Switch from time sheet.
-            registerAllowedUnknownProperties(CalEvent::class.java,  "task") // Switch from time sheet.
+            registerAllowedUnknownProperties(Kost2DO::class.java, "nummernkreis", "teilbereich", "bereich", "endziffer", "formattedNumber")
+            registerAllowedUnknownProperties(TeamEvent::class.java, "task") // Switch from time sheet.
+            registerAllowedUnknownProperties(CalEvent::class.java, "task") // Switch from time sheet.
+
+            registeredDelegatingDeserializer(Customer::class.java, CustomerDeserializer::class.java)
+            registeredDelegatingDeserializer(Konto::class.java, KontoDeserializer::class.java)
+            registeredDelegatingDeserializer(Project::class.java, ProjectDeserializer::class.java)
+            registeredDelegatingDeserializer(Kost1::class.java, Kost1Deserializer::class.java)
+            registeredDelegatingDeserializer(Kost2::class.java, Kost2Deserializer::class.java)
         }
     }
 
@@ -159,6 +191,16 @@ open class JacksonConfiguration {
                 })
             }
         }
+        module.setDeserializerModifier(object : BeanDeserializerModifier() {
+            override fun modifyDeserializer(config: DeserializationConfig, beanDesc: BeanDescription, deserializer: JsonDeserializer<*>): JsonDeserializer<*>? {
+                registeredDelegatingDeserializers.forEach {
+                    if (beanDesc.beanClass == it.first) {
+                        return it.second.getDeclaredConstructor(JsonDeserializer::class.java).newInstance(deserializer)
+                    }
+                }
+                return deserializer
+            }
+        })
         module.addSerializer(LocalDate::class.java, LocalDateSerializer())
         module.addDeserializer(LocalDate::class.java, LocalDateDeserializer())
 
@@ -188,8 +230,6 @@ open class JacksonConfiguration {
         module.addSerializer(PFUserDO::class.java, PFUserDOSerializer())
         module.addDeserializer(PFUserDO::class.java, PFUserDODeserializer())
 
-        module.addDeserializer(Kost2::class.java, Kost2Deserializer())
-
         module.addSerializer(GroupDO::class.java, GroupDOSerializer())
         module.addSerializer(TaskDO::class.java, TaskDOSerializer())
         module.addSerializer(TenantDO::class.java, TenantDOSerializer())
@@ -202,6 +242,12 @@ open class JacksonConfiguration {
 
         module.addSerializer(AbstractLazyInitializer::class.java, HibernateProxySerializer())
 
+        registeredSerializers.forEach {
+            module.addSerializer(it.first, it.second)
+        }
+        registeredDeserializers.forEach {
+            module.addDeserializer(it.first, it.second)
+        }
         mapper.registerModule(module)
         objectMapper = mapper
         return mapper

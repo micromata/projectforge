@@ -25,15 +25,30 @@ package org.projectforge.rest.orga
 
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.BuchungssatzDao
+import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
+import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.dto.Buchungssatz
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/accountingRecord")
-class AccountingRecordPagesRest: AbstractDOPagesRest<BuchungssatzDO, BuchungssatzDao>(baseDaoClazz = BuchungssatzDao::class.java, i18nKeyPrefix = "fibu.buchungssatz.title") {
+class AccountingRecordPagesRest: AbstractDTOPagesRest<BuchungssatzDO, Buchungssatz, BuchungssatzDao>(baseDaoClazz = BuchungssatzDao::class.java, i18nKeyPrefix = "fibu.buchungssatz.title") {
+
+    override fun transformForDB(dto: Buchungssatz): BuchungssatzDO {
+        val buchungssatzDO = BuchungssatzDO()
+        dto.copyTo(buchungssatzDO)
+        return buchungssatzDO
+    }
+
+    override fun transformFromDB(obj: BuchungssatzDO, editMode: Boolean): Buchungssatz {
+        val buchungssatz = Buchungssatz()
+        buchungssatz.copyFrom(obj)
+        return buchungssatz
+    }
 
     /**
      * LAYOUT List page
@@ -41,7 +56,8 @@ class AccountingRecordPagesRest: AbstractDOPagesRest<BuchungssatzDO, Buchungssat
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "formattedSatzNummer", "betrag", "beleg", "kost1", "kost2", "konto", "gegenKonto",
+                        .add(UITableColumn("satzNr", title = "fibu.buchungssatz.satznr"))
+                        .add(lc, "betrag", "beleg", "kost1", "kost2", "konto", "gegenKonto",
                                 "sh", "text", "comment"))
         layout.getTableColumnById("kost1").formatter = Formatter.COST1
         layout.getTableColumnById("kost2").formatter = Formatter.COST2
@@ -53,7 +69,7 @@ class AccountingRecordPagesRest: AbstractDOPagesRest<BuchungssatzDO, Buchungssat
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: BuchungssatzDO, userAccess: UILayout.UserAccess): UILayout {
+    override fun createEditLayout(dto: Buchungssatz, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()

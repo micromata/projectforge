@@ -46,7 +46,7 @@ open class KontoDO : DefaultBaseDO(), DisplayNameCapable {
 
     override val displayName: String
         @Transient
-        get() = "$nummer"
+        get() = "$nummer - $bezeichnung"
 
     @PropertyInfo(i18nKey = "fibu.konto.nummer")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
