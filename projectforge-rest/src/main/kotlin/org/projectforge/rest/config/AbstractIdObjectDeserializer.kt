@@ -29,14 +29,15 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.deser.std.DelegatingDeserializer
-import org.projectforge.rest.json.BillingAccountDeserializer
 
 /**
  * DTO objects or DO's may be deserialized only by id or as full objects. This deserializer handles both.
  * @author Kai Reinhard
  */
-abstract class AbstractIdObjectDeserializer<T>(private val defaultDeserialize: JsonDeserializer<*>) : DelegatingDeserializer(defaultDeserialize) {
-    abstract fun create(id: Int?): T
+abstract class AbstractIdObjectDeserializer<T>(private val defaultDeserialize: JsonDeserializer<*>)
+    : DelegatingDeserializer(defaultDeserialize) {
+
+    abstract fun create(id: Int): T
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): T? {
         return if (p.hasToken(JsonToken.VALUE_NUMBER_INT)) {
@@ -44,7 +45,7 @@ abstract class AbstractIdObjectDeserializer<T>(private val defaultDeserialize: J
             create(node.asInt())
         } else {
             @Suppress("UNCHECKED_CAST")
-            defaultDeserialize.deserialize(p, ctxt) as T
+            defaultDeserialize.deserialize(p, ctxt) as? T
         }
     }
 }

@@ -26,7 +26,6 @@ package org.projectforge.rest.dto
 import org.projectforge.business.fibu.*
 import org.projectforge.framework.utils.NumberFormatter
 import java.math.BigDecimal
-import java.text.DecimalFormat
 import java.time.LocalDate
 
 class Eingangsrechnung(var receiver: String? = null,

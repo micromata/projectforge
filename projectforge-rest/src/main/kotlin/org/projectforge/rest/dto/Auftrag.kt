@@ -10,7 +10,7 @@ import java.time.LocalDate
 class Auftrag(
         var nummer: Int? = null,
         var customer: Customer? = Customer(),
-        var projekt: Projekt? = Projekt(),
+        var project: Project? = Project(),
         var titel: String? = null,
         var positionen: MutableList<AuftragsPositionDO>? = null,
         var personDays: BigDecimal? = null,
@@ -41,7 +41,7 @@ class Auftrag(
             this.customer = Customer(it)
         }
         src.projekt?.let {
-            this.projekt = Projekt(it)
+            this.project = Project(it)
         }
 
         positionen = src.positionen

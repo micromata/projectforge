@@ -31,7 +31,7 @@ import java.time.LocalDate
 class Rechnung(var nummer: Int? = null,
                var customer: Customer? = null,
                var kundeText: String? = null,
-               var projekt: Projekt? = null,
+               var project: Project? = null,
                var status: RechnungStatus? = null,
                var typ: RechnungTyp? = null,
                var customerref1: String? = null,

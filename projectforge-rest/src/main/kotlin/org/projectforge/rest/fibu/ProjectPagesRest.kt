@@ -28,7 +28,7 @@ import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.dto.Projekt
+import org.projectforge.rest.dto.Project
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
@@ -36,21 +36,21 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/project")
-class ProjektPagesRest
-    : AbstractDTOPagesRest<ProjektDO, Projekt, ProjektDao>(
+class ProjectPagesRest
+    : AbstractDTOPagesRest<ProjektDO, Project, ProjektDao>(
         ProjektDao::class.java,
         "fibu.projekt.title") {
 
     @Autowired
     private val kostCache: KostCache? = null
 
-    override fun transformFromDB(obj: ProjektDO, editMode: Boolean): Projekt {
-        val projekt = Projekt()
+    override fun transformFromDB(obj: ProjektDO, editMode: Boolean): Project {
+        val projekt = Project()
         projekt.copyFrom(obj)
         return projekt
     }
 
-    override fun transformForDB(dto: Projekt): ProjektDO {
+    override fun transformForDB(dto: Project): ProjektDO {
         val projektDO = ProjektDO()
         dto.copyTo(projektDO)
         return projektDO
@@ -78,7 +78,7 @@ class ProjektPagesRest
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: Projekt, userAccess: UILayout.UserAccess): UILayout {
+    override fun createEditLayout(dto: Project, userAccess: UILayout.UserAccess): UILayout {
         val konto = UIInput("konto", lc, tooltip = "fibu.projekt.konto.tooltip")
 
         val layout = super.createEditLayout(dto, userAccess)

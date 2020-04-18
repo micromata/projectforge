@@ -19,7 +19,7 @@ class HRPlanningEntry(
         var description: String? = null
 ) : BaseDTO<HRPlanningEntryDO>() {
     var planning: HRPlanning? = null
-    var projekt: Projekt? = null
+    var project: Project? = null
 
     override fun copyFrom(src: HRPlanningEntryDO) {
         super.copyFrom(src)
@@ -27,9 +27,9 @@ class HRPlanningEntry(
             this.planning = HRPlanning(it)
         }
         src.projekt?.let {
-            val projekt = Projekt()
+            val projekt = Project()
             projekt.copyFrom(it)
-            this.projekt = projekt
+            this.project = projekt
         }
         projektNameOrStatus = src.projektNameOrStatus
         totalHours = src.totalHours
