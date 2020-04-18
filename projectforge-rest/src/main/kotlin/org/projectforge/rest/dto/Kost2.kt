@@ -38,7 +38,7 @@ class Kost2(
         var kostentraegerStatus: KostentraegerStatus? = null,
         var description: String? = null,
         var formattedNumber: String? = null,
-        var projekt: Projekt? = null,
+        var project: Project? = null,
         var kost2Art: Kost2Art? = null
 ) : BaseDTODisplayObject<Kost2DO>(id, displayName = displayName) {
 

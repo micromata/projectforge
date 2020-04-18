@@ -84,7 +84,7 @@ class CustomerPagesRest
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
-                                .add(UILabel("'ToDo: Kundename-Validierung, Kontoselektion (Status unusable)"))
+                                .add(UILabel("'ToDo: Kontoselektion *************** (Status unusable) ***************"))
                                 .add(lc, "nummer", "name")
                                 .add(konto)
                                 .add(lc, "identifier", "division", "description", "status")))

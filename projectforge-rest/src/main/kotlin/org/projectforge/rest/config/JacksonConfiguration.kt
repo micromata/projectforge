@@ -30,7 +30,6 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier
 import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler
-import com.fasterxml.jackson.databind.deser.std.DelegatingDeserializer
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.hibernate.proxy.AbstractLazyInitializer
@@ -146,7 +145,10 @@ open class JacksonConfiguration {
             registerAllowedUnknownProperties(CalEvent::class.java, "task") // Switch from time sheet.
 
             registeredDelegatingDeserializer(Customer::class.java, CustomerDeserializer::class.java)
-            registeredDelegatingDeserializer(Konto::class.java, BillingAccountDeserializer::class.java)
+            registeredDelegatingDeserializer(Konto::class.java, KontoDeserializer::class.java)
+            registeredDelegatingDeserializer(Project::class.java, ProjectDeserializer::class.java)
+            registeredDelegatingDeserializer(Kost1::class.java, Kost1Deserializer::class.java)
+            registeredDelegatingDeserializer(Kost2::class.java, Kost2Deserializer::class.java)
         }
     }
 
@@ -227,10 +229,6 @@ open class JacksonConfiguration {
 
         module.addSerializer(PFUserDO::class.java, PFUserDOSerializer())
         module.addDeserializer(PFUserDO::class.java, PFUserDODeserializer())
-
-        module.addDeserializer(Kost1::class.java, Kost1Deserializer())
-        module.addDeserializer(Kost2::class.java, Kost2Deserializer())
-        module.addDeserializer(Projekt::class.java, ProjektDeserializer())
 
         module.addSerializer(GroupDO::class.java, GroupDOSerializer())
         module.addSerializer(TaskDO::class.java, TaskDOSerializer())

@@ -30,7 +30,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Kost2
 import org.projectforge.rest.dto.Customer
-import org.projectforge.rest.dto.Projekt
+import org.projectforge.rest.dto.Project
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -44,11 +44,11 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
         kost2.copyFrom(obj)
         kost2.formattedNumber = KostFormatter.format(obj)
         if(obj.projekt != null){
-            kost2.projekt = Projekt()
-            kost2.projekt!!.copyFrom(obj.projekt!!)
+            kost2.project = Project()
+            kost2.project!!.copyFrom(obj.projekt!!)
             if(obj.projekt!!.kunde != null){
-                kost2.projekt!!.customer = Customer()
-                kost2.projekt!!.customer!!.copyFrom(obj.projekt!!.kunde!!)
+                kost2.project!!.customer = Customer()
+                kost2.project!!.customer!!.copyFrom(obj.projekt!!.kunde!!)
             }
         }
         if(obj.kost2Art != null){

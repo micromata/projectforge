@@ -26,7 +26,7 @@ package org.projectforge.rest.dto
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektStatus
 
-class Projekt(id: Int? = null,
+class Project(id: Int? = null,
               displayName: String? = null,
               var nummer: Int = 0,
               var name: String? = null,
