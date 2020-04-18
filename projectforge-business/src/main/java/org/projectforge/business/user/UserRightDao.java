@@ -121,6 +121,12 @@ public class UserRightDao extends BaseDao<UserRightDO> {
     }
   }
 
+  @Override
+  protected void afterSave(UserRightDO obj) {
+    super.afterSave(obj);
+    TenantRegistryMap.getInstance().getTenantRegistry(obj).getUserGroupCache().setExpired();
+  }
+
   private void copy(final UserRightDO dest, final UserRightVO src) {
     if (src.getRight().isBooleanType()) {
       if (src.isBooleanValue()) {
