@@ -57,9 +57,10 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     CONTACT_LIST("menu.contactList"), //
     CONTRACTS("menu.contracts", "${PREFIX}contract"), //
     COST1_LIST("menu.fibu.kost1", "${PREFIX}cost1"), //
-    COST2_LIST("menu.fibu.kost2", "${PREFIX}cost2"), //
-    COST2_TYPE_LIST("menu.fibu.kost2arten", "${PREFIX}cost2Type"), //
-    CUSTOMER_LIST("menu.fibu.kunden", "${PREFIX}customer"), //
+    COST2_LIST("menu.fibu.kost2", "wa/cost2List"), //
+    COST2_TYPE_LIST("menu.fibu.kost2arten", "wa/cost2TypeList"), //
+    CUSTOMER_LIST("menu.fibu.kunden", "wa/customerList"), //
+    //CUSTOMER_LIST("menu.fibu.kunden", "${PREFIX}customer"), // Doesn't work yet
     DATEV_IMPORT("menu.fibu.datevImport", "wa/datevImport"), //
     DOCUMENTATION("menu.documentation"), //
     EMPLOYEE_LIST("menu.fibu.employees", "wa/employeeList"), //
@@ -67,7 +68,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", "${PREFIX}leaveAccountEntry"), //
     FEEDBACK("menu.gear.feedback", url = "wa/feedback"), //
     GANTT("menu.gantt", "wa/ganttList"), //
-    GROUP_LIST("menu.groupList", "${PREFIX}group"), //
+    GROUP_LIST("menu.groupList", "wa/groupList"), //
     HR_PLANNING_LIST("menu.hrPlanningList", "wa/hrPlanningList"), //
     HR_VIEW("menu.hrList", "wa/hrList"), //
     IMAGE_CROPPER("menu.imageCropper"), //
@@ -83,7 +84,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", "wa/outgoingInvoiceList"), //
     PERSONAL_STATISTICS("menu.personalStatistics", "wa/personalStatistics"), //
     PHONE_CALL("menu.phoneCall", "wa/phoneCall"), //
-    PROJECT_LIST("menu.fibu.projekte", "${PREFIX}project"), //
+    PROJECT_LIST("menu.fibu.projekte", "wa/projectList"), //
     REPORT_OBJECTIVES("menu.fibu.reporting.reportObjectives", "wa/reportObjectives"), //
     SEND_SMS("menu.sendSms", "wa/sendSms"), //
     SCRIPT_LIST("menu.scriptList", "wa/scriptList"), //
