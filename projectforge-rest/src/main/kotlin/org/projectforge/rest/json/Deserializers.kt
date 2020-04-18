@@ -24,12 +24,16 @@
 package org.projectforge.rest.json
 
 import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.core.JsonToken
 import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.deser.std.DelegatingDeserializer
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.node.IntNode
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.rest.config.AbstractIdObjectDeserializer
 import org.projectforge.rest.dto.*
 import java.math.BigDecimal
 
@@ -128,17 +132,23 @@ class Kost2Deserializer : StdDeserializer<Kost2>(Kost2::class.java) {
     }
 }
 
-class KontoDeserializer : StdDeserializer<Konto>(Konto::class.java) {
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Konto? {
-        val id = getId(p) ?: return null
-        return Konto(id)
+class CustomerDeserializer(private val defaultDeserialize: JsonDeserializer<*>) : AbstractIdObjectDeserializer<Customer>(defaultDeserialize) {
+    override fun newDelegatingInstance(newDelegatee: JsonDeserializer<*>?): JsonDeserializer<*> {
+        return CustomerDeserializer(defaultDeserialize);
+    }
+
+    override fun create(id: Int?): Customer {
+        return Customer(id)
     }
 }
 
-class KundeDeserializer : StdDeserializer<Kunde>(Kunde::class.java) {
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Kunde? {
-        val id = getId(p) ?: return null
-        return Kunde(id)
+class BillingAccountDeserializer(private val defaultDeserialize: JsonDeserializer<*>) : AbstractIdObjectDeserializer<Konto>(defaultDeserialize) {
+    override fun newDelegatingInstance(newDelegatee: JsonDeserializer<*>?): JsonDeserializer<*> {
+        return BillingAccountDeserializer(defaultDeserialize);
+    }
+
+    override fun create(id: Int?): Konto {
+        return Konto(id)
     }
 }
 

@@ -3,16 +3,13 @@ package org.projectforge.rest.dto
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragsPositionDO
 import org.projectforge.business.fibu.AuftragsStatus
-import org.projectforge.framework.utils.CurrencyHelper
 import org.projectforge.framework.utils.NumberFormatter
-import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
-import java.text.DecimalFormat
 import java.time.LocalDate
 
 class Auftrag(
         var nummer: Int? = null,
-        var kunde: Kunde? = Kunde(),
+        var customer: Customer? = Customer(),
         var projekt: Projekt? = Projekt(),
         var titel: String? = null,
         var positionen: MutableList<AuftragsPositionDO>? = null,
@@ -41,7 +38,7 @@ class Auftrag(
         super.copyFrom(src)
 
         src.kunde?.let {
-            this.kunde = Kunde(it)
+            this.customer = Customer(it)
         }
         src.projekt?.let {
             this.projekt = Projekt(it)

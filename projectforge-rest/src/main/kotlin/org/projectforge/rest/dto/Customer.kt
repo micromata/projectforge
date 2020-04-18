@@ -28,16 +28,16 @@ import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeStatus
 import org.projectforge.framework.i18n.translate
 
-class Kunde(id: Int? = null,
-            displayName: String? = null,
-            var nummer: Int? = null,
-            var name: String? = null,
-            var identifier: String? = null,
-            var division: String? = null,
-            var status: KundeStatus? = null,
-            var description: String? = null,
-            var konto: Konto? = null,
-            var kost: String? = null
+class Customer(id: Int? = null,
+               displayName: String? = null,
+               var nummer: Int? = null,
+               var name: String? = null,
+               var identifier: String? = null,
+               var division: String? = null,
+               var status: KundeStatus? = null,
+               var description: String? = null,
+               var konto: Konto? = null,
+               var kost: String? = null
 ) : BaseDTODisplayObject<KundeDO>(id, displayName = displayName) {
 
     @get:JsonProperty

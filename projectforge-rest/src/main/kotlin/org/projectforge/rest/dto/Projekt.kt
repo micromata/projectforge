@@ -32,7 +32,7 @@ class Projekt(id: Int? = null,
               var name: String? = null,
               var identifier: String? = null,
               var status: ProjektStatus? = null,
-              var kunde: Kunde? = null,
+              var customer: Customer? = null,
               var konto: Konto? = null,
               var task: Task? = null,
               var projektManagerGroup: Group? = null,
@@ -51,7 +51,7 @@ class Projekt(id: Int? = null,
     override fun copyFrom(src: ProjektDO) {
         super.copyFrom(src)
         src.kunde?.let {
-            this.kunde = Kunde(it)
+            this.customer = Customer(it)
         }
         src.konto?.let {
             this.konto = Konto(it)

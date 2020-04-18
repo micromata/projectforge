@@ -29,7 +29,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 class Rechnung(var nummer: Int? = null,
-               var kunde: Kunde? = null,
+               var customer: Customer? = null,
                var kundeText: String? = null,
                var projekt: Projekt? = null,
                var status: RechnungStatus? = null,

@@ -26,13 +26,10 @@ package org.projectforge.rest.fibu.kost
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
-import org.projectforge.business.fibu.kost.KostCache
-import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.dto.Kost1
 import org.projectforge.rest.dto.Kost2
-import org.projectforge.rest.dto.Kunde
+import org.projectforge.rest.dto.Customer
 import org.projectforge.rest.dto.Projekt
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
@@ -50,8 +47,8 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
             kost2.projekt = Projekt()
             kost2.projekt!!.copyFrom(obj.projekt!!)
             if(obj.projekt!!.kunde != null){
-                kost2.projekt!!.kunde = Kunde()
-                kost2.projekt!!.kunde!!.copyFrom(obj.projekt!!.kunde!!)
+                kost2.projekt!!.customer = Customer()
+                kost2.projekt!!.customer!!.copyFrom(obj.projekt!!.kunde!!)
             }
         }
         if(obj.kost2Art != null){
