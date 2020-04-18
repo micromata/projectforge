@@ -53,9 +53,7 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.calendar.ICalendarEventDeserializer
 import org.projectforge.rest.calendar.TeamCalDOSerializer
 import org.projectforge.rest.config.JacksonConfiguration.Companion.registerAllowedUnknownProperties
-import org.projectforge.rest.dto.CalEvent
-import org.projectforge.rest.dto.Kost2
-import org.projectforge.rest.dto.TeamEvent
+import org.projectforge.rest.dto.*
 import org.projectforge.rest.json.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -188,7 +186,11 @@ open class JacksonConfiguration {
         module.addSerializer(PFUserDO::class.java, PFUserDOSerializer())
         module.addDeserializer(PFUserDO::class.java, PFUserDODeserializer())
 
+        module.addDeserializer(Kost1::class.java, Kost1Deserializer())
         module.addDeserializer(Kost2::class.java, Kost2Deserializer())
+        module.addDeserializer(Konto::class.java, KontoDeserializer())
+        module.addDeserializer(Kunde::class.java, KundeDeserializer())
+        module.addDeserializer(Projekt::class.java, ProjektDeserializer())
 
         module.addSerializer(GroupDO::class.java, GroupDOSerializer())
         module.addSerializer(TaskDO::class.java, TaskDOSerializer())
