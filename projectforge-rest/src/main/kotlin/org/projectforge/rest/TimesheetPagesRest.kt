@@ -327,8 +327,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                             projektDO.kundeId?.let { kundeId ->
                                 val kundeDO = kundeDao.internalGetById(kundeId)
                                 if (kundeDO != null) {
-                                    val kunde = Kunde(kundeId, name = kundeDO.name)
-                                    projekt.kunde = kunde
+                                    val kunde = Customer(kundeId, name = kundeDO.name)
+                                    projekt.customer = kunde
                                 }
                             }
                         }
