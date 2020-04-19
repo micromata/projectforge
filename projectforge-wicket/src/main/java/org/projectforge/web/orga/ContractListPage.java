@@ -66,7 +66,7 @@ public class ContractListPage extends AbstractListPage<ContractListForm, Contrac
     final CellItemListener<ContractDO> cellItemListener = new CellItemListener<ContractDO>()
     {
       public void populateItem(final Item<ICellPopulator<ContractDO>> item, final String componentId,
-          final IModel<ContractDO> rowModel)
+                               final IModel<ContractDO> rowModel)
       {
         final ContractDO contract = rowModel.getObject();
         appendCssClasses(item, contract.getId(), contract.isDeleted());

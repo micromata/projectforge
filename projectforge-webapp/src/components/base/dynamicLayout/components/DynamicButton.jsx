@@ -59,6 +59,8 @@ function DynamicButton(props) {
         type = 'submit';
     }
 
+    const buttonId = `${ui.uid}-${id}`;
+
     return (
         <React.Fragment>
             {confirmMessage && (
@@ -82,12 +84,11 @@ function DynamicButton(props) {
                 {...stylingProps}
                 onClick={handleClick}
                 type={type}
-                id={`${ui.uid}-${id}`}
             >
-                {title}
+                <span id={buttonId}>{title}</span>
             </Button>
-            {tooltip && id && (
-                <UncontrolledTooltip placement="auto" target={`${ui.uid}-${id}`}>
+            {tooltip && ui.uid && id && (
+                <UncontrolledTooltip placement="auto" target={buttonId}>
                     {tooltip}
                 </UncontrolledTooltip>
             )}

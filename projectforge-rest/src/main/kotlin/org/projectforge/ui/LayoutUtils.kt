@@ -24,13 +24,16 @@
 package org.projectforge.ui
 
 import org.projectforge.favorites.Favorites
+import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.model.rest.RestPaths
+import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.RestResolver
 
 /**
  * Utils for the Layout classes for handling auto max-length (get from JPA entities) and translations as well as
@@ -49,11 +52,12 @@ class LayoutUtils {
         /**
          * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
          * i18n-keys (by referring the [org.projectforge.common.anots.PropertyInfo] annotations of clazz).
+         * Calls [processAllElements].
          * @return List of all elements used in the layout.
          */
         @JvmStatic
         fun process(layout: UILayout): List<Any?> {
-            val elements = processAllElements(layout.getAllElements())
+            val elements = processAllElements(layout, layout.getAllElements())
             var counter = 0
             layout.namedContainers.forEach {
                 it.key = "nc-${++counter}"
@@ -65,7 +69,6 @@ class LayoutUtils {
          * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
          * i18n-keys (by referring the [org.projectforge.common.anots.PropertyInfo] annotations of clazz).
          */
-        @JvmOverloads
         @JvmStatic
         fun processListPage(layout: UILayout, pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>): UILayout {
             layout
@@ -91,7 +94,6 @@ class LayoutUtils {
          * Calls also fun [process].
          * @see LayoutUtils.process
          */
-        @JvmOverloads
         @JvmStatic
         fun <O : ExtendedBaseDO<Int>> processEditPage(layout: UILayout, dto: Any, pagesRest: AbstractPagesRest<O, *, out BaseDao<O>>)
                 : UILayout {
@@ -204,10 +206,12 @@ class LayoutUtils {
          * @return The unmodified parameter elements.
          * @see HibernateUtils.getPropertyLength
          */
-        private fun processAllElements(elements: List<Any>): List<Any?> {
+        private fun processAllElements(layout: UILayout, elements: List<Any>): List<Any?> {
             var counter = 0
             elements.forEach {
-                if (it is UIElement) it.key = "el-${++counter}"
+                if (it is UIElement) {
+                    it.key = "el-${++counter}"
+                }
                 when (it) {
                     is UILabelledElement -> {
                         it.label = getLabelTransformation(it.label, it as UIElement)
@@ -247,6 +251,9 @@ class LayoutUtils {
                                 it.title = translate(i18nKey)
                             }
                         }
+                        if (!it.confirmMessage.isNullOrBlank()) {
+                            layout.addTranslations("cancel", "yes")
+                        }
                         val tooltip = getLabelTransformation(it.tooltip)
                         if (tooltip != null) it.tooltip = tooltip
 
@@ -254,6 +261,11 @@ class LayoutUtils {
                     is UIList -> {
                         // Translate position label
                         it.positionLabel = translate(it.positionLabel)
+                    }
+                    is UIAttachmentList -> {
+                        if (!layout.translations.containsKey("attachment.fileName")) {
+                            layout.addTranslations("attachment.fileName", "attachment.onlyAvailableAfterSave", "attachment.size", "created", "createdBy", "delete", "description", "file.upload.dropArea", "modified", "modifiedBy")
+                        }
                     }
                 }
             }

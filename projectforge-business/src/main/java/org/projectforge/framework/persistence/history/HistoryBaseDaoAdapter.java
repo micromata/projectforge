@@ -154,13 +154,18 @@ public class HistoryBaseDaoAdapter {
 
   public static void createHistoryEntry(Object entity, Number id, String user, String property,
                                         Class<?> valueClass, Object oldValue, Object newValue) {
+    createHistoryEntry(entity, id, EntityOpType.Update, user, property, valueClass, oldValue, newValue);
+  }
+
+  public static void createHistoryEntry(Object entity, Number id, EntityOpType opType, String user, String property,
+                                        Class<?> valueClass, Object oldValue, Object newValue) {
     //long begin = System.currentTimeMillis();
     String oldVals = histValueToString(valueClass, oldValue);
     String newVals = histValueToString(valueClass, newValue);
 
     PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
     emf.runInTrans((emgr) -> {
-      HistoryServiceManager.get().getHistoryService().insertManualEntry(emgr, EntityOpType.Update,
+      HistoryServiceManager.get().getHistoryService().insertManualEntry(emgr, opType,
               entity.getClass().getName(),
               id, user, property, valueClass.getName(), oldVals, newVals);
       return null;

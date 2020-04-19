@@ -28,10 +28,7 @@ import org.projectforge.common.BeanHelper;
 import org.projectforge.common.anots.PropertyInfo;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -42,6 +39,7 @@ public class PropUtils {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PropUtils.class);
 
   private static final Map<Class<?>, Field[]> fieldsMap = new HashMap<Class<?>, Field[]>();
+  private static final Set<String> unknownFields = new HashSet<>();
 
   public static PropertyInfo get(final Class<?> clazz, final String property) {
     final Field field = getField(clazz, property);
@@ -95,7 +93,13 @@ public class PropUtils {
       }
     }
     if (field == null && !suppressWarning) {
-      log.warn("Field '" + clazz.getName() + "." + property + "' not found.");
+      final String unknownField =  clazz.getName() + "." + property;
+      synchronized (unknownFields) {
+        if (!unknownFields.contains(unknownField)) {
+          unknownFields.add(unknownField);
+          log.warn("Field '" + unknownField + "' not found.");
+        }
+      }
     }
     return field;
   }

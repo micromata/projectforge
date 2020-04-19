@@ -32,9 +32,12 @@ import org.projectforge.favorites.Favorites
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
+import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.menu.MenuItem
@@ -42,10 +45,7 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
-import org.projectforge.rest.dto.BaseDTO
-import org.projectforge.rest.dto.FormLayoutData
-import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.dto.ServerData
+import org.projectforge.rest.dto.*
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -99,6 +99,7 @@ constructor(private val baseDaoClazz: Class<B>,
     @PostConstruct
     private fun postConstruct() {
         this.lc = LayoutContext(baseDao.doClass)
+        PagesResolver.register(category, this)
     }
 
     companion object {
@@ -108,7 +109,7 @@ constructor(private val baseDaoClazz: Class<B>,
         const val USER_PREF_PARAM_HIGHLIGHT_ROW = "highlightedRow"
     }
 
-    class DisplayObject(val id: Any, override val displayName: String?) : DisplayNameCapable
+    class DisplayObject(val id: Any?, override val displayName: String?) : DisplayNameCapable
 
     /**
      * Contains the data, layout and filter settings served by [getInitialList].
@@ -130,9 +131,18 @@ constructor(private val baseDaoClazz: Class<B>,
 
     private var _baseDao: B? = null
 
-    private var category: String? = null
+    private var _category: String? = null
 
-    private val userPrefArea = getCategory()
+    /**
+     * Category should be unique and is e. g. used as react path. At default it's the dir of the url definined in class annotation [RequestMapping].
+     */
+    val category: String
+        get() {
+            if (_category == null) {
+                _category = getRestPath().removePrefix("${Rest.URL}/")
+            }
+            return _category!!
+        }
 
     /**
      * The layout context is needed to examine the data objects for maxLength, nullable, dataType etc.
@@ -152,6 +162,9 @@ constructor(private val baseDaoClazz: Class<B>,
 
     @Autowired
     private lateinit var applicationContext: ApplicationContext
+
+    @Autowired
+    private lateinit var attachmentsService: AttachmentsService
 
     @Autowired
     private lateinit var historyService: HistoryService
@@ -227,16 +240,9 @@ constructor(private val baseDaoClazz: Class<B>,
         return getRestPath(subPath)
     }
 
-    private fun getCategory(): String {
-        if (category == null) {
-            category = getRestPath().removePrefix("${Rest.URL}/")
-        }
-        return category!!
-    }
-
     open fun createEditLayout(dto: DTO, userAccess: UILayout.UserAccess): UILayout {
         val titleKey = if (getId(dto) != null) "$i18nKeyPrefix.edit" else "$i18nKeyPrefix.add"
-        val ui = UILayout(titleKey)
+        val ui = UILayout(titleKey, getRestPath())
         ui.userAccess.copyFrom(userAccess)
         return ui
     }
@@ -315,7 +321,7 @@ constructor(private val baseDaoClazz: Class<B>,
     protected fun getInitialList(filter: MagicFilter): InitialListData {
         val favorites = getFilterFavorites()
         val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter))
-        resultSet.highlightRowId = userPrefService.getEntry(getCategory(), USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
+        resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
         val ui = createListLayout()
                 .addTranslations("table.showing",
                         "searchFilter",
@@ -325,10 +331,10 @@ constructor(private val baseDaoClazz: Class<B>,
         if (classicsLinkListUrl != null) {
             ui.add(MenuItem(CLASSIC_VERSION_MENU, title = "*", url = classicsLinkListUrl, tooltip = translate("goreact.menu.classics")), 0)
         }
-        ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Const.REACT_APP_PATH}${getCategory()}/edit"))
+        ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Const.REACT_APP_PATH}$category/edit"))
 
         return InitialListData(ui = ui,
-                standardEditPage = "${Const.REACT_APP_PATH}${getCategory()}/edit/:id",
+                standardEditPage = "${Const.REACT_APP_PATH}$category/edit/:id",
                 quickSelectUrl = quickSelectUrl,
                 data = resultSet,
                 filter = filter,
@@ -373,7 +379,7 @@ constructor(private val baseDaoClazz: Class<B>,
         val list = getList(this, baseDao, filter)
         saveCurrentFilter(filter)
         val resultSet = processResultSetBeforeExport(list)
-        resultSet.highlightRowId = userPrefService.getEntry(getCategory(), USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
+        resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
         return resultSet
     }
 
@@ -381,14 +387,14 @@ constructor(private val baseDaoClazz: Class<B>,
         var favorites: Favorites<MagicFilter>? = null
         try {
             @Suppress("UNCHECKED_CAST", "USELESS_ELVIS")
-            favorites = userPrefService.getEntry(userPrefArea, Favorites.PREF_NAME_LIST, Favorites::class.java) as? Favorites<MagicFilter>
+            favorites = userPrefService.getEntry(category, Favorites.PREF_NAME_LIST, Favorites::class.java) as? Favorites<MagicFilter>
         } catch (ex: Exception) {
             log.error("Exception while getting user preferred favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
         }
         if (favorites == null) {
             // Creating empty filter list (user has no filter list yet):
             favorites = Favorites()
-            userPrefService.putEntry(userPrefArea, Favorites.PREF_NAME_LIST, favorites)
+            userPrefService.putEntry(category, Favorites.PREF_NAME_LIST, favorites)
         }
         return favorites
     }
@@ -403,7 +409,7 @@ constructor(private val baseDaoClazz: Class<B>,
     }
 
     private fun getCurrentFilter(): MagicFilter {
-        var currentFilter = userPrefService.getEntry(userPrefArea, Favorites.PREF_NAME_CURRENT, MagicFilter::class.java)
+        var currentFilter = userPrefService.getEntry(category, Favorites.PREF_NAME_CURRENT, MagicFilter::class.java)
         if (currentFilter == null) {
             currentFilter = MagicFilter()
             saveCurrentFilter(currentFilter)
@@ -415,7 +421,7 @@ constructor(private val baseDaoClazz: Class<B>,
     }
 
     private fun saveCurrentFilter(currentFilter: MagicFilter) {
-        userPrefService.putEntry(userPrefArea, Favorites.PREF_NAME_CURRENT, currentFilter)
+        userPrefService.putEntry(category, Favorites.PREF_NAME_CURRENT, currentFilter)
     }
 
     @GetMapping("filter/select")
@@ -533,9 +539,16 @@ constructor(private val baseDaoClazz: Class<B>,
     }
 
     protected fun getById(id: Int?, editMode: Boolean = false, userAccess: UILayout.UserAccess? = null): DTO? {
+        id ?: return null
         val item = baseDao.getById(id) ?: return null
         checkUserAccess(item, userAccess)
-        return transformFromDB(item, editMode)
+        val result = transformFromDB(item, editMode)
+        jcrPath?.let {
+            if (result is AttachmentsSupport) {
+                result.attachments = attachmentsService.getAttachments(it, id, attachmentsAccessChecker)
+            }
+        }
+        return result
     }
 
     protected fun checkUserAccess(obj: O?, userAccess: UILayout.UserAccess?) {
@@ -652,7 +665,7 @@ constructor(private val baseDaoClazz: Class<B>,
     @GetMapping(AutoCompletion.AUTOCOMPLETE_OBJECT)
     open fun getAutoCompleteObjects(request: HttpServletRequest, @RequestParam("search") searchString: String?, @RequestParam("maxResults") maxResults: Int?): List<DisplayObject> {
         if (autoCompleteSearchFields.isNullOrEmpty()) {
-            throw RuntimeException("Can't call getAutoCompletion without property, because no autoCompleteSearchFields are configured by the developers for this entity.")
+            throw TechnicalException("Can't call getAutoCompletion without property.", "No autoCompleteSearchFields are configured by the developers for this entity.")
         }
         val filter = createAutoCompleteObjectsFilter(request)
         val modifiedSearchString = searchString?.split(' ', '\t', '\n')?.joinToString(" ") { "+$it*" }
@@ -705,7 +718,7 @@ constructor(private val baseDaoClazz: Class<B>,
             }
             // Validation errors or other errors occured, doesn't save. Proceed with editing.
         }
-        val formLayoutData = getItemAndLayout(request, clone, UILayout.UserAccess(false, true))
+        val formLayoutData = getItemAndLayout(request, clone, UILayout.UserAccess(history = false, insert = true))
         return ResponseEntity(ResponseAction(targetType = TargetType.UPDATE)
                 .addVariable("data", formLayoutData.data)
                 .addVariable("ui", formLayoutData.ui)
@@ -918,7 +931,7 @@ constructor(private val baseDaoClazz: Class<B>,
      */
     internal open fun onAfterEdit(obj: O, postData: PostData<DTO>): ResponseAction {
         obj.id?.let {
-            userPrefService.putEntry(getCategory(), USER_PREF_PARAM_HIGHLIGHT_ROW, it, false)
+            userPrefService.putEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, it, false)
         }
         val returnToCaller = postData.serverData?.returnToCaller
         if (!returnToCaller.isNullOrBlank()) {
@@ -948,6 +961,38 @@ constructor(private val baseDaoClazz: Class<B>,
         //  }
         return resultSet
     }
+
+    /**
+     * An unique id which is used as parent node for all attachments. Use [enableJcr] for creating unique nodes.
+     * @return unique jcr path if attachments are supported or null, if no attachment support is given (download, upload and list).
+     * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
+     */
+    var jcrPath: String? = null
+        protected set
+
+    /**
+     * Call this method for enabling jcr support.
+     * jcr part will be set to '$prefix.${baseDao.identifier}', must be unique.
+     * @param prefix Define a prefix for having uniqueness. At default 'org.projectforge' is used.
+     * @param identifier Uses [BaseDao.identifier] at default value.
+     * @param supportedListIds Each entitiy may support multiple lists of attachments. This specifies the available lists in
+     * *addition* to [AttachmentsDaoAccessChecker.DEFAULT_LIST_OF_ATTACHMENTS].
+     */
+    @JvmOverloads
+    fun enableJcr(supportedListIds: Array<String>? = null, prefix: String = "org.projectforge", identifier: String? = null) {
+        jcrPath = if (identifier != null) {
+            "$prefix.${identifier}"
+        } else {
+            "$prefix.${baseDao.identifier}"
+        }
+        attachmentsAccessChecker = AttachmentsDaoAccessChecker(baseDao, jcrPath, supportedListIds)
+    }
+
+    /**
+     * Might be initialized by [enableJcr] with default dao access checker.
+     */
+    lateinit var attachmentsAccessChecker: AttachmentsDaoAccessChecker<O>
+        protected set
 
     /**
      * Implement on how to transform dto objects to data base objects (ExtendedBaseDO).

@@ -21,13 +21,13 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.orga
+package org.projectforge.rest.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractStatus
 import org.projectforge.framework.i18n.translate
-import org.projectforge.rest.dto.BaseDTO
+import org.projectforge.framework.jcr.Attachment
 import java.time.LocalDate
 
 class Contract(id: Int? = null,
@@ -49,8 +49,10 @@ class Contract(id: Int? = null,
                var reference: String? = null,
                var filing: String? = null,
                var resubmissionOnDate: LocalDate? = null,
-               var dueDate: LocalDate? = null
-) : BaseDTO<ContractDO>(id) {
+               var dueDate: LocalDate? = null,
+               var attachmentsSize: Int? = null,
+               override var attachments: List<Attachment>? = null
+) : BaseDTO<ContractDO>(id), AttachmentsSupport {
     @get:JsonProperty
     val statusAsString: String?
         get() {

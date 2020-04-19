@@ -25,6 +25,10 @@ package org.projectforge.ui
 
 enum class UIElementType {
     ALERT,
+    /**
+     * Attachments including list view, downloading, uploading and deleting files.
+     */
+    ATTACHMENT_LIST,
     BUTTON,
     CHECKBOX,
     COL,

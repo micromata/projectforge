@@ -57,7 +57,9 @@ function FormPage(
     React.useEffect(
         () => {
             if (location.state && location.state.noReload) {
-                onCategorySwitch(currentCategory, location.state.newVariables || {});
+                onCategorySwitch(
+                    currentCategory, location.state.newVariables || {}, location.state.merge,
+                );
                 return;
             }
 
@@ -188,10 +190,13 @@ FormPage.propTypes = {
     location: PropTypes.shape({
         search: PropTypes.string,
         state: PropTypes.shape({
+            merge: PropTypes.bool,
+            newVariables: PropTypes.shape({}),
             noReload: PropTypes.bool,
         }),
     }).isRequired,
     match: PropTypes.shape({
+        url: PropTypes.string.isRequired,
         params: PropTypes.shape({
             category: PropTypes.string.isRequired,
             id: PropTypes.string,
@@ -203,7 +208,18 @@ FormPage.propTypes = {
     onDataChange: PropTypes.func.isRequired,
     onNewFormPage: PropTypes.func.isRequired,
     onVariablesChange: PropTypes.func.isRequired,
-    category: PropTypes.shape({}),
+    category: PropTypes.shape({
+        data: PropTypes.shape({}),
+        isFetching: PropTypes.bool,
+        ui: PropTypes.shape({
+            title: PropTypes.string,
+            showHistory: PropTypes.bool,
+            translations: PropTypes.shape({}),
+            pageMenu: PropTypes.arrayOf(PropTypes.shape({})),
+        }),
+        validationErrors: PropTypes.arrayOf(PropTypes.shape({})),
+        variables: PropTypes.shape({}),
+    }),
     isPublic: PropTypes.bool,
 };
 

@@ -51,7 +51,8 @@ function DynamicTable({ columns, id }) {
 DynamicTable.propTypes = {
     columns: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.string.isRequired,
-        title: PropTypes.string.isRequired,
+        title: PropTypes.string,
+        titleIcon: PropTypes.arrayOf(PropTypes.string),
     })).isRequired,
     id: PropTypes.string,
 };

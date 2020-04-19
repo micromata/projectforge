@@ -71,6 +71,18 @@ const switchCategoryWithData = (from, to, newVariables) => ({
     },
 });
 
+const mergeVariables = (categoryState, newVariables, merge) => {
+    let variables;
+
+    if (categoryState && newVariables && merge) {
+        variables = Object.combine(categoryState, newVariables);
+    } else {
+        variables = newVariables || categoryState;
+    }
+
+    return variables;
+};
+
 export const loadFormPage = (category, id, url, params = {}) => (dispatch, getState) => {
     const currentCategory = getState().form.categories[category];
 
@@ -100,7 +112,7 @@ export const callAction = (
     },
 ) => (dispatch, getState) => {
     if (!action) {
-        return Promise.reject(Error('No response action given.'));
+        return Promise.resolve();
     }
 
     const { form: state } = getState();
@@ -124,7 +136,15 @@ export const callAction = (
         }
         case 'CLOSE_MODAL':
             if (history.location.state && history.location.state.background) {
-                history.push(history.location.state.background);
+                history.push({
+                    ...history.location.state.background,
+                    state: {
+                        ...history.location.state.background.state,
+                        noReload: true,
+                        newVariables: action.variables,
+                        merge: action.merge,
+                    },
+                });
             }
             break;
         case 'UPDATE':
@@ -134,11 +154,14 @@ export const callAction = (
                     {
                         noReload: true,
                         newVariables: action.variables,
+                        merge: action.merge,
                     },
                 );
                 window.scrollTo(0, 0);
             } else {
-                dispatch(callSuccess(category, action.variables));
+                dispatch(callSuccess(category, mergeVariables(
+                    state.categories[category], action.variables, action.merge,
+                )));
             }
             break;
         case 'CHECK_AUTHENTICATION':
@@ -148,6 +171,16 @@ export const callAction = (
                         history.push(action.url);
                     }
                 });
+        case 'DOWNLOAD': {
+            let { url } = action;
+
+            if (!action.absolute) {
+                url = getServiceURL(url);
+            }
+
+            window.open(url, '_blank');
+            return Promise.resolve();
+        }
         case 'NOTHING':
             break;
         case 'DELETE':
@@ -240,16 +273,14 @@ export const setCurrentVariables = newVariables => (dispatch, getState) => dispa
     changeVariables(getState().form.currentCategory, newVariables),
 );
 
-export const switchFromCurrentCategory = (to, newVariables) => (dispatch, getState) => {
+export const switchFromCurrentCategory = (
+    to, newVariables, merge = false,
+) => (dispatch, getState) => {
     const { form: state } = getState();
-    const from = state.currentCategory;
 
     dispatch(switchCategoryWithData(
-        from,
+        state.currentCategory,
         to,
-        {
-            ...state[from],
-            ...newVariables,
-        },
+        mergeVariables(state.categories[to], newVariables, merge),
     ));
 };

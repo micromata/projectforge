@@ -33,7 +33,7 @@ function Formatter(
 ) {
     const value = Object.getByString(data, id);
     if (value === undefined) {
-        return <React.Fragment/>;
+        return <React.Fragment />;
     }
 
     let result = value;
@@ -44,23 +44,18 @@ function Formatter(
     if (useFormatter) {
         switch (useFormatter) {
             case COST1_FORMATTER:
-                result = value.formattedNumber;
-                break;
             case COST2_FORMATTER:
                 result = value.formattedNumber;
                 break;
             case CUSTOMER_FORMATTER:
-                result = value.displayName;
-                break;
             case KONTO_FORMATTER:
-                result = `${value.nummer} - ${value.bezeichnung}`;
+            case PROJECT_FORMATTER:
+            case EMPLOYEE_FORMATTER:
+                result = value.displayName;
                 break;
             case DATE_FORMATTER:
                 result = moment(value)
                     .format(dateFormat);
-                break;
-            case PROJECT_FORMATTER:
-                result = value.displayName;
                 break;
             case TASK_FORMATTER:
                 result = value.title;
@@ -75,9 +70,6 @@ function Formatter(
                 break;
             case USER_FORMATTER:
                 result = value.displayName || value.fullname || value.username;
-                break;
-            case EMPLOYEE_FORMATTER:
-                result = value.displayName;
                 break;
             case AUFTRAGPOSITION_FORMATTER:
                 result = value.number;
@@ -99,7 +91,7 @@ function Formatter(
         const valueIcon = valueIconMap[value];
 
         if (valueIcon) {
-            result = <FontAwesomeIcon icon={valueIcon}/>;
+            result = <FontAwesomeIcon icon={valueIcon} />;
         }
     }
 

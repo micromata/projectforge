@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.configuration;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
@@ -34,7 +33,6 @@ import org.dom4j.Element;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.orga.ContractType;
-import org.projectforge.common.BeanHelper;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.calendar.ConfigureHoliday;
 import org.projectforge.framework.utils.FileHelper;
@@ -90,6 +88,8 @@ public class ConfigXml {
 
   private String loggingDirectory;
 
+  private String jcrDirectory;
+
   private String workingDirectory;
 
   private String backupDirectory;
@@ -125,6 +125,7 @@ public class ConfigXml {
     databaseDirectory = "database";
     ehcacheDirectory = "ehcache";
     loggingDirectory = "logs";
+    jcrDirectory = "jcr";
     workingDirectory = "work";
     backupDirectory = "backup";
     tempDirectory = "tmp";
@@ -168,6 +169,8 @@ public class ConfigXml {
       this.loggingDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.loggingDirectory);
       System.setProperty("projectforge.ehcache.dir", ehcacheDirectory);
       ensureDir(new File(loggingDirectory));
+      this.jcrDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.jcrDirectory);
+      ensureDir(new File(jcrDirectory));
       this.workingDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.workingDirectory);
       ensureDir(new File(workingDirectory));
       this.backupDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.backupDirectory);
@@ -443,6 +446,10 @@ public class ConfigXml {
    */
   public void setLoggingDirectory(final String loggingDirectory) {
     this.loggingDirectory = loggingDirectory;
+  }
+
+  public String getJcrDirectory() {
+    return jcrDirectory;
   }
 
   /**
