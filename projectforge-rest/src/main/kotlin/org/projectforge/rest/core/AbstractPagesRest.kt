@@ -755,12 +755,12 @@ constructor(private val baseDaoClazz: Class<B>,
      * You may define watch fields in layout.
      */
     @PostMapping(RestPaths.WATCH_FIELDS)
-    fun watchFields(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseAction {
+    fun watchFields(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>):  ResponseEntity<ResponseAction>  {
         return onWatchFieldsUpdate(request, postData.data, postData.watchFieldsTriggered)
     }
 
-    protected open fun onWatchFieldsUpdate(request: HttpServletRequest, dto: DTO, watchFieldsTriggered: Array<String>?): ResponseAction {
-        return ResponseAction(targetType = TargetType.NOTHING)
+    protected open fun onWatchFieldsUpdate(request: HttpServletRequest, dto: DTO, watchFieldsTriggered: Array<String>?):  ResponseEntity<ResponseAction>  {
+        return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     }
 
     /**

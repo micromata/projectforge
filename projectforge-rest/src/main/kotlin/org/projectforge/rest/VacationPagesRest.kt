@@ -49,6 +49,7 @@ import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.Year
@@ -235,7 +236,7 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-    override fun onWatchFieldsUpdate(request: HttpServletRequest, dto: Vacation, watchFieldsTriggered: Array<String>?): ResponseAction {
+    override fun onWatchFieldsUpdate(request: HttpServletRequest, dto: Vacation, watchFieldsTriggered: Array<String>?): ResponseEntity<ResponseAction> {
         var startDate = dto.startDate
         var endDate = dto.endDate
         if (watchFieldsTriggered?.contains("startDate") == true && startDate != null) {
@@ -248,7 +249,7 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
             }
         }
         updateStats(dto)
-        return ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
+        return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto))
     }
 
     override fun createReturnToCallerResponseAction(returnToCaller: String): ResponseAction {

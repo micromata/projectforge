@@ -32,6 +32,8 @@ import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Customer
 import org.projectforge.rest.dto.Konto
 import org.projectforge.ui.*
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.annotation.PostConstruct
@@ -102,12 +104,12 @@ class CustomerPagesRest
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-    override fun onWatchFieldsUpdate(request: HttpServletRequest, dto: Customer, watchFieldsTriggered: Array<String>?): ResponseAction {
+    override fun onWatchFieldsUpdate(request: HttpServletRequest, dto: Customer, watchFieldsTriggered: Array<String>?): ResponseEntity<ResponseAction> {
         if (watchFieldsTriggered?.contains("nummer") == true) {
             dto.nummer?.let {
                 if (baseDao.doesNumberAlreadyExist(transformForDB(dto))) {
                     val error = ValidationError(translate("fibu.kunde.validation.existingCustomerNr"))
-                    return ResponseAction(validationErrors = listOf(error))
+                    return ResponseEntity(ResponseAction(validationErrors = listOf(error)), HttpStatus.NOT_ACCEPTABLE)
                 }
             }
         }
