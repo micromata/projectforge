@@ -106,33 +106,3 @@ class PFUserDODeserializer : StdDeserializer<PFUserDO>(PFUserDO::class.java) {
         return user
     }
 }
-
-class CustomerDeserializer(private val defaultDeserialize: JsonDeserializer<*>) : AbstractIdObjectDeserializer<Customer>(defaultDeserialize) {
-    override fun create(id: Int): Customer {
-        return Customer(id)
-    }
-}
-
-class KontoDeserializer(private val defaultDeserialize: JsonDeserializer<*>) : AbstractIdObjectDeserializer<Konto>(defaultDeserialize) {
-    override fun create(id: Int): Konto {
-        return Konto(id)
-    }
-}
-
-class ProjectDeserializer(private val defaultDeserialize: JsonDeserializer<*>) : AbstractIdObjectDeserializer<Project>(defaultDeserialize) {
-    override fun create(id: Int): Project {
-        return Project(id)
-    }
-}
-
-class Kost1Deserializer(private val defaultDeserialize: JsonDeserializer<*>) : AbstractIdObjectDeserializer<Kost1>(defaultDeserialize) {
-    override fun create(id: Int): Kost1 {
-        return Kost1(id)
-    }
-}
-
-class Kost2Deserializer(private val defaultDeserialize: JsonDeserializer<*>) : AbstractIdObjectDeserializer<Kost2>(defaultDeserialize) {
-    override fun create(id: Int): Kost2 {
-        return Kost2(id)
-    }
-}

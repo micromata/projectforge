@@ -81,7 +81,7 @@ open class JacksonConfiguration {
 
         private val registeredDeserializers = mutableListOf<Pair<Class<Any>, JsonDeserializer<Any>>>()
 
-        private val registeredDelegatingDeserializers = mutableListOf<Pair<Class<*>, Class<out AbstractIdObjectDeserializer<*>>>>()
+        private val registeredDelegatingDeserializers = mutableListOf<Class<*>>()
 
         /**
          * Plugins may register your own serializers on startup.
@@ -101,10 +101,13 @@ open class JacksonConfiguration {
 
         /**
          * Plugins may register your own deserializers on startup.
+         * @see [IdObjectDeserializer.create] for restriction of supported bean classes.
          */
         @JvmStatic
-        fun registeredDelegatingDeserializer(cls: Class<*>, delegatingDeserializerClass: Class<out AbstractIdObjectDeserializer<*>>) {
-            registeredDelegatingDeserializers.add(Pair(cls, delegatingDeserializerClass))
+        fun registeredDelegatingDeserializer(vararg classes: Class<*>) {
+            classes.forEach { cls ->
+                registeredDelegatingDeserializers.add(cls)
+            }
         }
 
         /**
@@ -144,11 +147,12 @@ open class JacksonConfiguration {
             registerAllowedUnknownProperties(TeamEvent::class.java, "task") // Switch from time sheet.
             registerAllowedUnknownProperties(CalEvent::class.java, "task") // Switch from time sheet.
 
-            registeredDelegatingDeserializer(Customer::class.java, CustomerDeserializer::class.java)
-            registeredDelegatingDeserializer(Konto::class.java, KontoDeserializer::class.java)
-            registeredDelegatingDeserializer(Project::class.java, ProjectDeserializer::class.java)
-            registeredDelegatingDeserializer(Kost1::class.java, Kost1Deserializer::class.java)
-            registeredDelegatingDeserializer(Kost2::class.java, Kost2Deserializer::class.java)
+            registeredDelegatingDeserializer(
+                    Customer::class.java,
+                    Konto::class.java,
+                    Kost1::class.java,
+                    Kost2::class.java,
+                    Project::class.java)
         }
     }
 
@@ -194,8 +198,8 @@ open class JacksonConfiguration {
         module.setDeserializerModifier(object : BeanDeserializerModifier() {
             override fun modifyDeserializer(config: DeserializationConfig, beanDesc: BeanDescription, deserializer: JsonDeserializer<*>): JsonDeserializer<*>? {
                 registeredDelegatingDeserializers.forEach {
-                    if (beanDesc.beanClass == it.first) {
-                        return it.second.getDeclaredConstructor(JsonDeserializer::class.java).newInstance(deserializer)
+                    if (beanDesc.beanClass == it) {
+                        return IdObjectDeserializer(deserializer, it)
                     }
                 }
                 return deserializer

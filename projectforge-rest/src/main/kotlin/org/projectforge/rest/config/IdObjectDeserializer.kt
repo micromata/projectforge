@@ -29,23 +29,48 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.deser.std.DelegatingDeserializer
-import org.projectforge.rest.json.KontoDeserializer
+import org.projectforge.common.BeanHelper
+import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.rest.dto.BaseDTO
 
 /**
  * DTO objects or DO's may be deserialized only by id or as full objects. This deserializer handles both:
  * * ```{'project': 863228,...}```, or
  * * ```{'project': {'id': 863228, 'name':{'ProjectForge'}...}```
  *
+ * @see [create] for further requirements.
  * @author Kai Reinhard
  */
-abstract class AbstractIdObjectDeserializer<T>(private val defaultDeserialize: JsonDeserializer<*>)
+class IdObjectDeserializer<T>
+@JvmOverloads
+constructor(private val defaultDeserialize: JsonDeserializer<*>, private var beanCls: Class<T>? = null)
     : DelegatingDeserializer(defaultDeserialize) {
 
-    override fun newDelegatingInstance(newDelegatee: JsonDeserializer<*>?): JsonDeserializer<*> {
-        return this::class.java.getDeclaredConstructor(JsonDeserializer::class.java).newInstance(defaultDeserialize);
+    override fun newDelegatingInstance(newDelegatee: JsonDeserializer<*>): JsonDeserializer<*> {
+        val instance = this::class.java.getDeclaredConstructor(JsonDeserializer::class.java).newInstance(defaultDeserialize)
+        instance.beanCls = beanCls
+        return instance
     }
 
-    abstract fun create(id: Int): T
+    /**
+     * Creation of instance works if:
+     * * [beanCls] provides a constructor with exactly one int parameter, or
+     * * [beanCls] provides a default constructor and has a setter method 'id' of type [Int].
+     */
+    fun create(id: Int): T {
+        beanCls?.let { cls ->
+            cls.declaredConstructors.forEach { constructor ->
+                if (constructor.parameterCount == 1 && constructor.parameterTypes == Int::class.java) {
+                    @Suppress("UNCHECKED_CAST")
+                    return constructor.newInstance(id) as T
+                }
+            }
+            val instance = cls.getDeclaredConstructor().newInstance()
+            BeanHelper.setProperty(instance, "id", id)
+            return instance
+        }
+        throw UnsupportedOperationException("Can't create instance of ${beanCls?.name} with id $id")
+    }
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): T? {
         return if (p.hasToken(JsonToken.VALUE_NUMBER_INT)) {
