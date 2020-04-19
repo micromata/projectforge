@@ -43,6 +43,11 @@ enum class UIIconType(@JsonValue val icon: Array<String>) {
     INFO(arrayOf("fas", "info")),
 
     /**
+     * https://fontawesome.com/icons/paperclip?style=solid
+     */
+    PAPER_CLIP(arrayOf("fas", "paperclip")),
+
+    /**
      * https://fontawesome.com/icons/star?style=regular
      */
     STAR_REGULAR(arrayOf("far", "star")),

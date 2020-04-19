@@ -105,6 +105,7 @@ class ContractPagesRest
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "number", "date", "type")
                         .add(UITableColumn("statusAsString", "status"))
+                        .add(UITableColumn("attachmentsSize", titleIcon = UIIconType.PAPER_CLIP))
                         .add(lc, "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate"))
         layout.getTableColumnById("date").formatter = Formatter.DATE
         return LayoutUtils.processListPage(layout, this)
