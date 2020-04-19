@@ -252,19 +252,6 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         dayRange.add("endDateId", "stopTime")
         dayRange.add("label", translate("timePeriod"))
         val descriptionArea = UITextArea("description", lc, rows = 5)
-        var jiraIssuesElement: UICustomized? = null
-        if (JiraUtils.isJiraConfigured()) {
-            val jiraIdentifiers = JiraUtils.checkForJiraIssues(dto.description)
-            if (!jiraIdentifiers.isNullOrEmpty()) {
-                val jiraIssues = mutableMapOf<String, String>()
-                jiraIdentifiers.forEach {
-                    jiraIssues[it] = JiraUtils.buildJiraIssueBrowseLinkUrl(it)
-                }
-                jiraIssuesElement = UICustomized("jira.issuesLinks")
-                jiraIssuesElement.add("jiraIssues", jiraIssues)
-                descriptionArea.tooltip = "tooltip.jiraSupport.field.content"
-            }
-        }
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UICustomized("timesheet.edit.templatesAndRecent"))
                 .add(UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2")))
@@ -273,7 +260,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 .add(UICustomized("task.consumption"))
                 .add(UIInput("location", lc).enableAutoCompletion(this))
                 .add(descriptionArea)
-        jiraIssuesElement?.let { layout.add(UIRow().add(UICol().add(it))) }
+        JiraSupport.createJiraElement(dto.description, descriptionArea)?.let { layout.add(UIRow().add(UICol().add(it))) }
         Favorites.addTranslations(layout.translations)
         layout.addAction(UIButton("switch",
                 title = translate("plugins.teamcal.switchToTeamEventButton"),

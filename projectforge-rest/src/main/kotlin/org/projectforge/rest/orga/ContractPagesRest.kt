@@ -141,6 +141,8 @@ class ContractPagesRest
         val contractTypes = configurationService.contractTypes.map {
             UISelectValue(it.value, it.label)
         }
+        val textFieldSet = UIFieldset(UILength(lg = 6))
+        textFieldSet.add(lc, "text")
 
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
@@ -163,12 +165,14 @@ class ContractPagesRest
                                 .add(contractPersonB)
                                 .add(signerB)))
                 .add(UIRow()
-                        .add(UIFieldset(UILength(lg = 6))
-                                .add(lc, "text"))
+                        .add(textFieldSet)
                         .add(UIFieldset(UILength(lg = 6))
                                 .add(lc, "filing")))
                 .add(UIFieldset(title = "attachment.list")
                         .add(UIAttachmentList(category, dto.id)))
+
+        JiraSupport.createJiraElement(dto.text, layout.getLabelledElementById("text"))?.let { textFieldSet.add(it) }
+
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
