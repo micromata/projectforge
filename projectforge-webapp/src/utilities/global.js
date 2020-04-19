@@ -96,4 +96,4 @@ Array.findByField = (array, field, value) => array.reduce((accumulator, currentV
 }, undefined);
 
 // Replace all selector characters to prevent that they appear in an id.
-String.idify = string => string.replace(/[.#*, >+~\/[\]=|^$:()]/g, '-');
+String.idify = string => string.replace(/[.#*, >+~/[\]=|^$:()]/g, '-');
