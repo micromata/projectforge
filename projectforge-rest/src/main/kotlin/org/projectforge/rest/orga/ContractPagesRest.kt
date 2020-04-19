@@ -103,7 +103,9 @@ class ContractPagesRest
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "number", "date", "type", "statusAsString", "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate"))
+                        .add(lc, "number", "date", "type")
+                        .add(UITableColumn("statusAsString", "status"))
+                        .add(lc, "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate"))
         layout.getTableColumnById("date").formatter = Formatter.DATE
         return LayoutUtils.processListPage(layout, this)
     }
