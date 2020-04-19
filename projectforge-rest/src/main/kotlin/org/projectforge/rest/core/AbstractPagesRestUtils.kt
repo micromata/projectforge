@@ -82,7 +82,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
             return ResponseEntity(pagesRest.onAfterUpdate(obj, postData), HttpStatus.OK)
         }
     } catch (ex: Exception) {
-        return handleExcepction("Error while trying to save/update object '${obj::class.java}' with id #${obj.id}", ex)
+        return handleException("Error while trying to save/update object '${obj::class.java}' with id #${obj.id}", ex)
     }
 }
 
@@ -104,7 +104,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
         // Validation error occurred:
         return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
     } catch (ex: Exception) {
-        return handleExcepction("Error while trying to undelete object '${obj::class.java}' with id #${obj.id}", ex)
+        return handleException("Error while trying to undelete object '${obj::class.java}' with id #${obj.id}", ex)
     }
 }
 
@@ -126,7 +126,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
         // Validation error occurred:
         return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
     } catch (ex: Exception) {
-        return handleExcepction("Error while trying to mark object '${obj::class.java}' as deleted with id #${obj.id}", ex)
+        return handleException("Error while trying to mark object '${obj::class.java}' as deleted with id #${obj.id}", ex)
     }
 }
 
@@ -148,11 +148,11 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
         // Validation error occurred:
         return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
     } catch (ex: Exception) {
-        return handleExcepction("Error while trying to delete object '${obj::class.java}' with id #${obj.id}", ex)
+        return handleException("Error while trying to delete object '${obj::class.java}' with id #${obj.id}", ex)
     }
 }
 
-private fun handleExcepction(msg: String, ex: Exception): ResponseEntity<ResponseAction> {
+private fun handleException(msg: String, ex: Exception): ResponseEntity<ResponseAction> {
     if (ex is UserException) {
         log.error("$msg: message='${ex.i18nKey}', params='${ex.msgParams?.joinToString() { it.toString() }}'")
         val error = ValidationError(translateMsg(ex.i18nKey, ex.msgParams), messageId = ex.i18nKey)
