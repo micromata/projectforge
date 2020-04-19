@@ -25,8 +25,8 @@ class HRPlanning(
         formattedWeekOfYear = src.formattedWeekOfYear
         totalHours = src.totalHours
         totalUnassignedHours = src.totalUnassignedHours
-        src.user?.let {
-            this.user = User(it)
+        this.user = src.user?.let {
+            User(it)
         }
     }
 }

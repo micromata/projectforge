@@ -47,8 +47,8 @@ class LeaveAccountEntry(var employee: Employee? = null,
 
     override fun copyFrom(src: LeaveAccountEntryDO) {
         super.copyFrom(src)
-        date?.let {
-            dateFormatted = PFDayUtils.format(it, DateFormatType.DATE)
+        dateFormatted = date?.let {
+            PFDayUtils.format(it, DateFormatType.DATE)
         }
         amountFormatted = VacationStats.format(amount)
     }

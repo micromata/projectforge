@@ -57,12 +57,22 @@ class Kost2(
         endziffer = src.kost2Art?.id ?: 0
         description = src.description
         formattedNumber = src.formattedNumber
+        this.project = src.projekt?.let {
+            val project = Project()
+            project.copyFromMinimal(it)
+            project
+        }
     }
 
     override fun copyFrom(src: Kost2DO) {
         super.copyFrom(src)
         endziffer = src.kost2Art?.id ?: 0
         formattedNumber = src.formattedNumber
+        this.project = src.projekt?.let {
+            val project = Project()
+            project.copyFromMinimal(it)
+            project
+        }
     }
 
     companion object {

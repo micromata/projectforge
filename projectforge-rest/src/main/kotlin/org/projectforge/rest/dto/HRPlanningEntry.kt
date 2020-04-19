@@ -23,13 +23,13 @@ class HRPlanningEntry(
 
     override fun copyFrom(src: HRPlanningEntryDO) {
         super.copyFrom(src)
-        src.planning?.let {
-            this.planning = HRPlanning(it)
+        this.planning = src.planning?.let {
+            HRPlanning(it)
         }
-        src.projekt?.let {
+        this.project = src.projekt?.let {
             val projekt = Project()
             projekt.copyFrom(it)
-            this.project = projekt
+            projekt
         }
         projektNameOrStatus = src.projektNameOrStatus
         totalHours = src.totalHours

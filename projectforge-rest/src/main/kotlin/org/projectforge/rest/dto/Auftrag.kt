@@ -37,11 +37,11 @@ class Auftrag(
     override fun copyFrom(src: AuftragDO) {
         super.copyFrom(src)
 
-        src.kunde?.let {
-            this.customer = Customer(it)
+        this.customer = src.kunde?.let {
+            Customer(it)
         }
-        src.projekt?.let {
-            this.project = Project(it)
+        this.project = src.projekt?.let {
+            Project(it)
         }
 
         positionen = src.positionen
