@@ -208,11 +208,10 @@ class AddressPagesRest
                         .add(lc, "address.addressbookList"))
         layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
         layout.getTableColumnById("address.addressbookList").set(formatter = Formatter.ADDRESS_BOOK, sortable = false)
-        layout.getTableColumnById("address.isFavoriteCard").set(
-                        sortable = false,
-                        title = "address.columnHead.myFavorites",
-                        tooltip = "address.filter.myFavorites")
-                .valueIconMap = mapOf(true to UIIconType.STAR_REGULAR)
+        layout.getTableColumnById("address.isFavoriteCard").setStandardBoolean().set(
+                sortable = false,
+                title = "address.columnHead.myFavorites",
+                tooltip = "address.filter.myFavorites")
         var menuIndex = 0
         if (configurationService.isTelephoneSystemUrlConfigured) {
             layout.add(MenuItem("address.phoneCall", i18nKey = "menu.phoneCall", url = "wa/phoneCall"), menuIndex++)
