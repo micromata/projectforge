@@ -130,6 +130,7 @@ export const callAction = (
                         ...history.location.state.background.state,
                         noReload: true,
                         newVariables: action.variables,
+                        merge: action.merge,
                     },
                 });
             }
@@ -247,13 +248,15 @@ export const setCurrentVariables = newVariables => (dispatch, getState) => dispa
     changeVariables(getState().form.currentCategory, newVariables),
 );
 
-export const switchFromCurrentCategory = (to, newVariables) => (dispatch, getState) => {
+export const switchFromCurrentCategory = (
+    to, newVariables, merge = false,
+) => (dispatch, getState) => {
     const { form: state } = getState();
     const from = state.currentCategory;
 
     let variables;
 
-    if (state.categories[to] && newVariables) {
+    if (state.categories[to] && newVariables && merge) {
         variables = Object.combine(state.categories[to], newVariables);
     } else {
         variables = state.categories[to] || newVariables;

@@ -57,7 +57,9 @@ function FormPage(
     React.useEffect(
         () => {
             if (location.state && location.state.noReload) {
-                onCategorySwitch(currentCategory, location.state.newVariables || {});
+                onCategorySwitch(
+                    currentCategory, location.state.newVariables || {}, location.state.merge,
+                );
                 return;
             }
 
