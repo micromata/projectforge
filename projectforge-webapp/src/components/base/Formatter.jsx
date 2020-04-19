@@ -33,12 +33,12 @@ function Formatter(
 ) {
     const value = Object.getByString(data, id);
     if (value === undefined) {
-        return <React.Fragment />;
+        return <React.Fragment/>;
     }
 
     let result = value;
-
-    const useFormatter = formatter || dataType;
+    const valueIconsPresent = valueIconMap && valueIconMap.length !== 0;
+    const useFormatter = !valueIconsPresent && (formatter || dataType);
 
     // TODO FORMAT NUMBERS RIGHT ALIGNED
     if (useFormatter) {
@@ -95,11 +95,11 @@ function Formatter(
     } else if (dataType === 'DATE') {
         result = moment(value)
             .format(timestampFormatMinutes);
-    } else if (valueIconMap && valueIconMap.length !== 0) {
+    } else if (valueIconsPresent) {
         const valueIcon = valueIconMap[value];
 
         if (valueIcon) {
-            result = <FontAwesomeIcon icon={valueIcon} />;
+            result = <FontAwesomeIcon icon={valueIcon}/>;
         }
     }
 
