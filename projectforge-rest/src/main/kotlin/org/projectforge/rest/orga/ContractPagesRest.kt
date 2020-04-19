@@ -53,7 +53,9 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.URL}/contract")
 class ContractPagesRest
-    : AbstractDTOPagesRest<ContractDO, Contract, ContractDao>(ContractDao::class.java, "legalAffaires.contract.title") {
+    : AbstractDTOPagesRest<ContractDO, Contract, ContractDao>(ContractDao::class.java, "legalAffaires.contract.title",
+        cloneSupport = CloneSupport.CLONE) {
+
     @Autowired
     private lateinit var attachmentsService: AttachmentsService
 
@@ -88,6 +90,11 @@ class ContractPagesRest
         val contract = Contract()
         contract.copyFrom(obj)
         return contract
+    }
+
+    override fun prepareClone(dto: Contract): Contract {
+        dto.number = null
+        return super.prepareClone(dto)
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: Contract) {
