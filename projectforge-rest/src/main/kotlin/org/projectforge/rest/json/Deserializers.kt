@@ -25,14 +25,11 @@ package org.projectforge.rest.json
 
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.node.IntNode
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.rest.config.AbstractIdObjectDeserializer
-import org.projectforge.rest.dto.*
 import java.math.BigDecimal
 
 /**
@@ -40,9 +37,8 @@ import java.math.BigDecimal
  */
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 class IntDeserializer : StdDeserializer<Integer>(Integer::class.java) {
-
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Integer? {
-        val str = p.getText()
+        val str = p.text
         if (StringUtils.isBlank(str)) {
             return null
         }
@@ -60,7 +56,7 @@ class IntDeserializer : StdDeserializer<Integer>(Integer::class.java) {
 class BigDecimalDeserializer : StdDeserializer<BigDecimal>(BigDecimal::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): BigDecimal? {
-        val str = p.getText()
+        val str = p.text
         if (StringUtils.isBlank(str)) {
             return null
         }
@@ -82,7 +78,7 @@ class BigDecimalDeserializer : StdDeserializer<BigDecimal>(BigDecimal::class.jav
  */
 class TextDeserializer : StdDeserializer<String>(String::class.java) {
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): String? {
-        var text = p.getText() ?: return null
+        var text = p.text ?: return null
 
         // erases all the ASCII control characters
         text = text.replace("[\\p{Cntrl}&&[^\r\n\t]]".toRegex(), "")
