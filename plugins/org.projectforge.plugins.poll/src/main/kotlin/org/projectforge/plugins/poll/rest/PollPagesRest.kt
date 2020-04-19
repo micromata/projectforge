@@ -60,7 +60,7 @@ class PollPagesRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "title", "description", "location", "owner", "lastUpdate"))
         layout.getTableColumnById("owner").formatter = Formatter.USER
         layout.getTableColumnById("lastUpdate").formatter = Formatter.TIMESTAMP_MINUTES

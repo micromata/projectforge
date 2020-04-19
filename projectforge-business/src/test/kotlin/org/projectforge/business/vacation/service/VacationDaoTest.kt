@@ -34,12 +34,9 @@ import org.projectforge.business.user.*
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
-import java.math.BigDecimal
 import java.time.LocalDate
 
 class VacationDaoTest : AbstractTestBase() {
@@ -62,9 +59,54 @@ class VacationDaoTest : AbstractTestBase() {
     private lateinit var vacationService: VacationService
 
     @Test
+    fun availableStatusValuesTest() {
+        val employee = createEmployee("normal2")
+        val manager = createEmployee("manager2")
+        val replacement = createEmployee("replacement2")
+        val hrEmployee = createEmployee("HR2", hrAccess = true)
+
+        val vacation = createVacation(employee, manager, replacement, VacationStatus.IN_PROGRESS)
+        assertStatusList(employee, hrEmployee, vacation, arrayOf(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED))
+        assertStatusList(manager, hrEmployee, vacation, arrayOf(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED, VacationStatus.APPROVED))
+        vacation.status = VacationStatus.APPROVED
+        assertStatusList(employee, hrEmployee, vacation, arrayOf(VacationStatus.APPROVED)) // Only deletable
+
+        vacation.startDate = null
+        vacation.status = VacationStatus.IN_PROGRESS
+        assertStatusList(employee, hrEmployee, vacation, arrayOf(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED))
+        assertStatusList(manager, hrEmployee, vacation, arrayOf(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED, VacationStatus.APPROVED))
+        vacation.status = VacationStatus.APPROVED
+        assertStatusList(employee, hrEmployee, vacation, arrayOf(VacationStatus.APPROVED)) // Only deletable
+
+        vacation.startDate = LocalDate.now().minusDays(100) // Vacation in past
+        vacation.status = VacationStatus.IN_PROGRESS
+        assertStatusList(employee, hrEmployee, vacation, arrayOf(VacationStatus.IN_PROGRESS))
+        assertStatusList(manager, hrEmployee, vacation, arrayOf(VacationStatus.IN_PROGRESS))
+        vacation.status = VacationStatus.REJECTED
+        assertStatusList(employee, hrEmployee, vacation, arrayOf(VacationStatus.REJECTED))
+        assertStatusList(manager, hrEmployee, vacation, arrayOf(VacationStatus.REJECTED))
+        vacation.status = VacationStatus.APPROVED
+        assertStatusList(employee, hrEmployee, vacation, arrayOf(VacationStatus.APPROVED))
+        assertStatusList(manager, hrEmployee, vacation, arrayOf(VacationStatus.APPROVED))
+
+        // special vacation
+        vacation.startDate = LocalDate.now().plusDays(100) // Vacation in future
+        vacation.special = true
+        vacation.status = VacationStatus.IN_PROGRESS
+        assertStatusList(employee, hrEmployee, vacation, arrayOf(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED))
+        assertStatusList(manager, hrEmployee, vacation, arrayOf(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED))
+        vacation.status = VacationStatus.REJECTED
+        assertStatusList(employee, hrEmployee, vacation, arrayOf(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED))
+        assertStatusList(manager, hrEmployee, vacation, arrayOf(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED))
+        vacation.status = VacationStatus.APPROVED
+        assertStatusList(employee, hrEmployee, vacation, arrayOf(VacationStatus.APPROVED))
+        assertStatusList(manager, hrEmployee, vacation, arrayOf(VacationStatus.APPROVED, VacationStatus.REJECTED, VacationStatus.IN_PROGRESS))
+    }
+
+    @Test
     fun vacationAccessTest() {
         val employee = createEmployee("normal")
-        val manager = createEmployee("Vmanager")
+        val manager = createEmployee("manager")
         val replacement = createEmployee("replacement")
         val vacation = createVacation(employee, manager, replacement, VacationStatus.IN_PROGRESS)
         val foreignVacation = createVacation(replacement, manager, manager, VacationStatus.IN_PROGRESS)
@@ -120,6 +162,7 @@ class VacationDaoTest : AbstractTestBase() {
     }
 
     private fun checkAccess(user: PFUserDO?, vacation: VacationDO, msg: String, select: Boolean, insert: Boolean, update: Boolean, delete: Boolean, history: Boolean, dbVacation: VacationDO? = null) {
+        user!!
         if (select) {
             Assertions.assertTrue(vacationDao.hasUserSelectAccess(user, vacation, false), "Select access allowed: $msg.")
         } else {
@@ -185,6 +228,18 @@ class VacationDaoTest : AbstractTestBase() {
 
     private fun createEmployee(name: String, hrAccess: Boolean = false): EmployeeDO {
         return EmployeeTest.createEmployee(employeeService, employeeDao, this, name, hrAccess, groupDao)
+    }
+
+    private fun assertStatusList(employee: EmployeeDO, hrEmployee: EmployeeDO, vacation: VacationDO, expected: Array<VacationStatus>) {
+        assertStatusList(vacationDao.getAllowedStatus(employee.user!!, vacation), expected)
+        assertStatusList(vacationDao.getAllowedStatus(hrEmployee.user!!, vacation), arrayOf(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED, VacationStatus.APPROVED))
+    }
+
+    private fun assertStatusList(values: List<VacationStatus>, expected: Array<VacationStatus>) {
+        Assertions.assertEquals(expected.size, values.size, "Expected values: ${expected.joinToString { it.name }}, actual: ${values.joinToString { it.name }}")
+        expected.forEach {
+            Assertions.assertTrue(values.contains(it), "Expected value $it not found.")
+        }
     }
 
     companion object {

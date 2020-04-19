@@ -15,6 +15,7 @@ const KONTO_FORMATTER = 'KONTO';
 const PROJECT_FORMATTER = 'PROJECT';
 const USER_FORMATTER = 'USER';
 const TASK_FORMATTER = 'TASK_PATH';
+const TIMESTAMP_FORMATTER = 'TIMESTAMP';
 const TIMESTAMP_MINUTES_FORMATTER = 'TIMESTAMP_MINUTES';
 const GROUP_FORMATTER = 'GROUP';
 
@@ -25,6 +26,7 @@ function Formatter(
         id,
         dataType,
         dateFormat,
+        timestampFormatSeconds,
         timestampFormatMinutes,
         valueIconMap,
     },
@@ -36,9 +38,11 @@ function Formatter(
 
     let result = value;
 
+    const useFormatter = formatter || dataType;
+
     // TODO FORMAT NUMBERS RIGHT ALIGNED
-    if (formatter) {
-        switch (formatter) {
+    if (useFormatter) {
+        switch (useFormatter) {
             case COST1_FORMATTER:
                 result = value.formattedNumber;
                 break;
@@ -60,6 +64,10 @@ function Formatter(
                 break;
             case TASK_FORMATTER:
                 result = value.title;
+                break;
+            case TIMESTAMP_FORMATTER:
+                result = moment(value)
+                    .format(timestampFormatSeconds);
                 break;
             case TIMESTAMP_MINUTES_FORMATTER:
                 result = moment(value)
@@ -104,6 +112,7 @@ Formatter.propTypes = {
     dateFormat: PropTypes.string,
     id: PropTypes.string,
     formatter: PropTypes.string,
+    timestampFormatSeconds: PropTypes.string,
     timestampFormatMinutes: PropTypes.string,
     valueIconMap: PropTypes.shape({}),
 };
@@ -114,12 +123,14 @@ Formatter.defaultProps = {
     formatter: undefined,
     dataType: undefined,
     dateFormat: 'DD/MM/YYYY',
+    timestampFormatSeconds: 'DD.MM.YYYY HH:mm:ss',
     timestampFormatMinutes: 'DD.MM.YYYY HH:mm',
     valueIconMap: undefined,
 };
 
 const mapStateToProps = ({ authentication }) => ({
     dateFormat: authentication.user.jsDateFormat,
+    timestampFormatSeconds: authentication.user.jsTimestampFormatSeconds,
     timestampFormatMinutes: authentication.user.jsTimestampFormatMinutes,
 });
 

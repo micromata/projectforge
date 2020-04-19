@@ -73,7 +73,7 @@ open class BookDO : DefaultBaseDO(), DisplayNameCapable {
     open var lendOutBy: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "date")
-    @Field(index = Index.YES, analyze = Analyze.NO)
+    @Field(analyze = Analyze.NO)
     @get:Column(name = "lend_out_date")
     open var lendOutDate: LocalDate? = null
 

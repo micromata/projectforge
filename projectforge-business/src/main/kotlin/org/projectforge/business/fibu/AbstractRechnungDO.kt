@@ -39,7 +39,7 @@ import javax.persistence.*
 
 @MappedSuperclass
 @JpaXmlPersist(beforePersistListener = [AbstractRechnungXmlBeforePersistListener::class], persistAfter = [Kost2ArtDO::class])
-abstract class AbstractRechnungDO : DefaultBaseDO() {
+abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
     @PropertyInfo(i18nKey = "fibu.rechnung.datum")
     @Field(analyze = Analyze.NO)
     @get:Column(nullable = false)
@@ -69,6 +69,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
      * Wird nur zur Berechnung benutzt und kann für die Anzeige aufgerufen werden. Vorher sollte recalculate aufgerufen
      * werden.
      */
+    @PropertyInfo(i18nKey = "fibu.rechnung.zahlungsZiel")
     @Field(analyze = Analyze.NO)
     @get:Transient
     open var zahlungsZielInTagen: Int? = null
@@ -90,7 +91,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
      */
     @PropertyInfo(i18nKey = "fibu.rechnung.zahlBetrag", type = PropertyType.CURRENCY)
     @get:Column(name = "zahl_betrag", scale = 2, precision = 12)
-    open var zahlBetrag: BigDecimal? = null
+    override var zahlBetrag: BigDecimal? = null
 
     /**
      * This Datev account number is used for the exports of invoices. For debitor invoices (RechnungDO): If not given then
@@ -140,11 +141,11 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
         get() = RechnungCalculator.calculateGrossSum(this)
 
     @get:PropertyInfo(i18nKey = "fibu.common.netto")
-    val netSum: BigDecimal
+    override val netSum: BigDecimal
         @Transient
         get() = RechnungCalculator.calculateNetSum(this)
 
-    val vatAmountSum: BigDecimal
+    override val vatAmountSum: BigDecimal
         @Transient
         get() = RechnungCalculator.calculateVatAmountSum(this)
 
@@ -206,13 +207,13 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
         // Get the highest used number + 1 or take 1 for the first position.
         val nextNumber = abstractPositionen!!.maxBy { it.number }?.number?.plus(1)?.toShort() ?: 1
         position.number = nextNumber
-        setRechnung(position)
+        setAbstractRechnung(position)
         addPositionWithoutCheck(position)
     }
 
     abstract protected fun addPositionWithoutCheck(position: AbstractRechnungsPositionDO)
 
-    abstract fun setRechnung(position: AbstractRechnungsPositionDO)
+    abstract fun setAbstractRechnung(position: AbstractRechnungsPositionDO)
 
     abstract fun ensureAndGetPositionen(): MutableList<out AbstractRechnungsPositionDO>
 

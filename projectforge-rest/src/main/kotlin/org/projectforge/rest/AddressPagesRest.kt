@@ -162,7 +162,7 @@ class AddressPagesRest
         }
     }
 
-    override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: AddressDO, postData: PostData<Address>) {
+    override fun onBeforeSaveOrUpdate(request: HttpServletRequest, obj: AddressDO, postData: PostData<Address>) {
         val session = request.session
         val bytes = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
         if (bytes != null && bytes is ByteArray) {
@@ -180,7 +180,7 @@ class AddressPagesRest
         }
     }
 
-    override fun afterSaveOrUpdate(obj: AddressDO, postData: PostData<Address>) {
+    override fun onAfterSaveOrUpdate(obj: AddressDO, postData: PostData<Address>) {
         val dto = postData.data
         val address = baseDao.getOrLoad(obj.id)
         val personalAddress = PersonalAddressDO()

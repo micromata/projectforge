@@ -58,7 +58,7 @@ open class HRPlanningDO : DefaultBaseDO() {
     /**
      * The employee assigned to this planned week.
      */
-    @PropertyInfo(i18nKey = "user")
+    @PropertyInfo(i18nKey = "timesheet.user")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_fk", nullable = false)
@@ -67,6 +67,7 @@ open class HRPlanningDO : DefaultBaseDO() {
     /**
      * @return The first day of the week.
      */
+    @PropertyInfo(i18nKey = "calendar.year")
     @Field(analyze = Analyze.NO)
     @get:Column(name = "week", nullable = false)
     open var week: LocalDate? = null

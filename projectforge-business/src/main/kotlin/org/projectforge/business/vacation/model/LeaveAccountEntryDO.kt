@@ -49,7 +49,7 @@ import javax.persistence.*
         indexes = [javax.persistence.Index(name = "idx_fk_t_leave_account_employee_id", columnList = "employee_id"),
             javax.persistence.Index(name = "idx_fk_t_leave_account_tenant_id", columnList = "tenant_id")])
 @NamedQueries(NamedQuery(name = LeaveAccountEntryDO.FIND_BY_EMPLOYEE_ID_AND_DATEPERIOD,
-        query = "from LeaveAccountEntryDO where employee.id=:employeeId and date>=:fromDate and date<=:toDate and deleted=false"))
+        query = "from LeaveAccountEntryDO where employee.id=:employeeId and date>=:fromDate and date<=:toDate and deleted=false order by date desc"))
 open class LeaveAccountEntryDO : DefaultBaseDO() {
     /**
      * The employee.

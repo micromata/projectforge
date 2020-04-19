@@ -24,6 +24,8 @@
 package org.projectforge.framework.time
 
 import org.projectforge.framework.ToStringUtil.Companion.toJsonString
+import org.projectforge.framework.utils.RoundUnit
+import org.projectforge.framework.utils.RoundUtils
 import java.io.Serializable
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -41,28 +43,28 @@ class TimePeriod @JvmOverloads constructor(var fromDate: Date? = null, var toDat
                                             * @return
                                             */
                                            var marker: Boolean = false) : Serializable {
-    constructor( fromDay: LocalDate? = null,
-                 toDate: LocalDate? = null,
-                 marker: Boolean = false)
+    constructor(fromDay: LocalDate? = null,
+                toDate: LocalDate? = null,
+                marker: Boolean = false)
             : this(PFDateTime.fromOrNull(fromDay)?.beginOfDay?.utilDate, PFDateTime.fromOrNull(toDate)?.endOfDay?.utilDate, marker)
 
     var fromDay: LocalDate?
         get() = PFDay.fromOrNull(fromDate)?.localDate
         set(value) {
-            if (value == null) {
-                fromDate = null
+            fromDate = if (value == null) {
+                null
             } else {
-                fromDate = PFDateTime.from(value).beginOfDay.utilDate
+                PFDateTime.from(value).beginOfDay.utilDate
             }
         }
 
     var toDay: LocalDate?
         get() = PFDay.fromOrNull(toDate)?.localDate
         set(value) {
-            if (value == null) {
-                toDate = null
+            toDate = if (value == null) {
+                null
             } else {
-                toDate = PFDateTime.from(value).endOfDay.utilDate
+                PFDateTime.from(value).endOfDay.utilDate
             }
         }
 
@@ -119,18 +121,13 @@ class TimePeriod @JvmOverloads constructor(var fromDate: Date? = null, var toDat
          */
         @JvmStatic
         @JvmOverloads
-        fun getDurationHours(fromDate: Date?, toDate: Date?, roundUnit: ROUND_UNIT = ROUND_UNIT.INT, roundingMode: RoundingMode = RoundingMode.HALF_UP ): BigDecimal {
+        fun getDurationHours(fromDate: Date?, toDate: Date?, roundUnit: RoundUnit = RoundUnit.INT, roundingMode: RoundingMode = RoundingMode.HALF_UP): BigDecimal {
             if (fromDate == null || toDate == null || toDate.before(fromDate)) {
                 return BigDecimal.ZERO
             }
             val millis = toDate.time - fromDate.time
-            return when (roundUnit) {
-                ROUND_UNIT.INT -> BigDecimal(millis).divide(MILLIS_PER_HOUR, 0, roundingMode)
-                ROUND_UNIT.HALF -> BigDecimal(millis).multiply(BD_2).divide(MILLIS_PER_HOUR, 0, roundingMode).divide(BD_2, 1, roundingMode)
-                ROUND_UNIT.QUARTER -> BigDecimal(millis).multiply(BD_4).divide(MILLIS_PER_HOUR, 0, roundingMode).divide(BD_4, 2, roundingMode)
-                ROUND_UNIT.FIFTH -> BigDecimal(millis).multiply(BD_5).divide(MILLIS_PER_HOUR, 0, roundingMode).divide(BD_5, 1, roundingMode)
-                ROUND_UNIT.TENTH -> BigDecimal(millis).multiply(BigDecimal.TEN).divide(MILLIS_PER_HOUR, 0, roundingMode).divide(BigDecimal.TEN, 1, roundingMode)
-            }
+            // scale = 3 should be enough, but if RoundUnit is extended in future times, scale = 5 is more save ;-)
+            return RoundUtils.round(BigDecimal(millis).divide(MILLIS_PER_HOUR, 5, RoundingMode.HALF_UP), roundUnit, roundingMode)
         }
 
         /**
@@ -160,7 +157,7 @@ class TimePeriod @JvmOverloads constructor(var fromDate: Date? = null, var toDat
          * @param minHours4DaySeparation If minHours is e. g. 48 then 48 hours will result in 0 days and 48 hours independent
          * of the hoursOfDay. (Depending on the scope minHoursOfDay is more convenient to read.). If minHours is than
          * zero, no seperation will be done.
-         * @param duration in millis.
+         * @param millis duration.
          * @return int array { days, hours, minutes};
          */
         @JvmStatic
@@ -169,18 +166,13 @@ class TimePeriod @JvmOverloads constructor(var fromDate: Date? = null, var toDat
             var hours = duration.toInt() / 60
             val minutes = duration.toInt() % 60
             var days = 0
-            if (minHours4DaySeparation >= 0 && hours >= minHours4DaySeparation) { // Separate the days for more than 24 hours (=3 days):
+            if (minHours4DaySeparation in 0..hours) { // Separate the days for more than 24 hours (=3 days):
                 days = hours / hoursOfDay
-                hours = hours % hoursOfDay
+                hours %= hoursOfDay
             }
             return intArrayOf(days, hours, minutes)
         }
 
         private val MILLIS_PER_HOUR = BigDecimal(1000 * 60 * 60)
-        private val BD_2 = BigDecimal(2)
-        private val BD_4 = BigDecimal(4)
-        private val BD_5 = BigDecimal(5)
     }
-
-    enum class ROUND_UNIT { INT, HALF, QUARTER, FIFTH, TENTH }
 }

@@ -72,7 +72,7 @@ public class UserException extends ProjectForgeException
 
   /**
    * @param i18nKey Key for the localized message.
-   * @param params Params, if message has params.
+   * @param msgParams Params, if message has params.
    */
   public UserException(String i18nKey, MessageParam... msgParams)
   {

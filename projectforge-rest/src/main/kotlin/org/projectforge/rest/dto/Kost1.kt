@@ -35,4 +35,12 @@ class Kost1(id: Int? = null,
             var kostentraegerStatus: KostentraegerStatus? = null,
             var description: String? = null,
             var formattedNumber: String? = null
-) : BaseDTODisplayObject<Kost1DO>(id, displayName = displayName)
+) : BaseDTODisplayObject<Kost1DO>(id, displayName = displayName) {
+
+    /**
+     * @see copyFromMinimal
+     */
+    constructor(src: Kost1DO) : this() {
+        copyFromMinimal(src)
+    }
+}

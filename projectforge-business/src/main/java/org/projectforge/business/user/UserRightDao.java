@@ -98,8 +98,8 @@ public class UserRightDao extends BaseDao<UserRightDO> {
     for (final UserRightDO rightDO : dbList) {
       String rightId = rightDO.getRightIdString();
       UserRight right = userRightService.getRight(rightId);
-      if (!right.isAvailable(userGroupCache, user)
-              || !right.isAvailable(userGroupCache, user, rightDO.getValue())) {
+      if (right != null && (!right.isAvailable(userGroupCache, user)
+              || !right.isAvailable(userGroupCache, user, rightDO.getValue()))) {
         rightDO.setValue(null);
         update(rightDO);
       }
@@ -114,8 +114,16 @@ public class UserRightDao extends BaseDao<UserRightDO> {
   }
 
   @Override
-  protected void afterSaveOrModify(final UserRightDO obj) {
-    super.afterSaveOrModify(obj);
+  protected void afterUpdate(UserRightDO obj, UserRightDO dbObj, boolean isModified) {
+    super.afterUpdate(obj, dbObj, isModified);
+    if (isModified) {
+      TenantRegistryMap.getInstance().getTenantRegistry(obj).getUserGroupCache().setExpired();
+    }
+  }
+
+  @Override
+  protected void afterSave(UserRightDO obj) {
+    super.afterSave(obj);
     TenantRegistryMap.getInstance().getTenantRegistry(obj).getUserGroupCache().setExpired();
   }
 

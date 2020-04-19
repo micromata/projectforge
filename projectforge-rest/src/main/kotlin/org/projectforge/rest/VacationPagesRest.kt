@@ -49,6 +49,7 @@ import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.Year
@@ -117,13 +118,13 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
         return employee
     }
 
-    override fun afterSave(obj: VacationDO, postData: PostData<Vacation>): ResponseAction {
+    override fun onAfterSave(obj: VacationDO, postData: PostData<Vacation>): ResponseAction {
         // Save current edited object as user preference for pre-filling the edit form for the next usage.
         val vacation = getUserPref()
         vacation.employee = obj.employee
         vacation.manager = obj.manager
         vacation.replacement = obj.replacement
-        return super.afterSave(obj, postData)
+        return super.onAfterSave(obj, postData)
     }
 
     /**
@@ -197,6 +198,9 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
         } else {
             employeeCol.add(UIReadOnlyField("employee.displayName", label = "vacation.employee"))
         }
+        val obj = VacationDO()
+        dto.copyTo(obj)
+        val availableStatusValues = vacationDao.getAllowedStatus(ThreadLocalUserContext.getUser(), obj)
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(employeeCol)
@@ -223,7 +227,8 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
                         .add(UICol(6)
                                 .add(lc, "manager"))
                         .add(UICol(6)
-                                .add(lc, "status")))
+                                .add(UISelect("status", lc,
+                                        values = availableStatusValues.map { UISelectValue(it.name, translate(it.i18nKey)) }))))
                 .add(lc, "comment")
 
         layout.watchFields.addAll(arrayOf("startDate", "endDate", "halfDayBegin", "halfDayEnd"))
@@ -231,7 +236,7 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-    override fun onWatchFieldsUpdate(request: HttpServletRequest, dto: Vacation, watchFieldsTriggered: Array<String>?): ResponseAction {
+    override fun onWatchFieldsUpdate(request: HttpServletRequest, dto: Vacation, watchFieldsTriggered: Array<String>?): ResponseEntity<ResponseAction> {
         var startDate = dto.startDate
         var endDate = dto.endDate
         if (watchFieldsTriggered?.contains("startDate") == true && startDate != null) {
@@ -244,7 +249,7 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
             }
         }
         updateStats(dto)
-        return ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
+        return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto))
     }
 
     override fun createReturnToCallerResponseAction(returnToCaller: String): ResponseAction {

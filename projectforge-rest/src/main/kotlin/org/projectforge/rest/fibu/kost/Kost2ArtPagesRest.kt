@@ -21,35 +21,34 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.fibu
+package org.projectforge.rest.fibu.kost
 
-import org.projectforge.business.fibu.KundeDO
-import org.projectforge.business.fibu.KundeDao
+import org.projectforge.business.fibu.kost.Kost2ArtDO
+import org.projectforge.business.fibu.kost.Kost2ArtDao
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.dto.Kunde
+import org.projectforge.rest.dto.Kost2Art
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("${Rest.URL}/customer")
-class KundePagesRest
-    : AbstractDTOPagesRest<KundeDO, Kunde, KundeDao>(
-        KundeDao::class.java,
-        "fibu.kunde.title") {
-
-    override fun transformFromDB(obj: KundeDO, editMode: Boolean): Kunde {
-        val kunde = Kunde()
-        kunde.copyFrom(obj)
-        return kunde
+@RequestMapping("${Rest.URL}/cost2Type")
+class Kost2ArtPagesRest : AbstractDTOPagesRest<Kost2ArtDO, Kost2Art, Kost2ArtDao>(Kost2ArtDao::class.java, "fibu.kost2art.title") {
+    override fun transformFromDB(obj: Kost2ArtDO, editMode: Boolean): Kost2Art {
+        val kost2Art = Kost2Art()
+        kost2Art.copyFrom(obj)
+        return kost2Art
     }
 
-    override fun transformForDB(dto: Kunde): KundeDO {
-        val kundeDO = KundeDO()
-        dto.copyTo(kundeDO)
-        return kundeDO
+    override fun transformForDB(dto: Kost2Art): Kost2ArtDO {
+        val kost2ArtDO = Kost2ArtDO()
+        dto.copyTo(kost2ArtDO)
+        return kost2ArtDO
     }
+
+    override val classicsLinkListUrl: String?
+        get() = "wa/cost2TypeList"
 
     /**
      * LAYOUT List page
@@ -57,23 +56,19 @@ class KundePagesRest
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "nummer", "identifier", "name", "division", "konto", "status", "description"))
-        layout.getTableColumnById("konto").formatter = Formatter.KONTO
+                        .add(lc, "id", "name", "fakturiert", "workFraction",
+                                "projektStandard", "description"))
         return LayoutUtils.processListPage(layout, this)
     }
 
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: Kunde, userAccess: UILayout.UserAccess): UILayout {
-        val konto = UIInput("konto", lc, tooltip = "fibu.kunde.konto.tooltip")
-
+    override fun createEditLayout(dto: Kost2Art, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
-                                .add(lc, "nummer", "name")
-                                .add(konto)
-                                .add(lc, "identifier", "division", "description", "status")))
+                                .add(lc, "id", "fakturiert", "projektStandard",                                     "name", "workFraction", "description")))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

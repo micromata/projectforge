@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import 'rc-time-picker/assets/index.css';
 import React from 'react';
 import 'react-day-picker/lib/style.css';
-import TimeInput from '../../../../design/input/calendar/TimeInput';
+import DateTimeInput from '../../../../design/input/calendar/DateTimeInput';
 import InputContainer from '../../../../design/input/InputContainer';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from './DynamicValidationManager';
@@ -34,7 +34,7 @@ function DynamicTimestampInput(
                     withMargin
                     {...props}
                 >
-                    <TimeInput
+                    <DateTimeInput
                         id={`${ui.uid}-${id}`}
                         setTime={newDate => setData({ [id]: newDate })}
                         showDate

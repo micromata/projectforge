@@ -24,13 +24,30 @@
 package org.projectforge.framework.time;
 
 
+import org.projectforge.common.i18n.I18nEnum;
+
 /**
  * Date formats.
  * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * 
  */
-public enum TimeNotation
+public enum TimeNotation implements I18nEnum
 {
-  H12, H24;
+  H12("12"), H24("24");
+
+  private String key;
+
+  TimeNotation(String key) {
+    this.key = key;
+  }
+
+  public String getKey() {
+    return key + "-hour notation";
+  }
+
+  @Override
+  public String getI18nKey() {
+    return "timeNotation." + key;
+  }
 }
