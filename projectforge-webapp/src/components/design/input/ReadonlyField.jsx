@@ -116,7 +116,7 @@ ReadonlyField.propTypes = {
     canCopy: PropTypes.bool,
     coverUp: PropTypes.bool,
     tooltip: PropTypes.string,
-    value: PropTypes.string,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 ReadonlyField.defaultProps = {
