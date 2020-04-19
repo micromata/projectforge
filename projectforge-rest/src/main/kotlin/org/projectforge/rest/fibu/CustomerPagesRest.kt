@@ -25,15 +25,17 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
+import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.dto.Konto
 import org.projectforge.rest.dto.Customer
+import org.projectforge.rest.dto.Konto
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.annotation.PostConstruct
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/customer")
@@ -76,19 +78,40 @@ class CustomerPagesRest
      * LAYOUT Edit page
      */
     override fun createEditLayout(dto: Customer, userAccess: UILayout.UserAccess): UILayout {
-        val kto = UIInput("konto", lc, tooltip = "fibu.kunde.konto.tooltip")
-        val konto = UISelect<Konto>("konto", lc,
+        val kontoField = UISelect<Konto>("konto", lc,
                 autoCompletion = AutoCompletion<Konto>(url = "account/acDebitors?search=:search"))
-
+        val numberField: UIElement = if (dto.nummer != null) {
+            UIReadOnlyField("nummer", lc)
+        } else {
+            UIInput("nummer", lc)
+        }
 
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
                         .add(UICol()
-                                .add(UILabel("'ToDo: Kontoselektion *************** (Status unusable) ***************"))
-                                .add(lc, "nummer", "name")
-                                .add(konto)
+                                .add(UILabel("'ToDo: Kontoselektion, Errors as return value of watchfields *************** (Status unfinished) ***************"))
+                                .add(numberField)
+                                .add(lc, "name")
+                                .add(kontoField)
                                 .add(lc, "identifier", "division", "description", "status")))
+
+        if (dto.nummer == null) {
+            layout.watchFields.addAll(arrayOf("nummer"))
+        }
+
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    override fun onWatchFieldsUpdate(request: HttpServletRequest, dto: Customer, watchFieldsTriggered: Array<String>?): ResponseAction {
+        if (watchFieldsTriggered?.contains("nummer") == true) {
+            dto.nummer?.let {
+                if (baseDao.doesNumberAlreadyExist(transformForDB(dto))) {
+                    val error = ValidationError(translate("fibu.kunde.validation.existingCustomerNr"))
+                    return ResponseAction(validationErrors = listOf(error))
+                }
+            }
+        }
+        return super.onWatchFieldsUpdate(request, dto, watchFieldsTriggered)
     }
 
     override val autoCompleteSearchFields = arrayOf("name", "identifier")
