@@ -25,6 +25,7 @@ package org.projectforge.ui
 
 data class UITableColumn(var id: String,
                          var title: String? = null,
+                         var titleIcon: UIIconType? = null,
                          var tooltip: String? = null,
                          var dataType: UIDataType = UIDataType.STRING,
                          var sortable: Boolean = true,
