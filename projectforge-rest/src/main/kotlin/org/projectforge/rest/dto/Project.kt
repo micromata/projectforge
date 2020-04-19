@@ -44,20 +44,27 @@ class Project(id: Int? = null,
     /**
      * @see copyFromMinimal
      */
-    constructor(src: ProjektDO): this() {
+    constructor(src: ProjektDO) : this() {
         copyFromMinimal(src)
+    }
+
+    override fun copyFromMinimal(src: ProjektDO) {
+        super.copyFromMinimal(src)
+        this.customer = src.kunde?.let {
+            Customer(it)
+        }
     }
 
     override fun copyFrom(src: ProjektDO) {
         super.copyFrom(src)
-        src.kunde?.let {
-            this.customer = Customer(it)
+        this.customer = src.kunde?.let {
+            Customer(it)
         }
-        src.konto?.let {
-            this.konto = Konto(it)
+        this.konto = src.konto?.let {
+            Konto(it)
         }
-        src.task?.let {
-            this.task = Task(it)
+        this.task = src.task?.let {
+            Task(it)
         }
     }
 

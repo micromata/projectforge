@@ -50,7 +50,7 @@ class Customer(id: Int? = null,
     /**
      * @see copyFromMinimal
      */
-    constructor(src: KundeDO): this() {
+    constructor(src: KundeDO) : this() {
         copyFromMinimal(src)
     }
 
@@ -58,10 +58,10 @@ class Customer(id: Int? = null,
         super.copyFrom(src)
         this.id = src.nummer
         this.kost = src.kost
-        src.konto?.let {
+        this.konto = src.konto?.let {
             val konto = Konto()
             konto.copyFromMinimal(it)
-            this.konto = konto
+            konto
         }
     }
 }

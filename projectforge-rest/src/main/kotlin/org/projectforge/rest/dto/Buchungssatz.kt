@@ -21,17 +21,17 @@ class Buchungssatz(
         if (src.year != null && src.month != null) {
             this.satznr = src.formattedSatzNummer
         }
-        src.kost1?.let {
-            this.kost1 = Kost1(it)
+        this.kost1 = src.kost1?.let {
+            Kost1(it)
         }
-        src.kost2?.let {
-            this.kost2 = Kost2(it)
+        this.kost2 = src.kost2?.let {
+            Kost2(it)
         }
-        src.konto?.let {
-            this.konto = Konto(it)
+        this.konto = src.konto?.let {
+            Konto(it)
         }
-        src.gegenKonto?.let {
-            this.gegenKonto = Konto(it)
+        this.gegenKonto = src.gegenKonto?.let {
+            Konto(it)
         }
     }
 }

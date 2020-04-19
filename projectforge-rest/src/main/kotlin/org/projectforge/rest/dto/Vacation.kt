@@ -71,11 +71,11 @@ class Vacation(var employee: Employee? = null,
         } else {
             translate("no")
         }
-        startDate?.let {
-            startDateFormatted = PFDayUtils.format(it, DateFormatType.DATE)
+        startDateFormatted = startDate?.let {
+            PFDayUtils.format(it, DateFormatType.DATE)
         }
-        endDate?.let {
-            endDateFormatted = PFDayUtils.format(it, DateFormatType.DATE)
+        endDateFormatted = endDate?.let {
+            PFDayUtils.format(it, DateFormatType.DATE)
         }
     }
 
