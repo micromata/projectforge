@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import AdvancedPopperInput from '../../popper/AdvancedPopperInput';
 import AutoCompletion from './index';
-import Input from '../index';
 
 function TextAutoCompletion(
     {
