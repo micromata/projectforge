@@ -171,6 +171,16 @@ export const callAction = (
                         history.push(action.url);
                     }
                 });
+        case 'DOWNLOAD': {
+            let { url } = action;
+
+            if (!action.absolute) {
+                url = getServiceURL(url);
+            }
+
+            window.open(url, '_blank');
+            return Promise.resolve();
+        }
         case 'NOTHING':
             break;
         case 'DELETE':
