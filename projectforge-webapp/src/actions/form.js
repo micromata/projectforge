@@ -71,6 +71,18 @@ const switchCategoryWithData = (from, to, newVariables) => ({
     },
 });
 
+const mergeVariables = (categoryState, newVariables, merge) => {
+    let variables;
+
+    if (categoryState && newVariables && merge) {
+        variables = Object.combine(categoryState, newVariables);
+    } else {
+        variables = newVariables || categoryState;
+    }
+
+    return variables;
+};
+
 export const loadFormPage = (category, id, url, params = {}) => (dispatch, getState) => {
     const currentCategory = getState().form.categories[category];
 
@@ -142,11 +154,14 @@ export const callAction = (
                     {
                         noReload: true,
                         newVariables: action.variables,
+                        merge: action.merge,
                     },
                 );
                 window.scrollTo(0, 0);
             } else {
-                dispatch(callSuccess(category, action.variables));
+                dispatch(callSuccess(category, mergeVariables(
+                    state.categories[category], action.variables, action.merge,
+                )));
             }
             break;
         case 'CHECK_AUTHENTICATION':
@@ -252,19 +267,10 @@ export const switchFromCurrentCategory = (
     to, newVariables, merge = false,
 ) => (dispatch, getState) => {
     const { form: state } = getState();
-    const from = state.currentCategory;
-
-    let variables;
-
-    if (state.categories[to] && newVariables && merge) {
-        variables = Object.combine(state.categories[to], newVariables);
-    } else {
-        variables = state.categories[to] || newVariables;
-    }
 
     dispatch(switchCategoryWithData(
-        from,
+        state.currentCategory,
         to,
-        variables,
+        mergeVariables(state.categories[to], newVariables, merge),
     ));
 };
