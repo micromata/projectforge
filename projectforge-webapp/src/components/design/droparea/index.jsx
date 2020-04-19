@@ -78,7 +78,7 @@ class DropArea extends React.Component {
     }
 
     render() {
-        const { children, multiple } = this.props;
+        const { children, multiple, noStyle, title } = this.props;
         const { inDrag } = this.state;
 
         const inputProps = {};
@@ -95,7 +95,10 @@ class DropArea extends React.Component {
                 onKeyDown={() => {
                 }}
                 onClick={() => this.input.current.click()}
-                className={classNames(style.dropArea, { [style.inDrag]: inDrag })}
+                className={classNames(style.dropArea, {
+                    [style.inDrag]: inDrag,
+                    [style.noStyle]: noStyle,
+                })}
                 tabIndex={-1}
             >
                 <div
@@ -114,8 +117,9 @@ class DropArea extends React.Component {
                     />
                     <span className={style.info}>
                         <FontAwesomeIcon icon={faUpload} className={style.icon} />
-                        {children}
+                        {title}
                     </span>
+                    {children}
                 </div>
             </div>
         );
@@ -125,13 +129,17 @@ class DropArea extends React.Component {
 DropArea.propTypes = {
     children: PropTypes.node,
     multiple: PropTypes.bool,
+    noStyle: PropTypes.bool,
     setFiles: PropTypes.func,
+    title: PropTypes.string,
 };
 
 DropArea.defaultProps = {
-    children: 'Select a file, or drop one here.',
+    children: undefined,
     multiple: false,
+    noStyle: false,
     setFiles: undefined,
+    title: 'Select a file, or drop one here.',
 };
 
 export default DropArea;

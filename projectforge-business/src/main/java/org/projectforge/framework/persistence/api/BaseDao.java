@@ -95,6 +95,20 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   protected Class<O> clazz;
 
+  private String identifier;
+
+  /**
+   * Identifier should be unique in application (including all plugins). This identifier is also used as category in rest services
+   * or in React pages.
+   * At default it's the simple name of the DO clazz without extension "DO".
+   */
+  public String getIdentifier() {
+    if (identifier == null && clazz != null) {
+      identifier = StringUtils.uncapitalize(StringUtils.removeEnd(clazz.getSimpleName(), "DO"));
+    }
+    return identifier;
+  }
+
   protected boolean logDatabaseActions = true;
 
   @Autowired
@@ -703,6 +717,28 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     }
     accessChecker.checkRestrictedOrDemoUser();
     return internalUpdate(obj, true);
+  }
+
+  /**
+   * Thin wrapper for generic usage.
+   *
+   * @return true, if modifications were done, false if no modification detected.
+   * @see #internalUpdate(ExtendedBaseDO, boolean)
+   */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
+  public ModificationStatus updateAny(final Object obj) throws AccessException {
+    return update((O) obj);
+  }
+
+  /**
+   * Thin wrapper for generic usage.
+   *
+   * @return true, if modifications were done, false if no modification detected.
+   * @see #internalUpdate(ExtendedBaseDO, boolean)
+   */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
+  public ModificationStatus internalUpdateAny(final Object obj) throws AccessException {
+    return internalUpdate((O) obj);
   }
 
   /**
@@ -1316,7 +1352,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * @param objectChangedListener
    */
   public void register(final BaseDOChangedListener<O> objectChangedListener) {
-    log.info(this.getClass().getSimpleName()  + ": Registering " + objectChangedListener.getClass().getName());
+    log.info(this.getClass().getSimpleName() + ": Registering " + objectChangedListener.getClass().getName());
     objectChangedListeners.add(objectChangedListener);
   }
 }

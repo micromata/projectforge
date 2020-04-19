@@ -23,12 +23,15 @@
 
 package org.projectforge.business.orga
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.search.annotations.Analyze
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.FieldBridge
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.time.LocalDate
 import javax.persistence.*
@@ -44,7 +47,7 @@ import javax.persistence.*
 @NamedQueries(
         NamedQuery(name = ContractDO.FIND_OTHER_BY_NUMBER, query = "from ContractDO where number=:number and id<>:id"),
         NamedQuery(name = ContractDO.SELECT_MIN_MAX_DATE, query = "select min(date), max(date) from ContractDO"))
-open class ContractDO : DefaultBaseDO() {
+open class ContractDO : DefaultBaseDO(), AttachmentsInfo {
 
     @PropertyInfo(i18nKey = "'C-", additionalI18nKey = "legalAffaires.contract.number", tooltip = "fibu.tooltip.nummerWirdAutomatischVergeben")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
@@ -141,6 +144,28 @@ open class ContractDO : DefaultBaseDO() {
     @Field(analyze = Analyze.NO)
     @get:Column(name = "due_date")
     open var dueDate: LocalDate? = null
+
+    @JsonIgnore
+    @Field
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_names")
+    override var attachmentsNames: String? = null
+
+    @JsonIgnore
+    @Field
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_ids")
+    override var attachmentsIds: String? = null
+
+    @JsonIgnore
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_size")
+    override var attachmentsSize: Int? = null
+
+    @PropertyInfo(i18nKey = "attachment")
+    @JsonIgnore
+    @get:Column(length = 10000, name = "attachments_last_user_action")
+    override var attachmentsLastUserAction: String? = null
 
     companion object {
         internal const val FIND_OTHER_BY_NUMBER = "ContractDO_FindOtherByNumber"

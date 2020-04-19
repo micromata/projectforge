@@ -34,6 +34,11 @@ class ResponseAction(val url: String? = null,
                       * Default value is [TargetType.REDIRECT] for given url, otherwise null.
                       */
                      var targetType: TargetType? = null,
+                     /**
+                      * If true, than returned data (including UI, variables etc.) will be merged into current state.
+                      * Otherwise a full update is done (for targetType=UPDATE and CLOSE_MODAL).
+                      */
+                     var merge: Boolean? = null,
                      val validationErrors: List<ValidationError>? = null,
                      val message: Message? = null,
                      variables: MutableMap<String, Any>? = null) {

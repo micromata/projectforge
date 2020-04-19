@@ -98,7 +98,9 @@ class HistoryService {
                 if (clazz != null && !de.propertyName.isNullOrBlank()) {
                     val field = BeanHelper.getDeclaredField(clazz, de.propertyName)
                     if (field == null) {
-                        log.warn("No such field '${it.entityName}.${de.propertyName}'.")
+                        if (log.isDebugEnabled) {
+                            log.debug("No such field '${it.entityName}.${de.propertyName}'.")
+                        }
                     } else {
                         field.isAccessible = true
                         if (field.type.isEnum) {

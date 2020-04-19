@@ -23,10 +23,13 @@
 
 package org.projectforge.rest.orga
 
+import mu.KotlinLogging
+
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractDao
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
@@ -35,6 +38,7 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.dto.Contract
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,16 +48,34 @@ import java.time.LocalDate
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
+private val log = KotlinLogging.logger {}
+
 @RestController
 @RequestMapping("${Rest.URL}/contract")
 class ContractPagesRest
     : AbstractDTOPagesRest<ContractDO, Contract, ContractDao>(ContractDao::class.java, "legalAffaires.contract.title") {
     @Autowired
+    private lateinit var attachmentsService: AttachmentsService
+
+    @Autowired
     private lateinit var configurationService: ConfigurationService
 
     @PostConstruct
     private fun postConstruct() {
+        /**
+         * Enable attachments for this entity.
+         */
+        enableJcr()
         JacksonConfiguration.registerAllowedUnknownProperties(Contract::class.java, "statusAsString")
+    }
+
+    /**
+     * Initializes new outbox mails for adding.
+     */
+    override fun newBaseDO(request: HttpServletRequest?): ContractDO {
+        val contract = super.newBaseDO(request)
+        contract.date = LocalDate.now()
+        return contract
     }
 
     override fun transformForDB(dto: Contract): ContractDO {
@@ -65,15 +87,6 @@ class ContractPagesRest
     override fun transformFromDB(obj: ContractDO, editMode: Boolean): Contract {
         val contract = Contract()
         contract.copyFrom(obj)
-        return contract
-    }
-
-    /**
-     * Initializes new outbox mails for adding.
-     */
-    override fun newBaseDO(request: HttpServletRequest?): ContractDO {
-        val contract = super.newBaseDO(request)
-        contract.date = LocalDate.now()
         return contract
     }
 
@@ -90,7 +103,10 @@ class ContractPagesRest
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "number", "date", "type", "statusAsString", "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate"))
+                        .add(lc, "number", "date", "type")
+                        .add(UITableColumn("statusAsString", "status"))
+                        .add(UITableColumn("attachmentsSize", titleIcon = UIIconType.PAPER_CLIP))
+                        .add(lc, "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate"))
         layout.getTableColumnById("date").formatter = Formatter.DATE
         return LayoutUtils.processListPage(layout, this)
     }
@@ -110,7 +126,6 @@ class ContractPagesRest
         return filters
     }
 
-
     /**
      * LAYOUT Edit page
      */
@@ -129,26 +144,31 @@ class ContractPagesRest
 
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
-                        .add(UIFieldset(UILength(md = 6))
+                        .add(UIFieldset(UILength(lg = 6))
                                 .add(number)
                                 .add(title)
                                 .add(UISelect("type", lc, values = contractTypes))
                                 .add(lc, "status", "reference"))
-                        .add(UIFieldset(UILength(md = 6))
+                        .add(UIFieldset(UILength(lg = 6))
                                 .add(lc, "date", "resubmissionOnDate", "dueDate", "signingDate")
                                 .add(UIRow()
                                         .add(UICol(6).add(lc, "validFrom"))
-                                        .add(UICol(6).add(lc, "validUntil")))))
-                .add(UIRow()
-                        .add(UIFieldset(UILength(md = 6), title = "legalAffaires.contract.coContractorA")
+                                        .add(UICol(6).add(lc, "validUntil"))))
+                        .add(UIFieldset(UILength(lg = 6), title = "legalAffaires.contract.coContractorA")
                                 .add(coContractorA)
                                 .add(contractPersonA)
                                 .add(signerA))
-                        .add(UIFieldset(UILength(md = 6), title = "legalAffaires.contract.coContractorB")
+                        .add(UIFieldset(UILength(lg = 6), title = "legalAffaires.contract.coContractorB")
                                 .add(coContractorB)
                                 .add(contractPersonB)
                                 .add(signerB)))
-                .add(lc, "text", "filing")
+                .add(UIRow()
+                        .add(UIFieldset(UILength(lg = 6))
+                                .add(lc, "text"))
+                        .add(UIFieldset(UILength(lg = 6))
+                                .add(lc, "filing")))
+                .add(UIFieldset(title = "attachment.list")
+                        .add(UIAttachmentList(category, dto.id)))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

@@ -23,6 +23,8 @@
 
 package org.projectforge.rest.core
 
+import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.rest.config.Rest
 import org.springframework.web.bind.annotation.RequestMapping
 import java.net.URLEncoder
@@ -34,6 +36,8 @@ object PagesResolver {
     const val REACT_PATH = "react"
 
     private val log = org.slf4j.LoggerFactory.getLogger(PagesResolver::class.java)
+
+    private val pagesRegistry = mutableMapOf<String, AbstractPagesRest<*, *, *>>()
 
     fun getEditPageUrl(pagesRestClass: Class<out AbstractPagesRest<*, *, *>>, id: Int? = null, params: Map<String, Any?>? = null, absolute: Boolean = false): String {
         val path = getRequestMappingPath(pagesRestClass) ?: return "NOT_FOUND"
@@ -78,6 +82,17 @@ object PagesResolver {
         val path = getRequestMappingPath(pageRestClass, "/dynamic") ?: return "NOT_FOUND"
         val prefix = if (absolute) "/" else ""
         return "$prefix$path/${id ?: ""}${getQueryString(params)}"
+    }
+
+    fun register(category: String, pagesRest: AbstractPagesRest<*, *, *>) {
+        if (pagesRegistry.containsKey(category)) {
+            throw IllegalArgumentException( "Category name '$category' is already registered. Can't register ${pagesRest::class.java.name}." )
+        }
+        pagesRegistry[category] = pagesRest
+    }
+
+    fun getPagesRest(category: String): AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>? {
+        return pagesRegistry[category]
     }
 
     private fun getRequestMappingPath(clazz: Class<*>, suffix: String = ""): String? {

@@ -218,7 +218,6 @@ class MyAccountPageRest: AbstractDynamicPageRest() {
                     type = MenuItemTargetType.REDIRECT))
         }
 
-        layout.addTranslations("cancel", "yes")
         LayoutUtils.process(layout)
 
         layout.postProcessPageMenu()
