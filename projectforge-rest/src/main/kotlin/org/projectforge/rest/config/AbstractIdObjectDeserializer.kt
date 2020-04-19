@@ -29,13 +29,21 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.deser.std.DelegatingDeserializer
+import org.projectforge.rest.json.KontoDeserializer
 
 /**
- * DTO objects or DO's may be deserialized only by id or as full objects. This deserializer handles both.
+ * DTO objects or DO's may be deserialized only by id or as full objects. This deserializer handles both:
+ * * ```{'project': 863228,...}```, or
+ * * ```{'project': {'id': 863228, 'name':{'ProjectForge'}...}```
+ *
  * @author Kai Reinhard
  */
 abstract class AbstractIdObjectDeserializer<T>(private val defaultDeserialize: JsonDeserializer<*>)
     : DelegatingDeserializer(defaultDeserialize) {
+
+    override fun newDelegatingInstance(newDelegatee: JsonDeserializer<*>?): JsonDeserializer<*> {
+        return this::class.java.getDeclaredConstructor(JsonDeserializer::class.java).newInstance(defaultDeserialize);
+    }
 
     abstract fun create(id: Int): T
 
