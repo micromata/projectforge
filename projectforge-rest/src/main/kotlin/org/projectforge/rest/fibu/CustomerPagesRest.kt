@@ -80,6 +80,7 @@ class CustomerPagesRest
      * LAYOUT Edit page
      */
     override fun createEditLayout(dto: Customer, userAccess: UILayout.UserAccess): UILayout {
+        val nameField = UIInput("name", lc, focus = true)
         val kontoField = UISelect<Konto>("konto", lc,
                 autoCompletion = AutoCompletion<Konto>(url = "account/acDebitors?search=:search"))
         val numberField: UIElement = if (dto.nummer != null) {
@@ -93,7 +94,7 @@ class CustomerPagesRest
                         .add(UICol()
                                 .add(UILabel("'ToDo: Kontoselektion, Errors as return value of watchfields *************** (Status unfinished) ***************"))
                                 .add(numberField)
-                                .add(lc, "name")
+                                .add(nameField)
                                 .add(kontoField)
                                 .add(lc, "identifier", "division", "description", "status")))
 
