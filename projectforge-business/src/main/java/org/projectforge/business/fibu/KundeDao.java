@@ -36,20 +36,17 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public class KundeDao extends BaseDao<KundeDO>
-{
+public class KundeDao extends BaseDao<KundeDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KundeDao.class);
 
-  public KundeDao()
-  {
+  public KundeDao() {
     super(KundeDO.class);
     avoidNullIdCheckBeforeSave = true;
     this.idProperty = "nummer";
   }
 
   @Override
-  public List<KundeDO> getList(final BaseSearchFilter filter)
-  {
+  public List<KundeDO> getList(final BaseSearchFilter filter) {
     final QueryFilter queryFilter = new QueryFilter(filter);
     queryFilter.addOrder(SortProperty.asc("nummer"));
     return getList(queryFilter);
@@ -59,28 +56,26 @@ public class KundeDao extends BaseDao<KundeDO>
    * return Always true, no generic select access needed for address objects.
    */
   @Override
-  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException)
-  {
+  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
     return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP,
-        ProjectForgeGroup.CONTROLLING_GROUP,
-        ProjectForgeGroup.PROJECT_MANAGER, ProjectForgeGroup.PROJECT_ASSISTANT);
+            ProjectForgeGroup.CONTROLLING_GROUP,
+            ProjectForgeGroup.PROJECT_MANAGER, ProjectForgeGroup.PROJECT_ASSISTANT);
   }
 
   @Override
-  public boolean hasUserSelectAccess(final PFUserDO user, final KundeDO obj, final boolean throwException)
-  {
+  public boolean hasUserSelectAccess(final PFUserDO user, final KundeDO obj, final boolean throwException) {
     if (obj == null) {
       return true;
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP,
-        ProjectForgeGroup.CONTROLLING_GROUP)) {
+            ProjectForgeGroup.CONTROLLING_GROUP)) {
       return true;
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.PROJECT_MANAGER,
-        ProjectForgeGroup.PROJECT_ASSISTANT)) {
+            ProjectForgeGroup.PROJECT_ASSISTANT)) {
       if (obj.getStatus() != null
-          && !obj.getStatus().isIn(KundeStatus.ENDED, KundeStatus.NONACTIVE, KundeStatus.NONEXISTENT)
-          && !obj.isDeleted()) {
+              && !obj.getStatus().isIn(KundeStatus.ENDED, KundeStatus.NONACTIVE, KundeStatus.NONEXISTENT)
+              && !obj.isDeleted()) {
         // Ein Projektleiter sieht keine nicht mehr aktiven oder gelöschten Kunden.
         return true;
       }
@@ -92,39 +87,37 @@ public class KundeDao extends BaseDao<KundeDO>
     return false;
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
-   */
   @Override
   public boolean hasAccess(final PFUserDO user, final KundeDO obj, final KundeDO oldObj,
-      final OperationType operationType,
-      final boolean throwException)
-  {
+                           final OperationType operationType,
+                           final boolean throwException) {
     return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP);
   }
 
   @Override
-  public boolean hasHistoryAccess(final PFUserDO user, final boolean throwException)
-  {
+  public boolean hasHistoryAccess(final PFUserDO user, final boolean throwException) {
     return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP,
-        ProjectForgeGroup.CONTROLLING_GROUP);
+            ProjectForgeGroup.CONTROLLING_GROUP);
   }
 
   @Override
-  public KundeDO newInstance()
-  {
+  public KundeDO newInstance() {
     return new KundeDO();
   }
 
   @Override
-  protected void onSave(final KundeDO customer)
-  {
-    if (customer != null && customer.getId() != null) {
-      KundeDO existingCustomer = internalGetById(customer.getId());
-      if (existingCustomer != null) {
-        customer.setCreated(null);
-        throw new UserException("fibu.kunde.validation.existingCustomerNr");
-      }
+  protected void onSave(KundeDO obj) {
+    if (doesNumberAlreadyExist(obj)) {
+      obj.setCreated(null);
+      throw new UserException("fibu.kunde.validation.existingCustomerNr");
     }
+  }
+
+  public boolean doesNumberAlreadyExist(final KundeDO customer) {
+    if (customer == null || customer.getId() == null) {
+      return false;
+    }
+    KundeDO existingCustomer = internalGetById(customer.getId());
+    return existingCustomer != null;
   }
 }

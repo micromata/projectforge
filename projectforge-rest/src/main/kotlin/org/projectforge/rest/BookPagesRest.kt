@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/book")
-class BookPagesRest() : AbstractDOPagesRest<BookDO, BookDao>(BookDao::class.java, "book.title") {
+class BookPagesRest: AbstractDOPagesRest<BookDO, BookDao>(BookDao::class.java, "book.title") {
 
     /**
      * Initializes new books for adding.

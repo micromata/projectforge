@@ -55,6 +55,17 @@ object NumberFormatter {
     }
 
     /**
+     * Returns the given integer value as String representation (scale = 2).
+     *
+     * @param value The integer value to convert.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun formatCurrency(value: Number?): String {
+        return internalFormat(value, 2) ?: ""
+    }
+
+    /**
      * Returns the given integer value as String representation.
      *
      * @param value The integer value to convert.

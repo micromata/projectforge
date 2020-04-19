@@ -25,6 +25,9 @@ package org.projectforge.framework.i18n
 
 fun translate(i18nKey: String?): String {
     if (i18nKey == null) return "???"
+    if (i18nKey.startsWith("'")) {
+        return i18nKey.substring(1)
+    }
     return I18nHelper.getLocalizedMessage(i18nKey)
 }
 
@@ -44,7 +47,7 @@ fun translate(value: Boolean?): String {
     return translate(if (value == true) "yes" else "no")
 }
 
-fun translateMsg(i18nKey: String, vararg params: Any): String {
+fun translateMsg(i18nKey: String, vararg params: Any?): String {
     return I18nHelper.getLocalizedMessage(i18nKey, *params)
 }
 

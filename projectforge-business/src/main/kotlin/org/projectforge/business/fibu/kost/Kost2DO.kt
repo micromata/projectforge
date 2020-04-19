@@ -50,7 +50,7 @@ import javax.persistence.*
                 query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and kost2Art.id=:kost2ArtId and id!=:id"),
         NamedQuery(name = Kost2DO.FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH,
                 query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and (kostentraegerStatus='ACTIVE' or kostentraegerStatus is null) order by kost2Art.id"))
-open class Kost2DO() : DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
+open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
 
     companion object {
         @JsonCreator(mode = JsonCreator.Mode.DELEGATING)

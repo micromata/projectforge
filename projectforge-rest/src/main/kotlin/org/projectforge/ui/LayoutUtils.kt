@@ -332,8 +332,6 @@ class LayoutUtils {
                 }
                 return null
             }
-            if (label.startsWith("'"))
-                return label.substring(1)
             return translate(label)
         }
     }

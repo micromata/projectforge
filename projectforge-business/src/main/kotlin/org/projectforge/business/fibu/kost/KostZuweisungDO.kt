@@ -108,7 +108,7 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
             field = eingangsrechnungsPosition
         }
 
-    fun setRechnungsPosition(position: AbstractRechnungsPositionDO) {
+    fun setAbstractRechnungsPosition(position: AbstractRechnungsPositionDO) {
         if (position is RechnungsPositionDO)
             rechnungsPosition = position
         else

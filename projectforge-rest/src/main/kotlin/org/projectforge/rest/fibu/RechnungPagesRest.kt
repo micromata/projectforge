@@ -27,14 +27,15 @@ import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDOPagesRest
+import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.dto.Rechnung
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("${Rest.URL}/invoice")
-class RechnungPagesRest: AbstractDOPagesRest<RechnungDO, RechnungDao>(RechnungDao::class.java, "fibu.rechnung.title") {
+@RequestMapping("${Rest.URL}/outgoingInvoice")
+class RechnungPagesRest : AbstractDTOPagesRest<RechnungDO, Rechnung, RechnungDao>(RechnungDao::class.java, "fibu.rechnung.title") {
 
     /**
      * LAYOUT List page
@@ -42,12 +43,14 @@ class RechnungPagesRest: AbstractDOPagesRest<RechnungDO, RechnungDao>(RechnungDa
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "nummer", "kunde", "projekt", "account", "betreff", "datum", "faelligkeit",
+                        .add(lc, "nummer", "kunde", "projekt", "konto", "betreff", "datum", "faelligkeit",
                                 "bezahlDatum", "periodOfPerformanceBegin", "periodOfPerformanceEnd")
-                        .add(UITableColumn("netSum", title = translate("fibu.common.netto"), dataType = UIDataType.DECIMAL))
-                        .add(UITableColumn("grossSum", title = translate("fibu.rechnung.bruttoBetrag"), dataType = UIDataType.DECIMAL))
-                        .add(lc, "orders", "bemerkung", "status"))
+                        .add(UITableColumn("formattedNetSum", title = "fibu.common.netto"))
+                        .add(UITableColumn("formattedGrossSum", title = "fibu.rechnung.bruttoBetrag"))
+                        .add(UITableColumn("orders", title = "fibu.auftrag.auftraege", dataType = UIDataType.INT))
+                        .add(lc, "bemerkung", "status"))
         layout.getTableColumnById("kunde").formatter = Formatter.CUSTOMER
+        layout.getTableColumnById("konto").formatter = Formatter.KONTO
         layout.getTableColumnById("projekt").formatter = Formatter.PROJECT
         layout.getTableColumnById("datum").formatter = Formatter.DATE
         layout.getTableColumnById("faelligkeit").formatter = Formatter.DATE
@@ -60,52 +63,43 @@ class RechnungPagesRest: AbstractDOPagesRest<RechnungDO, RechnungDao>(RechnungDa
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: RechnungDO, userAccess: UILayout.UserAccess): UILayout {
+    override fun createEditLayout(dto: Rechnung, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "betreff")
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "nummer", "typ"))
                         .add(UICol()
-                                .add(lc, "status", "account"))
+                                .add(lc, "status", "konto"))
                         .add(UICol()
                                 .add(lc, "datum", "vatAmountSum", "bezahlDatum", "faelligkeit"))
                         .add(UICol()
                                 .add(lc, "netSum", "grossSum", "zahlBetrag", "discountMaturity", "discountPercent")))
                 .add(UIRow()
                         .add(UICol()
-                                .add(lc, "projekt", "kunde", "kundeText", "customerAddress", "customerref1", "attachment",
-                                        "periodOfPerformanceBegin", "periodOfPerformanceEnd")))
+                                .add(UISelect.createProjectSelect(lc, "projekt", false))
+                                .add(UISelect.createCustomerSelect(lc, "kunde", false))
+                                .add(lc, "kundeText", "customerAddress", "customerref1", "attachment", "periodOfPerformanceBegin", "periodOfPerformanceEnd")))
                 .add(UIRow()
                         .add(UICol()
                                 .add(lc, "bemerkung"))
                         .add(UICol()
                                 .add(lc, "besonderheiten")))
                 // Positionen
-                .add(UIList(lc, "positionen", "position")
-                        .add(UIRow()
-                                .add(UICol()
-                                        .add(lc, "position.auftragsPosition.auftrag"))
-                                .add(UICol()
-                                        .add(lc, "position.menge"))
-                                .add(UICol()
-                                        .add(lc, "position.einzelNetto"))
-                                .add(UICol()
-                                        .add(lc, "position.vat"))
-                                .add(UICol()
-                                        .add(lc, "position.netSum"))
-                                .add(UICol()
-                                        .add(lc, "position.vatAmount"))
-                                .add(UICol()
-                                        .add(lc, "position.bruttoSum")))
-                        .add(UIRow()
-                                .add(UICol()
-                                        .add(lc, "position.text"))
-                                .add(UICol()
-                                        .add(UILabel("TODO: Kostzuweisungen: kost1, kost2, netto, prozent?"))))
-                        .add(UIRow()
-                                .add(UICol()
-                                        .add(lc, "position.periodOfPerformanceType"))))
+                .add(UICustomized("invoice.outgoingPosition"))
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+
+    override fun transformForDB(dto: Rechnung): RechnungDO {
+        val rechnungDO = RechnungDO()
+        dto.copyTo(rechnungDO)
+        return rechnungDO
+    }
+
+    override fun transformFromDB(obj: RechnungDO, editMode: Boolean): Rechnung {
+        val rechnung = Rechnung()
+        rechnung.copyFrom(obj)
+        return rechnung
     }
 }

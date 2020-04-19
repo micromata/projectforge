@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.node.IntNode
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.rest.dto.Kost2
 import java.math.BigDecimal
 
 /**
@@ -38,9 +37,8 @@ import java.math.BigDecimal
  */
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 class IntDeserializer : StdDeserializer<Integer>(Integer::class.java) {
-
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Integer? {
-        val str = p.getText()
+        val str = p.text
         if (StringUtils.isBlank(str)) {
             return null
         }
@@ -58,7 +56,7 @@ class IntDeserializer : StdDeserializer<Integer>(Integer::class.java) {
 class BigDecimalDeserializer : StdDeserializer<BigDecimal>(BigDecimal::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): BigDecimal? {
-        val str = p.getText()
+        val str = p.text
         if (StringUtils.isBlank(str)) {
             return null
         }
@@ -80,7 +78,7 @@ class BigDecimalDeserializer : StdDeserializer<BigDecimal>(BigDecimal::class.jav
  */
 class TextDeserializer : StdDeserializer<String>(String::class.java) {
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): String? {
-        var text = p.getText() ?: return null
+        var text = p.text ?: return null
 
         // erases all the ASCII control characters
         text = text.replace("[\\p{Cntrl}&&[^\r\n\t]]".toRegex(), "")
@@ -102,24 +100,5 @@ class PFUserDODeserializer : StdDeserializer<PFUserDO>(PFUserDO::class.java) {
         val user = PFUserDO()
         user.id = id
         return user
-    }
-}
-
-private fun getId(p: JsonParser): Int? {
-    val node: JsonNode = p.codec.readTree(p)
-    return if (node.has("id")) {
-        (node.get("id") as IntNode).numberValue() as Int
-    } else {
-        node.asInt()
-    }
-}
-
-/**
- * Deserialization for Kost2.
- */
-class Kost2Deserializer : StdDeserializer<Kost2>(Kost2::class.java) {
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Kost2? {
-        val id = getId(p) ?: return null
-        return Kost2(id)
     }
 }

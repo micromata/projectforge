@@ -21,16 +21,13 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest
+package org.projectforge.rest.hr
 
 import org.projectforge.business.humanresources.HRPlanningDO
 import org.projectforge.business.humanresources.HRPlanningDao
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
-import org.projectforge.ui.LayoutUtils
-import org.projectforge.ui.UILabel
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.UITable
+import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -44,7 +41,9 @@ class HRPlanningPagesRest : AbstractDOPagesRest<HRPlanningDO, HRPlanningDao>(HRP
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "user", "sum", "rest"))
+                        .add(lc, "user")
+                        .add(UITableColumn("totalHours", title = "hr.planning.sum"))
+                        .add(UITableColumn("totalUnassignedHours", title = "rest")))
         return LayoutUtils.processListPage(layout, this)
     }
 

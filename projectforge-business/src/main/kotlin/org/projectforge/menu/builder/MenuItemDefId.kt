@@ -43,7 +43,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
 
     // Sub menus in alphabetical order:
     ACCESS_LIST("menu.accessList", "wa/accessList"), //
-    ACCOUNT_LIST("menu.fibu.konten", "${PREFIX}konto"), //
+    ACCOUNT_LIST("menu.fibu.konten", "${PREFIX}account"), //
     ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", "wa/accountingRecordList"), //
     ADDRESSBOOK_LIST("menu.addressbookList", "${PREFIX}addressBook"), //
     ADDRESS_LIST("menu.addressList", "${PREFIX}address"), //
@@ -56,10 +56,11 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     CONFIGURATION("menu.configuration", "wa/configuration"), //
     CONTACT_LIST("menu.contactList"), //
     CONTRACTS("menu.contracts", "${PREFIX}contract"), //
-    COST1_LIST("menu.fibu.kost1", "${PREFIX}kost1"), //
+    COST1_LIST("menu.fibu.kost1", "${PREFIX}cost1"), //
     COST2_LIST("menu.fibu.kost2", "wa/cost2List"), //
     COST2_TYPE_LIST("menu.fibu.kost2arten", "wa/cost2TypeList"), //
     CUSTOMER_LIST("menu.fibu.kunden", "wa/customerList"), //
+    //CUSTOMER_LIST("menu.fibu.kunden", "${PREFIX}customer"), // Doesn't work yet
     DATEV_IMPORT("menu.fibu.datevImport", "wa/datevImport"), //
     DOCUMENTATION("menu.documentation"), //
     EMPLOYEE_LIST("menu.fibu.employees", "wa/employeeList"), //
