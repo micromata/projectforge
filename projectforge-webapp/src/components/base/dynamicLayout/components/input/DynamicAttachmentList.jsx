@@ -54,12 +54,16 @@ function DynamicAttachmentList(
 
     const handleDownload = entryId => (event) => {
         event.stopPropagation();
-        window.open(
-            getServiceURL(`/rs/attachments/download/${category}/${id}`, {
-                fileId: entryId,
-                listId,
-            }), '_blank',
-        );
+        callAction({
+            responseAction: {
+                targetType: 'DOWNLOAD',
+                url: getServiceURL(`/rs/attachments/download/${category}/${id}`, {
+                    fileId: entryId,
+                    listId,
+                }),
+                absolute: true,
+            },
+        });
     };
 
     return React.useMemo(() => {
