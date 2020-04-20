@@ -158,18 +158,23 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         val status = vacation.status
         vacation.startDate?.let {
             if (it.isBefore(LocalDate.now())) {
+                if (isManager(user, vacation) && vacation.special != true) {
+                    // Manager is only allowed to approve past entries (except specials).
+                    return createDistinctList(status, VacationStatus.APPROVED)
+                }
                 // Users aren't allowed to change old entries.
-                return if (status != null) listOf(status) else emptyList()// Don't change status
+                return createDistinctList(status) // Don't change status
             }
         }
         if (isManager(user, vacation)) {
             if (vacation.special == true) {
-                return if (status == null || status != VacationStatus.APPROVED) {
-                    listOf(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED)
+                return if (status != VacationStatus.APPROVED) {
+                    // Manager can't approve special vacation entries:
+                    createDistinctList(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED)
                 } else {
-                    listOf(status, VacationStatus.IN_PROGRESS, VacationStatus.REJECTED)
+                    // Manager can't dis-approve special vacation entries:
+                    createDistinctList(status, VacationStatus.IN_PROGRESS, VacationStatus.REJECTED)
                 }
-                // return listOf(vacation.status ?: VacationStatus.IN_PROGRESS) // manager may only reject special vacation.
             }
             return VacationStatus.values().toList() // All status values for manager.
         }
@@ -178,6 +183,10 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         }
         // If not approved, these status values are allowed for employees:
         return listOf(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED)
+    }
+
+    private fun createDistinctList(vararg statusValues: VacationStatus?): List<VacationStatus> {
+        return statusValues.filterNotNull().distinct().sortedBy { it.ordinal }
     }
 
     override fun afterLoad(obj: VacationDO) {
