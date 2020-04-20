@@ -113,7 +113,16 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         if (hasHrRights(user)) {
             return true // HR staff member are allowed to do everything.
         }
+        if (!isOwnEntry(user, obj) && !isManager(user, obj)) {
+            return throwOrReturnFalse(throwException)
+        }
         if (obj.startDate!!.isBefore(LocalDate.now())) {
+            if (dbObj != null &&
+                    isTimePeriodAndEmployeeUnchanged(obj, dbObj) &&
+                    getAllowedStatus(user, dbObj).contains(obj.status)) {
+                // Past entries may be modified on non time period values, but on allowed status changes as well as on description.
+                return true
+            }
             // User aren't allowed to insert/update old entries.
             return throwOrReturnFalse(throwException)
         }
@@ -124,9 +133,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         }
         if (!isOwnEntry(user, obj, dbObj)) {
             return if (dbObj != null && isManager(user, obj, dbObj)) {
-                if (obj.startDate == dbObj.startDate &&
-                        obj.endDate == dbObj.endDate && obj.special === dbObj.special &&
-                        obj.employeeId == dbObj.employeeId && obj.halfDayBegin === dbObj.halfDayBegin && obj.halfDayEnd === dbObj.halfDayEnd) {
+                if (isTimePeriodAndEmployeeUnchanged(obj, dbObj)) {
                     if (obj.special != true) {
                         // Manager is only allowed to change status and replacement, but not allowed to approve special vacations.
                         true
@@ -146,6 +153,15 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
             // Normal user isn't allowed to insert/update approved entries:
             throwOrReturnFalse(VacationValidator.Error.NOT_ALLOWED_TO_APPROVE.messageKey, throwException)
         } else true
+    }
+
+    private fun isTimePeriodAndEmployeeUnchanged(obj: VacationDO, dbObj: VacationDO): Boolean {
+        return obj.startDate == dbObj.startDate &&
+                obj.endDate == dbObj.endDate &&
+                obj.special === dbObj.special &&
+                obj.employeeId == dbObj.employeeId &&
+                obj.halfDayBegin === dbObj.halfDayBegin &&
+                obj.halfDayEnd === dbObj.halfDayEnd
     }
 
     /**
