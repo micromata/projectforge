@@ -71,6 +71,7 @@ public class ConfigXmlTest {
           + "  <databaseDirectory>database</databaseDirectory>\n"
           + "  <ehcacheDirectory>ehcache</ehcacheDirectory>\n"
           + "  <loggingDirectory>logs</loggingDirectory>\n"
+          + "  <jcrDirectory>jcr</jcrDirectory>\n"
           + "  <workingDirectory>work</workingDirectory>\n"
           + "  <backupDirectory>backup</backupDirectory>\n"
           + "  <tempDirectory>tmp</tempDirectory>\n"
