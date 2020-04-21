@@ -303,7 +303,7 @@ public class SendMail {
   }
 
   public String buildUrl(String subPath) {
-    return domainService.getDomain() + "/" + subPath;
+    return domainService.getDomain(subPath);
   }
 
   private static boolean testMode = false;

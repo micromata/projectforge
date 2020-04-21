@@ -46,6 +46,14 @@ public class DomainService {
     return domain;
   }
 
+  public String getDomain(final String subPath) {
+    final String path = (StringUtils.startsWith(subPath, "/")) ? subPath.substring(1) : subPath;
+    if (StringUtils.endsWith(domain, "/")) {
+      return domain + path;
+    }
+    return domain + "/" + path;
+  }
+
   /**
    * @return The domain + context path, e.g. https://www.projectforge.org/demo or https://www.acme.com/ProjectForge.
    */
