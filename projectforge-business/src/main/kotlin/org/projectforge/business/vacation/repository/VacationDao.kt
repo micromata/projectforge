@@ -113,7 +113,16 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         if (hasHrRights(user)) {
             return true // HR staff member are allowed to do everything.
         }
+        if (!isOwnEntry(user, obj) && !isManager(user, obj)) {
+            return throwOrReturnFalse(throwException)
+        }
         if (obj.startDate!!.isBefore(LocalDate.now())) {
+            if (dbObj != null &&
+                    isTimePeriodAndEmployeeUnchanged(obj, dbObj) &&
+                    getAllowedStatus(user, dbObj).contains(obj.status)) {
+                // Past entries may be modified on non time period values, but on allowed status changes as well as on description.
+                return true
+            }
             // User aren't allowed to insert/update old entries.
             return throwOrReturnFalse(throwException)
         }
@@ -124,9 +133,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         }
         if (!isOwnEntry(user, obj, dbObj)) {
             return if (dbObj != null && isManager(user, obj, dbObj)) {
-                if (obj.startDate == dbObj.startDate &&
-                        obj.endDate == dbObj.endDate && obj.special === dbObj.special &&
-                        obj.employeeId == dbObj.employeeId && obj.halfDayBegin === dbObj.halfDayBegin && obj.halfDayEnd === dbObj.halfDayEnd) {
+                if (isTimePeriodAndEmployeeUnchanged(obj, dbObj)) {
                     if (obj.special != true) {
                         // Manager is only allowed to change status and replacement, but not allowed to approve special vacations.
                         true
@@ -148,6 +155,15 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         } else true
     }
 
+    private fun isTimePeriodAndEmployeeUnchanged(obj: VacationDO, dbObj: VacationDO): Boolean {
+        return obj.startDate == dbObj.startDate &&
+                obj.endDate == dbObj.endDate &&
+                obj.special === dbObj.special &&
+                obj.employeeId == dbObj.employeeId &&
+                obj.halfDayBegin === dbObj.halfDayBegin &&
+                obj.halfDayEnd === dbObj.halfDayEnd
+    }
+
     /**
      * Gets all available status values for given user.
      */
@@ -158,18 +174,23 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         val status = vacation.status
         vacation.startDate?.let {
             if (it.isBefore(LocalDate.now())) {
+                if (isManager(user, vacation) && vacation.special != true) {
+                    // Manager is only allowed to approve past entries (except specials).
+                    return createDistinctList(status, VacationStatus.APPROVED)
+                }
                 // Users aren't allowed to change old entries.
-                return if (status != null) listOf(status) else emptyList()// Don't change status
+                return createDistinctList(status) // Don't change status
             }
         }
         if (isManager(user, vacation)) {
             if (vacation.special == true) {
-                return if (status == null || status != VacationStatus.APPROVED) {
-                    listOf(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED)
+                return if (status != VacationStatus.APPROVED) {
+                    // Manager can't approve special vacation entries:
+                    createDistinctList(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED)
                 } else {
-                    listOf(status, VacationStatus.IN_PROGRESS, VacationStatus.REJECTED)
+                    // Manager can't dis-approve special vacation entries:
+                    createDistinctList(status, VacationStatus.IN_PROGRESS, VacationStatus.REJECTED)
                 }
-                // return listOf(vacation.status ?: VacationStatus.IN_PROGRESS) // manager may only reject special vacation.
             }
             return VacationStatus.values().toList() // All status values for manager.
         }
@@ -178,6 +199,10 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         }
         // If not approved, these status values are allowed for employees:
         return listOf(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED)
+    }
+
+    private fun createDistinctList(vararg statusValues: VacationStatus?): List<VacationStatus> {
+        return statusValues.filterNotNull().distinct().sortedBy { it.ordinal }
     }
 
     override fun afterLoad(obj: VacationDO) {

@@ -30,7 +30,8 @@ import org.projectforge.business.employee.EmployeeTest
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.api.EmployeeService
-import org.projectforge.business.user.*
+import org.projectforge.business.user.GroupDao
+import org.projectforge.business.user.UserDao
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
@@ -81,10 +82,10 @@ class VacationDaoTest : AbstractTestBase() {
         vacation.startDate = LocalDate.now().minusDays(100) // Vacation in past
         vacation.status = VacationStatus.IN_PROGRESS
         assertStatusList(employee, hrEmployee, vacation, arrayOf(VacationStatus.IN_PROGRESS))
-        assertStatusList(manager, hrEmployee, vacation, arrayOf(VacationStatus.IN_PROGRESS))
+        assertStatusList(manager, hrEmployee, vacation, arrayOf(VacationStatus.IN_PROGRESS, VacationStatus.APPROVED))
         vacation.status = VacationStatus.REJECTED
         assertStatusList(employee, hrEmployee, vacation, arrayOf(VacationStatus.REJECTED))
-        assertStatusList(manager, hrEmployee, vacation, arrayOf(VacationStatus.REJECTED))
+        assertStatusList(manager, hrEmployee, vacation, arrayOf(VacationStatus.REJECTED, VacationStatus.APPROVED))
         vacation.status = VacationStatus.APPROVED
         assertStatusList(employee, hrEmployee, vacation, arrayOf(VacationStatus.APPROVED))
         assertStatusList(manager, hrEmployee, vacation, arrayOf(VacationStatus.APPROVED))
