@@ -67,6 +67,16 @@ public class DomainServiceTest {
     "http");
   }
 
+  void domainWithSubPathTest() {
+    DomainService service = DomainService.internalCreate("http://www.projectforge.org");
+    assertEquals("http://www.projectforge.org/test", service.getDomain("test"));
+    assertEquals("http://www.projectforge.org/test", service.getDomain("/test"));
+
+    service = DomainService.internalCreate("http://www.projectforge.org/");
+    assertEquals("http://www.projectforge.org/test", service.getDomain("test"));
+    assertEquals("http://www.projectforge.org/test", service.getDomain("/test"));
+  }
+
   private void test(String urlString, String expectedDomain, String expectedContext, String expectedUrl, String expectedProtocol) {
     DomainService service = DomainService.internalCreate(urlString);
     assertEquals(expectedDomain, service.getDomain());
