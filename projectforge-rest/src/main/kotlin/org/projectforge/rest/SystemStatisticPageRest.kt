@@ -103,31 +103,49 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
 
         val layout = UILayout("system.statistics.title")
 
-        val col1 = UICol()
-                .add(UILabel("Total number of time sheets"))
-                .add(UILabel("Total duration over all time sheets (pd)"))
-                .add(UILabel("Total number of users"))
-                .add(UILabel("Total number of structure elements"))
-                .add(UILabel("Total number of history entries"))
+        val row1 = UIRow().add(UICol()
+                .add(UILabel("system.statistics.totalNumberOfTimesheets"))
+                .add(UILabel(data.totalNumberOfTimesheets)))
 
-        val col2 = UICol()
-                .add(UILabel(data.totalNumberOfTimesheets))
-                .add(UILabel(data.totalNumberOfTimesheetDurations))
-                .add(UILabel(data.totalNumberOfUsers))
-                .add(UILabel(data.totalNumberOfTasks))
-                .add(UILabel(data.totalNumberOfHistoryEntries))
+        layout.add(row1)
+
+        val row2 = UIRow().add(UICol()
+                .add(UILabel("system.statistics.totalNumberOfTimesheetDurations"))
+                .add(UILabel(data.totalNumberOfTimesheetDurations)))
+
+        layout.add(row2)
+
+        val row3 = UIRow().add(UICol()
+                .add(UILabel("system.statistics.totalNumberOfUsers"))
+                .add(UILabel(data.totalNumberOfUsers)))
+
+        layout.add(row3)
+
+        val row4 = UIRow().add(UICol()
+                .add(UILabel("system.statistics.totalNumberOfTasks"))
+                .add(UILabel(data.totalNumberOfTasks)))
+
+        layout.add(row4)
+
+        val row5 = UIRow().add(UICol()
+                .add(UILabel("system.statistics.totalNumberOfHistoryEntries"))
+                .add(UILabel(data.totalNumberOfHistoryEntries)))
+
+        layout.add(row5)
 
         for ((key, value) in data.memoryStatistics!!) {
-            col1.add(UILabel(key))
-            col2.add(UILabel(value))
+            val row = UIRow().add(UICol()
+                    .add(UILabel(key))
+                    .add(UILabel(value)))
+
+            layout.add(row)
         }
 
-        col1.add((UILabel("System load average")))
-        col2.add(UILabel(data.systemLoadAverage.toString()))
+        val row6 = UIRow().add(UICol()
+                .add(UILabel("System load average"))
+                .add(UILabel(data.systemLoadAverage.toString())))
 
-        layout.add(UIRow()
-                .add(col1)
-                .add(col2))
+        layout.add(row6)
 
         LayoutUtils.process(layout)
 
