@@ -77,7 +77,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
         if (address.imageData != null) {
             fieldSet.add(UICustomized("image", mutableMapOf("src" to "address/image/${address.id}", "alt" to address.fullNameWithTitleAndForm)))
         }
-        val row = UIRow()
+        var row = UIRow()
         fieldSet.add(row)
 
         val col = UIFieldset(12, "address.phoneNumbers")
@@ -99,10 +99,19 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
                 "address.phoneType.mobile",
                 PhoneNumber(address.id, address.privateMobilePhone, phoneCallEnabled, PhoneType.PRIVATE_MOBILE, true, smsEnabled))
 
+        row = UIRow()
+        fieldSet.add(row)
+        var numberOfAddresses = 0
+        if (address.hasDefaultAddress()) ++numberOfAddresses
+        if (address.hasPrivateAddress()) ++numberOfAddresses
+        if (address.hasPostalAddress()) ++numberOfAddresses
+
         createAddressCol(
                 row,
+                numberOfAddresses,
                 "address.heading.businessAddress",
                 address.addressText,
+                address.addressText2,
                 address.zipCode,
                 address.city,
                 address.state,
@@ -110,8 +119,10 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
         if (address.hasPrivateAddress()) {
             createAddressCol(
                     row,
+                    numberOfAddresses,
                     "address.heading.privateAddress",
                     address.privateAddressText,
+                    address.privateAddressText2,
                     address.privateZipCode,
                     address.privateCity,
                     address.privateState,
@@ -120,8 +131,10 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
         if (address.hasPostalAddress()) {
             createAddressCol(
                     row,
+                    numberOfAddresses,
                     "address.heading.postalAddress",
                     address.postalAddressText,
+                    address.postalAddressText2,
                     address.postalZipCode,
                     address.postalCity,
                     address.postalState,
@@ -159,11 +172,12 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
                 .add(UICol(6).add(UICustomized("address.phoneNumber", mutableMapOf("data" to phoneNumber)))))
     }
 
-    private fun createAddressCol(row: UIRow, title: String, addressText: String?, zipCode: String?, city: String?, state: String?, country: String?) {
-        row.add(UIFieldset(12, title)
+    private fun createAddressCol(row: UIRow, numberOfAddresses: Int, title: String, addressText: String?, addressText2: String?, zipCode: String?, city: String?, state: String?, country: String?) {
+        row.add(UIFieldset(UILength(md = 12 / numberOfAddresses), title = title)
                 .add(UICustomized("address.view",
                         mutableMapOf(
                                 "address" to (addressText ?: ""),
+                                "address2" to (addressText2 ?: ""),
                                 "zipCode" to (zipCode ?: ""),
                                 "city" to (city ?: ""),
                                 "state" to (state ?: ""),

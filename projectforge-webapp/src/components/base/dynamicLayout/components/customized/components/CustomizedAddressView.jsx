@@ -2,37 +2,28 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 function CustomizedAddressView({ values }) {
+    function add(line) {
+        if (line && line.length > 0) {
+            return (
+                <React.Fragment>
+                    {line}
+                    <br />
+                </React.Fragment>
+            );
+        }
+        return undefined;
+    }
+
+    const city = (values.zipcode || values.city) ? `${values.zipCode} ${values.city}` : undefined;
+
     return React.useMemo(
         () => (
             <React.Fragment>
-                {values.address
-                    ? (
-                        <React.Fragment>
-                            {values.address}
-                            <br />
-                        </React.Fragment>
-                    ) : undefined}
-                {values.zipcode || values.city
-                    ? (
-                        <React.Fragment>
-                            {`${values.zipCode} ${values.city}`}
-                            <br />
-                        </React.Fragment>
-                    ) : undefined}
-                {values.state
-                    ? (
-                        <React.Fragment>
-                            {values.state}
-                            <br />
-                        </React.Fragment>
-                    ) : undefined}
-                {values.country
-                    ? (
-                        <React.Fragment>
-                            {values.country}
-                            <br />
-                        </React.Fragment>
-                    ) : undefined}
+                {add(values.address)}
+                {add(values.address2)}
+                {add(city)}
+                {add(values.state)}
+                {add(values.country)}
             </React.Fragment>
         ),
         [
