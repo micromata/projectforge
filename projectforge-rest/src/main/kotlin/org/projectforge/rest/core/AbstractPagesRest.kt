@@ -334,11 +334,18 @@ constructor(private val baseDaoClazz: Class<B>,
         ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Const.REACT_APP_PATH}$category/edit"))
 
         return InitialListData(ui = ui,
-                standardEditPage = "${Const.REACT_APP_PATH}$category/edit/:id",
+                standardEditPage = getStandardEditPage(),
                 quickSelectUrl = quickSelectUrl,
                 data = resultSet,
                 filter = filter,
                 filterFavorites = favorites.idTitleList)
+    }
+
+    /**
+     * @return the standard edit page at default.
+     */
+    open protected fun getStandardEditPage(): String {
+        return "${Const.REACT_APP_PATH}$category/edit/:id"
     }
 
     /**

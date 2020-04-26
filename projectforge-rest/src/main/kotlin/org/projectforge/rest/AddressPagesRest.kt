@@ -25,6 +25,7 @@ package org.projectforge.rest
 
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.Const
 import org.projectforge.SystemStatus
 import org.projectforge.business.address.*
 import org.projectforge.business.configuration.ConfigurationService
@@ -194,6 +195,13 @@ class AddressPagesRest
         get() = "wa/addressList"
 
     /**
+     * @return the address view page.
+     */
+    override fun getStandardEditPage(): String {
+        return "${PagesResolver.getDynamicPageUrl(AddressViewPageRest::class.java)}:id"
+    }
+
+    /**
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
@@ -358,7 +366,7 @@ class AddressPagesRest
         if (dto.id != null) {
             layout.add(MenuItem("address.printView",
                     i18nKey = "printView",
-                    url = "wa/addressView?id=${dto.id}",
+                    url = "${Const.REACT_APP_PATH}addressView/dynamic/${dto.id}",
                     type = MenuItemTargetType.REDIRECT))
             layout.add(MenuItem("address.vCardSingleExport",
                     i18nKey = "address.book.vCardSingleExport",
