@@ -668,7 +668,9 @@ constructor(private val baseDaoClazz: Class<B>,
             throw TechnicalException("Can't call getAutoCompletion without property.", "No autoCompleteSearchFields are configured by the developers for this entity.")
         }
         val filter = createAutoCompleteObjectsFilter(request)
-        val modifiedSearchString = searchString?.split(' ', '\t', '\n')?.joinToString(" ") { "+$it*" }
+        val modifiedSearchString = searchString
+                ?.split(' ', '\t', '\n')
+                ?.joinToString(" ") { if (it.startsWith("+")) it else "+$it*" }
         filter.searchString = modifiedSearchString
         filter.setSearchFields(*autoCompleteSearchFields!!)
         maxResults?.let { filter.setMaxRows(it) }
@@ -768,11 +770,11 @@ constructor(private val baseDaoClazz: Class<B>,
      * You may define watch fields in layout.
      */
     @PostMapping(RestPaths.WATCH_FIELDS)
-    fun watchFields(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>):  ResponseEntity<ResponseAction>  {
+    fun watchFields(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
         return onWatchFieldsUpdate(request, postData.data, postData.watchFieldsTriggered)
     }
 
-    protected open fun onWatchFieldsUpdate(request: HttpServletRequest, dto: DTO, watchFieldsTriggered: Array<String>?):  ResponseEntity<ResponseAction>  {
+    protected open fun onWatchFieldsUpdate(request: HttpServletRequest, dto: DTO, watchFieldsTriggered: Array<String>?): ResponseEntity<ResponseAction> {
         return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     }
 
