@@ -13,9 +13,13 @@ function CustomizedAddressImage() {
 
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState(undefined);
-    const [src, setSrc] = React.useState(
-        getServiceURL(`address/image/${data.id}?${new Date().getTime()}`),
-    );
+    const [src, setSrc] = React.useState('');
+
+    React.useEffect(() => {
+        if (data.id !== undefined) {
+            setSrc(getServiceURL(`address/image/${data.id}?${new Date().getTime()}`));
+        }
+    }, [data.id]);
 
     return React.useMemo(
         () => {
@@ -114,7 +118,15 @@ function CustomizedAddressImage() {
                 </LoadingContainer>
             );
         },
-        [data.id, data.imageData, data.firstName, data.name, data.organization, setData, loading],
+        [
+            data.imageData,
+            data.firstName,
+            data.name,
+            data.organization,
+            setData,
+            loading,
+            src,
+        ],
     );
 }
 
