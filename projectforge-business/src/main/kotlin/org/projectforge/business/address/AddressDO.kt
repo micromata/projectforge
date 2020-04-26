@@ -78,6 +78,11 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     @get:Column(length = 255)
     open var name: String? = null
 
+    @PropertyInfo(i18nKey = "address.birthName")
+    @Field
+    @get:Column(length = 255, name = "birth_name")
+    open var birthName: String? = null
+
     @PropertyInfo(i18nKey = "firstName")
     @Field
     @get:Column(name = "first_name", length = 255)
