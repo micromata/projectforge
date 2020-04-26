@@ -31,6 +31,7 @@ enum class UIDataType {
     DECIMAL,
     EMPLOYEE,
     INT,
+    KONTO,
     LOCALE,
     PASSWORD,
     PICTURE,
