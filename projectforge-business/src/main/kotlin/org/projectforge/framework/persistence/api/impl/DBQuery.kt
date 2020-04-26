@@ -101,8 +101,8 @@ open class DBQuery {
                 list
             }
         } catch (ex: Exception) {
-            log.error("Error while querying: ${ex.message}. Magicfilter: ${filter}.", ex)
-            return mutableListOf()
+            log.error("Error while querying: ${ex.message}. Magicfilter: ${filter}.")
+            return emptyList()
         }
     }
 
