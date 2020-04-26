@@ -403,7 +403,7 @@ class CalendarFilterServicesRest {
     }
 
     internal fun getCurrentFilter(): CalendarFilter {
-        var currentFilter = Companion.getCurrentFilter(userPrefService)
+        var currentFilter = getCurrentFilter(userPrefService)
         if (currentFilter == null) {
             // Creating empty filter (user has no filter list yet):
             currentFilter = CalendarFilter()
@@ -444,7 +444,7 @@ class CalendarFilterServicesRest {
         getFilterState().updateCalendarFilter(startDate, view)
         val currentFilter = getCurrentFilter()
         val activeCalendarIds = restFilter.activeCalendarIds
-        if (!activeCalendarIds.isNullOrEmpty()) {
+        activeCalendarIds?.let {
             currentFilter.calendarIds = activeCalendarIds.toMutableSet()
         }
         //currentFilter.showVacations = restFilter.showVacations
