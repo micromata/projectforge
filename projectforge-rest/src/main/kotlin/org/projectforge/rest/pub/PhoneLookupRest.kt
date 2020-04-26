@@ -80,7 +80,7 @@ class PhoneLookupRest {
             // 0 - unknown, no entry found.
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_PLAIN)
-                    .body(0)
+                    .body("")
         }
     }
 }
