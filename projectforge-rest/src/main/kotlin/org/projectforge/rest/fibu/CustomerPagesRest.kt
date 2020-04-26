@@ -81,8 +81,10 @@ class CustomerPagesRest
      */
     override fun createEditLayout(dto: Customer, userAccess: UILayout.UserAccess): UILayout {
         val nameField = UIInput("name", lc, focus = true)
-        val kontoField = UISelect<Konto>("konto", lc,
-                autoCompletion = AutoCompletion<Konto>(url = "account/acDebitors?search=:search"))
+
+        val kontoField = UIInput("konto", lc, dataType = UIDataType.KONTO)
+        kontoField.autoCompletionUrl = "account/acDebitors?search=:search"
+
         val numberField: UIElement = if (dto.nummer != null) {
             UIReadOnlyField("nummer", lc)
         } else {
