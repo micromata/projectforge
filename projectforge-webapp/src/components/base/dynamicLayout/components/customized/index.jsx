@@ -2,9 +2,12 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import BookLendOut from './components/BookLendOut';
 import CalendarEventRecurrency from './components/CalendarEventRecurrence';
+import CustomizedAddressView from './components/CustomizedAddressView';
 import CustomizedAddressImage from './components/CustomizedAddressImage';
 import CustomizedAddressPhoneNumbers from './components/CustomizedAddressPhoneNumbers';
+import CustomizedAddressPhoneNumber from './components/CustomizedAddressPhoneNumber';
 import CustomizedConsumptionBar from './components/CustomizedConsumptionBar';
+import CustomizedImage from './components/CustomizedImage';
 import DayRange from './components/DayRange';
 import CustomizedImageDataPreview from './components/ImageDataPreview';
 import JiraIssuesLinks from './components/JiraIssuesLinks';
@@ -28,6 +31,9 @@ function DynamicCustomized({ id, ...props }) {
         case 'access.table':
             Tag = AccessTableComponent;
             break;
+        case 'address.view':
+            Tag = CustomizedAddressView;
+            break;
         case 'address.edit.image':
             Tag = CustomizedAddressImage;
             break;
@@ -36,6 +42,9 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'address.phoneNumbers':
             Tag = CustomizedAddressPhoneNumbers;
+            break;
+        case 'address.phoneNumber':
+            Tag = CustomizedAddressPhoneNumber;
             break;
         case 'book.lendOutComponent':
             Tag = BookLendOut;
@@ -60,6 +69,9 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'dayRange':
             Tag = DayRange;
+            break;
+        case 'image':
+            Tag = CustomizedImage;
             break;
         case 'invoice.incomingPosition':
             Tag = IncomingInvoicePositionsComponent;
