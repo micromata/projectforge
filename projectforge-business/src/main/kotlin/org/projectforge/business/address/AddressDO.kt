@@ -34,6 +34,7 @@ import org.hibernate.search.annotations.Index
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO
 import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -305,7 +306,15 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
 
     val fullName: String?
         @Transient
-        get() = listOf(name, firstName, organization).filter { !it.isNullOrBlank() }.joinToString(", ")
+        get() = listOf(fullLastName, firstName, organization).filter { !it.isNullOrBlank() }.joinToString(", ")
+
+    val fullLastName: String?
+        @Transient
+        get() = if (!birthName.isNullOrBlank()) {
+            "$name, ${translate("address.formerly")} $birthName"
+        } else {
+            name
+        }
 
     val fullNameWithTitleAndForm: String
         @Transient
@@ -320,8 +329,8 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
             if (firstName != null) {
                 buf.append(firstName).append(" ")
             }
-            if (name != null) {
-                buf.append(name)
+            if (fullLastName != null) {
+                buf.append(fullLastName)
             }
             return buf.toString()
         }

@@ -32,6 +32,10 @@ class Address(var contactStatus: ContactStatus? = null,
               var addressStatus: AddressStatus? = null,
               var uid: String? = null,
               var name: String? = null,
+              /**
+               * Including formerly name (maiden name) if exists.
+               */
+              var fullLastName: String? = null,
               var firstName: String? = null,
               var birthName: String? = null,
               var form: FormOfAddress? = null,
@@ -94,6 +98,7 @@ class Address(var contactStatus: ContactStatus? = null,
                 addressbookList!!.add(addressbook)
             }
         }
+        fullLastName = src.fullLastName
     }
 
     override fun copyTo(dest: AddressDO) {
