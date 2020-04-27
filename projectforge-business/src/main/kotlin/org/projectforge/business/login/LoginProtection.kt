@@ -24,6 +24,7 @@
 package org.projectforge.business.login
 
 import org.slf4j.LoggerFactory
+import kotlin.math.max
 
 /**
  * Class for avoiding brute force attacks by time offsets during login after failed login attempts. Usage:<br></br>
@@ -57,13 +58,12 @@ import org.slf4j.LoggerFactory
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class LoginProtection private constructor() {
-    /**
-     * @return the mapByUserId
-     */
     internal val mapByUserString = LoginProtectionMap()
+
     /**
-     * @return the mapByIpAddress
+     * Login protection map for passwords. Avoids password spreads.
      */
+    internal val mapByPasswordHashcode = LoginProtectionMap()
     internal val mapByIpAddress = LoginProtectionMap()
 
     /**
@@ -77,20 +77,24 @@ class LoginProtection private constructor() {
      * @return the time offset (in ms) for login if exist, otherwise 0.
      */
     @JvmOverloads
-    fun getFailedLoginTimeOffsetIfExists(userId: String?, clientIpAddress: String?, authenticationType: String? = null): Long {
+    fun getFailedLoginTimeOffsetIfExists(userId: String?, passwordHash: Int?, clientIpAddress: String?, authenticationType: String? = null): Long {
         if (log.isDebugEnabled) {
             log.debug("Checking login protection for user '$userId', client ip address '$clientIpAddress' and authentication type '$authenticationType'.")
         }
         var userIdOffset: Long = 0
+        var passwordOffset: Long = 0
         var ipAddressOffset: Long = 0
-        if (userId != null) {
-            val userString = getUserString(userId, authenticationType)
+        userId?.let {
+            val userString = getUserString(it, authenticationType)
             userIdOffset = mapByUserString.getFailedLoginTimeOffsetIfExists(userString)
         }
-        if (clientIpAddress != null) {
-            ipAddressOffset = mapByIpAddress.getFailedLoginTimeOffsetIfExists(clientIpAddress)
+        passwordHash?.let {
+            passwordOffset = mapByPasswordHashcode.getFailedLoginTimeOffsetIfExists("$it")
         }
-        return if (userIdOffset > ipAddressOffset) userIdOffset else ipAddressOffset
+        clientIpAddress?.let {
+            ipAddressOffset = mapByIpAddress.getFailedLoginTimeOffsetIfExists(it)
+        }
+        return max(userIdOffset, max(passwordOffset, ipAddressOffset))
     }
 
     /**
@@ -103,15 +107,19 @@ class LoginProtection private constructor() {
      * @return The number of failed login attempts (not expired ones) if exist, otherwise 0.
      */
     @JvmOverloads
-    fun getNumberOfFailedLoginAttempts(userId: String?, clientIpAddress: String?, authenticationType: String? = null): Int {
+    fun getNumberOfFailedLoginAttempts(userId: String?, passwordHash: Int?, clientIpAddress: String?, authenticationType: String? = null): Int {
         var failedLoginsForUserId = 0
+        var failedLoginsForPassword = 0
         var failedLoginsForIpAddress = 0
-        if (userId != null) {
-            val userString = getUserString(userId, authenticationType)
+        userId?.let {
+            val userString = getUserString(it, authenticationType)
             failedLoginsForUserId = mapByUserString.getNumberOfFailedLoginAttempts(userString)
         }
-        if (clientIpAddress != null) {
-            failedLoginsForIpAddress = mapByIpAddress.getNumberOfFailedLoginAttempts(clientIpAddress)
+        passwordHash?.let {
+            failedLoginsForPassword = mapByPasswordHashcode.getNumberOfFailedLoginAttempts("$it")
+        }
+        clientIpAddress?.let {
+            failedLoginsForIpAddress = mapByIpAddress.getNumberOfFailedLoginAttempts(it)
         }
         return if (failedLoginsForUserId > failedLoginsForIpAddress) failedLoginsForUserId else failedLoginsForIpAddress
     }
@@ -123,26 +131,32 @@ class LoginProtection private constructor() {
      * @param clientIpAddress May-be null.
      */
     @JvmOverloads
-    fun clearLoginTimeOffset(username: String?, userId: Int?, clientIpAddress: String?, authenticationType: String? = null) {
-        if (username != null) {
-            val userString = getUserString(username, authenticationType)
+    fun clearLoginTimeOffset(username: String?, userId: Int?, passwordHash: Int?, clientIpAddress: String?, authenticationType: String? = null) {
+        username?.let {
+            val userString = getUserString(it, authenticationType)
             if (mapByUserString.exists(userString)) {
                 log.info("Clearing time penalty for login $userString after successful login.")
             }
             mapByUserString.clearLoginTimeOffset(userString)
         }
-        if (userId != null) {
-            val userString = getUserString(userId, authenticationType)
+        userId?.let {
+            val userString = getUserString(it, authenticationType)
             if (mapByUserString.exists(userString)) {
                 log.info("Clearing time penalty for login $userString after successful login.")
             }
             mapByUserString.clearLoginTimeOffset(userString)
         }
-        if (clientIpAddress != null) {
-            if (mapByIpAddress.exists(clientIpAddress)) {
-                log.info("Clearing time penalty for ip $clientIpAddress after successful login.")
+        passwordHash?.let {
+            if (mapByPasswordHashcode.exists("$it")) {
+                log.info("Clearing time penalty for password hashcode '$it' after successful login.")
             }
-            mapByIpAddress.clearLoginTimeOffset(clientIpAddress)
+            mapByPasswordHashcode.clearLoginTimeOffset("$it")
+        }
+        clientIpAddress?.let {
+            if (mapByIpAddress.exists(it)) {
+                log.info("Clearing time penalty for ip $it after successful login.")
+            }
+            mapByIpAddress.clearLoginTimeOffset(it)
         }
     }
 
@@ -151,6 +165,7 @@ class LoginProtection private constructor() {
      */
     fun clearAll() {
         mapByUserString.clearAll()
+        mapByPasswordHashcode.clearAll()
         mapByIpAddress.clearAll()
     }
 
@@ -163,14 +178,21 @@ class LoginProtection private constructor() {
      * @return Login time offset in ms. If time offsets are given for both, the user id and the ip address, the larger one will be returned.
      */
     @JvmOverloads
-    fun incrementFailedLoginTimeOffset(userId: String?, clientIpAddress: String?, authenticationType: String? = null): Long {
+    fun incrementFailedLoginTimeOffset(userId: String?, passwordHash: Int?, clientIpAddress: String?, authenticationType: String? = null): Long {
         var timeOffsetForUserId: Long = 0
         var timeOffsetForIpAddress: Long = 0
+        var timeOffsetForPassword: Long = 0
         if (userId != null) {
             val userString = getUserString(userId, authenticationType)
             timeOffsetForUserId = mapByUserString.incrementFailedLoginTimeOffset(userString)
             if (timeOffsetForUserId > 0) {
                 log.warn("Time-offset (penalty) for user '$userString' increased: ${timeOffsetForUserId / 1000} seconds.")
+            }
+        }
+        if (passwordHash != null) {
+            timeOffsetForPassword = mapByPasswordHashcode.incrementFailedLoginTimeOffset("$passwordHash")
+            if (timeOffsetForPassword > 0) {
+                log.warn("Time-offset (penalty) for password hash code '$passwordHash' increased: ${timeOffsetForPassword / 1000} seconds.")
             }
         }
         if (clientIpAddress != null) {
@@ -191,15 +213,23 @@ class LoginProtection private constructor() {
 
     companion object {
         private val log = LoggerFactory.getLogger(LoginProtection::class.java)
+
         /**
          * After this given number of failed logins (for one specific user id) the account penalty counter will be incremented.
          */
         private const val DEFAULT_NUMBER_OF_FAILED_LOGINS_BEFORE_INCREMENTING_FOR_USER_ID = 1
+
+        /**
+         * After this given number of failed logins (for one specific user id) the account penalty counter will be incremented.
+         */
+        private const val DEFAULT_NUMBER_OF_FAILED_LOGINS_BEFORE_INCREMENTING_FOR_PASSWORD = 1
+
         /**
          * After this given number of failed logins (for one specific ip address) the account penalty counter will be incremented.
          */
         private const val DEFAULT_NUMBER_OF_FAILED_LOGINS_BEFORE_INCREMENTING_FOR_IP = 1000
         private val instance = LoginProtection()
+
         @JvmStatic
         fun instance(): LoginProtection {
             return instance
@@ -211,6 +241,7 @@ class LoginProtection private constructor() {
      */
     init {
         mapByUserString.numberOfFailedLoginsBeforeIncrementing = DEFAULT_NUMBER_OF_FAILED_LOGINS_BEFORE_INCREMENTING_FOR_USER_ID
+        mapByPasswordHashcode.numberOfFailedLoginsBeforeIncrementing = DEFAULT_NUMBER_OF_FAILED_LOGINS_BEFORE_INCREMENTING_FOR_USER_ID
         mapByIpAddress.numberOfFailedLoginsBeforeIncrementing = DEFAULT_NUMBER_OF_FAILED_LOGINS_BEFORE_INCREMENTING_FOR_IP
     }
 }
