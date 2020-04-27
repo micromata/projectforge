@@ -106,16 +106,18 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
         if (address.hasPrivateAddress()) ++numberOfAddresses
         if (address.hasPostalAddress()) ++numberOfAddresses
 
-        createAddressCol(
-                row,
-                numberOfAddresses,
-                "address.heading.businessAddress",
-                address.addressText,
-                address.addressText2,
-                address.zipCode,
-                address.city,
-                address.state,
-                address.country)
+        if (address.hasDefaultAddress()) {
+            createAddressCol(
+                    row,
+                    numberOfAddresses,
+                    "address.heading.businessAddress",
+                    address.addressText,
+                    address.addressText2,
+                    address.zipCode,
+                    address.city,
+                    address.state,
+                    address.country)
+        }
         if (address.hasPrivateAddress()) {
             createAddressCol(
                     row,
@@ -140,7 +142,6 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
                     address.postalState,
                     address.postalCountry)
         }
-
         if (!address.comment.isNullOrBlank()) {
             row.add(UIFieldset(12, "comment")
                     .add(UILabel("'${address.comment}")))
