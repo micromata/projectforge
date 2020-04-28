@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.text.MessageFormat
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -44,15 +45,25 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
         val data = postData.data
         check(ThreadLocalUserContext.getUserId() == data.userId) { "Oups, ChangePasswordPage is called with another than the logged in user!" }
 
-        check(data.newPassword == data.passwordRepeat) { "Password and password repeat does not match." }
+        check(data.newPassword == data.passwordRepeat) {
+            val validationErrors = mutableListOf<ValidationError>()
+            validationErrors.add(ValidationError.create("user.error.passwordAndRepeatDoesNotMatch"))
+            return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+        }
 
         log.info { "User wants to change his password." }
 
         val errorMsgKeys = userService!!.changePassword(userDao.getById(data.userId), data.oldPassword, data.newPassword)
 
-        check(errorMsgKeys.isEmpty()) { errorMsgKeys[0] }
+        check(errorMsgKeys.isEmpty()) {
+            val validationErrors = mutableListOf<ValidationError>()
+            for (errorMsgKey in errorMsgKeys){
+                validationErrors.add(ValidationError.create(errorMsgKey.key))
+            }
+            return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+        }
 
-        return ResponseEntity(ResponseAction("/${Const.REACT_APP_PATH}calendar"), HttpStatus.OK)
+        return ResponseEntity(ResponseAction("/${Const.REACT_APP_PATH}calendar", message = ResponseAction.Message("user.changePassword.msg.passwordSuccessfullyChanged")), HttpStatus.OK)
     }
 
     @GetMapping("dynamic")

@@ -44,15 +44,24 @@ class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
         val data = postData.data
         check(ThreadLocalUserContext.getUserId() == data.userId) { "Oups, ChangeWlanPasswordPage is called with another than the logged in user!" }
 
-        check(data.newWlanPassword == data.wlanPasswordRepeat) { "Password and password repeat does not match." }
+        check(data.newWlanPassword == data.wlanPasswordRepeat) { val validationErrors = mutableListOf<ValidationError>()
+            validationErrors.add(ValidationError.create("user.error.passwordAndRepeatDoesNotMatch"))
+            return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+        }
 
-        log.info { "User wants to change his password." }
+        log.info { "User wants to change his WLAN password." }
 
         val errorMsgKeys = userService!!.changeWlanPassword(userDao.getById(data.userId), data.loginPassword, data.newWlanPassword)
 
-        check(errorMsgKeys.isEmpty()) { errorMsgKeys[0].key }
+        check(errorMsgKeys.isEmpty()) {
+            val validationErrors = mutableListOf<ValidationError>()
+            for (errorMsgKey in errorMsgKeys){
+                validationErrors.add(ValidationError.create(errorMsgKey.key))
+            }
+            return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+        }
 
-        return ResponseEntity(ResponseAction("/${Const.REACT_APP_PATH}calendar"), HttpStatus.OK)
+        return ResponseEntity(ResponseAction("/${Const.REACT_APP_PATH}calendar", message = ResponseAction.Message("user.changePassword.msg.passwordSuccessfullyChanged")), HttpStatus.OK)
     }
 
     @GetMapping("dynamic")
