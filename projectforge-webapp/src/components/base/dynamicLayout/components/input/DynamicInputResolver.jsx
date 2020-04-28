@@ -11,13 +11,14 @@ import DynamicTimestampInput from './DynamicTimestampInput';
 // All types of 'INPUT' will be resolved here.
 function DynamicInputResolver({ dataType, autoCompletionUrl, ...props }) {
     let Tag;
-    const additionalProps = {};
+    const additionalProps = {
+        url: autoCompletionUrl,
+    };
 
     switch (dataType) {
         case 'STRING':
             if (autoCompletionUrl) {
                 Tag = DynamicAutoCompletion;
-                additionalProps.url = autoCompletionUrl;
             } else {
                 Tag = DynamicInput;
             }
@@ -33,6 +34,7 @@ function DynamicInputResolver({ dataType, autoCompletionUrl, ...props }) {
             break;
         case 'USER':
         case 'EMPLOYEE':
+        case 'KONTO':
             Tag = DynamicObjectSelect;
             additionalProps.type = dataType;
             break;
@@ -68,6 +70,7 @@ DynamicInputResolver.propTypes = {
         'TASK',
         'USER',
         'INT',
+        'KONTO',
         'DECIMAL',
         'NUMBER',
         'PASSWORD',

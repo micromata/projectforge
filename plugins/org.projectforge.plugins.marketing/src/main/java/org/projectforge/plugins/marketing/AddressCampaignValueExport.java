@@ -42,94 +42,96 @@ import java.util.Map;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service("addressCampaignValueExport")
-public class AddressCampaignValueExport extends AddressExport
-{
-  private enum Col
-  {
-    NAME, FIRST_NAME, FORM, TITLE, CONTACT_STATUS, ORGANIZATION, DIVISION, POSITION, COMMUNICATION_LANG, ADDRESS_CAMPAIGN_VALUE, ADDRESS_CAMPAIGN_COMMENT, EMAIL, WEBSITE, MAILING_ADDRESS, MAILING_ZIPCODE, MAILING_CITY, MAILING_COUNTRY, MAILING_STATE, ADDRESS, ZIPCODE, CITY, COUNTRY, STATE, POSTAL_ADDRESS, POSTAL_ZIPCODE, POSTAL_CITY, POSTAL_COUNTRY, POSTAL_STATE, ADDRESS_STATUS, BUSINESS_PHONE, FAX, MOBILE_PHONE, PRIVATE_ADDRESS, PRIVATE_ZIPCODE, PRIVATE_CITY, PRIVATE_COUNTRY, PRIVATE_STATE, PRIVATE_EMAIL, PRIVATE_PHONE, PRIVATE_MOBILE, BIRTHDAY, CREATED, MODIFIED, ID;
+public class AddressCampaignValueExport extends AddressExport {
+  private enum Col {
+    NAME, FIRST_NAME, FORM, TITLE, CONTACT_STATUS, ORGANIZATION, DIVISION, POSITION, COMMUNICATION_LANG, ADDRESS_CAMPAIGN_VALUE, ADDRESS_CAMPAIGN_COMMENT, EMAIL, WEBSITE, MAILING_ADDRESS, MAILING_ADDRESS2, MAILING_ZIPCODE, MAILING_CITY, MAILING_COUNTRY, MAILING_STATE, ADDRESS, ADDRESS2, ZIPCODE, CITY, COUNTRY, STATE, POSTAL_ADDRESS, POSTAL_ADDRESS2, POSTAL_ZIPCODE, POSTAL_CITY, POSTAL_COUNTRY, POSTAL_STATE, ADDRESS_STATUS, BUSINESS_PHONE, FAX, MOBILE_PHONE, PRIVATE_ADDRESS, PRIVATE_ADDRESS2, PRIVATE_ZIPCODE, PRIVATE_CITY, PRIVATE_COUNTRY, PRIVATE_STATE, PRIVATE_EMAIL, PRIVATE_PHONE, PRIVATE_MOBILE, BIRTHDAY, CREATED, MODIFIED, ID;
   }
 
   @Override
-  protected ExportColumn[] createColumns()
-  {
-    return new ExportColumn[] { //
-        new I18nExportColumn(Col.NAME, "name", 20),
-        new I18nExportColumn(Col.FIRST_NAME, "firstName", 20),
-        new I18nExportColumn(Col.FORM, "address.form", 8),
-        new I18nExportColumn(Col.TITLE, "address.title", 10),
-        new I18nExportColumn(Col.CONTACT_STATUS, "address.contactStatus", 10),
-        new I18nExportColumn(Col.ORGANIZATION, "organization", LENGTH_STD),
-        new I18nExportColumn(Col.DIVISION, "address.division", LENGTH_STD),
-        new I18nExportColumn(Col.POSITION, "address.positionText", LENGTH_STD), //
-        new I18nExportColumn(Col.COMMUNICATION_LANG, "address.communication", LENGTH_STD), //
-        new I18nExportColumn(Col.ADDRESS_CAMPAIGN_VALUE, "value", LENGTH_STD),
-        new I18nExportColumn(Col.ADDRESS_CAMPAIGN_COMMENT, "comment", LENGTH_STD),
-        new I18nExportColumn(Col.EMAIL, "email", LENGTH_EMAIL),
-        new I18nExportColumn(Col.WEBSITE, "address.website", LENGTH_STD),
-        new I18nExportColumn(Col.MAILING_ADDRESS, "address.addressText", LENGTH_STD),
-        new I18nExportColumn(Col.MAILING_ZIPCODE, "address.zipCode", LENGTH_ZIPCODE),
-        new I18nExportColumn(Col.MAILING_CITY, "address.city", LENGTH_STD),
-        new I18nExportColumn(Col.MAILING_COUNTRY, "address.country", LENGTH_STD),
-        new I18nExportColumn(Col.MAILING_STATE, "address.state", LENGTH_STD),
-        new I18nExportColumn(Col.ADDRESS, "address.addressText", LENGTH_STD),
-        new I18nExportColumn(Col.ZIPCODE, "address.zipCode", LENGTH_ZIPCODE), //
-        new I18nExportColumn(Col.CITY, "address.city", LENGTH_STD),
-        new I18nExportColumn(Col.COUNTRY, "address.country", LENGTH_STD), //
-        new I18nExportColumn(Col.STATE, "address.state", LENGTH_STD),
-        new I18nExportColumn(Col.POSTAL_ADDRESS, "address.postalAddressText", LENGTH_STD),
-        new I18nExportColumn(Col.POSTAL_ZIPCODE, "address.zipCode", LENGTH_ZIPCODE),
-        new I18nExportColumn(Col.POSTAL_CITY, "address.city", LENGTH_STD),
-        new I18nExportColumn(Col.POSTAL_COUNTRY, "address.country", LENGTH_STD),
-        new I18nExportColumn(Col.POSTAL_STATE, "address.state", LENGTH_STD),
-        new I18nExportColumn(Col.ADDRESS_STATUS, "address.addressStatus", 12),
-        new I18nExportColumn(Col.BUSINESS_PHONE, "address.phoneType.business", LENGTH_PHONENUMBER),
-        new I18nExportColumn(Col.FAX, "address.phoneType.fax", LENGTH_PHONENUMBER),
-        new I18nExportColumn(Col.MOBILE_PHONE, "address.phoneType.mobile", LENGTH_PHONENUMBER),
-        new I18nExportColumn(Col.PRIVATE_ADDRESS, "address.privateAddressText", LENGTH_STD),
-        new I18nExportColumn(Col.PRIVATE_ZIPCODE, "address.zipCode", LENGTH_ZIPCODE),
-        new I18nExportColumn(Col.PRIVATE_CITY, "address.city", LENGTH_STD),
-        new I18nExportColumn(Col.PRIVATE_COUNTRY, "address.country", LENGTH_STD),
-        new I18nExportColumn(Col.PRIVATE_STATE, "address.state", LENGTH_STD),
-        new I18nExportColumn(Col.PRIVATE_EMAIL, "address.privateEmail", LENGTH_EMAIL),
-        new I18nExportColumn(Col.PRIVATE_PHONE, "address.phoneType.private", LENGTH_PHONENUMBER),
-        new I18nExportColumn(Col.PRIVATE_MOBILE, "address.phoneType.privateMobile", LENGTH_PHONENUMBER),
-        new I18nExportColumn(Col.BIRTHDAY, "address.birthday", DATE_LENGTH), //
-        new I18nExportColumn(Col.MODIFIED, "modified", DATE_LENGTH), //
-        new I18nExportColumn(Col.ID, "id", LENGTH_ZIPCODE) };
+  protected ExportColumn[] createColumns() {
+    return new ExportColumn[]{ //
+            new I18nExportColumn(Col.NAME, "name", 20),
+            new I18nExportColumn(Col.FIRST_NAME, "firstName", 20),
+            new I18nExportColumn(Col.FORM, "address.form", 8),
+            new I18nExportColumn(Col.TITLE, "address.title", 10),
+            new I18nExportColumn(Col.CONTACT_STATUS, "address.contactStatus", 10),
+            new I18nExportColumn(Col.ORGANIZATION, "organization", LENGTH_STD),
+            new I18nExportColumn(Col.DIVISION, "address.division", LENGTH_STD),
+            new I18nExportColumn(Col.POSITION, "address.positionText", LENGTH_STD), //
+            new I18nExportColumn(Col.COMMUNICATION_LANG, "address.communication", LENGTH_STD), //
+            new I18nExportColumn(Col.ADDRESS_CAMPAIGN_VALUE, "value", LENGTH_STD),
+            new I18nExportColumn(Col.ADDRESS_CAMPAIGN_COMMENT, "comment", LENGTH_STD),
+            new I18nExportColumn(Col.EMAIL, "email", LENGTH_EMAIL),
+            new I18nExportColumn(Col.WEBSITE, "address.website", LENGTH_STD),
+            new I18nExportColumn(Col.MAILING_ADDRESS, "address.addressText", LENGTH_STD),
+            new I18nExportColumn(Col.MAILING_ADDRESS2, "address.addressText2", LENGTH_STD),
+            new I18nExportColumn(Col.MAILING_ZIPCODE, "address.zipCode", LENGTH_ZIPCODE),
+            new I18nExportColumn(Col.MAILING_CITY, "address.city", LENGTH_STD),
+            new I18nExportColumn(Col.MAILING_COUNTRY, "address.country", LENGTH_STD),
+            new I18nExportColumn(Col.MAILING_STATE, "address.state", LENGTH_STD),
+            new I18nExportColumn(Col.ADDRESS, "address.addressText", LENGTH_STD),
+            new I18nExportColumn(Col.ADDRESS2, "address.addressText2", LENGTH_STD),
+            new I18nExportColumn(Col.ZIPCODE, "address.zipCode", LENGTH_ZIPCODE), //
+            new I18nExportColumn(Col.CITY, "address.city", LENGTH_STD),
+            new I18nExportColumn(Col.COUNTRY, "address.country", LENGTH_STD), //
+            new I18nExportColumn(Col.STATE, "address.state", LENGTH_STD),
+            new I18nExportColumn(Col.POSTAL_ADDRESS, "address.postalAddressText", LENGTH_STD),
+            new I18nExportColumn(Col.POSTAL_ADDRESS2, "address.postalAddressText2", LENGTH_STD),
+            new I18nExportColumn(Col.POSTAL_ZIPCODE, "address.zipCode", LENGTH_ZIPCODE),
+            new I18nExportColumn(Col.POSTAL_CITY, "address.city", LENGTH_STD),
+            new I18nExportColumn(Col.POSTAL_COUNTRY, "address.country", LENGTH_STD),
+            new I18nExportColumn(Col.POSTAL_STATE, "address.state", LENGTH_STD),
+            new I18nExportColumn(Col.ADDRESS_STATUS, "address.addressStatus", 12),
+            new I18nExportColumn(Col.BUSINESS_PHONE, "address.phoneType.business", LENGTH_PHONENUMBER),
+            new I18nExportColumn(Col.FAX, "address.phoneType.fax", LENGTH_PHONENUMBER),
+            new I18nExportColumn(Col.MOBILE_PHONE, "address.phoneType.mobile", LENGTH_PHONENUMBER),
+            new I18nExportColumn(Col.PRIVATE_ADDRESS, "address.privateAddressText", LENGTH_STD),
+            new I18nExportColumn(Col.PRIVATE_ADDRESS2, "address.privateAddressText2", LENGTH_STD),
+            new I18nExportColumn(Col.PRIVATE_ZIPCODE, "address.zipCode", LENGTH_ZIPCODE),
+            new I18nExportColumn(Col.PRIVATE_CITY, "address.city", LENGTH_STD),
+            new I18nExportColumn(Col.PRIVATE_COUNTRY, "address.country", LENGTH_STD),
+            new I18nExportColumn(Col.PRIVATE_STATE, "address.state", LENGTH_STD),
+            new I18nExportColumn(Col.PRIVATE_EMAIL, "address.privateEmail", LENGTH_EMAIL),
+            new I18nExportColumn(Col.PRIVATE_PHONE, "address.phoneType.private", LENGTH_PHONENUMBER),
+            new I18nExportColumn(Col.PRIVATE_MOBILE, "address.phoneType.privateMobile", LENGTH_PHONENUMBER),
+            new I18nExportColumn(Col.BIRTHDAY, "address.birthday", DATE_LENGTH), //
+            new I18nExportColumn(Col.MODIFIED, "modified", DATE_LENGTH), //
+            new I18nExportColumn(Col.ID, "id", LENGTH_ZIPCODE)};
   }
 
   @Override
-  protected void addAddressMapping(final PropertyMapping mapping, final AddressDO address, final Object... params)
-  {
-    @SuppressWarnings("unchecked")
-    final Map<Integer, AddressCampaignValueDO> addressCampaignValueMap = (Map<Integer, AddressCampaignValueDO>) params[0];
+  protected void addAddressMapping(final PropertyMapping mapping, final AddressDO address, final Object... params) {
+    @SuppressWarnings("unchecked") final Map<Integer, AddressCampaignValueDO> addressCampaignValueMap = (Map<Integer, AddressCampaignValueDO>) params[0];
     final AddressCampaignValueDO addressCampaignValue = addressCampaignValueMap.get(address.getId());
     mapping.add(Col.NAME, address.getName());
     mapping.add(Col.FIRST_NAME, address.getFirstName());
     mapping.add(Col.FORM,
-        address.getForm() != null ? ThreadLocalUserContext.getLocalizedString(address.getForm().getI18nKey()) : "");
+            address.getForm() != null ? ThreadLocalUserContext.getLocalizedString(address.getForm().getI18nKey()) : "");
     mapping.add(Col.TITLE, address.getTitle());
     mapping.add(Col.CONTACT_STATUS, address.getContactStatus());
     mapping.add(Col.ORGANIZATION, address.getOrganization());
     mapping.add(Col.DIVISION, address.getDivision());
     mapping.add(Col.POSITION, address.getPositionText());
     mapping.add(Col.COMMUNICATION_LANG,
-        LanguageConverter.getLanguageAsString(address.getCommunicationLanguage(), ThreadLocalUserContext.getLocale()));
+            LanguageConverter.getLanguageAsString(address.getCommunicationLanguage(), ThreadLocalUserContext.getLocale()));
     mapping.add(Col.ADDRESS_CAMPAIGN_VALUE, addressCampaignValue != null ? addressCampaignValue.getValue() : "");
     mapping.add(Col.ADDRESS_CAMPAIGN_COMMENT, addressCampaignValue != null ? addressCampaignValue.getComment() : "");
     mapping.add(Col.EMAIL, address.getEmail());
     mapping.add(Col.WEBSITE, address.getWebsite());
     mapping.add(Col.MAILING_ADDRESS, address.getMailingAddressText());
+    mapping.add(Col.MAILING_ADDRESS2, address.getMailingAddressText2());
     mapping.add(Col.MAILING_ZIPCODE, address.getMailingZipCode());
     mapping.add(Col.MAILING_CITY, address.getMailingCity());
     mapping.add(Col.MAILING_COUNTRY, address.getMailingCountry());
     mapping.add(Col.MAILING_STATE, address.getMailingState());
     mapping.add(Col.ADDRESS, address.getAddressText());
+    mapping.add(Col.ADDRESS2, address.getAddressText2());
     mapping.add(Col.ZIPCODE, address.getZipCode());
     mapping.add(Col.CITY, address.getCity());
     mapping.add(Col.COUNTRY, address.getCountry());
     mapping.add(Col.STATE, address.getState());
     mapping.add(Col.POSTAL_ADDRESS, address.getPostalAddressText());
+    mapping.add(Col.POSTAL_ADDRESS2, address.getPostalAddressText2());
     mapping.add(Col.POSTAL_ZIPCODE, address.getPostalZipCode());
     mapping.add(Col.POSTAL_CITY, address.getPostalCity());
     mapping.add(Col.POSTAL_COUNTRY, address.getPostalCountry());
@@ -139,6 +141,7 @@ public class AddressCampaignValueExport extends AddressExport
     mapping.add(Col.FAX, address.getFax());
     mapping.add(Col.MOBILE_PHONE, address.getMobilePhone());
     mapping.add(Col.PRIVATE_ADDRESS, address.getPrivateAddressText());
+    mapping.add(Col.PRIVATE_ADDRESS2, address.getPrivateAddressText2());
     mapping.add(Col.PRIVATE_ZIPCODE, address.getPrivateZipCode());
     mapping.add(Col.PRIVATE_CITY, address.getPrivateCity());
     mapping.add(Col.PRIVATE_COUNTRY, address.getPrivateCountry());
@@ -153,16 +156,14 @@ public class AddressCampaignValueExport extends AddressExport
   }
 
   @Override
-  protected String getSheetTitle()
-  {
+  protected String getSheetTitle() {
     return ThreadLocalUserContext.getLocalizedString("plugins.marketing.addressCampaign");
   }
 
   @Override
-  protected void initSheet(final ExportSheet sheet, final Object... params)
-  {
+  protected void initSheet(final ExportSheet sheet, final Object... params) {
     super.initSheet(sheet);
     sheet.setMergedRegion(0, 0, Col.ADDRESS_CAMPAIGN_VALUE.ordinal(), Col.ADDRESS_CAMPAIGN_COMMENT.ordinal(),
-        params[1]);
+            params[1]);
   }
 }

@@ -101,6 +101,9 @@ class MagicFilterEntry(
     var isNew: Boolean? = false
         private set
 
+    val isTrueValue
+        get() = value.value == "true"
+
     fun isModified(other: MagicFilterEntry): Boolean {
         if (this.field != other.field) return true
         if (this.value != other.value) return true

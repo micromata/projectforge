@@ -21,24 +21,12 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.ui
+package org.projectforge.business.address
 
-enum class UIDataType {
-    AMOUNT,
-    BOOLEAN,
-    CUSTOMIZED,
-    DATE,
-    DECIMAL,
-    EMPLOYEE,
-    INT,
-    KONTO,
-    LOCALE,
-    PASSWORD,
-    PICTURE,
-    STRING,
-    TASK,
-    TIME,
-    TIMESTAMP,
-    TIMEZONE,
-    USER
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+
+class ImagesResultFilter : CustomResultFilter<AddressDO> {
+    override fun match(list: MutableList<AddressDO>, element: AddressDO): Boolean {
+        return element.imageData?.isNotEmpty() ?: false
+    }
 }

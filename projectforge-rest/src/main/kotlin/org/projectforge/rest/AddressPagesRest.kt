@@ -25,6 +25,7 @@ package org.projectforge.rest
 
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.Const
 import org.projectforge.SystemStatus
 import org.projectforge.business.address.*
 import org.projectforge.business.configuration.ConfigurationService
@@ -126,6 +127,7 @@ class AddressPagesRest
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         elements.add(UIFilterElement("myFavorites", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.myFavorites"), defaultFilter = true))
         elements.add(UIFilterElement("doublets", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.doublets")))
+        elements.add(UIFilterElement("images", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.images")))
     }
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<AddressDO>>? {
@@ -133,12 +135,17 @@ class AddressPagesRest
         doubletFilterEntry?.synthetic = true
         val myFavoritesFilterEntry = source.entries.find { it.field == "myFavorites" }
         myFavoritesFilterEntry?.synthetic = true
+        val imagesFilterEntry = source.entries.find { it.field == "images" }
+        imagesFilterEntry?.synthetic = true
         val filters = mutableListOf<CustomResultFilter<AddressDO>>()
-        if (doubletFilterEntry?.value?.value == "true") {
+        if (doubletFilterEntry?.isTrueValue == true) {
             filters.add(DoubletsResultFilter())
         }
-        if (myFavoritesFilterEntry?.value?.value == "true") {
+        if (myFavoritesFilterEntry?.isTrueValue == true) {
             filters.add(FavoritesResultFilter(personalAddressDao))
+        }
+        if (imagesFilterEntry?.isTrueValue == true) {
+            filters.add(ImagesResultFilter())
         }
         return filters
     }
@@ -194,6 +201,13 @@ class AddressPagesRest
         get() = "wa/addressList"
 
     /**
+     * @return the address view page.
+     */
+    override fun getStandardEditPage(): String {
+        return "${PagesResolver.getDynamicPageUrl(AddressViewPageRest::class.java)}:id"
+    }
+
+    /**
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
@@ -203,7 +217,8 @@ class AddressPagesRest
                 .add(UITable.createUIResultSetTable()
                         .add(addressLC, "isFavoriteCard", "lastUpdate")
                         .add(UITableColumn("address.imagePreview", "address.image", dataType = UIDataType.CUSTOMIZED))
-                        .add(addressLC, "name", "firstName", "organization", "email")
+                        .add(UITableColumn("address.fullLastName", "name"))
+                        .add(addressLC, "firstName", "organization", "email")
                         .add(UITableColumn("address.phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED, sortable = false))
                         .add(lc, "address.addressbookList"))
         layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
@@ -296,9 +311,9 @@ class AddressPagesRest
                                 .add(lc, "name", "firstName", "birthName")
                                 .add(UIRow()
                                         .add(UICol(UILength(xl = 6))
-                                                .add(UIInput("form", lc)))
+                                                .add(lc,"form"))
                                         .add(UICol(UILength(xl = 6))
-                                                .add(UIInput("title", lc))))
+                                                .add(lc, "title")))
                                 .add(lc, "email", "privateEmail")
                         )
                         .add(UIFieldset(UILength(md = 6, lg = 4))
@@ -311,6 +326,7 @@ class AddressPagesRest
                 .add(UIRow()
                         .add(UIFieldset(UILength(md = 6, lg = 4), title = "address.heading.businessAddress")
                                 .add(UIInput("addressText", lc, ignoreAdditionalLabel = true).enableAutoCompletion(this))
+                                .add(UIInput("addressText2", lc, ignoreAdditionalLabel = true).enableAutoCompletion(this))
                                 .add(UIRow()
                                         .add(UICol(UILength(xl = 3))
                                                 .add(UIInput("zipCode", lc, ignoreAdditionalLabel = true)))
@@ -323,6 +339,7 @@ class AddressPagesRest
                                                 .add(UIInput("state", lc, ignoreAdditionalLabel = true)))))
                         .add(UIFieldset(UILength(md = 6, lg = 4), title = "address.heading.postalAddress")
                                 .add(UIInput("postalAddressText", lc, ignoreAdditionalLabel = true).enableAutoCompletion(this))
+                                .add(UIInput("postalAddressText2", lc, ignoreAdditionalLabel = true).enableAutoCompletion(this))
                                 .add(UIRow()
                                         .add(UICol(UILength(xl = 3))
                                                 .add(UIInput("postalZipCode", lc, ignoreAdditionalLabel = true)))
@@ -335,6 +352,7 @@ class AddressPagesRest
                                                 .add(UIInput("postalState", lc, ignoreAdditionalLabel = true)))))
                         .add(UIFieldset(UILength(md = 6, lg = 4), title = "address.heading.privateAddress")
                                 .add(UIInput("privateAddressText", lc, ignoreAdditionalLabel = true).enableAutoCompletion(this))
+                                .add(UIInput("privateAddressText2", lc, ignoreAdditionalLabel = true).enableAutoCompletion(this))
                                 .add(UIRow()
                                         .add(UICol(UILength(xl = 3))
                                                 .add(UIInput("privateZipCode", lc, ignoreAdditionalLabel = true)))
@@ -358,7 +376,7 @@ class AddressPagesRest
         if (dto.id != null) {
             layout.add(MenuItem("address.printView",
                     i18nKey = "printView",
-                    url = "wa/addressView?id=${dto.id}",
+                    url = "${Const.REACT_APP_PATH}addressView/dynamic/${dto.id}",
                     type = MenuItemTargetType.REDIRECT))
             layout.add(MenuItem("address.vCardSingleExport",
                     i18nKey = "address.book.vCardSingleExport",

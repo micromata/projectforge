@@ -41,20 +41,12 @@ object PagesResolver {
 
     fun getEditPageUrl(pagesRestClass: Class<out AbstractPagesRest<*, *, *>>, id: Int? = null, params: Map<String, Any?>? = null, absolute: Boolean = false): String {
         val path = getRequestMappingPath(pagesRestClass) ?: return "NOT_FOUND"
-        val parameters = if (id == null) {
-            params
-        } else if (params.isNullOrEmpty()) {
-            mapOf("id" to "$id")
-        } else {
-            val map = mutableMapOf<String, Any?>("id" to "$id")
-            map.putAll(params)
-            map
-        }
         val prefix = if (absolute) "/" else ""
+        val idString = if (id != null) { "/$id" } else { "" }
         if (path.startsWith('/')) {
-            return "$path/edit${getQueryString(parameters)}"
+            return "$path/edit$idString${getQueryString(params)}"
         }
-        return "$prefix$path/edit${getQueryString(parameters)}"
+        return "$prefix$path/edit$idString${getQueryString(params)}"
     }
 
 
