@@ -23,10 +23,38 @@
 
 package org.projectforge.business.address
 
-import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import de.micromata.genome.jpa.DbRecord
+import javax.persistence.*
 
-class ImagesResultFilter : CustomResultFilter<AddressDO> {
-    override fun match(list: MutableList<AddressDO>, element: AddressDO): Boolean {
-        return element.image == true
+/**
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ */
+@Entity
+@Table(name = "T_ADDRESS_IMAGE")
+open class AddressImageDO : DbRecord<Int> {
+    @get:Id
+    @get:GeneratedValue
+    @get:Column(name = "pk")
+    open var id: Int? = null
+
+    @get:OneToOne(fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "address_fk", nullable = false)
+    open var address: AddressDO? = null
+
+    @get:Column
+    @get:Basic(fetch = FetchType.LAZY)
+    open var image: ByteArray? = null
+
+    @get:Column(name = "image_preview")
+    @get:Basic(fetch = FetchType.LAZY)
+    open var imagePreview: ByteArray? = null
+
+    @javax.persistence.Transient
+    override fun getPk(): Int? {
+        return id
+    }
+
+    override fun setPk(pk: Int?) {
+        id = pk
     }
 }

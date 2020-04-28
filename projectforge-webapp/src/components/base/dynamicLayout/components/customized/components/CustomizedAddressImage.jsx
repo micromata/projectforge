@@ -67,7 +67,7 @@ function CustomizedAddressImage() {
                 fetch(
                     // Delete the image with id -1, so the stored image in the session will be
                     // removed.
-                    getServiceURL('address/deleteImage/-1'),
+                    getServiceURL(`address/deleteImage/${data.id || -1}`),
                     {
                         credentials: 'include',
                         method: 'DELETE',

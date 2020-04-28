@@ -86,7 +86,7 @@ class Address(var contactStatus: ContactStatus? = null,
 
     override fun copyFrom(src: AddressDO) {
         super.copyFrom(src)
-        if (src.imageData != null) {
+        if (src.image == true) {
             imageData = byteArrayOf(1) // Marker for frontend for an available image.
         }
         if (!src.addressbookList.isNullOrEmpty()) {

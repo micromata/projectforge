@@ -75,6 +75,9 @@ class AddressPagesRest
     private lateinit var addressbookDao: AddressbookDao
 
     @Autowired
+    private lateinit var addressImageDao: AddressImageDao
+
+    @Autowired
     private lateinit var addressServicesRest: AddressServicesRest
 
     @Autowired
@@ -169,25 +172,7 @@ class AddressPagesRest
         }
     }
 
-    override fun onBeforeSaveOrUpdate(request: HttpServletRequest, obj: AddressDO, postData: PostData<Address>) {
-        val session = request.session
-        val bytes = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
-        if (bytes != null && bytes is ByteArray) {
-            obj.imageData = bytes
-            obj.imageDataPreview = imageService.resizeImage(bytes)
-            ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
-        } else {
-            if (obj.imageData != null) {
-                val dbAddress = baseDao.getById(obj.id)
-                obj.imageData = dbAddress.imageData
-                obj.imageDataPreview = dbAddress.imageDataPreview
-            } else {
-                obj.imageDataPreview = null
-            }
-        }
-    }
-
-    override fun onAfterSaveOrUpdate(obj: AddressDO, postData: PostData<Address>) {
+    override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: AddressDO, postData: PostData<Address>) {
         val dto = postData.data
         val address = baseDao.getOrLoad(obj.id)
         val personalAddress = PersonalAddressDO()
@@ -195,6 +180,14 @@ class AddressPagesRest
         personalAddress.isFavoriteCard = dto.isFavoriteCard
         personalAddressDao.setOwner(personalAddress, getUserId()) // Set current logged in user as owner.
         personalAddressDao.saveOrUpdate(personalAddress)
+
+        val session = request.session
+        val bytes = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
+        if (bytes != null && bytes is ByteArray) {
+            // The user uploaded an image, so
+            addressImageDao.saveOrUpdate(obj.id, bytes)
+            ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
+        }
     }
 
     override val classicsLinkListUrl: String?
@@ -311,7 +304,7 @@ class AddressPagesRest
                                 .add(lc, "name", "firstName", "birthName")
                                 .add(UIRow()
                                         .add(UICol(UILength(xl = 6))
-                                                .add(lc,"form"))
+                                                .add(lc, "form"))
                                         .add(UICol(UILength(xl = 6))
                                                 .add(lc, "title")))
                                 .add(lc, "email", "privateEmail")
@@ -398,8 +391,8 @@ class AddressPagesRest
             ListAddress(transformFromDB(it),
                     id = it.id,
                     deleted = it.isDeleted,
-                    imageUrl = if (it.imageData != null) "address/image/${it.id}" else null,
-                    previewImageUrl = if (it.imageDataPreview != null) "address/imagePreview/${it.id}" else null)
+                    imageUrl = if (it.image == true) "address/image/${it.id}" else null,
+                    previewImageUrl = if (it.image == true) "address/imagePreview/${it.id}" else null)
         }
         newList.forEach {
             it.address.imageData = null
