@@ -871,7 +871,7 @@ constructor(private val baseDaoClazz: Class<B>,
     /**
      * Called after save and update.
      */
-    internal open fun onAfterSaveOrUpdate(obj: O, postData: PostData<DTO>) {
+    open fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: O, postData: PostData<DTO>) {
     }
 
     /**

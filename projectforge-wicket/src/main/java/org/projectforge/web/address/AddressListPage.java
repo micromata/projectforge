@@ -35,17 +35,14 @@ import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.SubmitLink;
-import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.DynamicImageResource;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.*;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -58,7 +55,6 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.components.ExternalLinkPanel;
 import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
-import org.projectforge.web.wicket.flowlayout.ImagePanel;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -172,48 +168,6 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
                   }
                 }));
         addRowClick(item);
-        cellItemListener.populateItem(item, componentId, rowModel);
-      }
-    });
-
-    columns.add(new CellItemListenerPropertyColumn<AddressDO>(new Model<String>(getString("imageFile")), null,
-            "imageFile", cellItemListener) {
-      /**
-       * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
-       *      java.lang.String, org.apache.wicket.model.IModel)
-       */
-      @Override
-      public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
-                               final IModel<AddressDO> rowModel) {
-        final AddressDO address = rowModel.getObject();
-        final RepeatingView view = new RepeatingView(componentId);
-        item.add(view);
-
-        final NonCachingImage img = new NonCachingImage("image", new AbstractReadOnlyModel<DynamicImageResource>() {
-          @Override
-          public DynamicImageResource getObject() {
-            final DynamicImageResource dir = new DynamicImageResource() {
-              @Override
-              protected byte[] getImageData(final Attributes attributes) {
-                byte[] result = address.getImageDataPreview();
-                if (result == null || result.length < 1) {
-                  try {
-                    result = IOUtils
-                            .toByteArray(getClass().getClassLoader().getResource("images/noImage.png").openStream());
-                  } catch (final IOException ex) {
-                    log.error("Exception encountered " + ex, ex);
-                  }
-
-                }
-                return result;
-              }
-            };
-            dir.setFormat("image/png");
-            return dir;
-          }
-        });
-        img.add(new AttributeModifier("height", Integer.toString(25)));
-        view.add(new ImagePanel("imagePanel", img));
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });

@@ -34,6 +34,7 @@ import ezvcard.parameter.TelephoneType
 import ezvcard.property.*
 import ezvcard.util.PartialDate
 import org.projectforge.business.address.AddressDO
+import org.projectforge.business.address.AddressImageDao
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
@@ -42,7 +43,7 @@ import java.time.LocalDate
 
 @Service
 class VCardService {
-    fun buildVCard(addressDO: AddressDO): ByteArray { //See: https://github.com/mangstadt/ez-vcard
+    fun buildVCard(addressDO: AddressDO, addressImageDao: AddressImageDao): ByteArray { //See: https://github.com/mangstadt/ez-vcard
         val vcard = VCard()
         val uid = Uid("urn:uuid:" + addressDO.uid)
         vcard.uid = uid
@@ -106,8 +107,8 @@ class VCardService {
         }
         vcard.addUrl(addressDO.website)
         vcard.addNote(addressDO.comment)
-        if (addressDO.imageData != null) {
-            val photo = Photo(addressDO.imageData, ImageType.JPEG)
+        if (addressDO.image == true) {
+            val photo = Photo(addressImageDao.getImage(addressDO.id), ImageType.JPEG)
             vcard.addPhoto(photo)
         }
         return Ezvcard.write(vcard).version(VCardVersion.V3_0).go().toByteArray()
@@ -184,7 +185,7 @@ class VCardService {
         for (note in vcard.notes) {
             address.comment = if (address.comment != null) address.comment else "" + note.value + " "
         }
-        address.imageData = if (!vcard.photos.isNullOrEmpty()) vcard.photos[0].data else null
+        address.image = vcard.photos.isNullOrEmpty()
         if (vcard.organization?.values?.isNotEmpty() == true) {
             when (vcard.organization.values.size) {
                 3 -> {

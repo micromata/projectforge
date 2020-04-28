@@ -126,10 +126,10 @@ public class AddressDao extends BaseDao<AddressDO> {
   @Override
   public List<AddressDO> getList(QueryFilter filter) throws AccessException {
     final List<CustomResultFilter<AddressDO>> filters = new ArrayList<>();
-    if (filter.getExtendedBooleanValue("doublets") == true) {
+    if (filter.getExtendedBooleanValue("doublets")) {
       filters.add(new DoubletsResultFilter());
     }
-    if (filter.getExtendedBooleanValue("favorites") == true) {
+    if (filter.getExtendedBooleanValue("favorites")) {
       filters.add(new FavoritesResultFilter(personalAddressDao));
     }
     return super.getList(filter, filters);
@@ -326,6 +326,28 @@ public class AddressDao extends BaseDao<AddressDO> {
   @Override
   protected void onSaveOrModify(final AddressDO obj) {
     beforeSaveOrModify(obj);
+  }
+
+  @Override
+  protected void onChange(AddressDO obj, AddressDO dbObj) {
+    // Don't modify the following fields:
+    if (obj.getTransientAttribute("Modify image modification data") != "true") {
+      obj.setImage(dbObj.getImage());
+      obj.setImageLastUpdate(dbObj.getImageLastUpdate());
+    }
+    super.onChange(obj, dbObj);
+  }
+
+  /**
+   * Mark the given address, so the image fields (image and imageLastUpdate) will be updated. imageLastUpdate will be
+   * set to now.
+   * @param address
+   * @param hasImage Is there an image or not?
+   */
+  void internalModifyImageData(AddressDO address, boolean hasImage) {
+    address.setTransientAttribute("Modify image modification data", "true");
+    address.setImage(hasImage);
+    address.setImageLastUpdate(new Date());
   }
 
   @Override
@@ -623,7 +645,7 @@ public class AddressDao extends BaseDao<AddressDO> {
         // More than one result, therefore find the newest one:
         buf.append("+"); // Mark that more than one entry does exist.
         for (final AddressDO matchingUser : resultList) {
-          if (matchingUser.getLastUpdate().after(result.getLastUpdate()) == true) {
+          if (matchingUser.getLastUpdate().after(result.getLastUpdate())) {
             result = matchingUser;
           }
         }

@@ -25,6 +25,7 @@ package org.projectforge.caldav.service
 
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
+import org.projectforge.business.address.AddressImageDao
 import org.projectforge.caldav.model.AddressBook
 import org.projectforge.caldav.model.Contact
 import org.projectforge.framework.access.OperationType
@@ -42,6 +43,9 @@ import javax.annotation.PostConstruct
 open class AddressCache : AbstractCache(TICKS_PER_HOUR), BaseDOChangedListener<AddressDO> {
     @Autowired
     private lateinit var addressDao: AddressDao
+
+    @Autowired
+    private lateinit var addressImageDao: AddressImageDao
 
     @Autowired
     private lateinit var vCardService: VCardService
@@ -67,7 +71,7 @@ open class AddressCache : AbstractCache(TICKS_PER_HOUR), BaseDOChangedListener<A
         log.info("Got ${result.size} addresses from cache and must load ${missedInCache.size} from data base...")
         if (missedInCache.size > 0) {
             addressDao.internalLoad(missedInCache).forEach {
-                val vcard = vCardService.buildVCard(it)
+                val vcard = vCardService.buildVCard(it, addressImageDao)
                 val contact = Contact(it.id, it.fullName, it.lastUpdate, vcard)
                 addCachedContact(it.id, contact)
                 val copy = Contact(contact, addressBook)

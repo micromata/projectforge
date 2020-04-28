@@ -64,6 +64,9 @@ public class AddressDaoRest {
   private AddressDao addressDao;
 
   @Autowired
+  private AddressImageDao addressImageDao;
+
+  @Autowired
   private PersonalAddressDao personalAddressDao;
 
   @Autowired
@@ -111,7 +114,7 @@ public class AddressDaoRest {
     if (modifiedSince == null && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
             ProjectForgeGroup.MARKETING_GROUP)) {
       for (AddressDO addressDO : list) {
-        final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressDO,
+        final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressImageDao, addressDO,
                 BooleanUtils.isTrue(disableImageData), BooleanUtils.isTrue(disableVCardData));
         result.add(address);
       }
@@ -143,7 +146,7 @@ public class AddressDaoRest {
             // Export only personal favorites due to data-protection.
             continue;
           }
-          final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressDO,
+          final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressImageDao, addressDO,
                   BooleanUtils.isTrue(disableImageData), BooleanUtils.isTrue(disableVCardData));
           result.add(address);
         }
@@ -154,7 +157,7 @@ public class AddressDaoRest {
           if (personalAddress.getLastUpdate() != null
                   && !personalAddress.getLastUpdate().before(modifiedSinceDate)) {
             final AddressDO addressDO = addressDao.getById(personalAddress.getAddressId());
-            final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressDO,
+            final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressImageDao, addressDO,
                     BooleanUtils.isTrue(disableImageData), BooleanUtils.isTrue(disableVCardData));
             if (!personalAddress.isFavorite()) {
               // This address was may-be removed by the user from the personal address book, so add this address as deleted to the result
@@ -182,6 +185,7 @@ public class AddressDaoRest {
     String uid = addressObject.getUid() != null ? addressObject.getUid().replace("urn:uuid:", "") : UUID.randomUUID().toString();
     addressObject.setUid(uid);
     AddressDO addressDORequest = AddressDOConverter.getAddressDO(addressObject);
+    byte[] image = AddressDOConverter.getAddressImageDO(addressObject);
     AddressDO addressDOOrig = null;
     boolean isNew = false;
     try {
@@ -226,6 +230,8 @@ public class AddressDaoRest {
 
     addressDao.saveOrUpdate(addressDORequest);
 
+    addressImageDao.saveOrUpdate(addressDORequest.getId(), image);
+
     AddressDO dbAddress = addressDao.findByUid(uid);
 
     if (isNew) {
@@ -237,7 +243,7 @@ public class AddressDaoRest {
       personalAddressDao.saveOrUpdate(personalAddress);
     }
 
-    final String json = JsonUtils.toJson(AddressDOConverter.getAddressObject(addressDao, dbAddress,
+    final String json = JsonUtils.toJson(AddressDOConverter.getAddressObject(addressDao, addressImageDao, dbAddress,
             false, true));
     log.info("Save or update address REST call finished.");
     return Response.ok(json).build();
