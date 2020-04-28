@@ -127,6 +127,7 @@ class AddressPagesRest
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         elements.add(UIFilterElement("myFavorites", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.myFavorites"), defaultFilter = true))
         elements.add(UIFilterElement("doublets", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.doublets")))
+        elements.add(UIFilterElement("images", UIFilterElement.FilterType.BOOLEAN, translate("address.filter.images")))
     }
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<AddressDO>>? {
@@ -134,12 +135,17 @@ class AddressPagesRest
         doubletFilterEntry?.synthetic = true
         val myFavoritesFilterEntry = source.entries.find { it.field == "myFavorites" }
         myFavoritesFilterEntry?.synthetic = true
+        val imagesFilterEntry = source.entries.find { it.field == "images" }
+        imagesFilterEntry?.synthetic = true
         val filters = mutableListOf<CustomResultFilter<AddressDO>>()
-        if (doubletFilterEntry?.value?.value == "true") {
+        if (doubletFilterEntry?.isTrueValue == true) {
             filters.add(DoubletsResultFilter())
         }
-        if (myFavoritesFilterEntry?.value?.value == "true") {
+        if (myFavoritesFilterEntry?.isTrueValue == true) {
             filters.add(FavoritesResultFilter(personalAddressDao))
+        }
+        if (imagesFilterEntry?.isTrueValue == true) {
+            filters.add(ImagesResultFilter())
         }
         return filters
     }
