@@ -59,7 +59,15 @@ import java.util.*;
 @Repository
 public class AddressDao extends BaseDao<AddressDO> {
   private static final DateFormat V_CARD_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"addressText", "postalAddressText", "privateAddressText", "organization"};
+  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {
+          "addressText",
+          "addressText2",
+          "postalAddressText",
+          "postalAddressText2",
+          "privateAddressText",
+          "privateAddressText2",
+          "organization"
+  };
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressDao.class);
 
@@ -428,10 +436,12 @@ public class AddressDao extends BaseDao<AddressDO> {
     print(pw, "TEL;TYPE=HOME:", addressDO.getPrivatePhone());
     print(pw, "TEL;TYPE=HOME;type=CELL:", addressDO.getPrivateMobilePhone());
 
-    if (isGiven(addressDO.getAddressText()) || isGiven(addressDO.getCity())
+    if (isGiven(addressDO.getAddressText()) || isGiven(addressDO.getAddressText2()) || isGiven(addressDO.getCity())
             || isGiven(addressDO.getZipCode())) {
-      pw.print("ADR;TYPE=WORK:;;");
+      pw.print("ADR;TYPE=WORK:;");
       out(pw, addressDO.getAddressText());
+      pw.print(';');
+      out(pw, addressDO.getAddressText2());
       pw.print(';');
       out(pw, addressDO.getCity());
       pw.print(";;");
@@ -441,10 +451,13 @@ public class AddressDao extends BaseDao<AddressDO> {
       pw.println();
     }
     if (isGiven(addressDO.getPrivateAddressText())
+            || isGiven(addressDO.getPrivateAddressText2())
             || isGiven(addressDO.getPrivateCity())
             || isGiven(addressDO.getPrivateZipCode())) {
-      pw.print("ADR;TYPE=HOME:;;");
+      pw.print("ADR;TYPE=HOME:;");
       out(pw, addressDO.getPrivateAddressText());
+      pw.print(';');
+      out(pw, addressDO.getPrivateAddressText2());
       pw.print(';');
       out(pw, addressDO.getPrivateCity());
       pw.print(";;");

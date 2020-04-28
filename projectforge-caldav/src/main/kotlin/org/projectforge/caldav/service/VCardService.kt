@@ -56,6 +56,7 @@ class VCardService {
         val homeAddress = Address()
         homeAddress.types.add(AddressType.HOME)
         homeAddress.streetAddress = addressDO.privateAddressText
+        homeAddress.extendedAddress = addressDO.privateAddressText2
         homeAddress.postalCode = addressDO.privateZipCode
         homeAddress.locality = addressDO.privateCity
         homeAddress.region = addressDO.privateState
@@ -73,6 +74,7 @@ class VCardService {
         val businessAddress = Address()
         businessAddress.types.add(AddressType.WORK)
         businessAddress.streetAddress = addressDO.addressText
+        businessAddress.extendedAddress = addressDO.addressText2
         businessAddress.postalCode = addressDO.zipCode
         businessAddress.locality = addressDO.city
         businessAddress.region = addressDO.state
@@ -92,6 +94,7 @@ class VCardService {
         val postalAddress = Address()
         postalAddress.types.add(AddressType.POSTAL)
         postalAddress.streetAddress = addressDO.postalAddressText
+        postalAddress.extendedAddress = addressDO.postalAddressText2
         postalAddress.postalCode = addressDO.postalZipCode
         postalAddress.locality = addressDO.postalCity
         postalAddress.region = addressDO.postalState

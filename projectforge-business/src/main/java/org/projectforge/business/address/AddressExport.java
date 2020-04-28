@@ -45,147 +45,97 @@ import java.util.Map;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service("addressExport")
-public class AddressExport
-{
-  private class MyContentProvider extends MyXlsContentProvider
-  {
-    public MyContentProvider(final ExportWorkbook workbook)
-    {
-      super(workbook);
-    }
-
-    /**
-     * @see XlsContentProvider#updateRowStyle(ExportRow)
-     */
-    @Override
-    public MyContentProvider updateRowStyle(final ExportRow row)
-    {
-      for (final ExportCell cell : row.getCells()) {
-        final CellFormat format = cell.ensureAndGetCellFormat();
-        format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
-        switch (row.getRowNum()) {
-          case 0:
-            format.setFont(FONT_HEADER);
-            break;
-          case 1:
-            format.setFont(FONT_NORMAL_BOLD);
-            format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.YELLOW.getIndex());
-            break;
-          default:
-            format.setFont(FONT_NORMAL);
-            if (row.getRowNum() % 2 == 0) {
-              format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.GREY_25_PERCENT.getIndex());
-            }
-            break;
-        }
-      }
-      return this;
-    }
-
-    @Override
-    public ContentProvider newInstance()
-    {
-      return new MyContentProvider(this.workbook);
-    }
-  }
-
+public class AddressExport {
+  protected static final int LENGTH_PHONENUMBER = 20;
+  protected static final int LENGTH_EMAIL = 30;
+  protected static final int LENGTH_ZIPCODE = 7;
+  protected static final int LENGTH_STD = 30;
+  protected static final int LENGTH_EXTRA_LONG = 80;
+  protected static final int DATE_LENGTH = 10;
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressExport.class);
-
   @Autowired
   protected AccessChecker accessChecker;
 
-  protected static final int LENGTH_PHONENUMBER = 20;
-
-  protected static final int LENGTH_EMAIL = 30;
-
-  protected static final int LENGTH_ZIPCODE = 7;
-
-  protected static final int LENGTH_STD = 30;
-
-  protected static final int LENGTH_EXTRA_LONG = 80;
-
-  protected static final int DATE_LENGTH = 10;
-
-  private enum Col
-  {
-    NAME, FIRST_NAME, FORM, TITLE, CONTACT_STATUS, ORGANIZATION, DIVISION, POSITION, COMMUNICATION_LANG, EMAIL, WEBSITE, MAILING_ADDRESS, MAILING_ZIPCODE, MAILING_CITY, MAILING_COUNTRY, MAILING_STATE, ADDRESS, ZIPCODE, CITY, COUNTRY, STATE, POSTAL_ADDRESS, POSTAL_ZIPCODE, POSTAL_CITY, POSTAL_COUNTRY, POSTAL_STATE, ADDRESS_STATUS, BUSINESS_PHONE, FAX, MOBILE_PHONE, PRIVATE_ADDRESS, PRIVATE_ZIPCODE, PRIVATE_CITY, PRIVATE_COUNTRY, PRIVATE_STATE, PRIVATE_EMAIL, PRIVATE_PHONE, PRIVATE_MOBILE, BIRTHDAY, CREATED, MODIFIED, COMMENT, FINGERPRINT, PUBLIC_KEY, ID
+  protected ExportColumn[] createColumns() {
+    return new ExportColumn[]{ //
+            new I18nExportColumn(Col.NAME, "name", 20),
+            new I18nExportColumn(Col.FIRST_NAME, "firstName", 20),
+            new I18nExportColumn(Col.FORM, "address.form", 8),
+            new I18nExportColumn(Col.TITLE, "address.title", 10),
+            new I18nExportColumn(Col.CONTACT_STATUS, "address.contactStatus", 10),
+            new I18nExportColumn(Col.ORGANIZATION, "organization", LENGTH_STD),
+            new I18nExportColumn(Col.DIVISION, "address.division", LENGTH_STD),
+            new I18nExportColumn(Col.POSITION, "address.positionText", LENGTH_STD), //
+            new I18nExportColumn(Col.COMMUNICATION_LANG, "address.communication", LENGTH_STD), //
+            new I18nExportColumn(Col.EMAIL, "email", LENGTH_EMAIL),
+            new I18nExportColumn(Col.WEBSITE, "address.website", LENGTH_STD),
+            new I18nExportColumn(Col.MAILING_ADDRESS, "address.addressText", LENGTH_STD),
+            new I18nExportColumn(Col.MAILING_ADDRESS2, "address.addressText2", LENGTH_STD),
+            new I18nExportColumn(Col.MAILING_ZIPCODE, "address.zipCode", LENGTH_ZIPCODE),
+            new I18nExportColumn(Col.MAILING_CITY, "address.city", LENGTH_STD),
+            new I18nExportColumn(Col.MAILING_COUNTRY, "address.country", LENGTH_STD),
+            new I18nExportColumn(Col.MAILING_STATE, "address.state", LENGTH_STD),
+            new I18nExportColumn(Col.ADDRESS, "address.addressText", LENGTH_STD),
+            new I18nExportColumn(Col.ADDRESS2, "address.addressText2", LENGTH_STD),
+            new I18nExportColumn(Col.ZIPCODE, "address.zipCode", LENGTH_ZIPCODE), //
+            new I18nExportColumn(Col.CITY, "address.city", LENGTH_STD),
+            new I18nExportColumn(Col.COUNTRY, "address.country", LENGTH_STD), //
+            new I18nExportColumn(Col.STATE, "address.state", LENGTH_STD),
+            new I18nExportColumn(Col.POSTAL_ADDRESS, "address.postalAddressText", LENGTH_STD),
+            new I18nExportColumn(Col.POSTAL_ADDRESS2, "address.postalAddressText2", LENGTH_STD),
+            new I18nExportColumn(Col.POSTAL_ZIPCODE, "address.zipCode", LENGTH_ZIPCODE),
+            new I18nExportColumn(Col.POSTAL_CITY, "address.city", LENGTH_STD),
+            new I18nExportColumn(Col.POSTAL_COUNTRY, "address.country", LENGTH_STD),
+            new I18nExportColumn(Col.POSTAL_STATE, "address.state", LENGTH_STD),
+            new I18nExportColumn(Col.ADDRESS_STATUS, "address.addressStatus", 12),
+            new I18nExportColumn(Col.BUSINESS_PHONE, "address.phoneType.business", LENGTH_PHONENUMBER),
+            new I18nExportColumn(Col.FAX, "address.phoneType.fax", LENGTH_PHONENUMBER),
+            new I18nExportColumn(Col.MOBILE_PHONE, "address.phoneType.mobile", LENGTH_PHONENUMBER),
+            new I18nExportColumn(Col.PRIVATE_ADDRESS, "address.privateAddressText", LENGTH_STD),
+            new I18nExportColumn(Col.PRIVATE_ADDRESS2, "address.privateAddressText2", LENGTH_STD),
+            new I18nExportColumn(Col.PRIVATE_ZIPCODE, "address.zipCode", LENGTH_ZIPCODE),
+            new I18nExportColumn(Col.PRIVATE_CITY, "address.city", LENGTH_STD),
+            new I18nExportColumn(Col.PRIVATE_COUNTRY, "address.country", LENGTH_STD),
+            new I18nExportColumn(Col.PRIVATE_STATE, "address.state", LENGTH_STD),
+            new I18nExportColumn(Col.PRIVATE_EMAIL, "address.privateEmail", LENGTH_EMAIL),
+            new I18nExportColumn(Col.PRIVATE_PHONE, "address.phoneType.private", LENGTH_PHONENUMBER),
+            new I18nExportColumn(Col.PRIVATE_MOBILE, "address.phoneType.privateMobile", LENGTH_PHONENUMBER),
+            new I18nExportColumn(Col.BIRTHDAY, "address.birthday", DATE_LENGTH), //
+            new I18nExportColumn(Col.MODIFIED, "modified", DATE_LENGTH), //
+            new I18nExportColumn(Col.COMMENT, "comment", LENGTH_EXTRA_LONG),
+            new I18nExportColumn(Col.FINGERPRINT, "address.fingerprint", LENGTH_STD),
+            new I18nExportColumn(Col.PUBLIC_KEY, "address.publicKey", LENGTH_EXTRA_LONG), //
+            new I18nExportColumn(Col.ID, "id", LENGTH_ZIPCODE)};
   }
 
-  protected ExportColumn[] createColumns()
-  {
-    return new ExportColumn[] { //
-        new I18nExportColumn(Col.NAME, "name", 20),
-        new I18nExportColumn(Col.FIRST_NAME, "firstName", 20),
-        new I18nExportColumn(Col.FORM, "address.form", 8),
-        new I18nExportColumn(Col.TITLE, "address.title", 10),
-        new I18nExportColumn(Col.CONTACT_STATUS, "address.contactStatus", 10),
-        new I18nExportColumn(Col.ORGANIZATION, "organization", LENGTH_STD),
-        new I18nExportColumn(Col.DIVISION, "address.division", LENGTH_STD),
-        new I18nExportColumn(Col.POSITION, "address.positionText", LENGTH_STD), //
-        new I18nExportColumn(Col.COMMUNICATION_LANG, "address.communication", LENGTH_STD), //
-        new I18nExportColumn(Col.EMAIL, "email", LENGTH_EMAIL),
-        new I18nExportColumn(Col.WEBSITE, "address.website", LENGTH_STD),
-        new I18nExportColumn(Col.MAILING_ADDRESS, "address.addressText", LENGTH_STD),
-        new I18nExportColumn(Col.MAILING_ZIPCODE, "address.zipCode", LENGTH_ZIPCODE),
-        new I18nExportColumn(Col.MAILING_CITY, "address.city", LENGTH_STD),
-        new I18nExportColumn(Col.MAILING_COUNTRY, "address.country", LENGTH_STD),
-        new I18nExportColumn(Col.MAILING_STATE, "address.state", LENGTH_STD),
-        new I18nExportColumn(Col.ADDRESS, "address.addressText", LENGTH_STD),
-        new I18nExportColumn(Col.ZIPCODE, "address.zipCode", LENGTH_ZIPCODE), //
-        new I18nExportColumn(Col.CITY, "address.city", LENGTH_STD),
-        new I18nExportColumn(Col.COUNTRY, "address.country", LENGTH_STD), //
-        new I18nExportColumn(Col.STATE, "address.state", LENGTH_STD),
-        new I18nExportColumn(Col.POSTAL_ADDRESS, "address.postalAddressText", LENGTH_STD),
-        new I18nExportColumn(Col.POSTAL_ZIPCODE, "address.zipCode", LENGTH_ZIPCODE),
-        new I18nExportColumn(Col.POSTAL_CITY, "address.city", LENGTH_STD),
-        new I18nExportColumn(Col.POSTAL_COUNTRY, "address.country", LENGTH_STD),
-        new I18nExportColumn(Col.POSTAL_STATE, "address.state", LENGTH_STD),
-        new I18nExportColumn(Col.ADDRESS_STATUS, "address.addressStatus", 12),
-        new I18nExportColumn(Col.BUSINESS_PHONE, "address.phoneType.business", LENGTH_PHONENUMBER),
-        new I18nExportColumn(Col.FAX, "address.phoneType.fax", LENGTH_PHONENUMBER),
-        new I18nExportColumn(Col.MOBILE_PHONE, "address.phoneType.mobile", LENGTH_PHONENUMBER),
-        new I18nExportColumn(Col.PRIVATE_ADDRESS, "address.privateAddressText", LENGTH_STD),
-        new I18nExportColumn(Col.PRIVATE_ZIPCODE, "address.zipCode", LENGTH_ZIPCODE),
-        new I18nExportColumn(Col.PRIVATE_CITY, "address.city", LENGTH_STD),
-        new I18nExportColumn(Col.PRIVATE_COUNTRY, "address.country", LENGTH_STD),
-        new I18nExportColumn(Col.PRIVATE_STATE, "address.state", LENGTH_STD),
-        new I18nExportColumn(Col.PRIVATE_EMAIL, "address.privateEmail", LENGTH_EMAIL),
-        new I18nExportColumn(Col.PRIVATE_PHONE, "address.phoneType.private", LENGTH_PHONENUMBER),
-        new I18nExportColumn(Col.PRIVATE_MOBILE, "address.phoneType.privateMobile", LENGTH_PHONENUMBER),
-        new I18nExportColumn(Col.BIRTHDAY, "address.birthday", DATE_LENGTH), //
-        new I18nExportColumn(Col.MODIFIED, "modified", DATE_LENGTH), //
-        new I18nExportColumn(Col.COMMENT, "comment", LENGTH_EXTRA_LONG),
-        new I18nExportColumn(Col.FINGERPRINT, "address.fingerprint", LENGTH_STD),
-        new I18nExportColumn(Col.PUBLIC_KEY, "address.publicKey", LENGTH_EXTRA_LONG), //
-        new I18nExportColumn(Col.ID, "id", LENGTH_ZIPCODE) };
-  }
-
-  protected void addAddressMapping(final PropertyMapping mapping, final AddressDO address, final Object... params)
-  {
+  protected void addAddressMapping(final PropertyMapping mapping, final AddressDO address, final Object... params) {
     mapping.add(Col.NAME, address.getName());
     mapping.add(Col.FIRST_NAME, address.getFirstName());
     mapping.add(Col.FORM,
-        address.getForm() != null ? ThreadLocalUserContext.getLocalizedString(address.getForm().getI18nKey()) : "");
+            address.getForm() != null ? ThreadLocalUserContext.getLocalizedString(address.getForm().getI18nKey()) : "");
     mapping.add(Col.TITLE, address.getTitle());
     mapping.add(Col.CONTACT_STATUS, address.getContactStatus());
     mapping.add(Col.ORGANIZATION, address.getOrganization());
     mapping.add(Col.DIVISION, address.getDivision());
     mapping.add(Col.POSITION, address.getPositionText());
     mapping.add(Col.COMMUNICATION_LANG,
-        LanguageConverter.getLanguageAsString(address.getCommunicationLanguage(), ThreadLocalUserContext.getLocale()));
+            LanguageConverter.getLanguageAsString(address.getCommunicationLanguage(), ThreadLocalUserContext.getLocale()));
     mapping.add(Col.EMAIL, address.getEmail());
     mapping.add(Col.WEBSITE, address.getWebsite());
     mapping.add(Col.MAILING_ADDRESS, address.getMailingAddressText());
+    mapping.add(Col.MAILING_ADDRESS2, address.getMailingAddressText2());
     mapping.add(Col.MAILING_ZIPCODE, address.getMailingZipCode());
     mapping.add(Col.MAILING_CITY, address.getMailingCity());
     mapping.add(Col.MAILING_COUNTRY, address.getMailingCountry());
     mapping.add(Col.MAILING_STATE, address.getMailingState());
     mapping.add(Col.ADDRESS, address.getAddressText());
+    mapping.add(Col.ADDRESS2, address.getAddressText2());
     mapping.add(Col.ZIPCODE, address.getZipCode());
     mapping.add(Col.CITY, address.getCity());
     mapping.add(Col.COUNTRY, address.getCountry());
     mapping.add(Col.STATE, address.getState());
     mapping.add(Col.POSTAL_ADDRESS, address.getPostalAddressText());
+    mapping.add(Col.POSTAL_ADDRESS2, address.getPostalAddressText2());
     mapping.add(Col.POSTAL_ZIPCODE, address.getPostalZipCode());
     mapping.add(Col.POSTAL_CITY, address.getPostalCity());
     mapping.add(Col.POSTAL_COUNTRY, address.getPostalCountry());
@@ -195,6 +145,7 @@ public class AddressExport
     mapping.add(Col.FAX, address.getFax());
     mapping.add(Col.MOBILE_PHONE, address.getMobilePhone());
     mapping.add(Col.PRIVATE_ADDRESS, address.getPrivateAddressText());
+    mapping.add(Col.PRIVATE_ADDRESS2, address.getPrivateAddressText2());
     mapping.add(Col.PRIVATE_ZIPCODE, address.getPrivateZipCode());
     mapping.add(Col.PRIVATE_CITY, address.getPrivateCity());
     mapping.add(Col.PRIVATE_COUNTRY, address.getPrivateCountry());
@@ -211,13 +162,11 @@ public class AddressExport
     mapping.add(Col.ID, address.getId());
   }
 
-  protected String getSheetTitle()
-  {
+  protected String getSheetTitle() {
     return ThreadLocalUserContext.getLocalizedString("address.addresses");
   }
 
-  protected void initSheet(final ExportSheet sheet, final Object... params)
-  {
+  protected void initSheet(final ExportSheet sheet, final Object... params) {
   }
 
   /**
@@ -229,8 +178,7 @@ public class AddressExport
    * @throws IOException
    */
   public byte[] export(final List<AddressDO> origList, final Map<Integer, PersonalAddressDO> personalAddressMap,
-      final Object... params)
-  {
+                       final Object... params) {
     log.info("Exporting address list.");
     final ExportColumn[] columns = createColumns();
 
@@ -256,11 +204,11 @@ public class AddressExport
     sheet.addRow(); // Column headers
     sheet.setMergedRegion(0, 0, Col.MAILING_ADDRESS.ordinal(), Col.MAILING_STATE.ordinal(), "Mailing");
     sheet.setMergedRegion(0, 0, Col.ADDRESS.ordinal(), Col.STATE.ordinal(),
-        ThreadLocalUserContext.getLocalizedString("address.addressText"));
+            ThreadLocalUserContext.getLocalizedString("address.addressText"));
     sheet.setMergedRegion(0, 0, Col.POSTAL_ADDRESS.ordinal(), Col.POSTAL_STATE.ordinal(), ThreadLocalUserContext
-        .getLocalizedString("address.postalAddressText"));
+            .getLocalizedString("address.postalAddressText"));
     sheet.setMergedRegion(0, 0, Col.PRIVATE_ADDRESS.ordinal(), Col.PRIVATE_STATE.ordinal(), ThreadLocalUserContext
-        .getLocalizedString("address.privateAddressText"));
+            .getLocalizedString("address.privateAddressText"));
     initSheet(sheet, params);
 
     sheet.createFreezePane(1, 2);
@@ -273,6 +221,48 @@ public class AddressExport
     }
     sheet.setZoom(75); // 75%
     return xls.getAsByteArray();
+  }
+
+  private enum Col {
+    NAME, FIRST_NAME, FORM, TITLE, CONTACT_STATUS, ORGANIZATION, DIVISION, POSITION, COMMUNICATION_LANG, EMAIL, WEBSITE, MAILING_ADDRESS, MAILING_ADDRESS2, MAILING_ZIPCODE, MAILING_CITY, MAILING_COUNTRY, MAILING_STATE, ADDRESS, ADDRESS2, ZIPCODE, CITY, COUNTRY, STATE, POSTAL_ADDRESS, POSTAL_ADDRESS2, POSTAL_ZIPCODE, POSTAL_CITY, POSTAL_COUNTRY, POSTAL_STATE, ADDRESS_STATUS, BUSINESS_PHONE, FAX, MOBILE_PHONE, PRIVATE_ADDRESS, PRIVATE_ADDRESS2, PRIVATE_ZIPCODE, PRIVATE_CITY, PRIVATE_COUNTRY, PRIVATE_STATE, PRIVATE_EMAIL, PRIVATE_PHONE, PRIVATE_MOBILE, BIRTHDAY, CREATED, MODIFIED, COMMENT, FINGERPRINT, PUBLIC_KEY, ID
+  }
+
+  private class MyContentProvider extends MyXlsContentProvider {
+    public MyContentProvider(final ExportWorkbook workbook) {
+      super(workbook);
+    }
+
+    /**
+     * @see XlsContentProvider#updateRowStyle(ExportRow)
+     */
+    @Override
+    public MyContentProvider updateRowStyle(final ExportRow row) {
+      for (final ExportCell cell : row.getCells()) {
+        final CellFormat format = cell.ensureAndGetCellFormat();
+        format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
+        switch (row.getRowNum()) {
+          case 0:
+            format.setFont(FONT_HEADER);
+            break;
+          case 1:
+            format.setFont(FONT_NORMAL_BOLD);
+            format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.YELLOW.getIndex());
+            break;
+          default:
+            format.setFont(FONT_NORMAL);
+            if (row.getRowNum() % 2 == 0) {
+              format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.GREY_25_PERCENT.getIndex());
+            }
+            break;
+        }
+      }
+      return this;
+    }
+
+    @Override
+    public ContentProvider newInstance() {
+      return new MyContentProvider(this.workbook);
+    }
   }
 
 }

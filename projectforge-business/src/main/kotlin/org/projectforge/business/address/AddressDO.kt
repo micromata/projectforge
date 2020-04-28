@@ -34,6 +34,7 @@ import org.hibernate.search.annotations.Index
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO
 import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -137,6 +138,11 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     @get:Column(length = 255)
     open var addressText: String? = null
 
+    @PropertyInfo(i18nKey = "address.addressText2", additionalI18nKey = "address.business")
+    @Field
+    @get:Column(length = 255)
+    open var addressText2: String? = null
+
     @PropertyInfo(i18nKey = "address.zipCode", additionalI18nKey = "address.business")
     @Field
     @get:Column(name = "zip_code", length = 255)
@@ -166,6 +172,11 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     @Field
     @get:Column(length = 255, name = "postal_addresstext")
     open var postalAddressText: String? = null
+
+    @PropertyInfo(i18nKey = "address.addressText2", additionalI18nKey = "address.postal")
+    @Field
+    @get:Column(length = 255, name = "postal_addresstext2")
+    open var postalAddressText2: String? = null
 
     @PropertyInfo(i18nKey = "address.zipCode", additionalI18nKey = "address.postal")
     @Field
@@ -215,6 +226,11 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     @Field
     @get:Column(length = 255, name = "private_addresstext")
     open var privateAddressText: String? = null
+
+    @PropertyInfo(i18nKey = "address.addressText2", additionalI18nKey = "address.private")
+    @Field
+    @get:Column(length = 255, name = "private_addresstext2")
+    open var privateAddressText2: String? = null
 
     @PropertyInfo(i18nKey = "address.zipCode", additionalI18nKey = "address.private")
     @Field
@@ -290,7 +306,15 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
 
     val fullName: String?
         @Transient
-        get() = listOf(name, firstName, organization).filter { !it.isNullOrBlank() }.joinToString(", ")
+        get() = listOf(fullLastName, firstName, organization).filter { !it.isNullOrBlank() }.joinToString(", ")
+
+    val fullLastName: String?
+        @Transient
+        get() = if (!birthName.isNullOrBlank()) {
+            "$name, ${translate("address.formerly")} $birthName"
+        } else {
+            name
+        }
 
     val fullNameWithTitleAndForm: String
         @Transient
@@ -305,8 +329,8 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
             if (firstName != null) {
                 buf.append(firstName).append(" ")
             }
-            if (name != null) {
-                buf.append(name)
+            if (fullLastName != null) {
+                buf.append(fullLastName)
             }
             return buf.toString()
         }
@@ -322,6 +346,19 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
             hasPostalAddress() -> postalAddressText
             hasDefaultAddress() -> addressText
             else -> privateAddressText
+        }
+
+    /**
+     * @return address text of mailing address (in order: postal, default or private address).
+     * @see .hasPostalAddress
+     * @see .hasDefaultAddress
+     */
+    val mailingAddressText2: String?
+        @Transient
+        get() = when {
+            hasPostalAddress() -> postalAddressText2
+            hasDefaultAddress() -> addressText2
+            else -> privateAddressText2
         }
 
     /**
@@ -424,7 +461,7 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     @Transient
     fun hasPostalAddress(): Boolean {
-        return StringHelper.isNotBlank(postalAddressText, postalZipCode, postalCity, postalCountry)
+        return StringHelper.isNotBlank(postalAddressText, postalAddressText2, postalZipCode, postalCity, postalCountry)
     }
 
     /**
@@ -432,7 +469,7 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     @Transient
     fun hasDefaultAddress(): Boolean {
-        return StringHelper.isNotBlank(addressText, zipCode, city, country)
+        return StringHelper.isNotBlank(addressText, addressText2, zipCode, city, country)
     }
 
     /**
@@ -440,7 +477,7 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     @Transient
     fun hasPrivateAddress(): Boolean {
-        return StringHelper.isNotBlank(privateAddressText, privateZipCode, privateCity, privateCountry)
+        return StringHelper.isNotBlank(privateAddressText, privateAddressText2, privateZipCode, privateCity, privateCountry)
     }
 
     /**
