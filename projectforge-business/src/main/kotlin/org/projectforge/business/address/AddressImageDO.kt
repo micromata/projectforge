@@ -24,11 +24,15 @@
 package org.projectforge.business.address
 
 import de.micromata.genome.jpa.DbRecord
+import org.projectforge.business.fibu.EingangsrechnungDO
 import javax.persistence.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+@NamedQueries(
+        NamedQuery(name = AddressImageDO.SELECT_IMAGE, query = "select image from AddressImageDO where address.id = :addressId"),
+        NamedQuery(name = AddressImageDO.SELECT_IMAGE_PREVIEW, query = "select imagePreview from AddressImageDO where address.id = :addressId"))
 @Entity
 @Table(name = "T_ADDRESS_IMAGE")
 open class AddressImageDO : DbRecord<Int> {
@@ -56,5 +60,10 @@ open class AddressImageDO : DbRecord<Int> {
 
     override fun setPk(pk: Int?) {
         id = pk
+    }
+
+    companion object {
+        internal const val SELECT_IMAGE = "AddressImageDO.selectImage"
+        internal const val SELECT_IMAGE_PREVIEW = "AddressImageDO.selectImagePreview"
     }
 }

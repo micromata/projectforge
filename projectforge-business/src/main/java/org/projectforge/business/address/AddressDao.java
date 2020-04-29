@@ -32,6 +32,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.api.*;
@@ -76,6 +77,8 @@ public class AddressDao extends BaseDao<AddressDO> {
     return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property);
   }
 
+  private AddressCache addressCache;
+
   @Autowired
   private AddressbookDao addressbookDao;
 
@@ -95,6 +98,13 @@ public class AddressDao extends BaseDao<AddressDO> {
 
   public AddressDao() {
     super(AddressDO.class);
+  }
+
+  private AddressCache getAddressCache() {
+    if (addressCache == null) {
+      addressCache = ApplicationContextProvider.getApplicationContext().getBean(AddressCache.class);
+    }
+    return addressCache;
   }
 
   public List<Locale> getUsedCommunicationLanguages() {
@@ -270,7 +280,7 @@ public class AddressDao extends BaseDao<AddressDO> {
     }
     switch (operationType) {
       case SELECT:
-        for (AddressbookDO ab : obj.getAddressbookList()) {
+        for (AddressbookDO ab : getAddressCache().getAddressbooks(obj)) {
           if (addressbookRight.checkGlobal(ab) || addressbookRight.getAccessType(ab, user.getId()).hasAnyAccess()) {
             return true;
           }
@@ -341,6 +351,7 @@ public class AddressDao extends BaseDao<AddressDO> {
   /**
    * Mark the given address, so the image fields (image and imageLastUpdate) will be updated. imageLastUpdate will be
    * set to now.
+   *
    * @param address
    * @param hasImage Is there an image or not?
    */

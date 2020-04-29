@@ -28,6 +28,7 @@ import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.api.UserRightService;
@@ -72,7 +73,16 @@ public class PersonalAddressDao {
   @Autowired
   private UserRightService userRights;
 
+  private PersonalAddressCache personalAddressCache;
+
   private transient AddressbookRight addressbookRight;
+
+  private PersonalAddressCache getPersonalAddressCache() {
+    if (personalAddressCache == null) {
+      personalAddressCache = ApplicationContextProvider.getApplicationContext().getBean(PersonalAddressCache.class);
+    }
+    return personalAddressCache;
+  }
 
   /**
    * @param personalAddress
@@ -150,6 +160,7 @@ public class PersonalAddressDao {
       emgr.persist(obj);
       return null;
     });
+    getPersonalAddressCache().setAsExpired(obj.getOwnerId());
     log.info("New object added (" + obj.getId() + "): " + obj.toString());
     return obj.getId();
   }
@@ -183,11 +194,13 @@ public class PersonalAddressDao {
       if (modified == ModificationStatus.MAJOR) {
         dbObj.setLastUpdate();
         em.merge(dbObj);
+        getPersonalAddressCache().setAsExpired(dbObj.getOwnerId());
         log.info("Object updated: " + dbObj.toString());
       }
       return true;
     });
   }
+
 
   /**
    * @return the PersonalAddressDO entry assigned to the given address for the context user or null, if not exist.
@@ -195,6 +208,14 @@ public class PersonalAddressDao {
   @SuppressWarnings("unchecked")
   public PersonalAddressDO getByAddressId(final Integer addressId) {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
+    return getByAddressId(addressId, owner);
+  }
+
+  /**
+   * @return the PersonalAddressDO entry assigned to the given address for the context user or null, if not exist.
+   */
+  @SuppressWarnings("unchecked")
+  public PersonalAddressDO getByAddressId(final Integer addressId, final PFUserDO owner) {
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
     return SQLHelper.ensureUniqueResult(em
@@ -235,7 +256,7 @@ public class PersonalAddressDao {
             .createNamedQuery(PersonalAddressDO.FIND_JOINED_BY_OWNER, PersonalAddressDO.class)
             .setParameter("ownerId", owner.getId())
             .getResultList();
-    log.info("PersonalDao.getList took " + (System.currentTimeMillis() - start) + "ms.");
+    log.info("PersonalDao.getList took " + (System.currentTimeMillis() - start) + "ms for user " + owner.getId() + ".");
     list = list.stream().filter(pa -> checkAccess(pa, false)).collect(Collectors.toList());
     return list;
   }
