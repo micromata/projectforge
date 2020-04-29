@@ -29,7 +29,6 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import java.util.*
 import javax.persistence.EntityManager
 import javax.persistence.PersistenceContext
 
@@ -56,14 +55,18 @@ open class AddressImageDao {
      * Does the access checking. The user may only get images, if he has the select access to the given address.
      */
     open fun getImage(addressId: Int): ByteArray? {
-        return get(addressId)?.image
+        addressDao.getById(addressId) ?: return null // For access checking!
+        return ensureUniqueResult(em.createNamedQuery(AddressImageDO.SELECT_IMAGE, ByteArray::class.java)
+                .setParameter("addressId", addressId))
     }
 
     /**
      * Does the access checking. The user may only get images, if he has the select access to the given address.
      */
     open fun getPreviewImage(addressId: Int): ByteArray? {
-        return get(addressId)?.imagePreview
+        addressDao.getById(addressId) ?: return null // For access checking!
+        return ensureUniqueResult(em.createNamedQuery(AddressImageDO.SELECT_IMAGE_PREVIEW, ByteArray::class.java)
+                .setParameter("addressId", addressId))
     }
 
     /**

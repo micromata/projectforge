@@ -90,6 +90,9 @@ class AddressPagesRest
     private lateinit var languageService: LanguageService
 
     @Autowired
+    private lateinit var personalAddressCache: PersonalAddressCache
+
+    @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
 
     @Autowired
@@ -104,10 +107,7 @@ class AddressPagesRest
     override fun transformFromDB(obj: AddressDO, editMode: Boolean): Address {
         val address = Address()
         address.copyFrom(obj)
-        val personalAddress = personalAddressDao.getByAddressId(obj.id)
-        if (personalAddress != null) {
-            address.isFavoriteCard = personalAddress.isFavorite == true
-        }
+        address.isFavoriteCard = personalAddressCache.isPersonalAddress(obj.id)
         return address
     }
 
