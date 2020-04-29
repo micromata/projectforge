@@ -32,6 +32,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.api.*;
@@ -76,6 +77,8 @@ public class AddressDao extends BaseDao<AddressDO> {
     return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property);
   }
 
+  private AddressCache addressCache;
+
   @Autowired
   private AddressbookDao addressbookDao;
 
@@ -95,6 +98,13 @@ public class AddressDao extends BaseDao<AddressDO> {
 
   public AddressDao() {
     super(AddressDO.class);
+  }
+
+  private AddressCache getAddressCache() {
+    if (addressCache == null) {
+      addressCache = ApplicationContextProvider.getApplicationContext().getBean(AddressCache.class);
+    }
+    return addressCache;
   }
 
   public List<Locale> getUsedCommunicationLanguages() {
@@ -126,10 +136,10 @@ public class AddressDao extends BaseDao<AddressDO> {
   @Override
   public List<AddressDO> getList(QueryFilter filter) throws AccessException {
     final List<CustomResultFilter<AddressDO>> filters = new ArrayList<>();
-    if (filter.getExtendedBooleanValue("doublets") == true) {
+    if (filter.getExtendedBooleanValue("doublets")) {
       filters.add(new DoubletsResultFilter());
     }
-    if (filter.getExtendedBooleanValue("favorites") == true) {
+    if (filter.getExtendedBooleanValue("favorites")) {
       filters.add(new FavoritesResultFilter(personalAddressDao));
     }
     return super.getList(filter, filters);
@@ -270,7 +280,7 @@ public class AddressDao extends BaseDao<AddressDO> {
     }
     switch (operationType) {
       case SELECT:
-        for (AddressbookDO ab : obj.getAddressbookList()) {
+        for (AddressbookDO ab : getAddressCache().getAddressbooks(obj)) {
           if (addressbookRight.checkGlobal(ab) || addressbookRight.getAccessType(ab, user.getId()).hasAnyAccess()) {
             return true;
           }
@@ -326,6 +336,29 @@ public class AddressDao extends BaseDao<AddressDO> {
   @Override
   protected void onSaveOrModify(final AddressDO obj) {
     beforeSaveOrModify(obj);
+  }
+
+  @Override
+  protected void onChange(AddressDO obj, AddressDO dbObj) {
+    // Don't modify the following fields:
+    if (obj.getTransientAttribute("Modify image modification data") != "true") {
+      obj.setImage(dbObj.getImage());
+      obj.setImageLastUpdate(dbObj.getImageLastUpdate());
+    }
+    super.onChange(obj, dbObj);
+  }
+
+  /**
+   * Mark the given address, so the image fields (image and imageLastUpdate) will be updated. imageLastUpdate will be
+   * set to now.
+   *
+   * @param address
+   * @param hasImage Is there an image or not?
+   */
+  void internalModifyImageData(AddressDO address, boolean hasImage) {
+    address.setTransientAttribute("Modify image modification data", "true");
+    address.setImage(hasImage);
+    address.setImageLastUpdate(new Date());
   }
 
   @Override
@@ -623,7 +656,7 @@ public class AddressDao extends BaseDao<AddressDO> {
         // More than one result, therefore find the newest one:
         buf.append("+"); // Mark that more than one entry does exist.
         for (final AddressDO matchingUser : resultList) {
-          if (matchingUser.getLastUpdate().after(result.getLastUpdate()) == true) {
+          if (matchingUser.getLastUpdate().after(result.getLastUpdate())) {
             result = matchingUser;
           }
         }

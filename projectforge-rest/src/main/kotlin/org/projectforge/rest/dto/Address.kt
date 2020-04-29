@@ -24,6 +24,7 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.address.*
+import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.utils.LabelValueBean
 import java.time.LocalDate
 import java.util.*
@@ -86,12 +87,13 @@ class Address(var contactStatus: ContactStatus? = null,
 
     override fun copyFrom(src: AddressDO) {
         super.copyFrom(src)
-        if (src.imageData != null) {
+        if (src.image == true) {
             imageData = byteArrayOf(1) // Marker for frontend for an available image.
         }
-        if (!src.addressbookList.isNullOrEmpty()) {
+        val srcAddressbookList = addressCache.getAddressbooks(src)
+        if (!srcAddressbookList.isNullOrEmpty()) {
             addressbookList = mutableSetOf()
-            src.addressbookList?.forEach { srcAddressbook ->
+            srcAddressbookList.forEach { srcAddressbook ->
                 val addressbook = Addressbook()
                 addressbook.copyFromMinimal(srcAddressbook)
                 addressbook.title = srcAddressbook.title
@@ -110,6 +112,17 @@ class Address(var contactStatus: ContactStatus? = null,
                 srcAddressbook.copyTo(addressbook)
                 dest.addressbookList!!.add(addressbook)
             }
+        }
+    }
+
+    companion object {
+        private var _addressCache: AddressCache? = null
+        private val addressCache: AddressCache
+        get() {
+            if (_addressCache == null) {
+                _addressCache = ApplicationContextProvider.getApplicationContext().getBean(AddressCache::class.java)
+            }
+            return _addressCache!!
         }
     }
 }

@@ -23,7 +23,7 @@
 
 package org.projectforge.rest
 
-import org.projectforge.business.address.AddressDao
+import org.projectforge.business.address.AddressImageDao
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,7 +52,7 @@ class AddressImageServicesRest() {
     private val log = org.slf4j.LoggerFactory.getLogger(AddressImageServicesRest::class.java)
 
     @Autowired
-    private lateinit var addressDao: AddressDao
+    private lateinit var addressImageDao: AddressImageDao
 
     /**
      * If given and greater 0, the image will be added to the address with the given id (pk), otherwise the image is
@@ -70,34 +70,32 @@ class AddressImageServicesRest() {
             val session = request.session
             ExpiringSessionAttributes.setAttribute(session, SESSION_IMAGE_ATTR, bytes, 1)
         } else {
-            val address = addressDao.getById(id)
-            if (address == null)
-                return ResponseEntity("Not found.", HttpStatus.NOT_FOUND)
-            address.imageData = bytes
-            addressDao.update(address)
-            log.info("New image for address $id (${address.fullName}) saved.")
+
+            val address = addressImageDao.saveOrUpdate(id, bytes)
         }
         return ResponseEntity("OK", HttpStatus.OK)
     }
 
+    /**
+     * @param id The id of the address the image is assigned to.
+     */
     @GetMapping("image/{id}")
     fun getImage(@PathVariable("id") id: Int): ResponseEntity<Resource> {
-        val address = addressDao.getById(id)
-        if (address?.imageData == null)
-            return ResponseEntity(HttpStatus.NOT_FOUND)
-        val resource = ByteArrayResource(address.imageData!!)
+        val image = addressImageDao.getImage(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        val resource = ByteArrayResource(image)
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("application/octet-stream"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ProjectForge-addressImage_$id.png")
                 .body(resource)
     }
 
+    /**
+     * @param id The id of the address the image is assigned to.
+     */
     @GetMapping("imagePreview/{id}")
-    fun getImagePreview(@PathVariable("id") id: Int?): ResponseEntity<Resource> {
-        val address = addressDao.getById(id)
-        if (address?.imageDataPreview == null)
-            return ResponseEntity(HttpStatus.NOT_FOUND)
-        val resource = ByteArrayResource(address.imageDataPreview!!)
+    fun getImagePreview(@PathVariable("id") id: Int): ResponseEntity<Resource> {
+        val image = addressImageDao.getPreviewImage(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        val resource = ByteArrayResource(image)
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("application/octet-stream"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ProjectForge-addressImagePreview_$id.png")
@@ -107,21 +105,14 @@ class AddressImageServicesRest() {
     /**
      * If given and greater 0, the image will be deleted from the address with the given id (pk), otherwise the image is
      * removed from the user's session and will not be used for the next update or save event anymore.
+     * @param id The id of the address the image is assigned to.
      */
-
     @DeleteMapping("deleteImage/{id}")
     fun deleteImage(request: HttpServletRequest, @PathVariable("id") id: Int?): ResponseEntity<String> {
-        if (id == null || id < 0) {
-            val session = request.session
-            ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
-        } else {
-            val address = addressDao.getById(id)
-            if (address == null)
-                return ResponseEntity(HttpStatus.NOT_FOUND)
-            address.imageData = null
-            address.imageDataPreview = null
-            addressDao.update(address)
-            log.info("Image for address $id (${address.fullName}) deleted.")
+        val session = request.session
+        ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
+        if (id != null && id > 0) {
+            addressImageDao.delete(id)
         }
         return ResponseEntity("OK", HttpStatus.OK)
     }
