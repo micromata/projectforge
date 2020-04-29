@@ -210,8 +210,7 @@ class AddressPagesRest
                 .add(UITable.createUIResultSetTable()
                         .add(addressLC, "isFavoriteCard", "lastUpdate")
                         .add(UITableColumn("address.imagePreview", "address.image", dataType = UIDataType.CUSTOMIZED))
-                        .add(UITableColumn("address.fullLastName", "name"))
-                        .add(addressLC, "firstName", "organization", "email")
+                        .add(addressLC, "name", "firstName", "organization", "email")
                         .add(UITableColumn("address.phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED, sortable = false))
                         .add(lc, "address.addressbookList"))
         layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
