@@ -31,14 +31,14 @@ import java.time.format.DateTimeFormatter
 private val log = KotlinLogging.logger {}
 
 /**
- * Cleans up old backup file by keeping e. g. monthly backups and removing daily ones.
+ * Purges old backup file by keeping e. g. monthly backups and removing daily ones.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-object BackupFilesCleaner {
+object BackupFilesPurging {
     /**
-     * @param backupDirectory The backup directory to clean up.
-     * @param filePrefix Clean-up only files with this given prefix. If not given, all files containing a date in its filename will be cleaned-up.
+     * @param backupDirectory The backup directory to purge.
+     * @param filePrefix Purge only files with this given prefix. If not given, all files containing a date in its filename will be purged.
      * @param keepDailyBackups Keep daily backups [keepDailyBackups] days (default value is 30 days).
      * @param baseDate Optional date as base date (today is the default value).
      * @param dateFormatter The format of the date in the filenames (default value is 'yyyy-MM-dd'.
@@ -46,14 +46,14 @@ object BackupFilesCleaner {
      */
     @JvmStatic
     @JvmOverloads
-    fun cleanDirectory(backupDirectory: File,
+    fun purgeDirectory(backupDirectory: File,
                        filePrefix: String? = null,
                        keepDailyBackups: Long = 30,
                        baseDate: LocalDate = LocalDate.now(),
                        dateFormatter: DateTimeFormatter = DATE_FORMATTER,
                        dateRegex: Regex = DATE_REGEX) {
         if (!backupDirectory.exists() || !backupDirectory.isDirectory) {
-            log.error { "Can't clean up directory ${backupDirectory.absolutePath}, it doesn't exist." }
+            log.error { "Can't purge directory ${backupDirectory.absolutePath}, it doesn't exist." }
             return
         }
         val keepDailyBackupsUntil = baseDate.minusDays(keepDailyBackups)
