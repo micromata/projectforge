@@ -25,7 +25,6 @@ package org.projectforge.start;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.ProjectForgeApp;
-import org.projectforge.ProjectForgeVersion;
 import org.projectforge.common.CanonicalFileUtils;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.framework.time.DateHelper;
@@ -36,10 +35,7 @@ import org.springframework.boot.web.embedded.tomcat.ConnectorStartFailedExceptio
 import org.springframework.boot.web.servlet.ServletComponentScan;
 
 import java.io.File;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
 import java.util.Arrays;
-import java.util.List;
 import java.util.TimeZone;
 
 @SpringBootApplication(
@@ -61,28 +57,18 @@ public class ProjectForgeApplication {
   private static final String[] DIR_NAMES = {"ProjectForge", "Projectforge", "projectforge"};
 
   public static void main(String[] args) {
-    log.info("Starting " + ProjectForgeVersion.APP_ID + " " + ProjectForgeVersion.VERSION_NUMBER + ": build date="
-    + ProjectForgeVersion.BUILD_TIMESTAMP + ", " + ProjectForgeVersion.SCM + "=" + ProjectForgeVersion.SCM_ID
-    + " (" + ProjectForgeVersion.SCM_ID_FULL + ")");
     // Find application home or start the setup wizard, if not found:
     File baseDir = new ProjectForgeHomeFinder().findAndEnsureAppHomeDir();
-
     System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, CanonicalFileUtils.absolutePath(baseDir));
 
-    new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL)
-            .log("Using ProjectForge directory: " + CanonicalFileUtils.absolutePath(baseDir))
-            .logEnd();
-
-    log.info("Using Java version: " + System.getProperty("java.vendor") + " " + System.getProperty("java.version"));
-    log.info("Using Java home   : " + System.getProperty("java.home"));
-    RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-    List<String> arguments = runtimeMxBean.getInputArguments();
-    log.info("Using JVM opts    : " + StringUtils.join(arguments, " "));
     args = addDefaultAdditionalLocation(baseDir, args);
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
+
     try {
-      SpringApplication.run(ProjectForgeApplication.class, args);
+      final SpringApplication app = new SpringApplication(ProjectForgeApplication.class);
+      app.addListeners(new ProjectForgeStartupListener(baseDir));
+      app.run(args);
     } catch (Exception ex) {
       log.error("Exception while running application: " + ex.getMessage(), ex);
       Throwable cause = ex;
