@@ -118,12 +118,16 @@ object SQLHelper {
         val sb = StringBuilder()
         sb.append("query='$query', params=[") //query.getQueryString())
         var first = true
-        for (param in query.parameters) { // getParameterMetadata().getNamedParameterNames()
-            if (!first)
-                sb.append(",")
-            else
-                first = false
-            sb.append("$param=[${query.getParameterValue(param)}]")
+        try {
+            for (param in query.parameters) { // getParameterMetadata().getNamedParameterNames()
+                if (!first)
+                    sb.append(",")
+                else
+                    first = false
+                sb.append("$param=[${query.getParameterValue(param)}]")
+            }
+        } catch (ex: Exception) {
+            // Do nothing: Session/EntityManager closed.
         }
         sb.append("]")
         if (StringUtils.isNotBlank(errorMessage))

@@ -194,11 +194,6 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
       }
       cloneFlag = false;
     }
-    byte[] image = null;
-    if (getData().getImageData() != null) {
-      image = imageService.resizeImage(getData().getImageData());
-    }
-    getData().setImageDataPreview(image);
     return null;
   }
 

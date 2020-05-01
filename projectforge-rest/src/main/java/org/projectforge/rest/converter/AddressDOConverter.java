@@ -38,10 +38,12 @@ import java.io.StringWriter;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class AddressDOConverter
-{
-  public static AddressObject getAddressObject(final AddressDao addressDao, final AddressDO addressDO, boolean disableImageData, boolean disableVCard)
-  {
+public class AddressDOConverter {
+  public static AddressObject getAddressObject(final AddressDao addressDao,
+                                               final AddressImageDao addressImageDao,
+                                               final AddressDO addressDO,
+                                               boolean disableImageData,
+                                               boolean disableVCard) {
     if (addressDO == null) {
       return null;
     }
@@ -89,7 +91,7 @@ public class AddressDOConverter
     address.setWebsite(addressDO.getWebsite());
     address.setZipCode(addressDO.getZipCode());
     if (!disableImageData) {
-      address.setImage(Base64.encodeBase64String(addressDO.getImageData()));
+      address.setImage(Base64.encodeBase64String(addressImageDao.getImage(addressDO.getId())));
     }
     if (!disableVCard) {
       final StringWriter writer = new StringWriter();
@@ -99,8 +101,7 @@ public class AddressDOConverter
     return address;
   }
 
-  public static AddressDO getAddressDO(final AddressObject addressObject)
-  {
+  public static AddressDO getAddressDO(final AddressObject addressObject) {
     if (addressObject == null) {
       return null;
     }
@@ -147,9 +148,13 @@ public class AddressDOConverter
     address.setTitle(addressObject.getTitle());
     address.setWebsite(addressObject.getWebsite());
     address.setZipCode(addressObject.getZipCode());
-    if (!StringUtils.isEmpty(addressObject.getImage())) {
-      address.setImageData(Base64.decodeBase64(addressObject.getImage()));
-    }
     return address;
+  }
+
+  public static byte[] getAddressImageDO(final AddressObject addressObject) {
+    if (addressObject == null || StringUtils.isEmpty(addressObject.getImage())) {
+      return null;
+    }
+    return Base64.decodeBase64(addressObject.getImage());
   }
 }

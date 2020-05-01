@@ -29,6 +29,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
+import org.projectforge.business.address.AddressImageDao;
 import org.projectforge.business.address.AddressStatus;
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.web.rest.TaskDaoRest;
@@ -47,6 +48,9 @@ public class RestServicesTest extends AbstractTestBase {
 
   @Autowired
   private AddressDao addressDao;
+
+  @Autowired
+  private AddressImageDao addressImageDao;
 
   private final static int SUCCESS_STATUS = 200;
 
@@ -84,8 +88,10 @@ public class RestServicesTest extends AbstractTestBase {
     addressDO.setPrivateZipCode("1337");
     addressDO.setPrivateMobilePhone("007");
     addressDO.setPrivatePhone("I forgot my number");
-    addressDO.setImageData(new byte[]{0, 1, 3});
     addressDao.save(addressDO);
+
+    addressImageDao.saveOrUpdate(addressDO.getId(),new byte[]{0, 1, 3});
+
 
     Response response = addressDaoRest.getList("", 0L, true, true, true);
     Assertions.assertTrue(((String) response.getEntity()).contains("\"firstName\":\"Marcel\""));
