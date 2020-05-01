@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.core
 
+import org.projectforge.Const
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.rest.config.Rest
@@ -42,7 +43,11 @@ object PagesResolver {
     fun getEditPageUrl(pagesRestClass: Class<out AbstractPagesRest<*, *, *>>, id: Int? = null, params: Map<String, Any?>? = null, absolute: Boolean = false): String {
         val path = getRequestMappingPath(pagesRestClass) ?: return "NOT_FOUND"
         val prefix = if (absolute) "/" else ""
-        val idString = if (id != null) { "/$id" } else { "" }
+        val idString = if (id != null) {
+            "/$id"
+        } else {
+            ""
+        }
         if (path.startsWith('/')) {
             return "$path/edit$idString${getQueryString(params)}"
         }
@@ -70,15 +75,24 @@ object PagesResolver {
     /**
      * @return Path of react page.
      */
+    @JvmStatic
+    @JvmOverloads
     fun getDynamicPageUrl(pageRestClass: Class<*>, params: Map<String, Any?>? = null, id: Int? = null, absolute: Boolean = false): String {
         val path = getRequestMappingPath(pageRestClass, "/dynamic") ?: return "NOT_FOUND"
         val prefix = if (absolute) "/" else ""
         return "$prefix$path/${id ?: ""}${getQueryString(params)}"
     }
 
+    /**
+     * @return the default url (calendar url).
+     */
+    fun getDefaultUrl(): String {
+        return "/${Const.REACT_APP_PATH}calendar"
+    }
+
     fun register(category: String, pagesRest: AbstractPagesRest<*, *, *>) {
         if (pagesRegistry.containsKey(category)) {
-            throw IllegalArgumentException( "Category name '$category' is already registered. Can't register ${pagesRest::class.java.name}." )
+            throw IllegalArgumentException("Category name '$category' is already registered. Can't register ${pagesRest::class.java.name}.")
         }
         pagesRegistry[category] = pagesRest
     }

@@ -49,8 +49,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     BOOK_LIST("menu.bookList", getReactListUrl("book")), //
     CALENDAR("menu.calendar", getReactListUrl("calendar")), //
     TEAMCALENDAR("menu.plugins.teamcal", getReactListUrl("teamCal")), //
-    CHANGE_PASSWORD("menu.changePassword", "wa/changePassword"), //
-    CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", "wa/wicket/bookmarkable/org.projectforge.web.user.ChangeWlanPasswordPage"), //
+    CHANGE_PASSWORD("menu.changePassword", getReactDynamicPageUrl("changePassword")), //
+    CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", getReactDynamicPageUrl("changeWlanPassword")), //
     CONFIGURATION("menu.configuration", "wa/configuration"), //
     CONTACT_LIST("menu.contactList"), //
     CONTRACTS("menu.contracts", getReactListUrl("contract")), //
