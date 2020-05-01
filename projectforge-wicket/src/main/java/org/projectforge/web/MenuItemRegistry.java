@@ -42,7 +42,6 @@ import org.projectforge.web.orga.VisitorbookListPage;
 import org.projectforge.web.scripting.ScriptListPage;
 import org.projectforge.web.scripting.ScriptingPage;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
-import org.projectforge.web.statistics.SystemStatisticsPage;
 import org.projectforge.web.task.TaskTreePage;
 import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
@@ -130,7 +129,6 @@ public class MenuItemRegistry implements Serializable {
     register(MenuItemDefId.SQL_CONSOLE, SqlConsolePage.class);
     register(MenuItemDefId.GROOVY_CONSOLE, GroovyConsolePage.class);
     register(MenuItemDefId.LUCENE_CONSOLE, LuceneConsolePage.class);
-    register(MenuItemDefId.SYSTEM_STATISTICS, SystemStatisticsPage.class);
     register(MenuItemDefId.CONFIGURATION, ConfigurationListPage.class);
     register(MenuItemDefId.PLUGIN_ADMIN, PluginListPage.class);
   }

@@ -55,7 +55,6 @@ import org.projectforge.web.scripting.ScriptExecutePage;
 import org.projectforge.web.scripting.ScriptListPage;
 import org.projectforge.web.scripting.ScriptingPage;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
-import org.projectforge.web.statistics.SystemStatisticsPage;
 import org.projectforge.web.task.TaskEditPage;
 import org.projectforge.web.task.TaskListPage;
 import org.projectforge.web.task.TaskTreePage;
@@ -333,7 +332,6 @@ public class WebRegistry
     addMountPage("search", SearchPage.class);
     addMountPage("sendSms", SendSmsPage.class);
     addMountPage("setup", SetupPage.class);
-    addMountPage("systemStatistics", SystemStatisticsPage.class);
     addMountPage("taskTree", TaskTreePage.class);
     addMountPage("tutorial", TutorialPage.class);
 

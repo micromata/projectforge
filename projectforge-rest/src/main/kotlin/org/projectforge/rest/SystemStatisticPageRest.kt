@@ -4,9 +4,9 @@ import mu.KotlinLogging
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.timesheet.TimesheetDO
+import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.utils.NumberFormatter
@@ -34,57 +34,66 @@ private val log = KotlinLogging.logger {}
 class SystemStatisticPageRest : AbstractDynamicPageRest() {
 
     @Autowired
-    private val dataSource: DataSource? = null
+    private lateinit var dataSource: DataSource
 
     class SystemStatisticData(
-            var systemLoadAverage: BigDecimal? = null,
-            var memoryStatistics: MutableMap<String, String>? = HashMap(),
-            var totalNumberOfTimesheets: String? = null,
-            var totalNumberOfTimesheetDurations: String? = null,
-            var totalNumberOfUsers: String? = null,
-            var totalNumberOfTasks: String? = null,
-            var totalNumberOfHistoryEntries: String? = null
+            val systemLoadAverage: BigDecimal,
+            val totalNumberOfTimesheets: Int,
+            val totalNumberOfTimesheetDurations: BigDecimal,
+            val totalNumberOfUsers: Int,
+            val totalNumberOfTasks: Int,
+            val totalNumberOfHistoryEntries: Int,
+            val memoryStatistics: Map<String, MemoryStatistics>
     )
 
-    fun getData(): SystemStatisticData {
-        val data = SystemStatisticData()
+    class MemoryStatistics(
+            val max: Long,
+            val used: Long,
+            val committed: Long,
+            val init: Long
+    )
 
+    /**
+     * Rest service for getting system statistics.
+     * @return The system statistics for data base usage as well as for memory usage.
+     */
+    @GetMapping
+    fun getSystemStatistics(): SystemStatisticData {
         // First: Get the system load average (don't measure gc run ;-)
         val osBean = ManagementFactory.getOperatingSystemMXBean()
         val systemLoadAverage = BigDecimal(osBean.systemLoadAverage).setScale(2, RoundingMode.HALF_UP)
-        data.systemLoadAverage = systemLoadAverage
         log.info("System load average: $systemLoadAverage")
 
+        val memoriesStatistics = mutableMapOf<String, MemoryStatistics>()
         // Second: run GC and measure memory consumption before getting database statistics.
         System.gc()
-        for (mpBean in ManagementFactory.getMemoryPoolMXBeans()) {
-            if (mpBean.type == MemoryType.HEAP) {
-                val usageBean = mpBean.usage
-                val usage = StringBuilder()
-                        .append("max=").append(NumberHelper.formatBytes(usageBean.max))
-                        .append(", used=").append(NumberHelper.formatBytes(usageBean.used))
-                        .append(", committed=").append(NumberHelper.formatBytes(usageBean.committed))
-                        .append(", init=").append(NumberHelper.formatBytes(usageBean.init))
-                        .toString()
-                data.memoryStatistics!!["Memory " + mpBean.name] = usage
-                log.info("Memory: $usage")
-            }
+        ManagementFactory.getMemoryPoolMXBeans().filter { it.type == MemoryType.HEAP }.forEach { mpBean ->
+            val usageBean = mpBean.usage
+            memoriesStatistics[mpBean.name] = MemoryStatistics(
+                    max = usageBean.max,
+                    used = usageBean.used,
+                    committed = usageBean.committed,
+                    init = usageBean.init
+            )
         }
 
         // Finally, the database statistics.
         val jdbc = JdbcTemplate(dataSource)
-        data.totalNumberOfTimesheets = NumberFormatter.format(getTableCount(jdbc, TimesheetDO::class.java))
         val taskTree = TaskTreeHelper.getTaskTree()
         val totalDuration = taskTree.rootTaskNode.getDuration(taskTree, true)
-        var totalPersonDays: BigDecimal? = BigDecimal(totalDuration).divide(DateHelper.SECONDS_PER_WORKING_DAY, 2, RoundingMode.HALF_UP)
+        var totalPersonDays = BigDecimal(totalDuration).divide(DateHelper.SECONDS_PER_WORKING_DAY, 2, RoundingMode.HALF_UP)
         totalPersonDays = NumberHelper.setDefaultScale(totalPersonDays)
-        data.totalNumberOfTimesheetDurations = NumberHelper.getNumberFractionFormat(ThreadLocalUserContext.getLocale(), totalPersonDays!!.scale()).format(totalPersonDays)
-        data.totalNumberOfUsers = NumberFormatter.format(getTableCount(jdbc, PFUserDO::class.java))
-        data.totalNumberOfTasks = NumberFormatter.format(getTableCount(jdbc, TaskDO::class.java))
-        val totalNumberOfHistoryEntries = getTableCount(jdbc, PfHistoryMasterDO::class.java) + getTableCount(jdbc, PfHistoryMasterDO::class.java)
-        data.totalNumberOfHistoryEntries =  NumberFormatter.format(totalNumberOfHistoryEntries)
 
-        return data
+        val statistics = SystemStatisticData(systemLoadAverage = systemLoadAverage,
+                totalNumberOfTimesheets = getTableCount(jdbc, TimesheetDO::class.java),
+                totalNumberOfTimesheetDurations = totalPersonDays,
+                totalNumberOfUsers = getTableCount(jdbc, PFUserDO::class.java),
+                totalNumberOfTasks = getTableCount(jdbc, TaskDO::class.java),
+                totalNumberOfHistoryEntries = getTableCount(jdbc, PfHistoryMasterDO::class.java) + getTableCount(jdbc, PfHistoryMasterDO::class.java),
+                memoryStatistics = memoriesStatistics)
+
+        log.info("Statistics: ${ToStringUtil.toJsonString(statistics)}")
+        return statistics
     }
 
     private fun getTableCount(jdbc: JdbcTemplate, entity: Class<*>): Int {
@@ -99,58 +108,59 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
 
     @GetMapping("dynamic")
     fun getForm(request: HttpServletRequest): FormLayoutData {
-        val data = getData()
+        val statistics = getSystemStatistics()
 
         val layout = UILayout("system.statistics.title")
+                .add(createRow("system.statistics.totalNumberOfTimesheets", format(statistics.totalNumberOfTimesheets)))
+                .add(createRow("system.statistics.totalNumberOfTimesheetDurations", format(statistics.totalNumberOfTimesheetDurations, 0)))
+                .add(createRow("system.statistics.totalNumberOfUsers", format(statistics.totalNumberOfUsers)))
+                .add(createRow("system.statistics.totalNumberOfTasks", format(statistics.totalNumberOfTasks)))
+                .add(createRow("system.statistics.totalNumberOfHistoryEntries", format(statistics.totalNumberOfHistoryEntries)))
+                .add(createRow("system.statistics.totalNumberOfUsers", format(statistics.totalNumberOfUsers)))
+                .add(createRow("system.statistics.totalNumberOfUsers", format(statistics.totalNumberOfUsers)))
 
-        val row1 = UIRow().add(UICol()
-                .add(UILabel("system.statistics.totalNumberOfTimesheets"))
-                .add(UILabel(data.totalNumberOfTimesheets)))
-
-        layout.add(row1)
-
-        val row2 = UIRow().add(UICol()
-                .add(UILabel("system.statistics.totalNumberOfTimesheetDurations"))
-                .add(UILabel(data.totalNumberOfTimesheetDurations)))
-
-        layout.add(row2)
-
-        val row3 = UIRow().add(UICol()
-                .add(UILabel("system.statistics.totalNumberOfUsers"))
-                .add(UILabel(data.totalNumberOfUsers)))
-
-        layout.add(row3)
-
-        val row4 = UIRow().add(UICol()
-                .add(UILabel("system.statistics.totalNumberOfTasks"))
-                .add(UILabel(data.totalNumberOfTasks)))
-
-        layout.add(row4)
-
-        val row5 = UIRow().add(UICol()
-                .add(UILabel("system.statistics.totalNumberOfHistoryEntries"))
-                .add(UILabel(data.totalNumberOfHistoryEntries)))
-
-        layout.add(row5)
-
-        for ((key, value) in data.memoryStatistics!!) {
-            val row = UIRow().add(UICol()
-                    .add(UILabel(key))
-                    .add(UILabel(value)))
-
-            layout.add(row)
+        statistics.memoryStatistics.forEach { key, value ->
+            layout.add(createRow("'$key", format(value)))
         }
 
-        val row6 = UIRow().add(UICol()
-                .add(UILabel("System load average"))
-                .add(UILabel(data.systemLoadAverage.toString())))
-
-        layout.add(row6)
-
+        layout.add(createRow("'System load average", format(statistics.systemLoadAverage, 2)))
         LayoutUtils.process(layout)
+        return FormLayoutData(statistics, layout, createServerData(request))
+    }
 
-        layout.postProcessPageMenu()
+    private fun format(number: Number, scale: Int? = null): String {
+        return NumberFormatter.format(number, scale)
+    }
 
-        return FormLayoutData(data, layout, createServerData(request))
+    private fun formatBytes(number: Long): String {
+        return NumberHelper.formatBytes(number)
+    }
+
+    private fun format(memory: MemoryStatistics): String {
+        val percent = if (memory.max > 0 && memory.used < memory.max) {
+            " (${format(BigDecimal(memory.used).multiply(NumberHelper.HUNDRED).divide(BigDecimal(memory.max), 0, RoundingMode.HALF_UP), 0)}%)"
+        } else {
+            ""
+        }
+        val max = if (memory.max > 0) {
+            " / ${formatBytes(memory.max)}"
+        } else {
+            ""
+        }
+        val used = if (memory.used > 0) {
+            formatBytes(memory.used)
+        } else {
+            "-"
+        }
+
+        return "used=[$used$max]$percent, committed=[${formatBytes(memory.committed)}], init=[${formatBytes(memory.init)}]"
+    }
+
+    private fun createRow(label: String, value: String): UIRow {
+        return UIRow()
+                .add(UICol(UILength(12, 6, 6, 4, 3))
+                        .add(UILabel(label)))
+                .add(UICol(UILength(12, 6, 6, 8, 9))
+                        .add(UILabel("'$value")))
     }
 }
