@@ -21,39 +21,38 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.jcr
+package org.projectforge.framework.persistence.database
 
 import mu.KotlinLogging
 import org.projectforge.common.BackupFilesCleaner
-import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.io.File
-import java.io.FileOutputStream
-import java.util.zip.ZipOutputStream
 
 private val log = KotlinLogging.logger {}
 
 @Component
 class BackupJob {
-    @Autowired
-    private lateinit var repoBackupService: RepoBackupService
+    @Value("\${projectforge.cron.dbBackupDir}")
+    private val dbBackupDir: String? = null
 
-    // projectforge.cron.jrcBackup=0 30 0 * * *
-    @Scheduled(cron = "\${projectforge.cron.jrcBackup}")
+    @Value("\${projectforge.cron.dbBackupFilesPrefix}")
+    private val dbBackupFilesPrefix: String? = null
+
+    // projectforge.cron.dbBackupCleanup=0 40 0 * * *
+    @Scheduled(cron = "\${projectforge.cron.dbBackupCleanup}")
     fun execute() {
-        log.info("JCR backup job started.")
-        val time = System.currentTimeMillis()
-        val backupFile = RepoBackupService.backupFilename
-        val backupDirectory = repoBackupService.backupDirectory!!
-        val zipFile = File(backupDirectory, backupFile)
-        ZipOutputStream(FileOutputStream(zipFile)).use {
-            repoBackupService.backupAsZipArchive(zipFile.name, it)
+        if (dbBackupDir.isNullOrBlank()) {
+            log.info { "No backup dir will be cleaned up, because the backup dir isn't configured. If you want the feature, that all daily backups will be removed after 30 days but the montly backups will be kept, please configure projectforge.cron.dbBackupCleanup in projectforge.properties." }
+            return
         }
-        log.info("JCR backup job finished after ${(System.currentTimeMillis() - time) / 1000} seconds.")
-        BackupFilesCleaner.cleanDirectory(
-                backupDirectory,
-                filePrefix = RepoBackupService.backupFilenamePrefix
-        )
+        val backupDir = File(dbBackupDir)
+        if (!backupDir.isDirectory) {
+            log.error { "Configured backup dir '$dbBackupDir' isn't a directory. Can't clean up old backups from this directory." }
+            return
+        }
+        log.info { "Starting job for cleaning daily backup files older than 30 days, but monthly backups will be kept." }
+        BackupFilesCleaner.cleanDirectory(backupDir, filePrefix = dbBackupFilesPrefix)
     }
 }
