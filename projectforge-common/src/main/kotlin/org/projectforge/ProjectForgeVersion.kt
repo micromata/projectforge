@@ -44,17 +44,17 @@ object ProjectForgeVersion {
     val BUILD_YEAR = BUILD_TIMESTAMP.substring(0, 4)
     const val SCM = "git"
     @JvmField
-    val SCM_BRANCH = ResourceBundle.getBundle("git").getString("git.branch") ?: "?develop?"
+    val SCM_BRANCH = getGitResource("git.branch")
     @JvmField
-    val SCM_COMMIT_ID = ResourceBundle.getBundle("git").getString("git.commit.id.abbrev") ?: "?abbrevId?"
+    val SCM_COMMIT_ID = getGitResource("git.commit.id.abbrev")
     @JvmField
-    val SCM_COMMIT_ID_FULL = ResourceBundle.getBundle("git").getString("git.commit.id.full") ?: "?fullId?"
+    val SCM_COMMIT_ID_FULL = getGitResource("git.commit.id.full")
     @JvmField
-    val SCM_COMMIT_TIME = ResourceBundle.getBundle("git").getString("git.commit.time") ?: "2020-????"
+    val SCM_COMMIT_TIME = getGitResource("git.commit.time", "2020-?git.commit.time?")
 
     @JvmField
-    val SCM_DIRTY = ResourceBundle.getBundle("git").getString("git.dirty") != "false"
-    private val SCM_DIRTY_STRING = if (SCM_DIRTY) "*dirty*" else ""
+    val SCM_DIRTY = getGitResource("git.dirty") != "false"
+    private val SCM_DIRTY_STRING = if (SCM_DIRTY) "*" else ""
 
     @JvmField
     val SCM_ID = "$SCM_BRANCH@$SCM_COMMIT_ID$SCM_DIRTY_STRING"
@@ -71,4 +71,13 @@ object ProjectForgeVersion {
      * From 2001 until year of scm commit timestamp.
      */
     val COPYRIGHT_YEARS = "2001-$YEAR"
+
+    private fun getGitResource(key: String, defaultString: String = "?$key?"): String {
+        try {
+            return ResourceBundle.getBundle("git").getString(key) ?: defaultString
+        } catch (ex: Exception) {
+            // Should only be OK in develop mode (maven didn't generated the git.properties file yet).
+            return defaultString
+        }
+    }
 }
