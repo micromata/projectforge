@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.pub
 
+import org.projectforge.ProjectForgeVersion
 import org.projectforge.SystemStatus
 import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,9 +41,11 @@ import java.util.*
 class SystemStatusRest {
     data class SystemData(var appname: String,
                           var version: String,
-                          var releaseTimestamp: String,
-                          var releaseDate: String,
+                          var buildTimestamp: String,
+                          var buildDate: String,
                           var releaseYear: String,
+                          val scmId: String,
+                          val scmIdFull: String,
                           var messageOfTheDay: String? = null,
                           var copyRightYears: String,
                           var logoUrl: String? = null,
@@ -60,9 +63,11 @@ class SystemStatusRest {
                 // Must be initialized on demand, LogServiceRest is not available on @PostConstruct in test cases.
                 _systemData = SystemData(appname = systemStatus.appname,
                         version = systemStatus.version,
-                        releaseTimestamp = systemStatus.releaseTimestamp,
-                        releaseDate = systemStatus.releaseDate,
+                        buildTimestamp = systemStatus.buildTimestamp,
+                        buildDate = systemStatus.buildDate,
                         releaseYear = systemStatus.releaseYear,
+                        scmId = systemStatus.scmId,
+                        scmIdFull = systemStatus.scmIdFull,
                         messageOfTheDay = systemStatus.messageOfTheDay,
                         copyRightYears = systemStatus.copyRightYears,
                         logoUrl = LogoServiceRest.logoUrl,
