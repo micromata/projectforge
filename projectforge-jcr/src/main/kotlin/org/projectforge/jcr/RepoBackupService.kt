@@ -216,7 +216,9 @@ open class RepoBackupService {
         val backupFilename: String
             get() {
                 val nowAsIsoString = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").withZone(ZoneOffset.UTC))
-                return "projectforge-jcr-backup-$nowAsIsoString.zip"
+                return "$backupFilenamePrefix$nowAsIsoString.zip"
             }
+
+        val backupFilenamePrefix = "projectforge-jcr-backup-"
     }
 }
