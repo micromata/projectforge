@@ -54,10 +54,12 @@ class BackupFilesCleanerTest {
             Assertions.assertTrue(files.any { it.name == "backup-2020-03-01_01-23_backupfile.zip" })
             Assertions.assertTrue(files.any { it.name == "backup-2020-02-01_01-23_backupfile.zip" })
             Assertions.assertEquals(34, files.size)
+
+            /*
             files.sort()
             files.forEach {
                 println(it.absolutePath)
-            }
+            }*/
         } finally {
             tmpDir.deleteRecursively()
         }
