@@ -29,6 +29,7 @@ import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOChangedListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import javax.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
@@ -38,58 +39,55 @@ private val log = KotlinLogging.logger {}
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Component
-open class AddressbookCache : AbstractCache(), BaseDOChangedListener<AddressbookDO> {
+@Service
+open class AddressCache : AbstractCache(), BaseDOChangedListener<AddressDO> {
     @Autowired
-    private lateinit var addressbookDao: AddressbookDao
-
-    private lateinit var addressBookList: List<AddressbookDO>
-
-    open fun getAddressbook(id: Int): AddressbookDO? {
-        checkRefresh()
-        synchronized(addressBookList) {
-            return addressBookList.find { it.id == id }
-        }
-    }
+    private lateinit var addressDao: AddressDao
 
     /**
-     * @param ab Address book to search for (only id must be given).
-     * @return address book from cache.
+     * List of address books per address (by address.id).
      */
-    open fun getAddressbook(ab: AddressbookDO): AddressbookDO? {
-        checkRefresh()
-        synchronized(addressBookList) {
-            return addressBookList.find { it.id == ab.id }
-        }
-    }
+    private val addressMap = mutableMapOf<Int, MutableSet<AddressbookDO>>()
 
     /**
-     * After modification of any address (insert, update, delete, undelete) this address should be removed from
-     * this cache.
+     * @param address: must be attqched to entity manager for lazy loading of address books.
      */
-    override fun afterSaveOrModifify(changedObject: AddressbookDO, operationType: OperationType) {
-        setExpired()
+    fun getAddressbooks(address: AddressDO): Set<AddressbookDO>? {
+        val id = address.id ?: return null
+        addressMap[id]?.let {
+            return it
+        }
+        val result = address.addressbookList ?: mutableSetOf()
+        synchronized(addressMap) {
+            addressMap[id] = result
+        }
+        return result
+    }
+
+    internal fun setAddressExpired(addressId: Int) {
+        synchronized(addressMap) {
+            addressMap.remove(addressId)
+        }
     }
 
     @PostConstruct
     private fun postConstruct() {
-        addressbookDao.register(this)
+        addressDao.register(this)
+    }
+
+    override fun afterSaveOrModifify(changedObject: AddressDO, operationType: OperationType) {
+        synchronized(addressMap) {
+            addressMap.remove(changedObject.id)
+        }
     }
 
     /**
      * This method will be called by CacheHelper and is synchronized via getData();
      */
     override fun refresh() {
-        log.info("Initializing AddressbookCache ...")
-        // This method must not be synchronized because it works with a new copy of maps.
-        val newList = mutableListOf<AddressbookDO>()
-        val list = addressbookDao.internalLoadAll()
-        list.forEach {
-            if (!it.isDeleted) {
-                newList.add(it)
-            }
+        log.info("Refreshing AddressCache ...")
+        synchronized(addressMap) {
+            addressMap.clear()
         }
-        addressBookList = newList
-        log.info("Initializing of AddressbookCache done.")
     }
 }

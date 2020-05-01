@@ -75,7 +75,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
         }
         pagesRest.onBeforeDatabaseAction(request, obj, postData, if (obj.id != null) OperationType.UPDATE else OperationType.INSERT)
         baseDao.saveOrUpdate(obj) ?: obj.id
-        pagesRest.onAfterSaveOrUpdate(obj, postData)
+        pagesRest.onAfterSaveOrUpdate(request, obj, postData)
         if (isNew) {
             return ResponseEntity(pagesRest.onAfterSave(obj, postData), HttpStatus.OK)
         } else {

@@ -28,7 +28,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.projectforge.AppVersion;
+import org.projectforge.ProjectForgeVersion;
 import org.projectforge.SystemAlertMessage;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
@@ -44,8 +44,7 @@ import org.projectforge.web.wicket.flowlayout.*;
 import java.io.Serializable;
 import java.util.Date;
 
-public class AdminForm extends AbstractStandardForm<AdminForm, AdminPage>
-{
+public class AdminForm extends AbstractStandardForm<AdminForm, AdminPage> {
   private static final long serialVersionUID = -2450673501083584299L;
 
   protected Integer reindexNewestNEntries = 1000;
@@ -60,15 +59,13 @@ public class AdminForm extends AbstractStandardForm<AdminForm, AdminPage>
 
   protected DatePanel reindexFromDatePanel;
 
-  public AdminForm(final AdminPage parentPage)
-  {
+  public AdminForm(final AdminPage parentPage) {
     super(parentPage);
   }
 
   @Override
   @SuppressWarnings("serial")
-  protected void init()
-  {
+  protected void init() {
     super.init();
     gridBuilder.newSplitPanel(GridSize.COL50);
     gridBuilder.newFormHeading(getString("system.admin.group.title.alertMessage"));
@@ -77,23 +74,19 @@ public class AdminForm extends AbstractStandardForm<AdminForm, AdminPage>
       alertMessage = SystemAlertMessage.INSTANCE.getAlertMessage();
 
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(this, "alertMessage"), 1000))
-          .setAutogrow();
+              .setAutogrow();
     }
     {
       final FieldsetPanel fs = gridBuilder.newFieldset("").suppressLabelForWarning();
-      fs.add(new MyButtonPanel(fs.newChildId(), "setAlertMessage")
-      {
+      fs.add(new MyButtonPanel(fs.newChildId(), "setAlertMessage") {
         @Override
-        public void onSubmit()
-        {
+        public void onSubmit() {
           parentPage.setAlertMessage();
         }
       }.getButtonPanel());
-      fs.add(new MyButtonPanel(fs.newChildId(), "clearAlertMessage")
-      {
+      fs.add(new MyButtonPanel(fs.newChildId(), "clearAlertMessage") {
         @Override
-        public void onSubmit()
-        {
+        public void onSubmit() {
           parentPage.clearAlertMessage();
         }
 
@@ -101,47 +94,42 @@ public class AdminForm extends AbstractStandardForm<AdminForm, AdminPage>
          * @see org.projectforge.web.admin.AdminForm.MyButtonPanel#isVisible()
          */
         @Override
-        public boolean isVisible()
-        {
+        public boolean isVisible() {
           return StringUtils.isNotBlank(alertMessage);
         }
       }.getButtonPanel());
     }
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("system.admin.alertMessage.copyAndPaste.title"))
-          .suppressLabelForWarning();
+              .suppressLabelForWarning();
       fs.add(new DivTextPanel(fs.newChildId(),
-          ThreadLocalUserContext.getLocalizedMessage("system.admin.alertMessage.copyAndPaste.text",
-              AppVersion.NUMBER)));
+              ThreadLocalUserContext.getLocalizedMessage("system.admin.alertMessage.copyAndPaste.text",
+                      ProjectForgeVersion.VERSION_NUMBER)));
     }
 
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("system.admin.reindex.newestEntries"),
-          getString("system.admin.reindex.newestEntries.subtitle"));
+              getString("system.admin.reindex.newestEntries.subtitle"));
       fs.add(new MinMaxNumberField<Integer>(InputPanel.WICKET_ID,
-          new PropertyModel<Integer>(this, "reindexNewestNEntries"), 0,
-          Integer.MAX_VALUE));
+              new PropertyModel<Integer>(this, "reindexNewestNEntries"), 0,
+              Integer.MAX_VALUE));
       fs.addHelpIcon(getString("system.admin.reindex.newestEntries.tooltip"));
     }
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("system.admin.reindex.fromDate"));
       final DatePanel datePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(this, "reindexFromDate"));
       fs.add(datePanel);
-      fs.addHelpIcon(new Model<String>()
-      {
+      fs.addHelpIcon(new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           return getString("system.admin.reindex.fromDate.tooltip")
-              + (reindexFromDate != null ? " (" + DateHelper.formatAsUTC(reindexFromDate) + ")" : "");
+                  + (reindexFromDate != null ? " (" + DateHelper.formatAsUTC(reindexFromDate) + ")" : "");
         }
       });
-      fs.add(new MyButtonPanel(fs.newChildId(), "reindex")
-      {
+      fs.add(new MyButtonPanel(fs.newChildId(), "reindex") {
         @Override
-        public void onSubmit()
-        {
+        public void onSubmit() {
           parentPage.reindex();
         }
       }.getButtonPanel());
@@ -151,30 +139,26 @@ public class AdminForm extends AbstractStandardForm<AdminForm, AdminPage>
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("system.admin.group.title.misc.logEntries"));
       final MaxLengthTextArea logEntries = new MaxLengthTextArea(TextAreaPanel.WICKET_ID,
-          new PropertyModel<String>(this, "logEntries"),
-          10000);
+              new PropertyModel<String>(this, "logEntries"),
+              10000);
       logEntries.add(AttributeModifier.append("style", "width: 100%; height: 20em;"));
       fs.add(logEntries);
       fs.addHelpIcon(getString("system.admin.button.formatLogEntries.textarea.tooltip"));
     }
     {
       final FieldsetPanel fs = gridBuilder.newFieldset("").suppressLabelForWarning();
-      fs.add(new MyButtonPanel(fs.newChildId(), "formatLogEntries")
-      {
+      fs.add(new MyButtonPanel(fs.newChildId(), "formatLogEntries") {
         @Override
-        public void onSubmit()
-        {
+        public void onSubmit() {
           parentPage.formatLogEntries();
         }
       }.getButtonPanel());
     }
     gridBuilder.newGridPanel();
     final DivPanel section = gridBuilder.getPanel();
-    final DivTextPanel logMessages = new DivTextPanel(section.newChildId(), new Model<String>()
-    {
+    final DivTextPanel logMessages = new DivTextPanel(section.newChildId(), new Model<String>() {
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         return formattedLogEntries;
       }
     });
@@ -182,8 +166,7 @@ public class AdminForm extends AbstractStandardForm<AdminForm, AdminPage>
     section.add(logMessages);
   }
 
-  private abstract class MyButtonPanel implements Serializable
-  {
+  private abstract class MyButtonPanel implements Serializable {
     private static final long serialVersionUID = -7100891342667728950L;
 
     private final Button button;
@@ -191,13 +174,10 @@ public class AdminForm extends AbstractStandardForm<AdminForm, AdminPage>
     private final SingleButtonPanel buttonPanel;
 
     @SuppressWarnings("serial")
-    private MyButtonPanel(final String id, final String i18nKey)
-    {
-      button = new Button(SingleButtonPanel.WICKET_ID, new Model<String>())
-      {
+    private MyButtonPanel(final String id, final String i18nKey) {
+      button = new Button(SingleButtonPanel.WICKET_ID, new Model<String>()) {
         @Override
-        public final void onSubmit()
-        {
+        public final void onSubmit() {
           MyButtonPanel.this.onSubmit();
         }
 
@@ -205,25 +185,22 @@ public class AdminForm extends AbstractStandardForm<AdminForm, AdminPage>
          * @see org.apache.wicket.Component#isVisible()
          */
         @Override
-        public boolean isVisible()
-        {
+        public boolean isVisible() {
           return MyButtonPanel.this.isVisible();
         }
       };
       buttonPanel = new SingleButtonPanel(id, button, getString("system.admin.button." + i18nKey),
-          SingleButtonPanel.NORMAL);
+              SingleButtonPanel.NORMAL);
       WicketUtils.addTooltip(button, getString("system.admin.button." + i18nKey + ".tooltip"));
     }
 
-    public SingleButtonPanel getButtonPanel()
-    {
+    public SingleButtonPanel getButtonPanel() {
       return buttonPanel;
     }
 
     public abstract void onSubmit();
 
-    public boolean isVisible()
-    {
+    public boolean isVisible() {
       return true;
     }
   }

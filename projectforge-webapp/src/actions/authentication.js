@@ -8,12 +8,12 @@ export const userLoginBegin = () => ({
     type: USER_LOGIN_BEGIN,
 });
 
-export const userLoginSuccess = (user, version, releaseTimestamp, alertMessage) => ({
+export const userLoginSuccess = (user, version, buildTimestamp, alertMessage) => ({
     type: USER_LOGIN_SUCCESS,
     payload: {
         user,
         version,
-        releaseTimestamp,
+        buildTimestamp,
         alertMessage,
     },
 });
@@ -43,7 +43,7 @@ export const loadUserStatus = () => (dispatch) => {
             dispatch(userLoginSuccess(
                 userData,
                 systemData.version,
-                systemData.releaseTimestamp,
+                systemData.buildTimestamp,
                 alertMessage,
             ));
         })

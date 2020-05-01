@@ -6,7 +6,8 @@ import style from './Footer.module.scss';
 function Footer() {
     const {
         version,
-        releaseTimestamp,
+        buildTimestamp,
+        scmId,
         copyRightYears,
     } = React.useContext(SystemStatusContext);
 
@@ -50,7 +51,7 @@ function Footer() {
                         title="News"
                         className={style.news_link}
                     >
-                        {`${version}, ${releaseTimestamp}`}
+                        {`${scmId}, ${version}, ${buildTimestamp}`}
                     </a>
                 </li>
             </ul>
