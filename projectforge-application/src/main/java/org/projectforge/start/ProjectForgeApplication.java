@@ -25,6 +25,7 @@ package org.projectforge.start;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.ProjectForgeApp;
+import org.projectforge.ProjectForgeVersion;
 import org.projectforge.common.CanonicalFileUtils;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.framework.time.DateHelper;
@@ -60,6 +61,9 @@ public class ProjectForgeApplication {
   private static final String[] DIR_NAMES = {"ProjectForge", "Projectforge", "projectforge"};
 
   public static void main(String[] args) {
+    log.info("Starting " + ProjectForgeVersion.APP_ID + " " + ProjectForgeVersion.VERSION_NUMBER + ": build date="
+    + ProjectForgeVersion.BUILD_TIMESTAMP + ", " + ProjectForgeVersion.SCM + "=" + ProjectForgeVersion.SCM_ID
+    + " (" + ProjectForgeVersion.SCM_ID_FULL + ")");
     // Find application home or start the setup wizard, if not found:
     File baseDir = new ProjectForgeHomeFinder().findAndEnsureAppHomeDir();
 
