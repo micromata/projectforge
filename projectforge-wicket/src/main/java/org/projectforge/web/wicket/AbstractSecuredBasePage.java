@@ -23,7 +23,7 @@
 
 package org.projectforge.web.wicket;
 
-import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.multitenancy.TenantRegistry;
@@ -34,8 +34,9 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.i18n.MessageParam;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.rest.ChangePasswordPageRest;
+import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.web.session.MySession;
-import org.projectforge.web.user.ChangePasswordPage;
 
 /**
  * All pages with required login should be derived from this page.
@@ -62,7 +63,7 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
       WicketUtils.redirectToLogin(this);
     }
     if (isAccess4restrictedUsersAllowed() == false && getUser().getRestrictedUser() == true) {
-      throw new RestartResponseException(ChangePasswordPage.class);
+      throw new RedirectToUrlException(PagesResolver.INSTANCE.getDynamicPageUrl(ChangePasswordPageRest.class));
     }
   }
 

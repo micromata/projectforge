@@ -8,6 +8,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
@@ -28,7 +29,7 @@ class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
     private lateinit var userDao: UserDao
 
     @Autowired
-    private val userService: UserService? = null
+    private lateinit var userService: UserService
 
     class WlanPasswordData(
             var userId: Int? = null,
@@ -44,24 +45,20 @@ class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
         val data = postData.data
         check(ThreadLocalUserContext.getUserId() == data.userId) { "Oups, ChangeWlanPasswordPage is called with another than the logged in user!" }
 
-        check(data.newWlanPassword == data.wlanPasswordRepeat) { val validationErrors = mutableListOf<ValidationError>()
-            validationErrors.add(ValidationError.create("user.error.passwordAndRepeatDoesNotMatch"))
+        if (data.newWlanPassword == data.wlanPasswordRepeat) {
+            val validationErrors = listOf(ValidationError.create("user.error.passwordAndRepeatDoesNotMatch"))
             return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
         }
+        log.info { "The user wants to change his WLAN password." }
 
-        log.info { "User wants to change his WLAN password." }
-
-        val errorMsgKeys = userService!!.changeWlanPassword(userDao.getById(data.userId), data.loginPassword, data.newWlanPassword)
-
-        check(errorMsgKeys.isEmpty()) {
-            val validationErrors = mutableListOf<ValidationError>()
-            for (errorMsgKey in errorMsgKeys){
-                validationErrors.add(ValidationError.create(errorMsgKey.key))
-            }
-            return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+        val errorMsgKeys = userService.changeWlanPassword(userDao.getById(data.userId), data.loginPassword, data.newWlanPassword)
+        processErrorKeys(errorMsgKeys)?.let {
+            return it // Error messages occured:
         }
-
-        return ResponseEntity(ResponseAction("/${Const.REACT_APP_PATH}calendar", message = ResponseAction.Message("user.changePassword.msg.passwordSuccessfullyChanged")), HttpStatus.OK)
+        return ResponseEntity(ResponseAction(PagesResolver.getDefaultUrl(),
+                message = ResponseAction.Message("user.changePassword.msg.passwordSuccessfullyChanged"),
+                targetType = TargetType.REDIRECT
+        ), HttpStatus.OK)
     }
 
     @GetMapping("dynamic")
@@ -85,17 +82,20 @@ class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
                 dataType = UIDataType.PASSWORD,
                 required = true)
 
-        layout.add(UIRow()
-                .add(UICol()
-                        .add(oldPassword)
-                        .add(newPassword)
-                        .add(passwordRepeat)
-                        .add(UIButton("update",
-                                translate("update"),
-                                UIColor.SUCCESS,
-                                responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
-                                default = true)
-                        )))
+        layout.add(oldPassword)
+                .add(newPassword)
+                .add(passwordRepeat)
+                .addAction(UIButton("cancel",
+                        translate("cancel"),
+                        UIColor.DANGER,
+                        responseAction = ResponseAction(PagesResolver.getDefaultUrl(), targetType = TargetType.REDIRECT))
+                )
+                .addAction(UIButton("update",
+                        translate("update"),
+                        UIColor.SUCCESS,
+                        responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
+                        default = true)
+                )
 
         LayoutUtils.process(layout)
 

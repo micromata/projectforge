@@ -60,7 +60,7 @@ private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/myAccount")
-class MyAccountPageRest: AbstractDynamicPageRest() {
+class MyAccountPageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var authenticationsService: UserAuthenticationsService
 
@@ -200,7 +200,7 @@ class MyAccountPageRest: AbstractDynamicPageRest() {
                 .add(UIFieldset(12)
                         .add(UITextArea("sshPublicKey", userLC))
                 )
-                .add(UIButton("update",
+                .addAction(UIButton("update",
                         translate("update"),
                         UIColor.SUCCESS,
                         responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
@@ -209,12 +209,12 @@ class MyAccountPageRest: AbstractDynamicPageRest() {
 
         layout.add(MenuItem("changePassword",
                 i18nKey = "menu.changePassword",
-                url = "wa/changePassword",
+                url = PagesResolver.getDynamicPageUrl(ChangePasswordPageRest::class.java),
                 type = MenuItemTargetType.REDIRECT))
         if (Login.getInstance().isWlanPasswordChangeSupported(user)) {
             layout.add(MenuItem("changeWlanPassword",
                     i18nKey = "menu.changeWlanPassword",
-                    url = "wa/wicket/bookmarkable/org.projectforge.web.user.ChangeWlanPasswordPage",
+                    url = PagesResolver.getDynamicPageUrl(ChangeWlanPasswordPageRest::class.java),
                     type = MenuItemTargetType.REDIRECT))
         }
 

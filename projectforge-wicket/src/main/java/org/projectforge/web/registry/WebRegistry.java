@@ -317,7 +317,6 @@ public class WebRegistry
 
     addMountPage("admin", AdminPage.class);
     addMountPage("calendar", CalendarPage.class);
-    addMountPage("changePassword", ChangePasswordPage.class);
     addMountPage("configuration", ConfigurationListPage.class);
     addMountPage("datevImport", DatevImportPage.class);
     addMountPage("doc", DocumentationPage.class);
