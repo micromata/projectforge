@@ -30,30 +30,41 @@ import java.time.LocalDate
 import java.time.Month
 import java.time.format.DateTimeFormatter
 
-class BackupFilesCleanerTest {
+class BackupFilesPurgingTest {
     @Test
-    fun cleanupTest() {
-        val tmpDir = createTempDir("BackupFilesCleanerTest")
+    fun purgeTest() {
+        val tmpDir = createTempDir("BackupFilesPurginTest")
         try {
             val baseDate = LocalDate.of(2020, Month.MAY, 3)
             var current = baseDate.minusMonths(5)
             val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+            val basename = "projectforge"
+            val basename2 = "database"
             while (current.isBefore(baseDate)) {
-                File(tmpDir, "backup-${dateFormatter.format(current)}_01-23_backupfile.zip").createNewFile()
+                File(tmpDir, "$basename-${dateFormatter.format(current)}_01-23_backupfile.zip").createNewFile()
+                File(tmpDir, "$basename2-${dateFormatter.format(current)}_01-23_backupfile.zip").createNewFile()
                 current = current.plusDays(1)
             }
             var files = tmpDir.listFiles()
-            Assertions.assertEquals(152, files.size)
-            Assertions.assertTrue(files.any { it.name == "backup-2020-01-16_01-23_backupfile.zip" })
+            Assertions.assertEquals(304, files.size)
+            Assertions.assertTrue(files.any { it.name == "$basename-2020-01-16_01-23_backupfile.zip" })
 
-            BackupFilesCleaner.cleanDirectory(tmpDir, baseDate = baseDate)
+            BackupFilesPurging.purgeDirectory(tmpDir, baseDate = baseDate, filePrefix = "other-backup")
             files = tmpDir.listFiles()
-            Assertions.assertTrue(files.any { it.name == "backup-2020-04-03_01-23_backupfile.zip" })
-            Assertions.assertFalse(files.any { it.name == "backup-2020-04-02_01-23_backupfile.zip" })
-            Assertions.assertTrue(files.any { it.name == "backup-2020-04-01_01-23_backupfile.zip" })
-            Assertions.assertTrue(files.any { it.name == "backup-2020-03-01_01-23_backupfile.zip" })
-            Assertions.assertTrue(files.any { it.name == "backup-2020-02-01_01-23_backupfile.zip" })
-            Assertions.assertEquals(34, files.size)
+            Assertions.assertEquals(304, files.size, "Nothing purged, because prefix didn't match.")
+
+            BackupFilesPurging.purgeDirectory(tmpDir, baseDate = baseDate, filePrefix = basename)
+            files = tmpDir.listFiles()
+            Assertions.assertTrue(files.any { it.name == "$basename-2020-04-03_01-23_backupfile.zip" })
+            Assertions.assertFalse(files.any { it.name == "$basename-2020-04-02_01-23_backupfile.zip" })
+            Assertions.assertTrue(files.any { it.name == "$basename-2020-04-01_01-23_backupfile.zip" })
+            Assertions.assertTrue(files.any { it.name == "$basename-2020-03-01_01-23_backupfile.zip" })
+            Assertions.assertTrue(files.any { it.name == "$basename-2020-02-01_01-23_backupfile.zip" })
+            Assertions.assertEquals(186, files.size)
+
+            BackupFilesPurging.purgeDirectory(tmpDir, baseDate = baseDate)
+            files = tmpDir.listFiles()
+            Assertions.assertEquals(68, files.size)
 
             /*
             files.sort()

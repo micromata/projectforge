@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.database
 
 import mu.KotlinLogging
-import org.projectforge.common.BackupFilesCleaner
+import org.projectforge.common.BackupFilesPurging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -32,16 +32,19 @@ import java.io.File
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * Purges data base backup files by using [BackupFilesPurging] if backup dir is configured in projectforge.properties.
+ */
 @Component
-class BackupJob {
-    @Value("\${projectforge.cron.dbBackupDir}")
+class DatabaseBackupPurgeJob {
+    @Value("\${projectforge.cron.purgeBackupDir}")
     private val dbBackupDir: String? = null
 
-    @Value("\${projectforge.cron.dbBackupFilesPrefix}")
+    @Value("\${projectforge.cron.purgeBackupFilesPrefix}")
     private val dbBackupFilesPrefix: String? = null
 
     // projectforge.cron.dbBackupCleanup=0 40 0 * * *
-    @Scheduled(cron = "\${projectforge.cron.dbBackupCleanup}")
+    @Scheduled(cron = "\${projectforge.cron.purgeBackup}")
     fun execute() {
         if (dbBackupDir.isNullOrBlank()) {
             log.info { "No backup dir will be cleaned up, because the backup dir isn't configured. If you want the feature, that all daily backups will be removed after 30 days but the montly backups will be kept, please configure projectforge.cron.dbBackupCleanup in projectforge.properties." }
@@ -53,6 +56,6 @@ class BackupJob {
             return
         }
         log.info { "Starting job for cleaning daily backup files older than 30 days, but monthly backups will be kept." }
-        BackupFilesCleaner.cleanDirectory(backupDir, filePrefix = dbBackupFilesPrefix)
+        BackupFilesPurging.purgeDirectory(backupDir, filePrefix = dbBackupFilesPrefix)
     }
 }
