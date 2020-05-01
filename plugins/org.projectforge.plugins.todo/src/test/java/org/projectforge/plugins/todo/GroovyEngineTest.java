@@ -66,7 +66,7 @@ public class GroovyEngineTest extends AbstractTestBase {
 
     final String res = engine.executeTemplate("Hallo $name, your locale is '<%= pf.getI18nString(\"locale.de\") %>'.");
     assertEquals("Hallo Kai, your locale is 'Deutsch'.", res);
-    assertEquals("Hallo Kai, your locale is 'Deutsch'. " + ProjectForgeVersion.APP_ID + " Finished: Englisch", engine
+    assertEquals("Hallo Kai, your locale is 'Deutsch'. " + ProjectForgeVersion.APP_ID + "\n Finished: Englisch", engine
             .executeTemplateFile("scripting/template.txt"));
   }
 
