@@ -20,6 +20,24 @@ ProjectForge supports external 3rd party plugins:
 3. Start ProjectForge and activate the plugin as admin in the ProjectForge's web app under menu Admin->plugins.
 4. Restart ProjectForge.
 
+== Backups
+=== JCR
+Attachments will be handled through the built-in JCR module. The backups are placed in `ProjectForge/backup`, the daily backups will
+purged after 30 days, but the monthly backups at the first of every month will be kept.
+
+=== DB backup`
+You may configure a purge job in `projectforge.properties`:
+```# If purgeBackupDir is given and exists, ProjectForge will purge daily backups older than 30 days, but monthly backups will be kept.
+# The filenames must contain the date in ISO format (...yyyy-MM-dd....).
+# This is the backup dir to look for:
+projectforge.cron.purgeBackupDir=/home/projectforge/backup
+# You may optional specify the prefix of the backup files (if not given, all files containing a date in its filename will be processed):
+projectforge.cron.purgeBackupFilesPrefix=projectforge_
+```
+Your daily data base backups should contain the date of backup in ISO format in its file name.
+Daily backups (not monthly) will be deleted after 30 days.
+Refer config file for all options: [https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties]
+
 == Reverse Proxy Setup
 
 The recommended way of setting up ProjectForge is to use a reverse proxy to do the SSL termination. This document focueses on using the NGINX web server software to  accomplish this.
