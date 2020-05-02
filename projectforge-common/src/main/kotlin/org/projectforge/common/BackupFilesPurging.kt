@@ -59,10 +59,13 @@ object BackupFilesPurging {
         val keepDailyBackupsUntil = baseDate.minusDays(keepDailyBackups)
         log.info { "Keeping daily backups back until ${DATE_FORMATTER.format(keepDailyBackupsUntil)} and keeping monthly backups forever in ${backupDirectory.absolutePath}/${filePrefix ?: ""}*..." }
         var deletedFiles = 0
+        var keptFiles = 0
+        var totalFiles = 0
         for (file in backupDirectory.listFiles()) {
             if (filePrefix != null && !file.name.startsWith(filePrefix)) {
                 continue
             }
+            totalFiles++
             val dateString = dateRegex.find(file.name)?.value
             dateString?.let {
                 val date = LocalDate.parse(it, dateFormatter)
@@ -72,11 +75,15 @@ object BackupFilesPurging {
                         log.info { "Deleting file '${file.absolutePath}'..." }
                         file.delete()
                         deletedFiles++
+                    } else {
+                        keptFiles++
                     }
+                } else {
+                    keptFiles++
                 }
             }
         }
-        log.info { "Deleted $deletedFiles files in ${backupDirectory.absolutePath}'" }
+        log.info { "Deleted $deletedFiles/$totalFiles files ($keptFiles kept) in ${backupDirectory.absolutePath}'" }
     }
 
     private val DATE_REGEX = """\d{4}-\d{2}-\d{2}""".toRegex()

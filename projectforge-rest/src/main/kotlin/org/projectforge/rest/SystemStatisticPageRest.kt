@@ -171,7 +171,7 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
         val used = if (memory.used > 0) {
             formatBytes(memory.used)
         } else {
-            "-"
+            "0"
         }
 
         return "used=[$used$max]$percent, committed=[${formatBytes(memory.committed)}], init=[${formatBytes(memory.init)}]"
