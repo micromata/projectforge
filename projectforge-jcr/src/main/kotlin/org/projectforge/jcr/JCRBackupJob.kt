@@ -39,8 +39,8 @@ class JCRBackupJob {
     @Autowired
     private lateinit var repoBackupService: RepoBackupService
 
-    // projectforge.cron.jrcBackup=0 30 0 * * *
-    @Scheduled(cron = "\${projectforge.cron.jrcBackup}")
+    // projectforge.jcr.cron.backup=0 30 0 * * *
+    @Scheduled(cron = "\${projectforge.jcr.cron.backup}")
     fun execute() {
         log.info("JCR backup job started.")
         val time = System.currentTimeMillis()
