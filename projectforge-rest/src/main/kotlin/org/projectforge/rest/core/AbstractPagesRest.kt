@@ -48,6 +48,7 @@ import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.dto.*
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
+import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.http.HttpStatus
@@ -318,6 +319,17 @@ constructor(private val baseDaoClazz: Class<B>,
         return getInitialList(getCurrentFilter())
     }
 
+    /**
+     * Removes unknown filter entries. This is useful, if after migration etc. some filter entries are stored in the user
+     * pref but that didn't exist.
+     */
+    protected open fun removeUnknownFilterEntries(filter: MagicFilter, filterEntries: Set<String>) {
+        filter.entries.removeIf {
+            val field = it.field
+            field != null && !filterEntries.contains(field)
+        }
+    }
+
     protected fun getInitialList(filter: MagicFilter): InitialListData {
         val favorites = getFilterFavorites()
         val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter))
@@ -326,7 +338,15 @@ constructor(private val baseDaoClazz: Class<B>,
                 .addTranslations("table.showing",
                         "searchFilter",
                         "nothingFound")
-        ui.add(LayoutListFilterUtils.createNamedContainer(this, lc))
+        val searchFilterContainer = LayoutListFilterUtils.createNamedSearchFilterContainer(this, lc)
+        val filterEntries = mutableSetOf<String>()
+        searchFilterContainer.content.forEach {
+            if (it is UIFilterElement) {
+                filterEntries.add(it.id)
+            }
+        }
+        removeUnknownFilterEntries(filter, filterEntries)
+        ui.add(searchFilterContainer)
         ui.postProcessPageMenu()
         if (classicsLinkListUrl != null) {
             ui.add(MenuItem(CLASSIC_VERSION_MENU, title = "*", url = classicsLinkListUrl, tooltip = translate("goreact.menu.classics")), 0)
@@ -344,7 +364,7 @@ constructor(private val baseDaoClazz: Class<B>,
     /**
      * @return the standard edit page at default.
      */
-    open protected fun getStandardEditPage(): String {
+    protected open fun getStandardEditPage(): String {
         return "${Const.REACT_APP_PATH}$category/edit/:id"
     }
 
@@ -514,7 +534,7 @@ constructor(private val baseDaoClazz: Class<B>,
     @GetMapping("reindexNewest")
     fun reindexNewest(): ResponseAction {
         baseDao.rebuildDatabaseIndex4NewestEntries()
-        return ResponseAction(message = ResponseAction.Message("administration.reindexNewest.successful", color = UIColor.SUCCESS))
+        return ResponseAction(message = ResponseAction.Message("administration.reindexNewest.successful", color = UIColor.SUCCESS), targetType = TargetType.TOAST)
     }
 
     /**
@@ -524,7 +544,7 @@ constructor(private val baseDaoClazz: Class<B>,
     @GetMapping("reindexFull")
     fun reindexFull(): ResponseAction {
         baseDao.rebuildDatabaseIndex()
-        return ResponseAction(message = ResponseAction.Message("administration.reindexFull.successful", color = UIColor.SUCCESS))
+        return ResponseAction(message = ResponseAction.Message("administration.reindexFull.successful", color = UIColor.SUCCESS), targetType = TargetType.TOAST)
     }
 
     abstract fun processResultSetBeforeExport(resultSet: ResultSet<O>): ResultSet<*>
