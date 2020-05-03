@@ -49,6 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.Tuple;
+import javax.persistence.criteria.JoinType;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
@@ -344,8 +345,25 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       // nothing to do
       return;
     }
+    final List<DBPredicate> orCriterions = new ArrayList<>();
+    orCriterions.add(QueryFilter.isIn("auftragsStatus", auftragsStatuses));
 
-    queryFilter.add(QueryFilter.isIn("auftragsStatus", auftragsStatuses));
+    queryFilter.createJoin("positionen")
+            .createJoin("paymentSchedules", JoinType.LEFT);
+
+    orCriterions.add(QueryFilter.isIn("positionen.status", myFilter.getAuftragsPositionStatuses()));
+
+    // special case
+    if (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN)) {
+      orCriterions.add(QueryFilter.eq("paymentSchedules.reached", true));
+    }
+
+    queryFilter.add(QueryFilter.or(orCriterions.toArray(new DBPredicate[orCriterions.size()])));
+
+    // check deleted
+    if (!myFilter.isIgnoreDeleted()) {
+      queryFilter.add(QueryFilter.eq("positionen.deleted", myFilter.isDeleted()));
+    }
   }
 
   private Optional<DBPredicate> createCriterionForErfassungsDatum(final AuftragFilter myFilter) {
