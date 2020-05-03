@@ -115,7 +115,7 @@ public class ProjectForgeApp {
     this.environment = environment;
     this.userXmlPreferencesCache = userXmlPreferencesCache;
     repoService.init(new File(ConfigXml.getInstance().getJcrDirectory()));
-    repoBackupService.setBackupDirectory(new File(ConfigXml.getInstance().getBackupDirectory()));
+    repoBackupService.initBackupDir(new File(ConfigXml.getInstance().getBackupDirectory()));
     this.systemInfoCache = systemInfoCache;
     this.systemStatus = systemStatus;
   }
