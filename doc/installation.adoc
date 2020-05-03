@@ -23,12 +23,13 @@ ProjectForge supports external 3rd party plugins:
 == Backups
 === JCR
 Attachments will be handled through the built-in JCR module. The backups are placed in `ProjectForge/backup`, the daily backups will
-purged after 30 days, but the monthly backups at the first of every month will be kept.
+purged after 30 days keeping each first monthly backup.
 
-=== DB backup`
+=== DB backup
 You may configure a purge job in `projectforge.properties`:
-```# If purgeBackupDir is given and exists, ProjectForge will purge daily backups older than 30 days, but monthly backups will be kept.
-# The filenames must contain the date in ISO format (...yyyy-MM-dd....).
+```
+### If purgeBackupDir is given and exists, ProjectForge will purge daily backups older than 30 days keeping each first monthly backup.
+### The filenames must contain the date in ISO format (...yyyy-MM-dd....).
 # This is the backup dir to look for:
 projectforge.cron.purgeBackupDir=/home/projectforge/backup
 # You may optional specify the prefix of the backup files (if not given, all files containing a date in its filename will be processed):

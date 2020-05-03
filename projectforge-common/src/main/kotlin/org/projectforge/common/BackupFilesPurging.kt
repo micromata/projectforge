@@ -61,7 +61,8 @@ object BackupFilesPurging {
         var deletedFiles = 0
         var keptFiles = 0
         var totalFiles = 0
-        for (file in backupDirectory.listFiles()) {
+        val firstSet = mutableSetOf<String>()
+        for (file in backupDirectory.listFiles().sorted()) {
             if (filePrefix != null && !file.name.startsWith(filePrefix)) {
                 continue
             }
@@ -69,7 +70,12 @@ object BackupFilesPurging {
             val dateString = dateRegex.find(file.name)?.value
             dateString?.let {
                 val date = LocalDate.parse(it, dateFormatter)
-                if (date.dayOfMonth > 1) {
+                val monthlyFileString = "${file.name.substringBefore(it)}-${MONTH_FORMATTER.format(date)}"
+                if (!firstSet.contains(monthlyFileString)) {
+                    // Don't remove the first file of each month.
+                    firstSet.add(monthlyFileString)
+                    keptFiles++
+                } else if (date.dayOfMonth > 1) {
                     // Daily backup not at the beginning of a month.
                     if (date.isBefore(keepDailyBackupsUntil)) {
                         log.info { "Deleting file '${file.absolutePath}'..." }
@@ -89,4 +95,5 @@ object BackupFilesPurging {
     private val DATE_REGEX = """\d{4}-\d{2}-\d{2}""".toRegex()
 
     private val DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    private val MONTH_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM")
 }
