@@ -243,7 +243,9 @@ public class LiquidityEntryListPage
   private LiquidityForecast getForecast()
   {
     // Consider only invoices of the last year:
-    final LocalDate fromDate = LocalDate.now().minusYears(1);
+    final LocalDate fromDate = form.getSearchFilter().getBaseDate().minusYears(1);
+    forecast.setBaseDate(form.getSearchFilter().getBaseDate());
+
     {
       final List<RechnungDO> paidInvoices = rechnungDao.getList(new RechnungFilter().setShowBezahlt().setFromDate(fromDate));
       forecast.calculateExpectedTimeOfPayments(paidInvoices);
@@ -259,7 +261,11 @@ public class LiquidityEntryListPage
       forecast.setCreditorInvoices(creditorInvoices);
     }
 
-    final List<LiquidityEntryDO> list = liquidityEntryDao.getList(new LiquidityFilter().setPaymentStatus(PaymentStatus.UNPAID));
+    final LiquidityFilter filter = new LiquidityFilter().setBaseDate(fromDate);
+    if (!form.getSearchFilter().getBaseDate().isBefore(LocalDate.now())) {
+      filter.setPaymentStatus(PaymentStatus.UNPAID);
+    }
+    final List<LiquidityEntryDO> list = liquidityEntryDao.getList(filter);
     forecast.set(list);
 
     forecast.build();

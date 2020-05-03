@@ -28,15 +28,18 @@ import org.projectforge.business.fibu.PaymentStatus;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class LiquidityFilter extends BaseSearchFilter implements Serializable
 {
   private static final long serialVersionUID = -6069385642823972160L;
+
+  private LocalDate baseDate;
 
   private int nextDays;
 
@@ -51,6 +54,18 @@ public class LiquidityFilter extends BaseSearchFilter implements Serializable
   public LiquidityFilter(final BaseSearchFilter filter)
   {
     super(filter);
+  }
+
+  /**
+   * Base date is normally today. May be set to dates in the past for comparisons.
+   */
+  public LocalDate getBaseDate() {
+    return baseDate != null ? baseDate : LocalDate.now();
+  }
+
+  public LiquidityFilter setBaseDate(LocalDate baseDate) {
+    this.baseDate = baseDate;
+    return this;
   }
 
   /**
