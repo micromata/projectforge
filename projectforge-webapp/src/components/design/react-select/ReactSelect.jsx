@@ -95,7 +95,7 @@ function ReactSelect(
                 className={classNames(
                     className,
                     'react-select__container',
-                    { hasValue: value },
+                    { hasValue: Boolean(value) },
                     color,
                 )}
                 classNamePrefix="react-select"
