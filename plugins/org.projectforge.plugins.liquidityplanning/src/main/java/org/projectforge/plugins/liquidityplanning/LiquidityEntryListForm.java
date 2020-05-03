@@ -32,15 +32,19 @@ import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
+
+import java.time.LocalDate;
 
 /**
  * The list formular for the list view (this example has no filter settings). See ToDoListPage for seeing how to use
  * filter settings.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, LiquidityEntryListPage>
 {
@@ -58,14 +62,19 @@ public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, Li
     return parentPage.getStatistics();
   }
 
-  /**
-   * @see org.projectforge.web.wicket.AbstractListForm#init()
-   */
   @SuppressWarnings("serial")
   @Override
   protected void init()
   {
     super.init();
+    gridBuilder.newGridPanel();
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.liquidityplanning.forecast.baseDate"));
+      final FieldProperties<LocalDate> props = getBaseDateProperties();
+      LocalDatePanel baseDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+      fs.add(baseDatePanel);
+      fs.addHelpIcon(getString("plugins.liquidityplanning.forecast.baseDate.tooltip"));
+    }
     gridBuilder.newGridPanel();
     {
       // Statistics
@@ -203,5 +212,9 @@ public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, Li
   protected Logger getLogger()
   {
     return log;
+  }
+
+  private FieldProperties<LocalDate> getBaseDateProperties() {
+    return new FieldProperties<>("plugins.liquidityplanning.forecast.baseDate", new PropertyModel<>(getSearchFilter(), "baseDate"));
   }
 }

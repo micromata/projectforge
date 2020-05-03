@@ -66,6 +66,16 @@ public class LiquidityForecast implements Serializable {
 
   private Collection<LiquidityEntry> creditorInvoicesLiquidityEntries;
 
+  private LocalDate baseDate = LocalDate.now();
+
+  public LocalDate getBaseDate() {
+    return baseDate != null ? baseDate : LocalDate.now();
+  }
+
+  public void setBaseDate(LocalDate baseDate) {
+    this.baseDate = baseDate;
+  }
+
   /**
    * Refresh forecast from stored liqui-entries, invoices and creditor invoices and sort the entries.
    *
@@ -120,11 +130,12 @@ public class LiquidityForecast implements Serializable {
     if (list == null) {
       return this;
     }
+    final boolean ignorePaidStatus = baseDate.isBefore(LocalDate.now());
     for (final LiquidityEntryDO liquiEntry : list) {
       final LiquidityEntry entry = new LiquidityEntry();
       entry.setDateOfPayment(liquiEntry.getDateOfPayment());
       entry.setAmount(liquiEntry.getAmount());
-      entry.setPaid(liquiEntry.getPaid());
+      entry.setPaid(!ignorePaidStatus && liquiEntry.getPaid());
       entry.setSubject(liquiEntry.getSubject());
       entry.setType(LiquidityEntryType.LIQUIDITY);
       this.liquiEntries.add(entry);
@@ -352,6 +363,7 @@ public class LiquidityForecast implements Serializable {
     if (list == null) {
       return this;
     }
+    final boolean ignorePaidStatus = baseDate.isBefore(LocalDate.now());
     for (final RechnungDO invoice : list) {
       final LiquidityEntry entry = new LiquidityEntry();
       if (invoice.getBezahlDatum() != null) {
@@ -360,7 +372,7 @@ public class LiquidityForecast implements Serializable {
         entry.setDateOfPayment(invoice.getFaelligkeit());
       }
       entry.setAmount(invoice.getGrossSum());
-      entry.setPaid(invoice.isBezahlt());
+      entry.setPaid(!ignorePaidStatus && invoice.isBezahlt());
       entry.setSubject("#" + invoice.getNummer() + ": " + invoice.getKundeAsString() + ": " + invoice.getBetreff());
       entry.setType(LiquidityEntryType.DEBITOR);
       setExpectedTimeOfPayment(entry, invoice);
@@ -375,6 +387,7 @@ public class LiquidityForecast implements Serializable {
     if (list == null) {
       return this;
     }
+    final boolean ignorePaidStatus = baseDate.isBefore(LocalDate.now());
     for (final EingangsrechnungDO invoice : list) {
       final LiquidityEntry entry = new LiquidityEntry();
       if (invoice.getBezahlDatum() != null) {
@@ -383,7 +396,7 @@ public class LiquidityForecast implements Serializable {
         entry.setDateOfPayment(invoice.getFaelligkeit());
       }
       entry.setAmount(invoice.getGrossSum().negate());
-      entry.setPaid(invoice.isBezahlt());
+      entry.setPaid(!ignorePaidStatus && invoice.isBezahlt());
       entry.setSubject(invoice.getKreditor() + ": " + invoice.getBetreff());
       entry.setType(LiquidityEntryType.CREDITOR);
       setExpectedTimeOfPayment(entry, invoice);

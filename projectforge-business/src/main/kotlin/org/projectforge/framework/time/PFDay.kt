@@ -150,6 +150,10 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         return ChronoUnit.DAYS.between(date, other.date)
     }
 
+    fun daysBetween(other: LocalDate): Long {
+        return ChronoUnit.DAYS.between(date, other)
+    }
+
     override fun plusDays(days: Long): PFDay {
         return PFDay(date.plusDays(days))
     }

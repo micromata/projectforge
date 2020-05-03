@@ -35,7 +35,7 @@ import org.jfree.data.time.TimeSeriesCollection;
 import org.projectforge.business.scripting.I18n;
 import org.projectforge.charting.XYChartBuilder;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 
 import java.awt.*;
 import java.util.Date;
@@ -69,7 +69,7 @@ public class LiquidityChartBuilder
     double accumulated = accumulatedExpected;
     double worstCase = accumulated;
 
-    PFDateTime dt = PFDateTime.now();
+    PFDay dt = PFDay.from(forecast.getBaseDate());
     final Date lower = dt.getUtilDate();
     for (int i = 0; i < settings.getNextDays(); i++) {
       if (log.isDebugEnabled()) {
@@ -130,7 +130,7 @@ public class LiquidityChartBuilder
     final TimeSeries debitSeries = new TimeSeries(I18n.getString("plugins.liquidityplanning.common.debit"));
     double accumulatedExpected = settings.getStartAmount().doubleValue();
 
-    PFDateTime dt = PFDateTime.now();
+    PFDay dt = PFDay.from(forecast.getBaseDate());
     final Date lower = dt.getUtilDate();
     for (int i = 0; i < settings.getNextDays(); i++) {
       final Day day = new Day(dt.getDayOfMonth(), dt.getMonthValue(), dt.getYear());

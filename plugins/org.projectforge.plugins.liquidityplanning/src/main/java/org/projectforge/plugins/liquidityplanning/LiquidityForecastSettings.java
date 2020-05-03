@@ -25,6 +25,7 @@ package org.projectforge.plugins.liquidityplanning;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public class LiquidityForecastSettings implements Serializable
 {
@@ -34,11 +35,21 @@ public class LiquidityForecastSettings implements Serializable
 
   public static final int DEFAULT_FORECAST_DAYS = 600;
 
+  private LocalDate baseDate = LocalDate.now();
+
   private BigDecimal startAmount = BigDecimal.ZERO;
 
   private int nextDays = 30;
 
   private int expectencyForRecentMonths = 12;
+
+  public LocalDate getBaseDate() {
+    return baseDate;
+  }
+
+  public void setBaseDate(LocalDate baseDate) {
+    this.baseDate = baseDate;
+  }
 
   /**
    * @return the startAmount if given or {@link BigDecimal#ZERO}.
