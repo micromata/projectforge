@@ -85,7 +85,8 @@ public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, Li
       }, TextStyle.RED) {
         @Override
         public boolean isVisible() {
-          return getSearchFilter().getBaseDate() != null;
+          final LocalDate baseDate = getSearchFilter().getBaseDate();
+          return baseDate != null && baseDate.isBefore(LocalDate.now());
         }
       });
       fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {

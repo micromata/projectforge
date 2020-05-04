@@ -63,14 +63,16 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
     var creditorInvoices: Collection<EingangsrechnungDO>? = null
         private set
     private var creditorInvoicesLiquidityEntries = mutableListOf<LiquidityEntry>()
-    private var baseDate = LocalDate.now()
-    fun getBaseDate(): LocalDate {
-        return (if (baseDate != null && baseDate!!.isBefore(LocalDate.now())) baseDate else LocalDate.now())!!
-    }
 
-    fun setBaseDate(baseDate: LocalDate?) {
-        this.baseDate = baseDate
-    }
+    var baseDate: LocalDate? = null
+        get() {
+            field?.let {
+                if (it.isBefore(LocalDate.now())) {
+                    return it
+                }
+            }
+            return null
+        }
 
     /**
      * Refresh forecast from stored liqui-entries, invoices and creditor invoices and sort the entries.
@@ -80,9 +82,9 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
      */
     fun build(): LiquidityForecast {
         entries.clear()
-        entries.addAll(liquiEntries!!)
-        entries.addAll(invoicesLiquidityEntries!!)
-        entries.addAll(creditorInvoicesLiquidityEntries!!)
+        entries.addAll(liquiEntries)
+        entries.addAll(invoicesLiquidityEntries)
+        entries.addAll(creditorInvoicesLiquidityEntries)
         sort()
         return this
     }
@@ -123,7 +125,7 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
         if (list == null) {
             return this
         }
-        val ignorePaidStatus = baseDate!!.isBefore(LocalDate.now())
+        val ignorePaidStatus = baseDate?.isBefore(LocalDate.now()) ?: false
         for (liquiEntry in list) {
             val entry = LiquidityEntry()
             entry.dateOfPayment = liquiEntry.dateOfPayment
@@ -167,7 +169,7 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
             if (customerId != null) {
                 ensureAndAddDebitorPaymentValue("customer#$customerId", timeForPayment, amount)
             }
-            val account = accountCache!!.getKonto(invoice)
+            val account = accountCache.getKonto(invoice)
             val accountId = account?.id
             if (accountId != null) {
                 ensureAndAddDebitorPaymentValue("account#$accountId", timeForPayment, amount)
@@ -202,7 +204,7 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
                         KundeFormatter.formatKundeAsString(customer, null))) {
             return
         }
-        val account = accountCache!!.getKonto(invoice)
+        val account = accountCache.getKonto(invoice)
         if (account != null
                 && setExpectedDateOfPayment(entry, dateOfInvoice, "account#" + account.id,
                         "" + account.nummer + " - " + account.bezeichnung)) {
@@ -360,7 +362,7 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
         if (list == null) {
             return this
         }
-        val ignorePaidStatus = baseDate!!.isBefore(LocalDate.now())
+        val ignorePaidStatus = baseDate?.isBefore(LocalDate.now()) == true
         for (invoice in list) {
             val entry = LiquidityEntry()
             if (invoice.bezahlDatum != null) {
@@ -388,7 +390,7 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
         if (list == null) {
             return this
         }
-        val ignorePaidStatus = baseDate!!.isBefore(LocalDate.now())
+        val ignorePaidStatus = baseDate?.isBefore(LocalDate.now()) == true
         for (invoice in list) {
             val entry = LiquidityEntry()
             if (invoice.bezahlDatum != null) {

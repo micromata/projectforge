@@ -34,6 +34,8 @@ import org.projectforge.web.wicket.JFreeChartImage;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.flowlayout.ImagePanel;
 
+import java.util.Objects;
+
 public class LiquidityForecastPage extends AbstractStandardFormPage
 {
   private static final long serialVersionUID = 6510134821712582764L;
@@ -44,6 +46,9 @@ public class LiquidityForecastPage extends AbstractStandardFormPage
 
   @SpringBean
   private LiquidityEntryDao liquidityEntryDao;
+
+  @SpringBean
+  private LiquidityForecastBuilder liquidityForecastBuilder;
 
   @SpringBean
   private RechnungDao rechnungDao;
@@ -92,6 +97,9 @@ public class LiquidityForecastPage extends AbstractStandardFormPage
     //      forecast = LiquidityEntryListPage.getForecast();
     //    }
     super.onBeforeRender();
+    if (!Objects.equals(form.getSettings().getBaseDate(), forecast.getBaseDate())) {
+      forecast = liquidityForecastBuilder.build(form.getSettings().getBaseDate());
+    }
     final LiquidityChartBuilder chartBuilder = new LiquidityChartBuilder();
     {
       final JFreeChart chart = chartBuilder.createXYPlot(forecast, form.getSettings());
@@ -116,6 +124,7 @@ public class LiquidityForecastPage extends AbstractStandardFormPage
   public LiquidityForecastPage setForecast(final LiquidityForecast forecast)
   {
     this.forecast = forecast;
+    form.getSettings().setBaseDate(forecast.getBaseDate());
     return this;
   }
 
