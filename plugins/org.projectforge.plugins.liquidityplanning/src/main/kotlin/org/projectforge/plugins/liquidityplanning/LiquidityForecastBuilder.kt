@@ -48,15 +48,17 @@ open class LiquidityForecastBuilder {
     /**
      * Calculates expected dates of payments inside the last year (-365 days).
      */
-    open fun build(nextDays: Int = 60, baseDate: LocalDate?): LiquidityForecast {
+    open fun build(baseDate: LocalDate?): LiquidityForecast {
         val baseDate = baseDate ?: LocalDate.now()
         val forecast = LiquidityForecast(accountCache)
         // Consider only invoices of the last year:
         val historicalForecast = baseDate.isBefore(LocalDate.now())
         val fromDate = baseDate.minusMonths(12)
-        forecast.setBaseDate(baseDate)
+        val toDate = baseDate.plusMonths(3)
+        forecast.baseDate = baseDate
 
-        processInvoices(forecast, baseDate, fromDate, nextDays, historicalForecast)
+        processInvoices(forecast, baseDate, fromDate, toDate, historicalForecast)
+        processCreditorInvoices(forecast, baseDate, fromDate, toDate, historicalForecast)
 
         val filter = LiquidityFilter()
         filter.baseDate = baseDate
@@ -72,8 +74,8 @@ open class LiquidityForecastBuilder {
         return forecast
     }
 
-    private fun processInvoices(forecast: LiquidityForecast, baseDate: LocalDate, fromDate: LocalDate, nextDays: Int, historicalForecast: Boolean) {
-        val rechnungFilter = createRechnungFilter(baseDate, fromDate, nextDays, historicalForecast)
+    private fun processInvoices(forecast: LiquidityForecast, baseDate: LocalDate, fromDate: LocalDate, toDate: LocalDate, historicalForecast: Boolean) {
+        val rechnungFilter = createRechnungFilter(baseDate, fromDate, toDate, historicalForecast)
         if (!historicalForecast) {
             rechnungFilter.setShowBezahlt()
             val paidInvoices: MutableList<RechnungDO> = rechnungDao.getList(rechnungFilter)
@@ -85,8 +87,8 @@ open class LiquidityForecastBuilder {
         forecast.setInvoices(invoices)
     }
 
-    private fun processCreditorInvoices(forecast: LiquidityForecast, baseDate: LocalDate, fromDate: LocalDate, nextDays: Int, historicalForecast: Boolean) {
-        val rechnungFilter = createRechnungFilter(baseDate, fromDate, nextDays, historicalForecast)
+    private fun processCreditorInvoices(forecast: LiquidityForecast, baseDate: LocalDate, fromDate: LocalDate, toDate: LocalDate, historicalForecast: Boolean) {
+        val rechnungFilter = createRechnungFilter(baseDate, fromDate, toDate, historicalForecast)
         if (!historicalForecast) {
             rechnungFilter.setShowBezahlt()
             val paidInvoices: MutableList<EingangsrechnungDO> = eingangsrechnungDao.getList(rechnungFilter)
@@ -103,19 +105,19 @@ open class LiquidityForecastBuilder {
             val historicalPaidDate = baseDate.minusDays(45)
             invoices.removeIf { invoice ->
                 invoice.faelligkeit?.let {
-                    it.isAfter(baseDate)
-                } ?: invoice.datum!!.isAfter(historicalPaidDate)
+                    it.isBefore(baseDate)
+                } ?: invoice.datum!!.isBefore(historicalPaidDate)
             }
         }
     }
 
-    private fun createRechnungFilter(baseDate: LocalDate, fromDate: LocalDate, nextDays: Int, historicalForecast: Boolean): RechnungFilter {
+    private fun createRechnungFilter(baseDate: LocalDate, fromDate: LocalDate, toDate: LocalDate, historicalForecast: Boolean): RechnungFilter {
         val filter = RechnungFilter().setFromDate(fromDate)
         if (historicalForecast) {
             filter.setToDate(baseDate) // Only invoices issued before base date may be handled as paid.
         } else {
             filter.setShowBezahlt()
-            filter.toDate = baseDate.plusDays(nextDays.toLong())
+            filter.toDate = toDate
         }
         return filter
     }

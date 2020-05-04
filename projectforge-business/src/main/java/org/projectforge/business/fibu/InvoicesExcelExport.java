@@ -84,14 +84,16 @@ public class InvoicesExcelExport
     // column property names
     sheet.setColumns(cols);
     final PropertyMapping mapping = new PropertyMapping();
-    for (final EingangsrechnungDO entry : list) {
-      entry.recalculate();
-      mapping.add("datum", entry.getDatum());
-      mapping.add("faelligkeit", entry.getFaelligkeit());
-      mapping.add("gross", entry.getGrossSum());
-      mapping.add("creditor", entry.getKreditor());
-      mapping.add("subject", entry.getBetreff());
-      sheet.addRow(mapping.getMapping(), 0);
+    if (list != null) {
+      for (final EingangsrechnungDO entry : list) {
+        entry.recalculate();
+        mapping.add("datum", entry.getDatum());
+        mapping.add("faelligkeit", entry.getFaelligkeit());
+        mapping.add("gross", entry.getGrossSum());
+        mapping.add("creditor", entry.getKreditor());
+        mapping.add("subject", entry.getBetreff());
+        sheet.addRow(mapping.getMapping(), 0);
+      }
     }
   }
 

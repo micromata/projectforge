@@ -223,7 +223,7 @@ public class LiquidityEntryListPage
     // Consider only invoices of the last year:
    final LocalDate baseDate = form.getSearchFilter().getBaseDate();
     final int nextDays = form.getSearchFilter().getNextDays();
-    final LiquidityForecast forecast = liquidityForecastBuilder.build(nextDays, baseDate);
+    final LiquidityForecast forecast = liquidityForecastBuilder.build(baseDate);
     return forecast;
   }
 
