@@ -73,7 +73,7 @@ public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO> {
       return list;
     }
     final List<LiquidityEntryDO> result = new ArrayList<>();
-    final PFDay baseDate = PFDay.from(myFilter.getBaseDate());
+    final PFDay baseDate = PFDay.fromOrNow(myFilter.getBaseDate());
     for (final LiquidityEntryDO entry : list) {
       if (myFilter.getPaymentStatus() == PaymentStatus.PAID && !entry.getPaid()) {
         continue;

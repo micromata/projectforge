@@ -31,12 +31,9 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 /**
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
-public class LiquidityFilter extends BaseSearchFilter implements Serializable
-{
+public class LiquidityFilter extends BaseSearchFilter implements Serializable {
   private static final long serialVersionUID = -6069385642823972160L;
 
   private LocalDate baseDate;
@@ -47,12 +44,10 @@ public class LiquidityFilter extends BaseSearchFilter implements Serializable
 
   private AmountType amountType = AmountType.ALL;
 
-  public LiquidityFilter()
-  {
+  public LiquidityFilter() {
   }
 
-  public LiquidityFilter(final BaseSearchFilter filter)
-  {
+  public LiquidityFilter(final BaseSearchFilter filter) {
     super(filter);
   }
 
@@ -60,19 +55,22 @@ public class LiquidityFilter extends BaseSearchFilter implements Serializable
    * Base date is normally today. May be set to dates in the past for comparisons.
    */
   public LocalDate getBaseDate() {
-    return baseDate != null ? baseDate : LocalDate.now();
+    return baseDate;
   }
 
   public LiquidityFilter setBaseDate(LocalDate baseDate) {
-    this.baseDate = baseDate;
+    if (baseDate == null || baseDate.isBefore(LocalDate.now())) {
+      this.baseDate = baseDate;
+    } else {
+      this.baseDate = null;
+    }
     return this;
   }
 
   /**
    * @return the nextDays
    */
-  public int getNextDays()
-  {
+  public int getNextDays() {
     return nextDays;
   }
 
@@ -80,8 +78,7 @@ public class LiquidityFilter extends BaseSearchFilter implements Serializable
    * @param nextDays the nextDays to set
    * @return this for chaining.
    */
-  public LiquidityFilter setNextDays(final int nextDays)
-  {
+  public LiquidityFilter setNextDays(final int nextDays) {
     this.nextDays = nextDays;
     return this;
   }
@@ -89,8 +86,7 @@ public class LiquidityFilter extends BaseSearchFilter implements Serializable
   /**
    * @return the paymentStatus
    */
-  public PaymentStatus getPaymentStatus()
-  {
+  public PaymentStatus getPaymentStatus() {
     return paymentStatus;
   }
 
@@ -98,8 +94,7 @@ public class LiquidityFilter extends BaseSearchFilter implements Serializable
    * @param paymentStatus the paymentStatus to set
    * @return this for chaining.
    */
-  public LiquidityFilter setPaymentStatus(final PaymentStatus paymentStatus)
-  {
+  public LiquidityFilter setPaymentStatus(final PaymentStatus paymentStatus) {
     if (paymentStatus == null) {
       this.paymentStatus = PaymentStatus.ALL;
     } else {
@@ -111,8 +106,7 @@ public class LiquidityFilter extends BaseSearchFilter implements Serializable
   /**
    * @return the amountType
    */
-  public AmountType getAmountType()
-  {
+  public AmountType getAmountType() {
     return amountType;
   }
 
@@ -120,8 +114,7 @@ public class LiquidityFilter extends BaseSearchFilter implements Serializable
    * @param amountType the amountType to set
    * @return this for chaining.
    */
-  public LiquidityFilter setAmountType(final AmountType amountType)
-  {
+  public LiquidityFilter setAmountType(final AmountType amountType) {
     if (amountType == null) {
       this.amountType = AmountType.ALL;
     } else {

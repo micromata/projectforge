@@ -69,7 +69,7 @@ public class LiquidityForecast implements Serializable {
   private LocalDate baseDate = LocalDate.now();
 
   public LocalDate getBaseDate() {
-    return baseDate != null ? baseDate : LocalDate.now();
+    return baseDate != null && baseDate.isBefore(LocalDate.now()) ? baseDate : LocalDate.now();
   }
 
   public void setBaseDate(LocalDate baseDate) {
@@ -135,7 +135,11 @@ public class LiquidityForecast implements Serializable {
       final LiquidityEntry entry = new LiquidityEntry();
       entry.setDateOfPayment(liquiEntry.getDateOfPayment());
       entry.setAmount(liquiEntry.getAmount());
-      entry.setPaid(!ignorePaidStatus && liquiEntry.getPaid());
+      if (ignorePaidStatus) {
+        entry.setPaid(liquiEntry.getDateOfPayment().isBefore(baseDate));
+      } else {
+        entry.setPaid(liquiEntry.getPaid());
+      }
       entry.setSubject(liquiEntry.getSubject());
       entry.setType(LiquidityEntryType.LIQUIDITY);
       this.liquiEntries.add(entry);
@@ -372,7 +376,11 @@ public class LiquidityForecast implements Serializable {
         entry.setDateOfPayment(invoice.getFaelligkeit());
       }
       entry.setAmount(invoice.getGrossSum());
-      entry.setPaid(!ignorePaidStatus && invoice.isBezahlt());
+      if (ignorePaidStatus) {
+        entry.setPaid(invoice.getFaelligkeit().isBefore(baseDate));
+      } else {
+        entry.setPaid(invoice.isBezahlt());
+      }
       entry.setSubject("#" + invoice.getNummer() + ": " + invoice.getKundeAsString() + ": " + invoice.getBetreff());
       entry.setType(LiquidityEntryType.DEBITOR);
       setExpectedTimeOfPayment(entry, invoice);
@@ -396,7 +404,11 @@ public class LiquidityForecast implements Serializable {
         entry.setDateOfPayment(invoice.getFaelligkeit());
       }
       entry.setAmount(invoice.getGrossSum().negate());
-      entry.setPaid(!ignorePaidStatus && invoice.isBezahlt());
+      if (ignorePaidStatus) {
+        entry.setPaid(invoice.getFaelligkeit().isBefore(baseDate));
+      } else {
+        entry.setPaid(invoice.isBezahlt());
+      }
       entry.setSubject(invoice.getKreditor() + ": " + invoice.getBetreff());
       entry.setType(LiquidityEntryType.CREDITOR);
       setExpectedTimeOfPayment(entry, invoice);
