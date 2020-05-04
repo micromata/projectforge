@@ -51,7 +51,6 @@ public class LiquidityForecastPage extends AbstractStandardFormPage
   @SpringBean
   private EingangsrechnungDao eingangsrechnungDao;
 
-  @SpringBean
   private LiquidityForecast forecast;
 
   private final GridBuilder gridBuilder;
