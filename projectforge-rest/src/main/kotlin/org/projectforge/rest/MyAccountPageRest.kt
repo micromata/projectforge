@@ -163,6 +163,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
             data.employee!!.let {
                 it.street = employee.street
                 it.zipCode = employee.zipCode
+                it.city = employee.city
                 it.country = employee.country
                 it.state = employee.state
                 it.birthday = employee.birthday
