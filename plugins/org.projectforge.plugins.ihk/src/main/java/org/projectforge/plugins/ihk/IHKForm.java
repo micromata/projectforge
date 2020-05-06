@@ -28,6 +28,7 @@ import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
+import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.web.CSSColor;
@@ -40,7 +41,10 @@ import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.*;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * Created by mnuhn on 05.12.2019
@@ -120,11 +124,52 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage>
       @Override
       public void onSubmit()
       {
-        parentPage.export();
+        parentPage.export(false);
       }
     };
     fs.add(new SingleButtonPanel(fs.newChildId(), downloadButton,
         getString("plugins.ihk.download"), SingleButtonPanel.DEFAULT_SUBMIT));
+  }
+
+  void showMissingDescriptionList(List<TimesheetDO> missingDescriptionList) {
+    gridBuilder.newSplitPanel(GridSize.COL66);
+
+    DateFormat date = new SimpleDateFormat("dd.MM.yyyy");
+    DateFormat time = new SimpleDateFormat("HH:mm");
+
+    for (TimesheetDO ts : missingDescriptionList) {
+
+      String label = ts.getKost2().getDescription() != null ? ts.getKost2().getDescription() : ts.getKost2().getDisplayName();
+      final FieldsetPanel fs = gridBuilder.newFieldset(label);
+      fs.add(new DivTextPanel(fs.newChildId(),
+              date.format(ts.getStartTime().getTime()) + " " +
+              time.format(ts.getStartTime().getTime()) + " - " +
+              time.format(ts.getStopTime().getTime())));
+
+      Button editButton = new Button(SingleButtonPanel.WICKET_ID, new Model("edit")) {
+        @Override
+        public void onSubmit() {
+          parentPage.edit(ts);
+        }
+      };
+      fs.add(new SingleButtonPanel(fs.newChildId(), editButton,
+              getString("plugins.ihk.edit"), SingleButtonPanel.CANCEL));
+    }
+
+    // Download anyway button
+    final FieldsetPanel downloadPanel = gridBuilder.newFieldset("");
+    Button downloadButton = new Button(SingleButtonPanel.WICKET_ID, new Model("download"))
+    {
+      @Override
+      public void onSubmit()
+      {
+        parentPage.export(true);
+      }
+    };
+    downloadPanel.add(new SingleButtonPanel(downloadPanel.newChildId(), downloadButton,
+            getString("plugins.ihk.downloadAnyway"), SingleButtonPanel.DEFAULT_SUBMIT));
+
+
   }
 
   private FieldProperties<LocalDate> getToDayProperties() {
