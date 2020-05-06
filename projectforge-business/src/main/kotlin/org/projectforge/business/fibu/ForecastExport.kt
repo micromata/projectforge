@@ -48,7 +48,7 @@ import java.math.RoundingMode
 import java.time.format.DateTimeFormatter
 
 /**
- * Forcast excel export.
+ * Forcast excel export based on order book with probabilities as well as on already invoiced orders.
  *
  * @author Florian Blumenstein
  * @author Kai Reinhard
