@@ -7,6 +7,7 @@ import DynamicValidationManager from './DynamicValidationManager';
 function DynamicRadioButton(
     {
         id,
+        type,
         value,
         ...props
     },
