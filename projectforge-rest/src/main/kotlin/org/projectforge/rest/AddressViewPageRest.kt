@@ -74,7 +74,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
         val layout = UILayout("address.view.title")
         val fieldSet = UIFieldset(12, title = "'${address.fullNameWithTitleAndForm}")
         layout.add(fieldSet)
-        if (address.imageData != null) {
+        if (address.image == true) {
             fieldSet.add(UICustomized("image", mutableMapOf("src" to "address/image/${address.id}", "alt" to address.fullNameWithTitleAndForm)))
         }
         var row = UIRow()

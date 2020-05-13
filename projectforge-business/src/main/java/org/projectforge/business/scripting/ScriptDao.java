@@ -26,7 +26,7 @@ package org.projectforge.business.scripting;
 import de.micromata.merlin.utils.ReplaceUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.AppVersion;
+import org.projectforge.ProjectForgeVersion;
 import org.projectforge.business.fibu.kost.reporting.ReportGeneratorList;
 import org.projectforge.business.task.ScriptingTaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
@@ -53,15 +53,13 @@ import java.util.Map;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-public class ScriptDao extends BaseDao<ScriptDO>
-{
+public class ScriptDao extends BaseDao<ScriptDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ScriptDao.class);
 
   @Autowired
   private GroovyExecutor groovyExecutor;
 
-  public ScriptDao()
-  {
+  public ScriptDao() {
     super(ScriptDO.class);
   }
 
@@ -71,8 +69,7 @@ public class ScriptDao extends BaseDao<ScriptDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#onChange(ExtendedBaseDO, ExtendedBaseDO)
    */
   @Override
-  protected void onChange(final ScriptDO obj, final ScriptDO dbObj)
-  {
+  protected void onChange(final ScriptDO obj, final ScriptDO dbObj) {
     if (!Arrays.equals(dbObj.getScript(), obj.getScript())) {
       obj.setScriptBackup(dbObj.getScript());
       final String filename = ReplaceUtils.encodeFilename(dbObj.getName() + "_" + PFDateTime.now().getIsoStringSeconds() + ".groovy", true);
@@ -82,7 +79,7 @@ public class ScriptDao extends BaseDao<ScriptDO>
       try {
         log.info("Writing backup of script to: " + file.getAbsolutePath());
         FileUtils.writeStringToFile(file, dbObj.getScriptAsString());
-      }catch (IOException ex) {
+      } catch (IOException ex) {
         log.error("Error while trying to save backup file of script '" + file.getAbsolutePath() + "': " + ex.getMessage(), ex);
       }
     }
@@ -95,21 +92,18 @@ public class ScriptDao extends BaseDao<ScriptDO>
    */
   @Override
   public boolean hasAccess(final PFUserDO user, final ScriptDO obj, final ScriptDO oldObj,
-      final OperationType operationType,
-      final boolean throwException)
-  {
+                           final OperationType operationType,
+                           final boolean throwException) {
     return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.CONTROLLING_GROUP,
-        ProjectForgeGroup.FINANCE_GROUP);
+            ProjectForgeGroup.FINANCE_GROUP);
   }
 
   @Override
-  public ScriptDO newInstance()
-  {
+  public ScriptDO newInstance() {
     return new ScriptDO();
   }
 
-  public ScriptExecutionResult execute(final ScriptDO script, final List<ScriptParameter> parameters)
-  {
+  public ScriptExecutionResult execute(final ScriptDO script, final List<ScriptParameter> parameters) {
     hasLoggedInUserSelectAccess(script, true);
     final ReportGeneratorList reportGeneratorList = new ReportGeneratorList();
     final Map<String, Object> scriptVariables = new HashMap<>();
@@ -137,7 +131,7 @@ public class ScriptDao extends BaseDao<ScriptDO>
     if (scriptContent.contains("import org.projectforge.export")) {
       // Package was renamed in version 5.2 and 6.13:
       scriptContent = scriptContent.replace("import org.projectforge.export",
-          "import org.projectforge.export.*\nimport org.projectforge.business.excel");
+              "import org.projectforge.export.*\nimport org.projectforge.business.excel");
     }
     return groovyExecutor.execute(new ScriptExecutionResult(), scriptContent, scriptVariables);
   }
@@ -146,11 +140,10 @@ public class ScriptDao extends BaseDao<ScriptDO>
    * Adds all registered dao's and other variables, such as appId, appVersion and task-tree. These variables are
    * available in Groovy scripts
    */
-  public void addScriptVariables(final Map<String, Object> scriptVariables)
-  {
-    scriptVariables.put("appId", AppVersion.APP_ID);
-    scriptVariables.put("appVersion", AppVersion.NUMBER);
-    scriptVariables.put("appRelease", AppVersion.RELEASE_DATE);
+  public void addScriptVariables(final Map<String, Object> scriptVariables) {
+    scriptVariables.put("appId", ProjectForgeVersion.APP_ID);
+    scriptVariables.put("appVersion", ProjectForgeVersion.VERSION_NUMBER);
+    scriptVariables.put("appRelease", ProjectForgeVersion.BUILD_DATE);
     scriptVariables.put("reportList", null);
     scriptVariables.put("taskTree", new ScriptingTaskTree(TaskTreeHelper.getTaskTree()));
     for (final RegistryEntry entry : Registry.getInstance().getOrderedList()) {

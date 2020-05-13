@@ -115,7 +115,7 @@ public class ProjectForgeApp {
     this.environment = environment;
     this.userXmlPreferencesCache = userXmlPreferencesCache;
     repoService.init(new File(ConfigXml.getInstance().getJcrDirectory()));
-    repoBackupService.setBackupDirectory(new File(ConfigXml.getInstance().getBackupDirectory()));
+    repoBackupService.initBackupDir(new File(ConfigXml.getInstance().getBackupDirectory()));
     this.systemInfoCache = systemInfoCache;
     this.systemStatus = systemStatus;
   }
@@ -142,7 +142,7 @@ public class ProjectForgeApp {
    * Flag upAndRunning will be set to true.
    */
   private void finalizeInitialization() {
-    log.info(AppVersion.APP_ID + " " + AppVersion.NUMBER + " (" + AppVersion.RELEASE_TIMESTAMP + ") initialized.");
+    log.info(ProjectForgeVersion.APP_ID + " " + ProjectForgeVersion.VERSION_NUMBER + " initialized.");
     // initialize ical4j to be more "relaxed"
     CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_RELAXED_PARSING, true);
     CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_RELAXED_UNFOLDING, true);

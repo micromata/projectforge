@@ -59,14 +59,15 @@ abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected construc
      * @return true
      * @see UserRightAccessCheck.hasSelectAccess
      */
-    override fun hasSelectAccess(user: PFUserDO): Boolean {
+    override fun hasSelectAccess(user: PFUserDO?): Boolean {
         return true
     }
 
     /**
      * @see UserRightAccessCheck.hasSelectAccess
      */
-    override fun hasSelectAccess(user: PFUserDO, obj: T): Boolean {
+    override fun hasSelectAccess(user: PFUserDO?, obj: T): Boolean {
+        user ?: return false
         if (isOwner(user, obj) || accessChecker.isUserMemberOfAdminGroup(user)) { // User has full access to his own object.
             return true
         }

@@ -22,7 +22,7 @@ const reducer = (state = initialState, { type, payload }) => {
                 error: null,
                 user: payload.user,
                 version: payload.version,
-                releaseTimestamp: payload.releaseTimestamp,
+                buildTimestamp: payload.buildTimestamp,
                 alertMessage: payload.alertMessage,
             };
         case USER_LOGIN_FAILURE:

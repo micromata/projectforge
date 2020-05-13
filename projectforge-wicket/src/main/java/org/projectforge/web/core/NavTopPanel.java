@@ -49,6 +49,9 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.menu.builder.MenuItemDefId;
+import org.projectforge.rest.ChangePasswordPageRest;
+import org.projectforge.rest.MyAccountPageRest;
+import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.web.LoginService;
 import org.projectforge.web.WicketMenuBuilder;
 import org.projectforge.web.WicketMenuEntry;
@@ -57,7 +60,6 @@ import org.projectforge.web.core.menuconfig.MenuConfig;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.doc.DocumentationPage;
 import org.projectforge.web.session.MySession;
-import org.projectforge.web.user.ChangePasswordPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.FeedbackPage;
@@ -170,12 +172,11 @@ public class NavTopPanel extends NavAbstractPanel {
       add(new Label("user", ThreadLocalUserContext.getUser().getFullname()));
       if (accessChecker.isRestrictedUser() == true) {
         // Show ChangePaswordPage as my account for restricted users.
-        final BookmarkablePageLink<Void> changePasswordLink = new BookmarkablePageLink<Void>("myAccountLink",
-                ChangePasswordPage.class);
+        final ExternalLink changePasswordLink = new ExternalLink("myAccountLink", PagesResolver.getDynamicPageUrl(ChangePasswordPageRest.class));
         add(changePasswordLink);
         addVacationViewLink().setVisible(false);
       } else {
-        final ExternalLink myAccountLink = new ExternalLink("myAccountLink", "/" + MenuItemDefId.MY_ACCOUNT.getUrl());
+        final ExternalLink myAccountLink = new ExternalLink("myAccountLink", PagesResolver.getDynamicPageUrl(MyAccountPageRest.class));
         add(myAccountLink);
         addVacationViewLink();
       }

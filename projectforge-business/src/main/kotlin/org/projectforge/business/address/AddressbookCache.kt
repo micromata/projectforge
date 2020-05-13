@@ -23,13 +23,15 @@
 
 package org.projectforge.business.address
 
+import mu.KotlinLogging
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOChangedListener
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
+
+private val log = KotlinLogging.logger {}
 
 /**
  * The address book entries will be cached.
@@ -70,7 +72,7 @@ open class AddressbookCache : AbstractCache(), BaseDOChangedListener<Addressbook
     }
 
     @PostConstruct
-    fun postConstruct() {
+    private fun postConstruct() {
         addressbookDao.register(this)
     }
 
@@ -89,9 +91,5 @@ open class AddressbookCache : AbstractCache(), BaseDOChangedListener<Addressbook
         }
         addressBookList = newList
         log.info("Initializing of AddressbookCache done.")
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(AddressbookCache::class.java)
     }
 }

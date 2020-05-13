@@ -42,7 +42,6 @@ import org.projectforge.web.orga.VisitorbookListPage;
 import org.projectforge.web.scripting.ScriptListPage;
 import org.projectforge.web.scripting.ScriptingPage;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
-import org.projectforge.web.statistics.SystemStatisticsPage;
 import org.projectforge.web.task.TaskTreePage;
 import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
@@ -121,8 +120,6 @@ public class MenuItemRegistry implements Serializable {
     register(MenuItemDefId.CONTRACTS, ContractListPage.class);
     register(MenuItemDefId.VISITORBOOK, VisitorbookListPage.class);
     register(MenuItemDefId.MY_PREFERENCES, UserPrefListPage.class);
-    register(MenuItemDefId.CHANGE_PASSWORD, ChangePasswordPage.class);
-    register(MenuItemDefId.CHANGE_WLAN_PASSWORD, ChangeWlanPasswordPage.class);
     register(MenuItemDefId.USER_LIST, UserListPage.class);
     register(MenuItemDefId.GROUP_LIST, GroupListPage.class);
     register(MenuItemDefId.ACCESS_LIST, AccessListPage.class);
@@ -130,7 +127,6 @@ public class MenuItemRegistry implements Serializable {
     register(MenuItemDefId.SQL_CONSOLE, SqlConsolePage.class);
     register(MenuItemDefId.GROOVY_CONSOLE, GroovyConsolePage.class);
     register(MenuItemDefId.LUCENE_CONSOLE, LuceneConsolePage.class);
-    register(MenuItemDefId.SYSTEM_STATISTICS, SystemStatisticsPage.class);
     register(MenuItemDefId.CONFIGURATION, ConfigurationListPage.class);
     register(MenuItemDefId.PLUGIN_ADMIN, PluginListPage.class);
   }

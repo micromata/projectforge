@@ -333,24 +333,8 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     list = myFilter.filterFakturiert(list);
 
     filterPositionsArten(myFilter, list);
-
-    if (myFilter.getAuftragsPositionsPaymentType() != null) {
-      CollectionUtils.filter(list, object -> {
-        final AuftragDO auftrag = (AuftragDO) object;
-        boolean match = false;
-        if (myFilter.getAuftragsPositionsPaymentType() != null) {
-          if (CollectionUtils.isNotEmpty(auftrag.getPositionenExcludingDeleted())) {
-            for (final AuftragsPositionDO position : auftrag.getPositionenExcludingDeleted()) {
-              if (myFilter.getAuftragsPositionsPaymentType() == position.getPaymentType()) {
-                match = true;
-                break;
-              }
-            }
-          }
-        }
-        return match;
-      });
-    }
+    filterPositionsStatus(myFilter, list);
+    filterPositionsPaymentTypes(myFilter, list);
 
     return list;
   }
@@ -361,7 +345,6 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       // nothing to do
       return;
     }
-
     final List<DBPredicate> orCriterions = new ArrayList<>();
     orCriterions.add(QueryFilter.isIn("auftragsStatus", auftragsStatuses));
 
@@ -409,18 +392,27 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   }
 
   private void filterPositionsArten(final AuftragFilter myFilter, final List<AuftragDO> list) {
-    final Collection<AuftragsPositionsArt> auftragsPositionsArten = myFilter.getAuftragsPositionsArten();
-
-    if (CollectionUtils.isNotEmpty(auftragsPositionsArten)) {
-      CollectionUtils.filter(list, object -> {
-        final List<AuftragsPositionDO> positionen = ((AuftragDO) object).getPositionenExcludingDeleted();
-
-        // check if any of the current positions contains at least one AuftragsPositionsArt of the auftragsPositionsArten of the filter
-        return CollectionUtils.isNotEmpty(positionen) && positionen.stream()
-                .map(AuftragsPositionDO::getArt)
-                .anyMatch(positionsArt -> auftragsPositionsArten.stream().anyMatch(art -> art == positionsArt));
-      });
+    if (CollectionUtils.isEmpty(myFilter.getAuftragsPositionsArten())) {
+      return;
     }
+    final AuftragsPositionsArtFilter artFilter = new AuftragsPositionsArtFilter(myFilter.getAuftragsPositionsArten());
+    CollectionUtils.filter(list, object -> artFilter.match(list, (AuftragDO) object));
+  }
+
+  private void filterPositionsStatus(final AuftragFilter myFilter, final List<AuftragDO> list) {
+    if (CollectionUtils.isEmpty(myFilter.getAuftragsPositionStatuses())) {
+      return;
+    }
+    final AuftragsPositionsStatusFilter statusFilter = new AuftragsPositionsStatusFilter(myFilter.getAuftragsPositionStatuses());
+    CollectionUtils.filter(list, object -> statusFilter.match(list, (AuftragDO) object));
+  }
+
+  private void filterPositionsPaymentTypes(final AuftragFilter myFilter, final List<AuftragDO> list) {
+    if (myFilter.getAuftragsPositionsPaymentType() == null) {
+      return;
+    }
+    final AuftragsPositionsPaymentTypeFilter paymentTypeFilter = AuftragsPositionsPaymentTypeFilter.create(myFilter.getAuftragsPositionsPaymentType());
+    CollectionUtils.filter(list, object -> paymentTypeFilter.match(list, (AuftragDO) object));
   }
 
   @Override

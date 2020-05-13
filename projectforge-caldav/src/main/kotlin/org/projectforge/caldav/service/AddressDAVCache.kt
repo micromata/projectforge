@@ -23,34 +23,36 @@
 
 package org.projectforge.caldav.service
 
+import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
+import org.projectforge.business.address.AddressImageDao
 import org.projectforge.caldav.model.AddressBook
 import org.projectforge.caldav.model.Contact
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOChangedListener
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import javax.annotation.PostConstruct
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Cache needed, because vcard generation takes lot of cpu power....
  */
 @Service
-open class AddressCache : AbstractCache(TICKS_PER_HOUR), BaseDOChangedListener<AddressDO> {
+open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOChangedListener<AddressDO> {
     @Autowired
     private lateinit var addressDao: AddressDao
+
+    @Autowired
+    private lateinit var addressImageDao: AddressImageDao
 
     @Autowired
     private lateinit var vCardService: VCardService
 
     private var contactMap = mutableMapOf<Int, Contact>()
-
-    private val log = LoggerFactory.getLogger(AddressCache::class.java)
-
-
 
     open fun getContacts(addressBook: AddressBook, ids: List<Int>): List<Contact> {
         val result = mutableListOf<Contact>()
@@ -67,7 +69,7 @@ open class AddressCache : AbstractCache(TICKS_PER_HOUR), BaseDOChangedListener<A
         log.info("Got ${result.size} addresses from cache and must load ${missedInCache.size} from data base...")
         if (missedInCache.size > 0) {
             addressDao.internalLoad(missedInCache).forEach {
-                val vcard = vCardService.buildVCard(it)
+                val vcard = vCardService.buildVCard(it, addressImageDao)
                 val contact = Contact(it.id, it.fullName, it.lastUpdate, vcard)
                 addCachedContact(it.id, contact)
                 val copy = Contact(contact, addressBook)

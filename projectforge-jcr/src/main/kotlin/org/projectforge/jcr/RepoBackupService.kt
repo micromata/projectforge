@@ -26,6 +26,7 @@ package org.projectforge.jcr
 import mu.KotlinLogging
 import org.apache.commons.io.FilenameUtils
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -44,10 +45,34 @@ private val log = KotlinLogging.logger {}
 
 @Service
 open class RepoBackupService {
+    @Value("\${projectforge.jcr.backupDir}")
+    private val jcrBackupDir: String? = null
+
     /**
      * Where to put the nigthly backups of the jcr as zip files?
      */
     var backupDirectory: File? = null
+        private set
+
+    /**
+     * Must initially be called for setting backup directory.
+     * @param defaultBackupDir is used as default backup dir if [jcrBackupDir] is not given or doesn't exists in the filesystem.
+     */
+    fun initBackupDir(defaultBackupDir: File) {
+        var file: File? = null
+        if (!jcrBackupDir.isNullOrBlank()) {
+            file = File(jcrBackupDir)
+            if (!file.exists() && !file.isDirectory) {
+                log.error { "Can't use '$jcrBackupDir' as JCR backup directory, it isn't an existing directory." }
+                file = null
+            }
+        }
+        if (file == null) {
+            file = defaultBackupDir
+        }
+        this.backupDirectory = file
+        log.info { "Using '${file.absolutePath}' as JCR backup directory." }
+    }
 
     @Autowired
     internal lateinit var repoService: RepoService
@@ -216,7 +241,9 @@ open class RepoBackupService {
         val backupFilename: String
             get() {
                 val nowAsIsoString = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").withZone(ZoneOffset.UTC))
-                return "projectforge-jcr-backup-$nowAsIsoString.zip"
+                return "$backupFilenamePrefix$nowAsIsoString.zip"
             }
+
+        val backupFilenamePrefix = "projectforge-jcr-backup-"
     }
 }

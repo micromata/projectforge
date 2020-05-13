@@ -28,7 +28,7 @@ import org.projectforge.business.scripting.I18n;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.export.MyExcelExporter;
 import org.projectforge.framework.time.DateFormats;
-import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 
 import java.io.Serializable;
@@ -38,8 +38,7 @@ import java.time.LocalDate;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class LiquidityForecastCashFlow implements Serializable
-{
+public class LiquidityForecastCashFlow implements Serializable {
   private static final long serialVersionUID = 7567091917817930061L;
 
   private final BigDecimal[] credits;
@@ -50,16 +49,14 @@ public class LiquidityForecastCashFlow implements Serializable
 
   private final BigDecimal[] debitsExpected;
 
-  private final PFDateTime today;
+  private final PFDay baseDate;
 
-  public LiquidityForecastCashFlow(final LiquidityForecast forecast)
-  {
+  public LiquidityForecastCashFlow(final LiquidityForecast forecast) {
     this(forecast, 90);
   }
 
-  public LiquidityForecastCashFlow(final LiquidityForecast forecast, final int nextDays)
-  {
-    today = PFDateTime.now();
+  public LiquidityForecastCashFlow(final LiquidityForecast forecast, final int nextDays) {
+    baseDate = PFDay.fromOrNow(forecast.getBaseDate());
     credits = newBigDecimalArray(nextDays);
     debits = newBigDecimalArray(nextDays);
     creditsExpected = newBigDecimalArray(nextDays);
@@ -76,9 +73,9 @@ public class LiquidityForecastCashFlow implements Serializable
       }
       int numberOfDay = 0;
       if (dateOfPayment != null) {
-        final PFDateTime dateTimeOfPayment = PFDateTime.from(dateOfPayment); // not null
-        if (today.isBefore(dateTimeOfPayment) && !today.isSameDay(dateTimeOfPayment)) {
-          numberOfDay = (int) today.daysBetween(dateTimeOfPayment);
+        final PFDay dayOfPayment = PFDay.from(dateOfPayment); // not null
+        if (baseDate.isBefore(dayOfPayment) && !baseDate.isSameDay(dayOfPayment)) {
+          numberOfDay = (int) baseDate.daysBetween(dayOfPayment);
         }
       }
       if (numberOfDay >= 0 && numberOfDay < nextDays) {
@@ -92,9 +89,9 @@ public class LiquidityForecastCashFlow implements Serializable
       }
       int numberOfDayExpected = 0;
       if (expectedDateOfPayment != null) {
-        final PFDateTime expectedDateTimeOfPayment = PFDateTime.from(expectedDateOfPayment); // not null
-        if (today.isBefore(expectedDateTimeOfPayment) && !today.isSameDay(expectedDateTimeOfPayment)) {
-          numberOfDayExpected = (int)today.daysBetween(expectedDateTimeOfPayment);
+        final PFDay expectedDayOfPayment = PFDay.from(expectedDateOfPayment); // not null
+        if (baseDate.isBefore(expectedDayOfPayment) && !baseDate.isSameDay(expectedDayOfPayment)) {
+          numberOfDayExpected = (int) baseDate.daysBetween(expectedDayOfPayment);
         }
       }
       if (numberOfDayExpected >= 0 && numberOfDayExpected < nextDays) {
@@ -109,8 +106,7 @@ public class LiquidityForecastCashFlow implements Serializable
     }
   }
 
-  private BigDecimal[] newBigDecimalArray(final int length)
-  {
+  private BigDecimal[] newBigDecimalArray(final int length) {
     final BigDecimal[] array = new BigDecimal[length];
     for (int i = 0; i < length; i++) {
       array[i] = BigDecimal.ZERO;
@@ -118,8 +114,7 @@ public class LiquidityForecastCashFlow implements Serializable
     return array;
   }
 
-  public void addAsExcelSheet(final MyExcelExporter exporter, final String sheetTitle)
-  {
+  public void addAsExcelSheet(final MyExcelExporter exporter, final String sheetTitle) {
     final ExportSheet sheet = exporter.addSheet(sheetTitle);
     sheet.createFreezePane(0, 1);
     final ContentProvider sheetProvider = sheet.getContentProvider();
@@ -158,7 +153,7 @@ public class LiquidityForecastCashFlow implements Serializable
     sheet.setColumns(cols);
 
     final int firstDataRowNumber = sheet.getRowCounter() + 1;
-    PFDateTime current = today;
+    PFDay current = baseDate;
     PropertyMapping mapping = new PropertyMapping();
     mapping.add("balanceExpected", BigDecimal.ZERO);
     mapping.add("balance", new Formula("D" + firstDataRowNumber));
@@ -189,32 +184,28 @@ public class LiquidityForecastCashFlow implements Serializable
   /**
    * @return the credits based on due dates.
    */
-  public BigDecimal[] getCredits()
-  {
+  public BigDecimal[] getCredits() {
     return credits;
   }
 
   /**
    * @return the creditsExpected based on expected dates of payment.
    */
-  public BigDecimal[] getCreditsExpected()
-  {
+  public BigDecimal[] getCreditsExpected() {
     return creditsExpected;
   }
 
   /**
    * @return the debits based on due dates.
    */
-  public BigDecimal[] getDebits()
-  {
+  public BigDecimal[] getDebits() {
     return debits;
   }
 
   /**
    * @return the debitsExpected based on expected dates of payment.
    */
-  public BigDecimal[] getDebitsExpected()
-  {
+  public BigDecimal[] getDebitsExpected() {
     return debitsExpected;
   }
 }

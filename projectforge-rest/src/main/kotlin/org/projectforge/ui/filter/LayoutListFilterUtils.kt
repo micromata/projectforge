@@ -45,8 +45,8 @@ private val PAGE_SIZES = intArrayOf(25, 50, 100, 250, 500, 1000)
 class LayoutListFilterUtils {
     companion object {
 
-        fun createNamedContainer(pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>,
-                                 lc: LayoutContext): UINamedContainer {
+        fun createNamedSearchFilterContainer(pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>,
+                                             lc: LayoutContext): UINamedContainer {
             val container = UINamedContainer("searchFilter")
             val elements = mutableListOf<UILabelledElement>()
             elements.add(UIFilterObjectElement(MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName,

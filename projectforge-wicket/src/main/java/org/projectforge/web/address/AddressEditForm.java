@@ -127,12 +127,6 @@ public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage
     gridBuilder.newSubSplitPanel(GridSize.COL100);
     addressEditSupport.addFingerPrint();
     addressEditSupport.addPublicKey();
-
-    gridBuilder.newSplitPanel(GridSize.COL50, true).newSubSplitPanel(GridSize.COL100);
-    final FieldsetPanel fs1 = gridBuilder.newFieldset(gridBuilder.getString("address.image"));
-    new ImageUploadPanel(fs1.newChildId(), fs1, this, new PropertyModel<>(data, "imageData"), this.configurationService.getMaxFileSizeImage());
-
-    gridBuilder.newGridPanel();
     addressEditSupport.addComment();
 
     addCloneButton();

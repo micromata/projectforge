@@ -24,7 +24,7 @@
 package org.projectforge.plugins.todo;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.AppVersion;
+import org.projectforge.ProjectForgeVersion;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.scripting.GroovyEngine;
 import org.projectforge.common.i18n.Priority;
@@ -66,7 +66,7 @@ public class GroovyEngineTest extends AbstractTestBase {
 
     final String res = engine.executeTemplate("Hallo $name, your locale is '<%= pf.getI18nString(\"locale.de\") %>'.");
     assertEquals("Hallo Kai, your locale is 'Deutsch'.", res);
-    assertEquals("Hallo Kai, your locale is 'Deutsch'. " + AppVersion.APP_ID + " Finished: Englisch", engine
+    assertEquals("Hallo Kai, your locale is 'Deutsch'. " + ProjectForgeVersion.APP_ID + "\n Finished: Englisch", engine
             .executeTemplateFile("scripting/template.txt"));
   }
 

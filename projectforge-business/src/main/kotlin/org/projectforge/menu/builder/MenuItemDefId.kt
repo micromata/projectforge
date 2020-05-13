@@ -25,8 +25,6 @@ package org.projectforge.menu.builder
 
 import org.projectforge.Const
 
-const val PREFIX = Const.REACT_APP_PATH
-
 enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = null) {
     // Main menus in alphabetical order
     ADMINISTRATION("menu.administration"), //
@@ -43,44 +41,45 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
 
     // Sub menus in alphabetical order:
     ACCESS_LIST("menu.accessList", "wa/accessList"), //
-    ACCOUNT_LIST("menu.fibu.konten", "${PREFIX}account"), //
+    ACCOUNT_LIST("menu.fibu.konten", getReactListUrl("account")), //
     ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", "wa/accountingRecordList"), //
-    ADDRESSBOOK_LIST("menu.addressbookList", "${PREFIX}addressBook"), //
-    ADDRESS_LIST("menu.addressList", "${PREFIX}address"), //
+    ADDRESSBOOK_LIST("menu.addressbookList", getReactListUrl("addressBook")), //
+    ADDRESS_LIST("menu.addressList", getReactListUrl("address")), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
-    BOOK_LIST("menu.bookList", "${PREFIX}book"), //
-    CALENDAR("menu.calendar", "${PREFIX}calendar"), //
-    TEAMCALENDAR("menu.plugins.teamcal", "${PREFIX}teamCal"), //
-    CHANGE_PASSWORD("menu.changePassword", "wa/changePassword"), //
-    CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", "wa/wicket/bookmarkable/org.projectforge.web.user.ChangeWlanPasswordPage"), //
+    BOOK_LIST("menu.bookList", getReactListUrl("book")), //
+    CALENDAR("menu.calendar", getReactListUrl("calendar")), //
+    TEAMCALENDAR("menu.plugins.teamcal", getReactListUrl("teamCal")), //
+    CHANGE_PASSWORD("menu.changePassword", getReactDynamicPageUrl("changePassword")), //
+    CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", getReactDynamicPageUrl("changeWlanPassword")), //
     CONFIGURATION("menu.configuration", "wa/configuration"), //
     CONTACT_LIST("menu.contactList"), //
-    CONTRACTS("menu.contracts", "${PREFIX}contract"), //
-    COST1_LIST("menu.fibu.kost1", "${PREFIX}cost1"), //
+    CONTRACTS("menu.contracts", getReactListUrl("contract")), //
+    COST1_LIST("menu.fibu.kost1", getReactListUrl("cost1")), //
     COST2_LIST("menu.fibu.kost2", "wa/cost2List"), //
     COST2_TYPE_LIST("menu.fibu.kost2arten", "wa/cost2TypeList"), //
     CUSTOMER_LIST("menu.fibu.kunden", "wa/customerList"), //
-    //CUSTOMER_LIST("menu.fibu.kunden", "${PREFIX}customer"), // Doesn't work yet
+    //CUSTOMER_LIST("menu.fibu.kunden", getReactListUrl("customer")), // Doesn't work yet
+
     DATEV_IMPORT("menu.fibu.datevImport", "wa/datevImport"), //
     DOCUMENTATION("menu.documentation"), //
     EMPLOYEE_LIST("menu.fibu.employees", "wa/employeeList"), //
     EMPLOYEE_SALARY_LIST("menu.fibu.employeeSalaries", "wa/employeeSalaryList"), //
-    EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", "${PREFIX}leaveAccountEntry"), //
+    EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", getReactListUrl("leaveAccountEntry")), //
     FEEDBACK("menu.gear.feedback", url = "wa/feedback"), //
     GANTT("menu.gantt", "wa/ganttList"), //
     GROUP_LIST("menu.groupList", "wa/groupList"), //
     HR_PLANNING_LIST("menu.hrPlanningList", "wa/hrPlanningList"), //
     HR_VIEW("menu.hrList", "wa/hrList"), //
     IMAGE_CROPPER("menu.imageCropper"), //
-    INBOX_LIST("menu.orga.posteingang", "${PREFIX}incomingMail"), //
+    INBOX_LIST("menu.orga.posteingang", getReactListUrl("incomingMail")), //
     INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", "wa/incomingInvoiceList"), //
     LOGOUT("menu.logout", url = "logout"), //
     MEB("menu.meb", "wa/mebList"), //
     MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "wa/monthlyEmployeeReport"), //
-    MY_ACCOUNT("menu.myAccount", "${PREFIX}myAccount/dynamic"), //
+    MY_ACCOUNT("menu.myAccount", getReactDynamicPageUrl("myAccount")), //
     MY_PREFERENCES("menu.myPreferences", "wa/userPrefList"), //
     ORDER_LIST("menu.fibu.orderbook", "wa/orderBookList"), //
-    OUTBOX_LIST("menu.orga.postausgang", "${PREFIX}outgoingMail"), //
+    OUTBOX_LIST("menu.orga.postausgang", getReactListUrl("outgoingMail")), //
     OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", "wa/outgoingInvoiceList"), //
     PERSONAL_STATISTICS("menu.personalStatistics", "wa/personalStatistics"), //
     PHONE_CALL("menu.phoneCall", "wa/phoneCall"), //
@@ -93,8 +92,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     TASK_TREE("menu.taskTree", "wa/taskTree"), //
     TIMESHEET_LIST("menu.timesheetList", "wa/timesheetList"), //
     USER_LIST("menu.userList", "wa/userList"), //
-    VACATION("menu.vacation", "${PREFIX}vacation"), //
-    VACATION_ACCOUNT("menu.vacation.leaveaccount", "${PREFIX}vacationAccount/dynamic"), //
+    VACATION("menu.vacation", getReactListUrl("vacation")), //
+    VACATION_ACCOUNT("menu.vacation.leaveaccount", getReactDynamicPageUrl("vacationAccount")), //
     VISITORBOOK("menu.orga.visitorbook", "wa/wicket/bookmarkable/org.projectforge.web.orga.VisitorbookListPage"), //
 
     SPACE_LIST("menu.spaceList"), //
@@ -103,7 +102,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     LUCENE_CONSOLE("menu.luceneConsole", "wa/wicket/bookmarkable/org.projectforge.web.admin.LuceneConsolePage"), //
     PLUGIN_ADMIN("menu.pluginAdmin", "wa/wicket/bookmarkable/org.projectforge.web.admin.PluginListPage"), //
     SYSTEM("menu.system", "wa/admin"), //
-    SYSTEM_STATISTICS("menu.systemStatistics", "wa/systemStatistics"), //
+    SYSTEM_STATISTICS("menu.systemStatistics", getReactDynamicPageUrl("systemStatistics")), //
     TENANT_LIST("menu.multiTenancy");
 
 
@@ -112,4 +111,12 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
      */
     val id: String
         get() = name
+}
+
+private fun getReactListUrl(name: String): String {
+    return "${Const.REACT_APP_PATH}$name"
+}
+
+private fun getReactDynamicPageUrl(name: String): String {
+    return "${Const.REACT_APP_PATH}$name/dynamic"
 }
