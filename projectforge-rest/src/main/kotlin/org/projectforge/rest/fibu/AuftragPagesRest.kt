@@ -23,20 +23,23 @@
 
 package org.projectforge.rest.fibu
 
-import org.projectforge.business.fibu.AuftragDO
-import org.projectforge.business.fibu.AuftragDao
+import org.projectforge.business.fibu.*
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDOPagesRest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Auftrag
 import org.projectforge.ui.*
+import org.projectforge.ui.filter.UIFilterElement
+import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/order")
-class AuftragPagesRest: AbstractDTOPagesRest<AuftragDO, Auftrag, AuftragDao>(AuftragDao::class.java, "fibu.auftrag.title") {
+class AuftragPagesRest : AbstractDTOPagesRest<AuftragDO, Auftrag, AuftragDao>(AuftragDao::class.java, "fibu.auftrag.title") {
     override fun transformForDB(dto: Auftrag): AuftragDO {
         val auftragDO = AuftragDO()
         dto.copyTo(auftragDO)
@@ -78,6 +81,56 @@ class AuftragPagesRest: AbstractDTOPagesRest<AuftragDO, Auftrag, AuftragDao>(Auf
         layout.getTableColumnById("periodOfPerformanceBegin").formatter = Formatter.DATE
         layout.getTableColumnById("periodOfPerformanceEnd").formatter = Formatter.DATE
         return LayoutUtils.processListPage(layout, this)
+    }
+
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        elements.add(UIFilterListElement("positionsArt", label = translate("fibu.auftrag.position.art"), defaultFilter = true)
+                .buildValues(AuftragsPositionsArt::class.java))
+        elements.add(UIFilterListElement("positionsStatus", label = translate("fibu.auftrag.positions"), defaultFilter = true)
+                .buildValues(AuftragsPositionsStatus::class.java))
+        elements.add(UIFilterListElement("positionsPaymentType", label = translate("fibu.auftrag.position.paymenttype"), defaultFilter = true)
+                .buildValues(AuftragsPositionsPaymentType::class.java))
+        elements.add(UIFilterListElement("fakturiert", label = translate("fibu.auftrag.status.fakturiert"), defaultFilter = true)
+                .buildValues(AuftragFakturiertFilterStatus::class.java))
+        val statusFilter = elements.find { it is UIFilterElement && it.id == "auftragsStatus" } as UIFilterElement
+        statusFilter.defaultFilter = true
+    }
+
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<AuftragDO>>? {
+        val filters = mutableListOf<CustomResultFilter<AuftragDO>>()
+
+        val positionTypeFilter = source.entries.find { it.field == "positionsArt" }
+        positionTypeFilter?.synthetic = true // Don't process this filter by data base.
+        positionTypeFilter?.value?.values?.let {
+            if (it.isNotEmpty()) {
+                filters.add(AuftragsPositionsArtFilter.create(it))
+            }
+        }
+
+        val positionsStatusFilter = source.entries.find { it.field == "positionsStatus" }
+        positionsStatusFilter?.synthetic = true // Don't process this filter by data base.
+        positionsStatusFilter?.value?.values?.let {
+            if (it.isNotEmpty()) {
+                filters.add(AuftragsPositionsStatusFilter.create(it))
+            }
+        }
+
+        val paymentTypeFilter = source.entries.find { it.field == "positionsPaymentType" }
+        paymentTypeFilter?.synthetic = true // Don't process this filter by data base.
+        paymentTypeFilter?.value?.values?.let {
+            if (it.isNotEmpty()) {
+                filters.add(AuftragsPositionsPaymentTypeFilter.create(it))
+            }
+        }
+
+        val fakturiertFilter = source.entries.find { it.field == "fakturiert" }
+        fakturiertFilter?.synthetic = true // Don't process this filter by data base.
+        fakturiertFilter?.value?.values?.let {
+            if (it.isNotEmpty()) {
+                filters.add(AuftragFakturiertFilter.create(it))
+            }
+        }
+        return filters
     }
 
     /**

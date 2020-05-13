@@ -1,1 +1,1 @@
-<%= org.projectforge.AppVersion.APP_ID %>
+<%= org.projectforge.ProjectForgeVersion.APP_ID %>

@@ -23,6 +23,7 @@
 
 package org.projectforge.jcr
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import mu.KotlinLogging
 import java.util.*
 import javax.jcr.Node
@@ -86,6 +87,7 @@ class FileObject() {
     /**
      * The content of the file.
      */
+    @JsonIgnore
     var content: ByteArray? = null
         set(value) {
             field = value

@@ -64,7 +64,9 @@ Object.convertToSubObjects = object => Object.keys(object)
 
 Object.isEmpty = object => Object.keys(object).length === 0;
 
-Object.isObject = object => typeof object === 'object';
+Object.isObject = object => typeof object === 'object'
+    && !Array.isArray(object)
+    && !(object instanceof Date);
 
 // Combines two objects one level down.
 Object.combine = (o1, o2) => ({
@@ -76,8 +78,7 @@ Object.combine = (o1, o2) => ({
             v1: o1[key],
             v2: o2[key],
         }))
-        .filter(({ v1, v2 }) => typeof v1 === 'object' && !(v1 instanceof Date)
-            && typeof v2 === 'object' && !(v2 instanceof Date))
+        .filter(({ v1, v2 }) => Object.isObject(v1) && Object.isObject(v2))
         .reduce((previousValue, currentValue) => ({
             ...previousValue,
             [currentValue.key]: {

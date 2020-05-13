@@ -21,33 +21,33 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.jcr
+package org.projectforge.business.fibu
 
 import mu.KotlinLogging
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Component
-import java.io.File
-import java.io.FileOutputStream
-import java.util.zip.ZipOutputStream
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 
 private val log = KotlinLogging.logger {}
 
-@Component
-class BackupJob {
-    @Autowired
-    private lateinit var repoBackupService: RepoBackupService
-
-    // projectforge.cron.jrcBackup=0 30 0 * * *
-    @Scheduled(cron = "\${projectforge.cron.jrcBackup}")
-    fun execute() {
-        log.info("JCR backup job started.")
-        val time = System.currentTimeMillis()
-        val backupFile = RepoBackupService.backupFilename
-        val zipFile = File(repoBackupService.backupDirectory, backupFile)
-        ZipOutputStream(FileOutputStream(zipFile)).use {
-            repoBackupService.backupAsZipArchive(zipFile.name, it)
+class AuftragFakturiertFilter(val values: List<AuftragFakturiertFilterStatus>) : CustomResultFilter<AuftragDO> {
+    override fun match(list: MutableList<AuftragDO>, element: AuftragDO): Boolean {
+        if (values.isEmpty() || values.contains(AuftragFakturiertFilterStatus.ALL)) {
+            return true
         }
-        log.info("JCR backup job finished after ${(System.currentTimeMillis() - time)/1000} seconds.")
+        log.error { "Not yet implemented." }
+        return true
+    }
+
+    companion object {
+        fun create(valuesAsStrings: Array<String>): AuftragFakturiertFilter {
+            val values = valuesAsStrings.mapNotNull {
+                try {
+                    AuftragFakturiertFilterStatus.valueOf(it)
+                } catch (ex: Exception) {
+                    log.error { "Ignore unknown value '$it' of type ${AuftragFakturiertFilterStatus::class.java.name}." }
+                    null
+                }
+            }
+            return AuftragFakturiertFilter(values)
+        }
     }
 }

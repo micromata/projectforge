@@ -21,19 +21,36 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge;
+package org.projectforge.plugins.liquidityplanning
 
-public class AppVersion
-{
-  public static final String APP_ID = ProjectForgeVersion.APP_ID;
+import java.io.Serializable
+import java.math.BigDecimal
+import java.time.LocalDate
 
-  public static final String APP_TITLE = ProjectForgeVersion.APP_ID + " " + ProjectForgeVersion.YEAR;
+class LiquidityForecastSettings : Serializable {
+    var baseDate: LocalDate? = null
+        get() {
+            field?.let {
+                if (it.isBefore(LocalDate.now())) {
+                    return it
+                }
+            }
+            return null
+        }
 
-  public static final Version VERSION = new Version(ProjectForgeVersion.VERSION_STRING);
+    var startAmount: BigDecimal? = BigDecimal.ZERO
+    var nextDays = 30
 
-  public static final String NUMBER = VERSION.toString();
+    /**
+     * For calculating the expected date of payment all paid invoices of an debitor of the last n month are analyzed.
+     *
+     * @return the expectencyForRecentMonths
+     */
+    var expectencyForRecentMonths = 12
 
-  public static final String RELEASE_DATE = ProjectForgeVersion.RELEASE_DATE;
-
-  public static final String RELEASE_TIMESTAMP = ProjectForgeVersion.RELEASE_TIMESTAMP;
+    companion object {
+        private const val serialVersionUID = -6429410479048275707L
+        const val MAX_FORECAST_DAYS = 600
+        const val DEFAULT_FORECAST_DAYS = 600
+    }
 }

@@ -29,30 +29,28 @@ import de.micromata.genome.jpa.metainf.JpaMetadataEntityNotFoundException;
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.property.RRule;
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.address.AddressDO;
-import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressbookDao;
-import org.projectforge.business.fibu.*;
+import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeDao;
+import org.projectforge.business.fibu.EmployeeStatus;
+import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.image.ImageService;
 import org.projectforge.business.multitenancy.TenantDao;
-import org.projectforge.business.teamcal.TeamCalConfig;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.business.vacation.model.VacationDO;
-import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.continuousdb.*;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.framework.time.*;
+import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDateTimeUtils;
+import org.projectforge.framework.time.PFDay;
 import org.springframework.context.ApplicationContext;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -497,299 +495,6 @@ public class DatabaseCoreUpdates
       }
     });
 
-    ////////////////////////////////////////////////////////////////////
-    // 6.12.0
-    // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.12.0", "2017-05-22",
-        "Correct calendar exdates. Change address image data to AddressDO.")
-    {
-      @Override
-      public UpdatePreCheckStatus runPreCheck()
-      {
-        log.info("Running pre-check for ProjectForge version 6.12.0");
-        if (hasISODates() || hasOldImageData()) {
-          return UpdatePreCheckStatus.READY_FOR_UPDATE;
-        }
-        return UpdatePreCheckStatus.ALREADY_UPDATED;
-      }
-
-      @Override
-      public UpdateRunningStatus runUpdate()
-      {
-        if (hasOldImageData()) {
-          databaseService.updateSchema();
-          migrateImageData();
-          deleteImageHistoryData();
-          deleteImageAddressAttrData();
-          log.info("Address image data migration DONE.");
-        }
-
-        if (hasISODates()) {
-          SimpleDateFormat iCalFormatterWithTime = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
-          SimpleDateFormat iCalFormatterAllDay = new SimpleDateFormat(DateFormats.COMPACT_DATE);
-          List<SimpleDateFormat> formatterPatterns = Arrays
-              .asList(new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_SECONDS), new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES),
-                  new SimpleDateFormat(DateFormats.ISO_DATE), iCalFormatterWithTime, iCalFormatterAllDay);
-          List<DatabaseResultRow> resultList = databaseService
-              .query(
-                  "SELECT pk, recurrence_ex_date, all_day FROM t_plugin_calendar_event te WHERE te.recurrence_ex_date IS NOT NULL AND te.recurrence_ex_date <> ''");
-          log.info("Found: " + resultList.size() + " event entries to update.");
-          for (DatabaseResultRow row : resultList) {
-            Integer id = (Integer) row.getEntry(0).getValue();
-            String exDateList = (String) row.getEntry(1).getValue();
-            Boolean allDay = (Boolean) row.getEntry(2).getValue();
-            log.debug("Event with id: " + id + " has exdate value: " + exDateList);
-            String[] exDateArray = exDateList.split(",");
-            List<String> finalExDates = new ArrayList<>();
-            for (String exDateOld : exDateArray) {
-              Date oldDate = null;
-              for (SimpleDateFormat sdf : formatterPatterns) {
-                try {
-                  oldDate = sdf.parse(exDateOld);
-                  break;
-                } catch (ParseException e) {
-                  if (log.isDebugEnabled()) {
-                    log.debug("Date not parsable. Try another parser.");
-                  }
-                }
-              }
-              if (oldDate == null) {
-                log.error("Date not parsable. Ignoring it: " + exDateOld);
-                continue;
-              }
-              if (allDay != null && allDay) {
-                finalExDates.add(iCalFormatterAllDay.format(oldDate));
-              } else {
-                finalExDates.add(iCalFormatterWithTime.format(oldDate));
-              }
-            }
-            String newExDateValue = String.join(",", finalExDates);
-            try {
-              databaseService.execute("UPDATE t_plugin_calendar_event SET recurrence_ex_date = '" + newExDateValue + "' WHERE pk = " + id);
-            } catch (Exception e) {
-              log.error("Error while updating event with id: " + id + " and new exdatevalue: " + newExDateValue + " . Ignoring it.");
-            }
-          }
-          log.info("Exdate migration DONE.");
-        }
-        return UpdateRunningStatus.DONE;
-      }
-
-      private boolean hasOldImageData()
-      {
-        return !databaseService.doesTableAttributeExist("T_ADDRESS", "imagedata")
-            || databaseService.query("SELECT pk FROM t_address_attr WHERE propertyname = 'profileImageData' limit 1").size() > 0
-            || databaseService.query("SELECT pk FROM t_pf_history_attr WHERE propertyname LIKE '%attrs.profileImageData%' limit 1").size() > 0;
-      }
-
-      private boolean hasISODates()
-      {
-        List<DatabaseResultRow> result = databaseService.query("SELECT * FROM T_PLUGIN_CALENDAR_EVENT WHERE recurrence_ex_date LIKE '%-%' LIMIT 1");
-        return result.size() > 0;
-      }
-
-      private void deleteImageAddressAttrData()
-      {
-        List<DatabaseResultRow> attrResultList = databaseService.query("SELECT pk FROM t_address_attr WHERE propertyname = 'profileImageData'");
-        for (DatabaseResultRow attrRow : attrResultList) {
-          Integer attrId = (Integer) attrRow.getEntry(0).getValue();
-          databaseService.execute("DELETE FROM t_address_attrdata WHERE parent_id = " + attrId);
-          databaseService.execute("DELETE FROM t_address_attr WHERE pk = " + attrId);
-        }
-      }
-
-      private void deleteImageHistoryData()
-      {
-        List<DatabaseResultRow> histAttrResultList = databaseService
-            .query("SELECT pk FROM t_pf_history_attr WHERE propertyname LIKE '%attrs.profileImageData%'");
-        for (DatabaseResultRow histAttrRow : histAttrResultList) {
-          Long histAttrId = (Long) histAttrRow.getEntry(0).getValue();
-          databaseService.execute("DELETE FROM t_pf_history_attr_data WHERE parent_pk = " + histAttrId);
-          databaseService.execute("DELETE FROM t_pf_history_attr WHERE pk = " + histAttrId);
-        }
-      }
-
-      private void migrateImageData()
-      {
-        AddressDao addressDao = applicationContext.getBean(AddressDao.class);
-        List<AddressDO> allAddresses = addressDao.internalLoadAll();
-        for (AddressDO ad : allAddresses) {
-          byte[] imageData = ad.getAttribute("profileImageData", byte[].class);
-          if (imageData != null && imageData.length > 0) {
-            final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
-            emf.runInTrans(emgr -> {
-              AddressDO addressDO = emgr.selectByPkAttached(AddressDO.class, ad.getId());
-              addressDO.setImageData(imageData);
-              emgr.update(addressDO);
-              return null;
-            });
-          }
-        }
-      }
-    });
-
-    ////////////////////////////////////////////////////////////////////
-    // 6.11.0
-    // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.11.0", "2017-05-03",
-        "Add discounts and konto informations. Add period of performance to invoices.")
-    {
-      @Override
-      public UpdatePreCheckStatus runPreCheck()
-      {
-        log.info("Running pre-check for ProjectForge version 6.11.0");
-        if (isSchemaUpdateNecessary()) {
-          return UpdatePreCheckStatus.READY_FOR_UPDATE;
-        }
-        return UpdatePreCheckStatus.ALREADY_UPDATED;
-      }
-
-      @Override
-      public UpdateRunningStatus runUpdate()
-      {
-        if (isSchemaUpdateNecessary()) {
-          databaseService.updateSchema();
-        }
-        return UpdateRunningStatus.DONE;
-      }
-
-      private boolean isSchemaUpdateNecessary()
-      {
-        return !databaseService.doesTableAttributeExist("t_fibu_eingangsrechnung", "discountmaturity")
-            || !databaseService.doesTableAttributeExist("t_fibu_rechnung", "discountmaturity")
-            || !databaseService.doesTableAttributeExist("t_fibu_eingangsrechnung", "customernr")
-            || !databaseService.doTableAttributesExist(RechnungDO.class, "periodOfPerformanceBegin", "periodOfPerformanceEnd")
-            || !databaseService.doTableAttributesExist(RechnungsPositionDO.class, "periodOfPerformanceType", "periodOfPerformanceBegin",
-            "periodOfPerformanceEnd");
-      }
-    });
-
-    ////////////////////////////////////////////////////////////////////
-    // 6.10.0
-    // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.10.0", "2017-04-11",
-        "Add column position_number to table T_FIBU_PAYMENT_SCHEDULE.")
-    {
-      @Override
-      public UpdatePreCheckStatus runPreCheck()
-      {
-        log.info("Running pre-check for ProjectForge version 6.10.0");
-        if (!databaseService.doesTableAttributeExist("T_FIBU_PAYMENT_SCHEDULE", "position_number")) {
-          return UpdatePreCheckStatus.READY_FOR_UPDATE;
-        }
-        return UpdatePreCheckStatus.ALREADY_UPDATED;
-      }
-
-      @Override
-      public UpdateRunningStatus runUpdate()
-      {
-        if (!databaseService.doesTableAttributeExist("T_FIBU_PAYMENT_SCHEDULE", "position_number")) {
-          databaseService.updateSchema();
-        }
-        return UpdateRunningStatus.DONE;
-      }
-
-    });
-
-    ////////////////////////////////////////////////////////////////////
-    // 6.9.0
-    // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.9.0", "2017-03-15",
-        "Allow multiple substitutions on application for leave.")
-    {
-      @Override
-      public UpdatePreCheckStatus runPreCheck()
-      {
-        log.info("Running pre-check for ProjectForge version 6.9.0");
-        if (!databaseService.doesTableExist("t_employee_vacation_substitution") ||
-            databaseService.doesTableAttributeExist("t_employee_vacation", "substitution_id") ||
-            uniqueConstraintMissing()) {
-          return UpdatePreCheckStatus.READY_FOR_UPDATE;
-        }
-
-        final Optional<Boolean> isColumnNullable = databaseService.isColumnNullable("T_PLUGIN_CALENDAR_EVENT", "UID");
-        if (!isColumnNullable.isPresent() || isColumnNullable.get()) {
-          return UpdatePreCheckStatus.READY_FOR_UPDATE;
-        }
-
-        return UpdatePreCheckStatus.ALREADY_UPDATED;
-      }
-
-      @Override
-      public UpdateRunningStatus runUpdate()
-      {
-        if (!databaseService.doesTableExist("t_employee_vacation_substitution") || uniqueConstraintMissing()) {
-          if (doesDuplicateUidsExists()) {
-            handleDuplicateUids();
-          }
-          // Updating the schema
-          databaseService.updateSchema();
-        }
-
-        final Optional<Boolean> isColumnNullable = databaseService.isColumnNullable("T_PLUGIN_CALENDAR_EVENT", "UID");
-        if (!isColumnNullable.isPresent() || isColumnNullable.get()) {
-          databaseService.execute("ALTER TABLE t_plugin_calendar_event ALTER COLUMN uid SET NOT NULL;");
-        }
-
-        if (databaseService.doesTableAttributeExist("t_employee_vacation", "substitution_id")) {
-          migrateSubstitutions();
-          // drop old substitution column
-          databaseService.dropTableAttribute("t_employee_vacation", "substitution_id");
-        }
-
-        return UpdateRunningStatus.DONE;
-      }
-
-      private void handleDuplicateUids()
-      {
-        final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
-        emf.runInTrans(emgr -> {
-          List<DatabaseResultRow> resultSet = databaseService
-              .query("SELECT uid, COUNT(*) FROM t_plugin_calendar_event GROUP BY uid HAVING COUNT(*) > 1");
-          for (DatabaseResultRow resultLine : resultSet) {
-            List<TeamEventDO> teList = emgr
-                .selectAttached(TeamEventDO.class, "SELECT t FROM TeamEventDO t WHERE t.uid = :uid", "uid", resultLine.getEntry(0).getValue());
-            for (TeamEventDO te : teList) {
-              te.setUid(TeamCalConfig.get().createEventUid());
-              emgr.update(te);
-            }
-          }
-          return null;
-        });
-      }
-
-      private boolean doesDuplicateUidsExists()
-      {
-        List<DatabaseResultRow> resultSet = databaseService.query("SELECT uid, COUNT(*) FROM t_plugin_calendar_event GROUP BY uid HAVING COUNT(*) > 1");
-        return resultSet != null && resultSet.size() > 0;
-      }
-
-      // migrate from old substitution column to new t_employee_vacation_substitution table
-      private void migrateSubstitutions()
-      {
-        final VacationDao vacationDao = applicationContext.getBean(VacationDao.class);
-        final EmployeeDao employeeDao = applicationContext.getBean(EmployeeDao.class);
-
-        final List<DatabaseResultRow> resultRows = databaseService
-            .query("SELECT pk, substitution_id FROM t_employee_vacation WHERE substitution_id IS NOT NULL;");
-
-        for (final DatabaseResultRow row : resultRows) {
-          final int vacationId = (int) row.getEntry("pk").getValue();
-          final int substitutionId = (int) row.getEntry("substitution_id").getValue();
-          final VacationDO vacation = vacationDao.internalGetById(vacationId);
-          final EmployeeDO substitution = employeeDao.internalGetById(substitutionId);
-          throw new UnsupportedOperationException("Migration from 6.9.0 isn't supported since version 7.0. Try to update from 6.10+ first.");
-          //vacation.getSubstitutions().add(substitution); // Substitutions are not available anymore!
-          //vacationDao.internalUpdate(vacation);
-        }
-      }
-
-      private boolean uniqueConstraintMissing()
-      {
-        return !(databaseService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid")
-            || databaseService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid_calendar_fk"));
-      }
-    });
     return list;
   }
 

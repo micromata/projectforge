@@ -23,7 +23,7 @@
 
 package org.projectforge.web.rest;
 
-import org.projectforge.AppVersion;
+import org.projectforge.ProjectForgeVersion;
 import org.projectforge.Version;
 import org.projectforge.business.user.UserAuthenticationsService;
 import org.projectforge.business.user.UserDao;
@@ -115,7 +115,7 @@ public class AuthenticationRest {
       throw new IllegalArgumentException("No user given for the rest call: authenticate/getToken.");
     }
     final UserObject userObject = PFUserDOConverter.getUserObject(user);
-    final ServerInfo info = new ServerInfo(AppVersion.VERSION.toString());
+    final ServerInfo info = new ServerInfo(ProjectForgeVersion.VERSION_NUMBER);
     info.setUser(userObject);
     Version clientVersion = null;
     if (clientVersionString != null) {
@@ -125,7 +125,7 @@ public class AuthenticationRest {
       info.setStatus(ServerInfo.STATUS_UNKNOWN);
     } else if (clientVersion.compareTo(new Version("5.0")) < 0) {
       info.setStatus(ServerInfo.STATUS_CLIENT_TO_OLD);
-    } else if (clientVersion.compareTo(AppVersion.VERSION) > 0) {
+    } else if (clientVersion.compareTo(ProjectForgeVersion.VERSION) > 0) {
       info.setStatus(ServerInfo.STATUS_CLIENT_NEWER_THAN_SERVER);
     } else {
       info.setStatus(ServerInfo.STATUS_OK);

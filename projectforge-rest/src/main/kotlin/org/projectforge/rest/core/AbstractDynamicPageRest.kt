@@ -24,6 +24,7 @@
 package org.projectforge.rest.core
 
 import mu.KotlinLogging
+import org.projectforge.framework.i18n.I18nKeyAndParams
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.ServerData
 import org.projectforge.ui.ResponseAction
@@ -57,6 +58,14 @@ abstract class AbstractDynamicPageRest {
         log.warn("Check of CSRF token failed, a validation error will be shown. Upsert of data declined: ${postData.data}")
         val validationErrors = mutableListOf<ValidationError>()
         validationErrors.add(ValidationError.create("errorpage.csrfError"))
+        return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+    }
+
+    protected fun processErrorKeys(errorMsgKeys: List<I18nKeyAndParams>): ResponseEntity<ResponseAction>? {
+        if (errorMsgKeys.isNullOrEmpty()) {
+            return null
+        }
+        val validationErrors = errorMsgKeys.map { ValidationError.create(it) }
         return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
     }
 }
