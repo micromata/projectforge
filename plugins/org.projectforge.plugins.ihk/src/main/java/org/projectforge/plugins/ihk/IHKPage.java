@@ -123,13 +123,13 @@ public class IHKPage extends AbstractStandardFormPage implements ISelectCallerPa
 
     final String filename = "Wochenbericht_"
         + DateHelper.getDateAsFilenameSuffix(form.getStartDate().getConvertedInput())
-        + ".xls";
-    byte[] xls = IHKExporter.getExcel(timeSheetList);
-    if (xls == null || xls.length == 0) {
-      log.error("Oups, xls has zero size. Filename: " + filename);
+        + ".xlsx";
+    byte[] xlsx = IHKExporter.getExcel(timeSheetList);
+    if (xlsx == null || xlsx.length == 0) {
+      log.error("Oups, xlsx has zero size. Filename: " + filename);
       return;
     }
-    DownloadUtils.setDownloadTarget(xls, filename);
+    DownloadUtils.setDownloadTarget(xlsx, filename);
   }
 
   void edit(TimesheetDO ts) {
