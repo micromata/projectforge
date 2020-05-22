@@ -26,7 +26,6 @@ package org.projectforge.plugins.ihk;
 import de.micromata.merlin.excel.ExcelRow;
 import de.micromata.merlin.excel.ExcelSheet;
 import de.micromata.merlin.excel.ExcelWorkbook;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
@@ -50,6 +49,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Objects;
 
 import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
 
@@ -65,199 +65,44 @@ class IHKExporter {
         if (timesheets.size() < 1) {
             return new byte[]{};
         }
-        ExportWorkbook workbook;
 
-        PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).getBeginOfWeek();
-        PFDateTime sundayDate = mondayDate.getEndOfWeek().getBeginOfDay();
-
-        ClassPathResource classPathResource = new ClassPathResource("IHK-Template-2019.xls");
+        ExcelSheet excelSheet = null;
+        ExcelRow emptyRow = null;
+        ClassPathResource classPathResource = new ClassPathResource("VorlageWochenbericht.xlsx"); // IHK-Template-2019.xls
 
         try {
-            workbook = new ExportWorkbook(classPathResource.getInputStream());
-        } catch (IOException e) {
-            return new byte[]{};
-        }
-
-        ExportSheet sheet = workbook.getSheet(0);
-        Row row = sheet.getRow(0).getPoiRow();
-        Cell header = row.getCell(0);
-        Cell sumHours = sheet.getRow(3).getCell(4).getPoiCell();
-
-        String string = header.getStringCellValue();
-        string = string.replace("%fullName%", getUser().getFullname());
-        string = string.replace("%startDate%", sdf.format(mondayDate.getUtilDate()));
-        string = string.replace("%endDate%", sdf.format(sundayDate.getUtilDate()));
-        header.setCellValue(string);
-
-        // first data row
-        double hourCounter = 0;
-        ExportRow firstDataRow = sheet.getRow(FIRST_DATA_ROW_NUM);
-        hourCounter = fillRow(hourCounter, firstDataRow.getPoiRow(), timesheets.get(0));
-
-        // other data rows
-        for (int i = 1; i < timesheets.size(); i++) {
-            final Row newRow = copyRow(firstDataRow, FIRST_DATA_ROW_NUM + i);
-            final TimesheetDO timesheet = timesheets.get(i);
-            hourCounter = fillRow(hourCounter, newRow, timesheet);
-
-            CellStyle style = workbook.createCellStyle();
-            style.setBorderBottom(BorderStyle.HAIR);
-            style.setShrinkToFit(true);
-            style.setWrapText(true);
-            newRow.setRowStyle(style);
-        }
-
-        sumHours.setCellValue(String.valueOf(hourCounter));
-        return workbook.getAsByteArray();
-    }
-
-    private static double fillRow(double hourCounter, final Row newRow, final TimesheetDO timesheet) {
-        final double durationInHours = timesheet.getDuration() / (1000.0 * 60.0 * 60.0);
-        hourCounter += durationInHours;
-
-        String lernfeld = "";
-        String description = "";
-
-        System.out.println(timesheet.getDescription());
-
-        if (!(timesheet.getDescription() == null)) {
-            if (timesheet.getDescription().contains("|")) { // If no | in String then IndexOf will be -1
-                lernfeld = StringUtils.substringBefore(timesheet.getDescription(), "|").trim();
-                description = StringUtils.substringAfter(timesheet.getDescription(), "|").trim();
-            } else {
-                lernfeld = "";
-                description = timesheet.getDescription();
-            }
-        }
-
-        newRow.getCell(0).setCellValue(sdf.format(timesheet.getStartTime()));
-        newRow.getCell(1).setCellValue(description);
-        newRow.getCell(3).setCellValue(lernfeld);
-        newRow.getCell(4).setCellValue(String.valueOf(durationInHours));
-        newRow.getCell(5).setCellValue(String.valueOf(hourCounter));
-
-        return hourCounter;
-    }
-
-    /**
-     * Copies a Row
-     *
-     * @param destinationRowNum
-     * @return copied PoiRow
-     */
-    static Row copyRow(ExportRow source, int destinationRowNum) {
-        // Get the source / new row
-        HSSFSheet worksheet = (HSSFSheet) source.getPoiRow().getSheet();
-        HSSFRow newRow = worksheet.getRow(destinationRowNum);
-        HSSFRow sourceRow = worksheet.getRow(source.getRowNum());
-
-        // If the row exist in destination, push down all rows by 1 else create a new row
-        if (newRow != null) {
-            worksheet.shiftRows(destinationRowNum, worksheet.getLastRowNum(), 1);
-        } else {
-            newRow = worksheet.createRow(destinationRowNum);
-        }
-
-        // Loop through source columns to add to new row
-        for (int i = 0; i < sourceRow.getLastCellNum(); i++) {
-            // Grab a copy of the old/new cell
-            HSSFCell oldCell = sourceRow.getCell(i);
-            HSSFCell newCell = newRow.createCell(i);
-
-            // If the old cell is null jump to next cell
-            if (oldCell == null) {
-                newCell = null;
-                continue;
-            }
-
-            // Copy style from old cell and apply to new cell
-            HSSFCellStyle newCellStyle = worksheet.getWorkbook().createCellStyle();
-            newCellStyle.cloneStyleFrom(oldCell.getCellStyle());
-            ;
-            newCell.setCellStyle(newCellStyle);
-
-            // If there is a cell comment, copy
-            if (oldCell.getCellComment() != null) {
-                newCell.setCellComment(oldCell.getCellComment());
-            }
-
-            // If there is a cell hyperlink, copy
-            if (oldCell.getHyperlink() != null) {
-                newCell.setHyperlink(oldCell.getHyperlink());
-            }
-
-            // Set the cell data type
-            newCell.setCellType(oldCell.getCellType());
-
-            // Set the cell data value
-            switch (oldCell.getCellType()) {
-                case BLANK:
-                    newCell.setCellValue(oldCell.getStringCellValue());
-                    break;
-                case BOOLEAN:
-                    newCell.setCellValue(oldCell.getBooleanCellValue());
-                    break;
-                case ERROR:
-                    newCell.setCellValue(oldCell.getErrorCellValue());
-                    break;
-                case FORMULA:
-                    newCell.setCellFormula(oldCell.getCellFormula());
-                    break;
-                case NUMERIC:
-                    newCell.setCellValue(oldCell.getNumericCellValue());
-                    break;
-                case STRING:
-                    newCell.setCellValue(oldCell.getRichStringCellValue());
-                    break;
-            }
-        }
-
-        // If there are are any merged regions in the source row, copy to new row
-        for (int i = 0; i < worksheet.getNumMergedRegions(); i++) {
-            CellRangeAddress cellRangeAddress = worksheet.getMergedRegion(i);
-            if (cellRangeAddress.getFirstRow() == sourceRow.getRowNum()) {
-                CellRangeAddress newCellRangeAddress = new CellRangeAddress(newRow.getRowNum(),
-                        (newRow.getRowNum() +
-                                (cellRangeAddress.getLastRow() - cellRangeAddress.getFirstRow()
-                                )),
-                        cellRangeAddress.getFirstColumn(),
-                        cellRangeAddress.getLastColumn());
-                worksheet.addMergedRegion(newCellRangeAddress);
-            }
-        }
-        return newRow;
-    }
-
-
-
-    public void createSheet() throws IOException {
-        ExcelSheet excelSheet;
-        ExcelRow emptyRow;
-        String initialString = "../VorlageWochenbericht.xlsx"; /// TODO check Path
-        File xlFile = new File(initialString);
-
-        FileInputStream inStream = new FileInputStream(xlFile);
-
-        try {
-            ExcelWorkbook workbook = new ExcelWorkbook(inStream, "VorlageWochenbericht.xlsx");
+            ExcelWorkbook workbook = new ExcelWorkbook(classPathResource.getInputStream(), classPathResource.getPath());
             excelSheet = workbook.getSheet(0);
             assert excelSheet != null;
             emptyRow = excelSheet.getRow(2);
-        } catch (NullPointerException e) {
-            throw new NullPointerException(e.getMessage());
+        } catch (NullPointerException | IOException e) {
+            e.printStackTrace();
         }
 
         /// TODO insert needed rows
         String fileName = "example";
-        int anzNewRows = 3; // 1 already exists
+        final int anzNewRows = timesheets.size(); // 1 already exists
 
-        setFirstRow(excelSheet);
+        setFirstRow(timesheets, excelSheet);
         createNewRow(excelSheet, emptyRow, anzNewRows);
 
-        generateFile(excelSheet, fileName);
+        double hourCounter = 0;
+
+        for (int i = 0; i < anzNewRows; i++) {
+            final TimesheetDO timesheet = timesheets.get(i);
+            hourCounter = setNewRows(hourCounter, timesheet, excelSheet, i);
+        }
+
+        excelSheet.getRow(FIRST_DATA_ROW_NUM + anzNewRows).getCell(4).setCellValue(hourCounter);
+
+
+        return returnByteFile(excelSheet);
     }
 
-    void setFirstRow(ExcelSheet excelSheet) {
+    private static void setFirstRow(final List<TimesheetDO> timesheets, ExcelSheet excelSheet) {
+        PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).getBeginOfWeek();
+        PFDateTime sundayDate = mondayDate.getEndOfWeek().getBeginOfDay();
+
         // run exception
         if (excelSheet == null || excelSheet.getRow(0) == null) {
             return;
@@ -268,54 +113,70 @@ class IHKExporter {
         contentOfCell = contentOfCell.replace("#idName", getCurrentAzubiName());
         contentOfCell = contentOfCell.replace("#idYear", getCurrentAzubiYear());
         contentOfCell = contentOfCell.replace("#idNr", getDocNr());
-        contentOfCell = contentOfCell.replace("#idFirstDate", getFirstDate());
-        contentOfCell = contentOfCell.replace("#idLastDate", getLastDate());
+        contentOfCell = contentOfCell.replace("#idFirstDate", sdf.format(mondayDate.getUtilDate()));
+        contentOfCell = contentOfCell.replace("#idLastDate", sdf.format(sundayDate.getUtilDate()));
         contentOfCell = contentOfCell.replace("#idDepartment", getDepartment());
 
         excelSheet.getRow(0).getCell(0).setCellValue(contentOfCell);
     }
 
-    void createNewRow(ExcelSheet excelSheet, ExcelRow emptyRow, int anzNewRows) {
+    private static void createNewRow(ExcelSheet excelSheet, ExcelRow emptyRow, int anzNewRows) {
         // run exception
         if (excelSheet == null || emptyRow == null) {
             return;
         }
 
-        for (int i = 0; i < anzNewRows; i++) {
-            excelSheet.getRow(2).copyAndInsert(emptyRow.getSheet());
+        for (int i = 1; i < anzNewRows; i++) {
+            Objects.requireNonNull(excelSheet.getRow(FIRST_DATA_ROW_NUM)).copyAndInsert(emptyRow.getSheet());
         }
     }
 
-    void generateFile(ExcelSheet excelSheet, String fileName) throws IOException {
+    private static double setNewRows(double hourCounter, final TimesheetDO timesheet, ExcelSheet excelSheet, int cell) {
+        final double durationInHours = timesheet.getDuration() / (1000.0 * 60.0 * 60.0);
+        hourCounter += durationInHours;
+
+        String lernfeld = "";
+        String description = "";
+
+        if (!(timesheet.getDescription() == null)) {
+            if (timesheet.getDescription().contains("|")) { // If no | in String then IndexOf will be -1
+                lernfeld = StringUtils.substringBefore(timesheet.getDescription(), "|").trim();
+                description = StringUtils.substringAfter(timesheet.getDescription(), "|").trim();
+            } else {
+                description = timesheet.getDescription();
+            }
+        }
+
+        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(0).setCellValue(sdf.format(timesheet.getStartTime()));
+        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(1).setCellValue(description);
+        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(3).setCellValue(lernfeld);
+        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(4).setCellValue(String.valueOf(durationInHours));
+        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(5).setCellValue(String.valueOf(hourCounter));
+
+        return hourCounter;
+    }
+
+    private static byte[] returnByteFile(ExcelSheet excelSheet) {
         ExcelWorkbook workbook = excelSheet.getExcelWorkbook();
         ByteArrayOutputStream byteArrayOutputStream = workbook.getAsByteArrayOutputStream();
 
-        FileUtils.writeByteArrayToFile(new File(fileName + ".xlsx"),
-                byteArrayOutputStream.toByteArray());
+        return byteArrayOutputStream.toByteArray();
+    }
+
+    private static String getCurrentAzubiName() {
+        return getUser().getFullname();
     }
 
     /// TODO set parameters
-    String getCurrentAzubiName(){
-        return "";
+    private static String getCurrentAzubiYear() {
+        return "UNKNOWN";
     }
 
-    String getCurrentAzubiYear(){
-        return "";
+    private static String getDocNr() {
+        return "UNKNOWN";
     }
 
-    String getDocNr(){
-        return "";
-    }
-
-    String getFirstDate(){
-        return "";
-    }
-
-    String getLastDate(){
-        return "";
-    }
-
-    String getDepartment(){
-        return "";
+    private static String getDepartment() {
+        return "UNKNOWN";
     }
 }
