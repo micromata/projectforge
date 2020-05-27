@@ -97,7 +97,7 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage>
     //for testing purposes, pls remove before deploying to production
     userComment = "{\n" +
             "  \"ausbildungsStart\": \"2019-09-01\",\n" +
-            "  \"ausbildungsJahr\": 2,\n" +
+            "  \"ausbildungsJahr\": ,\n" +
             "  \"team\": \"Porsche\"\n" +
             "}";
     //Stop removing now

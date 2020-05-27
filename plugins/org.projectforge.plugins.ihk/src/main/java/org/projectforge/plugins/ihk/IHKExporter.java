@@ -48,8 +48,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
 
@@ -61,10 +66,20 @@ class IHKExporter {
 
     private static final int FIRST_DATA_ROW_NUM = 2;
 
-    static byte[] getExcel(final List<TimesheetDO> timesheets) {
+    static private String teamName;
+    static private int ausbildungsJahr = -1;
+    static private LocalDate ausbildungsStartDate;
+
+    static byte[] getExcel(final List<TimesheetDO> timesheets, LocalDate ausbildungsstartDate,String teamname, int ausbildungsjahr) {
         if (timesheets.size() < 1) {
             return new byte[]{};
         }
+
+        teamName = teamname;
+        ausbildungsJahr = ausbildungsjahr;
+        ausbildungsStartDate = ausbildungsstartDate;
+
+
 
         ExcelSheet excelSheet = null;
         ExcelRow emptyRow = null;
@@ -112,7 +127,7 @@ class IHKExporter {
 
         contentOfCell = contentOfCell.replace("#idName", getCurrentAzubiName());
         contentOfCell = contentOfCell.replace("#idYear", getCurrentAzubiYear());
-        contentOfCell = contentOfCell.replace("#idNr", getDocNr());
+        contentOfCell = contentOfCell.replace("#idNr", getDocNr(sundayDate.getUtilDate()));
         contentOfCell = contentOfCell.replace("#idFirstDate", sdf.format(mondayDate.getUtilDate()));
         contentOfCell = contentOfCell.replace("#idLastDate", sdf.format(sundayDate.getUtilDate()));
         contentOfCell = contentOfCell.replace("#idDepartment", getDepartment());
@@ -169,11 +184,21 @@ class IHKExporter {
 
     /// TODO set parameters
     private static String getCurrentAzubiYear() {
-        return "UNKNOWN";
+
+        String azubiYear = ""+ausbildungsJahr;
+
+        return azubiYear;
     }
 
-    private static String getDocNr() {
-        return "UNKNOWN";
+    private static String getDocNr(Date mondayDate) {
+
+        Period period = Period.between(ausbildungsStartDate,mondayDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+        int diff = period.getDays();
+        int diff2 = diff/7;
+
+        String docNr = "" + diff2;
+
+        return docNr;
     }
 
     private static String getDepartment() {
