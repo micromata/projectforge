@@ -86,22 +86,15 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage>
     String userComment = "";
     List<AddressDO> addressDos = addressDao.getList(new BaseSearchFilter());
 
-/*
+    // TODO Working here
     for(AddressDO addressDo : addressDos){
-      if(addressDo.getFullName().equals(ThreadLocalUserContext.getUser().getFullname())){
+      log.warn(ThreadLocalUserContext.getUserId()+ "");
+      if(addressDo.getId() == ThreadLocalUserContext.getUserId()){
         userComment = addressDo.getComment();
         break;
       }
     }
 
- */
-    //for testing purposes, pls remove before deploying to production
-    userComment = "{\n" +
-            "  \"ausbildungsStart\": \"2018-09-01\",\n" +
-            "  \"ausbildungsJahr\": \"-1\",\n" +
-            "  \"team\": \"Käsefleischer\"\n" +
-            "}";
-    //Stop removing now
 
     Gson gson = new Gson();
     IHKCommentObject ihkCommentObject = gson.fromJson(userComment,IHKCommentObject.class);
@@ -112,7 +105,6 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage>
 
     gridBuilder.newSplitPanel(GridSize.COL66);
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("timePeriod"));
-    final FieldsetPanel fs2 =  gridBuilder.newFieldset(getString("keyFields"));
 
     FieldProperties<LocalDate> props = getFromDayProperties();
     startDate = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
