@@ -65,6 +65,7 @@ class IHKExporter
     PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).getBeginOfWeek();
     PFDateTime sundayDate = mondayDate.getEndOfWeek().getBeginOfDay();
 
+
     ClassPathResource classPathResource = new ClassPathResource("IHK-Template-2019.xls");
 
     try {
@@ -77,6 +78,8 @@ class IHKExporter
     Row row = sheet.getRow(0).getPoiRow();
     Cell header = row.getCell(0);
     Cell sumHours = sheet.getRow(3).getCell(4).getPoiCell();
+
+    //TODO: getUser().getDescription()
 
     String string = header.getStringCellValue();
     string = string.replace("%fullName%", getUser().getFullname());
