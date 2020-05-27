@@ -41,7 +41,7 @@ class AddressService {
     private val log = LoggerFactory.getLogger(AddressService::class.java)
 
     @Autowired
-    private lateinit var addressCache: AddressCache
+    private lateinit var addressDAVCache: AddressDAVCache
 
     @Autowired
     private lateinit var addressDao: AddressDao
@@ -54,7 +54,7 @@ class AddressService {
 
     fun getContactList(addressBook: AddressBook): List<Contact> {
         val favorites = personalAddressDao.favoriteAddressIdList
-        return addressCache.getContacts(addressBook, favorites)
+        return addressDAVCache.getContacts(addressBook, favorites)
     }
 
     @Suppress("UNUSED_PARAMETER")

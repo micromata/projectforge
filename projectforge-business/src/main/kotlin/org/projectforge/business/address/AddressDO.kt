@@ -278,14 +278,14 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     open var birthday: LocalDate? = null
 
     @PropertyInfo(i18nKey = "address.image")
-    @field:NoHistory
     @get:Column
-    open var imageData: ByteArray? = null
+    open var image: Boolean? = null
 
-    @PropertyInfo(i18nKey = "address.image")
-    @field:NoHistory
-    @get:Column(name = "image_data_preview")
-    open var imageDataPreview: ByteArray? = null
+    /**
+     * Time stamp of last image modification (or deletion). Usefull for history of changes.
+     */
+    @get:Column(name = "image_last_update")
+    open var imageLastUpdate: Date? = null
 
     /**
      * The substitutions.
@@ -554,26 +554,6 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     @HistoryProperty(converter = TabAttrHistoryPropertyConverter::class)
     override fun getAttrs(): Map<String, JpaTabAttrBaseDO<AddressDO, Int>> {
         return super.getAttrs()
-    }
-
-    override fun toString(): String {
-        if (compareValues(imageData?.size, 10) <= 0 && compareValues(imageDataPreview?.size, 10) <= 0)
-            return super.toString()
-        // imageData or imageDatePreview is larger than 10 bytes: slice it...
-        // Ignore images
-        val clone = AddressDO()
-        clone.copyValuesFrom(this)
-        clone.imageDataPreview = sliceByteArray(imageDataPreview)
-        clone.imageData = sliceByteArray(imageData)
-        return clone.toString()
-    }
-
-    private fun sliceByteArray(byteArray: ByteArray?): ByteArray? {
-        var size = byteArray?.size ?: return null
-        if (size > 9) {
-            size = 9
-        }
-        return byteArray.sliceArray(0..size)
     }
 
     companion object {

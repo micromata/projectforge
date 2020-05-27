@@ -25,7 +25,7 @@ package org.projectforge.business.systeminfo;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.AppVersion;
+import org.projectforge.ProjectForgeVersion;
 import org.projectforge.business.address.BirthdayCache;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.RechnungCache;
@@ -92,7 +92,7 @@ public class SystemService {
     TimeZone timeZone = ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getTimeZone() != null ?
             TimeZone.getTimeZone(ThreadLocalUserContext.getUser().getTimeZoneString()) :
             ThreadLocalUserContext.getTimeZone();
-    VersionCheck versionCheck = new VersionCheck(AppVersion.VERSION.toString(), locale, timeZone);
+    VersionCheck versionCheck = new VersionCheck(ProjectForgeVersion.VERSION.toString(), locale, timeZone);
     try {
       versionCheck = restCallService.callRestInterfaceForUrl(versionCheckUrl, HttpMethod.POST, VersionCheck.class, versionCheck);
     } catch (Exception ex) {

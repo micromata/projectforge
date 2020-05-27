@@ -138,6 +138,11 @@ enum class TargetType {
     NOTHING,
 
     /**
+     * The client should show this toast message.
+     */
+    TOAST,
+
+    /**
      * The client should fetch the user status to get more information about his current authentication status.
      */
     CHECK_AUTHENTICATION,

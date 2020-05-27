@@ -45,9 +45,11 @@ class SystemStatus {
 
     val appname = ProjectForgeVersion.APP_ID
     val version = ProjectForgeVersion.VERSION_STRING
-    val releaseTimestamp = ProjectForgeVersion.RELEASE_TIMESTAMP
-    val releaseDate = ProjectForgeVersion.RELEASE_DATE
+    val buildTimestamp = ProjectForgeVersion.BUILD_TIMESTAMP
+    val buildDate = ProjectForgeVersion.BUILD_DATE
     val releaseYear = ProjectForgeVersion.YEAR
+    val scmIdFull = ProjectForgeVersion.SCM_ID_FULL
+    val scmId = ProjectForgeVersion.SCM_ID
     var messageOfTheDay: String? = null
         private set
     var logoFile: String? = null
