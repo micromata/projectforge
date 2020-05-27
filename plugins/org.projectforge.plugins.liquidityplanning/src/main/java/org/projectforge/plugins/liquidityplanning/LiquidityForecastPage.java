@@ -97,7 +97,7 @@ public class LiquidityForecastPage extends AbstractStandardFormPage
     //      forecast = LiquidityEntryListPage.getForecast();
     //    }
     super.onBeforeRender();
-    if (!Objects.equals(form.getSettings().getBaseDate(), forecast.getBaseDate())) {
+    if (forecast == null || !Objects.equals(form.getSettings().getBaseDate(), forecast.getBaseDate())) {
       forecast = liquidityForecastBuilder.build(form.getSettings().getBaseDate());
     }
     final LiquidityChartBuilder chartBuilder = new LiquidityChartBuilder();
