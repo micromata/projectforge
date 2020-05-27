@@ -35,6 +35,7 @@ import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.web.CSSColor;
@@ -86,12 +87,15 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage>
     String userComment = "";
     List<AddressDO> addressDos = addressDao.getList(new BaseSearchFilter());
 
-    // TODO Working here
+
     for(AddressDO addressDo : addressDos){
-      log.warn(ThreadLocalUserContext.getUserId()+ "");
-      if(addressDo.getId() == ThreadLocalUserContext.getUserId()){
-        userComment = addressDo.getComment();
-        break;
+      if(addressDo.getName().equals(ThreadLocalUserContext.getUser().getLastname())){
+        if(addressDo.getFirstName().equals(ThreadLocalUserContext.getUser().getFirstname())){
+
+          userComment = addressDo.getComment();
+          break;
+
+        }
       }
     }
 
