@@ -23,12 +23,19 @@
 
 package org.projectforge.plugins.ihk;
 
+import com.google.gson.Gson;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
+import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.address.AddressDO;
+import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.timesheet.TimesheetDO;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.web.CSSColor;
@@ -40,7 +47,6 @@ import org.projectforge.web.wicket.components.LocalDateModel;
 import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.*;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -59,15 +65,47 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage>
 
   protected LocalDatePanel stopDate;
 
+  protected LocalDate ausbildungsStartDate;
+
+  protected String teamName;
+
+  protected int ausbildungsJahr;
+
   public IHKForm(IHKPage parentPage)
   {
     super(parentPage);
   }
 
+  @SpringBean
+  private AddressDao addressDao;
+
   @Override
   protected void init()
   {
     super.init();
+
+    String userComment = "";
+    List<AddressDO> addressDos = addressDao.getList(new BaseSearchFilter());
+
+
+    for(AddressDO addressDo : addressDos){
+      if(addressDo.getName().equals(ThreadLocalUserContext.getUser().getLastname())){
+        if(addressDo.getFirstName().equals(ThreadLocalUserContext.getUser().getFirstname())){
+
+          userComment = addressDo.getComment();
+          break;
+
+        }
+      }
+    }
+
+
+    Gson gson = new Gson();
+    IHKCommentObject ihkCommentObject = gson.fromJson(userComment,IHKCommentObject.class);
+
+    ausbildungsJahr = ihkCommentObject.getAusbildungsJahr();
+    teamName = ihkCommentObject.getTeam();
+    ausbildungsStartDate = LocalDate.parse(ihkCommentObject.getAusbildungStart());
 
     gridBuilder.newSplitPanel(GridSize.COL66);
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("timePeriod"));
@@ -188,6 +226,21 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage>
   public LocalDatePanel getStartDate()
   {
     return startDate;
+  }
+
+  public LocalDate getAusbildungsStartDate()
+  {
+    return ausbildungsStartDate;
+  }
+
+  public int getAusbildungsJahr()
+  {
+    return ausbildungsJahr;
+  }
+
+  public String getTeamName()
+  {
+    return teamName;
   }
 
 }

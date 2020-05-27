@@ -124,7 +124,7 @@ public class IHKPage extends AbstractStandardFormPage implements ISelectCallerPa
     final String filename = "Wochenbericht_"
         + DateHelper.getDateAsFilenameSuffix(form.getStartDate().getConvertedInput())
         + ".xlsx";
-    byte[] xlsx = IHKExporter.getExcel(timeSheetList);
+    byte[] xlsx = IHKExporter.getExcel(timeSheetList,form.getAusbildungsStartDate(),form.getTeamName(),form.getAusbildungsJahr());
     if (xlsx == null || xlsx.length == 0) {
       log.error("Oups, xlsx has zero size. Filename: " + filename);
       return;

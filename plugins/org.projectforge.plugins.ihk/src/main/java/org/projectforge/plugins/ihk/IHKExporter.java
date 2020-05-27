@@ -48,9 +48,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
+import static java.time.temporal.ChronoUnit.DAYS;
 import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
 
 /**
@@ -61,10 +67,19 @@ class IHKExporter {
 
     private static final int FIRST_DATA_ROW_NUM = 2;
 
-    static byte[] getExcel(final List<TimesheetDO> timesheets) {
+    static private String teamName;
+    static private int ausbildungsJahr = -1;
+    static private LocalDate ausbildungsStartDate;
+
+    static byte[] getExcel(final List<TimesheetDO> timesheets, LocalDate ausbildungsstartDate, String teamname, int ausbildungsjahr) {
         if (timesheets.size() < 1) {
             return new byte[]{};
         }
+
+        teamName = teamname;
+        ausbildungsJahr = ausbildungsjahr;
+        ausbildungsStartDate = ausbildungsstartDate;
+
 
         ExcelSheet excelSheet = null;
         ExcelRow emptyRow = null;
@@ -111,8 +126,8 @@ class IHKExporter {
         String contentOfCell = excelSheet.getRow(0).getCell(0).getStringCellValue();
 
         contentOfCell = contentOfCell.replace("#idName", getCurrentAzubiName());
-        contentOfCell = contentOfCell.replace("#idYear", getCurrentAzubiYear());
-        contentOfCell = contentOfCell.replace("#idNr", getDocNr());
+        contentOfCell = contentOfCell.replace("#idYear", getCurrentAzubiYear(sundayDate.getUtilDate()));
+        contentOfCell = contentOfCell.replace("#idNr", getDocNr(sundayDate.getUtilDate()));
         contentOfCell = contentOfCell.replace("#idFirstDate", sdf.format(mondayDate.getUtilDate()));
         contentOfCell = contentOfCell.replace("#idLastDate", sdf.format(sundayDate.getUtilDate()));
         contentOfCell = contentOfCell.replace("#idDepartment", getDepartment());
@@ -168,15 +183,31 @@ class IHKExporter {
     }
 
     /// TODO set parameters
-    private static String getCurrentAzubiYear() {
+    private static String getCurrentAzubiYear(Date date) {
+        String azubiYear = "";
+        if (ausbildungsJahr > 0) {
+            azubiYear = ausbildungsJahr + "";
+            return azubiYear;
+        }
+
+        Period period = Period.between(ausbildungsStartDate, date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+        double diff = period.getYears();
+
+        if (diff < 1.0) return "1";
+        if (diff < 2.0) return "2";
+        if (diff <= 3.0) return "3";
+
         return "UNKNOWN";
     }
 
-    private static String getDocNr() {
-        return "UNKNOWN";
+    private static String getDocNr(Date mondayDate) {
+
+        long diff = DAYS.between(ausbildungsStartDate, mondayDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+
+        return "" + diff / 7;
     }
 
     private static String getDepartment() {
-        return "UNKNOWN";
+        return teamName;
     }
 }
