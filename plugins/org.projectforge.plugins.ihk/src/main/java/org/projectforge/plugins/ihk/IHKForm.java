@@ -86,7 +86,7 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage>
     String userComment = "";
     List<AddressDO> addressDos = addressDao.getList(new BaseSearchFilter());
 
-
+/*
     for(AddressDO addressDo : addressDos){
       if(addressDo.getFullName().equals(ThreadLocalUserContext.getUser().getFullname())){
         userComment = addressDo.getComment();
@@ -94,11 +94,12 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage>
       }
     }
 
+ */
     //for testing purposes, pls remove before deploying to production
     userComment = "{\n" +
-            "  \"ausbildungsStart\": \"2019-09-01\",\n" +
-            "  \"ausbildungsJahr\": ,\n" +
-            "  \"team\": \"Porsche\"\n" +
+            "  \"ausbildungsStart\": \"2018-09-01\",\n" +
+            "  \"ausbildungsJahr\": \"-1\",\n" +
+            "  \"team\": \"Käsefleischer\"\n" +
             "}";
     //Stop removing now
 
