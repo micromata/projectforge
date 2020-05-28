@@ -28,25 +28,12 @@ import de.micromata.merlin.excel.ExcelSheet;
 import de.micromata.merlin.excel.ExcelWorkbook;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.ss.usermodel.BorderStyle;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.util.CellRangeAddress;
-import org.projectforge.business.excel.ExportRow;
-import org.projectforge.business.excel.ExportSheet;
-import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.framework.time.PFDateTime;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Period;
@@ -54,7 +41,6 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
@@ -63,6 +49,7 @@ import static org.projectforge.framework.persistence.user.api.ThreadLocalUserCon
  * Created by mnuhn on 05.12.2019
  */
 class IHKExporter {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(IHKExporter.class);
     private static final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
 
     private static final int FIRST_DATA_ROW_NUM = 2;
@@ -83,7 +70,7 @@ class IHKExporter {
 
         ExcelSheet excelSheet = null;
         ExcelRow emptyRow = null;
-        ClassPathResource classPathResource = new ClassPathResource("VorlageWochenbericht.xlsx"); // IHK-Template-2019.xls
+        ClassPathResource classPathResource = new ClassPathResource("VorlageWochenbericht.xlsx");
 
         try {
             ExcelWorkbook workbook = new ExcelWorkbook(classPathResource.getInputStream(), classPathResource.getPath());
@@ -108,7 +95,7 @@ class IHKExporter {
             hourCounter = setNewRows(hourCounter, timesheet, excelSheet, i);
         }
 
-        excelSheet.getRow(FIRST_DATA_ROW_NUM + anzNewRows).getCell(4).setCellValue(hourCounter);
+        excelSheet.getRow(FIRST_DATA_ROW_NUM + anzNewRows).getCell(5).setCellValue(trimDouble(hourCounter));
 
 
         return returnByteFile(excelSheet);
@@ -165,10 +152,15 @@ class IHKExporter {
         excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(0).setCellValue(sdf.format(timesheet.getStartTime()));
         excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(1).setCellValue(description);
         excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(3).setCellValue(lernfeld);
-        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(4).setCellValue(String.valueOf(durationInHours));
-        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(5).setCellValue(String.valueOf(hourCounter));
+        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(4).setCellValue(trimDouble(durationInHours));
+        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(5).setCellValue(trimDouble(hourCounter));
 
         return hourCounter;
+    }
+
+    private static String trimDouble(double value) {
+        DecimalFormat df = new DecimalFormat("#.##");
+        return df.format(value);
     }
 
     private static byte[] returnByteFile(ExcelSheet excelSheet) {
@@ -185,29 +177,41 @@ class IHKExporter {
     /// TODO set parameters
     private static String getCurrentAzubiYear(Date date) {
         String azubiYear = "";
+
         if (ausbildungsJahr > 0) {
             azubiYear = ausbildungsJahr + "";
             return azubiYear;
         }
 
-        Period period = Period.between(ausbildungsStartDate, date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
-        double diff = period.getYears();
-
-        if (diff < 1.0) return "1";
-        if (diff < 2.0) return "2";
-        if (diff <= 3.0) return "3";
-
+        if (ausbildungsStartDate != null) {
+            Period period = Period.between(ausbildungsStartDate, date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+            double diff = period.getYears();
+            if (diff < 1.0) return "1";
+            if (diff < 2.0) return "2";
+            if (diff <= 3.0) return "3";
+        } else {
+            log.info("ihk plugin: ausbildungsStartDate was null");
+            return "UNKNOWN";
+        }
         return "UNKNOWN";
     }
 
     private static String getDocNr(Date mondayDate) {
-
-        long diff = DAYS.between(ausbildungsStartDate, mondayDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
-
+        long diff = 0;
+        if (ausbildungsStartDate != null) {
+            diff = DAYS.between(ausbildungsStartDate, mondayDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+        } else {
+            log.info("ihk plugin: ausbildungsStartDate was null");
+        }
         return "" + diff / 7;
     }
 
     private static String getDepartment() {
-        return teamName;
+        if (teamName != null) {
+            return teamName;
+        } else {
+            log.info("ihk plugin: teamName was null");
+            return "UNKNOWN";
+        }
     }
 }
