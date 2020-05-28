@@ -47,6 +47,7 @@ import static org.projectforge.framework.persistence.user.api.ThreadLocalUserCon
 
 /**
  * Created by mnuhn on 05.12.2019
+ * Updatet by mweishaar, jhpeters and mopreusser on 28.05.2020 with updatet IHK-Fields in XLSX file
  */
 class IHKExporter {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(IHKExporter.class);
