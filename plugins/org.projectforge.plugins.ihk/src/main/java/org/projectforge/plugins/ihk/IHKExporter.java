@@ -57,6 +57,7 @@ class IHKExporter {
     static private String teamName;
     static private int ausbildungsJahr = -1;
     static private LocalDate ausbildungsStartDate;
+    static private String docNr = "error";
 
     static byte[] getExcel(final List<TimesheetDO> timesheets, LocalDate ausbildungsstartDate, String teamname, int ausbildungsjahr) {
         if (timesheets.size() < 1) {
@@ -66,7 +67,6 @@ class IHKExporter {
         teamName = teamname;
         ausbildungsJahr = ausbildungsjahr;
         ausbildungsStartDate = ausbildungsstartDate;
-
 
         ExcelSheet excelSheet = null;
         ExcelRow emptyRow = null;
@@ -114,7 +114,7 @@ class IHKExporter {
 
         contentOfCell = contentOfCell.replace("#idName", getCurrentAzubiName());
         contentOfCell = contentOfCell.replace("#idYear", getCurrentAzubiYear(sundayDate.getUtilDate()));
-        contentOfCell = contentOfCell.replace("#idNr", getDocNr(sundayDate.getUtilDate()));
+        contentOfCell = contentOfCell.replace("#idNr", getDocNrByDate(sundayDate.getUtilDate()));
         contentOfCell = contentOfCell.replace("#idFirstDate", sdf.format(mondayDate.getUtilDate()));
         contentOfCell = contentOfCell.replace("#idLastDate", sdf.format(sundayDate.getUtilDate()));
         contentOfCell = contentOfCell.replace("#idDepartment", getDepartment());
@@ -196,14 +196,15 @@ class IHKExporter {
         return "UNKNOWN";
     }
 
-    private static String getDocNr(Date mondayDate) {
+    private static String getDocNrByDate(Date sundayDate) {
         long diff = 0;
         if (ausbildungsStartDate != null) {
-            diff = DAYS.between(ausbildungsStartDate, mondayDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+            diff = DAYS.between(ausbildungsStartDate, sundayDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
         } else {
             log.info("ihk plugin: ausbildungsStartDate was null");
         }
-        return "" + diff / 7;
+        docNr = "" + diff / 7;
+        return docNr;
     }
 
     private static String getDepartment() {
@@ -213,5 +214,9 @@ class IHKExporter {
             log.info("ihk plugin: teamName was null");
             return "UNKNOWN";
         }
+    }
+
+    public static String getDocNr() {
+        return docNr;
     }
 }

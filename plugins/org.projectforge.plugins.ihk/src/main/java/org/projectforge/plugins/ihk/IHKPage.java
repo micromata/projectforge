@@ -37,13 +37,17 @@ import org.projectforge.web.timesheet.TimesheetEditPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.DownloadUtils;
 
+import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TimeZone;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 /**
  * Created by mnuhn on 05.12.2019
@@ -121,10 +125,12 @@ public class IHKPage extends AbstractStandardFormPage implements ISelectCallerPa
       }
     }
 
-    final String filename = "Wochenbericht_"
+
+    byte[] xlsx = IHKExporter.getExcel(timeSheetList,form.getAusbildungsStartDate(),form.getTeamName(),form.getAusbildungsJahr());
+
+    final String filename = "WB-Nr_" + IHKExporter.getDocNr() + "_"
         + DateHelper.getDateAsFilenameSuffix(form.getStartDate().getConvertedInput())
         + ".xlsx";
-    byte[] xlsx = IHKExporter.getExcel(timeSheetList,form.getAusbildungsStartDate(),form.getTeamName(),form.getAusbildungsJahr());
     if (xlsx == null || xlsx.length == 0) {
       log.error("Oups, xlsx has zero size. Filename: " + filename);
       return;
