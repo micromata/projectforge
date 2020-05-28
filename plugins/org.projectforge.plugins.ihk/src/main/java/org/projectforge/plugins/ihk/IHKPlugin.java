@@ -48,7 +48,7 @@ public class IHKPlugin extends AbstractPlugin {
   private TimesheetDao ihkDao;
 
   public IHKPlugin() {
-    super("ihk", "IHK", "IHK PlugIn der Micromata Azubis.");
+    super("ihk", "IHK", "Plugin zur Generierung von Ausbildungsnachweise für Ausbildungsberufe der IHK.");
   }
 
   /**
