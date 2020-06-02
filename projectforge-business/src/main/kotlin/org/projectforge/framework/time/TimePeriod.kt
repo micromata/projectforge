@@ -125,7 +125,16 @@ class TimePeriod @JvmOverloads constructor(var fromDate: Date? = null, var toDat
             if (fromDate == null || toDate == null || toDate.before(fromDate)) {
                 return BigDecimal.ZERO
             }
-            val millis = toDate.time - fromDate.time
+            return getDurationHours(toDate.time - fromDate.time, roundUnit, roundingMode)
+        }
+
+        /**
+         * @return duration in rounded hours.
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun getDurationHours(millis: Long?, roundUnit: RoundUnit = RoundUnit.INT, roundingMode: RoundingMode = RoundingMode.HALF_UP): BigDecimal {
+            millis ?: return BigDecimal.ZERO
             // scale = 3 should be enough, but if RoundUnit is extended in future times, scale = 5 is more save ;-)
             return RoundUtils.round(BigDecimal(millis).divide(MILLIS_PER_HOUR, 5, RoundingMode.HALF_UP), roundUnit, roundingMode)
         }

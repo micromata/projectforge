@@ -48,6 +48,15 @@ object RoundUtils {
      */
     @JvmStatic
     @JvmOverloads
+    fun round(value: Long, unit: RoundUnit = RoundUnit.INT, roundingMode: RoundingMode = RoundingMode.HALF_UP): BigDecimal {
+        return round(BigDecimal(value), unit, roundingMode)
+    }
+
+    /**
+     * @return duration in rounded hours.
+     */
+    @JvmStatic
+    @JvmOverloads
     fun round(value: BigDecimal, unit: RoundUnit = RoundUnit.INT, roundingMode: RoundingMode = RoundingMode.HALF_UP): BigDecimal {
         return when (unit) {
             RoundUnit.INT -> value.setScale(0, roundingMode)
