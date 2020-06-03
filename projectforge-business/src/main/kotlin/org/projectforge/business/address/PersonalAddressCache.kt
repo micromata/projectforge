@@ -58,8 +58,8 @@ class PersonalAddressCache : AbstractCache() {
     }
 
     @JvmOverloads
-    fun isPersonalAddress(addressId: Int, owner: PFUserDO? = ThreadLocalUserContext.getUser()): Boolean {
-        return getByAddressId(addressId, owner)?.isFavorite == true
+    fun isPersonalAddress(addressId: Int?, owner: PFUserDO? = ThreadLocalUserContext.getUser()): Boolean {
+        return addressId != null && getByAddressId(addressId, owner)?.isFavorite == true
     }
 
     private fun getPersonalAddressList(ownerId: Int): Map<Int, PersonalAddressDO> {
