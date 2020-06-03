@@ -67,6 +67,8 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
                       var sms: Boolean,
                       var smsEnabled: Boolean)
 
+    class EMail(var email: String?)
+
     @GetMapping("dynamic")
     fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
         val id = NumberHelper.parseInteger(idString)
@@ -98,6 +100,11 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
         addPhoneNumber(col,
                 "address.phoneType.mobile",
                 PhoneNumber(address.id, address.privateMobilePhone, phoneCallEnabled, PhoneType.PRIVATE_MOBILE, true, smsEnabled))
+
+        val emailsCol = UIFieldset(12, "address.emails")
+        row.add(emailsCol)
+        addEMail(emailsCol, "address.business", address.email)
+        addEMail(emailsCol, "address.private", address.privateEmail)
 
         row = UIRow()
         fieldSet.add(row)
@@ -171,6 +178,15 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
         col.add(UIRow()
                 .add(UICol(6).add(UILabel(title)))
                 .add(UICol(6).add(UICustomized("address.phoneNumber", mutableMapOf("data" to phoneNumber)))))
+    }
+
+    private fun addEMail(col: UICol, title: String, email: String?) {
+        if (email.isNullOrBlank()) {
+            return
+        }
+        col.add(UIRow()
+                .add(UICol(6).add(UILabel(title)))
+                .add(UICol(6).add(UICustomized("email", mutableMapOf("data" to EMail(email))))))
     }
 
     private fun createAddressCol(row: UIRow, numberOfAddresses: Int, title: String, addressText: String?, addressText2: String?, zipCode: String?, city: String?, state: String?, country: String?) {
