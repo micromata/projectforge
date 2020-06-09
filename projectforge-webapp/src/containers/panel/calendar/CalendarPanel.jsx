@@ -50,6 +50,18 @@ class CalendarPanel extends React.Component {
         return newState;
     }
 
+    static slotStyle(date) {
+        if (date.getMinutes() !== 0) {
+            return { style: { borderTop: '1px solid #ddd' } };
+        }
+
+        if (date.getHours() === 0) {
+            return {};
+        }
+
+        return { style: { borderTop: '2px solid #ddd' } };
+    }
+
     constructor(props) {
         super(props);
 
@@ -358,6 +370,7 @@ class CalendarPanel extends React.Component {
                     onEventResize={this.onEventResize}
                     onEventDrop={this.onEventDrop}
                     selectable
+                    slotPropGetter={CalendarPanel.slotStyle}
                     eventPropGetter={this.eventStyle}
                     dayPropGetter={day => dayStyle(day, specialDays)}
                     showMultiDayTimes
