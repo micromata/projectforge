@@ -1,3 +1,4 @@
+import Helmet from 'react-helmet';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
@@ -33,6 +34,7 @@ export const wicketRoute = (
 function AuthorizedRoutes(
     {
         alertMessage,
+        locale,
     },
 ) {
     const location = useLocation();
@@ -68,6 +70,9 @@ function AuthorizedRoutes(
 
     return (
         <React.Fragment>
+            <Helmet>
+                <html lang={locale} />
+            </Helmet>
             <GlobalNavigation />
             {alertMessage ? (
                 <Container fluid>
@@ -94,14 +99,17 @@ function AuthorizedRoutes(
 
 AuthorizedRoutes.propTypes = {
     alertMessage: PropTypes.string,
+    locale: PropTypes.string,
 };
 
 AuthorizedRoutes.defaultProps = {
     alertMessage: undefined,
+    locale: 'en',
 };
 
 const mapStateToProps = ({ authentication }) => ({
     alertMessage: authentication.alertMessage,
+    locale: authentication.user.locale,
 });
 
 export default connect(mapStateToProps)(AuthorizedRoutes);
