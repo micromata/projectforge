@@ -90,7 +90,12 @@ class Address(var contactStatus: ContactStatus? = null,
         if (src.image == true) {
             imageData = byteArrayOf(1) // Marker for frontend for an available image.
         }
-        val srcAddressbookList = addressCache.getAddressbooks(src)
+        val srcAddressbookList = if (src.id != null) {
+            addressCache.getAddressbooks(src)
+        } else {
+            // For new addresses now caches exist.
+            src.addressbookList
+        }
         if (!srcAddressbookList.isNullOrEmpty()) {
             addressbookList = mutableSetOf()
             srcAddressbookList.forEach { srcAddressbook ->

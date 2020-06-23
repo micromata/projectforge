@@ -50,7 +50,7 @@ open class AddressCache : AbstractCache(), BaseDOChangedListener<AddressDO> {
     private val addressMap = mutableMapOf<Int, MutableSet<AddressbookDO>>()
 
     /**
-     * @param address: must be attqched to entity manager for lazy loading of address books.
+     * @param address: must be attached to entity manager for lazy loading of address books.
      */
     fun getAddressbooks(address: AddressDO): Set<AddressbookDO>? {
         val id = address.id ?: return null
