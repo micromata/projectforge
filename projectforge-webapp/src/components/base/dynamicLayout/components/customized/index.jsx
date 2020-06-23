@@ -7,6 +7,7 @@ import CustomizedAddressImage from './components/CustomizedAddressImage';
 import CustomizedAddressPhoneNumbers from './components/CustomizedAddressPhoneNumbers';
 import CustomizedAddressPhoneNumber from './components/CustomizedAddressPhoneNumber';
 import CustomizedConsumptionBar from './components/CustomizedConsumptionBar';
+import CustomizedEMail from './components/CustomizedEMail';
 import CustomizedImage from './components/CustomizedImage';
 import DayRange from './components/DayRange';
 import CustomizedImageDataPreview from './components/ImageDataPreview';
@@ -45,6 +46,9 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'address.phoneNumber':
             Tag = CustomizedAddressPhoneNumber;
+            break;
+        case 'email':
+            Tag = CustomizedEMail;
             break;
         case 'book.lendOutComponent':
             Tag = BookLendOut;
