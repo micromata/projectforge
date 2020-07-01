@@ -33,6 +33,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.web.fibu.ISelectCallerPage;
+import org.projectforge.web.timesheet.TimesheetEditPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.DownloadUtils;
 
@@ -40,8 +41,11 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.TimeZone;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 /**
  * Created by mnuhn on 05.12.2019
@@ -97,7 +101,7 @@ public class IHKPage extends AbstractStandardFormPage implements ISelectCallerPa
 
   }
 
-  void export()
+  void export(boolean ignoreMissingDescription)
   {
     List<TimesheetDO> timeSheetList = findTimesheets();
     if (timeSheetList.size() <= 0) {
@@ -105,15 +109,39 @@ public class IHKPage extends AbstractStandardFormPage implements ISelectCallerPa
       return;
     }
 
-    final String filename = "Wochenbericht_"
+    if (!ignoreMissingDescription) {
+      List<TimesheetDO> missingDescriptionList = new LinkedList<>();
+      for (TimesheetDO ts : timeSheetList) {
+        if (ts.getDescription() == null) {
+          missingDescriptionList.add(ts);
+        }
+      }
+      if (missingDescriptionList.size() > 0) {
+        form.addError("plugins.ihk.nodescriptionfound");
+        form.showMissingDescriptionList(missingDescriptionList);
+        return;
+      }
+    }
+
+
+    byte[] xlsx = IHKExporter.getExcel(timeSheetList,form.getAusbildungsStartDate(),form.getTeamName(),form.getAusbildungsJahr());
+
+    final String filename = "WB-Nr_" + IHKExporter.getDocNr() + "_"
         + DateHelper.getDateAsFilenameSuffix(form.getStartDate().getConvertedInput())
-        + ".xls";
-    byte[] xls = IHKExporter.getExcel(timeSheetList);
-    if (xls == null || xls.length == 0) {
-      log.error("Oups, xls has zero size. Filename: " + filename);
+        + ".xlsx";
+    if (xlsx == null || xlsx.length == 0) {
+      log.error("Oups, xlsx has zero size. Filename: " + filename);
       return;
     }
-    DownloadUtils.setDownloadTarget(xls, filename);
+    DownloadUtils.setDownloadTarget(xlsx, filename);
+  }
+
+  void edit(TimesheetDO ts) {
+
+    final TimesheetEditPage timesheetEditPage = new TimesheetEditPage(ts);
+    timesheetEditPage.error(getString("plugins.ihk.nodescriptionfound"));
+    timesheetEditPage.setReturnToPage(this);
+    setResponsePage(timesheetEditPage);
   }
 
   private List<TimesheetDO> findTimesheets()

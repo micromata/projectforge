@@ -23,206 +23,201 @@
 
 package org.projectforge.plugins.ihk;
 
+import de.micromata.merlin.excel.ExcelRow;
+import de.micromata.merlin.excel.ExcelSheet;
+import de.micromata.merlin.excel.ExcelWorkbook;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.ss.usermodel.BorderStyle;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.util.CellRangeAddress;
-import org.projectforge.business.excel.ExportRow;
-import org.projectforge.business.excel.ExportSheet;
-import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.framework.time.PFDateTime;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
+import static java.time.temporal.ChronoUnit.DAYS;
 import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
 
 /**
  * Created by mnuhn on 05.12.2019
+ * Updatet by mweishaar, jhpeters and mopreusser on 28.05.2020 with updatet IHK-Fields in XLSX file
  */
-class IHKExporter
-{
-  private static final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
+class IHKExporter {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(IHKExporter.class);
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
 
-  private static final int FIRST_DATA_ROW_NUM = 2;
+    private static final int FIRST_DATA_ROW_NUM = 2;
 
-  static byte[] getExcel(final List<TimesheetDO> timesheets)
-  {
-    if (timesheets.size() < 1) {
-      return new byte[] {};
-    }
-    ExportWorkbook workbook;
+    static private String teamName;
+    static private int ausbildungsJahr = -1;
+    static private LocalDate ausbildungsStartDate;
+    static private String docNr = "error";
 
-    PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).getBeginOfWeek();
-    PFDateTime sundayDate = mondayDate.getEndOfWeek().getBeginOfDay();
+    static byte[] getExcel(final List<TimesheetDO> timesheets, LocalDate ausbildungsstartDate, String teamname, int ausbildungsjahr) {
+        if (timesheets.size() < 1) {
+            return new byte[]{};
+        }
 
-    ClassPathResource classPathResource = new ClassPathResource("IHK-Template-2019.xls");
+        teamName = teamname;
+        ausbildungsJahr = ausbildungsjahr;
+        ausbildungsStartDate = ausbildungsstartDate;
 
-    try {
-      workbook = new ExportWorkbook(classPathResource.getInputStream());
-    } catch (IOException e) {
-      return new byte[] {};
-    }
+        ExcelSheet excelSheet = null;
+        ExcelRow emptyRow = null;
+        ClassPathResource classPathResource = new ClassPathResource("VorlageWochenbericht.xlsx");
 
-    ExportSheet sheet = workbook.getSheet(0);
-    Row row = sheet.getRow(0).getPoiRow();
-    Cell header = row.getCell(0);
-    Cell sumHours = sheet.getRow(3).getCell(4).getPoiCell();
+        try {
+            ExcelWorkbook workbook = new ExcelWorkbook(classPathResource.getInputStream(), classPathResource.getPath());
+            excelSheet = workbook.getSheet(0);
+            assert excelSheet != null;
+            emptyRow = excelSheet.getRow(2);
+        } catch (NullPointerException | IOException e) {
+            e.printStackTrace();
+        }
 
-    String string = header.getStringCellValue();
-    string = string.replace("%fullName%", getUser().getFullname());
-    string = string.replace("%startDate%", sdf.format(mondayDate.getUtilDate()));
-    string = string.replace("%endDate%", sdf.format(sundayDate.getUtilDate()));
-    header.setCellValue(string);
+        /// TODO insert needed rows
+        String fileName = "example";
+        final int anzNewRows = timesheets.size(); // 1 already exists
 
-    // first data row
-    double hourCounter = 0;
-    ExportRow firstDataRow = sheet.getRow(FIRST_DATA_ROW_NUM);
-    hourCounter = fillRow(hourCounter, firstDataRow.getPoiRow(), timesheets.get(0));
+        setFirstRow(timesheets, excelSheet);
+        createNewRow(excelSheet, emptyRow, anzNewRows);
 
-    // other data rows
-    for (int i = 1; i < timesheets.size(); i++) {
-      final Row newRow = copyRow(firstDataRow, FIRST_DATA_ROW_NUM + i);
-      final TimesheetDO timesheet = timesheets.get(i);
-      hourCounter = fillRow(hourCounter, newRow, timesheet);
+        double hourCounter = 0;
 
-      CellStyle style = workbook.createCellStyle();
-      style.setBorderBottom(BorderStyle.HAIR);
-      style.setShrinkToFit(true);
-      style.setWrapText(true);
-      newRow.setRowStyle(style);
-    }
+        for (int i = 0; i < anzNewRows; i++) {
+            final TimesheetDO timesheet = timesheets.get(i);
+            hourCounter = setNewRows(hourCounter, timesheet, excelSheet, i);
+        }
 
-    sumHours.setCellValue(String.valueOf(hourCounter));
-    return workbook.getAsByteArray();
-  }
+        excelSheet.getRow(FIRST_DATA_ROW_NUM + anzNewRows).getCell(5).setCellValue(trimDouble(hourCounter));
 
-  private static double fillRow(double hourCounter, final Row newRow, final TimesheetDO timesheet)
-  {
-    final double durationInHours = timesheet.getDuration() / (1000.0 * 60.0 * 60.0);
-    hourCounter += durationInHours;
 
-    String lernfeld = "";
-    String description = "";
-
-    System.out.println(timesheet.getDescription());
-
-    if (!(timesheet.getDescription() == null)) {
-      if(timesheet.getDescription().contains("|")) { // If no | in String then IndexOf will be -1
-        lernfeld = StringUtils.substringBefore(timesheet.getDescription(), "|").trim();
-        description = StringUtils.substringAfter(timesheet.getDescription(), "|").trim();
-      } else {
-        lernfeld = "";
-        description = timesheet.getDescription();
-      }
+        return returnByteFile(excelSheet);
     }
 
-    newRow.getCell(0).setCellValue(sdf.format(timesheet.getStartTime()));
-    newRow.getCell(1).setCellValue(description);
-    newRow.getCell(3).setCellValue(lernfeld);
-    newRow.getCell(4).setCellValue(String.valueOf(durationInHours));
-    newRow.getCell(5).setCellValue(String.valueOf(hourCounter));
+    private static void setFirstRow(final List<TimesheetDO> timesheets, ExcelSheet excelSheet) {
+        PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).getBeginOfWeek();
+        PFDateTime sundayDate = mondayDate.getEndOfWeek().getBeginOfDay();
 
-    return hourCounter;
-  }
+        // run exception
+        if (excelSheet == null || excelSheet.getRow(0) == null) {
+            return;
+        }
 
-  /**
-   * Copies a Row
-   *
-   * @param destinationRowNum
-   * @return copied PoiRow
-   */
-  static Row copyRow(ExportRow source, int destinationRowNum)
-  {
-    // Get the source / new row
-    HSSFSheet worksheet = (HSSFSheet) source.getPoiRow().getSheet();
-    HSSFRow newRow = worksheet.getRow(destinationRowNum);
-    HSSFRow sourceRow = worksheet.getRow(source.getRowNum());
+        String contentOfCell = excelSheet.getRow(0).getCell(0).getStringCellValue();
 
-    // If the row exist in destination, push down all rows by 1 else create a new row
-    if (newRow != null) {
-      worksheet.shiftRows(destinationRowNum, worksheet.getLastRowNum(), 1);
-    } else {
-      newRow = worksheet.createRow(destinationRowNum);
+        contentOfCell = contentOfCell.replace("#idName", getCurrentAzubiName());
+        contentOfCell = contentOfCell.replace("#idYear", getCurrentAzubiYear(sundayDate.getUtilDate()));
+        contentOfCell = contentOfCell.replace("#idNr", getDocNrByDate(sundayDate.getUtilDate()));
+        contentOfCell = contentOfCell.replace("#idFirstDate", sdf.format(mondayDate.getUtilDate()));
+        contentOfCell = contentOfCell.replace("#idLastDate", sdf.format(sundayDate.getUtilDate()));
+        contentOfCell = contentOfCell.replace("#idDepartment", getDepartment());
+
+        excelSheet.getRow(0).getCell(0).setCellValue(contentOfCell);
     }
 
-    // Loop through source columns to add to new row
-    for (int i = 0; i < sourceRow.getLastCellNum(); i++) {
-      // Grab a copy of the old/new cell
-      HSSFCell oldCell = sourceRow.getCell(i);
-      HSSFCell newCell = newRow.createCell(i);
+    private static void createNewRow(ExcelSheet excelSheet, ExcelRow emptyRow, int anzNewRows) {
+        // run exception
+        if (excelSheet == null || emptyRow == null) {
+            return;
+        }
 
-      // If the old cell is null jump to next cell
-      if (oldCell == null) {
-        newCell = null;
-        continue;
-      }
-
-      // Copy style from old cell and apply to new cell
-      HSSFCellStyle newCellStyle = worksheet.getWorkbook().createCellStyle();
-      newCellStyle.cloneStyleFrom(oldCell.getCellStyle());
-      ;
-      newCell.setCellStyle(newCellStyle);
-
-      // If there is a cell comment, copy
-      if (oldCell.getCellComment() != null) {
-        newCell.setCellComment(oldCell.getCellComment());
-      }
-
-      // If there is a cell hyperlink, copy
-      if (oldCell.getHyperlink() != null) {
-        newCell.setHyperlink(oldCell.getHyperlink());
-      }
-
-      // Set the cell data type
-      newCell.setCellType(oldCell.getCellType());
-
-      // Set the cell data value
-      switch (oldCell.getCellType()) {
-        case BLANK:
-          newCell.setCellValue(oldCell.getStringCellValue());
-          break;
-        case BOOLEAN:
-          newCell.setCellValue(oldCell.getBooleanCellValue());
-          break;
-        case ERROR:
-          newCell.setCellValue(oldCell.getErrorCellValue());
-          break;
-        case FORMULA:
-          newCell.setCellFormula(oldCell.getCellFormula());
-          break;
-        case NUMERIC:
-          newCell.setCellValue(oldCell.getNumericCellValue());
-          break;
-        case STRING:
-          newCell.setCellValue(oldCell.getRichStringCellValue());
-          break;
-      }
+        for (int i = 1; i < anzNewRows; i++) {
+            Objects.requireNonNull(excelSheet.getRow(FIRST_DATA_ROW_NUM)).copyAndInsert(emptyRow.getSheet());
+        }
     }
 
-    // If there are are any merged regions in the source row, copy to new row
-    for (int i = 0; i < worksheet.getNumMergedRegions(); i++) {
-      CellRangeAddress cellRangeAddress = worksheet.getMergedRegion(i);
-      if (cellRangeAddress.getFirstRow() == sourceRow.getRowNum()) {
-        CellRangeAddress newCellRangeAddress = new CellRangeAddress(newRow.getRowNum(),
-                (newRow.getRowNum() +
-                        (cellRangeAddress.getLastRow() - cellRangeAddress.getFirstRow()
-                        )),
-                cellRangeAddress.getFirstColumn(),
-                cellRangeAddress.getLastColumn());
-        worksheet.addMergedRegion(newCellRangeAddress);
-      }
-    }
-    return newRow;
-  }
+    private static double setNewRows(double hourCounter, final TimesheetDO timesheet, ExcelSheet excelSheet, int cell) {
+        final double durationInHours = timesheet.getDuration() / (1000.0 * 60.0 * 60.0);
+        hourCounter += durationInHours;
 
+        String lernfeld = "";
+        String description = "";
+
+        if (!(timesheet.getDescription() == null)) {
+            if (timesheet.getDescription().contains("|")) { // If no | in String then IndexOf will be -1
+                lernfeld = StringUtils.substringBefore(timesheet.getDescription(), "|").trim();
+                description = StringUtils.substringAfter(timesheet.getDescription(), "|").trim();
+            } else {
+                description = timesheet.getDescription();
+            }
+        }
+
+        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(0).setCellValue(sdf.format(timesheet.getStartTime()));
+        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(1).setCellValue(description);
+        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(3).setCellValue(lernfeld);
+        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(4).setCellValue(trimDouble(durationInHours));
+        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(5).setCellValue(trimDouble(hourCounter));
+
+        return hourCounter;
+    }
+
+    private static String trimDouble(double value) {
+        DecimalFormat df = new DecimalFormat("#.##");
+        return df.format(value);
+    }
+
+    private static byte[] returnByteFile(ExcelSheet excelSheet) {
+        ExcelWorkbook workbook = excelSheet.getExcelWorkbook();
+        ByteArrayOutputStream byteArrayOutputStream = workbook.getAsByteArrayOutputStream();
+
+        return byteArrayOutputStream.toByteArray();
+    }
+
+    private static String getCurrentAzubiName() {
+        return getUser().getFullname();
+    }
+
+    /// TODO set parameters
+    private static String getCurrentAzubiYear(Date date) {
+        String azubiYear = "";
+
+        if (ausbildungsJahr > 0) {
+            azubiYear = ausbildungsJahr + "";
+            return azubiYear;
+        }
+
+        if (ausbildungsStartDate != null) {
+            Period period = Period.between(ausbildungsStartDate, date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+            double diff = period.getYears();
+            if (diff < 1.0) return "1";
+            if (diff < 2.0) return "2";
+            if (diff <= 3.0) return "3";
+        } else {
+            log.info("ihk plugin: ausbildungsStartDate was null");
+            return "UNKNOWN";
+        }
+        return "UNKNOWN";
+    }
+
+    private static String getDocNrByDate(Date sundayDate) {
+        long diff = 0;
+        if (ausbildungsStartDate != null) {
+            diff = DAYS.between(ausbildungsStartDate, sundayDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+        } else {
+            log.info("ihk plugin: ausbildungsStartDate was null");
+        }
+        docNr = "" + diff / 7;
+        return docNr;
+    }
+
+    private static String getDepartment() {
+        if (teamName != null) {
+            return teamName;
+        } else {
+            log.info("ihk plugin: teamName was null");
+            return "UNKNOWN";
+        }
+    }
+
+    public static String getDocNr() {
+        return docNr;
+    }
 }
