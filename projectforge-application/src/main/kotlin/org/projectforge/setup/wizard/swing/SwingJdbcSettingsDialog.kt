@@ -71,7 +71,7 @@ open class SwingJdbcSettingsDialog(
 
         jdbcTestButton = JButton(Texts.JDBC_BUTTON_TEST_CONNECTION)
         jdbcTestButton.addActionListener {
-            testResultLabel.text = JdbcConnectionTest.testConnection(jdbcUrlTextField.text, jdbcUserTextField.text, jdbcPasswordTextField.password.toString())
+            testResultLabel.text = JdbcConnectionTest.testConnection(jdbcUrlTextField.text, jdbcUserTextField.text, String(jdbcPasswordTextField.password))
         }
 
         val resetButton = JButton(Texts.BUTTON_RESET)
@@ -85,7 +85,7 @@ open class SwingJdbcSettingsDialog(
             jdbcSettings.driverClass = "org.postgresql.Driver"
             jdbcSettings.jdbcUrl = jdbcUrlTextField.text
             jdbcSettings.user = jdbcUserTextField.text
-            jdbcSettings.password = jdbcPasswordTextField.password.toString()
+            jdbcSettings.password = String(jdbcPasswordTextField.password)
             context.setupData.jdbcSettings = jdbcSettings
             context.setupData.useEmbeddedDatabase = false
             finalizeWindow.redraw()
