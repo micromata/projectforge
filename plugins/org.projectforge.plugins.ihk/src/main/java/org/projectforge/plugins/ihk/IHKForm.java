@@ -84,7 +84,6 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
         String userComment = "";
         List<AddressDO> addressDos = addressDao.getList(new BaseSearchFilter());
 
-
         for (AddressDO addressDo : addressDos) {
             if (addressDo.getName().equals(ThreadLocalUserContext.getUser().getLastname())) {
                 if (addressDo.getFirstName().equals(ThreadLocalUserContext.getUser().getFirstname())) {
@@ -94,17 +93,19 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
             }
         }
 
-        if (!userComment.isEmpty()) {
-            IHKCommentObject ihkCommentObject;
+        if (!(userComment == null || userComment.isEmpty())) {
             try {
+                IHKCommentObject ihkCommentObject;
                 Gson gson = new Gson();
                 ihkCommentObject = gson.fromJson(userComment, IHKCommentObject.class);
                 ausbildungsJahr = ihkCommentObject.getAusbildungsJahr();
                 teamName = ihkCommentObject.getTeamName();
                 ausbildungsStartDate = LocalDate.parse(ihkCommentObject.getAusbildungStartDate());
             } catch (Exception e) {
-                log.warn("ihk plugin wasnt able to parse json from AddressDo.getComment()");
+                log.warn("IHK-Plugin: wasnt able to parse json from AddressDo.getComment()");
             }
+        } else {
+            log.info("IHK-Plugin: userComment not set. Value was null or empty.");
         }
 
         gridBuilder.newSplitPanel(GridSize.COL66);
@@ -169,7 +170,14 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
 
         for (TimesheetDO ts : missingDescriptionList) {
 
-            String label = ts.getKost2().getDescription() != null ? ts.getKost2().getDescription() : ts.getKost2().getDisplayName();
+            String label = getString("plugins.ihk.nodescriptionfound");
+            if (ts.getKost2() != null) {
+                if (ts.getKost2().getDescription() != null) {
+                    label = ts.getKost2().getDescription();
+                } else if (ts.getKost2().getDisplayName() != null) {
+                    label = ts.getKost2().getDisplayName();
+                }
+            }
             final FieldsetPanel fs = gridBuilder.newFieldset(label);
             fs.add(new DivTextPanel(fs.newChildId(),
                     date.format(ts.getStartTime().getTime()) + " " +
