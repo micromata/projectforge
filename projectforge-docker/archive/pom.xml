@@ -60,12 +60,6 @@
                   </includes>
                 </resource>
                 <resource>
-                  <directory>${basedir}/../plugins/org.projectforge.plugins.ihkexport/target</directory>
-                  <includes>
-                    <include>org.projectforge.plugins.ihkexport-${project.version}.jar</include>
-                  </includes>
-                </resource>
-                <resource>
                   <directory>${basedir}/../plugins/org.projectforge.plugins.licensemanagement/target</directory>
                   <includes>
                     <include>org.projectforge.plugins.licensemanagement-${project.version}.jar</include>
