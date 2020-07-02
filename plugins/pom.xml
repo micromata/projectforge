@@ -14,7 +14,6 @@
     <module>org.projectforge.plugins.marketing</module>
     <module>org.projectforge.plugins.liquidityplanning</module>
     <module>org.projectforge.plugins.licensemanagement</module>
-    <module>org.projectforge.plugins.ihkexport</module>
     <module>org.projectforge.plugins.ihk</module>
     <module>org.projectforge.plugins.extendemployeedata</module>
   </modules>
