@@ -32,18 +32,20 @@ import ezvcard.parameter.EmailType
 import ezvcard.parameter.ImageType
 import ezvcard.parameter.TelephoneType
 import ezvcard.property.*
-import ezvcard.util.PartialDate
+import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressImageDao
-import org.slf4j.LoggerFactory
+import org.projectforge.framework.time.PFDay
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.time.LocalDate
 
+private val log = KotlinLogging.logger {}
+
 @Service
 class VCardService {
-    fun buildVCard(addressDO: AddressDO, addressImageDao: AddressImageDao): ByteArray { //See: https://github.com/mangstadt/ez-vcard
+    fun buildVCard(addressDO: AddressDO, addressImageDao: AddressImageDao): VCard { //See: https://github.com/mangstadt/ez-vcard
         val vcard = VCard()
         val uid = Uid("urn:uuid:" + addressDO.uid)
         vcard.uid = uid
@@ -100,10 +102,9 @@ class VCardService {
         postalAddress.locality = addressDO.postalCity
         postalAddress.region = addressDO.postalState
         postalAddress.country = addressDO.postalCountry
-        val birthday = addressDO.birthday
-        if (birthday != null) {
-            val date = PartialDate.Builder().year(birthday.year).month(birthday.monthValue).date(birthday.dayOfMonth).build()
-            vcard.birthday = Birthday(date)
+        addressDO.birthday?.let { birthday ->
+            // PartialDate is not supported in V3.0, using java.util.Date:
+            vcard.birthday = Birthday(PFDay.from(birthday).utilDateUTC)
         }
         vcard.addUrl(addressDO.website)
         vcard.addNote(addressDO.comment)
@@ -111,6 +112,11 @@ class VCardService {
             val photo = Photo(addressImageDao.getImage(addressDO.id), ImageType.JPEG)
             vcard.addPhoto(photo)
         }
+        return vcard
+    }
+
+    fun buildVCardByteArray(addressDO: AddressDO, addressImageDao: AddressImageDao): ByteArray { //See: https://github.com/mangstadt/ez-vcard
+        val vcard = buildVCard(addressDO, addressImageDao)
         return Ezvcard.write(vcard).version(VCardVersion.V3_0).go().toByteArray()
     }
 
@@ -221,9 +227,5 @@ class VCardService {
             log.error("An exception accured while parsing vcard from byte array: " + e.message, e)
         }
         return vcard
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(VCardService::class.java)
     }
 }
