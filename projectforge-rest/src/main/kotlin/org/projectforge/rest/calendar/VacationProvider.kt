@@ -23,12 +23,15 @@
 
 package org.projectforge.rest.calendar
 
+import mu.KotlinLogging
 import org.projectforge.business.vacation.VacationCache
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Provides the vacation days of the employees. You may filter the vacation by ProjectForge groups.
@@ -69,9 +72,5 @@ open class VacationProvider {
                         readOnly = true))
             }
         }
-    }
-
-    companion object {
-        private val log = org.slf4j.LoggerFactory.getLogger(VacationProvider::class.java)
     }
 }

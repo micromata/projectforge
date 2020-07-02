@@ -40,6 +40,7 @@ import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.utils.NumberHelper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -63,10 +64,13 @@ import java.util.stream.Collectors
 open class InvoiceService {
     @Autowired
     private lateinit var applicationContext: ApplicationContext
+
     @Autowired
     private lateinit var configurationService: ConfigurationService
+
     @Autowired
     private lateinit var domainService: DomainService
+
     @Value("\${projectforge.invoiceTemplate}")
     protected open var customInvoiceTemplateName: String? = null
 
@@ -134,6 +138,12 @@ open class InvoiceService {
             }
             variables.put("Zwischensumme", formatCurrencyAmount(data.netSum))
             variables.put("MwSt", formatCurrencyAmount(data.vatAmountSum))
+            var sharedVat = extractSharedVat(data)
+            if (sharedVat != null) {
+                variables.put("MwStSatz", formatBigDecimal(sharedVat.multiply(NumberHelper.HUNDRED)))
+            } else {
+                variables.put("MwStSatz", "??????????")
+            }
             variables.put("Gesamtbetrag", formatCurrencyAmount(data.grossSum))
             val document = WordDocument(invoiceTemplate!!.inputStream, invoiceTemplate.file.name)
             generatePosTableRows(document.document, data)
@@ -143,6 +153,28 @@ open class InvoiceService {
             log.error("Could not read invoice template", e)
             null
         }
+    }
+
+    /**
+     * @return The VAT (percentage) of the positions of the given invoice if all positions have the same VAT, otherwise null.
+     */
+    internal fun extractSharedVat(data: RechnungDO): BigDecimal? {
+        var sharedVat: BigDecimal? = null // Will only be set, if vat of all positions are equal.
+        data.positionen?.let {
+            for (pos in it) {
+                if (pos.vat == null) {
+                    // At least one position has no VAT amount! Can't determine VAT.
+                    return null
+                }
+                if (sharedVat == null) {
+                    sharedVat = pos.vat
+                } else if (sharedVat != pos.vat) {
+                    // At least one position has no VAT amount! Can't determine VAT.
+                    return null
+                }
+            }
+        }
+        return sharedVat
     }
 
     private fun getReplacementForAttachment(data: RechnungDO): String {
