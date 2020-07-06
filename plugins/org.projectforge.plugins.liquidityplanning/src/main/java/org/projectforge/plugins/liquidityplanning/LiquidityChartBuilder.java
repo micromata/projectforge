@@ -64,10 +64,11 @@ public class LiquidityChartBuilder
     final TimeSeries accumulatedSeries = new TimeSeries(I18n.getString("plugins.liquidityplanning.forecast.dueDate"));
     final TimeSeries accumulatedSeriesExpected = new TimeSeries(
         ThreadLocalUserContext.getLocalizedString("plugins.liquidityplanning.forecast.expected"));
-    final TimeSeries worstCaseSeries = new TimeSeries(I18n.getString("plugins.liquidityplanning.forecast.worstCase"));
+    // The paranoia case assumes only costs and no incomes (no invoice will be paid by the customers).
+    final TimeSeries paranoiaCaseSeries = new TimeSeries(I18n.getString("plugins.liquidityplanning.forecast.paranoiaCase"));
     double accumulatedExpected = settings.getStartAmount().doubleValue();
     double accumulated = accumulatedExpected;
-    double worstCase = accumulated;
+    double paranoiaCase = accumulated;
 
     PFDay dt = PFDay.fromOrNow(forecast.getBaseDate());
     final Date lower = dt.getUtilDate();
@@ -79,11 +80,11 @@ public class LiquidityChartBuilder
       if (i > 0) {
         accumulated += cashFlow.getDebits()[i - 1].doubleValue() + cashFlow.getCredits()[i - 1].doubleValue();
         accumulatedExpected += cashFlow.getDebitsExpected()[i - 1].doubleValue() + cashFlow.getCreditsExpected()[i - 1].doubleValue();
-        worstCase += cashFlow.getCredits()[i - 1].doubleValue();
+        paranoiaCase += cashFlow.getCredits()[i - 1].doubleValue();
       }
       accumulatedSeries.add(day, accumulated);
       accumulatedSeriesExpected.add(day, accumulatedExpected);
-      worstCaseSeries.add(day, worstCase);
+      paranoiaCaseSeries.add(day, paranoiaCase);
       dt = dt.plusDays(1);
     }
     dt = dt.minusDays(1);
@@ -93,7 +94,7 @@ public class LiquidityChartBuilder
 
     final TimeSeriesCollection xyDataSeries = new TimeSeriesCollection();
     xyDataSeries.addSeries(accumulatedSeries);
-    xyDataSeries.addSeries(worstCaseSeries);
+    xyDataSeries.addSeries(paranoiaCaseSeries);
     final XYLineAndShapeRenderer lineRenderer = new XYLineAndShapeRenderer(true, false);
     lineRenderer.setSeriesPaint(0, Color.BLACK);
     lineRenderer.setSeriesVisibleInLegend(0, true);
