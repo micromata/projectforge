@@ -213,6 +213,15 @@ public class UserDao extends BaseDao<PFUserDO> {
     return PFUserDO.createCopyWithoutSecretFields(super.getOrLoad(id));
   }
 
+  /**
+   * Removes secret fields for security reasons. Without access checks.
+   *
+   * @see BaseDao#getOrLoad(Integer)
+   */
+  public PFUserDO internalGetOrLoad(Integer id) {
+    return PFUserDO.createCopyWithoutSecretFields(super.internalGetById(id));
+  }
+
   public Collection<Integer> getAssignedGroups(final PFUserDO user) {
     return getUserGroupCache().getUserGroups(user);
   }
