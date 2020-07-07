@@ -176,7 +176,7 @@ public class NavTopPanel extends NavAbstractPanel {
         add(changePasswordLink);
         addVacationViewLink().setVisible(false);
       } else {
-        final ExternalLink myAccountLink = new ExternalLink("myAccountLink", PagesResolver.getDynamicPageUrl(MyAccountPageRest.class));
+        final ExternalLink myAccountLink = new ExternalLink("myAccountLink", PagesResolver.getDynamicPageUrl(MyAccountPageRest.class, null, null, true));
         add(myAccountLink);
         addVacationViewLink();
       }
