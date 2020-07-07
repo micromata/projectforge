@@ -68,7 +68,7 @@ class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
         val data = postData.data
         check(ThreadLocalUserContext.getUserId() == data.userId) { "Oups, ChangeWlanPasswordPage is called with another than the logged in user!" }
 
-        if (data.newWlanPassword == data.wlanPasswordRepeat) {
+        if (data.newWlanPassword != data.wlanPasswordRepeat) {
             val validationErrors = listOf(ValidationError.create("user.error.passwordAndRepeatDoesNotMatch"))
             return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
         }
