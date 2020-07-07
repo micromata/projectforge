@@ -1,11 +1,11 @@
 # IHK Excel Export
 
-Dieses Plugin exportiert die Wochenberichte in eine Excel-Tabelle zum herunterladen.  
+Dieses Plugin exportiert die Wochenberichte in eine Excel-Tabelle zum Herunterladen.  
 
 ## Einrichtung
 
-Um es zu benutzen muss man es ein json in der Adresse des Benutzers anlegen.  
-Das json kommt in die Bemerkung des Benutzers hinein und hat folgendes Format:  
+Um es zu benutzen muss man es ein JSON-Objekt in den Kontakten anlegen.  
+Das JSON kommt in das Bemerkungsfeld des Benutzers hinein und hat folgendes Format:  
  
 ``` JSON
  { 
@@ -14,6 +14,7 @@ Das json kommt in die Bemerkung des Benutzers hinein und hat folgendes Format:
   "teamname" : "Dein Teamname" 
 }
 ```  
- 
- 
- Das Ausbildungsjahr kann man überschreiben sofern man es nicht auf `"-1"` setzt (nötig für jene, die Verkürzen oder das erste Ausbildungsjahr überspringen)
+
+Dabei ist zu beachten, dass der Vor- und Nachname des Benutzers mit dem des Kontakts übereinstimmen muss
+
+Das Ausbildungsjahr kann man überschreiben sofern man es nicht auf `"-1"` setzt (nötig für jene, die verkürzen oder das erste Ausbildungsjahr überspringen)
