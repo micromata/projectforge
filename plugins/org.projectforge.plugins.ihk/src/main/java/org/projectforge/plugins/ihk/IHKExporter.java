@@ -55,18 +55,18 @@ class IHKExporter {
 
     private static final int FIRST_DATA_ROW_NUM = 2;
 
-    static private String teamName;
-    static private int ausbildungsJahr = -1;
+    static private String teamname;
+    static private int ausbildungsjahr = -1;
     static private LocalDate ausbildungsbeginn;
     static private String docNr = "error";
 
-    static byte[] getExcel(final List<TimesheetDO> timesheets, LocalDate ausbildungsBeginn, String teamname, int ausbildungsjahr) {
+    static byte[] getExcel(final List<TimesheetDO> timesheets, LocalDate ausbildungsBeginn, String teamName, int ausbildungsJahr) {
         if (timesheets.size() < 1) {
             return new byte[]{};
         }
 
-        teamName = teamname;
-        ausbildungsJahr = ausbildungsjahr;
+        teamname = teamName;
+        ausbildungsjahr = ausbildungsJahr;
         ausbildungsbeginn = ausbildungsBeginn;
 
         ExcelSheet excelSheet = null;
@@ -179,8 +179,8 @@ class IHKExporter {
     private static String getCurrentAzubiYear(Date date) {
         String azubiYear = "";
 
-        if (ausbildungsJahr > 0) {
-            azubiYear = ausbildungsJahr + "";
+        if (ausbildungsjahr > 0) {
+            azubiYear = ausbildungsjahr + "";
             return azubiYear;
         }
 
@@ -209,10 +209,10 @@ class IHKExporter {
     }
 
     private static String getDepartment() {
-        if (teamName != null) {
-            return teamName;
+        if (teamname != null) {
+            return teamname;
         } else {
-            log.info("ihk plugin: teamName was null");
+            log.info("ihk plugin: teamname was null");
             return "UNKNOWN";
         }
     }
