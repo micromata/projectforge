@@ -57,17 +57,17 @@ class IHKExporter {
 
     static private String teamName;
     static private int ausbildungsJahr = -1;
-    static private LocalDate ausbildungsStartDate;
+    static private LocalDate ausbildungsbeginn;
     static private String docNr = "error";
 
-    static byte[] getExcel(final List<TimesheetDO> timesheets, LocalDate ausbildungsstartDate, String teamname, int ausbildungsjahr) {
+    static byte[] getExcel(final List<TimesheetDO> timesheets, LocalDate ausbildungsBeginn, String teamname, int ausbildungsjahr) {
         if (timesheets.size() < 1) {
             return new byte[]{};
         }
 
         teamName = teamname;
         ausbildungsJahr = ausbildungsjahr;
-        ausbildungsStartDate = ausbildungsstartDate;
+        ausbildungsbeginn = ausbildungsBeginn;
 
         ExcelSheet excelSheet = null;
         ExcelRow emptyRow = null;
@@ -184,14 +184,14 @@ class IHKExporter {
             return azubiYear;
         }
 
-        if (ausbildungsStartDate != null) {
-            Period period = Period.between(ausbildungsStartDate, date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+        if (ausbildungsbeginn != null) {
+            Period period = Period.between(ausbildungsbeginn, date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
             double diff = period.getYears();
             if (diff < 1.0) return "1";
             if (diff < 2.0) return "2";
             if (diff <= 3.0) return "3";
         } else {
-            log.info("ihk plugin: ausbildungsStartDate was null");
+            log.info("ihk plugin: ausbildungsbeginn was null");
             return "UNKNOWN";
         }
         return "UNKNOWN";
@@ -199,10 +199,10 @@ class IHKExporter {
 
     private static String getDocNrByDate(Date sundayDate) {
         long diff = 0;
-        if (ausbildungsStartDate != null) {
-            diff = DAYS.between(ausbildungsStartDate, sundayDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+        if (ausbildungsbeginn != null) {
+            diff = DAYS.between(ausbildungsbeginn, sundayDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
         } else {
-            log.info("ihk plugin: ausbildungsStartDate was null");
+            log.info("ihk plugin: ausbildungsbeginn was null");
         }
         docNr = "" + diff / 7;
         return docNr;

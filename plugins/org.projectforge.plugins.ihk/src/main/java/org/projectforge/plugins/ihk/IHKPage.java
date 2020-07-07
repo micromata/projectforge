@@ -124,7 +124,7 @@ public class IHKPage extends AbstractStandardFormPage implements ISelectCallerPa
     }
 
 
-    byte[] xlsx = IHKExporter.getExcel(timeSheetList,form.getAusbildungsStartDate(),form.getTeamName(),form.getAusbildungsJahr());
+    byte[] xlsx = IHKExporter.getExcel(timeSheetList,form.getAusbildungsbeginn(),form.getTeamName(),form.getAusbildungsJahr());
 
     final String filename = "WB-Nr_" + IHKExporter.getDocNr() + "_"
         + DateHelper.getDateAsFilenameSuffix(form.getStartDate().getConvertedInput())

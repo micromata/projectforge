@@ -64,7 +64,7 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
 
     protected LocalDatePanel stopDate;
 
-    protected LocalDate ausbildungsStartDate;
+    protected LocalDate ausbildungsbeginn;
 
     protected String teamName;
 
@@ -83,11 +83,13 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
 
         String userComment = "";
         List<AddressDO> addressDos = addressDao.getList(new BaseSearchFilter());
+        boolean foundUser = false;
 
         for (AddressDO addressDo : addressDos) {
             if (addressDo.getName().equals(ThreadLocalUserContext.getUser().getLastname())) {
                 if (addressDo.getFirstName().equals(ThreadLocalUserContext.getUser().getFirstname())) {
                     userComment = addressDo.getComment();
+                    foundUser = true;
                     break;
                 }
             }
@@ -100,12 +102,21 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
                 ihkCommentObject = gson.fromJson(userComment, IHKCommentObject.class);
                 ausbildungsJahr = ihkCommentObject.getAusbildungsJahr();
                 teamName = ihkCommentObject.getTeamName();
-                ausbildungsStartDate = LocalDate.parse(ihkCommentObject.getAusbildungStartDate());
+                ausbildungsbeginn = LocalDate.parse(ihkCommentObject.getAusbildungStartDate());
             } catch (Exception e) {
-                log.warn("IHK-Plugin: wasnt able to parse json from AddressDo.getComment()");
+                log.warn("IHK-Plugin: wasnt able to parse json from AddressDo.getComment():" + e.getMessage());
+                throw new org.projectforge.framework.i18n.UserException("plugins.ihk.jsonError.parsing", e.getMessage());
             }
         } else {
-            log.info("IHK-Plugin: userComment not set. Value was null or empty.");
+            if (foundUser) {
+                log.info("IHK-Plugin: userComment not set. Value was null or empty.");
+                throw new org.projectforge.framework.i18n.UserException("plugins.ihk.jsonError.emtpy");
+            } else {
+                log.info("IHK-Plugin: userComment not set. Value was null or empty.");
+                throw new org.projectforge.framework.i18n.UserException("plugins.ihk.userError.notFound");
+            }
+
+
         }
 
         gridBuilder.newSplitPanel(GridSize.COL66);
@@ -224,8 +235,8 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
         return startDate;
     }
 
-    public LocalDate getAusbildungsStartDate() {
-        return ausbildungsStartDate;
+    public LocalDate getAusbildungsbeginn() {
+        return ausbildungsbeginn;
     }
 
     public int getAusbildungsJahr() {
