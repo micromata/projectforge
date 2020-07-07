@@ -2,10 +2,12 @@
 
 Dieses Plugin exportiert die Wochenberichte in eine Excel-Tabelle zum herunterladen.  
 
-##Einrichtung
+## Einrichtung
+
 Um es zu benutzen muss man es ein json in der Adresse des Benutzers anlegen.  
 Das json kommt in die Bemerkung des Benutzers hinein und hat folgendes Format:  
- ``` JSON
+ 
+``` JSON
  { 
   "ausbildungsbeginn" : "yyyy-mm-dd", 
   "ausbildungsjahr" : "-1", 
