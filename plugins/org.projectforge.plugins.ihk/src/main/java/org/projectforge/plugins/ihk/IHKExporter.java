@@ -171,16 +171,37 @@ class IHKExporter {
         excelRow.getCell(4).setCellValue(trimDouble(durationInHours));
         excelRow.getCell(5).setCellValue(trimDouble(hourCounter));
 
-        if(description.length() > 140){
-            excelRow.setHeight(45);
-        }
-        else if(description.length() > 70){
-            excelRow.setHeight(30);
-        }else{
-            excelRow.setHeight(15);
+        String puffer = description;
+        int counterOfBreaking = 0, counterOfOverlength = 0;
+        boolean breaks = false, overlength = false;
+
+        while(puffer.contains("\n")){
+            breaks = true;
+            counterOfBreaking++;
+            puffer = puffer.replaceFirst("\n", "--");
         }
 
+        counterOfOverlength = description.length() / 70;
+        if(counterOfOverlength >= 1){
+            overlength = true;
+        }
+
+        if(overlength && breaks){
+            counterOfBreaking--;
+        }
+
+        excelRow.setHeight(15 + counterOfOverlength * 15 + counterOfBreaking * 15);
+
         return hourCounter;
+    }
+
+    public static int checkForOccurences(String[] patternArray, String givenString){
+        int occurences = 0;
+
+        for(int currentIndex = 0; currentIndex < patternArray.length; currentIndex++){
+            occurences += (givenString.length() - givenString.replace(patternArray[currentIndex], "").length() != 0 ? 1 : 0) ;
+        }
+        return occurences;
     }
 
     private static String trimDouble(double value) {
