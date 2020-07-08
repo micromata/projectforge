@@ -172,34 +172,25 @@ class IHKExporter {
         excelRow.getCell(5).setCellValue(trimDouble(hourCounter));
 
         String puffer = description;
-        int counterOfBreaking = 0, counterOfOverlength = 0;
-        boolean breaks = false, overlength = false;
+        int counterOfBreaking = -1, counterOfOverlength = 0;
 
-        while(puffer.contains("\n")){
-            breaks = true;
+        String[] pufferSplit = puffer.split("\n");
+
+        for (int i = 0; i < pufferSplit.length; i++) {
             counterOfBreaking++;
-            puffer = puffer.replaceFirst("\n", "--");
+            counterOfOverlength += pufferSplit[i].length() / 70;
         }
 
-        counterOfOverlength = description.length() / 70;
-        if(counterOfOverlength >= 1){
-            overlength = true;
-        }
-
-        if(overlength && breaks){
-            counterOfBreaking--;
-        }
-
-        excelRow.setHeight(15 + counterOfOverlength * 15 + counterOfBreaking * 15);
+        excelRow.setHeight(14 + counterOfOverlength * 14 + counterOfBreaking * 14);
 
         return hourCounter;
     }
 
-    public static int checkForOccurences(String[] patternArray, String givenString){
+    public static int checkForOccurences(String[] patternArray, String givenString) {
         int occurences = 0;
 
-        for(int currentIndex = 0; currentIndex < patternArray.length; currentIndex++){
-            occurences += (givenString.length() - givenString.replace(patternArray[currentIndex], "").length() != 0 ? 1 : 0) ;
+        for (int currentIndex = 0; currentIndex < patternArray.length; currentIndex++) {
+            occurences += (givenString.length() - givenString.replace(patternArray[currentIndex], "").length() != 0 ? 1 : 0);
         }
         return occurences;
     }
