@@ -25,27 +25,27 @@ package org.projectforge.plugins.ihk;
 
 public class IHKCommentObject {
 
-    String ausbildungsStartDate;
-    int ausbildungsJahr;
-    String teamName;
+    String ausbildungsbeginn;
+    int ausbildungsjahr;
+    String teamname;
 
-    public IHKCommentObject(String ausbildungsStartDate, int ausbildungsJahr, String teamName){
+    public IHKCommentObject(String ausbildungsbeginn, int ausbildungsjahr, String teamname){
 
-        this.ausbildungsStartDate = ausbildungsStartDate;
-        this.ausbildungsJahr = ausbildungsJahr;
-        this.teamName = teamName;
+        this.ausbildungsbeginn = ausbildungsbeginn;
+        this.ausbildungsjahr = ausbildungsjahr;
+        this.teamname = teamname;
 
     }
 
-    public int getAusbildungsJahr() {
-        return ausbildungsJahr;
+    public int getAusbildungsjahr() {
+        return ausbildungsjahr;
     }
 
-    public String getAusbildungStartDate() {
-        return ausbildungsStartDate;
+    public String getAusbildungStartDatum() {
+        return ausbildungsbeginn;
     }
 
-    public String getTeamName() {
-        return teamName;
+    public String getTeamname() {
+        return teamname;
     }
 }

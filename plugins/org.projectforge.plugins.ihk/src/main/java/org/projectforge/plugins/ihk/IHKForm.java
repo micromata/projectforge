@@ -64,11 +64,11 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
 
     protected LocalDatePanel stopDate;
 
-    protected LocalDate ausbildungsStartDate;
+    protected LocalDate ausbildungsbeginn;
 
-    protected String teamName;
+    protected String teamname;
 
-    protected int ausbildungsJahr;
+    protected int ausbildungsjahr;
 
     public IHKForm(IHKPage parentPage) {
         super(parentPage);
@@ -83,11 +83,13 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
 
         String userComment = "";
         List<AddressDO> addressDos = addressDao.getList(new BaseSearchFilter());
+        boolean foundUser = false;
 
         for (AddressDO addressDo : addressDos) {
             if (addressDo.getName().equals(ThreadLocalUserContext.getUser().getLastname())) {
                 if (addressDo.getFirstName().equals(ThreadLocalUserContext.getUser().getFirstname())) {
                     userComment = addressDo.getComment();
+                    foundUser = true;
                     break;
                 }
             }
@@ -98,14 +100,23 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
                 IHKCommentObject ihkCommentObject;
                 Gson gson = new Gson();
                 ihkCommentObject = gson.fromJson(userComment, IHKCommentObject.class);
-                ausbildungsJahr = ihkCommentObject.getAusbildungsJahr();
-                teamName = ihkCommentObject.getTeamName();
-                ausbildungsStartDate = LocalDate.parse(ihkCommentObject.getAusbildungStartDate());
+                ausbildungsjahr = ihkCommentObject.getAusbildungsjahr();
+                teamname = ihkCommentObject.getTeamname();
+                ausbildungsbeginn = LocalDate.parse(ihkCommentObject.getAusbildungStartDatum());
             } catch (Exception e) {
-                log.warn("IHK-Plugin: wasnt able to parse json from AddressDo.getComment()");
+                log.warn("IHK-Plugin: wasnt able to parse json from AddressDo.getComment():" + e.getMessage());
+                throw new org.projectforge.framework.i18n.UserException("plugins.ihk.jsonError.parsing", e.getMessage());
             }
         } else {
-            log.info("IHK-Plugin: userComment not set. Value was null or empty.");
+            if (foundUser) {
+                log.info("IHK-Plugin: userComment not set. Value was null or empty.");
+                throw new org.projectforge.framework.i18n.UserException("plugins.ihk.jsonError.emtpy");
+            } else {
+                log.info("IHK-Plugin: userComment not set. Value was null or empty.");
+                throw new org.projectforge.framework.i18n.UserException("plugins.ihk.userError.notFound");
+            }
+
+
         }
 
         gridBuilder.newSplitPanel(GridSize.COL66);
@@ -224,16 +235,16 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
         return startDate;
     }
 
-    public LocalDate getAusbildungsStartDate() {
-        return ausbildungsStartDate;
+    public LocalDate getAusbildungsbeginn() {
+        return ausbildungsbeginn;
     }
 
-    public int getAusbildungsJahr() {
-        return ausbildungsJahr;
+    public int getAusbildungsjahr() {
+        return ausbildungsjahr;
     }
 
-    public String getTeamName() {
-        return teamName;
+    public String getTeamname() {
+        return teamname;
     }
 
 }
