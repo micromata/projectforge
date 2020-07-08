@@ -28,6 +28,8 @@ import de.micromata.merlin.excel.ExcelSheet;
 import de.micromata.merlin.excel.ExcelWorkbook;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.framework.time.PFDateTime;
 import org.springframework.core.io.ClassPathResource;
@@ -150,11 +152,41 @@ class IHKExporter {
             }
         }
 
-        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(0).setCellValue(sdf.format(timesheet.getStartTime()));
-        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(1).setCellValue(description);
-        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(3).setCellValue(lernfeld);
-        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(4).setCellValue(trimDouble(durationInHours));
-        excelSheet.getRow(FIRST_DATA_ROW_NUM + cell).getCell(5).setCellValue(trimDouble(hourCounter));
+        /*
+        // if you wanna use merlin style:
+
+        final CellStyle descriptionStyle = excelSheet.getExcelWorkbook().createOrGetCellStyle("description");
+        descriptionStyle.setWrapText(true);
+
+        CellStyle style = excelSheet.getExcelWorkbook().createOrGetCellStyle("id");
+        style.setWrapText(true);
+        excelRow.getCell(1).setCellStyle(style);
+        */
+
+        ExcelRow excelRow = excelSheet.getRow(FIRST_DATA_ROW_NUM + cell);
+
+        excelRow.getCell(0).setCellValue(sdf.format(timesheet.getStartTime()));
+        excelRow.getCell(1).setCellValue(description);
+        excelRow.getCell(3).setCellValue(lernfeld);
+        excelRow.getCell(4).setCellValue(trimDouble(durationInHours));
+        excelRow.getCell(5).setCellValue(trimDouble(hourCounter));
+
+
+        /*
+        Calculate height of cell from the content lenght and the number of line breaks
+         */
+        
+        String puffer = description;
+        int counterOfBreaking = -1, counterOfOverlength = 0;
+
+        String[] pufferSplit = puffer.split("\n");
+
+        for (int i = 0; i < pufferSplit.length; i++) {
+            counterOfBreaking++;
+            counterOfOverlength += pufferSplit[i].length() / 70;
+        }
+
+        excelRow.setHeight(14 + counterOfOverlength * 14 + counterOfBreaking * 14);
 
         return hourCounter;
     }
