@@ -171,6 +171,11 @@ class IHKExporter {
         excelRow.getCell(4).setCellValue(trimDouble(durationInHours));
         excelRow.getCell(5).setCellValue(trimDouble(hourCounter));
 
+
+        /*
+        Calculate height of cell from the content lenght and the number of line breaks
+         */
+        
         String puffer = description;
         int counterOfBreaking = -1, counterOfOverlength = 0;
 
@@ -184,15 +189,6 @@ class IHKExporter {
         excelRow.setHeight(14 + counterOfOverlength * 14 + counterOfBreaking * 14);
 
         return hourCounter;
-    }
-
-    public static int checkForOccurences(String[] patternArray, String givenString) {
-        int occurences = 0;
-
-        for (int currentIndex = 0; currentIndex < patternArray.length; currentIndex++) {
-            occurences += (givenString.length() - givenString.replace(patternArray[currentIndex], "").length() != 0 ? 1 : 0);
-        }
-        return occurences;
     }
 
     private static String trimDouble(double value) {
