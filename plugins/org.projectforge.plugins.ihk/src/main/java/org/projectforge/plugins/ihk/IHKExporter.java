@@ -236,7 +236,7 @@ class IHKExporter {
         } else {
             log.info("ihk plugin: ausbildungsbeginn was null");
         }
-        docNr = "" + diff / 7;
+        docNr = "" + diff / 7 + 1;
         return docNr;
     }
 
