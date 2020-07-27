@@ -23,6 +23,9 @@
 
 package org.projectforge.plugins.ihk;
 
+/**
+ * Created by mweishaar, jhpeters and mopreusser on 28.05.2020
+ */
 public class IHKCommentObject {
 
     String ausbildungsbeginn;

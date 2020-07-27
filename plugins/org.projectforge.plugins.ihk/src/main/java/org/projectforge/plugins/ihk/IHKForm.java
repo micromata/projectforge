@@ -54,6 +54,7 @@ import java.util.List;
 
 /**
  * Created by mnuhn on 05.12.2019
+ * Updated by mweishaar, jhpeters and mopreusser on 28.05.2020
  */
 public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(IHKForm.class);
