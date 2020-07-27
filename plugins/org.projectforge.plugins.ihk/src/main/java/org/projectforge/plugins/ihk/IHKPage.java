@@ -49,6 +49,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 
 /**
  * Created by mnuhn on 05.12.2019
+ * Updated by mweishaar, jhpeters and mopreusser on 28.05.2020
  */
 public class IHKPage extends AbstractStandardFormPage implements ISelectCallerPage
 {
