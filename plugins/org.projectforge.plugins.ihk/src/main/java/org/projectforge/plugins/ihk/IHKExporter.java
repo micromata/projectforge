@@ -49,7 +49,7 @@ import static org.projectforge.framework.persistence.user.api.ThreadLocalUserCon
 
 /**
  * Created by mnuhn on 05.12.2019
- * Updatet by mweishaar, jhpeters and mopreusser on 28.05.2020 with updatet IHK-Fields in XLSX file
+ * Updated by mweishaar, jhpeters and mopreusser on 27.07.2020 with updated IHK-Fields in XLSX file
  */
 class IHKExporter {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(IHKExporter.class);
@@ -236,7 +236,12 @@ class IHKExporter {
         } else {
             log.info("ihk plugin: ausbildungsbeginn was null");
         }
-        docNr = "" + diff / 7;
+
+        // if beginDate is at a weekend, the first week will be after the weekend. And balance missing week of difference
+        boolean isWeekend = PFDateTime.from(ausbildungsbeginn).isWeekend();
+        int ifWeekend = isWeekend ? 0 : 1;
+
+        docNr = "" + ((int)Math.ceil(diff/7) + ifWeekend);
         return docNr;
     }
 
