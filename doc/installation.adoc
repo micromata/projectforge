@@ -121,6 +121,13 @@ To activate the NGINX configuration, you'll need to symlink the configuration fi
 $ ln -sv /etc/nginx/sites-available/projectforge /etc/nginx/sites-enabled/projectforge
 ```
 
+== Using CardDAV and WebDAV with Milton
+Place files `milton.license.properties` and `milton.license.sig` to directory `~/ProjectForge/resources/milton/` and start ProjectForge with
+loader path:
+```bash
+${JAVA} ... -Dloader.path=${HOME}/ProjectForge/resources/milton ${DEBUGOPTS} -jar projectforge-application.jar &
+```
+
 == Start ProjectForge
 1. Start ProjectForge server (e.g. on `http://localhost:8080`, update the NGINX config if you use another port).
 2. Follow the configuration instruction (setup wizard in console ui or as Desktop app).
@@ -128,3 +135,67 @@ $ ln -sv /etc/nginx/sites-available/projectforge /etc/nginx/sites-enabled/projec
 3.1. SysVInit: `/etc/init.d/nginx restart`
 3.2. SystemD: `systemctl restart nginx`
 4. Navigate to ProjectForge with your browser and finalize the setup.
+
+=== Example start-file
+
+```bash
+#!/bin/bash
+
+PF_JAR=${HOME}/application/projectforge-application-xxx.jar"
+
+echo "Using ProjectForge jar: ${PF_JAR}..."
+
+if [ "${OSTYPE}" == 'cygwin' ]
+then
+    JAVA=`cygpath "${JAVA_HOME}"`/jre/bin/java
+else
+    if [[ -n "$JAVA_HOME" ]] && [[ -x "$JAVA_HOME/bin/java" ]];  then
+    	JAVA="$JAVA_HOME/bin/java"
+	else
+    	JAVA=/usr/bin/java
+	fi
+fi
+
+echo "Using ${JAVA}"
+
+DEBUGOPTS=
+
+nohup ${JAVA}  -Xms4g -Xmx4g ${DEBUGOPTS} -jar $PF_JAR 2>&1 > /dev/null &
+```
+
+=== Example stop-file
+
+```bash
+#!/bin/bash
+
+pid=$(pgrep -f "java.*-jar projectforge-application")
+if [[ -z $pid ]]; then
+    echo "ProjectForge process not found"
+    exit 0
+else
+    kill $pid
+fi
+
+echo "waiting 10 sec for termination of pid $pid..."
+sleep 10
+
+pid=$(pgrep -f "java.*-jar projectforge-application")
+if [[ -z $pid ]]; then
+    echo "ProjectForge stopped"
+    exit 0
+else
+    echo "ProjectForge not stopped, now sending sigkill"
+    kill -9 $pid
+fi
+
+sleep 0.5
+
+pid=$(pgrep -f "java.*-jar projectforge-application")
+if [[ -z $pid ]]; then
+    echo "ProjectForge killed"
+    exit 0
+else
+    echo "ProjectForge could not be killed"
+    exit 1
+fi
+```
