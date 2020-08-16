@@ -385,6 +385,11 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
               "Given LDAP user is deleted, so the user will not be created in the LDAP system (nothing will be done).");
       return;
     }
+    if (user.getUid() == null) {
+      log.info(
+              "Given LDAP user has UID null, so the user will be skipped: " + user);
+      return;
+    }
     super.create(ctx, ouBase, user, args);
     if (user.isDeactivated()) {
       deactivateUser(ctx, user);

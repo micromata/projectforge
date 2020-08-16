@@ -30,6 +30,7 @@ import org.projectforge.business.multitenancy.TenantChecker
 import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.business.multitenancy.TenantService
 import org.projectforge.business.user.filter.UserFilter
+import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -381,6 +382,8 @@ open class UserGroupCache(tenant: TenantDO?, applicationContext: ApplicationCont
         }
         if (users.size != uMap.size) {
             log.warn("********** Load ${users.size} from the backend, but added only ${uMap.size} users to cache!")
+            log.info("For debugging UserCache fuck-up: " + ToStringUtil.toJsonString(users))
+            return
         }
         log.info("Loading all groups ...")
         val groups = Login.getInstance().allGroups

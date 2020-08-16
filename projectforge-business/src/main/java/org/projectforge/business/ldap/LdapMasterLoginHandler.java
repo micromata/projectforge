@@ -184,7 +184,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
             final LdapUser ldapUser = getLdapUser(ldapUsers, user);
             if (ldapUser == null) {
               updatedLdapUser.setOrganizationalUnit(userBase);
-              if (!user.isDeleted() && !user.getLocalUser()) {
+              if (!user.isDeleted() && !user.getLocalUser() && StringUtils.isNotBlank(user.getUsername())) {
                 // Do not add deleted or local users.
                 // TODO: if (ldapConfig.isSupportPosixAccounts() == true &&) {
                 // updatedLdapUser.addObjectClass(LdapUserDao.OBJECT_CLASS_POSIX_ACCOUNT);
