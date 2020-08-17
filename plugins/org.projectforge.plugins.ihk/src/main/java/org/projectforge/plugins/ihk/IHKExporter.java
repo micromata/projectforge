@@ -105,8 +105,8 @@ class IHKExporter {
     }
 
     private static void setFirstRow(final List<TimesheetDO> timesheets, ExcelSheet excelSheet) {
-        PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).getBeginOfWeek();
-        PFDateTime sundayDate = mondayDate.getEndOfWeek().getBeginOfDay();
+        PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).getBeginOfWeek().getEndOfDay();
+        PFDateTime sundayDate = mondayDate.getEndOfWeek().getEndOfDay();
 
         // run exception
         if (excelSheet == null || excelSheet.getRow(0) == null) {
@@ -120,7 +120,7 @@ class IHKExporter {
         contentOfCell = contentOfCell.replace("#idNr", getDocNrByDate(sundayDate.getUtilDate()));
         contentOfCell = contentOfCell.replace("#idFirstDate", sdf.format(mondayDate.getUtilDate()));
         contentOfCell = contentOfCell.replace("#idLastDate", sdf.format(sundayDate.getUtilDate()));
-        contentOfCell = contentOfCell.replace("#idDepartment", getDepartment());
+        contentOfCell = contentOfCell.replace("#idDepartment", getTeamname());
 
         excelSheet.getRow(0).getCell(0).setCellValue(contentOfCell);
     }
@@ -223,7 +223,7 @@ class IHKExporter {
             if (diff < 2.0) return "2";
             if (diff <= 3.0) return "3";
         } else {
-            log.info("ihk plugin: ausbildungsbeginn was null");
+            log.info("ihk plugin: ausbildungsbeginn is null");
             return "UNKNOWN";
         }
         return "UNKNOWN";
@@ -234,22 +234,19 @@ class IHKExporter {
         if (ausbildungsbeginn != null) {
             diff = DAYS.between(ausbildungsbeginn, sundayDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
         } else {
-            log.info("ihk plugin: ausbildungsbeginn was null");
+            log.info("ihk plugin: ausbildungsbeginn is null");
+            return "UNKNOWN";
         }
 
-        // if beginDate is at a weekend, the first week will be after the weekend. And balance missing week of difference
-        boolean isWeekend = PFDateTime.from(ausbildungsbeginn).isWeekend();
-        int ifWeekend = isWeekend ? 0 : 1;
-
-        docNr = "" + ((int)Math.ceil(diff/7) + ifWeekend);
+        docNr = "" + (int)((diff/7)+1);
         return docNr;
     }
 
-    private static String getDepartment() {
+    private static String getTeamname() {
         if (teamname != null) {
             return teamname;
         } else {
-            log.info("ihk plugin: teamname was null");
+            log.info("ihk plugin: teamname is null");
             return "UNKNOWN";
         }
     }
