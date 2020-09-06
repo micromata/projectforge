@@ -21,15 +21,20 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.config;
+package org.projectforge.rest.pub
 
-import org.projectforge.model.rest.RestPaths;
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Configuration
 
-public class Rest {
-  public static final String URL = "/" + RestPaths.REST_WEB_APP;
-  public static final String PUBLIC_URL = "/" + RestPaths.REST_WEB_APP_PUBLIC;
-
-  public static final String CALENDAR_EXPORT_BASE_URI = "/export/ProjectForge.ics"; // See CalendarFeedService
-
-  public static final String SMS_BASE_URI = "/export/sms"; // See MessagingServiceRet
+/**
+ * This rest service is available without login credentials but with an access key and only if SMS functionality
+ * is configured as well as authentication key..
+ */
+@Configuration
+open class MessagingServiceConfig {
+    /**
+     * If auth key isn't given or sms isn't configured, the messaging service isn't available.
+     */
+    @Value("\${projectforge.sms.publicRestCallAuthKey}")
+    open var authkey: String? = null
 }
