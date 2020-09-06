@@ -23,11 +23,16 @@
 
 package org.projectforge.caldav.config
 
+import mu.KotlinLogging
+import org.projectforge.business.user.UserGroupCache
+import org.slf4j.LoggerFactory
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 private val METHODS = arrayOf("OPTIONS", "PROPPATCH", "REPORT")
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Enables http methods, required by DAV functionality such as "PROPFIND" etc.
@@ -52,6 +57,8 @@ class DAVMethodsInterceptor : HandlerInterceptorAdapter() {
             }
             val method = request.method
             if (method == "PROPFIND") {
+                val uri = request.requestURI
+                log.info("PROPFIND call detected: $uri")
                 // All PROPFIND's will be handled by Milton.
                 return true
             }
