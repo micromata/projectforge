@@ -24,7 +24,9 @@
 package org.projectforge.rest.pub
 
 import mu.KotlinLogging
-import org.projectforge.common.StringHelper
+import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.configuration.ConfigurationParam
+import org.projectforge.framework.utils.NumberHelper.extractPhonenumber
 import org.projectforge.messaging.SmsSender
 import org.projectforge.messaging.SmsSender.HttpResponseCode
 import org.projectforge.rest.config.Rest
@@ -69,9 +71,12 @@ class MessagingServiceRest {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Service not available.") // Return same state (for less information for potential hackers.
         }
+        val number = extractPhonenumber(phoneNumber,
+                Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX))
+
         val result =
                 try {
-                    SmsSender(smsSenderConfig).send(phoneNumber, text)
+                    SmsSender(smsSenderConfig).send(number, text)
                 } catch (ex: Exception) {
                     log.error("Error while trying to send sms message: ${ex.message}", ex)
                     HttpResponseCode.UNKNOWN_ERROR
@@ -79,7 +84,7 @@ class MessagingServiceRest {
         return when (result) {
             HttpResponseCode.SUCCESS -> {
                 if (verboseLog == true) {
-                    log.info{ "Sent sms successfully to $phoneNumber: $text" }
+                    log.info { "Sent sms successfully to $number: $text" }
                 }
                 ResponseEntity.ok()
                         .contentType(MediaType("text", "plain", StandardCharsets.UTF_8))
