@@ -232,18 +232,17 @@ class IHKExporter {
     private static String getDocNrByDate(PFDateTime sundayDate) {
         long diff = 0;
         if (ausbildungsbeginn != null) {
-            //diff = DAYS.between(ausbildungsbeginn, sundayDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
-            diff = WEEKS.between(ausbildungsbeginn, sundayDate.getLocalDate());
+            diff = DAYS.between(ausbildungsbeginn, sundayDate.getLocalDate());
         } else {
             log.info("ihk plugin: ausbildungsbeginn was null");
         }
 
         // if beginDate is at a weekend, the first week will be after the weekend. And balance missing week of difference
-        // boolean isWeekend = PFDateTime.from(ausbildungsbeginn).isWeekend();
-        // int ifWeekend = isWeekend ? 0 : 1;
+        boolean isWeekend = PFDateTime.from(ausbildungsbeginn).isWeekend();
+        int ifWeekend = isWeekend ? 0 : 1;
 
 
-        docNr = "" + (int) diff; //((int)Math.ceil(diff/7) + ifWeekend);
+        docNr = "" + ((int)Math.ceil(diff/7) + ifWeekend);
         return docNr;
     }
 
