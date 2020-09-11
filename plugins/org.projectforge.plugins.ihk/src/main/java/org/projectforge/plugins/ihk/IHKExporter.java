@@ -28,8 +28,6 @@ import de.micromata.merlin.excel.ExcelSheet;
 import de.micromata.merlin.excel.ExcelWorkbook;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.framework.time.PFDateTime;
 import org.springframework.core.io.ClassPathResource;
@@ -40,9 +38,11 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.TimeZone;
 
 import static java.time.temporal.ChronoUnit.*;
 import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUser;
@@ -61,8 +61,10 @@ class IHKExporter {
     static private int ausbildungsjahr = -1;
     static private LocalDate ausbildungsbeginn;
     static private String docNr = "error";
+    static private TimeZone timeZone;
 
-    static byte[] getExcel(final List<TimesheetDO> timesheets, LocalDate ausbildungsBeginn, String teamName, int ausbildungsJahr) {
+    static byte[] getExcel(final List<TimesheetDO> timesheets, LocalDate ausbildungsBeginn,
+                           String teamName, int ausbildungsJahr, TimeZone usersTimeZone) {
         if (timesheets.size() < 1) {
             return new byte[]{};
         }
@@ -70,6 +72,7 @@ class IHKExporter {
         teamname = teamName;
         ausbildungsjahr = ausbildungsJahr;
         ausbildungsbeginn = ausbildungsBeginn;
+        timeZone = usersTimeZone;
 
         ExcelSheet excelSheet = null;
         ExcelRow emptyRow = null;
@@ -107,6 +110,8 @@ class IHKExporter {
     private static void setFirstRow(final List<TimesheetDO> timesheets, ExcelSheet excelSheet) {
         PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).getBeginOfWeek();
         PFDateTime sundayDate = mondayDate.getEndOfWeek().getBeginOfDay();
+        sdf.setTimeZone(timeZone);
+
 
         // run exception
         if (excelSheet == null || excelSheet.getRow(0) == null) {
@@ -118,8 +123,10 @@ class IHKExporter {
         contentOfCell = contentOfCell.replace("#idName", getCurrentAzubiName());
         contentOfCell = contentOfCell.replace("#idYear", getCurrentAzubiYear(sundayDate.getUtilDate()));
         contentOfCell = contentOfCell.replace("#idNr", getDocNrByDate(sundayDate));
-        contentOfCell = contentOfCell.replace("#idFirstDate", sdf.format(mondayDate.getUtilDate()));
-        contentOfCell = contentOfCell.replace("#idLastDate", sdf.format(sundayDate.getUtilDate()));
+        contentOfCell = contentOfCell.replace("#idFirstDate",
+                mondayDate.getLocalDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+        contentOfCell = contentOfCell.replace("#idLastDate",
+                sundayDate.getLocalDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
         contentOfCell = contentOfCell.replace("#idDepartment", getDepartment());
 
         excelSheet.getRow(0).getCell(0).setCellValue(contentOfCell);
@@ -223,7 +230,7 @@ class IHKExporter {
             if (diff < 2.0) return "2";
             if (diff <= 3.0) return "3";
         } else {
-            log.info("ihk plugin: ausbildungsbeginn was null");
+            log.info("ihk plugin: ausbildungsbeginn is null");
             return "UNKNOWN";
         }
         return "UNKNOWN";
@@ -234,7 +241,7 @@ class IHKExporter {
         if (ausbildungsbeginn != null) {
             diff = DAYS.between(ausbildungsbeginn, sundayDate.getLocalDate());
         } else {
-            log.info("ihk plugin: ausbildungsbeginn was null");
+            log.info("ihk plugin: ausbildungsbeginn is null");
         }
 
         // if beginDate is at a weekend, the first week will be after the weekend. And balance missing week of difference
