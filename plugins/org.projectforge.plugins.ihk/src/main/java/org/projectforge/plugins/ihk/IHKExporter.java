@@ -108,8 +108,8 @@ class IHKExporter {
     }
 
     private static void setFirstRow(final List<TimesheetDO> timesheets, ExcelSheet excelSheet) {
-        PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).getBeginOfWeek();
-        PFDateTime sundayDate = mondayDate.getEndOfWeek().getBeginOfDay();
+        PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).getBeginOfWeek().getEndOfDay();
+        PFDateTime sundayDate = mondayDate.getEndOfWeek().getEndOfDay();
         sdf.setTimeZone(timeZone);
 
 
