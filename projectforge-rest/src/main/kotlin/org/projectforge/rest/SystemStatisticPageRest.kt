@@ -28,10 +28,12 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.framework.ToStringUtil
+import org.projectforge.framework.calendar.DurationUtils
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
@@ -61,6 +63,8 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
 
     class SystemStatisticData(
             val systemLoadAverage: BigDecimal,
+            val processUptime: Long,
+            val processStartTime: Long,
             val totalNumberOfTimesheets: Int,
             val totalNumberOfTimesheetDurations: BigDecimal,
             val totalNumberOfUsers: Int,
@@ -85,7 +89,9 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
         // First: Get the system load average (don't measure gc run ;-)
         val osBean = ManagementFactory.getOperatingSystemMXBean()
         val systemLoadAverage = BigDecimal(osBean.systemLoadAverage).setScale(2, RoundingMode.HALF_UP)
-        log.info("System load average: $systemLoadAverage")
+        val processUptime = ManagementFactory.getRuntimeMXBean().uptime
+        val processStartTime = ManagementFactory.getRuntimeMXBean().startTime
+        log.info("System load average: $systemLoadAverage, process start time: ${PFDateTime.from(processStartTime).isoString}, process uptime: ${DurationUtils.getFormattedDaysHoursAndMinutes(processUptime)} [h:mm]")
 
         val memoriesStatistics = mutableMapOf<String, MemoryStatistics>()
         // Second: run GC and measure memory consumption before getting database statistics.
@@ -108,6 +114,8 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
         totalPersonDays = NumberHelper.setDefaultScale(totalPersonDays)
 
         val statistics = SystemStatisticData(systemLoadAverage = systemLoadAverage,
+                processUptime = processUptime,
+                processStartTime = processStartTime,
                 totalNumberOfTimesheets = getTableCount(jdbc, TimesheetDO::class.java),
                 totalNumberOfTimesheetDurations = totalPersonDays,
                 totalNumberOfUsers = getTableCount(jdbc, PFUserDO::class.java),
@@ -145,6 +153,8 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
         }
 
         layout.add(createRow("'System load average", format(statistics.systemLoadAverage, 2)))
+        layout.add(createRow("'Process start time", "${PFDateTime.from(statistics.processStartTime).isoString} (UTC)"))
+        layout.add(createRow("'Process uptime", "${DurationUtils.getFormattedDaysHoursAndMinutes(statistics.processUptime)} [h:mm]"))
         LayoutUtils.process(layout)
         return FormLayoutData(statistics, layout, createServerData(request))
     }
