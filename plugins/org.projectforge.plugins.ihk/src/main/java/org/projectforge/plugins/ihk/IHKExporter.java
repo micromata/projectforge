@@ -57,6 +57,7 @@ class IHKExporter {
 
     private static final int FIRST_DATA_ROW_NUM = 2;
 
+    // KR: Alle folgenden Variablen sollten unbedingt nicht statisch sein:
     static private String teamname;
     static private int ausbildungsjahr = -1;
     static private LocalDate ausbildungsbeginn;
@@ -68,11 +69,21 @@ class IHKExporter {
         if (timesheets.size() < 1) {
             return new byte[]{};
         }
+        // KR: Hier einfügen:
+        //IHKExporter exporter = new IHKExporter();
+        //exporter.teamname = teamName;
+        //...
 
         teamname = teamName;
         ausbildungsjahr = ausbildungsJahr;
         ausbildungsbeginn = ausbildungsBeginn;
         timeZone = usersTimeZone;
+
+        // KR: Nun sowas in der Art
+        //return exporter.getExcel();
+        //}
+        //
+        //private byte[] getExcel() {
 
         ExcelSheet excelSheet = null;
         ExcelRow emptyRow = null;
@@ -107,6 +118,7 @@ class IHKExporter {
         return returnByteFile(excelSheet);
     }
 
+    // KR: Diese Methode sollte nicht static sein.
     private static void setFirstRow(final List<TimesheetDO> timesheets, ExcelSheet excelSheet) {
         PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).getBeginOfWeek().getEndOfDay();
         PFDateTime sundayDate = mondayDate.getEndOfWeek().getEndOfDay();
@@ -121,6 +133,7 @@ class IHKExporter {
         String contentOfCell = excelSheet.getRow(0).getCell(0).getStringCellValue();
 
         contentOfCell = contentOfCell.replace("#idName", getCurrentAzubiName());
+        // KR: contentOfCell = contentOfCell.replace("#idYear", getCurrentAzubiYear(sundayDate));
         contentOfCell = contentOfCell.replace("#idYear", getCurrentAzubiYear(sundayDate.getUtilDate()));
         contentOfCell = contentOfCell.replace("#idNr", getDocNrByDate(sundayDate));
         contentOfCell = contentOfCell.replace("#idFirstDate",
@@ -132,6 +145,7 @@ class IHKExporter {
         excelSheet.getRow(0).getCell(0).setCellValue(contentOfCell);
     }
 
+    // KR: Diese Methode sollte nicht static sein.
     private static void createNewRow(ExcelSheet excelSheet, ExcelRow emptyRow, int anzNewRows) {
         // run exception
         if (excelSheet == null || emptyRow == null) {
@@ -143,6 +157,7 @@ class IHKExporter {
         }
     }
 
+    // KR: Diese Methode sollte nicht static sein.
     private static double setNewRows(double hourCounter, final TimesheetDO timesheet, ExcelSheet excelSheet, int cell) {
         final double durationInHours = timesheet.getDuration() / (1000.0 * 60.0 * 60.0);
         hourCounter += durationInHours;
@@ -210,11 +225,15 @@ class IHKExporter {
         return byteArrayOutputStream.toByteArray();
     }
 
+    // KR: Diese Methode sollte nicht static sein.
     private static String getCurrentAzubiName() {
         return getUser().getFullname();
     }
 
     /// TODO set parameters
+    // KR: Hier als Parameter besser PFDateTime nehmen. Bei der Konvertierung in Util-Date landet man schon wieder bei UTC.
+    //private String getCurrentAzubiYear(PFDateTime date) {
+    // KR: Diese Methode sollte nicht static sein.
     private static String getCurrentAzubiYear(Date date) {
         String azubiYear = "";
 
@@ -236,6 +255,7 @@ class IHKExporter {
         return "UNKNOWN";
     }
 
+    // KR: Diese Methode sollte nicht static sein.
     private static String getDocNrByDate(PFDateTime sundayDate) {
         long diff = 0;
         if (ausbildungsbeginn != null) {
@@ -253,6 +273,7 @@ class IHKExporter {
         return docNr;
     }
 
+    // KR: Diese Methode sollte nicht static sein.
     private static String getDepartment() {
         if (teamname != null) {
             return teamname;
@@ -262,6 +283,7 @@ class IHKExporter {
         }
     }
 
+    // KR: Diese Methode sollte nicht static sein.
     public static String getDocNr() {
         return docNr;
     }
