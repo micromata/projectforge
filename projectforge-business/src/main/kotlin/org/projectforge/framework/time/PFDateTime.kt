@@ -182,6 +182,10 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         return PFDayUtils.withDayOfWeek(this, dayOfWeek)
     }
 
+    override fun withDayOfWeek(dayOfWeek: DayOfWeek): PFDateTime {
+        return this.withDayOfWeek(dayOfWeek.value)
+    }
+
     fun withHour(hour: Int): PFDateTime {
         return PFDateTime(dateTime.withHour(hour), locale, precision)
     }
