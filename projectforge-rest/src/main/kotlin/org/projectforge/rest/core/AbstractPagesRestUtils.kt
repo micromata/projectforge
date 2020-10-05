@@ -155,7 +155,8 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
 private fun handleException(msg: String, ex: Exception): ResponseEntity<ResponseAction> {
     if (ex is UserException) {
         log.error("$msg: message='${ex.i18nKey}', params='${ex.msgParams?.joinToString() { it.toString() }}'")
-        val error = ValidationError(translateMsg(ex.i18nKey, *ex.msgParams), messageId = ex.i18nKey)
+        val msgParams = ex.msgParams ?: null
+        val error = ValidationError(translateMsg(ex.i18nKey, msgParams), messageId = ex.i18nKey)
         if (!ex.causedByField.isNullOrBlank()) error.fieldId = ex.causedByField
         val errors = listOf(error)
         return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)
