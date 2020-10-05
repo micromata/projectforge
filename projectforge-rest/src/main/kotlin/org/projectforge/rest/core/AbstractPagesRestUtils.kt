@@ -26,6 +26,7 @@ package org.projectforge.rest.core
 import mu.KotlinLogging
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.UserException
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.rest.dto.PostData
@@ -154,9 +155,14 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
 
 private fun handleException(msg: String, ex: Exception): ResponseEntity<ResponseAction> {
     if (ex is UserException) {
-        log.error("$msg: message='${ex.i18nKey}', params='${ex.msgParams?.joinToString() { it.toString() }}'")
-        val msgParams = ex.msgParams ?: null
-        val error = ValidationError(translateMsg(ex.i18nKey, msgParams), messageId = ex.i18nKey)
+        val msgParams = ex.msgParams ?: ex.params
+        log.error("$msg: message='${ex.i18nKey}', params='${msgParams?.joinToString() { it.toString() }}'")
+        val msg = if (msgParams != null) {
+            translateMsg(ex.i18nKey, *msgParams)
+        } else {
+            translate(ex.i18nKey)
+        }
+        val error = ValidationError(msg, messageId = ex.i18nKey)
         if (!ex.causedByField.isNullOrBlank()) error.fieldId = ex.causedByField
         val errors = listOf(error)
         return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)
