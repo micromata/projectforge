@@ -48,7 +48,7 @@ function DayRange(
             });
 
             const endDayTime = newEndDate.hours() * 60 + newEndDate.minutes();
-            const startDayTime = newStartDate.hours() * 60;
+            const startDayTime = newStartDate.hours() * 60 + newStartDate.minutes();
 
             if (endDayTime < startDayTime) {
                 // Assume next day for endDate.

@@ -17,7 +17,7 @@ function TimeInput({
     const hourRef = React.useRef(null);
     const minuteRef = React.useRef(null);
 
-    const hours = (value && value[0]) || 12;
+    const hours = (value && value[0]) || 0;
     const minutes = (value && value[1]) || 0;
 
     const setHour = (input) => {
