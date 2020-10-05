@@ -90,6 +90,8 @@ interface IPFDate<T> : Comparable<T> {
      */
     fun withDayOfWeek(dayOfWeek: Int): T
 
+    fun withDayOfWeek(dayOfWeek: DayOfWeek): T
+
     fun isBefore(other: T): Boolean
     fun isAfter(other: T): Boolean
 

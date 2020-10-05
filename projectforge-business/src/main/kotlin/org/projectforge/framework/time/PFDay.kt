@@ -130,6 +130,10 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         return PFDayUtils.withDayOfWeek(this, dayOfWeek)
     }
 
+    override fun withDayOfWeek(dayOfWeek: DayOfWeek): PFDay {
+        return withDayOfWeek(dayOfWeek.value)
+    }
+
     override fun isBefore(other: PFDay): Boolean {
         return date.isBefore(other.date)
     }
