@@ -45,4 +45,10 @@ class RestAuthenticationInfo(var request: HttpServletRequest,
     var clientIpAddress: String = request.remoteAddr ?: "unkown"
     var resultCode: HttpStatus? = null
     var lockedByTimePenalty = false
+
+    /**
+     * Will be set, if the user is authenticated by an authentication token inside a rest call (not by session or password).
+     * This flag is used for disabling CSRF protection, because this isn't needed by pure REST clients (only for Web clients).
+     */
+    var loggedInByAuthenticationToken = false
 }

@@ -56,6 +56,11 @@ class UserContext() : Serializable {
     private lateinit var userGroupCache: UserGroupCache
 
     /**
+     * See RestAuthenticationInfo of ProjectForge's rest module.
+     */
+    var loggedInByAuthenticationToken = false
+
+    /**
      * Stores the given user in the context. If the user contains secret fields (such as password etc.) a copy without
      * such fields is stored.
      *
