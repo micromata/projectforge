@@ -82,7 +82,7 @@ class Task(id: Int? = null,
          */
         fun getTask(taskId: Int?, doObj: BaseDO<*>, minimal: Boolean = true): Task? {
             taskId ?: return null
-            val taskDO = TaskTreeHelper.getTaskTree(doObj).getTaskById(taskId)
+            val taskDO = TaskTreeHelper.getTaskTree(doObj).getTaskById(taskId) ?: return null
             val task = Task()
             if (minimal) {
                 task.copyFromMinimal(taskDO)
