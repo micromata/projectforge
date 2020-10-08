@@ -68,17 +68,19 @@ public class ThreadLocalUserContext {
   }
 
   /**
-   * If given user is null, {@link #clear()} is called.
+   * If given user is null, {@link #clear()} is called. Creates a new UserContext object containing the given user.
    *
    * @param user
+   * @return UserContext registered or null, if no user given.
    */
-  public static void setUser(UserGroupCache userGroupCache, final PFUserDO user) {
+  public static UserContext setUser(UserGroupCache userGroupCache, final PFUserDO user) {
     if (user == null) {
       clear();
-      return;
+      return null;
     }
     final UserContext userContext = new UserContext(user, userGroupCache);
     setUserContext(userContext);
+    return userContext;
   }
 
   public static void setUserContext(final UserContext userContext) {

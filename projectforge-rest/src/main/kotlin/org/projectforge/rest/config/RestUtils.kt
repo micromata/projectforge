@@ -25,6 +25,7 @@ package org.projectforge.rest.config
 
 import mu.KotlinLogging
 import org.projectforge.common.StringHelper
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.core.SessionCsrfCache
 import org.projectforge.ui.ValidationError
 import javax.servlet.Filter
@@ -43,8 +44,18 @@ object RestUtils {
         return filterRegistration
     }
 
+    /**
+     * Checks the CSRF token. If the user is logged in by an authenticationToken [RestAuthenticationInfo.loggedInByAuthenticationToken] and the CSRF token is missed no check will be done.
+     * Therefore pure Rest clients may not care about the CSRF token.
+     */
     @JvmStatic
     fun checkCsrfToken(request: HttpServletRequest, sessionCsrfCache: SessionCsrfCache, csrfToken: String?, logInfo: String, logData: Any?): ValidationError? {
+        if (csrfToken.isNullOrBlank() && ThreadLocalUserContext.getUserContext()?.loggedInByAuthenticationToken == true) {
+            if (log.isDebugEnabled) {
+                log.debug { "User '${ThreadLocalUserContext.getUser()?.username}' logged in by rest call, not by session." }
+            }
+            return null
+        }
         if (!sessionCsrfCache.checkToken(request, csrfToken)) {
             log.warn("Check of CSRF token failed, a validation error will be shown. $logInfo declined: ${logData}")
             return ValidationError.create("errorpage.csrfError")

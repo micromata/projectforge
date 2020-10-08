@@ -241,6 +241,7 @@ open class RestAuthenticationUtils {
             logError(authInfo, "Bad request, user not found by username '$username' or id $userId and token.")
             authInfo.resultCode = HttpStatus.BAD_REQUEST
         } else if (log.isDebugEnabled) {
+            authInfo.loggedInByAuthenticationToken = true // Marking the user as logged in by authentication token.
             logDebug(authInfo, "User found by username '$username' or id $userId.")
         }
     }
@@ -309,7 +310,8 @@ open class RestAuthenticationUtils {
         val user = authInfo.user!!
         val clientIpAddress = authInfo.clientIpAddress
         LoginProtection.instance().clearLoginTimeOffset(authInfo.userString, user.id, clientIpAddress, userTokenType?.name)
-        ThreadLocalUserContext.setUser(userGroupCache, user)
+        val userContext = ThreadLocalUserContext.setUser(userGroupCache, user)
+        userContext.loggedInByAuthenticationToken = authInfo.loggedInByAuthenticationToken
         val req = request as HttpServletRequest
         val settings = getConnectionSettings(req)
         ConnectionSettings.set(settings)
