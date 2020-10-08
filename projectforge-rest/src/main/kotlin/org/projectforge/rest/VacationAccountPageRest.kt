@@ -130,12 +130,14 @@ class VacationAccountPageRest {
         val statistics = mutableMapOf<String, Any>()
         val currentStats = vacationService.getVacationStats(employee, Year.now().value)
         val prevStats = vacationService.getVacationStats(employee, Year.now().value - 1)
+        val nextStats = vacationService.getVacationStats(employee, Year.now().value + 1)
         val vacations = mutableMapOf<String, Any>()
         if (employeeId != null) {
             statistics["statisticsCurrentYear"] = VacationStatsFormatted(currentStats)
             statistics["statisticsPreviousYear"] = VacationStatsFormatted(prevStats)
             readVacations(vacations, "Current", employeeId, currentStats.year)
             readVacations(vacations, "Previous", employeeId, prevStats.year)
+            readVacations(vacations, "Next", employeeId, nextStats.year)
             val periodBegin = PFDay.of(prevStats.year, Month.JANUARY, 1).localDate
             val periodEnd = PFDay.of(currentStats.year, Month.JANUARY, 1).endOfYear.localDate
             leaveAccountEntryDao.getList(employeeId, periodBegin, periodEnd)?.let { list ->

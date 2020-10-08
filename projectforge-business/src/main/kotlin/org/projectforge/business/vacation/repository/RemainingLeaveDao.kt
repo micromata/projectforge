@@ -75,7 +75,7 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
      */
     open fun getRemainingLeaveFromPreviousYear(employeeId: Int, year: Int): BigDecimal? {
         if (year > Year.now().value) {
-            throw IllegalArgumentException("Can't determine remaining vacation days for future year $year.")
+            return BigDecimal.ZERO // Can't determine remaining vacation days for future years, assuming 0.
         }
         return internalGet(employeeId, year)?.remainingFromPreviousYear
     }
