@@ -12,7 +12,7 @@ function VacationTable() {
         return <React.Fragment />;
     }
 
-    const { vacationsCurrentYear, vacationsPreviousYear, leaveAccountEntries } = data.vacations;
+    const { vacationsCurrentYear, vacationsPreviousYear, vacationsNextYear, leaveAccountEntries } = data.vacations;
 
     return (
         <React.Fragment>
@@ -32,6 +32,7 @@ function VacationTable() {
                     </tr>
                 </thead>
                 <tbody>
+                    <VacationEntries entries={vacationsNextYear} />
                     <VacationEntries entries={vacationsCurrentYear} />
                     <VacationEntries entries={vacationsPreviousYear} />
                 </tbody>
