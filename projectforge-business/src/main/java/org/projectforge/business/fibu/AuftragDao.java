@@ -83,7 +83,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   @Autowired
   private SendMail sendMail;
 
-  private Integer abgeschlossenNichtFakturiert;
+  private Integer toBeInvoicedCounter;
 
   @Autowired
   private TaskDao taskDao;
@@ -271,17 +271,19 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     return auftrag != null ? auftrag.getPosition(positionNummer) : null;
   }
 
-  public synchronized int getAbgeschlossenNichtFakturiertAnzahl() {
-    if (abgeschlossenNichtFakturiert != null) {
-      return abgeschlossenNichtFakturiert;
+  /**
+   * Number of all orders (finished, signed or escalated) which has to be invoiced.
+   */
+  public synchronized int getToBeInvoicedCounter() {
+    if (toBeInvoicedCounter != null) {
+      return toBeInvoicedCounter;
     }
     final AuftragFilter filter = new AuftragFilter();
-    filter.getAuftragsStatuses().add(AuftragsStatus.ABGESCHLOSSEN);
-    filter.setAuftragFakturiertFilterStatus(AuftragFakturiertFilterStatus.NICHT_FAKTURIERT);
+    filter.setAuftragFakturiertFilterStatus(AuftragFakturiertFilterStatus.ZU_FAKTURIEREN);
     try {
       final List<AuftragDO> list = getList(filter, false);
-      abgeschlossenNichtFakturiert = list != null ? list.size() : 0;
-      return abgeschlossenNichtFakturiert;
+      toBeInvoicedCounter = list != null ? list.size() : 0;
+      return toBeInvoicedCounter;
     } catch (final Exception ex) {
       log.error("Exception ocurred while getting number of closed and not invoiced orders: " + ex.getMessage(), ex);
       // Exception e. g. if data-base update is needed.
@@ -304,7 +306,19 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
     final QueryFilter queryFilter = new QueryFilter(myFilter);
 
-    addCriterionForAuftragsStatuses(myFilter, queryFilter);
+    queryFilter.createJoin("positionen");
+    if (myFilter.getAuftragFakturiertFilterStatus() == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN) {
+      // Show all orders to be invoiced (ignore status values on orders and their positions).
+      queryFilter.createJoin("paymentSchedules", JoinType.LEFT);
+      queryFilter.add(
+              QueryFilter.or(
+                      QueryFilter.eq("auftragsStatus", AuftragsStatus.ABGESCHLOSSEN),
+                      QueryFilter.eq("positionen.status", AuftragsPositionsStatus.ABGESCHLOSSEN),
+                      QueryFilter.eq("paymentSchedules.reached", true)
+              ));
+    } else {
+      addCriterionForAuftragsStatuses(myFilter, queryFilter);
+    }
 
     if (myFilter.getUser() != null) {
       queryFilter.add(
@@ -332,9 +346,12 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
     list = myFilter.filterFakturiert(list);
 
-    filterPositionsArten(myFilter, list);
-    filterPositionsStatus(myFilter, list);
-    filterPositionsPaymentTypes(myFilter, list);
+    if (myFilter.getAuftragFakturiertFilterStatus() != AuftragFakturiertFilterStatus.ZU_FAKTURIEREN) {
+      // Don't use filter for orders to be invoiced.
+      filterPositionsArten(myFilter, list);
+      filterPositionsStatus(myFilter, list);
+      filterPositionsPaymentTypes(myFilter, list);
+    }
 
     return list;
   }
@@ -346,17 +363,10 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       return;
     }
     final List<DBPredicate> orCriterions = new ArrayList<>();
+
     orCriterions.add(QueryFilter.isIn("auftragsStatus", auftragsStatuses));
 
-    queryFilter.createJoin("positionen")
-            .createJoin("paymentSchedules", JoinType.LEFT);
-
     orCriterions.add(QueryFilter.isIn("positionen.status", myFilter.getAuftragsPositionStatuses()));
-
-    // special case
-    if (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN)) {
-      orCriterions.add(QueryFilter.eq("paymentSchedules.reached", true));
-    }
 
     queryFilter.add(QueryFilter.or(orCriterions.toArray(new DBPredicate[orCriterions.size()])));
 
@@ -453,7 +463,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
         position.checkVollstaendigFakturiert();
       }
     }
-    abgeschlossenNichtFakturiert = null;
+    toBeInvoicedCounter = null;
     final String uiStatusAsXml = XmlObjectWriter.writeAsXml(obj.getUiStatus());
     obj.setUiStatusAsXml(uiStatusAsXml);
     final List<PaymentScheduleDO> paymentSchedules = obj.getPaymentSchedules();
