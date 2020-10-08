@@ -285,7 +285,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       toBeInvoicedCounter = list != null ? list.size() : 0;
       return toBeInvoicedCounter;
     } catch (final Exception ex) {
-      log.error("Exception ocurred while getting number of closed and not invoiced orders: " + ex.getMessage(), ex);
+      log.error("Exception occured while getting number of closed and not invoiced orders: " + ex.getMessage(), ex);
       // Exception e. g. if data-base update is needed.
       return 0;
     }
