@@ -70,6 +70,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
     open var task: TaskDO? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.position.art")
+    @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "art", length = 30)
     open var art: AuftragsPositionsArt? = null
@@ -80,6 +81,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
     open var paymentType: AuftragsPositionsPaymentType? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.position.status")
+    @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "status", length = 30)
     open var status: AuftragsPositionsStatus? = null
@@ -90,10 +92,12 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
     open var titel: String? = null
 
     @PropertyInfo(i18nKey = "comment")
+    @Field
     @get:Column(length = 4000)
     open var bemerkung: String? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.nettoSumme")
+    @Field
     @get:Column(name = "netto_summe", scale = 2, precision = 12)
     open var nettoSumme: BigDecimal? = null
 

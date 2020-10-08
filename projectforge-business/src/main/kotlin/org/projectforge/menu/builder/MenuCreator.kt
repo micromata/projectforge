@@ -243,7 +243,7 @@ class MenuCreator {
                         },
                         badgeCounter = {
                             if (isInGroup(*FIBU_ORGA_GROUPS))
-                                auftragDao.abgeschlossenNichtFakturiertAnzahl
+                                auftragDao.toBeInvoicedCounter
                             else
                                 0
                         }))
@@ -291,7 +291,7 @@ class MenuCreator {
         fibuMenu.add(MenuItemDef(MenuItemDefId.ORDER_LIST,
                 requiredGroups = *FIBU_ORGA_GROUPS,
                 badgeCounter =
-                { auftragDao.abgeschlossenNichtFakturiertAnzahl }))
+                { auftragDao.toBeInvoicedCounter }))
 
         //////////////////////////////////////
         //

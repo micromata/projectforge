@@ -28,7 +28,11 @@ import org.projectforge.common.i18n.I18nEnum;
 public enum AuftragFakturiertFilterStatus implements I18nEnum
 {
   ALL("all"),
+  /** Everything is fully invoiced. */
   FAKTURIERT("vollstaendigFakturiert"),
+  /** At least one position has to be invoiced (because it is finished or one position of the payment schedule is reached). */
+  ZU_FAKTURIEREN("zuFakturieren"),
+  /** The order isn't fully invoiced. */
   NICHT_FAKTURIERT("nochNichtVollstaendigFakturiert");
 
   private final String i18nKey;

@@ -96,10 +96,12 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
     private fun checkFakturiert(auftrag: AuftragDO): Boolean {
         val orderIsCompletelyInvoiced = auftrag.isVollstaendigFakturiert
 
-        val vollstaendigFakturiert = AuftragFakturiertFilterStatus.FAKTURIERT == auftragFakturiertFilterStatus
+        val filterVollstaendigFakturiert = AuftragFakturiertFilterStatus.FAKTURIERT == auftragFakturiertFilterStatus
         // special case
         if (HibernateUtils.getDialect() != DatabaseDialect.HSQL &&
-                !vollstaendigFakturiert && auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN)) {
+                !filterVollstaendigFakturiert && (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN) ||
+                        auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN)) {
+            // Don't remember why only Non-HSQLDB is supported...
 
             // if order is completed and not all positions are completely invoiced
             if (auftrag.auftragsStatus == AuftragsStatus.ABGESCHLOSSEN && !orderIsCompletelyInvoiced) {
@@ -120,6 +122,6 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
             }
             return false
         }
-        return orderIsCompletelyInvoiced == vollstaendigFakturiert
+        return orderIsCompletelyInvoiced == filterVollstaendigFakturiert
     }
 }
