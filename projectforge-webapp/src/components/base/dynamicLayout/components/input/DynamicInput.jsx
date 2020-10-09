@@ -24,7 +24,7 @@ function DynamicInput({ id, focus, ...props }) {
                 />
             </DynamicValidationManager>
         );
-    }, [value, setData]);
+    }, [value, setData, id, focus, props]);
 }
 
 DynamicInput.propTypes = {

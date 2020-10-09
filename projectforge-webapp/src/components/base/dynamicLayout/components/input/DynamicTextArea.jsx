@@ -23,7 +23,7 @@ function DynamicTextArea({ id, focus, ...props }) {
                 />
             </DynamicValidationManager>
         );
-    }, [value, setData]);
+    }, [value, setData, id, focus, props]);
 }
 
 DynamicTextArea.propTypes = {

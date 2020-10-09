@@ -25,7 +25,7 @@ function DynamicAutoCompletion(
                 {...props}
             />
         </DynamicValidationManager>
-    ), [data[id]]);
+    ), [data[id], id, url, label, props]);
 }
 
 DynamicAutoCompletion.propTypes = {

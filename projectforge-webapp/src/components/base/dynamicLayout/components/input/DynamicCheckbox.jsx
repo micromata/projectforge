@@ -23,7 +23,7 @@ function DynamicCheckbox({ id, label, ...props }) {
                 />
             </DynamicValidationManager>
         );
-    }, [value, setData]);
+    }, [value, setData, id, label, props]);
 }
 
 DynamicCheckbox.propTypes = {
