@@ -92,6 +92,12 @@
         </dependency>
         <dependency>
             <groupId>org.projectforge</groupId>
+            <artifactId>org.projectforge.plugins.skillmatrix</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectforge</groupId>
             <artifactId>org.projectforge.plugins.todo</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>

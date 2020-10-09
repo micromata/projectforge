@@ -16,6 +16,7 @@
     <module>org.projectforge.plugins.licensemanagement</module>
     <module>org.projectforge.plugins.ihk</module>
     <module>org.projectforge.plugins.extendemployeedata</module>
+    <module>org.projectforge.plugins.skillmatrix</module>
   </modules>
   <build>
     <plugins>
