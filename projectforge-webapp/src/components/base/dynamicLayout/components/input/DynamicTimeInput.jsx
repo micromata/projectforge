@@ -47,7 +47,7 @@ function DynamicTimeInput(
                 </InputContainer>
             </DynamicValidationManager>
         </React.Fragment>
-    ), [time, setData]);
+    ), [time, setData, id, props]);
 }
 
 DynamicTimeInput.propTypes = {

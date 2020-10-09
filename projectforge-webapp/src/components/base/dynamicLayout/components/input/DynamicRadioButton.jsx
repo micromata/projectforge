@@ -32,7 +32,7 @@ function DynamicRadioButton(
                 />
             </DynamicValidationManager>
         );
-    }, [checked, setData]);
+    }, [checked, setData, id, type, value, props]);
 }
 
 DynamicRadioButton.propTypes = {

@@ -14,7 +14,7 @@ function DynamicValidationManager({ children, id }) {
                 {children}
             </ValidationManager>
         );
-    }, [validationErrors, children]);
+    }, [validationErrors, children, id]);
 }
 
 DynamicValidationManager.propTypes = {

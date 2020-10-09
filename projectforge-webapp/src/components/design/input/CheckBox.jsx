@@ -20,10 +20,7 @@ function CheckBox(
 ) {
     return (
         <React.Fragment>
-            <div
-                className={classNames(style.formGroup, className, style.checkboxGroup)}
-                id={`checkboxContainer-${id}`}
-            >
+            <div className={classNames(style.formGroup, className, style.checkboxGroup)}>
                 <label
                     className={style.checkboxLabel}
                     htmlFor={id}
@@ -34,7 +31,10 @@ function CheckBox(
                         id={id}
                         {...props}
                     />
-                    <span className={classNames(style.text, style[color])}>
+                    <span
+                        className={classNames(style.text, style[color])}
+                        id={`checkbox-label-${id}`}
+                    >
                         {label}
                         {tooltip && <TooltipIcon />}
                     </span>
@@ -42,7 +42,7 @@ function CheckBox(
                 <AdditionalLabel title={additionalLabel} />
             </div>
             {tooltip && (
-                <UncontrolledTooltip placement="auto" target={`checkboxContainer-${id}`}>
+                <UncontrolledTooltip placement="auto" target={`checkbox-label-${id}`}>
                     {tooltip}
                 </UncontrolledTooltip>
             )}

@@ -26,7 +26,7 @@ function DynamicReadonlyField(
                 value={value}
             />
         </DynamicValidationManager>
-    ), [value, setData]);
+    ), [value, setData, id, dataType, props]);
 }
 
 DynamicReadonlyField.propTypes = {
