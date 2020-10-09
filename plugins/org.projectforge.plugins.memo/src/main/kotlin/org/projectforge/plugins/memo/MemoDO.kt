@@ -65,7 +65,7 @@ open class MemoDO : AbstractBaseDO<Int>() {
 
     val ownerId: Int?
         @Transient
-        get() = if (owner != null) owner!!.id else null
+        get() = owner?.id
 
     @Id
     @GeneratedValue
