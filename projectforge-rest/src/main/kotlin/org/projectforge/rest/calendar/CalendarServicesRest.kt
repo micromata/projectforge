@@ -31,6 +31,7 @@ import org.projectforge.business.calendar.TeamCalendar
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.utils.NumberHelper
@@ -149,7 +150,7 @@ class CalendarServicesRest {
             if (defaultCalendarId != null && defaultCalendarId > 0) {
                 url = "$url&calendar=$defaultCalendarId"
             } else {
-                url = "$url&userId=${currentFilter.timesheetUserId}"
+                url = "$url&userId=${currentFilter.timesheetUserId ?: ThreadLocalUserContext.getUserId()}"
             }
         } else if (action == "resize" || action == "dragAndDrop") {
             val origStartDate = if (startDate != null) RestHelper.parseJSDateTime(origStartDateParam)?.javaScriptString else null
