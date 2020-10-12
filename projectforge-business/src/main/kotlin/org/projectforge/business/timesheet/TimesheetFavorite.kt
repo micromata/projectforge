@@ -67,12 +67,8 @@ class TimesheetFavorite(
             user.id = userId
             timesheet.user = user
         }
-        if (!location.isNullOrBlank()) {
-            timesheet.location = location
-        }
-        if (!description.isNullOrBlank()) {
-            timesheet.description = description
-        }
+        timesheet.location = location ?: ""
+        timesheet.description = description ?:""
         if (cost2Id != null) {
             val cost2 = Kost2DO()
             cost2.id = cost2Id
