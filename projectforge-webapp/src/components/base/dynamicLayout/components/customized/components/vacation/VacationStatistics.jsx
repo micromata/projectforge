@@ -10,14 +10,14 @@ function VacationStatistics() {
     const { data, ui } = React.useContext(DynamicLayoutContext);
     const { statistics } = data;
 
-    if (!statistics) {
-        return <span>No statistics found!</span>;
-    }
+    return React.useMemo(() => {
+        if (!statistics) {
+            return <span>No statistics found!</span>;
+        }
 
-    const { statisticsCurrentYear: current, statisticsPreviousYear: prev } = statistics;
+        const { statisticsCurrentYear: current, statisticsPreviousYear: prev } = statistics;
 
-    return React.useMemo(
-        () => (
+        return (
             <Row>
                 <Col sm={12}>
                     <Table striped className={style.statistics}>
@@ -83,9 +83,8 @@ function VacationStatistics() {
                     </Table>
                 </Col>
             </Row>
-        ),
-        [current, prev],
-    );
+        );
+    }, [statistics, ui.translations]);
 }
 
 VacationStatistics.propTypes = {};
