@@ -23,29 +23,19 @@
 
 package org.projectforge.ui
 
-enum class UIElementType {
-    ALERT,
-    /**
-     * Attachments including list view, downloading, uploading and deleting files.
-     */
-    ATTACHMENT_LIST,
-    BUTTON,
-    CHECKBOX,
-    COL,
-    CUSTOMIZED,
-    FIELDSET,
-    FILTER_ELEMENT,
-    GROUP,
-    INPUT,
-    LABEL,
-    LIST,
-    NAMED_CONTAINER,
-    RADIOBUTTON,
-    READONLY_FIELD,
-    RATING,
-    ROW,
-    SELECT,
-    TABLE,
-    TABLE_COLUMN,
-    TEXTAREA
-}
+data class UIRatingStars(var id: String,
+                         @Transient
+                         override val layoutContext: LayoutContext? = null,
+                         /**
+                          * The values behind the stars. The size of this array defines the number of stars.
+                          */
+                         @Suppress("ArrayInDataClass")
+                         var values: Array<String>,
+                         override var tooltip: String? = null,
+                         override var label: String? = null,
+                         override var additionalLabel: String? = null,
+                         @Transient
+                         override val ignoreAdditionalLabel: Boolean = false,
+                         @Transient
+                         override val ignoreTooltip: Boolean = false)
+    : UIElement(UIElementType.RATING), UILabelledElement
