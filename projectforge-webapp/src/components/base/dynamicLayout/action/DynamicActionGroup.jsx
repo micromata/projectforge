@@ -14,11 +14,11 @@ export const actionPropType = PropTypes.shape({
 });
 
 function DynamicActionGroup({ actions }) {
+    const { isFetching } = React.useContext(DynamicLayoutContext);
+
     if (!actions) {
         return <React.Fragment />;
     }
-
-    const { isFetching } = React.useContext(DynamicLayoutContext);
 
     return (
         <Row>
