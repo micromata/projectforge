@@ -28,6 +28,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
 import org.projectforge.ui.LayoutUtils
 import org.projectforge.ui.UILayout
+import org.projectforge.ui.UIRatingStars
 import org.projectforge.ui.UITable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -60,7 +61,9 @@ class SkillPagesRest() : AbstractDOPagesRest<SkillDO, SkillDao>(SkillDao::class.
      */
     override fun createEditLayout(dto: SkillDO, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
-                .add(lc, "skill", "owner", "rating", "interest", "comment")
+                .add(lc, "skill", "owner")
+                .add(UIRatingStars("rating", lc, arrayOf("eins", "zwei", "drei")))
+                .add(lc, "interest", "comment")
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

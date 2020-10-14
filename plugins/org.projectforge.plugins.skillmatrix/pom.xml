@@ -27,9 +27,6 @@
     <sourceDirectory>src/main/kotlin</sourceDirectory>
     <resources>
       <resource>
-        <directory>src/main/kotlin</directory>
-      </resource>
-      <resource>
         <directory>src/main/resources</directory>
       </resource>
     </resources>
