@@ -42,7 +42,6 @@ enum class UIElementType {
     NAMED_CONTAINER,
     RADIOBUTTON,
     READONLY_FIELD,
-    RATING,
     ROW,
     SELECT,
     TABLE,

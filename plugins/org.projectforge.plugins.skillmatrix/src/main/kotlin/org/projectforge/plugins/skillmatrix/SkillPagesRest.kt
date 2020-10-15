@@ -23,13 +23,11 @@
 
 package org.projectforge.plugins.skillmatrix
 
+import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
-import org.projectforge.ui.LayoutUtils
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.UIRatingStars
-import org.projectforge.ui.UITable
+import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
@@ -52,7 +50,7 @@ class SkillPagesRest() : AbstractDOPagesRest<SkillDO, SkillDao>(SkillDao::class.
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc,  "lastUpdate", "skill", "owner", "rating", "interest"))
+                        .add(lc, "lastUpdate", "skill", "owner", "rating", "interest"))
         return LayoutUtils.processListPage(layout, this)
     }
 
@@ -60,9 +58,13 @@ class SkillPagesRest() : AbstractDOPagesRest<SkillDO, SkillDao>(SkillDao::class.
      * LAYOUT Edit page
      */
     override fun createEditLayout(dto: SkillDO, userAccess: UILayout.UserAccess): UILayout {
+        val radioButtonGroup = UIGroup()
+        for (idx in 0..3) {
+            radioButtonGroup.add(UIRadioButton("rating", idx, label = "plugins.skillmatrix.rating.$idx"))
+        }
         val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "skill", "owner")
-                .add(UIRatingStars("rating", lc, arrayOf("eins", "zwei", "drei")))
+                .add(radioButtonGroup)
                 .add(lc, "interest", "comment")
         return LayoutUtils.processEditPage(layout, dto, this)
     }
