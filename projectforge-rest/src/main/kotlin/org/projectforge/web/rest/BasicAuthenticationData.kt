@@ -31,7 +31,7 @@ import javax.servlet.http.HttpServletRequest
 
 class BasicAuthenticationData(request: HttpServletRequest, authHeader: String, required: Boolean = false) {
     var username: String? = null
-    var password: String? = null
+    var secret: String? = null
     private val log = LoggerFactory.getLogger(BasicAuthenticationData::class.java)
 
     init {
@@ -44,10 +44,10 @@ class BasicAuthenticationData(request: HttpServletRequest, authHeader: String, r
             val credentials = String(Base64.decodeBase64(basic[1]), StandardCharsets.UTF_8)
             val p = credentials.indexOf(":")
             if (p < 1) {
-                logError(request, "Basic authentication failed, credentials not of format 'user:password'.")
+                logError(request, "Basic authentication failed, credentials not of format 'user:secret'.")
             } else {
                 username = credentials.substring(0, p).trim { it <= ' ' }
-                password = credentials.substring(p + 1).trim { it <= ' ' }
+                secret = credentials.substring(p + 1).trim { it <= ' ' }
             }
         }
     }

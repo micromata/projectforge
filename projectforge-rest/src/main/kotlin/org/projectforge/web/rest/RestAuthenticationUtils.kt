@@ -36,7 +36,6 @@ import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.Authentication
 import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
@@ -69,41 +68,6 @@ open class RestAuthenticationUtils {
     private lateinit var systemStatus: SystemStatus
 
     /**
-     * Tries to authenticate the user by the given authInfo object and will write the authenticated user to it. The user of
-     * authInfo will be left untouched, if authentication fails.
-     * @param authInfo [RestAuthenticationInfo] contains request, response, clientIPAddress.
-     * @param userAttributes List of request parameters to look for the user's identifier (user name or user id).
-     * @param secretAttributes List of request parameters to look for the user's secret (password or token).
-     * @param required If required, an error message is logged if no authentication is present. Otherwise
-     * only wrong credentials will result in error messages.
-     * @param userTokenType Type of authentication (or null) for separating time penalties of login protection for different types (DAV, REST_CLIENT and normal login).
-     */
-    fun authenticationByRequestParameter(authInfo: RestAuthenticationInfo,
-                                         userAttributes: Array<String>,
-                                         secretAttributes: Array<String>,
-                                         userTokenType: UserTokenType?,
-                                         required: Boolean,
-                                         authenticate: (user: String, authenticationToken: String) -> PFUserDO?) {
-        if (log.isDebugEnabled) {
-            logDebug(authInfo, "Trying to authenticate user by request parameters...")
-        }
-        val userString = getUserString(authInfo, userAttributes, userTokenType, required) ?: return
-        val authenticationToken = getUserSecret(authInfo, secretAttributes) ?: return
-        authInfo.user = authenticate(userString, authenticationToken)
-        if (!authInfo.success) {
-            if (required) {
-                logError(authInfo, "Authentication failed for user $userString. Rest call forbidden.")
-            } else if (log.isDebugEnabled) {
-                logDebug(authInfo, "Can't authenticate user by request parameters (OK).")
-            }
-        } else {
-            if (log.isDebugEnabled) {
-                logDebug(authInfo, "User authenticated successfully by request parameters.")
-            }
-        }
-    }
-
-    /**
      * Checks also login protection (time out against brute force attack).
      * @param userTokenType Type of authentication (or null) for separating time penalties of login protection for different types (DAV, REST_CLIENT and normal login).
      */
@@ -131,7 +95,7 @@ open class RestAuthenticationUtils {
         val secret = getAttribute(authInfo.request, *secretAttributes)
         if (secret.isNullOrBlank()) {
             // Log message, because userString was found, but authentication token not:
-            logError(authInfo, "Authentication failed, no user secret (password or token) given by request params ${joinToString(secretAttributes)}. Rest call forbidden.")
+            logError(authInfo, "Authentication failed, no user secret (authentication token) given by request params ${joinToString(secretAttributes)}. Rest call forbidden.")
             return null
         } else if (log.isDebugEnabled) {
             logDebug(authInfo, "Got user secret by request parameters ${joinToString(secretAttributes)}.")
@@ -140,14 +104,14 @@ open class RestAuthenticationUtils {
     }
 
     /**
-     * Tries a basic authorization by getting the "Authorization" header containing String "Basic" and base64 encoded "user:password".
+     * Tries a basic authorization by getting the "Authorization" header containing String "Basic" and base64 encoded "user:secret".
      * @param userTokenType Type of authentication (or null) for separating time penalties of login protection for different types (DAV, REST_CLIENT and normal login).
      * @param required If required, an error message is logged if no authentication is present. Otherwise only wrong credentials will result in error messages.
      */
     fun basicAuthentication(authInfo: RestAuthenticationInfo,
-                            userTokenType: UserTokenType?,
+                            userTokenType: UserTokenType,
                             required: Boolean,
-                            authenticate: (userString: String, password: String) -> PFUserDO?) {
+                            authenticate: (userString: String, secret: String) -> PFUserDO?) {
         if (log.isDebugEnabled) {
             logDebug(authInfo, "Trying basic authentication...")
         }
@@ -165,8 +129,8 @@ open class RestAuthenticationUtils {
         // Try basic authorization
         val basicAuthenticationData = BasicAuthenticationData(authInfo.request, authHeader)
         val username = basicAuthenticationData.username
-        val password = basicAuthenticationData.password
-        if (username == null || password == null) {
+        val secret = basicAuthenticationData.secret
+        if (username == null || secret == null) {
             // Logging is done by BasicAuthenticationData.
             return
         }
@@ -175,7 +139,7 @@ open class RestAuthenticationUtils {
             // Access denied (time offset due to failed logins). Logging is done by check method.
             return
         }
-        authInfo.user = authenticate(username, password)
+        authInfo.user = authenticate(username, secret)
         if (!authInfo.success) {
             logError(authInfo, "Basic authentication failed for user '$username'.")
         } else if (log.isDebugEnabled) {
@@ -195,11 +159,13 @@ open class RestAuthenticationUtils {
             logDebug(authInfo, "Trying token based authentication...")
         }
         val authenticationToken = getAttribute(authInfo.request, *REQUEST_PARAMS_TOKEN)
-        getUserString(authInfo, REQUEST_PARAMS_USER_ID, userTokenType, required)
-        val userId = NumberHelper.parseInteger(authInfo.userString)
+        getUserString(authInfo, REQUEST_PARAMS_USER, userTokenType, required)
+        val userId = authInfo.userString?.toIntOrNull()
+        val username = if (userId == null) authInfo.userString else null
         tokenAuthentication(authInfo, userTokenType, authenticationToken, required,
                 userParams = REQUEST_PARAMS_USER_ID,
                 tokenParams = REQUEST_PARAMS_TOKEN,
+                username = username,
                 userId = userId)
     }
 
@@ -240,9 +206,11 @@ open class RestAuthenticationUtils {
         if (authInfo.user == null) {
             logError(authInfo, "Bad request, user not found by username '$username' or id $userId and token.")
             authInfo.resultCode = HttpStatus.BAD_REQUEST
-        } else if (log.isDebugEnabled) {
+        } else {
             authInfo.loggedInByAuthenticationToken = true // Marking the user as logged in by authentication token.
-            logDebug(authInfo, "User found by username '$username' or id $userId.")
+            if (log.isDebugEnabled) {
+                logDebug(authInfo, "User found by username '$username' or id $userId.")
+            }
         }
     }
 
@@ -405,9 +373,9 @@ open class RestAuthenticationUtils {
         val REQUEST_PARAMS_USERNAME = arrayOf(Authentication.AUTHENTICATION_USERNAME, AuthenticationOld.AUTHENTICATION_USERNAME)
 
         /**
-         * "Authentication-Password" and "authenticationPassword".
+         * "Authentication-User-Id", "Authentication-Username" and "authenticationUsername".
          */
-        val REQUEST_PARAMS_PASSWORD = arrayOf(Authentication.AUTHENTICATION_PASSWORD, AuthenticationOld.AUTHENTICATION_PASSWORD)
+        val REQUEST_PARAMS_USER = arrayOf(Authentication.AUTHENTICATION_USER_ID, Authentication.AUTHENTICATION_USERNAME, AuthenticationOld.AUTHENTICATION_USERNAME)
 
         fun joinToString(params: Array<String>): String {
             return params.joinToString(" or ", "'", "'") { it }
