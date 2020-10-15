@@ -124,8 +124,7 @@ class RequestData(request: HttpServletRequest, longForm: Boolean = false) {
             }
         }
         return if (name.toLowerCase() == "authorization" ||
-                RestAuthenticationUtils.REQUEST_PARAMS_TOKEN.contains(name) ||
-                RestAuthenticationUtils.REQUEST_PARAMS_PASSWORD.contains(name)) {
+                RestAuthenticationUtils.REQUEST_PARAMS_TOKEN.contains(name)) {
             "***"
         } else {
             value
