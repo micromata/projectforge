@@ -12,11 +12,11 @@
     <module>org.projectforge.plugins.memo</module>
     <module>org.projectforge.plugins.todo</module>
     <module>org.projectforge.plugins.marketing</module>
+    <module>org.projectforge.plugins.skillmatrix</module>
     <module>org.projectforge.plugins.liquidityplanning</module>
     <module>org.projectforge.plugins.licensemanagement</module>
     <module>org.projectforge.plugins.ihk</module>
     <module>org.projectforge.plugins.extendemployeedata</module>
-    <module>org.projectforge.plugins.skillmatrix</module>
   </modules>
   <build>
     <plugins>

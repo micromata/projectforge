@@ -41,7 +41,7 @@ open class SkillDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skill")
     @Field
-    @get:Column(length = 1000)
+    @get:Column(length = 255)
     open var skill: String? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.owner")

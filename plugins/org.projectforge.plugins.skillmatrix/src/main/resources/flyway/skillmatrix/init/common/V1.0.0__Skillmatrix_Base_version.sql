@@ -6,7 +6,7 @@ CREATE TABLE t_plugin_skillmatrix_skill (
   created     TIMESTAMP WITHOUT TIME ZONE,
   deleted     BOOLEAN NOT NULL,
   last_update TIMESTAMP WITHOUT TIME ZONE,
-  skill       CHARACTER VARYING(1000),
+  skill       CHARACTER VARYING(255),
   comment     CHARACTER VARYING(4000),
   tenant_id   INTEGER,
   owner_fk    INTEGER
