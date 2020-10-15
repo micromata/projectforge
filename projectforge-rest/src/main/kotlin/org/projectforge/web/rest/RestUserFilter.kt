@@ -42,24 +42,6 @@ class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
         if (authInfo.success) {
             return
         }
-        restAuthenticationUtils.authenticationByRequestParameter(
-                authInfo = authInfo,
-                userAttributes = RestAuthenticationUtils.REQUEST_PARAMS_USERNAME,
-                secretAttributes = RestAuthenticationUtils.REQUEST_PARAMS_PASSWORD,
-                userTokenType = null,
-                required = false
-        ) { user, password ->
-            userService.authenticateUser(user, password)
-        }
-        if (authInfo.success) {
-            return
-        }
-        restAuthenticationUtils.basicAuthentication(authInfo, userTokenType = null, required = false) { user, password ->
-            userService.authenticateUser(user, password)
-        }
-        if (authInfo.success) {
-            return
-        }
         restAuthenticationUtils.tokenAuthentication(authInfo, UserTokenType.REST_CLIENT, false)
         if (authInfo.success) {
             return
@@ -83,7 +65,7 @@ class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
                     + " nor "
                     + Authentication.AUTHENTICATION_USERNAME
                     + "/"
-                    + Authentication.AUTHENTICATION_PASSWORD
+                    + Authentication.AUTHENTICATION_TOKEN
                     + " is given for rest call: " + requestURI + " . Rest call forbidden.")
         }
     }
