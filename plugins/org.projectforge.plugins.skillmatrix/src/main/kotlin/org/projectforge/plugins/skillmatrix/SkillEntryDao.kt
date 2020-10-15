@@ -37,7 +37,7 @@ import org.springframework.stereotype.Repository
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-open class SkillDao : BaseDao<SkillDO>(SkillDO::class.java) {
+open class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
     init {
         userRightId = SkillRightId.PLUGIN_SKILL_MATRIX
     }
@@ -56,14 +56,14 @@ open class SkillDao : BaseDao<SkillDO>(SkillDO::class.java) {
         return queryFilter
     }
 
-    override fun onSaveOrModify(obj: SkillDO) {
+    override fun onSaveOrModify(obj: SkillEntryDO) {
         super.onSaveOrModify(obj)
         if (obj.owner == null) {
             obj.owner = ThreadLocalUserContext.getUser() // Set always the logged-in user as owner.
         }
     }
 
-    override fun newInstance(): SkillDO {
-        return SkillDO()
+    override fun newInstance(): SkillEntryDO {
+        return SkillEntryDO()
     }
 }

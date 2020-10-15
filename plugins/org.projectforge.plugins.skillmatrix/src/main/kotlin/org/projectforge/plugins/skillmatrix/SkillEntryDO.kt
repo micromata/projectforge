@@ -36,12 +36,12 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_SKILL", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_skillmatrix_owner_fk", columnList = "owner_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_skillmatrix_tenant_id", columnList = "tenant_id")])
-open class SkillDO : DefaultBaseDO() {
+@Table(name = "T_PLUGIN_SKILLMATRIX_ENTRY", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_skillmatrix_entry_owner_fk", columnList = "owner_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_skillmatrix_entry_tenant_id", columnList = "tenant_id")])
+open class SkillEntryDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skill")
     @Field
-    @get:Column(length = 255)
+    @get:Column(length = 255, nullable = false)
     open var skill: String? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.owner")
