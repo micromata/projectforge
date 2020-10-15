@@ -40,19 +40,19 @@ private val log = KotlinLogging.logger {}
 class SkillMatrixPlugin : AbstractPlugin("skillmatrix", "Skill matrix", "The users skills managed by the users themselve.") {
 
     @Autowired
-    private lateinit var skillDao: SkillDao
+    private lateinit var skillEntryDao: SkillEntryDao
 
     @Autowired
     private lateinit var menuCreator: MenuCreator
 
     override fun initialize() {
         // Register it:
-        register(id, SkillDao::class.java, skillDao, "plugins.skillmatrix")
+        register(id, SkillEntryDao::class.java, skillEntryDao, "plugins.skillmatrix")
 
         // Define the access management:
         registerRight(SkillRight(accessChecker))
 
-        menuCreator.add(MenuItemDefId.PROJECT_MANAGEMENT, MenuItemDef(info.id, "plugins.skillmatrix.menu", "${Const.REACT_APP_PATH}skillmatrix"));
+        menuCreator.add(MenuItemDefId.PROJECT_MANAGEMENT, MenuItemDef(info.id, "plugins.skillmatrix.menu", "${Const.REACT_APP_PATH}skillentry"));
 
         // All the i18n stuff:
         addResourceBundle(RESOURCE_BUNDLE_NAME)

@@ -35,11 +35,11 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
  *
  * @author Kai Reinhard (k.reinhard@me.de)
  */
-class SkillRight(accessChecker: AccessChecker?) : UserRightAccessCheck<SkillDO>(accessChecker, SkillRightId.PLUGIN_SKILL_MATRIX, UserRightCategory.PLUGINS, UserRightValue.TRUE) {
+class SkillRight(accessChecker: AccessChecker?) : UserRightAccessCheck<SkillEntryDO>(accessChecker, SkillRightId.PLUGIN_SKILL_MATRIX, UserRightCategory.PLUGINS, UserRightValue.TRUE) {
     /**
      * @return true if the owner is equals to the logged-in user, otherwise false.
      */
-    override fun hasAccess(user: PFUserDO, obj: SkillDO?, oldObj: SkillDO?,
+    override fun hasAccess(user: PFUserDO, obj: SkillEntryDO?, oldObj: SkillEntryDO?,
                            operationType: OperationType): Boolean {
         val skill = oldObj ?: obj ?: return true // General insert and select access given by default.
         // Everybody may select the skill of other users but may only modify own skills.

@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.skillmatrix
 
-import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
@@ -33,12 +32,12 @@ import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
 @RestController
-@RequestMapping("${Rest.URL}/skillmatrix")
-class SkillPagesRest() : AbstractDOPagesRest<SkillDO, SkillDao>(SkillDao::class.java, "plugins.skillmatrix.title") {
+@RequestMapping("${Rest.URL}/skillentry")
+class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(SkillEntryDao::class.java, "plugins.skillmatrix.title") {
     /**
      * Initializes new memos for adding.
      */
-    override fun newBaseDO(request: HttpServletRequest?): SkillDO {
+    override fun newBaseDO(request: HttpServletRequest?): SkillEntryDO {
         val memo = super.newBaseDO(request)
         memo.owner = ThreadLocalUserContext.getUser()
         return memo
@@ -57,7 +56,7 @@ class SkillPagesRest() : AbstractDOPagesRest<SkillDO, SkillDao>(SkillDao::class.
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dto: SkillDO, userAccess: UILayout.UserAccess): UILayout {
+    override fun createEditLayout(dto: SkillEntryDO, userAccess: UILayout.UserAccess): UILayout {
         val radioButtonGroup = UIGroup()
         for (idx in 0..3) {
             radioButtonGroup.add(UIRadioButton("rating", idx, label = "plugins.skillmatrix.rating.$idx"))
