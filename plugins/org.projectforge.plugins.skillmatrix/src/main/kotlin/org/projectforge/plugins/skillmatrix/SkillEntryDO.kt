@@ -44,6 +44,10 @@ open class SkillEntryDO : DefaultBaseDO() {
     @get:Column(length = 255, nullable = false)
     open var skill: String? = null
 
+    /**
+     * Don't index this field (due to privacy protection). No one should filter all skills of one user by simply entering user's name into the
+     * search field.
+     */
     @PropertyInfo(i18nKey = "plugins.skillmatrix.owner")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
