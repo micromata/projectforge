@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.skillmatrix
 
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
@@ -57,13 +58,14 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(S
      * LAYOUT Edit page
      */
     override fun createEditLayout(dto: SkillEntryDO, userAccess: UILayout.UserAccess): UILayout {
-        val radioButtonGroup = UIGroup()
-        for (idx in 0..3) {
-            radioButtonGroup.add(UIRadioButton("rating", idx, label = "plugins.skillmatrix.rating.$idx"))
-        }
+        val skillRating = UIRatingStars(
+                "rating",
+                lc,
+                Array<String>(4) { idx -> translate("plugins.skillmatrix.rating.$idx") }
+        )
         val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "skill", "owner")
-                .add(radioButtonGroup)
+                .add(skillRating)
                 .add(lc, "interest", "comment")
         return LayoutUtils.processEditPage(layout, dto, this)
     }
