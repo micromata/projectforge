@@ -26,8 +26,12 @@ package org.projectforge.web.wicket.flowlayout;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.projectforge.web.user.UsersProvider;
 import org.projectforge.web.wicket.WicketUtils;
 import org.wicketstuff.select2.Select2Choice;
+
+import java.util.Collection;
 
 /**
  * Panel containing only one drop down choice box. <br/>
@@ -55,7 +59,7 @@ public class Select2SingleChoicePanel<T> extends Panel implements ComponentWrapp
     add(select2Choice);
   }
 
-  /**
+    /**
    * @return the select2Choice
    */
   public Select2Choice<T> getSelect2Choice()
