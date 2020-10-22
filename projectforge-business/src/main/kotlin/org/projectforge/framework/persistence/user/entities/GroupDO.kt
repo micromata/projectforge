@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.user.entities
 
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.Hibernate
+import org.hibernate.annotations.ManyToAny
 import org.hibernate.search.annotations.ContainedIn
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
@@ -129,6 +130,12 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
     @get:ManyToMany(targetEntity = PFUserDO::class, cascade = [CascadeType.MERGE], fetch = FetchType.EAGER)
     @get:JoinTable(name = "T_GROUP_USER", joinColumns = [JoinColumn(name = "GROUP_ID")], inverseJoinColumns = [JoinColumn(name = "USER_ID")], indexes = [javax.persistence.Index(name = "idx_fk_t_group_user_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_group_user_user_id", columnList = "user_id")])
     open var assignedUsers: MutableSet<PFUserDO>? = null
+
+    @IndexedEmbedded(depth = 1)
+    @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "group_owner_fk")
+    open var groupOwner: PFUserDO? = null
+
 
     /**
      * Returns the collection of assigned users only if initialized. Avoids a LazyInitializationException.

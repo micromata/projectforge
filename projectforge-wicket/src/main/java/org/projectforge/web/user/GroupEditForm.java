@@ -53,8 +53,10 @@ import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
+import org.projectforge.web.wicket.flowlayout.Select2SingleChoicePanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.slf4j.Logger;
+import org.wicketstuff.select2.Select2Choice;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 import java.util.Collection;
@@ -87,6 +89,7 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
   LdapUserDao ldapUserDao;
 
   MultiChoiceListHelper<PFUserDO> assignUsersListHelper;
+
 
   // MultiChoiceListHelper<GroupDO> nestedGroupsListHelper;
 
@@ -160,6 +163,14 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
           new PropertyModel<Collection<PFUserDO>>(this.assignUsersListHelper, "assignedItems"), usersProvider);
       users.setMarkupId("users").setOutputMarkupId(true);
       fs.add(users);
+    }
+    {
+      //TODO:
+      final FieldsetPanel fs = gridBuilder.newFieldset("groupOwner");
+      final UserSelectPanel groupOwnerSelectPanel = new UserSelectPanel(fs.newChildId(),
+              new PropertyModel<PFUserDO>(data, "groupOwner"),parentPage, "groupOwner");
+      fs.add(groupOwnerSelectPanel);
+      groupOwnerSelectPanel.init();
     }
     final boolean adminAccess = accessChecker.isLoggedInUserMemberOfAdminGroup();
     if (adminAccess == true && Login.getInstance().hasExternalUsermanagementSystem() == true) {
