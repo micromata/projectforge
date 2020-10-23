@@ -1,0 +1,8 @@
+.option {
+  background: none;
+  border: none;
+
+  &:focus {
+    outline: none;
+  }
+}

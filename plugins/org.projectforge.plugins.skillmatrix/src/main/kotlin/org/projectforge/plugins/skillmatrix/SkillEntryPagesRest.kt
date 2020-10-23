@@ -61,7 +61,8 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(S
         val skillRating = UIRatingStars(
                 "rating",
                 lc,
-                Array<String>(4) { idx -> translate("plugins.skillmatrix.rating.$idx") }
+                Array<String>(4) { idx -> translate("plugins.skillmatrix.rating.$idx") },
+                label = "plugins.skillmatrix.rating"
         )
         val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "skill", "owner")

@@ -1,26 +1,29 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import RatingStars from '../../../../design/input/ratingStars/RatingStars';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from './DynamicValidationManager';
 
-function DynamicRating({
-    id, label, values, ...props
-}) {
+function DynamicRating({ id, label, values }) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
-    const value = Object.getByString(data, id) || false;
+    const value = Object.getByString(data, id);
 
     return React.useMemo(() => {
-        //const handleValueChange = ({ value }) => setData({ [id]: target.checked });
-
-        const ratingCompleted = ({ rating} ) => console.log("Rating is: " + rating);
+        const handleChange = rating => setData({ [id]: rating });
 
         return (
             <DynamicValidationManager id={id}>
-                Where the magic happens...
+                <RatingStars
+                    id={`${ui.uid}-${id}`}
+                    label={label}
+                    onChange={handleChange}
+                    values={values}
+                    value={value}
+                />
             </DynamicValidationManager>
         );
-    }, [value, setData, id, label, props]);
+    }, [value, setData, id, label, ui.uid, values]);
 }
 
 DynamicRating.propTypes = {
