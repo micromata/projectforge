@@ -165,7 +165,6 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
       fs.add(users);
     }
     {
-      //TODO:
       final FieldsetPanel fs = gridBuilder.newFieldset("groupOwner");
       final UserSelectPanel groupOwnerSelectPanel = new UserSelectPanel(fs.newChildId(),
               new PropertyModel<PFUserDO>(data, "groupOwner"),parentPage, "groupOwner");
