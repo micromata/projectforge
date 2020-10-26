@@ -67,6 +67,7 @@ enum class Formatter {
     GROUP,
     KONTO,
     PROJECT,
+    RATING,
     TASK_PATH,
     TIMESTAMP_MINUTES,
     USER

@@ -1,3 +1,4 @@
+import { faStar } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import moment from 'moment';
 import PropTypes from 'prop-types';
@@ -14,6 +15,7 @@ const EMPLOYEE_FORMATTER = 'EMPLOYEE';
 const KONTO_FORMATTER = 'KONTO';
 const PROJECT_FORMATTER = 'PROJECT';
 const USER_FORMATTER = 'USER';
+const RATING = 'RATING';
 const TASK_FORMATTER = 'TASK_PATH';
 const TIMESTAMP_FORMATTER = 'TIMESTAMP';
 const TIMESTAMP_MINUTES_FORMATTER = 'TIMESTAMP_MINUTES';
@@ -81,6 +83,19 @@ function Formatter(
                 result = value
                     .map(({ displayName }) => displayName)
                     .join(', ');
+                break;
+            case RATING:
+                if (value > 0) {
+                    result = [...Array(value).keys()].map((v) => (
+                        <FontAwesomeIcon
+                            icon={faStar}
+                            color="#ffc107"
+                            key={v}
+                        />
+                    ));
+                } else {
+                    result = '-';
+                }
                 break;
             default:
         }
