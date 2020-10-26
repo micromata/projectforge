@@ -42,6 +42,12 @@ open class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
         userRightId = SkillRightId.PLUGIN_SKILL_MATRIX
     }
 
+    private val ENABLED_AUTOCOMPLETION_PROPERTIES = arrayOf("skill")
+
+    override fun isAutocompletionPropertyEnabled(property: String): Boolean {
+        return ENABLED_AUTOCOMPLETION_PROPERTIES.contains(property)
+    }
+
     /**
      * Load only memo's of current logged-in user.
      *
