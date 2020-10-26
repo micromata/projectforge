@@ -41,8 +41,12 @@ class SkillRight(accessChecker: AccessChecker?) : UserRightAccessCheck<SkillEntr
      */
     override fun hasAccess(user: PFUserDO, obj: SkillEntryDO?, oldObj: SkillEntryDO?,
                            operationType: OperationType): Boolean {
-        val skill = oldObj ?: obj ?: return true // General insert and select access given by default.
+        // Check insert on own skill!
+        if (operationType == OperationType.SELECT) {
+            return true
+        }
+        val skill = oldObj ?: obj ?: return true // return true: general insert access.
         // Everybody may select the skill of other users but may only modify own skills.
-        return operationType == OperationType.SELECT || user.id == skill.ownerId
+        return user.id == skill.ownerId
     }
 }

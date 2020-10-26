@@ -68,8 +68,8 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(S
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<SkillEntryDO>>? {
         val ownerFilterEntry = source.entries.find { it.field == "owner" }
-        if (ownerFilterEntry != null && ownerFilterEntry.isTrueValue) {
-            ownerFilterEntry.synthetic = true
+        if (source.searchString.isNullOrBlank() || ownerFilterEntry != null && ownerFilterEntry.isTrueValue) {
+            ownerFilterEntry?.synthetic = true
             target.createJoin("owner")
             target.add(QueryFilter.eq("owner", ThreadLocalUserContext.getUser())) // Show only own skills, not from others.
         }
@@ -96,12 +96,12 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(S
         val layout = super.createEditLayout(dto, userAccess)
                 .add(skill)
                 .add(UIRow()
-                        .add(UICol(UILength(md = 4)).add(lc, "owner"))
+                        .add(UICol(UILength(md = 4)).add(UIReadOnlyField("owner.displayName", lc)))
                         .add(UICol(UILength(md = 4)).add(skillRating))
                         .add(UICol(UILength(md = 4)).add(interestRating))
                 )
                 .add(lc, "comment")
-                .add(UILabel("'********* TODO: Nutzer ändern verhindern. Nicht alle anzeigen."))
+                .add(UILabel("'********* TODO: avoid doublets."))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
