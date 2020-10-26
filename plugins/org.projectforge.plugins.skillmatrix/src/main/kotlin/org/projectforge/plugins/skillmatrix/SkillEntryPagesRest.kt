@@ -51,6 +51,9 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(S
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "lastUpdate", "skill", "owner", "rating", "interest"))
+
+        layout.getTableColumnById("rating").set(formatter = Formatter.RATING)
+
         return LayoutUtils.processListPage(layout, this)
     }
 
