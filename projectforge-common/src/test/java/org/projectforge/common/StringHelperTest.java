@@ -285,6 +285,7 @@ public class StringHelperTest {
     assertEquals("", StringHelper.normalize("  "));
     assertEquals("Beau oßt", StringHelper.normalize(" Béäü \t ößt\n"));
     assertEquals("beau oßt", StringHelper.normalize(" Béäü \t ößt\n", true));
+    assertEquals("c++", StringHelper.normalize("C++", true));
   }
 
     private void testBlank(final boolean expectedValue, final String... strs) {
