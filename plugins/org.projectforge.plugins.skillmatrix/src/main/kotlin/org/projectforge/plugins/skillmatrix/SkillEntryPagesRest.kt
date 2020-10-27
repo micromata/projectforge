@@ -54,7 +54,7 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(S
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.createUIResultSetTable()
-                        .add(lc, "lastUpdate", "skill", "owner", "rating", "interest"))
+                        .add(lc, "lastUpdate", "skill", "owner", "rating", "interest", "comment"))
 
         layout.getTableColumnById("rating").set(formatter = Formatter.RATING)
         layout.getTableColumnById("interest").set(formatter = Formatter.RATING)
@@ -101,7 +101,6 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(S
                         .add(UICol(UILength(md = 4)).add(interestRating))
                 )
                 .add(lc, "comment")
-                .add(UILabel("'********* TODO: avoid doublets."))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

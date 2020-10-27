@@ -23,6 +23,8 @@
 
 package org.projectforge.plugins.skillmatrix
 
+import org.projectforge.common.StringHelper
+import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -67,6 +69,16 @@ open class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
         if (obj.owner == null) {
             obj.owner = ThreadLocalUserContext.getUser() // Set always the logged-in user as owner.
         }
+        val skillText = StringHelper.normalize(obj.skill, true)
+        em.createNamedQuery(SkillEntryDO.FIND_OF_OWNER, SkillEntryDO::class.java)
+                .setParameter("ownerId", obj.ownerId)
+                .resultList
+                .forEach {
+                    if (obj.id != it.id &&
+                            skillText == StringHelper.normalize(it.skill, true)) {
+                        throw UserException("plugins.skillmatrix.error.doublet", it.skill)
+                    }
+                }
     }
 
     override fun newInstance(): SkillEntryDO {
