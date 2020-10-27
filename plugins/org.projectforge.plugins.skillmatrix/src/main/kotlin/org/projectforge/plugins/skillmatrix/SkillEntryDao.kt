@@ -30,6 +30,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.utils.NumberHelper
 import org.springframework.stereotype.Repository
 
 /**
@@ -69,6 +70,9 @@ open class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
         if (obj.owner == null) {
             obj.owner = ThreadLocalUserContext.getUser() // Set always the logged-in user as owner.
         }
+        obj.rating = NumberHelper.ensureRange(SkillEntryDO.MIN_VAL_RATING, SkillEntryDO.MAX_VAL_RATING, obj.rating)
+        obj.interest = NumberHelper.ensureRange(SkillEntryDO.MIN_VAL_INTEREST, SkillEntryDO.MAX_VAL_INTEREST, obj.interest)
+
         val skillText = StringHelper.normalize(obj.skill, true)
         em.createNamedQuery(SkillEntryDO.FIND_OF_OWNER, SkillEntryDO::class.java)
                 .setParameter("ownerId", obj.ownerId)
