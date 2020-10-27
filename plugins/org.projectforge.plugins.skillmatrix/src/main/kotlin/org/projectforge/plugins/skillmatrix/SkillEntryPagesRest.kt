@@ -83,13 +83,13 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(S
         val skillRating = UIRatingStars(
                 "rating",
                 lc,
-                Array<String>(4) { idx -> translate("plugins.skillmatrix.rating.$idx") },
+                Array(SkillEntryDO.MAX_VAL_RATING + 1) { idx -> translate("plugins.skillmatrix.rating.$idx") },
                 label = "plugins.skillmatrix.rating"
         )
         val interestRating = UIRatingStars(
                 "interest",
                 lc,
-                Array<String>(4) { idx -> translate("plugins.skillmatrix.interest.$idx") },
+                Array(SkillEntryDO.MAX_VAL_INTEREST + 1) { idx -> translate("plugins.skillmatrix.interest.$idx") },
                 label = "plugins.skillmatrix.interest"
         )
         val skill = UIInput("skill", lc).enableAutoCompletion(this)

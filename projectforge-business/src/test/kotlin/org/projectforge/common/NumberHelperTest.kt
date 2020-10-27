@@ -34,7 +34,7 @@ class NumberHelperTest {
         var str = NumberHelper.getSecureRandomAlphanumeric(1000)
         Assertions.assertEquals(1000, str.length)
         for (ch in NumberHelper.ALPHA_NUMERICS_CHARSET) {
-            if (str.any { it == ch}) {
+            if (str.any { it == ch }) {
                 // found
                 continue
             }
@@ -56,7 +56,7 @@ class NumberHelperTest {
         var str = NumberHelper.getSecureRandomReducedAlphanumeric(1000)
         Assertions.assertEquals(1000, str.length)
         for (ch in NumberHelper.REDUCED_ALPHA_NUMERICS_CHARSET) {
-            if (str.any { it == ch}) {
+            if (str.any { it == ch }) {
                 // found
                 continue
             }
@@ -79,5 +79,15 @@ class NumberHelperTest {
             NumberHelper.getSecureRandomAlphanumeric(length)
         }
         println("Generating 1,000 secure strings each of length $length takes ${System.currentTimeMillis() - time}ms.")
+    }
+
+    @Test
+    fun rangeTest() {
+        Assertions.assertNull(NumberHelper.ensureRange(0, 4, null))
+        Assertions.assertEquals(2, NumberHelper.ensureRange(0, 4, 2))
+        Assertions.assertEquals(0, NumberHelper.ensureRange(0, 4, 0))
+        Assertions.assertEquals(0, NumberHelper.ensureRange(0, 4, -1))
+        Assertions.assertEquals(4, NumberHelper.ensureRange(0, 4, 5))
+        Assertions.assertEquals(4, NumberHelper.ensureRange(0, 4, 4))
     }
 }
