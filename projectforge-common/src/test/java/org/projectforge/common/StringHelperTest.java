@@ -277,7 +277,17 @@ public class StringHelperTest {
     assertEquals("value", map.get("param"));
   }
 
-  private void testBlank(final boolean expectedValue, final String... strs) {
+  @Test
+  public void normalize() {
+    assertEquals("", StringHelper.normalize(null));
+    assertEquals("", StringHelper.normalize(""));
+    assertEquals("", StringHelper.normalize(" "));
+    assertEquals("", StringHelper.normalize("  "));
+    assertEquals("Beau oßt", StringHelper.normalize(" Béäü \t ößt\n"));
+    assertEquals("beau oßt", StringHelper.normalize(" Béäü \t ößt\n", true));
+  }
+
+    private void testBlank(final boolean expectedValue, final String... strs) {
     assertEquals(expectedValue, StringHelper.isBlank(strs));
     assertEquals(!expectedValue, StringHelper.isNotBlank(strs));
   }
