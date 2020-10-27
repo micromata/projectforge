@@ -84,5 +84,13 @@ open class SkillEntryDO : DefaultBaseDO() {
 
     companion object {
         const val FIND_OF_OWNER = "SkillEntryDO_FindSkillsOfOwner"
+
+        const val MIN_VAL_RATING = 0
+
+        const val MAX_VAL_RATING = 3
+
+        const val MIN_VAL_INTEREST = 0
+
+        const val MAX_VAL_INTEREST = 3
     }
 }

@@ -561,6 +561,17 @@ object NumberHelper {
         return if (stripTrailingZeros) result.stripTrailingZeros() else result
     }
 
+    /**
+     * @return value ensured inside the given range or null, if value is null.
+     */
+    @JvmStatic
+    fun ensureRange(minVal: Int, maxVal: Int, value: Int?): Int? {
+        value ?: return null
+        return if (value < minVal) minVal
+        else if (value > maxVal) maxVal
+        else value
+    }
+
     internal val ALPHA_NUMERICS_CHARSET: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
     private val ALPHA_NUMERICS_CHARSET_LENGTH = ALPHA_NUMERICS_CHARSET.size
 
