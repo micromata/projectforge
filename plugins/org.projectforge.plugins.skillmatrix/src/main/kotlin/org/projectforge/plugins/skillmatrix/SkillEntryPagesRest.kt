@@ -103,7 +103,7 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(S
         val layout = super.createEditLayout(dto, userAccess)
                 .add(skill)
                 .add(UIRow()
-                        .add(UICol(UILength(md = 4)).add(UIReadOnlyField("owner.displayName", lc)))
+                        .add(UICol(UILength(md = 4)).add(UIReadOnlyField("owner.displayName", lc, label = "plugins.skillmatrix.owner")))
                         .add(UICol(UILength(md = 4)).add(skillRating))
                         .add(UICol(UILength(md = 4)).add(interestRating))
                 )
