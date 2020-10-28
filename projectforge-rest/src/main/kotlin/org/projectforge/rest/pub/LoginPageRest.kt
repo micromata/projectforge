@@ -25,10 +25,7 @@ package org.projectforge.rest.pub
 
 import mu.KotlinLogging
 import org.projectforge.Const
-import org.projectforge.business.login.LoginDefaultHandler
-import org.projectforge.business.login.LoginProtection
-import org.projectforge.business.login.LoginResult
-import org.projectforge.business.login.LoginResultStatus
+import org.projectforge.business.login.*
 import org.projectforge.business.multitenancy.TenantRegistry
 import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.business.user.UserAuthenticationsService
@@ -42,6 +39,7 @@ import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.login.LoginHandlerService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
@@ -81,6 +79,9 @@ open class LoginPageRest {
 
     @Autowired
     private lateinit var cookieService: CookieService
+
+    @Autowired
+    private lateinit var loginHandlerService: LoginHandlerService
 
     @GetMapping("dynamic")
     fun getForm(@RequestParam url: String? = null): FormLayoutData {
@@ -193,9 +194,7 @@ open class LoginPageRest {
             return LoginResult().setLoginResultStatus(LoginResultStatus.LOGIN_TIME_OFFSET).setMsgParams(seconds,
                     numberOfFailedAttempts.toString())
         }
-        val loginHandler = applicationContext.getBean(LoginDefaultHandler::class.java)
-
-        val result = loginHandler.checkLogin(loginData.username, loginData.password)
+        val result = loginHandlerService.loginHandler.checkLogin(loginData.username, loginData.password)
         if (result.getLoginResultStatus() == LoginResultStatus.SUCCESS) {
             loginProtection.clearLoginTimeOffset(result.user?.username, result.user?.id, clientIpAddress)
         } else if (result.getLoginResultStatus() == LoginResultStatus.FAILED) {
