@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.skillmatrix
 
-import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
@@ -32,6 +31,8 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * This is the base data access object class. Most functionality such as access checking, select, insert, update, save,
@@ -73,13 +74,10 @@ open class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
         obj.rating = NumberHelper.ensureRange(SkillEntryDO.MIN_VAL_RATING, SkillEntryDO.MAX_VAL_RATING, obj.rating)
         obj.interest = NumberHelper.ensureRange(SkillEntryDO.MIN_VAL_INTEREST, SkillEntryDO.MAX_VAL_INTEREST, obj.interest)
 
-        val skillText = StringHelper.normalize(obj.skill, true)
-        em.createNamedQuery(SkillEntryDO.FIND_OF_OWNER, SkillEntryDO::class.java)
-                .setParameter("ownerId", obj.ownerId)
-                .resultList
+        val skillText = obj.normalizedSkill
+        getSkills(obj.owner!!)
                 .forEach {
-                    if (obj.id != it.id &&
-                            skillText == StringHelper.normalize(it.skill, true)) {
+                    if (obj.id != it.id && skillText == it.normalizedSkill) {
                         throw UserException("plugins.skillmatrix.error.doublet", it.skill)
                     }
                 }
@@ -87,5 +85,12 @@ open class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
 
     override fun newInstance(): SkillEntryDO {
         return SkillEntryDO()
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    open fun getSkills(owner: PFUserDO): List<SkillEntryDO> {
+        return em.createNamedQuery(SkillEntryDO.FIND_OF_OWNER, SkillEntryDO::class.java)
+                .setParameter("ownerId", owner.id)
+                .resultList
     }
 }

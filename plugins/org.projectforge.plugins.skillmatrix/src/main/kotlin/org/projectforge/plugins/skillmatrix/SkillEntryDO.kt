@@ -25,7 +25,7 @@ package org.projectforge.plugins.skillmatrix
 
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
-import org.projectforge.business.task.TaskDO
+import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
@@ -47,6 +47,10 @@ open class SkillEntryDO : DefaultBaseDO() {
     @Field
     @get:Column(length = 255, nullable = false)
     open var skill: String? = null
+
+    @get:Transient
+    val normalizedSkill: String
+        get() = getNormalizedSkill(skill)
 
     /**
      * Don't index this field (due to privacy protection). No one should filter all skills of one user by simply entering user's name into the
@@ -92,5 +96,9 @@ open class SkillEntryDO : DefaultBaseDO() {
         const val MIN_VAL_INTEREST = 0
 
         const val MAX_VAL_INTEREST = 3
+
+        fun getNormalizedSkill(skill: String?): String {
+            return StringHelper.normalize(skill, true)!!
+        }
     }
 }

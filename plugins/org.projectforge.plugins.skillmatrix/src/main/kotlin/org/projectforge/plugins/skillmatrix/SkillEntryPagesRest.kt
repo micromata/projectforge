@@ -28,6 +28,8 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
 import org.projectforge.ui.*
@@ -58,6 +60,11 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(S
 
         layout.getTableColumnById("rating").set(formatter = Formatter.RATING)
         layout.getTableColumnById("interest").set(formatter = Formatter.RATING)
+
+        layout.add(MenuItem("skillmatrix.export",
+                i18nKey = "exportAsXls",
+                url = "${SkillMatrixServicesRest.REST_EXCEL_EXPORT_PATH}",
+                type = MenuItemTargetType.DOWNLOAD))
 
         return LayoutUtils.processListPage(layout, this)
     }
