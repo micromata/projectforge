@@ -28,6 +28,7 @@ import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
+import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import javax.persistence.*
@@ -41,7 +42,10 @@ import javax.persistence.*
 @NamedQueries(
         NamedQuery(name = SkillEntryDO.FIND_OF_OWNER,
                 query = "from SkillEntryDO where owner.id=:ownerId and deleted=false"))
-open class SkillEntryDO : DefaultBaseDO() {
+open class SkillEntryDO : AbstractBaseDO<Int>() {
+
+    @PropertyInfo(i18nKey = "id")
+    private var id: Int? = null
 
     @PropertyInfo(i18nKey = "plugins.skillmatrix.skill")
     @Field
@@ -85,6 +89,17 @@ open class SkillEntryDO : DefaultBaseDO() {
     val ownerId: Int?
         @Transient
         get() = owner?.id
+
+    @Id
+    @GeneratedValue
+    @Column(name = "pk")
+    override fun getId(): Int? {
+        return id
+    }
+
+    override fun setId(id: Int?) {
+        this.id = id
+    }
 
     companion object {
         const val FIND_OF_OWNER = "SkillEntryDO_FindSkillsOfOwner"
