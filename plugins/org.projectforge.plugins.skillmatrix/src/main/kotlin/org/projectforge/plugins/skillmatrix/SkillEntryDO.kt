@@ -25,7 +25,6 @@ package org.projectforge.plugins.skillmatrix
 
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
@@ -62,7 +61,6 @@ open class SkillEntryDO : AbstractBaseDO<Int>() {
      * search field.
      */
     @PropertyInfo(i18nKey = "plugins.skillmatrix.owner")
-    @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
     open var owner: PFUserDO? = null

@@ -23,13 +23,13 @@
 
 package org.projectforge.plugins.skillmatrix
 
-import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.i18n.UserException
-import org.projectforge.framework.persistence.api.*
+import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -42,7 +42,6 @@ import org.springframework.transaction.annotation.Transactional
  */
 @Repository
 open class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
-
     init {
         userRightId = SkillRightId.PLUGIN_SKILL_MATRIX
     }
@@ -53,8 +52,18 @@ open class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
         return ENABLED_AUTOCOMPLETION_PROPERTIES.contains(property)
     }
 
-    override fun getAdditionalSearchFields(): Array<String> {
-        return SkillEntryDao.ADDITIONAL_SEARCH_FIELDS
+    /**
+     * Load only memo's of current logged-in user.
+     *
+     * @param filter
+     * @return
+     */
+    override fun createQueryFilter(filter: BaseSearchFilter): QueryFilter {
+        val queryFilter = super.createQueryFilter(filter)
+        val user = PFUserDO()
+        user.id = ThreadLocalUserContext.getUserId()
+        queryFilter.add(QueryFilter.eq("owner", user))
+        return queryFilter
     }
 
     override fun onSaveOrModify(obj: SkillEntryDO) {
@@ -83,9 +92,5 @@ open class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
         return em.createNamedQuery(SkillEntryDO.FIND_OF_OWNER, SkillEntryDO::class.java)
                 .setParameter("ownerId", owner.id)
                 .resultList
-    }
-
-    companion object {
-        private val ADDITIONAL_SEARCH_FIELDS = arrayOf("owner.username", "owner.firstname", "owner.lastname")
     }
 }
