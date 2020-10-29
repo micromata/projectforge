@@ -23,9 +23,7 @@
 
 package org.projectforge.plugins.skillmatrix
 
-import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
@@ -34,7 +32,6 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
-import org.projectforge.rest.dto.Address
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.web.bind.annotation.RequestMapping
@@ -43,10 +40,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/skillentry")
-class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(
-        SkillEntryDao::class.java,
-        "plugins.skillmatrix.title",
-        cloneSupport = CloneSupport.CLONE) {
+class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(SkillEntryDao::class.java, "plugins.skillmatrix.title") {
     /**
      * Initializes new memos for adding.
      */
@@ -81,21 +75,12 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<SkillEntryDO>>? {
         val ownerFilterEntry = source.entries.find { it.field == "owner" }
-        if (ownerFilterEntry?.isTrueValue == true) {
-            ownerFilterEntry.synthetic = true
+        if (source.searchString.isNullOrBlank() || ownerFilterEntry != null && ownerFilterEntry.isTrueValue) {
+            ownerFilterEntry?.synthetic = true
             target.createJoin("owner")
             target.add(QueryFilter.eq("owner", ThreadLocalUserContext.getUser())) // Show only own skills, not from others.
         }
         return null
-    }
-
-    /**
-     * Sets logged-in-user as owner.
-     */
-    override fun prepareClone(dto: SkillEntryDO): SkillEntryDO {
-        val clone = super.prepareClone(dto)
-        clone.owner = ThreadLocalUserContext.getUser()
-        return clone
     }
 
     /**
