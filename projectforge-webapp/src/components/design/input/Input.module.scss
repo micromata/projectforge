@@ -523,7 +523,7 @@ $transitionTime: .2s ease-out;
     top: 0;
     left: 0;
     bottom: 0;
-    background: linear-gradient(to right, transparent, #F5F5F5 50%);
+    background: linear-gradient(to right, rgba(245,245,245,0), #f5f5f5 50%);
   }
 
   .value {
