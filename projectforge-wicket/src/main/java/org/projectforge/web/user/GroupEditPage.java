@@ -37,8 +37,7 @@ import org.projectforge.web.wicket.WicketUtils;
 import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = GroupListPage.class)
-public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, GroupDao>
-{
+public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, GroupDao> implements ISelectCallerPage {
   /**
    * Parameter for pre-defining group name (e. g. used by a wizard for creating new groups).
    */
@@ -124,4 +123,19 @@ public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, Grou
   {
     return log;
   }
+
+    @Override
+    public void select(String property, Object selectedValue) {
+
+    }
+
+    @Override
+    public void unselect(String property) {
+
+    }
+
+    @Override
+    public void cancelSelection(String property) {
+
+    }
 }

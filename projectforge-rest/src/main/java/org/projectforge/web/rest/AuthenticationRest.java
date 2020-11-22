@@ -46,6 +46,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
+ * Deprecated!!! Please use authentication token instead.
+ * <p>
  * REST interface for authentication (tests) and getting the authentication token on initial contact.
  * <p>
  * <h2>Concept</h2> It's recommended to avoid storing the user's username and password on the client (e. g. on the
@@ -66,71 +68,74 @@ import javax.ws.rs.core.Response;
  */
 @Controller
 @Path(RestPaths.AUTHENTICATE)
+@Deprecated
 public class AuthenticationRest {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuthenticationRest.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuthenticationRest.class);
 
-  @Autowired
-  private UserDao userDao;
+    @Autowired
+    private UserDao userDao;
 
-  @Autowired
-  private UserAuthenticationsService userAuthenticationsService;
+    @Autowired
+    private UserAuthenticationsService userAuthenticationsService;
 
-  /**
-   * Authentication via http header authenticationUsername and authenticationPassword.<br/>
-   * For getting the user's authentication token. This token can be stored in the client (e. g. mobile app). The user's
-   * password shouldn't be stored in the client for security reasons. The authentication token is renewable through the
-   * ProjectForge's web app (my account).
-   *
-   * @return {@link UserObject}
-   */
-  @GET
-  @Path(RestPaths.AUTHENTICATE_GET_TOKEN_METHOD)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response getToken() {
-    final PFUserDO user = ThreadLocalUserContext.getUser();
-    if (user == null) {
-      log.error("No user given for rest call.");
-      throw new IllegalArgumentException("No user given for the rest call: authenticate/getToken.");
+    /**
+     * Authentication via http header authenticationUsername and authenticationPassword.<br/>
+     * For getting the user's authentication token. This token can be stored in the client (e. g. mobile app). The user's
+     * password shouldn't be stored in the client for security reasons. The authentication token is renewable through the
+     * ProjectForge's web app (my account).
+     *
+     * @return {@link UserObject}
+     */
+    @Deprecated
+    @GET
+    @Path(RestPaths.AUTHENTICATE_GET_TOKEN_METHOD)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getToken() {
+        final PFUserDO user = ThreadLocalUserContext.getUser();
+        if (user == null) {
+            log.error("No user given for rest call.");
+            throw new IllegalArgumentException("No user given for the rest call: authenticate/getToken.");
+        }
+        final UserObject userObject = PFUserDOConverter.getUserObject(user);
+        final String authenticationToken = userAuthenticationsService.getToken(user.getId(), UserTokenType.REST_CLIENT);
+        userObject.setAuthenticationToken(authenticationToken);
+        final String json = JsonUtils.toJson(userObject);
+        return Response.ok(json).build();
     }
-    final UserObject userObject = PFUserDOConverter.getUserObject(user);
-    final String authenticationToken = userAuthenticationsService.getToken(user.getId(), UserTokenType.REST_CLIENT);
-    userObject.setAuthenticationToken(authenticationToken);
-    final String json = JsonUtils.toJson(userObject);
-    return Response.ok(json).build();
-  }
 
-  /**
-   * Authentication via http header authenticationUserId and authenticationToken.
-   *
-   * @param clientVersionString
-   * @return {@link ServerInfo}
-   */
-  @GET
-  @Path(RestPaths.AUTHENTICATE_INITIAL_CONTACT_METHOD)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response initialContact(@QueryParam("clientVersion") final String clientVersionString) {
-    final PFUserDO user = ThreadLocalUserContext.getUser();
-    if (user == null) {
-      log.error("No user given for rest call.");
-      throw new IllegalArgumentException("No user given for the rest call: authenticate/getToken.");
+    /**
+     * Authentication via http header authenticationUserId and authenticationToken.
+     *
+     * @param clientVersionString
+     * @return {@link ServerInfo}
+     */
+    @GET
+    @Path(RestPaths.AUTHENTICATE_INITIAL_CONTACT_METHOD)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Deprecated
+    public Response initialContact(@QueryParam("clientVersion") final String clientVersionString) {
+        final PFUserDO user = ThreadLocalUserContext.getUser();
+        if (user == null) {
+            log.error("No user given for rest call.");
+            throw new IllegalArgumentException("No user given for the rest call: authenticate/getToken.");
+        }
+        final UserObject userObject = PFUserDOConverter.getUserObject(user);
+        final ServerInfo info = new ServerInfo(ProjectForgeVersion.VERSION_NUMBER);
+        info.setUser(userObject);
+        Version clientVersion = null;
+        if (clientVersionString != null) {
+            clientVersion = new Version(clientVersionString);
+        }
+        if (clientVersion == null) {
+            info.setStatus(ServerInfo.STATUS_UNKNOWN);
+        } else if (clientVersion.compareTo(new Version("5.0")) < 0) {
+            info.setStatus(ServerInfo.STATUS_CLIENT_TO_OLD);
+        } else if (clientVersion.compareTo(ProjectForgeVersion.VERSION) > 0) {
+            info.setStatus(ServerInfo.STATUS_CLIENT_NEWER_THAN_SERVER);
+        } else {
+            info.setStatus(ServerInfo.STATUS_OK);
+        }
+        final String json = JsonUtils.toJson(info);
+        return Response.ok(json).build();
     }
-    final UserObject userObject = PFUserDOConverter.getUserObject(user);
-    final ServerInfo info = new ServerInfo(ProjectForgeVersion.VERSION_NUMBER);
-    info.setUser(userObject);
-    Version clientVersion = null;
-    if (clientVersionString != null) {
-      clientVersion = new Version(clientVersionString);
-    }
-    if (clientVersion == null) {
-      info.setStatus(ServerInfo.STATUS_UNKNOWN);
-    } else if (clientVersion.compareTo(new Version("5.0")) < 0) {
-      info.setStatus(ServerInfo.STATUS_CLIENT_TO_OLD);
-    } else if (clientVersion.compareTo(ProjectForgeVersion.VERSION) > 0) {
-      info.setStatus(ServerInfo.STATUS_CLIENT_NEWER_THAN_SERVER);
-    } else {
-      info.setStatus(ServerInfo.STATUS_OK);
-    }
-    final String json = JsonUtils.toJson(info);
-    return Response.ok(json).build();
-  }
 }
