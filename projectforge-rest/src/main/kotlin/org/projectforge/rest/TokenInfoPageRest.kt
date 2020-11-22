@@ -28,9 +28,11 @@ import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
+import org.projectforge.rest.calendar.BarcodeServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.pub.AuthenticationPublicServicesRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -44,6 +46,9 @@ import javax.servlet.http.HttpServletRequest
 class TokenInfoPageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var authenticationsService: UserAuthenticationsService
+
+    @Autowired
+    private lateinit var authenticationPublicServicesRest: AuthenticationPublicServicesRest
 
     class TokenInfoData(var info: String? = null,
                         val token: String? = null)
@@ -78,6 +83,15 @@ class TokenInfoPageRest : AbstractDynamicPageRest() {
                 color = UIColor.SECONDARY,
                 outline = true,
                 responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL)))
+
+        if (token == UserTokenType.REST_CLIENT) {
+            val queryURL = authenticationPublicServicesRest.createQueryURL()
+            val barcodeUrl = BarcodeServicesRest.getBarcodeGetUrl(queryURL)
+            layout.add(UIFieldset(UILength(md = 12, lg = 12))
+                    .add(UIRow()
+                            .add(UICol()
+                                    .add(UICustomized("image", mutableMapOf("src" to barcodeUrl, "alt" to barcodeUrl))))))
+        }
 
         layout.addTranslations("cancel", "yes")
         LayoutUtils.process(layout)
