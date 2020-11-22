@@ -43,7 +43,7 @@ class AuthenticationPublicServicesRestTest : AbstractTestBase() {
     fun getAuthenticationCredentialsTest() {
         val user = logon(TEST_USER)
         val q = authenticationPublicServicesRest.createQueryParam(user.id)
-        val credentials = authenticationPublicServicesRest.getAuthenticationCredentials(q, user.id)
+        val credentials = authenticationPublicServicesRest.getAuthenticationCredentials(q)
         assertEquals(user.username, credentials.username)
         assertEquals(user.id, credentials.uid)
         val token = userAuthenticationsDao.getToken(user.id, UserTokenType.REST_CLIENT)
@@ -51,22 +51,22 @@ class AuthenticationPublicServicesRestTest : AbstractTestBase() {
         assertEquals("http://localhost:8080", credentials.url)
 
         try {
-            authenticationPublicServicesRest.getAuthenticationCredentials(q, 671237617)
-            fail("Failure expected (unknown uid)")
-        } catch (ex: Exception) {
-            // expected
-        }
-
-        try {
-            authenticationPublicServicesRest.getAuthenticationCredentials(q, getUserId(TEST_ADMIN_USER))
-            fail("Failure expected (different uid)")
-        } catch (ex: Exception) {
-            // expected
-        }
-
-        try {
-            authenticationPublicServicesRest.getAuthenticationCredentials("OXn1Nq1T7qZUkOCHEdp3LB", user.id)
+            authenticationPublicServicesRest.getAuthenticationCredentials("OXn1Nq1T7qZUkOCHEdp3LB")
             fail("Failure expected, invalid q")
+        } catch (ex: Exception) {
+            // expected
+        }
+    }
+
+    @Test
+    fun temporaryTokenTest() {
+        val uid = getUserId(TEST_ADMIN_USER)
+        val qNow = authenticationPublicServicesRest.createQueryParam(uid)
+        assertEquals(qNow, authenticationPublicServicesRest.checkQuery(qNow).token)
+        val qExpired = authenticationPublicServicesRest.createQueryParam(uid, System.currentTimeMillis() - AuthenticationPublicServicesRest.EXPIRE_TIME_IN_MILLIS - 1)
+        try {
+            authenticationPublicServicesRest.checkQuery(qExpired)
+            fail("Token should be expired and an exception was expected.")
         } catch (ex: Exception) {
             // expected
         }
@@ -77,18 +77,18 @@ class AuthenticationPublicServicesRestTest : AbstractTestBase() {
         logon(TEST_USER)
         val uid = getUserId(TEST_USER)
         paramCheck(uid, -1000, true, "1 second ago should be valid.")
-        paramCheck(uid, -50 * 1000, true, "1 minute ago should be valid.")
-        paramCheck(uid, -61 * 1000, false, "more than 1 minute ago should be invalid.")
+        paramCheck(uid, -60 * 1000, true, "1 minute ago should be valid.")
+        paramCheck(uid, -1 - AuthenticationPublicServicesRest.EXPIRE_TIME_IN_MILLIS, false, "more than 2 minutea ago should be invalid.")
         paramCheck(uid, +1000, false, "Any time in the future should be invalid.")
         try {
-            authenticationPublicServicesRest.checkQuery("OXn1Nq1T7qZUkOCHEdp3LB", uid)
+            authenticationPublicServicesRest.checkQuery("OXn1Nq1T7qZUkOCHEdp3LB")
             fail("Invalid param q. Failure was expected.")
         } catch (ex: Exception) {
             // excepted
         }
         val token = userAuthenticationsDao.getToken(uid, UserTokenType.REST_CLIENT)
         try {
-            authenticationPublicServicesRest.checkQuery(Crypt.encrypt(token, "nonumber"), uid)
+            authenticationPublicServicesRest.checkQuery(Crypt.encrypt(token, "nonumber"))
             fail("Invalid system time im millis. Failure was expected.")
         } catch (ex: Exception) {
             // excepted
@@ -98,7 +98,7 @@ class AuthenticationPublicServicesRestTest : AbstractTestBase() {
     private fun paramCheck(uid: Int, timeOffset: Long, expectedResult: Boolean, msg: String) {
         val q = authenticationPublicServicesRest.createQueryParam(uid, System.currentTimeMillis() + timeOffset)
         try {
-            authenticationPublicServicesRest.checkQuery(q, uid)
+            authenticationPublicServicesRest.checkQuery(q)
             assertTrue(expectedResult, "Oups, check failure expected: $msg")
         } catch (ex: Exception) {
             assertFalse(expectedResult, "Oups, check failure not expected: $msg")

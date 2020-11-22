@@ -29,7 +29,6 @@ import org.projectforge.business.user.UserAuthenticationsDao
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.utils.Crypt
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.UserObject
 import org.projectforge.rest.config.Rest
@@ -49,6 +48,8 @@ private val log = KotlinLogging.logger {}
 open class AuthenticationPublicServicesRest {
     class Credentials(val username: String, val uid: Int, val authenticationToken: String, val url: String)
 
+    internal class TemporaryToken(val uid: Int, val systemTimeInMillis: Long, val token: String)
+
     @Autowired
     private lateinit var domainService: DomainService
 
@@ -59,27 +60,36 @@ open class AuthenticationPublicServicesRest {
     private lateinit var userDao: UserDao
 
     /**
-     * Get url, authentication token and user name. The given query param contains the server time of bar code creation
-     * crypted by the user's authentication token and user name. The authentication token is only known by user.
+     * Stores the currently generated temporary tokens (valid for 2 minutes). Will be cleaned up.
+     */
+    private val temporaryTokenList = mutableListOf<TemporaryToken>()
+
+    /**
+     * Get url, authentication token and user name.
      *
      * This method supports mobile clients for faster initial authentication.
      *
-     * @param q This param is provided by MyAccount page as bar code and contains a temporarily valid token (1 minute).
-     * @param uid The user's id to check and get the credentials.
+     * @param q This param is provided by MyAccount page as bar code and contains a temporarily valid token (2 minutes).
      *
      * @return [UserObject]
      */
     @GET
     @Path("getAuthenticationCredentials")
     @Produces(MediaType.APPLICATION_JSON)
-    open fun getAuthenticationCredentials(@QueryParam("q") q: String, @QueryParam("uid") uid: Int): Credentials {
-        val user = userDao.internalGetOrLoad(uid)
-        if (user == null) {
-            log.error { "User with uid=$uid not found (attempt to fraud?)." }
+    open fun getAuthenticationCredentials(@QueryParam("q") q: String): Credentials {
+        val temporaryToken = checkQuery(q)
+        val uid = temporaryToken.uid
+        val authenticationToken = userAuthenticationsDao.internalGetToken(uid, UserTokenType.REST_CLIENT)
+        if (authenticationToken == null) {
+            log.error { "Oups, no authentication token found for user with id $uid." }
             throw IllegalArgumentException("Invalid call.")
         }
-        val token = checkQuery(q, uid)
-        return Credentials(user.username ?: "unknown", uid, token, domainService.domain)
+        val user = userDao.internalGetById(uid)
+        if (user == null) {
+            log.error { "Oups, no user with id $uid found." }
+            throw IllegalArgumentException("Invalid call.")
+        }
+        return Credentials(user.username ?: "unknown", uid, authenticationToken, domainService.domain)
     }
 
     /**
@@ -93,45 +103,46 @@ open class AuthenticationPublicServicesRest {
      * Internal usage for test cases.
      */
     internal fun createQueryParam(uid: Int, currentTimeInMillis: Long): String {
-        val token = userAuthenticationsDao.getToken(uid, UserTokenType.REST_CLIENT)
-        return Crypt.encrypt(token, "$currentTimeInMillis")
-    }
-
-    /**
-     * Tries to decrypt given q by authentication token of given user (by uid) and checks, if the decrypted
-     * time in millis is not expired.
-     */
-    internal fun checkQuery(q: String, uid: Int): String {
-        val token = userAuthenticationsDao.internalGetToken(uid, UserTokenType.REST_CLIENT)
-        if (token == null) {
-            log.error { "Authentication token for user with uid=$uid not found. (attempt to fraud?)" }
-            throw IllegalArgumentException("Invalid call.")
-        }
-        val decrypted = Crypt.decrypt(token, q)
-        if (decrypted == null) {
-            log.error { "Can't decrypt q=$q for user uid=$uid (attempt to fraud?)" }
-            throw IllegalArgumentException("Invalid call.")
-        }
-        val timeInMillis = NumberHelper.parseLong(decrypted) ?: run {
-            log.error { "Decrypted q=$q for user uid=$uid isn't a system time (attempt to fraud?): $decrypted" }
-            throw IllegalArgumentException("Invalid call.")
-        }
-        val delta = System.currentTimeMillis() - timeInMillis
-        if (delta < 0) {
-            log.error { "Oups: decrypted time is in the future (attempt to fraud?): ${PFDateTime.from(timeInMillis).isoStringMilli}." }
-            throw IllegalArgumentException("Invalid call.")
-        }
-        if (delta > EXPIRE_TIME_IN_MILLIS) {
-            log.error { "Request token q=$q expired for user uid=$uid: ${PFDateTime.from(timeInMillis).isoStringMilli}" }
-            throw IllegalArgumentException("Request is expired. Try to get a new token.")
+        cleanTemporaryToken()
+        val token = NumberHelper.getSecureRandomAlphanumeric(20)
+        synchronized(temporaryTokenList) {
+            temporaryTokenList.add(TemporaryToken(uid, currentTimeInMillis, token))
         }
         return token
     }
 
+    /**
+     * Tries to get the temporary token. If doesn't exist or was expired, an exception is thrown.
+     *
+     * @return The valid and not expired token.
+     */
+    internal fun checkQuery(q: String): TemporaryToken {
+        cleanTemporaryToken()
+        val temporaryToken = temporaryTokenList.firstOrNull { it.token == q } ?: run {
+            log.error { "Temporary token '$q' not found (expired or has been never exist)." }
+            throw IllegalArgumentException("Invalid call.")
+        }
+        val delta = System.currentTimeMillis() - temporaryToken.systemTimeInMillis
+        if (delta !in 0..EXPIRE_TIME_IN_MILLIS) {
+            log.error { "Request token q=$q expired: ${PFDateTime.from(temporaryToken.systemTimeInMillis).isoStringMilli}" }
+            throw IllegalArgumentException("Request is expired. Try to get a new token.")
+        }
+        return temporaryToken
+    }
+
+    private fun cleanTemporaryToken() {
+        synchronized(temporaryTokenList) {
+            val currentTimeInMillis = System.currentTimeMillis()
+            temporaryTokenList.removeIf { currentTimeInMillis - it.systemTimeInMillis > EXPIRE_TIME_IN_MILLIS }
+        }
+    }
+
     companion object {
         /**
-         * Expire time is 1 minute.
+         * Expire time is 2 minutes.
          */
-        const val EXPIRE_TIME_IN_MILLIS = 60 * 1000
+        internal const val EXPIRE_TIME_IN_MILLIS = 120 * 1000L
+
+        private const val TEMPORARY_TOKEN_LENGTH = 20
     }
 }
