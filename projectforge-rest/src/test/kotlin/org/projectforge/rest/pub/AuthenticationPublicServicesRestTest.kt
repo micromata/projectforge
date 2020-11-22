@@ -42,7 +42,7 @@ class AuthenticationPublicServicesRestTest : AbstractTestBase() {
     @Test
     fun getAuthenticationCredentialsTest() {
         val user = logon(TEST_USER)
-        val q = authenticationPublicServicesRest.createQueryURL()
+        val q = authenticationPublicServicesRest.createTemporaryToken()
         val credentials = authenticationPublicServicesRest.getAuthenticationCredentials(q)
         assertEquals(user.username, credentials.username)
         assertEquals(user.id, credentials.uid)
