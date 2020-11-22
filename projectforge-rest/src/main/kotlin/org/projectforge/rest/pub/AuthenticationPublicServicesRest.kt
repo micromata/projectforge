@@ -28,18 +28,17 @@ import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.UserAuthenticationsDao
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.UserObject
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.RestResolver
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import javax.ws.rs.GET
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
-import javax.ws.rs.QueryParam
-import javax.ws.rs.core.MediaType
 
 private val log = KotlinLogging.logger {}
 
@@ -73,10 +72,8 @@ open class AuthenticationPublicServicesRest {
      *
      * @return [UserObject]
      */
-    @GET
-    @Path("getAuthenticationCredentials")
-    @Produces(MediaType.APPLICATION_JSON)
-    open fun getAuthenticationCredentials(@QueryParam("q") q: String): Credentials {
+    @GetMapping(AUTHENTICATION_CREDENTIALS_PATH)
+    open fun getAuthenticationCredentials(@RequestParam("q") q: String): Credentials {
         val temporaryToken = checkQuery(q)
         val uid = temporaryToken.uid
         val authenticationToken = userAuthenticationsDao.internalGetToken(uid, UserTokenType.REST_CLIENT)
@@ -95,16 +92,18 @@ open class AuthenticationPublicServicesRest {
     /**
      * Creates the parameter q for the service "getAuthenticationCredentials".
      */
-    fun createQueryParam(uid: Int): String {
-        return createQueryParam(uid, System.currentTimeMillis())
+    open fun createQueryURL(): String {
+        val uid = ThreadLocalUserContext.getUserId()
+        val token = createTemporaryToken(uid, System.currentTimeMillis())
+        return domainService.getDomain(RestResolver.getPublicRestUrl(this::class.java, "$AUTHENTICATION_CREDENTIALS_PATH?q=$token", true))
     }
 
     /**
      * Internal usage for test cases.
      */
-    internal fun createQueryParam(uid: Int, currentTimeInMillis: Long): String {
+    internal open fun createTemporaryToken(uid: Int, currentTimeInMillis: Long): String {
         cleanTemporaryToken()
-        val token = NumberHelper.getSecureRandomAlphanumeric(20)
+        val token = NumberHelper.getSecureRandomAlphanumeric(TEMPORARY_TOKEN_LENGTH)
         synchronized(temporaryTokenList) {
             temporaryTokenList.add(TemporaryToken(uid, currentTimeInMillis, token))
         }
@@ -144,5 +143,7 @@ open class AuthenticationPublicServicesRest {
         internal const val EXPIRE_TIME_IN_MILLIS = 120 * 1000L
 
         private const val TEMPORARY_TOKEN_LENGTH = 20
+
+        private const val AUTHENTICATION_CREDENTIALS_PATH = "authenticationCredentials"
     }
 }

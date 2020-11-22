@@ -42,7 +42,7 @@ class AuthenticationPublicServicesRestTest : AbstractTestBase() {
     @Test
     fun getAuthenticationCredentialsTest() {
         val user = logon(TEST_USER)
-        val q = authenticationPublicServicesRest.createQueryParam(user.id)
+        val q = authenticationPublicServicesRest.createQueryURL()
         val credentials = authenticationPublicServicesRest.getAuthenticationCredentials(q)
         assertEquals(user.username, credentials.username)
         assertEquals(user.id, credentials.uid)
@@ -61,9 +61,9 @@ class AuthenticationPublicServicesRestTest : AbstractTestBase() {
     @Test
     fun temporaryTokenTest() {
         val uid = getUserId(TEST_ADMIN_USER)
-        val qNow = authenticationPublicServicesRest.createQueryParam(uid)
+        val qNow = authenticationPublicServicesRest.createTemporaryToken(uid, System.currentTimeMillis())
         assertEquals(qNow, authenticationPublicServicesRest.checkQuery(qNow).token)
-        val qExpired = authenticationPublicServicesRest.createQueryParam(uid, System.currentTimeMillis() - AuthenticationPublicServicesRest.EXPIRE_TIME_IN_MILLIS - 1)
+        val qExpired = authenticationPublicServicesRest.createTemporaryToken(uid, System.currentTimeMillis() - AuthenticationPublicServicesRest.EXPIRE_TIME_IN_MILLIS - 1)
         try {
             authenticationPublicServicesRest.checkQuery(qExpired)
             fail("Token should be expired and an exception was expected.")
@@ -96,7 +96,7 @@ class AuthenticationPublicServicesRestTest : AbstractTestBase() {
     }
 
     private fun paramCheck(uid: Int, timeOffset: Long, expectedResult: Boolean, msg: String) {
-        val q = authenticationPublicServicesRest.createQueryParam(uid, System.currentTimeMillis() + timeOffset)
+        val q = authenticationPublicServicesRest.createTemporaryToken(uid, System.currentTimeMillis() + timeOffset)
         try {
             authenticationPublicServicesRest.checkQuery(q)
             assertTrue(expectedResult, "Oups, check failure expected: $msg")

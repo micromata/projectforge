@@ -30,6 +30,7 @@ import org.apache.commons.io.output.ByteArrayOutputStream
 import org.projectforge.rest.config.Rest
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
+import java.net.URLEncoder
 import java.nio.file.FileSystems
 import java.nio.file.Path
 
@@ -66,6 +67,10 @@ class BarcodeServicesRest {
     }
 
     companion object {
+        fun getBarcodeGetUrl(text: String): String {
+            return "$GET_URL?text=${URLEncoder.encode("$text", "UTF-8")}"
+        }
+
         internal const val PATH = "${Rest.URL}/barcode"
 
         const val POST_URL = "$PATH/qrcodeFromPost.png"
