@@ -119,6 +119,11 @@ public class GroupListPage extends AbstractListPage<GroupListForm, GroupDao, Gro
         getSortable("usernames",
             sortable),
         "usernames", cellItemListener));
+    //TODO:
+    columns.add(new CellItemListenerPropertyColumn<GroupDO>(new Model<String>(getString("group.assignedUsers")),
+            getSortable("Owner",
+                    sortable),
+            "usernames", cellItemListener));
     if (ldapUserDao.isPosixAccountsConfigured() == true) {
       columns
           .add(new CellItemListenerPropertyColumn<GroupDO>(getString("group.ldapValues"), "ldapValues", "ldapValues",
