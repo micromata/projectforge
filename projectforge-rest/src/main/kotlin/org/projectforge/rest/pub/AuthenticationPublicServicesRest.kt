@@ -93,9 +93,16 @@ open class AuthenticationPublicServicesRest {
      * Creates the parameter q for the service "getAuthenticationCredentials".
      */
     open fun createQueryURL(): String {
-        val uid = ThreadLocalUserContext.getUserId()
-        val token = createTemporaryToken(uid, System.currentTimeMillis())
+        val token = createTemporaryToken()
         return domainService.getDomain(RestResolver.getPublicRestUrl(this::class.java, "$AUTHENTICATION_CREDENTIALS_PATH?q=$token", true))
+    }
+
+    /**
+     * Internal usage for test cases.
+     */
+    internal open fun createTemporaryToken(): String {
+        val uid = ThreadLocalUserContext.getUserId()
+        return createTemporaryToken(uid, System.currentTimeMillis())
     }
 
     /**
