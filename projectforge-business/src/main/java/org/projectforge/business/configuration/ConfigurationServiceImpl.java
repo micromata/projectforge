@@ -135,6 +135,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   @Value("${projectforge.defaultFirstDayOfWeek}")
   private DayOfWeek defaultFirstDayOfWeek;
 
+  @Value("${projectforge.minimalDaysInFirstWeek}")
+  private Integer minimalDaysInFirstWeek;
+
   @Value("${projectforge.excelPaperSize}")
   private String excelPaperSize;
 
@@ -565,6 +568,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @Override
+  public Integer getMinimalDaysInFirstWeek() {
+    return minimalDaysInFirstWeek;
+  }
+
+  @Override
   public String getExcelPaperSize() {
     return excelPaperSize;
   }
@@ -699,6 +707,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
   void setDefaultFirstDayOfWeek(DayOfWeek defaultFirstDayOfWeek) {
     this.defaultFirstDayOfWeek = defaultFirstDayOfWeek;
+  }
+
+  void setMinimalDaysInFirstWeek(Integer minimalDaysInFirstWeek) {
+    this.minimalDaysInFirstWeek = minimalDaysInFirstWeek;
   }
 
   void setCurrencySymbol(String currencySymbol) {

@@ -85,6 +85,12 @@ class PFDayTest {
         assertEquals(1, date.dayOfMonth)
     }
 
+    @Test
+    fun weekOfTest() {
+        val date = PFDay.withDate(2020, Month.OCTOBER, 4)
+        assertEquals(40, date.weekOfYear)
+    }
+
     private fun checkDate(date: LocalDate, year: Int, month: Month, dayOfMonth: Int) {
         assertEquals(year, date.year, "Year check failed.")
         assertEquals(month, date.month, "Month check failed.")

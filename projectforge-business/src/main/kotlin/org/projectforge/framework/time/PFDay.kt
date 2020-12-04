@@ -52,14 +52,11 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         get() = date
 
     /**
-     * Uses the locale configured in projectforge.properties. Ensures, that every user of ProjectForge uses same week-of-year-algorithm.
+     * Uses the locale configured in projectforge.properties or, if minimalDaysInFirstWeek is configured by minimalDaysInFirstWeek and defaultFirstDayOfWeek.
+     * Ensures, that every user of ProjectForge uses same week-of-year-algorithm.
      */
     override val weekOfYear: Int
-        get() {
-            val systemLocale = ConfigurationServiceAccessor.get().defaultLocale
-            val weekFields = WeekFields.of(systemLocale)
-            return date.get(weekFields.weekOfWeekBasedYear())
-        }
+        get() = date.get(weekFields.weekOfWeekBasedYear())
 
     override val dayOfMonth: Int
         get() = date.dayOfMonth
@@ -237,6 +234,7 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
     }
 
     private var _utilDate: Date? = null
+
     /**
      * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
@@ -256,6 +254,7 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         get() = java.sql.Date.valueOf(date)
 
     private var _sqlDate: java.sql.Date? = null
+
     /**
      * @return The date as java.sql.Date. java.sql.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
@@ -424,5 +423,21 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         }
 
         internal val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+        internal val weekFields: WeekFields
+        get() {
+            if (_weekFields == null) {
+                val minimalDaysInFirstWeek = ConfigurationServiceAccessor.get().minimalDaysInFirstWeek
+                _weekFields = if (minimalDaysInFirstWeek == null) {
+                    val systemLocale = ConfigurationServiceAccessor.get().defaultLocale
+                    WeekFields.of(systemLocale)
+                } else {
+                    val firstDayOfWeek = ConfigurationServiceAccessor.get().defaultFirstDayOfWeek
+                    WeekFields.of(firstDayOfWeek, minimalDaysInFirstWeek)
+                }
+            }
+            return _weekFields!!
+        }
+        internal var _weekFields: WeekFields? = null
     }
 }
