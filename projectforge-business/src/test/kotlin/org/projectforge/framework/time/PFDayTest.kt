@@ -26,6 +26,7 @@ package org.projectforge.framework.time
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.test.TestSetup
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -87,8 +88,14 @@ class PFDayTest {
 
     @Test
     fun weekOfTest() {
+        ConfigurationServiceAccessor.internalSetMinimalDaysInFirstWeekForJunitTests(4)
+        PFDay._weekFields = null // Force recalculation of weekFields
+
         val date = PFDay.withDate(2020, Month.OCTOBER, 4)
         assertEquals(40, date.weekOfYear)
+
+        ConfigurationServiceAccessor.internalSetMinimalDaysInFirstWeekForJunitTests(null)
+        PFDay._weekFields = null // Force recalculation of weekFields
     }
 
     private fun checkDate(date: LocalDate, year: Int, month: Month, dayOfMonth: Int) {
