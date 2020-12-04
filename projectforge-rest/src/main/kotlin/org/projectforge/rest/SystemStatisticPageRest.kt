@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.tasktree.TaskTreeHelper
@@ -70,7 +71,8 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
             val totalNumberOfUsers: Int,
             val totalNumberOfTasks: Int,
             val totalNumberOfHistoryEntries: Int,
-            val memoryStatistics: Map<String, MemoryStatistics>
+            val memoryStatistics: Map<String, MemoryStatistics>,
+            val databasePoolStatistics: DatabasePoolStatistics
     )
 
     class MemoryStatistics(
@@ -78,6 +80,13 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
             val used: Long,
             val committed: Long,
             val init: Long
+    )
+
+    class DatabasePoolStatistics(
+            val total: Int,
+            val idle: Int,
+            val active: Int,
+            val threadsAwaitingConnection: Int
     )
 
     /**
@@ -113,6 +122,15 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
         var totalPersonDays = BigDecimal(totalDuration).divide(DateHelper.SECONDS_PER_WORKING_DAY, 2, RoundingMode.HALF_UP)
         totalPersonDays = NumberHelper.setDefaultScale(totalPersonDays)
 
+        val hikariDataSource = dataSource as HikariDataSource
+        var hikariPoolMXBean = hikariDataSource.hikariPoolMXBean
+        val databaseStatistics = DatabasePoolStatistics(
+                total = hikariPoolMXBean.activeConnections,
+                idle = hikariPoolMXBean.idleConnections,
+                active = hikariPoolMXBean.idleConnections,
+                threadsAwaitingConnection = hikariPoolMXBean.threadsAwaitingConnection
+        )
+
         val statistics = SystemStatisticData(systemLoadAverage = systemLoadAverage,
                 processUptime = processUptime,
                 processStartTime = processStartTime,
@@ -121,7 +139,8 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
                 totalNumberOfUsers = getTableCount(jdbc, PFUserDO::class.java),
                 totalNumberOfTasks = getTableCount(jdbc, TaskDO::class.java),
                 totalNumberOfHistoryEntries = getTableCount(jdbc, PfHistoryMasterDO::class.java) + getTableCount(jdbc, PfHistoryMasterDO::class.java),
-                memoryStatistics = memoriesStatistics)
+                memoryStatistics = memoriesStatistics,
+                databasePoolStatistics = databaseStatistics)
 
         log.info("Statistics: ${ToStringUtil.toJsonString(statistics)}")
         return statistics
@@ -141,12 +160,14 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
     fun getForm(request: HttpServletRequest): FormLayoutData {
         val statistics = getSystemStatistics()
 
+        val pool = statistics.databasePoolStatistics
+
         val layout = UILayout("system.statistics.title")
                 .add(createRow("system.statistics.totalNumberOfTimesheets", format(statistics.totalNumberOfTimesheets)))
                 .add(createRow("system.statistics.totalNumberOfTimesheetDurations", format(statistics.totalNumberOfTimesheetDurations, 0)))
                 .add(createRow("system.statistics.totalNumberOfUsers", format(statistics.totalNumberOfUsers)))
                 .add(createRow("system.statistics.totalNumberOfTasks", format(statistics.totalNumberOfTasks)))
-                .add(createRow("system.statistics.totalNumberOfHistoryEntries", format(statistics.totalNumberOfHistoryEntries)))
+                .add(createRow("system.statistics.databasePool", "total=${pool.total}, active=${pool.active}, idle=${pool.idle}, threadsAwaitingConnection=${pool.threadsAwaitingConnection}"))
 
         statistics.memoryStatistics.forEach { key, value ->
             layout.add(createRow("'$key", format(value)))

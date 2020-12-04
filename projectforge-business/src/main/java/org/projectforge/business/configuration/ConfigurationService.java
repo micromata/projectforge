@@ -43,131 +43,138 @@ import java.util.TimeZone;
 
 public interface ConfigurationService {
 
-  Object[] getResourceContentAsString(String filename);
+    Object[] getResourceContentAsString(String filename);
 
-  Object[] getResourceAsInputStream(String filename);
+    Object[] getResourceAsInputStream(String filename);
 
-  String getResourceDir();
+    String getResourceDir();
 
-  String getFontsDir();
+    String getFontsDir();
 
-  boolean isSendMailConfigured();
+    boolean isSendMailConfigured();
 
-  SendMailConfig getSendMailConfiguration();
+    SendMailConfig getSendMailConfiguration();
 
-  String getTelephoneSystemUrl();
+    String getTelephoneSystemUrl();
 
-  boolean isTelephoneSystemUrlConfigured();
+    boolean isTelephoneSystemUrlConfigured();
 
-  List<ContractType> getContractTypes();
+    List<ContractType> getContractTypes();
 
-  boolean isSecurityConfigured();
+    boolean isSecurityConfigured();
 
-  SecurityConfig getSecurityConfig();
+    SecurityConfig getSecurityConfig();
 
-  String getCurrencySymbol();
+    String getCurrencySymbol();
 
-  String getTelephoneSystemNumber();
+    String getTelephoneSystemNumber();
 
-  String getReceiveSmsKey();
+    String getReceiveSmsKey();
 
-  String getPhoneLookupKey();
+    String getPhoneLookupKey();
 
-  String getKeystoreFile();
+    String getKeystoreFile();
 
-  SSLSocketFactory getUsersSSLSocketFactory();
+    SSLSocketFactory getUsersSSLSocketFactory();
 
-  boolean isMebMailAccountConfigured();
+    boolean isMebMailAccountConfigured();
 
-  boolean isMultiTenancyConfigured();
+    boolean isMultiTenancyConfigured();
 
-  Object getDaoValue(final IConfigurationParam parameter, final ConfigurationDO configurationDO);
+    Object getDaoValue(final IConfigurationParam parameter, final ConfigurationDO configurationDO);
 
-  List<ConfigurationDO> daoInternalLoadAll();
+    List<ConfigurationDO> daoInternalLoadAll();
 
-  List<ConfigurationDO> daoInternalLoadAll(TenantDO tenant);
+    List<ConfigurationDO> daoInternalLoadAll(TenantDO tenant);
 
-  TimeZone getTimezone();
+    TimeZone getTimezone();
 
-  /**
-   * The default time notation (12-hour or 24-hour). This notation is used, if the user has not chosen his personal time
-   * notation. Default is 24-hour for locales starting with "de" (German), otherwise 12-hour.
-   */
-  TimeNotation getDefaultTimeNotation();
+    /**
+     * The default time notation (12-hour or 24-hour). This notation is used, if the user has not chosen his personal time
+     * notation. Default is 24-hour for locales starting with "de" (German), otherwise 12-hour.
+     */
+    TimeNotation getDefaultTimeNotation();
 
-  /**
-   * @return the firstDayOfWeek
-   */
-  DayOfWeek getDefaultFirstDayOfWeek();
+    /**
+     * @return the firstDayOfWeek
+     */
+    DayOfWeek getDefaultFirstDayOfWeek();
 
+    /**
+     * If not given, Java's value of default locale is used.
+     * Germany (ISO 8601): 4, US: 1
+     * defaultFirstDayOfWeek and minimalDaysInFirstWeek is used for calculating week of year
+     */
+    Integer getMinimalDaysInFirstWeek();
 
-  String getPfSupportMailAddress();
+    String getPfSupportMailAddress();
 
-  MailSessionLocalSettingsConfigModel createMailSessionLocalSettingsConfigModel();
+    MailSessionLocalSettingsConfigModel createMailSessionLocalSettingsConfigModel();
 
-  boolean isSqlConsoleAvailable();
+    boolean isSqlConsoleAvailable();
 
-  String getApplicationHomeDir();
+    String getApplicationHomeDir();
 
-  boolean getCompileCss();
+    boolean getCompileCss();
 
-  /**
-   * The default locale is currently used for getting the week of year in Calendar.
-   */
-  Locale getDefaultLocale();
+    /**
+     * The default locale is currently used for getting the week of year in Calendar.
+     */
+    Locale getDefaultLocale();
 
-  /**
-   * The paper size for excel exports.
-   */
-  String getExcelPaperSize();
+    /**
+     * The paper size for excel exports.
+     */
+    String getExcelPaperSize();
 
-  String getLoginHandlerClass();
+    String getLoginHandlerClass();
 
-  String getTeamCalCryptPassword();
+    String getTeamCalCryptPassword();
 
-  /**
-   * 31.03. of this year if today is after 31.03, otherwise 31.03. of last year.
-   * Example (if 31.03. is configured):
-   * <ul>
-   * <li>Today = 02.01.2020 then this method returns 31.03.2019.</li>
-   * <li>Today = 31.12.2019 then this method returns 31.03.2019 as well.</li>
-   * </ul>
-   */
-  LocalDate getEndDateVacationFromLastYear();
+    /**
+     * 31.03. of this year if today is after 31.03, otherwise 31.03. of last year.
+     * Example (if 31.03. is configured):
+     * <ul>
+     * <li>Today = 02.01.2020 then this method returns 31.03.2019.</li>
+     * <li>Today = 31.12.2019 then this method returns 31.03.2019 as well.</li>
+     * </ul>
+     */
+    LocalDate getEndDateVacationFromLastYear();
 
-  /**
-   * 31.03. of the given year, if not configured different. This date determine when vacation days of an employee
-   * from the last year will be invalid, if not used.
-   */
-  LocalDate getEndOfCarryVacationOfPreviousYear(int year);
+    /**
+     * 31.03. of the given year, if not configured different. This date determine when vacation days of an employee
+     * from the last year will be invalid, if not used.
+     */
+    LocalDate getEndOfCarryVacationOfPreviousYear(int year);
 
-  String getHREmailadress();
+    String getHREmailadress();
 
-  TeamCalDO getVacationCalendar();
+    TeamCalDO getVacationCalendar();
 
-  int getMinPasswordLength();
+    int getMinPasswordLength();
 
-  boolean getFlagCheckPasswordChange();
+    boolean getFlagCheckPasswordChange();
 
-  String getMaxFileSizeImage();
+    String getMaxFileSizeImage();
 
-  String getMaxFileSizeDatev();
+    String getMaxFileSizeDatev();
 
-  String getMaxFileSizeXmlDumpImport();
+    String getMaxFileSizeXmlDumpImport();
 
-  boolean isDAVServicesAvailable();
+    boolean isDAVServicesAvailable();
 
-  void setDAVServicesAvailable(boolean dAVServicesAvailable);
+    void setDAVServicesAvailable(boolean dAVServicesAvailable);
 
-  boolean isLogoFileValid();
+    boolean isLogoFileValid();
 
-  /**
-   * Transforms the logo file name to a synthetic filename usable for e. g. rest calls: "micromata.png" -> "logon.png".
-   * @return logo.png, logo.gif or logo.jpg (dependent on configured filename) or null, if no valid logo file was defined.
-   */
-  String getSyntheticLogoName();
+    /**
+     * Transforms the logo file name to a synthetic filename usable for e. g. rest calls: "micromata.png" -> "logon.png".
+     *
+     * @return logo.png, logo.gif or logo.jpg (dependent on configured filename) or null, if no valid logo file was defined.
+     */
+    String getSyntheticLogoName();
 
-  String getLogoFile();
+    String getLogoFile();
 
-  File getLogoFileObject();
+    File getLogoFileObject();
 }

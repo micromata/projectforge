@@ -44,6 +44,10 @@ public class ConfigurationServiceAccessor {
     ((ConfigurationServiceImpl)get()).setDefaultLocale(defaultLocale);
   }
 
+  public static void internalSetMinimalDaysInFirstWeekForJunitTests(Integer minimalDaysInFirstWeek) {
+    ((ConfigurationServiceImpl)get()).setMinimalDaysInFirstWeek(minimalDaysInFirstWeek);
+  }
+
   public static ConfigurationService get() {
     return configurationService;
   }
