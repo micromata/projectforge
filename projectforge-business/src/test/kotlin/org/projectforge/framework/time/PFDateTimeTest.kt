@@ -125,6 +125,7 @@ class PFDateTimeTest {
     fun weekOfYearTest() {
         val storedDefaultLocale = ConfigurationServiceAccessor.get().defaultLocale
         ConfigurationServiceAccessor.internalSetLocaleForJunitTests(Locale("de", "DE"))
+        PFDay._weekFields = null // Force recalculation of weekFields
 
         checkISOWeeks()
 
@@ -146,8 +147,10 @@ class PFDateTimeTest {
         ConfigurationServiceAccessor.internalSetMinimalDaysInFirstWeekForJunitTests(4)
         PFDay._weekFields = null // Force recalculation of weekFields
         checkISOWeeks()
+        ConfigurationServiceAccessor.internalSetMinimalDaysInFirstWeekForJunitTests(null)
 
         ConfigurationServiceAccessor.internalSetLocaleForJunitTests(storedDefaultLocale)
+        PFDay._weekFields = null // Force recalculation of weekFields
     }
 
     private fun checkISOWeeks() {
