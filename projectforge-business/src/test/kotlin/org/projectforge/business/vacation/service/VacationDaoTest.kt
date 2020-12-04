@@ -51,9 +51,6 @@ class VacationDaoTest : AbstractTestBase() {
     private lateinit var groupDao: GroupDao
 
     @Autowired
-    private lateinit var userDao: UserDao
-
-    @Autowired
     private lateinit var vacationDao: VacationDao
 
     @Autowired

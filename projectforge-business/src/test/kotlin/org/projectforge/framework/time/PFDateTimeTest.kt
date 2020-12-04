@@ -125,6 +125,35 @@ class PFDateTimeTest {
     fun weekOfYearTest() {
         val storedDefaultLocale = ConfigurationServiceAccessor.get().defaultLocale
         ConfigurationServiceAccessor.internalSetLocaleForJunitTests(Locale("de", "DE"))
+        PFDay._weekFields = null // Force recalculation of weekFields
+
+        checkISOWeeks()
+
+        ConfigurationServiceAccessor.internalSetLocaleForJunitTests(Locale("en", "US"))
+        PFDay._weekFields = null // Force recalculation of weekFields
+        // US weeks:
+        var dateTime = PFDateTimeUtils.parseAndCreateDateTime("2020-12-31 10:00")
+        assertEquals(1, dateTime!!.weekOfYear)
+        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2021-01-02 10:00")
+        assertEquals(1, dateTime!!.weekOfYear)
+        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2021-01-04 10:00")
+        assertEquals(2, dateTime!!.weekOfYear)
+
+        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2019-12-31 10:00")
+        assertEquals(1, dateTime!!.weekOfYear)
+        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2020-01-02 10:00")
+        assertEquals(1, dateTime!!.weekOfYear)
+
+        ConfigurationServiceAccessor.internalSetMinimalDaysInFirstWeekForJunitTests(4)
+        PFDay._weekFields = null // Force recalculation of weekFields
+        checkISOWeeks()
+        ConfigurationServiceAccessor.internalSetMinimalDaysInFirstWeekForJunitTests(null)
+
+        ConfigurationServiceAccessor.internalSetLocaleForJunitTests(storedDefaultLocale)
+        PFDay._weekFields = null // Force recalculation of weekFields
+    }
+
+    private fun checkISOWeeks() {
         // German weeks:
         var dateTime = PFDateTimeUtils.parseAndCreateDateTime("2020-12-31 10:00")
         assertEquals(53, dateTime!!.weekOfYear)
@@ -137,22 +166,6 @@ class PFDateTimeTest {
         assertEquals(1, dateTime!!.weekOfYear)
         dateTime = PFDateTimeUtils.parseAndCreateDateTime("2020-01-02 10:00")
         assertEquals(1, dateTime!!.weekOfYear)
-
-        ConfigurationServiceAccessor.internalSetLocaleForJunitTests(Locale("en", "US"))
-        // US weeks:
-        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2020-12-31 10:00")
-        assertEquals(1, dateTime!!.weekOfYear)
-        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2021-01-02 10:00")
-        assertEquals(1, dateTime!!.weekOfYear)
-        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2021-01-04 10:00")
-        assertEquals(2, dateTime!!.weekOfYear)
-
-        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2019-12-31 10:00")
-        assertEquals(1, dateTime!!.weekOfYear)
-        dateTime = PFDateTimeUtils.parseAndCreateDateTime("2020-01-02 10:00")
-        assertEquals(1, dateTime!!.weekOfYear)
-
-        ConfigurationServiceAccessor.internalSetLocaleForJunitTests(storedDefaultLocale)
     }
 
     @Test

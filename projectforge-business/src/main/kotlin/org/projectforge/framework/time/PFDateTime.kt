@@ -114,14 +114,11 @@ open class PFDateTime internal constructor(val dateTime: ZonedDateTime,
         get() = if (dayOfWeek == DayOfWeek.SUNDAY) 1 else dayOfWeekNumber + 1
 
     /**
-     * Uses the locale configured in projectforge.properties. Ensures, that every user of ProjectForge uses same week-of-year-algorithm.
+     * Uses the locale configured in projectforge.properties or, if minimalDaysInFirstWeek is configured by minimalDaysInFirstWeek and defaultFirstDayOfWeek.
+     * Ensures, that every user of ProjectForge uses same week-of-year-algorithm.
      */
     override val weekOfYear: Int
-        get() {
-            val systemLocale = ConfigurationServiceAccessor.get().defaultLocale
-            val weekFields = WeekFields.of(systemLocale)
-            return dateTime.get(weekFields.weekOfWeekBasedYear())
-        }
+        get() = dateTime.get(PFDay.weekFields.weekOfWeekBasedYear())
 
     override val numberOfDaysInYear: Int
         get() = Year.from(dateTime).length()
