@@ -124,12 +124,22 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
 
         val hikariDataSource = dataSource as HikariDataSource
         var hikariPoolMXBean = hikariDataSource.hikariPoolMXBean
-        val databaseStatistics = DatabasePoolStatistics(
-                total = hikariPoolMXBean.activeConnections,
-                idle = hikariPoolMXBean.idleConnections,
-                active = hikariPoolMXBean.idleConnections,
-                threadsAwaitingConnection = hikariPoolMXBean.threadsAwaitingConnection
-        )
+        val databaseStatistics = try {
+            DatabasePoolStatistics(
+                    total = hikariPoolMXBean.activeConnections,
+                    idle = hikariPoolMXBean.idleConnections,
+                    active = hikariPoolMXBean.idleConnections,
+                    threadsAwaitingConnection = hikariPoolMXBean.threadsAwaitingConnection
+            )
+        } catch (ex: Exception) {
+            log.error("Can't get HikariDataSource: '${ex.message}'.", ex)
+            DatabasePoolStatistics(
+                    total = -1,
+                    idle = -1,
+                    active = -1,
+                    threadsAwaitingConnection = -1
+            )
+        }
 
         val statistics = SystemStatisticData(systemLoadAverage = systemLoadAverage,
                 processUptime = processUptime,
