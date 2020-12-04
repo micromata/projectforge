@@ -145,6 +145,7 @@ class VacationStats(
      * @see LeaveAccountEntryDO
      */
     var leaveAccountEntries: List<LeaveAccountEntryDO>? = null
+
     @get:JsonProperty
     val leaveAccountEntriesSum: BigDecimal
         get() {
@@ -166,12 +167,12 @@ class VacationStats(
         var leftInYear = minOf(remainingLeaveFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
         leftInYear += vacationDaysInYearFromContract!! // annual vacation days from contract.
         leftInYear -= vacationDaysInProgressAndApproved!!
+        leftInYear += leaveAccountEntriesSum
         this.vacationDaysLeftInYearWithoutCarry = leftInYear
         if (!endOfVactionYearExceeded) {
             // End of vacation year is not reached: full remaining days from previuos year are available:
             leftInYear += remainingLeaveFromPreviousYearUnused ?: BigDecimal.ZERO
         }
-        leftInYear += leaveAccountEntriesSum
         this.vacationDaysLeftInYear = leftInYear
         this.remainingLeaveFromPreviousYearAllocated = minOf(remainingLeaveFromPreviousYear!!, allocatedDaysInOverlapPeriod!!)
     }
