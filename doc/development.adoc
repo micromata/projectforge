@@ -666,6 +666,12 @@ seems to be available.
 
 == Misc
 
+=== Code style
+
+The standard IntelliJ coding style is used, but tab width and indent with is 2 and continuation indent is 4.
+
+Please import code style: `misc/IntelliJ/CodeStyle.xml`
+
 === Working with different data bases for testing
 ```
 docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge
