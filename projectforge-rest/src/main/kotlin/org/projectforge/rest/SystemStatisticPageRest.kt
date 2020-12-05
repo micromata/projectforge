@@ -123,12 +123,12 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
         totalPersonDays = NumberHelper.setDefaultScale(totalPersonDays)
 
         val hikariDataSource = dataSource as HikariDataSource
-        var hikariPoolMXBean = hikariDataSource.hikariPoolMXBean
+        val hikariPoolMXBean = hikariDataSource.hikariPoolMXBean
         val databaseStatistics = try {
             DatabasePoolStatistics(
-                    total = hikariPoolMXBean.activeConnections,
+                    total = hikariPoolMXBean.totalConnections,
                     idle = hikariPoolMXBean.idleConnections,
-                    active = hikariPoolMXBean.idleConnections,
+                    active = hikariPoolMXBean.activeConnections,
                     threadsAwaitingConnection = hikariPoolMXBean.threadsAwaitingConnection
             )
         } catch (ex: Exception) {
