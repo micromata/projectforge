@@ -9,7 +9,14 @@ import DynamicTimeInput from './DynamicTimeInput';
 import DynamicTimestampInput from './DynamicTimestampInput';
 
 // All types of 'INPUT' will be resolved here.
-function DynamicInputResolver({ dataType, autoCompletionUrl, ...props }) {
+function DynamicInputResolver(
+    {
+        dataType,
+        autoCompletionUrl,
+        type,
+        ...props
+    },
+) {
     let Tag;
     const additionalProps = {
         url: autoCompletionUrl,
@@ -76,6 +83,7 @@ DynamicInputResolver.propTypes = {
         'PASSWORD',
         'TIME',
     ]).isRequired,
+    type: PropTypes.string.isRequired,
     autoCompletionUrl: PropTypes.string,
 };
 

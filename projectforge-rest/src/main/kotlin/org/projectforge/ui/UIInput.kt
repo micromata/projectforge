@@ -57,8 +57,8 @@ data class UIInput(val id: String,
      */
     enum class AutoCompleteType(@JsonValue val htmlName: String) {
         USERNAME("username"),
-        CURRENT_PASSWORD("current_password"),
-        NEW_PASSWORD("new_password"),
+        CURRENT_PASSWORD("current-password"),
+        NEW_PASSWORD("new-password"),
     }
 
     /**
