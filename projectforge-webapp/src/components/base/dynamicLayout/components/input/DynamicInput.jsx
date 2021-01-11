@@ -19,6 +19,7 @@ function DynamicInput({ id, focus, ...props }) {
                     id={`${ui.uid}-${id}`}
                     onChange={handleInputChange}
                     autoFocus={focus}
+                    type="text"
                     {...props}
                     value={value}
                 />
