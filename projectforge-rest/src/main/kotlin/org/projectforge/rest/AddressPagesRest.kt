@@ -60,7 +60,7 @@ class AddressPagesRest
     : AbstractDTOPagesRest<AddressDO, Address, AddressDao>(
         AddressDao::class.java,
         i18nKeyPrefix = "address.title",
-        cloneSupport = CloneSupport.AUTOSAVE) {
+        cloneSupport = CloneSupport.CLONE) {
 
     /**
      * For exporting list of addresses.
