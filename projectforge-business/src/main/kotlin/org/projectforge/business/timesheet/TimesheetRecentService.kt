@@ -74,6 +74,10 @@ open class TimesheetRecentService {
         return getRecentLocationsQueue(ThreadLocalUserContext.getUserId()).recentList ?: emptyList()
     }
 
+    open fun getRecentReferences(): List<String> {
+        return getRecentReferencesQueue(ThreadLocalUserContext.getUserId()).recentList ?: emptyList()
+    }
+
     open fun getRecentTaskIds(): List<Int> {
         return getRecentTaskIdsQueue(ThreadLocalUserContext.getUserId()).recentList ?: emptyList()
     }
@@ -84,6 +88,10 @@ open class TimesheetRecentService {
 
     private fun getRecentLocationsQueue(userId: Int): RecentQueue<String> {
         return getRecentQueue(userId, "recent.locations") { recentQueue -> readRecentLocations(recentQueue, userId) }
+    }
+
+    private fun getRecentReferencesQueue(userId: Int): RecentQueue<String> {
+        return getRecentQueue(userId, "recent.references") { recentQueue -> readRecentReferences(recentQueue, userId) }
     }
 
     private fun getRecentTaskIdsQueue(userId: Int): RecentQueue<Int> {
@@ -118,6 +126,7 @@ open class TimesheetRecentService {
                     userId = timesheet.userId,
                     kost2Id = timesheet.kost2Id,
                     location = timesheet.location,
+                    reference = timesheet.reference,
                     description = timesheet.description)
             if (!added.contains(entry)) {
                 added.add(entry)
@@ -133,6 +142,22 @@ open class TimesheetRecentService {
     private fun readRecentLocations(recentQueue: RecentQueue<String>, userId: Int) {
         log.info { "Getting recent timesheet locations for user #$userId." }
         val added = mutableSetOf<String>()
+        val list = timesheetDao.getRecentLocation(sinceDate.utilDate) ?: return
+        for (location in list) {
+            if (!added.contains(location)) {
+                added.add(location)
+                recentQueue.addOnly(location)
+                if (added.size >= MAX_RECENT) {
+                    break
+                }
+            }
+        }
+        log.info { "Found ${recentQueue.size()}/$MAX_RECENT distinct locations of ${list.size} timesheet locations of user #$userId since ${sinceDate.isoString}." }
+    }
+
+    private fun readRecentReferences(recentQueue: RecentQueue<String>, userId: Int) {
+        log.info { "Getting recent timesheet references for user #$userId." }
+        val added = mutableSetOf<String>()***
         val list = timesheetDao.getRecentLocation(sinceDate.utilDate) ?: return
         for (location in list) {
             if (!added.contains(location)) {

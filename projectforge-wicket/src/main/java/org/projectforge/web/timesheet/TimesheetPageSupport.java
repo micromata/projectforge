@@ -115,9 +115,48 @@ class TimesheetPageSupport implements Serializable
     return fs;
   }
 
+  @SuppressWarnings("serial")
+  public AbstractFieldsetPanel< ? > addReference(final TimesheetRecentService timesheetRecentService, final TimesheetEditFilter filter)
+  {
+    final FieldProperties<String> props = getReferenceProperties();
+    final AbstractFieldsetPanel< ? > fs = gridBuilder.newFieldset(props);
+    final PFAutoCompleteMaxLengthTextField referenceTextField = new PFAutoCompleteMaxLengthTextField(InputPanel.WICKET_ID,
+        new PropertyModel<String>(timesheet, "reference")) {
+      @Override
+      protected List<String> getChoices(final String input)
+      {
+        return trimResults(timesheetDao.getReferenceAutocompletion(input));
+      }
+
+      private List<String> trimResults(final List<String> result)
+      {
+        return result;
+      }
+
+      @Override
+      protected List<String> getFavorites()
+      {
+        return trimResults(timesheetRecentService.getRecentReferences());
+      }
+    };
+    referenceTextField.withMatchContains(true).withMinChars(2).withFocus(true);
+    fs.setStoreObject(referenceTextField);
+    fs.add(referenceTextField);
+    if (fs instanceof FieldsetPanel) {
+      ((FieldsetPanel) fs).addKeyboardHelpIcon(getString("tooltip.autocomplete.withDblClickFunction"));
+      ((FieldsetPanel) fs).addHelpIcon(getString("timesheet.location.tooltip"));
+    }
+    return fs;
+  }
+
   public FieldProperties<String> getLocationProperties()
   {
     return new FieldProperties<String>("timesheet.location", new PropertyModel<String>(timesheet, "location"));
+  }
+
+  public FieldProperties<String> getReferenceProperties()
+  {
+    return new FieldProperties<String>("timesheet.reference", new PropertyModel<String>(timesheet, "reference"));
   }
 
   private String getString(final String i18nKey)

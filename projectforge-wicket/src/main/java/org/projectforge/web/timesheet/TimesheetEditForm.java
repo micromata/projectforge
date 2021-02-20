@@ -107,6 +107,8 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
 
   PFAutoCompleteMaxLengthTextField locationTextField;
 
+  PFAutoCompleteMaxLengthTextField referenceTextField;
+
   TextArea<String> descriptionArea;
 
   DropDownChoicePanel<Integer> cost2ChoicePanel;
@@ -339,6 +341,11 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
           return consumptionBarPanel.getTooltip();
         }
       }));
+    }
+    {
+      final AbstractFieldsetPanel<?> fs = timesheetPageSupport.addLocation(timesheetRecentService, filter);
+      locationTextField = (PFAutoCompleteMaxLengthTextField) fs.getStoreObject();
+      locationTextField.withDeletableItem(true);
     }
     {
       final AbstractFieldsetPanel<?> fs = timesheetPageSupport.addLocation(timesheetRecentService, filter);

@@ -674,6 +674,15 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
 
   /**
    * Get all locations of the user's time sheet (not deleted ones) with modification date within last year.
+   */
+  public List<String> getReferenceAutocompletion(final String searchString) {
+    checkLoggedInUserSelectAccess();
+    // TODO
+    return new ArrayList<>();
+  }
+
+  /**
+   * Get all locations of the user's time sheet (not deleted ones) with modification date within last year.
    *
    * @param sinceDate Limit the result to the recent locations of time sheet updated after sinceDate.
    * @return result as Json object.
