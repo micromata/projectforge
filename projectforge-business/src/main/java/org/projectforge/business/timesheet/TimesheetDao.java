@@ -673,12 +673,14 @@ public class TimesheetDao extends BaseDao<TimesheetDO> {
   }
 
   /**
-   * Get all locations of the user's time sheet (not deleted ones) with modification date within last year.
+   * Get all used references of time sheets with given task id or used in any sub task.
    */
-  public List<String> getReferenceAutocompletion(final String searchString) {
+  public List<String> getUsedReferences(final Integer taskId) {
     checkLoggedInUserSelectAccess();
-    // TODO
-    return new ArrayList<>();
+    log.info("Get recent references from the database for task #" + taskId + " including sub tasks.");
+    return em.createNamedQuery(TimesheetDO.SELECT_REFERENCES_BY_TASK_ID, String.class)
+        .setParameter("taskIds", TaskTreeHelper.getTaskTree().getAncestorAndDescendantTaskIs(taskId, true))
+        .getResultList();
   }
 
   /**
