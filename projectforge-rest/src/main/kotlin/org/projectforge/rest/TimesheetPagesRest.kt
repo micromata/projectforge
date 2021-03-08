@@ -233,6 +233,19 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     return super.getAutoCompletionForProperty(property, searchString)
   }
 
+  @GetMapping("acReference")
+  fun getReferences(@RequestParam("search") search: String?, @RequestParam("taskId") taskId: Int?): List<String> {
+    taskId ?: return emptyList()
+    val usedReferences = timesheetRecentService.getUsedReferences(taskId)
+    val toLowerSearch = search?.toLowerCase()
+    return if (toLowerSearch.isNullOrBlank()) {
+      usedReferences
+    } else {
+      usedReferences.filter { it.toLowerCase().contains(toLowerSearch) }
+    }
+  }
+
+
   /**
    * LAYOUT List page
    */
@@ -267,6 +280,12 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     dayRange.add("endDateId", "stopTime")
     dayRange.add("label", translate("timePeriod"))
     val descriptionArea = UITextArea("description", lc, rows = 5)
+    val referenceField = UISelect<String>(
+      "reference", lc,
+      label = "timesheet.reference",
+      tooltip = "timesheet.reference.info",
+      autoCompletion = AutoCompletion<String>(url = "timesheet/acReference?search=:search&taskId=:task.id")
+    )
     val layout = super.createEditLayout(dto, userAccess)
       .add(UICustomized("timesheet.edit.templatesAndRecent"))
       .add(UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2")))
@@ -274,6 +293,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       .add(dayRange)
       .add(UICustomized("task.consumption"))
       .add(UIInput("location", lc).enableAutoCompletion(this))
+      .add(referenceField)
       .add(descriptionArea)
     JiraSupport.createJiraElement(dto.description, descriptionArea)?.let { layout.add(UIRow().add(UICol().add(it))) }
     Favorites.addTranslations(layout.translations)
