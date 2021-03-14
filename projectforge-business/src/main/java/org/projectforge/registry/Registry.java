@@ -241,6 +241,11 @@ public class Registry
     return mapByDao.get(daoClass);
   }
 
+  public <T extends BaseDao<?>> T getDao(final Class<T> daoClass)
+  {
+    return (T)mapByDao.get(daoClass).getDao();
+  }
+
   public RegistryEntry getEntryByDO(final Class<? extends BaseDO<?>> doClass)
   {
     return mapByDO.get(doClass);

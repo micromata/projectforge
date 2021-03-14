@@ -120,6 +120,11 @@ class TimesheetPageSupport implements Serializable
     return new FieldProperties<String>("timesheet.location", new PropertyModel<String>(timesheet, "location"));
   }
 
+  public FieldProperties<String> getReferenceProperties()
+  {
+    return new FieldProperties<String>("timesheet.reference", new PropertyModel<String>(timesheet, "reference"));
+  }
+
   private String getString(final String i18nKey)
   {
     return gridBuilder.getString(i18nKey);

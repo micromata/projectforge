@@ -98,7 +98,7 @@ public class TimesheetExport {
   }
 
   private enum Col {
-    USER, KUNDE, PROJEKT, KOST2, WEEK_OF_YEAR, DAY_OF_WEEK, START_TIME, STOP_TIME, DURATION, HOURS, LOCATION, TASK_TITLE, REFERENCE, SHORT_DESCRIPTION, DESCRIPTION, TASK_PATH, ID, CREATED, LAST_UPDATE
+    USER, KUNDE, PROJEKT, KOST2, WEEK_OF_YEAR, DAY_OF_WEEK, START_TIME, STOP_TIME, DURATION, HOURS, LOCATION, REFERENCE, TASK_TITLE, TASK_REFERENCE, SHORT_DESCRIPTION, DESCRIPTION, TASK_PATH, ID, CREATED, LAST_UPDATE
   }
 
   /**
@@ -116,25 +116,26 @@ public class TimesheetExport {
     sheet.createFreezePane(8, 1);
 
     final ExportColumn[] cols = new ExportColumn[]{ //
-            new I18nExportColumn(Col.USER, "timesheet.user", MyXlsContentProvider.LENGTH_USER),
-            new I18nExportColumn(Col.KUNDE, "fibu.kunde", MyXlsContentProvider.LENGTH_STD),
-            new I18nExportColumn(Col.PROJEKT, "fibu.projekt", MyXlsContentProvider.LENGTH_STD),
-            new I18nExportColumn(Col.KOST2, "fibu.kost2", MyXlsContentProvider.LENGTH_KOSTENTRAEGER),
-            new I18nExportColumn(Col.WEEK_OF_YEAR, "calendar.weekOfYearShortLabel", 4),
-            new I18nExportColumn(Col.DAY_OF_WEEK, "calendar.dayOfWeekShortLabel", 4),
-            new I18nExportColumn(Col.START_TIME, "timesheet.startTime", MyXlsContentProvider.LENGTH_DATETIME),
-            new I18nExportColumn(Col.STOP_TIME, "timesheet.stopTime", MyXlsContentProvider.LENGTH_TIMESTAMP),
-            new I18nExportColumn(Col.DURATION, "timesheet.duration", MyXlsContentProvider.LENGTH_DURATION),
-            new I18nExportColumn(Col.HOURS, "hours", MyXlsContentProvider.LENGTH_DURATION),
-            new I18nExportColumn(Col.LOCATION, "timesheet.location", MyXlsContentProvider.LENGTH_STD),
-            new I18nExportColumn(Col.TASK_TITLE, "task.title", MyXlsContentProvider.LENGTH_STD),
-            new I18nExportColumn(Col.REFERENCE, "task.reference", MyXlsContentProvider.LENGTH_STD),
-            new I18nExportColumn(Col.SHORT_DESCRIPTION, "shortDescription", MyXlsContentProvider.LENGTH_STD),
-            new I18nExportColumn(Col.DESCRIPTION, "timesheet.description", MyXlsContentProvider.LENGTH_EXTRA_LONG),
-            new I18nExportColumn(Col.TASK_PATH, "task.path", MyXlsContentProvider.LENGTH_EXTRA_LONG),
-            new I18nExportColumn(Col.ID, "id", MyXlsContentProvider.LENGTH_ID),
-            new I18nExportColumn(Col.CREATED, "created", MyXlsContentProvider.LENGTH_TIMESTAMP),
-            new I18nExportColumn(Col.LAST_UPDATE, "lastUpdate", MyXlsContentProvider.LENGTH_TIMESTAMP)};
+        new I18nExportColumn(Col.USER, "timesheet.user", MyXlsContentProvider.LENGTH_USER),
+        new I18nExportColumn(Col.KUNDE, "fibu.kunde", MyXlsContentProvider.LENGTH_STD),
+        new I18nExportColumn(Col.PROJEKT, "fibu.projekt", MyXlsContentProvider.LENGTH_STD),
+        new I18nExportColumn(Col.KOST2, "fibu.kost2", MyXlsContentProvider.LENGTH_KOSTENTRAEGER),
+        new I18nExportColumn(Col.WEEK_OF_YEAR, "calendar.weekOfYearShortLabel", 4),
+        new I18nExportColumn(Col.DAY_OF_WEEK, "calendar.dayOfWeekShortLabel", 4),
+        new I18nExportColumn(Col.START_TIME, "timesheet.startTime", MyXlsContentProvider.LENGTH_DATETIME),
+        new I18nExportColumn(Col.STOP_TIME, "timesheet.stopTime", MyXlsContentProvider.LENGTH_TIMESTAMP),
+        new I18nExportColumn(Col.DURATION, "timesheet.duration", MyXlsContentProvider.LENGTH_DURATION),
+        new I18nExportColumn(Col.HOURS, "hours", MyXlsContentProvider.LENGTH_DURATION),
+        new I18nExportColumn(Col.LOCATION, "timesheet.location", MyXlsContentProvider.LENGTH_STD),
+        new I18nExportColumn(Col.REFERENCE, "timesheet.reference", MyXlsContentProvider.LENGTH_STD),
+        new I18nExportColumn(Col.TASK_TITLE, "task.title", MyXlsContentProvider.LENGTH_STD),
+        new I18nExportColumn(Col.TASK_REFERENCE, "timesheet.taskReference", MyXlsContentProvider.LENGTH_STD),
+        new I18nExportColumn(Col.SHORT_DESCRIPTION, "shortDescription", MyXlsContentProvider.LENGTH_STD),
+        new I18nExportColumn(Col.DESCRIPTION, "timesheet.description", MyXlsContentProvider.LENGTH_EXTRA_LONG),
+        new I18nExportColumn(Col.TASK_PATH, "task.path", MyXlsContentProvider.LENGTH_EXTRA_LONG),
+        new I18nExportColumn(Col.ID, "id", MyXlsContentProvider.LENGTH_ID),
+        new I18nExportColumn(Col.CREATED, "created", MyXlsContentProvider.LENGTH_TIMESTAMP),
+        new I18nExportColumn(Col.LAST_UPDATE, "lastUpdate", MyXlsContentProvider.LENGTH_TIMESTAMP)};
     // column property names
     sheet.setColumns(cols);
 
@@ -177,7 +178,7 @@ public class TimesheetExport {
       mapping.add(Col.TASK_PATH, TaskFormatter.getTaskPath(timesheet.getTaskId(), null, true, OutputType.PLAIN));
       mapping.add(Col.WEEK_OF_YEAR, timesheet.getFormattedWeekOfYear());
       mapping.add(Col.DAY_OF_WEEK, dateTimeFormatter.getFormattedDate(timesheet.getStartTime(), DateFormats
-              .getFormatString(DateFormatType.DAY_OF_WEEK_SHORT)));
+          .getFormatString(DateFormatType.DAY_OF_WEEK_SHORT)));
       PFDateTime startTime = PFDateTime.from(timesheet.getStartTime()); // not null
       PFDateTime stopTime = PFDateTime.from(timesheet.getStopTime()); // not null
       mapping.add(Col.START_TIME, startTime);
@@ -188,7 +189,8 @@ public class TimesheetExport {
       final BigDecimal hours = seconds.divide(new BigDecimal(60 * 60), 2, RoundingMode.HALF_UP);
       mapping.add(Col.HOURS, hours.doubleValue());
       mapping.add(Col.LOCATION, timesheet.getLocation());
-      mapping.add(Col.REFERENCE, node.getReference());
+      mapping.add(Col.REFERENCE, timesheet.getReference());
+      mapping.add(Col.TASK_REFERENCE, node.getReference());
       mapping.add(Col.SHORT_DESCRIPTION, timesheet.getShortDescription());
       mapping.add(Col.DESCRIPTION, timesheet.getDescription());
       mapping.add(Col.ID, timesheet.getId());
@@ -197,6 +199,7 @@ public class TimesheetExport {
       sheet.addRow(mapping.getMapping(), 0);
     }
     sheet.setZoom(75); // 75%
+    sheet.setAutoFilter();
 
     return xls.getAsByteArray();
   }
