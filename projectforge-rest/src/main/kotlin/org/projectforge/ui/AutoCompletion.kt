@@ -52,7 +52,7 @@ class AutoCompletion<T>(
    * Optional url params given by the client. This map contains as keys the url parameters for the GET request and
    * as values the variables to post (variables of the client's data model).
    */
-  var requiredUrlParams: Map<String, String>? = null
+  var urlParams: Map<String, String>? = null
 ) {
   /**
    * Pre-defined types of autocompletion objects as information for the clients.

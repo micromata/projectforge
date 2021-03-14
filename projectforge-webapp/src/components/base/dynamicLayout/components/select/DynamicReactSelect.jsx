@@ -53,9 +53,9 @@ function DynamicReactSelect(props) {
 
     const autoCompletionData = {};
 
-    if (autoCompletion && autoCompletion.requiredUrlParams) {
-        Object.keys(autoCompletion.requiredUrlParams).forEach((key) => {
-            autoCompletionData[key] = Object.getByString(data, autoCompletion.requiredUrlParams[key]);
+    if (autoCompletion && autoCompletion.urlParams) {
+        Object.keys(autoCompletion.urlParams).forEach((key) => {
+            autoCompletionData[key] = Object.getByString(data, autoCompletion.urlParams[key]);
         });
     }
 
@@ -134,7 +134,7 @@ DynamicReactSelect.propTypes = {
     additionalLabel: PropTypes.string,
     autoCompletion: PropTypes.shape({
         url: PropTypes.string,
-        requiredUrlParams: PropTypes.shape({}),
+        urlParams: PropTypes.shape({}),
     }),
     className: PropTypes.string,
     getOptionLabel: PropTypes.func,
