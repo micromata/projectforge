@@ -17,11 +17,15 @@ export const createQueryParams = params => Object.keys(params)
 export const getServiceURL = (serviceURL, params) => {
     const top = serviceURL.startsWith('/') ? baseURL : `${baseRestURL}/`;
 
+    return `${top}${evalServiceURL(serviceURL, params)}`;
+};
+
+export const evalServiceURL = (serviceURL, params) => {
     if (params && Object.keys(params).length) {
-        return `${top}${serviceURL}${serviceURL.includes('?') ? '&' : '?'}${createQueryParams(params)}`;
+        return `${serviceURL}${serviceURL.includes('?') ? '&' : '?'}${createQueryParams(params)}`;
     }
 
-    return `${top}${serviceURL}`;
+    return `${serviceURL}`;
 };
 
 export const handleHTTPErrors = (response) => {

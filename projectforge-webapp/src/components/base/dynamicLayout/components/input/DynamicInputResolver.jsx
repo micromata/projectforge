@@ -13,6 +13,7 @@ function DynamicInputResolver(
     {
         dataType,
         autoCompletionUrl,
+        autoCompletionUrlParams,
         type,
         ...props
     },
@@ -20,6 +21,7 @@ function DynamicInputResolver(
     let Tag;
     const additionalProps = {
         url: autoCompletionUrl,
+        urlParams: autoCompletionUrlParams,
     };
 
     switch (dataType) {
@@ -85,10 +87,12 @@ DynamicInputResolver.propTypes = {
     ]).isRequired,
     type: PropTypes.string.isRequired,
     autoCompletionUrl: PropTypes.string,
+    autoCompletionUrlParams: PropTypes.shape({}),
 };
 
 DynamicInputResolver.defaultProps = {
     autoCompletionUrl: undefined,
+    autoCompletionUrlParams: undefined,
 };
 
 export default DynamicInputResolver;

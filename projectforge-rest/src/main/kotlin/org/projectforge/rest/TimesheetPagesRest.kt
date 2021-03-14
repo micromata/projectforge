@@ -273,15 +273,11 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     dayRange.add("endDateId", "stopTime")
     dayRange.add("label", translate("timePeriod"))
     val descriptionArea = UITextArea("description", lc, rows = 5)
-    val referenceField = UISelect<String>(
+    val referenceField = UIInput(
       "reference", lc,
       label = "timesheet.reference",
-      tooltip = "timesheet.reference.info",
-      autoCompletion = AutoCompletion<String>(
-        url = "timesheet/acReference?search=:search",
-        requiredUrlParams = mapOf("taskId" to "task.id")
-      )
-    )
+      tooltip = "timesheet.reference.info"
+    ).setAutoCompletion("timesheet/acReference?search=:search", mapOf("taskId" to "task.id"))
     val layout = super.createEditLayout(dto, userAccess)
       .add(UICustomized("timesheet.edit.templatesAndRecent"))
       .add(UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2")))

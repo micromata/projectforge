@@ -83,7 +83,7 @@ class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) 
             val ac = value.autoCompletion
             JacksonUtils.writeField(jgen, "minChars", ac?.minChars)
             JacksonUtils.writeField(jgen, "url", ac?.url)
-            JacksonUtils.writeStringMapField(jgen, "requiredUrlParams", ac?.requiredUrlParams)
+            JacksonUtils.writeStringMapField(jgen, "urlParams", ac?.urlParams)
             JacksonUtils.writeField(jgen, "type", ac?.type)
             writeEntries(jgen, ac?.values, "values", value.valueProperty, value.labelProperty) // See above.
             jgen.writeEndObject()
