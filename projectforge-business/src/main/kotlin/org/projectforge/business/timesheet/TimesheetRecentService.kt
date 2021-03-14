@@ -74,10 +74,6 @@ open class TimesheetRecentService {
     return getRecentLocationsQueue(ThreadLocalUserContext.getUserId()).recentList ?: emptyList()
   }
 
-  open fun getUsedReferences(taskId: Int): List<String> {
-    return timesheetDao.getUsedReferences(taskId)
-  }
-
   open fun getRecentTaskIds(): List<Int> {
     return getRecentTaskIdsQueue(ThreadLocalUserContext.getUserId()).recentList ?: emptyList()
   }

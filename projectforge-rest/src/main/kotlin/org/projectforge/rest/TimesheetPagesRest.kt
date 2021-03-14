@@ -34,7 +34,6 @@ import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFavoritesService
 import org.projectforge.business.timesheet.TimesheetRecentService
-import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.DateFormatType
 import org.projectforge.favorites.Favorites
@@ -75,9 +74,6 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   private val dateTimeFormatter = DateTimeFormatter.instance()
 
   @Autowired
-  private lateinit var userPrefService: UserPrefService
-
-  @Autowired
   private lateinit var userService: UserService
 
   @Autowired
@@ -100,6 +96,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
 
   @Autowired
   private lateinit var timesheetRecentService: TimesheetRecentService
+
+  @Autowired
+  private lateinit var timesheetDao: TimesheetDao
 
   private val taskTree: TaskTree
     /** Lazy init, because test cases failed due to NPE in TenantRegistryMap. */
@@ -236,13 +235,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   @GetMapping("acReference")
   fun getReferences(@RequestParam("search") search: String?, @RequestParam("taskId") taskId: Int?): List<String> {
     taskId ?: return emptyList()
-    val usedReferences = timesheetRecentService.getUsedReferences(taskId)
-    val toLowerSearch = search?.toLowerCase()
-    return if (toLowerSearch.isNullOrBlank()) {
-      usedReferences
-    } else {
-      usedReferences.filter { it.toLowerCase().contains(toLowerSearch) }
-    }
+    return timesheetDao.getUsedReferences(taskId, search)
   }
 
 

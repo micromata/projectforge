@@ -69,7 +69,7 @@ import javax.persistence.*
   ),
   NamedQuery(
     name = TimesheetDO.SELECT_REFERENCES_BY_TASK_ID,
-    query = "select distinct reference from TimesheetDO where deleted=false and task.id in :taskIds"
+    query = "select distinct reference from TimesheetDO where deleted=false and task.id in :taskIds and reference is not NULL"
   )
 )
 open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
