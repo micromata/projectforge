@@ -51,6 +51,14 @@ function DynamicReactSelect(props) {
 
     const value = extractDataValue({ data, ...props });
 
+    const autoCompletionData = {};
+
+    if (autoCompletion && autoCompletion.requiredUrlParams) {
+        Object.keys(autoCompletion.requiredUrlParams).forEach((key) => {
+            autoCompletionData[key] = Object.getByString(data, autoCompletion.requiredUrlParams[key]);
+        });
+    }
+
     return React.useMemo(() => {
         const onChange = (newValue) => {
             if (autoCompletion && autoCompletion.type) {
@@ -70,7 +78,10 @@ function DynamicReactSelect(props) {
         };
 
         const loadOptions = (search, callback) => fetch(
-            getServiceURL(autoCompletion.url.replace(':search', encodeURIComponent(search))),
+            getServiceURL(
+                autoCompletion.url.replace(':search', encodeURIComponent(search)),
+                autoCompletionData,
+            ),
             {
                 method: 'GET',
                 credentials: 'include',
@@ -112,7 +123,7 @@ function DynamicReactSelect(props) {
                 </DynamicValidationManager>
             </React.Fragment>
         );
-    }, [data[id], value, setData, values]);
+    }, [data[id], value, setData, values, autoCompletionData]);
 }
 
 DynamicReactSelect.propTypes = {
@@ -123,6 +134,7 @@ DynamicReactSelect.propTypes = {
     additionalLabel: PropTypes.string,
     autoCompletion: PropTypes.shape({
         url: PropTypes.string,
+        requiredUrlParams: PropTypes.shape({}),
     }),
     className: PropTypes.string,
     getOptionLabel: PropTypes.func,
