@@ -284,8 +284,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       "reference", lc,
       label = "timesheet.reference",
       tooltip = "timesheet.reference.info",
-      autoCompletion = AutoCompletion<String>(url = "timesheet/acReference?search=:search&taskId=:task.id",
-      requiredUrlParams = mapOf("taskId" to "data.task.id"))
+      autoCompletion = AutoCompletion<String>(
+        url = "timesheet/acReference?search=:search",
+        requiredUrlParams = mapOf("taskId" to "task.id")
+      )
     )
     val layout = super.createEditLayout(dto, userAccess)
       .add(UICustomized("timesheet.edit.templatesAndRecent"))

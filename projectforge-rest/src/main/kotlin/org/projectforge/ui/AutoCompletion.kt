@@ -23,6 +23,10 @@
 
 package org.projectforge.ui
 
+import mu.KotlinLogging
+
+private val log = KotlinLogging.logger {}
+
 /**
  * An element for the UI specifying the methods of autocompletion.
  */
@@ -66,10 +70,6 @@ class AutoCompletion<T>(
      */
     var allSearchableFields: String? = null
   )
-
-  @Transient
-  private val log = org.slf4j.LoggerFactory.getLogger(AutoCompletion::class.java)
-
 
   init {
     if (values == null) {
