@@ -97,8 +97,6 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
 
   PFAutoCompleteMaxLengthTextField locationTextField;
 
-  PFAutoCompleteMaxLengthTextField referenceTextField;
-
   TextArea<String> descriptionArea;
 
   DropDownChoicePanel<Integer> cost2ChoicePanel;
@@ -385,28 +383,16 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
     {
       // Reference
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.reference"));
-      final PFAutoCompleteMaxLengthTextField empfaengerTextField = new PFAutoCompleteMaxLengthTextField(InputPanel.WICKET_ID,
+      final PFAutoCompleteMaxLengthTextField referenceTextField = new PFAutoCompleteMaxLengthTextField(InputPanel.WICKET_ID,
           new PropertyModel<>(data, "reference")) {
         @Override
         protected List<String> getChoices(final String input) {
-          final List<String> usedReferences = timesheetDao.getUsedReferences(data.getTaskId());
-          if (StringUtils.isBlank(input)) {
-            return usedReferences;
-          }
-          final String lowerCase = input.toLowerCase();
-          final List<String> references = new ArrayList<>();
-          for (final String ref : usedReferences) {
-            if (ref.toLowerCase().contains(lowerCase)) {
-              references.add(ref);
-            }
-          }
-          return references;
+          return timesheetDao.getUsedReferences(data.getTaskId(), input);
         }
       };
-      empfaengerTextField.withMatchContains(true).withMinChars(2).withFocus(true);
-      empfaengerTextField.setRequired(true);
-      WicketUtils.setStrong(empfaengerTextField);
-      fs.add(empfaengerTextField);
+      referenceTextField.withMatchContains(true).withMinChars(1).withFocus(true);
+      WicketUtils.setStrong(referenceTextField);
+      fs.add(referenceTextField);
     }
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.description"));

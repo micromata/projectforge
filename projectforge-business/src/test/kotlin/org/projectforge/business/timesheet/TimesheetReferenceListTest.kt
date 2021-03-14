@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2021 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -50,6 +50,7 @@ class TimesheetReferenceListTest : AbstractTestBase() {
     initTestDB.addTask("$prefix.1.1", "$prefix.1")
     initTestDB.addTask("$prefix.1.1.1", "$prefix.1.1")
     initTestDB.addTask("$prefix.1.1.2", "$prefix.1.1")
+    initTestDB.addTask("$prefix.1.2", "$prefix.1")
     initTestDB.addTask("$prefix.2", "$prefix")
 
     Assertions.assertEquals(0, timesheetDao.getUsedReferences(getTaskId("1")).size)
@@ -64,11 +65,13 @@ class TimesheetReferenceListTest : AbstractTestBase() {
     createTimesheet("1", day++, "Reference 1b")
     createTimesheet("1.1", day++, "Reference 1.1a")
     createTimesheet("1.1", day++, "Reference 1.1b")
+    createTimesheet("1.2", day++, "Reference 1.2a")
+    createTimesheet("1.2", day++, "Reference 1.2b")
 
-    Assertions.assertEquals(5, timesheetDao.getUsedReferences(getTaskId("1")).size)
-    Assertions.assertEquals(2, timesheetDao.getUsedReferences(getTaskId("1.1")).size)
-    println(timesheetDao.getUsedReferences(getTaskId("1")).joinToString())
-    println(timesheetDao.getUsedReferences(getTaskId("1.1")).joinToString())
+    //println(timesheetDao.getUsedReferences(getTaskId("1.1")).joinToString { it })
+    Assertions.assertEquals(7, timesheetDao.getUsedReferences(getTaskId("1")).size)
+    Assertions.assertEquals(5, timesheetDao.getUsedReferences(getTaskId("1.1")).size)
+    Assertions.assertEquals(5, timesheetDao.getUsedReferences(getTaskId("1.1.1")).size)
   }
 
   private fun getTaskId(name: String): Int {
