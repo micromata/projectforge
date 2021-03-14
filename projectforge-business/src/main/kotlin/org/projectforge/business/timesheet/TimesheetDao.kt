@@ -686,11 +686,9 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
    */
   open fun getUsedReferences(taskId: Int): List<String> {
     checkLoggedInUserSelectAccess()
-    val currentInMillis = System.currentTimeMillis()
     return em.createNamedQuery(TimesheetDO.SELECT_REFERENCES_BY_TASK_ID, String::class.java)
       .setParameter("taskIds", TaskTreeHelper.getTaskTree().getAncestorAndDescendantTaskIs(taskId, true))
       .resultList
-    log.info("Get recent references from the database for task #$taskId including sub tasks in ${System.currentTimeMillis() - currentInMillis}ms.")
   }
 
   open fun getUsedReferences(taskId: Int, search: String?): List<String> {
