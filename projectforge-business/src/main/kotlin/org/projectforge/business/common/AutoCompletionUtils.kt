@@ -21,23 +21,27 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.dto
+package org.projectforge.business.common
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import org.projectforge.business.timesheet.TimesheetDO
-import java.util.*
+class AutoCompletionUtils {
+  companion object {
+    @JvmStatic
+    fun filter(list: List<String>?, search: String?): List<String> {
+      list ?: return emptyList()
+      if (search.isNullOrBlank()) {
+        return list
+      }
+      val strings = search.split(" ")
+      return list.filter { containsAll(it, strings) }.sorted()
+    }
 
-@JsonIgnoreProperties(value = ["reminderDuration", "reminderDurationUnit"])
-class Timesheet(var task: Task? = null,
-                var location: String? = null,
-                var reference: String? = null,
-                var description: String? = null,
-                var user: User? = null,
-                var kost2: Kost2? = null,
-                var startTime: Date? = null,
-                var stopTime: Date? = null,
-                /**
-                 * A counter (incremented by one for each recent entry) usable by React as key.
-                 */
-                var counter: Int? = null
-) : BaseDTO<TimesheetDO>()
+    internal fun containsAll(str: String, strings: List<String>): Boolean {
+      strings.forEach {
+        if (!str.contains(it, ignoreCase = true)) {
+          return false
+        }
+      }
+      return true
+    }
+  }
+}

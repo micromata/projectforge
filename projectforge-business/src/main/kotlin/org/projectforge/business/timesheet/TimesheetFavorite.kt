@@ -34,6 +34,7 @@ class TimesheetFavorite(
         var taskId: Int? = null,
         var userId: Int? = null,
         var location: String? = null,
+        var reference: String? = null,
         var description: String? = null,
         var cost2Id: Int? = null)
     : AbstractFavorite(name, id) {
@@ -47,6 +48,9 @@ class TimesheetFavorite(
         }
         if (!timesheet.location.isNullOrBlank()) {
             location = timesheet.location
+        }
+        if (!timesheet.reference.isNullOrBlank()) {
+            reference = timesheet.reference
         }
         if (!timesheet.description.isNullOrBlank()) {
             description = timesheet.description
@@ -68,6 +72,7 @@ class TimesheetFavorite(
             timesheet.user = user
         }
         timesheet.location = location ?: ""
+        timesheet.reference = reference ?: ""
         timesheet.description = description ?:""
         if (cost2Id != null) {
             val cost2 = Kost2DO()

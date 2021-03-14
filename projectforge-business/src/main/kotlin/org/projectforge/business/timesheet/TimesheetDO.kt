@@ -42,203 +42,229 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_TIMESHEET",
-        indexes = [javax.persistence.Index(name = "idx_fk_t_timesheet_kost2_id", columnList = "kost2_id"),
-            javax.persistence.Index(name = "idx_fk_t_timesheet_task_id", columnList = "task_id"),
-            javax.persistence.Index(name = "idx_fk_t_timesheet_user_id", columnList = "user_id"),
-            javax.persistence.Index(name = "idx_fk_t_timesheet_tenant_id", columnList = "tenant_id"),
-            javax.persistence.Index(name = "idx_timesheet_user_time", columnList = "user_id, start_time")])
+@Table(
+  name = "T_TIMESHEET",
+  indexes = [javax.persistence.Index(name = "idx_fk_t_timesheet_kost2_id", columnList = "kost2_id"),
+    javax.persistence.Index(name = "idx_fk_t_timesheet_task_id", columnList = "task_id"),
+    javax.persistence.Index(name = "idx_fk_t_timesheet_user_id", columnList = "user_id"),
+    javax.persistence.Index(name = "idx_fk_t_timesheet_tenant_id", columnList = "tenant_id"),
+    javax.persistence.Index(name = "idx_timesheet_user_time", columnList = "user_id, start_time")]
+)
 @NamedQueries(
-        NamedQuery(name = TimesheetDO.FIND_START_STOP_BY_TASKID,
-                query = "select startTime, stopTime from TimesheetDO where task.id = :taskId and deleted = false"),
-        NamedQuery(name = TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER,
-                query = "select min(startTime), max(startTime) from TimesheetDO where user.id=:userId and deleted=false"),
-        NamedQuery(name = TimesheetDO.SELECT_USED_LOCATIONS_BY_USER_AND_LOCATION_SEARCHSTRING,
-                query = "select distinct location from TimesheetDO where deleted=false and user.id=:userId and lastUpdate>:lastUpdate and lower(location) like :locationSearch order by location"),
-        NamedQuery(name = TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE,
-                query = "select distinct location from TimesheetDO where deleted=false and user.id=:userId and lastUpdate>:lastUpdate and location!=null and location!='' order by location"))
+  NamedQuery(
+    name = TimesheetDO.FIND_START_STOP_BY_TASKID,
+    query = "select startTime, stopTime from TimesheetDO where task.id = :taskId and deleted = false"
+  ),
+  NamedQuery(
+    name = TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER,
+    query = "select min(startTime), max(startTime) from TimesheetDO where user.id=:userId and deleted=false"
+  ),
+  NamedQuery(
+    name = TimesheetDO.SELECT_USED_LOCATIONS_BY_USER_AND_LOCATION_SEARCHSTRING,
+    query = "select distinct location from TimesheetDO where deleted=false and user.id=:userId and lastUpdate>:lastUpdate and lower(location) like :locationSearch order by location"
+  ),
+  NamedQuery(
+    name = TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE,
+    query = "select distinct location from TimesheetDO where deleted=false and user.id=:userId and lastUpdate>:lastUpdate and location!=null and location!='' order by location"
+  ),
+  NamedQuery(
+    name = TimesheetDO.SELECT_REFERENCES_BY_TASK_ID,
+    query = "select distinct reference from TimesheetDO where deleted=false and task.id in :taskIds and reference is not NULL"
+  )
+)
 open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
 
-    @PropertyInfo(i18nKey = "task")
-    @UserPrefParameter(i18nKey = "task", orderString = "2")
-    @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "task_id", nullable = false)
-    open var task: TaskDO? = null
+  @PropertyInfo(i18nKey = "task")
+  @UserPrefParameter(i18nKey = "task", orderString = "2")
+  @IndexedEmbedded(depth = 1)
+  @get:ManyToOne(fetch = FetchType.LAZY)
+  @get:JoinColumn(name = "task_id", nullable = false)
+  open var task: TaskDO? = null
 
-    @PropertyInfo(i18nKey = "user")
-    @UserPrefParameter(i18nKey = "user", orderString = "1")
-    @IndexedEmbedded(depth = 1, includeEmbeddedObjectId = true)
-    @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "user_id", nullable = false)
-    open var user: PFUserDO? = null
+  @PropertyInfo(i18nKey = "user")
+  @UserPrefParameter(i18nKey = "user", orderString = "1")
+  @IndexedEmbedded(depth = 1, includeEmbeddedObjectId = true)
+  @get:ManyToOne(fetch = FetchType.LAZY)
+  @get:JoinColumn(name = "user_id", nullable = false)
+  open var user: PFUserDO? = null
 
-    @get:Column(name = "time_zone", length = 100)
-    open var timeZone: String? = null
+  @get:Column(name = "time_zone", length = 100)
+  open var timeZone: String? = null
 
-    @PropertyInfo(i18nKey = "timesheet.startTime")
-    @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
-    @get:Column(name = "start_time", nullable = false)
-    open var startTime: Date? = null
+  @PropertyInfo(i18nKey = "timesheet.startTime")
+  @Field(analyze = Analyze.NO)
+  @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
+  @get:Column(name = "start_time", nullable = false)
+  open var startTime: Date? = null
 
-    @PropertyInfo(i18nKey = "timesheet.stopTime")
-    @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
-    @get:Column(name = "stop_time", nullable = false)
-    open var stopTime: Date? = null
+  @PropertyInfo(i18nKey = "timesheet.stopTime")
+  @Field(analyze = Analyze.NO)
+  @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
+  @get:Column(name = "stop_time", nullable = false)
+  open var stopTime: Date? = null
 
-    @PropertyInfo(i18nKey = "timesheet.location")
-    @UserPrefParameter(i18nKey = "timesheet.location")
-    @Field
-    @get:Column(length = 100)
-    open var location: String? = null
+  @PropertyInfo(i18nKey = "timesheet.location")
+  @UserPrefParameter(i18nKey = "timesheet.location")
+  @Field
+  @get:Column(length = 100)
+  open var location: String? = null
 
-    @PropertyInfo(i18nKey = "timesheet.description")
-    @UserPrefParameter(i18nKey = "description", multiline = true)
-    @Field
-    @get:Column(length = 4000)
-    open var description: String? = null
+  /**
+   * Free multi purpose field.
+   */
+  @PropertyInfo(i18nKey = "timesheet.reference")
+  @Field
+  @get:Column(length = 1000)
+  open var reference: String? = null
 
-    @PropertyInfo(i18nKey = "fibu.kost2")
-    @UserPrefParameter(i18nKey = "fibu.kost2", orderString = "3", dependsOn = "task")
-    @IndexedEmbedded(depth = 2)
-    @get:ManyToOne(fetch = FetchType.EAGER)
-    @get:JoinColumn(name = "kost2_id", nullable = true)
-    open var kost2: Kost2DO? = null
+  @PropertyInfo(i18nKey = "timesheet.description")
+  @UserPrefParameter(i18nKey = "description", multiline = true)
+  @Field
+  @get:Column(length = 4000)
+  open var description: String? = null
 
-    /**
-     * Marker is used to mark this time sheet e. g. as a time sheet with an time period collision.
-     */
-    @get:Transient
-    @JsonIgnore
-    open var marked: Boolean = false
+  @PropertyInfo(i18nKey = "fibu.kost2")
+  @UserPrefParameter(i18nKey = "fibu.kost2", orderString = "3", dependsOn = "task")
+  @IndexedEmbedded(depth = 2)
+  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:JoinColumn(name = "kost2_id", nullable = true)
+  open var kost2: Kost2DO? = null
 
-    /**
-     * @return Duration in millis if startTime and stopTime is given and stopTime is after startTime, otherwise 0.
-     */
+  /**
+   * Marker is used to mark this time sheet e. g. as a time sheet with an time period collision.
+   */
+  @get:Transient
+  @JsonIgnore
+  open var marked: Boolean = false
+
+  /**
+   * @return Duration in millis if startTime and stopTime is given and stopTime is after startTime, otherwise 0.
+   */
+  @Transient
+  fun getDuration(): Long {
+    return timePeriod.duration
+  }
+
+  /**
+   * If this entry has a kost2 with a working time fraction set or a kost2art with a working time fraction set then the
+   * fraction of millis will be returned.
+   */
+  val workFractionDuration: Long
     @Transient
-    fun getDuration(): Long {
-        return timePeriod.duration
-    }
-
-    /**
-     * If this entry has a kost2 with a working time fraction set or a kost2art with a working time fraction set then the
-     * fraction of millis will be returned.
-     */
-    val workFractionDuration: Long
-        @Transient
-        get() {
-            if (kost2 != null) {
-                if (kost2!!.workFraction != null) {
-                    return (kost2!!.workFraction!!.toDouble() * timePeriod.duration).toLong()
-                }
-                val kost2Art = kost2!!.kost2Art
-                if (kost2Art?.workFraction != null) {
-                    return (kost2Art.workFraction!!.toDouble() * timePeriod.duration).toLong()
-                }
-            }
-            return getDuration()
+    get() {
+      if (kost2 != null) {
+        if (kost2!!.workFraction != null) {
+          return (kost2!!.workFraction!!.toDouble() * timePeriod.duration).toLong()
         }
-
-    /**
-     * @return The abbreviated description (maximum length is 50 characters).
-     */
-    @Transient
-    fun getShortDescription(): String? {
-        return if (this.description == null)
-            ""
-        else
-            StringUtils.abbreviate(description, 50)
-    }
-
-    /**
-     * @return
-     * @see DateTimeFormatter.formatWeekOfYear
-     */
-    @Transient
-    fun getFormattedWeekOfYear(): String {
-        return DateTimeFormatter.formatWeekOfYear(startTime)
-    }
-
-    val timePeriod: TimePeriod
-        @Transient
-        get() = TimePeriod(startTime, stopTime, marked)
-
-    val userId: Int?
-        @Transient
-        get() = if (this.user == null) {
-            null
-        } else user!!.id
-
-    val taskId: Int?
-        @Transient
-        get() = if (this.task == null) {
-            null
-        } else task!!.id
-
-    val kost2Id: Int?
-        @Transient
-        get() = if (this.kost2 == null) {
-            null
-        } else kost2!!.id
-
-
-    /**
-     * Rounds the timestamp to DatePrecision.MINUTE_15 before.
-     *
-     * @param startDate the startTime to set
-     * @see DateHolder#DateHolder(Date, DatePrecision)
-     */
-    @Transient
-    fun setStartDate(startDate: Date?): TimesheetDO {
-        if (startDate != null) {
-            val date = PFDateTime.from(startDate).withPrecision(DatePrecision.MINUTE_5)
-            this.startTime = date.sqlTimestamp
-        } else {
-            this.stopTime = null
+        val kost2Art = kost2!!.kost2Art
+        if (kost2Art?.workFraction != null) {
+          return (kost2Art.workFraction!!.toDouble() * timePeriod.duration).toLong()
         }
-        return this
+      }
+      return getDuration()
     }
 
+  /**
+   * @return The abbreviated description (maximum length is 50 characters).
+   */
+  @Transient
+  fun getShortDescription(): String? {
+    return if (this.description == null)
+      ""
+    else
+      StringUtils.abbreviate(description, 50)
+  }
+
+  /**
+   * @return
+   * @see DateTimeFormatter.formatWeekOfYear
+   */
+  @Transient
+  fun getFormattedWeekOfYear(): String {
+    return DateTimeFormatter.formatWeekOfYear(startTime)
+  }
+
+  val timePeriod: TimePeriod
     @Transient
-    fun setStartDate(millis: Long): TimesheetDO {
-        startTime = Date(millis)
-        return this
-    }
+    get() = TimePeriod(startTime, stopTime, marked)
 
-    /**
-     * Rounds the timestamp to DatePrecision.MINUTE_15 before.
-     *
-     * @param stopDate the stopTime to set
-     * @return this for chaining.
-     * @see DateHolder#DateHolder(Date, DatePrecision)
-     */
+  val userId: Int?
     @Transient
-    fun setStopDate(stopDate: Date?): TimesheetDO {
-        if (stopDate != null) {
-            val date = PFDateTime.from(stopDate).withPrecision(DatePrecision.MINUTE_5)
-            this.stopTime = date.sqlTimestamp
-        } else {
-            this.stopTime = null
-        }
-        return this
-    }
+    get() = if (this.user == null) {
+      null
+    } else user!!.id
 
+  val taskId: Int?
     @Transient
-    fun setStopDate(millis: Long): TimesheetDO {
-        stopTime = Date(millis)
-        return this
-    }
+    get() = if (this.task == null) {
+      null
+    } else task!!.id
 
-    override fun compareTo(other: TimesheetDO): Int {
-        return startTime?.compareTo(other.startTime) ?: 1
-    }
+  val kost2Id: Int?
+    @Transient
+    get() = if (this.kost2 == null) {
+      null
+    } else kost2!!.id
 
-    companion object {
-        const val FIND_START_STOP_BY_TASKID = "TimesheetDO_FindStartStopByTaskId"
-        internal const val SELECT_MIN_MAX_DATE_FOR_USER = "TimesheetDO_SelectMinMaxDateForUser"
-        internal const val SELECT_USED_LOCATIONS_BY_USER_AND_LOCATION_SEARCHSTRING = "TimesheetDO_SelectLocationsByUserAndLocationSearchstring"
-        internal const val SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE = "TimesheetDO_SelectRecentUsedLocationsByUserAndLastUpdate"
+
+  /**
+   * Rounds the timestamp to DatePrecision.MINUTE_15 before.
+   *
+   * @param startDate the startTime to set
+   * @see DateHolder#DateHolder(Date, DatePrecision)
+   */
+  @Transient
+  fun setStartDate(startDate: Date?): TimesheetDO {
+    if (startDate != null) {
+      val date = PFDateTime.from(startDate).withPrecision(DatePrecision.MINUTE_5)
+      this.startTime = date.sqlTimestamp
+    } else {
+      this.stopTime = null
     }
+    return this
+  }
+
+  @Transient
+  fun setStartDate(millis: Long): TimesheetDO {
+    startTime = Date(millis)
+    return this
+  }
+
+  /**
+   * Rounds the timestamp to DatePrecision.MINUTE_15 before.
+   *
+   * @param stopDate the stopTime to set
+   * @return this for chaining.
+   * @see DateHolder#DateHolder(Date, DatePrecision)
+   */
+  @Transient
+  fun setStopDate(stopDate: Date?): TimesheetDO {
+    if (stopDate != null) {
+      val date = PFDateTime.from(stopDate).withPrecision(DatePrecision.MINUTE_5)
+      this.stopTime = date.sqlTimestamp
+    } else {
+      this.stopTime = null
+    }
+    return this
+  }
+
+  @Transient
+  fun setStopDate(millis: Long): TimesheetDO {
+    stopTime = Date(millis)
+    return this
+  }
+
+  override fun compareTo(other: TimesheetDO): Int {
+    return startTime?.compareTo(other.startTime) ?: 1
+  }
+
+  companion object {
+    const val FIND_START_STOP_BY_TASKID = "TimesheetDO_FindStartStopByTaskId"
+    internal const val SELECT_MIN_MAX_DATE_FOR_USER = "TimesheetDO_SelectMinMaxDateForUser"
+    internal const val SELECT_USED_LOCATIONS_BY_USER_AND_LOCATION_SEARCHSTRING =
+      "TimesheetDO_SelectLocationsByUserAndLocationSearchstring"
+    internal const val SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE =
+      "TimesheetDO_SelectRecentUsedLocationsByUserAndLastUpdate"
+    internal const val SELECT_REFERENCES_BY_TASK_ID = "TimesheetDO_SelectReferencesByTaskId"
+  }
 }
