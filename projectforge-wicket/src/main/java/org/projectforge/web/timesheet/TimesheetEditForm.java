@@ -383,6 +383,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
     {
       // Reference
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.reference"));
+      fs.addHelpIcon(getString("timesheet.reference.info"));
       final PFAutoCompleteMaxLengthTextField referenceTextField = new PFAutoCompleteMaxLengthTextField(InputPanel.WICKET_ID,
           new PropertyModel<>(data, "reference")) {
         @Override
