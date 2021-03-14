@@ -193,9 +193,9 @@ open class InvoiceService {
     private fun formatBigDecimal(value: BigDecimal?): String {
         value ?: return ""
         val df = when {
-            value.scale() == 0 -> DecimalFormat("#,###")
-            value.scale() == 1 -> DecimalFormat("#,###.0")
-            value.scale() == 2 -> DecimalFormat("#,###.00")
+            value.scale() == 0 -> DecimalFormat("#,##0")
+            value.scale() == 1 -> DecimalFormat("#,##0.0")
+            value.scale() == 2 -> DecimalFormat("#,##0.00")
             else -> DecimalFormat("#,###.#")
         }
         return df.format(value)
