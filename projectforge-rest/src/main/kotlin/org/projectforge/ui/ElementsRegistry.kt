@@ -31,6 +31,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
+import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.BeanUtils
 import java.lang.reflect.Field
@@ -91,7 +92,7 @@ object ElementsRegistry {
                         java.sql.Date::class.java,
                         java.sql.Timestamp::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
 
-                        PFUserDO::class.java, EmployeeDO::class.java, TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        PFUserDO::class.java, GroupDO::class.java, EmployeeDO::class.java, TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
                         Integer::class.java, BigDecimal::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
                         Locale::class.java,
                         TimeZone::class.java -> {

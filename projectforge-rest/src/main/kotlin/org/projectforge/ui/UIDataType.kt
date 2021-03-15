@@ -30,6 +30,7 @@ enum class UIDataType {
     DATE,
     DECIMAL,
     EMPLOYEE,
+    GROUP,
     INT,
     KONTO,
     LOCALE,
