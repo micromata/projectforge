@@ -25,8 +25,10 @@ package org.projectforge.ui
 
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.task.TaskDO
+import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
+import java.rmi.server.UID
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.*
@@ -50,6 +52,7 @@ class UIDataTypeUtils {
                 LocalDate::class.java, java.sql.Date::class.java -> UIDataType.DATE
                 java.sql.Timestamp::class.java -> UIDataType.TIMESTAMP
                 PFUserDO::class.java -> UIDataType.USER
+                GroupDO::class.java -> UIDataType.GROUP
                 EmployeeDO::class.java -> UIDataType.EMPLOYEE
                 Integer::class.java -> UIDataType.INT
                 BigDecimal::class.java -> UIDataType.DECIMAL
