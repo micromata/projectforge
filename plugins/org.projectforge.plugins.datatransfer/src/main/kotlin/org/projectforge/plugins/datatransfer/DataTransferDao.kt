@@ -40,27 +40,23 @@ import org.springframework.stereotype.Repository
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-open class DataTransferFileDao : BaseDao<DataTransferFileDO>(DataTransferFileDO::class.java) {
+open class DataTransferDao : BaseDao<DataTransferDO>(DataTransferDO::class.java) {
 
   @Autowired
   private lateinit var domainService: DomainService
 
-  open fun createInitializedFile(): DataTransferFileDO {
-    val file = DataTransferFileDO()
-    file.owner = ThreadLocalUserContext.getUser()
+  open fun createInitializedFile(): DataTransferDO {
+    val file = DataTransferDO()
+    file.fullAccessUserIds = "${ThreadLocalUserContext.getUserId()}"
     renewAuthenticationToken(file)
     file.renewPassword()
-    file.validUntil = PFDateTime.now().plusDays(7).utilDate
+    file.expiryDays = 7
     return file
   }
 
-  open fun renewAuthenticationToken(file: DataTransferFileDO) {
+  open fun renewAuthenticationToken(file: DataTransferDO) {
     file.renewAccessToken()
     file.externalLinkBaseUrl = domainService.getDomain("${RestPaths.PUBLIC_REST}/datatransfer?token=")
-  }
-
-  override fun getAdditionalSearchFields(): Array<String> {
-    return ADDITIONAL_SEARCH_FIELDS
   }
 
   override fun hasUserSelectAccess(user: PFUserDO?, throwException: Boolean): Boolean {
@@ -69,23 +65,19 @@ open class DataTransferFileDao : BaseDao<DataTransferFileDO>(DataTransferFileDO:
 
   override fun hasAccess(
     user: PFUserDO,
-    obj: DataTransferFileDO,
-    oldObj: DataTransferFileDO?,
+    obj: DataTransferDO,
+    oldObj: DataTransferDO?,
     operationType: OperationType,
     throwException: Boolean
   ): Boolean {
-    return accessChecker.isUserMemberOfAdminGroup(user) || user.id == obj.ownerId || userGroupCache.isUserMemberOfGroup(
+    return true
+    /*return accessChecker.isUserMemberOfAdminGroup(user) || user.id == obj.ownerId || userGroupCache.isUserMemberOfGroup(
       user,
       obj.ownerGroupId
-    )
+    )*/
   }
 
-  override fun newInstance(): DataTransferFileDO {
-    return DataTransferFileDO()
-  }
-
-  companion object {
-    private val ADDITIONAL_SEARCH_FIELDS =
-      arrayOf("owner.username", "owner.firstname", "owner.lastname", "ownerGroup.name")
+  override fun newInstance(): DataTransferDO {
+    return DataTransferDO()
   }
 }

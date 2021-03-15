@@ -23,19 +23,13 @@
 
 package org.projectforge.plugins.DataTransferFile.rest
 
-import org.projectforge.business.configuration.DomainService
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.time.PFDateTime
-import org.projectforge.model.rest.RestPaths
-import org.projectforge.plugins.datatransfer.DataTransferFileDO
-import org.projectforge.plugins.datatransfer.DataTransferFileDao
+import org.projectforge.plugins.datatransfer.DataTransferDO
+import org.projectforge.plugins.datatransfer.DataTransferDao
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -45,32 +39,30 @@ import javax.validation.Valid
 
 @RestController
 @RequestMapping("${Rest.URL}/datatransfer")
-class DataTransferFilePagesRest() : AbstractDOPagesRest<DataTransferFileDO, DataTransferFileDao>(
-  DataTransferFileDao::class.java,
-  "plugins.datatransfer.file.title"
+class DataTransferPagesRest() : AbstractDOPagesRest<DataTransferDO, DataTransferDao>(
+  DataTransferDao::class.java,
+  "plugins.datatransfer.title"
 ) {
 
   /**
    * Initializes new DataTransferFiles for adding.
    */
-  override fun newBaseDO(request: HttpServletRequest?): DataTransferFileDO {
+  override fun newBaseDO(request: HttpServletRequest?): DataTransferDO {
     return baseDao.createInitializedFile()
   }
 
   @PostMapping("renewAccessToken")
-  fun renewAccessToken(@Valid @RequestBody postData: PostData<DataTransferFileDO>): ResponseAction {
+  fun renewAccessToken(@Valid @RequestBody postData: PostData<DataTransferDO>): ResponseAction {
     val file = postData.data
     file.renewAccessToken()
-    file.owner = UserGroupCache.tenantInstance.getUser(file.ownerId) // Renew display name.
-    file.ownerGroup = UserGroupCache.tenantInstance.getGroup(file.ownerGroupId) // Renew display name.
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("data", file)
   }
 
   @PostMapping("renewPassword")
-  fun renewPassword(@Valid @RequestBody postData: PostData<DataTransferFileDO>): ResponseAction {
+  fun renewPassword(@Valid @RequestBody postData: PostData<DataTransferDO>): ResponseAction {
     return ResponseAction(targetType = TargetType.UPDATE)
-      .addVariable("data.password", DataTransferFileDO.generatePassword())
+      .addVariable("data.password", DataTransferDO.generateExternalPassword())
   }
 
   /**
@@ -88,9 +80,9 @@ class DataTransferFilePagesRest() : AbstractDOPagesRest<DataTransferFileDO, Data
   /**
    * LAYOUT Edit page
    */
-  override fun createEditLayout(dto: DataTransferFileDO, userAccess: UILayout.UserAccess): UILayout {
+  override fun createEditLayout(dto: DataTransferDO, userAccess: UILayout.UserAccess): UILayout {
     val layout = super.createEditLayout(dto, userAccess)
-      .add(lc, "owner", "ownerGroup", "validUntil", "comment", "password")
+      .add(lc, "areaName", "externalDownloadEnabled", "externalUploadEnabled", "comment", "externalPassword")
       .add(UIReadOnlyField("accessFailedCounter", lc))
       .add(
         UIRow()
@@ -100,7 +92,7 @@ class DataTransferFilePagesRest() : AbstractDOPagesRest<DataTransferFileDO, Data
                 UIReadOnlyField(
                   "externalLink",
                   lc,
-                  label = "plugins.datatransfer.file.externalLink",
+                  label = "plugins.datatransfer.external.link",
                   canCopy = true
                 )
               )
@@ -110,8 +102,8 @@ class DataTransferFilePagesRest() : AbstractDOPagesRest<DataTransferFileDO, Data
               .add(
                 UIButton(
                   "accessToken-renew",
-                  title = translate("plugins.datatransfer.file.externalLink.renew"),
-                  tooltip = "plugins.datatransfer.file.externalLink.renew.info",
+                  title = translate("plugins.datatransfer.external.link.renew"),
+                  tooltip = "plugins.datatransfer.external.link.renew.info",
                   color = UIColor.DANGER,
                   responseAction = ResponseAction("/rs/datatransfer/renewAccessToken", targetType = TargetType.POST)
                 )
