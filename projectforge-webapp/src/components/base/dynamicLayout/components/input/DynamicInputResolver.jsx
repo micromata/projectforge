@@ -42,6 +42,7 @@ function DynamicInputResolver(
             Tag = DynamicTaskSelect;
             break;
         case 'USER':
+        case 'GROUP':
         case 'EMPLOYEE':
         case 'KONTO':
             Tag = DynamicObjectSelect;
