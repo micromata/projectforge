@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.datatransfer
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
@@ -30,6 +31,7 @@ import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.utils.NumberHelper
 import java.util.*
 import javax.persistence.*
 
@@ -62,22 +64,22 @@ open class DataTransferFileDO : AbstractBaseDO<Int>() {
   @PropertyInfo(i18nKey = "id")
   private var id: Int? = null
 
-  @PropertyInfo(i18nKey = "plugins.datatransfer.filename")
+  @PropertyInfo(i18nKey = "plugins.datatransfer.file.name")
   @Field
   @get:Column(length = 100)
   open var filename: String? = null
 
-  @PropertyInfo(i18nKey = "plugins.datatransfer.owner")
+  @PropertyInfo(i18nKey = "plugins.datatransfer.file.owner")
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "owner_fk")
   open var owner: PFUserDO? = null
 
-  @PropertyInfo(i18nKey = "plugins.datatransfer.ownerGroup")
+  @PropertyInfo(i18nKey = "plugins.datatransfer.file.ownerGroup")
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "owner_group_fk")
   open var ownerGroup: GroupDO? = null
 
-  @PropertyInfo(i18nKey = "plugins.datatransfer.comment", tooltip = "plugins.datatransfer.comment.info")
+  @PropertyInfo(i18nKey = "plugins.datatransfer.file.comment", tooltip = "plugins.datatransfer.file.comment.info")
   @Field
   @get:Column(length = Constants.LENGTH_TEXT)
   open var comment: String? = null
@@ -85,27 +87,47 @@ open class DataTransferFileDO : AbstractBaseDO<Int>() {
   /**
    * Optional password for external access.
    */
-  @PropertyInfo(i18nKey = "plugins.datatransfer.accessToken")
+  @PropertyInfo(i18nKey = "plugins.datatransfer.file.accessToken")
   @get:Column(length = 100, name = "access_token")
   open var accessToken: String? = null
 
   /**
+   * Link for external users.
+   */
+  //@PropertyInfo(i18nKey = "plugins.datatransfer.file.externaLink", tooltip = "plugins.datatransfer.file.externaLink")
+  val externalLink
+    @JsonProperty
+    @Transient
+    get() = "$externalLinkBaseUrl$accessToken"
+
+  @get:Transient
+  var externalLinkBaseUrl: String? = null
+
+  /**
    * Optional password for external access.
    */
-  @PropertyInfo(i18nKey = "plugins.datatransfer.password", tooltip = "plugins.datatransfer.password.info")
+  @PropertyInfo(i18nKey = "plugins.datatransfer.file.password", tooltip = "plugins.datatransfer.file.password.info")
   @get:Column(length = 100)
   open var password: String? = null
 
   @PropertyInfo(
-    i18nKey = "plugins.datatransfer.accessFailedCounter",
-    tooltip = "plugins.datatransfer.accessFailedCounter.info"
+    i18nKey = "plugins.datatransfer.file.accessFailedCounter",
+    tooltip = "plugins.datatransfer.file.accessFailedCounter.info"
   )
   @get:Column(name = "access_failed_counter")
   open var accessFailedCounter: Int = 0
 
-  @PropertyInfo(i18nKey = "plugins.datatransfer.validUntil", tooltip = "plugins.datatransfer.validUntil.info")
+  @PropertyInfo(i18nKey = "plugins.datatransfer.file.validUntil", tooltip = "plugins.datatransfer.file.validUntil.info")
   @get:Column(name = "valid_until")
   open var validUntil: Date? = null
+
+  fun renewAccessToken() {
+    accessToken = generateAccessToken()
+  }
+
+  fun renewPassword() {
+    password = generatePassword()
+  }
 
   val ownerId: Int?
     @Transient
@@ -125,5 +147,18 @@ open class DataTransferFileDO : AbstractBaseDO<Int>() {
 
   override fun setId(id: Int?) {
     this.id = id
+  }
+
+  companion object {
+    fun generateAccessToken(): String {
+      return NumberHelper.getSecureRandomAlphanumeric(ACCESS_TOKEN_LENGTH)
+    }
+
+    fun generatePassword(): String {
+      return NumberHelper.getSecureRandomReducedAlphanumeric(PASSWORD_LENGTH)
+    }
+
+    private const val ACCESS_TOKEN_LENGTH = 50
+    private const val PASSWORD_LENGTH = 6
   }
 }

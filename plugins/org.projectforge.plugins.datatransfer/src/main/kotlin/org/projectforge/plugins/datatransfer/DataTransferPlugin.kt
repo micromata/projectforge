@@ -28,6 +28,7 @@ import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
+import org.projectforge.rest.config.JacksonConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -35,27 +36,34 @@ import org.springframework.beans.factory.annotation.Autowired
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class DataTransferPlugin : AbstractPlugin(ID, "datatransfer", "Data transfer tool for sharing files with other users or customers.") {
+class DataTransferPlugin :
+  AbstractPlugin(ID, "datatransfer", "Data transfer tool for sharing files with other users or customers.") {
 
-    @Autowired
-    private lateinit var DataTransferFileDao: DataTransferFileDao
+  @Autowired
+  private lateinit var DataTransferFileDao: DataTransferFileDao
 
-    @Autowired
-    private lateinit var menuCreator: MenuCreator
+  @Autowired
+  private lateinit var menuCreator: MenuCreator
 
-    override fun initialize() {
-        // Register it:
-        register(DataTransferFileDao::class.java, DataTransferFileDao, "plugins.datatransfer")
+  override fun initialize() {
+    // Register it:
+    register(DataTransferFileDao::class.java, DataTransferFileDao, "plugins.datatransfer")
 
-        menuCreator.add(MenuItemDefId.MISC, MenuItemDef(info.id, "plugins.datatransfer.menu", "${Const.REACT_APP_PATH}datatransfer"));
+    menuCreator.add(
+      MenuItemDefId.MISC,
+      MenuItemDef(info.id, "plugins.datatransfer.menu", "${Const.REACT_APP_PATH}datatransfer")
+    );
 
 
-        // All the i18n stuff:
-        addResourceBundle(RESOURCE_BUNDLE_NAME)
-    }
+    // All the i18n stuff:
+    addResourceBundle(RESOURCE_BUNDLE_NAME)
 
-    companion object {
-        const val ID = "DataTransfer"
-        const val RESOURCE_BUNDLE_NAME = "DataTransferI18nResources"
-    }
+    // Will only delivered to client but has to be ignored on sending back from client.
+    JacksonConfiguration.registerAllowedUnknownProperties(DataTransferFileDO::class.java, "externalLink")
+  }
+
+  companion object {
+    const val ID = "DataTransfer"
+    const val RESOURCE_BUNDLE_NAME = "DataTransferI18nResources"
+  }
 }
