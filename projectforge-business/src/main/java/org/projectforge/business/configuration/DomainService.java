@@ -48,10 +48,11 @@ public class DomainService {
 
   public String getDomain(final String subPath) {
     final String path = (StringUtils.startsWith(subPath, "/")) ? subPath.substring(1) : subPath;
-    if (StringUtils.endsWith(domain, "/")) {
-      return domain + path;
+    final String domainWithContextPath = getDomainWithContextPath();
+    if (StringUtils.endsWith(domainWithContextPath, "/")) {
+      return domainWithContextPath + path;
     }
-    return domain + "/" + path;
+    return domainWithContextPath + "/" + path;
   }
 
   /**
