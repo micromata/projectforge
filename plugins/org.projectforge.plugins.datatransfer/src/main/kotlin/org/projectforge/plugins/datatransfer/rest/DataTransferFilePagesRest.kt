@@ -23,52 +23,108 @@
 
 package org.projectforge.plugins.DataTransferFile.rest
 
+import org.projectforge.business.user.UserGroupCache
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferFileDO
 import org.projectforge.plugins.datatransfer.DataTransferFileDao
+import org.projectforge.rest.VacationAccountPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
-import org.projectforge.ui.LayoutUtils
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.UIReadOnlyField
-import org.projectforge.ui.UITable
+import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.Timesheet
+import org.projectforge.rest.task.TaskServicesRest
+import org.projectforge.ui.*
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
+import javax.validation.Valid
 
 @RestController
-@RequestMapping("${Rest.URL}/datatransfer/file")
-class DataTransferFilePagesRest() : AbstractDOPagesRest<DataTransferFileDO, DataTransferFileDao>(DataTransferFileDao::class.java, "plugins.datatransfer.file.title") {
-    /**
-     * Initializes new DataTransferFiles for adding.
-     */
-    override fun newBaseDO(request: HttpServletRequest?): DataTransferFileDO {
-        val file = super.newBaseDO(request)
-        file.owner = ThreadLocalUserContext.getUser()
-        file.accessToken = NumberHelper.getSecureRandomAlphanumeric(50)
-        file.password = NumberHelper.getSecureRandomReducedAlphanumeric(6)
-        return file
-    }
+@RequestMapping("${Rest.URL}/datatransfer")
+class DataTransferFilePagesRest() : AbstractDOPagesRest<DataTransferFileDO, DataTransferFileDao>(
+  DataTransferFileDao::class.java,
+  "plugins.datatransfer.file.title"
+) {
+  /**
+   * Initializes new DataTransferFiles for adding.
+   */
+  override fun newBaseDO(request: HttpServletRequest?): DataTransferFileDO {
+    val file = super.newBaseDO(request)
+    file.owner = ThreadLocalUserContext.getUser()
+    file.renewAccessToken()
+    file.renewPassword()
+    file.validUntil = PFDateTime.now().plusDays(7).utilDate
+    file.externalLinkBaseUrl = "https://...."
+    return file
+  }
 
-    /**
-     * LAYOUT List page
-     */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
-                .add(UITable.createUIResultSetTable()
-                        .add(lc, "created", "lastUpdate", "filename", "owner", "groupOwner", "validUntil", "comment"))
-        return LayoutUtils.processListPage(layout, this)
-    }
+  @PostMapping("renewAccessToken")
+  fun renewAccessToken(@Valid @RequestBody postData: PostData<DataTransferFileDO>): ResponseAction {
+    val file = postData.data
+    file.renewAccessToken()
+    file.owner = UserGroupCache.tenantInstance.getUser(file.ownerId) // Renew display name.
+    return ResponseAction(targetType = TargetType.UPDATE)
+      .addVariable("data", file)
+  }
 
-    /**
-     * LAYOUT Edit page
-     */
-    override fun createEditLayout(dto: DataTransferFileDO, userAccess: UILayout.UserAccess): UILayout {
-        val layout = super.createEditLayout(dto, userAccess)
-                .add(lc, "owner", "groupOwner", "validUntil", "comment", "password")
-            .add(UIReadOnlyField("accessToken", lc))
-            .add(UIReadOnlyField("accessFailedCounter", lc))
-        return LayoutUtils.processEditPage(layout, dto, this)
-    }
+  @PostMapping("renewPassword")
+  fun renewPassword(@Valid @RequestBody postData: PostData<DataTransferFileDO>): ResponseAction {
+    return ResponseAction(targetType = TargetType.UPDATE)
+      .addVariable("data.password", DataTransferFileDO.generatePassword())
+  }
+
+  /**
+   * LAYOUT List page
+   */
+  override fun createListLayout(): UILayout {
+    val layout = super.createListLayout()
+      .add(
+        UITable.createUIResultSetTable()
+          .add(lc, "created", "lastUpdate", "filename", "owner", "groupOwner", "validUntil", "comment")
+      )
+    return LayoutUtils.processListPage(layout, this)
+  }
+
+  /**
+   * LAYOUT Edit page
+   */
+  override fun createEditLayout(dto: DataTransferFileDO, userAccess: UILayout.UserAccess): UILayout {
+    val layout = super.createEditLayout(dto, userAccess)
+      .add(lc, "owner", "groupOwner", "validUntil", "comment", "password")
+      .add(UIReadOnlyField("accessFailedCounter", lc))
+      .add(
+        UIRow()
+          .add(
+            UICol(10)
+              .add(
+                UIReadOnlyField(
+                  "externalLink",
+                  lc,
+                  label = "plugins.datatransfer.file.externalLink",
+                  canCopy = true
+                )
+              )
+          )
+          .add(
+            UICol(2)
+              .add(
+                UIButton(
+                  "accessToken-renew",
+                  title = translate("plugins.datatransfer.file.externalLink.renew"),
+                  tooltip = "plugins.datatransfer.file.externalLink.renew.info",
+                  color = UIColor.DANGER,
+                  responseAction = ResponseAction("/rs/datatransfer/renewAccessToken", targetType = TargetType.POST)
+                )
+              )
+          )
+      )
+
+    return LayoutUtils.processEditPage(layout, dto, this)
+  }
 }
