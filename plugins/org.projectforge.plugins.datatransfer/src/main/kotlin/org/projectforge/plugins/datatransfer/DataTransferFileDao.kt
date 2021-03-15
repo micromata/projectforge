@@ -23,9 +23,14 @@
 
 package org.projectforge.plugins.datatransfer
 
+import org.projectforge.business.configuration.DomainService
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.model.rest.RestPaths
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 
 /**
@@ -37,8 +42,25 @@ import org.springframework.stereotype.Repository
 @Repository
 open class DataTransferFileDao : BaseDao<DataTransferFileDO>(DataTransferFileDO::class.java) {
 
+  @Autowired
+  private lateinit var domainService: DomainService
+
+  open fun createInitializedFile(): DataTransferFileDO {
+    val file = DataTransferFileDO()
+    file.owner = ThreadLocalUserContext.getUser()
+    renewAuthenticationToken(file)
+    file.renewPassword()
+    file.validUntil = PFDateTime.now().plusDays(7).utilDate
+    return file
+  }
+
+  open fun renewAuthenticationToken(file: DataTransferFileDO) {
+    file.renewAccessToken()
+    file.externalLinkBaseUrl = domainService.getDomain("${RestPaths.PUBLIC_REST}/datatransfer?token=")
+  }
+
   override fun getAdditionalSearchFields(): Array<String> {
-    return DataTransferFileDao.ADDITIONAL_SEARCH_FIELDS
+    return ADDITIONAL_SEARCH_FIELDS
   }
 
   override fun hasUserSelectAccess(user: PFUserDO?, throwException: Boolean): Boolean {
@@ -52,7 +74,10 @@ open class DataTransferFileDao : BaseDao<DataTransferFileDO>(DataTransferFileDO:
     operationType: OperationType,
     throwException: Boolean
   ): Boolean {
-    return accessChecker.isUserMemberOfAdminGroup(user) || user.id == obj.ownerId || userGroupCache.isUserMemberOfGroup(user, obj.ownerGroupId)
+    return accessChecker.isUserMemberOfAdminGroup(user) || user.id == obj.ownerId || userGroupCache.isUserMemberOfGroup(
+      user,
+      obj.ownerGroupId
+    )
   }
 
   override fun newInstance(): DataTransferFileDO {

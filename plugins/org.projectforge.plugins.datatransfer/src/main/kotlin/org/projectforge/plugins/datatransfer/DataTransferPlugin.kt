@@ -63,7 +63,7 @@ class DataTransferPlugin :
   }
 
   companion object {
-    const val ID = "DataTransfer"
+    const val ID = "datatransfer"
     const val RESOURCE_BUNDLE_NAME = "DataTransferI18nResources"
   }
 }

@@ -23,21 +23,19 @@
 
 package org.projectforge.plugins.DataTransferFile.rest
 
+import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferFileDO
 import org.projectforge.plugins.datatransfer.DataTransferFileDao
-import org.projectforge.rest.VacationAccountPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
 import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.dto.Timesheet
-import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -51,17 +49,12 @@ class DataTransferFilePagesRest() : AbstractDOPagesRest<DataTransferFileDO, Data
   DataTransferFileDao::class.java,
   "plugins.datatransfer.file.title"
 ) {
+
   /**
    * Initializes new DataTransferFiles for adding.
    */
   override fun newBaseDO(request: HttpServletRequest?): DataTransferFileDO {
-    val file = super.newBaseDO(request)
-    file.owner = ThreadLocalUserContext.getUser()
-    file.renewAccessToken()
-    file.renewPassword()
-    file.validUntil = PFDateTime.now().plusDays(7).utilDate
-    file.externalLinkBaseUrl = "https://...."
-    return file
+    return baseDao.createInitializedFile()
   }
 
   @PostMapping("renewAccessToken")
@@ -69,6 +62,7 @@ class DataTransferFilePagesRest() : AbstractDOPagesRest<DataTransferFileDO, Data
     val file = postData.data
     file.renewAccessToken()
     file.owner = UserGroupCache.tenantInstance.getUser(file.ownerId) // Renew display name.
+    file.ownerGroup = UserGroupCache.tenantInstance.getGroup(file.ownerGroupId) // Renew display name.
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("data", file)
   }
@@ -86,7 +80,7 @@ class DataTransferFilePagesRest() : AbstractDOPagesRest<DataTransferFileDO, Data
     val layout = super.createListLayout()
       .add(
         UITable.createUIResultSetTable()
-          .add(lc, "created", "lastUpdate", "filename", "owner", "groupOwner", "validUntil", "comment")
+          .add(lc, "created", "lastUpdate", "filename", "owner", "ownerGroup", "validUntil", "comment")
       )
     return LayoutUtils.processListPage(layout, this)
   }
@@ -96,7 +90,7 @@ class DataTransferFilePagesRest() : AbstractDOPagesRest<DataTransferFileDO, Data
    */
   override fun createEditLayout(dto: DataTransferFileDO, userAccess: UILayout.UserAccess): UILayout {
     val layout = super.createEditLayout(dto, userAccess)
-      .add(lc, "owner", "groupOwner", "validUntil", "comment", "password")
+      .add(lc, "owner", "ownerGroup", "validUntil", "comment", "password")
       .add(UIReadOnlyField("accessFailedCounter", lc))
       .add(
         UIRow()
