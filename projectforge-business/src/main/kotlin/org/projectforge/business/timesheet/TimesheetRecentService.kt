@@ -135,7 +135,7 @@ open class TimesheetRecentService {
   private fun readRecentLocations(recentQueue: RecentQueue<String>, userId: Int) {
     log.info { "Getting recent timesheet locations for user #$userId." }
     val added = mutableSetOf<String>()
-    val list = timesheetDao.getRecentLocation(sinceDate.utilDate) ?: return
+    val list = timesheetDao.getRecentLocation(sinceDate.utilDate)
     for (location in list) {
       if (!added.contains(location)) {
         added.add(location)

@@ -33,5 +33,5 @@ interface IRechnung {
     var zahlBetrag: BigDecimal?
     val netSum: BigDecimal
     val vatAmountSum: BigDecimal
-    val positionen: List<out IRechnungsPosition>?
+    val positionen: List<IRechnungsPosition>?
 }
