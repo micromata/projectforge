@@ -40,14 +40,14 @@ class DataTransferPlugin :
   AbstractPlugin(ID, "datatransfer", "Data transfer tool for sharing files with other users or customers.") {
 
   @Autowired
-  private lateinit var DataTransferFileDao: DataTransferFileDao
+  private lateinit var DataTransferDao: DataTransferDao
 
   @Autowired
   private lateinit var menuCreator: MenuCreator
 
   override fun initialize() {
     // Register it:
-    register(DataTransferFileDao::class.java, DataTransferFileDao, "plugins.datatransfer")
+    register(DataTransferDao::class.java, DataTransferDao, "plugins.datatransfer")
 
     menuCreator.add(
       MenuItemDefId.MISC,
@@ -59,7 +59,7 @@ class DataTransferPlugin :
     addResourceBundle(RESOURCE_BUNDLE_NAME)
 
     // Will only delivered to client but has to be ignored on sending back from client.
-    JacksonConfiguration.registerAllowedUnknownProperties(DataTransferFileDO::class.java, "externalLink")
+    JacksonConfiguration.registerAllowedUnknownProperties(DataTransferDO::class.java, "externalLink")
   }
 
   companion object {
