@@ -5,6 +5,7 @@ CREATE TABLE t_plugin_datatransfer_file (
       pk                    INTEGER NOT NULL,
       tenant_id             INTEGER,
       created               TIMESTAMP WITHOUT TIME ZONE,
+      deleted               BOOLEAN NOT NULL,
       last_update           TIMESTAMP WITHOUT TIME ZONE,
       owner_fk              INTEGER,
       owner_group_fk        INTEGER,
