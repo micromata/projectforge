@@ -56,6 +56,12 @@
         <!-- Built-Iin PF 'Plugins' -->
         <dependency>
             <groupId>org.projectforge</groupId>
+            <artifactId>org.projectforge.plugins.datatransfer</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectforge</groupId>
             <artifactId>org.projectforge.plugins.extendemployeedata</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
