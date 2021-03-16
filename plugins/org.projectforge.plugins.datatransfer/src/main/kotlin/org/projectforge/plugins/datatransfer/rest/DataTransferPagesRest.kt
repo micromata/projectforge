@@ -54,7 +54,7 @@ class DataTransferPagesRest() : AbstractDTOPagesRest<DataTransferDO, DataTransfe
   override fun transformFromDB(obj: DataTransferDO, editMode: Boolean): DataTransfer {
     val dto = DataTransfer()
     dto.copyFrom(obj)
-    dto.externalLinkBaseUrl = baseDao.getExternalLink(dto.externalAccessToken)
+    dto.externalLinkBaseUrl = baseDao.getExternalBaseLinkUrl()
     return dto
   }
 
