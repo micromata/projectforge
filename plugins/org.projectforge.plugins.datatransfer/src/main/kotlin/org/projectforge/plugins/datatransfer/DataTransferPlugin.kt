@@ -28,6 +28,7 @@ import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
+import org.projectforge.plugins.datatransfer.rest.DataTransfer
 import org.projectforge.rest.config.JacksonConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -59,7 +60,7 @@ class DataTransferPlugin :
     addResourceBundle(RESOURCE_BUNDLE_NAME)
 
     // Will only delivered to client but has to be ignored on sending back from client.
-    JacksonConfiguration.registerAllowedUnknownProperties(DataTransferDO::class.java, "externalLink")
+    JacksonConfiguration.registerAllowedUnknownProperties(DataTransfer::class.java, "externalLink")
   }
 
   companion object {

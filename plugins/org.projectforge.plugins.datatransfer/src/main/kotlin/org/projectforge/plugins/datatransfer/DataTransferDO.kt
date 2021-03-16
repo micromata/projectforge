@@ -37,12 +37,6 @@ import java.util.*
 import javax.persistence.*
 
 /**
- * This data object is the Java representation of a data-base entry of a memo.<br></br>
- * Changes of this object will not be added to the history of changes. After deleting a memo it will be deleted in the
- * data-base (there is no undo!).<br></br>
- * If you want to use the history of changes and undo functionality please use DefaultBaseDO as super class instead of
- * AbstractBaseDO. .
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
@@ -88,10 +82,10 @@ open class DataTransferDO : AbstractBaseDO<Int>(), AttachmentsInfo {
   @get:Column(name = "readonly_access_user_ids", length = 4000, nullable = true)
   open var readonlyAccessUserIds: String? = null
 
-  @PropertyInfo(i18nKey = "plugins.datatransfer.comment", tooltip = "plugins.datatransfer.comment.info")
+  @PropertyInfo(i18nKey = "plugins.datatransfer.description", tooltip = "plugins.datatransfer.description.info")
   @Field
   @get:Column(length = Constants.LENGTH_TEXT)
-  open var comment: String? = null
+  open var description: String? = null
 
   /**
    * Optional password for external access.
@@ -113,18 +107,6 @@ open class DataTransferDO : AbstractBaseDO<Int>(), AttachmentsInfo {
   @PropertyInfo(i18nKey = "plugins.datatransfer.external.accessToken", tooltip = "plugins.datatransfer.external.accessToken.info")
   @get:Column(length = 100, name = "external_access_token")
   open var externalAccessToken: String? = null
-
-  /**
-   * Link for external users.
-   */
-  //@PropertyInfo(i18nKey = "plugins.datatransfer.external.link", tooltip = "plugins.datatransfer.external.link.info")
-  val externalLink
-    @JsonProperty
-    @Transient
-    get() = "$externalLinkBaseUrl$externalAccessToken"
-
-  @get:Transient
-  var externalLinkBaseUrl: String? = null
 
   /**
    * Optional password for external access.
@@ -169,14 +151,6 @@ open class DataTransferDO : AbstractBaseDO<Int>(), AttachmentsInfo {
   @get:Column(length = 10000, name = "attachments_last_user_action")
   override var attachmentsLastUserAction: String? = null
 
-  fun renewAccessToken() {
-    externalAccessToken = generateExternalAccessToken()
-  }
-
-  fun renewPassword() {
-    externalPassword = generateExternalPassword()
-  }
-
   @Id
   @GeneratedValue
   @Column(name = "pk")
@@ -186,18 +160,5 @@ open class DataTransferDO : AbstractBaseDO<Int>(), AttachmentsInfo {
 
   override fun setId(id: Int?) {
     this.id = id
-  }
-
-  companion object {
-    fun generateExternalAccessToken(): String {
-      return NumberHelper.getSecureRandomAlphanumeric(ACCESS_TOKEN_LENGTH)
-    }
-
-    fun generateExternalPassword(): String {
-      return NumberHelper.getSecureRandomReducedAlphanumeric(PASSWORD_LENGTH)
-    }
-
-    private const val ACCESS_TOKEN_LENGTH = 50
-    private const val PASSWORD_LENGTH = 6
   }
 }
