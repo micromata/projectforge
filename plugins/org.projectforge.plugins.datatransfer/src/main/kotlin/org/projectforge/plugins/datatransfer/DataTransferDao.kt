@@ -48,7 +48,7 @@ open class DataTransferDao : BaseDao<DataTransferDO>(DataTransferDO::class.java)
 
   open fun createInitializedFile(): DataTransferDO {
     val file = DataTransferDO()
-    file.fullAccessUserIds = "${ThreadLocalUserContext.getUserId()}"
+    file.ownerIds = "${ThreadLocalUserContext.getUserId()}"
     file.externalAccessToken = generateExternalAccessToken()
     file.externalPassword = generateExternalPassword()
     file.expiryDays = 7
@@ -90,6 +90,7 @@ open class DataTransferDao : BaseDao<DataTransferDO>(DataTransferDO::class.java)
       return NumberHelper.getSecureRandomReducedAlphanumeric(PASSWORD_LENGTH)
     }
 
+    const val MAX_EXTERNAL_ACCESS_RETRIES = 10
     private const val ACCESS_TOKEN_LENGTH = 50
     private const val PASSWORD_LENGTH = 6
   }

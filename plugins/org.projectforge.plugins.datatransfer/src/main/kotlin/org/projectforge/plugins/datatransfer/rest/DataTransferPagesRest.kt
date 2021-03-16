@@ -23,14 +23,19 @@
 
 package org.projectforge.plugins.DataTransferFile.rest
 
+import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.plugins.datatransfer.DataTransferDO
 import org.projectforge.plugins.datatransfer.DataTransferDao
 import org.projectforge.plugins.datatransfer.rest.DataTransfer
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -40,10 +45,16 @@ import javax.validation.Valid
 
 @RestController
 @RequestMapping("${Rest.URL}/datatransfer")
-class DataTransferPagesRest() : AbstractDTOPagesRest<DataTransferDO, DataTransfer, DataTransferDao>(
+class DataTransferPagesRest : AbstractDTOPagesRest<DataTransferDO, DataTransfer, DataTransferDao>(
   DataTransferDao::class.java,
   "plugins.datatransfer.title"
 ) {
+
+  @Autowired
+  private lateinit var groupService: GroupService
+
+  @Autowired
+  private lateinit var userService: UserService
 
   override fun transformForDB(dto: DataTransfer): DataTransferDO {
     val obj = DataTransferDO()
@@ -55,6 +66,14 @@ class DataTransferPagesRest() : AbstractDTOPagesRest<DataTransferDO, DataTransfe
     val dto = DataTransfer()
     dto.copyFrom(obj)
     dto.externalLinkBaseUrl = baseDao.getExternalBaseLinkUrl()
+
+    // Group names needed by React client (for ReactSelect):
+    Group.restoreDisplayNames(dto.accessGroups, groupService)
+
+    // Usernames needed by React client (for ReactSelect):
+    User.restoreDisplayNames(dto.owners, userService)
+    User.restoreDisplayNames(dto.accessUsers, userService)
+
     return dto
   }
 
@@ -81,6 +100,14 @@ class DataTransferPagesRest() : AbstractDTOPagesRest<DataTransferDO, DataTransfe
       .addVariable("data", file)
   }
 
+  @PostMapping("resetExternalFailedCounter")
+  fun resetExternalFailedCounter(@Valid @RequestBody postData: PostData<DataTransfer>): ResponseAction {
+    val file = postData.data
+    file.externalAccessFailedCounter = 0
+    return ResponseAction(targetType = TargetType.UPDATE)
+      .addVariable("data", file)
+  }
+
   /**
    * LAYOUT List page
    */
@@ -97,32 +124,130 @@ class DataTransferPagesRest() : AbstractDTOPagesRest<DataTransferDO, DataTransfe
    * LAYOUT Edit page
    */
   override fun createEditLayout(dto: DataTransfer, userAccess: UILayout.UserAccess): UILayout {
+    val ownersSelect = UISelect.createUserSelect(
+      lc,
+      "owners",
+      true,
+      "plugins.datatransfer.owners",
+      tooltip = "plugins.datatransfer.owners.info"
+    )
+    val accessUsers = UISelect.createUserSelect(
+      lc,
+      "accessUsers",
+      true,
+      "plugins.datatransfer.accessUsers",
+      tooltip = "plugins.datatransfer.accessUsers.info"
+    )
+    val accessGroups = UISelect.createGroupSelect(
+      lc,
+      "accessGroups",
+      true,
+      "plugins.datatransfer.accessGroups",
+      tooltip = "plugins.datatransfer.accessGroups.info"
+    )
+    val resetExternalPassword = UIButton(
+      "accessPassword-renew",
+      title = translate("plugins.datatransfer.external.password.renew"),
+      tooltip = "plugins.datatransfer.external.password.renew.info",
+      color = UIColor.DANGER,
+      responseAction = ResponseAction("/rs/datatransfer/resetPassword", targetType = TargetType.POST)
+    )
+    val resetExternalFailedCounter = UIButton(
+      "accessToken-renew",
+      title = translate("reset"),
+      color = UIColor.DANGER,
+      responseAction = ResponseAction(
+        "/rs/datatransfer/resetExternalFailedCounter",
+        targetType = TargetType.POST
+      )
+    )
+    val externalLink = UIReadOnlyField(
+      "externalLink",
+      lc,
+      label = "plugins.datatransfer.external.link",
+      canCopy = true
+    )
+    val renewExternalLink = UIButton(
+      "accessToken-renew",
+      title = translate("plugins.datatransfer.external.link.renew"),
+      tooltip = "plugins.datatransfer.external.link.renew.info",
+      color = UIColor.DANGER,
+      responseAction = ResponseAction("/rs/datatransfer/renewAccessToken", targetType = TargetType.POST)
+    )
+    val externalAccessFieldset = UIFieldset(UILength(md = 12, lg = 12), title = "plugins.datatransfer.external.access.title")
+    if (dto.externalAccessFailedCounter >= DataTransferDao.MAX_EXTERNAL_ACCESS_RETRIES) {
+      externalAccessFieldset.add(
+        UIAlert(
+          "plugins.datatransfer.external.accessFailedCounter.exceeded.message",
+          title = "plugins.datatransfer.external.accessFailedCounter.exceeded.title",
+          color = UIColor.DANGER
+        )
+      )
+    }
+
     val layout = super.createEditLayout(dto, userAccess)
-      .add(lc, "areaName", "externalDownloadEnabled", "externalUploadEnabled", "description", "externalPassword")
-      .add(UIReadOnlyField("accessFailedCounter", lc))
       .add(
-        UIRow()
+        UIFieldset(UILength(md = 12, lg = 12))
+          .add(lc, "areaName", "description")
+      )
+      .add(
+        UIFieldset(UILength(md = 12, lg = 12), title = "access.title.heading")
           .add(
-            UICol(10)
+            UIRow()
               .add(
-                UIReadOnlyField(
-                  "externalLink",
-                  lc,
-                  label = "plugins.datatransfer.external.link",
-                  canCopy = true
-                )
+                UICol(UILength(md = 6))
+                  .add(ownersSelect)
+              )
+              .add(
+                UICol(UILength(md = 6))
+                  .add(accessUsers)
+                  .add(accessGroups)
+              )
+          )
+      )
+      .add(
+        externalAccessFieldset
+          .add(
+            UIRow()
+              .add(
+                UICol(UILength(md = 6))
+                  .add(lc, "externalDownloadEnabled", "externalUploadEnabled")
+              )
+              .add(
+                UICol(UILength(md = 6))
+                  .add(
+                    UIRow()
+                      .add(
+                        UICol(8)
+                          .add(UIReadOnlyField("externalAccessFailedCounter", lc))
+                      )
+                      .add(
+                        UICol(4)
+                          .add(resetExternalFailedCounter)
+                      )
+                  )
+                  .add(
+                    UIRow()
+                      .add(
+                        UICol(8)
+                          .add(lc, "externalPassword")
+                      )
+                      .add(
+                        UICol(4)
+                          .add(resetExternalPassword)
+                      )
+                  )
               )
           )
           .add(
-            UICol(2)
+            UIRow()
               .add(
-                UIButton(
-                  "accessToken-renew",
-                  title = translate("plugins.datatransfer.external.link.renew"),
-                  tooltip = "plugins.datatransfer.external.link.renew.info",
-                  color = UIColor.DANGER,
-                  responseAction = ResponseAction("/rs/datatransfer/renewAccessToken", targetType = TargetType.POST)
-                )
+                UICol(10)
+                  .add(externalLink)
+              )
+              .add(
+                UICol(2)
+                  .add(renewExternalLink)
               )
           )
       )
