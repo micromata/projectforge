@@ -55,32 +55,26 @@ open class DataTransferDO : AbstractBaseDO<Int>(), AttachmentsInfo {
 
   @PropertyInfo(i18nKey = "plugins.datatransfer.areaName")
   @Field
-  @get:Column(length = 100, name = "area_name")
+  @get:Column(length = 100, name = "area_name", nullable = false)
   open var areaName: String? = null
-
-  /**
-   * Members of these groups have full read/write access.
-   */
-  @get:Column(name = "full_access_group_ids", length = 4000, nullable = true)
-  open var fullAccessGroupIds: String? = null
 
   /**
    * These users have full read/write access.
    */
-  @get:Column(name = "full_access_user_ids", length = 4000, nullable = true)
-  open var fullAccessUserIds: String? = null
+  @get:Column(name = "owner_ids", length = 4000, nullable = true)
+  open var ownerIds: String? = null
 
   /**
-   * Members of these groups have full read-only access.
+   * Members of these groups have upload/download access.
    */
-  @get:Column(name = "readonly_access_group_ids", length = 4000, nullable = true)
-  open var readonlyAccessGroupIds: String? = null
+  @get:Column(name = "access_group_ids", length = 4000, nullable = true)
+  open var accessGroupIds: String? = null
 
   /**
-   * These users have read-only access.
+   * These users have upload/download access.
    */
-  @get:Column(name = "readonly_access_user_ids", length = 4000, nullable = true)
-  open var readonlyAccessUserIds: String? = null
+  @get:Column(name = "access_user_ids", length = 4000, nullable = true)
+  open var accessUserIds: String? = null
 
   @PropertyInfo(i18nKey = "plugins.datatransfer.description", tooltip = "plugins.datatransfer.description.info")
   @Field

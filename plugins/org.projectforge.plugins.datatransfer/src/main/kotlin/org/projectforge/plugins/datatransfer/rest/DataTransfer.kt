@@ -34,15 +34,14 @@ class DataTransfer(
   id: Int? = null,
   var areaName: String? = null,
   var description: String? = null,
-  var fullAccessGroups: List<Group>? = null,
-  var fullAccessUsers: List<User>? = null,
-  var readonlyAccessGroups: List<Group>? = null,
-  var readonlyAccessUsers: List<User>? = null,
+  var owners: List<User>? = null,
+  var accessGroups: List<Group>? = null,
+  var accessUsers: List<User>? = null,
   var externalDownloadEnabled: Boolean? = null,
   var externalUploadEnabled: Boolean? = null,
   var externalAccessToken: String? = null,
   var externalPassword: String? = null,
-  var externalAccessFailedCounter: Int = 0,
+  var externalAccessFailedCounter: Int = -1,
   var expiryDays: Int? = null
 ) : BaseDTO<DataTransferDO>(id) {
   /**
@@ -60,18 +59,16 @@ class DataTransfer(
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyFrom(src: DataTransferDO) {
     super.copyFrom(src)
-    fullAccessGroups = Group.toGroupList(src.fullAccessGroupIds)
-    fullAccessUsers = User.toUserList(src.fullAccessUserIds)
-    readonlyAccessGroups = Group.toGroupList(src.readonlyAccessGroupIds)
-    readonlyAccessUsers = User.toUserList(src.readonlyAccessUserIds)
+    owners = User.toUserList(src.ownerIds)
+    accessGroups = Group.toGroupList(src.accessGroupIds)
+    accessUsers = User.toUserList(src.accessUserIds)
   }
 
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyTo(dest: DataTransferDO) {
     super.copyTo(dest)
-    dest.fullAccessGroupIds = Group.toIntList(fullAccessGroups)
-    dest.fullAccessUserIds = User.toIntList(fullAccessUsers)
-    dest.readonlyAccessGroupIds = Group.toIntList(readonlyAccessGroups)
-    dest.readonlyAccessUserIds = User.toIntList(readonlyAccessUsers)
+    dest.ownerIds = User.toIntList(owners)
+    dest.accessGroupIds = Group.toIntList(accessGroups)
+    dest.accessUserIds = User.toIntList(accessUsers)
   }
 }
