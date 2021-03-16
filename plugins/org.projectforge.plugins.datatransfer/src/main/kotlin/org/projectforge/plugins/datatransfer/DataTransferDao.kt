@@ -55,8 +55,8 @@ open class DataTransferDao : BaseDao<DataTransferDO>(DataTransferDO::class.java)
     return file
   }
 
-  open fun getExternalLink(accessToken: String?): String {
-    return domainService.getDomain("${RestPaths.PUBLIC_REST}/datatransfer?token=$accessToken")
+  open fun getExternalBaseLinkUrl(): String {
+    return domainService.getDomain("${RestPaths.PUBLIC_REST}/datatransfer/")
   }
 
   override fun hasUserSelectAccess(user: PFUserDO?, throwException: Boolean): Boolean {
