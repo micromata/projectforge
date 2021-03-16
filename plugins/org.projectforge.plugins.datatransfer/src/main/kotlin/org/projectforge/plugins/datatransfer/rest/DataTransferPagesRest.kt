@@ -26,8 +26,9 @@ package org.projectforge.plugins.DataTransferFile.rest
 import org.projectforge.framework.i18n.translate
 import org.projectforge.plugins.datatransfer.DataTransferDO
 import org.projectforge.plugins.datatransfer.DataTransferDao
+import org.projectforge.plugins.datatransfer.rest.DataTransfer
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDOPagesRest
+import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.PostMapping
@@ -39,10 +40,23 @@ import javax.validation.Valid
 
 @RestController
 @RequestMapping("${Rest.URL}/datatransfer")
-class DataTransferPagesRest() : AbstractDOPagesRest<DataTransferDO, DataTransferDao>(
+class DataTransferPagesRest() : AbstractDTOPagesRest<DataTransferDO, DataTransfer, DataTransferDao>(
   DataTransferDao::class.java,
   "plugins.datatransfer.title"
 ) {
+
+  override fun transformForDB(dto: DataTransfer): DataTransferDO {
+    val obj = DataTransferDO()
+    dto.copyTo(obj)
+    return obj
+  }
+
+  override fun transformFromDB(obj: DataTransferDO, editMode: Boolean): DataTransfer {
+    val dto = DataTransfer()
+    dto.copyFrom(obj)
+    dto.externalLinkBaseUrl = baseDao.getExternalLink(dto.externalAccessToken)
+    return dto
+  }
 
   /**
    * Initializes new DataTransferFiles for adding.
@@ -52,17 +66,19 @@ class DataTransferPagesRest() : AbstractDOPagesRest<DataTransferDO, DataTransfer
   }
 
   @PostMapping("renewAccessToken")
-  fun renewAccessToken(@Valid @RequestBody postData: PostData<DataTransferDO>): ResponseAction {
+  fun renewAccessToken(@Valid @RequestBody postData: PostData<DataTransfer>): ResponseAction {
     val file = postData.data
-    file.renewAccessToken()
+    file.externalAccessToken = DataTransferDao.generateExternalAccessToken()
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("data", file)
   }
 
   @PostMapping("renewPassword")
-  fun renewPassword(@Valid @RequestBody postData: PostData<DataTransferDO>): ResponseAction {
+  fun renewPassword(@Valid @RequestBody postData: PostData<DataTransfer>): ResponseAction {
+    val file = postData.data
+    file.externalPassword = DataTransferDao.generateExternalPassword()
     return ResponseAction(targetType = TargetType.UPDATE)
-      .addVariable("data.password", DataTransferDO.generateExternalPassword())
+      .addVariable("data", file)
   }
 
   /**
@@ -80,9 +96,9 @@ class DataTransferPagesRest() : AbstractDOPagesRest<DataTransferDO, DataTransfer
   /**
    * LAYOUT Edit page
    */
-  override fun createEditLayout(dto: DataTransferDO, userAccess: UILayout.UserAccess): UILayout {
+  override fun createEditLayout(dto: DataTransfer, userAccess: UILayout.UserAccess): UILayout {
     val layout = super.createEditLayout(dto, userAccess)
-      .add(lc, "areaName", "externalDownloadEnabled", "externalUploadEnabled", "comment", "externalPassword")
+      .add(lc, "areaName", "externalDownloadEnabled", "externalUploadEnabled", "description", "externalPassword")
       .add(UIReadOnlyField("accessFailedCounter", lc))
       .add(
         UIRow()

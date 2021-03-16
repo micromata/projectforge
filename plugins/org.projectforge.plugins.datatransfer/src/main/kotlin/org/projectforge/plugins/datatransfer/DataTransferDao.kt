@@ -29,6 +29,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -48,15 +49,14 @@ open class DataTransferDao : BaseDao<DataTransferDO>(DataTransferDO::class.java)
   open fun createInitializedFile(): DataTransferDO {
     val file = DataTransferDO()
     file.fullAccessUserIds = "${ThreadLocalUserContext.getUserId()}"
-    renewAuthenticationToken(file)
-    file.renewPassword()
+    file.externalAccessToken = generateExternalAccessToken()
+    file.externalPassword = generateExternalPassword()
     file.expiryDays = 7
     return file
   }
 
-  open fun renewAuthenticationToken(file: DataTransferDO) {
-    file.renewAccessToken()
-    file.externalLinkBaseUrl = domainService.getDomain("${RestPaths.PUBLIC_REST}/datatransfer?token=")
+  open fun getExternalLink(accessToken: String?): String {
+    return domainService.getDomain("${RestPaths.PUBLIC_REST}/datatransfer?token=$accessToken")
   }
 
   override fun hasUserSelectAccess(user: PFUserDO?, throwException: Boolean): Boolean {
@@ -79,5 +79,18 @@ open class DataTransferDao : BaseDao<DataTransferDO>(DataTransferDO::class.java)
 
   override fun newInstance(): DataTransferDO {
     return DataTransferDO()
+  }
+
+  companion object {
+    fun generateExternalAccessToken(): String {
+      return NumberHelper.getSecureRandomAlphanumeric(ACCESS_TOKEN_LENGTH)
+    }
+
+    fun generateExternalPassword(): String {
+      return NumberHelper.getSecureRandomReducedAlphanumeric(PASSWORD_LENGTH)
+    }
+
+    private const val ACCESS_TOKEN_LENGTH = 50
+    private const val PASSWORD_LENGTH = 6
   }
 }

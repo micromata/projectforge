@@ -13,7 +13,7 @@ CREATE TABLE t_plugin_datatransfer
     full_access_user_ids           CHARACTER VARYING(4000),
     readonly_access_group_ids      CHARACTER VARYING(4000),
     readonly_access_user_ids       CHARACTER VARYING(4000),
-    comment                        CHARACTER VARYING(4000),
+    description                    CHARACTER VARYING(4000),
     external_download_enabled      BOOLEAN,
     external_upload_enabled        BOOLEAN,
     external_access_token          CHARACTER VARYING(100),
