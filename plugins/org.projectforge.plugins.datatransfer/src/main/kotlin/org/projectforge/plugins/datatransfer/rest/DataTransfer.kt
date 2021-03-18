@@ -34,7 +34,7 @@ class DataTransfer(
   id: Int? = null,
   var areaName: String? = null,
   var description: String? = null,
-  var owners: List<User>? = null,
+  var admins: List<User>? = null,
   var accessGroups: List<Group>? = null,
   var accessUsers: List<User>? = null,
   var externalDownloadEnabled: Boolean? = null,
@@ -59,7 +59,7 @@ class DataTransfer(
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyFrom(src: DataTransferDO) {
     super.copyFrom(src)
-    owners = User.toUserList(src.ownerIds)
+    admins = User.toUserList(src.adminIds)
     accessGroups = Group.toGroupList(src.accessGroupIds)
     accessUsers = User.toUserList(src.accessUserIds)
   }
@@ -67,7 +67,7 @@ class DataTransfer(
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyTo(dest: DataTransferDO) {
     super.copyTo(dest)
-    dest.ownerIds = User.toIntList(owners)
+    dest.adminIds = User.toIntList(admins)
     dest.accessGroupIds = Group.toIntList(accessGroups)
     dest.accessUserIds = User.toIntList(accessUsers)
   }

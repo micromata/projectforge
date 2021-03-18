@@ -61,8 +61,8 @@ open class DataTransferDO : AbstractBaseDO<Int>(), AttachmentsInfo {
   /**
    * These users have full read/write access.
    */
-  @get:Column(name = "owner_ids", length = 4000, nullable = true)
-  open var ownerIds: String? = null
+  @get:Column(name = "admin_ids", length = 4000, nullable = true)
+  open var adminIds: String? = null
 
   /**
    * Members of these groups have upload/download access.

@@ -21,14 +21,13 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.DataTransferFile.rest
+package org.projectforge.plugins.datatransfer.rest
 
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.plugins.datatransfer.DataTransferDO
 import org.projectforge.plugins.datatransfer.DataTransferDao
-import org.projectforge.plugins.datatransfer.rest.DataTransfer
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Group
@@ -71,7 +70,7 @@ class DataTransferPagesRest : AbstractDTOPagesRest<DataTransferDO, DataTransfer,
     Group.restoreDisplayNames(dto.accessGroups, groupService)
 
     // Usernames needed by React client (for ReactSelect):
-    User.restoreDisplayNames(dto.owners, userService)
+    User.restoreDisplayNames(dto.admins, userService)
     User.restoreDisplayNames(dto.accessUsers, userService)
 
     return dto
@@ -115,7 +114,7 @@ class DataTransferPagesRest : AbstractDTOPagesRest<DataTransferDO, DataTransfer,
     val layout = super.createListLayout()
       .add(
         UITable.createUIResultSetTable()
-          .add(lc, "created", "lastUpdate", "filename", "owner", "ownerGroup", "validUntil", "comment")
+          .add(lc, "created", "lastUpdate", "areaName", "description")
       )
     return LayoutUtils.processListPage(layout, this)
   }
@@ -124,12 +123,12 @@ class DataTransferPagesRest : AbstractDTOPagesRest<DataTransferDO, DataTransfer,
    * LAYOUT Edit page
    */
   override fun createEditLayout(dto: DataTransfer, userAccess: UILayout.UserAccess): UILayout {
-    val ownersSelect = UISelect.createUserSelect(
+    val adminsSelect = UISelect.createUserSelect(
       lc,
-      "owners",
+      "admins",
       true,
-      "plugins.datatransfer.owners",
-      tooltip = "plugins.datatransfer.owners.info"
+      "plugins.datatransfer.admins",
+      tooltip = "plugins.datatransfer.admins.info"
     )
     val accessUsers = UISelect.createUserSelect(
       lc,
@@ -174,7 +173,8 @@ class DataTransferPagesRest : AbstractDTOPagesRest<DataTransferDO, DataTransfer,
       color = UIColor.DANGER,
       responseAction = ResponseAction("/rs/datatransfer/renewAccessToken", targetType = TargetType.POST)
     )
-    val externalAccessFieldset = UIFieldset(UILength(md = 12, lg = 12), title = "plugins.datatransfer.external.access.title")
+    val externalAccessFieldset =
+      UIFieldset(UILength(md = 12, lg = 12), title = "plugins.datatransfer.external.access.title")
     if (dto.externalAccessFailedCounter >= DataTransferDao.MAX_EXTERNAL_ACCESS_RETRIES) {
       externalAccessFieldset.add(
         UIAlert(
@@ -195,12 +195,15 @@ class DataTransferPagesRest : AbstractDTOPagesRest<DataTransferDO, DataTransfer,
           .add(
             UIRow()
               .add(
-                UICol(UILength(md = 6))
-                  .add(ownersSelect)
+                UICol(UILength(md = 4))
+                  .add(adminsSelect)
               )
               .add(
-                UICol(UILength(md = 6))
+                UICol(UILength(md = 4))
                   .add(accessUsers)
+              )
+              .add(
+                UICol(UILength(md = 4))
                   .add(accessGroups)
               )
           )
@@ -211,8 +214,15 @@ class DataTransferPagesRest : AbstractDTOPagesRest<DataTransferDO, DataTransfer,
             UIRow()
               .add(
                 UICol(UILength(md = 6))
-                  .add(lc, "externalDownloadEnabled", "externalUploadEnabled")
+                  .add(lc, "externalDownloadEnabled")
               )
+              .add(
+                UICol(UILength(md = 6))
+                  .add(lc, "externalUploadEnabled")
+              )
+          )
+          .add(
+            UIRow()
               .add(
                 UICol(UILength(md = 6))
                   .add(
@@ -226,6 +236,9 @@ class DataTransferPagesRest : AbstractDTOPagesRest<DataTransferDO, DataTransfer,
                           .add(resetExternalFailedCounter)
                       )
                   )
+              )
+              .add(
+                UICol(UILength(md = 6))
                   .add(
                     UIRow()
                       .add(
