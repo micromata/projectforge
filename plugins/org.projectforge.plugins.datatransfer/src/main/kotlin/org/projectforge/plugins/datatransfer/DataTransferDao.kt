@@ -28,7 +28,6 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.springframework.beans.factory.annotation.Autowired
@@ -48,7 +47,7 @@ open class DataTransferDao : BaseDao<DataTransferDO>(DataTransferDO::class.java)
 
   open fun createInitializedFile(): DataTransferDO {
     val file = DataTransferDO()
-    file.ownerIds = "${ThreadLocalUserContext.getUserId()}"
+    file.adminIds = "${ThreadLocalUserContext.getUserId()}"
     file.externalAccessToken = generateExternalAccessToken()
     file.externalPassword = generateExternalPassword()
     file.expiryDays = 7

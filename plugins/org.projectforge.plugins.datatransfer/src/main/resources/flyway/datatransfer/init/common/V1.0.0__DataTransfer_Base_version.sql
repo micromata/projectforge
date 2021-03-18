@@ -9,7 +9,7 @@ CREATE TABLE t_plugin_datatransfer
     deleted                        BOOLEAN NOT NULL,
     last_update                    TIMESTAMP WITHOUT TIME ZONE,
     area_name                      CHARACTER VARYING(100) NOT NULL,
-    owner_ids                      CHARACTER VARYING(4000),
+    admin_ids                      CHARACTER VARYING(4000),
     access_group_ids               CHARACTER VARYING(4000),
     access_user_ids                CHARACTER VARYING(4000),
     description                    CHARACTER VARYING(4000),
