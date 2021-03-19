@@ -24,7 +24,6 @@
 package org.projectforge.plugins.datatransfer
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonProperty
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
@@ -32,8 +31,6 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
-import org.projectforge.framework.utils.NumberHelper
-import java.util.*
 import javax.persistence.*
 
 /**
@@ -42,13 +39,13 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(
-  name = "t_plugin_datatransfer",
+  name = "t_plugin_datatransfer_area",
   indexes = [javax.persistence.Index(
-    name = "idx_fk_t_plugin_datatransfer_tenant_id",
+    name = "idx_fk_t_plugin_datatransfer_area_tenant_id",
     columnList = "tenant_id"
   )]
 )
-open class DataTransferDO : AbstractBaseDO<Int>(), AttachmentsInfo {
+open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
 
   @PropertyInfo(i18nKey = "id")
   private var id: Int? = null
@@ -84,28 +81,40 @@ open class DataTransferDO : AbstractBaseDO<Int>(), AttachmentsInfo {
   /**
    * Optional password for external access.
    */
-  @PropertyInfo(i18nKey = "plugins.datatransfer.external.download.enabled", tooltip = "plugins.datatransfer.external.download.enabled.info")
+  @PropertyInfo(
+    i18nKey = "plugins.datatransfer.external.download.enabled",
+    tooltip = "plugins.datatransfer.external.download.enabled.info"
+  )
   @get:Column(length = 100, name = "external_download_enabled")
   open var externalDownloadEnabled: Boolean? = null
 
   /**
    * Optional password for external access.
    */
-  @PropertyInfo(i18nKey = "plugins.datatransfer.external.upload.enabled", tooltip = "plugins.datatransfer.external.upload.enabled.info")
+  @PropertyInfo(
+    i18nKey = "plugins.datatransfer.external.upload.enabled",
+    tooltip = "plugins.datatransfer.external.upload.enabled.info"
+  )
   @get:Column(length = 100, name = "external_upload_enabled")
   open var externalUploadEnabled: Boolean? = null
 
   /**
    * Optional password for external access.
    */
-  @PropertyInfo(i18nKey = "plugins.datatransfer.external.accessToken", tooltip = "plugins.datatransfer.external.accessToken.info")
+  @PropertyInfo(
+    i18nKey = "plugins.datatransfer.external.accessToken",
+    tooltip = "plugins.datatransfer.external.accessToken.info"
+  )
   @get:Column(length = 100, name = "external_access_token")
   open var externalAccessToken: String? = null
 
   /**
    * Optional password for external access.
    */
-  @PropertyInfo(i18nKey = "plugins.datatransfer.external.password", tooltip = "plugins.datatransfer.external.password.info")
+  @PropertyInfo(
+    i18nKey = "plugins.datatransfer.external.password",
+    tooltip = "plugins.datatransfer.external.password.info"
+  )
   @get:Column(length = 100, name = "external_password")
   open var externalPassword: String? = null
 
@@ -140,10 +149,14 @@ open class DataTransferDO : AbstractBaseDO<Int>(), AttachmentsInfo {
   @get:Column(length = 10000, name = "attachments_size")
   override var attachmentsSize: Int? = null
 
-  @PropertyInfo(i18nKey = "attachment")
   @JsonIgnore
-  @get:Column(length = 10000, name = "attachments_last_user_action")
+  @get:Transient
   override var attachmentsLastUserAction: String? = null
+
+  @PropertyInfo(i18nKey = "plugin.datatransfer.externalAccess.logs")
+  @JsonIgnore
+  @get:Column(length = 10000, name = "external_access_logs")
+  open var externalAccessLogs: String? = null
 
   @Id
   @GeneratedValue

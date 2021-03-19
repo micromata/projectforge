@@ -28,7 +28,7 @@ import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
-import org.projectforge.plugins.datatransfer.rest.DataTransfer
+import org.projectforge.plugins.datatransfer.rest.DataTransferArea
 import org.projectforge.rest.config.JacksonConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -41,14 +41,14 @@ class DataTransferPlugin :
   AbstractPlugin(ID, "datatransfer", "Data transfer tool for sharing files with other users or customers.") {
 
   @Autowired
-  private lateinit var DataTransferDao: DataTransferDao
+  private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
   @Autowired
   private lateinit var menuCreator: MenuCreator
 
   override fun initialize() {
     // Register it:
-    register(DataTransferDao::class.java, DataTransferDao, "plugins.datatransfer")
+    register(dataTransferAreaDao::class.java, dataTransferAreaDao, "plugins.datatransfer")
 
     menuCreator.add(
       MenuItemDefId.MISC,
@@ -60,7 +60,7 @@ class DataTransferPlugin :
     addResourceBundle(RESOURCE_BUNDLE_NAME)
 
     // Will only delivered to client but has to be ignored on sending back from client.
-    JacksonConfiguration.registerAllowedUnknownProperties(DataTransfer::class.java, "externalLink")
+    JacksonConfiguration.registerAllowedUnknownProperties(DataTransferArea::class.java, "externalLink")
   }
 
   companion object {

@@ -24,13 +24,14 @@
 package org.projectforge.plugins.datatransfer.rest
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import org.projectforge.plugins.datatransfer.DataTransferDO
+import org.projectforge.framework.jcr.Attachment
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
 import javax.persistence.Transient
 
-class DataTransfer(
+class DataTransferArea(
   id: Int? = null,
   var areaName: String? = null,
   var description: String? = null,
@@ -41,9 +42,10 @@ class DataTransfer(
   var externalUploadEnabled: Boolean? = null,
   var externalAccessToken: String? = null,
   var externalPassword: String? = null,
+  var expiryDays: Int? = null,
   var externalAccessFailedCounter: Int = -1,
-  var expiryDays: Int? = null
-) : BaseDTO<DataTransferDO>(id) {
+  var files: List<Attachment>? = null
+) : BaseDTO<DataTransferAreaDO>(id) {
   /**
    * Link for external users.
    */
@@ -57,7 +59,7 @@ class DataTransfer(
   var externalLinkBaseUrl: String? = null
 
   // The user and group ids are stored as csv list of integers in the data base.
-  override fun copyFrom(src: DataTransferDO) {
+  override fun copyFrom(src: DataTransferAreaDO) {
     super.copyFrom(src)
     admins = User.toUserList(src.adminIds)
     accessGroups = Group.toGroupList(src.accessGroupIds)
@@ -65,7 +67,7 @@ class DataTransfer(
   }
 
   // The user and group ids are stored as csv list of integers in the data base.
-  override fun copyTo(dest: DataTransferDO) {
+  override fun copyTo(dest: DataTransferAreaDO) {
     super.copyTo(dest)
     dest.adminIds = User.toIntList(admins)
     dest.accessGroupIds = Group.toIntList(accessGroups)
