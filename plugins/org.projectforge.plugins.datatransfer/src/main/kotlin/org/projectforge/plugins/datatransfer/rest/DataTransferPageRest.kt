@@ -25,13 +25,19 @@ package org.projectforge.plugins.datatransfer.rest
 
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
+import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.dto.Contract
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,6 +45,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -47,14 +54,29 @@ private val log = KotlinLogging.logger {}
 @RequestMapping("${Rest.URL}/datatransferfiles")
 class DataTransferPageRest : AbstractDynamicPageRest() {
   @Autowired
-  private lateinit var dataTraDataTransferAreaDao: DataTransferAreaDao
+  private lateinit var attachmentsService: AttachmentsService
+
+  @Autowired
+  private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+
+  @Autowired
+  private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
-    val id = NumberHelper.parseInteger(idString)
-    val dataTransfer = dataTraDataTransferAreaDao.getById(id)
+    val id = NumberHelper.parseInteger(idString) ?: throw IllegalAccessException("Parameter id not an int.")
+    val dataTransferDO = dataTransferAreaDao.getById(id)
+    val dataTransfer = DataTransferArea()
+    dataTransfer.areaName = dataTransferDO.areaName
+    dataTransfer.description = dataTransferDO.description
+    dataTransfer.attachments = attachmentsService.getAttachments(dataTransferAreaPagesRest.jcrPath!!, id, dataTransferAreaPagesRest.attachmentsAccessChecker)
+    dataTransfer.externalLinkBaseUrl = dataTransferAreaDao.getExternalBaseLinkUrl()
     val layout = UILayout("plugins.datatransfer.title.heading")
     val fieldSet = UIFieldset(12, title = "'${dataTransfer.areaName}")
+    fieldSet.add(
+      UIFieldset(title = "attachment.list")
+        .add(UIAttachmentList("datatransfer", id))
+    )
     layout.add(fieldSet)
 
     layout.add(

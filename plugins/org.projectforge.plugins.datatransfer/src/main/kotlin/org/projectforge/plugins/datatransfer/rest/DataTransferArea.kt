@@ -26,6 +26,7 @@ package org.projectforge.plugins.datatransfer.rest
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
+import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
@@ -43,9 +44,10 @@ class DataTransferArea(
   var externalAccessToken: String? = null,
   var externalPassword: String? = null,
   var expiryDays: Int? = null,
-  var externalAccessFailedCounter: Int = -1,
-  var files: List<Attachment>? = null
-) : BaseDTO<DataTransferAreaDO>(id) {
+  var externalAccessFailedCounter: Int = -1
+) : BaseDTO<DataTransferAreaDO>(id), AttachmentsSupport {
+  override var attachments: List<Attachment>? = null
+
   /**
    * Link for external users.
    */
