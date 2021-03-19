@@ -21,11 +21,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.ui
+package org.projectforge.rest.core
 
 /**
  * Button type used by AbstractPagesRest.redirectTo
  */
-enum class UIButtonType() {
-  CANCEL, SAVE, CHANGE, DELETE, UN_DELETE
+enum class RestButtonEvent() {
+  CANCEL, SAVE, UPDATE, DELETE, UN_DELETE
 }

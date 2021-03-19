@@ -48,6 +48,7 @@ import org.projectforge.rest.calendar.CalEventPagesRest
 import org.projectforge.rest.calendar.TeamEventPagesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.*
@@ -184,7 +185,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     return sheet
   }
 
-  override fun onAfterEdit(obj: TimesheetDO, postData: PostData<Timesheet>): ResponseAction {
+  override fun onAfterEdit(obj: TimesheetDO, postData: PostData<Timesheet>, event: RestButtonEvent): ResponseAction {
     // Save time sheet as recent time sheet
     val timesheet = postData.data
     timesheetRecentService.addRecentTimesheet(transformForDB(timesheet))

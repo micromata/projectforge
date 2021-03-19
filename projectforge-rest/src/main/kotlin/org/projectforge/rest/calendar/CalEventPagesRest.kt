@@ -40,6 +40,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.TimesheetPagesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.dto.CalEvent
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.TeamEvent
@@ -153,7 +154,7 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
         }
     }
 
-    override fun onAfterEdit(obj: CalEventDO, postData: PostData<CalEvent>): ResponseAction {
+    override fun onAfterEdit(obj: CalEventDO, postData: PostData<CalEvent>, event: RestButtonEvent): ResponseAction {
         return ResponseAction("/${Const.REACT_APP_PATH}calendar")
                 .addVariable("date", postData.data.startDate)
                 .addVariable("id", obj.id ?: -1)
