@@ -110,6 +110,11 @@ constructor(
     const val CLASSIC_VERSION_MENU = "CLASSIC"
     const val CREATE_MENU = "CREATE"
     const val USER_PREF_PARAM_HIGHLIGHT_ROW = "highlightedRow"
+    const val JCR_PATH_PREFIX: String = "org.projectforge"
+
+    fun getJcrPath(identifier: String): String {
+      return "$JCR_PATH_PREFIX.$identifier"
+    }
   }
 
   class DisplayObject(val id: Any?, override val displayName: String?) : DisplayNameCapable
@@ -1082,7 +1087,8 @@ constructor(
       }
       return responseAction
     }
-    returnToCaller = afterOperationRedirectTo(obj, postData, event) ?: PagesResolver.getListPageUrl(this::class.java, absolute = true)
+    returnToCaller =
+      afterOperationRedirectTo(obj, postData, event) ?: PagesResolver.getListPageUrl(this::class.java, absolute = true)
     return ResponseAction(returnToCaller)
       .addVariable("id", obj.id ?: -1)
   }
@@ -1121,13 +1127,13 @@ constructor(
   @JvmOverloads
   fun enableJcr(
     supportedListIds: Array<String>? = null,
-    prefix: String = "org.projectforge",
+    prefix: String = JCR_PATH_PREFIX,
     identifier: String? = null
   ) {
     jcrPath = if (identifier != null) {
-      "$prefix.${identifier}"
+      getJcrPath(identifier)
     } else {
-      "$prefix.${baseDao.identifier}"
+      getJcrPath(baseDao.identifier)
     }
     attachmentsAccessChecker = AttachmentsDaoAccessChecker(baseDao, jcrPath, supportedListIds)
   }
