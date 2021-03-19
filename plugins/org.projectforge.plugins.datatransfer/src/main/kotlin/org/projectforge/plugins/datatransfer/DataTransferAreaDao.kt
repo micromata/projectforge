@@ -40,13 +40,13 @@ import org.springframework.stereotype.Repository
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-open class DataTransferDao : BaseDao<DataTransferDO>(DataTransferDO::class.java) {
+open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO::class.java) {
 
   @Autowired
   private lateinit var domainService: DomainService
 
-  open fun createInitializedFile(): DataTransferDO {
-    val file = DataTransferDO()
+  open fun createInitializedFile(): DataTransferAreaDO {
+    val file = DataTransferAreaDO()
     file.adminIds = "${ThreadLocalUserContext.getUserId()}"
     file.externalAccessToken = generateExternalAccessToken()
     file.externalPassword = generateExternalPassword()
@@ -64,8 +64,8 @@ open class DataTransferDao : BaseDao<DataTransferDO>(DataTransferDO::class.java)
 
   override fun hasAccess(
     user: PFUserDO,
-    obj: DataTransferDO,
-    oldObj: DataTransferDO?,
+    obj: DataTransferAreaDO,
+    oldObj: DataTransferAreaDO?,
     operationType: OperationType,
     throwException: Boolean
   ): Boolean {
@@ -76,8 +76,8 @@ open class DataTransferDao : BaseDao<DataTransferDO>(DataTransferDO::class.java)
     )*/
   }
 
-  override fun newInstance(): DataTransferDO {
-    return DataTransferDO()
+  override fun newInstance(): DataTransferAreaDO {
+    return DataTransferAreaDO()
   }
 
   companion object {
@@ -90,7 +90,7 @@ open class DataTransferDao : BaseDao<DataTransferDO>(DataTransferDO::class.java)
     }
 
     const val MAX_EXTERNAL_ACCESS_RETRIES = 10
-    private const val ACCESS_TOKEN_LENGTH = 50
+    private const val ACCESS_TOKEN_LENGTH = 30
     private const val PASSWORD_LENGTH = 6
   }
 }

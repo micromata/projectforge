@@ -26,10 +26,12 @@ package org.projectforge.plugins.datatransfer.rest
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
-import org.projectforge.plugins.datatransfer.DataTransferDO
-import org.projectforge.plugins.datatransfer.DataTransferDao
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
@@ -44,8 +46,8 @@ import javax.validation.Valid
 
 @RestController
 @RequestMapping("${Rest.URL}/datatransfer")
-class DataTransferPagesRest : AbstractDTOPagesRest<DataTransferDO, DataTransfer, DataTransferDao>(
-  DataTransferDao::class.java,
+class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataTransferArea, DataTransferAreaDao>(
+  DataTransferAreaDao::class.java,
   "plugins.datatransfer.title"
 ) {
 
@@ -55,14 +57,14 @@ class DataTransferPagesRest : AbstractDTOPagesRest<DataTransferDO, DataTransfer,
   @Autowired
   private lateinit var userService: UserService
 
-  override fun transformForDB(dto: DataTransfer): DataTransferDO {
-    val obj = DataTransferDO()
+  override fun transformForDB(dto: DataTransferArea): DataTransferAreaDO {
+    val obj = DataTransferAreaDO()
     dto.copyTo(obj)
     return obj
   }
 
-  override fun transformFromDB(obj: DataTransferDO, editMode: Boolean): DataTransfer {
-    val dto = DataTransfer()
+  override fun transformFromDB(obj: DataTransferAreaDO, editMode: Boolean): DataTransferArea {
+    val dto = DataTransferArea()
     dto.copyFrom(obj)
     dto.externalLinkBaseUrl = baseDao.getExternalBaseLinkUrl()
 
@@ -77,30 +79,37 @@ class DataTransferPagesRest : AbstractDTOPagesRest<DataTransferDO, DataTransfer,
   }
 
   /**
+   * @return the address view page.
+   */
+  override fun getStandardEditPage(): String {
+    return "${PagesResolver.getDynamicPageUrl(DataTransferPageRest::class.java)}:id"
+  }
+
+  /**
    * Initializes new DataTransferFiles for adding.
    */
-  override fun newBaseDO(request: HttpServletRequest?): DataTransferDO {
+  override fun newBaseDO(request: HttpServletRequest?): DataTransferAreaDO {
     return baseDao.createInitializedFile()
   }
 
   @PostMapping("renewAccessToken")
-  fun renewAccessToken(@Valid @RequestBody postData: PostData<DataTransfer>): ResponseAction {
+  fun renewAccessToken(@Valid @RequestBody postData: PostData<DataTransferArea>): ResponseAction {
     val file = postData.data
-    file.externalAccessToken = DataTransferDao.generateExternalAccessToken()
+    file.externalAccessToken = DataTransferAreaDao.generateExternalAccessToken()
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("data", file)
   }
 
   @PostMapping("renewPassword")
-  fun renewPassword(@Valid @RequestBody postData: PostData<DataTransfer>): ResponseAction {
+  fun renewPassword(@Valid @RequestBody postData: PostData<DataTransferArea>): ResponseAction {
     val file = postData.data
-    file.externalPassword = DataTransferDao.generateExternalPassword()
+    file.externalPassword = DataTransferAreaDao.generateExternalPassword()
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("data", file)
   }
 
   @PostMapping("resetExternalFailedCounter")
-  fun resetExternalFailedCounter(@Valid @RequestBody postData: PostData<DataTransfer>): ResponseAction {
+  fun resetExternalFailedCounter(@Valid @RequestBody postData: PostData<DataTransferArea>): ResponseAction {
     val file = postData.data
     file.externalAccessFailedCounter = 0
     return ResponseAction(targetType = TargetType.UPDATE)
@@ -115,14 +124,27 @@ class DataTransferPagesRest : AbstractDTOPagesRest<DataTransferDO, DataTransfer,
       .add(
         UITable.createUIResultSetTable()
           .add(lc, "created", "lastUpdate", "areaName", "description")
+          .add(UITableColumn("attachmentsSize", titleIcon = UIIconType.PAPER_CLIP))
       )
     return LayoutUtils.processListPage(layout, this)
+  }
+
+  override fun afterOperationRedirectTo(
+    obj: DataTransferAreaDO,
+    postData: PostData<DataTransferArea>,
+    event: RestButtonEvent
+  ): String? {
+    return if (event == RestButtonEvent.SAVE) PagesResolver.getDynamicPageUrl(
+      DataTransferPageRest::class.java,
+      id = obj.id,
+      absolute = true
+    ) else null
   }
 
   /**
    * LAYOUT Edit page
    */
-  override fun createEditLayout(dto: DataTransfer, userAccess: UILayout.UserAccess): UILayout {
+  override fun createEditLayout(dto: DataTransferArea, userAccess: UILayout.UserAccess): UILayout {
     val adminsSelect = UISelect.createUserSelect(
       lc,
       "admins",
@@ -175,7 +197,7 @@ class DataTransferPagesRest : AbstractDTOPagesRest<DataTransferDO, DataTransfer,
     )
     val externalAccessFieldset =
       UIFieldset(UILength(md = 12, lg = 12), title = "plugins.datatransfer.external.access.title")
-    if (dto.externalAccessFailedCounter >= DataTransferDao.MAX_EXTERNAL_ACCESS_RETRIES) {
+    if (dto.externalAccessFailedCounter >= DataTransferAreaDao.MAX_EXTERNAL_ACCESS_RETRIES) {
       externalAccessFieldset.add(
         UIAlert(
           "plugins.datatransfer.external.accessFailedCounter.exceeded.message",
