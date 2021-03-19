@@ -35,7 +35,7 @@ import java.io.Serializable
 open class AttachmentsDaoAccessChecker<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
         val jcrPath: String?,
-        supportedListIds: Array<String>?)
+        supportedListIds: Array<String>? = null)
     : AttachmentsAccessChecker {
 
     val supportedListIds: Array<String> = if (supportedListIds == null) {
