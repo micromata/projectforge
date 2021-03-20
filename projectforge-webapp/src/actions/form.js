@@ -182,6 +182,7 @@ export const callAction = (
             return Promise.resolve();
         }
         case 'NOTHING':
+        case 'TOAST':
             break;
         case 'DELETE':
         case 'POST':
