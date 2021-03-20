@@ -103,20 +103,20 @@ object NumberHelper {
             if (no.toLong() >= 100) {
                 no = no.setScale(0, RoundingMode.HALF_UP)
             }
-            return NumberFormat.getInstance(ThreadLocalUserContext.getLocale()).format(no) + " kb"
+            return NumberFormat.getInstance(ThreadLocalUserContext.getLocale()).format(no) + "KB"
         }
         if (bytes < GIGA_BYTES) {
             var no = BigDecimal(bytes).divide(MB_BD, 1, RoundingMode.HALF_UP)
             if (no.toLong() >= 100) {
                 no = no.setScale(0, RoundingMode.HALF_UP)
             }
-            return NumberFormat.getInstance(ThreadLocalUserContext.getLocale()).format(no) + " Mb"
+            return NumberFormat.getInstance(ThreadLocalUserContext.getLocale()).format(no) + "MB"
         }
         var no = BigDecimal(bytes).divide(GB_BD, 1, RoundingMode.HALF_UP)
         if (no.toLong() >= 100) {
             no = no.setScale(0, RoundingMode.HALF_UP)
         }
-        return NumberFormat.getInstance(ThreadLocalUserContext.getLocale()).format(no) + " Gb"
+        return NumberFormat.getInstance(ThreadLocalUserContext.getLocale()).format(no) + "GB"
     }
 
     /**
