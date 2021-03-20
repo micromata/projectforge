@@ -47,7 +47,7 @@ class Attachment() {
      */
     @PropertyInfo(i18nKey = "attachment.fileName")
     var name: String? = null
-    var size: Int? = null
+    var size: Long? = null
 
     @get:JsonProperty
     val sizeHumanReadable: String

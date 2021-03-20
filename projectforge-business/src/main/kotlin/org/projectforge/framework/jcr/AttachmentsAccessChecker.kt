@@ -23,27 +23,30 @@
 
 package org.projectforge.framework.jcr
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import org.projectforge.common.DateFormatType
-import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.jcr.FileObject
-import java.util.*
 
 
 /**
  * Checks access to attachments.
  */
 interface AttachmentsAccessChecker {
-    fun checkSelectAccess(user: PFUserDO, path: String, id: Any, subPath: String? = null)
+  /**
+   * Maximum configured file size for these attachments.
+   */
+  val maxFileSize: Long
 
-    fun checkUploadAccess(user: PFUserDO, path: String, id: Any, subPath: String? = null)
+  /**
+   * Spring property to configure max file size.
+   */
+  val maxFileSizeSpringProperty: String
 
-    fun checkDownloadAccess(user: PFUserDO, path: String, id: Any, fileId: String, subPath: String?)
+  fun checkSelectAccess(user: PFUserDO, path: String, id: Any, subPath: String? = null)
 
-    fun checkUpdateAccess(user: PFUserDO, path: String, id: Any, fileId: String, subPath: String?)
+  fun checkUploadAccess(user: PFUserDO, path: String, id: Any, subPath: String? = null)
 
-    fun checkDeleteAccess(user: PFUserDO, path: String, id: Any, fileId: String, subPath: String?)
+  fun checkDownloadAccess(user: PFUserDO, path: String, id: Any, fileId: String, subPath: String?)
+
+  fun checkUpdateAccess(user: PFUserDO, path: String, id: Any, fileId: String, subPath: String?)
+
+  fun checkDeleteAccess(user: PFUserDO, path: String, id: Any, fileId: String, subPath: String?)
 }

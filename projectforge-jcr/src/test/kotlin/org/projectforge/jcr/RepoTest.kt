@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2021 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import org.projectforge.common.MaxFileSizeExceeded
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
@@ -65,12 +66,9 @@ class RepoTest {
         file.createdByUser = "fin"
         file.lastUpdate = Date()
         file.lastUpdateByUser = "kai"
-        try {
-            repoService.storeFile(file, 100L)
-            fail("Exception expected (max file size exceeded).")
-        } catch (ex: Exception) {
-            // OK
-        }
+        Assertions.assertThrows(
+            MaxFileSizeExceeded::class.java
+        ) { repoService.storeFile(file, 100L) }
         repoService.storeFile(file,10000L)
 
         checkFile(file, null, file.fileName)

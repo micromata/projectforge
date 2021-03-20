@@ -23,97 +23,121 @@
 
 package org.projectforge.rest
 
+import mu.KotlinLogging
 import org.projectforge.business.address.AddressImageDao
+import org.projectforge.framework.configuration.ConfigurationChecker
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.util.unit.DataSize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import javax.servlet.http.HttpServletRequest
 
+
+private val log = KotlinLogging.logger {}
 
 /**
  * For uploading address immages.
  */
 @RestController
 @RequestMapping("${Rest.URL}/address")
-class AddressImageServicesRest() {
+class AddressImageServicesRest {
 
-    companion object {
-        internal val SESSION_IMAGE_ATTR = "uploadedAddressImage"
+  companion object {
+    internal const val SESSION_IMAGE_ATTR = "uploadedAddressImage"
+    private const val MAX_IMAGE_SIZE_SPRING_PROPERTY = "projectforge.address.maxImageSize"
+  }
+
+  @Autowired
+  private lateinit var addressImageDao: AddressImageDao
+
+  @Value("\${$MAX_IMAGE_SIZE_SPRING_PROPERTY:500KB}")
+  private lateinit var maxImageSize: DataSize
+
+  @Autowired
+  private lateinit var configurationChecker: ConfigurationChecker
+
+  /**
+   * If given and greater 0, the image will be added to the address with the given id (pk), otherwise the image is
+   * stored in the user's session and will be used for the next update or save event.
+   */
+  @PostMapping("uploadImage/{id}")
+  fun uploadFile(@PathVariable("id") id: Int?, @RequestParam("file") file: MultipartFile, request: HttpServletRequest):
+      ResponseEntity<String> {
+    val filename = file.originalFilename
+    if (filename == null || !filename.endsWith(".png", true)) {
+      return ResponseEntity("Unsupported file: $filename. Only png files supported", HttpStatus.BAD_REQUEST)
+    }
+    val bytes = file.bytes
+    configurationChecker.checkConfiguredSpringUploadFileSize(
+      bytes.size,
+      maxImageSize.toBytes(),
+      MAX_IMAGE_SIZE_SPRING_PROPERTY,
+      filename,
+      false
+    )?.let {
+      log.error(it)
+      return ResponseEntity(
+        "Max file size exceeded for file '$filename' (see server log file). ",
+        HttpStatus.BAD_REQUEST
+      )
     }
 
-    private val log = org.slf4j.LoggerFactory.getLogger(AddressImageServicesRest::class.java)
-
-    @Autowired
-    private lateinit var addressImageDao: AddressImageDao
-
-    /**
-     * If given and greater 0, the image will be added to the address with the given id (pk), otherwise the image is
-     * stored in the user's session and will be used for the next update or save event.
-     */
-    @PostMapping("uploadImage/{id}")
-    fun uploadFile(@PathVariable("id") id: Int?, @RequestParam("file") file: MultipartFile, request: HttpServletRequest):
-            ResponseEntity<String> {
-        val filename = file.originalFilename
-        if (filename == null || !filename.endsWith(".png", true)) {
-            return ResponseEntity("Unsupported file: $filename. Only png files supported", HttpStatus.BAD_REQUEST)
-        }
-        val bytes = file.bytes
-        if (id == null || id < 0) {
-            val session = request.session
-            ExpiringSessionAttributes.setAttribute(session, SESSION_IMAGE_ATTR, bytes, 1)
-        } else {
-
-            val address = addressImageDao.saveOrUpdate(id, bytes)
-        }
-        return ResponseEntity("OK", HttpStatus.OK)
+    if (id == null || id < 0) {
+      val session = request.session
+      ExpiringSessionAttributes.setAttribute(session, SESSION_IMAGE_ATTR, bytes, 1)
+    } else {
+      val address = addressImageDao.saveOrUpdate(id, bytes)
     }
+    return ResponseEntity("OK", HttpStatus.OK)
+  }
 
-    /**
-     * @param id The id of the address the image is assigned to.
-     */
-    @GetMapping("image/{id}")
-    fun getImage(@PathVariable("id") id: Int): ResponseEntity<Resource> {
-        val image = addressImageDao.getImage(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        val resource = ByteArrayResource(image)
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("application/octet-stream"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ProjectForge-addressImage_$id.png")
-                .body(resource)
-    }
+  /**
+   * @param id The id of the address the image is assigned to.
+   */
+  @GetMapping("image/{id}")
+  fun getImage(@PathVariable("id") id: Int): ResponseEntity<Resource> {
+    val image = addressImageDao.getImage(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+    val resource = ByteArrayResource(image)
+    return ResponseEntity.ok()
+      .contentType(MediaType.parseMediaType("application/octet-stream"))
+      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ProjectForge-addressImage_$id.png")
+      .body(resource)
+  }
 
-    /**
-     * @param id The id of the address the image is assigned to.
-     */
-    @GetMapping("imagePreview/{id}")
-    fun getImagePreview(@PathVariable("id") id: Int): ResponseEntity<Resource> {
-        val image = addressImageDao.getPreviewImage(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
-        val resource = ByteArrayResource(image)
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("application/octet-stream"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ProjectForge-addressImagePreview_$id.png")
-                .body(resource)
-    }
+  /**
+   * @param id The id of the address the image is assigned to.
+   */
+  @GetMapping("imagePreview/{id}")
+  fun getImagePreview(@PathVariable("id") id: Int): ResponseEntity<Resource> {
+    val image = addressImageDao.getPreviewImage(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+    val resource = ByteArrayResource(image)
+    return ResponseEntity.ok()
+      .contentType(MediaType.parseMediaType("application/octet-stream"))
+      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ProjectForge-addressImagePreview_$id.png")
+      .body(resource)
+  }
 
-    /**
-     * If given and greater 0, the image will be deleted from the address with the given id (pk), otherwise the image is
-     * removed from the user's session and will not be used for the next update or save event anymore.
-     * @param id The id of the address the image is assigned to.
-     */
-    @DeleteMapping("deleteImage/{id}")
-    fun deleteImage(request: HttpServletRequest, @PathVariable("id") id: Int?): ResponseEntity<String> {
-        val session = request.session
-        ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
-        if (id != null && id > 0) {
-            addressImageDao.delete(id)
-        }
-        return ResponseEntity("OK", HttpStatus.OK)
+  /**
+   * If given and greater 0, the image will be deleted from the address with the given id (pk), otherwise the image is
+   * removed from the user's session and will not be used for the next update or save event anymore.
+   * @param id The id of the address the image is assigned to.
+   */
+  @DeleteMapping("deleteImage/{id}")
+  fun deleteImage(request: HttpServletRequest, @PathVariable("id") id: Int?): ResponseEntity<String> {
+    val session = request.session
+    ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
+    if (id != null && id > 0) {
+      addressImageDao.delete(id)
     }
+    return ResponseEntity("OK", HttpStatus.OK)
+  }
 }
