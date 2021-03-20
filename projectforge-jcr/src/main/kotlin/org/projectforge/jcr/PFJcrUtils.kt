@@ -80,49 +80,5 @@ object PFJcrUtils {
         return sb.toString()
     }
 
-    fun formatBytes(bytes: Int?): String {
-        return formatBytes(bytes?.toLong())
-    }
-
-    /**
-     * Pretty output of bytes, "1023 bytes", "1.1 kb", "523 kb", "1.7 Mb", "143 Gb" etc.
-     *
-     * @param bytes
-     * @return
-     */
-    fun formatBytes(bytes: Long?): String {
-        bytes ?: return "? bytes"
-        if (bytes < KILO_BYTES) {
-            return "$bytes bytes"
-        }
-        if (bytes < MEGA_BYTES) {
-            var no = BigDecimal(bytes).divide(KB_BD, 1, RoundingMode.HALF_UP)
-            if (no.toLong() >= 100) {
-                no = no.setScale(0, RoundingMode.HALF_UP)
-            }
-            return NumberFormat.getInstance().format(no) + " kb"
-        }
-        if (bytes < GIGA_BYTES) {
-            var no = BigDecimal(bytes).divide(MB_BD, 1, RoundingMode.HALF_UP)
-            if (no.toLong() >= 100) {
-                no = no.setScale(0, RoundingMode.HALF_UP)
-            }
-            return NumberFormat.getInstance().format(no) + " Mb"
-        }
-        var no = BigDecimal(bytes).divide(GB_BD, 1, RoundingMode.HALF_UP)
-        if (no.toLong() >= 100) {
-            no = no.setScale(0, RoundingMode.HALF_UP)
-        }
-        return NumberFormat.getInstance().format(no) + " Gb"
-    }
-
-    private const val KILO_BYTES = 1024
-    private val KB_BD = BigDecimal(KILO_BYTES)
-    private const val MEGA_BYTES = KILO_BYTES * 1024
-    private val MB_BD = BigDecimal(MEGA_BYTES)
-    private const val GIGA_BYTES = MEGA_BYTES * 1024
-    private val GB_BD = BigDecimal(GIGA_BYTES)
-    private val TWENTY = BigDecimal(20)
-
     private val jsDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC)
 }

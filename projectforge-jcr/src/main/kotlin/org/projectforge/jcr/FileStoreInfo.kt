@@ -23,19 +23,17 @@
 
 package org.projectforge.jcr
 
-import mu.KotlinLogging
-
-private val log = KotlinLogging.logger {}
+import org.projectforge.common.FormatterUtils
 
 /**
  * For information.
  */
 class FileStoreInfo(repoService: RepoService) {
-    val approximateSize = PFJcrUtils.formatBytes(repoService.fileStore?.stats?.approximateSize)
-    val tarFileCount = repoService.fileStore?.stats?.tarFileCount
-    val location = repoService.fileStoreLocation?.absolutePath
+  val approximateSize = FormatterUtils.formatBytes(repoService.fileStore?.stats?.approximateSize)
+  val tarFileCount = repoService.fileStore?.stats?.tarFileCount
+  val location = repoService.fileStoreLocation?.absolutePath
 
-    override fun toString(): String {
-        return PFJcrUtils.toJson(this)
-    }
+  override fun toString(): String {
+    return PFJcrUtils.toJson(this)
+  }
 }

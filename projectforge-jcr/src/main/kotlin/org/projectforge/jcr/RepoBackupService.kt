@@ -25,6 +25,7 @@ package org.projectforge.jcr
 
 import mu.KotlinLogging
 import org.apache.commons.io.FilenameUtils
+import org.projectforge.common.FormatterUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -205,7 +206,7 @@ open class RepoBackupService {
             zipOut.putNextEntry(createZipEntry(archiveName, node.path, "files.json"))
             zipOut.write(PFJcrUtils.toJson(FileObjectList(fileList)).toByteArray(StandardCharsets.UTF_8))
             zipOut.putNextEntry(createZipEntry(archiveName, node.path, "files.txt"))
-            val fileListAsString = fileList.joinToString(separator = "\n") { "${PFJcrUtils.createSafeFilename(it)} ${PFJcrUtils.formatBytes(it.size)} ${it.fileName}" }
+            val fileListAsString = fileList.joinToString(separator = "\n") { "${PFJcrUtils.createSafeFilename(it)} ${FormatterUtils.formatBytes(it.size)} ${it.fileName}" }
             zipOut.write(fileListAsString.toByteArray(StandardCharsets.UTF_8))
         }
         val nodeInfo = NodeInfo(node, false)

@@ -52,13 +52,13 @@ class RepoBackupTest {
         repoService.storeProperty("world/europe", "germany", "key", "value")
 
         var fileObject = createFileObject("/world/europe", "germany", "pom.xml")
-        repoService.storeFile(fileObject)
+        repoService.storeFile(fileObject, 100000L)
 
         fileObject = createFileObject("/world/europe", "germany", "src", "test", "resources", "logback-test.xml")
-        repoService.storeFile(fileObject)
+        repoService.storeFile(fileObject, 100000L)
 
         fileObject = createFileObject("/world/europe", "germany", "test", "files", "logo.png")
-        repoService.storeFile(fileObject)
+        repoService.storeFile(fileObject, 100000L)
         val logoFile = fileObject.content!!
 
         val zipFile = TestUtils.deleteAndCreateTestFile("fullbackup.zip")

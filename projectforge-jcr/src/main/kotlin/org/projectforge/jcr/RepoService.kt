@@ -31,6 +31,7 @@ import org.apache.jackrabbit.oak.segment.SegmentNodeStoreBuilders
 import org.apache.jackrabbit.oak.segment.file.FileStore
 import org.apache.jackrabbit.oak.segment.file.FileStoreBuilder
 import org.apache.jackrabbit.oak.spi.state.NodeStore
+import org.projectforge.common.FormatterUtils
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -43,7 +44,6 @@ import javax.jcr.Binary
 import javax.jcr.Node
 import javax.jcr.Repository
 import javax.jcr.Session
-
 
 private val log = KotlinLogging.logger {}
 
@@ -109,14 +109,14 @@ open class RepoService {
      * Content of file should be given as [FileObject.content].
      */
     @JvmOverloads
-    open fun storeFile(fileObject: FileObject, user: String? = null) {
+    open fun storeFile(fileObject: FileObject, maxFileSize: Long, user: String? = null) {
         val content = fileObject.content ?: ByteArray(0) // Assuming 0 byte file if no content is given.
         val inputStream = ByteArrayInputStream(content)
-        return storeFile(fileObject, inputStream, user)
+        return storeFile(fileObject, inputStream, maxFileSize, user)
     }
 
     @JvmOverloads
-    open fun storeFile(fileObject: FileObject, content: InputStream, user: String? = null) {
+    open fun storeFile(fileObject: FileObject, content: InputStream, maxFileSize: Long, user: String? = null) {
         val parentNodePath = fileObject.parentNodePath
         val relPath = fileObject.relPath
         if (parentNodePath == null || relPath == null) {
@@ -137,9 +137,23 @@ open class RepoService {
             try {
                 bin = session.valueFactory.createBinary(content)
                 fileNode.setProperty(PROPERTY_FILECONTENT, bin)
-                fileObject.size = bin?.size?.toInt()
+                fileObject.size = bin?.size
+                Integer.MAX_VALUE
             } finally {
                 bin?.dispose()
+            }
+            fileObject.size?.let {
+                if (it > maxFileSize) {
+                    fileNode.remove()
+                    val maxFileSizeFormatted = FormatterUtils.formatBytes(maxFileSize)
+                    val msg = "Maximum file size of $maxFileSizeFormatted exceeded. File will not be stored: $fileObject."
+                    log.error { msg }
+                    throw IllegalArgumentException(msg)
+                }
+            }
+            if (fileObject.size == null) {
+                val maxFileSizeFormatted = FormatterUtils.formatBytes(maxFileSize)
+                log.warn { "Can't check maximum file size of $maxFileSizeFormatted. Can't detect file size. File will be stored: $fileObject." }
             }
             fileObject.copyTo(fileNode)
             session.save()
