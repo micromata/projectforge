@@ -23,15 +23,21 @@
 
 package org.projectforge.plugins.datatransfer
 
+import mu.KotlinLogging
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.configuration.ConfigurationChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Repository
+import org.springframework.util.unit.DataSize
+
+private val log = KotlinLogging.logger {}
 
 /**
  * This is the base data access object class. Most functionality such as access checking, select, insert, update, save,
@@ -44,6 +50,9 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
   @Autowired
   private lateinit var domainService: DomainService
+
+  @Value("\${$MAX_FILE_SIZE_SPRING_PROPERTY:100MB}")
+  open lateinit var maxFileSize: DataSize
 
   open fun createInitializedFile(): DataTransferAreaDO {
     val file = DataTransferAreaDO()
@@ -90,6 +99,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     }
 
     const val MAX_EXTERNAL_ACCESS_RETRIES = 10
+    const val MAX_FILE_SIZE_SPRING_PROPERTY = "projectforge.plugin.datatransfer.maxFileSize"
     private const val ACCESS_TOKEN_LENGTH = 30
     private const val PASSWORD_LENGTH = 6
   }

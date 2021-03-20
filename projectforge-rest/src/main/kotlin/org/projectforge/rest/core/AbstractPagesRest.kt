@@ -1126,6 +1126,8 @@ constructor(
    */
   @JvmOverloads
   fun enableJcr(
+    maxFileSize: Long = attachmentsService.maxDefaultFileSize.toBytes(),
+    maxFileSizeSpringProperty: String = AttachmentsService.MAX_DEFAULT_FILE_SIZE_SPRING_PROPERTY,
     supportedListIds: Array<String>? = null,
     prefix: String = JCR_PATH_PREFIX,
     identifier: String? = null
@@ -1135,7 +1137,7 @@ constructor(
     } else {
       getJcrPath(baseDao.identifier)
     }
-    attachmentsAccessChecker = AttachmentsDaoAccessChecker(baseDao, jcrPath, supportedListIds)
+    attachmentsAccessChecker = AttachmentsDaoAccessChecker(baseDao, jcrPath, supportedListIds, maxFileSize, maxFileSizeSpringProperty)
   }
 
   /**
