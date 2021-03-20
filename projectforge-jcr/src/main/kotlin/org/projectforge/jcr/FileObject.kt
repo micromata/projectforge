@@ -25,6 +25,7 @@ package org.projectforge.jcr
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import mu.KotlinLogging
+import org.projectforge.common.FormatterUtils
 import java.util.*
 import javax.jcr.Node
 
@@ -59,7 +60,7 @@ class FileObject() {
         lastUpdate = PFJcrUtils.convertToDate(node.getProperty(RepoService.PROPERTY_LAST_UPDATE)?.string)
         lastUpdateByUser = node.getProperty(RepoService.PROPERTY_LAST_UPDATE_BY_USER)?.string
         fileId = node.name
-        size = node.getProperty(RepoService.PROPERTY_FILESIZE)?.long?.toInt()
+        size = node.getProperty(RepoService.PROPERTY_FILESIZE)?.long
         if (log.isDebugEnabled) {
             log.debug { "Restoring: ${PFJcrUtils.toJson(this)}" }
         }
@@ -75,7 +76,7 @@ class FileObject() {
         node.setProperty(RepoService.PROPERTY_CREATED_BY_USER, createdByUser ?: "")
         node.setProperty(RepoService.PROPERTY_LAST_UPDATE, PFJcrUtils.convertToString(lastUpdate) ?: "")
         node.setProperty(RepoService.PROPERTY_LAST_UPDATE_BY_USER, lastUpdateByUser ?: "")
-        size?.let { node.setProperty(RepoService.PROPERTY_FILESIZE, it.toLong()) }
+        size?.let { node.setProperty(RepoService.PROPERTY_FILESIZE, it) }
         log.info { "Storing file info: ${PFJcrUtils.toJson(this)}" }
     }
 
@@ -91,7 +92,7 @@ class FileObject() {
     var content: ByteArray? = null
         set(value) {
             field = value
-            size = value?.size
+            size = value?.size?.toLong()
         }
 
     /**
@@ -103,7 +104,7 @@ class FileObject() {
     /**
      * The file size if known (length of content).
      */
-    var size: Int? = null
+    var size: Long? = null
         internal set
 
     /**
@@ -125,7 +126,7 @@ class FileObject() {
      * This node specified by this location contains a child node named [RepoService.NODENAME_FILES], where
      * the file node with id as name resists.
      */
-    val location: String?
+    val location: String
         get() = "${RepoService.getAbsolutePath(parentNodePath, relPath)}"
 
     /**
@@ -139,6 +140,6 @@ class FileObject() {
     var relPath: String? = null
 
     override fun toString(): String {
-        return "location=[$location],id=[$fileId],fileName=[$fileName],size=[$size]"
+        return "location=[$location],id=[$fileId],fileName=[$fileName],size=[${FormatterUtils.formatBytes(size)}]"
     }
 }

@@ -65,7 +65,13 @@ class RepoTest {
         file.createdByUser = "fin"
         file.lastUpdate = Date()
         file.lastUpdateByUser = "kai"
-        repoService.storeFile(file)
+        try {
+            repoService.storeFile(file, 100L)
+            fail("Exception expected (max file size exceeded).")
+        } catch (ex: Exception) {
+            // OK
+        }
+        repoService.storeFile(file,10000L)
 
         checkFile(file, null, file.fileName)
         checkFile(file, file.fileId, null)
