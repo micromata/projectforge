@@ -43,6 +43,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.poi.ss.formula.functions.T;
+import org.hibernate.Hibernate;
 import org.hibernate.proxy.HibernateProxy;
 import org.projectforge.framework.ToStringUtil;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
@@ -116,7 +118,7 @@ public class BaseDaoJpaAdapter {
   }
 
   @SuppressWarnings("unchecked")
-  public static ModificationStatus copyValues(final BaseDO src, final BaseDO dest, final String... ignoreFields) {
+  public static ModificationStatus copyValues(BaseDO src, final BaseDO dest, final String... ignoreFields) {
     if (!ClassUtils.isAssignable(src.getClass(), dest.getClass())) {
       throw new RuntimeException("Try to copyValues from different BaseDO classes: this from type "
               + dest.getClass().getName()
@@ -126,6 +128,11 @@ public class BaseDaoJpaAdapter {
     }
     if (src.getId() != null && (ignoreFields == null || !ArrayUtils.contains(ignoreFields, "id"))) {
       dest.setId(src.getId());
+    }
+    Hibernate.initialize(src);
+    if (src instanceof HibernateProxy) {
+      src = (BaseDO) ((HibernateProxy) src).getHibernateLazyInitializer()
+          .getImplementation();
     }
     return copyDeclaredFields(src.getClass(), src, dest, ignoreFields);
   }
