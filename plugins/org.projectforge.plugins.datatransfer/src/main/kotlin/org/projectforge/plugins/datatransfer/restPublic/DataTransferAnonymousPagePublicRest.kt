@@ -24,23 +24,24 @@
 package org.projectforge.plugins.datatransfer.restPublic
 
 import mu.KotlinLogging
+import org.projectforge.business.login.LoginResultStatus
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
-import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
-import org.projectforge.plugins.datatransfer.rest.DataTransferArea
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.ServerData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -70,27 +71,107 @@ class DataTransferPagePublicRest : AbstractDynamicPageRest() {
       )
   }
 
-  @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
-    val id = NumberHelper.parseInteger(idString) ?: throw IllegalAccessException("Parameter id not an int.")
-    val dataTransferDO = dataTransferAreaDao.internalGetById(id)
-    val dataTransfer = DataTransferArea()
-    dataTransfer.id = dataTransferDO.id
-    dataTransfer.areaName = dataTransferDO.areaName
-    dataTransfer.description = dataTransferDO.description
+  @PostMapping("login")
+  fun login(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    @RequestBody postData: PostData<DataTransferAnonymousArea>
+  )
+      : ResponseAction {
+    val dataTransfer = postData.data
+    val requestResult =
+      dataTransferAreaDao.getAnonymousArea(dataTransfer.externalAccessToken, dataTransfer.externalPassword)
+    if (requestResult.accessStatus != DataTransferAreaDao.AccessStatus.SUCCESS) {
+      response.status = 400
+      return ResponseAction(targetType = TargetType.UPDATE)
+        .addVariable("ui", getLoginLayout(requestResult.accessStatus))
+    }
+    dataTransfer.copyFrom(requestResult.dataTransferArea!!)
     dataTransfer.attachments =
-      attachmentsService.getAttachments(dataTransferAreaPagesRest.jcrPath!!, id, attachmentsAccessChecker)
-    dataTransfer.externalLinkBaseUrl = dataTransferAreaDao.getExternalBaseLinkUrl()
-    val layout = UILayout("plugins.datatransfer.title.heading")
+      attachmentsService.getAttachments(
+        dataTransferAreaPagesRest.jcrPath!!,
+        dataTransfer.id!!,
+        attachmentsAccessChecker
+      )
+    return ResponseAction(targetType = TargetType.UPDATE)
+      .addVariable("ui", getAttachmentLayout(dataTransfer))
+      .addVariable("data", dataTransfer)
+  }
+
+  @GetMapping("dynamic")
+  fun getForm(request: HttpServletRequest, @RequestParam("id") externalAccessToken: String?): FormLayoutData {
+    val dataTransfer = DataTransferAnonymousArea()
+    dataTransfer.areaName = translate("plugins.datatransfer.title.heading")
+    dataTransfer.externalAccessToken = externalAccessToken
+
+    return FormLayoutData(dataTransfer, this.getLoginLayout(), ServerData())
+  }
+
+  private fun getAttachmentLayout(dataTransfer: DataTransferAnonymousArea): UILayout {
     val fieldSet = UIFieldset(12, title = "'${dataTransfer.areaName}")
     fieldSet.add(
       UIFieldset(title = "attachment.list")
-        .add(UIAttachmentList("datatransfer", id))
+        .add(UIAttachmentList("datatransfer", 28738162))
     )
-    layout.add(fieldSet)
-
+    val layout = UILayout("plugins.datatransfer.title.heading")
+      .add(fieldSet)
     LayoutUtils.process(layout)
-    layout.postProcessPageMenu()
-    return FormLayoutData(dataTransfer, layout, createServerData(request))
+    return layout
   }
+
+  private fun getLoginLayout(accessStatus: DataTransferAreaDao.AccessStatus? = null): UILayout {
+    val responseAction =
+      ResponseAction(RestResolver.getRestUrl(this::class.java, "login"), targetType = TargetType.POST)
+
+    val formCol = UICol(length = UILength(12, md = 6, lg = 4), offset = UILength(0, md = 3, lg = 4))
+
+    if (accessStatus != null) {
+      val msg = if (accessStatus == DataTransferAreaDao.AccessStatus.MAX_RETRIES_EXCEEDED) {
+        translate("plugins.datatransfer.external.accessFailedCounter.exceeded.message")
+      } else {
+        translate("login.error.loginFailed")
+      }
+      formCol.add(
+        UIAlert("'$msg", color = UIColor.DANGER, icon = UIIconType.USER_LOCK)
+      )
+    }
+
+    formCol
+      .add(
+        UIInput(
+          "externalAccessToken",
+          required = true,
+          label = "plugins.datatransfer.external.accessToken",
+          autoComplete = UIInput.AutoCompleteType.USERNAME
+        )
+      )
+      .add(
+        UIInput(
+          "externalPassword",
+          required = true,
+          label = "password",
+          focus = true,
+          dataType = UIDataType.PASSWORD,
+          autoComplete = UIInput.AutoCompleteType.CURRENT_PASSWORD
+        )
+      )
+      .add(
+        UIButton(
+          "login",
+          translate("login"),
+          UIColor.SUCCESS,
+          responseAction = responseAction,
+          default = true
+        )
+      )
+
+    val layout = UILayout("plugins.datatransfer.title.heading")
+      .add(
+        UIRow()
+          .add(formCol)
+      )
+    LayoutUtils.process(layout)
+    return layout
+  }
+
 }
