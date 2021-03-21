@@ -101,13 +101,13 @@ public class WebXMLInitializer implements ServletContextInitializer {
               .log("(cross origin allowed)")
               .logEnd();
       sc.addFilter("cors", new CORSFilter()).addMappingForUrlPatterns(null, false,
-              "/" + RestPaths.REST_WEB_APP + "/*",
-              "/" + RestPaths.REST_WEB_APP_PUBLIC + "/*"); // Needed for login service.
+              "/" + RestPaths.REST + "/*",
+              "/" + RestPaths.REST_PUBLIC + "/*"); // Needed for login service.
     }
 
     RestUtils.registerFilter(sc, "restUserFilter", RestUserFilter.class, false,
-            "/" + RestPaths.REST + "/*",
-            "/" + RestPaths.REST_WEB_APP + "/*");
+            "/" + RestPaths.OLD_REST + "/*",
+            "/" + RestPaths.REST + "/*");
     RestUtils.registerFilter(sc, "calendarSubscriptionFilter", RestCalendarSubscriptionUserFilter.class, false, Rest.CALENDAR_EXPORT_BASE_URI);
 
     final FilterRegistration expire = sc.addFilter("expire", ResponseHeaderFilter.class);

@@ -41,7 +41,7 @@ public class TeamCalClientMain {
     final Client client = ClientBuilder.newClient();
     final UserObject user = RestClientMain.authenticate(client);
 
-    WebTarget webResource = client.target(RestClientMain.getUrl() + RestPaths.buildListPath(RestPaths.TEAMCAL));
+    WebTarget webResource = client.target(RestClientMain.getUrl() + RestPaths.buildOldListPath(RestPaths.TEAMCAL));
     Response response = RestClientMain.getClientResponse(webResource, user);
     if (response.getStatus() != Response.Status.OK.getStatusCode()) {
       throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
@@ -53,7 +53,7 @@ public class TeamCalClientMain {
       log.info(calendar.toString());
     }
 
-    webResource = client.target(RestClientMain.getUrl() + RestPaths.buildListPath(RestPaths.TEAMEVENTS))
+    webResource = client.target(RestClientMain.getUrl() + RestPaths.buildOldListPath(RestPaths.TEAMEVENTS))
     // .queryParam("calendarIds", "1292975,1240526,1240528");
     ;
     response = RestClientMain.getClientResponse(webResource, user);
