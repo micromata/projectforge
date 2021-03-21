@@ -29,7 +29,7 @@ import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO
 
-class DataTransferAnonymousArea(
+class DataTransferPublicArea(
   id: Int? = null,
   var areaName: String? = null,
   var description: String? = null,

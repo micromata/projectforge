@@ -29,6 +29,7 @@ import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.config.Rest
@@ -52,7 +53,7 @@ private val log = KotlinLogging.logger {}
  */
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/datatransfer")
-class DataTransferPagePublicRest : AbstractDynamicPageRest() {
+class DataTransferPublicPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var attachmentsService: AttachmentsService
 
@@ -67,7 +68,7 @@ class DataTransferPagePublicRest : AbstractDynamicPageRest() {
   @PostConstruct
   private fun postConstruct() {
     attachmentsAccessChecker =
-      DataTransferExternalAnonymousAccessChecker(
+      DataTransferPublicAccessChecker(
         dataTransferAreaDao.maxFileSize.toBytes(),
         DataTransferAreaDao.MAX_FILE_SIZE_SPRING_PROPERTY
       )
@@ -77,7 +78,7 @@ class DataTransferPagePublicRest : AbstractDynamicPageRest() {
   fun login(
     request: HttpServletRequest,
     response: HttpServletResponse,
-    @RequestBody postData: PostData<DataTransferAnonymousArea>
+    @RequestBody postData: PostData<DataTransferPublicArea>
   )
       : ResponseAction {
     val externalAccessToken = postData.data.externalAccessToken
@@ -116,7 +117,7 @@ class DataTransferPagePublicRest : AbstractDynamicPageRest() {
     // Successfully logged in:
     loginProtection.clearLoginTimeOffset(externalAccessToken, null, clientIpAddress)
 
-    val data = DataTransferAnonymousArea()
+    val data = DataTransferPublicArea()
     data.copyFrom(dbo)
     data.attachments =
       attachmentsService.getAttachments(
@@ -131,18 +132,26 @@ class DataTransferPagePublicRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") externalAccessToken: String?): FormLayoutData {
-    val dataTransfer = DataTransferAnonymousArea()
+    val dataTransfer = DataTransferPublicArea()
     dataTransfer.areaName = translate("plugins.datatransfer.title.heading")
     dataTransfer.externalAccessToken = externalAccessToken
 
     return FormLayoutData(dataTransfer, this.getLoginLayout(), ServerData())
   }
 
-  private fun getAttachmentLayout(dataTransfer: DataTransferAnonymousArea): UILayout {
+  private fun getAttachmentLayout(dataTransfer: DataTransferPublicArea): UILayout {
     val fieldSet = UIFieldset(12, title = "'${dataTransfer.areaName}")
     fieldSet.add(
       UIFieldset(title = "attachment.list")
-        .add(UIAttachmentList("datatransfer", 28738162))
+        .add(
+          UIAttachmentList(
+            "datatransfer",
+            dataTransfer.id,
+            serviceBaseUrl = "/${RestResolver.REACT_PUBLIC_PATH}/datatransferattachment/dynamic",
+            restBaseUrl = "/${RestPaths.REST_PUBLIC}/datatransfer",
+            accessString = "${dataTransfer.externalAccessToken}|${dataTransfer.externalPassword}"
+          )
+        )
     )
     val layout = UILayout("plugins.datatransfer.title.heading")
       .add(fieldSet)

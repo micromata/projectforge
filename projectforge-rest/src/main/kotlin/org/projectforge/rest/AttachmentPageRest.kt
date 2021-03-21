@@ -47,67 +47,109 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.URL}/attachment")
 class AttachmentPageRest : AbstractDynamicPageRest() {
-    @Autowired
-    private lateinit var services: AttachmentsServicesRest
+  @Autowired
+  private lateinit var services: AttachmentsServicesRest
 
-    /**
-     * The react path of this should look like: 'react/attachment/dynamic/42?category=contract...'
-     * @param id: Id of data object with attachments.
-     */
-    @GetMapping("dynamic")
-    fun getForm(@RequestParam("id", required = true) id: Int,
-                @RequestParam("category", required = true) category: String,
-                @RequestParam("fileId", required = true) fileId: String,
-                @RequestParam("listId") listId: String?,
-                request: HttpServletRequest): FormLayoutData? {
-        log.info { "User tries to edit/view details of attachment: category='$category', id='$id', listId='$listId', fileId='$fileId', page='${this::class.java.name}'." }
-        val pagesRest = services.getPagesRest(category, listId)
-        services.getDataObject(pagesRest, id) // Check data object availability.
-        val data = AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
-        data.attachment = services.getAttachment(pagesRest, data)
-        val layout = UILayout("attachment")
+  /**
+   * The react path of this should look like: 'react/attachment/dynamic/42?category=contract...'
+   * @param id: Id of data object with attachments.
+   */
+  @GetMapping("dynamic")
+  fun getForm(
+    @RequestParam("id", required = true) id: Int,
+    @RequestParam("category", required = true) category: String,
+    @RequestParam("fileId", required = true) fileId: String,
+    @RequestParam("listId") listId: String?,
+    request: HttpServletRequest
+  ): FormLayoutData {
+    log.info { "User tries to edit/view details of attachment: category='$category', id='$id', listId='$listId', fileId='$fileId', page='${this::class.java.name}'." }
+    val pagesRest = services.getPagesRest(category, listId)
+    services.getDataObject(pagesRest, id) // Check data object availability.
+    val data = AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
+    data.attachment = services.getAttachment(pagesRest, data)
+    val layout = createAttachmentLayout(id, category, fileId, listId)
+    return FormLayoutData(data, layout, createServerData(request))
+  }
 
-        val lc = LayoutContext(Attachment::class.java)
+  companion object {
+    fun createAttachmentLayout(id: Int, category: String, fileId: String, listId: String?): UILayout {
+      val layout = UILayout("attachment")
 
-        layout
-                .add(lc, "attachment.name")
-                .add(UITextArea("attachment.description", lc))
-                .add(UIRow()
-                        .add(UICol(UILength(md = 6))
-                                .add(UIReadOnlyField("attachment.sizeHumanReadable", label = "attachment.fileSize")))
-                        .add(UICol(UILength(md = 6))
-                                .add(UIReadOnlyField("attachment.fileId", label = "attachment.fileId"))))
-                .add(UIRow()
-                        .add(UICol(UILength(md = 6))
-                                .add(UIReadOnlyField("attachment.createdFormatted", label = "created"))
-                                .add(UIReadOnlyField("attachment.createdByUser", label = "createdBy")))
-                        .add(UICol(UILength(md = 6))
-                                .add(UIReadOnlyField("attachment.lastUpdateFormatted", label = "modified"))
-                                .add(UIReadOnlyField("attachment.lastUpdateByUser", label = "modifiedBy"))))
+      val lc = LayoutContext(Attachment::class.java)
 
-        if (SystemStatus.isDevelopmentMode()) {
-            log.warn { "*************** To implement: DOWNLOAD target not yet supported by src/actions/form.js:216: callAction"}
-            layout.addAction(UIButton("download",
-                    translate("download"),
-                    UIColor.LINK,
-                    responseAction = ResponseAction(RestResolver.getRestUrl(AttachmentsServicesRest::class.java, "download/$category/$id?fileId=$fileId&listId=$listId"),
-                            targetType = TargetType.DOWNLOAD),
-                    default = true))
-        }
-        layout.addAction(UIButton("delete",
-                translate("delete"),
-                UIColor.DANGER,
-                confirmMessage = translate("file.panel.deleteExistingFile.heading"),
-                responseAction = ResponseAction(RestResolver.getRestUrl(AttachmentsServicesRest::class.java, "delete"), targetType = TargetType.POST),
-                default = true))
-                .addAction(UIButton("update",
-                        translate("update"),
-                        UIColor.SUCCESS,
-                        responseAction = ResponseAction(RestResolver.getRestUrl(AttachmentsServicesRest::class.java, "modify"), targetType = TargetType.POST),
-                        default = true)
-                )
-        LayoutUtils.process(layout)
+      layout
+        .add(lc, "attachment.name")
+        .add(UITextArea("attachment.description", lc))
+        .add(
+          UIRow()
+            .add(
+              UICol(UILength(md = 6))
+                .add(UIReadOnlyField("attachment.sizeHumanReadable", label = "attachment.fileSize"))
+            )
+            .add(
+              UICol(UILength(md = 6))
+                .add(UIReadOnlyField("attachment.fileId", label = "attachment.fileId"))
+            )
+        )
+        .add(
+          UIRow()
+            .add(
+              UICol(UILength(md = 6))
+                .add(UIReadOnlyField("attachment.createdFormatted", label = "created"))
+                .add(UIReadOnlyField("attachment.createdByUser", label = "createdBy"))
+            )
+            .add(
+              UICol(UILength(md = 6))
+                .add(UIReadOnlyField("attachment.lastUpdateFormatted", label = "modified"))
+                .add(UIReadOnlyField("attachment.lastUpdateByUser", label = "modifiedBy"))
+            )
+        )
 
-        return FormLayoutData(data, layout, createServerData(request))
+      if (SystemStatus.isDevelopmentMode()) {
+        log.warn { "*************** To implement: DOWNLOAD target not yet supported by src/actions/form.js:216: callAction" }
+        layout.addAction(
+          UIButton(
+            "download",
+            translate("download"),
+            UIColor.LINK,
+            responseAction = ResponseAction(
+              RestResolver.getRestUrl(
+                AttachmentsServicesRest::class.java,
+                "download/$category/$id?fileId=$fileId&listId=$listId"
+              ),
+              targetType = TargetType.DOWNLOAD
+            ),
+            default = true
+          )
+        )
+      }
+      layout.addAction(
+        UIButton(
+          "delete",
+          translate("delete"),
+          UIColor.DANGER,
+          confirmMessage = translate("file.panel.deleteExistingFile.heading"),
+          responseAction = ResponseAction(
+            RestResolver.getRestUrl(AttachmentsServicesRest::class.java, "delete"),
+            targetType = TargetType.POST
+          ),
+          default = true
+        )
+      )
+        .addAction(
+          UIButton(
+            "update",
+            translate("update"),
+            UIColor.SUCCESS,
+            responseAction = ResponseAction(
+              RestResolver.getRestUrl(AttachmentsServicesRest::class.java, "modify"),
+              targetType = TargetType.POST
+            ),
+            default = true
+          )
+        )
+      LayoutUtils.process(layout)
+      return layout
     }
+  }
 }
