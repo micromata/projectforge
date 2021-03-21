@@ -41,6 +41,7 @@ import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.login.LoginHandlerService
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
@@ -204,27 +205,7 @@ open class LoginPageRest {
     }
 
     private fun getClientIp(request: ServletRequest): String? {
-        var remoteAddr: String? = null
-        if (request is HttpServletRequest) {
-            remoteAddr = request.getHeader("X-Forwarded-For")
-        }
-        if (remoteAddr != null) {
-            if (remoteAddr.contains(",")) {
-                // sometimes the header is of form client ip,proxy 1 ip,proxy 2 ip,...,proxy n ip,
-                // we just want the client
-                remoteAddr = remoteAddr.split(',')[0].trim({ it <= ' ' })
-            }
-            try {
-                // If ip4/6 address string handed over, simply does pattern validation.
-                InetAddress.getByName(remoteAddr)
-            } catch (e: UnknownHostException) {
-                remoteAddr = request.remoteAddr
-            }
-
-        } else {
-            remoteAddr = request.remoteAddr
-        }
-        return remoteAddr
+      return RestUtils.getClientIp(request)
     }
 
     private fun getTenantRegistry(): TenantRegistry {

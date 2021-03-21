@@ -28,38 +28,83 @@ import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.core.SessionCsrfCache
 import org.projectforge.ui.ValidationError
+import java.net.InetAddress
+import java.net.UnknownHostException
 import javax.servlet.Filter
 import javax.servlet.FilterRegistration
 import javax.servlet.ServletContext
+import javax.servlet.ServletRequest
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
 object RestUtils {
-    @JvmStatic
-    fun registerFilter(sc: ServletContext, name: String, filterClass: Class<out Filter?>, isMatchAfter: Boolean, vararg patterns: String?): FilterRegistration {
-        val filterRegistration: FilterRegistration = sc.addFilter(name, filterClass)
-        filterRegistration.addMappingForUrlPatterns(null, isMatchAfter, *patterns)
-        log.info("Registering filter '" + name + "' of class '" + filterClass.name + "' for urls: " + StringHelper.listToString(", ", *patterns))
-        return filterRegistration
-    }
+  @JvmStatic
+  fun registerFilter(
+    sc: ServletContext,
+    name: String,
+    filterClass: Class<out Filter?>,
+    isMatchAfter: Boolean,
+    vararg patterns: String?
+  ): FilterRegistration {
+    val filterRegistration: FilterRegistration = sc.addFilter(name, filterClass)
+    filterRegistration.addMappingForUrlPatterns(null, isMatchAfter, *patterns)
+    log.info(
+      "Registering filter '" + name + "' of class '" + filterClass.name + "' for urls: " + StringHelper.listToString(
+        ", ",
+        *patterns
+      )
+    )
+    return filterRegistration
+  }
 
-    /**
-     * Checks the CSRF token. If the user is logged in by an authenticationToken [RestAuthenticationInfo.loggedInByAuthenticationToken] and the CSRF token is missed no check will be done.
-     * Therefore pure Rest clients may not care about the CSRF token.
-     */
-    @JvmStatic
-    fun checkCsrfToken(request: HttpServletRequest, sessionCsrfCache: SessionCsrfCache, csrfToken: String?, logInfo: String, logData: Any?): ValidationError? {
-        if (csrfToken.isNullOrBlank() && ThreadLocalUserContext.getUserContext()?.loggedInByAuthenticationToken == true) {
-            if (log.isDebugEnabled) {
-                log.debug { "User '${ThreadLocalUserContext.getUser()?.username}' logged in by rest call, not by session." }
-            }
-            return null
-        }
-        if (!sessionCsrfCache.checkToken(request, csrfToken)) {
-            log.warn("Check of CSRF token failed, a validation error will be shown. $logInfo declined: ${logData}")
-            return ValidationError.create("errorpage.csrfError")
-        }
-        return null
+  /**
+   * Checks the CSRF token. If the user is logged in by an authenticationToken [RestAuthenticationInfo.loggedInByAuthenticationToken] and the CSRF token is missed no check will be done.
+   * Therefore pure Rest clients may not care about the CSRF token.
+   */
+  @JvmStatic
+  fun checkCsrfToken(
+    request: HttpServletRequest,
+    sessionCsrfCache: SessionCsrfCache,
+    csrfToken: String?,
+    logInfo: String,
+    logData: Any?
+  ): ValidationError? {
+    if (csrfToken.isNullOrBlank() && ThreadLocalUserContext.getUserContext()?.loggedInByAuthenticationToken == true) {
+      if (log.isDebugEnabled) {
+        log.debug { "User '${ThreadLocalUserContext.getUser()?.username}' logged in by rest call, not by session." }
+      }
+      return null
     }
+    if (!sessionCsrfCache.checkToken(request, csrfToken)) {
+      log.warn("Check of CSRF token failed, a validation error will be shown. $logInfo declined: ${logData}")
+      return ValidationError.create("errorpage.csrfError")
+    }
+    return null
+  }
+
+  @JvmStatic
+  fun getClientIp(request: ServletRequest): String? {
+    var remoteAddr: String? = null
+    if (request is HttpServletRequest) {
+      remoteAddr = request.getHeader("X-Forwarded-For")
+    }
+    if (remoteAddr != null) {
+      if (remoteAddr.contains(",")) {
+        // sometimes the header is of form client ip,proxy 1 ip,proxy 2 ip,...,proxy n ip,
+        // we just want the client
+        remoteAddr = remoteAddr.split(',')[0].trim({ it <= ' ' })
+      }
+      try {
+        // If ip4/6 address string handed over, simply does pattern validation.
+        InetAddress.getByName(remoteAddr)
+      } catch (e: UnknownHostException) {
+        remoteAddr = request.remoteAddr
+      }
+
+    } else {
+      remoteAddr = request.remoteAddr
+    }
+    return remoteAddr
+  }
 }
