@@ -225,7 +225,11 @@ open class AttachmentsService {
     inputStream: InputStream,
     enableSearchIndex: Boolean,
     accessChecker: AttachmentsAccessChecker,
-    subPath: String? = null
+    subPath: String? = null,
+    /**
+     * Only for external users. Otherwise logged in user will be assumed.
+     */
+    userString: String? = null
   ): Attachment {
     developerWarning(path, id, "addAttachment", enableSearchIndex)
     accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = id, subPath = subPath)
@@ -236,7 +240,7 @@ open class AttachmentsService {
       inputStream,
       accessChecker.maxFileSize,
       accessChecker.maxFileSizeSpringProperty,
-      ThreadLocalUserContext.getUserId()!!.toString()
+      userString ?: ThreadLocalUserContext.getUserId()!!.toString()
     )
     return createAttachment(fileObject)
   }
@@ -252,13 +256,17 @@ open class AttachmentsService {
     baseDao: BaseDao<out ExtendedBaseDO<Int>>,
     obj: ExtendedBaseDO<Int>,
     accessChecker: AttachmentsAccessChecker,
-    subPath: String? = null
+    subPath: String? = null,
+    /**
+     * Only for external users. Otherwise logged in user will be assumed.
+     */
+    userString: String? = null
   )
       : Attachment {
     accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = obj.id, subPath = subPath)
     val attachment =
-      addAttachment(path, obj.id, fileName, inputStream, false, accessChecker, subPath)
-    updateAttachmentsInfo(path, baseDao, obj, subPath)
+      addAttachment(path, obj.id, fileName, inputStream, false, accessChecker, subPath, userString)
+    updateAttachmentsInfo(path, baseDao, obj, subPath, userString)
     if (obj is DefaultBaseDO && obj is AttachmentsInfo) {
       val dbObj = baseDao.getById(obj.id) as AttachmentsInfo
       dbObj.attachmentsLastUserAction = "Attachment uploaded: '$fileName'."
@@ -414,12 +422,20 @@ open class AttachmentsService {
     path: String,
     baseDao: BaseDao<out ExtendedBaseDO<Int>>,
     obj: ExtendedBaseDO<Int>,
-    subPath: String? = null
+    subPath: String? = null,
+    /**
+     * Only for external users. Otherwise logged in user will be assumed.
+     */
+    userString: String? = null
   ) {
     if (obj !is AttachmentsInfo) {
       return // Nothing to do.
     }
-    val dbObj = baseDao.getById(obj.id)
+    val dbObj = if (userString != null) {
+      baseDao.internalGetById(obj.id)
+    } else {
+      baseDao.getById(obj.id)
+    }
     if (dbObj is AttachmentsInfo) {
       // TODO: multiple subPath support (all attachments of all lists should be used for indexing).
       if (subPath != null) {
@@ -435,7 +451,12 @@ open class AttachmentsService {
         dbObj.attachmentsIds = null
         dbObj.attachmentsSize = null
       }
-      baseDao.updateAny(dbObj)
+      if (userString != null) {
+        // Without access checking, because there is no logged-in user.
+        baseDao.internalUpdateAny(dbObj)
+      } else {
+        baseDao.updateAny(dbObj)
+      }
     } else {
       val msg =
         "Can't update search index of ${dbObj::class.java.name}. Dear developer, it's not of type ${AttachmentsInfo::class.java.name}!"
