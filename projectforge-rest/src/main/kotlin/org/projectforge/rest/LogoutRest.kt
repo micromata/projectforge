@@ -28,6 +28,7 @@ import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
@@ -75,6 +76,6 @@ open class LogoutRest {
         if (stayLoggedInCookie != null) {
             response.addCookie(stayLoggedInCookie)
         }
-        return ResponseAction(url = "/react/public/login", targetType = TargetType.CHECK_AUTHENTICATION)
+        return ResponseAction(url = "/${RestResolver.REACT_PUBLIC_PATH}/login", targetType = TargetType.CHECK_AUTHENTICATION)
     }
 }
