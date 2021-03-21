@@ -24,20 +24,22 @@
 package org.projectforge.plugins.datatransfer.restPublic
 
 import mu.KotlinLogging
+import org.projectforge.common.MaxFileSizeExceeded
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
+import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
+import org.projectforge.ui.UIToast
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.io.InputStreamResource
-import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import java.nio.charset.StandardCharsets
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
@@ -80,11 +82,85 @@ class DataTransferPublicServicesRest {
     @RequestParam("accessString") accessString: String?
   )
       : ResponseEntity<*> {
+    log.info { "User tries to download attachment: category=$category, id=$id, fileId=$fileId, listId=$listId)}." }
+    checkAccess(request, category, accessString)?.let { return it }
+    val result =
+      attachmentsService.getAttachmentInputStream(
+        dataTransferAreaPageRest.jcrPath!!,
+        id,
+        fileId,
+        attachmentsAccessChecker
+      )
+        ?: throw TechnicalException(
+          "File to download not accessible for user or not found: category=$category, id=$id, fileId=$fileId, listId=$listId)}."
+        )
+
+    val filename = result.first.fileName ?: "file"
+    val inputStream = result.second
+    return RestUtils.downloadFile(filename, inputStream)
+  }
+
+  @PostMapping("upload/{category}/{id}/{listId}")
+  fun uploadAttachment(
+    request: HttpServletRequest,
+    @PathVariable("category", required = true) category: String,
+    @PathVariable("id", required = true) id: Int,
+    @PathVariable("listId") listId: String?,
+    @RequestParam("file") file: MultipartFile,
+    @RequestParam("accessString") accessString: String?
+  )
+  //@RequestParam("files") files: Array<MultipartFile>)
+      : ResponseEntity<*>? {
+    //files.forEach { file ->
+    val filename = file.originalFilename
+    log.info { "User tries to upload attachment: id='$id', listId='$listId', filename='$filename', page='${this::class.java.name}'." }
+
+    checkAccess(request, category, accessString)?.let { return it }
+
+    val obj = dataTransferAreaDao.internalGetById(id)
+      ?: throw TechnicalException(
+        "Entity with id $id not accessible for category '$category' or doesn't exist.",
+        "Entity with id unknown."
+      )
+
+    try {
+      attachmentsService.addAttachment(
+        dataTransferAreaPageRest.jcrPath!!,
+        fileName = file.originalFilename,
+        inputStream = file.inputStream,
+        baseDao = dataTransferAreaDao,
+        obj = obj,
+        accessChecker = attachmentsAccessChecker,
+        userString = "external: ${RestUtils.getClientIp(request)}"
+      )
+    } catch (ex: MaxFileSizeExceeded) {
+      return ResponseEntity.ok(
+        UIToast.createMaxFileExceededToast(
+          ex.fileName,
+          ex.fileSize,
+          attachmentsAccessChecker.maxFileSize
+        )
+      )
+    }
+    //}
+    val list =
+      attachmentsService.getAttachments(dataTransferAreaPageRest.jcrPath!!, id, attachmentsAccessChecker, listId)
+    return ResponseEntity.ok()
+      .body(
+        ResponseAction(targetType = TargetType.UPDATE, merge = true)
+          .addVariable("data", AttachmentsServicesRest.ResponseData(list))
+      )
+  }
+
+  private fun checkAccess(
+    request: HttpServletRequest,
+    category: String,
+    accessString: String?
+  ): ResponseEntity<String>? {
     check(category == "datatransfer")
     check(accessString?.contains('|') == true)
     val credentials = accessString!!.split('|')
     check(credentials.size == 2)
-    log.info { "User tries to download attachment: category=$category, id=$id, fileId=$fileId, listId=$listId)}." }
     val externalAccessToken = credentials[0]
     val externalPassword = credentials[1]
     val checkAccess =
@@ -94,16 +170,6 @@ class DataTransferPublicServicesRest {
         .contentType(MediaType("text", "plain", StandardCharsets.UTF_8))
         .body(it)
     }
-    val data = checkAccess.data!!
-
-    val result =
-      attachmentsService.getAttachmentInputStream(dataTransferAreaPageRest.jcrPath!!, id, fileId, attachmentsAccessChecker)
-        ?: throw TechnicalException(
-          "File to download not accessible for user or not found: category=$category, id=$id, fileId=$fileId, listId=$listId)}."
-        )
-
-    val filename = result.first.fileName ?: "file"
-    val inputStream = result.second
-    return RestUtils.downloadFile(filename, inputStream)
+    return null
   }
 }

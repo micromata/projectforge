@@ -29,9 +29,10 @@ function DynamicAttachmentList(
     const uploadFile = (files) => {
         const formData = new FormData();
         formData.append('file', files[0]);
+        const params = accessString ? `?accessString=${encodeURIComponent(accessString)}` : ''
         fetch(
             // Set the image with id -1, so the image will be set in the session.
-            getServiceURL(`${restBaseUrl}/upload/${category}/${id}/${listId}`),
+            getServiceURL(`${restBaseUrl}/upload/${category}/${id}/${listId}${params}`),
             {
                 credentials: 'include',
                 method: 'POST',
