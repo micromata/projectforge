@@ -186,7 +186,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     val inputStream = result.second
     return ResponseEntity.ok()
       .contentType(MediaType.parseMediaType("application/octet-stream"))
-      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=\"${filename.replace('"', '_')}\"")
+      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${filename.replace('"', '_')}\"")
       .body(InputStreamResource(inputStream))
   }
 
