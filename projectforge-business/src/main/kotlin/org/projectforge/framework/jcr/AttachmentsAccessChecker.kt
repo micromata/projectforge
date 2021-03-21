@@ -40,13 +40,28 @@ interface AttachmentsAccessChecker {
    */
   val maxFileSizeSpringProperty: String
 
-  fun checkSelectAccess(user: PFUserDO, path: String, id: Any, subPath: String? = null)
+  /**
+   * user may null for external access (if allowed). see DataTransfer tool.
+   */
+  fun checkSelectAccess(user: PFUserDO?, path: String, id: Any, subPath: String? = null)
 
-  fun checkUploadAccess(user: PFUserDO, path: String, id: Any, subPath: String? = null)
+  /**
+   * user may null for external access (if allowed). see DataTransfer tool.
+   */
+  fun checkUploadAccess(user: PFUserDO?, path: String, id: Any, subPath: String? = null)
 
-  fun checkDownloadAccess(user: PFUserDO, path: String, id: Any, fileId: String, subPath: String?)
+  /**
+   * user may null for external access (if allowed). see DataTransfer tool.
+   */
+  fun checkDownloadAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?)
 
-  fun checkUpdateAccess(user: PFUserDO, path: String, id: Any, fileId: String, subPath: String?)
+  /**
+   * user may null for external access (if allowed). see DataTransfer tool.
+   */
+  fun checkUpdateAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?)
 
-  fun checkDeleteAccess(user: PFUserDO, path: String, id: Any, fileId: String, subPath: String?)
+  /**
+   * user may null for external access (if allowed). see DataTransfer tool.
+   */
+  fun checkDeleteAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?)
 }

@@ -49,7 +49,8 @@ open class AttachmentsDaoAccessChecker<O : ExtendedBaseDO<Int>>(
   /**
    * @param subPath Equals to listId.
    */
-  override fun checkSelectAccess(user: PFUserDO, path: String, id: Any, subPath: String?) {
+  override fun checkSelectAccess(user: PFUserDO?, path: String, id: Any, subPath: String?) {
+    checkNotNull(user)
     checkJcrActivity(subPath)
     baseDao.getById(id as Serializable)
       ?: throw TechnicalException(
@@ -68,7 +69,8 @@ open class AttachmentsDaoAccessChecker<O : ExtendedBaseDO<Int>>(
   /**
    * @param subPath Equals to listId.
    */
-  override fun checkUploadAccess(user: PFUserDO, path: String, id: Any, subPath: String?) {
+  override fun checkUploadAccess(user: PFUserDO?, path: String, id: Any, subPath: String?) {
+    checkNotNull(user)
     checkJcrActivity(subPath)
     val obj = baseDao.getById(id as Serializable)
       ?: throw IllegalArgumentException(
@@ -90,7 +92,8 @@ open class AttachmentsDaoAccessChecker<O : ExtendedBaseDO<Int>>(
   /**
    * @param subPath Equals to listId.
    */
-  override fun checkDownloadAccess(user: PFUserDO, path: String, id: Any, fileId: String, subPath: String?) {
+  override fun checkDownloadAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?) {
+    checkNotNull(user)
     checkJcrActivity(subPath)
     checkSelectAccess(user, path, id, subPath)
   }
@@ -98,7 +101,8 @@ open class AttachmentsDaoAccessChecker<O : ExtendedBaseDO<Int>>(
   /**
    * @param subPath Equals to listId.
    */
-  override fun checkUpdateAccess(user: PFUserDO, path: String, id: Any, fileId: String, subPath: String?) {
+  override fun checkUpdateAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?) {
+    checkNotNull(user)
     checkJcrActivity(subPath)
     checkUploadAccess(user, path, id, subPath)
   }
@@ -106,7 +110,8 @@ open class AttachmentsDaoAccessChecker<O : ExtendedBaseDO<Int>>(
   /**
    * @param subPath Equals to listId.
    */
-  override fun checkDeleteAccess(user: PFUserDO, path: String, id: Any, fileId: String, subPath: String?) {
+  override fun checkDeleteAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?) {
+    checkNotNull(user)
     checkJcrActivity(subPath)
     checkUploadAccess(user, path, id, subPath)
   }
