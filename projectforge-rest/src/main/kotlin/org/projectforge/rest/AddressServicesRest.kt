@@ -30,6 +30,7 @@ import org.projectforge.business.address.AddressExport
 import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.LanguageService
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.UIColor
@@ -86,7 +87,7 @@ class AddressServicesRest {
     }
 
     @GetMapping("exportFavoritesVCards")
-    fun exportFavoritesVCards(): ResponseEntity<Any> {
+    fun exportFavoritesVCards(): ResponseEntity<*> {
         log.info("Exporting personal address book as vcards.")
         val list = addressDao.favoriteVCards
         if (list.isNullOrEmpty()) {
@@ -97,17 +98,14 @@ class AddressServicesRest {
         val writer = StringWriter()
         addressDao.exportFavoriteVCards(writer, list)
 
-        return ResponseEntity.ok()
-                .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
-                .body(writer.toString())
+        return RestUtils.downloadFile(filename, writer.toString())
     }
 
     /**
      * Exports favorites addresses.
      */
     @GetMapping("exportFavoritesExcel")
-    fun exportFavoritesExcel(): ResponseEntity<Any> {
+    fun exportFavoritesExcel(): ResponseEntity<*> {
         log.info("Exporting personal address book as Excel file.")
         val list = addressDao.favoriteVCards.map { it.address!! }
         val resultSet = ResultSet(list, list.size)
@@ -123,14 +121,11 @@ class AddressServicesRest {
                 + ".xls")
 
         val resource = ByteArrayResource(xls)
-        return ResponseEntity.ok()
-                .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
-                .body(resource)
+        return RestUtils.downloadFile(filename, resource)
     }
 
     @GetMapping("downloadAppleScript")
-    fun downloadAppleScript(): ResponseEntity<Any> {
+    fun downloadAppleScript(): ResponseEntity<*> {
         log.info("Downloading AppleScript.")
         val content: ByteArray?
         val file = APPLE_SCRIPT_DIR + APPLE_SCRIPT_FOR_ADDRESS_BOOK
@@ -147,23 +142,17 @@ class AddressServicesRest {
         }
         val filename = (APPLE_SCRIPT_FOR_ADDRESS_BOOK)
         val resource = ByteArrayResource(content!!)
-        return ResponseEntity.ok()
-                .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
-                .body(resource)
+        return RestUtils.downloadFile(filename, resource)
     }
 
     @GetMapping("exportVCard/{id}")
-    fun exportVCard(@PathVariable("id") id: Int?): ResponseEntity<Any> {
-        val address = addressDao.getById(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+    fun exportVCard(@PathVariable("id") id: Int?): ResponseEntity<*> {
+        val address = addressDao.getById(id) ?: return ResponseEntity<Any>(HttpStatus.NOT_FOUND)
         val filename = ("ProjectForge-" + ReplaceUtils.encodeFilename(address.fullName, true) + "_"
                 + DateHelper.getDateAsFilenameSuffix(Date()) + ".vcf")
         val writer = StringWriter()
         addressDao.exportVCard(PrintWriter(writer), address)
-        return ResponseEntity.ok()
-                .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
-                .body(writer.toString())
+        return RestUtils.downloadFile(filename, writer.toString())
     }
 
     class DisplayLanguage(val id: String, val displayName: String)

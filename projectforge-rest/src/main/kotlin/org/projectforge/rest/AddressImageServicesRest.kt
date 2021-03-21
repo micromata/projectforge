@@ -27,15 +27,14 @@ import mu.KotlinLogging
 import org.projectforge.business.address.AddressImageDao
 import org.projectforge.framework.configuration.ConfigurationChecker
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.i18n.I18nUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.Resource
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.util.unit.DataSize
 import org.springframework.web.bind.annotation.*
@@ -111,10 +110,7 @@ class AddressImageServicesRest {
   fun getImage(@PathVariable("id") id: Int): ResponseEntity<Resource> {
     val image = addressImageDao.getImage(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
     val resource = ByteArrayResource(image)
-    return ResponseEntity.ok()
-      .contentType(MediaType.parseMediaType("application/octet-stream"))
-      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ProjectForge-addressImage_$id.png")
-      .body(resource)
+    return RestUtils.downloadFile("ProjectForge-addressImage_$id.png", resource)
   }
 
   /**
@@ -124,10 +120,7 @@ class AddressImageServicesRest {
   fun getImagePreview(@PathVariable("id") id: Int): ResponseEntity<Resource> {
     val image = addressImageDao.getPreviewImage(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
     val resource = ByteArrayResource(image)
-    return ResponseEntity.ok()
-      .contentType(MediaType.parseMediaType("application/octet-stream"))
-      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ProjectForge-addressImagePreview_$id.png")
-      .body(resource)
+    return RestUtils.downloadFile("ProjectForge-addressImagePreview_$id.png", resource)
   }
 
   /**

@@ -57,6 +57,7 @@ import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.PFDay.Companion.now
 import org.projectforge.framework.utils.NumberHelper.parseInteger
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
 import org.slf4j.LoggerFactory
@@ -94,16 +95,16 @@ class CalendarSubscriptionServiceRest {
   private lateinit var vacationCache: VacationCache
 
   @GetMapping
-  fun exportCalendar(request: HttpServletRequest): ResponseEntity<Any> {
+  fun exportCalendar(request: HttpServletRequest): ResponseEntity<*> {
     var logMessage: String? = null
     try {
       val userId = ThreadLocalUserContext.getUserId() ?: run {
         log.error("Internal errror: shouldn't occur: can't get context user! Should be denied by filter!!!")
-        return ResponseEntity(HttpStatus.BAD_REQUEST)
+        return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
       }
       val params = decryptRequestParams(request, userId, userAuthenticationsService)
       if (params.isNullOrEmpty()) {
-        return ResponseEntity(HttpStatus.BAD_REQUEST)
+        return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
       }
       // check timesheet user
       val timesheetUserParam = params[CalendarFeedConst.PARAM_NAME_TIMESHEET_USER]
@@ -111,7 +112,7 @@ class CalendarSubscriptionServiceRest {
       if (timesheetUserParam != null) {
         timesheetUser = getTimesheetUser(userId, timesheetUserParam) ?: run {
           log.error("Bad request, timesheet user not found: ${request.queryString}")
-          return ResponseEntity(HttpStatus.BAD_REQUEST)
+          return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
         }
       }
       // create ical generator
@@ -143,10 +144,7 @@ class CalendarSubscriptionServiceRest {
         sb.append(translate("weekOfYear"))
       }
       val safeFilename = "projectforge-${ReplaceUtils.encodeFilename(sb.toString(), false)}.ics"
-      return ResponseEntity.ok()
-        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$safeFilename")
-        .body(resource)
+      return RestUtils.downloadFile(safeFilename, resource)
     } finally {
       log.info("Finished request: $logMessage")
       ThreadLocalUserContext.setUser(getUserGroupCache(), null)
