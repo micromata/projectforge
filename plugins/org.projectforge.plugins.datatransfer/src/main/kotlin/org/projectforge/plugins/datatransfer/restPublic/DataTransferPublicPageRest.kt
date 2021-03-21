@@ -57,7 +57,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var attachmentsService: AttachmentsService
 
-  private lateinit var attachmentsAccessChecker: AttachmentsAccessChecker
+  private lateinit var attachmentsAccessChecker: DataTransferPublicAccessChecker
 
   @Autowired
   private lateinit var dataTransferAreaDao: DataTransferAreaDao
@@ -83,42 +83,11 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
       : ResponseAction {
     val externalAccessToken = postData.data.externalAccessToken
     val externalPassword = postData.data.externalPassword
-    if (externalAccessToken == null || externalPassword == null) {
-      return getLoginFailed(response, LoginResultStatus.FAILED.localizedMessage)
+    val checkAccess = attachmentsAccessChecker.checkExternalAccess(dataTransferAreaDao, request, externalAccessToken, externalPassword)
+    checkAccess.errorMsg?.let {
+      return getLoginFailed(response, it)
     }
-    val loginProtection = LoginProtection.instance()
-    val clientIpAddress = RestUtils.getClientIp(request)
-    val offset = loginProtection.getFailedLoginTimeOffsetIfExists(externalAccessToken, clientIpAddress)
-    if (offset > 0) {
-      // Time offset still exists. Ignore login try.
-      val seconds = (offset / 1000).toString()
-      log.warn("The account for '${externalAccessToken}', ip=$clientIpAddress is locked for $seconds seconds due to failed login attempts. Please try again later.")
-      val numberOfFailedAttempts = loginProtection.getNumberOfFailedLoginAttempts(externalAccessToken, clientIpAddress)
-      val loginResultStatus = LoginResultStatus.LOGIN_TIME_OFFSET
-      loginResultStatus.setMsgParams(
-        seconds,
-        numberOfFailedAttempts.toString()
-      )
-      return getLoginFailed(response, loginResultStatus.localizedMessage)
-    }
-
-    val dbo = dataTransferAreaDao.getAnonymousArea(externalAccessToken)
-    if (dbo == null) {
-      log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' not found. Requested by ip=$clientIpAddress." }
-      loginProtection.incrementFailedLoginTimeOffset(externalAccessToken, clientIpAddress)
-      return getLoginFailed(response, LoginResultStatus.FAILED.localizedMessage)
-    }
-    if (dbo.externalPassword != externalPassword) {
-      log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' doesn't match given password. Requested by ip=$clientIpAddress." }
-      loginProtection.incrementFailedLoginTimeOffset(externalAccessToken, clientIpAddress)
-      return getLoginFailed(response, LoginResultStatus.FAILED.localizedMessage)
-    }
-
-    // Successfully logged in:
-    loginProtection.clearLoginTimeOffset(externalAccessToken, null, clientIpAddress)
-
-    val data = DataTransferPublicArea()
-    data.copyFrom(dbo)
+    val data = checkAccess.data!!
     data.attachments =
       attachmentsService.getAttachments(
         dataTransferAreaPagesRest.jcrPath!!,

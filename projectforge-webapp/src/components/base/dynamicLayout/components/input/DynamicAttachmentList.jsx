@@ -138,7 +138,7 @@ DynamicAttachmentList.defaultProps = {
     readOnly: false,
     serviceBaseUrl: '/react/attachment/dynamic',
     restBaseUrl: '/rs/attachments',
-    accessString: undefined,
+    accessString: '',
 };
 
 export default DynamicAttachmentList;

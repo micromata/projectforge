@@ -24,10 +24,22 @@
 package org.projectforge.plugins.datatransfer.restPublic
 
 import mu.KotlinLogging
+import org.projectforge.framework.api.TechnicalException
+import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.config.Rest
+import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.TargetType
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.nio.charset.StandardCharsets
+import javax.annotation.PostConstruct
+import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -37,31 +49,56 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/datatransfer")
 class DataTransferPublicServicesRest {
+  @Autowired
+  private lateinit var attachmentsService: AttachmentsService
+
+  @Autowired
+  private lateinit var dataTransferAreaDao: DataTransferAreaDao
+
+  @Autowired
+  private lateinit var dataTransferAreaPageRest: DataTransferAreaPagesRest
+
+  private lateinit var attachmentsAccessChecker: DataTransferPublicAccessChecker
+
+  @PostConstruct
+  private fun postConstruct() {
+    attachmentsAccessChecker =
+      DataTransferPublicAccessChecker(
+        dataTransferAreaDao.maxFileSize.toBytes(),
+        DataTransferAreaDao.MAX_FILE_SIZE_SPRING_PROPERTY
+      )
+  }
+
   @GetMapping("download/{category}/{id}")
   fun download(
+    request: HttpServletRequest,
     @PathVariable("category", required = true) category: String,
     @PathVariable("id", required = true) id: Int,
     @RequestParam("fileId", required = true) fileId: String,
     @RequestParam("listId") listId: String?,
-    @RequestParam("accessString") accessString: Any?
+    @RequestParam("accessString") accessString: String?
   )
-      : ResponseEntity<InputStreamResource>? {
+      : ResponseEntity<*> {
     check(category == "datatransfer")
-    throw NotImplementedError()
-    /*log.info { "User tries to download attachment: ${paramsToString(category, id, fileId, listId)}." }
-    val pagesRest = getPagesRest(category, listId)
+    check(accessString?.contains('|') == true)
+    val credentials = accessString!!.split('|')
+    check(credentials.size == 2)
+    log.info { "User tries to download attachment: category=$category, id=$id, fileId=$fileId, listId=$listId)}." }
+    val externalAccessToken = credentials[0]
+    val externalPassword = credentials[1]
+    val checkAccess =
+      attachmentsAccessChecker.checkExternalAccess(dataTransferAreaDao, request, externalAccessToken, externalPassword)
+    checkAccess.errorMsg?.let {
+      return ResponseEntity.badRequest()
+        .contentType(MediaType("text", "plain", StandardCharsets.UTF_8))
+        .body(it)
+    }
+    val data = checkAccess.data!!
 
     val result =
-      attachmentsService.getAttachmentInputStream(pagesRest.jcrPath!!, id, fileId, pagesRest.attachmentsAccessChecker)
+      attachmentsService.getAttachmentInputStream(dataTransferAreaPageRest.jcrPath!!, id, fileId, attachmentsAccessChecker)
         ?: throw TechnicalException(
-          "File to download not accessible for user or not found: ${
-            paramsToString(
-              category,
-              id,
-              fileId,
-              listId
-            )
-          }."
+          "File to download not accessible for user or not found: category=$category, id=$id, fileId=$fileId, listId=$listId)}."
         )
 
     val filename = result.first.fileName ?: "file"
@@ -69,6 +106,6 @@ class DataTransferPublicServicesRest {
     return ResponseEntity.ok()
       .contentType(MediaType.parseMediaType("application/octet-stream"))
       .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${filename.replace('"', '_')}\"")
-      .body(InputStreamResource(inputStream))*/
+      .body(InputStreamResource(inputStream))
   }
 }
