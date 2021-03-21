@@ -578,12 +578,7 @@ constructor(
   @GetMapping("reindexNewest")
   fun reindexNewest(): ResponseAction {
     baseDao.rebuildDatabaseIndex4NewestEntries()
-    return ResponseAction(
-      message = ResponseAction.Message(
-        "administration.reindexNewest.successful",
-        color = UIColor.SUCCESS
-      ), targetType = TargetType.TOAST
-    )
+    return UIToast.createToast(translate("administration.reindexNewest.successful"), color = UIColor.SUCCESS)
   }
 
   /**
@@ -593,12 +588,7 @@ constructor(
   @GetMapping("reindexFull")
   fun reindexFull(): ResponseAction {
     baseDao.rebuildDatabaseIndex()
-    return ResponseAction(
-      message = ResponseAction.Message(
-        "administration.reindexFull.successful",
-        color = UIColor.SUCCESS
-      ), targetType = TargetType.TOAST
-    )
+    return UIToast.createToast(translate("administration.reindexFull.successful"), color = UIColor.SUCCESS)
   }
 
   abstract fun processResultSetBeforeExport(resultSet: ResultSet<O>): ResultSet<*>
@@ -1137,7 +1127,8 @@ constructor(
     } else {
       getJcrPath(baseDao.identifier)
     }
-    attachmentsAccessChecker = AttachmentsDaoAccessChecker(baseDao, jcrPath, supportedListIds, maxFileSize, maxFileSizeSpringProperty)
+    attachmentsAccessChecker =
+      AttachmentsDaoAccessChecker(baseDao, jcrPath, supportedListIds, maxFileSize, maxFileSizeSpringProperty)
   }
 
   /**

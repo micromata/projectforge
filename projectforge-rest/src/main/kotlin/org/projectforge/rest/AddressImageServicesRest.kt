@@ -28,6 +28,7 @@ import org.projectforge.business.address.AddressImageDao
 import org.projectforge.framework.configuration.ConfigurationChecker
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.rest.i18n.I18nUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.ByteArrayResource
@@ -60,7 +61,7 @@ class AddressImageServicesRest {
   private lateinit var addressImageDao: AddressImageDao
 
   @Value("\${$MAX_IMAGE_SIZE_SPRING_PROPERTY:500KB}")
-  private lateinit var maxImageSize: DataSize
+  internal lateinit var maxImageSize: DataSize
 
   @Autowired
   private lateinit var configurationChecker: ConfigurationChecker
@@ -71,7 +72,7 @@ class AddressImageServicesRest {
    */
   @PostMapping("uploadImage/{id}")
   fun uploadFile(@PathVariable("id") id: Int?, @RequestParam("file") file: MultipartFile, request: HttpServletRequest):
-      ResponseEntity<String> {
+      ResponseEntity<*> {
     val filename = file.originalFilename
     if (filename == null || !filename.endsWith(".png", true)) {
       return ResponseEntity("Unsupported file: $filename. Only png files supported", HttpStatus.BAD_REQUEST)
@@ -86,8 +87,11 @@ class AddressImageServicesRest {
     )?.let {
       log.error(it)
       return ResponseEntity(
-        "Max file size exceeded for file '$filename' (see server log file). ",
-        HttpStatus.BAD_REQUEST
+        I18nUtils.translateMaxSizeExceeded(
+          filename,
+          bytes.size.toLong(),
+          maxImageSize.toBytes()
+        ), HttpStatus.BAD_REQUEST
       )
     }
 
@@ -95,7 +99,7 @@ class AddressImageServicesRest {
       val session = request.session
       ExpiringSessionAttributes.setAttribute(session, SESSION_IMAGE_ATTR, bytes, 1)
     } else {
-      val address = addressImageDao.saveOrUpdate(id, bytes)
+      addressImageDao.saveOrUpdate(id, bytes)
     }
     return ResponseEntity("OK", HttpStatus.OK)
   }
