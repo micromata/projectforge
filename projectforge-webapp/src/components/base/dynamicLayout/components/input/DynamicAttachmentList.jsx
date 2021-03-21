@@ -1,11 +1,11 @@
-import { faDownload } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {faDownload} from '@fortawesome/free-solid-svg-icons';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
-import { Table } from '../../../../design';
+import {getServiceURL, handleHTTPErrors} from '../../../../../utilities/rest';
+import {Table} from '../../../../design';
 import DropArea from '../../../../design/droparea';
-import { DynamicLayoutContext } from '../../context';
+import {DynamicLayoutContext} from '../../context';
 
 function DynamicAttachmentList(
     {
@@ -15,6 +15,7 @@ function DynamicAttachmentList(
         serviceBaseUrl,
         restBaseUrl,
         accessString,
+        downloadOnRowClick,
     },
 ) {
     const {
@@ -23,7 +24,7 @@ function DynamicAttachmentList(
         setData,
         ui,
     } = React.useContext(DynamicLayoutContext);
-    const { attachments } = data;
+    const {attachments} = data;
 
     const uploadFile = (files) => {
         const formData = new FormData();
@@ -39,7 +40,7 @@ function DynamicAttachmentList(
         )
             .then(handleHTTPErrors)
             .then(response => response.json())
-            .then(json => callAction({ responseAction: json }))
+            .then(json => callAction({responseAction: json}))
             .catch((catchError) => {
                 alert(catchError);
             });
@@ -47,16 +48,24 @@ function DynamicAttachmentList(
 
     const handleRowClick = entry => (event) => {
         event.stopPropagation();
-        callAction({
-            responseAction: {
-                targetType: 'MODAL',
-                url: `${serviceBaseUrl}/${id}?category=${category}&fileId=${entry.fileId}&listId=${listId}${accessString}`,
-            },
-        });
+        if (downloadOnRowClick) {
+            download(entry.fileId)
+        } else {
+            callAction({
+                responseAction: {
+                    targetType: 'MODAL',
+                    url: `${serviceBaseUrl}/${id}?category=${category}&fileId=${entry.fileId}&listId=${listId}${accessString}`,
+                },
+            });
+        }
     };
 
     const handleDownload = entryId => (event) => {
         event.stopPropagation();
+        download(entryId)
+    };
+
+    const download = (entryId) => {
         callAction({
             responseAction: {
                 targetType: 'DOWNLOAD',
@@ -68,7 +77,7 @@ function DynamicAttachmentList(
                 absolute: true,
             },
         });
-    };
+    }
 
     return React.useMemo(() => {
         if (id && id > 0) {
@@ -81,18 +90,18 @@ function DynamicAttachmentList(
                     {attachments && attachments.length > 0 && (
                         <Table striped hover>
                             <thead>
-                                <tr>
-                                    <th>{ui.translations['attachment.fileName']}</th>
-                                    <th>{ui.translations['attachment.size']}</th>
-                                    <th>{ui.translations.description}</th>
-                                    <th>{ui.translations.created}</th>
-                                    <th>{ui.translations.createdBy}</th>
-                                </tr>
+                            <tr>
+                                <th>{ui.translations['attachment.fileName']}</th>
+                                <th>{ui.translations['attachment.size']}</th>
+                                <th>{ui.translations.description}</th>
+                                <th>{ui.translations.created}</th>
+                                <th>{ui.translations.createdBy}</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                {attachments.map(entry => (
-                                    <tr key={entry.fileId} onClick={handleRowClick(entry)}>
-                                        <td>
+                            {attachments.map(entry => (
+                                <tr key={entry.fileId} onClick={handleRowClick(entry)}>
+                                    <td>
                                             <span
                                                 role="presentation"
                                                 onKeyDown={() => {
@@ -100,15 +109,15 @@ function DynamicAttachmentList(
                                                 onClick={handleDownload(entry.fileId)}
                                             >
                                                 {`${entry.name} `}
-                                                <FontAwesomeIcon icon={faDownload} />
+                                                <FontAwesomeIcon icon={faDownload}/>
                                             </span>
-                                        </td>
-                                        <td>{entry.sizeHumanReadable}</td>
-                                        <td>{entry.description}</td>
-                                        <td>{entry.createdFormatted}</td>
-                                        <td>{entry.createdByUser}</td>
-                                    </tr>
-                                ))}
+                                    </td>
+                                    <td>{entry.sizeHumanReadable}</td>
+                                    <td>{entry.description}</td>
+                                    <td>{entry.createdFormatted}</td>
+                                    <td>{entry.createdByUser}</td>
+                                </tr>
+                            ))}
                             </tbody>
                         </Table>
                     )}
@@ -131,6 +140,7 @@ DynamicAttachmentList.propTypes = {
     serviceBaseUrl: PropTypes.string,
     restBaseUrl: PropTypes.string,
     accessString: PropTypes.string,
+    downloadOnRowClick: PropTypes.bool,
 };
 
 DynamicAttachmentList.defaultProps = {
@@ -139,6 +149,7 @@ DynamicAttachmentList.defaultProps = {
     serviceBaseUrl: '/react/attachment/dynamic',
     restBaseUrl: '/rs/attachments',
     accessString: '',
+    downloadOnRowClick: false,
 };
 
 export default DynamicAttachmentList;

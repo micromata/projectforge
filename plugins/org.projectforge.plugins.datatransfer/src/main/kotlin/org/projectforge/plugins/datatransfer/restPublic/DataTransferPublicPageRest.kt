@@ -116,9 +116,10 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
           UIAttachmentList(
             "datatransfer",
             dataTransfer.id,
-            serviceBaseUrl = "/${RestResolver.REACT_PUBLIC_PATH}/datatransferattachment/dynamic",
+            //serviceBaseUrl = "/${RestResolver.REACT_PUBLIC_PATH}/datatransferattachment/dynamic",
             restBaseUrl = "/${RestPaths.REST_PUBLIC}/datatransfer",
-            accessString = "${dataTransfer.externalAccessToken}|${dataTransfer.externalPassword}"
+            accessString = "${dataTransfer.externalAccessToken}|${dataTransfer.externalPassword}",
+            downloadOnRowClick = true
           )
         )
     )
