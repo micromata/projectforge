@@ -53,7 +53,7 @@ function ProjectForge(
             <Switch>
                 {wicketRoute}
                 <Route
-                    path={`${prefix}public/:category/:type?`}
+                    path={`${prefix}public/:category/:type?/:id?`}
                     render={props => <FormPage {...props} isPublic />}
                 />
                 <Route
