@@ -34,8 +34,7 @@ class DataTransferAnonymousArea(
   var areaName: String? = null,
   var description: String? = null,
   var externalAccessToken: String? = null,
-  var externalPassword: String? = null,
-  var loginResultStatus: LoginResultStatus? = null
+  var externalPassword: String? = null
 ) : BaseDTO<DataTransferAreaDO>(id), AttachmentsSupport {
   override var attachments: List<Attachment>? = null
 }

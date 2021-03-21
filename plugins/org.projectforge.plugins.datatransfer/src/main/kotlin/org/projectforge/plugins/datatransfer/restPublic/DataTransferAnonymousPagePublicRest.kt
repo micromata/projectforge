@@ -24,6 +24,7 @@
 package org.projectforge.plugins.datatransfer.restPublic
 
 import mu.KotlinLogging
+import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
@@ -31,6 +32,7 @@ import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
@@ -49,7 +51,7 @@ private val log = KotlinLogging.logger {}
  * For external anonymous usage via token/password.
  */
 @RestController
-@RequestMapping("${Rest.PUBLIC_URL}/datatransferfiles")
+@RequestMapping("${Rest.PUBLIC_URL}/datatransfer")
 class DataTransferPagePublicRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var attachmentsService: AttachmentsService
@@ -78,24 +80,53 @@ class DataTransferPagePublicRest : AbstractDynamicPageRest() {
     @RequestBody postData: PostData<DataTransferAnonymousArea>
   )
       : ResponseAction {
-    val dataTransfer = postData.data
-    val requestResult =
-      dataTransferAreaDao.getAnonymousArea(dataTransfer.externalAccessToken, dataTransfer.externalPassword)
-    if (requestResult.accessStatus != DataTransferAreaDao.AccessStatus.SUCCESS) {
-      response.status = 400
-      return ResponseAction(targetType = TargetType.UPDATE)
-        .addVariable("ui", getLoginLayout(requestResult.accessStatus))
+    val externalAccessToken = postData.data.externalAccessToken
+    val externalPassword = postData.data.externalPassword
+    if (externalAccessToken == null || externalPassword == null) {
+      return getLoginFailed(response, LoginResultStatus.FAILED.localizedMessage)
     }
-    dataTransfer.copyFrom(requestResult.dataTransferArea!!)
-    dataTransfer.attachments =
+    val loginProtection = LoginProtection.instance()
+    val clientIpAddress = RestUtils.getClientIp(request)
+    val offset = loginProtection.getFailedLoginTimeOffsetIfExists(externalAccessToken, clientIpAddress)
+    if (offset > 0) {
+      // Time offset still exists. Ignore login try.
+      val seconds = (offset / 1000).toString()
+      log.warn("The account for '${externalAccessToken}', ip=$clientIpAddress is locked for $seconds seconds due to failed login attempts. Please try again later.")
+      val numberOfFailedAttempts = loginProtection.getNumberOfFailedLoginAttempts(externalAccessToken, clientIpAddress)
+      val loginResultStatus = LoginResultStatus.LOGIN_TIME_OFFSET
+      loginResultStatus.setMsgParams(
+        seconds,
+        numberOfFailedAttempts.toString()
+      )
+      return getLoginFailed(response, loginResultStatus.localizedMessage)
+    }
+
+    val dbo = dataTransferAreaDao.getAnonymousArea(externalAccessToken)
+    if (dbo == null) {
+      log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' not found. Requested by ip=$clientIpAddress." }
+      loginProtection.incrementFailedLoginTimeOffset(externalAccessToken, clientIpAddress)
+      return getLoginFailed(response, LoginResultStatus.FAILED.localizedMessage)
+    }
+    if (dbo.externalPassword != externalPassword) {
+      log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' doesn't match given password. Requested by ip=$clientIpAddress." }
+      loginProtection.incrementFailedLoginTimeOffset(externalAccessToken, clientIpAddress)
+      return getLoginFailed(response, LoginResultStatus.FAILED.localizedMessage)
+    }
+
+    // Successfully logged in:
+    loginProtection.clearLoginTimeOffset(externalAccessToken, null, clientIpAddress)
+
+    val data = DataTransferAnonymousArea()
+    data.copyFrom(dbo)
+    data.attachments =
       attachmentsService.getAttachments(
         dataTransferAreaPagesRest.jcrPath!!,
-        dataTransfer.id!!,
+        data.id!!,
         attachmentsAccessChecker
       )
     return ResponseAction(targetType = TargetType.UPDATE)
-      .addVariable("ui", getAttachmentLayout(dataTransfer))
-      .addVariable("data", dataTransfer)
+      .addVariable("ui", getAttachmentLayout(data))
+      .addVariable("data", data)
   }
 
   @GetMapping("dynamic")
@@ -119,20 +150,21 @@ class DataTransferPagePublicRest : AbstractDynamicPageRest() {
     return layout
   }
 
-  private fun getLoginLayout(accessStatus: DataTransferAreaDao.AccessStatus? = null): UILayout {
+  private fun getLoginFailed(response: HttpServletResponse, msg: String): ResponseAction {
+    response.status = 400
+    return ResponseAction(targetType = TargetType.UPDATE)
+      .addVariable("ui", getLoginLayout(msg))
+  }
+
+  private fun getLoginLayout(alertMessage: String? = null): UILayout {
     val responseAction =
       ResponseAction(RestResolver.getRestUrl(this::class.java, "login"), targetType = TargetType.POST)
 
     val formCol = UICol(length = UILength(12, md = 6, lg = 4), offset = UILength(0, md = 3, lg = 4))
 
-    if (accessStatus != null) {
-      val msg = if (accessStatus == DataTransferAreaDao.AccessStatus.MAX_RETRIES_EXCEEDED) {
-        translate("plugins.datatransfer.external.accessFailedCounter.exceeded.message")
-      } else {
-        translate("login.error.loginFailed")
-      }
+    if (alertMessage != null) {
       formCol.add(
-        UIAlert("'$msg", color = UIColor.DANGER, icon = UIIconType.USER_LOCK)
+        UIAlert("'$alertMessage", color = UIColor.DANGER, icon = UIIconType.USER_LOCK)
       )
     }
 
