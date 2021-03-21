@@ -295,7 +295,7 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
               )
           )
       )
-
+    layout.getInputById("areaName").focus = true
     return LayoutUtils.processEditPage(layout, dto, this)
   }
 }

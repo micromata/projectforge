@@ -45,6 +45,8 @@ import javax.persistence.*
     columnList = "tenant_id"
   )]
 )
+@NamedQueries(NamedQuery(name = DataTransferAreaDO.FIND_BY_EXTERNAL_ACCESS_TOKEN,
+  query = "from DataTransferAreaDO where externalAccessToken=:externalAccessToken"))
 open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
 
   @PropertyInfo(i18nKey = "id")
@@ -167,5 +169,9 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
 
   override fun setId(id: Int?) {
     this.id = id
+  }
+
+  companion object {
+    internal const val FIND_BY_EXTERNAL_ACCESS_TOKEN = "DataTransferAreaDO_FindByExternalAccessToken"
   }
 }
