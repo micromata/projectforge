@@ -29,6 +29,7 @@ import org.projectforge.common.MaxFileSizeExceeded
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -200,18 +201,22 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     return pagesRest
   }
 
-  internal fun getAttachment(pagesRest: AbstractPagesRest<*, *, *>, data: AttachmentData): Attachment {
+  fun getAttachment(jcrPath: String, attachmentsAccessChecker: AttachmentsAccessChecker, data: AttachmentData): Attachment {
     return attachmentsService.getAttachmentInfo(
-      pagesRest.jcrPath!!,
+      jcrPath,
       data.id,
       data.fileId,
-      pagesRest.attachmentsAccessChecker,
+      attachmentsAccessChecker,
       data.listId
     )
       ?: throw TechnicalException(
         "Attachment '$data.fileId' for object with id $data.id not found for category '$data.category' and list '$data.listId'.",
         "Attachment not found."
       )
+  }
+
+  internal fun getAttachment(pagesRest: AbstractPagesRest<*, *, *>, data: AttachmentData): Attachment {
+    return getAttachment(pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, data)
   }
 
   internal fun getDataObject(pagesRest: AbstractPagesRest<*, *, *>, id: Int): ExtendedBaseDO<Int> {

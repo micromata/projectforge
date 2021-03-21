@@ -23,32 +23,42 @@
 
 package org.projectforge.ui
 
-import org.projectforge.framework.ToStringUtil
-import org.projectforge.rest.AttachmentsServicesRest
-import org.projectforge.rest.core.RestResolver
-
 /**
  * List of attachments including upload, download and remove functionality.
+ * See DynamicAttachmentList.jsx for usage.
  */
 class UIAttachmentList(
-        /**
-         * Simply use [org.projectforge.rest.core.AbstractPagesRest.category] if using in pages rest. Otherwise
-         * the category/jcrPath is required here.
-         */
-        var category: String,
-        /**
-         * The id of the object (pk) where the attachments are belonging to.
-         * Null for new objects, meaning, that now upload is available and an hint is shown.
-         */
-        val id: Int?,
-        /**
-         * id to identify attachments list by server, especially if multiple lists of attachments are
-         * used for one page.
-         * Default is 'attachments'.
-         */
-        val listId: String = "attachments",
-        /**
-         * If true, only download of attachments is allowed.
-         */
-        val readOnly: Boolean = false) :
-        UIElement(type = UIElementType.ATTACHMENT_LIST)
+  /**
+   * Simply use [org.projectforge.rest.core.AbstractPagesRest.category] if using in pages rest. Otherwise
+   * the category/jcrPath is required here.
+   */
+  var category: String,
+  /**
+   * The id of the object (pk) where the attachments are belonging to.
+   * Null for new objects, meaning, that now upload is available and an hint is shown.
+   */
+  val id: Int?,
+  /**
+   * id to identify attachments list by server, especially if multiple lists of attachments are
+   * used for one page.
+   * Default is 'attachments'.
+   */
+  val listId: String = "attachments",
+  /**
+   * If true, only download of attachments is allowed.
+   */
+  val readOnly: Boolean = false,
+  /**
+   * Used by data transfer tool for using public react pages.
+   */
+  val serviceBaseUrl: String? = null,
+  /**
+   * Used by data transfer tool for using public rest api.
+   */
+  val restBaseUrl: String? = null,
+  /**
+   * Used by data transfer tool for using public rest api and react pages (for serving access token and password by the client).
+   */
+  val accessString: String? = null
+) :
+  UIElement(type = UIElementType.ATTACHMENT_LIST)

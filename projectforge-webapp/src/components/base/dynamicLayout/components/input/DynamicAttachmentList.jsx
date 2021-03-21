@@ -12,6 +12,9 @@ function DynamicAttachmentList(
         category,
         id,
         listId,
+        serviceBaseUrl,
+        restBaseUrl,
+        accessString,
     },
 ) {
     const {
@@ -27,7 +30,7 @@ function DynamicAttachmentList(
         formData.append('file', files[0]);
         fetch(
             // Set the image with id -1, so the image will be set in the session.
-            getServiceURL(`attachments/upload/${category}/${id}/${listId}`),
+            getServiceURL(`${restBaseUrl}/upload/${category}/${id}/${listId}`),
             {
                 credentials: 'include',
                 method: 'POST',
@@ -47,7 +50,7 @@ function DynamicAttachmentList(
         callAction({
             responseAction: {
                 targetType: 'MODAL',
-                url: `/react/attachment/dynamic/${id}?category=${category}&fileId=${entry.fileId}&listId=${listId}`,
+                url: `${serviceBaseUrl}/${id}?category=${category}&fileId=${entry.fileId}&listId=${listId}${accessString}`,
             },
         });
     };
@@ -57,9 +60,10 @@ function DynamicAttachmentList(
         callAction({
             responseAction: {
                 targetType: 'DOWNLOAD',
-                url: getServiceURL(`/rs/attachments/download/${category}/${id}`, {
+                url: getServiceURL(`${restBaseUrl}/download/${category}/${id}`, {
                     fileId: entryId,
                     listId,
+                    accessString,
                 }),
                 absolute: true,
             },
@@ -124,11 +128,17 @@ DynamicAttachmentList.propTypes = {
     listId: PropTypes.string.isRequired,
     id: PropTypes.number,
     readOnly: PropTypes.bool,
+    serviceBaseUrl: PropTypes.string,
+    restBaseUrl: PropTypes.string,
+    accessString: PropTypes.string,
 };
 
 DynamicAttachmentList.defaultProps = {
     id: undefined, // Undefined for new object.
     readOnly: false,
+    serviceBaseUrl: '/react/attachment/dynamic',
+    restBaseUrl: '/rs/attachments',
+    accessString: undefined,
 };
 
 export default DynamicAttachmentList;

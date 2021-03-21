@@ -33,7 +33,7 @@ import java.io.Serializable
 /**
  * Checks access to attachments by external anonymous users.
  */
-open class DataTransferExternalAnonymousAccessChecker(
+open class DataTransferPublicAccessChecker(
   override val maxFileSize: Long,
   override val maxFileSizeSpringProperty: String
 ) : AttachmentsAccessChecker {
