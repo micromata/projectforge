@@ -48,7 +48,7 @@ public class ProjectForgeRestConfiguration {
   public ServletRegistrationBean publicJersey() {
     ServletRegistrationBean publicJersey
             = new ServletRegistrationBean(new ServletContainer(new RestPublicConfiguration()));
-    publicJersey.addUrlMappings("/" + RestPaths.PUBLIC_REST + "/*");
+    publicJersey.addUrlMappings("/" + RestPaths.OLD_PUBLIC_REST + "/*");
     publicJersey.setName("RestPublic");
     publicJersey.setLoadOnStartup(0);
     return publicJersey;
@@ -58,7 +58,7 @@ public class ProjectForgeRestConfiguration {
   public ServletRegistrationBean privateJersey() {
     ServletRegistrationBean privateJersey
             = new ServletRegistrationBean(new ServletContainer(new RestPrivateConfiguration()));
-    privateJersey.addUrlMappings("/" + RestPaths.REST + "/*");
+    privateJersey.addUrlMappings("/" + RestPaths.OLD_REST + "/*");
     privateJersey.setName("RestPrivate");
     privateJersey.setLoadOnStartup(0);
     return privateJersey;
