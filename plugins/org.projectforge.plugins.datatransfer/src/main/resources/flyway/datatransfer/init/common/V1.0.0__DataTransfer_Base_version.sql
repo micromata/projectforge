@@ -19,7 +19,6 @@ CREATE TABLE t_plugin_datatransfer_area
     external_password              CHARACTER VARYING(100),
     expiry_days                    INTEGER,
 
-    external_access_failed_counter INTEGER,
     external_access_logs           CHARACTER VARYING(10000),
     attachments_names              CHARACTER VARYING(10000),
     attachments_ids                CHARACTER VARYING(10000),

@@ -117,14 +117,6 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
       .addVariable("data", file)
   }
 
-  @PostMapping("resetExternalFailedCounter")
-  fun resetExternalFailedCounter(@Valid @RequestBody postData: PostData<DataTransferArea>): ResponseAction {
-    val file = postData.data
-    file.externalAccessFailedCounter = 0
-    return ResponseAction(targetType = TargetType.UPDATE)
-      .addVariable("data", file)
-  }
-
   /**
    * LAYOUT List page
    */
@@ -182,15 +174,6 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
       color = UIColor.DANGER,
       responseAction = ResponseAction("/rs/datatransfer/resetPassword", targetType = TargetType.POST)
     )
-    val resetExternalFailedCounter = UIButton(
-      "accessToken-renew",
-      title = translate("reset"),
-      color = UIColor.DANGER,
-      responseAction = ResponseAction(
-        "/rs/datatransfer/resetExternalFailedCounter",
-        targetType = TargetType.POST
-      )
-    )
     val externalLink = UIReadOnlyField(
       "externalLink",
       lc,
@@ -206,15 +189,6 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
     )
     val externalAccessFieldset =
       UIFieldset(UILength(md = 12, lg = 12), title = "plugins.datatransfer.external.access.title")
-    if (dto.externalAccessFailedCounter >= DataTransferAreaDao.MAX_EXTERNAL_ACCESS_RETRIES) {
-      externalAccessFieldset.add(
-        UIAlert(
-          "plugins.datatransfer.external.accessFailedCounter.exceeded.message",
-          title = "plugins.datatransfer.external.accessFailedCounter.exceeded.title",
-          color = UIColor.DANGER
-        )
-      )
-    }
 
     val layout = super.createEditLayout(dto, userAccess)
       .add(
@@ -254,20 +228,6 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
           )
           .add(
             UIRow()
-              .add(
-                UICol(UILength(md = 6))
-                  .add(
-                    UIRow()
-                      .add(
-                        UICol(8)
-                          .add(UIReadOnlyField("externalAccessFailedCounter", lc))
-                      )
-                      .add(
-                        UICol(4)
-                          .add(resetExternalFailedCounter)
-                      )
-                  )
-              )
               .add(
                 UICol(UILength(md = 6))
                   .add(

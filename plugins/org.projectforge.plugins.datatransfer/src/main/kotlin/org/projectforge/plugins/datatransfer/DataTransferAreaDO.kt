@@ -120,13 +120,6 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
   @get:Column(length = 100, name = "external_password")
   open var externalPassword: String? = null
 
-  @PropertyInfo(
-    i18nKey = "plugins.datatransfer.external.accessFailedCounter",
-    tooltip = "plugins.datatransfer.external.accessFailedCounter.info"
-  )
-  @get:Column(name = "external_access_failed_counter")
-  open var externalAccessFailedCounter: Int = 0
-
   /**
    * All attachments will be deleted automatically after the given days.
    */

@@ -43,8 +43,7 @@ class DataTransferArea(
   var externalUploadEnabled: Boolean? = null,
   var externalAccessToken: String? = null,
   var externalPassword: String? = null,
-  var expiryDays: Int? = null,
-  var externalAccessFailedCounter: Int = -1
+  var expiryDays: Int? = null
 ) : BaseDTO<DataTransferAreaDO>(id), AttachmentsSupport {
   override var attachments: List<Attachment>? = null
 

@@ -35,6 +35,8 @@ private val log = KotlinLogging.logger {}
 object RestResolver {
     const val REACT_PATH = "react"
 
+    const val REACT_PUBLIC_PATH = "$REACT_PATH/public"
+
     /**
      * Uses class annotation [RequestMapping] to determine rest url of given class.
      */
