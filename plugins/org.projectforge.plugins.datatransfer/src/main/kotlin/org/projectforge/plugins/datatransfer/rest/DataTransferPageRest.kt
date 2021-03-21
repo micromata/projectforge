@@ -67,6 +67,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     val id = NumberHelper.parseInteger(idString) ?: throw IllegalAccessException("Parameter id not an int.")
     val dataTransferDO = dataTransferAreaDao.getById(id)
     val dataTransfer = DataTransferArea()
+    dataTransfer.id = dataTransferDO.id
     dataTransfer.areaName = dataTransferDO.areaName
     dataTransfer.description = dataTransferDO.description
     dataTransfer.attachments = attachmentsService.getAttachments(dataTransferAreaPagesRest.jcrPath!!, id, dataTransferAreaPagesRest.attachmentsAccessChecker)
