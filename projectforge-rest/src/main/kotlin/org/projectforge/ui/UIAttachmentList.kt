@@ -59,6 +59,10 @@ class UIAttachmentList(
   /**
    * Used by data transfer tool for using public rest api and react pages (for serving access token and password by the client).
    */
-  val accessString: String? = null
+  val accessString: String? = null,
+  /**
+   * Used by data transfer tool for using public rest api and react pages (for serving access token and password by the client).
+   */
+  val downloadOnRowClick: Boolean? = null
 ) :
   UIElement(type = UIElementType.ATTACHMENT_LIST)
