@@ -28,6 +28,13 @@ import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.core.SessionCsrfCache
 import org.projectforge.ui.ValidationError
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.core.io.Resource
+import org.springframework.core.io.InputStreamResource
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
+import java.io.InputStream
 import java.net.InetAddress
 import java.net.UnknownHostException
 import javax.servlet.Filter
@@ -106,5 +113,26 @@ object RestUtils {
       remoteAddr = request.remoteAddr
     }
     return remoteAddr
+  }
+
+  fun downloadFile(filename: String, inputStream: InputStream): ResponseEntity<InputStreamResource> {
+    return ResponseEntity.ok()
+      .contentType(MediaType.parseMediaType("application/octet-stream"))
+      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${filename.replace('"', '_')}\"")
+      .body(InputStreamResource(inputStream))
+  }
+
+  fun downloadFile(filename: String, content: String): ResponseEntity<String> {
+    return ResponseEntity.ok()
+      .contentType(MediaType.parseMediaType("application/octet-stream"))
+      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${filename.replace('"', '_')}\"")
+      .body(content)
+  }
+
+  fun downloadFile(filename: String, resource: ByteArrayResource): ResponseEntity<Resource> {
+    return ResponseEntity.ok()
+      .contentType(MediaType.parseMediaType("application/octet-stream"))
+      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${filename.replace('"', '_')}\"")
+      .body(resource)
   }
 }

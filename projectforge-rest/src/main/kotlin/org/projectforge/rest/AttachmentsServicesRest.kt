@@ -34,6 +34,7 @@ import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.core.PagesResolver
@@ -185,10 +186,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
 
     val filename = result.first.fileName ?: "file"
     val inputStream = result.second
-    return ResponseEntity.ok()
-      .contentType(MediaType.parseMediaType("application/octet-stream"))
-      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${filename.replace('"', '_')}\"")
-      .body(InputStreamResource(inputStream))
+    return RestUtils.downloadFile(filename, inputStream)
   }
 
   internal fun getPagesRest(

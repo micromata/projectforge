@@ -29,6 +29,7 @@ import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
@@ -103,9 +104,6 @@ class DataTransferPublicServicesRest {
 
     val filename = result.first.fileName ?: "file"
     val inputStream = result.second
-    return ResponseEntity.ok()
-      .contentType(MediaType.parseMediaType("application/octet-stream"))
-      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${filename.replace('"', '_')}\"")
-      .body(InputStreamResource(inputStream))
+    return RestUtils.downloadFile(filename, inputStream)
   }
 }
