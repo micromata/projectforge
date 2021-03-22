@@ -25,6 +25,7 @@ package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
 import org.projectforge.business.configuration.DomainService
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
@@ -99,6 +100,23 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     val adminIds = StringHelper.splitToIntegers(obj.adminIds, ",")
     if (adminIds.contains(user.id)) {
       return true
+    }
+    if (operationType == OperationType.SELECT) {
+      em.detach(obj)
+      obj.externalAccessToken = null
+      obj.externalPassword = null
+      obj.externalAccessLogs = null
+      // Select access also for those users:
+      StringHelper.splitToIntegers(obj.accessUserIds, ",")?.let {
+        if (it.contains(user.id)) {
+          return true
+        }
+      }
+      StringHelper.splitToIntegers(obj.accessGroupIds, ",")?.let {
+        if (UserGroupCache.tenantInstance.isUserMemberOfAtLeastOneGroup(user.id, *it)) {
+          return true
+        }
+      }
     }
     if (throwException) {
       throw AccessException(user, "access.exception.userHasNotRight")
