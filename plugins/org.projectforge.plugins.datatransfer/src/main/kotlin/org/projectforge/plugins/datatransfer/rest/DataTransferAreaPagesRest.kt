@@ -38,6 +38,7 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -189,7 +190,10 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
       title = translate("plugins.datatransfer.external.link.renew"),
       tooltip = "plugins.datatransfer.external.link.renew.info",
       color = UIColor.DANGER,
-      responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java, "renewAccessToken"), targetType = TargetType.POST)
+      responseAction = ResponseAction(
+        RestResolver.getRestUrl(this::class.java, "renewAccessToken"),
+        targetType = TargetType.POST
+      )
     )
     val externalAccessFieldset =
       UIFieldset(UILength(md = 12, lg = 12), title = "plugins.datatransfer.external.access.title")
@@ -231,51 +235,56 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
               )
           )
       )
-    //if (dto.externalDownloadEnabled == true || dto.externalUploadEnabled == true) {
-    externalAccessFieldset.add(
-      UIRow()
-        .add(
-          UICol(UILength(md = 6))
-            .add(
-              UIRow()
-                .add(
-                  UICol(8)
-                    .add(lc, "externalPassword")
-                )
-                .add(
-                  UICol(4)
-                    .add(resetExternalPassword)
-                )
-            )
-        )
-    )
-      .add(
+    if (dto.externalDownloadEnabled == true || dto.externalUploadEnabled == true) {
+      externalAccessFieldset.add(
         UIRow()
           .add(
-            UICol(10)
-              .add(externalLink)
-          )
-          .add(
-            UICol(2)
-              .add(renewExternalLink)
+            UICol(UILength(md = 6))
+              .add(
+                UIRow()
+                  .add(
+                    UICol(8)
+                      .add(lc, "externalPassword")
+                  )
+                  .add(
+                    UICol(4)
+                      .add(resetExternalPassword)
+                  )
+              )
           )
       )
+        .add(
+          UIRow()
+            .add(
+              UICol(10)
+                .add(externalLink)
+            )
+            .add(
+              UICol(2)
+                .add(renewExternalLink)
+            )
+        )
 
-    //}
+    }
     layout.getInputById("areaName").focus = true
-    //layout.watchFields.addAll(arrayOf("externalDownloadEnabled", "externalUploadEnabled"))
+    layout.watchFields.addAll(arrayOf("externalDownloadEnabled", "externalUploadEnabled"))
+    dto.layoutUid = layout.uid
 
     return LayoutUtils.processEditPage(layout, dto, this)
   }
 
-  /*
+
   override fun onWatchFieldsUpdate(
     request: HttpServletRequest,
     dto: DataTransferArea,
     watchFieldsTriggered: Array<String>?
   ): ResponseEntity<ResponseAction> {
+    val preserveLayoutUid = dto.layoutUid
     val layout =
       createEditLayout(dto, UILayout.UserAccess(history = false, insert = true, update = true, delete = true))
+    preserveLayoutUid?.let {
+      layout.uid = it
+    }
     return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE).addVariable("ui", layout))
-  }*/
+  }
 }

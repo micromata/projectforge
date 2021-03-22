@@ -154,7 +154,11 @@ class DataTransferPublicServicesRest {
     }
     //}
     val list =
-      attachmentsService.getAttachments(dataTransferAreaPageRest.jcrPath!!, id, attachmentsAccessChecker, listId)
+      attachmentsAccessChecker.filterAttachments(
+        request,
+        obj.externalDownloadEnabled,
+        attachmentsService.getAttachments(dataTransferAreaPageRest.jcrPath!!, id, attachmentsAccessChecker, listId)
+      )
     return ResponseEntity.ok()
       .body(
         ResponseAction(targetType = TargetType.UPDATE, merge = true)
