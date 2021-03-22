@@ -32,6 +32,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestButtonEvent
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
@@ -172,7 +173,10 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
       title = translate("plugins.datatransfer.external.password.renew"),
       tooltip = "plugins.datatransfer.external.password.renew.info",
       color = UIColor.DANGER,
-      responseAction = ResponseAction("/rs/datatransfer/resetPassword", targetType = TargetType.POST)
+      responseAction = ResponseAction(
+        RestResolver.getRestUrl(this::class.java, "renewPassword"),
+        targetType = TargetType.POST
+      )
     )
     val externalLink = UIReadOnlyField(
       "externalLink",
@@ -185,7 +189,7 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
       title = translate("plugins.datatransfer.external.link.renew"),
       tooltip = "plugins.datatransfer.external.link.renew.info",
       color = UIColor.DANGER,
-      responseAction = ResponseAction("/rs/datatransfer/renewAccessToken", targetType = TargetType.POST)
+      responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java, "renewAccessToken"), targetType = TargetType.POST)
     )
     val externalAccessFieldset =
       UIFieldset(UILength(md = 12, lg = 12), title = "plugins.datatransfer.external.access.title")
