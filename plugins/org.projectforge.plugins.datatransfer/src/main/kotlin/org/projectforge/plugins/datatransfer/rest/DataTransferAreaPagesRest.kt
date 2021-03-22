@@ -226,36 +226,52 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
                   .add(lc, "externalUploadEnabled")
               )
           )
+      )
+    //if (dto.externalDownloadEnabled == true || dto.externalUploadEnabled == true) {
+    externalAccessFieldset.add(
+      UIRow()
+        .add(
+          UICol(UILength(md = 6))
+            .add(
+              UIRow()
+                .add(
+                  UICol(8)
+                    .add(lc, "externalPassword")
+                )
+                .add(
+                  UICol(4)
+                    .add(resetExternalPassword)
+                )
+            )
+        )
+    )
+      .add(
+        UIRow()
           .add(
-            UIRow()
-              .add(
-                UICol(UILength(md = 6))
-                  .add(
-                    UIRow()
-                      .add(
-                        UICol(8)
-                          .add(lc, "externalPassword")
-                      )
-                      .add(
-                        UICol(4)
-                          .add(resetExternalPassword)
-                      )
-                  )
-              )
+            UICol(10)
+              .add(externalLink)
           )
           .add(
-            UIRow()
-              .add(
-                UICol(10)
-                  .add(externalLink)
-              )
-              .add(
-                UICol(2)
-                  .add(renewExternalLink)
-              )
+            UICol(2)
+              .add(renewExternalLink)
           )
       )
+
+    //}
     layout.getInputById("areaName").focus = true
+    //layout.watchFields.addAll(arrayOf("externalDownloadEnabled", "externalUploadEnabled"))
+
     return LayoutUtils.processEditPage(layout, dto, this)
   }
+
+  /*
+  override fun onWatchFieldsUpdate(
+    request: HttpServletRequest,
+    dto: DataTransferArea,
+    watchFieldsTriggered: Array<String>?
+  ): ResponseEntity<ResponseAction> {
+    val layout =
+      createEditLayout(dto, UILayout.UserAccess(history = false, insert = true, update = true, delete = true))
+    return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE).addVariable("ui", layout))
+  }*/
 }

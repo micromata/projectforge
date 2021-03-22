@@ -25,19 +25,14 @@ package org.projectforge.plugins.datatransfer.rest
 
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
-import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
-import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.core.PagesResolver
-import org.projectforge.rest.dto.Contract
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -45,7 +40,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -70,7 +64,11 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     dataTransfer.id = dataTransferDO.id
     dataTransfer.areaName = dataTransferDO.areaName
     dataTransfer.description = dataTransferDO.description
-    dataTransfer.attachments = attachmentsService.getAttachments(dataTransferAreaPagesRest.jcrPath!!, id, dataTransferAreaPagesRest.attachmentsAccessChecker)
+    dataTransfer.attachments = attachmentsService.getAttachments(
+      dataTransferAreaPagesRest.jcrPath!!,
+      id,
+      dataTransferAreaPagesRest.attachmentsAccessChecker
+    )
     dataTransfer.externalLinkBaseUrl = dataTransferAreaDao.getExternalBaseLinkUrl()
     val layout = UILayout("plugins.datatransfer.title.heading")
     val fieldSet = UIFieldset(12, title = "'${dataTransfer.areaName}")
@@ -95,14 +93,17 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       )
     )
 
-    layout.add(
-      MenuItem(
-        "edit",
-        i18nKey = "plugins.datatransfer.title.edit",
-        url = PagesResolver.getEditPageUrl(DataTransferAreaPagesRest::class.java, dataTransfer.id),
-        type = MenuItemTargetType.REDIRECT
+    if (dataTransferAreaDao.hasLoggedInUserUpdateAccess(dataTransferDO, dataTransferDO, false)) {
+      layout.add(
+        MenuItem(
+          "edit",
+          i18nKey = "plugins.datatransfer.title.edit",
+          url = PagesResolver.getEditPageUrl(DataTransferAreaPagesRest::class.java, dataTransfer.id),
+          type = MenuItemTargetType.REDIRECT
+        )
       )
-    )
+    }
+
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
     return FormLayoutData(dataTransfer, layout, createServerData(request))
