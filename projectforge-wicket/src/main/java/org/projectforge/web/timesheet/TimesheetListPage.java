@@ -449,6 +449,9 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
         item.add(label);
       }
     });
+    columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("timesheet.reference"),
+        getSortable("reference", sortable),
+        "reference", cellItemListener));
     return columns;
   }
 
