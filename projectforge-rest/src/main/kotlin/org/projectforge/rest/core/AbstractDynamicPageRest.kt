@@ -24,6 +24,7 @@
 package org.projectforge.rest.core
 
 import mu.KotlinLogging
+import org.projectforge.business.configuration.DomainService
 import org.projectforge.framework.i18n.I18nKeyAndParams
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.ServerData
@@ -42,6 +43,9 @@ private val log = KotlinLogging.logger {}
 abstract class AbstractDynamicPageRest {
     @Autowired
     protected lateinit var sessionCsrfCache: SessionCsrfCache
+
+    @Autowired
+    protected lateinit var domainService: DomainService
 
     /**
      * Creates new server data object with csrfToken.
@@ -67,5 +71,9 @@ abstract class AbstractDynamicPageRest {
         }
         val validationErrors = errorMsgKeys.map { ValidationError.create(it) }
         return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+    }
+
+    protected fun getUrl(path: String): String {
+        return domainService.getDomain(path)
     }
 }
