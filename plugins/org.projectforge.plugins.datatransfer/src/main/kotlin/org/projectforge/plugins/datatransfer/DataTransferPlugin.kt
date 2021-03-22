@@ -24,11 +24,13 @@
 package org.projectforge.plugins.datatransfer
 
 import org.projectforge.Const
+import org.projectforge.jcr.RepoBackupService
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.datatransfer.rest.DataTransferArea
+import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.config.JacksonConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -44,9 +46,17 @@ class DataTransferPlugin :
   private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
   @Autowired
+  private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+
+  @Autowired
   private lateinit var menuCreator: MenuCreator
 
+  @Autowired
+  private lateinit var repoBackupService: RepoBackupService
+
   override fun initialize() {
+    repoBackupService.registerNodePathToIgnore(dataTransferAreaPagesRest.jcrPath!!)
+
     // Register it:
     register(dataTransferAreaDao::class.java, dataTransferAreaDao, "plugins.datatransfer")
 

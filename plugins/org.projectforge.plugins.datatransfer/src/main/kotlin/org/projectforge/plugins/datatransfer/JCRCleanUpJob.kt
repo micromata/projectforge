@@ -25,7 +25,6 @@ package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
 import org.projectforge.framework.jcr.AttachmentsService
-import org.projectforge.framework.time.PFDateTime
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
@@ -60,15 +59,23 @@ class JCRCleanUpJob {
           dataTransferAreaPagesRest.attachmentsAccessChecker
         )
         attachments?.forEach { attachment ->
-          val time = attachment.lastUpdate?.time ?:attachment.created?.time
+          val time = attachment.lastUpdate?.time ?: attachment.created?.time
           if (time == null || now - time > expiryMillis) {
-           // attachmentsService.deleteAttachment()
+            log.info{"Deleting expired attachment of area '${dbo.areaName}': $attachment"}
+            attachment.fileId?.let { fileId ->
+              attachmentsService.internalDeleteAttachment(
+                dataTransferAreaPagesRest.jcrPath!!,
+                fileId,
+                dataTransferAreaDao,
+                dbo
+              )
+            }
           }
         }
       }
     }
 
-    log.info("JCR backup job finished after ${(System.currentTimeMillis() - time) / 1000} seconds.")
+    log.info("JCR clean-up job finished after ${(System.currentTimeMillis() - time) / 1000} seconds.")
   }
 
   companion object {

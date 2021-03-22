@@ -26,6 +26,7 @@ package org.projectforge.framework.jcr
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.common.DateFormatType
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileObject
@@ -80,6 +81,11 @@ class Attachment() {
      */
     var location: String? = null
 
+    /**
+     * If true, the user has no access to modify or delete this attachment.
+     */
+    var readonly: Boolean? = null
+
     constructor(fileObject: FileObject) : this() {
         this.fileId = fileObject.fileId
         this.name = fileObject.fileName
@@ -89,5 +95,9 @@ class Attachment() {
         this.createdByUser = fileObject.createdByUser
         this.lastUpdate = fileObject.lastUpdate
         this.lastUpdateByUser = fileObject.lastUpdateByUser
+    }
+
+    override fun toString(): String {
+        return ToStringUtil.toJsonString(this)
     }
 }

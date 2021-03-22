@@ -31,6 +31,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+import javax.jcr.Node
 
 private val log = KotlinLogging.logger {}
 
@@ -48,6 +49,7 @@ class RepoBackupTest {
 
     @Test
     fun test() {
+        var node: Node? = null
         repoService.ensureNode(null, "world/europe")
         repoService.storeProperty("world/europe", "germany", "key", "value")
 
@@ -60,6 +62,20 @@ class RepoBackupTest {
         fileObject = createFileObject("/world/europe", "germany", "test", "files", "logo.png")
         repoService.storeFile(fileObject, 100000L)
         val logoFile = fileObject.content!!
+
+        node = repoService.ensureNode(null, "datatransfer/europe")
+        fileObject = createFileObject("/datatransfer/europe", "germany", "test", "files", "logo.png")
+        repoService.storeFile(fileObject, 100000L)
+
+        Assertions.assertTrue(PFJcrUtils.matchPath(node!!, "datatransfer"))
+        Assertions.assertTrue(PFJcrUtils.matchPath(node, "/datatransfer"))
+        Assertions.assertTrue(PFJcrUtils.matchPath(node, "datatransfer/europe"))
+        Assertions.assertTrue(PFJcrUtils.matchPath(node, "/datatransfer/europe"))
+        Assertions.assertFalse(PFJcrUtils.matchPath(node, "world"))
+        Assertions.assertFalse(PFJcrUtils.matchPath(node, "datatransfer/world"))
+
+        repoBackupService.registerNodePathToIgnore("datatransfer")
+        Assertions.assertTrue(PFJcrUtils.matchAnyPath(node, repoBackupService.listOfIgnoredNodePaths))
 
         val zipFile = TestUtils.deleteAndCreateTestFile("fullbackup.zip")
         ZipOutputStream(FileOutputStream(zipFile)).use {
@@ -87,6 +103,8 @@ class RepoBackupTest {
         for (idx in logoFile.indices) {
             Assertions.assertEquals(logoFile[idx], fileObject.content!![idx])
         }
+        fileObject = FileObject("/datatransfer/europe", "germany", fileName = "logo.png")
+        Assertions.assertFalse(repo2Service.retrieveFile(fileObject), "datatransfer stuff should be ignored in backup.")
 
         repoService.shutdown()
         repo2Service.shutdown()

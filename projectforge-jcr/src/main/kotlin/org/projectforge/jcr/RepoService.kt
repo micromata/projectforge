@@ -81,13 +81,12 @@ open class RepoService {
    * For creating top level nodes (direct child of main node), set parentNode to null, empty string or "/".
    * @param relPath Sub node parent node to create if not exists. Null value results in nop.
    */
-  open fun ensureNode(parentNodePath: String?, relPath: String?): String? {
-    relPath ?: return parentNodePath
-    return runInSession<String> { session ->
+  open fun ensureNode(parentNodePath: String?, relPath: String?): Node? {
+    relPath ?: return null
+    return runInSession<Node> { session ->
       val node = getNode(session, parentNodePath, relPath, true)
-      val path = node.path
       session.save()
-      path
+      node
     }
   }
 
