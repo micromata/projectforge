@@ -25,13 +25,14 @@ package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
 import org.projectforge.business.configuration.DomainService
+import org.projectforge.common.StringHelper
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.core.RestResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -95,11 +96,14 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     operationType: OperationType,
     throwException: Boolean
   ): Boolean {
-    return true
-    /*return accessChecker.isUserMemberOfAdminGroup(user) || user.id == obj.ownerId || userGroupCache.isUserMemberOfGroup(
-      user,
-      obj.ownerGroupId
-    )*/
+    val adminIds = StringHelper.splitToIntegers(obj.adminIds, ",")
+    if (adminIds.contains(user.id)) {
+      return true
+    }
+    if (throwException) {
+      throw AccessException(user, "access.exception.userHasNotRight")
+    }
+    return false
   }
 
   override fun newInstance(): DataTransferAreaDO {

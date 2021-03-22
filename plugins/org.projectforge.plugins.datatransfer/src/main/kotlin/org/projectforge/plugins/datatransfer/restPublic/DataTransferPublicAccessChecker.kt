@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.framework.api.TechnicalException
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
@@ -44,15 +45,13 @@ open class DataTransferPublicAccessChecker(
   override val maxFileSize: Long,
   override val maxFileSizeSpringProperty: String
 ) : AttachmentsAccessChecker {
-  class AccessStatus(val data: DataTransferPublicArea? = null, val errorMsg: String? = null)
-
   fun checkExternalAccess(
     dataTransferAreaDao: DataTransferAreaDao,
     request: HttpServletRequest,
     externalAccessToken: String?, externalPassword: String?
-  ): AccessStatus {
+  ): Pair<DataTransferPublicArea?, String?> {
     if (externalAccessToken == null || externalPassword == null) {
-      return AccessStatus(errorMsg = LoginResultStatus.FAILED.localizedMessage)
+      return Pair(null, LoginResultStatus.FAILED.localizedMessage)
     }
     val loginProtection = LoginProtection.instance()
     val clientIpAddress = RestUtils.getClientIp(request)
@@ -67,19 +66,22 @@ open class DataTransferPublicAccessChecker(
         seconds,
         numberOfFailedAttempts.toString()
       )
-      return AccessStatus(errorMsg = loginResultStatus.localizedMessage)
+      return Pair(null, loginResultStatus.localizedMessage)
     }
 
     val dbo = dataTransferAreaDao.getAnonymousArea(externalAccessToken)
     if (dbo == null) {
       log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' not found. Requested by ip=$clientIpAddress." }
       loginProtection.incrementFailedLoginTimeOffset(externalAccessToken, clientIpAddress)
-      return AccessStatus(errorMsg = LoginResultStatus.FAILED.localizedMessage)
+      return Pair(null, LoginResultStatus.FAILED.localizedMessage)
     }
     if (dbo.externalPassword != externalPassword) {
       log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' doesn't match given password. Requested by ip=$clientIpAddress." }
       loginProtection.incrementFailedLoginTimeOffset(externalAccessToken, clientIpAddress)
-      return AccessStatus(errorMsg = LoginResultStatus.FAILED.localizedMessage)
+      return Pair(null, LoginResultStatus.FAILED.localizedMessage)
+    }
+    if (dbo.externalUploadEnabled != true && dbo.externalDownloadEnabled != true) {
+      return Pair(null, translate("plugins.datatransfer.external.noAccess"))
     }
 
     // Successfully logged in:
@@ -87,7 +89,7 @@ open class DataTransferPublicAccessChecker(
 
     val data = DataTransferPublicArea()
     data.copyFrom(dbo)
-    return AccessStatus(data)
+    return Pair(data, null)
   }
 
   /**

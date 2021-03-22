@@ -82,10 +82,10 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     val externalPassword = postData.data.externalPassword
     val checkAccess =
       attachmentsAccessChecker.checkExternalAccess(dataTransferAreaDao, request, externalAccessToken, externalPassword)
-    checkAccess.errorMsg?.let {
+    checkAccess.second?.let {
       return getLoginFailed(response, it)
     }
-    val data = checkAccess.data!!
+    val data = checkAccess.first!!
     val attachments = attachmentsService.getAttachments(
       dataTransferAreaPagesRest.jcrPath!!,
       data.id!!,

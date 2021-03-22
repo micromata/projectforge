@@ -83,7 +83,8 @@ class DataTransferPublicServicesRest {
   )
       : ResponseEntity<*> {
     log.info { "User tries to download attachment: category=$category, id=$id, fileId=$fileId, listId=$listId)}." }
-    checkAccess(request, category, accessString)?.let { return it }
+    val checkResult = checkAccess(request, category, accessString)
+    checkResult.second?.let { return it }
     val result =
       attachmentsService.getAttachmentInputStream(
         dataTransferAreaPageRest.jcrPath!!,
@@ -94,7 +95,12 @@ class DataTransferPublicServicesRest {
         ?: throw TechnicalException(
           "File to download not accessible for user or not found: category=$category, id=$id, fileId=$fileId, listId=$listId)}."
         )
-
+    if (checkResult.first?.externalDownloadEnabled != true) {
+      val clientIp = RestUtils.getClientIp(request) ?: "NO IP ADDRESS GIVEN. CAN'T SHOW ANY ATTACHMENT."
+      if (result.first.createdByUser?.contains(clientIp) != true) {
+        return RestUtils.badRequest("Download not enabled.")
+      }
+    }
     val filename = result.first.fileName ?: "file"
     val inputStream = result.second
     return RestUtils.downloadFile(filename, inputStream)
@@ -115,13 +121,17 @@ class DataTransferPublicServicesRest {
     val filename = file.originalFilename
     log.info { "User tries to upload attachment: id='$id', listId='$listId', filename='$filename', page='${this::class.java.name}'." }
 
-    checkAccess(request, category, accessString)?.let { return it }
+    checkAccess(request, category, accessString).second?.let { return it }
 
     val obj = dataTransferAreaDao.internalGetById(id)
       ?: throw TechnicalException(
         "Entity with id $id not accessible for category '$category' or doesn't exist.",
         "Entity with id unknown."
       )
+
+    if (obj.externalUploadEnabled != true) {
+      return RestUtils.badRequest("Upload not enabled.")
+    }
 
     try {
       attachmentsService.addAttachment(
@@ -156,7 +166,7 @@ class DataTransferPublicServicesRest {
     request: HttpServletRequest,
     category: String,
     accessString: String?
-  ): ResponseEntity<String>? {
+  ): Pair<DataTransferPublicArea?, ResponseEntity<String>?> {
     check(category == "datatransfer")
     check(accessString?.contains('|') == true)
     val credentials = accessString!!.split('|')
@@ -165,11 +175,13 @@ class DataTransferPublicServicesRest {
     val externalPassword = credentials[1]
     val checkAccess =
       attachmentsAccessChecker.checkExternalAccess(dataTransferAreaDao, request, externalAccessToken, externalPassword)
-    checkAccess.errorMsg?.let {
-      return ResponseEntity.badRequest()
-        .contentType(MediaType("text", "plain", StandardCharsets.UTF_8))
-        .body(it)
+    checkAccess.second?.let {
+      return Pair(
+        null, ResponseEntity.badRequest()
+          .contentType(MediaType("text", "plain", StandardCharsets.UTF_8))
+          .body(it)
+      )
     }
-    return null
+    return Pair(checkAccess.first, null)
   }
 }
