@@ -321,6 +321,23 @@ open class AttachmentsService {
       fileId = fileId,
       subPath = subPath
     )
+    return internalDeleteAttachment(path, fileId, baseDao, obj, subPath)
+  }
+
+  /**
+   * Without access checking (needed by clean-up job of data transfer).
+   * @param path Unique path of data object.
+   * @param id Id of data object.
+   */
+  @JvmOverloads
+  open fun internalDeleteAttachment(
+    path: String,
+    fileId: String,
+    baseDao: BaseDao<out ExtendedBaseDO<Int>>,
+    obj: ExtendedBaseDO<Int>,
+    subPath: String? = null
+  )
+      : Boolean {
     val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId)
     val result = repoService.deleteFile(fileObject)
     if (result) {
@@ -334,7 +351,8 @@ open class AttachmentsService {
     return result
   }
 
-  /**
+
+    /**
    * @param path Unique path of data object.
    * @param id Id of data object.
    */

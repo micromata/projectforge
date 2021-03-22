@@ -59,7 +59,7 @@ class DataTransferPublicServicesRest {
   private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
   @Autowired
-  private lateinit var dataTransferAreaPageRest: DataTransferAreaPagesRest
+  private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
 
   private lateinit var attachmentsAccessChecker: DataTransferPublicAccessChecker
 
@@ -87,7 +87,7 @@ class DataTransferPublicServicesRest {
     checkResult.second?.let { return it }
     val result =
       attachmentsService.getAttachmentInputStream(
-        dataTransferAreaPageRest.jcrPath!!,
+        dataTransferAreaPagesRest.jcrPath!!,
         id,
         fileId,
         attachmentsAccessChecker
@@ -135,7 +135,7 @@ class DataTransferPublicServicesRest {
 
     try {
       attachmentsService.addAttachment(
-        dataTransferAreaPageRest.jcrPath!!,
+        dataTransferAreaPagesRest.jcrPath!!,
         fileName = file.originalFilename,
         inputStream = file.inputStream,
         baseDao = dataTransferAreaDao,
@@ -157,7 +157,7 @@ class DataTransferPublicServicesRest {
       attachmentsAccessChecker.filterAttachments(
         request,
         obj.externalDownloadEnabled,
-        attachmentsService.getAttachments(dataTransferAreaPageRest.jcrPath!!, id, attachmentsAccessChecker, listId)
+        attachmentsService.getAttachments(dataTransferAreaPagesRest.jcrPath!!, id, attachmentsAccessChecker, listId)
       )
     return ResponseEntity.ok()
       .body(
