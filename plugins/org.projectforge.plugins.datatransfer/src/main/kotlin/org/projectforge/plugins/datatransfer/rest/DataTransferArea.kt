@@ -44,6 +44,7 @@ class DataTransferArea(
   var externalAccessToken: String? = null,
   var externalPassword: String? = null,
   var expiryDays: Int? = null,
+  var maxUploadSizeKB: Int? = null,
   var internalLink: String? = null,
   /**
    * Needed for updating UILayout for watchfields.

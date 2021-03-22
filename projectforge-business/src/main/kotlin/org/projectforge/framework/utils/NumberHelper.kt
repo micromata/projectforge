@@ -137,10 +137,12 @@ object NumberHelper {
    * Parses the given string as integer value.
    *
    * @param value The string representation of the integer value to parse.
+   * @param logMessage If given (default) a warning will be logged if the given string isn't parsable.
    * @return Integer value or null if an empty string was given or a syntax error occurs.
    */
   @JvmStatic
-  fun parseInteger(value: String?): Int? {
+  @JvmOverloads
+  fun parseInteger(value: String?, logMessage: Boolean = true): Int? {
     var v = value ?: return null
     v = v.trim { it <= ' ' }
     if (v.isEmpty()) {
@@ -150,7 +152,9 @@ object NumberHelper {
     try {
       result = Integer.valueOf(v)
     } catch (ex: NumberFormatException) {
-      log.warn("Can't parse integer: '$v'.")
+      if (logMessage == true) {
+        log.warn("Can't parse integer: '$v'.")
+      }
     }
     return result
   }

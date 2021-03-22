@@ -127,6 +127,14 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
   @get:Column(name = "expiry_days")
   open var expiryDays: Int? = null
 
+  /**
+   * If configured, this area supports this max upload size in kilo bytes (but must be less or equal to the maximum size of the
+   * data transfer tool itself.
+   */
+  @PropertyInfo(i18nKey = "plugins.datatransfer.maxUploadSize", tooltip = "plugins.datatransfer.maxUploadSize.info")
+  @get:Column(name = "max_upload_size_kb")
+  open var maxUploadSizeKB: Int? = null
+
   @JsonIgnore
   @Field
   @field:NoHistory

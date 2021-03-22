@@ -18,6 +18,7 @@ CREATE TABLE t_plugin_datatransfer_area
     external_access_token          CHARACTER VARYING(100),
     external_password              CHARACTER VARYING(100),
     expiry_days                    INTEGER,
+    max_upload_size_kb             INTEGER,
 
     external_access_logs           CHARACTER VARYING(10000),
     attachments_names              CHARACTER VARYING(10000),
