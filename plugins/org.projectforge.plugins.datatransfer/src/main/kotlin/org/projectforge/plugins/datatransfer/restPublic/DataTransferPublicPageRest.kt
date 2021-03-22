@@ -24,10 +24,7 @@
 package org.projectforge.plugins.datatransfer.restPublic
 
 import mu.KotlinLogging
-import org.projectforge.business.login.LoginProtection
-import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
@@ -83,17 +80,24 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
       : ResponseAction {
     val externalAccessToken = postData.data.externalAccessToken
     val externalPassword = postData.data.externalPassword
-    val checkAccess = attachmentsAccessChecker.checkExternalAccess(dataTransferAreaDao, request, externalAccessToken, externalPassword)
+    val checkAccess =
+      attachmentsAccessChecker.checkExternalAccess(dataTransferAreaDao, request, externalAccessToken, externalPassword)
     checkAccess.errorMsg?.let {
       return getLoginFailed(response, it)
     }
     val data = checkAccess.data!!
-    data.attachments =
-      attachmentsService.getAttachments(
-        dataTransferAreaPagesRest.jcrPath!!,
-        data.id!!,
-        attachmentsAccessChecker
-      )
+    val attachments = attachmentsService.getAttachments(
+      dataTransferAreaPagesRest.jcrPath!!,
+      data.id!!,
+      attachmentsAccessChecker
+    )
+    if (data.externalDownloadEnabled == true) {
+      data.attachments = attachments
+    } else {
+      val clientIp = RestUtils.getClientIp(request) ?: "NO IP ADDRESS GIVEN. CAN'T SHOW ANY ATTACHMENT."
+      data.attachments = attachments?.filter { it.createdByUser?.contains(clientIp) == true }
+    }
+
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("ui", getAttachmentLayout(data))
       .addVariable("data", data)
@@ -119,7 +123,8 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
             //serviceBaseUrl = "/${RestResolver.REACT_PUBLIC_PATH}/datatransferattachment/dynamic",
             restBaseUrl = "/${RestPaths.REST_PUBLIC}/datatransfer",
             accessString = "${dataTransfer.externalAccessToken}|${dataTransfer.externalPassword}",
-            downloadOnRowClick = true
+            downloadOnRowClick = true,
+            uploadDisabled = dataTransfer.externalUploadEnabled != true
           )
         )
     )

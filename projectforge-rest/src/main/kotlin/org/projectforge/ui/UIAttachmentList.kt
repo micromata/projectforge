@@ -63,6 +63,10 @@ class UIAttachmentList(
   /**
    * Used by data transfer tool for using public rest api and react pages (for serving access token and password by the client).
    */
-  val downloadOnRowClick: Boolean? = null
+  val downloadOnRowClick: Boolean? = null,
+  /**
+   * If true, the upload function isn't available.
+   */
+  val uploadDisabled: Boolean? = null
 ) :
   UIElement(type = UIElementType.ATTACHMENT_LIST)

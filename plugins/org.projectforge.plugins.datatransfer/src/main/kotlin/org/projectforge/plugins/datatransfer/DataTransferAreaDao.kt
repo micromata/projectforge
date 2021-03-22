@@ -75,6 +75,8 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     result.description = dbo.description
     result.externalAccessToken = dbo.externalAccessToken
     result.externalPassword = dbo.externalPassword
+    result.externalDownloadEnabled = dbo.externalDownloadEnabled
+    result.externalUploadEnabled = dbo.externalUploadEnabled
     return result
   }
 

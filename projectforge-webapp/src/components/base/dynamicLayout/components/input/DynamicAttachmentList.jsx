@@ -16,6 +16,7 @@ function DynamicAttachmentList(
         restBaseUrl,
         accessString,
         downloadOnRowClick,
+        uploadDisabled,
     },
 ) {
     const {
@@ -80,29 +81,21 @@ function DynamicAttachmentList(
         });
     }
 
-    return React.useMemo(() => {
-        if (id && id > 0) {
-            return (
-                <DropArea
-                    setFiles={uploadFile}
-                    noStyle
-                    title={ui.translations['file.upload.dropArea']}
-                >
-                    {attachments && attachments.length > 0 && (
-                        <Table striped hover>
-                            <thead>
-                            <tr>
-                                <th>{ui.translations['attachment.fileName']}</th>
-                                <th>{ui.translations['attachment.size']}</th>
-                                <th>{ui.translations.description}</th>
-                                <th>{ui.translations.created}</th>
-                                <th>{ui.translations.createdBy}</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {attachments.map(entry => (
-                                <tr key={entry.fileId} onClick={handleRowClick(entry)}>
-                                    <td>
+    const table = attachments && attachments.length > 0 && (
+        <Table striped hover>
+            <thead>
+            <tr>
+                <th>{ui.translations['attachment.fileName']}</th>
+                <th>{ui.translations['attachment.size']}</th>
+                <th>{ui.translations.description}</th>
+                <th>{ui.translations.created}</th>
+                <th>{ui.translations.createdBy}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {attachments.map(entry => (
+                <tr key={entry.fileId} onClick={handleRowClick(entry)}>
+                    <td>
                                             <span
                                                 role="presentation"
                                                 onKeyDown={() => {
@@ -112,16 +105,29 @@ function DynamicAttachmentList(
                                                 {`${entry.name} `}
                                                 <FontAwesomeIcon icon={faDownload}/>
                                             </span>
-                                    </td>
-                                    <td>{entry.sizeHumanReadable}</td>
-                                    <td>{entry.description}</td>
-                                    <td>{entry.createdFormatted}</td>
-                                    <td>{entry.createdByUser}</td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </Table>
-                    )}
+                    </td>
+                    <td>{entry.sizeHumanReadable}</td>
+                    <td>{entry.description}</td>
+                    <td>{entry.createdFormatted}</td>
+                    <td>{entry.createdByUser}</td>
+                </tr>
+            ))}
+            </tbody>
+        </Table>
+    )
+
+    return React.useMemo(() => {
+        if (id && id > 0) {
+            if (uploadDisabled) {
+                return (<React.Fragment>{table}</React.Fragment>)
+            }
+            return (
+                <DropArea
+                    setFiles={uploadFile}
+                    noStyle
+                    title={ui.translations['file.upload.dropArea']}
+                >
+                    {table}
                 </DropArea>
             );
         }
@@ -142,6 +148,7 @@ DynamicAttachmentList.propTypes = {
     restBaseUrl: PropTypes.string,
     accessString: PropTypes.string,
     downloadOnRowClick: PropTypes.bool,
+    uploadDisabled: PropTypes.bool,
 };
 
 DynamicAttachmentList.defaultProps = {
@@ -151,6 +158,7 @@ DynamicAttachmentList.defaultProps = {
     restBaseUrl: '/rs/attachments',
     accessString: '',
     downloadOnRowClick: false,
+    uploadDisabled: false,
 };
 
 export default DynamicAttachmentList;
