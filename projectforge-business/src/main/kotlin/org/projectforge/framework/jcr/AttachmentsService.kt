@@ -469,10 +469,10 @@ open class AttachmentsService {
 
   private fun createAttachment(fileObject: FileObject): Attachment {
     val attachment = Attachment(fileObject)
-    NumberHelper.parseInteger(fileObject.createdByUser)?.let {
+    NumberHelper.parseInteger(fileObject.createdByUser, false)?.let {
       attachment.createdByUser = UserGroupCache.tenantInstance.getUser(it)?.getFullname()
     }
-    NumberHelper.parseInteger(fileObject.lastUpdateByUser)?.let {
+    NumberHelper.parseInteger(fileObject.lastUpdateByUser, false)?.let {
       attachment.lastUpdateByUser = UserGroupCache.tenantInstance.getUser(it)?.getFullname()
     }
     return attachment
