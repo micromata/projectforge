@@ -70,12 +70,14 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       dataTransferAreaPagesRest.attachmentsAccessChecker
     )
     dataTransfer.externalLinkBaseUrl = dataTransferAreaDao.getExternalBaseLinkUrl()
+    dataTransfer.internalLink = getUrl(PagesResolver.getDynamicPageUrl(this::class.java, id = id))
     val layout = UILayout("plugins.datatransfer.title.heading")
     val fieldSet = UIFieldset(12, title = "'${dataTransfer.areaName}")
     fieldSet.add(
       UIFieldset(title = "attachment.list")
         .add(UIAttachmentList("datatransfer", id))
     )
+      .add(UIReadOnlyField("internalLink", label = "plugins.datatransfer.internal.link"))
     layout.add(fieldSet)
 
     layout.add(
