@@ -135,4 +135,8 @@ object RestUtils {
       .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${filename.replace('"', '_')}\"")
       .body(resource)
   }
+
+  fun badRequest(message: String): ResponseEntity<String> {
+    return ResponseEntity.badRequest().body(message)
+  }
 }
