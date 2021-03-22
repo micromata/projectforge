@@ -10,7 +10,7 @@ import LoadingContainer from '../components/design/loading-container';
 import history from '../utilities/history';
 import prefix from '../utilities/prefix';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
-import AuthorizedRoutes, { wicketRoute } from './AuthorizedRoutes';
+import AuthorizedRoutes, {publicRoute, wicketRoute} from './AuthorizedRoutes';
 import FormPage from './page/form/FormPage';
 import { SystemStatusContext, systemStatusContextDefaultValues } from './SystemStatusContext';
 
@@ -52,10 +52,7 @@ function ProjectForge(
         content = (
             <Switch>
                 {wicketRoute}
-                <Route
-                    path={`${prefix}public/:category/:type?/:id?`}
-                    render={props => <FormPage {...props} isPublic />}
-                />
+                {publicRoute}
                 <Route
                     path={prefix}
                     render={({ match, location, ...props }) => (

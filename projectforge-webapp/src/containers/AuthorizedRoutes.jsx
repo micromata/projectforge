@@ -31,6 +31,13 @@ export const wicketRoute = (
     />
 );
 
+export const publicRoute = (
+    <Route
+        path={`${prefix}public/:category/:type?/:id?`}
+        render={props => <FormPage {...props} isPublic />}
+    />
+);
+
 function AuthorizedRoutes(
     {
         alertMessage,
@@ -44,6 +51,7 @@ function AuthorizedRoutes(
     const routes = switchLocation => (
         <Switch location={switchLocation}>
             {wicketRoute}
+            {publicRoute}
             <Route
                 exact
                 path={prefix}
