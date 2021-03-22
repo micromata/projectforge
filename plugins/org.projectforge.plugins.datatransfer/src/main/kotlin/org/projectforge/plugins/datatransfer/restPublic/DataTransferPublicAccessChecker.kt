@@ -26,14 +26,12 @@ package org.projectforge.plugins.datatransfer.restPublic
 import mu.KotlinLogging
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.login.LoginResultStatus
-import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.rest.config.RestUtils
-import org.projectforge.ui.ResponseAction
-import org.projectforge.ui.TargetType
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -90,6 +88,22 @@ open class DataTransferPublicAccessChecker(
     val data = DataTransferPublicArea()
     data.copyFrom(dbo)
     return Pair(data, null)
+  }
+
+  /**
+   * If user has no download access, only attachments uploaded from own ip address should be displayed.
+   */
+  internal fun filterAttachments(
+    request: HttpServletRequest,
+    externalDownloadEnabled: Boolean?,
+    attachments: List<Attachment>?
+  ): List<Attachment>? {
+    attachments ?: return null
+    if (externalDownloadEnabled == true) {
+      return attachments
+    }
+    val clientIp = RestUtils.getClientIp(request) ?: "NO IP ADDRESS GIVEN. CAN'T SHOW ANY ATTACHMENT."
+    return attachments.filter { it.createdByUser?.contains(clientIp) == true }
   }
 
   /**

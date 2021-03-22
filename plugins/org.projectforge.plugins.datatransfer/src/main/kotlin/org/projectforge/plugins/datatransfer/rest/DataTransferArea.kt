@@ -44,7 +44,11 @@ class DataTransferArea(
   var externalAccessToken: String? = null,
   var externalPassword: String? = null,
   var expiryDays: Int? = null,
-  var internalLink: String? = null
+  var internalLink: String? = null,
+  /**
+   * Needed for updating UILayout for watchfields.
+   */
+  var layoutUid: String? = null
 ) : BaseDTO<DataTransferAreaDO>(id), AttachmentsSupport {
   override var attachments: List<Attachment>? = null
 

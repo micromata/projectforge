@@ -30,7 +30,6 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
@@ -86,17 +85,14 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
       return getLoginFailed(response, it)
     }
     val data = checkAccess.first!!
-    val attachments = attachmentsService.getAttachments(
-      dataTransferAreaPagesRest.jcrPath!!,
-      data.id!!,
-      attachmentsAccessChecker
+    data.attachments = attachmentsAccessChecker.filterAttachments(
+      request, data.externalDownloadEnabled,
+      attachmentsService.getAttachments(
+        dataTransferAreaPagesRest.jcrPath!!,
+        data.id!!,
+        attachmentsAccessChecker
+      )
     )
-    if (data.externalDownloadEnabled == true) {
-      data.attachments = attachments
-    } else {
-      val clientIp = RestUtils.getClientIp(request) ?: "NO IP ADDRESS GIVEN. CAN'T SHOW ANY ATTACHMENT."
-      data.attachments = attachments?.filter { it.createdByUser?.contains(clientIp) == true }
-    }
 
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("ui", getAttachmentLayout(data))

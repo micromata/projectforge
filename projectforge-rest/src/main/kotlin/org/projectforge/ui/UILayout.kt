@@ -86,7 +86,7 @@ class UILayout {
     /**
      * UID usable by the client for having unique dialoque ids.
      */
-    val uid = "layout${System.currentTimeMillis()}"
+    var uid = "layout${System.currentTimeMillis()}"
 
     /**
      * All required translations for the frontend dependent on the logged-in-user's language.
