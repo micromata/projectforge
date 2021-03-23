@@ -26,6 +26,7 @@ package org.projectforge.framework.jcr
 import mu.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.common.DataSizeConfig
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.IdObject
@@ -40,6 +41,7 @@ import org.springframework.stereotype.Service
 import org.springframework.util.unit.DataSize
 import org.springframework.util.unit.DataUnit
 import java.io.InputStream
+import javax.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 
@@ -48,14 +50,17 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class AttachmentsService {
-  companion object {
-    const val DEFAULT_NODE = "attachments"
-    const val MAX_DEFAULT_FILE_SIZE_SPRING_PROPERTY = "projectforge.jcr.maxDefaultFileSize"
-  }
+  @Value("\${$MAX_DEFAULT_FILE_SIZE_SPRING_PROPERTY:100MB}")
+  internal open lateinit var maxDefaultFileSizeConfig: String
 
-  //@DataSizeUnit(DataUnit.MEGABYTES)
-  //@Value("\${projectforge.jcr.datatransfer.maxFileSize:100MB}")
-  open val maxDefaultFileSize: DataSize = DataSize.ofMegabytes(100)
+  open lateinit var maxDefaultFileSize: DataSize
+    internal set
+
+  @PostConstruct
+  private fun postConstruct() {
+    maxDefaultFileSize = DataSizeConfig.init(maxDefaultFileSizeConfig, DataUnit.MEGABYTES)
+    log.info { "Maximum configured default size of attachments: $MAX_DEFAULT_FILE_SIZE_SPRING_PROPERTY=$maxDefaultFileSizeConfig." }
+  }
 
   @Autowired
   private lateinit var repoService: RepoService
@@ -358,7 +363,7 @@ open class AttachmentsService {
   }
 
 
-    /**
+  /**
    * @param path Unique path of data object.
    * @param id Id of data object.
    */
@@ -515,5 +520,10 @@ open class AttachmentsService {
       }
       log.warn { msg }
     }
+  }
+
+  companion object {
+    const val DEFAULT_NODE = "attachments"
+    const val MAX_DEFAULT_FILE_SIZE_SPRING_PROPERTY = "projectforge.jcr.maxDefaultFileSize"
   }
 }

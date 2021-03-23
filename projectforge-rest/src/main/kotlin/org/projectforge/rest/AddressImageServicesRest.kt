@@ -25,7 +25,9 @@ package org.projectforge.rest
 
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressImageDao
+import org.projectforge.common.DataSizeConfig
 import org.projectforge.framework.configuration.ConfigurationChecker
+import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.ExpiringSessionAttributes
@@ -37,8 +39,10 @@ import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.util.unit.DataSize
+import org.springframework.util.unit.DataUnit
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
 
@@ -51,13 +55,17 @@ private val log = KotlinLogging.logger {}
 @RequestMapping("${Rest.URL}/address")
 class AddressImageServicesRest {
 
-  companion object {
-    internal const val SESSION_IMAGE_ATTR = "uploadedAddressImage"
-    private const val MAX_IMAGE_SIZE_SPRING_PROPERTY = "projectforge.address.maxImageSize"
-  }
+  @Value("\${${MAX_IMAGE_SIZE_SPRING_PROPERTY}:500KB}")
+  internal open lateinit var maxImageSizeConfig: String
 
-  //@Value("\${projectforge.address.maxImageSize:500KB}")
-  open internal val maxImageSize: DataSize = DataSize.ofKilobytes(500)
+  open lateinit var maxImageSize: DataSize
+    internal set
+
+  @PostConstruct
+  private fun postConstruct() {
+    maxImageSize = DataSizeConfig.init(maxImageSizeConfig, DataUnit.MEGABYTES)
+    log.info { "Maximum configured size of images: ${MAX_IMAGE_SIZE_SPRING_PROPERTY}=$maxImageSizeConfig." }
+  }
 
   @Autowired
   private lateinit var addressImageDao: AddressImageDao
@@ -136,5 +144,10 @@ class AddressImageServicesRest {
       addressImageDao.delete(id)
     }
     return ResponseEntity("OK", HttpStatus.OK)
+  }
+
+  companion object {
+    internal const val SESSION_IMAGE_ATTR = "uploadedAddressImage"
+    private const val MAX_IMAGE_SIZE_SPRING_PROPERTY = "projectforge.address.maxImageSize"
   }
 }
