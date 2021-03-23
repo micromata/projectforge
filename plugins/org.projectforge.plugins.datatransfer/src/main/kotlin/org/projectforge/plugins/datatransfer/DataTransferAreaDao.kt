@@ -50,12 +50,25 @@ private val log = KotlinLogging.logger {}
  */
 @Repository
 open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO::class.java) {
+  companion object {
+    fun generateExternalAccessToken(): String {
+      return NumberHelper.getSecureRandomAlphanumeric(ACCESS_TOKEN_LENGTH)
+    }
+
+    fun generateExternalPassword(): String {
+      return NumberHelper.getSecureRandomReducedAlphanumeric(PASSWORD_LENGTH)
+    }
+
+    const val MAX_FILE_SIZE_SPRING_PROPERTY = "projectforge.plugin.datatransfer.maxFileSize"
+    private const val ACCESS_TOKEN_LENGTH = 30
+    private const val PASSWORD_LENGTH = 6
+  }
+
+  //@Value("\${projectforge.plugin.datatransfer.maxFileSize:100MB}")
+  val maxFileSize: DataSize = DataSize.ofMegabytes(100)
 
   @Autowired
   private lateinit var domainService: DomainService
-
-  @Value("\${$MAX_FILE_SIZE_SPRING_PROPERTY:100MB}")
-  open lateinit var maxFileSize: DataSize
 
   open fun createInitializedFile(): DataTransferAreaDO {
     val file = DataTransferAreaDO()
@@ -126,19 +139,5 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
   override fun newInstance(): DataTransferAreaDO {
     return DataTransferAreaDO()
-  }
-
-  companion object {
-    fun generateExternalAccessToken(): String {
-      return NumberHelper.getSecureRandomAlphanumeric(ACCESS_TOKEN_LENGTH)
-    }
-
-    fun generateExternalPassword(): String {
-      return NumberHelper.getSecureRandomReducedAlphanumeric(PASSWORD_LENGTH)
-    }
-
-    const val MAX_FILE_SIZE_SPRING_PROPERTY = "projectforge.plugin.datatransfer.maxFileSize"
-    private const val ACCESS_TOKEN_LENGTH = 30
-    private const val PASSWORD_LENGTH = 6
   }
 }
