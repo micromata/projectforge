@@ -57,7 +57,7 @@ class AddressImageServicesRest {
   }
 
   //@Value("\${projectforge.address.maxImageSize:500KB}")
-  internal val maxImageSize: DataSize = DataSize.ofKilobytes(500)
+  open internal val maxImageSize: DataSize = DataSize.ofKilobytes(500)
 
   @Autowired
   private lateinit var addressImageDao: AddressImageDao

@@ -65,7 +65,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
   }
 
   //@Value("\${projectforge.plugin.datatransfer.maxFileSize:100MB}")
-  val maxFileSize: DataSize = DataSize.ofMegabytes(100)
+  open val maxFileSize: DataSize = DataSize.ofMegabytes(100)
 
   @Autowired
   private lateinit var domainService: DomainService
