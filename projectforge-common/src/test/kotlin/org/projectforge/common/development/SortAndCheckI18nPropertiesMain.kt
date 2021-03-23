@@ -77,7 +77,7 @@ object SortAndCheckI18nPropertiesMain {
       newBlock() // Initially a block of key-values is needed.
       println("Reading file '$basename$lang.properties'...")
       // Read file line by line:
-      File("$basename$lang.properties").forEachLine(ENCODING) { line ->
+      File("$basename$lang.properties").forEachLine() { line ->
         if (line.indexOf('=') > 0 && line.trim()[0].isLetter()) {
           // This seems to be a key-value line with a translation.
           add(Entry.from(line))
@@ -231,7 +231,7 @@ object SortAndCheckI18nPropertiesMain {
         val key = line.substring(0, pos)
         val value = line.substring(pos + 1)
         val entry = Entry(key)
-        entry.value = value
+        entry.value = replaceUTFChars(value) ?: ""
         return entry
       }
     }
@@ -250,5 +250,17 @@ object SortAndCheckI18nPropertiesMain {
     fun sort() {
       entries.sortBy { it.key.toLowerCase() }
     }
+  }
+
+  private fun replaceUTFChars(str: String?): String? {
+    str ?: return null
+   return str
+      .replace("Ä", "\\u00C4")
+      .replace("ä", "\\u00E4")
+      .replace("Ö", "\\u00D6")
+      .replace("ö", "\\u00F6")
+      .replace("Ü", "\\u00DC")
+      .replace("ü", "\\u00FC")
+      .replace("ß", "\\u00DF")
   }
 }
