@@ -23,10 +23,6 @@
 
 package org.projectforge.common
 
-import org.apache.commons.lang3.StringUtils
-
-import java.lang.reflect.Field
-import java.lang.reflect.ParameterizedType
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.NumberFormat
@@ -36,49 +32,48 @@ import java.util.*
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object FormatterUtils {
-    @JvmStatic
-    @JvmOverloads
-    fun formatBytes(bytes: Int?, locale: Locale = Locale.getDefault()): String {
-        return formatBytes(bytes?.toLong(), locale)
-    }
+  @JvmStatic
+  @JvmOverloads
+  fun formatBytes(bytes: Int?, locale: Locale = Locale.getDefault()): String {
+    return formatBytes(bytes?.toLong(), locale)
+  }
 
-    /**
-     * null -> '--',
-     * '5' -> '5bytes',
-     * '1024' -> '1KB', ...
-     */
-    @JvmStatic
-    @JvmOverloads
-    fun formatBytes(bytes: Long?, locale: Locale = Locale.getDefault()): String {
-        bytes ?: return "--"
-        if (bytes < KILO_BYTES) {
-            return "${bytes}bytes"
-        }
-        if (bytes < MEGA_BYTES) {
-            var no = BigDecimal(bytes).divide(KB_BD, 1, RoundingMode.HALF_UP)
-            if (no.toLong() >= 100) {
-                no = no.setScale(0, RoundingMode.HALF_UP)
-            }
-            return NumberFormat.getInstance(locale).format(no) + "KB"
-        }
-        if (bytes < GIGA_BYTES) {
-            var no = BigDecimal(bytes).divide(MB_BD, 1, RoundingMode.HALF_UP)
-            if (no.toLong() >= 100) {
-                no = no.setScale(0, RoundingMode.HALF_UP)
-            }
-            return NumberFormat.getInstance(locale).format(no) + "MB"
-        }
-        var no = BigDecimal(bytes).divide(GB_BD, 1, RoundingMode.HALF_UP)
-        if (no.toLong() >= 100) {
-            no = no.setScale(0, RoundingMode.HALF_UP)
-        }
-        return NumberFormat.getInstance(locale).format(no) + "GB"
+  /**
+   * null -> '--',
+   * '5' -> '5bytes',
+   * '1024' -> '1KB', ...
+   */
+  @JvmStatic
+  @JvmOverloads
+  fun formatBytes(bytes: Long?, locale: Locale = Locale.getDefault()): String {
+    bytes ?: return "--"
+    when (bytes) {
     }
+    if (bytes < KILO_BYTES) return format(bytes, locale, BigDecimal.ONE, "bytes")
+    if (bytes < MEGA_BYTES) return format(bytes, locale, KB_BD, "KB")
+    if (bytes < GIGA_BYTES) return format(bytes, locale, MB_BD, "MB")
+    if (bytes < TERRA_BYTES) return format(bytes, locale, GB_BD, "GB")
+    var no = BigDecimal(bytes).divide(TB_BD, 1, RoundingMode.HALF_UP)
+    if (no.toLong() >= 100) {
+      no = no.setScale(0, RoundingMode.HALF_UP)
+    }
+    return NumberFormat.getInstance(locale).format(no) + "TB"
+  }
 
-    private const val KILO_BYTES = 1024
-    private val KB_BD = BigDecimal(KILO_BYTES)
-    private const val MEGA_BYTES = KILO_BYTES * 1024
-    private val MB_BD = BigDecimal(MEGA_BYTES)
-    private const val GIGA_BYTES = MEGA_BYTES * 1024
-    private val GB_BD = BigDecimal(GIGA_BYTES)
+  private fun format(bytes: Long, locale: Locale, unit: BigDecimal, unitString: String): String {
+    var no = BigDecimal(bytes).divide(unit, 1, RoundingMode.HALF_UP)
+    if (no.toLong() >= 100) {
+      no = no.setScale(0, RoundingMode.HALF_UP)
+    }
+    return "${NumberFormat.getInstance(locale).format(no)}$unitString"
+  }
+
+  private const val KILO_BYTES = 1024L
+  private val KB_BD = BigDecimal(KILO_BYTES)
+  private const val MEGA_BYTES = KILO_BYTES * 1024
+  private val MB_BD = BigDecimal(MEGA_BYTES)
+  private const val GIGA_BYTES = MEGA_BYTES * 1024
+  private val GB_BD = BigDecimal(GIGA_BYTES)
+  private const val TERRA_BYTES = GIGA_BYTES * 1024
+  private val TB_BD = BigDecimal(TERRA_BYTES)
 }
