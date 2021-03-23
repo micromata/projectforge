@@ -160,15 +160,15 @@ public class NumberHelperConfigTest extends AbstractTestBase
     final PFUserDO user = new PFUserDO();
     user.setLocale(Locale.UK);
     ThreadLocalUserContext.setUser(getUserGroupCache(), user);
-    assertEquals("0 bytes", NumberHelper.formatBytes(0));
-    assertEquals("1023 bytes", NumberHelper.formatBytes(1023));
-    assertEquals("1 kb", NumberHelper.formatBytes(1024));
-    assertEquals("1 kb", NumberHelper.formatBytes(1075));
-    assertEquals("1.1 kb", NumberHelper.formatBytes(1076));
-    assertEquals("99.9 kb", NumberHelper.formatBytes(102297));
-    assertEquals("1,023 kb", NumberHelper.formatBytes(1047552));
-    assertEquals("1 Mb", NumberHelper.formatBytes(1048576));
-    assertEquals("1 Gb", NumberHelper.formatBytes(1073741824));
+    assertEquals("0bytes", NumberHelper.formatBytes(0));
+    assertEquals("1023bytes", NumberHelper.formatBytes(1023));
+    assertEquals("1KB", NumberHelper.formatBytes(1024));
+    assertEquals("1KB", NumberHelper.formatBytes(1075));
+    assertEquals("1.1KB", NumberHelper.formatBytes(1076));
+    assertEquals("99.9KB", NumberHelper.formatBytes(102297));
+    assertEquals("1,023KB", NumberHelper.formatBytes(1047552));
+    assertEquals("1MB", NumberHelper.formatBytes(1048576));
+    assertEquals("1GB", NumberHelper.formatBytes(1073741824));
   }
 
   @Test
