@@ -47,9 +47,13 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class AttachmentsService {
-  @Value("\${$MAX_DEFAULT_FILE_SIZE_SPRING_PROPERTY:10MB}")
-  lateinit var maxDefaultFileSize: DataSize
-    private set
+  companion object {
+    const val DEFAULT_NODE = "attachments"
+    const val MAX_DEFAULT_FILE_SIZE_SPRING_PROPERTY = "projectforge.jcr.maxDefaultFileSize"
+  }
+
+  //@Value("\${projectforge.jcr.datatransfer.maxFileSize:100MB}")
+  val maxDefaultFileSize: DataSize = DataSize.ofMegabytes(100)
 
   @Autowired
   private lateinit var repoService: RepoService
@@ -509,10 +513,5 @@ open class AttachmentsService {
       }
       log.warn { msg }
     }
-  }
-
-  companion object {
-    const val DEFAULT_NODE = "attachments"
-    const val MAX_DEFAULT_FILE_SIZE_SPRING_PROPERTY = "projectforge.jcr.maxDefaultFileSize"
   }
 }

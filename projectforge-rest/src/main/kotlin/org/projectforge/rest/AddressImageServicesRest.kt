@@ -56,11 +56,11 @@ class AddressImageServicesRest {
     private const val MAX_IMAGE_SIZE_SPRING_PROPERTY = "projectforge.address.maxImageSize"
   }
 
+  //@Value("\${projectforge.address.maxImageSize:500KB}")
+  internal val maxImageSize: DataSize = DataSize.ofKilobytes(500)
+
   @Autowired
   private lateinit var addressImageDao: AddressImageDao
-
-  @Value("\${$MAX_IMAGE_SIZE_SPRING_PROPERTY:500KB}")
-  internal lateinit var maxImageSize: DataSize
 
   @Autowired
   private lateinit var configurationChecker: ConfigurationChecker
