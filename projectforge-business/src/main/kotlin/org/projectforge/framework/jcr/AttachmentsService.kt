@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.util.unit.DataSize
+import org.springframework.util.unit.DataUnit
 import java.io.InputStream
 
 private val log = KotlinLogging.logger {}
@@ -52,8 +53,9 @@ open class AttachmentsService {
     const val MAX_DEFAULT_FILE_SIZE_SPRING_PROPERTY = "projectforge.jcr.maxDefaultFileSize"
   }
 
+  //@DataSizeUnit(DataUnit.MEGABYTES)
   //@Value("\${projectforge.jcr.datatransfer.maxFileSize:100MB}")
-  val maxDefaultFileSize: DataSize = DataSize.ofMegabytes(100)
+  open val maxDefaultFileSize: DataSize = DataSize.ofMegabytes(100)
 
   @Autowired
   private lateinit var repoService: RepoService
