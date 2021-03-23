@@ -26,6 +26,7 @@ package org.projectforge.plugins.datatransfer
 import mu.KotlinLogging
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.common.DataSizeConfig
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
@@ -34,11 +35,14 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.rest.AddressImageServicesRest
 import org.projectforge.rest.core.RestResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Repository
 import org.springframework.util.unit.DataSize
+import org.springframework.util.unit.DataUnit
+import javax.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 
@@ -50,22 +54,18 @@ private val log = KotlinLogging.logger {}
  */
 @Repository
 open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO::class.java) {
-  companion object {
-    fun generateExternalAccessToken(): String {
-      return NumberHelper.getSecureRandomAlphanumeric(ACCESS_TOKEN_LENGTH)
-    }
 
-    fun generateExternalPassword(): String {
-      return NumberHelper.getSecureRandomReducedAlphanumeric(PASSWORD_LENGTH)
-    }
+  @Value("\${${MAX_FILE_SIZE_SPRING_PROPERTY}:100MB}")
+  internal open lateinit var maxFileSizeConfig: String
 
-    const val MAX_FILE_SIZE_SPRING_PROPERTY = "projectforge.plugin.datatransfer.maxFileSize"
-    private const val ACCESS_TOKEN_LENGTH = 30
-    private const val PASSWORD_LENGTH = 6
+  open lateinit var maxFileSize: DataSize
+    internal set
+
+  @PostConstruct
+  private fun postConstruct() {
+    maxFileSize = DataSizeConfig.init(maxFileSizeConfig, DataUnit.MEGABYTES)
+    log.info { "Maximum configured size of uploads: ${MAX_FILE_SIZE_SPRING_PROPERTY}=$maxFileSizeConfig." }
   }
-
-  //@Value("\${projectforge.plugin.datatransfer.maxFileSize:100MB}")
-  open val maxFileSize: DataSize = DataSize.ofMegabytes(100)
 
   @Autowired
   private lateinit var domainService: DomainService
@@ -139,5 +139,19 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
   override fun newInstance(): DataTransferAreaDO {
     return DataTransferAreaDO()
+  }
+
+  companion object {
+    fun generateExternalAccessToken(): String {
+      return NumberHelper.getSecureRandomAlphanumeric(ACCESS_TOKEN_LENGTH)
+    }
+
+    fun generateExternalPassword(): String {
+      return NumberHelper.getSecureRandomReducedAlphanumeric(PASSWORD_LENGTH)
+    }
+
+    const val MAX_FILE_SIZE_SPRING_PROPERTY = "projectforge.plugin.datatransfer.maxFileSize"
+    private const val ACCESS_TOKEN_LENGTH = 30
+    private const val PASSWORD_LENGTH = 6
   }
 }
