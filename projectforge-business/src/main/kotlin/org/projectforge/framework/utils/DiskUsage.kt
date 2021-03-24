@@ -24,23 +24,44 @@
 package org.projectforge.framework.utils
 
 import org.apache.commons.io.FileUtils
-import java.net.URI
+import java.io.File
 import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.Path
 
-class DiskUsage(val uri: URI) {
-  val totalSpace: Long
-  val freeSpace: Long
-  val used: Long
-  val percentage: Int
-  val path = Paths.get(uri)
+class DiskUsage() {
+  constructor(dir: File?) : this() {
+    dir?.let { path = dir.toPath() }
+    inititalize()
+  }
 
-  init {
-    val store = Files.getFileStore(path)
-    totalSpace = store.totalSpace
-    freeSpace = store.usableSpace
-    used = FileUtils.sizeOfDirectory(path.toFile())
-    percentage = (100L * used / totalSpace).toInt()
+  constructor(dir: String?) : this() {
+    if (!dir.isNullOrBlank()) {
+      path = Path.of(dir)
+    }
+    inititalize()
+  }
+
+  var totalSpace: Long = 0
+    private set
+  var freeSpace: Long = 0
+    private set
+  var used: Long = 0
+    private set
+  var percentage: Int = 0
+    private set
+  var path: Path? = null
+    private set
+
+  private fun inititalize() {
+    path?.let {
+      if (it.toFile().exists()) {
+        val store = Files.getFileStore(it)
+        totalSpace = store.totalSpace
+        freeSpace = store.usableSpace
+        used = FileUtils.sizeOfDirectory(it.toFile())
+        percentage = (100L * used / totalSpace).toInt()
+      }
+    }
   }
 }
 

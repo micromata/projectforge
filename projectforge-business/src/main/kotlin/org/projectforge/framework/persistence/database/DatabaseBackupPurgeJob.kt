@@ -38,7 +38,7 @@ private val log = KotlinLogging.logger {}
 @Component
 class DatabaseBackupPurgeJob {
     @Value("\${projectforge.cron.purgeBackupDir}")
-    private val dbBackupDir: String? = null
+    val dbBackupDir: String? = null
 
     @Value("\${projectforge.cron.purgeBackupFilesPrefix}")
     private val dbBackupFilesPrefix: String? = null
