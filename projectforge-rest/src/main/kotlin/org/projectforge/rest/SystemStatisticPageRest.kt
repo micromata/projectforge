@@ -32,6 +32,7 @@ import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.calendar.DurationUtils
 import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.api.HibernateUtils
+import org.projectforge.framework.persistence.database.DatabaseBackupPurgeJob
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
@@ -39,6 +40,7 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.DiskUsage
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.jcr.RepoBackupService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.dto.FormLayoutData
@@ -64,6 +66,12 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
 
   @Autowired
   private lateinit var dataSource: DataSource
+
+  @Autowired
+  private lateinit var databaseBackupPurgeJob: DatabaseBackupPurgeJob
+
+  @Autowired
+  private lateinit var repoBackupService: RepoBackupService
 
   class SystemStatisticData(
     val systemLoadAverage: BigDecimal,
@@ -166,8 +174,8 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
       ),
       memoryStatistics = memoriesStatistics,
       databasePoolStatistics = databaseStatistics,
-      backupDirDiskUsage = DiskUsage(File(ConfigXml.getInstance().getBackupDirectory()).toURI()),
-      jcrDiskUsage = DiskUsage(File(ConfigXml.getInstance().getJcrDirectory()).toURI())
+      backupDirDiskUsage = DiskUsage(databaseBackupPurgeJob.dbBackupDir),
+      jcrDiskUsage = DiskUsage(repoBackupService.backupDirectory)
     )
 
     log.info("Statistics: ${ToStringUtil.toJsonString(statistics)}")
@@ -275,6 +283,6 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
       formatBytes(
         diskUsage.freeSpace
       )
-    } free): ${diskUsage.path.toFile().absolutePath}"
+    } free): ${diskUsage.path?.toFile()?.absolutePath ?: "---"}"
   }
 }
