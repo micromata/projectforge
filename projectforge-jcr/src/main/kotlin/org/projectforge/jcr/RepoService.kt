@@ -81,7 +81,7 @@ open class RepoService {
    * For creating top level nodes (direct child of main node), set parentNode to null, empty string or "/".
    * @param relPath Sub node parent node to create if not exists. Null value results in nop.
    */
-  open fun ensureNode(parentNodePath: String?, relPath: String?): Node? {
+  open fun ensureNode(parentNodePath: String?, relPath: String? = null): Node? {
     relPath ?: return null
     return runInSession<Node> { session ->
       val node = getNode(session, parentNodePath, relPath, true)
@@ -204,6 +204,16 @@ open class RepoService {
     }
   }
 
+  open fun deleteNode(nodeInfo: NodeInfo): Boolean {
+    return runInSession { session ->
+      val node = getNode(session, nodeInfo.path, nodeInfo.name, false)
+      log.info{ "Deleting node: $nodeInfo"}
+      node.remove()
+      session.save()
+      true
+    }
+  }
+
   /**
    * @return list of file infos without content.
    */
@@ -297,7 +307,7 @@ open class RepoService {
   ): Node? {
     val parentNode = getNodeOrNull(sessionWrapper, parentNodePath, relPath, false)
     if (parentNode == null) {
-      log.warn { "Can't get files of not existing parent node '${getAbsolutePath(parentNode, relPath)}." }
+      log.warn { "Can't get files of not existing parent node '${getAbsolutePath(parentNode, relPath)}'." }
       return null
     }
     return if (ensureFilesNode || parentNode.hasNode(NODENAME_FILES)) {
@@ -322,6 +332,21 @@ open class RepoService {
       val node = fileNodes.nextNode()
       if (node.hasProperty(PROPERTY_FILENAME)) {
         result.add(FileObject(node, parentNodePath ?: node.path, relPath))
+      }
+    }
+    return result
+  }
+
+  fun getFileInfos(nodeInfo: NodeInfo?): List<FileObject>? {
+    nodeInfo ?: return null
+    val fileNodes = nodeInfo.children
+    if (fileNodes.isNullOrEmpty()) {
+      return null
+    }
+    val result = mutableListOf<FileObject>()
+    fileNodes.forEach { node ->
+      if (node.hasProperty(PROPERTY_FILENAME)) {
+        result.add(FileObject(node))
       }
     }
     return result
@@ -420,7 +445,7 @@ open class RepoService {
     }
   }
 
-  private fun getAbsolutePath(nodePath: String?): String {
+  fun getAbsolutePath(nodePath: String?): String {
     val path = nodePath?.removePrefix("/")?.removePrefix(mainNodeName)?.removePrefix("/") ?: ""
     return "/$mainNodeName/$path"
   }

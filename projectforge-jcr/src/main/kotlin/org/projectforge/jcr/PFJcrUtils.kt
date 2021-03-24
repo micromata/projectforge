@@ -136,11 +136,11 @@ object PFJcrUtils {
     return pathList
   }
 
-  private fun isRootNode(node: Node): Boolean {
+  fun isRootNode(node: Node): Boolean {
     return node.path.length <= 1 // node.path for root is '/'
   }
 
-  private fun isMainNode(node: Node): Boolean {
+  fun isMainNode(node: Node): Boolean {
     return !isRootNode(node) && isRootNode(node.parent)
   }
 
