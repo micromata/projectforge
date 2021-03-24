@@ -30,7 +30,7 @@ import java.util.*
 class FormatUtilsTest {
     @Test
     fun formatBytesTest() {
-        val locale = Locale.GERMAN
+        val locale = Locale.ENGLISH
         Assertions.assertEquals("--", FormatterUtils.formatBytes(null as Long?, locale))
         var scale = 1L
         formatBytesTest(scale, "bytes", locale)
@@ -46,6 +46,6 @@ class FormatUtilsTest {
 
     private fun formatBytesTest(scale: Long, unit: String, locale: Locale) {
         Assertions.assertEquals("1$unit", FormatterUtils.formatBytes(scale * 1L, locale))
-        Assertions.assertEquals("1.023$unit", FormatterUtils.formatBytes(scale * 1023L, locale))
+        Assertions.assertEquals("1,023$unit", FormatterUtils.formatBytes(scale * 1023L, locale))
     }
 }
