@@ -161,7 +161,7 @@ public class NumberHelperConfigTest extends AbstractTestBase
     user.setLocale(Locale.UK);
     ThreadLocalUserContext.setUser(getUserGroupCache(), user);
     assertEquals("0bytes", NumberHelper.formatBytes(0));
-    assertEquals("1023bytes", NumberHelper.formatBytes(1023));
+    assertEquals("1,023bytes", NumberHelper.formatBytes(1023));
     assertEquals("1KB", NumberHelper.formatBytes(1024));
     assertEquals("1KB", NumberHelper.formatBytes(1075));
     assertEquals("1.1KB", NumberHelper.formatBytes(1076));
