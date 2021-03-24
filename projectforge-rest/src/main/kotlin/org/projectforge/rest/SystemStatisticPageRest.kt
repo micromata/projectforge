@@ -30,7 +30,6 @@ import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.calendar.DurationUtils
-import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.database.DatabaseBackupPurgeJob
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
@@ -41,6 +40,7 @@ import org.projectforge.framework.utils.DiskUsage
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.RepoBackupService
+import org.projectforge.jcr.RepoService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.dto.FormLayoutData
@@ -50,7 +50,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.io.File
 import java.lang.management.ManagementFactory
 import java.lang.management.MemoryType
 import java.math.BigDecimal
@@ -73,6 +72,9 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var repoBackupService: RepoBackupService
 
+  @Autowired
+  private lateinit var repoService: RepoService
+
   class SystemStatisticData(
     val systemLoadAverage: BigDecimal,
     val processUptime: Long,
@@ -85,7 +87,8 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
     val memoryStatistics: Map<String, MemoryStatistics>,
     val databasePoolStatistics: DatabasePoolStatistics,
     val backupDirDiskUsage: DiskUsage,
-    val jcrDiskUsage: DiskUsage
+    val jcrDiskUsage: DiskUsage,
+    val jcrBackupDiskUsage: DiskUsage
   )
 
   class MemoryStatistics(
@@ -175,7 +178,8 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
       memoryStatistics = memoriesStatistics,
       databasePoolStatistics = databaseStatistics,
       backupDirDiskUsage = DiskUsage(databaseBackupPurgeJob.dbBackupDir),
-      jcrDiskUsage = DiskUsage(repoBackupService.backupDirectory)
+      jcrDiskUsage = DiskUsage(repoBackupService.backupDirectory),
+      jcrBackupDiskUsage = DiskUsage(repoService.fileStoreLocation)
     )
 
     log.info("Statistics: ${ToStringUtil.toJsonString(statistics)}")
@@ -221,6 +225,7 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
 
     layout.add(createRow("'System load average", format(statistics.systemLoadAverage, 2)))
     layout.add(createRow("'Disk usage (JCR storage)", formatDiskUsage(statistics.jcrDiskUsage)))
+    layout.add(createRow("'Disk usage (JCR backup storage)", formatDiskUsage(statistics.jcrBackupDiskUsage)))
     layout.add(createRow("'Disk usage (backup storage)", formatDiskUsage(statistics.backupDirDiskUsage)))
     layout.add(createRow("'Process start time", "${PFDateTime.from(statistics.processStartTime).isoString} (UTC)"))
     layout.add(
