@@ -23,6 +23,8 @@
 
 package org.projectforge.ui
 
+import org.projectforge.framework.jcr.AttachmentsService
+
 /**
  * List of attachments including upload, download and remove functionality.
  * See DynamicAttachmentList.jsx for usage.
@@ -43,7 +45,7 @@ class UIAttachmentList(
    * used for one page.
    * Default is 'attachments'.
    */
-  val listId: String = "attachments",
+  val listId: String = AttachmentsService.DEFAULT_NODE,
   /**
    * If true, only download of attachments is allowed.
    */

@@ -36,6 +36,7 @@ import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.*
@@ -1120,21 +1121,22 @@ constructor(
     maxFileSizeSpringProperty: String = AttachmentsService.MAX_DEFAULT_FILE_SIZE_SPRING_PROPERTY,
     supportedListIds: Array<String>? = null,
     prefix: String = JCR_PATH_PREFIX,
-    identifier: String? = null
+    identifier: String? = null,
+    attachmentsAccessChecker: AttachmentsAccessChecker? = null
   ) {
     jcrPath = if (identifier != null) {
       getJcrPath(identifier)
     } else {
       getJcrPath(baseDao.identifier)
     }
-    attachmentsAccessChecker =
+    this.attachmentsAccessChecker = attachmentsAccessChecker ?:
       AttachmentsDaoAccessChecker(baseDao, jcrPath, supportedListIds, maxFileSize, maxFileSizeSpringProperty)
   }
 
   /**
    * Might be initialized by [enableJcr] with default dao access checker.
    */
-  lateinit var attachmentsAccessChecker: AttachmentsDaoAccessChecker<O>
+  lateinit var attachmentsAccessChecker: AttachmentsAccessChecker
     protected set
 
   /**
