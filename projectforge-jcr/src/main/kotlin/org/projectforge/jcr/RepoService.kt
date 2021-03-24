@@ -307,7 +307,7 @@ open class RepoService {
   ): Node? {
     val parentNode = getNodeOrNull(sessionWrapper, parentNodePath, relPath, false)
     if (parentNode == null) {
-      log.warn { "Can't get files of not existing parent node '${getAbsolutePath(parentNode, relPath)}'." }
+      log.info { "Parent node '${getAbsolutePath(parentNodePath, relPath)}' doesn't exist. No files found (OK)." }
       return null
     }
     return if (ensureFilesNode || parentNode.hasNode(NODENAME_FILES)) {
@@ -432,6 +432,9 @@ open class RepoService {
     ensureRelNode: Boolean = true
   ): Node? {
     val absolutePath = getAbsolutePath(parentNodePath)
+    if (!session.nodeExists(absolutePath)) {
+      return null
+    }
     val parentNode = try {
       session.getNode(absolutePath)
     } catch (ex: Exception) {
