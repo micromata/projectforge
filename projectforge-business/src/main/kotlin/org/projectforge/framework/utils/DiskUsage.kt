@@ -27,6 +27,7 @@ import org.apache.commons.io.FileUtils
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
 class DiskUsage() {
   constructor(dir: File?) : this() {
@@ -36,7 +37,7 @@ class DiskUsage() {
 
   constructor(dir: String?) : this() {
     if (!dir.isNullOrBlank()) {
-      path = Path.of(dir)
+      path = Paths.get(dir)
     }
     inititalize()
   }
