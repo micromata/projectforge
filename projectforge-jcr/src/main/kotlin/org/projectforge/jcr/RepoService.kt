@@ -54,7 +54,8 @@ open class RepoService {
 
   internal var fileStore: FileStore? = null
 
-  internal var fileStoreLocation: File? = null
+  var fileStoreLocation: File? = null
+    internal set
 
   private var nodeStore: NodeStore? = null
 
@@ -207,7 +208,7 @@ open class RepoService {
   open fun deleteNode(nodeInfo: NodeInfo): Boolean {
     return runInSession { session ->
       val node = getNode(session, nodeInfo.path, nodeInfo.name, false)
-      log.info{ "Deleting node: $nodeInfo"}
+      log.info { "Deleting node: $nodeInfo" }
       node.remove()
       session.save()
       true
