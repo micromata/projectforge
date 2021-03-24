@@ -24,12 +24,11 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.common.FormatterUtils
 import org.projectforge.common.MaxFileSizeExceeded
 import org.projectforge.framework.api.TechnicalException
-import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
+import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -39,11 +38,12 @@ import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.PostData
-import org.projectforge.ui.*
+import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.TargetType
+import org.projectforge.ui.UIAttachmentList
+import org.projectforge.ui.UIToast
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
-import org.springframework.http.HttpHeaders
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -125,7 +125,13 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         accessChecker = pagesRest.attachmentsAccessChecker
       )
     } catch (ex: MaxFileSizeExceeded) {
-      return ResponseEntity.ok(UIToast.createMaxFileExceededToast(ex.fileName, ex.fileSize, pagesRest.attachmentsAccessChecker.maxFileSize))
+      return ResponseEntity.ok(
+        UIToast.createMaxFileExceededToast(
+          ex.fileName,
+          ex.fileSize,
+          pagesRest.attachmentsAccessChecker.maxFileSize
+        )
+      )
     }
     //}
     val list = attachmentsService.getAttachments(pagesRest.jcrPath!!, id, pagesRest.attachmentsAccessChecker, listId)
@@ -153,6 +159,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     )
     val list =
       attachmentsService.getAttachments(pagesRest.jcrPath!!, data.id, pagesRest.attachmentsAccessChecker, data.listId)
+        ?: emptyList() // Client needs empty list to update data of attachments.
     return ResponseEntity.ok()
       .body(
         ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
@@ -195,11 +202,19 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
   ): AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>> {
     val pagesRest = PagesResolver.getPagesRest(category)
       ?: throw UnsupportedOperationException("PagesRest class for category '$category' not known (registered).")
-    pagesRest.attachmentsAccessChecker.checkJcrActivity(listId)
-    return pagesRest
+    pagesRest.attachmentsAccessChecker.let {
+      if (it is AttachmentsDaoAccessChecker<*>) {
+        it.checkJcrActivity(listId)
+      }
+      return pagesRest
+    }
   }
 
-  fun getAttachment(jcrPath: String, attachmentsAccessChecker: AttachmentsAccessChecker, data: AttachmentData): Attachment {
+  fun getAttachment(
+    jcrPath: String,
+    attachmentsAccessChecker: AttachmentsAccessChecker,
+    data: AttachmentData
+  ): Attachment {
     return attachmentsService.getAttachmentInfo(
       jcrPath,
       data.id,

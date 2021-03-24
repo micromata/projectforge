@@ -350,8 +350,6 @@ open class AttachmentsService {
 
   /**
    * Without access checking (needed by clean-up job of data transfer).
-   * @param path Unique path of data object.
-   * @param id Id of data object.
    */
   @JvmOverloads
   open fun internalDeleteAttachment(
@@ -480,7 +478,7 @@ open class AttachmentsService {
     }
     if (dbObj is AttachmentsInfo) {
       // TODO: multiple subPath support (all attachments of all lists should be used for indexing).
-      if (subPath != null) {
+      if (subPath != null && subPath != DEFAULT_NODE) {
         log.warn("********* Support of multiple lists in attachments not yet supported by search index.")
       }
       val attachments = getAttachments(path, obj.id, null)//, subPath)
@@ -493,12 +491,8 @@ open class AttachmentsService {
         dbObj.attachmentsIds = null
         dbObj.attachmentsSize = null
       }
-      if (userString != null) {
-        // Without access checking, because there is no logged-in user.
-        baseDao.internalUpdateAny(dbObj)
-      } else {
-        baseDao.updateAny(dbObj)
-      }
+      // Without access checking, because there is no logged-in user or access checking is already done by caller.
+      baseDao.internalUpdateAny(dbObj)
     } else {
       val msg =
         "Can't update search index of ${dbObj::class.java.name}. Dear developer, it's not of type ${AttachmentsInfo::class.java.name}!"

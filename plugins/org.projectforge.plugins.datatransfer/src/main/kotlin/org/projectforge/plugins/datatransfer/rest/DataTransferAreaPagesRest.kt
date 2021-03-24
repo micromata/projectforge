@@ -65,7 +65,16 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
     /**
      * Enable attachments for this entity.
      */
-    enableJcr(baseDao.maxFileSize.toBytes(), DataTransferAreaDao.MAX_FILE_SIZE_SPRING_PROPERTY)
+    val maxFileSize = baseDao.maxFileSize.toBytes()
+    enableJcr(
+      maxFileSize,
+      DataTransferAreaDao.MAX_FILE_SIZE_SPRING_PROPERTY,
+      attachmentsAccessChecker = DataTransferAccessChecker(
+        maxFileSize,
+        DataTransferAreaDao.MAX_FILE_SIZE_SPRING_PROPERTY,
+        baseDao
+      )
+    )
   }
 
   override fun transformForDB(dto: DataTransferArea): DataTransferAreaDO {

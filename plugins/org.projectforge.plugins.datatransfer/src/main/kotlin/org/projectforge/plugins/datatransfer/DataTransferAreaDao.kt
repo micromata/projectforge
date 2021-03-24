@@ -25,17 +25,22 @@ package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
 import org.projectforge.business.configuration.DomainService
+import org.projectforge.business.orga.PostFilter
+import org.projectforge.business.orga.PosteingangDO
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.DataSizeConfig
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.SortProperty
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.rest.AddressImageServicesRest
 import org.projectforge.rest.core.RestResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -135,6 +140,14 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
       throw AccessException(user, "access.exception.userHasNotRight")
     }
     return false
+  }
+
+  override fun getList(
+    filter: QueryFilter,
+    customResultFilters: MutableList<CustomResultFilter<DataTransferAreaDO>>?
+  ): MutableList<DataTransferAreaDO> {
+    filter.addOrder(SortProperty.asc("areaName"))
+    return super.getList(filter, customResultFilters)
   }
 
   override fun newInstance(): DataTransferAreaDO {
