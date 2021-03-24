@@ -49,6 +49,10 @@ open class SessionWrapper(private val repoService: RepoService) {
         return session.getNode(absPath)
     }
 
+    fun nodeExists(absPath: String): Boolean {
+        return session.nodeExists(absPath)
+    }
+
     fun save() {
         session.save()
     }
