@@ -37,8 +37,12 @@ class DataTransferArea(
   var areaName: String? = null,
   var description: String? = null,
   var admins: List<User>? = null,
+  var adminsAsString: String? = null,
   var accessGroups: List<Group>? = null,
+  var accessGroupsAsString: String? = null,
   var accessUsers: List<User>? = null,
+  var accessUsersAsString: String? = null,
+  var externalAccessEnabled: Boolean? = null,
   var externalDownloadEnabled: Boolean? = null,
   var externalUploadEnabled: Boolean? = null,
   var externalAccessToken: String? = null,
@@ -46,6 +50,7 @@ class DataTransferArea(
   var expiryDays: Int? = null,
   var maxUploadSizeKB: Int? = null,
   var internalLink: String? = null,
+  var attachmentsSize: Int? = null,
   /**
    * Needed for updating UILayout for watchfields.
    */
@@ -71,6 +76,7 @@ class DataTransferArea(
     admins = User.toUserList(src.adminIds)
     accessGroups = Group.toGroupList(src.accessGroupIds)
     accessUsers = User.toUserList(src.accessUserIds)
+    externalAccessEnabled = src.externalDownloadEnabled == true || src.externalUploadEnabled == true
   }
 
   // The user and group ids are stored as csv list of integers in the data base.
