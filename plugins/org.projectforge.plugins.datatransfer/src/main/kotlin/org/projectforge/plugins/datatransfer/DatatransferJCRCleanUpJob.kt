@@ -25,6 +25,8 @@ package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
 import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.jcr.RepoService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
@@ -33,7 +35,7 @@ import org.springframework.stereotype.Component
 private val log = KotlinLogging.logger {}
 
 @Component
-class JCRCleanUpJob {
+class DataTransferJCRCleanUpJob {
   @Autowired
   private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
@@ -43,42 +45,68 @@ class JCRCleanUpJob {
   @Autowired
   private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
 
-  // projectforge.jcr.cron.backup=5 30 0 * * *
-  @Scheduled(cron = "\${projectforge.plugin.datatransfer.cron.cleanup:5 30 0 * * *}")
+  @Autowired
+  private lateinit var repoService: RepoService
+
+  // Cron-Jobs: second (0-59), minute (0-59), hour (0 - 23), day (1 - 31), month (1 - 12), weekday (0 - 7, MON-SUN)
+  //@Scheduled(cron = "\${projectforge.plugin.datatransfer.cron.cleanup:0 15 * * * *}")
+  @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 600 * 1000)
   fun execute() {
     log.info("Data transfer clean-up job started.")
-    val time = System.currentTimeMillis()
+    val startTimeInMillis = System.currentTimeMillis()
 
+    val processedDBOs = mutableListOf<Int>() // For checking orphaned areas.
+
+    // First of all, try to check all attachments of active areas:
     dataTransferAreaDao.internalLoadAll().forEach { dbo ->
       dbo.id?.let { id ->
+        processedDBOs.add(id)
         val expiryMillis = (dbo.expiryDays ?: 30) * MILLIS_PER_DAY
-        val now = System.currentTimeMillis()
-        val attachments = attachmentsService.getAttachments(
+        val attachments = attachmentsService.internalGetAttachments(
           dataTransferAreaPagesRest.jcrPath!!,
-          id,
-          dataTransferAreaPagesRest.attachmentsAccessChecker
+          id
         )
         attachments?.forEach { attachment ->
           val time = attachment.lastUpdate?.time ?: attachment.created?.time
-          if (time == null || now - time > expiryMillis) {
-            log.info{"Deleting expired attachment of area '${dbo.areaName}': $attachment"}
-            attachment.fileId?.let { fileId ->
+          if (time == null || startTimeInMillis - time > expiryMillis) {
+            log.info { "**** Simulating: Deleting expired attachment of area '${dbo.areaName}': $attachment" }
+            /*attachment.fileId?.let { fileId ->
               attachmentsService.internalDeleteAttachment(
                 dataTransferAreaPagesRest.jcrPath!!,
                 fileId,
                 dataTransferAreaDao,
                 dbo
               )
-            }
+            }*/
+          } else {
+            log.info { "Attachment of area '${dbo.areaName}' not yet expired: $attachment" }
           }
         }
       }
     }
 
-    log.info("JCR clean-up job finished after ${(System.currentTimeMillis() - time) / 1000} seconds.")
+    val nodePath = repoService.getAbsolutePath(dataTransferAreaPagesRest.jcrPath)
+    val nodeInfo = repoService.getNodeInfo(nodePath, true)
+    log.info { "Datatransfer: $nodeInfo" }
+    nodeInfo.children?.let { children ->
+      for (child in children) {
+        val dbId = NumberHelper.parseInteger(child.name)
+        if (dbId == null) {
+          log.warn { "Oups, name of node isn't of type int (db id): '${child.name}'. Ignoring node." }
+          continue
+        }
+        if (processedDBOs.any { it == dbId }) {
+          continue
+        }
+        log.info { "**** Simulating: Removing orphaned node (area was deleted): $child" }
+        //repoService.deleteNode(child)
+      }
+      log.info { "Datatransfer: $nodeInfo" }
+      log.info("JCR clean-up job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds.")
+    }
   }
 
   companion object {
-    private const val MILLIS_PER_DAY = 1000 * 60 * 60 * 24
+    internal const val MILLIS_PER_DAY = 1000 * 60 * 60 * 24
   }
 }

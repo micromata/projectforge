@@ -34,6 +34,11 @@ private val log = KotlinLogging.logger {}
 class NodeInfo() {
   internal constructor(node: Node, recursive: Boolean = true, listOfIgnoredNodePaths: List<String>? = null) : this() {
     name = node.name
+    path = if (PFJcrUtils.isRootNode(node)) {
+      ""
+    } else {
+      node.parent.path
+    }
     if (recursive) {
       node.nodes?.let {
         val nodes = mutableListOf<NodeInfo>()
@@ -62,6 +67,15 @@ class NodeInfo() {
   var name: String? = null
   var children: List<NodeInfo>? = null
   var properties: List<PropertyInfo>? = null
+  lateinit var path: String
+
+  fun getProperty(propertyName: String): PropertyInfo? {
+    return properties?.first { it.name == propertyName }
+  }
+
+  fun hasProperty(propertyName: String): Boolean {
+    return properties?.any { it.name == propertyName } == true
+  }
 
   override fun toString(): String {
     return PFJcrUtils.toJson(this)

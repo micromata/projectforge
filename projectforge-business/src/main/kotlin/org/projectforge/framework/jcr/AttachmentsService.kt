@@ -77,6 +77,19 @@ open class AttachmentsService {
     subPath: String? = null
   ): List<Attachment>? {
     accessChecker?.checkSelectAccess(ThreadLocalUserContext.getUser(), path = path, id = id, subPath = subPath)
+    return internalGetAttachments(path, id, subPath)
+  }
+
+  /**
+   * @param path Unique path of data object.
+   * @param id Id of data object.
+   */
+  @JvmOverloads
+  open fun internalGetAttachments(
+    path: String,
+    id: Any,
+    subPath: String? = null
+  ): List<Attachment>? {
     return repoService.getFileInfos(getPath(path, id), subPath ?: DEFAULT_NODE)?.map { createAttachment(it) }
   }
 
