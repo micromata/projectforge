@@ -24,7 +24,6 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.SystemStatus
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.rest.config.Rest
@@ -105,24 +104,21 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
             )
         )
 
-      if (SystemStatus.isDevelopmentMode()) {
-        log.warn { "*************** To implement: DOWNLOAD target not yet supported by src/actions/form.js:216: callAction" }
-        layout.addAction(
-          UIButton(
-            "download",
-            translate("download"),
-            UIColor.LINK,
-            responseAction = ResponseAction(
-              RestResolver.getRestUrl(
-                AttachmentsServicesRest::class.java,
-                "download/$category/$id?fileId=$fileId&listId=$listId"
-              ),
-              targetType = TargetType.DOWNLOAD
+      layout.addAction(
+        UIButton(
+          "download",
+          translate("download"),
+          UIColor.LINK,
+          responseAction = ResponseAction(
+            RestResolver.getRestUrl(
+              AttachmentsServicesRest::class.java,
+              "download/$category/$id?fileId=$fileId&listId=$listId"
             ),
-            default = true
-          )
+            targetType = TargetType.DOWNLOAD
+          ),
+          default = true
         )
-      }
+      )
       layout.addAction(
         UIButton(
           "delete",

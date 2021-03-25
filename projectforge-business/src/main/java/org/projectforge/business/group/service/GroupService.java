@@ -24,6 +24,7 @@
 package org.projectforge.business.group.service;
 
 import org.projectforge.framework.persistence.user.entities.GroupDO;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import java.util.Collection;
 import java.util.List;
@@ -40,6 +41,8 @@ public interface GroupService
   List<String> getGroupNames(String groupIds);
 
   List<GroupDO> getAllGroups();
+
+  Collection<PFUserDO> getGroupUsers(int[] groupIds);
 
   GroupDO getGroup(Integer groupId);
 

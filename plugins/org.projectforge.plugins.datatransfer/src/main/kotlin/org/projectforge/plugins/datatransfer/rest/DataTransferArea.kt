@@ -40,9 +40,9 @@ class DataTransferArea(
   var adminsAsString: String? = null,
   var accessGroups: List<Group>? = null,
   var accessGroupsAsString: String? = null,
+  var accessGroupsUsesAsString: String? = null,
   var accessUsers: List<User>? = null,
   var accessUsersAsString: String? = null,
-  var externalAccessEnabled: Boolean? = null,
   var externalDownloadEnabled: Boolean? = null,
   var externalUploadEnabled: Boolean? = null,
   var externalAccessToken: String? = null,
@@ -70,13 +70,18 @@ class DataTransferArea(
   @get:Transient
   var externalLinkBaseUrl: String? = null
 
-  // The user and group ids are stored as csv list of integers in the data base.
+  val externalAccessEnabled
+    @JsonProperty
+    @Transient
+    get() = externalDownloadEnabled == true || externalUploadEnabled == true
+
+
+      // The user and group ids are stored as csv list of integers in the data base.
   override fun copyFrom(src: DataTransferAreaDO) {
     super.copyFrom(src)
     admins = User.toUserList(src.adminIds)
     accessGroups = Group.toGroupList(src.accessGroupIds)
     accessUsers = User.toUserList(src.accessUserIds)
-    externalAccessEnabled = src.externalDownloadEnabled == true || src.externalUploadEnabled == true
   }
 
   // The user and group ids are stored as csv list of integers in the data base.

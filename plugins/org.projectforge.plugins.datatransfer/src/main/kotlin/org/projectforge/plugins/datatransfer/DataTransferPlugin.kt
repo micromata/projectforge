@@ -70,7 +70,7 @@ class DataTransferPlugin :
     addResourceBundle(RESOURCE_BUNDLE_NAME)
 
     // Will only delivered to client but has to be ignored on sending back from client.
-    JacksonConfiguration.registerAllowedUnknownProperties(DataTransferArea::class.java, "externalLink")
+    JacksonConfiguration.registerAllowedUnknownProperties(DataTransferArea::class.java, "externalLink", "externalAccessEnabled")
   }
 
   companion object {
