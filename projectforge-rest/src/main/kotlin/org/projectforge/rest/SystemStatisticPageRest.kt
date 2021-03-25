@@ -212,6 +212,7 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
       )
       .add(createRow("system.statistics.totalNumberOfUsers", format(statistics.totalNumberOfUsers)))
       .add(createRow("system.statistics.totalNumberOfTasks", format(statistics.totalNumberOfTasks)))
+      .add(createRow("system.statistics.totalNumberOfHistoryEntries", format(statistics.totalNumberOfHistoryEntries)))
       .add(
         createRow(
           "system.statistics.databasePool",
@@ -219,7 +220,7 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
         )
       )
 
-    statistics.memoryStatistics.forEach { key, value ->
+    statistics.memoryStatistics.forEach { (key, value) ->
       layout.add(createRow("'$key", format(value)))
     }
 
