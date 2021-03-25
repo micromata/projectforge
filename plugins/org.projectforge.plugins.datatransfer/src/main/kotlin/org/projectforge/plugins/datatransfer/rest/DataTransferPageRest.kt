@@ -24,6 +24,8 @@
 package org.projectforge.plugins.datatransfer.rest
 
 import mu.KotlinLogging
+import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.utils.NumberHelper
@@ -34,6 +36,8 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.dto.Group
+import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -56,30 +60,47 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
+  @Autowired
+  private lateinit var groupService: GroupService
+
+  @Autowired
+  private lateinit var userService: UserService
+
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
     val id = NumberHelper.parseInteger(idString) ?: throw IllegalAccessException("Parameter id not an int.")
-    val dataTransferDO = dataTransferAreaDao.getById(id)
-    val dataTransfer = DataTransferArea()
-    dataTransfer.id = dataTransferDO.id
-    dataTransfer.areaName = dataTransferDO.areaName
-    dataTransfer.description = dataTransferDO.description
-    dataTransfer.attachments = attachmentsService.getAttachments(
+    val dbObj = dataTransferAreaDao.getById(id)
+    val dto = DataTransferArea()
+    dto.copyFrom(dbObj)
+    dto.externalPassword = null
+    dto.attachments = attachmentsService.getAttachments(
       dataTransferAreaPagesRest.jcrPath!!,
       id,
       dataTransferAreaPagesRest.attachmentsAccessChecker
     )
-    dataTransfer.externalLinkBaseUrl = dataTransferAreaDao.getExternalBaseLinkUrl()
-    dataTransfer.internalLink = getUrl(PagesResolver.getDynamicPageUrl(this::class.java, id = id))
-    val layout = UILayout("plugins.datatransfer.title.heading")
-    val fieldSet = UIFieldset(12, title = "'${dataTransfer.areaName}")
-    fieldSet.add(
-      UIFieldset(title = "attachment.list")
-        .add(UIAttachmentList("datatransfer", id))
-    )
-      .add(UIReadOnlyField("internalLink", label = "plugins.datatransfer.internal.link"))
-    layout.add(fieldSet)
+    dto.externalLinkBaseUrl = dataTransferAreaDao.getExternalBaseLinkUrl()
+    dto.internalLink = getUrl(PagesResolver.getDynamicPageUrl(this::class.java, id = id))
+    // Group names needed by React client (for ReactSelect):
+    Group.restoreDisplayNames(dto.accessGroups, groupService)
 
+    // Usernames needed by React client (for ReactSelect):
+    User.restoreDisplayNames(dto.admins, userService)
+    User.restoreDisplayNames(dto.accessUsers, userService)
+
+    dto.adminsAsString = dto.admins?.joinToString { it.displayName ?: "???" } ?: ""
+    dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
+    dto.accessUsersAsString = dto.accessUsers?.joinToString { it.displayName ?: "???" } ?: ""
+    if (!dbObj.accessGroupIds.isNullOrBlank()) {
+      val accessGroupUsers =
+        groupService.getGroupUsers(User.toIntArray(dbObj.accessGroupIds)).joinToString { it.displayName }
+      dto.accessGroupsAsString += ": $accessGroupUsers"
+    }
+
+    val layout = UILayout("plugins.datatransfer.title.heading")
+      .add(
+        UIFieldset(title = "'${dbObj.areaName}")
+          .add(UIAttachmentList("datatransfer", id))
+      )
     layout.add(
       UIButton(
         "back",
@@ -94,13 +115,32 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
         default = true
       )
     )
+    val fieldSet = UIFieldset(12)
+      .add(UIReadOnlyField("internalLink", label = "plugins.datatransfer.internal.link"))
+    if (dto.externalAccessEnabled) {
+      fieldSet.add(
+        UIReadOnlyField(
+          "externalLink",
+          label = "plugins.datatransfer.external.access.title",
+          dataType = UIDataType.BOOLEAN
+        )
+      )
+    }
+    fieldSet.add(UIReadOnlyField("adminsAsString", label = "plugins.datatransfer.admins"))
+    if (!dto.accessGroupsAsString.isNullOrBlank()) {
+      fieldSet.add(UIReadOnlyField("accessGroupsAsString", label = "plugins.datatransfer.accessGroups"))
+    }
+    if (!dto.accessUsersAsString.isNullOrBlank()) {
+      fieldSet.add(UIReadOnlyField("accessUsersAsString", label = "plugins.datatransfer.accessUsers"))
+    }
+    layout.add(fieldSet)
 
-    if (dataTransferAreaDao.hasLoggedInUserUpdateAccess(dataTransferDO, dataTransferDO, false)) {
+    if (dataTransferAreaDao.hasLoggedInUserUpdateAccess(dbObj, dbObj, false)) {
       layout.add(
         MenuItem(
           "edit",
           i18nKey = "plugins.datatransfer.title.edit",
-          url = PagesResolver.getEditPageUrl(DataTransferAreaPagesRest::class.java, dataTransfer.id),
+          url = PagesResolver.getEditPageUrl(DataTransferAreaPagesRest::class.java, dto.id),
           type = MenuItemTargetType.REDIRECT
         )
       )
@@ -108,6 +148,6 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
 
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
-    return FormLayoutData(dataTransfer, layout, createServerData(request))
+    return FormLayoutData(dto, layout, createServerData(request))
   }
 }
