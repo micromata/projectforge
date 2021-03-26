@@ -23,28 +23,56 @@
 
 package org.projectforge.framework.jcr
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import org.projectforge.framework.utils.NumberHelper
+import javax.persistence.Transient
+
 /**
  * Used by [AttachmentsService] for adding filenames of attachments to search index.
  * Data objects such as [org.projectforge.framework.persistence.api.ExtendedBaseDO] should implement this interface for indexing attachments.
  */
 interface AttachmentsInfo {
-    /**
-     * Field for adding filenames of attachments to search index.
-     */
-    var attachmentsNames: String?
+  /**
+   * Field for adding filenames of attachments to search index.
+   */
+  var attachmentsNames: String?
 
-    /**
-     * Field for adding file ids of attachments to search index.
-     */
-    var attachmentsIds: String?
+  /**
+   * Field for adding file ids of attachments to search index.
+   */
+  var attachmentsIds: String?
 
-    /**
-     * The number of attachments attached to this data object.
-     */
-    var attachmentsSize: Int?
+  /**
+   * The number of attachments attached to this data object.
+   */
+  var attachmentsCounter: Int?
 
-    /**
-     * You may add here the action done by the user for creating history entries, if data object is historizable.
-     */
-    var attachmentsLastUserAction: String?
+  /**
+   * The number of attachments attached to this data object.
+   */
+  var attachmentsSize: Long?
+
+  /**
+   * The number and soue of attachments attached to this data object.
+   */
+  val attachmentsSizeFormatted: String
+    @JsonProperty
+    @Transient
+    get() = getAttachmentsSizeFormatted(attachmentsCounter, attachmentsSize)
+
+  /**
+   * You may add here the action done by the user for creating history entries, if data object is historizable.
+   */
+  var attachmentsLastUserAction: String?
+
+  companion object {
+    fun getAttachmentsSizeFormatted(attachmentsCounter: Int?, attachmentsSize: Long?): String {
+      if (attachmentsCounter == null || attachmentsCounter == 0) {
+        return "-"
+      }
+      return if (attachmentsSize != null) {
+        "${NumberHelper.formatBytes(attachmentsSize)} ($attachmentsCounter)"
+      } else "$attachmentsCounter"
+    }
+  }
 }

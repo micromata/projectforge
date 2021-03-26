@@ -52,7 +52,8 @@ class DataTransferArea(
   var expiryDays: Int? = null,
   var maxUploadSizeKB: Int? = null,
   var internalLink: String? = null,
-  var attachmentsSize: Int? = null,
+  override var attachmentsCounter: Int? = null,
+  override var attachmentsSize: Long? = null,
   /**
    * Needed for updating UILayout for watchfields.
    */

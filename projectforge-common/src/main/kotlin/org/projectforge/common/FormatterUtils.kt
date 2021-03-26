@@ -47,8 +47,7 @@ object FormatterUtils {
   @JvmOverloads
   fun formatBytes(bytes: Long?, locale: Locale = Locale.getDefault()): String {
     bytes ?: return "--"
-    when (bytes) {
-    }
+    if (bytes == 0L) return "0"
     if (bytes < KILO_BYTES) return format(bytes, locale, BigDecimal.ONE, "bytes")
     if (bytes < MEGA_BYTES) return format(bytes, locale, KB_BD, "KB")
     if (bytes < GIGA_BYTES) return format(bytes, locale, MB_BD, "MB")

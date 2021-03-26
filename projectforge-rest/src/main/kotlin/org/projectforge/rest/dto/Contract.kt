@@ -50,7 +50,8 @@ class Contract(id: Int? = null,
                var filing: String? = null,
                var resubmissionOnDate: LocalDate? = null,
                var dueDate: LocalDate? = null,
-               var attachmentsSize: Int? = null,
+               override var attachmentsCounter: Int? = null,
+               override var attachmentsSize: Long? = null,
                override var attachments: List<Attachment>? = null
 ) : BaseDTO<ContractDO>(id), AttachmentsSupport {
     @get:JsonProperty

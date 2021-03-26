@@ -32,6 +32,7 @@ class FormatUtilsTest {
     fun formatBytesTest() {
         val locale = Locale.ENGLISH
         Assertions.assertEquals("--", FormatterUtils.formatBytes(null as Long?, locale))
+        Assertions.assertEquals("0", FormatterUtils.formatBytes(0L, locale))
         var scale = 1L
         formatBytesTest(scale, "bytes", locale)
         scale *= 1024

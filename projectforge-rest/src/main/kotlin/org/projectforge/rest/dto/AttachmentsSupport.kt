@@ -23,8 +23,21 @@
 
 package org.projectforge.rest.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.jcr.AttachmentsInfo
+import org.projectforge.framework.utils.NumberHelper
+import javax.persistence.Transient
 
 interface AttachmentsSupport {
     var attachments: List<Attachment>?
+    var attachmentsSize: Long?
+    var attachmentsCounter: Int?
+    /**
+     * The number and soue of attachments attached to this data object.
+     */
+    val attachmentsSizeFormatted: String
+        @JsonProperty
+        @Transient
+        get() = AttachmentsInfo.getAttachmentsSizeFormatted(attachmentsCounter, attachmentsSize)
 }
