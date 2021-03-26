@@ -100,7 +100,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
 
     @PostMapping
     fun save(request: HttpServletRequest, @RequestBody postData: PostData<MyAccountData>)
-            : ResponseEntity<ResponseAction>? {
+            : ResponseEntity<ResponseAction> {
         validateCsrfToken(request, postData)?.let { return it }
         val data = postData.data
         check(ThreadLocalUserContext.getUserId() == data.userId) { "Oups, MyAccountEditPage is called with another than the logged in user!" }

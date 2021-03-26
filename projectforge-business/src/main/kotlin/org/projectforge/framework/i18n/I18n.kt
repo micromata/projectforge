@@ -23,12 +23,18 @@
 
 package org.projectforge.framework.i18n
 
-fun translate(i18nKey: String?): String {
+import java.util.*
+
+fun translate(locale: Locale?, i18nKey: String?): String {
     if (i18nKey == null) return "???"
     if (i18nKey.startsWith("'")) {
         return i18nKey.substring(1)
     }
-    return I18nHelper.getLocalizedMessage(i18nKey)
+    return I18nHelper.getLocalizedMessage(locale, i18nKey)
+}
+
+fun translate(i18nKey: String?): String {
+    return translate(null, i18nKey)
 }
 
 fun translateMsg(ex: UserException): String {
@@ -49,6 +55,10 @@ fun translate(value: Boolean?): String {
 
 fun translateMsg(i18nKey: String, vararg params: Any?): String {
     return I18nHelper.getLocalizedMessage(i18nKey, *params)
+}
+
+fun translateMsg(locale: Locale?, i18nKey: String, vararg params: Any?): String {
+    return I18nHelper.getLocalizedMessage(locale, i18nKey, *params)
 }
 
 /**
