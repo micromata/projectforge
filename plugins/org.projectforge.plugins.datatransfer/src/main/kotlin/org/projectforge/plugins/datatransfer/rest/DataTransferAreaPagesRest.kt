@@ -139,12 +139,14 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
     val layout = super.createListLayout()
       .add(
         UITable.createUIResultSetTable()
-          .add(lc, "created", "lastUpdate", "areaName", "description")
+          .add(lc, "created")
+          .add(UITableColumn("lastUpdateTimeAgo", "lastUpdate"))
+          .add(lc,  "areaName", "description")
+          .add(UITableColumn("attachmentsSize", titleIcon = UIIconType.PAPER_CLIP))
           .add(UITableColumn("externalAccessEnabled", "plugins.datatransfer.external.access.title").setStandardBoolean())
           .add(UITableColumn("adminsAsString", "plugins.datatransfer.admins"))
           .add(UITableColumn("accessGroupsAsString", "plugins.datatransfer.accessGroups"))
           .add(UITableColumn("accessUsersAsString", "plugins.datatransfer.accessUsers"))
-          .add(UITableColumn("attachmentsSize", titleIcon = UIIconType.PAPER_CLIP))
       )
     return LayoutUtils.processListPage(layout, this)
   }
