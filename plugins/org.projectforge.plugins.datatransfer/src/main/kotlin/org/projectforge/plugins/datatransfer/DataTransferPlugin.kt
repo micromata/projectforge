@@ -24,6 +24,7 @@
 package org.projectforge.plugins.datatransfer
 
 import org.projectforge.Const
+import org.projectforge.business.admin.SystemStatistics
 import org.projectforge.jcr.RepoBackupService
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
@@ -54,6 +55,9 @@ class DataTransferPlugin :
   @Autowired
   private lateinit var repoBackupService: RepoBackupService
 
+  @Autowired
+  private lateinit var systemStatistics: SystemStatistics
+
   override fun initialize() {
     repoBackupService.registerNodePathToIgnore(dataTransferAreaPagesRest.jcrPath!!)
 
@@ -76,6 +80,8 @@ class DataTransferPlugin :
       "externalAccessEnabled",
       "lastUpdateTimeAgo"
     )
+
+    systemStatistics.registerStatisticsBuilder(DataTransferStatisticsBuilder())
   }
 
   companion object {
