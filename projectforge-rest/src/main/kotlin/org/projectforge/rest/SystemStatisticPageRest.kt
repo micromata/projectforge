@@ -63,11 +63,11 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
    * Rest service for getting system statistics.
    * @return The system statistics for data base usage as well as for memory usage.
    */
-  @GetMapping("adminXlsExport")
+ /* @GetMapping("adminXlsExport")
   fun getSystemStatistics(): ResponseEntity<*> {
     accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
     log.info("Admin tries to export system statistics.")
-    /*val xls = addressExport.export(list, personalAddressMap)
+    val xls = addressExport.export(list, personalAddressMap)
     if (xls == null || xls.isEmpty()) {
       return ResponseEntity(ResponseData("address.book.hasNoVCards", messageType = MessageType.TOAST, color = UIColor.WARNING), HttpStatus.NOT_FOUND)
     }
@@ -75,14 +75,12 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
         + ".xls")
 
     val resource = ByteArrayResource(xls)
-    return RestUtils.downloadFile(filename, resource)*/
-  }
+    return RestUtils.downloadFile(filename, resource)
+  }*/
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
     val statsData = systemStatistics.getSystemStatistics()
-    log.info("Statistics: ${ToStringUtil.toJsonString(statsData)}")
-
     val layout = UILayout("system.statistics.title")
 
     statsData.groups.forEach {group ->
@@ -97,7 +95,7 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
         MenuItem(
           "adminXlsExport",
           i18nKey = "menu.systemStatistics.adminExport",
-          url = "${RestResolver.getRestUrl(this::class.java, "exportAdminStats")}",
+          url = RestResolver.getRestUrl(this::class.java, "exportAdminStats"),
           type = MenuItemTargetType.DOWNLOAD
         )
       )
