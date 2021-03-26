@@ -24,16 +24,52 @@
 package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
-import org.projectforge.business.admin.SystemsStatisticsBuilderInterface
 import org.projectforge.business.admin.SystemStatisticsData
+import org.projectforge.business.admin.SystemsStatisticsBuilderInterface
+import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.jcr.AttachmentsInfo
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.plugins.datatransfer.rest.DataTransferArea
+import org.projectforge.rest.dto.Group
+import org.projectforge.rest.dto.User
 
 private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-open class DataTransferStatisticsBuilder : SystemsStatisticsBuilderInterface {
+open class DataTransferStatisticsBuilder(
+  private val dataTransferAreaDao: DataTransferAreaDao,
+  private val accessChecker: AccessChecker,
+  private val userService: UserService,
+  private val groupService: GroupService
+) : SystemsStatisticsBuilderInterface {
   override fun addStatisticsEntries(stats: SystemStatisticsData) {
+    if (!accessChecker.isUserMemberOfAdminGroup(ThreadLocalUserContext.getUser())) {
+      // Do nothing for non-admins.
+      return
+    }
+    val list = dataTransferAreaDao.internalLoadAll()
+    list.sortedByDescending { it.attachmentsSize }.forEachIndexed { index, dbo ->
+      if (dbo.attachmentsCounter ?: 0 == 0 || index >= 30) {
+        return
+      }
+      val size = AttachmentsInfo.getAttachmentsSizeFormatted(dbo.attachmentsCounter, dbo.attachmentsSize)
 
+      val admins = User.toUserNames(dbo.adminIds, userService)
+      val accessUsers = User.toUserNames(dbo.accessUserIds, userService)
+      val accessUserString = if (accessUsers.isBlank()) "" else ", access users=[$accessUsers]"
+      val accessGroups = Group.toGroupNames(dbo.accessGroupIds, groupService)
+      val accessGroupString = if (accessGroups.isBlank()) "" else ", access groups=[$accessGroups]"
+
+      stats.add(
+        "datatransfer:${dbo.id}",
+        "data transfer",
+        "'${dbo.areaName}",
+        "$size: admins=[$admins]$accessUserString$accessGroupString"
+      )
+    }
   }
 }
