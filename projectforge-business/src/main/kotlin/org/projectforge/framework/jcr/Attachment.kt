@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.common.DateFormatType
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.ToStringUtil
+import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileObject
@@ -74,6 +75,12 @@ class Attachment() {
     @get:JsonProperty
     val lastUpdateFormatted: String
         get() = PFDateTime.fromOrNull(lastUpdate)?.format(DateFormatType.DATE_TIME_MINUTES) ?: ""
+    /**
+     * Date of last update as time-ago in user's locale.
+     */
+    @get:JsonProperty
+    val lastUpdateTimeAgo: String
+        get() = TimeAgo.getMessage(lastUpdate)
     var lastUpdateByUser: String? = null
 
     /**

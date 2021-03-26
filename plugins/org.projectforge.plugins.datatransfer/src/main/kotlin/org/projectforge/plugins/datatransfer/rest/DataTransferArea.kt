@@ -24,12 +24,14 @@
 package org.projectforge.plugins.datatransfer.rest
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
+import java.util.*
 import javax.persistence.Transient
 
 class DataTransferArea(
@@ -75,6 +77,10 @@ class DataTransferArea(
     @Transient
     get() = externalDownloadEnabled == true || externalUploadEnabled == true
 
+  val lastUpdateTimeAgo
+    @JsonProperty
+    @Transient
+    get() = TimeAgo.getMessage(lastUpdate)
 
       // The user and group ids are stored as csv list of integers in the data base.
   override fun copyFrom(src: DataTransferAreaDO) {

@@ -67,7 +67,8 @@ object TimeAgo {
         return Pair("timeago.afewseconds", -1)
     }
 
-    fun getMessage(date: Date): String {
+    fun getMessage(date: Date?): String {
+        date ?: return ""
         val pair = getI18nKey(date)
         if (pair.second < 0)
             return translate(pair.first)

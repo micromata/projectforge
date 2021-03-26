@@ -99,7 +99,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
             )
             .add(
               UICol(UILength(md = 6))
-                .add(UIReadOnlyField("attachment.lastUpdateFormatted", label = "modified"))
+                .add(UIReadOnlyField("attachment.lastUpdateTimeAgo", label = "modified"))
                 .add(UIReadOnlyField("attachment.lastUpdateByUser", label = "modifiedBy"))
             )
         )
