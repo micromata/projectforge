@@ -160,7 +160,7 @@ public class NumberHelperConfigTest extends AbstractTestBase
     final PFUserDO user = new PFUserDO();
     user.setLocale(Locale.UK);
     ThreadLocalUserContext.setUser(getUserGroupCache(), user);
-    assertEquals("0bytes", NumberHelper.formatBytes(0));
+    assertEquals("0", NumberHelper.formatBytes(0));
     assertEquals("1,023bytes", NumberHelper.formatBytes(1023));
     assertEquals("1KB", NumberHelper.formatBytes(1024));
     assertEquals("1KB", NumberHelper.formatBytes(1075));
