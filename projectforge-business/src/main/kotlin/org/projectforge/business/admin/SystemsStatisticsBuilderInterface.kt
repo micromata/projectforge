@@ -24,11 +24,16 @@
 package org.projectforge.business.admin
 
 import org.projectforge.framework.utils.NumberFormatter
+import org.projectforge.framework.utils.NumberHelper
 
 interface SystemsStatisticsBuilderInterface {
   fun addStatisticsEntries(stats: SystemStatisticsData)
 
   fun format(number: Number, scale: Int? = null): String {
     return NumberFormatter.format(number, scale)
+  }
+
+  fun formatBytes(number: Long?): String {
+    return NumberHelper.formatBytes(number)
   }
 }

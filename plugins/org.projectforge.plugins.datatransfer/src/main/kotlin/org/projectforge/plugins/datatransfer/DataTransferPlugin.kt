@@ -25,6 +25,8 @@ package org.projectforge.plugins.datatransfer
 
 import org.projectforge.Const
 import org.projectforge.business.admin.SystemStatistics
+import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.user.service.UserService
 import org.projectforge.jcr.RepoBackupService
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
@@ -58,6 +60,12 @@ class DataTransferPlugin :
   @Autowired
   private lateinit var systemStatistics: SystemStatistics
 
+  @Autowired
+  private lateinit var groupService: GroupService
+
+  @Autowired
+  private lateinit var userService: UserService
+
   override fun initialize() {
     repoBackupService.registerNodePathToIgnore(dataTransferAreaPagesRest.jcrPath!!)
 
@@ -67,8 +75,7 @@ class DataTransferPlugin :
     menuCreator.add(
       MenuItemDefId.MISC,
       MenuItemDef(info.id, "plugins.datatransfer.menu", "${Const.REACT_APP_PATH}datatransfer")
-    );
-
+    )
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME)
@@ -81,7 +88,14 @@ class DataTransferPlugin :
       "lastUpdateTimeAgo"
     )
 
-    systemStatistics.registerStatisticsBuilder(DataTransferStatisticsBuilder())
+    systemStatistics.registerStatisticsBuilder(
+      DataTransferStatisticsBuilder(
+        dataTransferAreaDao,
+        accessChecker,
+        userService,
+        groupService
+      )
+    )
   }
 
   companion object {
