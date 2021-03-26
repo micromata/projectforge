@@ -23,253 +23,88 @@
 
 package org.projectforge.rest
 
-import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
-import org.projectforge.business.task.TaskDO
-import org.projectforge.business.tasktree.TaskTreeHelper
-import org.projectforge.business.timesheet.TimesheetDO
+import org.projectforge.business.admin.SystemStatistics
+import org.projectforge.business.admin.SystemStatisticsData
 import org.projectforge.framework.ToStringUtil
-import org.projectforge.framework.calendar.DurationUtils
-import org.projectforge.framework.persistence.api.HibernateUtils
-import org.projectforge.framework.persistence.database.DatabaseBackupPurgeJob
-import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
-import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
-import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.utils.DiskUsage
-import org.projectforge.framework.utils.NumberFormatter
-import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.jcr.RepoBackupService
-import org.projectforge.jcr.RepoService
+import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.RestResolver
+import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-import java.lang.management.ManagementFactory
-import java.lang.management.MemoryType
-import java.math.BigDecimal
-import java.math.RoundingMode
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
+import java.util.*
 import javax.servlet.http.HttpServletRequest
-import javax.sql.DataSource
 
 private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/systemStatistics")
 class SystemStatisticPageRest : AbstractDynamicPageRest() {
+  @Autowired
+  private lateinit var accessChecker: AccessChecker
 
   @Autowired
-  private lateinit var dataSource: DataSource
-
-  @Autowired
-  private lateinit var databaseBackupPurgeJob: DatabaseBackupPurgeJob
-
-  @Autowired
-  private lateinit var repoBackupService: RepoBackupService
-
-  @Autowired
-  private lateinit var repoService: RepoService
-
-  class SystemStatisticData(
-    val systemLoadAverage: BigDecimal,
-    val processUptime: Long,
-    val processStartTime: Long,
-    val totalNumberOfTimesheets: Int,
-    val totalNumberOfTimesheetDurations: BigDecimal,
-    val totalNumberOfUsers: Int,
-    val totalNumberOfTasks: Int,
-    val totalNumberOfHistoryEntries: Int,
-    val memoryStatistics: Map<String, MemoryStatistics>,
-    val databasePoolStatistics: DatabasePoolStatistics,
-    val backupDirDiskUsage: DiskUsage,
-    val jcrDiskUsage: DiskUsage,
-    val jcrBackupDiskUsage: DiskUsage
-  )
-
-  class MemoryStatistics(
-    val max: Long,
-    val used: Long,
-    val committed: Long,
-    val init: Long
-  )
-
-  class DatabasePoolStatistics(
-    val total: Int,
-    val idle: Int,
-    val active: Int,
-    val threadsAwaitingConnection: Int
-  )
+  private lateinit var systemStatistics: SystemStatistics
 
   /**
    * Rest service for getting system statistics.
    * @return The system statistics for data base usage as well as for memory usage.
    */
-  @GetMapping
-  fun getSystemStatistics(): SystemStatisticData {
-    // First: Get the system load average (don't measure gc run ;-)
-    val osBean = ManagementFactory.getOperatingSystemMXBean()
-    val systemLoadAverage = BigDecimal(osBean.systemLoadAverage).setScale(2, RoundingMode.HALF_UP)
-    val processUptime = ManagementFactory.getRuntimeMXBean().uptime
-    val processStartTime = ManagementFactory.getRuntimeMXBean().startTime
-    log.info(
-      "System load average: $systemLoadAverage, process start time: ${PFDateTime.from(processStartTime).isoString}, process uptime: ${
-        DurationUtils.getFormattedDaysHoursAndMinutes(
-          processUptime
-        )
-      } [h:mm]"
-    )
-
-    val memoriesStatistics = mutableMapOf<String, MemoryStatistics>()
-    // Second: run GC and measure memory consumption before getting database statistics.
-    System.gc()
-    ManagementFactory.getMemoryPoolMXBeans().filter { it.type == MemoryType.HEAP }.forEach { mpBean ->
-      val usageBean = mpBean.usage
-      memoriesStatistics[mpBean.name] = MemoryStatistics(
-        max = usageBean.max,
-        used = usageBean.used,
-        committed = usageBean.committed,
-        init = usageBean.init
-      )
+  @GetMapping("adminXlsExport")
+  fun getSystemStatistics(): ResponseEntity<*> {
+    accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+    log.info("Admin tries to export system statistics.")
+    /*val xls = addressExport.export(list, personalAddressMap)
+    if (xls == null || xls.isEmpty()) {
+      return ResponseEntity(ResponseData("address.book.hasNoVCards", messageType = MessageType.TOAST, color = UIColor.WARNING), HttpStatus.NOT_FOUND)
     }
+    val filename = ("ProjectForge-AddressExport_" + DateHelper.getDateAsFilenameSuffix(Date())
+        + ".xls")
 
-    // Finally, the database statistics.
-    val jdbc = JdbcTemplate(dataSource)
-    val taskTree = TaskTreeHelper.getTaskTree()
-    val totalDuration = taskTree.rootTaskNode.getDuration(taskTree, true)
-    var totalPersonDays = BigDecimal(totalDuration).divide(DateHelper.SECONDS_PER_WORKING_DAY, 2, RoundingMode.HALF_UP)
-    totalPersonDays = NumberHelper.setDefaultScale(totalPersonDays)!!
-
-    val hikariDataSource = dataSource as HikariDataSource
-    val hikariPoolMXBean = hikariDataSource.hikariPoolMXBean
-    val databaseStatistics = try {
-      DatabasePoolStatistics(
-        total = hikariPoolMXBean.totalConnections,
-        idle = hikariPoolMXBean.idleConnections,
-        active = hikariPoolMXBean.activeConnections,
-        threadsAwaitingConnection = hikariPoolMXBean.threadsAwaitingConnection
-      )
-    } catch (ex: Exception) {
-      log.error("Can't get HikariDataSource: '${ex.message}'.", ex)
-      DatabasePoolStatistics(
-        total = -1,
-        idle = -1,
-        active = -1,
-        threadsAwaitingConnection = -1
-      )
-    }
-
-    val statistics = SystemStatisticData(
-      systemLoadAverage = systemLoadAverage,
-      processUptime = processUptime,
-      processStartTime = processStartTime,
-      totalNumberOfTimesheets = getTableCount(jdbc, TimesheetDO::class.java),
-      totalNumberOfTimesheetDurations = totalPersonDays,
-      totalNumberOfUsers = getTableCount(jdbc, PFUserDO::class.java),
-      totalNumberOfTasks = getTableCount(jdbc, TaskDO::class.java),
-      totalNumberOfHistoryEntries = getTableCount(jdbc, PfHistoryMasterDO::class.java) + getTableCount(
-        jdbc,
-        PfHistoryMasterDO::class.java
-      ),
-      memoryStatistics = memoriesStatistics,
-      databasePoolStatistics = databaseStatistics,
-      backupDirDiskUsage = DiskUsage(databaseBackupPurgeJob.dbBackupDir),
-      jcrDiskUsage = DiskUsage(repoBackupService.backupDirectory),
-      jcrBackupDiskUsage = DiskUsage(repoService.fileStoreLocation)
-    )
-
-    log.info("Statistics: ${ToStringUtil.toJsonString(statistics)}")
-    return statistics
-  }
-
-  private fun getTableCount(jdbc: JdbcTemplate, entity: Class<*>): Int {
-    try {
-      return jdbc.queryForObject("SELECT COUNT(*) FROM " + HibernateUtils.getDBTableName(entity), Int::class.java)!!
-    } catch (ex: Exception) {
-      log.error(ex.message, ex)
-      return 0
-    }
-
+    val resource = ByteArrayResource(xls)
+    return RestUtils.downloadFile(filename, resource)*/
   }
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
-    val statistics = getSystemStatistics()
-
-    val pool = statistics.databasePoolStatistics
+    val statsData = systemStatistics.getSystemStatistics()
+    log.info("Statistics: ${ToStringUtil.toJsonString(statsData)}")
 
     val layout = UILayout("system.statistics.title")
-      .add(createRow("system.statistics.totalNumberOfTimesheets", format(statistics.totalNumberOfTimesheets)))
-      .add(
-        createRow(
-          "system.statistics.totalNumberOfTimesheetDurations",
-          format(statistics.totalNumberOfTimesheetDurations, 0)
-        )
-      )
-      .add(createRow("system.statistics.totalNumberOfUsers", format(statistics.totalNumberOfUsers)))
-      .add(createRow("system.statistics.totalNumberOfTasks", format(statistics.totalNumberOfTasks)))
-      .add(createRow("system.statistics.totalNumberOfHistoryEntries", format(statistics.totalNumberOfHistoryEntries)))
-      .add(
-        createRow(
-          "system.statistics.databasePool",
-          "total=${pool.total}, active=${pool.active}, idle=${pool.idle}, threadsAwaitingConnection=${pool.threadsAwaitingConnection}"
-        )
-      )
 
-    statistics.memoryStatistics.forEach { (key, value) ->
-      layout.add(createRow("'$key", format(value)))
+    statsData.groups.forEach {group ->
+      val fieldset = UIFieldset(title = "'${group.capitalize()}")
+      statsData.filterEntries(group).forEach {
+        fieldset.add(createRow(it.title, it.valueAsString()))
+      }
+      layout.add(fieldset)
     }
-
-    layout.add(createRow("'System load average", format(statistics.systemLoadAverage, 2)))
-    layout.add(createRow("'Disk usage (JCR storage)", formatDiskUsage(statistics.jcrDiskUsage)))
-    layout.add(createRow("'Disk usage (JCR backup storage)", formatDiskUsage(statistics.jcrBackupDiskUsage)))
-    layout.add(createRow("'Disk usage (backup storage)", formatDiskUsage(statistics.backupDirDiskUsage)))
-    layout.add(createRow("'Process start time", "${PFDateTime.from(statistics.processStartTime).isoString} (UTC)"))
-    layout.add(
-      createRow(
-        "'Process uptime",
-        "${DurationUtils.getFormattedDaysHoursAndMinutes(statistics.processUptime)} [h:mm]"
+    if (accessChecker.isUserMemberOfAdminGroup(ThreadLocalUserContext.getUser())) {
+      layout.add(
+        MenuItem(
+          "adminXlsExport",
+          i18nKey = "menu.systemStatistics.adminExport",
+          url = "${RestResolver.getRestUrl(this::class.java, "exportAdminStats")}",
+          type = MenuItemTargetType.DOWNLOAD
+        )
       )
-    )
+    }
     LayoutUtils.process(layout)
-    return FormLayoutData(statistics, layout, createServerData(request))
-  }
-
-  private fun format(number: Number, scale: Int? = null): String {
-    return NumberFormatter.format(number, scale)
-  }
-
-  private fun formatBytes(number: Long): String {
-    return NumberHelper.formatBytes(number)
-  }
-
-  private fun format(memory: MemoryStatistics): String {
-    val percent = if (memory.max > 0 && memory.used < memory.max) {
-      " (${
-        format(
-          BigDecimal(memory.used).multiply(NumberHelper.HUNDRED)
-            .divide(BigDecimal(memory.max), 0, RoundingMode.HALF_UP), 0
-        )
-      }%)"
-    } else {
-      ""
-    }
-    val max = if (memory.max > 0) {
-      " / ${formatBytes(memory.max)}"
-    } else {
-      ""
-    }
-    val used = if (memory.used > 0) {
-      formatBytes(memory.used)
-    } else {
-      "0"
-    }
-
-    return "used=[$used$max]$percent, committed=[${formatBytes(memory.committed)}], init=[${formatBytes(memory.init)}]"
+    layout.postProcessPageMenu()
+    return FormLayoutData(statsData, layout, createServerData(request))
   }
 
   private fun createRow(label: String, value: String): UIRow {
@@ -282,13 +117,5 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
         UICol(UILength(12, 6, 6, 8, 9))
           .add(UILabel("'$value"))
       )
-  }
-
-  private fun formatDiskUsage(diskUsage: DiskUsage): String {
-    return "${formatBytes(diskUsage.used)}/${formatBytes(diskUsage.totalSpace)} (${diskUsage.percentage}%, ${
-      formatBytes(
-        diskUsage.freeSpace
-      )
-    } free): ${diskUsage.path?.toFile()?.absolutePath ?: "---"}"
   }
 }
