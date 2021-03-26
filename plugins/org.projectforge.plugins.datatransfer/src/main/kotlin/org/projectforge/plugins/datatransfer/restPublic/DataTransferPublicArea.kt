@@ -39,4 +39,6 @@ class DataTransferPublicArea(
   var externalUploadEnabled: Boolean? = null
 ) : BaseDTO<DataTransferAreaDO>(id), AttachmentsSupport {
   override var attachments: List<Attachment>? = null
+  override var attachmentsCounter: Int? = null
+  override var attachmentsSize: Long? = null
 }

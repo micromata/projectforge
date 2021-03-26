@@ -45,8 +45,12 @@ import javax.persistence.*
     columnList = "tenant_id"
   )]
 )
-@NamedQueries(NamedQuery(name = DataTransferAreaDO.FIND_BY_EXTERNAL_ACCESS_TOKEN,
-  query = "from DataTransferAreaDO where externalAccessToken=:externalAccessToken"))
+@NamedQueries(
+  NamedQuery(
+    name = DataTransferAreaDO.FIND_BY_EXTERNAL_ACCESS_TOKEN,
+    query = "from DataTransferAreaDO where externalAccessToken=:externalAccessToken"
+  )
+)
 open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
 
   @PropertyInfo(i18nKey = "id")
@@ -149,8 +153,13 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
 
   @JsonIgnore
   @field:NoHistory
-  @get:Column(length = 10000, name = "attachments_size")
-  override var attachmentsSize: Int? = null
+  @get:Column(name = "attachments_counter")
+  override var attachmentsCounter: Int? = null
+
+  @JsonIgnore
+  @field:NoHistory
+  @get:Column(name = "attachments_size")
+  override var attachmentsSize: Long? = null
 
   @JsonIgnore
   @get:Transient

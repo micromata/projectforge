@@ -24,6 +24,7 @@
 package org.projectforge.framework.jcr
 
 import mu.KotlinLogging
+import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import org.projectforge.SystemStatus
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.DataSizeConfig
@@ -233,7 +234,7 @@ open class AttachmentsService {
       : Attachment {
     accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = obj.id, subPath = subPath)
     val attachment = addAttachment(path, obj.id, fileName, content, false, accessChecker, subPath)
-    updateAttachmentsInfo(path, baseDao, obj, subPath)
+    updateAttachmentsInfo(path, baseDao, obj, subPath = subPath)
     return attachment
   }
 
@@ -290,12 +291,14 @@ open class AttachmentsService {
     accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = obj.id, subPath = subPath)
     val attachment =
       addAttachment(path, obj.id, fileName, inputStream, false, accessChecker, subPath, userString)
-    updateAttachmentsInfo(path, baseDao, obj, subPath, userString)
-    if (obj is DefaultBaseDO && obj is AttachmentsInfo) {
-      val dbObj = baseDao.getById(obj.id) as AttachmentsInfo
-      dbObj.attachmentsLastUserAction = "Attachment uploaded: '$fileName'."
-      baseDao.internalUpdateAny(dbObj)
-    }
+    updateAttachmentsInfo(
+      path,
+      baseDao,
+      obj,
+      subPath = subPath,
+      lastUserAction = "Attachment uploaded: '$fileName'.",
+      userString = userString
+    )
     return attachment
   }
 
@@ -363,12 +366,13 @@ open class AttachmentsService {
     val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId)
     val result = repoService.deleteFile(fileObject)
     if (result) {
-      if (obj is DefaultBaseDO && obj is AttachmentsInfo) {
-        val dbObj = baseDao.getById(obj.id) as AttachmentsInfo
-        dbObj.attachmentsLastUserAction = "Attachment '${fileObject.fileName}' deleted."
-        baseDao.internalUpdateAny(dbObj)
-      }
-      updateAttachmentsInfo(path, baseDao, obj, subPath)
+      updateAttachmentsInfo(
+        path,
+        baseDao,
+        obj,
+        subPath = subPath,
+        lastUserAction = "Attachment '${fileObject.fileName}' deleted."
+      )
     }
     return result
   }
@@ -439,13 +443,13 @@ open class AttachmentsService {
     if (result != null) {
       val fileNameChanged = if (!newFileName.isNullOrBlank()) "filename='$newFileName'" else null
       val descriptionChanged = if (newDescription != null) "description='$newDescription'" else null
-      if (obj is DefaultBaseDO && obj is AttachmentsInfo) {
-        val dbObj = baseDao.getById(obj.id) as AttachmentsInfo
-        dbObj.attachmentsLastUserAction =
-          "Attachment infos changed of file '${result.fileName}': ${fileNameChanged ?: " "}${descriptionChanged ?: ""}".trim()
-        baseDao.internalUpdateAny(dbObj)
-      }
-      updateAttachmentsInfo(path, baseDao, obj, subPath)
+      updateAttachmentsInfo(
+        path,
+        baseDao,
+        obj,
+        subPath = subPath,
+        lastUserAction = "Attachment infos changed of file '${result.fileName}': ${fileNameChanged ?: " "}${descriptionChanged ?: ""}".trim()
+      )
     }
     return result
   }
@@ -463,6 +467,7 @@ open class AttachmentsService {
     baseDao: BaseDao<out ExtendedBaseDO<Int>>,
     obj: ExtendedBaseDO<Int>,
     subPath: String? = null,
+    lastUserAction: String? = null,
     /**
      * Only for external users. Otherwise logged in user will be assumed.
      */
@@ -485,11 +490,16 @@ open class AttachmentsService {
       if (attachments != null) {
         dbObj.attachmentsNames = attachments.joinToString(separator = " ") { "${it.name}" }
         dbObj.attachmentsIds = attachments.joinToString(separator = " ") { "${it.fileId}" }
-        dbObj.attachmentsSize = attachments.size
+        dbObj.attachmentsCounter = attachments.size
+        dbObj.attachmentsSize = attachments.sumByLong { it.size ?: 0 }
       } else {
         dbObj.attachmentsNames = null
         dbObj.attachmentsIds = null
+        dbObj.attachmentsCounter = null
         dbObj.attachmentsSize = null
+      }
+      if (dbObj is DefaultBaseDO && lastUserAction != null) {
+        dbObj.attachmentsLastUserAction = lastUserAction
       }
       // Without access checking, because there is no logged-in user or access checking is already done by caller.
       baseDao.internalUpdateAny(dbObj)

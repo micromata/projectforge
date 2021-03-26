@@ -159,8 +159,13 @@ open class ContractDO : DefaultBaseDO(), AttachmentsInfo {
 
     @JsonIgnore
     @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_counter")
+    override var attachmentsCounter: Int? = null
+
+    @JsonIgnore
+    @field:NoHistory
     @get:Column(length = 10000, name = "attachments_size")
-    override var attachmentsSize: Int? = null
+    override var attachmentsSize: Long? = null
 
     @PropertyInfo(i18nKey = "attachment")
     @JsonIgnore
