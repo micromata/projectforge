@@ -127,7 +127,9 @@ public class ProjectForgeApp {
   @PostConstruct
   void postConstruct() {
     Registry.getInstance().init(applicationContext);
-    repoService.init(new File(ConfigXml.getInstance().getJcrDirectory()));
+    if (!junitTestMode) { // On test cases on repo will be used, if any.
+      repoService.init(new File(ConfigXml.getInstance().getJcrDirectory()));
+    }
     repoBackupService.initBackupDir(new File(ConfigXml.getInstance().getBackupDirectory()));
   }
 
