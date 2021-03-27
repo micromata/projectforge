@@ -23,7 +23,6 @@
 
 package org.projectforge.jcr
 
-import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.test.TestUtils
@@ -33,12 +32,10 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 import javax.jcr.Node
 
-private val log = KotlinLogging.logger {}
-
 class RepoBackupTest {
   private var repoService = RepoService()
   private var repoBackupService = RepoBackupService()
-    private var testUtils = TestUtils(MODULE_NAME)
+  private var testUtils = TestUtils(MODULE_NAME)
 
   init {
     val repoDir = testUtils.deleteAndCreateTestFile("testBackupRepo")
@@ -48,7 +45,7 @@ class RepoBackupTest {
 
   @Test
   fun test() {
-    var node: Node? = null
+    var node: Node?
     repoService.ensureNode(null, "world/europe")
     repoService.storeProperty("world/europe", "germany", "key", "value")
 
@@ -99,13 +96,13 @@ class RepoBackupTest {
 
     Assertions.assertEquals("value", repo2Service.retrievePropertyString("world/europe/", "germany", "key"))
 
-    fileObject = FileObject("/world/europe", "germany", fileName = "logo.png")
+    fileObject = FileObject("/world/europe", "germany", fileInfo = FileInfo("logo.png"))
     repo2Service.retrieveFile(fileObject)
     Assertions.assertEquals(logoFile.size, fileObject.content!!.size)
     for (idx in logoFile.indices) {
       Assertions.assertEquals(logoFile[idx], fileObject.content!![idx])
     }
-    fileObject = FileObject("/datatransfer/europe", "germany", fileName = "logo.png")
+    fileObject = FileObject("/datatransfer/europe", "germany", fileInfo = FileInfo("logo.png"))
     Assertions.assertFalse(repo2Service.retrieveFile(fileObject), "datatransfer stuff should be ignored in backup.")
 
     repoService.shutdown()

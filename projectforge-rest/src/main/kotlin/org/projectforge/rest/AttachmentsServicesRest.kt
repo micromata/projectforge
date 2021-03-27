@@ -32,6 +32,7 @@ import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.jcr.FileInfo
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -118,7 +119,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     try {
       attachmentsService.addAttachment(
         pagesRest.jcrPath!!,
-        fileName = file.originalFilename,
+        fileInfo = FileInfo(file.originalFilename),
         inputStream = file.inputStream,
         baseDao = pagesRest.baseDao,
         obj = obj,
@@ -174,7 +175,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     @RequestParam("fileId", required = true) fileId: String,
     @RequestParam("listId") listId: String?
   )
-      : ResponseEntity<InputStreamResource>? {
+      : ResponseEntity<InputStreamResource> {
     log.info { "User tries to download attachment: ${paramsToString(category, id, fileId, listId)}." }
     val pagesRest = getPagesRest(category, listId)
 
