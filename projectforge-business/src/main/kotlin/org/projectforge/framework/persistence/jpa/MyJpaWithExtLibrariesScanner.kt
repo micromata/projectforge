@@ -38,7 +38,6 @@ import org.hibernate.boot.archive.scan.spi.Scanner
 import org.hibernate.boot.archive.spi.*
 import org.hibernate.jpa.boot.internal.StandardJpaScanEnvironmentImpl
 import org.hibernate.jpa.boot.spi.PersistenceUnitDescriptor
-import org.projectforge.plugins.core.PluginAdminService
 import java.io.File
 import java.io.IOException
 import java.net.MalformedURLException
@@ -69,6 +68,9 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
     override fun scan(environment: ScanEnvironment, options: ScanOptions, parameters: ScanParameters): ScanResult {
         if (log.isDebugEnabled) {
             log.debug { "Method scan (1)." }
+        }
+        pluginEntitiesForTestCases?.forEach {
+            environment.explicitlyListedClassNames.add(it)
         }
         val collector = ScanResultCollector(environment, options, parameters)
 
@@ -420,6 +422,13 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
         @JvmStatic
         fun setInternalSetUnitTestMode() {
             INTERNAL_TEST_MODE = true;
+        }
+
+        private var pluginEntitiesForTestCases: Array<out String>? = null
+
+        @JvmStatic
+        fun setPluginEntitiesForTestMode(vararg entities: String) {
+            pluginEntitiesForTestCases = entities
         }
     }
 }
