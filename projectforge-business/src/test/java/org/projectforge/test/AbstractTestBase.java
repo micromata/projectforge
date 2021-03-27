@@ -56,7 +56,9 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.jcr.RepoService;
 import org.projectforge.mail.SendMail;
+import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.registry.Registry;
 import org.projectforge.web.WicketSupport;
 import org.springframework.beans.BeansException;
@@ -179,6 +181,9 @@ public abstract class AbstractTestBase {
   private DatabaseService databaseService;
 
   @Autowired
+  private RepoService repoService;
+
+  @Autowired
   private SystemStatus systemStatus;
 
   @PostConstruct
@@ -192,6 +197,8 @@ public abstract class AbstractTestBase {
 
   private static AbstractTestBase instance = null;
 
+  private File testRepoDir = null;
+
   protected AbstractTestBase() {
     System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, new File("target", "ProjectForgeTest").getAbsolutePath());
   }
@@ -200,6 +207,7 @@ public abstract class AbstractTestBase {
   public static void _beforeAll() {
     MyJpaWithExtLibrariesScanner.setInternalSetUnitTestMode();
     ProjectForgeApp.internalSetJunitTestMode();
+    AbstractPlugin.setInternaJunitTestMode(true);
     I18nHelper.addBundleName(Const.RESOURCE_BUNDLE_NAME);
     SendMail.internalSetTestMode();
     initialized = false;
@@ -292,6 +300,19 @@ public abstract class AbstractTestBase {
     if (createTestData) {
       initTestDB.initDatabase();
     }
+    if (testRepoDir != null) {
+      repoService.init(testRepoDir);
+    }
+  }
+
+  /**
+   * Test cases using the jcr repo should init it. See DataTransferJCRCleanUpJobTest of plugin datatransfer as an example.
+   * @param modulName Maven module name (dir) of your current tested module.
+   * @param testRepoName Unique test repoName like "datatransferTestRepo"
+   */
+  protected void initJCRTestRepo(String modulName, String testRepoName) {
+    final TestUtils testUtils = new TestUtils(modulName);
+    testRepoDir = testUtils.deleteAndCreateTestFile("cleanUpTestRepo");
   }
 
   protected TenantRegistry getTenantRegistry() {
