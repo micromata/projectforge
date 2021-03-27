@@ -21,39 +21,41 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.test;
+package org.projectforge.test
 
-import org.projectforge.business.configuration.ConfigurationServiceAccessor;
-import org.projectforge.framework.configuration.ConfigXmlTest;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.api.UserContext;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import mu.KotlinLogging
+import org.projectforge.business.configuration.ConfigurationServiceAccessor
+import org.projectforge.framework.configuration.ConfigXmlTest
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.UserContext.Companion.createTestInstance
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import java.time.DayOfWeek
+import java.util.*
 
-import java.time.DayOfWeek;
-import java.util.Locale;
-import java.util.TimeZone;
+private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class TestSetup {
+object TestSetup {
   /**
    * Puts a context user in ThreadLocaleUserContext and creates a minimal ConfigXml configuration.
    * This is use-full for tests needing the user's locale, timezone etc, but not the time consuming
    * database and Spring setup.
    * @return created user in ThreadLocalUserContext.
    */
-  public static PFUserDO init() {
-    TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-    PFUserDO user = new PFUserDO();
-    user.setTimeZone(TimeZone.getTimeZone("Europe/Berlin"));
-    user.setExcelDateFormat("YYYY-MM-DD");
-    user.setDateFormat("dd.MM.yyyy");
-    user.setLocale(new Locale("de", "DE"));
-    user.setFirstDayOfWeek(DayOfWeek.MONDAY);
-    ThreadLocalUserContext.setUserContext(UserContext.createTestInstance(user));
-    ConfigXmlTest.createTestConfiguration();
-    ConfigurationServiceAccessor.internalInitJunitTestMode();
-    return user;
+  @JvmStatic
+  fun init(): PFUserDO {
+    TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
+    val user = PFUserDO()
+    user.timeZone = TimeZone.getTimeZone("Europe/Berlin")
+    user.excelDateFormat = "YYYY-MM-DD"
+    user.dateFormat = "dd.MM.yyyy"
+    user.locale = Locale("de", "DE")
+    user.firstDayOfWeek = DayOfWeek.MONDAY
+    ThreadLocalUserContext.setUserContext(createTestInstance(user))
+    ConfigXmlTest.createTestConfiguration()
+    ConfigurationServiceAccessor.internalInitJunitTestMode()
+    return user
   }
 }
