@@ -24,9 +24,9 @@
 package org.projectforge.jcr
 
 import mu.KotlinLogging
-import org.apache.jackrabbit.commons.JcrUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.test.TestUtils
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipInputStream
@@ -35,87 +35,89 @@ import javax.jcr.Node
 
 private val log = KotlinLogging.logger {}
 
-private const val MODULE_NAME = "projectforge-jcr"
-
 class RepoBackupTest {
-    private var repoService = RepoService()
-    private var repoBackupService = RepoBackupService()
+  private var repoService = RepoService()
+  private var repoBackupService = RepoBackupService()
+    private var testUtils = TestUtils(MODULE_NAME)
 
-    init {
-        val repoDir = TestUtils.deleteAndCreateTestFile("testBackupRepo")
-        repoService.init(repoDir)
-        repoBackupService.repoService = repoService
+  init {
+    val repoDir = testUtils.deleteAndCreateTestFile("testBackupRepo")
+    repoService.init(repoDir)
+    repoBackupService.repoService = repoService
+  }
+
+  @Test
+  fun test() {
+    var node: Node? = null
+    repoService.ensureNode(null, "world/europe")
+    repoService.storeProperty("world/europe", "germany", "key", "value")
+
+    var fileObject = createFileObject("/world/europe", "germany", "pom.xml")
+    repoService.storeFile(fileObject, 100000L)
+
+    fileObject = createFileObject("/world/europe", "germany", "src", "test", "resources", "logback-test.xml")
+    repoService.storeFile(fileObject, 100000L)
+
+    fileObject = createFileObject("/world/europe", "germany", "test", "files", "logo.png")
+    repoService.storeFile(fileObject, 100000L)
+    val logoFile = fileObject.content!!
+
+    node = repoService.ensureNode(null, "datatransfer/europe")
+    fileObject = createFileObject("/datatransfer/europe", "germany", "test", "files", "logo.png")
+    repoService.storeFile(fileObject, 100000L)
+
+    Assertions.assertTrue(PFJcrUtils.matchPath(node!!, "datatransfer"))
+    Assertions.assertTrue(PFJcrUtils.matchPath(node, "/datatransfer"))
+    Assertions.assertTrue(PFJcrUtils.matchPath(node, "datatransfer/europe"))
+    Assertions.assertTrue(PFJcrUtils.matchPath(node, "/datatransfer/europe"))
+    Assertions.assertFalse(PFJcrUtils.matchPath(node, "world"))
+    Assertions.assertFalse(PFJcrUtils.matchPath(node, "datatransfer/world"))
+
+    repoBackupService.registerNodePathToIgnore("datatransfer")
+    Assertions.assertTrue(PFJcrUtils.matchAnyPath(node, repoBackupService.listOfIgnoredNodePaths))
+
+    val zipFile = testUtils.deleteAndCreateTestFile("fullbackup.zip")
+    ZipOutputStream(FileOutputStream(zipFile)).use {
+      repoBackupService.backupAsZipArchive(zipFile.name, it)
     }
 
-    @Test
-    fun test() {
-        var node: Node? = null
-        repoService.ensureNode(null, "world/europe")
-        repoService.storeProperty("world/europe", "germany", "key", "value")
+    val repo2Service = RepoService()
+    val repo2BackupService = RepoBackupService()
+    val repo2Dir = testUtils.deleteAndCreateTestFile("testBackupRepo2")
+    repo2Service.init(repo2Dir)
+    repo2BackupService.repoService = repo2Service
 
-        var fileObject = createFileObject("/world/europe", "germany", "pom.xml")
-        repoService.storeFile(fileObject, 100000L)
-
-        fileObject = createFileObject("/world/europe", "germany", "src", "test", "resources", "logback-test.xml")
-        repoService.storeFile(fileObject, 100000L)
-
-        fileObject = createFileObject("/world/europe", "germany", "test", "files", "logo.png")
-        repoService.storeFile(fileObject, 100000L)
-        val logoFile = fileObject.content!!
-
-        node = repoService.ensureNode(null, "datatransfer/europe")
-        fileObject = createFileObject("/datatransfer/europe", "germany", "test", "files", "logo.png")
-        repoService.storeFile(fileObject, 100000L)
-
-        Assertions.assertTrue(PFJcrUtils.matchPath(node!!, "datatransfer"))
-        Assertions.assertTrue(PFJcrUtils.matchPath(node, "/datatransfer"))
-        Assertions.assertTrue(PFJcrUtils.matchPath(node, "datatransfer/europe"))
-        Assertions.assertTrue(PFJcrUtils.matchPath(node, "/datatransfer/europe"))
-        Assertions.assertFalse(PFJcrUtils.matchPath(node, "world"))
-        Assertions.assertFalse(PFJcrUtils.matchPath(node, "datatransfer/world"))
-
-        repoBackupService.registerNodePathToIgnore("datatransfer")
-        Assertions.assertTrue(PFJcrUtils.matchAnyPath(node, repoBackupService.listOfIgnoredNodePaths))
-
-        val zipFile = TestUtils.deleteAndCreateTestFile("fullbackup.zip")
-        ZipOutputStream(FileOutputStream(zipFile)).use {
-            repoBackupService.backupAsZipArchive(zipFile.name, it)
-        }
-
-        val repo2Service = RepoService()
-        val repo2BackupService = RepoBackupService()
-        val repo2Dir = TestUtils.deleteAndCreateTestFile("testBackupRepo2")
-        repo2Service.init(repo2Dir)
-        repo2BackupService.repoService = repo2Service
-
-        ZipInputStream(FileInputStream(zipFile)).use {
-            repo2BackupService.restoreBackupFromZipArchive(it, RepoBackupService.RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED)
-        }
-        ZipOutputStream(FileOutputStream(TestUtils.deleteAndCreateTestFile("fullbackupFromRestored.zip"))).use {
-            repo2BackupService.backupAsZipArchive("fullbackupFromRestored", it)
-        }
-
-        Assertions.assertEquals("value", repo2Service.retrievePropertyString("world/europe/", "germany", "key"))
-
-        fileObject = FileObject("/world/europe", "germany", fileName = "logo.png")
-        repo2Service.retrieveFile(fileObject)
-        Assertions.assertEquals(logoFile.size, fileObject.content!!.size)
-        for (idx in logoFile.indices) {
-            Assertions.assertEquals(logoFile[idx], fileObject.content!![idx])
-        }
-        fileObject = FileObject("/datatransfer/europe", "germany", fileName = "logo.png")
-        Assertions.assertFalse(repo2Service.retrieveFile(fileObject), "datatransfer stuff should be ignored in backup.")
-
-        repoService.shutdown()
-        repo2Service.shutdown()
+    ZipInputStream(FileInputStream(zipFile)).use {
+      repo2BackupService.restoreBackupFromZipArchive(
+        it,
+        RepoBackupService.RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED
+      )
+    }
+    ZipOutputStream(FileOutputStream(testUtils.deleteAndCreateTestFile("fullbackupFromRestored.zip"))).use {
+      repo2BackupService.backupAsZipArchive("fullbackupFromRestored", it)
     }
 
-    private fun createFileObject(parentNodePath: String, relPath: String, vararg path: String): FileObject {
-        val fileObject = FileObject()
-        fileObject.fileName = path.last()
-        fileObject.parentNodePath = parentNodePath
-        fileObject.relPath = relPath
-        fileObject.content = TestUtils.determineFile(*path).readBytes()
-        return fileObject
+    Assertions.assertEquals("value", repo2Service.retrievePropertyString("world/europe/", "germany", "key"))
+
+    fileObject = FileObject("/world/europe", "germany", fileName = "logo.png")
+    repo2Service.retrieveFile(fileObject)
+    Assertions.assertEquals(logoFile.size, fileObject.content!!.size)
+    for (idx in logoFile.indices) {
+      Assertions.assertEquals(logoFile[idx], fileObject.content!![idx])
     }
+    fileObject = FileObject("/datatransfer/europe", "germany", fileName = "logo.png")
+    Assertions.assertFalse(repo2Service.retrieveFile(fileObject), "datatransfer stuff should be ignored in backup.")
+
+    repoService.shutdown()
+    repo2Service.shutdown()
+  }
+
+  private fun createFileObject(parentNodePath: String, relPath: String, vararg path: String): FileObject {
+    val fileObject = FileObject()
+    fileObject.fileName = path.last()
+    fileObject.parentNodePath = parentNodePath
+    fileObject.relPath = relPath
+    fileObject.content = testUtils.determineBaseDirFile(*path).readBytes()
+    return fileObject
+  }
 }

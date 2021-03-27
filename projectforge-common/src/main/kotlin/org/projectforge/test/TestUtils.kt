@@ -21,24 +21,48 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.jcr
+package org.projectforge.test
 
 import mu.KotlinLogging
-import org.junit.jupiter.api.Assertions
 import java.io.File
 import java.nio.file.Paths
 
 private val log = KotlinLogging.logger {}
 
-private const val MODULE_NAME = "projectforge-jcr"
+/**
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ */
+class TestUtils(modulName: String) {
+  val baseDir: File = File(".").absoluteFile.parentFile
+  val outputDir: File
+  init {
+    check(baseDir.name == modulName) {
+     "Check of working test directory failed. Base dir isn't module directory: ${baseDir.absolutePath}"
+    }
+    val testDir = File(baseDir, "test")
+    outputDir = File(testDir, "out")
+    if (!outputDir.exists()) {
+      outputDir.mkdirs()
+    }
+  }
 
-object TestUtils {
+  fun deleteAndCreateTestFile(name: String): File {
+    val file = File(outputDir, name)
+    file.deleteRecursively()
+    return file
+  }
 
-    private val location: String
-    private val testOutDir: File
+  fun determineBaseDirFile(vararg path: String): File {
+    return Paths.get(baseDir.absolutePath, *path).toFile()
+  }
 
-    init {
-        var uriString = this::class.java.protectionDomain.codeSource.location.toString().removeSuffix("/src/main/kotlin/org/projectforge/jcr")
+  fun determineOutputDirFile(vararg path: String): File {
+    return Paths.get(baseDir.absolutePath, *path).toFile()
+  }
+
+  /*
+  Automatic detection:
+          var uriString = this::class.java.protectionDomain.codeSource.location.toString().removeSuffix("/src/main/kotlin/org/projectforge/jcr")
         Assertions.assertTrue(uriString.startsWith("file:"), "We're not running in a normal file system. Can't proceed with tests.")
         uriString = uriString.removePrefix("file:")
         Assertions.assertTrue(uriString.contains("/$MODULE_NAME"), "Where we're running? '/$MODULE_NAME' expected in path to find sources for testing, but not found '$uriString'.")
@@ -46,21 +70,6 @@ object TestUtils {
         while (uriString.contains("/$MODULE_NAME/")) {
             uriString = uriString.substring(0, uriString.lastIndexOf('/'))
         }
-        location = uriString
-        val testDir = File(location, "test")
-        testOutDir = File(testDir, "out")
-        if (!testOutDir.exists()) {
-            testOutDir.mkdirs()
-        }
-    }
 
-    internal fun deleteAndCreateTestFile(name: String): File {
-        val file = File(testOutDir, name)
-        file.deleteRecursively()
-        return file
-    }
-
-    internal fun determineFile(vararg path: String): File {
-        return Paths.get(location, *path).toFile()
-    }
+   */
 }
