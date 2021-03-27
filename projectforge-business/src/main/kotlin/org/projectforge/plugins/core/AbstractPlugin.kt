@@ -91,7 +91,9 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
             initializedPlugins.add(this.javaClass)
             log.info("Initializing plugin: $javaClass")
             initialize()
-            flywayInit()
+            if (!internaJunitTestMode) { // Don't init flyway: schema-update is auto on test cases.
+                flywayInit()
+            }
         }
     }
 
@@ -242,5 +244,7 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
 
     companion object {
         private val initializedPlugins: MutableSet<Class<*>> = HashSet()
+        @JvmStatic
+        var internaJunitTestMode: Boolean = false
     }
 }
