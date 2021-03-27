@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.common.MaxFileSizeExceeded
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.jcr.FileInfo
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.AttachmentsServicesRest
@@ -136,7 +137,7 @@ class DataTransferPublicServicesRest {
     try {
       attachmentsService.addAttachment(
         dataTransferAreaPagesRest.jcrPath!!,
-        fileName = file.originalFilename,
+        fileInfo = FileInfo(file.originalFilename),
         inputStream = file.inputStream,
         baseDao = dataTransferAreaDao,
         obj = obj,

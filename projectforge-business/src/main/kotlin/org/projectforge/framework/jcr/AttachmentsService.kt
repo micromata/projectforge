@@ -34,6 +34,7 @@ import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.jcr.FileInfo
 import org.projectforge.jcr.FileObject
 import org.projectforge.jcr.RepoService
 import org.springframework.beans.factory.annotation.Autowired
@@ -200,7 +201,7 @@ open class AttachmentsService {
   open fun addAttachment(
     path: String,
     id: Any,
-    fileName: String?,
+    fileInfo: FileInfo?,
     content: ByteArray,
     enableSearchIndex: Boolean,
     accessChecker: AttachmentsAccessChecker,
@@ -210,7 +211,7 @@ open class AttachmentsService {
     val fileObject = FileObject(
       getPath(path, id),
       subPath ?: DEFAULT_NODE,
-      fileName = fileName
+      fileInfo = fileInfo
     )
     developerWarning(path, id, "addAttachment", enableSearchIndex)
     fileObject.content = content
@@ -224,7 +225,7 @@ open class AttachmentsService {
   @JvmOverloads
   open fun addAttachment(
     path: String,
-    fileName: String?,
+    fileInfo: FileInfo?,
     content: ByteArray,
     baseDao: BaseDao<out ExtendedBaseDO<Int>>,
     obj: ExtendedBaseDO<Int>,
@@ -233,7 +234,7 @@ open class AttachmentsService {
   )
       : Attachment {
     accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = obj.id, subPath = subPath)
-    val attachment = addAttachment(path, obj.id, fileName, content, false, accessChecker, subPath)
+    val attachment = addAttachment(path, obj.id, fileInfo, content, false, accessChecker, subPath)
     updateAttachmentsInfo(path, baseDao, obj, subPath = subPath)
     return attachment
   }
@@ -246,7 +247,7 @@ open class AttachmentsService {
   open fun addAttachment(
     path: String,
     id: Any,
-    fileName: String?,
+    fileInfo: FileInfo,
     inputStream: InputStream,
     enableSearchIndex: Boolean,
     accessChecker: AttachmentsAccessChecker,
@@ -259,7 +260,7 @@ open class AttachmentsService {
     developerWarning(path, id, "addAttachment", enableSearchIndex)
     accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = id, subPath = subPath)
     repoService.ensureNode(null, getPath(path, id))
-    val fileObject = FileObject(getPath(path, id), subPath ?: DEFAULT_NODE, fileName = fileName)
+    val fileObject = FileObject(getPath(path, id), subPath ?: DEFAULT_NODE, fileInfo = fileInfo)
     repoService.storeFile(
       fileObject,
       inputStream,
@@ -276,7 +277,7 @@ open class AttachmentsService {
   @JvmOverloads
   open fun addAttachment(
     path: String,
-    fileName: String?,
+    fileInfo: FileInfo,
     inputStream: InputStream,
     baseDao: BaseDao<out ExtendedBaseDO<Int>>,
     obj: ExtendedBaseDO<Int>,
@@ -290,13 +291,13 @@ open class AttachmentsService {
       : Attachment {
     accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = obj.id, subPath = subPath)
     val attachment =
-      addAttachment(path, obj.id, fileName, inputStream, false, accessChecker, subPath, userString)
+      addAttachment(path, obj.id, fileInfo, inputStream, false, accessChecker, subPath, userString)
     updateAttachmentsInfo(
       path,
       baseDao,
       obj,
       subPath = subPath,
-      lastUserAction = "Attachment uploaded: '$fileName'.",
+      lastUserAction = "Attachment uploaded: '${fileInfo.fileName}'.",
       userString = userString
     )
     return attachment

@@ -34,18 +34,18 @@ private val log = KotlinLogging.logger {}
 /**
  * Files in the content repository may addressed by location (parent node) and id or location and filename.
  */
-class FileObject() {
+class FileObject(): FileInfo() {
   @JvmOverloads
   constructor(
     parentNodePath: String?,
     relPath: String? = null,
     fileId: String? = null,
-    fileName: String? = null
+    fileInfo: FileInfo? = null
   ) : this() {
     this.parentNodePath = parentNodePath
     this.relPath = relPath
     this.fileId = fileId
-    this.fileName = fileName
+    copyFrom(fileInfo)
   }
 
   internal constructor(node: Node, parentNodePath: String? = null, relPath: String? = null) : this() {
@@ -100,11 +100,6 @@ class FileObject() {
   }
 
   /**
-   * The UTF-8 filename.
-   */
-  var fileName: String? = null
-
-  /**
    * The content of the file.
    */
   @JsonIgnore
@@ -119,25 +114,6 @@ class FileObject() {
    * Leave this id null for new files to store.
    */
   var fileId: String? = null
-
-  /**
-   * The file size if known (length of content).
-   */
-  var size: Long? = null
-    internal set
-
-  /**
-   * Optional description.
-   */
-  var description: String? = null
-
-  var created: Date? = null
-
-  var lastUpdate: Date? = null
-
-  var createdByUser: String? = null
-
-  var lastUpdateByUser: String? = null
 
   /**
    * The location (as path) of the file in the content repository. The location is relative to main node.
