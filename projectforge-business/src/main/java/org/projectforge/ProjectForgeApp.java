@@ -93,6 +93,10 @@ public class ProjectForgeApp {
 
   private Environment environment;
 
+  private RepoService repoService;
+
+  private RepoBackupService repoBackupService;
+
   private UserXmlPreferencesCache userXmlPreferencesCache;
 
   private SystemInfoCache systemInfoCache;
@@ -113,9 +117,9 @@ public class ProjectForgeApp {
     this.databaseService = databaseService;
     this.domainService = domainService;
     this.environment = environment;
+    this.repoService = repoService;
+    this.repoBackupService = repoBackupService;
     this.userXmlPreferencesCache = userXmlPreferencesCache;
-    repoService.init(new File(ConfigXml.getInstance().getJcrDirectory()));
-    repoBackupService.initBackupDir(new File(ConfigXml.getInstance().getBackupDirectory()));
     this.systemInfoCache = systemInfoCache;
     this.systemStatus = systemStatus;
   }
@@ -123,6 +127,8 @@ public class ProjectForgeApp {
   @PostConstruct
   void postConstruct() {
     Registry.getInstance().init(applicationContext);
+    repoService.init(new File(ConfigXml.getInstance().getJcrDirectory()));
+    repoBackupService.initBackupDir(new File(ConfigXml.getInstance().getBackupDirectory()));
   }
 
   @EventListener(ApplicationReadyEvent.class)
@@ -150,9 +156,9 @@ public class ProjectForgeApp {
     this.upAndRunning = true;
     systemStatus.setUpAndRunning(true);
     new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL)
-            .log("ProjectForge is now available (up and running): localhost:" + environment.getProperty("server.port"))
-            .log("Configured domain: " + domainService.getDomainWithContextPath())
-            .logEnd();
+        .log("ProjectForge is now available (up and running): localhost:" + environment.getProperty("server.port"))
+        .log("Configured domain: " + domainService.getDomainWithContextPath())
+        .logEnd();
   }
 
   private void internalInit() {
@@ -161,9 +167,9 @@ public class ProjectForgeApp {
     log.info("Default TimeZone is: " + TimeZone.getDefault());
     if (!"UTC".equals(TimeZone.getDefault().getID())) {
       new EmphasizedLogSupport(log, EmphasizedLogSupport.Alignment.LEFT)
-              .log("It's highly recommended to start ProjectForge with TimeZone UTC. This default TimeZone has to be")
-              .log("set before any initialization of Hibernate!!!! You may do this through JAVA_OPTS etc.")
-              .logEnd();
+          .log("It's highly recommended to start ProjectForge with TimeZone UTC. This default TimeZone has to be")
+          .log("set before any initialization of Hibernate!!!! You may do this through JAVA_OPTS etc.")
+          .logEnd();
     }
     log.info("user.timezone is: " + System.getProperty("user.timezone"));
 
@@ -193,8 +199,8 @@ public class ProjectForgeApp {
     upAndRunning = false;
     try {
       final UserContext internalSystemAdminUserContext = UserContext
-              .__internalCreateWithSpecialUser(DatabaseService
-                      .__internalGetSystemAdminPseudoUser(), getUserGroupCache());
+          .__internalCreateWithSpecialUser(DatabaseService
+              .__internalGetSystemAdminPseudoUser(), getUserGroupCache());
       ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
       databaseService.shutdownDatabase();
     } finally {
