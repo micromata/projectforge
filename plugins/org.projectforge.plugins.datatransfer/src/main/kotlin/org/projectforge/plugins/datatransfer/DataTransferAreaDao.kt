@@ -26,10 +26,13 @@ package org.projectforge.plugins.datatransfer
 import mu.KotlinLogging
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.common.DataSizeConfig
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.jcr.AttachmentsEventListener
+import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
@@ -38,6 +41,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.jcr.FileInfo
 import org.projectforge.rest.core.RestResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -55,7 +59,7 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO::class.java) {
+open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO::class.java), AttachmentsEventListener {
 
   @Value("\${${MAX_FILE_SIZE_SPRING_PROPERTY}:100MB}")
   internal open lateinit var maxFileSizeConfig: String
@@ -75,6 +79,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
   open fun createInitializedFile(): DataTransferAreaDO {
     val file = DataTransferAreaDO()
     file.adminIds = "${ThreadLocalUserContext.getUserId()}"
+    file.observerIds = file.adminIds
     file.externalAccessToken = generateExternalAccessToken()
     file.externalPassword = generateExternalPassword()
     file.expiryDays = 7
@@ -139,16 +144,22 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     return false
   }
 
-  override fun getList(
-    filter: QueryFilter,
-    customResultFilters: MutableList<CustomResultFilter<DataTransferAreaDO>>?
-  ): MutableList<DataTransferAreaDO> {
-    filter.addOrder(SortProperty.asc("areaName"))
-    return super.getList(filter, customResultFilters)
+  override fun getDefaultSortProperties(): Array<SortProperty> {
+    return arrayOf(SortProperty.desc("lastUpdate"))
   }
 
   override fun newInstance(): DataTransferAreaDO {
     return DataTransferAreaDO()
+  }
+
+  override fun onAttachmentEvent(
+    event: AttachmentsEventType,
+    file: FileInfo,
+    data: Any?,
+    byUser: PFUserDO?,
+    byExternalUser: String?
+  ) {
+    log.info { "$event, $file" }
   }
 
   companion object {

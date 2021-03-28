@@ -284,6 +284,8 @@ open class AttachmentsService {
       path,
       baseDao,
       obj,
+      AttachmentsEventType.UPLOAD,
+      fileInfo,
       subPath = subPath,
       lastUserAction = "Attachment uploaded: '${fileInfo.fileName}'.",
       userString = userString
@@ -359,6 +361,8 @@ open class AttachmentsService {
         path,
         baseDao,
         obj,
+        AttachmentsEventType.DELETE,
+        fileObject,
         subPath = subPath,
         lastUserAction = "Attachment '${fileObject.fileName}' deleted."
       )
@@ -436,6 +440,8 @@ open class AttachmentsService {
         path,
         baseDao,
         obj,
+        AttachmentsEventType.MODIFICATION,
+        fileObject,
         subPath = subPath,
         lastUserAction = "Attachment infos changed of file '${result.fileName}': ${fileNameChanged ?: " "}${descriptionChanged ?: ""}".trim()
       )
@@ -455,6 +461,8 @@ open class AttachmentsService {
     path: String,
     baseDao: BaseDao<out ExtendedBaseDO<Int>>,
     obj: ExtendedBaseDO<Int>,
+    event: AttachmentsEventType,
+    fileInfo: FileInfo,
     subPath: String? = null,
     lastUserAction: String? = null,
     /**
@@ -485,6 +493,9 @@ open class AttachmentsService {
       }
       if (dbObj is DefaultBaseDO && lastUserAction != null) {
         dbObj.attachmentsLastUserAction = lastUserAction
+      }
+      if (baseDao is AttachmentsEventListener) {
+        baseDao.onAttachmentEvent(event, fileInfo, dbObj, ThreadLocalUserContext.getUser(), userString)
       }
       // Without access checking, because there is no logged-in user or access checking is already done by caller.
       baseDao.internalUpdateAny(dbObj)

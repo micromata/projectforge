@@ -23,10 +23,17 @@
 
 package org.projectforge.plugins.datatransfer.rest
 
+import org.projectforge.business.address.AddressDO
+import org.projectforge.business.address.DoubletsResultFilter
+import org.projectforge.business.address.FavoritesResultFilter
+import org.projectforge.business.address.ImagesResultFilter
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.plugins.datatransfer.DataTransferAccessChecker
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
@@ -95,9 +102,11 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
 
     // Usernames needed by React client (for ReactSelect):
     User.restoreDisplayNames(dto.admins, userService)
+    User.restoreDisplayNames(dto.observers, userService)
     User.restoreDisplayNames(dto.accessUsers, userService)
 
     dto.adminsAsString = dto.admins?.joinToString { it.displayName ?: "???" } ?: ""
+    dto.observersAsString = dto.observers?.joinToString { it.displayName ?: "???" } ?: ""
     dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
     dto.accessUsersAsString = dto.accessUsers?.joinToString { it.displayName ?: "???" } ?: ""
 
@@ -153,10 +162,19 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
             ).setStandardBoolean()
           )
           .add(UITableColumn("adminsAsString", "plugins.datatransfer.admins"))
+          .add(UITableColumn("observersAsString", "plugins.datatransfer.observers"))
           .add(UITableColumn("accessGroupsAsString", "plugins.datatransfer.accessGroups"))
           .add(UITableColumn("accessUsersAsString", "plugins.datatransfer.accessUsers"))
       )
     return LayoutUtils.processListPage(layout, this)
+  }
+
+  override fun preProcessMagicFilter(
+    target: QueryFilter,
+    source: MagicFilter
+  ): List<CustomResultFilter<DataTransferAreaDO>>? {
+    source.sortProperties.find { it.property == "lastUpdateTimeAgo" }?.property = "lastUpdate"
+    return super.preProcessMagicFilter(target, source)
   }
 
   override fun afterOperationRedirectTo(
@@ -181,6 +199,13 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
       true,
       "plugins.datatransfer.admins",
       tooltip = "plugins.datatransfer.admins.info"
+    )
+    val observersSelect = UISelect.createUserSelect(
+      lc,
+      "observers",
+      true,
+      "plugins.datatransfer.observers",
+      tooltip = "plugins.datatransfer.observers.info"
     )
     val accessUsers = UISelect.createUserSelect(
       lc,
@@ -246,10 +271,10 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
                       tooltip = "plugins.datatransfer.expiryDays.info"
                     )
                   )
-                //.add(lc, "expiryDays")
               )
           )
           .add(lc, "description")
+          .add(observersSelect)
       )
       .add(
         UIFieldset(UILength(md = 12, lg = 12), title = "access.title.heading")
