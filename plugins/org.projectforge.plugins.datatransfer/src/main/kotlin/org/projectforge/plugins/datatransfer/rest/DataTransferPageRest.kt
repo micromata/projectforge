@@ -147,7 +147,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     if (dataTransferAreaDao.hasLoggedInUserUpdateAccess(dbObj, dbObj, false)) {
       layout.add(
         MenuItem(
-          "edit",
+          "EDIT",
           i18nKey = "plugins.datatransfer.title.edit",
           url = PagesResolver.getEditPageUrl(DataTransferAreaPagesRest::class.java, dto.id),
           type = MenuItemTargetType.REDIRECT
