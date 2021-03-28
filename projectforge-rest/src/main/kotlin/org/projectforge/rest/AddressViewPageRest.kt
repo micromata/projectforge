@@ -161,7 +161,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
                 default = true)
         )
 
-        layout.add(MenuItem("edit",
+        layout.add(MenuItem("EDIT",
                 i18nKey = "address.title.edit",
                 url = PagesResolver.getEditPageUrl(AddressPagesRest::class.java, address.id),
                 type = MenuItemTargetType.REDIRECT))

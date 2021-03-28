@@ -447,8 +447,8 @@ button.dropdown-item a.nav-link {
 	margin-bottom: 15px;
 }
 
-// Add Button in List Page Navigation
-#CREATE {
+// Add/Edit Button in List Page Navigation
+#CREATE, #EDIT {
 	$color: #009BA3;
 
 	border: 1px solid $color;
