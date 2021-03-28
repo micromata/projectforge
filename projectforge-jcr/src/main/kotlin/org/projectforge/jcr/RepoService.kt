@@ -33,9 +33,7 @@ import org.apache.jackrabbit.oak.segment.file.FileStoreBuilder
 import org.apache.jackrabbit.oak.spi.state.NodeStore
 import org.projectforge.common.FormatterUtils
 import org.projectforge.common.MaxFileSizeExceeded
-import org.projectforge.jcr.log.NodeLogInfo
 import org.springframework.stereotype.Service
-import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -85,7 +83,7 @@ open class RepoService {
    */
   open fun ensureNode(parentNodePath: String?, relPath: String? = null): Node? {
     relPath ?: return null
-    return runInSession<Node> { session ->
+    return runInSession { session ->
       val node = getNode(session, parentNodePath, relPath, true)
       session.save()
       node
@@ -406,10 +404,7 @@ open class RepoService {
   }
 
   internal fun getFileContent(node: Node?, fileObject: FileObject): ByteArray? {
-    val content = getFileInputStream(node, fileObject)?.use {
-      it.readBytes()
-    }
-    return content
+    return getFileInputStream(node, fileObject)?.use(InputStream::readBytes)
   }
 
   private fun getFileInputStream(node: Node?, fileObject: FileObject): InputStream? {
