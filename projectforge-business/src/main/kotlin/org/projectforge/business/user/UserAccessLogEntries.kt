@@ -23,6 +23,7 @@
 
 package org.projectforge.business.user
 
+import mu.KotlinLogging
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.web.rest.UserAccessLogEntry
 import org.slf4j.LoggerFactory
@@ -30,6 +31,8 @@ import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 private const val MAX_SIZE = 20
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Access to rest services will be logged, including UserAgent string, IP, used type of token and timestamp for
@@ -93,9 +96,5 @@ class UserAccessLogEntries(val tokenType: UserTokenType) {
 
     override fun toString(): String {
         return ToStringUtil.toJsonString(this)
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(UserAccessLogEntries::class.java)
     }
 }
