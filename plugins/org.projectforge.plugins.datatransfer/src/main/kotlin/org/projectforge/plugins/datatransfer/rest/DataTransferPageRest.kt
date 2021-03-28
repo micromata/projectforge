@@ -115,8 +115,17 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
         default = true
       )
     )
-    val fieldSet = UIFieldset(12)
-      .add(UIReadOnlyField("internalLink", label = "plugins.datatransfer.internal.link"))
+    val fieldSet = UIFieldset()
+      .add(
+        UIRow().add(
+          UICol(UILength(md = 8))
+            .add(UIReadOnlyField("internalLink", label = "plugins.datatransfer.internal.link"))
+        )
+          .add(
+            UICol(UILength(md = 4))
+              .add(UIReadOnlyField("expiryDays", label = "plugins.datatransfer.expiryDays", tooltip = "plugins.datatransfer.expiryDays.info"))
+          )
+      )
     if (dto.externalAccessEnabled) {
       fieldSet.add(
         UIReadOnlyField(

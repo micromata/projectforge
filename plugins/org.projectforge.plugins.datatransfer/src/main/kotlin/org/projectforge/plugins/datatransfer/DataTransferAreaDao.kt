@@ -25,15 +25,12 @@ package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
 import org.projectforge.business.configuration.DomainService
-import org.projectforge.business.orga.PostFilter
-import org.projectforge.business.orga.PosteingangDO
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.DataSizeConfig
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
@@ -164,6 +161,20 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     }
 
     const val MAX_FILE_SIZE_SPRING_PROPERTY = "projectforge.plugin.datatransfer.maxFileSize"
+    val EXPIRY_DAYS_VALUES = "plugins.datatransfer.expiryDays".let {
+      mapOf(
+        1 to "$it.day",
+        3 to "$it.days",
+        7 to "$it.days",
+        14 to "$it.days",
+        30 to "$it.days",
+        60 to "$it.days",
+        90 to "$it.days",
+        180 to "$it.days",
+        365 to "$it.days"
+      )
+    }
+
     private const val ACCESS_TOKEN_LENGTH = 30
     private const val PASSWORD_LENGTH = 6
   }

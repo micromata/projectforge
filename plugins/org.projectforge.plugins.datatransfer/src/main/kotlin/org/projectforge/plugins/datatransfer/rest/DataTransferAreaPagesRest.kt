@@ -26,6 +26,7 @@ package org.projectforge.plugins.datatransfer.rest
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.plugins.datatransfer.DataTransferAccessChecker
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
@@ -142,9 +143,15 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
         UITable.createUIResultSetTable()
           .add(lc, "created")
           .add(UITableColumn("lastUpdateTimeAgo", "lastUpdate"))
-          .add(lc,  "areaName", "description")
+          .add(lc, "areaName", "description")
           .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
-          .add(UITableColumn("externalAccessEnabled", "plugins.datatransfer.external.access.title").setStandardBoolean())
+          .add(lc, "exiryDays")
+          .add(
+            UITableColumn(
+              "externalAccessEnabled",
+              "plugins.datatransfer.external.access.title"
+            ).setStandardBoolean()
+          )
           .add(UITableColumn("adminsAsString", "plugins.datatransfer.admins"))
           .add(UITableColumn("accessGroupsAsString", "plugins.datatransfer.accessGroups"))
           .add(UITableColumn("accessUsersAsString", "plugins.datatransfer.accessUsers"))
@@ -218,10 +225,31 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
     val externalAccessFieldset =
       UIFieldset(UILength(md = 12, lg = 12), title = "plugins.datatransfer.external.access.title")
 
+    val expiryDaysSelectValues =
+      DataTransferAreaDao.EXPIRY_DAYS_VALUES.map { UISelectValue(it.key, translateMsg(it.value, it.key)) }
+
     val layout = super.createEditLayout(dto, userAccess)
       .add(
         UIFieldset(UILength(md = 12, lg = 12))
-          .add(lc, "areaName", "description")
+          .add(
+            UIRow().add(
+              UICol(UILength(md = 8))
+                .add(lc, "areaName")
+            )
+              .add(
+                UICol(UILength(md = 4))
+                  .add(
+                    UISelect<Int>(
+                      "expiryDays",
+                      values = expiryDaysSelectValues,
+                      label = "plugins.datatransfer.expiryDays",
+                      tooltip = "plugins.datatransfer.expiryDays.info"
+                    )
+                  )
+                //.add(lc, "expiryDays")
+              )
+          )
+          .add(lc, "description")
       )
       .add(
         UIFieldset(UILength(md = 12, lg = 12), title = "access.title.heading")

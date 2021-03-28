@@ -90,6 +90,8 @@ function DynamicAttachmentList(
                 <th>{ui.translations.description}</th>
                 <th>{ui.translations.created}</th>
                 <th>{ui.translations.createdBy}</th>
+                <th>{ui.translations.modified}</th>
+                <th>{ui.translations.modifiededBy}</th>
             </tr>
             </thead>
             <tbody>
@@ -110,6 +112,8 @@ function DynamicAttachmentList(
                     <td>{entry.description}</td>
                     <td>{entry.createdFormatted}</td>
                     <td>{entry.createdByUser}</td>
+                    <td>{entry.lastUpdateTimeAgo}</td>
+                    <td>{entry.lastUpdateByUser}</td>
                 </tr>
             ))}
             </tbody>
