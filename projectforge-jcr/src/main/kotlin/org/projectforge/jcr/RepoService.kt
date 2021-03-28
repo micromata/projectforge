@@ -144,8 +144,16 @@ open class RepoService {
       fileObject.fileId = fileId
       log.info { "Storing file: $fileObject" }
       val fileNode = filesNode.addNode(fileId)
-      fileObject.created = Date()
+      val now = Date()
+      if (fileObject.created == null) {
+        // created should only be preset for test cases. So normally, use current date.
+        fileObject.created = now
+      }
       fileObject.createdByUser = user
+      if (fileObject.lastUpdate == null) {
+        // last update should only be preset for test cases. So normally, use current date.
+        fileObject.lastUpdate = now
+      }
       fileObject.lastUpdate = fileObject.created
       fileObject.lastUpdateByUser = user
       var bin: Binary? = null
