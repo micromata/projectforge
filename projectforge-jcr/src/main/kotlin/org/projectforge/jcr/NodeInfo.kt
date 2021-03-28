@@ -23,7 +23,9 @@
 
 package org.projectforge.jcr
 
+import com.sun.xml.bind.marshaller.NoEscapeHandler
 import mu.KotlinLogging
+import org.projectforge.jcr.log.NodeLogInfo
 import javax.jcr.Node
 
 private val log = KotlinLogging.logger {}
@@ -77,7 +79,15 @@ class NodeInfo() {
     return properties?.any { it.name == propertyName } == true
   }
 
+  fun findDescendant(vararg path: String): NodeInfo? {
+    var node: NodeInfo? = this
+    path.forEach { name ->
+      node = node?.children?.find { it.name == name } ?: return null
+    }
+    return node
+  }
+
   override fun toString(): String {
-    return PFJcrUtils.toJson(this)
+    return PFJcrUtils.toJson(NodeLogInfo.copyFrom(this))
   }
 }

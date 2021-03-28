@@ -33,6 +33,7 @@ import org.apache.jackrabbit.oak.segment.file.FileStoreBuilder
 import org.apache.jackrabbit.oak.spi.state.NodeStore
 import org.projectforge.common.FormatterUtils
 import org.projectforge.common.MaxFileSizeExceeded
+import org.projectforge.jcr.log.NodeLogInfo
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -544,7 +545,7 @@ open class RepoService {
   }
 
   companion object {
-    internal const val NODENAME_FILES = "__FILES"
+    const val NODENAME_FILES = "__FILES"
     internal const val PROPERTY_FILENAME = "fileName"
     internal const val PROPERTY_FILESIZE = "size"
     internal const val PROPERTY_FILECONTENT = "content"

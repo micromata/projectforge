@@ -465,11 +465,7 @@ open class AttachmentsService {
     if (obj !is AttachmentsInfo) {
       return // Nothing to do.
     }
-    val dbObj = if (userString != null) {
-      baseDao.internalGetById(obj.id)
-    } else {
-      baseDao.getById(obj.id)
-    }
+    val dbObj = baseDao.internalGetById(obj.id)
     if (dbObj is AttachmentsInfo) {
       // TODO: multiple subPath support (all attachments of all lists should be used for indexing).
       if (subPath != null && subPath != DEFAULT_NODE) {
