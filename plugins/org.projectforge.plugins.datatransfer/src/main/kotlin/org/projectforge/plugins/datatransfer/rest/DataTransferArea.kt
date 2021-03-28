@@ -31,7 +31,6 @@ import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
-import java.util.*
 import javax.persistence.Transient
 
 class DataTransferArea(
@@ -40,6 +39,8 @@ class DataTransferArea(
   var description: String? = null,
   var admins: List<User>? = null,
   var adminsAsString: String? = null,
+  var observers: List<User>? = null,
+  var observersAsString: String? = null,
   var accessGroups: List<Group>? = null,
   var accessGroupsAsString: String? = null,
   var accessGroupsUsesAsString: String? = null,
@@ -83,10 +84,11 @@ class DataTransferArea(
     @Transient
     get() = TimeAgo.getMessage(lastUpdate)
 
-      // The user and group ids are stored as csv list of integers in the data base.
+  // The user and group ids are stored as csv list of integers in the data base.
   override fun copyFrom(src: DataTransferAreaDO) {
     super.copyFrom(src)
     admins = User.toUserList(src.adminIds)
+    observers = User.toUserList(src.observerIds)
     accessGroups = Group.toGroupList(src.accessGroupIds)
     accessUsers = User.toUserList(src.accessUserIds)
   }
@@ -95,6 +97,7 @@ class DataTransferArea(
   override fun copyTo(dest: DataTransferAreaDO) {
     super.copyTo(dest)
     dest.adminIds = User.toIntList(admins)
+    dest.observerIds = User.toIntList(observers)
     dest.accessGroupIds = Group.toIntList(accessGroups)
     dest.accessUserIds = User.toIntList(accessUsers)
   }

@@ -68,6 +68,12 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
   open var adminIds: String? = null
 
   /**
+   * These observers get notifications on upload (internal and external) as well as on external downloads.
+   */
+  @get:Column(name = "observer_ids", length = 4000, nullable = true)
+  open var observerIds: String? = null
+
+  /**
    * Members of these groups have upload/download access.
    */
   @get:Column(name = "access_group_ids", length = 4000, nullable = true)

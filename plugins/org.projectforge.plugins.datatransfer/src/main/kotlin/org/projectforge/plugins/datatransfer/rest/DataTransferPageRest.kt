@@ -85,9 +85,11 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
 
     // Usernames needed by React client (for ReactSelect):
     User.restoreDisplayNames(dto.admins, userService)
+    User.restoreDisplayNames(dto.observers, userService)
     User.restoreDisplayNames(dto.accessUsers, userService)
 
     dto.adminsAsString = dto.admins?.joinToString { it.displayName ?: "???" } ?: ""
+    dto.observersAsString = dto.observers?.joinToString { it.displayName ?: "???" } ?: ""
     dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
     dto.accessUsersAsString = dto.accessUsers?.joinToString { it.displayName ?: "???" } ?: ""
     if (!dbObj.accessGroupIds.isNullOrBlank()) {
@@ -136,6 +138,9 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       )
     }
     fieldSet.add(UIReadOnlyField("adminsAsString", label = "plugins.datatransfer.admins"))
+    if (!dto.observersAsString.isNullOrBlank()) {
+      fieldSet.add(UIReadOnlyField("observersAsString", label = "plugins.datatransfer.observers"))
+    }
     if (!dto.accessGroupsAsString.isNullOrBlank()) {
       fieldSet.add(UIReadOnlyField("accessGroupsAsString", label = "plugins.datatransfer.accessGroups"))
     }
