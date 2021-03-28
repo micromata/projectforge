@@ -832,6 +832,17 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Override
   public void delete(final O obj) throws AccessException {
     Validate.notNull(obj);
+    accessChecker.checkRestrictedOrDemoUser();
+    checkPartOfCurrentTenant(obj, OperationType.DELETE);
+    internalDelete(obj);
+  }
+
+  /**
+   * Object will be deleted finally out of the data base.
+   */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
+  public void internalDelete(final O obj) throws AccessException {
+    Validate.notNull(obj);
     if (HistoryBaseDaoAdapter.isHistorizable(obj)) {
       final String msg = EXCEPTION_HISTORIZABLE_NOTDELETABLE + obj.toString();
       log.error(msg);
@@ -842,9 +853,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       log.error(msg);
       throw new RuntimeException(msg);
     }
-    accessChecker.checkRestrictedOrDemoUser();
     onDelete(obj);
-    checkPartOfCurrentTenant(obj, OperationType.DELETE);
     emgrFactory.runInTrans(emgr -> {
       EntityManager em = emgr.getEntityManager();
       final O dbObj = em.find(clazz, obj.getId());
