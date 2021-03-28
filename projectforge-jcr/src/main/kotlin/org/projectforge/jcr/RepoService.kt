@@ -121,8 +121,7 @@ open class RepoService {
     user: String? = null
   ) {
     val content = fileObject.content ?: ByteArray(0) // Assuming 0 byte file if no content is given.
-    val inputStream = ByteArrayInputStream(content)
-    return storeFile(fileObject, inputStream, maxFileSize, maxFileSizeSpringProperty, user)
+    return storeFile(fileObject, content.inputStream(), maxFileSize, maxFileSizeSpringProperty, user)
   }
 
   @JvmOverloads
