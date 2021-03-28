@@ -5,6 +5,7 @@ import React from 'react';
 import {getServiceURL, handleHTTPErrors} from '../../../../../utilities/rest';
 import {Table} from '../../../../design';
 import DropArea from '../../../../design/droparea';
+import LoadingContainer from '../../../../design/loading-container';
 import {DynamicLayoutContext} from '../../context';
 
 function DynamicAttachmentList(
@@ -25,9 +26,13 @@ function DynamicAttachmentList(
         setData,
         ui,
     } = React.useContext(DynamicLayoutContext);
+
+    const [loading, setLoading] = React.useState(false);
+
     const {attachments} = data;
 
     const uploadFile = (files) => {
+        setLoading(true);
         const formData = new FormData();
         formData.append('file', files[0]);
         const params = accessString ? `?accessString=${encodeURIComponent(accessString)}` : ''
@@ -42,9 +47,13 @@ function DynamicAttachmentList(
         )
             .then(handleHTTPErrors)
             .then(response => response.json())
-            .then(json => callAction({responseAction: json}))
+            .then(json => {
+                callAction({responseAction: json})
+                setLoading(false);
+            })
             .catch((catchError) => {
                 alert(catchError);
+                setLoading(false);
             });
     };
 
@@ -126,13 +135,15 @@ function DynamicAttachmentList(
                 return (<React.Fragment>{table}</React.Fragment>)
             }
             return (
-                <DropArea
-                    setFiles={uploadFile}
-                    noStyle
-                    title={ui.translations['file.upload.dropArea']}
-                >
-                    {table}
-                </DropArea>
+                <LoadingContainer loading={loading}>
+                    <DropArea
+                        setFiles={uploadFile}
+                        noStyle
+                        title={ui.translations['file.upload.dropArea']}
+                    >
+                        {table}
+                    </DropArea>
+                </LoadingContainer>
             );
         }
         return (
@@ -140,7 +151,7 @@ function DynamicAttachmentList(
                 {ui.translations['attachment.onlyAvailableAfterSave']}
             </React.Fragment>
         );
-    }, [setData, id, attachments]);
+    }, [setData, loading, id, attachments]);
 }
 
 DynamicAttachmentList.propTypes = {
