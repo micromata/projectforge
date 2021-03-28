@@ -39,137 +39,154 @@ import javax.servlet.http.HttpServletRequest
 private val log = KotlinLogging.logger {}
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
-        getList(pagesRest: AbstractPagesRest<O, DTO, B>,
-                baseDao: BaseDao<O>,
-                magicFilter: MagicFilter)
-        : ResultSet<O> {
-    magicFilter.sortAndLimitMaxRowsWhileSelect = true
-    val queryFilter = QueryFilter()
-    val customResultFilters = pagesRest.preProcessMagicFilter(queryFilter, magicFilter)
-    MagicFilterProcessor.doIt(baseDao.doClass, magicFilter, queryFilter)
-    pagesRest.postProcessMagicFilter(queryFilter, magicFilter)
-    val list = baseDao.getList(queryFilter, customResultFilters)
-    val resultSet = ResultSet(pagesRest.filterList(list, magicFilter), list.size)
-    return resultSet
+    getList(
+  pagesRest: AbstractPagesRest<O, DTO, B>,
+  baseDao: BaseDao<O>,
+  magicFilter: MagicFilter
+)
+    : ResultSet<O> {
+  magicFilter.sortAndLimitMaxRowsWhileSelect = true
+  val queryFilter = QueryFilter()
+  val customResultFilters = pagesRest.preProcessMagicFilter(queryFilter, magicFilter)
+  magicFilter.sortProperties = magicFilter.sortProperties.distinctBy { it.property }.toMutableList()
+  MagicFilterProcessor.doIt(baseDao.doClass, magicFilter, queryFilter)
+  pagesRest.postProcessMagicFilter(queryFilter, magicFilter)
+  val list = baseDao.getList(queryFilter, customResultFilters)
+  val resultSet = ResultSet(pagesRest.filterList(list, magicFilter), list.size)
+  return resultSet
 }
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
-        saveOrUpdate(request: HttpServletRequest,
-                     baseDao: BaseDao<O>,
-                     obj: O,
-                     postData: PostData<DTO>,
-                     pagesRest: AbstractPagesRest<O, DTO, B>,
-                     validationErrorsList: List<ValidationError>?)
-        : ResponseEntity<ResponseAction> {
+    saveOrUpdate(
+  request: HttpServletRequest,
+  baseDao: BaseDao<O>,
+  obj: O,
+  postData: PostData<DTO>,
+  pagesRest: AbstractPagesRest<O, DTO, B>,
+  validationErrorsList: List<ValidationError>?
+)
+    : ResponseEntity<ResponseAction> {
 
-    try {
-        if (!validationErrorsList.isNullOrEmpty()) {
-            // Validation error occurred:
-            return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
-        }
-        val isNew = obj.id == null || obj.created == null // obj.created is needed for KundeDO (id isn't null for inserting new customers).
-        pagesRest.onBeforeSaveOrUpdate(request, obj, postData)
-        if (isNew) {
-            pagesRest.onBeforeSave(request, obj, postData)
-        } else {
-            pagesRest.onBeforeUpdate(request, obj, postData)
-        }
-        pagesRest.onBeforeDatabaseAction(request, obj, postData, if (obj.id != null) OperationType.UPDATE else OperationType.INSERT)
-        baseDao.saveOrUpdate(obj) ?: obj.id
-        pagesRest.onAfterSaveOrUpdate(request, obj, postData)
-        if (isNew) {
-            return ResponseEntity(pagesRest.onAfterSave(obj, postData), HttpStatus.OK)
-        } else {
-            return ResponseEntity(pagesRest.onAfterUpdate(obj, postData), HttpStatus.OK)
-        }
-    } catch (ex: Exception) {
-        return handleException("Error while trying to save/update object '${obj::class.java}' with id #${obj.id}", ex)
+  try {
+    if (!validationErrorsList.isNullOrEmpty()) {
+      // Validation error occurred:
+      return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
     }
+    val isNew =
+      obj.id == null || obj.created == null // obj.created is needed for KundeDO (id isn't null for inserting new customers).
+    pagesRest.onBeforeSaveOrUpdate(request, obj, postData)
+    if (isNew) {
+      pagesRest.onBeforeSave(request, obj, postData)
+    } else {
+      pagesRest.onBeforeUpdate(request, obj, postData)
+    }
+    pagesRest.onBeforeDatabaseAction(
+      request,
+      obj,
+      postData,
+      if (obj.id != null) OperationType.UPDATE else OperationType.INSERT
+    )
+    baseDao.saveOrUpdate(obj) ?: obj.id
+    pagesRest.onAfterSaveOrUpdate(request, obj, postData)
+    if (isNew) {
+      return ResponseEntity(pagesRest.onAfterSave(obj, postData), HttpStatus.OK)
+    } else {
+      return ResponseEntity(pagesRest.onAfterUpdate(obj, postData), HttpStatus.OK)
+    }
+  } catch (ex: Exception) {
+    return handleException("Error while trying to save/update object '${obj::class.java}' with id #${obj.id}", ex)
+  }
 }
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
-        undelete(request: HttpServletRequest,
-                 baseDao: BaseDao<O>,
-                 obj: O,
-                 postData: PostData<DTO>,
-                 pagesRest: AbstractPagesRest<O, DTO, B>,
-                 validationErrorsList: List<ValidationError>?)
-        : ResponseEntity<ResponseAction> {
-    try {
-        if (validationErrorsList.isNullOrEmpty()) {
-            pagesRest.onBeforeDatabaseAction(request, obj, postData, OperationType.UNDELETE)
-            pagesRest.onBeforeUndelete(request, obj, postData)
-            baseDao.undelete(obj)
-            return ResponseEntity(pagesRest.onAfterUndelete(obj, postData), HttpStatus.OK)
-        }
-        // Validation error occurred:
-        return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
-    } catch (ex: Exception) {
-        return handleException("Error while trying to undelete object '${obj::class.java}' with id #${obj.id}", ex)
+    undelete(
+  request: HttpServletRequest,
+  baseDao: BaseDao<O>,
+  obj: O,
+  postData: PostData<DTO>,
+  pagesRest: AbstractPagesRest<O, DTO, B>,
+  validationErrorsList: List<ValidationError>?
+)
+    : ResponseEntity<ResponseAction> {
+  try {
+    if (validationErrorsList.isNullOrEmpty()) {
+      pagesRest.onBeforeDatabaseAction(request, obj, postData, OperationType.UNDELETE)
+      pagesRest.onBeforeUndelete(request, obj, postData)
+      baseDao.undelete(obj)
+      return ResponseEntity(pagesRest.onAfterUndelete(obj, postData), HttpStatus.OK)
     }
+    // Validation error occurred:
+    return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
+  } catch (ex: Exception) {
+    return handleException("Error while trying to undelete object '${obj::class.java}' with id #${obj.id}", ex)
+  }
 }
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
-        markAsDeleted(request: HttpServletRequest,
-                      baseDao: BaseDao<O>,
-                      obj: O,
-                      postData: PostData<DTO>,
-                      pagesRest: AbstractPagesRest<O, DTO, B>,
-                      validationErrorsList: List<ValidationError>?)
-        : ResponseEntity<ResponseAction> {
-    try {
-        if (validationErrorsList.isNullOrEmpty()) {
-            pagesRest.onBeforeDatabaseAction(request, obj, postData, OperationType.DELETE)
-            pagesRest.onBeforeMarkAsDeleted(request, obj, postData)
-            baseDao.markAsDeleted(obj)
-            return ResponseEntity(pagesRest.onAfterMarkAsDeleted(obj, postData), HttpStatus.OK)
-        }
-        // Validation error occurred:
-        return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
-    } catch (ex: Exception) {
-        return handleException("Error while trying to mark object '${obj::class.java}' as deleted with id #${obj.id}", ex)
+    markAsDeleted(
+  request: HttpServletRequest,
+  baseDao: BaseDao<O>,
+  obj: O,
+  postData: PostData<DTO>,
+  pagesRest: AbstractPagesRest<O, DTO, B>,
+  validationErrorsList: List<ValidationError>?
+)
+    : ResponseEntity<ResponseAction> {
+  try {
+    if (validationErrorsList.isNullOrEmpty()) {
+      pagesRest.onBeforeDatabaseAction(request, obj, postData, OperationType.DELETE)
+      pagesRest.onBeforeMarkAsDeleted(request, obj, postData)
+      baseDao.markAsDeleted(obj)
+      return ResponseEntity(pagesRest.onAfterMarkAsDeleted(obj, postData), HttpStatus.OK)
     }
+    // Validation error occurred:
+    return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
+  } catch (ex: Exception) {
+    return handleException("Error while trying to mark object '${obj::class.java}' as deleted with id #${obj.id}", ex)
+  }
 }
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
-        delete(request: HttpServletRequest,
-               baseDao: BaseDao<O>,
-               obj: O,
-               postData: PostData<DTO>,
-               pagesRest: AbstractPagesRest<O, DTO, B>,
-               validationErrorsList: List<ValidationError>?)
-        : ResponseEntity<ResponseAction> {
-    try {
-        if (validationErrorsList.isNullOrEmpty()) {
-            pagesRest.onBeforeDatabaseAction(request, obj, postData, OperationType.DELETE)
-            pagesRest.onBeforeDelete(request, obj, postData)
-            baseDao.delete(obj)
-            return ResponseEntity(pagesRest.onAfterDelete(obj, postData), HttpStatus.OK)
-        }
-        // Validation error occurred:
-        return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
-    } catch (ex: Exception) {
-        return handleException("Error while trying to delete object '${obj::class.java}' with id #${obj.id}", ex)
+    delete(
+  request: HttpServletRequest,
+  baseDao: BaseDao<O>,
+  obj: O,
+  postData: PostData<DTO>,
+  pagesRest: AbstractPagesRest<O, DTO, B>,
+  validationErrorsList: List<ValidationError>?
+)
+    : ResponseEntity<ResponseAction> {
+  try {
+    if (validationErrorsList.isNullOrEmpty()) {
+      pagesRest.onBeforeDatabaseAction(request, obj, postData, OperationType.DELETE)
+      pagesRest.onBeforeDelete(request, obj, postData)
+      baseDao.delete(obj)
+      return ResponseEntity(pagesRest.onAfterDelete(obj, postData), HttpStatus.OK)
     }
+    // Validation error occurred:
+    return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
+  } catch (ex: Exception) {
+    return handleException("Error while trying to delete object '${obj::class.java}' with id #${obj.id}", ex)
+  }
 }
 
 private fun handleException(msg: String, ex: Exception): ResponseEntity<ResponseAction> {
-    if (ex is UserException) {
-        val msgParams = ex.msgParams ?: ex.params
-        log.error("$msg: message='${ex.i18nKey}', params='${msgParams?.joinToString() { it.toString() }}'")
-        val msg = if (msgParams != null) {
-            translateMsg(ex.i18nKey, *msgParams)
-        } else {
-            translate(ex.i18nKey)
-        }
-        val error = ValidationError(msg, messageId = ex.i18nKey)
-        if (!ex.causedByField.isNullOrBlank()) error.fieldId = ex.causedByField
-        val errors = listOf(error)
-        return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)
+  if (ex is UserException) {
+    val msgParams = ex.msgParams ?: ex.params
+    log.error("$msg: message='${ex.i18nKey}', params='${msgParams?.joinToString() { it.toString() }}'")
+    val msg = if (msgParams != null) {
+      translateMsg(ex.i18nKey, *msgParams)
     } else {
-        log.error("$msg: message='${ex.message}'", ex)
-        val error = ValidationError(ex.message)
-        val errors = listOf(error)
-        return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)
+      translate(ex.i18nKey)
     }
+    val error = ValidationError(msg, messageId = ex.i18nKey)
+    if (!ex.causedByField.isNullOrBlank()) error.fieldId = ex.causedByField
+    val errors = listOf(error)
+    return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)
+  } else {
+    log.error("$msg: message='${ex.message}'", ex)
+    val error = ValidationError(ex.message)
+    val errors = listOf(error)
+    return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)
+  }
 }
