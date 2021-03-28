@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.datatransfer.rest
+package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
 import org.projectforge.framework.access.OperationType

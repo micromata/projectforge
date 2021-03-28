@@ -201,22 +201,13 @@ open class AttachmentsService {
   open fun addAttachment(
     path: String,
     id: Any,
-    fileInfo: FileInfo?,
+    fileInfo: FileInfo,
     content: ByteArray,
     enableSearchIndex: Boolean,
     accessChecker: AttachmentsAccessChecker,
     subPath: String? = null
   ): Attachment {
-    accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = id, subPath = subPath)
-    val fileObject = FileObject(
-      getPath(path, id),
-      subPath ?: DEFAULT_NODE,
-      fileInfo = fileInfo
-    )
-    developerWarning(path, id, "addAttachment", enableSearchIndex)
-    fileObject.content = content
-    repoService.storeFile(fileObject, accessChecker.maxFileSize, ThreadLocalUserContext.getUserId()!!.toString())
-    return createAttachment(fileObject)
+    return addAttachment(path, id, fileInfo, content.inputStream(), enableSearchIndex, accessChecker, subPath)
   }
 
   /**
@@ -225,7 +216,7 @@ open class AttachmentsService {
   @JvmOverloads
   open fun addAttachment(
     path: String,
-    fileInfo: FileInfo?,
+    fileInfo: FileInfo,
     content: ByteArray,
     baseDao: BaseDao<out ExtendedBaseDO<Int>>,
     obj: ExtendedBaseDO<Int>,
@@ -233,10 +224,7 @@ open class AttachmentsService {
     subPath: String? = null
   )
       : Attachment {
-    accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = obj.id, subPath = subPath)
-    val attachment = addAttachment(path, obj.id, fileInfo, content, false, accessChecker, subPath)
-    updateAttachmentsInfo(path, baseDao, obj, subPath = subPath)
-    return attachment
+    return addAttachment(path, fileInfo, content.inputStream(), baseDao, obj, accessChecker, subPath)
   }
 
   /**
