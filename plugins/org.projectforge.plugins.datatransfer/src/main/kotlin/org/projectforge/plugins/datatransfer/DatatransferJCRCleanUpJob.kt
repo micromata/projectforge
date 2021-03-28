@@ -48,8 +48,7 @@ class DataTransferJCRCleanUpJob {
   @Autowired
   private lateinit var repoService: RepoService
 
-  // Cron-Jobs: second (0-59), minute (0-59), hour (0 - 23), day (1 - 31), month (1 - 12), weekday (0 - 7, MON-SUN)
-  //@Scheduled(cron = "\${projectforge.plugin.datatransfer.cron.cleanup:0 15 * * * *}")
+  // Every hour, starting 10 minutes after starting.
   @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 600 * 1000)
   fun execute() {
     log.info("Data transfer clean-up job started.")
@@ -61,7 +60,7 @@ class DataTransferJCRCleanUpJob {
     dataTransferAreaDao.internalLoadAll().forEach { dbo ->
       dbo.id?.let { id ->
         processedDBOs.add(id)
-        val expiryMillis = (dbo.expiryDays ?: 30) * MILLIS_PER_DAY
+        val expiryMillis = (dbo.expiryDays ?: 30).toLong() * MILLIS_PER_DAY
         val attachments = attachmentsService.internalGetAttachments(
           dataTransferAreaPagesRest.jcrPath!!,
           id
@@ -69,15 +68,15 @@ class DataTransferJCRCleanUpJob {
         attachments?.forEach { attachment ->
           val time = attachment.lastUpdate?.time ?: attachment.created?.time
           if (time == null || startTimeInMillis - time > expiryMillis) {
-            log.info { "**** Simulating: Deleting expired attachment of area '${dbo.areaName}': $attachment" }
-            /*attachment.fileId?.let { fileId ->
+            log.info { "Deleting expired attachment of area '${dbo.areaName}': $attachment" }
+            attachment.fileId?.let { fileId ->
               attachmentsService.internalDeleteAttachment(
                 dataTransferAreaPagesRest.jcrPath!!,
                 fileId,
                 dataTransferAreaDao,
                 dbo
               )
-            }*/
+            }
           } else {
             log.info { "Attachment of area '${dbo.areaName}' not yet expired: $attachment" }
           }
@@ -98,8 +97,8 @@ class DataTransferJCRCleanUpJob {
         if (processedDBOs.any { it == dbId }) {
           continue
         }
-        log.info { "**** Simulating: Removing orphaned node (area was deleted): $child" }
-        //repoService.deleteNode(child)
+        log.info { "Removing orphaned node (area was deleted): $child" }
+        repoService.deleteNode(child)
       }
       log.info { "Datatransfer: $nodeInfo" }
       log.info("JCR clean-up job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds.")
@@ -107,6 +106,6 @@ class DataTransferJCRCleanUpJob {
   }
 
   companion object {
-    internal const val MILLIS_PER_DAY = 1000 * 60 * 60 * 24
+    internal const val MILLIS_PER_DAY = 1000L * 60 * 60 * 24
   }
 }

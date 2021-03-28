@@ -26,6 +26,7 @@ package org.projectforge.plugins.datatransfer.rest
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
+import org.projectforge.plugins.datatransfer.DataTransferAccessChecker
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.rest.config.Rest
