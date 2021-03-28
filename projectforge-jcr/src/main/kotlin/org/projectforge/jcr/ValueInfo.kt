@@ -53,4 +53,16 @@ class ValueInfo() {
     var decimal: BigDecimal? = null
     var double: Double? = null
     var long: Long? = null
+
+    override fun toString(): String {
+        return when (type) {
+            PropertyTypeEnum.BOOLEAN -> "$boolean"
+            PropertyTypeEnum.DATE -> "$date"
+            PropertyTypeEnum.DECIMAL -> "$decimal"
+            PropertyTypeEnum.DOUBLE -> "$double"
+            PropertyTypeEnum.LONG -> "$long"
+            PropertyTypeEnum.BINARY -> "<binary>"
+            else -> "$string"
+        }
+    }
 }

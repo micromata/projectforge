@@ -84,9 +84,7 @@ class DataTransferJCRCleanUpJobTest : AbstractTestBase() {
     dataTransferAreaDao.internalDelete(deletedArea)
     Assertions.assertTrue(repoService.retrieveFile(file31))
     Assertions.assertTrue(repoService.retrieveFile(file1))
-    println(ToStringUtil.toJsonString(repoService.getNodeInfo("/ProjectForge", true)))
-    dataTransferJCRCleanUpJob.execute()
-    println(ToStringUtil.toJsonString(repoService.getNodeInfo("/ProjectForge", true)))
+    Assertions.assertEquals(3, dataTransferJCRCleanUpJob.execute(), "Number of files, deleted by cleanup job")
     Assertions.assertFalse(repoService.retrieveFile(file31), "File of area is expired and should be deleted.")
     Assertions.assertTrue(repoService.retrieveFile(file1), "File of area isn't expired and should still exist.")
     Assertions.assertFalse(

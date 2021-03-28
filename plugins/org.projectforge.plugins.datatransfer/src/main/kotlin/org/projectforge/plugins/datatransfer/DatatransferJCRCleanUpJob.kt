@@ -24,8 +24,10 @@
 package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
+import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.jcr.NodeInfo
 import org.projectforge.jcr.RepoService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.springframework.beans.factory.annotation.Autowired
@@ -48,14 +50,21 @@ class DataTransferJCRCleanUpJob {
   @Autowired
   private lateinit var repoService: RepoService
 
+  /**
+   * @return number of deleted files (for test cases).
+   */
   // Every hour, starting 10 minutes after starting.
   @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 600 * 1000)
-  fun execute() {
+  fun execute(): Int {
     log.info("Data transfer clean-up job started.")
     val startTimeInMillis = System.currentTimeMillis()
 
     val processedDBOs = mutableListOf<Int>() // For checking orphaned areas.
 
+    var deletedCounter = 0
+    var deletedSize: Long = 0
+    var preservedCounter = 0
+    var preservedSize: Long = 0
     // First of all, try to check all attachments of active areas:
     dataTransferAreaDao.internalLoadAll().forEach { dbo ->
       dbo.id?.let { id ->
@@ -77,8 +86,12 @@ class DataTransferJCRCleanUpJob {
                 dbo
               )
             }
+            ++deletedCounter
+            deletedSize += attachment.size ?: 0
           } else {
-            log.info { "Attachment of area '${dbo.areaName}' not yet expired: $attachment" }
+            log.debug { "Attachment of area '${dbo.areaName}' not yet expired: $attachment" }
+            ++preservedCounter
+            preservedSize += attachment.size ?: 0
           }
         }
       }
@@ -86,7 +99,6 @@ class DataTransferJCRCleanUpJob {
 
     val nodePath = repoService.getAbsolutePath(dataTransferAreaPagesRest.jcrPath)
     val nodeInfo = repoService.getNodeInfo(nodePath, true)
-    log.info { "Datatransfer: $nodeInfo" }
     nodeInfo.children?.let { children ->
       for (child in children) {
         val dbId = NumberHelper.parseInteger(child.name)
@@ -97,12 +109,28 @@ class DataTransferJCRCleanUpJob {
         if (processedDBOs.any { it == dbId }) {
           continue
         }
-        log.info { "Removing orphaned node (area was deleted): $child" }
+        val files = mutableListOf<String>()
+        child.findDescendant("attachments", RepoService.NODENAME_FILES)?.children?.forEach {
+          deletedCounter++
+          deletedSize += it.getProperty("size")?.value?.long ?: 0
+          files.add("file=[${it.name}: '${it.getProperty("fileName")?.value?.string}' (${FormatterUtils.formatBytes(it.getProperty("size")?.value?.long)})]")
+        }
+        log.info { "Removing orphaned node (area was deleted): ${files.joinToString(", ")}" }
         repoService.deleteNode(child)
       }
-      log.info { "Datatransfer: $nodeInfo" }
-      log.info("JCR clean-up job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds.")
+      log.info(
+        "JCR clean-up job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of deleted files: $deletedCounter (${
+          FormatterUtils.formatBytes(
+            deletedSize
+          )
+        }), remaining size: $preservedCounter (${
+          FormatterUtils.formatBytes(
+            preservedSize
+          )
+        })."
+      )
     }
+    return deletedCounter
   }
 
   companion object {
