@@ -23,9 +23,7 @@
 
 package org.projectforge.jcr
 
-import com.sun.xml.bind.marshaller.NoEscapeHandler
 import mu.KotlinLogging
-import org.projectforge.jcr.log.NodeLogInfo
 import javax.jcr.Node
 
 private val log = KotlinLogging.logger {}
@@ -88,6 +86,52 @@ class NodeInfo() {
   }
 
   override fun toString(): String {
-    return PFJcrUtils.toJson(NodeLogInfo.copyFrom(this))
+    return NodeLogInfo.copyFrom(this).toString()
+  }
+
+  /**
+   * For logging purposes only (short form of NodeInfo).
+   */
+  @Suppress("unused")
+  private class NodeLogInfo(
+    val name: String?,
+    val children: List<NodeLogInfo>? = null,
+    val properties: Map<String, Any?>? = null
+  ) {
+    override fun toString(): String {
+      return PFJcrUtils.toJson(this)
+    }
+
+    companion object {
+      fun copyFrom(node: NodeInfo): NodeLogInfo {
+        val children = node.children?.map { copyFrom(it) }
+        return NodeLogInfo(
+          node.name,
+          if (children.isNullOrEmpty()) null else children,
+          propsToMap(node)
+        )
+      }
+
+      private fun propsToMap(node: NodeInfo): Map<String, Any?>? {
+        val properties = node.properties ?: return null
+        val propsMap = mutableMapOf<String, Any?>()
+        properties.forEach { prop ->
+          if (prop.name?.startsWith("jcr:") != true) { // Ignore jcr specific props.
+            if (prop.values.isNullOrEmpty()) {
+              propsMap.put(prop.name ?: "???", prop.value?.toString())
+            } else {
+              val values = mutableListOf<String>()
+              prop.values?.forEach { value ->
+                values.add(value.toString())
+              }
+              if (values.isNotEmpty()) {
+                propsMap[prop.name ?: "???"] = values
+              }
+            }
+          }
+        }
+        return if (propsMap.isEmpty()) null else propsMap
+      }
+    }
   }
 }
