@@ -90,15 +90,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
       em.createNamedQuery(DataTransferAreaDO.FIND_BY_EXTERNAL_ACCESS_TOKEN, DataTransferAreaDO::class.java)
         .setParameter("externalAccessToken", externalAccessToken)
     ) ?: return null
-    val result = DataTransferAreaDO()
-    result.id = dbo.id
-    result.areaName = dbo.areaName
-    result.description = dbo.description
-    result.externalAccessToken = dbo.externalAccessToken
-    result.externalPassword = dbo.externalPassword
-    result.externalDownloadEnabled = dbo.externalDownloadEnabled
-    result.externalUploadEnabled = dbo.externalUploadEnabled
-    return result
+    return dbo
   }
 
   open fun getExternalBaseLinkUrl(): String {
@@ -158,8 +150,18 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     byUser: PFUserDO?,
     byExternalUser: String?
   ) {
+    check(data != null)
     try {
+      if (byUser != null && (event == AttachmentsEventType.DOWNLOAD || event == AttachmentsEventType.DELETE)) {
+        // Do not notify on downloads and deletions of internal users.
+        return
+      }
+      // log download access of external users.
+      if (!byExternalUser.isNullOrBlank() && event == AttachmentsEventType.DOWNLOAD) {
+        // internalUpdateAny(data) // Must call update. On upload event, the data will stored by caller.
+      }
       notificationMailService.sendMail(event, file, data as DataTransferAreaDO, byUser, byExternalUser)
+
     } catch (ex: Exception) {
       log.error("Exception while calling SendMailService: ${ex.message}.", ex)
     }

@@ -30,6 +30,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.rest.config.RestUtils
 import javax.servlet.http.HttpServletRequest
@@ -47,7 +48,7 @@ open class DataTransferPublicAccessChecker(
     dataTransferAreaDao: DataTransferAreaDao,
     request: HttpServletRequest,
     externalAccessToken: String?, externalPassword: String?
-  ): Pair<DataTransferPublicArea?, String?> {
+  ): Pair<DataTransferAreaDO?, String?> {
     if (externalAccessToken == null || externalPassword == null) {
       return Pair(null, LoginResultStatus.FAILED.localizedMessage)
     }
@@ -85,9 +86,7 @@ open class DataTransferPublicAccessChecker(
     // Successfully logged in:
     loginProtection.clearLoginTimeOffset(externalAccessToken, null, clientIpAddress)
 
-    val data = DataTransferPublicArea()
-    data.copyFrom(dbo)
-    return Pair(data, null)
+    return Pair(dbo, null)
   }
 
   /**

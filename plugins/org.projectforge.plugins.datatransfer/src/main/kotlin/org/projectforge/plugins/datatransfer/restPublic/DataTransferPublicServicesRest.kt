@@ -28,6 +28,7 @@ import org.projectforge.common.MaxFileSizeExceeded
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.FileInfo
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.AttachmentsServicesRest
@@ -91,7 +92,10 @@ class DataTransferPublicServicesRest {
         dataTransferAreaPagesRest.jcrPath!!,
         id,
         fileId,
-        attachmentsAccessChecker
+        attachmentsAccessChecker,
+        data = checkResult.first,
+        attachmentsEventListener = dataTransferAreaDao,
+        userString = getExternalUserString(request)
       )
         ?: throw TechnicalException(
           "File to download not accessible for user or not found: category=$category, id=$id, fileId=$fileId, listId=$listId)}."
@@ -142,7 +146,7 @@ class DataTransferPublicServicesRest {
         baseDao = dataTransferAreaDao,
         obj = obj,
         accessChecker = attachmentsAccessChecker,
-        userString = "external: ${RestUtils.getClientIp(request)}"
+        userString = getExternalUserString(request)
       )
     } catch (ex: MaxFileSizeExceeded) {
       return ResponseEntity.ok(
@@ -171,7 +175,7 @@ class DataTransferPublicServicesRest {
     request: HttpServletRequest,
     category: String,
     accessString: String?
-  ): Pair<DataTransferPublicArea?, ResponseEntity<String>?> {
+  ): Pair<DataTransferAreaDO?, ResponseEntity<String>?> {
     check(category == "datatransfer")
     check(accessString?.contains('|') == true)
     val credentials = accessString!!.split('|')
@@ -188,5 +192,9 @@ class DataTransferPublicServicesRest {
       )
     }
     return Pair(checkAccess.first, null)
+  }
+
+  private fun getExternalUserString(request: HttpServletRequest): String {
+    return "external: ${RestUtils.getClientIp(request)}"
   }
 }
