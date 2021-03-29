@@ -27,7 +27,6 @@ import mu.KotlinLogging
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.jcr.NodeInfo
 import org.projectforge.jcr.RepoService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.springframework.beans.factory.annotation.Autowired
@@ -130,6 +129,7 @@ class DataTransferJCRCleanUpJob {
         })."
       )
     }
+    repoService.cleanup()
     return deletedCounter
   }
 
