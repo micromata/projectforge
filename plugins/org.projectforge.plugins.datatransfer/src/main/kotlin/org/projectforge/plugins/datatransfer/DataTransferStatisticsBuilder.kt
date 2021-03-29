@@ -66,7 +66,7 @@ open class DataTransferStatisticsBuilder(
 
       stats.add(
         "datatransfer:${dbo.id}",
-        "data transfer",
+        "data transfer (part of JCR)",
         "'${dbo.areaName}",
         "$size: admins=[$admins]$accessUserString$accessGroupString"
       )

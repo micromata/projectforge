@@ -48,7 +48,7 @@ interface AttachmentsInfo {
   var attachmentsCounter: Int?
 
   /**
-   * The number of attachments attached to this data object.
+   * The size of all attachments in sum in bytes attached to this data object.
    */
   var attachmentsSize: Long?
 
