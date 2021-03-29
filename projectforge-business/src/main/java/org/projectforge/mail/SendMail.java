@@ -78,6 +78,14 @@ public class SendMail {
     return STANDARD_SUBJECT_PREFIX + subject;
   }
 
+  public static String formatUserWithMail(final String name, final String mail) {
+    if (mail == null) {
+      return name;
+    }
+    return "<a href=\"mailto:" + mail + "\">" + name + "</a>";
+  }
+
+
   /**
    * @param composedMessage the message to send
    * @return true for successful sending, otherwise an exception will be thrown.

@@ -237,11 +237,7 @@ open class VacationSendMailService {
         }
 
         fun formatUserWithMail(name: String, mail: String? = null): String {
-            if (mail == null) {
-                return name
-            }
-
-            return "<a href=\"mailto:${mail}\">${name}</a>"
+            return SendMail.formatUserWithMail(name, mail)
         }
     }
 

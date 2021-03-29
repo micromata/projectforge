@@ -23,10 +23,6 @@
 
 package org.projectforge.plugins.datatransfer.rest
 
-import org.projectforge.business.address.AddressDO
-import org.projectforge.business.address.DoubletsResultFilter
-import org.projectforge.business.address.FavoritesResultFilter
-import org.projectforge.business.address.ImagesResultFilter
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
@@ -34,6 +30,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.plugins.datatransfer.DataTransferAccessChecker
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
@@ -188,6 +185,28 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
       absolute = true
     ) else null
   }
+
+  override fun validate(validationErrors: MutableList<ValidationError>, dto: DataTransferArea) {
+    if (dto.externalAccessEnabled) {
+      if (!NumberHelper.checkSecureRandomAlphanumeric(
+          dto.externalAccessToken,
+          DataTransferAreaDao.ACCESS_TOKEN_LENGTH
+        )
+      ) {
+        validationErrors.add(
+          ValidationError(translate("plugins.datatransfer.validation.error.token"))
+        )
+      }
+      if (dto.externalPassword?.trim()?.length ?: 0 < 6) {
+        validationErrors.add(
+          ValidationError(
+            translate("plugins.datatransfer.validation.error.password"), fieldId = "externalPassword"
+          )
+        )
+      }
+    }
+  }
+
 
   /**
    * LAYOUT Edit page
