@@ -151,7 +151,7 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
           .add(UITableColumn("lastUpdateTimeAgo", "lastUpdate"))
           .add(lc, "areaName", "description")
           .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
-          .add(lc, "exiryDays")
+          .add(lc, "expiryDays")
           .add(
             UITableColumn(
               "externalAccessEnabled",
