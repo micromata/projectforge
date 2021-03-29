@@ -1,0 +1,33 @@
+<html>
+#INCLUDE{mail/mailHead.html}
+<body>
+<div id="mail">
+  <div class="container">
+    <div class="content">
+      #INCLUDE{mail/mailOpening.html}
+      <p>
+        <%= eventInfo.message %>
+      </p>
+      <table class="width-2">
+        <tr>
+          <td>
+            <span class="title"><%= pf.getI18nString("eventInfo.fileName") %></span>
+          </td>
+        </tr>
+      </table>
+      <a
+              href="${eventInfo.link}"
+              class="button"
+              target="_blank"
+              rel="noreferrer"
+      >
+        <%= pf.getI18nString("plugins.datatransfer.mail.link") %>
+      </a>
+
+      #INCLUDE{mail/mailClosing.html}
+      #INCLUDE{mail/mailFooter.html}
+    </div>
+  </div>
+</div>
+</body>
+</html>

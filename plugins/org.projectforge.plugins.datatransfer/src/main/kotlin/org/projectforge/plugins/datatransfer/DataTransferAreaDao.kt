@@ -26,7 +26,6 @@ package org.projectforge.plugins.datatransfer
 import mu.KotlinLogging
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.UserGroupCache
-import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.common.DataSizeConfig
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
@@ -34,9 +33,7 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.jcr.AttachmentsEventListener
 import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper
@@ -60,6 +57,8 @@ private val log = KotlinLogging.logger {}
  */
 @Repository
 open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO::class.java), AttachmentsEventListener {
+  @Autowired
+  private lateinit var notificationMailService: NotificationMailService
 
   @Value("\${${MAX_FILE_SIZE_SPRING_PROPERTY}:100MB}")
   internal open lateinit var maxFileSizeConfig: String
@@ -159,7 +158,11 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     byUser: PFUserDO?,
     byExternalUser: String?
   ) {
-    log.info { "$event, $file" }
+    try {
+      notificationMailService.sendMail(event, file, data as DataTransferAreaDO, byUser, byExternalUser)
+    } catch (ex: Exception) {
+      log.error("Exception while calling SendMailService: ${ex.message}.", ex)
+    }
   }
 
   companion object {
@@ -186,7 +189,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
       )
     }
 
-    private const val ACCESS_TOKEN_LENGTH = 30
-    private const val PASSWORD_LENGTH = 6
+    const val ACCESS_TOKEN_LENGTH = 30
+    const val PASSWORD_LENGTH = 6
   }
 }

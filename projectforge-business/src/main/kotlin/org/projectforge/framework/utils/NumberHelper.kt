@@ -500,6 +500,19 @@ object NumberHelper {
      */
   }
 
+  @JvmStatic
+  fun checkSecureRandomAlphanumeric(token: String?, minLength: Int): Boolean {
+    if (token.isNullOrBlank() || token.length < minLength) {
+      return false
+    }
+    token.forEach {
+      if (!ALPHA_NUMERICS_CHARSET.contains(it)) {
+        return false
+      }
+    }
+    return true
+  }
+
   /**
    * Generates secure random String of the given length. Doesn't user chars "lIO0".
    *
@@ -516,6 +529,19 @@ object NumberHelper {
       sb.append(REDUCED_ALPHA_NUMERICS_CHARSET[(bytes[i].toInt() and 0xFF) % REDUCED_ALPHA_NUMERICS_CHARSET_LENGTH])
     }
     return sb.toString()
+  }
+
+  @JvmStatic
+  fun checkSecureRandomReducedAlphanumeric(token: String?, minLength: Int): Boolean {
+    if (token.isNullOrBlank() || token.length < minLength) {
+      return false
+    }
+    token.forEach {
+      if (!REDUCED_ALPHA_NUMERICS_CHARSET.contains(it)) {
+        return false
+      }
+    }
+    return true
   }
 
   @JvmStatic
