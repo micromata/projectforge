@@ -30,7 +30,6 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.jcr.AttachmentsEventType
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.jcr.FileInfo
 import org.projectforge.mail.Mail
@@ -65,8 +64,8 @@ open class NotificationMailService {
     byExternalUser: String?
   ) {
     check(dataTransfer != null)
-    if (byUser != null && event == AttachmentsEventType.DOWNLOAD) {
-      // Do not notify on downloads of internal users.
+    if (byUser != null && (event == AttachmentsEventType.DOWNLOAD || event == AttachmentsEventType.DELETE)) {
+      // Do not notify on downloads and deletions of internal users.
       return
     }
     val observerIds = dataTransfer.observerIds
@@ -81,7 +80,7 @@ open class NotificationMailService {
       )
     )
     StringHelper.splitToInts(observerIds, ",", false).forEach { id ->
-      val recipient = userService.getById(id)
+      val recipient = userService.internalGetById(id)
       val mail = prepareMail(recipient, event, file.fileName ?: "???", dataTransfer, link, byUser, byExternalUser)
       mail?.let {
         sendMail.send(it)
