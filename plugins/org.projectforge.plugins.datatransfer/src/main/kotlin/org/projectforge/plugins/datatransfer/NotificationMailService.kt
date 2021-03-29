@@ -101,24 +101,30 @@ open class NotificationMailService {
       // Don't send user his own events.
       return null
     }
-    val message = if (byUser != null) {
-      translate(
-        recipient,
-        "plugins.datatransfer.mail.subject.$event",
-        fileName,
-        dataTransfer.areaName ?: "???",
-        byUser.getFullname()
-      )
+    val titleKey: String
+    val messageKey: String
+    val byUserString: String
+    if (byUser != null) {
+      titleKey = "plugins.datatransfer.mail.subject.$event.title"
+      messageKey = "plugins.datatransfer.mail.subject.$event.msg"
+      byUserString = byUser.getFullname()
     } else {
-      translate(
-        recipient,
-        "plugins.datatransfer.mail.subject.external.$event",
-        fileName,
-        dataTransfer.areaName ?: "???",
-        byExternalUser ?: "???"
-      )
+      titleKey = "plugins.datatransfer.mail.subject.external.$event.title"
+      messageKey = "plugins.datatransfer.mail.subject.external.$event.msg"
+      byUserString = byExternalUser ?: "???"
     }
-    val byUserString = byUser?.getFullname() ?: byExternalUser
+    val title = translate(
+        recipient,
+        titleKey,
+        dataTransfer.areaName ?: "???"
+      )
+    val message = translate(
+      recipient,
+      messageKey,
+      fileName,
+      dataTransfer.areaName ?: "???",
+      byUserString
+    )
     val eventInfo = EventInfo(link = link, user = byUserString, message = message)
 
     val mail = Mail()
@@ -131,7 +137,7 @@ open class NotificationMailService {
     }
     val data = mutableMapOf<String, Any>("eventInfo" to eventInfo)
     mail.content =
-      sendMail.renderGroovyTemplate(mail, "mail/dataTransferMail.html", data, message, recipient)
+      sendMail.renderGroovyTemplate(mail, "mail/dataTransferMail.html", data, title, recipient)
     return mail
   }
 
