@@ -62,10 +62,11 @@ open class RepoService {
 
   @PreDestroy
   fun shutdown() {
-    log.info { "Shutting down jcr repository." }
+    log.info { "Shutting down jcr repository..." }
     fileStore?.let {
       it.flush()
-      it.gc()
+      it.compact()
+      it.cleanup()
       log.info { "Jcr stats: ${FileStoreInfo(this)}" }
       it.close()
     }
@@ -460,6 +461,15 @@ open class RepoService {
   private fun getAbsolutePath(parentNode: Node, relPath: String?): String? {
     val parentPath = parentNode.path
     return getAbsolutePath(parentPath, relPath)
+  }
+
+  fun cleanup() {
+    log.info { "Cleaning JCR repository up..." }
+    fileStore?.let {
+      it.flush()
+      it.compact()
+      it.cleanup()
+    }
   }
 
   internal fun ensureNode(parentNode: Node, relPath: String?): Node {
