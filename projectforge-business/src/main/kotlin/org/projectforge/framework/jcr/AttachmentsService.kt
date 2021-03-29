@@ -159,7 +159,16 @@ open class AttachmentsService {
     id: Any,
     fileId: String,
     accessChecker: AttachmentsAccessChecker,
-    subPath: String? = null
+    subPath: String? = null,
+    attachmentsEventListener: AttachmentsEventListener? = null,
+    /**
+     * data for AttachmentsEventListener if needed.
+     */
+    data: Any? = null,
+    /**
+     * Only for external users. Otherwise logged in user will be assumed.
+     */
+    userString: String? = null
   )
       : Pair<FileObject, InputStream>? {
     accessChecker.checkDownloadAccess(
@@ -190,6 +199,7 @@ open class AttachmentsService {
       }
       return null
     }
+    attachmentsEventListener?.onAttachmentEvent(AttachmentsEventType.DOWNLOAD, fileObject, data, ThreadLocalUserContext.getUser(), userString)
     return Pair(fileObject, inputStream)
   }
 

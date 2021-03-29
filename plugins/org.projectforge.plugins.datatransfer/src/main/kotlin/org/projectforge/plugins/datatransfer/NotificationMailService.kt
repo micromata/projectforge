@@ -59,15 +59,10 @@ open class NotificationMailService {
   fun sendMail(
     event: AttachmentsEventType,
     file: FileInfo,
-    dataTransfer: DataTransferAreaDO?,
+    dataTransfer: DataTransferAreaDO,
     byUser: PFUserDO?,
     byExternalUser: String?
   ) {
-    check(dataTransfer != null)
-    if (byUser != null && (event == AttachmentsEventType.DOWNLOAD || event == AttachmentsEventType.DELETE)) {
-      // Do not notify on downloads and deletions of internal users.
-      return
-    }
     val observerIds = dataTransfer.observerIds
     if (observerIds.isNullOrEmpty()) {
       // No observers

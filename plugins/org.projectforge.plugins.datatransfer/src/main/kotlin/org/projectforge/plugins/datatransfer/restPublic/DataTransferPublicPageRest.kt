@@ -84,7 +84,8 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     checkAccess.second?.let {
       return getLoginFailed(response, it)
     }
-    val data = checkAccess.first!!
+    val data = DataTransferPublicArea()
+    data.copyFrom(checkAccess.first!!)
     data.attachments = attachmentsAccessChecker.filterAttachments(
       request, data.externalDownloadEnabled,
       attachmentsService.getAttachments(
