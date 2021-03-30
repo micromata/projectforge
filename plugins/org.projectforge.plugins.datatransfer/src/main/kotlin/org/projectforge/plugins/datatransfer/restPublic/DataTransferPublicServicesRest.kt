@@ -67,11 +67,7 @@ class DataTransferPublicServicesRest {
 
   @PostConstruct
   private fun postConstruct() {
-    attachmentsAccessChecker =
-      DataTransferPublicAccessChecker(
-        dataTransferAreaDao.maxFileSize.toBytes(),
-        DataTransferAreaDao.MAX_FILE_SIZE_SPRING_PROPERTY
-      )
+    attachmentsAccessChecker = DataTransferPublicAccessChecker(dataTransferAreaDao)
   }
 
   @GetMapping("download/{category}/{id}")
@@ -153,7 +149,7 @@ class DataTransferPublicServicesRest {
         UIToast.createMaxFileExceededToast(
           ex.fileName,
           ex.fileSize,
-          attachmentsAccessChecker.maxFileSize
+          ex.maxFileSize
         )
       )
     }

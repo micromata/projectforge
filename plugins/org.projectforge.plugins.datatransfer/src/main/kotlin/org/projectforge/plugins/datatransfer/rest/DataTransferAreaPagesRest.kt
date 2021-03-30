@@ -25,6 +25,8 @@ package org.projectforge.plugins.datatransfer.rest
 
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
+import org.projectforge.common.FormatterUtils
+import org.projectforge.framework.configuration.ConfigurationChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -61,6 +63,9 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
 ) {
 
   @Autowired
+  private lateinit var configurationChecker: ConfigurationChecker
+
+  @Autowired
   private lateinit var groupService: GroupService
 
   @Autowired
@@ -68,18 +73,8 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
 
   @PostConstruct
   private fun postConstruct() {
-    /**
-     * Enable attachments for this entity.
-     */
-    val maxFileSize = baseDao.maxFileSize.toBytes()
     enableJcr(
-      maxFileSize,
-      DataTransferAreaDao.MAX_FILE_SIZE_SPRING_PROPERTY,
-      attachmentsAccessChecker = DataTransferAccessChecker(
-        maxFileSize,
-        DataTransferAreaDao.MAX_FILE_SIZE_SPRING_PROPERTY,
-        baseDao
-      )
+      attachmentsAccessChecker = DataTransferAccessChecker(baseDao)
     )
   }
 
@@ -152,6 +147,7 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
           .add(lc, "areaName", "description")
           .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
           .add(lc, "expiryDays")
+          .add(UITableColumn("maxUploadSizeFormatted", "plugins.datatransfer.maxUploadSize"))
           .add(
             UITableColumn(
               "externalAccessEnabled",
@@ -201,6 +197,33 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
         validationErrors.add(
           ValidationError(
             translate("plugins.datatransfer.validation.error.password"), fieldId = "externalPassword"
+          )
+        )
+      }
+    }
+    if (!DataTransferAreaDao.EXPIRY_DAYS_VALUES.containsKey(dto.expiryDays)) {
+      validationErrors.add(
+        ValidationError(
+          translate("plugins.datatransfer.validation.error.expiryDays"), fieldId = "expiryDays"
+        )
+      )
+    }
+    if (!DataTransferAreaDao.MAX_UPLOAD_SIZE_VALUES.contains(dto.maxUploadSizeKB)) {
+      validationErrors.add(
+        ValidationError(
+          translate("plugins.datatransfer.validation.error.maxUploadSizeKB"), fieldId = "maxUploadSizeKB"
+        )
+      )
+    }
+    dto.maxUploadSizeKB?.let {
+      val springServletMultipartMaxFileSize = configurationChecker.springServletMultipartMaxFileSize.toBytes()
+      if (1024L * it > springServletMultipartMaxFileSize) {
+        validationErrors.add(
+          ValidationError(
+            translateMsg(
+              "plugins.datatransfer.validation.error.maxUploadSizeKB.exceededGlobalMaxUploadSize",
+              FormatterUtils.formatBytes(springServletMultipartMaxFileSize)
+            ), fieldId = "maxUploadSizeKB"
           )
         )
       }
@@ -272,6 +295,9 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
     val expiryDaysSelectValues =
       DataTransferAreaDao.EXPIRY_DAYS_VALUES.map { UISelectValue(it.key, translateMsg(it.value, it.key)) }
 
+    val maxUploadSizeKBValues =
+      DataTransferAreaDao.MAX_UPLOAD_SIZE_VALUES.map { UISelectValue(it, FormatterUtils.formatBytes(1024L * it)) }
+
     val layout = super.createEditLayout(dto, userAccess)
       .add(
         UIFieldset(UILength(md = 12, lg = 12))
@@ -283,7 +309,7 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
               .add(
                 UICol(UILength(md = 4))
                   .add(
-                    UISelect<Int>(
+                    UISelect(
                       "expiryDays",
                       values = expiryDaysSelectValues,
                       label = "plugins.datatransfer.expiryDays",
@@ -292,8 +318,24 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
                   )
               )
           )
+          .add(
+            UIRow().add(
+              UICol(UILength(md = 8))
+                .add(observersSelect)
+            )
+              .add(
+                UICol(UILength(md = 4))
+                  .add(
+                    UISelect(
+                      "maxUploadSizeKB",
+                      values = maxUploadSizeKBValues,
+                      label = "plugins.datatransfer.maxUploadSize",
+                      tooltip = "plugins.datatransfer.maxUploadSize.info"
+                    )
+                  )
+              )
+          )
           .add(lc, "description")
-          .add(observersSelect)
       )
       .add(
         UIFieldset(UILength(md = 12, lg = 12), title = "access.title.heading")

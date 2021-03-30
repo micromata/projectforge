@@ -24,48 +24,40 @@
 package org.projectforge.jcr
 
 import mu.KotlinLogging
-import java.util.*
+import org.projectforge.common.FormatterUtils
+import org.projectforge.common.MaxFileSizeExceeded
 
 private val log = KotlinLogging.logger {}
 
 /**
- * For setting some attributes for storing or changing files.
+ * Checks the file size before storing it.
  */
-open class FileInfo(
+interface FileSizeChecker {
   /**
-   * The UTF-8 filename.
+   * Checks the size of the given file.
+   * @return Exception to throw by caller if file is to big or null, if file size is accepted.
    */
-  var fileName: String? = null,
-  /**
-   * Optional description.
-   */
-  var description: String? = null,
-  /**
-   * Should only be set in test cases. Will be set automatically.
-   */
-  var created: Date? = null,
-  /**
-   * Should only be set in test cases. Will be set automatically.
-   */
-  var lastUpdate: Date? = null,
-  var createdByUser: String? = null,
-  var lastUpdateByUser: String? = null,
-  fileSize: Long? = null
-) {
-  /**
-   * The file size if known (length of content).
-   */
-  var size: Long? = fileSize
-    internal set
+  fun checkSize(file: FileInfo): MaxFileSizeExceeded?
 
-  fun copyFrom(other: FileInfo?) {
-    other ?: return
-    this.fileName = other.fileName
-    this.description = other.description
-    this.created = other.created
-    this.lastUpdate = other.lastUpdate
-    this.createdByUser = other.createdByUser
-    this.lastUpdateByUser = other.lastUpdateByUser
-    this.size = other.size
+  fun checkSize(file: FileInfo, maxFileSize: Long, maxFileSizeSpringProperty: String?): MaxFileSizeExceeded? {
+    file.size?.let {
+      if (it > maxFileSize) {
+        val ex = MaxFileSizeExceeded(
+          maxFileSize,
+          "File will not be stored: $file.",
+          it,
+          file.fileName,
+          maxFileSizeSpringProperty,
+          info = file
+        )
+        log.error { ex.message }
+        return ex
+      }
+    }
+    if (file.size == null) {
+      val maxFileSizeFormatted = FormatterUtils.formatBytes(maxFileSize)
+      log.warn { "Can't check maximum file size of $maxFileSizeFormatted. Can't detect file size. File will be stored: $file." }
+    }
+    return null
   }
 }

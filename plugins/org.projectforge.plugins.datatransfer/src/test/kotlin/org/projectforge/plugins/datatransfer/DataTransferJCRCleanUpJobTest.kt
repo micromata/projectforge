@@ -123,7 +123,7 @@ class DataTransferJCRCleanUpJobTest : AbstractTestBase() {
       content = File("pom.xml").readBytes(),
       baseDao = dataTransferAreaDao,
       obj = area,
-      accessChecker = DataTransferAccessChecker(100000L, "none", dataTransferAreaDao)
+      accessChecker = DataTransferAccessChecker(dataTransferAreaDao)
     )
     return file
   }

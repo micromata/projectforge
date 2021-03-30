@@ -130,7 +130,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         UIToast.createMaxFileExceededToast(
           ex.fileName,
           ex.fileSize,
-          pagesRest.attachmentsAccessChecker.maxFileSize
+          ex.maxFileSize
         )
       )
     }

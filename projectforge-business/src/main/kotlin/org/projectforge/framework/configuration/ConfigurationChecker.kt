@@ -24,11 +24,10 @@
 package org.projectforge.framework.configuration
 
 import mu.KotlinLogging
-import org.projectforge.common.FormatterUtils
-import org.projectforge.common.MaxFileSizeExceeded
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Repository
+import org.springframework.util.unit.DataSize
 import javax.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
@@ -44,55 +43,16 @@ open class ConfigurationChecker {
   @Autowired
   private lateinit var environment: Environment
 
-  private var springServletMultipartMaxFileSize: String? = "???"
+  open lateinit var springServletMultipartMaxFileSize: DataSize
+    protected set
 
   @PostConstruct
   private fun postConstruct() {
-    springServletMultipartMaxFileSize = environment.getProperty(SPRING_PROPERTY)
-  }
-
-  open fun checkConfiguredSpringUploadFileSize(
-    fileSize: Int,
-    maxFileSize: Long,
-    maxFileSizeSpringProperty: String,
-    fileName: String? = null,
-    throwException: Boolean = true
-  ): String? {
-    return checkConfiguredSpringUploadFileSize(
-      fileSize.toLong(),
-      maxFileSize,
-      maxFileSizeSpringProperty,
-      fileName,
-      throwException
-    )
-  }
-
-  /**
-   * Will not check the maximum upload size of multipart ('spring.servlet.multipart.max-file-size').
-   * @param fileSize The size of the file the user tries to upload.
-   * @param maxFileSize The maximum file size configured as spring property.
-   * @param maxFileSizeSpringProperty The name of the spring property defining the maximum file size.
-   * @param fileName The name of the file for logging purposes. If not given '<unknown>' is used.
-   * @param throwException If true (default) an Exception will be thrown with an short error message and id of the detailed server log message which is also logged.
-   * @return The detailed error message with information of how to enlarge the parameters for admins if the check fails or null, if everything was fine.
-   */
-  open fun checkConfiguredSpringUploadFileSize(
-    fileSize: Long,
-    maxFileSize: Long,
-    maxFileSizeSpringProperty: String,
-    fileName: String? = null,
-    throwException: Boolean = true
-  ): String? {
-    if (fileSize <= maxFileSize) {
-      return null
+    val envProp = environment.getProperty(SPRING_PROPERTY)
+    if (envProp == null) {
+      log.error { "Oups, can't get environment spring variable '$SPRING_PROPERTY'." }
     }
-    val msgId = "${System.currentTimeMillis()}"
-    val ex = MaxFileSizeExceeded(maxFileSize,"See server log file #$msgId). ", fileSize, fileName, maxFileSizeSpringProperty)
-    if (throwException) {
-      log.warn { "${ex.message} (#$msgId)" }
-      throw ex
-    }
-    return ex.message
+    springServletMultipartMaxFileSize = DataSize.parse(envProp ?: "100MB")
   }
 
   companion object {

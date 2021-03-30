@@ -32,6 +32,7 @@ import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferFileSizeChecker
 import org.projectforge.rest.config.RestUtils
 import javax.servlet.http.HttpServletRequest
 
@@ -40,10 +41,10 @@ private val log = KotlinLogging.logger {}
 /**
  * Checks access to attachments by external anonymous users.
  */
-open class DataTransferPublicAccessChecker(
-  override val maxFileSize: Long,
-  override val maxFileSizeSpringProperty: String
-) : AttachmentsAccessChecker {
+open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferAreaDao) : AttachmentsAccessChecker {
+  override val fileSizeChecker: DataTransferFileSizeChecker =
+    DataTransferFileSizeChecker(dataTransferAreaDao.maxFileSize.toBytes())
+
   fun checkExternalAccess(
     dataTransferAreaDao: DataTransferAreaDao,
     request: HttpServletRequest,

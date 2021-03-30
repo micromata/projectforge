@@ -24,6 +24,7 @@
 package org.projectforge.plugins.datatransfer.rest
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
@@ -83,6 +84,19 @@ class DataTransferArea(
     @JsonProperty
     @Transient
     get() = TimeAgo.getMessage(lastUpdate)
+
+  /**
+   * The number and soue of attachments attached to this data object.
+   */
+  val maxUploadSizeFormatted: String?
+    @JsonProperty
+    @Transient
+    get() {
+      return maxUploadSizeKB?.let {
+        FormatterUtils.formatBytes(1024L * it)
+      }
+    }
+
 
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyFrom(src: DataTransferAreaDO) {

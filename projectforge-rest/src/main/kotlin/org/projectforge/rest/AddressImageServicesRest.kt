@@ -26,12 +26,12 @@ package org.projectforge.rest
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressImageDao
 import org.projectforge.common.DataSizeConfig
-import org.projectforge.framework.configuration.ConfigurationChecker
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.jcr.FileInfo
+import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.ExpiringSessionAttributes
-import org.projectforge.rest.i18n.I18nUtils
+import org.projectforge.ui.UIToast
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.ByteArrayResource
@@ -61,17 +61,18 @@ class AddressImageServicesRest {
   open lateinit var maxImageSize: DataSize
     internal set
 
+  private lateinit var fileSizeStandardChecker: FileSizeStandardChecker
+
   @PostConstruct
   private fun postConstruct() {
     maxImageSize = DataSizeConfig.init(maxImageSizeConfig, DataUnit.MEGABYTES)
     log.info { "Maximum configured size of images: ${MAX_IMAGE_SIZE_SPRING_PROPERTY}=$maxImageSizeConfig." }
+    fileSizeStandardChecker = FileSizeStandardChecker(maxImageSize.toBytes(), MAX_IMAGE_SIZE_SPRING_PROPERTY)
   }
 
   @Autowired
   private lateinit var addressImageDao: AddressImageDao
 
-  @Autowired
-  private lateinit var configurationChecker: ConfigurationChecker
 
   /**
    * If given and greater 0, the image will be added to the address with the given id (pk), otherwise the image is
@@ -85,19 +86,13 @@ class AddressImageServicesRest {
       return ResponseEntity("Unsupported file: $filename. Only png files supported", HttpStatus.BAD_REQUEST)
     }
     val bytes = file.bytes
-    configurationChecker.checkConfiguredSpringUploadFileSize(
-      bytes.size,
-      maxImageSize.toBytes(),
-      MAX_IMAGE_SIZE_SPRING_PROPERTY,
-      filename,
-      false
-    )?.let {
-      log.error(it)
+    fileSizeStandardChecker.checkSize(FileInfo(filename, fileSize = bytes.size.toLong()))?.let {
+      log.error(it.message)
       return ResponseEntity(
-        I18nUtils.translateMaxSizeExceeded(
-          filename,
-          bytes.size.toLong(),
-          maxImageSize.toBytes()
+        UIToast.createMaxFileExceededToast(
+          it.fileName,
+          it.fileSize,
+          it.maxFileSize
         ), HttpStatus.BAD_REQUEST
       )
     }

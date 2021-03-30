@@ -117,19 +117,18 @@ open class RepoService {
    */
   @JvmOverloads
   open fun storeFile(
-    fileObject: FileObject, maxFileSize: Long, maxFileSizeSpringProperty: String? = null,
+    fileObject: FileObject, fileSizeChecker: FileSizeChecker,
     user: String? = null
   ) {
     val content = fileObject.content ?: ByteArray(0) // Assuming 0 byte file if no content is given.
-    return storeFile(fileObject, content.inputStream(), maxFileSize, maxFileSizeSpringProperty, user)
+    return storeFile(fileObject, content.inputStream(), fileSizeChecker, user)
   }
 
   @JvmOverloads
   open fun storeFile(
     fileObject: FileObject,
     content: InputStream,
-    maxFileSize: Long,
-    maxFileSizeSpringProperty: String? = null,
+    fileSizeChecker: FileSizeChecker,
     user: String? = null
   ) {
     val parentNodePath = fileObject.parentNodePath
@@ -165,24 +164,9 @@ open class RepoService {
       } finally {
         bin?.dispose()
       }
-      fileObject.size?.let {
-        if (it > maxFileSize) {
-          fileNode.remove()
-          val ex = MaxFileSizeExceeded(
-            maxFileSize,
-            "File will not be stored: $fileObject.",
-            it,
-            fileObject.fileName,
-            maxFileSizeSpringProperty,
-            info = fileObject
-          )
-          log.error { ex.message }
-          throw ex
-        }
-      }
-      if (fileObject.size == null) {
-        val maxFileSizeFormatted = FormatterUtils.formatBytes(maxFileSize)
-        log.warn { "Can't check maximum file size of $maxFileSizeFormatted. Can't detect file size. File will be stored: $fileObject." }
+      fileSizeChecker.checkSize(fileObject)?.let {
+        fileNode.remove()
+        throw it
       }
       fileObject.copyTo(fileNode)
       session.save()

@@ -63,11 +63,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
 
   @PostConstruct
   private fun postConstruct() {
-    attachmentsAccessChecker =
-      DataTransferPublicAccessChecker(
-        dataTransferAreaDao.maxFileSize.toBytes(),
-        DataTransferAreaDao.MAX_FILE_SIZE_SPRING_PROPERTY
-      )
+    attachmentsAccessChecker = DataTransferPublicAccessChecker(dataTransferAreaDao)
   }
 
   @PostMapping("login")
