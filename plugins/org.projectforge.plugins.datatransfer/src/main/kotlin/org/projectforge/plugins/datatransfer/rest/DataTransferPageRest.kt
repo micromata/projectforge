@@ -125,7 +125,13 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
         )
           .add(
             UICol(UILength(md = 4))
-              .add(UIReadOnlyField("expiryDays", label = "plugins.datatransfer.expiryDays", tooltip = "plugins.datatransfer.expiryDays.info"))
+              .add(
+                UIReadOnlyField(
+                  "expiryDays",
+                  label = "plugins.datatransfer.expiryDays",
+                  tooltip = "plugins.datatransfer.expiryDays.info"
+                )
+              )
           )
       )
     if (dto.externalAccessEnabled) {
@@ -137,7 +143,22 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
         )
       )
     }
-    fieldSet.add(UIReadOnlyField("adminsAsString", label = "plugins.datatransfer.admins"))
+    fieldSet.add(
+      UIRow().add(
+        UICol(UILength(md = 8))
+          .add(UIReadOnlyField("adminsAsString", label = "plugins.datatransfer.admins"))
+      )
+        .add(
+          UICol(UILength(md = 4))
+            .add(
+              UIReadOnlyField(
+                "maxUploadSizeFormatted",
+                label = "plugins.datatransfer.maxUploadSize",
+                tooltip = "plugins.datatransfer.maxUploadSize.info"
+              )
+            )
+        )
+    )
     if (!dto.observersAsString.isNullOrBlank()) {
       fieldSet.add(UIReadOnlyField("observersAsString", label = "plugins.datatransfer.observers"))
     }

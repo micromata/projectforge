@@ -262,8 +262,7 @@ open class AttachmentsService {
     repoService.storeFile(
       fileObject,
       inputStream,
-      accessChecker.maxFileSize,
-      accessChecker.maxFileSizeSpringProperty,
+      accessChecker.fileSizeChecker,
       userString ?: ThreadLocalUserContext.getUserId()!!.toString()
     )
     return createAttachment(fileObject)

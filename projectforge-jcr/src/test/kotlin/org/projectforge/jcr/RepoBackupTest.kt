@@ -50,18 +50,18 @@ class RepoBackupTest {
     repoService.storeProperty("world/europe", "germany", "key", "value")
 
     var fileObject = createFileObject("/world/europe", "germany", "pom.xml")
-    repoService.storeFile(fileObject, 100000L)
+    repoService.storeFile(fileObject, FileSizeStandardChecker(100000L))
 
     fileObject = createFileObject("/world/europe", "germany", "src", "test", "resources", "logback-test.xml")
-    repoService.storeFile(fileObject, 100000L)
+    repoService.storeFile(fileObject, FileSizeStandardChecker(100000L))
 
     fileObject = createFileObject("/world/europe", "germany", "test", "files", "logo.png")
-    repoService.storeFile(fileObject, 100000L)
+    repoService.storeFile(fileObject, FileSizeStandardChecker(100000L))
     val logoFile = fileObject.content!!
 
     node = repoService.ensureNode(null, "datatransfer/europe")
     fileObject = createFileObject("/datatransfer/europe", "germany", "test", "files", "logo.png")
-    repoService.storeFile(fileObject, 100000L)
+    repoService.storeFile(fileObject, FileSizeStandardChecker(100000L))
 
     Assertions.assertTrue(PFJcrUtils.matchPath(node!!, "datatransfer"))
     Assertions.assertTrue(PFJcrUtils.matchPath(node, "/datatransfer"))

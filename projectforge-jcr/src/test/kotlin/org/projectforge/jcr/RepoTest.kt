@@ -72,8 +72,8 @@ class RepoTest {
     file.lastUpdateByUser = "kai"
     Assertions.assertThrows(
       MaxFileSizeExceeded::class.java
-    ) { repoService.storeFile(file, 100L) }
-    repoService.storeFile(file, 10000L)
+    ) { repoService.storeFile(file, FileSizeStandardChecker(100L)) }
+    repoService.storeFile(file, FileSizeStandardChecker(10000L))
 
     checkFile(file, null, file.fileName)
     checkFile(file, file.fileId, null)

@@ -82,7 +82,13 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     file.externalAccessToken = generateExternalAccessToken()
     file.externalPassword = generateExternalPassword()
     file.expiryDays = 7
+    file.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE // 100MB
     return file
+  }
+
+  override fun afterLoad(obj: DataTransferAreaDO) {
+    if (obj.maxUploadSizeKB == null)
+      obj.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE
   }
 
   open fun getAnonymousArea(externalAccessToken: String?): DataTransferAreaDO? {
@@ -190,6 +196,12 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         365 to "$it.days"
       )
     }
+    private const val MB = 1024
+
+    val MAX_UPLOAD_SIZE_VALUES =
+      arrayOf(20 * MB, 50 * MB, 100 * MB, 200 * MB, 500 * MB, 1024 * MB, 1536 * MB, 2048 * MB, 3072 * MB)
+
+    private const val MAX_UPLOAD_SIZE_DEFAULT_VALUE = 100 * MB
 
     const val ACCESS_TOKEN_LENGTH = 30
     const val PASSWORD_LENGTH = 6

@@ -24,6 +24,7 @@
 package org.projectforge.framework.jcr
 
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.jcr.FileSizeChecker
 
 
 /**
@@ -31,14 +32,9 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
  */
 interface AttachmentsAccessChecker {
   /**
-   * Maximum configured file size for these attachments.
+   * For checking the maximum size.
    */
-  val maxFileSize: Long
-
-  /**
-   * Spring property to configure max file size.
-   */
-  val maxFileSizeSpringProperty: String
+  val fileSizeChecker: FileSizeChecker
 
   /**
    * user may null for external access (if allowed). see DataTransfer tool.

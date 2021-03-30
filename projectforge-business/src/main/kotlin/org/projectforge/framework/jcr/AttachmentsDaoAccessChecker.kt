@@ -27,6 +27,7 @@ import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.jcr.FileSizeChecker
 import java.io.Serializable
 
 /**
@@ -36,8 +37,7 @@ open class AttachmentsDaoAccessChecker<O : ExtendedBaseDO<Int>>(
   val baseDao: BaseDao<O>,
   val jcrPath: String?,
   supportedListIds: Array<String>? = null,
-  override val maxFileSize: Long,
-  override val maxFileSizeSpringProperty: String
+  override val fileSizeChecker: FileSizeChecker
 ) : AttachmentsAccessChecker {
 
   val supportedListIds: Array<String> = if (supportedListIds == null) {

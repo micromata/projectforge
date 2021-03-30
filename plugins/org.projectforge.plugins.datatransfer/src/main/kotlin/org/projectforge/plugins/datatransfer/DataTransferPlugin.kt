@@ -85,7 +85,8 @@ class DataTransferPlugin :
       DataTransferArea::class.java,
       "externalLink",
       "externalAccessEnabled",
-      "lastUpdateTimeAgo"
+      "lastUpdateTimeAgo",
+      "maxUploadSizeFormatted"
     )
 
     systemStatistics.registerStatisticsBuilder(

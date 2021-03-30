@@ -41,6 +41,7 @@ import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
@@ -1117,20 +1118,24 @@ constructor(
    */
   @JvmOverloads
   fun enableJcr(
-    maxFileSize: Long = attachmentsService.maxDefaultFileSize.toBytes(),
-    maxFileSizeSpringProperty: String = AttachmentsService.MAX_DEFAULT_FILE_SIZE_SPRING_PROPERTY,
     supportedListIds: Array<String>? = null,
-    prefix: String = JCR_PATH_PREFIX,
     identifier: String? = null,
-    attachmentsAccessChecker: AttachmentsAccessChecker? = null
+    attachmentsAccessChecker: AttachmentsAccessChecker? = null,
+    /**
+     * For creating FileSizeStandardChecker. Works only, if no accessChecker is given.
+     */
+    maxFileSize: Long = attachmentsService.maxDefaultFileSize.toBytes(),
+    maxFileSizeSpringProperty: String = AttachmentsService.MAX_DEFAULT_FILE_SIZE_SPRING_PROPERTY
   ) {
     jcrPath = if (identifier != null) {
       getJcrPath(identifier)
     } else {
       getJcrPath(baseDao.identifier)
     }
-    this.attachmentsAccessChecker = attachmentsAccessChecker ?:
-      AttachmentsDaoAccessChecker(baseDao, jcrPath, supportedListIds, maxFileSize, maxFileSizeSpringProperty)
+    this.attachmentsAccessChecker =
+      attachmentsAccessChecker ?: AttachmentsDaoAccessChecker(
+        baseDao, jcrPath, supportedListIds, FileSizeStandardChecker(maxFileSize, maxFileSizeSpringProperty)
+      )
   }
 
   /**
