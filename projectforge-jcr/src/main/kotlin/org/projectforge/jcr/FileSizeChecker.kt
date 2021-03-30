@@ -35,9 +35,10 @@ private val log = KotlinLogging.logger {}
 interface FileSizeChecker {
   /**
    * Checks the size of the given file.
+   * @param Optional data e. g. for fileSizeChecker of data transfer area size.
    * @return Exception to throw by caller if file is to big or null, if file size is accepted.
    */
-  fun checkSize(file: FileInfo): MaxFileSizeExceeded?
+  fun checkSize(file: FileInfo, data: Any? = null): MaxFileSizeExceeded?
 
   fun checkSize(file: FileInfo, maxFileSize: Long, maxFileSizeSpringProperty: String?): MaxFileSizeExceeded? {
     file.size?.let {

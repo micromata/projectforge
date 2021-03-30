@@ -129,7 +129,11 @@ open class RepoService {
     fileObject: FileObject,
     content: InputStream,
     fileSizeChecker: FileSizeChecker,
-    user: String? = null
+    user: String? = null,
+    /**
+     * Optional data e. g. for fileSizeChecker of data transfer area size.
+     */
+    data: Any? = null
   ) {
     val parentNodePath = fileObject.parentNodePath
     val relPath = fileObject.relPath
@@ -164,7 +168,7 @@ open class RepoService {
       } finally {
         bin?.dispose()
       }
-      fileSizeChecker.checkSize(fileObject)?.let {
+      fileSizeChecker.checkSize(fileObject, data)?.let {
         fileNode.remove()
         throw it
       }

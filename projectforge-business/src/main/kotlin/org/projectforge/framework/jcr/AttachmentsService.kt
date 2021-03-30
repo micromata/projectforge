@@ -253,7 +253,11 @@ open class AttachmentsService {
     /**
      * Only for external users. Otherwise logged in user will be assumed.
      */
-    userString: String? = null
+    userString: String? = null,
+    /**
+     * Optional data e. g. for fileSizeChecker of data transfer area size.
+     */
+    data: Any? = null
   ): Attachment {
     developerWarning(path, id, "addAttachment", enableSearchIndex)
     accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = id, subPath = subPath)
@@ -263,7 +267,8 @@ open class AttachmentsService {
       fileObject,
       inputStream,
       accessChecker.fileSizeChecker,
-      userString ?: ThreadLocalUserContext.getUserId()!!.toString()
+      userString ?: ThreadLocalUserContext.getUserId()!!.toString(),
+      data
     )
     return createAttachment(fileObject)
   }
@@ -288,7 +293,7 @@ open class AttachmentsService {
       : Attachment {
     accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = obj.id, subPath = subPath)
     val attachment =
-      addAttachment(path, obj.id, fileInfo, inputStream, false, accessChecker, subPath, userString)
+      addAttachment(path, obj.id, fileInfo, inputStream, false, accessChecker, subPath, userString, obj)
     updateAttachmentsInfo(
       path,
       baseDao,

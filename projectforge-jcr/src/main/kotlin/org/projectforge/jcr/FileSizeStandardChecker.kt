@@ -36,7 +36,7 @@ class FileSizeStandardChecker(
    * Checks the size of the given file.
    * @return Exception to throw by caller if file is to big or null, if file size is accepted.
    */
-  override fun checkSize(file: FileInfo): MaxFileSizeExceeded? {
+  override fun checkSize(file: FileInfo, data: Any?): MaxFileSizeExceeded? {
     return checkSize(file, maxFileSize, maxFileSizeSpringProperty)
   }
 }
