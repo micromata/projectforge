@@ -146,7 +146,6 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
           .add(UITableColumn("lastUpdateTimeAgo", "lastUpdate"))
           .add(lc, "areaName", "description")
           .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
-          .add(lc, "expiryDays")
           .add(UITableColumn("maxUploadSizeFormatted", "plugins.datatransfer.maxUploadSize"))
           .add(
             UITableColumn(
@@ -154,6 +153,7 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
               "plugins.datatransfer.external.access.title"
             ).setStandardBoolean()
           )
+          .add(lc, "expiryDays")
           .add(UITableColumn("adminsAsString", "plugins.datatransfer.admins"))
           .add(UITableColumn("observersAsString", "plugins.datatransfer.observers"))
           .add(UITableColumn("accessGroupsAsString", "plugins.datatransfer.accessGroups"))

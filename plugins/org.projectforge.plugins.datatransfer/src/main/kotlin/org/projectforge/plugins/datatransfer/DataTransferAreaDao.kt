@@ -158,9 +158,9 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
   ) {
     check(data != null)
     try {
-      if (byUser != null && (event == AttachmentsEventType.DOWNLOAD || event == AttachmentsEventType.DELETE)) {
-        // Do not notify on downloads and deletions of internal users.
-        return
+      if (byUser != null && event == AttachmentsEventType.DOWNLOAD) {
+          // Do not notify on downloads and deletions of internal users.
+          return
       }
       // log download access of external users.
       if (!byExternalUser.isNullOrBlank() && event == AttachmentsEventType.DOWNLOAD) {
