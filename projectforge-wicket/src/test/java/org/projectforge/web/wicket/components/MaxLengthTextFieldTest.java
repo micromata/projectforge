@@ -32,7 +32,7 @@ import org.projectforge.test.AbstractTestBase;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class MaxLenfthTextFieldTest extends AbstractTestBase {
+public class MaxLengthTextFieldTest extends AbstractTestBase {
   @Test
   public void maxLength() {
     PropertyModel<String> model = new PropertyModel<String>(new PFUserDO(), "username");
