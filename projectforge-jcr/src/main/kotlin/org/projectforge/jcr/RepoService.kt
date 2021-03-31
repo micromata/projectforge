@@ -135,6 +135,11 @@ open class RepoService {
      */
     data: Any? = null
   ) {
+    if (fileObject.size != null) { // file size already known:
+      fileSizeChecker.checkSize(fileObject, data)?.let {
+        throw it
+      }
+    }
     val parentNodePath = fileObject.parentNodePath
     val relPath = fileObject.relPath
     if (parentNodePath == null || relPath == null) {
@@ -168,6 +173,7 @@ open class RepoService {
       } finally {
         bin?.dispose()
       }
+      // Check size again for the case, the fileObject didn't contain file size before processing the stream.
       fileSizeChecker.checkSize(fileObject, data)?.let {
         fileNode.remove()
         throw it
