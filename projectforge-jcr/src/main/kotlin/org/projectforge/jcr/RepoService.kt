@@ -190,8 +190,8 @@ open class RepoService {
           log.info { "Nothing to delete, file node doesn't exit: $fileObject" }
           false
         } else {
-          log.info { "Deleting file: $fileObject" }
           fileObject.copyFrom(fileNode)
+          log.info { "Deleting file: $fileObject" }
           fileNode.remove()
           session.save()
           true

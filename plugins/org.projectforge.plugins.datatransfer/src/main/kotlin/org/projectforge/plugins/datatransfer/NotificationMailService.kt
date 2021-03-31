@@ -30,6 +30,7 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.jcr.AttachmentsEventType
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.jcr.FileInfo
 import org.projectforge.mail.Mail
@@ -63,6 +64,14 @@ open class NotificationMailService {
     byUser: PFUserDO?,
     byExternalUser: String?
   ) {
+    val recipients = mutableListOf<Int>()
+    if (event == AttachmentsEventType.DELETE) {
+      val createdByUserId = file.createdByUser?.toIntOrNull()
+      if (createdByUserId != null && createdByUserId != ThreadLocalUserContext.getUserId()) {
+        // File object created by another user was deleted, so notifiy createdBy user:
+        recipients.add(createdByUserId)
+      }
+    }
     val observerIds = dataTransfer.observerIds
     if (observerIds.isNullOrEmpty()) {
       // No observers
@@ -74,7 +83,10 @@ open class NotificationMailService {
         id = dataTransfer.id ?: 0
       )
     )
-    StringHelper.splitToInts(observerIds, ",", false).forEach { id ->
+    StringHelper.splitToInts(observerIds, ",", false).forEach {
+      recipients.add(it)
+    }
+    recipients.distinct().forEach { id ->
       val recipient = userService.internalGetById(id)
       val mail = prepareMail(recipient, event, file.fileName ?: "???", dataTransfer, link, byUser, byExternalUser)
       mail?.let {
@@ -109,10 +121,10 @@ open class NotificationMailService {
       byUserString = byExternalUser ?: "???"
     }
     val title = translate(
-        recipient,
-        titleKey,
-        dataTransfer.areaName ?: "???"
-      )
+      recipient,
+      titleKey,
+      dataTransfer.areaName ?: "???"
+    )
     val message = translate(
       recipient,
       messageKey,
