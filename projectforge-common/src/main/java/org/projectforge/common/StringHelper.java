@@ -539,6 +539,9 @@ public class StringHelper {
     }
 
     public static int[] splitToInts(final String str, final String delim) {
+        if (str == null) {
+            return new int[0];
+        }
         final StringTokenizer tokenizer = new StringTokenizer(str, delim);
         final int[] result = new int[tokenizer.countTokens()];
         int i = 0;
@@ -559,6 +562,9 @@ public class StringHelper {
     public static int[] splitToInts(final String str, final String delim, final boolean ignoreEmptyItems) {
         if (ignoreEmptyItems) {
             return splitToInts(str, delim);
+        }
+        if (str == null) {
+            return new int[0];
         }
         final StringTokenizer tokenizer = new StringTokenizer(str, delim);
         final List<Integer> list = new ArrayList<>(tokenizer.countTokens());
