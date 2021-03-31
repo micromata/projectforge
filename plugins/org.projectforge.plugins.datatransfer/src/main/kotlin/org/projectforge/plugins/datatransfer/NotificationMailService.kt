@@ -72,9 +72,14 @@ open class NotificationMailService {
         recipients.add(createdByUserId)
       }
     }
-    val observerIds = dataTransfer.observerIds
-    if (observerIds.isNullOrEmpty()) {
-      // No observers
+    StringHelper.splitToInts(dataTransfer.observerIds, ",", false).forEach {
+      recipients.add(it)
+    }
+    StringHelper.splitToInts(dataTransfer.adminIds, ",", false).forEach {
+      recipients.add(it)
+    }
+    if (recipients.isNullOrEmpty()) {
+      // No observers, admins and deleted files of other createdByUsers.
       return
     }
     val link = domainService.getDomain(
@@ -83,9 +88,6 @@ open class NotificationMailService {
         id = dataTransfer.id ?: 0
       )
     )
-    StringHelper.splitToInts(observerIds, ",", false).forEach {
-      recipients.add(it)
-    }
     recipients.distinct().forEach { id ->
       val recipient = userService.internalGetById(id)
       val mail = prepareMail(recipient, event, file.fileName ?: "???", dataTransfer, link, byUser, byExternalUser)
