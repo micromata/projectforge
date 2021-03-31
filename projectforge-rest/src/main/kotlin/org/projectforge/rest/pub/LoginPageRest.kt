@@ -37,6 +37,7 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.login.LoginHandlerService
@@ -85,8 +86,14 @@ open class LoginPageRest {
     private lateinit var loginHandlerService: LoginHandlerService
 
     @GetMapping("dynamic")
-    fun getForm(@RequestParam url: String? = null): FormLayoutData {
+    fun getForm(request: HttpServletRequest,
+                @RequestParam url: String? = null): FormLayoutData {
+      try {
+        ThreadLocalUserContext.setLocale(request.locale)
         return FormLayoutData(null, this.getLoginLayout(), ServerData(returnToCaller = url))
+      } finally{
+        ThreadLocalUserContext.clear()
+      }
     }
 
     @PostMapping

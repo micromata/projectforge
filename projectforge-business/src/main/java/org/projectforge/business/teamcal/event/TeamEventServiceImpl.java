@@ -432,10 +432,10 @@ public class TeamEventServiceImpl implements TeamEventService {
     final TimeZone timezone;
 
     if (attendee.getUser() != null) {
-      locale = attendee.getUser().getLocale() != null ? attendee.getUser().getLocale() : ThreadLocalUserContext.getLocale(null);
+      locale = attendee.getUser().getLocale() != null ? attendee.getUser().getLocale() : ThreadLocalUserContext.getLocale();
       timezone = attendee.getUser().getTimeZone();
     } else {
-      locale = sender.getLocale() != null ? sender.getLocale() : ThreadLocalUserContext.getLocale(null);
+      locale = sender.getLocale() != null ? sender.getLocale() : ThreadLocalUserContext.getLocale();
       timezone = sender.getTimeZone();
     }
 

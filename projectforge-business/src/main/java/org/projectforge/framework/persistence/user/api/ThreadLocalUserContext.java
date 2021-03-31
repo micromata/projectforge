@@ -48,6 +48,8 @@ public class ThreadLocalUserContext {
 
   private static ThreadLocal<UserContext> threadLocalUserContext = new ThreadLocal<>();
 
+  private static ThreadLocal<Locale> threadLocalLocale = new ThreadLocal<>();
+
   /**
    * @return The user of ThreadLocal if exists.
    */
@@ -65,6 +67,7 @@ public class ThreadLocalUserContext {
 
   public static void clear() {
     threadLocalUserContext.set(null);
+    threadLocalLocale.set(null);
   }
 
   /**
@@ -88,10 +91,11 @@ public class ThreadLocalUserContext {
     PFUserDO newUser = userContext != null ? userContext.getUser() : null;
     if (log.isDebugEnabled()) {
       log.debug("setUserInfo: " + newUser != null ? newUser.getUserDisplayName()
-              : "null" + ", was: " + oldUser != null ? oldUser
-              .getUserDisplayName() : "null");
+          : "null" + ", was: " + oldUser != null ? oldUser
+          .getUserDisplayName() : "null");
     }
     threadLocalUserContext.set(userContext);
+    threadLocalLocale.set(null);
     if (log.isDebugEnabled()) {
       newUser = getUser();
       log.debug("user is now: " + newUser != null ? newUser.getUserDisplayName() : "null");
@@ -117,10 +121,23 @@ public class ThreadLocalUserContext {
   }
 
   /**
+   * Only for anonymous usage (needed by translations). Will throw an exception, if an user is already attached.
+   *
+   * @param locale
+   */
+  public static void setLocale(Locale locale) {
+    if (getUser() != null) {
+      throw new IllegalStateException("Can't register locale if an user is already registered. setLocale(Locale) should only used for public/anonymous services.");
+    }
+    threadLocalLocale.set(locale);
+  }
+
+  /**
    * If context user's locale is null and the given defaultLocale is not null, then the context user's client locale
    * will be set to given defaultLocale.
    *
-   * @param defaultLocale will be used, if the context user or his user locale does not exist.
+   * @param defaultLocale will be used, if the context user or his user locale does not exist. If given, it's the client's
+   *                      locale (browser locale) in common.
    * @return The locale of the user if exists, otherwise the given default locale or if null the system's default
    * locale.
    * @see #getUser()
@@ -128,22 +145,29 @@ public class ThreadLocalUserContext {
    */
   public static Locale getLocale(final Locale defaultLocale) {
     final PFUserDO user = getUser();
-    final Locale userLocale = user != null ? user.getLocale() : null;
-    if (userLocale != null) {
-      return userLocale;
+    Locale locale;
+    if (user != null) {
+      // Logged-in user
+      locale = user.getLocale(); // The locale configured in the data base for this user (MyAccount).
+      if (locale != null) {
+        return locale;
+      }
+      locale = user.getClientLocale(); // The locale given by the client (browser).
+      if (defaultLocale != null && !Objects.equals(locale, defaultLocale)) {
+        user.setClientLocale(defaultLocale); // client locale changed? So update UserContext.
+        return defaultLocale;
+      }
+    } else {
+      // For non logged-in users and public pages, the locale could be set:
+      locale = threadLocalLocale.get();
     }
-    Locale clientLocale = user != null ? user.getClientLocale() : null;
-    if (defaultLocale != null && user != null && !Objects.equals(clientLocale, defaultLocale)) {
-      user.setClientLocale(defaultLocale);
-      clientLocale = defaultLocale;
-    }
-    if (clientLocale != null) {
-      return clientLocale;
+    if (locale != null) {
+      return locale;
     }
     if (defaultLocale != null) {
       return defaultLocale;
     }
-    final Locale locale = ConfigurationServiceAccessor.get().getDefaultLocale();
+    locale = ConfigurationServiceAccessor.get().getDefaultLocale();
     return locale != null ? locale : Locale.getDefault();
   }
 
