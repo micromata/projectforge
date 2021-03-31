@@ -26,7 +26,6 @@ package org.projectforge.plugins.datatransfer.restPublic
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsService
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
@@ -99,16 +98,11 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") externalAccessToken: String?): FormLayoutData {
-    try {
-      ThreadLocalUserContext.setLocale(request.locale)
-      val dataTransfer = DataTransferPublicArea()
-      dataTransfer.areaName = translate("plugins.datatransfer.title.heading")
-      dataTransfer.externalAccessToken = externalAccessToken
+    val dataTransfer = DataTransferPublicArea()
+    dataTransfer.areaName = translate("plugins.datatransfer.title.heading")
+    dataTransfer.externalAccessToken = externalAccessToken
 
-      return FormLayoutData(dataTransfer, this.getLayout(), ServerData())
-    } finally{
-      ThreadLocalUserContext.clear()
-    }
+    return FormLayoutData(dataTransfer, this.getLayout(), ServerData())
   }
 
   private fun getAttachmentLayout(dataTransfer: DataTransferPublicArea): UILayout {
