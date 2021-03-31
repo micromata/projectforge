@@ -26,6 +26,7 @@ package org.projectforge.plugins.datatransfer.restPublic
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
@@ -98,11 +99,16 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") externalAccessToken: String?): FormLayoutData {
-    val dataTransfer = DataTransferPublicArea()
-    dataTransfer.areaName = translate("plugins.datatransfer.title.heading")
-    dataTransfer.externalAccessToken = externalAccessToken
+    try {
+      ThreadLocalUserContext.setLocale(request.locale)
+      val dataTransfer = DataTransferPublicArea()
+      dataTransfer.areaName = translate("plugins.datatransfer.title.heading")
+      dataTransfer.externalAccessToken = externalAccessToken
 
-    return FormLayoutData(dataTransfer, this.getLoginLayout(), ServerData())
+      return FormLayoutData(dataTransfer, this.getLayout(), ServerData())
+    } finally{
+      ThreadLocalUserContext.clear()
+    }
   }
 
   private fun getAttachmentLayout(dataTransfer: DataTransferPublicArea): UILayout {
@@ -130,10 +136,10 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
   private fun getLoginFailed(response: HttpServletResponse, msg: String): ResponseAction {
     response.status = 400
     return ResponseAction(targetType = TargetType.UPDATE)
-      .addVariable("ui", getLoginLayout(msg))
+      .addVariable("ui", getLayout(msg))
   }
 
-  private fun getLoginLayout(alertMessage: String? = null): UILayout {
+  private fun getLayout(alertMessage: String? = null): UILayout {
     val responseAction =
       ResponseAction(RestResolver.getRestUrl(this::class.java, "login"), targetType = TargetType.POST)
 
