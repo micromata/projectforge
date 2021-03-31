@@ -137,7 +137,7 @@ class DataTransferPublicServicesRest {
     try {
       attachmentsService.addAttachment(
         dataTransferAreaPagesRest.jcrPath!!,
-        fileInfo = FileInfo(file.originalFilename),
+        fileInfo = FileInfo(file.originalFilename, fileSize = file.size),
         inputStream = file.inputStream,
         baseDao = dataTransferAreaDao,
         obj = obj,

@@ -119,7 +119,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     try {
       attachmentsService.addAttachment(
         pagesRest.jcrPath!!,
-        fileInfo = FileInfo(file.originalFilename),
+        fileInfo = FileInfo(file.originalFilename, fileSize = file.size),
         inputStream = file.inputStream,
         baseDao = pagesRest.baseDao,
         obj = obj,
