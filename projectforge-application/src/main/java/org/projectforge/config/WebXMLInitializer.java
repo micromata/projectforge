@@ -30,6 +30,7 @@ import org.projectforge.caldav.config.PFMiltonInit;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.config.CORSFilter;
+import org.projectforge.rest.config.LocaleFilter;
 import org.projectforge.rest.config.Rest;
 import org.projectforge.rest.config.RestUtils;
 import org.projectforge.security.SecurityHeaderFilter;
@@ -90,6 +91,9 @@ public class WebXMLInitializer implements ServletContextInitializer {
     wicketApp.setInitParameter(WicketFilter.APP_FACT_PARAM, SpringWebApplicationFactory.class.getName());
     wicketApp.setInitParameter(PARAM_APP_BEAN, "wicketApplication");
     wicketApp.setInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/wa/*");
+
+    sc.addFilter("locale", new LocaleFilter()).addMappingForUrlPatterns(null, false,
+        "/" + RestPaths.REST_PUBLIC + "/*"); // Needed for login service.
 
     if (webDevelopmentEnableCORSFilter) {
       new EmphasizedLogSupport(log)
