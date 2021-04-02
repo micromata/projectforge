@@ -231,7 +231,7 @@ object SortAndCheckI18nPropertiesMain {
         val key = line.substring(0, pos)
         val value = line.substring(pos + 1)
         val entry = Entry(key)
-        entry.value = replaceUTFChars(value) ?: ""
+        entry.value = fixApostrophCharsAndReplaceUTFChars(value) ?: ""
         return entry
       }
     }
@@ -252,15 +252,40 @@ object SortAndCheckI18nPropertiesMain {
     }
   }
 
-  private fun replaceUTFChars(str: String?): String? {
+  /**
+   * Single apostrophs will be replaced (if not used as escape chars).
+   * "Don't believe the hype." -> "Don''t believe the hype."
+   * "Don''t escape '{0}'." -> "Don''t escape '{0}'."
+   */
+  internal fun fixApostrophCharsAndReplaceUTFChars(str: String?): String? {
     str ?: return null
-   return str
-      .replace("Ä", "\\u00C4")
+    val sb = StringBuilder()
+    var lastButOneChar = 'x'
+    var lastChar = 'x'
+    str.replace("Ä", "\\u00C4")
       .replace("ä", "\\u00E4")
       .replace("Ö", "\\u00D6")
       .replace("ö", "\\u00F6")
       .replace("Ü", "\\u00DC")
       .replace("ü", "\\u00FC")
       .replace("ß", "\\u00DF")
+      .forEach { char ->
+        if (lastChar == '\'' && !"'{}$".contains(char) && !"'{}$".contains(lastButOneChar)) {
+          // Single quote was no escape quote, so double it:
+          sb.append("'")
+          // reset:
+          lastButOneChar = 'x'
+          lastChar = 'x'
+        } else {
+          lastButOneChar = lastChar
+          lastChar = char
+        }
+        sb.append(char)
+      }
+    if (lastChar == '\'' && !"'{}$".contains(lastButOneChar)) {
+      // Double trailing single quote.
+      sb.append("'")
+    }
+    return sb.toString()
   }
 }
