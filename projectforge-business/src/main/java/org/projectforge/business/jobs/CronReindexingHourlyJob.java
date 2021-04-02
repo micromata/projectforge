@@ -57,7 +57,7 @@ public class CronReindexingHourlyJob {
   /**
    * In ms.
    */
-  @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 10 * 1000)
+  @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 120 * 1000)
   public void execute() {
     log.info("Hourly job started.");
     try {
