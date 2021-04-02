@@ -30,12 +30,12 @@ class SortAndCheckI18nPropertiesTest {
   @Test
   fun fixApostrophCharsAndReplaceUTFChars() {
     check("", "")
-    check("''", "'")
-    check("''text", "'text")
-    check("text''", "text'")
-    check("Don''t believe the hype.", "Don't believe the hype.")
+    check("'", "'")
+    check("'text", "'text")
+    check("text'", "text'")
+    check("Don't believe the hype.", "Don't believe the hype.")
     check("Don''t believe the hype.", "Don''t believe the hype.")
-    check("Don''t escape '{0}'.", "Don''t escape '{0}'.")
+    check("Don''t escape '{0}'.", "Don't escape '{0}'.")
     check("Field ''\${label}'' is", "Field ''\${label}'' is")
   }
 
