@@ -28,6 +28,7 @@ import org.apache.commons.lang3.Validate
 import org.flywaydb.core.Flyway
 import org.projectforge.business.user.UserRight
 import org.projectforge.business.user.UserXmlPreferencesDao
+import org.projectforge.common.DatabaseDialect
 import org.projectforge.continuousdb.UpdateEntry
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
@@ -198,7 +199,7 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
      * '/${plugin.package}/flyway/dbmigration'
      */
     protected open fun buildFlywayClasspath(): Array<String> {
-        val vendor = dataSource.connection.metaData.databaseProductName.toLowerCase()
+        val vendor = DatabaseDialect.getFlywayVendorName(dataSource.connection.metaData.databaseProductName)
         // Class.packageName since java 9, but want to be compatible with Java 8:
         val packageLocation = this::class.java.`package`.name.replace('.', '/')
         return arrayOf(
@@ -207,7 +208,7 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
                 "/flyway/$id/migrate/common",
                 "/flyway/$id/migrate/$vendor",
                 "/$packageLocation/flyway/dbmigration")
-                .filter { this::class.java.getResource(it) != null }
+                .filter { this::class.java.getResource(it) != null } // Avoids flyway warnings on non-existent resources.
                 .map { "classpath:$it" }
                 .toTypedArray()
     }

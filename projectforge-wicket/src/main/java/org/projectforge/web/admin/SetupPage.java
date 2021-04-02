@@ -44,6 +44,7 @@ import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.AbstractUnsecureBasePage;
@@ -71,6 +72,9 @@ public class SetupPage extends AbstractUnsecureBasePage
 
   @SpringBean
   private PfJpaXmlDumpService jpaXmlDumpService;
+
+  @SpringBean
+  private PluginAdminService pluginAdminService;
 
   private final SetupForm setupForm;
 
@@ -138,6 +142,12 @@ public class SetupPage extends AbstractUnsecureBasePage
     configure(ConfigurationParam.CALENDAR_DOMAIN, setupForm.getCalendarDomain());
     configure(ConfigurationParam.SYSTEM_ADMIN_E_MAIL, setupForm.getSysopEMail());
     configure(ConfigurationParam.FEEDBACK_E_MAIL, setupForm.getFeedbackEMail());
+    pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_DATA_TRANSFER_ID, true);
+    pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_LICENSE_MANAGEMENT_ID, true);
+    pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_LIQUIDITY_PLANNING_ID, true);
+    pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_MEMO_ID, true);
+    pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_SKILL_MATRIX_ID, true);
+    pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_TODO_ID, true);
     if (databaseService.getSystemUpdater().isUpdated() == true) {
       // Update status:
       UserFilter.setUpdateRequiredFirst(false);

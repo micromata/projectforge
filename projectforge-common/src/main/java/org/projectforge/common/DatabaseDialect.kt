@@ -20,38 +20,35 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+package org.projectforge.common
 
-package org.projectforge.common;
-
-public enum DatabaseDialect
-{
-  PostgreSQL("org.hibernate.dialect.PostgreSQLDialect"), HSQL("org.hibernate.dialect.HSQLDialect");
-  // Not yet supported:
-  // MYSQL, ORACLE, MS_SQL_SERVER, DB2, INFORMIX, DERBY, UNKOWN;
-
-  private String asString;
-
-  public static DatabaseDialect fromString(final String asString)
-  {
-    if (PostgreSQL.asString.equals(asString) == true) {
-      return PostgreSQL;
-    }
-    if (HSQL.asString.equals(asString) == true) {
-      return HSQL;
-    }
-    return null;
-  }
-
+enum class DatabaseDialect(
   /**
    * @return the asString
    */
-  public String getAsString()
-  {
-    return asString;
-  }
+  // Not yet supported:
+  // MYSQL, ORACLE, MS_SQL_SERVER, DB2, INFORMIX, DERBY, UNKOWN;
+  val asString: String
+) {
+  PostgreSQL("org.hibernate.dialect.PostgreSQLDialect"), HSQL("org.hibernate.dialect.HSQLDialect");
 
-  private DatabaseDialect(final String asString)
-  {
-    this.asString = asString;
+  companion object {
+    @JvmStatic
+    fun fromString(asString: String): DatabaseDialect? {
+      if (PostgreSQL.asString == asString) {
+        return PostgreSQL
+      }
+      return if (HSQL.asString == asString) {
+        HSQL
+      } else null
+    }
+
+    fun getFlywayVendorName(databaseProductName: String): String {
+      return if (databaseProductName.contains("hsql", ignoreCase = true)) {
+        "hsqldb"
+      } else {
+        "postgresql"
+      }
+    }
   }
 }
