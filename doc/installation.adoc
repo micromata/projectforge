@@ -90,6 +90,11 @@ h|Feed-back | If this e-mail is given then a feedback panel will be shown if an 
 
 Just click finish to have your ready-to-use installation.
 
+[#img-setup-webpage-finished]
+.After initialization you will get this screen. No restart a last time and also all activated plugins are now fully available.
+image::images/setup-webpage-finished.png[Setup finished]
+
+
 [NOTE]
 ====
 Wait until ProjectForge's initialization is finished and you are requested to restart ProjectForge. After restarting all activated plugins
