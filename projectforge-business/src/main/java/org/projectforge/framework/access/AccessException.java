@@ -29,9 +29,9 @@ import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.framework.i18n.MessageParam;
-import org.projectforge.framework.i18n.MessageParamType;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.MessageParam;
+import org.projectforge.common.i18n.MessageParamType;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
@@ -40,11 +40,10 @@ import java.util.ResourceBundle;
 
 /**
  * This class will be thrown by AccessChecker, if no access is given for the demanded action by an user.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class AccessException extends UserException
-{
+public class AccessException extends UserException {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccessException.class);
 
   private static final long serialVersionUID = 147795804616526958L;
@@ -67,61 +66,52 @@ public class AccessException extends UserException
 
   protected Class<?> clazz = null;
 
-  public AccessException(final String i18nKey, final Object... params)
-  {
+  public AccessException(final String i18nKey, final Object... params) {
     this(ThreadLocalUserContext.getUser(), i18nKey, params);
   }
 
-  public AccessException(final PFUserDO user, final String i18nKey, final Object... params)
-  {
+  public AccessException(final PFUserDO user, final String i18nKey, final Object... params) {
     super(i18nKey, params);
     this.user = user;
-    this.i18nKey = i18nKey;
     log.info("AccessException: " + this);
   }
 
-  public AccessException(final AccessType accessType, final OperationType operationType)
-  {
+  public AccessException(final AccessType accessType, final OperationType operationType) {
     this(ThreadLocalUserContext.getUser(), accessType, operationType);
   }
 
   public AccessException(final PFUserDO user, final AccessType accessType,
-      final OperationType operationType)
-  {
-    super(I18N_KEY_STANDARD);
+                         final OperationType operationType) {
+    super(I18N_KEY_STANDARD, new MessageParam[]{new MessageParam(accessType), new MessageParam(operationType)});
     this.user = user;
     this.accessType = accessType;
     this.operationType = operationType;
-    this.msgParams = new MessageParam[] { new MessageParam(accessType), new MessageParam(operationType) };
     log.info("AccessException: " + this);
   }
 
   public AccessException(final Integer taskId, final AccessType accessType,
-      final OperationType operationType)
-  {
+                         final OperationType operationType) {
     this(ThreadLocalUserContext.getUser(), taskId, accessType, operationType);
   }
 
   public AccessException(final PFUserDO user, final Integer taskId, final AccessType accessType,
-      final OperationType operationType)
-  {
-    super(I18N_KEY_STANDARD_WITH_TASK);
+                         final OperationType operationType) {
+    super(I18N_KEY_STANDARD_WITH_TASK,
+        new MessageParam[]{new MessageParam(taskId), new MessageParam(accessType),
+            new MessageParam(operationType)});
     this.user = user;
     this.taskId = taskId;
     this.accessType = accessType;
     this.operationType = operationType;
-    this.msgParams = new MessageParam[] { new MessageParam(taskId), new MessageParam(accessType),
-        new MessageParam(operationType) };
     log.info("AccessException: " + this);
   }
 
   /**
    * The order of the args is task id, accessType and operationType.
-   * 
+   *
    * @return the arguments for the message formatter from type Object[3].
    */
-  public Object[] getMessageArgs(final ResourceBundle bundle)
-  {
+  public Object[] getMessageArgs(final ResourceBundle bundle) {
     final Object[] result = new Object[3];
     if (taskTree != null && this.taskId != null) {
       final TaskDO task = getTaskTree().getTaskById(taskId);
@@ -142,8 +132,7 @@ public class AccessException extends UserException
     return result;
   }
 
-  public MessageParam[] getMessageArgs()
-  {
+  public MessageParam[] getMessageArgs() {
     final MessageParam[] result = new MessageParam[3];
     if (taskTree != null && this.taskId != null) {
       final TaskDO task = getTaskTree().getTaskById(taskId);
@@ -164,84 +153,72 @@ public class AccessException extends UserException
     return result;
   }
 
-  public PFUserDO getUser()
-  {
+  public PFUserDO getUser() {
     return this.user;
   }
 
-  public Integer getTaskId()
-  {
+  public Integer getTaskId() {
     return this.taskId;
   }
 
-  public AccessType getAccessType()
-  {
+  public AccessType getAccessType() {
     return accessType;
   }
 
-  public void setAccessType(final AccessType accessType)
-  {
+  public void setAccessType(final AccessType accessType) {
     this.accessType = accessType;
   }
 
-  public TaskNode getTaskNode()
-  {
+  public TaskNode getTaskNode() {
     return getTaskTree().getTaskNodeById(this.taskId);
   }
 
   /**
    * Class infos about class, for which the AccessException was thrown, e. g. for logging.
-   * 
+   *
    * @return Returns the clazz.
    */
-  public Class<?> getClazz()
-  {
+  public Class<?> getClazz() {
     return clazz;
   }
 
   /**
    * @param clazz The clazz to set.
    */
-  public void setClazz(final Class<?> clazz)
-  {
+  public void setClazz(final Class<?> clazz) {
     this.clazz = clazz;
   }
 
   /**
    * @return Returns the operationType.
    */
-  public OperationType getOperationType()
-  {
+  public OperationType getOperationType() {
     return operationType;
   }
 
   /**
    * @param operationType The operationType to set.
    */
-  public void setOperationType(final OperationType operationType)
-  {
+  public void setOperationType(final OperationType operationType) {
     this.operationType = operationType;
   }
 
   /**
    * @param message The message to set.
    */
-  public void setMessage(final String message)
-  {
+  public void setMessage(final String message) {
     this.message = message;
   }
 
   /**
    * @param user The user to set.
    */
-  public void setUser(final PFUserDO user)
-  {
+  public void setUser(final PFUserDO user) {
     this.user = user;
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     final ToStringBuilder builder = new ToStringBuilder(this);
     if (user != null) {
       builder.append("user", String.valueOf(user.getId()) + ":" + user.getUsername());
@@ -260,25 +237,21 @@ public class AccessException extends UserException
     if (clazz != null) {
       builder.append("class", clazz.toString());
     }
-    if (i18nKey != null) {
-      builder.append("i18nKey", i18nKey);
-    }
+    builder.append("i18nKey", getI18nKey());
     if (message != null) {
       builder.append("message", message);
     }
-    if (params != null) {
-      builder.append("params", params);
+    if (getParams() != null) {
+      builder.append("params", getParams());
     }
     return builder.toString();
   }
 
-  private TaskTree getTaskTree()
-  {
+  private TaskTree getTaskTree() {
     return getTaskTree(null);
   }
 
-  private TaskTree getTaskTree(final TenantDO tenant)
-  {
+  private TaskTree getTaskTree(final TenantDO tenant) {
     final TenantRegistry tenantRegistry = TenantRegistryMap.getInstance().getTenantRegistry(tenant);
     return tenantRegistry.getTaskTree();
   }

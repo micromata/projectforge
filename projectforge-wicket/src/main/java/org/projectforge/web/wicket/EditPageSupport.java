@@ -24,7 +24,7 @@
 package org.projectforge.web.wicket;
 
 import org.apache.wicket.markup.html.WebPage;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.ICorePersistenceService;
 import org.projectforge.framework.persistence.api.IManualIndex;
 import org.projectforge.framework.persistence.api.ModificationStatus;

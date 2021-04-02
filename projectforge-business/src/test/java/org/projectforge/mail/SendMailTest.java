@@ -35,7 +35,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.i18n.InternalErrorException;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import javax.mail.Transport;

@@ -26,7 +26,7 @@ package org.projectforge.business.fibu;
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.user.UserRightId;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -37,7 +37,6 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import java.math.RoundingMode;
-import java.time.LocalDate;
 import java.util.*;
 
 @Repository

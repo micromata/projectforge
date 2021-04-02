@@ -29,7 +29,7 @@ import de.micromata.merlin.excel.importer.ImportLogger
 import de.micromata.merlin.excel.importer.ImportStorage
 import de.micromata.merlin.excel.importer.ImportedSheet
 import org.projectforge.business.fibu.KontoDO
-import org.projectforge.framework.i18n.UserException
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.utils.MyImportedElement
 import org.slf4j.LoggerFactory
 

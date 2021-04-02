@@ -28,7 +28,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.Model;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.IPersistenceService;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;

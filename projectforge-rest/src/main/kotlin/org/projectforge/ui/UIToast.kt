@@ -23,7 +23,8 @@
 
 package org.projectforge.ui
 
-import org.projectforge.rest.i18n.I18nUtils
+import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.i18n.translateMsg
 
 /**
  * Helper for creating toast at client browser.
@@ -38,7 +39,7 @@ object UIToast {
     )
   }
 
-  fun createMaxFileExceededToast(fileName: String?, fileSize: Long, maxFileSize: Long): ResponseAction {
-    return createToast(I18nUtils.translateMaxSizeExceeded(fileName, fileSize, maxFileSize), color = UIColor.DANGER)
+  fun createExceptionToast(ex: UserException): ResponseAction {
+    return createToast(translateMsg(ex), color = UIColor.DANGER)
   }
 }

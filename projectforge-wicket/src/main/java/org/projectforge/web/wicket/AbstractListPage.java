@@ -45,7 +45,7 @@ import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.common.StringHelper;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.export.DOListExcelExporter;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta;
 import org.projectforge.framework.utils.RecentQueue;

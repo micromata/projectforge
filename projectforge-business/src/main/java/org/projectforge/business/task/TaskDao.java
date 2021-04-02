@@ -37,7 +37,7 @@ import org.projectforge.continuousdb.DatabaseSupport;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;

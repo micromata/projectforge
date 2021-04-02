@@ -31,7 +31,7 @@ import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.common.task.TaskStatus;
 import org.projectforge.framework.access.AccessException;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;

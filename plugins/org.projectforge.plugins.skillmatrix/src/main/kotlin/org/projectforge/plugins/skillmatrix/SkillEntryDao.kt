@@ -23,13 +23,11 @@
 
 package org.projectforge.plugins.skillmatrix
 
-import org.projectforge.business.vacation.repository.VacationDao
-import org.projectforge.framework.i18n.UserException
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional

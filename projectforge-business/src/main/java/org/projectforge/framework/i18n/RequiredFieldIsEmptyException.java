@@ -23,6 +23,10 @@
 
 package org.projectforge.framework.i18n;
 
+import org.projectforge.common.i18n.MessageParam;
+import org.projectforge.common.i18n.MessageParamType;
+import org.projectforge.common.i18n.UserException;
+
 public class RequiredFieldIsEmptyException extends UserException
 {
   public RequiredFieldIsEmptyException(final String i18nKeyOfMissingField)

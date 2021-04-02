@@ -31,8 +31,6 @@ import org.apache.jackrabbit.oak.segment.SegmentNodeStoreBuilders
 import org.apache.jackrabbit.oak.segment.file.FileStore
 import org.apache.jackrabbit.oak.segment.file.FileStoreBuilder
 import org.apache.jackrabbit.oak.spi.state.NodeStore
-import org.projectforge.common.FormatterUtils
-import org.projectforge.common.MaxFileSizeExceeded
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.InputStream
@@ -136,9 +134,7 @@ open class RepoService {
     data: Any? = null
   ) {
     if (fileObject.size != null) { // file size already known:
-      fileSizeChecker.checkSize(fileObject, data)?.let {
-        throw it
-      }
+      fileSizeChecker.checkSize(fileObject, data)
     }
     val parentNodePath = fileObject.parentNodePath
     val relPath = fileObject.relPath
@@ -174,9 +170,11 @@ open class RepoService {
         bin?.dispose()
       }
       // Check size again for the case, the fileObject didn't contain file size before processing the stream.
-      fileSizeChecker.checkSize(fileObject, data)?.let {
+      try {
+        fileSizeChecker.checkSize(fileObject, data)
+      } catch (ex: Exception) {
         fileNode.remove()
-        throw it
+        throw ex
       }
       fileObject.copyTo(fileNode)
       session.save()

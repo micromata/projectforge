@@ -25,7 +25,7 @@ package org.projectforge.business.vacation.service
 
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
-import org.projectforge.framework.i18n.UserException
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.time.LocalDatePeriod
 import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal

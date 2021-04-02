@@ -21,87 +21,74 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.i18n;
+package org.projectforge.common.i18n
 
-import org.projectforge.common.i18n.I18nEnum;
+import java.lang.IllegalArgumentException
 
 /**
  * I18n params are params for localized message which will be localized itself, if paramType == VALUE (default).
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class MessageParam
-{
-  private final Object value;
-
-  private final MessageParamType paramType;
+class MessageParam {
+  /**
+   * @return The value for the localized message.
+   */
+  val value: Any?
+  private val paramType: MessageParamType
 
   /**
    */
-  public MessageParam(final Object value)
-  {
-    this.value = value;
-    this.paramType = MessageParamType.VALUE;
+  constructor(value: Any?) {
+    this.value = value
+    paramType = MessageParamType.VALUE
   }
 
   /**
    */
-  public MessageParam(final I18nEnum value)
-  {
-    this.value = value.getI18nKey();
-    this.paramType = MessageParamType.I18N_KEY;
+  constructor(value: I18nEnum) {
+    this.value = value.i18nKey
+    paramType = MessageParamType.I18N_KEY
   }
 
   /**
    * Will be interpreted as value.
    */
-  public MessageParam(final String value)
-  {
-    this.value = value;
-    this.paramType = MessageParamType.VALUE;
+  constructor(value: String?) {
+    this.value = value
+    paramType = MessageParamType.VALUE
   }
 
   /**
    * @value Value or i18n key, if paramType = I18N_KEY
    * @paramType
    */
-  public MessageParam(final String value, final MessageParamType paramType)
-  {
-    this.value = value;
-    this.paramType = paramType;
+  constructor(value: String?, paramType: MessageParamType) {
+    this.value = value
+    this.paramType = paramType
   }
 
   /**
    * @return The key for the localized message.
    * @throws IllegalArgumentException if paramType is not I18N_KEY or the value is not an instance of java.lang.String.
    */
-  public String getI18nKey()
-  {
-    if (isI18nKey()) {
-      return (String) value;
+  val i18nKey: String?
+    get() {
+      if (isI18nKey()) {
+        return value as String?
+      }
+      throw IllegalArgumentException(
+        "getI18nKey is called, but paramType is not I18N_KEY or value is not an instance of java.lang.String"
+      )
     }
-    throw new IllegalArgumentException(
-        "getI18nKey is called, but paramType is not I18N_KEY or value is not an instance of java.lang.String");
-  }
-
-  /**
-   * @return The value for the localized message.
-   */
-  public Object getValue()
-  {
-    return value;
-  }
 
   /**
    * @return True, if paramType is I18N_KEY and the value is an instance of java.lang.String
    */
-  public boolean isI18nKey()
-  {
-    return paramType == MessageParamType.I18N_KEY && value instanceof String;
+  fun isI18nKey(): Boolean {
+    return paramType == MessageParamType.I18N_KEY && value is String
   }
 
-  @Override
-  public String toString()
-  {
-    return String.valueOf(value);
+  override fun toString(): String {
+    return value.toString()
   }
 }

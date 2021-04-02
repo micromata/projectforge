@@ -26,7 +26,7 @@ package org.projectforge.framework.time
 import org.apache.commons.lang3.Validate
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.calendar.Holidays
-import org.projectforge.framework.i18n.UserException
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.math.BigDecimal
 import java.time.DayOfWeek

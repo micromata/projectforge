@@ -33,7 +33,7 @@ import org.projectforge.business.excel.ExcelImportException;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.export.AttrColumnDescription;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.plugins.eed.excelimport.EmployeeBillingExcelImporter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

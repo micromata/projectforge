@@ -35,7 +35,7 @@ import org.projectforge.business.fibu.EmployeeSalaryType;
 import org.projectforge.business.fibu.api.EmployeeSalaryService;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.utils.MyImportedElement;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;

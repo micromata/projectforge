@@ -40,7 +40,7 @@ import org.projectforge.business.user.UserRight;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter;
 import org.projectforge.framework.persistence.api.impl.DBQuery;
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta;

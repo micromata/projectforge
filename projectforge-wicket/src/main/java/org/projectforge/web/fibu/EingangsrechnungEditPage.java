@@ -28,7 +28,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.*;
 import org.projectforge.common.props.PropUtils;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.wicket.AbstractEditPage;

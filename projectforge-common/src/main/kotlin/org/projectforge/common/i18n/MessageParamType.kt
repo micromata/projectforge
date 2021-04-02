@@ -21,14 +21,12 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.i18n;
+package org.projectforge.common.i18n
 
 /**
- * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
  *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public enum MessageParamType
-{
-  VALUE, I18N_KEY;
+enum class MessageParamType {
+  VALUE, I18N_KEY
 }

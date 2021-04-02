@@ -24,30 +24,63 @@
 package org.projectforge.rest.core
 
 import mu.KotlinLogging
+import org.projectforge.common.MaxFileSizeExceeded
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.api.TechnicalException
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.utils.ExceptionStackTracePrinter
 import org.projectforge.rest.utils.RequestLog
+import org.projectforge.ui.UIToast
 import org.springframework.core.annotation.AnnotationUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.multipart.MaxUploadSizeExceededException
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
 @ControllerAdvice
 internal class GlobalDefaultExceptionHandler {
-    @ExceptionHandler(value = [(Exception::class)])
-    @Throws(Exception::class)
-    fun defaultErrorHandler(request: HttpServletRequest, ex: Exception): ResponseEntity<String> {
-        // If the exception is annotated with @ResponseStatus rethrow it and let
-        // the framework handle it.
-        if (AnnotationUtils.findAnnotation(ex.javaClass, ResponseStatus::class.java) != null) throw ex
-        val additionalExcptionMessage = if (ex is TechnicalException && ex.technicalMessage != null) " technical=${ex.technicalMessage}" else ""
-        val exceptionMessage = "${ex::class.java.name}: ${ex.message}$additionalExcptionMessage"
-        log.error("Exception while processing request: ${ex.message} Request: ${RequestLog.asJson(request)},\nexception=$exceptionMessage\n${ExceptionStackTracePrinter.toString(ex, false)}")
-        return ResponseEntity(ex.message!!, HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(value = [(Exception::class)])
+  @Throws(Exception::class)
+  fun defaultErrorHandler(request: HttpServletRequest, ex: Exception): Any {
+    // If the exception is annotated with @ResponseStatus rethrow it and let
+    // the framework handle it.
+    if (AnnotationUtils.findAnnotation(ex.javaClass, ResponseStatus::class.java) != null) {
+      throw ex
     }
+    if (ex is MaxUploadSizeExceededException) {
+      val userEx =
+        MaxFileSizeExceeded(ex.maxUploadSize, -1, maxFileSizeSpringProperty = "spring.servlet.multipart.max-file-size|spring.servlet.multipart.max-request-size")
+      log.error("${translateMsg(userEx)} ${userEx.logHintMessage}")
+      return ResponseEntity.badRequest().body(UIToast.createExceptionToast(userEx))
+    }
+    if (ex is UserException) {
+      if (ex.logHintMessage.isNullOrBlank()) {
+        log.error(translateMsg(ex))
+      } else {
+        log.error("${translateMsg(ex)} ${ex.logHintMessage}")
+      }
+      return if (ex.displayUserMessage) {
+        ResponseEntity.ok().body(UIToast.createExceptionToast(ex))
+      } else {
+        ResponseEntity.badRequest().body(UIToast.createExceptionToast(ex))
+      }
+    }
+    val additionalExcptionMessage =
+      if (ex is TechnicalException && ex.technicalMessage != null) " technical=${ex.technicalMessage}" else ""
+    val exceptionMessage = "${ex::class.java.name}: ${ex.message}$additionalExcptionMessage"
+    log.error(
+      "Exception while processing request: ${ex.message} Request: ${RequestLog.asJson(request)},\nexception=$exceptionMessage\n${
+        ExceptionStackTracePrinter.toString(
+          ex,
+          false
+        )
+      }"
+    )
+    return ResponseEntity("Internal error.", HttpStatus.BAD_REQUEST)
+  }
 }
