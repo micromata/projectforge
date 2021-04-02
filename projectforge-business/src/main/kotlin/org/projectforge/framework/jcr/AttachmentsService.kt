@@ -28,6 +28,8 @@ import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import org.projectforge.SystemStatus
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.DataSizeConfig
+import org.projectforge.common.FormatterUtils
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.IdObject
@@ -292,6 +294,13 @@ open class AttachmentsService {
   )
       : Attachment {
     accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = obj.id, subPath = subPath)
+    val attachments = getAttachments(path, obj.id, null, subPath)
+    attachments?.forEach { attachment ->
+      if (attachment.name == fileInfo.fileName && attachment.size == fileInfo.size) {
+        log.warn { "Can't upload file '${fileInfo.fileName}' of size ${FormatterUtils.formatBytes(fileInfo.size)}. A file with same name and of same size does already exist." }
+        throw UserException("plugins.datatransfer.validation.error.fileAlreadyExists")
+      }
+    }
     val attachment =
       addAttachment(path, obj.id, fileInfo, inputStream, false, accessChecker, subPath, userString, obj)
     updateAttachmentsInfo(
