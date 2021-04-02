@@ -90,14 +90,14 @@ h|Feed-back | If this e-mail is given then a feedback panel will be shown if an 
 
 Just click finish to have your ready-to-use installation.
 
-Please restart ProjectForge for full plugin-support.
+[NOTE]
+====
+Wait until ProjectForge's initialization is finished and you are requested to restart ProjectForge. After restarting all activated plugins
+are also available.
+====
 
 === Activation of built-in-plugins
 
-[NOTE]
-====
-Please restart ProjectForge after completion of the installation for having full plugin support.
-====
 
 [#img-setup-webpage]
 .You have to activate some built-in plugins if you want to use them. The plugin "Data transfer" is recommended.
