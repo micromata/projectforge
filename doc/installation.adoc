@@ -73,7 +73,35 @@ Please be aware, that after your first start of ProjectForge, your page might be
 public available.
 ====
 
+[#img-setup-webpage]
+.After starting ProjectForge the first time, a setup page is displayed.
+image::images/setup-webpage.png[Setup web page]
 
+[cols="1,3"]
+|===
+h|Target | Choose *Productive system* for starting with an empty initialized data base. Choose *Test system* for installing a test system with lots of test data.
+h|User name | The user name of the initial admin user of ProjectForge.
+h|Password | Admin's password.
+h|Default time zone | Default time zone for all users, if not configured by an user und MyAccount.
+h|Calendar domain | ProjectForge provides calendar and events. For having world-wide unique event id's, choose here your personal name.
+h|Administrators | ProjectForge sends e-mails to this address(es) in the case of special errors. You can specify one ore more (coma separated) addresses (RFC822).
+h|Feed-back | If this e-mail is given then a feedback panel will be shown if an error occurs. The user has the possibility to send an e-mail feedback (e. g. JIRA-system or help desk).
+|===
+
+Just click finish to have your ready-to-use installation.
+
+Please restart ProjectForge for full plugin-support.
+
+=== Activation of built-in-plugins
+
+[NOTE]
+====
+Please restart ProjectForge after completion of the installation for having full plugin support.
+====
+
+[#img-setup-webpage]
+.You have to activate some built-in plugins if you want to use them. The plugin "Data transfer" is recommended.
+image::images/admin-plugins.png[Activation of built-in plugins (Menu Administration -> Plugins)]
 
 == Reverse Proxy Setup (https)
 

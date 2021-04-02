@@ -29,6 +29,7 @@ import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
+import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.web.plugin.PluginWicketRegistrationService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -76,7 +77,7 @@ class MemoPlugin : AbstractPlugin(ID, "Memo", "Personal text memos of users.") {
         get() = MemoPluginUpdates.getInitializationUpdateEntry()
 
     companion object {
-        const val ID = "memo"
+        const val ID = PluginAdminService.PLUGIN_MEMO_ID
         const val RESOURCE_BUNDLE_NAME = "MemoI18nResources"
 
         // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
