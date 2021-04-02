@@ -29,6 +29,7 @@ import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
+import org.projectforge.plugins.core.PluginAdminService
 import org.springframework.beans.factory.annotation.Autowired
 
 private val log = KotlinLogging.logger {}
@@ -37,7 +38,7 @@ private val log = KotlinLogging.logger {}
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class SkillMatrixPlugin : AbstractPlugin("skillmatrix", "Skill matrix", "The users skills managed by the users themselve.") {
+class SkillMatrixPlugin : AbstractPlugin(PluginAdminService.PLUGIN_SKILL_MATRIX_ID, "Skill matrix", "The users skills managed by the users themselve.") {
 
     @Autowired
     private lateinit var skillEntryDao: SkillEntryDao

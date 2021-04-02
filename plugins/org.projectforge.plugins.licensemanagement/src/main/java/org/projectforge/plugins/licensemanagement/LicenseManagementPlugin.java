@@ -28,6 +28,7 @@ import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
+import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.registry.RegistryEntry;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +57,7 @@ public class LicenseManagementPlugin extends AbstractPlugin {
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
   public LicenseManagementPlugin() {
-    super("licenseManagementPlugin", "LicenseManagementPlugin", "For managing software licenses, keys and usage.");
+    super(PluginAdminService.PLUGIN_LICENSE_MANAGEMENT_ID, "LicenseManagementPlugin", "For managing software licenses, keys and usage.");
   }
 
   /**

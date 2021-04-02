@@ -32,6 +32,7 @@ import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
+import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.datatransfer.rest.DataTransferArea
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.config.JacksonConfiguration
@@ -100,7 +101,7 @@ class DataTransferPlugin :
   }
 
   companion object {
-    const val ID = "datatransfer"
+    const val ID = PluginAdminService.PLUGIN_DATA_TRANSFER_ID
     const val RESOURCE_BUNDLE_NAME = "DataTransferI18nResources"
   }
 }
