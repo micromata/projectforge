@@ -62,9 +62,9 @@ class MenuCreator {
   internal class MenuItemDefHolder {
     internal val menuItems: MutableList<MenuItemDef> = mutableListOf()
     fun add(menuItem: MenuItemDef): MenuItemDef {
-          if (menuItems.contains(menuItem)) {
-            log.error { "Menu item registered twice (ignoring): $this" }
-          }
+      if (menuItems.contains(menuItem)) {
+        log.error { "Menu item registered twice (ignoring): $this" }
+      }
       menuItems.add(menuItem)
       return menuItem
     }
