@@ -11,35 +11,71 @@ link:index{outfilesuffix}[Top]
 
 :sectnums:
 
-== Adding external plugins
-ProjectForge supports external 3rd party plugins:
-1. Place your jars e. g. in `/home/kai/ProjectForge/plugins`
-2. Tell ProjectForge where it is. You may have to options:
-   a. Run ProjectForge from command line with option `-Dloader.home=/home/kai/ProjectForge`, or
-   b. Set the environment variable before starting ProjectForge: `export LOADER_HOME=/home/kai/ProjectForge`.
-3. Start ProjectForge and activate the plugin as admin in the ProjectForge's web app under menu Admin->plugins.
-4. Restart ProjectForge.
+== Basic installation
 
-== Backups
-=== JCR
-Attachments will be handled through the built-in JCR module. The backups are placed in `ProjectForge/backup`, the daily backups will
-purged after 30 days keeping each first monthly backup.
+1. Install openjdk-11
+2. Get projectForge-application_version.jar
+3. First start: java -jar projectForge-application_version.jar
 
-=== DB backup
-You may configure a purge job in `projectforge.properties`:
-```
-### If purgeBackupDir is given and exists, ProjectForge will purge daily backups older than 30 days keeping each first monthly backup.
-### The filenames must contain the date in ISO format (...yyyy-MM-dd....).
-# This is the backup dir to look for:
-projectforge.cron.purgeBackupDir=/home/projectforge/backup
-# You may optional specify the prefix of the backup files (if not given, all files containing a date in its filename will be processed):
-projectforge.cron.purgeBackupFilesPrefix=projectforge_
-```
-Your daily data base backups should contain the date of backup in ISO format in its file name.
-Daily backups (not monthly) will be deleted after 30 days.
-Refer config file for all options: [https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties]
+=== The installation setup wizard
+After first start, you'll ask for entering the setup wizard. Go for it.
+There is an console setup wizard available as well as a graphical wizard as desktop application, depending on your environment. You may choose
+the version if your system supports both (graphical output and terminal output).
 
-== Reverse Proxy Setup
+Both editions have the same functionality.
+
+[#img-setup-wizard-1]
+.The setup wizard (terminal edition) for choosing ProjectForge's home directory.
+image::images/setup-wizard-step-1.png[Setup wizard, step 1]
+
+We assume `~/ProjectForge` as ProjectForge's home directy in this documentation, but you may choose anything else (will be created or should be empty if already exists).
+
+[#img-setup-wizard-2]
+.The setup wizard (terminal edition) for configuring the basic settings.
+image::images/setup-wizard-step-2.png[Setup wizard, step 2]
+
+[#img-setup-wizard-jdbc]
+.The setup wizard (graphical edition) for configuring and testing the data base connection.
+image::images/setup-wizard-gui-jdbc.png[Setup wizard, data base settings]
+
+You may leave the most settings as they are. You are able to change these settings later in `projectforge.properties` or `config.xml`.
+
+[cols="1,3"]
+|===
+h|Directory | ProjectForge's home directory including configuration, database and working directory.
+h|Domain | The domain of your system (http://localhost:8080 for test systems). This is needed e. g. for sending e-mail-notification to users including direct links to your installation of ProjectForge.
+h|Port | ProjectForge starts the server on this port (8080 should be OK for most cases).
+h|Database | Choose the data base. Embedded uses the built-in data base of ProjectForge (Hsql DB) and should be OK for test, development or small instances.
+h|Jdbc settings|If you choose PostgreSQL you are able to enter the data base connection values and test them by clicking *Test connection*.
+h|Currency | The default currency to use.
+h|Locale | The default locale to use. Your users are able to choose their own language.
+h|First day | The first day of week to use in the calendar views.
+h|Time | The default time notation to use (customizable by the users).
+h|Setting | Start ProjectForge - If checked, ProjectForge will be started after clicking *Finish*. For embedded data base, the data base is created.
+h|Setting | Enable CORS filter - Please check only for development (React development using yarn or npm). Do not use for productive systems!!!
+|===
+
+After clicking finish, ProjectForge will be initialized and started. You may proceed with your web browser with `http://localhost:8080` or `https://projectforge.acme.com`.
+
+
+[NOTE]
+====
+If your browser doesn't support `http://localhost:8080`, try 'http://127.0.0.1:8080/' or 'http://127.0.0.1:8080/wa/setup' or another browser.
+====
+
+ProjectForge is only available on port 8080 from localhost due to security reasons. For using https, please refer <<Reverse Proxy Setup (https)>>.
+
+=== The setup page
+
+[NOTE]
+====
+Please be aware, that after your first start of ProjectForge, your page might be public and be configured by somebody else! So proceed directly with the configuration if your new ProjectForge instance is
+public available.
+====
+
+
+
+== Reverse Proxy Setup (https)
 
 The recommended way of setting up ProjectForge is to use a reverse proxy to do the SSL termination. This document focueses on using the NGINX web server software to  accomplish this.
 
@@ -121,6 +157,9 @@ To activate the NGINX configuration, you'll need to symlink the configuration fi
 $ ln -sv /etc/nginx/sites-available/projectforge /etc/nginx/sites-enabled/projectforge
 ```
 
+=== Apache httpd
+to be defined.
+
 == Using CardDAV and WebDAV with Milton
 Place files `milton.license.properties` and `milton.license.sig` to directory `~/ProjectForge/resources/milton/` and start ProjectForge with
 loader path:
@@ -199,3 +238,31 @@ else
     exit 1
 fi
 ```
+
+== Adding external plugins
+ProjectForge supports external 3rd party plugins:
+1. Place your jars e. g. in `/home/kai/ProjectForge/plugins`
+2. Tell ProjectForge where it is. You may have to options:
+a. Run ProjectForge from command line with option `-Dloader.home=/home/kai/ProjectForge`, or
+b. Set the environment variable before starting ProjectForge: `export LOADER_HOME=/home/kai/ProjectForge`.
+3. Start ProjectForge and activate the plugin as admin in the ProjectForge's web app under menu Admin->plugins.
+4. Restart ProjectForge.
+
+== Backups
+=== JCR
+Attachments will be handled through the built-in JCR module. The backups are placed in `ProjectForge/backup`, the daily backups will
+purged after 30 days keeping each first monthly backup.
+
+=== DB backup
+You may configure a purge job in `projectforge.properties`:
+```
+### If purgeBackupDir is given and exists, ProjectForge will purge daily backups older than 30 days keeping each first monthly backup.
+### The filenames must contain the date in ISO format (...yyyy-MM-dd....).
+# This is the backup dir to look for:
+projectforge.cron.purgeBackupDir=/home/projectforge/backup
+# You may optional specify the prefix of the backup files (if not given, all files containing a date in its filename will be processed):
+projectforge.cron.purgeBackupFilesPrefix=projectforge_
+```
+Your daily data base backups should contain the date of backup in ISO format in its file name.
+Daily backups (not monthly) will be deleted after 30 days.
+Refer config file for all options: [https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties]
