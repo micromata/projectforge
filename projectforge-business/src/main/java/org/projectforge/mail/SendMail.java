@@ -32,7 +32,7 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.scripting.GroovyEngine;
 import org.projectforge.framework.i18n.InternalErrorException;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;

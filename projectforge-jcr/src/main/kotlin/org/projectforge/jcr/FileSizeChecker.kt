@@ -36,29 +36,31 @@ interface FileSizeChecker {
   /**
    * Checks the size of the given file.
    * @param Optional data e. g. for fileSizeChecker of data transfer area size.
+   * @param displayUserMessage See [org.projectforge.common.i18n.UserException]
    * @return Exception to throw by caller if file is to big or null, if file size is accepted.
    */
-  fun checkSize(file: FileInfo, data: Any? = null): MaxFileSizeExceeded?
+  fun checkSize(file: FileInfo, data: Any? = null, displayUserMessage: Boolean = true)
 
-  fun checkSize(file: FileInfo, maxFileSize: Long, maxFileSizeSpringProperty: String?): MaxFileSizeExceeded? {
-    file.size?.let {
-      if (it > maxFileSize) {
-        val ex = MaxFileSizeExceeded(
+  fun checkSize(
+    file: FileInfo,
+    maxFileSize: Long,
+    maxFileSizeSpringProperty: String?,
+    displayUserMessage: Boolean = true
+  ) {
+    file.size?.let { fileSize ->
+      if (fileSize > maxFileSize) {
+        throw MaxFileSizeExceeded(
           maxFileSize,
-          "File will not be stored: $file.",
-          it,
-          file.fileName,
+          fileSize,
+          file.fileName ?: "<unknown>",
           maxFileSizeSpringProperty,
-          info = file
+          displayUserMessage = displayUserMessage
         )
-        log.error { ex.message }
-        return ex
       }
     }
     if (file.size == null) {
       val maxFileSizeFormatted = FormatterUtils.formatBytes(maxFileSize)
       log.warn { "Can't check maximum file size of $maxFileSizeFormatted. Can't detect file size. File will be stored: $file." }
     }
-    return null
   }
 }

@@ -23,8 +23,6 @@
 
 package org.projectforge.jcr
 
-import org.projectforge.common.MaxFileSizeExceeded
-
 /**
  * Checks the file size before storing it.
  */
@@ -36,7 +34,7 @@ class FileSizeStandardChecker(
    * Checks the size of the given file.
    * @return Exception to throw by caller if file is to big or null, if file size is accepted.
    */
-  override fun checkSize(file: FileInfo, data: Any?): MaxFileSizeExceeded? {
-    return checkSize(file, maxFileSize, maxFileSizeSpringProperty)
+  override fun checkSize(file: FileInfo, data: Any?, displayUserMessage: Boolean) {
+     checkSize(file, maxFileSize, maxFileSizeSpringProperty, displayUserMessage)
   }
 }

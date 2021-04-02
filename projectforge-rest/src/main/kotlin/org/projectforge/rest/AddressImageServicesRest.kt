@@ -85,16 +85,7 @@ class AddressImageServicesRest {
     if (filename == null || !filename.endsWith(".png", true)) {
       return ResponseEntity("Unsupported file: $filename. Only png files supported", HttpStatus.BAD_REQUEST)
     }
-    fileSizeStandardChecker.checkSize(FileInfo(filename, fileSize = file.size))?.let {
-      log.error(it.message)
-      return ResponseEntity(
-        UIToast.createMaxFileExceededToast(
-          it.fileName,
-          it.fileSize,
-          it.maxFileSize
-        ), HttpStatus.BAD_REQUEST
-      )
-    }
+    fileSizeStandardChecker.checkSize(FileInfo(filename, fileSize = file.size), displayUserMessage = false)
     val bytes = file.bytes
     if (id == null || id < 0) {
       val session = request.session

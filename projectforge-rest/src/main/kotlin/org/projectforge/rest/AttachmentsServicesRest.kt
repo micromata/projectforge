@@ -24,7 +24,7 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.common.MaxFileSizeExceeded
+import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
@@ -42,7 +42,6 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.projectforge.ui.UIAttachmentList
-import org.projectforge.ui.UIToast
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.ResponseEntity
@@ -113,27 +112,17 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     val pagesRest = getPagesRest(category, listId)
     //files.forEach { file ->
     val filename = file.originalFilename
-    log.info { "User tries to upload attachment: id='$id', listId='$listId', filename='$filename', page='${this::class.java.name}'." }
+    log.info { "User tries to upload attachment: id='$id', listId='$listId', filename='$filename', size=${FormatterUtils.formatBytes(file.size)}, page='${this::class.java.name}'." }
 
     val obj = getDataObject(pagesRest, id) // Check data object availability.
-    try {
-      attachmentsService.addAttachment(
-        pagesRest.jcrPath!!,
-        fileInfo = FileInfo(file.originalFilename, fileSize = file.size),
-        inputStream = file.inputStream,
-        baseDao = pagesRest.baseDao,
-        obj = obj,
-        accessChecker = pagesRest.attachmentsAccessChecker
-      )
-    } catch (ex: MaxFileSizeExceeded) {
-      return ResponseEntity.ok(
-        UIToast.createMaxFileExceededToast(
-          ex.fileName,
-          ex.fileSize,
-          ex.maxFileSize
-        )
-      )
-    }
+    attachmentsService.addAttachment(
+      pagesRest.jcrPath!!,
+      fileInfo = FileInfo(file.originalFilename, fileSize = file.size),
+      inputStream = file.inputStream,
+      baseDao = pagesRest.baseDao,
+      obj = obj,
+      accessChecker = pagesRest.attachmentsAccessChecker
+    )
     //}
     val list = attachmentsService.getAttachments(pagesRest.jcrPath!!, id, pagesRest.attachmentsAccessChecker, listId)
     return ResponseEntity.ok()

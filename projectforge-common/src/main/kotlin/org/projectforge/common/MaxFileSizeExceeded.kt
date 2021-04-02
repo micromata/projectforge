@@ -23,35 +23,32 @@
 
 package org.projectforge.common
 
+import org.projectforge.common.i18n.UserException
 import java.util.*
 
 class MaxFileSizeExceeded(
-  val maxFileSize: Long,
-  message: String,
-  val fileSize: Long,
+  val maxFileSize: Long?,
+  val fileSize: Long?,
   val fileName: String? = null,
   /**
    * For admins to log, which spring property may be configure to increase max size of files (projectforge.properties).
    */
   val maxFileSizeSpringProperty: String? = null,
+  displayUserMessage: Boolean = true,
   val info: Any? = null
 ) :
-  RuntimeException(
-    createMessage(maxFileSize, message, fileSize, fileName, maxFileSizeSpringProperty)
-  )
-
-private fun createMessage(
-  maxFileSize: Long, message: String,
-  fileSize: Long,
-  fileName: String?,
-  maxFileSizeSpringProperty: String?
-): String {
-  val fileSizeFormatted = FormatterUtils.formatBytes(fileSize, Locale.ENGLISH)
-  val maxFileSizeFormatted = FormatterUtils.formatBytes(maxFileSize, Locale.ENGLISH)
-  val adminHint = if (maxFileSizeSpringProperty != null) {
-    " You may increase this file size by configuring parameter '$maxFileSizeSpringProperty=$maxFileSizeFormatted' in config properties file."
-  } else {
-    ""
+  UserException(
+    "file.upload.maxSizeExceeded",
+    fileName ?: "<unknown>",
+    FormatterUtils.formatBytes(fileSize),
+    FormatterUtils.formatBytes(maxFileSize)
+  ) {
+  init {
+    val maxFileSizeFormatted = FormatterUtils.formatBytes(maxFileSize, Locale.ENGLISH)
+    if (maxFileSizeSpringProperty != null) {
+      logHintMessage =
+        "You may increase this file size by configuring parameter '$maxFileSizeSpringProperty=$maxFileSizeFormatted' in config properties file."
+    }
+    this.displayUserMessage = displayUserMessage
   }
-  return "Maximum size of file '${fileName ?: "<unknown>"}' exceeded ($fileSizeFormatted > $maxFileSizeFormatted). $message$adminHint"
 }

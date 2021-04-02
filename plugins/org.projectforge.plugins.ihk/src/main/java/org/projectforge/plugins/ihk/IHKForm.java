@@ -33,6 +33,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.timesheet.TimesheetDO;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.PFDay;
@@ -106,15 +107,15 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
                 ausbildungsbeginn = LocalDate.parse(ihkCommentObject.getAusbildungStartDatum());
             } catch (Exception e) {
                 log.warn("IHK-Plugin: wasnt able to parse json from AddressDo.getComment():" + e.getMessage());
-                throw new org.projectforge.framework.i18n.UserException("plugins.ihk.jsonError.parsing", e.getMessage());
+                throw new UserException("plugins.ihk.jsonError.parsing", e.getMessage());
             }
         } else {
             if (foundUser) {
                 log.info("IHK-Plugin: userComment not set. Value was null or empty.");
-                throw new org.projectforge.framework.i18n.UserException("plugins.ihk.jsonError.emtpy");
+                throw new UserException("plugins.ihk.jsonError.emtpy");
             } else {
                 log.info("IHK-Plugin: userComment not set. Value was null or empty.");
-                throw new org.projectforge.framework.i18n.UserException("plugins.ihk.userError.notFound");
+                throw new UserException("plugins.ihk.userError.notFound");
             }
 
 

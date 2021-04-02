@@ -26,7 +26,7 @@ package org.projectforge.fibu;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.*;
 import org.projectforge.framework.access.AccessException;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 

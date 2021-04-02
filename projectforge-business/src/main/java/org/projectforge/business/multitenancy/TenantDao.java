@@ -26,7 +26,7 @@ package org.projectforge.business.multitenancy;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.continuousdb.Table;
 import org.projectforge.framework.access.AccessException;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;

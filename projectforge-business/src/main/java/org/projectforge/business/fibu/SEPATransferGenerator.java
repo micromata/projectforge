@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu;
 
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.generated.*;
 import org.springframework.beans.factory.annotation.Value;

@@ -25,7 +25,7 @@ package org.projectforge.business.fibu;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.user.UserRightId;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;

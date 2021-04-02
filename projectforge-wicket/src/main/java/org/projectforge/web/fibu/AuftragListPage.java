@@ -43,7 +43,7 @@ import org.projectforge.business.fibu.*;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.web.wicket.*;

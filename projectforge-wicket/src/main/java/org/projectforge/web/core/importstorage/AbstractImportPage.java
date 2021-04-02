@@ -35,7 +35,7 @@ import org.apache.commons.lang3.Validate;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.common.SupplierWithException;
 import org.projectforge.business.excel.ExcelImportException;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.DownloadUtils;
 

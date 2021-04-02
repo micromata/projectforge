@@ -24,13 +24,14 @@
 package org.projectforge.framework.i18n;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.projectforge.framework.api.ProjectForgeException;
+import org.projectforge.common.ProjectForgeException;
+import org.projectforge.common.i18n.MessageParam;
 
 import java.util.ResourceBundle;
 
 /**
  * This Exception will be thrown by the application and the message should be displayed.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class InternalErrorException extends ProjectForgeException

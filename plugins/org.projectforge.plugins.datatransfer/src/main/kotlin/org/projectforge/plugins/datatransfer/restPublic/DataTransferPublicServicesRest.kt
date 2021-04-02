@@ -24,7 +24,6 @@
 package org.projectforge.plugins.datatransfer.restPublic
 
 import mu.KotlinLogging
-import org.projectforge.common.MaxFileSizeExceeded
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.FileInfo
@@ -36,7 +35,6 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
-import org.projectforge.ui.UIToast
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -134,25 +132,15 @@ class DataTransferPublicServicesRest {
       return RestUtils.badRequest("Upload not enabled.")
     }
 
-    try {
-      attachmentsService.addAttachment(
-        dataTransferAreaPagesRest.jcrPath!!,
-        fileInfo = FileInfo(file.originalFilename, fileSize = file.size),
-        inputStream = file.inputStream,
-        baseDao = dataTransferAreaDao,
-        obj = obj,
-        accessChecker = attachmentsAccessChecker,
-        userString = getExternalUserString(request)
-      )
-    } catch (ex: MaxFileSizeExceeded) {
-      return ResponseEntity.ok(
-        UIToast.createMaxFileExceededToast(
-          ex.fileName,
-          ex.fileSize,
-          ex.maxFileSize
-        )
-      )
-    }
+    attachmentsService.addAttachment(
+      dataTransferAreaPagesRest.jcrPath!!,
+      fileInfo = FileInfo(file.originalFilename, fileSize = file.size),
+      inputStream = file.inputStream,
+      baseDao = dataTransferAreaDao,
+      obj = obj,
+      accessChecker = attachmentsAccessChecker,
+      userString = getExternalUserString(request)
+    )
     //}
     val list =
       attachmentsAccessChecker.filterAttachments(

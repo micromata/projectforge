@@ -33,7 +33,7 @@ import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.event.model.CalEventDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.UserRightId;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;

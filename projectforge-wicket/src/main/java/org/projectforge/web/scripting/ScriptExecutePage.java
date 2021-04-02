@@ -39,7 +39,7 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.export.ExportJFreeChart;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDay;

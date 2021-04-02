@@ -21,18 +21,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.i18n
+package org.projectforge.common
 
-import org.projectforge.common.FormatterUtils
-import org.projectforge.framework.i18n.translateMsg
-
-object I18nUtils {
-  fun translateMaxSizeExceeded(fileName: String?, fileSize: Long, maxFileSize: Long): String {
-    return translateMsg(
-      "file.upload.maxSizeExceeded",
-      fileName ?: "<unknown>",
-      FormatterUtils.formatBytes(fileSize),
-      FormatterUtils.formatBytes(maxFileSize)
-    )
-  }
-}
+/**
+ * All ProjectForge specific exception should be derived from this class.
+ *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ */
+open class ProjectForgeException(message: String) : RuntimeException(message)
