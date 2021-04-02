@@ -37,6 +37,10 @@ import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Set;
@@ -48,6 +52,9 @@ public class HibernateSearchReindexer {
   private static final String ERROR_MSG = "Error while re-indexing data base: found lock files while re-indexing data-base. "
           + "Try to run re-index manually in the web administration menu and if occured again, "
           + "shutdown ProjectForge, delete lock file(s) in hibernate-search sub directory and restart.";
+
+  @PersistenceContext
+  private EntityManager em;
 
   @Autowired
   private SendMail sendMail;
@@ -122,6 +129,16 @@ public class HibernateSearchReindexer {
   }
 
   private void reindex(final Class<?> clazz, final ReindexSettings settings, final StringBuffer buf) {
+    try {
+      // Try to check, if class is available (entity of ProjectForge's core or of active plugin).
+      CriteriaBuilder cb = em.getCriteriaBuilder();
+      CriteriaQuery cq = cb.createQuery(clazz);
+      CriteriaQuery query = cq.select(cq.from(clazz));
+      em.createQuery(query).getResultList();
+    } catch(Exception ex) {
+      log.info("Class '" + clazz + "' not available (OK for non-active plugins).");
+      return;
+    }
     // PF-378: Performance of run of full re-indexing the data-base is very slow for large data-bases
     // Single transactions needed, otherwise the full run will be very slow for large data-bases.
     try {
