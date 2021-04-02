@@ -28,6 +28,7 @@ import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.RepoService
+import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
@@ -49,12 +50,19 @@ class DataTransferJCRCleanUpJob {
   @Autowired
   private lateinit var repoService: RepoService
 
+  @Autowired
+  private lateinit var pluginAdminService: PluginAdminService
+
   /**
    * @return number of deleted files (for test cases).
    */
   // Every hour, starting 10 minutes after starting.
   @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 600 * 1000)
   fun execute(): Int {
+    if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
+      log.info("Plugin data transfer not activated. Don't need clean-up job.")
+      return -1
+    }
     log.info("Data transfer clean-up job started.")
     val startTimeInMillis = System.currentTimeMillis()
 
