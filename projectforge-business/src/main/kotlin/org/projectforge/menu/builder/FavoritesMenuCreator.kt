@@ -30,6 +30,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
+import org.projectforge.plugins.core.PluginAdminService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -84,6 +85,7 @@ open class FavoritesMenuCreator {
             menu.add(menuCreator.findById(MenuItemDefId.TASK_TREE))
             menu.add(menuCreator.findById(MenuItemDefId.CALENDAR))
             menu.add(menuCreator.findById(MenuItemDefId.ADDRESS_LIST))
+            menu.add(menuCreator.findById(PluginAdminService.PLUGIN_DATA_TRANSFER_ID))
         }
         return menu
     }

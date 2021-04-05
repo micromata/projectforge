@@ -25,7 +25,7 @@ COPY src/application.properties /
 
 
 #ENTRYPOINT ["java","-cp","app:app/lib/*","org.projectforge.start.ProjectForgeApplication"]
-ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -Dprojectforge.docker.mode=y -cp app:app/lib/* org.projectforge.start.ProjectForgeApplication"]
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -Dprojectforge.docker.mode=y -Dprojectforge.plugins.dir=/ProjectForge/plugins -cp app:app/lib/*:/ProjectForge/plugins/* org.projectforge.start.ProjectForgeApplication"]
 
 MAINTAINER Micromata
 
