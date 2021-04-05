@@ -70,6 +70,8 @@ public class ProjectForgeApp {
 
   public static final String CONFIG_PARAM_BASE_DIR = "projectforge.base.dir";
 
+  public static final String CONFIG_PARAM_DOCKER_MODE = "projectforge.docker.mode";
+
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeApp.class);
 
   private static boolean junitTestMode = false;
