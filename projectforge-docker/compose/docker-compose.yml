@@ -1,22 +1,24 @@
 version: "3.7"
 services:
   projectforge-app:
-    container_name: projectforge-app
-    build: '../app'
+    image: kreinhard/projectforge:latest
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    restart: always
     ports:
-      - "8080:8080"
-    depends_on:
-      - projectforge-database
-  projectforge-db:
-    container_name: projectforge-db
-    ports:
-      - "5432:5432"
+      - "127.0.0.1:8080"
     volumes:
-      - pf-data:/var/lib/postgresql/data
+      - ${HOME}/ProjectForge:/ProjectForge
+    depends_on:
+      - projectforge-db
+  projectforge-db:
+    image: postgres:12.6
+    restart: always
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ${HOME}/ProjectForge/db:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PASSWORD=${PGPASSWORD}
+      - POSTGRES_PASSWORD="***password***"
       - POSTGRES_USER=projectforge
       - PGDATA=/var/lib/postgresql/data/pgdata
-
-volumes:
-  pf-data:

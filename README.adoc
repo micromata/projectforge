@@ -84,13 +84,13 @@ You may use PostgreSQL instead of the built-in data base.
 * Choose and set a database password: +
  `export PGPASSWORD=mypassword`
 * Run PostgreSQL: +
-`docker run --name projectforge-postgres -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:11.2`
+`docker run --name projectforge-postgres -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:11.2`
 * Configure ProjectForge
 
 .$HOME/ProjectForge/projectforge.properties
 ----
 projectforge.base.dir=${user.home}/ProjectForge
-spring.datasource.url=jdbc:postgresql://localhost:15432/projectforge
+spring.datasource.url=jdbc:postgresql://localhost:5432/projectforge
 spring.datasource.username=projectforge
 spring.datasource.password=${PGPASSWORD}
 spring.datasource.driver-class-name=org.postgresql.Driver
