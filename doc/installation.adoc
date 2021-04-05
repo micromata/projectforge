@@ -19,14 +19,17 @@ You may install ProjectForge as docker image.
 
 We assume `/home/projectforge/ProjectForge` as ProjectForge's home in this documentation, but you may choose anything else (will be created or should be empty if already exists).
 
-==== Built-in database
-1. First start `docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge --name projectforge-app kreinhard/projectforge:latest`
+==== Built-in database (HsqlDB)
+For test or small installations you may use the built-in data base.+
+
+1. First start `docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge --name projectforge-app kreinhard/projectforge`
 2. Follow setup wizard below.
 3. After finalization of setup, press `CTRL-C` for stopping container.
 4. Restart  `docker start projectforge-app`
 5. Enjoy.
 
-==== Using PostgreSQL
+==== External data base (PostgreSQL)
+For productive and larger installations.
 
 1. Copy and modify https://github.com/micromata/projectforge/blob/master/projectforge-docker/compose/docker-compose.yml[docker-compose.yml] (choose data base password).
 2. First start: `docker-compose -p 127.0.0.1:8080:8080 run projectforge-app`
@@ -36,7 +39,7 @@ We assume `/home/projectforge/ProjectForge` as ProjectForge's home in this docum
 6. Enjoy.
 
 
-=== Java-Installation
+==== Java-Installation
 If you don't want to use Docker, you're able to install ProjectForge from the executable jar file.
 
 1. Install openjdk-11
