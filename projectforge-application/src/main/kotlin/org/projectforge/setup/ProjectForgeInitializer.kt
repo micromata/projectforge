@@ -63,12 +63,14 @@ object ProjectForgeInitializer {
         }
 
         val serverPort = if (setupData.serverPort in 1..65535) setupData.serverPort else 8080
+        val serverAddress = if (setupData.dockerMode) "0.0.0.0" else "localhost"
 
         val domainService = DomainService.internalCreate(setupData.domain)
         counter = ensureConfigFile(applicationHomeDir,
                 ProjectForgeApplication.CLASSPATH_INITIAL_PROPERTIES_FILENAME, ProjectForgeApplication.PROPERTIES_FILENAME, counter, emphasizedLog,
                 StringModifier {
-                    var result = replace(it, "server.port", "$serverPort")
+                    var result = replace(it, "server.address", "$serverAddress")
+                    result = replace(result, "server.port", "$serverPort")
                     result = replace(result, "projectforge.domain", domainService.domain)
                     result = replace(result, "projectforge.servletContextPath", domainService.contextPath)
                     result = replace(result, "projectforge.currencySymbol", setupData.currencySymbol)
