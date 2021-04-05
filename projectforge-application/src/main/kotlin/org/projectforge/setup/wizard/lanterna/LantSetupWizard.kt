@@ -50,9 +50,6 @@ class LantSetupWizard(presetAppHomeDir: File? = null, dockerMode: Boolean? = nul
   private val lanternaScreen: Screen
 
   init {
-    if (dockerMode == true) {
-      JdbcConnectionTest.defaultJdbcUrl = "jdbc:postgresql://projectforge-db:5432/projectforge"
-    }
     // Setup terminal and screen layers
     // Throws an IOException on Windows, if not started with javaw.
     val terminalFactory = DefaultTerminalFactory()
@@ -67,7 +64,10 @@ class LantSetupWizard(presetAppHomeDir: File? = null, dockerMode: Boolean? = nul
     context =
       LantGUIContext(this, textGUI, TerminalSize(lanternaScreen.terminalSize.columns, lanternaScreen.terminalSize.rows))
     context.setupData.applicationHomeDir = presetAppHomeDir
-    if (dockerMode != true) {
+    if (dockerMode == true) {
+      JdbcConnectionTest.defaultJdbcUrl = "jdbc:postgresql://projectforge-db:5432/projectforge"
+      context.setupData.dockerMode = true
+    } else {
       chooseDirectoryScreen = LantChooseDirectoryScreen(context)
       textGUI.addWindow(chooseDirectoryScreen)
     }

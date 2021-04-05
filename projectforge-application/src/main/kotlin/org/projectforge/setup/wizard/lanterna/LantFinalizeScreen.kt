@@ -75,33 +75,41 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
     portTextBox = TextBox("8080")
       .setValidationPattern(Pattern.compile("[0-9]{1,5}?"))
       .setPreferredSize(TerminalSize(7, 1))
-    panel.addComponent(Label(Texts.FS_PORT))
-      .addComponent(portTextBox)
-      .addComponent(EmptySpace())
+    if (!context.setupData.dockerMode) {
+      panel.addComponent(Label(Texts.FS_PORT))
+        .addComponent(portTextBox)
+        .addComponent(EmptySpace())
+    }
 
     panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(3)))
 
     databaseCombobox = ComboBox()
     listOfDatabases.forEach { databaseCombobox.addItem(it.label) }
-    databaseCombobox.addListener { selectedIndex, previousSelection, _ ->
-      if (previousSelection != selectedIndex) {
-        if (selectedIndex > 0) {
-          jdbcSettingsButton.setEnabled(true)
-          showJdbcSettingsDialog()
-          context.setupData.useEmbeddedDatabase = false
-        } else {
-          jdbcSettingsButton.setEnabled(false)
-          context.setupData.useEmbeddedDatabase = true
+    if (!context.setupData.dockerMode) {
+      databaseCombobox.addListener { selectedIndex, previousSelection, _ ->
+        if (previousSelection != selectedIndex) {
+          if (selectedIndex > 0) {
+            jdbcSettingsButton.setEnabled(true)
+            showJdbcSettingsDialog()
+            context.setupData.useEmbeddedDatabase = false
+          } else {
+            jdbcSettingsButton.setEnabled(false)
+            context.setupData.useEmbeddedDatabase = true
+          }
         }
       }
     }
     jdbcSettingsButton = Button(Texts.FS_JDBC_SETTINGS) {
       showJdbcSettingsDialog()
     }
-      .setEnabled(false)
+      .setEnabled(context.setupData.dockerMode) // Only enabled in docker mode, because embedded is not available.
     panel.addComponent(Label(Texts.DATABASE))
-      .addComponent(databaseCombobox)
-      .addComponent(jdbcSettingsButton)
+    if (context.setupData.dockerMode) {
+      context.setupData.useEmbeddedDatabase = false
+    } else {
+      panel.addComponent(databaseCombobox)
+    }
+    panel.addComponent(jdbcSettingsButton)
 
     panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(3)))
 
@@ -187,7 +195,7 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
   }
 
   override fun redraw() {
-    if (context.setupData.jdbcSettings != null && !context.setupData.useEmbeddedDatabase) {
+    if (context.setupData.dockerMode || (context.setupData.jdbcSettings != null && !context.setupData.useEmbeddedDatabase)) {
       // PostgreSQL
       databaseCombobox.selectedIndex = 1
       jdbcSettingsButton.setEnabled(true)

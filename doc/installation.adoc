@@ -33,7 +33,7 @@ For productive and larger installations.
 
 1. Copy and modify https://github.com/micromata/projectforge/blob/master/projectforge-docker/compose/docker-compose.yml[docker-compose.yml] (choose data base password).
 2. First start: `docker-compose run projectforge-app`
-3. Follow setup wizard below.
+3. Follow setup wizard below (choose PostgreSQL, data base will be available after some minutes for connection test).
 4. After finalization of setup, press `CTRL-C` for stopping container.
 5. Restart 'docker-compose up'
 6. Enjoy.
@@ -74,8 +74,8 @@ You may leave the most settings as they are. You are able to change these settin
 |===
 h|Directory | ProjectForge's home directory including configuration, database and working directory.
 h|Domain | The domain of your system (http://localhost:8080 for test systems). This is needed e. g. for sending e-mail-notification to users including direct links to your installation of ProjectForge.
-h|Port | ProjectForge starts the server on this port (8080 should be OK for most cases).
-h|Database | Choose the data base. Embedded uses the built-in data base of ProjectForge (Hsql DB) and should be OK for test, development or small instances.
+h|Port | ProjectForge starts the server on this port (8080 should be OK for most cases and can't be modified for docker installation).
+h|Database | Choose the data base. Embedded uses the built-in data base of ProjectForge (Hsql DB) and should be OK for test, development or small instances. In docker mode only PostgreSQL is available.
 h|Jdbc settings|If you choose PostgreSQL you are able to enter the data base connection values and test them by clicking *Test connection*.
 h|Currency | The default currency to use.
 h|Locale | The default locale to use. Your users are able to choose their own language.

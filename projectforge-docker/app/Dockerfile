@@ -11,6 +11,7 @@ RUN mkdir /ProjectForge
 # Grant access for user projectforge:
 RUN chown projectforge.projectforge /ProjectForge
 VOLUME /ProjectForge
+EXPOSE 8080
 
 USER projectforge:projectforge
 
@@ -23,14 +24,13 @@ COPY ${DEPENDENCY}/BOOT-INF/classes /app
 # This application.properties is needed
 COPY src/application.properties /
 
-ENV JAVA_OPTS="-Xms1g -Xmx1g"
+ARG JAVA_OPTS="-Xms1g -Xmx1g"
+ENV JAVA_OPTS_VAR=$JAVA_OPTS
 
 # -Dloader.path=${HOME}/ProjectForge/resources/milton ${DEBUGOPTS}
 
 # Variable expansion doesn't work for ENTRYPOINT definition as array.
 #ENTRYPOINT ["java","-cp","app:app/lib/*","org.projectforge.start.ProjectForgeApplication"]
-ENTRYPOINT java ${JAVA_OPTS} -cp app:app/lib/*:/ProjectForge/plugins/* -Dprojectforge.docker.mode=y -Dprojectforge.plugins.dir=/ProjectForge/plugins org.projectforge.start.ProjectForgeApplication
-
-EXPOSE 8080
+ENTRYPOINT java ${JAVA_OPTS_VAR} -cp app:app/lib/*:/ProjectForge/plugins/* -Dprojectforge.docker.mode=y -Dprojectforge.plugins.dir=/ProjectForge/plugins org.projectforge.start.ProjectForgeApplication
 
 MAINTAINER Micromata

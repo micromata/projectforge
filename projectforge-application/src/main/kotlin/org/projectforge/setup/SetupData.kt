@@ -28,21 +28,29 @@ import java.io.File
 import java.time.DayOfWeek
 
 class SetupData(
-        var applicationHomeDir: File? = null,
-        var domain: String? = "http://localhost:8080",
-        var serverPort: Int = 8080,
-        var startServer: Boolean = true,
-        var developmentMode: Boolean = false,
-        var defaultLocale: String = "en",
-        var currencySymbol: String = "€",
-        var defaultTimeNotation: TimeNotation = TimeNotation.H24,
-        var defaultFirstDayOfWeek: DayOfWeek = DayOfWeek.MONDAY,
-        var useEmbeddedDatabase: Boolean = true,
-        var jdbcSettings: JdbcSettings? = null) {
+  var applicationHomeDir: File? = null,
+  var domain: String? = "http://localhost:8080",
+  var serverPort: Int = 8080,
+  var startServer: Boolean = true,
+  var developmentMode: Boolean = false,
+  var defaultLocale: String = "en",
+  var currencySymbol: String = "€",
+  var defaultTimeNotation: TimeNotation = TimeNotation.H24,
+  var defaultFirstDayOfWeek: DayOfWeek = DayOfWeek.MONDAY,
+  var useEmbeddedDatabase: Boolean = true,
+  var jdbcSettings: JdbcSettings? = null
+) {
+  /**
+   * In Docker mode for installation (only console wizard), some settings aren't available such as directory browser
+   * or port.
+   */
+  var dockerMode: Boolean = false
 
-    class JdbcSettings(var jdbcUrl: String? = null,
-                       var user: String? = null,
-                       var password: String? = null,
-                       var driverClass: String? = null)
+  class JdbcSettings(
+    var jdbcUrl: String? = null,
+    var user: String? = null,
+    var password: String? = null,
+    var driverClass: String? = null
+  )
 }
 
