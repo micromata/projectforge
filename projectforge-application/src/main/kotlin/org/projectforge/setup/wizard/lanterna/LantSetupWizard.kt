@@ -41,94 +41,100 @@ import java.io.File
 import java.io.IOException
 
 
-class LantSetupWizard(presetAppHomeDir: File? = null) : AbstractSetupWizard() {
-    override val context: LantGUIContext
-    private val terminal: Terminal
-    private val chooseDirectoryScreen: LantChooseDirectoryScreen
-    private val finalizeScreen: LantFinalizeScreen
-    private val lanternaScreen: Screen
+class LantSetupWizard(presetAppHomeDir: File? = null, dockerMode: Boolean? = null) : AbstractSetupWizard() {
+  override val context: LantGUIContext
+  private val terminal: Terminal
+  private var chooseDirectoryScreen: LantChooseDirectoryScreen? = null
+  private val finalizeScreen: LantFinalizeScreen
+  private val lanternaScreen: Screen
 
-    init {
-        // Setup terminal and screen layers
-        // Throws an IOException on Windows, if not started with javaw.
-        val terminalFactory = DefaultTerminalFactory()
-        terminalFactory.setInitialTerminalSize(TerminalSize(120, 40))
-        terminal = terminalFactory.createTerminal()
-        // terminal.enterPrivateMode() // may result in crash
-        lanternaScreen = TerminalScreen(terminal)
-        lanternaScreen.startScreen()
+  init {
+    // Setup terminal and screen layers
+    // Throws an IOException on Windows, if not started with javaw.
+    val terminalFactory = DefaultTerminalFactory()
+    terminalFactory.setInitialTerminalSize(TerminalSize(120, 40))
+    terminal = terminalFactory.createTerminal()
+    // terminal.enterPrivateMode() // may result in crash
+    lanternaScreen = TerminalScreen(terminal)
+    lanternaScreen.startScreen()
 
-        // Create gui and start gui
-        val textGUI = MultiWindowTextGUI(lanternaScreen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
-        context = LantGUIContext(this, textGUI, TerminalSize(lanternaScreen.terminalSize.columns, lanternaScreen.terminalSize.rows))
-        context.setupData.applicationHomeDir = presetAppHomeDir
-        chooseDirectoryScreen = LantChooseDirectoryScreen(context)
-        textGUI.addWindow(chooseDirectoryScreen)
-        finalizeScreen = LantFinalizeScreen(context)
-        textGUI.addWindow(finalizeScreen)
-
-        terminal.addResizeListener { _, newSize ->
-            context.terminalSize = newSize
-            context.windowSize = newSize
-            chooseDirectoryScreen.resize()
-            finalizeScreen.resize()
-        }
+    // Create gui and start gui
+    val textGUI = MultiWindowTextGUI(lanternaScreen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
+    context =
+      LantGUIContext(this, textGUI, TerminalSize(lanternaScreen.terminalSize.columns, lanternaScreen.terminalSize.rows))
+    context.setupData.applicationHomeDir = presetAppHomeDir
+    if (dockerMode != true) {
+      chooseDirectoryScreen = LantChooseDirectoryScreen(context)
+      textGUI.addWindow(chooseDirectoryScreen)
     }
+    finalizeScreen = LantFinalizeScreen(context)
+    textGUI.addWindow(finalizeScreen)
+
+    terminal.addResizeListener { _, newSize ->
+      context.terminalSize = newSize
+      context.windowSize = newSize
+      chooseDirectoryScreen?.resize()
+      finalizeScreen.resize()
+    }
+  }
+
+  /**
+   * @return The user settings or null, if the user canceled the wizard through exit.
+   */
+  override fun run(): SetupData? {
+    super.initialize()
+    chooseDirectoryScreen?.waitUntilClosed() ?: finalizeScreen.waitUntilClosed()
+    return super.run()
+  }
+
+  override fun setActiveWindow(nextScreen: ScreenID) {
+    val window = when (nextScreen) {
+      ScreenID.CHOOSE_DIR -> chooseDirectoryScreen ?: finalizeScreen
+      else -> finalizeScreen
+    }
+    window.redraw()
+    context.textGUI.activeWindow = window
+  }
+
+  override fun finish() {
+    chooseDirectoryScreen?.close()
+    finalizeScreen.close()
+    lanternaScreen.stopScreen()
+    //terminal.exitPrivateMode()
+    terminal.close()
+    println("")
+  }
+
+  companion object {
+    private val log = org.slf4j.LoggerFactory.getLogger(LantSetupWizard::class.java)
 
     /**
-     * @return The user settings or null, if the user canceled the wizard through exit.
+     * @param dockerMode In docker mode, no directory browser for ProjectForge's base dir is shown. /ProjectForge is used.
      */
-    override fun run(): SetupData? {
-        super.initialize()
-        chooseDirectoryScreen.waitUntilClosed()
-        return super.run()
-    }
-
-    override fun setActiveWindow(nextScreen: ScreenID) {
-        val window = when (nextScreen) {
-            ScreenID.CHOOSE_DIR -> chooseDirectoryScreen
-            else -> finalizeScreen
+    @JvmStatic
+    fun run(appHomeDir: File?, dockerMode: Boolean): SetupData? {
+      log.info("Starting console wizard...")
+      return try {
+        LantSetupWizard(appHomeDir, dockerMode).run()
+      } catch (ex: IOException) {
+        val emphasizedLog = EmphasizedLogSupport(log)
+          .log("Can't start the console based setup wizard, your terminal seems not to be supported.")
+        if (SystemUtils.IS_OS_WINDOWS) {
+          emphasizedLog.log("On Windows: Please, try to start ProjectForge with javaw.exe or try the desktop wizard.")
         }
-        window.redraw()
-        context.textGUI.activeWindow = window
+        emphasizedLog.logEnd()
+        return null
+      }
     }
 
-    override fun finish() {
-        chooseDirectoryScreen.close()
-        finalizeScreen.close()
-        lanternaScreen.stopScreen()
-        //terminal.exitPrivateMode()
-        terminal.close()
-        println("")
+    @JvmStatic
+    fun main(args: Array<String>) {
+      try {
+        val result = LantSetupWizard().run()
+        println("result directory='${CanonicalFileUtils.absolutePath(result?.applicationHomeDir)}'")
+      } catch (ex: IOException) {
+        System.err.println("No graphical terminal available.")
+      }
     }
-
-    companion object {
-        private val log = org.slf4j.LoggerFactory.getLogger(LantSetupWizard::class.java)
-
-        @JvmStatic
-        fun run(appHomeDir: File? = null): SetupData? {
-            log.info("Starting console wizard...")
-            return try {
-                LantSetupWizard(appHomeDir).run()
-            } catch (ex: IOException) {
-                val emphasizedLog = EmphasizedLogSupport(log)
-                        .log("Can't start the console based setup wizard, your terminal seems not to be supported.")
-                if (SystemUtils.IS_OS_WINDOWS) {
-                    emphasizedLog.log("On Windows: Please, try to start ProjectForge with javaw.exe or try the desktop wizard.")
-                }
-                emphasizedLog.logEnd()
-                return null
-            }
-        }
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            try {
-                val result = LantSetupWizard().run()
-                println("result directory='${CanonicalFileUtils.absolutePath(result?.applicationHomeDir)}'")
-            } catch (ex: IOException) {
-                System.err.println("No graphical terminal available.")
-            }
-        }
-    }
+  }
 }

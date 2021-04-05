@@ -177,9 +177,10 @@ public class ProjectForgeHomeFinder {
       new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL, EmphasizedLogSupport.Alignment.LEFT)
               .log(logMessage.replace("$APP_HOME_DIR", appHomeDir.getPath()))
               .logEnd();
+      final boolean dockerMode = "y".equalsIgnoreCase(System.getProperty(ProjectForgeApp.CONFIG_PARAM_DOCKER_MODE));
       if (userAcceptsGraphicalTerminal == null) {
         String answer;
-        if (GraphicsEnvironment.isHeadless()) {
+        if (dockerMode || GraphicsEnvironment.isHeadless()) {
           answer = new ConsoleTimeoutReader("Do you want to enter the setup wizard (Y/n)?", "y")
                   .ask();
         } else {
@@ -202,7 +203,7 @@ public class ProjectForgeHomeFinder {
         try {
           SetupData setupData;
           if (userAcceptsGraphicalTerminal == WizardMode.CONSOLE) {
-            setupData = LantSetupWizard.run(appHomeDir);
+            setupData = LantSetupWizard.run(appHomeDir, dockerMode);
           } else {
             setupData = SwingSetupWizard.run(appHomeDir);
           }
