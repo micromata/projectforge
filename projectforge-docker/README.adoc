@@ -17,7 +17,7 @@ controlling and managing work-break-down-structures (e. g. together with JIRA as
 5. Create a `projectforge.properties` file (could be empty for now) +
    `touch ~/ProjectForgeDocker/projectforge.properties`
 6. Run ProjectForge and enjoy: +
-   `docker run -p 8080:8080 -v ~/ProjectForgeDocker:/ProjectForge micromata/projectforge
+   `docker run -t -i -p 8080:8080 -v ~/ProjectForgeDocker:/ProjectForge micromata/projectforge
 
 === With external PostgreSQL
 tbd.

@@ -9,7 +9,7 @@ mkdir -p app/target/dependency && (cd app/target/dependency; jar -xf ../../../..
 echo "Building docker file..."
 (cd app; docker build -t micromata/projectforge .)
 
-echo "Run with 'docker run -p 8080:8080 -v ~/ProjectForge:/ProjectForge micromata/projectforge'"
+echo "Run with 'docker run -t -i -p 8080:8080 -v ~/ProjectForge:/ProjectForge micromata/projectforge'"
 
 
-# docker run --name projectforge-postgres -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:11.2
+# docker run --name projectforge-postgres -t -i -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:11.2
