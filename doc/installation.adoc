@@ -95,6 +95,7 @@ Just click finish to have your ready-to-use installation.
 image::images/setup-webpage-finished.png[Setup finished]
 
 
+
 [NOTE]
 ====
 Wait until ProjectForge's initialization is finished and you are requested to restart ProjectForge. After restarting all activated plugins
@@ -107,6 +108,25 @@ are also available.
 [#img-setup-webpage]
 .You have to activate some built-in plugins if you want to use them. The plugin "Data transfer" is recommended.
 image::images/admin-plugins.png[Activation of built-in plugins (Menu Administration -> Plugins)]
+
+
+== Customization
+
+=== Main configuration file `projectforge.properties`
+
+You'll find an overview of all configuration options here: https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/application.properties[application.properties]
+
+A minimal set of `projectforge.properties` will be installed automatically by the setup wizard.
+
+Here you may define your company logo.
+
+=== Configuration parameters
+
+You'll find further configuration params through the web application under the menu 'Administration' -> 'Configuration'.
+
+=== Special configurations, file `config.xml`
+
+A minimal set of `config.xml` will be installed automatically by the setup wizard. Here you may define your specific holidays.
 
 == Reverse Proxy Setup (https)
 
