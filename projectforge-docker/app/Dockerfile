@@ -23,11 +23,14 @@ COPY ${DEPENDENCY}/BOOT-INF/classes /app
 # This application.properties is needed
 COPY src/application.properties /
 
+ENV JAVA_OPTS="-Xms1g -Xmx1g"
 
+# -Dloader.path=${HOME}/ProjectForge/resources/milton ${DEBUGOPTS}
+
+# Variable expansion doesn't work for ENTRYPOINT definition as array.
 #ENTRYPOINT ["java","-cp","app:app/lib/*","org.projectforge.start.ProjectForgeApplication"]
-ENTRYPOINT ["java", "-cp",  "app:app/lib/*:/ProjectForge/plugins/*", "-Dprojectforge.docker.mode=y", "-Dprojectforge.plugins.dir=/ProjectForge/plugins", "org.projectforge.start.ProjectForgeApplication"]
+ENTRYPOINT java ${JAVA_OPTS} -cp app:app/lib/*:/ProjectForge/plugins/* -Dprojectforge.docker.mode=y -Dprojectforge.plugins.dir=/ProjectForge/plugins org.projectforge.start.ProjectForgeApplication
+
+EXPOSE 8080
 
 MAINTAINER Micromata
-
-# Add the projectforge/plugins jar
-#COPY ./target/extra-resources/projectforge-application-$PF_VERSION.jar /home/pf/projectforge-application.jar
