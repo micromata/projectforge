@@ -12,6 +12,32 @@ link:index{outfilesuffix}[Top]
 :sectnums:
 
 == Basic installation
+You may choose now between Docker based installation or normal installation.
+
+=== Docker
+You may install ProjectForge as docker image.
+
+We assume `/home/projectforge/ProjectForge` as ProjectForge's home in this documentation, but you may choose anything else (will be created or should be empty if already exists).
+
+==== Built-in database
+1. First start `docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge --name projectforge-app kreinhard/projectforge:latest`
+2. Follow setup wizard below.
+3. After finalization of setup, press `CTRL-C` for stopping container.
+4. Restart  `docker start projectforge-app`
+5. Enjoy.
+
+==== Using PostgreSQL
+
+1. Copy and modify https://github.com/micromata/projectforge/blob/master/projectforge-docker/compose/docker-compose.yml[docker-compose.yml] (choose data base password).
+2. First start: `docker-compose -p 127.0.0.1:8080:8080 run projectforge-app`
+3. Follow setup wizard below.
+4. After finalization of setup, press `CTRL-C` for stopping container.
+5. Restart 'docker-compose up'
+6. Enjoy.
+
+
+=== Java-Installation
+If you don't want to use Docker, you're able to install ProjectForge from the executable jar file.
 
 1. Install openjdk-11
 2. Get projectForge-application_version.jar
@@ -25,10 +51,11 @@ the version if your system supports both (graphical output and terminal output).
 Both editions have the same functionality.
 
 [#img-setup-wizard-1]
-.The setup wizard (terminal edition) for choosing ProjectForge's home directory.
+.The setup wizard (terminal edition) for choosing ProjectForge's home directory. This step is skipped on docker based installation.
+
 image::images/setup-wizard-step-1.png[Setup wizard, step 1]
 
-We assume `~/ProjectForge` as ProjectForge's home directy in this documentation, but you may choose anything else (will be created or should be empty if already exists).
+We assume `/home/projectforge/ProjectForge` as ProjectForge's home in this documentation, but you may choose anything else (will be created or should be empty if already exists).
 
 [#img-setup-wizard-2]
 .The setup wizard (terminal edition) for configuring the basic settings.

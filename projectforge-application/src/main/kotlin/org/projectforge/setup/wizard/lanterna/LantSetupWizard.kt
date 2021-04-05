@@ -37,6 +37,7 @@ import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.setup.SetupData
 import org.projectforge.setup.wizard.AbstractSetupWizard
+import org.projectforge.setup.wizard.JdbcConnectionTest
 import java.io.File
 import java.io.IOException
 
@@ -49,6 +50,9 @@ class LantSetupWizard(presetAppHomeDir: File? = null, dockerMode: Boolean? = nul
   private val lanternaScreen: Screen
 
   init {
+    if (dockerMode == true) {
+      JdbcConnectionTest.defaultJdbcUrl = "jdbc:postgresql://projectforge-db:5432/projectforge"
+    }
     // Setup terminal and screen layers
     // Throws an IOException on Windows, if not started with javaw.
     val terminalFactory = DefaultTerminalFactory()

@@ -53,5 +53,5 @@ object JdbcConnectionTest {
         }
     }
 
-    const val defaultJdbcUrl = "jdbc:postgresql://localhost:15432/projectforge"
+    var defaultJdbcUrl = "jdbc:postgresql://localhost:5432/projectforge"
 }
