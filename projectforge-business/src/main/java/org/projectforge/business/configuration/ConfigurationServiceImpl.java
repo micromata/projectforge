@@ -185,9 +185,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   @Value("${projectforge.login.handlerClass}")
   private String loginHandlerClass;
 
-  @Value("${projectforge.max-file-size.image}")
-  private String maxFileSizeImage;
-
   @Value("${projectforge.max-file-size.datev}")
   private String maxFileSizeDatev;
 
