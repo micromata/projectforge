@@ -32,7 +32,7 @@ For test or small installations you may use the built-in data base.+
 For productive and larger installations.
 
 1. Copy and modify https://github.com/micromata/projectforge/blob/master/projectforge-docker/compose/docker-compose.yml[docker-compose.yml] (choose data base password).
-2. First start: `docker-compose -p 127.0.0.1:8080:8080 run projectforge-app`
+2. First start: `docker-compose run projectforge-app`
 3. Follow setup wizard below.
 4. After finalization of setup, press `CTRL-C` for stopping container.
 5. Restart 'docker-compose up'

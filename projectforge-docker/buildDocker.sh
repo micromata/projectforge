@@ -9,6 +9,7 @@ mkdir -p app/target/dependency && (cd app/target/dependency; jar -xf ../../../..
 echo "Building docker file..."
 (cd app; docker build -t kreinhard/projectforge .)
 
+echo "Push: docker push kreinhard/projectforge:tagname"
 echo "Run with 'docker run -t -i -p 127.0.0.1:8080:8080 -v /home/projectforge/ProjectForge:/ProjectForge kreinhard/projectforge'"
 
 
