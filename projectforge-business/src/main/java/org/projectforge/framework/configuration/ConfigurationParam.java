@@ -96,13 +96,9 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   HR_MAILADDRESS("hr.emailaddress", ConfigurationType.STRING, true),//
   /**
-   * Vacation cal id configuration param.
-   */
-  VACATION_CAL_ID("vacation.cal.id", ConfigurationType.CALENDAR, true),//
-  /**
    * End date vacation lastr year configuration param.
    */
-  END_DATE_VACATION_LASTR_YEAR("vacation.lastyear.enddate", ConfigurationType.STRING, true, "31.03."),
+  END_DATE_VACATION_LAST_YEAR("vacation.lastyear.enddate", ConfigurationType.STRING, true, "31.03."),
   /**
    * Minimum password length configuration param.
    */
