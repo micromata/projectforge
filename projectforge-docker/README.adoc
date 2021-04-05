@@ -14,10 +14,8 @@ controlling and managing work-break-down-structures (e. g. together with JIRA as
    `./buildDocker.sh`
 4. Create any new directory you want as ProjectForge working directory in your host system: +
    `mkdir ~/ProjectForgeDocker`
-5. Create a `projectforge.properties` file (could be empty for now) +
-   `touch ~/ProjectForgeDocker/projectforge.properties`
-6. Run ProjectForge and enjoy: +
-   `docker run -t -i -p 8080:8080 -v ~/ProjectForgeDocker:/ProjectForge micromata/projectforge
+5. Run ProjectForge and enjoy: +
+   `docker run -t -i -p 127.0.0.1:8080:8080 -v ~/ProjectForgeDocker:/ProjectForge micromata/projectforge
 
 === With external PostgreSQL
 tbd.
