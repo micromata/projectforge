@@ -318,7 +318,7 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
     }
     log.debug { "Root dir: $rootDir" }
     rootDir.listFiles { dir: File?, name: String? -> name?.startsWith("org.projectforge.plugins.") == true }
-      .forEach { jarFile ->
+      ?.forEach { jarFile ->
         scanPlugin(environment, collector, jarFile, loadedUrls)
       }
     val pluginsPath = System.getProperty(ProjectForgeApp.CONFIG_PLUGINS_DIR)
