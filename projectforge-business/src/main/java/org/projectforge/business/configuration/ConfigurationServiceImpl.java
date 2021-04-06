@@ -29,7 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.meb.MebMailClient;
 import org.projectforge.business.orga.ContractType;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
-import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.*;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
@@ -185,9 +184,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
   @Value("${projectforge.login.handlerClass}")
   private String loginHandlerClass;
-
-  @Value("${projectforge.max-file-size.image}")
-  private String maxFileSizeImage;
 
   @Value("${projectforge.max-file-size.datev}")
   private String maxFileSizeDatev;
@@ -592,17 +588,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     return teamCalCryptPassword;
   }
 
-  @Override
-  public LocalDate getEndDateVacationFromLastYear() {
-    LocalDate today = LocalDate.now();
-    LocalDate endOfVactionYear = getEndOfCarryVacationOfPreviousYear(today.getYear());
-    if (endOfVactionYear.isAfter(today)) {
-      // Now is between 01.01. and 31.03.:
-      endOfVactionYear = endOfVactionYear.minusYears(1);
-    }
-    return endOfVactionYear;
-  }
-
   /**
    * 31.03. of the given year, if not configured different. This date determine when vacation days of an employee
    * from the last year will be invalid, if not used.
@@ -611,7 +596,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   public LocalDate getEndOfCarryVacationOfPreviousYear(int year) {
     int day = 31;
     int month = 3; // March, 1 based, 1-January, ..., 12-December.
-    ConfigurationDO configDO = configDao.getEntry(ConfigurationParam.END_DATE_VACATION_LASTR_YEAR);
+    ConfigurationDO configDO = configDao.getEntry(ConfigurationParam.END_DATE_VACATION_LAST_YEAR);
     if (configDO != null) {
       String dayMonthString = configDO.getStringValue();
       String[] dayMonthParts = dayMonthString.split("\\.");
@@ -635,11 +620,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
       return hrMailaddress.getStringValue();
     }
     return null;
-  }
-
-  @Override
-  public TeamCalDO getVacationCalendar() {
-    return teamCalCache.getCalendar((Integer) configDao.getValue(ConfigurationParam.VACATION_CAL_ID));
   }
 
   @Override
@@ -674,11 +654,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
       log.warn("Exception while getting configuration flag - password change requirement.", e);
     }
     return ConfigurationParam.PASSWORD_FLAG_CHECK_CHANGE.getDefaultBooleanValue();
-  }
-
-  @Override
-  public String getMaxFileSizeImage() {
-    return this.maxFileSizeImage;
   }
 
   @Override

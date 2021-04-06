@@ -132,16 +132,6 @@ public interface ConfigurationService {
     String getTeamCalCryptPassword();
 
     /**
-     * 31.03. of this year if today is after 31.03, otherwise 31.03. of last year.
-     * Example (if 31.03. is configured):
-     * <ul>
-     * <li>Today = 02.01.2020 then this method returns 31.03.2019.</li>
-     * <li>Today = 31.12.2019 then this method returns 31.03.2019 as well.</li>
-     * </ul>
-     */
-    LocalDate getEndDateVacationFromLastYear();
-
-    /**
      * 31.03. of the given year, if not configured different. This date determine when vacation days of an employee
      * from the last year will be invalid, if not used.
      */
@@ -149,13 +139,9 @@ public interface ConfigurationService {
 
     String getHREmailadress();
 
-    TeamCalDO getVacationCalendar();
-
     int getMinPasswordLength();
 
     boolean getFlagCheckPasswordChange();
-
-    String getMaxFileSizeImage();
 
     String getMaxFileSizeDatev();
 

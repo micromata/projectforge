@@ -4,7 +4,7 @@ Micromata GmbH, Version {version}
 :toc:
 :toclevels: 4
 
-:last-update-label: Copyright (C) 2019, Last updated
+:last-update-label: Copyright (C) 2021, Last updated
 
 ifdef::env-github,env-browser[:outfilesuffix: .adoc]
 link:index{outfilesuffix}[Top]
@@ -12,6 +12,41 @@ link:index{outfilesuffix}[Top]
 :sectnums:
 
 == Basic installation
+You may choose now between Docker based installation or normal installation.
+
+=== Docker
+You may install ProjectForge as docker image.
+
+We assume `/home/projectforge/ProjectForge` as ProjectForge's home in this documentation, but you may choose anything else (will be created or should be empty if already exists).
+
+For test or small installations you may use the built-in data base (embedded).
+
+==== Running single docker container
+
+1. First start `docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge --name projectforge kreinhard/projectforge`
+2. Follow setup wizard below.
+3. After finalization of setup page in browser, press `CTRL-C` for stopping container.
+4. Restart  `docker start projectforge`
+5. Enjoy.
+
+You may monitor the log file: `tail -f ~/ProjectForge/logs/ProjectForge.log`
+
+==== Running as stack
+
+In this docker-compose case ProjectForge is composed with a PostgreSQL docker container (for productive and larger installations).
+
+1. Copy and modify https://github.com/micromata/projectforge/blob/master/projectforge-docker/compose/docker-compose.yml[docker-compose.yml] (change data base password).
+2. First start: `docker-compose run projectforge-app`
+3. Follow setup wizard below (choose PostgreSQL connection settings).
+4. ProjectForge stops automatically after setting up your ProjectForge directory. Restart `docker-compose up`
+5. After finalization of setup page in browser, press `CTRL-C` or `docker-compose down` for stopping container.
+6. Restart `docker-compose up`
+7. Enjoy.
+
+You may monitor the log file: `tail -f ~/ProjectForge/logs/ProjectForge.log`
+
+==== Java-Installation
+If you don't want to use Docker, you're able to install ProjectForge from the executable jar file.
 
 1. Install openjdk-11
 2. Get projectForge-application_version.jar
@@ -25,10 +60,11 @@ the version if your system supports both (graphical output and terminal output).
 Both editions have the same functionality.
 
 [#img-setup-wizard-1]
-.The setup wizard (terminal edition) for choosing ProjectForge's home directory.
+.The setup wizard (terminal edition) for choosing ProjectForge's home directory. This step is skipped on docker based installation.
+
 image::images/setup-wizard-step-1.png[Setup wizard, step 1]
 
-We assume `~/ProjectForge` as ProjectForge's home directy in this documentation, but you may choose anything else (will be created or should be empty if already exists).
+We assume `/home/projectforge/ProjectForge` as ProjectForge's home in this documentation, but you may choose anything else (will be created or should be empty if already exists).
 
 [#img-setup-wizard-2]
 .The setup wizard (terminal edition) for configuring the basic settings.
@@ -44,8 +80,8 @@ You may leave the most settings as they are. You are able to change these settin
 |===
 h|Directory | ProjectForge's home directory including configuration, database and working directory.
 h|Domain | The domain of your system (http://localhost:8080 for test systems). This is needed e. g. for sending e-mail-notification to users including direct links to your installation of ProjectForge.
-h|Port | ProjectForge starts the server on this port (8080 should be OK for most cases).
-h|Database | Choose the data base. Embedded uses the built-in data base of ProjectForge (Hsql DB) and should be OK for test, development or small instances.
+h|Port | ProjectForge starts the server on this port (8080 should be OK for most cases and can't be modified for docker installation).
+h|Database | Choose the data base. Embedded uses the built-in data base of ProjectForge (Hsql DB) and should be OK for test, development or small instances. In docker mode only PostgreSQL is available.
 h|Jdbc settings|If you choose PostgreSQL you are able to enter the data base connection values and test them by clicking *Test connection*.
 h|Currency | The default currency to use.
 h|Locale | The default locale to use. Your users are able to choose their own language.
@@ -90,6 +126,12 @@ h|Feed-back | If this e-mail is given then a feedback panel will be shown if an 
 
 Just click finish to have your ready-to-use installation.
 
+[#img-setup-webpage-finished]
+.After initialization you will get this screen. Now restart a last time and also all activated plugins are now fully available.
+image::images/setup-webpage-finished.png[Setup finished]
+
+
+
 [NOTE]
 ====
 Wait until ProjectForge's initialization is finished and you are requested to restart ProjectForge. After restarting all activated plugins
@@ -102,6 +144,25 @@ are also available.
 [#img-setup-webpage]
 .You have to activate some built-in plugins if you want to use them. The plugin "Data transfer" is recommended.
 image::images/admin-plugins.png[Activation of built-in plugins (Menu Administration -> Plugins)]
+
+
+== Customization
+
+=== Main configuration file `projectforge.properties`
+
+You'll find an overview of all configuration options here: https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/application.properties[application.properties]
+
+A minimal set of `projectforge.properties` will be installed automatically by the setup wizard.
+
+Here you may define your company logo.
+
+=== Configuration parameters
+
+You'll find further configuration params through the web application under the menu 'Administration' -> 'Configuration'.
+
+=== Special configurations, file `config.xml`
+
+A minimal set of `config.xml` will be installed automatically by the setup wizard. Here you may define your specific holidays.
 
 == Reverse Proxy Setup (https)
 
@@ -195,7 +256,7 @@ loader path:
 ${JAVA} ... -Dloader.path=${HOME}/ProjectForge/resources/milton ${DEBUGOPTS} -jar projectforge-application.jar &
 ```
 
-== Start ProjectForge
+== Start ProjectForge (without docker)
 1. Start ProjectForge server (e.g. on `http://localhost:8080`, update the NGINX config if you use another port).
 2. Follow the configuration instruction (setup wizard in console ui or as Desktop app).
 3. (Re-)start Nginx:
