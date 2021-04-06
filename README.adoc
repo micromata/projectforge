@@ -32,6 +32,8 @@ This version contains a lot of cool stuff:
 You only need the following steps for developing ProjectForge.
 If you just want to run it, please download it from https://sourceforge.net/projects/pforge/
 and simply start it `java -jar projectforge-application-X.X.X.jar`.
+
+Or simply use the fastest way: https://github.com/micromata/projectforge/blob/master/doc/installation.adoc[Installation as docker image]
 ====
 
 1. Checkout:
