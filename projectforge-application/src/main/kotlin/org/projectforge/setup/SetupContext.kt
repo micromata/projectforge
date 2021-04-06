@@ -21,26 +21,40 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup.wizard.lanterna
+package org.projectforge.setup
 
-import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.gui2.MultiWindowTextGUI
-import org.projectforge.setup.SetupContext
-import org.projectforge.setup.wizard.AbstractSetupWizard
-import org.projectforge.setup.wizard.GUIContext
+import org.projectforge.ProjectForgeApp
 
-class LantGUIContext(
-        setupMain: AbstractSetupWizard,
-        val textGUI: MultiWindowTextGUI,
-        var terminalSize: TerminalSize,
-        val setupContext: SetupContext
-): GUIContext(Mode.CONSOLE, setupMain) {
-    var windowSize: TerminalSize = TerminalSize.ZERO
-        set(value) {
-            field = TerminalSize(value.columns - 15, value.rows - 5)
-        }
+/**
+ * Some context information for setup wizard.
+ */
+class SetupContext {
+  enum class DockerMode { SINGLE, STACK }
 
-    init {
-        windowSize = terminalSize
+  var embeddedDatabaseSupported: Boolean = true
+  var dockerMode: DockerMode? = null
+
+  val graphicModeSupported: Boolean
+    get() = dockerMode == null
+
+  val runAsDockerContainer: Boolean
+    get() = dockerMode != null
+
+  /**
+   * For running docker containers, the port 8080 isn't customizable.
+   */
+  val customizedPortSupported: Boolean
+    get() = runAsDockerContainer
+
+  init {
+    val setupVal = System.getProperty(ProjectForgeApp.PROJECTFORGE_SETUP)?.toLowerCase() ?: ""
+    when {
+      setupVal.contains("postgres", ignoreCase = true) -> {
+        dockerMode = DockerMode.STACK
+        embeddedDatabaseSupported = false
+      }
+      setupVal.contains("docker", ignoreCase = true) -> dockerMode = DockerMode.SINGLE
     }
+  }
 }
+

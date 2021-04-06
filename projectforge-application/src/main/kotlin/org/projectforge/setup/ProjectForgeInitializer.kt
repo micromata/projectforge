@@ -63,7 +63,7 @@ object ProjectForgeInitializer {
         }
 
         val serverPort = if (setupData.serverPort in 1..65535) setupData.serverPort else 8080
-        val serverAddress = if (setupData.dockerMode) "0.0.0.0" else "localhost"
+        val serverAddress = setupData.serverAdress
 
         val domainService = DomainService.internalCreate(setupData.domain)
         counter = ensureConfigFile(applicationHomeDir,

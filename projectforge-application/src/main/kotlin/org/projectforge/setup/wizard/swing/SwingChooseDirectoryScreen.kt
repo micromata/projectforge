@@ -84,7 +84,7 @@ class SwingChooseDirectoryScreen(context: SwingGUIContext) : SwingAbstractWizard
         val prevApplicationHomeDir = CanonicalFileUtils.absolute(context.setupData.applicationHomeDir)
         var prevApplicationHomeDirInList = false
         var index = 0
-        for (dir in ProjectForgeHomeFinder.getSuggestedDirectories()) {
+        for (dir in ProjectForgeHomeFinder.suggestedDirectories) {
             listModel.addElement(CanonicalFileUtils.absolutePath(dir))
             if (dir == prevApplicationHomeDir) {
                 jlist.selectedIndex = index

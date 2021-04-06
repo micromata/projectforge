@@ -102,7 +102,7 @@ public enum ConfigurationParam implements IConfigurationParam
   /**
    * Minimum password length configuration param.
    */
-  MIN_PASSWORD_LENGTH("minPasswordLength", ConfigurationType.INTEGER, true, 10),
+  MIN_PASSWORD_LENGTH("minPasswordLength", ConfigurationType.INTEGER, true, 8),
   /**
    * Password Flag Check - configuration, that passwords will be checked that passwords have to change each time a new one is entered.
    */

@@ -4,7 +4,7 @@ Micromata GmbH, Version {version}
 :toc:
 :toclevels: 4
 
-:last-update-label: Copyright (C) 2019, Last updated
+:last-update-label: Copyright (C) 2021, Last updated
 
 ifdef::env-github,env-browser[:outfilesuffix: .adoc]
 link:index{outfilesuffix}[Top]
@@ -22,10 +22,10 @@ We assume `/home/projectforge/ProjectForge` as ProjectForge's home in this docum
 ==== Built-in database (HsqlDB)
 For test or small installations you may use the built-in data base.+
 
-1. First start `docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge --name projectforge-app kreinhard/projectforge`
+1. First start `docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge --name projectforge kreinhard/projectforge`
 2. Follow setup wizard below.
 3. After finalization of setup, press `CTRL-C` for stopping container.
-4. Restart  `docker start projectforge-app`
+4. Restart  `docker start projectforge`
 5. Enjoy.
 
 ==== External data base (PostgreSQL)
@@ -250,7 +250,7 @@ loader path:
 ${JAVA} ... -Dloader.path=${HOME}/ProjectForge/resources/milton ${DEBUGOPTS} -jar projectforge-application.jar &
 ```
 
-== Start ProjectForge
+== Start ProjectForge (without docker)
 1. Start ProjectForge server (e.g. on `http://localhost:8080`, update the NGINX config if you use another port).
 2. Follow the configuration instruction (setup wizard in console ui or as Desktop app).
 3. (Re-)start Nginx:

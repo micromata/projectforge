@@ -26,6 +26,7 @@ package org.projectforge.setup.wizard.lanterna
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
 import org.projectforge.common.CanonicalFileUtils
+import org.projectforge.setup.SetupContext
 import org.projectforge.setup.wizard.FinalizeScreenSupport
 import org.projectforge.setup.wizard.FinalizeScreenSupport.listOfDatabases
 import org.projectforge.setup.wizard.FinalizeScreenSupport.listOfLocales
@@ -37,8 +38,6 @@ import java.util.regex.Pattern
 
 
 class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(context, "Finishing the directory setup") {
-  private val log = org.slf4j.LoggerFactory.getLogger(LantFinalizeScreen::class.java)
-
   private lateinit var dirLabel: Label
   private lateinit var domainTextBox: TextBox
   private lateinit var portTextBox: TextBox
@@ -58,6 +57,7 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
 
   override fun getContentPanel(): Panel {
     val panel = Panel()
+    val setupContext = context.setupContext
     panel.layoutManager = GridLayout(3)
 
     dirLabel = Label("")
@@ -75,7 +75,8 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
     portTextBox = TextBox("8080")
       .setValidationPattern(Pattern.compile("[0-9]{1,5}?"))
       .setPreferredSize(TerminalSize(7, 1))
-    if (!context.setupData.dockerMode) {
+    if (!setupContext.customizedPortSupported) {
+      // In docker containers, customized port isN
       panel.addComponent(Label(Texts.FS_PORT))
         .addComponent(portTextBox)
         .addComponent(EmptySpace())
@@ -85,7 +86,8 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
 
     databaseCombobox = ComboBox()
     listOfDatabases.forEach { databaseCombobox.addItem(it.label) }
-    if (!context.setupData.dockerMode) {
+    if (setupContext.embeddedDatabaseSupported) {
+      // Listener only required if embedded data base is supported as well as PostgreSQL.
       databaseCombobox.addListener { selectedIndex, previousSelection, _ ->
         if (previousSelection != selectedIndex) {
           if (selectedIndex > 0) {
@@ -98,15 +100,16 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
           }
         }
       }
+    } else {
+      context.setupData.useEmbeddedDatabase = false
     }
     jdbcSettingsButton = Button(Texts.FS_JDBC_SETTINGS) {
       showJdbcSettingsDialog()
     }
-      .setEnabled(context.setupData.dockerMode) // Only enabled in docker mode, because embedded is not available.
+      .setEnabled(false)
     panel.addComponent(Label(Texts.DATABASE))
-    if (context.setupData.dockerMode) {
-      context.setupData.useEmbeddedDatabase = false
-    } else {
+    if (setupContext.embeddedDatabaseSupported) {
+      // Show only data base chooser, if embedded data base is supported as well as PostgreSQL.
       panel.addComponent(databaseCombobox)
     }
     panel.addComponent(jdbcSettingsButton)
@@ -141,16 +144,21 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
     panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(3)))
 
     startCheckBox = CheckBox(Texts.FS_CHECKBOX_START_SERVER)
-      .setChecked(true)
+      .setChecked(setupContext.dockerMode != SetupContext.DockerMode.STACK) // Don't autostart on docker-compose (server.address=0.0.0.0 not yet available, port 8080 don't yet work).
       .setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2))
 
     developmentCheckBox = CheckBox(Texts.FS_CHECKBOX_DEV)
       .setChecked(false)
       .setLayoutData(GridLayout.createHorizontallyFilledLayoutData(2))
     panel.addComponent(Label(Texts.FS_SETTINGS))
-      .addComponent(startCheckBox)
-      .addComponent(EmptySpace())
-      .addComponent(developmentCheckBox)
+    if (setupContext.dockerMode != SetupContext.DockerMode.STACK) {
+      panel.addComponent(startCheckBox)
+      panel.addComponent(EmptySpace())
+    } else {
+      // Don't autostart on docker-compose (server.address=0.0.0.0 not yet available, port 8080 don't yet work).
+      context.setupData.startServer = false
+    }
+    panel.addComponent(developmentCheckBox)
 
     panel.addComponent(EmptySpace().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(3)))
     hintLabel = Label("")
@@ -176,7 +184,11 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
       },
       Button(Texts.BUTTON_FINISH) {
         saveValues()
-        context.setupMain.finish()
+        if (context.setupData.incompleteJdbcSettings()) {
+          showJdbcSettingsDialog()
+        } else {
+          context.setupMain.finish()
+        }
       })
   }
 
@@ -195,7 +207,7 @@ class LantFinalizeScreen(context: LantGUIContext) : LantAbstractWizardWindow(con
   }
 
   override fun redraw() {
-    if (context.setupData.dockerMode || (context.setupData.jdbcSettings != null && !context.setupData.useEmbeddedDatabase)) {
+    if (!context.setupContext.embeddedDatabaseSupported || (context.setupData.jdbcSettings != null && !context.setupData.useEmbeddedDatabase)) {
       // PostgreSQL
       databaseCombobox.selectedIndex = 1
       jdbcSettingsButton.setEnabled(true)

@@ -32,17 +32,21 @@ import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import com.googlecode.lanterna.terminal.Terminal
+import mu.KotlinLogging
 import org.apache.commons.lang3.SystemUtils
 import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.common.EmphasizedLogSupport
+import org.projectforge.setup.SetupContext
 import org.projectforge.setup.SetupData
 import org.projectforge.setup.wizard.AbstractSetupWizard
 import org.projectforge.setup.wizard.JdbcConnectionTest
 import java.io.File
 import java.io.IOException
 
+private val log = KotlinLogging.logger {}
 
-class LantSetupWizard(presetAppHomeDir: File? = null, dockerMode: Boolean? = null) : AbstractSetupWizard() {
+class LantSetupWizard(presetAppHomeDir: File? = null, setupContext: SetupContext = SetupContext()) :
+  AbstractSetupWizard() {
   override val context: LantGUIContext
   private val terminal: Terminal
   private var chooseDirectoryScreen: LantChooseDirectoryScreen? = null
@@ -62,11 +66,21 @@ class LantSetupWizard(presetAppHomeDir: File? = null, dockerMode: Boolean? = nul
     // Create gui and start gui
     val textGUI = MultiWindowTextGUI(lanternaScreen, DefaultWindowManager(), EmptySpace(TextColor.ANSI.BLUE))
     context =
-      LantGUIContext(this, textGUI, TerminalSize(lanternaScreen.terminalSize.columns, lanternaScreen.terminalSize.rows))
+      LantGUIContext(
+        this,
+        textGUI,
+        TerminalSize(lanternaScreen.terminalSize.columns, lanternaScreen.terminalSize.rows),
+        setupContext
+      )
     context.setupData.applicationHomeDir = presetAppHomeDir
-    if (dockerMode == true) {
+    if (!setupContext.embeddedDatabaseSupported) {
       JdbcConnectionTest.defaultJdbcUrl = "jdbc:postgresql://projectforge-db:5432/projectforge"
-      context.setupData.dockerMode = true
+      logInfo("Force PostgreSQL: ${JdbcConnectionTest.defaultJdbcUrl} (OK)")
+    }
+    if (setupContext.runAsDockerContainer) {
+      // In docker container the bind address must be 0.0.0.0 for exporting the port to the host:
+      context.setupData.serverAdress = "0.0.0.0"
+      logInfo("Running in docker container. Force server.address=${context.setupData.serverAdress} and skip base directory selection (OK)")
     } else {
       chooseDirectoryScreen = LantChooseDirectoryScreen(context)
       textGUI.addWindow(chooseDirectoryScreen)
@@ -110,16 +124,14 @@ class LantSetupWizard(presetAppHomeDir: File? = null, dockerMode: Boolean? = nul
   }
 
   companion object {
-    private val log = org.slf4j.LoggerFactory.getLogger(LantSetupWizard::class.java)
-
     /**
      * @param dockerMode In docker mode, no directory browser for ProjectForge's base dir is shown. /ProjectForge is used.
      */
     @JvmStatic
-    fun run(appHomeDir: File?, dockerMode: Boolean): SetupData? {
-      log.info("Starting console wizard...")
+    fun run(appHomeDir: File?, setupContext: SetupContext): SetupData? {
+      logInfo("Starting console wizard...")
       return try {
-        LantSetupWizard(appHomeDir, dockerMode).run()
+        LantSetupWizard(appHomeDir, setupContext).run()
       } catch (ex: IOException) {
         val emphasizedLog = EmphasizedLogSupport(log)
           .log("Can't start the console based setup wizard, your terminal seems not to be supported.")
@@ -131,13 +143,23 @@ class LantSetupWizard(presetAppHomeDir: File? = null, dockerMode: Boolean? = nul
       }
     }
 
+    private fun logInfo(msg: String) {
+      println("LantSetup: $msg")
+      log.info { msg }
+    }
+
+    private fun logError(msg: String) {
+      System.err.println("LantSetup***: $msg")
+      log.error { msg }
+    }
+
     @JvmStatic
     fun main(args: Array<String>) {
       try {
         val result = LantSetupWizard().run()
-        println("result directory='${CanonicalFileUtils.absolutePath(result?.applicationHomeDir)}'")
+        logInfo("result directory='${CanonicalFileUtils.absolutePath(result?.applicationHomeDir)}'")
       } catch (ex: IOException) {
-        System.err.println("No graphical terminal available.")
+        logError("No graphical terminal available.")
       }
     }
   }
