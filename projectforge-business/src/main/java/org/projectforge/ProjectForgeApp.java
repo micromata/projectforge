@@ -70,6 +70,10 @@ public class ProjectForgeApp {
 
   public static final String CONFIG_PARAM_BASE_DIR = "projectforge.base.dir";
 
+  public static final String PROJECTFORGE_SETUP = "projectforge.setup";
+
+  public static final String CONFIG_PLUGINS_DIR = "projectforge.plugins.dir";
+
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeApp.class);
 
   private static boolean junitTestMode = false;

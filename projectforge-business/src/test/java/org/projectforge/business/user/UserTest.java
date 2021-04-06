@@ -26,9 +26,14 @@ package org.projectforge.business.user;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.password.PasswordQualityService;
+import org.projectforge.framework.configuration.ConfigurationDao;
+import org.projectforge.framework.configuration.ConfigurationParam;
+import org.projectforge.framework.configuration.IConfigurationParam;
+import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -56,6 +61,9 @@ public class UserTest extends AbstractTestBase {
 
   @Autowired
   private GroupService groupService;
+
+  @Autowired
+  private ConfigurationDao configurationDao;
 
   @Autowired
   private PasswordQualityService passwordQualityService;
@@ -138,6 +146,9 @@ public class UserTest extends AbstractTestBase {
    */
   @Test
   public void testPasswordQuality() {
+    final ConfigurationDO minPwLenEntry = configurationDao.getEntry(ConfigurationParam.MIN_PASSWORD_LENGTH);
+    minPwLenEntry.setIntValue(10);
+    configurationDao.internalUpdate(minPwLenEntry);
     List<I18nKeyAndParams> passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, null);
     assertTrue(passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)),
             "Empty password not allowed.");
