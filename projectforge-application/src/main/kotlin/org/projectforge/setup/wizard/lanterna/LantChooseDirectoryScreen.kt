@@ -61,7 +61,7 @@ class LantChooseDirectoryScreen(context: LantGUIContext) : LantAbstractWizardWin
         val prevApplicationHomeDir = CanonicalFileUtils.absolute(context.setupData.applicationHomeDir)
         var prevApplicationHomeDirInList = false
         var index = 0
-        for (dir in ProjectForgeHomeFinder.getSuggestedDirectories()) {
+        for (dir in ProjectForgeHomeFinder.suggestedDirectories) {
             actionListBox.addItem(CanonicalFileUtils.absolutePath(dir)) {
                 context.setupData.applicationHomeDir = CanonicalFileUtils.absolute(dir)
                 context.setupMain.next()

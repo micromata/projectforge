@@ -30,6 +30,7 @@ import java.time.DayOfWeek
 class SetupData(
   var applicationHomeDir: File? = null,
   var domain: String? = "http://localhost:8080",
+  var serverAdress: String = "localhost",
   var serverPort: Int = 8080,
   var startServer: Boolean = true,
   var developmentMode: Boolean = false,
@@ -40,17 +41,16 @@ class SetupData(
   var useEmbeddedDatabase: Boolean = true,
   var jdbcSettings: JdbcSettings? = null
 ) {
-  /**
-   * In Docker mode for installation (only console wizard), some settings aren't available such as directory browser
-   * or port.
-   */
-  var dockerMode: Boolean = false
-
   class JdbcSettings(
     var jdbcUrl: String? = null,
     var user: String? = null,
     var password: String? = null,
     var driverClass: String? = null
   )
+
+    fun incompleteJdbcSettings(): Boolean {
+      val settings = jdbcSettings
+      return !useEmbeddedDatabase && (settings == null || settings.password.isNullOrBlank())
+    }
 }
 

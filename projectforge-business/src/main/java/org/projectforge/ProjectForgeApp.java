@@ -70,7 +70,7 @@ public class ProjectForgeApp {
 
   public static final String CONFIG_PARAM_BASE_DIR = "projectforge.base.dir";
 
-  public static final String CONFIG_PARAM_DOCKER_MODE = "projectforge.docker.mode";
+  public static final String PROJECTFORGE_SETUP = "projectforge.setup";
 
   public static final String CONFIG_PLUGINS_DIR = "projectforge.plugins.dir";
 

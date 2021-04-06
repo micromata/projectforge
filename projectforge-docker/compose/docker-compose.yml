@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   projectforge-app:
-    image: kreinhard/projectforge:latest
+    image: kreinhard/projectforge
     container_name: projectforge-app
     #stdin_open: true # docker run -i
     #tty: true        # docker run -t
@@ -10,7 +10,8 @@ services:
       - "127.0.0.1:8080:8080"
     volumes:
       - ${HOME}/ProjectForge:/ProjectForge
-    depends_on:
+    entrypoint: ["java", "-Xms1g", "-Xmx1g", "-cp", "app:app/lib/*:/ProjectForge/plugins/*", "-Dprojectforge.setup=postgres", "-Dprojectforge.plugins.dir=/ProjectForge/plugins", "org.projectforge.start.ProjectForgeApplication"]
+  depends_on:
       - projectforge-db
   projectforge-db:
     image: postgres:12.6
