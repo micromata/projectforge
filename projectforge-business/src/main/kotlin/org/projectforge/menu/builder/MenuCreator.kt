@@ -62,15 +62,16 @@ class MenuCreator {
   internal class MenuItemDefHolder {
     internal val menuItems: MutableList<MenuItemDef> = mutableListOf()
     fun add(menuItem: MenuItemDef): MenuItemDef {
-      if (menuItems.contains(menuItem)) {
+      if (menuItems.any { it.id == menuItem.id }) {
         log.error { "Menu item registered twice (ignoring): $this" }
+        return menuItem
       }
       menuItems.add(menuItem)
       return menuItem
     }
   }
 
-  private val menuItemDefHolder = MenuItemDefHolder()
+  private var menuItemDefHolder = MenuItemDefHolder()
 
   @Autowired
   private lateinit var accessChecker: AccessChecker
@@ -102,8 +103,10 @@ class MenuCreator {
     var testCase = false
   }
 
+  @Synchronized
   fun refresh() {
     initialized = false
+    menuItemDefHolder = MenuItemDefHolder()
     initialize()
   }
 
