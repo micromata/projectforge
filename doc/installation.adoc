@@ -24,7 +24,7 @@ For test or small installations you may use the built-in data base.+
 
 1. First start `docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge --name projectforge kreinhard/projectforge`
 2. Follow setup wizard below.
-3. After finalization of setup, press `CTRL-C` for stopping container.
+3. After finalization of setup page in browser, press `CTRL-C` for stopping container.
 4. Restart  `docker start projectforge`
 5. Enjoy.
 
@@ -33,9 +33,10 @@ For productive and larger installations.
 
 1. Copy and modify https://github.com/micromata/projectforge/blob/master/projectforge-docker/compose/docker-compose.yml[docker-compose.yml] (choose data base password).
 2. First start: `docker-compose run projectforge-app`
-3. Follow setup wizard below (choose PostgreSQL, data base will be available after some minutes for connection test).
-4. After finalization of setup, press `CTRL-C` for stopping container.
-5. Restart 'docker-compose up'
+3. Follow setup wizard below (choose PostgreSQL connection settings).
+4. ProjectForge stops automatically after setting up your ProjectForge directory. Restart `docker-compose up`
+5. After finalization of setup page in browser, press `CTRL-C` or `docker-compose down` for stopping container.
+6. Restart `docker-compose up`
 6. Enjoy.
 
 
