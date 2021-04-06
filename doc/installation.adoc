@@ -19,8 +19,9 @@ You may install ProjectForge as docker image.
 
 We assume `/home/projectforge/ProjectForge` as ProjectForge's home in this documentation, but you may choose anything else (will be created or should be empty if already exists).
 
-==== Built-in database (HsqlDB)
-For test or small installations you may use the built-in data base.+
+For test or small installations you may use the built-in data base (embedded).
+
+==== Running single docker container
 
 1. First start `docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge --name projectforge kreinhard/projectforge`
 2. Follow setup wizard below.
@@ -28,17 +29,21 @@ For test or small installations you may use the built-in data base.+
 4. Restart  `docker start projectforge`
 5. Enjoy.
 
-==== External data base (PostgreSQL)
-For productive and larger installations.
+You may monitor the log file: `tail -f ~/ProjectForge/logs/ProjectForge.log`
 
-1. Copy and modify https://github.com/micromata/projectforge/blob/master/projectforge-docker/compose/docker-compose.yml[docker-compose.yml] (choose data base password).
+==== Running as stack
+
+In this docker-compose case ProjectForge is composed with a PostgreSQL docker container (for productive and larger installations).
+
+1. Copy and modify https://github.com/micromata/projectforge/blob/master/projectforge-docker/compose/docker-compose.yml[docker-compose.yml] (change data base password).
 2. First start: `docker-compose run projectforge-app`
 3. Follow setup wizard below (choose PostgreSQL connection settings).
 4. ProjectForge stops automatically after setting up your ProjectForge directory. Restart `docker-compose up`
 5. After finalization of setup page in browser, press `CTRL-C` or `docker-compose down` for stopping container.
 6. Restart `docker-compose up`
-6. Enjoy.
+7. Enjoy.
 
+You may monitor the log file: `tail -f ~/ProjectForge/logs/ProjectForge.log`
 
 ==== Java-Installation
 If you don't want to use Docker, you're able to install ProjectForge from the executable jar file.
