@@ -190,7 +190,7 @@ All of the commands below should be run with `root` privileges.
 
 ==== Configure Nginx
 
-To use NGINX as a reverse proxy, it's necessary to create a configuration file. The standard path for NGINX configurations is `/etc/nginx/sites-available/`, so let's create the file xref:misc/nginx_sites-available_projectforge[`/etc/nginx/sites-available/projectforge`].
+To use NGINX as a reverse proxy, it's necessary to create a configuration file. The standard path for NGINX configurations is `/etc/nginx/sites-available/`, so let's create the file link:misc/nginx_sites-available_projectforge[`/etc/nginx/sites-available/projectforge`].
 If you want to use `.htaccess` to blok access to the installation, you need to remove the comment character (`#`) in front of the `auth_basic` and `auth_basic_file` parameters.
 If you want to use HSTS (which makes browsers show an error page when the SSL certificate is invalid and/or nonexistent), remove the comment character (`#`) in front of the `add_header Strict-Transport-Security` parameter.
 
@@ -221,8 +221,8 @@ ${JAVA} ... -Dloader.path=${HOME}/ProjectForge/resources/milton ${DEBUGOPTS} -ja
 3.2. SystemD: `systemctl restart nginx`
 4. Navigate to ProjectForge with your browser and finalize the setup.
 
-* Example start script: xref:misc/startProjectForge.sh[startProjectForge.sh]
-* Example stop script: xref:misc/stopProjectForge.sh[stopProjectForge.sh]
+* Example start script: link:misc/startProjectForge.sh[startProjectForge.sh]
+* Example stop script: link:misc/stopProjectForge.sh[stopProjectForge.sh]
 
 == Adding external plugins
 ProjectForge supports external 3rd party plugins:
