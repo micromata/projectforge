@@ -53,7 +53,7 @@ If you don't want to use Docker, you're able to install ProjectForge from the ex
 3. First start: java -jar projectForge-application_version.jar
 
 === The installation setup wizard
-After first start, you'll ask for entering the setup wizard. Go for it.
+After first start, you'll be asked for entering the setup wizard. Go for it.
 There is an console setup wizard available as well as a graphical wizard as desktop application, depending on your environment. You may choose
 the version if your system supports both (graphical output and terminal output).
 
@@ -61,18 +61,20 @@ Both editions have the same functionality.
 
 [#img-setup-wizard-1]
 .The setup wizard (terminal edition) for choosing ProjectForge's home directory. This step is skipped on docker based installation.
-
-image::images/setup-wizard-step-1.png[Setup wizard, step 1]
+[link=images/setup-wizard-step-1.png]
+image::images/setup-wizard-step-1.png[Setup wizard - step 1,400]
 
 We assume `/home/projectforge/ProjectForge` as ProjectForge's home in this documentation, but you may choose anything else (will be created or should be empty if already exists).
 
 [#img-setup-wizard-2]
 .The setup wizard (terminal edition) for configuring the basic settings.
-image::images/setup-wizard-step-2.png[Setup wizard, step 2]
+[link=images/setup-wizard-step-2.png]
+image::images/setup-wizard-step-2.png[Setup wizard - step 2, 400]
 
 [#img-setup-wizard-jdbc]
 .The setup wizard (graphical edition) for configuring and testing the data base connection.
-image::images/setup-wizard-gui-jdbc.png[Setup wizard, data base settings]
+[link=images/setup-wizard-gui-jdbc.png]
+image::images/setup-wizard-gui-jdbc.png[Setup wizard - data base settings,400]
 
 You may leave the most settings as they are. You are able to change these settings later in `projectforge.properties` or `config.xml`.
 
@@ -105,13 +107,14 @@ ProjectForge is only available on port 8080 from localhost due to security reaso
 
 [NOTE]
 ====
-Please be aware, that after your first start of ProjectForge, your page might be public and be configured by somebody else! So proceed directly with the configuration if your new ProjectForge instance is
+Please be aware, that after your first start of ProjectForge, your page might be public and be configured by anybody else! So proceed immediatelyly with the configuration if your new ProjectForge instance is
 public available.
 ====
 
 [#img-setup-webpage]
 .After starting ProjectForge the first time, a setup page is displayed.
-image::images/setup-webpage.png[Setup web page]
+[link=images/setup-webpage.png]
+image::images/setup-webpage.png[Setup web page,400]
 
 [cols="1,3"]
 |===
@@ -128,7 +131,8 @@ Just click finish to have your ready-to-use installation.
 
 [#img-setup-webpage-finished]
 .After initialization you will get this screen. Now restart a last time and also all activated plugins are now fully available.
-image::images/setup-webpage-finished.png[Setup finished]
+[link=images/setup-webpage-finished.png]
+image::images/setup-webpage-finished.png[Setup finished,400]
 
 
 
@@ -143,7 +147,8 @@ are also available.
 
 [#img-setup-webpage]
 .You have to activate some built-in plugins if you want to use them. The plugin "Data transfer" is recommended.
-image::images/admin-plugins.png[Activation of built-in plugins (Menu Administration -> Plugins)]
+[link=images/admin-plugins.png]
+image::images/admin-plugins.png[Activation of built-in plugins (Menu Administration -> Plugins),400]
 
 
 == Customization
@@ -185,60 +190,12 @@ All of the commands below should be run with `root` privileges.
 
 ==== Configure Nginx
 
-To use NGINX as a reverse proxy, it's necessary to create a configuration file. The standard path for NGINX configurations is `/etc/nginx/sites-available/`, so let's create the file `/etc/nginx/sites-available/projectforge` with the content listed below.
+To use NGINX as a reverse proxy, it's necessary to create a configuration file. The standard path for NGINX configurations is `/etc/nginx/sites-available/`, so let's create the file xref:misc/nginx_sites-available_projectforge[`/etc/nginx/sites-available/projectforge`].
 If you want to use `.htaccess` to blok access to the installation, you need to remove the comment character (`#`) in front of the `auth_basic` and `auth_basic_file` parameters.
 If you want to use HSTS (which makes browsers show an error page when the SSL certificate is invalid and/or nonexistent), remove the comment character (`#`) in front of the `add_header Strict-Transport-Security` parameter.
 
 **Remeber to replace *projectforge.example.com* with the actual domain you'll run ProjectForge on!**
 
-[source]
-----
-server {
-  listen 80;
-  listen [::]:80;
-  server_name projectforge.example.com;
-  location / { return 301 https://$host$request_uri; }
-}
-
-server {
-  listen              443 ssl;
-  listen              [::]:443 ssl;
-  server_name         projectforge.example.com;
-  ssl_certificate     /etc/ssl/projectforge.crt;
-  ssl_certificate_key /etc/ssl/projectforge.key;
-  ssl on;
-
-  ssl_protocols TLSv1.2;
-  ssl_prefer_server_ciphers on;
-  ssl_dhparam /etc/nginx/dhparam.pem;
-  ssl_ciphers EECDH+AESGCM:EDH+AESGCM;
-  ssl_ecdh_curve secp384r1; # Requires nginx >= 1.1.0
-  ssl_session_timeout  10m;
-  ssl_session_cache shared:SSL:10m;
-  ssl_session_tickets off; # Requires nginx >= 1.5.9
-  ssl_stapling on; # Requires nginx >= 1.3.7
-  ssl_stapling_verify on; # Requires nginx => 1.3.7
-  add_header X-Frame-Options DENY;
-  add_header X-Content-Type-Options nosniff;
-  add_header X-XSS-Protection "1; mode=block";
-
-  #add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
-
-  location / {
-    proxy_set_header        Host $host;
-    proxy_set_header        X-Real-IP $remote_addr;
-    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header        X-Forwarded-Proto $scheme;
-
-    proxy_pass              http://localhost:8080;
-    proxy_read_timeout      90;
-    proxy_redirect          http://localhost:8080 https://projectforge.example.com;
-
-    # auth_basic            "Username and Password Required";
-    # auth_basic_user_file  /etc/nginx/.htpasswd;
-  }
-}
-----
 
 To activate the NGINX configuration, you'll need to symlink the configuration file we just created to `/etc/nginx/sites-enabled`. This can be done by using the following command:
 
@@ -264,69 +221,8 @@ ${JAVA} ... -Dloader.path=${HOME}/ProjectForge/resources/milton ${DEBUGOPTS} -ja
 3.2. SystemD: `systemctl restart nginx`
 4. Navigate to ProjectForge with your browser and finalize the setup.
 
-=== Example start-file
-
-```bash
-#!/bin/bash
-
-PF_JAR=${HOME}/application/projectforge-application-xxx.jar"
-
-echo "Using ProjectForge jar: ${PF_JAR}..."
-
-if [ "${OSTYPE}" == 'cygwin' ]
-then
-    JAVA=`cygpath "${JAVA_HOME}"`/jre/bin/java
-else
-    if [[ -n "$JAVA_HOME" ]] && [[ -x "$JAVA_HOME/bin/java" ]];  then
-    	JAVA="$JAVA_HOME/bin/java"
-	else
-    	JAVA=/usr/bin/java
-	fi
-fi
-
-echo "Using ${JAVA}"
-
-DEBUGOPTS=
-
-nohup ${JAVA}  -Xms4g -Xmx4g ${DEBUGOPTS} -jar $PF_JAR 2>&1 > /dev/null &
-```
-
-=== Example stop-file
-
-```bash
-#!/bin/bash
-
-pid=$(pgrep -f "java.*-jar projectforge-application")
-if [[ -z $pid ]]; then
-    echo "ProjectForge process not found"
-    exit 0
-else
-    kill $pid
-fi
-
-echo "waiting 10 sec for termination of pid $pid..."
-sleep 10
-
-pid=$(pgrep -f "java.*-jar projectforge-application")
-if [[ -z $pid ]]; then
-    echo "ProjectForge stopped"
-    exit 0
-else
-    echo "ProjectForge not stopped, now sending sigkill"
-    kill -9 $pid
-fi
-
-sleep 0.5
-
-pid=$(pgrep -f "java.*-jar projectforge-application")
-if [[ -z $pid ]]; then
-    echo "ProjectForge killed"
-    exit 0
-else
-    echo "ProjectForge could not be killed"
-    exit 1
-fi
-```
+* Example start script: xref:misc/startProjectForge.sh[startProjectForge.sh]
+* Example stop script: xref:misc/stopProjectForge.sh[stopProjectForge.sh]
 
 == Adding external plugins
 ProjectForge supports external 3rd party plugins:

@@ -3,8 +3,6 @@ services:
   projectforge-app:
     image: kreinhard/projectforge
     container_name: projectforge-app
-    #stdin_open: true # docker run -i
-    #tty: true        # docker run -t
     restart: always
     ports:
       - "127.0.0.1:8080:8080"

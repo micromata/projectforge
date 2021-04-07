@@ -31,7 +31,6 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.plugins.datatransfer.rest.DataTransferArea
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
 
@@ -63,13 +62,18 @@ open class DataTransferStatisticsBuilder(
       val accessUserString = if (accessUsers.isBlank()) "" else ", access users=[$accessUsers]"
       val accessGroups = Group.toGroupNames(dbo.accessGroupIds, groupService)
       val accessGroupString = if (accessGroups.isBlank()) "" else ", access groups=[$accessGroups]"
+      val externalAccess = if (dbo.externalDownloadEnabled == true || dbo.externalUploadEnabled == true) {
+        ", external access=[download=${dbo.externalDownloadEnabled}, upload=${dbo.externalUploadEnabled}]"
+      } else {
+        ""
+      }
 
       stats.add(
         "datatransfer:${dbo.id}",
         "data transfer (part of JCR)",
-        "'${dbo.areaName}",
-        "$size: admins=[$admins]$accessUserString$accessGroupString"
-      )
+        "'${dbo.areaName?.take(5)}...",
+        "$size: admins=[$admins]$accessUserString$accessGroupString$externalAccess"
+          )
+        }
     }
   }
-}
