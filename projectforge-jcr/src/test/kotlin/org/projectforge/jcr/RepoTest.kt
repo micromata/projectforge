@@ -61,7 +61,7 @@ class RepoTest {
     Assertions.assertEquals("value", repoService.retrievePropertyString("world/europe/", "germany", "key"))
 
     val file = FileObject()
-    file.fileName = "pom.xml"
+    file.fileName = "test/files/logo.png"
     file.description = "This is the maven pom file."
     file.parentNodePath = "/world/europe"
     file.relPath = "germany"
@@ -74,7 +74,7 @@ class RepoTest {
       MaxFileSizeExceeded::class.java
     ) { repoService.storeFile(file, FileSizeStandardChecker(100L)) }
     repoService.storeFile(file, FileSizeStandardChecker(10000L))
-
+    Assertions.assertEquals("SHA256: 5973306df0e1395a401cca276f868c7f63781c7b8acf96f9834631a4fbf6fb47", file.checksum)
     checkFile(file, null, file.fileName)
     checkFile(file, file.fileId, null)
     checkFile(file, file.fileId, "unkown")

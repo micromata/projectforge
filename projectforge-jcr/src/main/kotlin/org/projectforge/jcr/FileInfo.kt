@@ -26,8 +26,6 @@ package org.projectforge.jcr
 import mu.KotlinLogging
 import java.util.*
 
-private val log = KotlinLogging.logger {}
-
 /**
  * For setting some attributes for storing or changing files.
  */
@@ -50,6 +48,10 @@ open class FileInfo(
   var lastUpdate: Date? = null,
   var createdByUser: String? = null,
   var lastUpdateByUser: String? = null,
+  /**
+   * The checksum of the file, e. g.: (SHA256).
+   */
+  var checksum: String? = null,
   fileSize: Long? = null
 ) {
   /**
@@ -67,5 +69,6 @@ open class FileInfo(
     this.createdByUser = other.createdByUser
     this.lastUpdateByUser = other.lastUpdateByUser
     this.size = other.size
+    this.checksum = other.checksum
   }
 }
