@@ -36,6 +36,8 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.jcr.Node
+import javax.jcr.PathNotFoundException
+import javax.jcr.Property
 
 private val log = KotlinLogging.logger {}
 
@@ -109,6 +111,22 @@ object PFJcrUtils {
       }
     }
     return false
+  }
+
+  fun getProperty(node: Node, relPath: String): Property? {
+    if (!node.hasProperty(relPath)) {
+      return null
+    }
+    try {
+      return node.getProperty(relPath)
+    } catch (ex: PathNotFoundException) {
+      log.error("Can't get property '$relPath' of node: ${ex.message}.", ex)
+      return null
+    }
+  }
+
+  fun getPropertyAsDate(node: Node, relPath: String): Date? {
+    return convertToDate(getProperty(node, relPath)?.string)
   }
 
   fun matchPath(node: Node, expectedPath: String): Boolean {

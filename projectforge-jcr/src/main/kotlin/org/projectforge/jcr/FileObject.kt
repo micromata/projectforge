@@ -72,14 +72,15 @@ class FileObject(): FileInfo() {
    * Copies all fields from node to this, excluding content and path setting (parent path as well as relative path).
    */
   internal fun copyFrom(node: Node) {
-    fileName = node.getProperty(RepoService.PROPERTY_FILENAME)?.string
-    description = node.getProperty(RepoService.PROPERTY_FILEDESC)?.string
-    created = PFJcrUtils.convertToDate(node.getProperty(RepoService.PROPERTY_CREATED)?.string)
-    createdByUser = node.getProperty(RepoService.PROPERTY_CREATED_BY_USER)?.string
-    lastUpdate = PFJcrUtils.convertToDate(node.getProperty(RepoService.PROPERTY_LAST_UPDATE)?.string)
-    lastUpdateByUser = node.getProperty(RepoService.PROPERTY_LAST_UPDATE_BY_USER)?.string
+    fileName = PFJcrUtils.getProperty(node, RepoService.PROPERTY_FILENAME)?.string
+    description = PFJcrUtils.getProperty(node, RepoService.PROPERTY_FILEDESC)?.string
+    created = PFJcrUtils.getPropertyAsDate(node, RepoService.PROPERTY_CREATED)
+    createdByUser = PFJcrUtils.getProperty(node, RepoService.PROPERTY_CREATED_BY_USER)?.string
+    lastUpdate = PFJcrUtils.getPropertyAsDate(node, RepoService.PROPERTY_LAST_UPDATE)
+    lastUpdateByUser = PFJcrUtils.getProperty(node, RepoService.PROPERTY_LAST_UPDATE_BY_USER)?.string
     fileId = node.name
-    size = node.getProperty(RepoService.PROPERTY_FILESIZE)?.long
+    size = PFJcrUtils.getProperty(node, RepoService.PROPERTY_FILESIZE)?.long
+    checksum = PFJcrUtils.getProperty(node, RepoService.PROPERTY_CHECKSUM)?.string
     if (log.isDebugEnabled) {
       log.debug { "Restoring: ${PFJcrUtils.toJson(this)}" }
     }
@@ -95,6 +96,7 @@ class FileObject(): FileInfo() {
     node.setProperty(RepoService.PROPERTY_CREATED_BY_USER, createdByUser ?: "")
     node.setProperty(RepoService.PROPERTY_LAST_UPDATE, PFJcrUtils.convertToString(lastUpdate) ?: "")
     node.setProperty(RepoService.PROPERTY_LAST_UPDATE_BY_USER, lastUpdateByUser ?: "")
+    node.setProperty(RepoService.PROPERTY_CHECKSUM, checksum ?: "")
     size?.let { node.setProperty(RepoService.PROPERTY_FILESIZE, it) }
     log.info { "Storing file info: ${PFJcrUtils.toJson(this)}" }
   }

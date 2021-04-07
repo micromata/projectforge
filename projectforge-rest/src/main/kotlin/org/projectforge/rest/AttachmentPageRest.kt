@@ -103,6 +103,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
                 .add(UIReadOnlyField("attachment.lastUpdateByUser", label = "modifiedBy"))
             )
         )
+        .add(UIReadOnlyField("attachment.checksum", label = "attachment.checksum", canCopy = true))
 
       layout.addAction(
         UIButton(

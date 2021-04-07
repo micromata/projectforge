@@ -24,6 +24,7 @@
 package org.projectforge.jcr
 
 import mu.KotlinLogging
+import org.apache.commons.codec.digest.DigestUtils
 import org.apache.jackrabbit.oak.Oak
 import org.apache.jackrabbit.oak.jcr.Jcr
 import org.apache.jackrabbit.oak.plugins.document.DocumentNodeStore
@@ -175,6 +176,10 @@ open class RepoService {
       } catch (ex: Exception) {
         fileNode.remove()
         throw ex
+      }
+      // Calculate checksum
+      getFileInputStream(fileNode, fileObject).use { istream ->
+        fileObject.checksum = "SHA256: ${DigestUtils.sha256Hex(istream)}"
       }
       fileObject.copyTo(fileNode)
       session.save()
@@ -551,6 +556,7 @@ open class RepoService {
     internal const val PROPERTY_FILEDESC = "fileDescription"
     internal const val PROPERTY_LAST_UPDATE = "lastUpdate"
     internal const val PROPERTY_LAST_UPDATE_BY_USER = "lastUpdateByUser"
+    internal const val PROPERTY_CHECKSUM = "checksum"
     private const val PROPERTY_RANDOM_ID_LENGTH = 20
     private val ALPHA_CHARSET: Array<Char> = ('a'..'z').toList().toTypedArray()
 

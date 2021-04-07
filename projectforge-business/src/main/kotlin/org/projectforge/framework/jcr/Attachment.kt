@@ -33,7 +33,6 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileObject
 import java.util.*
 
-
 /**
  * Represents a file object of jcr (including meta data as well as location in jcr).
  */
@@ -93,6 +92,11 @@ class Attachment() {
      */
     var readonly: Boolean? = null
 
+    /**
+     * The checksum of the file, e. g.: (SHA256).
+     */
+    var checksum: String? = null
+
     constructor(fileObject: FileObject) : this() {
         this.fileId = fileObject.fileId
         this.name = fileObject.fileName
@@ -102,6 +106,7 @@ class Attachment() {
         this.createdByUser = fileObject.createdByUser
         this.lastUpdate = fileObject.lastUpdate
         this.lastUpdateByUser = fileObject.lastUpdateByUser
+        this.checksum = fileObject.checksum
     }
 
     override fun toString(): String {
