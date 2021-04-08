@@ -25,7 +25,10 @@ package org.projectforge.jcr
 
 import javax.jcr.Node
 
-open class RepoTreeWalker(val repoService: RepoService) {
+open class RepoTreeWalker(
+  val repoService: RepoService,
+  val absPath: String = "/${repoService.mainNodeName}"
+) {
   var numberOfVisitedFiles = 0
     private set
 
@@ -34,12 +37,12 @@ open class RepoTreeWalker(val repoService: RepoService) {
 
   fun walk() {
     repoService.runInSession { session ->
-      walk(repoService.getNode(session, repoService.mainNodeName, null))
+      walk(repoService.getNode(session, absPath, null), true)
     }
   }
 
-  private fun walk(node: Node) {
-    visit(node)
+  private fun walk(node: Node, isRootNode: Boolean = false) {
+    visit(node, isRootNode)
     ++numberOfVisitedNodes
     val fileList = repoService.getFileInfos(node)
     if (!fileList.isNullOrEmpty()) {
@@ -58,7 +61,7 @@ open class RepoTreeWalker(val repoService: RepoService) {
     }
   }
 
-  open fun visit(node: Node) {}
+  open fun visit(node: Node, isRootNode: Boolean) {}
 
   /**
    *  val content = repoService.getFileContent(fileNode, fileObject)

@@ -109,14 +109,59 @@ open class RepoBackupService {
       val readme = this::class.java.getResource(BACKUP_README).readText()
       zipOut.write(readme.toByteArray(StandardCharsets.UTF_8))
 
-      val topNode = repoService.getNode(session, absPath, null)
-      // Using repository.json if repository.xml doesn't work.
-      zipOut.putNextEntry(createZipEntry(archivNameWithoutExtension, "repository.json"))
-      zipOut.write(
-        PFJcrUtils.toJson(NodeInfo(topNode, recursive = true, listOfIgnoredNodePaths = listOfIgnoredNodePaths))
-          .toByteArray(StandardCharsets.UTF_8)
-      )
-      writeToZip(topNode, archivNameWithoutExtension, zipOut)
+      val walker = object : RepoTreeWalker(repoService, absPath) {
+        override fun visit(node: Node, isRootNode: Boolean) {
+          if (isRootNode) {
+            // Using repository.json if repository.xml doesn't work.
+            zipOut.putNextEntry(createZipEntry(archivNameWithoutExtension, "repository.json"))
+            zipOut.write(
+              PFJcrUtils.toJson(NodeInfo(node, recursive = true, listOfIgnoredNodePaths = listOfIgnoredNodePaths))
+                .toByteArray(StandardCharsets.UTF_8)
+            )
+          }
+
+          if (PFJcrUtils.matchAnyPath(node, listOfIgnoredNodePaths)) {
+            // Ignore node.
+            log.warn { "Ignore path=${node.path} as configured." }
+            return
+          }
+          val fileList = repoService.getFileInfos(node)
+          if (!fileList.isNullOrEmpty()) {
+            zipOut.putNextEntry(createZipEntry(archivNameWithoutExtension, node.path, "files.json"))
+            zipOut.write(PFJcrUtils.toJson(FileObjectList(fileList)).toByteArray(StandardCharsets.UTF_8))
+            zipOut.putNextEntry(createZipEntry(archivNameWithoutExtension, node.path, "files.txt"))
+            val fileListAsString =
+              fileList.joinToString(separator = "\n") {
+                "${PFJcrUtils.createSafeFilename(it)} ${
+                  FormatterUtils.formatBytes(
+                    it.size
+                  )
+                } ${it.fileName}"
+              }
+            zipOut.write(fileListAsString.toByteArray(StandardCharsets.UTF_8))
+          }
+          val nodeInfo = NodeInfo(node, false)
+          zipOut.putNextEntry(createZipEntry(archivNameWithoutExtension, node.path, "node.json"))
+          zipOut.write(PFJcrUtils.toJson(nodeInfo).toByteArray(StandardCharsets.UTF_8))
+        }
+
+        override fun visitFile(fileNode: Node, fileObject: FileObject) {
+          val content = repoService.getFileContent(fileNode, fileObject)
+          if (content != null) {
+            val fileName = PFJcrUtils.createSafeFilename(fileObject)
+            zipOut.putNextEntry(createZipEntry(archivNameWithoutExtension, fileNode.path, fileName))
+            zipOut.write(content)
+          }
+        }
+      }
+      walker.walk()
+      log.info {
+        "Backup of document view and binaries of path '$absPath' as '$archiveName' done: number of nodes=${
+          FormatterUtils.format(
+            walker.numberOfVisitedNodes
+          )
+        }, number of files=${FormatterUtils.format(walker.numberOfVisitedFiles)}."
+      }
     }
   }
 
@@ -208,42 +253,6 @@ open class RepoBackupService {
     }
     archiveName = archiveName.substring(0, archiveName.indexOf(RepoService.NODENAME_FILES) - 1)
     return "$archiveName/${RepoService.NODENAME_FILES}"
-  }
-
-  private fun writeToZip(node: Node, archiveName: String, zipOut: ZipOutputStream) {
-    if (PFJcrUtils.matchAnyPath(node, listOfIgnoredNodePaths)) {
-      // Ignore node.
-      log.warn { "Ignore path=${node.path} as configured." }
-      return
-    }
-    val fileList = repoService.getFileInfos(node)
-    if (!fileList.isNullOrEmpty()) {
-      fileList.forEach {
-        repoService.findFile(node, it.fileId, null)?.let { fileNode ->
-          val fileObject = FileObject(fileNode)
-          val content = repoService.getFileContent(fileNode, fileObject)
-          if (content != null) {
-            val fileName = PFJcrUtils.createSafeFilename(it)
-            zipOut.putNextEntry(createZipEntry(archiveName, node.path, fileName))
-            zipOut.write(content)
-          }
-        }
-      }
-      zipOut.putNextEntry(createZipEntry(archiveName, node.path, "files.json"))
-      zipOut.write(PFJcrUtils.toJson(FileObjectList(fileList)).toByteArray(StandardCharsets.UTF_8))
-      zipOut.putNextEntry(createZipEntry(archiveName, node.path, "files.txt"))
-      val fileListAsString =
-        fileList.joinToString(separator = "\n") { "${PFJcrUtils.createSafeFilename(it)} ${FormatterUtils.formatBytes(it.size)} ${it.fileName}" }
-      zipOut.write(fileListAsString.toByteArray(StandardCharsets.UTF_8))
-    }
-    val nodeInfo = NodeInfo(node, false)
-    zipOut.putNextEntry(createZipEntry(archiveName, node.path, "node.json"))
-    zipOut.write(PFJcrUtils.toJson(nodeInfo).toByteArray(StandardCharsets.UTF_8))
-    node.nodes?.let {
-      while (it.hasNext()) {
-        writeToZip(it.nextNode(), archiveName, zipOut)
-      }
-    }
   }
 
   private fun createZipEntry(archiveName: String, vararg path: String?): ZipEntry {
