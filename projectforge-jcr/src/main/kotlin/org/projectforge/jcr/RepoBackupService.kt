@@ -101,7 +101,7 @@ open class RepoBackupService {
     } else {
       archiveName
     }
-    return runInSession { session ->
+    return repoService.runInSession { session ->
       log.info { "Creating backup of document view and binaries of path '$absPath' as '$archiveName'..." }
 
       // Write README.TXT
@@ -132,7 +132,7 @@ open class RepoBackupService {
     if (securityConfirmation != RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED) {
       throw IllegalArgumentException("You must use the correct security confirmation if you know what you're doing. The repo content may be lost after restoring!")
     }
-    return runInSession { session ->
+    return repoService.runInSession { session ->
       log.info { "Restoring backup of document view and binaries of path '$absPath'..." }
       var nodesRestored = false
       var zipEntry = zipIn.nextEntry
@@ -248,15 +248,6 @@ open class RepoBackupService {
 
   private fun createZipEntry(archiveName: String, vararg path: String?): ZipEntry {
     return ZipEntry("$archiveName/${path.joinToString(separator = "/") { it ?: "" }}")
-  }
-
-  private fun <T> runInSession(method: (session: SessionWrapper) -> T): T {
-    val session = SessionWrapper(this.repoService)
-    try {
-      return method(session)
-    } finally {
-      session.logout()
-    }
   }
 
   companion object {
