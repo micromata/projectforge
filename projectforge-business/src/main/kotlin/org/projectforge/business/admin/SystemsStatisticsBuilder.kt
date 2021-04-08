@@ -41,14 +41,16 @@ class SystemsStatisticsBuilder: SystemsStatisticsBuilderInterface {
     val systemLoadAverage = BigDecimal(osBean.systemLoadAverage).setScale(2, RoundingMode.HALF_UP)
     val processUptime = ManagementFactory.getRuntimeMXBean().uptime
     val processStartTime = PFDateTime.from(ManagementFactory.getRuntimeMXBean().startTime)
+    val numberOfActiveThreads = Thread.activeCount()
     log.info(
-      "System load average: $systemLoadAverage, process start time: ${processStartTime.isoString}, process uptime: ${
+      "System load average: $systemLoadAverage, active threads: $numberOfActiveThreads, process start time: ${processStartTime.isoString}, process uptime: ${
         DurationUtils.getFormattedDaysHoursAndMinutes(
           processUptime
         )
       } [h:mm], ${TimeAgo.getMessage(processStartTime.utilDate, Locale.ENGLISH)}"
     )
     stats.add("systemLoadAverage", "system", "'System load average", format(systemLoadAverage))
+    stats.add("activeThreads", "system", "'Number of active threads", format(numberOfActiveThreads))
     stats.add(
       "processStartTime", "system", "'Process start time",
       "${processStartTime.isoString} (UTC), ${TimeAgo.getMessage(processStartTime.utilDate)}"
