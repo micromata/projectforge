@@ -66,12 +66,18 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
     services.getDataObject(pagesRest, id) // Check data object availability.
     val data = AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
     data.attachment = services.getAttachment(pagesRest, data)
-    val layout = createAttachmentLayout(id, category, fileId, listId)
+    val layout = createAttachmentLayout(id, category, fileId, listId, attachment = data.attachment)
     return FormLayoutData(data, layout, createServerData(request))
   }
 
   companion object {
-    fun createAttachmentLayout(id: Int, category: String, fileId: String, listId: String?): UILayout {
+    fun createAttachmentLayout(
+      id: Int,
+      category: String,
+      fileId: String,
+      listId: String?,
+      attachment: Attachment
+    ): UILayout {
       val layout = UILayout("attachment")
 
       val lc = LayoutContext(Attachment::class.java)
@@ -103,7 +109,9 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
                 .add(UIReadOnlyField("attachment.lastUpdateByUser", label = "modifiedBy"))
             )
         )
-        .add(UIReadOnlyField("attachment.checksum", label = "attachment.checksum", canCopy = true))
+      if (!attachment.checksum.isNullOrBlank()) {
+        layout.add(UIReadOnlyField("attachment.checksum", label = "attachment.checksum", canCopy = true))
+      }
 
       layout.addAction(
         UIButton(
@@ -116,8 +124,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
               "download/$category/$id?fileId=$fileId&listId=$listId"
             ),
             targetType = TargetType.DOWNLOAD
-          ),
-          default = true
+          )
         )
       )
       layout.addAction(
@@ -129,8 +136,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
           responseAction = ResponseAction(
             RestResolver.getRestUrl(AttachmentsServicesRest::class.java, "delete"),
             targetType = TargetType.POST
-          ),
-          default = true
+          )
         )
       )
         .addAction(

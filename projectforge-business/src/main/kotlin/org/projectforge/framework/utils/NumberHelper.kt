@@ -560,17 +560,7 @@ object NumberHelper {
   @JvmStatic
   @JvmOverloads
   fun toBigDecimal(number: Number?, stripTrailingZeros: Boolean = true): BigDecimal? {
-    if (number == null) return null
-    val result = when (number) {
-      is BigDecimal -> number.stripTrailingZeros()
-      is Double -> BigDecimal(number)
-      is Float -> BigDecimal(number.toDouble())
-      is Int -> BigDecimal(number)
-      is Short -> BigDecimal(number.toInt())
-      is Long -> BigDecimal(number)
-      else -> BigDecimal("$number")
-    }
-    return if (stripTrailingZeros) result.stripTrailingZeros() else result
+    return FormatterUtils.toBigDecimal(number, stripTrailingZeros)
   }
 
   /**
