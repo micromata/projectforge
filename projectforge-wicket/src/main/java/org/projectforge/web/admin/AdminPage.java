@@ -39,6 +39,7 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.UserXmlPreferencesMigrationDao;
+import org.projectforge.framework.ToStringUtil;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.GlobalConfiguration;
@@ -49,6 +50,7 @@ import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.jcr.JCRCheckSanityJob;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.WicketSupport;
@@ -59,6 +61,7 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
@@ -80,6 +83,9 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 
   @SpringBean
   private DatabaseService databaseService;
+
+  @SpringBean
+  private JCRCheckSanityJob jcrCheckSanityJob;
 
   @SpringBean
   private HibernateSearchReindexer hibernateSearchReindexer;
@@ -254,6 +260,21 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
             checkSystemIntegrityLink, getString("system.admin.button.checkSystemIntegrity"))
             .setTooltip(getString("system.admin.button.checkSystemIntegrity.tooltip"));
     miscChecksMenu.addSubMenuEntry(checkSystemIntegrityLinkMenuItem);
+
+    // JCR sanity check
+    // Check system integrity
+    final Link<Void> checkJCRSanityLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
+      @Override
+      public void onClick() {
+        checkJCRSanity();
+      }
+    };
+    final ContentMenuEntryPanel checkJCRSanityLinkMenuItem = new ContentMenuEntryPanel(
+        miscChecksMenu.newSubMenuChildId(),
+        checkJCRSanityLink, getString("system.admin.button.checkJCRSanity"))
+        .setTooltip(getString("system.admin.button.checkJCRSanity.tooltip"));
+    miscChecksMenu.addSubMenuEntry(checkJCRSanityLinkMenuItem);
+
   }
 
   @SuppressWarnings("serial")
@@ -355,6 +376,15 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     final String filename = "projectforge_check_report" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
     DownloadUtils.setDownloadTarget(result.getBytes(), filename);
   }
+
+  protected void checkJCRSanity() {
+    log.info("Administration: JCR sanity check.");
+    checkAccess();
+    JCRCheckSanityJob.CheckResult result = jcrCheckSanityJob.execute();
+    final String filename = "projectforge_jcr-sanity-check" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
+    DownloadUtils.setDownloadTarget(result.toText().getBytes(StandardCharsets.UTF_8), filename);
+  }
+
 
   protected void refreshCaches() {
     log.info("Administration: refresh of caches.");

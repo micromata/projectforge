@@ -10,6 +10,9 @@ before all attachment files.
 
 repository.json is used first to create the nodes and properties.
 
+After restoring a sanity check will be done (comparing file sizes and checksums). You may run this sanity check at
+any time via click on ProjectForge admin's web page: Administration -> System -> misc checks -> JCR sanity check.
+
 
 Usage Backup
 ------------

@@ -49,6 +49,13 @@ open class RepoBackupService {
   @Value("\${projectforge.jcr.backupDir}")
   private val jcrBackupDir: String? = null
 
+  @Autowired
+  internal lateinit var repoService: RepoService
+
+  @Autowired
+  internal lateinit var jcrCheckSanityJob: JCRCheckSanityJob
+
+
   internal val listOfIgnoredNodePaths = mutableListOf<String>()
 
   /**
@@ -84,9 +91,6 @@ open class RepoBackupService {
     this.backupDirectory = file
     log.info { "Using '${file.absolutePath}' as JCR backup directory." }
   }
-
-  @Autowired
-  internal lateinit var repoService: RepoService
 
   /**
    * @param absPath If not given, [RepoService.mainNodeName] is used.
@@ -173,11 +177,11 @@ open class RepoBackupService {
     zipIn: ZipInputStream,
     securityConfirmation: String,
     absPath: String = "/${repoService.mainNodeName}"
-  ) {
+  ): JCRCheckSanityJob.CheckResult {
     if (securityConfirmation != RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED) {
       throw IllegalArgumentException("You must use the correct security confirmation if you know what you're doing. The repo content may be lost after restoring!")
     }
-    return repoService.runInSession { session ->
+    repoService.runInSession { session ->
       log.info { "Restoring backup of document view and binaries of path '$absPath'..." }
       var nodesRestored = false
       var zipEntry = zipIn.nextEntry
@@ -231,6 +235,7 @@ open class RepoBackupService {
       }
       zipIn.closeEntry()
     }
+    return jcrCheckSanityJob.execute()
   }
 
   private fun restoreNode(parentNode: Node, nodeInfo: NodeInfo) {
