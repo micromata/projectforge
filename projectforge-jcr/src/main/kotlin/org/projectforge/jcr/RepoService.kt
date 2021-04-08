@@ -32,6 +32,7 @@ import org.apache.jackrabbit.oak.segment.SegmentNodeStoreBuilders
 import org.apache.jackrabbit.oak.segment.file.FileStore
 import org.apache.jackrabbit.oak.segment.file.FileStoreBuilder
 import org.apache.jackrabbit.oak.spi.state.NodeStore
+import org.projectforge.common.FormatterUtils
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.InputStream
@@ -43,6 +44,7 @@ import javax.jcr.Binary
 import javax.jcr.Node
 import javax.jcr.Repository
 import javax.jcr.Session
+import kotlin.concurrent.thread
 
 private val log = KotlinLogging.logger {}
 
@@ -142,6 +144,7 @@ open class RepoService {
     if (parentNodePath == null || relPath == null) {
       throw IllegalArgumentException("Parent node path and relPath not given. Can't determine location of file to store: $fileObject")
     }
+    var lazyCheckSumFileObject: FileObject? = null
     runInSession { session ->
       val node = getNode(session, parentNodePath, relPath, true)
       val filesNode = ensureNode(node, NODENAME_FILES)
@@ -177,12 +180,36 @@ open class RepoService {
         fileNode.remove()
         throw ex
       }
-      // Calculate checksum
-      getFileInputStream(fileNode, fileObject).use { istream ->
-        fileObject.checksum = "SHA256: ${DigestUtils.sha256Hex(istream)}"
+      if (fileObject.size ?: 0 > FormatterUtils.MEGA_BYTES * 50) {
+        lazyCheckSumFileObject = fileObject
+        fileObject.checksum = "..."
+      } else {
+        checksum(fileNode, fileObject)
       }
       fileObject.copyTo(fileNode)
       session.save()
+    }
+    lazyCheckSumFileObject?.let {
+      thread {
+        checksum(it)
+      }
+    }
+  }
+
+  private fun checksum(fileNode: Node, fileObject: FileObject) {
+    // Calculate checksum for files smaller than 50MB (it's fast enough).
+    val startTime = System.currentTimeMillis()
+    // Calculate checksum
+    getFileInputStream(fileNode, fileObject).use { istream ->
+      fileObject.checksum = "SHA256: ${DigestUtils.sha256Hex(istream)}"
+    }
+    FileObject.setChecksum(fileNode, fileObject.checksum)
+    log.info {
+      "Checksum of '${fileObject.fileName}' of size ${FormatterUtils.formatBytes(fileObject.size)} calculated in ${
+        FormatterUtils.format(
+          (System.currentTimeMillis() - startTime) / 1000
+        )
+      }s."
     }
   }
 
@@ -291,6 +318,33 @@ open class RepoService {
           }
           session.save()
           FileObject(fileNode)
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns the already calculated checksum or calculates it, if not given.
+   * @return new file info including checksum without content.
+   */
+  open fun checksum(fileObject: FileObject): String? {
+    return runInSession { session ->
+      val node = getNode(session, fileObject.parentNodePath, fileObject.relPath, false)
+      if (!node.hasNode(NODENAME_FILES)) {
+        log.error { "Can't change file info, because '$NODENAME_FILES' not found for node '${node.path}': $fileObject" }
+        null
+      } else {
+        val filesNode = node.getNode(NODENAME_FILES)
+        val fileNode = findFile(filesNode, fileObject.fileId, fileObject.fileName)
+        if (fileNode == null) {
+          log.error { "Can't get or calculate file info, file node doesn't exit: $fileObject" }
+          null
+        } else {
+          val storedFileObject = FileObject(fileNode)
+          checksum(fileNode, storedFileObject)
+          session.save()
+          fileObject.checksum = storedFileObject.checksum
+          fileObject.checksum
         }
       }
     }
