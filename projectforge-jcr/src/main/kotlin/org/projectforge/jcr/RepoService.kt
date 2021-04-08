@@ -201,7 +201,7 @@ open class RepoService {
     val startTime = System.currentTimeMillis()
     // Calculate checksum
     getFileInputStream(fileNode, fileObject).use { istream ->
-      fileObject.checksum = "SHA256: ${DigestUtils.sha256Hex(istream)}"
+      fileObject.checksum = checksum(istream)
     }
     FileObject.setChecksum(fileNode, fileObject.checksum)
     log.info {
@@ -419,7 +419,7 @@ open class RepoService {
     filesNode.nodes?.let {
       while (it.hasNext()) {
         val node = it.nextNode()
-        if (node.name == fileId || node.getProperty(PROPERTY_FILENAME).string == fileName) {
+        if (node.name == fileId || PFJcrUtils.getProperty(node, PROPERTY_FILENAME)?.string == fileName) {
           return node
         }
       }
@@ -459,13 +459,29 @@ open class RepoService {
     return getFileInputStream(node, fileObject)?.use(InputStream::readBytes)
   }
 
-  private fun getFileInputStream(node: Node?, fileObject: FileObject): InputStream? {
+  internal fun getFileInputStream(node: Node?, fileObject: FileObject, suppressLogInfo: Boolean = false): InputStream? {
     node ?: return null
-    log.info { "Reading file from repository '${node.path}': '${fileObject.fileName}'..." }
+    if (!suppressLogInfo) {
+      log.info { "Reading file from repository '${node.path}': '${fileObject.fileName}'..." }
+    }
     var binary: Binary? = null
     try {
       binary = node.getProperty(PROPERTY_FILECONTENT)?.binary
       return binary?.stream
+    } finally {
+      binary?.dispose()
+    }
+  }
+
+  internal fun getFileSize(node: Node?, fileObject: FileObject, suppressLogInfo: Boolean = false): Long? {
+    node ?: return null
+    if (!suppressLogInfo) {
+      log.info { "Determing size of file from repository '${node.path}': '${fileObject.fileName}'..." }
+    }
+    var binary: Binary? = null
+    try {
+      binary = node.getProperty(PROPERTY_FILECONTENT)?.binary
+      return binary?.size
     } finally {
       binary?.dispose()
     }
@@ -549,7 +565,7 @@ open class RepoService {
       return sb.toString()
     }
 
-  private fun <T> runInSession(method: (sessionWrapper: SessionWrapper) -> T): T {
+  internal fun <T> runInSession(method: (sessionWrapper: SessionWrapper) -> T): T {
     val session = SessionWrapper(this)
     try {
       return method(session)
@@ -613,6 +629,11 @@ open class RepoService {
     internal const val PROPERTY_CHECKSUM = "checksum"
     private const val PROPERTY_RANDOM_ID_LENGTH = 20
     private val ALPHA_CHARSET: Array<Char> = ('a'..'z').toList().toTypedArray()
+
+    internal fun checksum(istream: InputStream?): String {
+      istream ?: return ""
+      return "SHA256: ${DigestUtils.sha256Hex(istream)}"
+    }
 
     internal fun getAbsolutePath(parentPath: String?, relPath: String?): String? {
       if (parentPath == null && relPath == null) {
