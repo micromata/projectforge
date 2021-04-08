@@ -90,11 +90,11 @@ object FormatterUtils {
     return "${NumberFormat.getInstance(locale).format(no)}$unitString"
   }
 
-  private const val KILO_BYTES = 1024L
+  const val KILO_BYTES = 1024L
   private val KB_BD = BigDecimal(KILO_BYTES)
-  private const val MEGA_BYTES = KILO_BYTES * 1024
+  const val MEGA_BYTES = KILO_BYTES * 1024
   private val MB_BD = BigDecimal(MEGA_BYTES)
-  private const val GIGA_BYTES = MEGA_BYTES * 1024
+  const val GIGA_BYTES = MEGA_BYTES * 1024
   private val GB_BD = BigDecimal(GIGA_BYTES)
   private const val TERRA_BYTES = GIGA_BYTES * 1024
   private val TB_BD = BigDecimal(TERRA_BYTES)

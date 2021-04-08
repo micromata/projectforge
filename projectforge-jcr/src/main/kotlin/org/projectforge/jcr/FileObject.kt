@@ -96,7 +96,7 @@ class FileObject(): FileInfo() {
     node.setProperty(RepoService.PROPERTY_CREATED_BY_USER, createdByUser ?: "")
     node.setProperty(RepoService.PROPERTY_LAST_UPDATE, PFJcrUtils.convertToString(lastUpdate) ?: "")
     node.setProperty(RepoService.PROPERTY_LAST_UPDATE_BY_USER, lastUpdateByUser ?: "")
-    node.setProperty(RepoService.PROPERTY_CHECKSUM, checksum ?: "")
+    setChecksum(node, checksum)
     size?.let { node.setProperty(RepoService.PROPERTY_FILESIZE, it) }
     log.info { "Storing file info: ${PFJcrUtils.toJson(this)}" }
   }
@@ -138,5 +138,11 @@ class FileObject(): FileInfo() {
 
   override fun toString(): String {
     return "location=[$location],id=[$fileId],fileName=[$fileName],size=[${FormatterUtils.formatBytes(size)}]"
+  }
+
+  companion object {
+    internal fun setChecksum(node: Node, checksum: String?) {
+      node.setProperty(RepoService.PROPERTY_CHECKSUM, checksum ?: "")
+    }
   }
 }
