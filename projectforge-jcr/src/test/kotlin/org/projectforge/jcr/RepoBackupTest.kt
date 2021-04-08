@@ -41,11 +41,13 @@ class RepoBackupTest {
     val repoDir = testUtils.deleteAndCreateTestFile("testBackupRepo")
     repoService.init(repoDir)
     repoBackupService.repoService = repoService
+    repoBackupService.jcrCheckSanityJob = JCRCheckSanityJob()
+    repoBackupService.jcrCheckSanityJob.repoService = repoService
   }
 
   @Test
   fun test() {
-    var node: Node?
+    val node: Node?
     repoService.ensureNode(null, "world/europe")
     repoService.storeProperty("world/europe", "germany", "key", "value")
 
@@ -83,12 +85,19 @@ class RepoBackupTest {
     val repo2Dir = testUtils.deleteAndCreateTestFile("testBackupRepo2")
     repo2Service.init(repo2Dir)
     repo2BackupService.repoService = repo2Service
+    repo2BackupService.jcrCheckSanityJob = JCRCheckSanityJob()
+    repo2BackupService.jcrCheckSanityJob.repoService = repo2Service
 
     ZipInputStream(FileInputStream(zipFile)).use {
-      repo2BackupService.restoreBackupFromZipArchive(
+      val checkResult = repo2BackupService.restoreBackupFromZipArchive(
         it,
         RepoBackupService.RESTORE_SECURITY_CONFIRMATION__I_KNOW_WHAT_I_M_DOING__REPO_MAY_BE_DESTROYED
       )
+      Assertions.assertNotNull(checkResult)
+      Assertions.assertEquals(0, checkResult.errors.size)
+      Assertions.assertEquals(0, checkResult.warnings.size)
+      Assertions.assertEquals(8, checkResult.numberOfVisitedNodes)
+      Assertions.assertEquals(3, checkResult.numberOfVisitedFiles)
     }
     ZipOutputStream(FileOutputStream(testUtils.deleteAndCreateTestFile("fullbackupFromRestored.zip"))).use {
       repo2BackupService.backupAsZipArchive("fullbackupFromRestored", it)

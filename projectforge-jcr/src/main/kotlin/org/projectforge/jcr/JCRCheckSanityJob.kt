@@ -33,13 +33,33 @@ import javax.jcr.Node
 private val log = KotlinLogging.logger {}
 
 @Component
-class JCRCheckSanityJob {
+open class JCRCheckSanityJob {
   @Autowired
-  private lateinit var repoService: RepoService
+  internal lateinit var repoService: RepoService
 
-  // projectforge.jcr.cron.backup=2 30 0 * * *
+  class CheckResult(
+    val errors: List<String>,
+    val warnings: List<String>,
+    val numberOfVisitedFiles: Int,
+    val numberOfVisitedNodes: Int
+  ) {
+    fun toText(): String {
+      val sb = StringBuilder()
+      sb.appendln("Errors").appendln("------")
+      errors.forEach { sb.appendln("  *** $it") }
+      sb.appendln("Warnings").appendln("--------")
+      warnings.forEach { sb.appendln("  $it") }
+      sb.appendln()
+      sb.appendln("Number of visited nodes: ${FormatterUtils.format(numberOfVisitedNodes)}")
+      sb.appendln("Number of visited files: ${FormatterUtils.format(numberOfVisitedFiles)}")
+      return sb.toString()
+    }
+  }
+
+  // For testing: @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 10 * 1000)
+  // projectforge.jcr.cron.backup=0 30 0 * * *
   @Scheduled(cron = "\${projectforge.jcr.cron.sanityCheck}")
-  fun execute() {
+  open fun execute(): CheckResult {
     log.info("JCR sanity check job started.")
     val errors = mutableListOf<String>()
     val warnings = mutableListOf<String>()
@@ -52,7 +72,11 @@ class JCRCheckSanityJob {
                 .use { istream -> RepoService.checksum(istream) }
             if (!validateChecksum(checksum, repoChecksum)) {
               val msg =
-                "Checksum of file '${fileObject.fileName}' from repository '${normalizeChecksum(checksum)}' differs from repository value '${normalizeChecksum(repoChecksum)}'! ['${fileNode.path}']"
+                "Checksum of file '${fileObject.fileName}' from repository '${normalizeChecksum(checksum)}' differs from repository value '${
+                  normalizeChecksum(
+                    repoChecksum
+                  )
+                }'! ['${fileNode.path}']"
               errors.add(msg)
               log.error { msg }
             }
@@ -87,6 +111,7 @@ class JCRCheckSanityJob {
     }
     walker.walk()
     log.info { "JCR sanity check job finished. ${walker.numberOfVisitedFiles} Files checked with ${warnings.size} warnings and ${errors.size} errors." }
+    return CheckResult(errors, warnings, walker.numberOfVisitedFiles, walker.numberOfVisitedNodes)
   }
 
   private fun validateChecksum(checksum1: String, checksum2: String): Boolean {
@@ -96,7 +121,7 @@ class JCRCheckSanityJob {
   }
 
   private fun normalizeChecksum(checksum: String): String {
-   return subString(subString(checksum, '='), ' ')
+    return subString(subString(checksum, '='), ' ')
   }
 
   private fun subString(checksum: String, ch: Char): String {
