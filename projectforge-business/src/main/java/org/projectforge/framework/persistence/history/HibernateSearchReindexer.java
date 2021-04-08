@@ -29,7 +29,9 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseDao;
+import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.mail.Mail;
@@ -131,12 +133,13 @@ public class HibernateSearchReindexer {
   private void reindex(final Class<?> clazz, final ReindexSettings settings, final StringBuffer buf) {
     try {
       // Try to check, if class is available (entity of ProjectForge's core or of active plugin).
-      CriteriaBuilder cb = em.getCriteriaBuilder();
-      CriteriaQuery cq = cb.createQuery(clazz);
-      CriteriaQuery query = cq.select(cq.from(clazz));
-      em.createQuery(query).getResultList();
+      SQLHelper.ensureUniqueResult(em.createQuery(
+          "select t from " + clazz.getName() + " t where t.id = :id", clazz)
+              .setParameter("id", -1));
     } catch(Exception ex) {
-      log.info("Class '" + clazz + "' not available (OK for non-active plugins).");
+      if (!PfHistoryMasterDO.class.equals(clazz)) {
+        log.info("Class '" + clazz + "' not available (OK for non-active plugins and PfHistoryMasterDO).");
+      }
       return;
     }
     // PF-378: Performance of run of full re-indexing the data-base is very slow for large data-bases
