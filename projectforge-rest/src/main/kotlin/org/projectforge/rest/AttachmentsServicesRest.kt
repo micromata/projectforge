@@ -52,7 +52,8 @@ import javax.servlet.http.HttpServletRequest
 private val log = KotlinLogging.logger {}
 
 /**
- * Modal dialog showing details of an attachment with the functionality to download, modify and delete it.
+ * Rest services for up- and downloading, updating and deletion of attachments. It's used by ContractDao as well as
+ * by Data transfer for registered users.
  */
 @RestController
 @RequestMapping("${Rest.URL}/attachments")
