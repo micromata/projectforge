@@ -63,7 +63,7 @@ open class DataTransferStatisticsBuilder(
       val accessGroups = Group.toGroupNames(dbo.accessGroupIds, groupService)
       val accessGroupString = if (accessGroups.isBlank()) "" else ", access groups=[$accessGroups]"
       val externalAccess = if (dbo.externalDownloadEnabled == true || dbo.externalUploadEnabled == true) {
-        ", external access=[download=${dbo.externalDownloadEnabled}, upload=${dbo.externalUploadEnabled}]"
+        ", external access=[download=${dbo.externalDownloadEnabled == true}, upload=${dbo.externalUploadEnabled == true}]"
       } else {
         ""
       }

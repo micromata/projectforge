@@ -59,6 +59,29 @@ object FormatterUtils {
     return NumberFormat.getInstance(locale).format(no) + "TB"
   }
 
+  fun format(number: Number?, locale: Locale = Locale.getDefault()): String {
+    return NumberFormat.getInstance(locale).format(number)
+  }
+
+  /**
+   * @param stripTrailingZeros For BigDecimal numbers, trailing zeros are stripped (default is false).
+   */
+  @JvmStatic
+  @JvmOverloads
+  fun toBigDecimal(number: Number?, stripTrailingZeros: Boolean = true): BigDecimal? {
+    if (number == null) return null
+    val result = when (number) {
+      is BigDecimal -> number.stripTrailingZeros()
+      is Double -> BigDecimal(number)
+      is Float -> BigDecimal(number.toDouble())
+      is Int -> BigDecimal(number)
+      is Short -> BigDecimal(number.toInt())
+      is Long -> BigDecimal(number)
+      else -> BigDecimal("$number")
+    }
+    return if (stripTrailingZeros) result.stripTrailingZeros() else result
+  }
+
   private fun format(bytes: Long, locale: Locale, unit: BigDecimal, unitString: String): String {
     var no = BigDecimal(bytes).divide(unit, 1, RoundingMode.HALF_UP)
     if (no.toLong() >= 100) {
