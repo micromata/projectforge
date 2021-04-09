@@ -39,7 +39,7 @@ import javax.persistence.Table
 
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_CALENDAR_EVENT_ATTACHMENT", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attachment_team_event_fk2", columnList = "team_event_fk2"), javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attachment_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_CALENDAR_EVENT_ATTACHMENT", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attachment_team_event_fk2", columnList = "team_event_fk2")])
 open class TeamEventAttachmentDO : DefaultBaseDO(), Comparable<TeamEventAttachmentDO>, MailAttachment {
 
     private var filename: String? = null

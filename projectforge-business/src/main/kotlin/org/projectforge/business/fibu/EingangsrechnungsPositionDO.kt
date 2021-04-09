@@ -40,7 +40,7 @@ import javax.persistence.*
 @Indexed
 @Table(name = "t_fibu_eingangsrechnung_position",
         uniqueConstraints = [UniqueConstraint(columnNames = ["eingangsrechnung_fk", "number"])],
-        indexes = [Index(name = "idx_fk_t_fibu_eingangsrechnung_position_eingangsrechnung_fk", columnList = "eingangsrechnung_fk"), Index(name = "idx_fk_t_fibu_eingangsrechnung_position_tenant_id", columnList = "tenant_id")])
+        indexes = [Index(name = "idx_fk_t_fibu_eingangsrechnung_position_eingangsrechnung_fk", columnList = "eingangsrechnung_fk")])
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
 

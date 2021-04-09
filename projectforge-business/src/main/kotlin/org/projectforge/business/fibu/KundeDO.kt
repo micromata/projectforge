@@ -43,9 +43,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_FIBU_KUNDE",
-        indexes = [Index(name = "idx_fk_t_fibu_kunde_konto_id", columnList = "konto_id"),
-            Index(name = "idx_fk_t_fibu_kunde_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_FIBU_KUNDE", indexes = [Index(name = "idx_fk_t_fibu_kunde_konto_id", columnList = "konto_id")])
 @Analyzer(impl = ClassicAnalyzer::class)
 open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, DisplayNameCapable {
 

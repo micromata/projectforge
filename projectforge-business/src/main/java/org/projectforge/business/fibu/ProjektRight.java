@@ -23,7 +23,6 @@
 
 package org.projectforge.business.fibu;
 
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.*;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
@@ -81,7 +80,7 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
         return true;
       }
 
-      final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
+      final UserGroupCache userGroupCache = UserGroupCache.getInstance();
       if (obj.getProjektManagerGroup() != null
           && userGroupCache.isUserMemberOfGroup(ThreadLocalUserContext.getUserId(),
           obj.getProjektManagerGroupId())) {

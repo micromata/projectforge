@@ -42,9 +42,6 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.ldap.*;
 import org.projectforge.business.login.Login;
-import org.projectforge.business.multitenancy.TenantDao;
-import org.projectforge.business.multitenancy.TenantService;
-import org.projectforge.business.multitenancy.TenantsComparator;
 import org.projectforge.business.password.PasswordQualityService;
 import org.projectforge.business.user.*;
 import org.projectforge.business.user.service.UserService;
@@ -57,11 +54,9 @@ import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.web.common.MultiChoiceListHelper;
-import org.projectforge.web.multitenancy.TenantsProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.WicketUtils;
@@ -94,9 +89,6 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
   private GroupDao groupDao;
 
   @SpringBean
-  private TenantDao tenantDao;
-
-  @SpringBean
   private LdapPosixAccountsUtils ldapPosixAccountsUtils;
 
   @SpringBean
@@ -110,9 +102,6 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
 
   @SpringBean
   private GroupService groupService;
-
-  @SpringBean
-  private TenantService tenantService;
 
   @SpringBean
   private PasswordQualityService passwordQualityService;
@@ -141,8 +130,6 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
   boolean invalidateAllStayLoggedInSessions;
 
   protected MultiChoiceListHelper<GroupDO> assignGroupsListHelper;
-
-  protected MultiChoiceListHelper<TenantDO> assignTenantsListHelper;
 
   protected LdapUserValues ldapUserValues;
 
@@ -476,7 +463,6 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
 
     gridBuilder.newGridPanel();
     addAssignedGroups(adminAccess);
-    addAssignedTenants();
     if (adminAccess == true && Login.getInstance().hasExternalUsermanagementSystem() == true) {
       addLdapStuff();
     }
@@ -907,7 +893,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     boolean odd = true;
     for (final UserRightVO rightVO : userRights) {
       final UserRight right = rightVO.getRight();
-      final UserGroupCache userGroupCache = getTenantRegistry().getUserGroupCache();
+      final UserGroupCache userGroupCache = UserGroupCache.getInstance();
       final UserRightValue[] availableValues = right.getAvailableValues(userGroupCache, data);
       if (right.isConfigurable(userGroupCache, data) == false) {
         continue;
@@ -959,25 +945,6 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
             new GroupsWicketProvider(groupService));
     groups.setMarkupId("groups").setOutputMarkupId(true);
     fs.add(groups);
-  }
-
-  private void addAssignedTenants() {
-    final FieldsetPanel fs = gridBuilder.newFieldset(getString("multitenancy.assignedTenants")).setLabelSide(false);
-    final Collection<Integer> set = userService.getAssignedTenants(data);
-    final TenantsProvider tenantsProvider = new TenantsProvider(tenantService);
-    assignTenantsListHelper = new MultiChoiceListHelper<TenantDO>().setComparator(new TenantsComparator()).setFullList(
-            tenantsProvider.getSortedTenants());
-    if (set != null) {
-      for (final Integer tenantId : set) {
-        final TenantDO tenant = tenantService.getTenant(tenantId);
-        if (tenant != null) {
-          assignTenantsListHelper.addOriginalAssignedItem(tenant).assignItem(tenant);
-        }
-      }
-    }
-    final Select2MultiChoice<TenantDO> tenants = new Select2MultiChoice<TenantDO>(fs.getSelect2MultiChoiceId(),
-            new PropertyModel<Collection<TenantDO>>(this.assignTenantsListHelper, "assignedItems"), tenantsProvider);
-    fs.add(tenants);
   }
 
   /**

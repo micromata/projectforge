@@ -29,7 +29,7 @@ import org.hibernate.Hibernate;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.web.common.WicketHtmlHelper;
 

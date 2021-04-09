@@ -32,6 +32,7 @@ import org.joda.time.DateMidnight;
 import org.projectforge.business.teamcal.filter.CalendarFilter;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.wicket.AbstractStandardForm;
@@ -148,7 +149,7 @@ public class CalendarForm extends AbstractStandardForm<CalendarFilter, CalendarP
 
   /**
    * Hook method where child implementations could place their logic
-   * 
+   *
    * @param gridBuilder
    */
   protected void onAfterInit(final GridBuilder gridBuilder)
@@ -174,7 +175,7 @@ public class CalendarForm extends AbstractStandardForm<CalendarFilter, CalendarP
   public PFUserDO getTimesheetsUser()
   {
     final Integer userId = getFilter().getTimesheetUserId();
-    return userId != null ? getTenantRegistry().getUserGroupCache().getUser(userId) : null;
+    return userId != null ? UserGroupCache.getInstance().getUser(userId) : null;
   }
 
   public void setTimesheetsUser(final PFUserDO user)

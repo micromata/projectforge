@@ -39,7 +39,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_SKILLMATRIX_ENTRY", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_skillmatrix_entry_owner_fk", columnList = "owner_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_skillmatrix_entry_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_SKILLMATRIX_ENTRY", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_skillmatrix_entry_owner_fk", columnList = "owner_fk")])
 @NamedQueries(
         NamedQuery(name = SkillEntryDO.FIND_OF_OWNER,
                 query = "from SkillEntryDO where owner.id=:ownerId and deleted=false"))

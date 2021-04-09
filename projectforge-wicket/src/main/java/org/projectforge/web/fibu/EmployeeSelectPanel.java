@@ -32,8 +32,6 @@ import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.KostFormatter;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -167,7 +165,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
             }
             final int ind = value.indexOf(": ");
             final String username = ind >= 0 ? value.substring(0, ind) : value;
-            final PFUserDO user = getUserGroupCache().getUser(username);
+            final PFUserDO user = UserGroupCache.getInstance().getUser(username);
             if (user == null) {
               error(getString("fibu.employee.panel.error.employeeNotFound"));
               return null;
@@ -209,16 +207,6 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
       }
     });
     add(employeeTextField);
-  }
-
-  private TenantRegistry getTenantRegistry()
-  {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  private UserGroupCache getUserGroupCache()
-  {
-    return getTenantRegistry().getUserGroupCache();
   }
 
   private List<EmployeeDO> getFilteredEmployeeDOs(String input)

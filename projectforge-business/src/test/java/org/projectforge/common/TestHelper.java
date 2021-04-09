@@ -33,11 +33,11 @@ import java.util.Locale;
 
 public class TestHelper
 {
-  public static void setContextUser(UserGroupCache userGroupCache, final Locale locale)
+  public static void setContextUser(final Locale locale)
   {
     final PFUserDO user = new PFUserDO();
     user.setLocale(locale);
-    ThreadLocalUserContext.setUser(userGroupCache, user);
+    ThreadLocalUserContext.setUser(user);
   }
 
   public static void setDeclaredField(final Object obj, final String fieldName, final Object value)

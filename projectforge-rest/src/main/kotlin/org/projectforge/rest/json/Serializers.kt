@@ -37,7 +37,6 @@ import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.registry.Registry
 import org.projectforge.rest.dto.*
 import java.io.IOException
@@ -153,19 +152,6 @@ class KundeDOSerializer : StdSerializer<KundeDO>(KundeDO::class.java) {
         }
         val kunde = Customer(value.id, displayName = value.displayName)
         jgen.writeObject(kunde)
-    }
-}
-
-class TenantDOSerializer : StdSerializer<TenantDO>(TenantDO::class.java) {
-
-    @Throws(IOException::class, JsonProcessingException::class)
-    override fun serialize(value: TenantDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null) {
-            jgen.writeNull()
-            return
-        }
-        val tenant = Tenant(value.id, displayName = value.displayName)
-        jgen.writeObject(tenant)
     }
 }
 

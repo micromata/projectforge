@@ -30,7 +30,6 @@ import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.business.fibu.kost.Kost2ArtDao;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.common.task.TimesheetBookingStatus;
@@ -56,6 +55,9 @@ public class TaskTest extends AbstractTestBase {
 
   @Autowired
   private TaskDao taskDao;
+
+  @Autowired
+  private TaskTree taskTree;
 
   @Autowired
   private ProjektDao projektDao;
@@ -88,7 +90,6 @@ public class TaskTest extends AbstractTestBase {
 
   @Test
   public void testTaskTree() {
-    final TaskTree taskTree = taskDao.getTaskTree();
     final TaskNode root = taskTree.getRootTaskNode();
     assertNull(root.getParent());
     assertEquals("root", root.getTask().getTitle());
@@ -111,7 +112,6 @@ public class TaskTest extends AbstractTestBase {
 
   @Test
   public void testTraversingTaskTree() {
-    final TaskTree taskTree = taskDao.getTaskTree();
     final TaskNode root = taskTree.getRootTaskNode();
     logStart("Traversing TaskTree");
     traverseTaskTree(root);
@@ -120,13 +120,12 @@ public class TaskTest extends AbstractTestBase {
 
   @Test
   public void testCyclicTasks() {
-    final TaskTree tree = taskDao.getTaskTree();
     initTestDB.addTask("cyclictest", "root");
     initTestDB.addTask("c", "cyclictest");
     initTestDB.addTask("c.1", "c");
     initTestDB.addTask("c.1.1", "c.1");
-    final TaskNode c = tree.getTaskNodeById(getTask("c").getId());
-    final TaskNode c_1_1 = tree.getTaskNodeById(getTask("c.1.1").getId());
+    final TaskNode c = taskTree.getTaskNodeById(getTask("c").getId());
+    final TaskNode c_1_1 = taskTree.getTaskNodeById(getTask("c.1.1").getId());
     try {
       c.setParent(c_1_1);
       fail("Cyclic reference not detected.");
@@ -143,7 +142,6 @@ public class TaskTest extends AbstractTestBase {
 
   @Test
   public void testTaskDescendants() {
-    final TaskTree tree = taskDao.getTaskTree();
     initTestDB.addTask("descendanttest", "root");
     initTestDB.addTask("d", "descendanttest");
     initTestDB.addTask("d.1", "d");
@@ -151,7 +149,7 @@ public class TaskTest extends AbstractTestBase {
     initTestDB.addTask("d.1.2", "d.1");
     initTestDB.addTask("d.1.2.1", "d.1.2");
     initTestDB.addTask("d.2", "d");
-    final TaskNode d = tree.getTaskNodeById(getTask("d").getId());
+    final TaskNode d = taskTree.getTaskNodeById(getTask("d").getId());
     final List<Integer> ids = d.getDescendantIds();
     assertEquals(5, ids.size());
     assertTrue(ids.contains(getTask("d.1").getId()));
@@ -164,11 +162,10 @@ public class TaskTest extends AbstractTestBase {
 
   @Test
   public void testTaskTreeUpdate() {
-    final TaskTree tree = taskDao.getTaskTree();
     initTestDB.addTask("taskTreeUpdateTest", "root");
     initTestDB.addTask("u", "taskTreeUpdateTest");
-    final TaskNode u = tree.getTaskNodeById(getTask("u").getId());
-    final TaskNode parent = tree.getTaskNodeById(getTask("taskTreeUpdateTest").getId());
+    final TaskNode u = taskTree.getTaskNodeById(getTask("u").getId());
+    final TaskNode parent = taskTree.getTaskNodeById(getTask("taskTreeUpdateTest").getId());
     assertEquals(false, u.hasChildren(), "Should have no children");
     assertEquals(u.getParent().getId(), parent.getId());
     initTestDB.addTask("u.1", "u");
@@ -179,8 +176,8 @@ public class TaskTest extends AbstractTestBase {
     initTestDB.addTask("u.2.1", "u.2");
     initTestDB.addTask("u.2.2", "u.2");
     initTestDB.addTask("u.2.3", "u.2");
-    final TaskNode u1 = tree.getTaskNodeById(getTask("u.1").getId());
-    final TaskNode u2 = tree.getTaskNodeById(getTask("u.2").getId());
+    final TaskNode u1 = taskTree.getTaskNodeById(getTask("u.1").getId());
+    final TaskNode u2 = taskTree.getTaskNodeById(getTask("u.2").getId());
     assertEquals(3, u2.getChildren().size(), "Should have exact 3 children");
     // Now we move u.2.3 to u.1.1:
     final TaskDO tu_2_3 = taskDao.internalGetById(getTask("u.2.3").getId());
@@ -193,7 +190,7 @@ public class TaskTest extends AbstractTestBase {
     final TaskDO tu_1_1 = taskDao.internalGetById(getTask("u.2.3").getId());
     assertEquals("u.1.1", tu_1_1.getTitle());
     assertEquals(getTask("u.1").getId(), tu_1_1.getParentTaskId());
-    final TaskNode u_1_1 = tree.getTaskNodeById(tu_1_1.getId());
+    final TaskNode u_1_1 = taskTree.getTaskNodeById(tu_1_1.getId());
     assertEquals("u.1.1", u_1_1.getTask().getTitle());
     assertEquals(getTask("u.1").getId(), u_1_1.getParent().getId());
   }
@@ -452,7 +449,6 @@ public class TaskTest extends AbstractTestBase {
     final TaskDO task = initTestDB.addTask("totalDurationTask", "root");
     final TaskDO subTask1 = initTestDB.addTask("totalDurationTask.subtask1", "totalDurationTask");
     final TaskDO subTask2 = initTestDB.addTask("totalDurationTask.subtask2", "totalDurationTask");
-    final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     assertEquals(0, taskDao.readTotalDuration(task.getId()));
     final PFDateTime dt = PFDateTime.withDate(2010, Month.APRIL, 20, 8, 0);
     TimesheetDO ts = new TimesheetDO();
@@ -501,7 +497,7 @@ public class TaskTest extends AbstractTestBase {
     assertEquals(4 * 3600, getDuration(taskTree, subTask1.getId()));
     assertEquals(0, getTotalDuration(taskTree, subTask2.getId()));
     assertEquals(0, getDuration(taskTree, subTask2.getId()));
-    TaskTreeHelper.getTaskTree().refresh(); // Should be same after refresh (there was an error).
+    taskTree.refresh(); // Should be same after refresh (there was an error).
     assertEquals(12 * 3600, getTotalDuration(taskTree, task.getId()));
     assertEquals(8 * 3600, getDuration(taskTree, task.getId()));
     assertEquals(4 * 3600, getTotalDuration(taskTree, subTask1.getId()));

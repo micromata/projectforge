@@ -24,10 +24,12 @@
 package org.projectforge.common;
 
 import org.junit.jupiter.api.Test;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.test.AbstractTestBase;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.util.Locale;
@@ -36,7 +38,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class NumberHelperConfigTest extends AbstractTestBase
 {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NumberHelperConfigTest.class);
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   @Test
   public void greaterZero()
@@ -159,7 +162,7 @@ public class NumberHelperConfigTest extends AbstractTestBase
   {
     final PFUserDO user = new PFUserDO();
     user.setLocale(Locale.UK);
-    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
+    ThreadLocalUserContext.setUser(user);
     assertEquals("0", NumberHelper.formatBytes(0));
     assertEquals("1,023bytes", NumberHelper.formatBytes(1023));
     assertEquals("1KB", NumberHelper.formatBytes(1024));

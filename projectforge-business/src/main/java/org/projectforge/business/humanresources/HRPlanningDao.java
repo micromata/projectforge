@@ -28,7 +28,6 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserGroupCache;
@@ -70,6 +69,9 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
 
   @Autowired
   private UserDao userDao;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   @Autowired
   private AccessChecker accessChecker;
@@ -252,7 +254,6 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
             userHasRightForProject = true;
           }
 
-          final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
           if (projekt.getProjektManagerGroup() != null
                   && userGroupCache.isUserMemberOfGroup(userId, projekt.getProjektManagerGroupId())) {
             userHasRightForProject = true;

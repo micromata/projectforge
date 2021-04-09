@@ -40,6 +40,7 @@ import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 import org.projectforge.business.login.LoginDefaultHandler;
 import org.projectforge.business.login.LoginResult;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.UserContext;
@@ -171,7 +172,7 @@ public class WicketPageTestBase extends AbstractTestBase {
    */
   public void login(final String username, final String password, final boolean checkDefaultPage) {
     final LoginResult result = loginHandler.checkLogin(username, password);
-    UserContext userContext = new UserContext(PFUserDO.createCopyWithoutSecretFields(result.getUser()), getUserGroupCache());
+    UserContext userContext = new UserContext(PFUserDO.createCopyWithoutSecretFields(result.getUser()));
     ((MySession) tester.getSession()).login(userContext, null);
     ((MySession) tester.getSession()).setAttribute("UserFilter.user", userContext);
   }

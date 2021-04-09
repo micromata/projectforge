@@ -130,7 +130,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         }
       }
       StringHelper.splitToIntegers(obj.accessGroupIds, ",")?.let {
-        if (UserGroupCache.tenantInstance.isUserMemberOfAtLeastOneGroup(user.id, *it)) {
+        if (userGroupCache.isUserMemberOfAtLeastOneGroup(user.id, *it)) {
           return true
         }
       }

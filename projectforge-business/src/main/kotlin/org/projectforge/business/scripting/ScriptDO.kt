@@ -44,7 +44,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_SCRIPT", indexes = [javax.persistence.Index(name = "idx_fk_t_script_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_SCRIPT")
 open class ScriptDO : BaseUserGroupRightsDO() {
     enum class ScriptType { KOTLIN, GROOVY }
 

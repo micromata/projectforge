@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.business.teamcal.event.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.ical.ICalParser;
 import org.projectforge.business.teamcal.event.model.*;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
@@ -56,7 +57,7 @@ public class ICalGeneratorParserTest extends AbstractTestBase
     user.setFirstname("FirstName");
     user.setLastname("LastName");
     user.setTimeZone(DateHelper.EUROPE_BERLIN);
-    ThreadLocalUserContext.setUser(getUserGroupCache(), PFUserDO.Companion.createCopyWithoutSecretFields(user));
+    ThreadLocalUserContext.setUser(PFUserDO.Companion.createCopyWithoutSecretFields(user));
   }
 
   @Test

@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.calendar.event.model.SeriesModificationMode;
-import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.event.model.CalEventDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -68,9 +67,6 @@ public class CalEventDao extends BaseDao<CalEventDO> {
   @Autowired
   private PfEmgrFactory emgrFac;
 
-  @Autowired
-  private TenantService tenantService;
-
   public CalEventDao() {
     super(CalEventDO.class);
     userRightId = UserRightId.CALENDAR_EVENT;
@@ -88,12 +84,10 @@ public class CalEventDao extends BaseDao<CalEventDO> {
     final StringBuilder sqlQuery = new StringBuilder();
     final List<Object> params = new ArrayList<>();
 
-    sqlQuery.append("select e from CalEventDO e where e.uid = :uid AND e.tenant = :tenant");
+    sqlQuery.append("select e from CalEventDO e where e.uid = :uid");
 
     params.add("uid");
     params.add(uid);
-    params.add("tenant");
-    params.add(ThreadLocalUserContext.getUser() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant());
 
     if (excludeDeleted) {
       sqlQuery.append(" AND e.deleted = :deleted");

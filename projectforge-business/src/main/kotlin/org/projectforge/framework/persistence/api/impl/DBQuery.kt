@@ -23,8 +23,6 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import org.projectforge.business.multitenancy.TenantChecker
-import org.projectforge.business.multitenancy.TenantService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -49,9 +47,6 @@ open class DBQuery {
     @Autowired
     private lateinit var accessChecker: AccessChecker
 
-    @Autowired
-    private lateinit var tenantService: TenantService
-
     /**
      * Gets the list filtered by the given filter.
      *
@@ -62,8 +57,7 @@ open class DBQuery {
     open fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>,
                                                filter: QueryFilter,
                                                customResultFilters: List<CustomResultFilter<O>>?,
-                                               checkAccess: Boolean = true,
-                                               ignoreTenant: Boolean = false)
+                                               checkAccess: Boolean = true)
             : List<O> {
         if (checkAccess) {
             baseDao.checkLoggedInUserSelectAccess()
@@ -82,9 +76,8 @@ open class DBQuery {
             val dbFilter = filter.createDBFilter()
             return emgrFactory.runRoTrans { emgr ->
                 val em = emgr.entityManager
-                val queryBuilder = DBQueryBuilder(baseDao, em, tenantService, filter, dbFilter,
+                val queryBuilder = DBQueryBuilder(baseDao, em, filter, dbFilter)
                         // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
-                        ignoreTenant = ignoreTenant)
 
                 val dbResultIterator: DBResultIterator<O>
                 dbResultIterator = queryBuilder.result()
@@ -115,7 +108,6 @@ open class DBQuery {
                                                      historSearchParams: DBHistorySearchParams,
                                                      checkAccess: Boolean)
             : List<O> {
-        val superAdmin = TenantChecker.isSuperAdmin<ExtendedBaseDO<Int>>(ThreadLocalUserContext.getUser())
         val loggedInUser = ThreadLocalUserContext.getUser()
 
         val list = mutableListOf<O>()
@@ -138,7 +130,7 @@ open class DBQuery {
                 if (!ensureUniqueSet.contains(next.id)) {
                     // Current result object wasn't yet proceeded.
                     ensureUniqueSet.add(next.id) // Mark current object as already proceeded (ensure uniqueness)
-                    if ((!checkAccess || baseDao.hasSelectAccess(next, loggedInUser, superAdmin))
+                    if ((!checkAccess || baseDao.hasSelectAccess(next, loggedInUser))
                             && baseDao.containsLong(idSet, next)
                             && match(list, customResultFilters, resultPredicates, next)) {
                         // Current result object fits the modified query:
@@ -157,7 +149,7 @@ open class DBQuery {
                 if (!ensureUniqueSet.contains(next.id)) {
                     // Current result object wasn't yet proceeded.
                     ensureUniqueSet.add(next.id) // Mark current object as already proceeded (ensure uniqueness)
-                    if (!checkAccess || baseDao.hasSelectAccess(next, loggedInUser, superAdmin) && match(list, customResultFilters, resultPredicates, next)) {
+                    if (!checkAccess || baseDao.hasSelectAccess(next, loggedInUser) && match(list, customResultFilters, resultPredicates, next)) {
                         baseDao.afterLoad(next)
                         list.add(next)
                         if (++resultCounter >= filter.maxRows) {

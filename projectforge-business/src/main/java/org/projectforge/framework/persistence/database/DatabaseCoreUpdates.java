@@ -36,7 +36,6 @@ import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.image.ImageService;
-import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.continuousdb.*;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.configuration.Configuration;
@@ -83,7 +82,6 @@ public class DatabaseCoreUpdates
   {
     final DatabaseService databaseService = applicationContext.getBean(DatabaseService.class);
     final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
-    final TenantDao tenantDao = applicationContext.getBean(TenantDao.class);
 
     final List<UpdateEntry> list = new ArrayList<>();
 

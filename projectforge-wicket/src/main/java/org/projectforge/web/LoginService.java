@@ -26,8 +26,6 @@ package org.projectforge.web;
 import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.http.WebResponse;
 import org.projectforge.business.login.LoginHandler;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserAuthenticationsService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserPrefCache;
@@ -62,15 +60,6 @@ public class LoginService {
   private LoginHandlerService loginHandlerService;
 
   private LoginHandler loginHandler;
-
-  public TenantRegistry getTenantRegistry() {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  public UserGroupCache getUserGroupCache() {
-    return getTenantRegistry().getUserGroupCache();
-  }
-
 
   public void logout(final MySession mySession, final WebRequest request, final WebResponse response,
                      final UserXmlPreferencesCache userXmlPreferencesCache,

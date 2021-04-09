@@ -23,12 +23,10 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import org.projectforge.business.multitenancy.TenantService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
 import javax.persistence.EntityManager
 
@@ -36,10 +34,8 @@ import javax.persistence.EntityManager
 class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         private val baseDao: BaseDao<O>,
         private val entityManager: EntityManager,
-        tenantService: TenantService,
         private val queryFilter: QueryFilter,
-        dbFilter: DBFilter,
-        ignoreTenant: Boolean = false) {
+        dbFilter: DBFilter) {
 
     enum class Mode {
         /**
@@ -99,17 +95,6 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
                 else
                     Mode.CRITERIA // Criteria search (no full text search entries found).
 
-        if (!ignoreTenant && tenantService.isMultiTenancyAvailable) {
-            val userContext = ThreadLocalUserContext.getUserContext()
-            userContext.currentTenant?.let { currentTenant ->
-                if (currentTenant.isDefault) {
-                    addMatcher(DBPredicate.Or(DBPredicate.Equal("tenant", currentTenant),
-                            DBPredicate.IsNull("tenant")))
-                } else {
-                    addMatcher(DBPredicate.Equal("tenant", currentTenant))
-                }
-            }
-        }
         dbFilter.predicates.forEach {
             addMatcher(it)
         }

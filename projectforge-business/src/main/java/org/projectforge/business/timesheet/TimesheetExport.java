@@ -29,11 +29,9 @@ import org.projectforge.business.excel.*;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.task.formatter.TaskFormatter;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.export.MyXlsContentProvider;
@@ -61,6 +59,12 @@ public class TimesheetExport {
 
   @Autowired
   private DateTimeFormatter dateTimeFormatter;
+
+  @Autowired
+  private TaskTree taskTree;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   private class MyContentProvider extends MyXlsContentProvider {
     public MyContentProvider(final ExportWorkbook workbook) {
@@ -149,8 +153,6 @@ public class TimesheetExport {
     sheetProvider.putFormat(Col.LAST_UPDATE, "yyyy-MM-dd HH:mm");
 
     final PropertyMapping mapping = new PropertyMapping();
-    final TaskTree taskTree = TaskTreeHelper.getTaskTree();
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     for (final TimesheetDO timesheet : list) {
       final TaskNode node = taskTree.getTaskNodeById(timesheet.getTaskId());
       final PFUserDO user = userGroupCache.getUser(timesheet.getUserId());

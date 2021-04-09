@@ -39,8 +39,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "t_employee_remaining_leave",
-        indexes = [javax.persistence.Index(name = "idx_fk_t_vacation_remaining_employee_id", columnList = "employee_id")],
-        uniqueConstraints = [UniqueConstraint(columnNames = ["tenant_id", "employee_id", "year"])])
+        indexes = [javax.persistence.Index(name = "idx_fk_t_vacation_remaining_employee_id", columnList = "employee_id")])
 @NamedQueries(NamedQuery(name = RemainingLeaveDO.FIND_BY_EMPLOYEE_ID_AND_YEAR,
                 query = "from RemainingLeaveDO where employee.id=:employeeId and year=:year"))
 open class RemainingLeaveDO : DefaultBaseDO() {

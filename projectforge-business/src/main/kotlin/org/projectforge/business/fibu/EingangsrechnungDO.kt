@@ -47,8 +47,7 @@ import javax.persistence.*
 @Indexed
 @Table(name = "t_fibu_eingangsrechnung",
         indexes = [
-            Index(name = "idx_fk_t_fibu_eingangsrechnung_konto_id", columnList = "konto_id"),
-            Index(name = "idx_fk_t_fibu_eingangsrechnung_tenant_id", columnList = "tenant_id")
+            Index(name = "idx_fk_t_fibu_eingangsrechnung_konto_id", columnList = "konto_id")
         ])
 // @AssociationOverride(name="positionen", joinColumns=@JoinColumn(name="eingangsrechnung_fk"))
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [EingangsrechnungsPositionDO::class])

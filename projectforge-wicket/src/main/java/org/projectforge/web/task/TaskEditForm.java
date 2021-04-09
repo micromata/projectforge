@@ -40,7 +40,7 @@ import org.projectforge.business.gantt.GanttRelationType;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.StringHelper;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.common.task.TaskStatus;
@@ -129,7 +129,7 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       fs.add(parentTaskSelectPanel);
       fs.getFieldset().setOutputMarkupId(true);
       parentTaskSelectPanel.init();
-      if (!getTaskTree().isRootNode(data)) {
+      if (!TaskTree.getInstance().isRootNode(data)) {
         parentTaskSelectPanel.setRequired(true);
       } else {
         fs.setVisible(false);
@@ -163,7 +163,7 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("task.assignedUser"));
       PFUserDO responsibleUser = data.getResponsibleUser();
       if (!Hibernate.isInitialized(responsibleUser)) {
-        responsibleUser = getTenantRegistry().getUserGroupCache().getUser(responsibleUser.getId());
+        responsibleUser = UserGroupCache.getInstance().getUser(responsibleUser.getId());
         data.setResponsibleUser(responsibleUser);
       }
       final UserSelectPanel responsibleUserSelectPanel = new UserSelectPanel(fs.newChildId(),
@@ -195,7 +195,7 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
           0, 9999);
       WicketUtils.setSize(maxNumberField, 6);
       fs.add(maxNumberField);
-      if (!isNew() && getTaskTree().hasOrderPositions(data.getId(), true)) {
+      if (!isNew() && TaskTree.getInstance().hasOrderPositions(data.getId(), true)) {
         WicketUtils.setWarningTooltip(maxNumberField);
         WicketUtils.addTooltip(maxNumberField, getString("task.edit.maxHoursIngoredDueToAssignedOrders"));
       }
@@ -354,7 +354,7 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
         WicketUtils.addTooltip(projektKostLabel.getLabel(), new Model<String>() {
           @Override
           public String getObject() {
-            final List<Kost2DO> kost2DOs = getTaskTree().getKost2List(projekt, data, data.getKost2BlackWhiteItems(),
+            final List<Kost2DO> kost2DOs = TaskTree.getInstance().getKost2List(projekt, data, data.getKost2BlackWhiteItems(),
                 data.getKost2IsBlackList());
             final String[] kost2s = TaskListPage.getKost2s(kost2DOs);
             if (kost2s == null || kost2s.length == 0) {
@@ -418,7 +418,7 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
         final FieldProperties<LocalDate> props = getProtectionProperties();
         LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
         fs.add(components);
-        if (!getTenantRegistry().getUserGroupCache().isUserMemberOfFinanceGroup()) {
+        if (!UserGroupCache.getInstance().isUserMemberOfFinanceGroup()) {
           components.setEnabled(false);
         }
       }
@@ -459,7 +459,7 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
             ThreadLocalUserContext.getUser(), task);
     if (Configuration.getInstance().isCostConfigured() && task != null) {
       // Cost 2 settings
-      final ProjektDO projekt = getTaskTree().getProjekt(task.getId());
+      final ProjektDO projekt = TaskTree.getInstance().getProjekt(task.getId());
       if (this.projekt == projekt) {
         return;
       }
@@ -473,14 +473,6 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       kost2BlackWhiteTextField.setEnabled(hasKost2AndTimesheetBookingAccess);
     }
     timesheetBookingStatusChoice.setEnabled(hasKost2AndTimesheetBookingAccess);
-  }
-
-  private TaskTree getTaskTree()
-  {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
   }
 
   @Override

@@ -26,7 +26,7 @@ package org.projectforge.business.admin
 import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 import org.projectforge.business.task.TaskDO
-import org.projectforge.business.tasktree.TaskTreeHelper
+import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
@@ -47,9 +47,11 @@ class DatabaseStatisticsBuilder : SystemsStatisticsBuilderInterface {
   @Autowired
   private lateinit var dataSource: DataSource
 
+  @Autowired
+  private lateinit var taskTree: TaskTree
+
   override fun addStatisticsEntries(stats: SystemStatisticsData) {
     val jdbc = JdbcTemplate(dataSource)
-    val taskTree = TaskTreeHelper.getTaskTree()
     val totalDuration = taskTree.rootTaskNode.getDuration(taskTree, true)
     var totalPersonDays = BigDecimal(totalDuration).divide(DateHelper.SECONDS_PER_WORKING_DAY, 2, RoundingMode.HALF_UP)
     totalPersonDays = NumberHelper.setDefaultScale(totalPersonDays)!!

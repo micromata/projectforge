@@ -24,7 +24,6 @@
 package org.projectforge.access;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.timesheet.TimesheetDO;
@@ -58,6 +57,9 @@ public class AccessTestFork extends AbstractTestBase
 
   @Autowired
   private TimesheetDao timesheetDao;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   @Test
   public void testAccessDO()
@@ -93,7 +95,6 @@ public class AccessTestFork extends AbstractTestBase
   public void checkTaskMoves()
   {
     logon(AbstractTestBase.TEST_ADMIN_USER);
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     // First check initialization:
     final PFUserDO user1 = getUser("user1");
     assertTrue(userGroupCache.isUserMemberOfGroup(user1.getId(), getGroup("group1").getId()),

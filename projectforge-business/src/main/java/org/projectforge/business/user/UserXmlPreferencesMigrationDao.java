@@ -24,7 +24,6 @@
 package org.projectforge.business.user;
 
 import org.apache.commons.lang3.Validate;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +47,9 @@ public class UserXmlPreferencesMigrationDao {
 
   @Autowired
   private AccessChecker accessChecker;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   @Autowired
   private UserXmlPreferencesDao userXmlPreferencesDao;
@@ -110,7 +112,6 @@ public class UserXmlPreferencesMigrationDao {
     Validate.notNull(userId);
     final StringBuilder buf = new StringBuilder();
     buf.append("Checking user preferences for user '");
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final PFUserDO user = userGroupCache.getUser(userPrefs.getUserId());
     if (user != null) {
       buf.append(user.getUsername());

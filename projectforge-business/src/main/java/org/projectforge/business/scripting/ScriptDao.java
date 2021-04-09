@@ -29,7 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.ProjectForgeVersion;
 import org.projectforge.business.fibu.kost.reporting.ReportGeneratorList;
 import org.projectforge.business.task.ScriptingTaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.configuration.ConfigXml;
@@ -58,6 +58,9 @@ public class ScriptDao extends BaseDao<ScriptDO> {
 
   @Autowired
   private GroovyExecutor groovyExecutor;
+
+  @Autowired
+  private TaskTree taskTree;
 
   public ScriptDao() {
     super(ScriptDO.class);
@@ -145,7 +148,7 @@ public class ScriptDao extends BaseDao<ScriptDO> {
     scriptVariables.put("appVersion", ProjectForgeVersion.VERSION_NUMBER);
     scriptVariables.put("appRelease", ProjectForgeVersion.BUILD_DATE);
     scriptVariables.put("reportList", null);
-    scriptVariables.put("taskTree", new ScriptingTaskTree(TaskTreeHelper.getTaskTree()));
+    scriptVariables.put("taskTree", new ScriptingTaskTree(taskTree));
     for (final RegistryEntry entry : Registry.getInstance().getOrderedList()) {
       final ScriptingDao<?> scriptingDao = entry.getScriptingDao();
       if (scriptingDao != null) {

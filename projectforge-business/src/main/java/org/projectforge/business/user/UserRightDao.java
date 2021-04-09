@@ -24,7 +24,6 @@
 package org.projectforge.business.user;
 
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -43,6 +42,9 @@ public class UserRightDao extends BaseDao<UserRightDO> {
 
   @Autowired
   private UserRightService userRightService;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   protected UserRightDao() {
     super(UserRightDO.class);
@@ -117,14 +119,14 @@ public class UserRightDao extends BaseDao<UserRightDO> {
   protected void afterUpdate(UserRightDO obj, UserRightDO dbObj, boolean isModified) {
     super.afterUpdate(obj, dbObj, isModified);
     if (isModified) {
-      TenantRegistryMap.getInstance().getTenantRegistry(obj).getUserGroupCache().setExpired();
+      userGroupCache.setExpired();
     }
   }
 
   @Override
   protected void afterSave(UserRightDO obj) {
     super.afterSave(obj);
-    TenantRegistryMap.getInstance().getTenantRegistry(obj).getUserGroupCache().setExpired();
+    userGroupCache.setExpired();
   }
 
   private void copy(final UserRightDO dest, final UserRightVO src) {

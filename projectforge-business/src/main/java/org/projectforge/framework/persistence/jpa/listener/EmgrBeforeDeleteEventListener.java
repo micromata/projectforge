@@ -26,7 +26,6 @@ package org.projectforge.framework.persistence.jpa.listener;
 import de.micromata.genome.jpa.DbRecord;
 import de.micromata.genome.jpa.events.EmgrBeforeDeleteEvent;
 import de.micromata.genome.jpa.events.EmgrEventHandler;
-import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDO;
@@ -37,7 +36,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Before marked delete or delete an event.
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  */
@@ -48,8 +47,6 @@ public class EmgrBeforeDeleteEventListener implements EmgrEventHandler<EmgrBefor
   protected AccessChecker accessChecker;
   @Autowired
   private JpaPfGenericPersistenceService genericPersistenceService;
-  @Autowired
-  private TenantChecker tenantChecker;
 
   @Override
   public void onEvent(EmgrBeforeDeleteEvent event)
@@ -63,7 +60,7 @@ public class EmgrBeforeDeleteEventListener implements EmgrEventHandler<EmgrBefor
       return;
     }
     BaseDO<?> dbObject = (BaseDO<?>) obj;
-    AccessCheckUpdateCopyFilterListener.checkEntity(genericPersistenceService, accessChecker, tenantChecker, dbObject,
+    AccessCheckUpdateCopyFilterListener.checkEntity(genericPersistenceService, accessChecker, dbObject,
         null,
         OperationType.DELETE);
   }

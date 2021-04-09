@@ -26,7 +26,7 @@ package org.projectforge.business.ldap;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.login.LoginResultStatus;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +67,9 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
 
   @Autowired
   private PFUserDOConverter pfUserDOConverter;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   /**
    * @see org.projectforge.business.ldap.LdapLoginHandler#initialize()
@@ -387,8 +390,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
     for (final PFUserDO assignedUser : assignedUsers) {
       final LdapUser ldapUser = ldapUserMap.get(assignedUser.getId());
       if (ldapUser == null) {
-        final PFUserDO cachedUser = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
-            .getUser(assignedUser.getId());
+        final PFUserDO cachedUser = userGroupCache.getUser(assignedUser.getId());
         if (cachedUser == null || !cachedUser.isDeleted()) {
           log.warn("Can't assign ldap user to group: "
               + updatedLdapGroup.getCommonName()

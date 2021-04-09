@@ -31,7 +31,6 @@ import org.projectforge.business.orga.ContractType;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.framework.configuration.*;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.mail.SendMailConfig;
@@ -501,11 +500,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @Override
-  public List<ConfigurationDO> daoInternalLoadAll(TenantDO tenant) {
-    return configDao.internalLoadAll(tenant);
-  }
-
-  @Override
   public TimeZone getTimezone() {
     ConfigurationDO configurationDO = configDao.getEntry(ConfigurationParam.DEFAULT_TIMEZONE);
     if (configurationDO != null) {
@@ -528,11 +522,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             .setEmailAuthUser(pfmailsessionUser)
             .setEmailAuthPass(pfmailsessionPassword)
             .setEncryption(pfmailsessionEncryption);
-  }
-
-  @Override
-  public boolean isMultiTenancyConfigured() {
-    return GlobalConfiguration.getInstance().isMultiTenancyConfigured();
   }
 
   @Override

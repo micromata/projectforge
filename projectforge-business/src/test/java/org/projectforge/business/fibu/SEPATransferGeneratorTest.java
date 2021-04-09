@@ -26,7 +26,6 @@ package org.projectforge.business.fibu;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.PFDateTimeUtils;
 import org.projectforge.generated.CreditTransferTransactionInformationSCT;
 import org.projectforge.generated.Document;
@@ -90,9 +89,6 @@ public class SEPATransferGeneratorTest {
 
     // set values
     invoice.setPk(1234);
-    TenantDO tenant = new TenantDO();
-    tenant.setName(debitor);
-    invoice.setTenant(tenant);
     invoice.setPaymentType(PaymentType.BANK_TRANSFER);
     invoice.setReceiver(creditor);
     invoice.setIban(iban);
@@ -144,18 +140,14 @@ public class SEPATransferGeneratorTest {
 
   private String testIban(String iban, String bic) {
     SEPATransferGenerator generator = new SEPATransferGenerator();
-    TenantDO tenant = new TenantDO();
-    tenant.setName("ACME INC.");
     EingangsrechnungDO invoice = new EingangsrechnungDO();
     invoice.setIban(iban);
     invoice.setBic(bic);
-    invoice.setTenant(tenant);
     invoice.setPaymentType(PaymentType.BANK_TRANSFER);
     invoice.setReceiver("Kai Reinhard");
     invoice.setReferenz("Consulting ProjectForge");
     EingangsrechnungsPositionDO position = new EingangsrechnungsPositionDO();
     position.setEingangsrechnung(invoice);
-    position.setTenant(tenant);
     position.setEinzelNetto(new BigDecimal(100));
     invoice.addPosition(position);
     SEPATransferResult result = generator.format(invoice);

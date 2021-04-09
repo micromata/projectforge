@@ -26,8 +26,6 @@ package org.projectforge.business.address;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessException;
@@ -39,7 +37,6 @@ import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +74,7 @@ public class AddressDao extends BaseDao<AddressDO> {
     return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property);
   }
 
+  @Autowired
   private AddressCache addressCache;
 
   @Autowired
@@ -86,6 +84,9 @@ public class AddressDao extends BaseDao<AddressDO> {
   private AddressbookCache addressbookCache;
 
   @Autowired
+  private BirthdayCache birthdayCache;
+
+  @Autowired
   private UserRightService userRights;
 
   private transient AddressbookRight addressbookRight;
@@ -93,18 +94,8 @@ public class AddressDao extends BaseDao<AddressDO> {
   @Autowired
   private PersonalAddressDao personalAddressDao;
 
-  @Autowired
-  private TenantService tenantService;
-
   public AddressDao() {
     super(AddressDO.class);
-  }
-
-  private AddressCache getAddressCache() {
-    if (addressCache == null) {
-      addressCache = ApplicationContextProvider.getApplicationContext().getBean(AddressCache.class);
-    }
-    return addressCache;
   }
 
   public List<Locale> getUsedCommunicationLanguages() {
@@ -280,7 +271,7 @@ public class AddressDao extends BaseDao<AddressDO> {
     }
     switch (operationType) {
       case SELECT:
-        for (AddressbookDO ab : getAddressCache().getAddressbooks(obj)) {
+        for (AddressbookDO ab : addressCache.getAddressbooks(obj)) {
           if (addressbookRight.checkGlobal(ab) || addressbookRight.getAccessType(ab, user.getId()).hasAnyAccess()) {
             return true;
           }
@@ -376,7 +367,7 @@ public class AddressDao extends BaseDao<AddressDO> {
    */
   @Override
   protected void afterSaveOrModify(AddressDO obj) {
-    TenantRegistryMap.getCache(BirthdayCache.class).setExpired();
+    birthdayCache.setExpired();
   }
 
   protected static String getNormalizedFullname(final AddressDO address) {
@@ -399,8 +390,7 @@ public class AddressDao extends BaseDao<AddressDO> {
    * @return The entries are ordered by date of year and name.
    */
   public Set<BirthdayAddress> getBirthdays(final Date fromDate, final Date toDate, final boolean all) {
-    BirthdayCache cache = TenantRegistryMap.getCache(BirthdayCache.class);
-    return cache.getBirthdays(fromDate, toDate, all, personalAddressDao.getFavoriteAddressIdList());
+    return birthdayCache.getBirthdays(fromDate, toDate, all, personalAddressDao.getFavoriteAddressIdList());
   }
 
   public List<PersonalAddressDO> getFavoriteVCards() {
@@ -635,10 +625,8 @@ public class AddressDao extends BaseDao<AddressDO> {
   }
 
   public AddressDO findByUid(final String uid) {
-    final TenantDO tenant =
-            ThreadLocalUserContext.getUser().getTenant() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant();
     return emgrFactory.runRoTrans(emgr -> emgr.selectSingleAttached(AddressDO.class,
-            "SELECT a FROM AddressDO a WHERE a.uid = :uid AND tenant = :tenant", "uid", uid, "tenant", tenant));
+            "SELECT a FROM AddressDO a WHERE a.uid = :uid", "uid", uid));
   }
 
   public String internalPhoneLookUp(String phoneNumber) {

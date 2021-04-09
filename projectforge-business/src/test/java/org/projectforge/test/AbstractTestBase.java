@@ -35,8 +35,6 @@ import org.projectforge.SystemStatus;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.LoginDefaultHandler;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserGroupCache;
@@ -95,7 +93,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Component
 public abstract class AbstractTestBase {
   protected static final org.slf4j.Logger log = org.slf4j.LoggerFactory
-          .getLogger(AbstractTestBase.class);
+      .getLogger(AbstractTestBase.class);
 
   public static final String ADMIN = "PFAdmin";
 
@@ -186,6 +184,9 @@ public abstract class AbstractTestBase {
   @Autowired
   private SystemStatus systemStatus;
 
+  @Autowired
+  private UserGroupCache userGroupCache;
+
   @PostConstruct
   private void postConstruct() {
     WicketSupport.register(applicationContext);
@@ -269,11 +270,8 @@ public abstract class AbstractTestBase {
     }
 
     clearDatabase();
-    databaseService.insertDefaultTenant();
 
     GlobalConfiguration.createConfiguration(configurationService);
-    TenantRegistryMap tenantRegistryMap = TenantRegistryMap.getInstance();
-    tenantRegistryMap.setApplicationContext(applicationContext);
     ConfigXmlTest.createTestConfiguration();
 
     Registry.getInstance().init(applicationContext);
@@ -307,7 +305,8 @@ public abstract class AbstractTestBase {
 
   /**
    * Test cases using the jcr repo should init it. See DataTransferJCRCleanUpJobTest of plugin datatransfer as an example.
-   * @param modulName Maven module name (dir) of your current tested module.
+   *
+   * @param modulName    Maven module name (dir) of your current tested module.
    * @param testRepoName Unique test repoName like "datatransferTestRepo"
    */
   protected void initJCRTestRepo(String modulName, String testRepoName) {
@@ -315,19 +314,9 @@ public abstract class AbstractTestBase {
     testRepoDir = testUtils.deleteAndCreateTestFile("cleanUpTestRepo");
   }
 
-  protected TenantRegistry getTenantRegistry() {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  protected UserGroupCache getUserGroupCache() {
-    return getTenantRegistry().getUserGroupCache();
-  }
-
   protected void clearDatabase() {
     emf.getJpaSchemaService().clearDatabase();
-    TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired();
-    getUserGroupCache().setExpired();
-    TenantRegistryMap.getInstance().clear();
+    userGroupCache.setExpired();
     initTestDB.clearUsers();
   }
 
@@ -336,16 +325,16 @@ public abstract class AbstractTestBase {
     if (user == null) {
       fail("User not found: " + username);
     }
-    ThreadLocalUserContext.setUser(getUserGroupCache(), PFUserDO.Companion.createCopyWithoutSecretFields(user));
+    ThreadLocalUserContext.setUser(PFUserDO.Companion.createCopyWithoutSecretFields(user));
     return user;
   }
 
   public void logon(final PFUserDO user) {
-    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
+    ThreadLocalUserContext.setUser(user);
   }
 
   protected void logoff() {
-    ThreadLocalUserContext.setUser(getUserGroupCache(), null);
+    ThreadLocalUserContext.setUser(null);
   }
 
   public GroupDO getGroup(final String groupName) {

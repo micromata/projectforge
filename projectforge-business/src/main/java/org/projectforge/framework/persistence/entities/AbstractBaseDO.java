@@ -31,7 +31,6 @@ import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -52,8 +51,6 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
   private static final long serialVersionUID = -2225460450662176301L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractBaseDO.class);
-
-  private TenantDO tenant;
 
   @NoHistory
   @PropertyInfo(i18nKey = "created")
@@ -77,34 +74,6 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
   @Override
   public void recalculate()
   {
-  }
-
-  @Override
-  @Transient
-  public Integer getTenantId()
-  {
-    return this.tenant != null ? this.tenant.getId() : null;
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDO#getTenant()
-   */
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "tenant_id")
-  @Override
-  public TenantDO getTenant()
-  {
-    return this.tenant;
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDO#setTenant(TenantDO)
-   */
-  @Override
-  public AbstractBaseDO<I> setTenant(final TenantDO tenant)
-  {
-    this.tenant = tenant;
-    return this;
   }
 
   @Override

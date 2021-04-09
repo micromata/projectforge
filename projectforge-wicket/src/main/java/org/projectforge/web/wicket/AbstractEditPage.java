@@ -40,7 +40,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -91,9 +90,6 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
   @SpringBean
   protected DateTimeFormatter dateTimeFormatter;
 
-  @SpringBean
-  private TenantChecker tenantChecker;
-
   protected EditPageSupport<O, D, AbstractEditPage<O, F, D>> editPageSupport;
 
   public AbstractEditPage(final PageParameters parameters, final String i18nPrefix)
@@ -134,7 +130,6 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
         if (data == null) {
           data = getBaseDao().newInstance();
         }
-        tenantChecker.setCurrentTenant(data);
       }
     }
     form = newEditForm(this, data);

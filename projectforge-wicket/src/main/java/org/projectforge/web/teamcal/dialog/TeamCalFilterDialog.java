@@ -42,13 +42,13 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.Const;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.api.UserRightService;
@@ -480,8 +480,7 @@ public class TeamCalFilterDialog extends ModalDialog
       return null;
     }
     final Integer userId = activeTemplateEntry.getTimesheetUserId();
-    return userId != null ? TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().getUser(userId)
-        : null;
+    return userId != null ? UserGroupCache.getInstance().getUser(userId) : null;
   }
 
   public void setTimesheetsUser(final PFUserDO user)

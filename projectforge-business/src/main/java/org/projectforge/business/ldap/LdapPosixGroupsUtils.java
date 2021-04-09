@@ -23,7 +23,6 @@
 
 package org.projectforge.business.ldap;
 
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,13 +42,15 @@ public class LdapPosixGroupsUtils
   @Autowired
   GroupDOConverter groupDOConverter;
 
+  @Autowired
+  private UserGroupCache userGroupCache;
+
   /**
    * Get all given gid numbers of all ProjectForge groups including any deleted group and get the next highest and free
    * number. The number is 1000 if no gid number (with a value greater than 999) is found.
    */
   public int getNextFreeGidNumber()
   {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final Collection<GroupDO> allGroups = userGroupCache.getAllGroups();
     int currentMaxNumber = 999;
     for (final GroupDO group : allGroups) {
@@ -66,7 +67,7 @@ public class LdapPosixGroupsUtils
 
   /**
    * For preventing double gidNumbers.
-   * 
+   *
    * @param currentGroup
    * @param gidNumber
    * @return Returns true if any group (also deleted group) other than the given group has the given gidNumber,
@@ -74,7 +75,6 @@ public class LdapPosixGroupsUtils
    */
   public boolean isGivenNumberFree(final GroupDO currentGroup, final int gidNumber)
   {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final Collection<GroupDO> allGroups = userGroupCache.getAllGroups();
     for (final GroupDO group : allGroups) {
       final LdapGroupValues ldapGroupValues = groupDOConverter.readLdapGroupValues(group.getLdapValues());
@@ -94,9 +94,8 @@ public class LdapPosixGroupsUtils
 
   /**
    * Sets next free gid.
-   * 
+   *
    * @param ldapGroupValues
-   * @param group
    */
   public void setDefaultValues(final LdapGroupValues ldapGroupValues)
   {

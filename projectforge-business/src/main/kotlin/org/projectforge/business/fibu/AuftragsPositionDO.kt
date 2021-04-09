@@ -48,7 +48,7 @@ import javax.persistence.*
 @ClassBridge(name = "position", analyze = Analyze.NO, impl = HibernateSearchAuftragsPositionBridge::class)
 @Cache(region = "orders", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 //@Cacheable
-@Table(name = "t_fibu_auftrag_position", uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_fk", "number"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_auftrag_fk", columnList = "auftrag_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_task_fk", columnList = "task_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_tenant_id", columnList = "tenant_id")])
+@Table(name = "t_fibu_auftrag_position", uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_fk", "number"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_auftrag_fk", columnList = "auftrag_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_task_fk", columnList = "task_fk")])
 open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
 
     override val displayName: String

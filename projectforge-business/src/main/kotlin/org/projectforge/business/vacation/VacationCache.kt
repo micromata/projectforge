@@ -32,9 +32,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.LocalDate
-import javax.persistence.EntityManager
-import javax.persistence.LockModeType
-import javax.persistence.PersistenceContext
 
 private val log = KotlinLogging.logger {}
 
@@ -47,6 +44,9 @@ private val log = KotlinLogging.logger {}
 open class VacationCache : AbstractCache() {
     @Autowired
     private lateinit var vacationDao: VacationDao
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
 
     private lateinit var vacationSet: Set<VacationDO>
 
@@ -61,14 +61,13 @@ open class VacationCache : AbstractCache() {
             log.info("No groups given, therefore no vacation will be returned.")
             return result
         }
-        val userGroupCache = UserGroupCache.tenantInstance
         val loggedInUser = ThreadLocalUserContext.getUser()
         for (vacation in vacationSet) {
             if (vacation.endDate?.isBefore(startVacationDate) == true ||
                     vacation.startDate?.isAfter(endVacationDate) == true) {
                 continue
             }
-            if (!vacationDao.hasSelectAccess(vacation, loggedInUser, false)) {
+            if (!vacationDao.hasSelectAccess(vacation, loggedInUser)) {
                 continue
             }
             val employeeUser = vacation.employee?.user ?: continue

@@ -32,11 +32,9 @@ import java.util.List;
 /**
  * This class also provides the configuration of the parameters which are stored via ConfigurationDao. Those parameters
  * are cached. <br/>
- * These parameters are global (valid for all tenants).
- * 
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @XmlObject(alias = "config")
 public class GlobalConfiguration extends AbstractConfiguration
@@ -44,8 +42,6 @@ public class GlobalConfiguration extends AbstractConfiguration
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GlobalConfiguration.class);
 
   private static GlobalConfiguration instance;
-
-  private Boolean multitenancyMode;
 
   public static GlobalConfiguration getInstance()
   {
@@ -73,24 +69,6 @@ public class GlobalConfiguration extends AbstractConfiguration
   private GlobalConfiguration()
   {
     super(true);
-  }
-
-  /**
-   * @see org.projectforge.framework.cache.AbstractCache#setExpired()
-   */
-  @Override
-  public void setExpired()
-  {
-    super.setExpired();
-    this.multitenancyMode = null;
-  }
-
-  public boolean isMultiTenancyConfigured()
-  {
-    if (multitenancyMode == null) {
-      multitenancyMode = getBooleanValue(ConfigurationParam.MULTI_TENANCY_ENABLED);
-    }
-    return multitenancyMode;
   }
 
   /**

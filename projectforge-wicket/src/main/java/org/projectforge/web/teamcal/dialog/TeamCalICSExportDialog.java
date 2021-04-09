@@ -29,7 +29,6 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -142,7 +141,7 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
         return true;
       }
     }
-    Collection<Integer> userGroupsIds = getUserGroupCache().getUserGroups(user);
+    Collection<Integer> userGroupsIds = UserGroupCache.getInstance().getUserGroups(user);
     List<String> fullAccessGroupIds =
         StringUtils.isBlank(teamCal.getFullAccessGroupIds()) == false ? Arrays.asList(teamCal.getFullAccessGroupIds().split(",")) :
             Collections.emptyList();
@@ -160,11 +159,6 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
       }
     }
     return false;
-  }
-
-  private UserGroupCache getUserGroupCache()
-  {
-    return TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
   }
 
   /**

@@ -29,12 +29,9 @@ import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.business.fibu.kost.Kost2ArtDao;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
-import org.projectforge.business.multitenancy.TenantDao;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
+import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.user.*;
@@ -50,7 +47,6 @@ import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.time.DateHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,12 +69,6 @@ public class InitTestDB {
   private DatabaseService databaseService;
 
   @Autowired
-  private TenantService tenantService;
-
-  @Autowired
-  private TenantDao tenantDao;
-
-  @Autowired
   private ConfigurationDao configurationDao;
 
   @Autowired
@@ -90,6 +80,10 @@ public class InitTestDB {
   @Autowired
   private TaskDao taskDao;
 
+  @Autowired
+  private TaskTree taskTree;
+
+  @Autowired
   private TimesheetDao timesheetDao;
 
   @Autowired
@@ -100,6 +94,9 @@ public class InitTestDB {
 
   @Autowired
   private EmployeeDao employeeDao;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   @Autowired
   private UserRightDao userRightDao;
@@ -130,14 +127,10 @@ public class InitTestDB {
   }
 
   public PFUserDO addUser(final PFUserDO user) {
-    user.setTenant(tenantService.getDefaultTenant());
     Set<UserRightDO> userRights = new HashSet<>(user.getRights());
     user.getRights().clear();
     userService.save(user);
     userRights.forEach(right -> userRightDao.internalSave(right));
-    Set<TenantDO> tenantsToAssign = new HashSet<>();
-    tenantsToAssign.add(tenantService.getDefaultTenant());
-    tenantDao.internalAssignTenants(user, tenantsToAssign, null, false, false);
     putUser(user);
     if (user.getUsername().equals(AbstractTestBase.ADMIN)) {
       AbstractTestBase.ADMIN_USER = user;
@@ -169,16 +162,8 @@ public class InitTestDB {
     }
     groupDao.internalSave(group);
     putGroup(group);
-    TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired();
+    userGroupCache.setExpired();
     return group;
-  }
-
-  public TenantRegistry getTenantRegistry() {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  public UserGroupCache getUserGroupCache() {
-    return getTenantRegistry().getUserGroupCache();
   }
 
   public GroupDO getGroup(final String groupName) {
@@ -256,7 +241,6 @@ public class InitTestDB {
     initUser.setUsername("Init-database-pseudo-user");
     initUser.setId(-1);
     initUser.addRight(new UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE));
-    ThreadLocalUserContext.setUser(getUserGroupCache(), initUser);
     initConfiguration();
     initUsers();
     databaseService.insertGlobalAddressbook(AbstractTestBase.ADMIN_USER);
@@ -265,7 +249,6 @@ public class InitTestDB {
     initAccess();
     initKost2Arts();
     initEmployees();
-    ThreadLocalUserContext.setUser(getUserGroupCache(), origUser);
   }
 
   private void initEmployees() {
@@ -371,16 +354,16 @@ public class InitTestDB {
 
   private void initTaskTree() {
     if (log.isDebugEnabled()) {
-      log.debug("Setting taskTree.expired: " + taskDao.getTaskTree());
+      log.debug("Setting taskTree.expired: " + taskTree);
     }
-    taskDao.getTaskTree().clear();
+    taskTree.clear();
     if (log.isDebugEnabled()) {
-      log.debug("TaskTree after reload: " + taskDao.getTaskTree());
+      log.debug("TaskTree after reload: " + taskTree);
     }
-    if (taskDao.getTaskTree().getRootTaskNode() == null) {
+    if (taskTree.getRootTaskNode() == null) {
       addTask("root", null);
     } else {
-      putTask(taskDao.getTaskTree().getRootTaskNode().getTask());
+      putTask(taskTree.getRootTaskNode().getTask());
     }
     addTask("1", "root");
     addTask("1.1", "1");

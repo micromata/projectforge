@@ -31,9 +31,6 @@ import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragDao;
-import org.projectforge.business.multitenancy.TenantDao;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.user.UserAuthenticationsService;
@@ -44,14 +41,11 @@ import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -85,10 +79,7 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
   private TaskDao taskDao;
 
   @Autowired
-  private TenantDao tenantDao;
-
-  @Autowired
-  private TenantService tenantService;
+  private UserGroupCache userGroupCache;
 
   @Override
   protected void initDb() {
@@ -97,18 +88,14 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
 
   @Test
   public void initializeEmptyDatabase() {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final String testPassword = "demo123";
-    TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired(); // Force reload (because it's may be expired due to previous tests).
+    userGroupCache.setExpired(); // Force reload (because it's may be expired due to previous tests).
     assertFalse(databaseService.databaseTablesWithEntriesExists());
     PFUserDO admin = new PFUserDO();
     admin.setUsername("myadmin");
     userService.createEncryptedPassword(admin, testPassword);
     pfJpaXmlDumpService.createTestDatabase();
     admin = databaseService.updateAdminUser(admin, null);
-    Set<TenantDO> tenantsToAssign = new HashSet<>();
-    tenantsToAssign.add(tenantService.getDefaultTenant());
-    tenantDao.internalAssignTenants(admin, tenantsToAssign, null, false, false);
     databaseService.afterCreatedTestDb(true);
     final PFUserDO initialAdminUser = userService.authenticateUser("myadmin", testPassword);
     assertNotNull(initialAdminUser);

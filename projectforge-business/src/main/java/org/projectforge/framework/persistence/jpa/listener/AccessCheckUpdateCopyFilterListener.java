@@ -26,7 +26,6 @@ package org.projectforge.framework.persistence.jpa.listener;
 import de.micromata.genome.jpa.DbRecord;
 import de.micromata.genome.jpa.events.EmgrEventHandler;
 import de.micromata.genome.jpa.events.EmgrUpdateCopyFilterEvent;
-import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.AUserRightId;
@@ -39,7 +38,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Checks if db object can be updated. For other, see BeforeModifyEventHandler.
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  */
@@ -51,9 +50,6 @@ public class AccessCheckUpdateCopyFilterListener implements EmgrEventHandler<Emg
 
   @Autowired
   private JpaPfGenericPersistenceService genericPersistenceService;
-
-  @Autowired
-  TenantChecker tenantChecker;
 
   @Override
   public void onEvent(EmgrUpdateCopyFilterEvent event)
@@ -69,16 +65,15 @@ public class AccessCheckUpdateCopyFilterListener implements EmgrEventHandler<Emg
     }
     BaseDO<?> dbObject = (BaseDO<?>) event.getTarget();
     Object newObj = event.getSource();
-    checkEntity(genericPersistenceService, accessChecker, tenantChecker, dbObject, newObj, OperationType.UPDATE);
+    checkEntity(genericPersistenceService, accessChecker, dbObject, newObj, OperationType.UPDATE);
 
     event.nextFilter();
   }
 
   public static void checkEntity(JpaPfGenericPersistenceService genericPersistenceService, AccessChecker accessChecker,
-      TenantChecker tenantChecker, BaseDO<?> dbObject, Object newObj, OperationType opType)
+      BaseDO<?> dbObject, Object newObj, OperationType opType)
   {
     accessChecker.checkRestrictedOrDemoUser();
-    tenantChecker.checkPartOfCurrentTenant(dbObject);
     AUserRightId aUserRightId = dbObject.getClass().getAnnotation(AUserRightId.class);
     if (aUserRightId != null && !aUserRightId.checkAccess()) {
       return;

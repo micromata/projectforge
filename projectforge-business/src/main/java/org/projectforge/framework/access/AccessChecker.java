@@ -29,7 +29,6 @@ import org.projectforge.business.user.UserRight;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 
 /**
  * This class contains some helper methods for evaluation of user and group access'.
@@ -48,11 +47,6 @@ public interface AccessChecker
    * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Integer)
    */
   boolean isUserMemberOfAdminGroup(PFUserDO user);
-
-  /**
-   * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Integer)
-   */
-  boolean isUserMemberOfAdminGroup(TenantDO tenant, PFUserDO user);
 
   boolean isUserMemberOfAdminGroup(PFUserDO user, boolean throwException);
 

@@ -57,7 +57,7 @@ public class HibernateSearchUsersGroupsBridge implements TwoWayStringBridge {
   @Override
   public String objectToString(Object object) {
     if (object instanceof String) return (String)object;
-    UserGroupCache userGroupCache = UserGroupCache.getTenantInstance();
+    UserGroupCache userGroupCache = UserGroupCache.getInstance();
     final BaseUserGroupRightsDO doObject = (BaseUserGroupRightsDO) object;
     final StringBuilder sb = new StringBuilder();
     // query information in Bridge results in a deadlock in HSQLDB

@@ -24,7 +24,6 @@
 package org.projectforge.web.core;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.RestartResponseAtInterceptPageException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -41,13 +40,10 @@ import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.api.UserContext;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.rest.ChangePasswordPageRest;
 import org.projectforge.rest.MyAccountPageRest;
@@ -86,9 +82,6 @@ public class NavTopPanel extends NavAbstractPanel {
 
   @SpringBean
   private AccessChecker accessChecker;
-
-  @SpringBean
-  private TenantService tenantService;
 
   @SpringBean
   private VacationService vacationService;
@@ -131,44 +124,6 @@ public class NavTopPanel extends NavAbstractPanel {
       addBookmarkDialog();
     }
     {
-      // Tenants
-      final Collection<TenantDO> tenants = tenantService.isMultiTenancyAvailable() == true
-              ? tenantService.getTenantsOfLoggedInUser() : null;
-      if (tenants == null || tenants.size() <= 1) {
-        // Tenants not available or user is only assigned to one or less tenants.
-        add(new WebMarkupContainer("currentTenant").setVisible(false));
-      } else {
-        final UserContext userContext = MySession.get().getUserContext();
-        final WebMarkupContainer tenantMenu = new WebMarkupContainer("currentTenant");
-        add(tenantMenu);
-        tenantMenu.add(new Label("label", new Model<String>() {
-          @Override
-          public String getObject() {
-            final TenantDO currentTenant = userContext.getCurrentTenant();
-            return currentTenant != null ? currentTenant.getShortName() : "???";
-          }
-
-        }).setRenderBodyOnly(true));
-        final RepeatingView tenantsRepeater = new RepeatingView("tenantsRepeater");
-        tenantMenu.add(tenantsRepeater);
-        for (final TenantDO tenant : tenants) {
-          final WebMarkupContainer li = new WebMarkupContainer(tenantsRepeater.newChildId());
-          tenantsRepeater.add(li);
-          final Link<Void> changeTenantLink = new Link<Void>("changeTenantLink") {
-            @Override
-            public void onClick() {
-              userContext.setCurrentTenant(tenant);
-              throw new RestartResponseAtInterceptPageException(getPage().getPageClass());
-            }
-
-          };
-          li.add(changeTenantLink);
-          changeTenantLink.add(new Label("label", tenant.getName()));
-        }
-
-      }
-    }
-    {
       add(new Label("user", ThreadLocalUserContext.getUser().getFullname()));
       if (accessChecker.isRestrictedUser() == true) {
         // Show ChangePaswordPage as my account for restricted users.
@@ -181,13 +136,13 @@ public class NavTopPanel extends NavAbstractPanel {
         addVacationViewLink();
       }
       final BookmarkablePageLink<Void> documentationLink = new BookmarkablePageLink<Void>("documentationLink",
-              DocumentationPage.class);
+          DocumentationPage.class);
       add(documentationLink);
       final Link<Void> logoutLink = new Link<Void>("logoutLink") {
         @Override
         public void onClick() {
           loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(),
-                  userXmlPreferencesCache, WicketSupport.getUserPrefCache());
+              userXmlPreferencesCache, WicketSupport.getUserPrefCache());
           WicketUtils.redirectToLogin(this);
         }
       };
@@ -245,7 +200,7 @@ public class NavTopPanel extends NavAbstractPanel {
         for (final WicketMenuEntry subMenuEntry : menuEntry.getSubMenuEntries()) {
           if (subMenuEntry.getSubMenuEntries() != null) {
             log.error(
-                    "Oups: sub sub menus not supported: " + menuEntry.getId() + " has child menus which are ignored.");
+                "Oups: sub sub menus not supported: " + menuEntry.getId() + " has child menus which are ignored.");
           }
           // Now we add the next menu entry to the area:
           final WebMarkupContainer subMenuItem = new WebMarkupContainer(completeSubMenuRepeater.newChildId());
@@ -377,16 +332,16 @@ public class NavTopPanel extends NavAbstractPanel {
       {
         final FieldsetPanel fs = gridBuilder.newFieldset(getString("bookmark.directPageLink")).setLabelSide(false);
         final TextArea<String> textArea = new TextArea<String>(fs.getTextAreaId(),
-                new Model<String>(page.getPageAsLink()));
+            new Model<String>(page.getPageAsLink()));
         fs.add(textArea);
         textArea.add(AttributeModifier.replace("onclick", "$(this).select();"));
       }
       final PageParameters params = page.getBookmarkableInitialParameters();
       if (params.isEmpty() == false) {
         final FieldsetPanel fs = gridBuilder.newFieldset(getString(page.getTitleKey4BookmarkableInitialParameters()))
-                .setLabelSide(false);
+            .setLabelSide(false);
         final TextArea<String> textArea = new TextArea<String>(fs.getTextAreaId(),
-                new Model<String>(page.getPageAsLink(params)));
+            new Model<String>(page.getPageAsLink(params)));
         fs.add(textArea);
         textArea.add(AttributeModifier.replace("onclick", "$(this).select();"));
       }

@@ -37,7 +37,6 @@ import java.math.BigDecimal
 import java.time.Year
 
 /**
- * Not multi tenant proven.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository

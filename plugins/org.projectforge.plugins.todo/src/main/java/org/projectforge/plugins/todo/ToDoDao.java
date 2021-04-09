@@ -27,7 +27,7 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.continuousdb.Table;

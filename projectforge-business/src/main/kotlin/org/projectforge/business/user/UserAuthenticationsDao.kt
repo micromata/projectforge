@@ -192,7 +192,6 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             changed = changed || checkAndFixToken(authentications, userId, UserTokenType.REST_CLIENT)
             changed = changed || checkAndFixToken(authentications, userId, UserTokenType.STAY_LOGGED_IN_KEY)
             if (changed) {
-                authentications.tenant = authentications.user?.tenant ?: authentications.tenant
                 internalUpdate(authentications, checkAccess)
             }
         }
@@ -268,7 +267,6 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         if (authentications == null) {
             authentications = UserAuthenticationsDO()
             setUser(authentications, userId)
-            authentications.tenant = authentications.user?.tenant
             authentications.calendarExportToken = createEncryptedAuthenticationToken()
             authentications.davToken = createEncryptedAuthenticationToken()
             authentications.restClientToken = createEncryptedAuthenticationToken()
@@ -285,7 +283,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
     }
 
     private fun ensureAuthentications(username: String): UserAuthenticationsDO {
-        val userId = UserGroupCache.tenantInstance.getUser(username)?.id
+        val userId = userGroupCache.getUser(username)?.id
                 ?: throw IllegalArgumentException("User with username 'username' not found.")
         return ensureAuthentications(userId)
     }

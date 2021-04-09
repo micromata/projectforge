@@ -25,15 +25,13 @@ package org.projectforge.framework.persistence.user.api
 
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.user.UserGroupCache
-import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO.Companion.createCopyWithoutSecretFields
-import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.slf4j.LoggerFactory
 import java.io.Serializable
 
 /**
- * User context for logged-in users. Contains the user and the current tenant (if any) etc.
+ * User context for logged-in users. Contains the user etc.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -44,16 +42,11 @@ class UserContext() : Serializable {
     var user: PFUserDO? = null
         private set
     val employeeId: Int?
-        get() = userGroupCache.getEmployeeId(user?.id)
-    /**
-     * @return the currentTenant
-     */
-    var currentTenant: TenantDO? = null
+        get() = UserGroupCache.getInstance().getEmployeeId(user?.id)
     /**
      * @return the stayLoggedIn
      */
     var isStayLoggedIn = false
-    private lateinit var userGroupCache: UserGroupCache
 
     /**
      * See RestAuthenticationInfo of ProjectForge's rest module.
@@ -67,10 +60,9 @@ class UserContext() : Serializable {
      * @param user
      */
     @JvmOverloads
-    constructor(user: PFUserDO, userGroupCache: UserGroupCache? = null): this() {
+    constructor(user: PFUserDO): this() {
         Validate.notNull(user)
         this.user = user
-        this.userGroupCache = userGroupCache ?: UserGroupCache.tenantInstance
         if (user.hasSecretFieldValues()) {
             log.warn(
                     "Should instantiate UserContext with user containing secret values (makes now a copy of the given user).")
@@ -78,7 +70,6 @@ class UserContext() : Serializable {
         } else {
             this.user = user
         }
-        currentTenant = user.tenant
     }
 
     /**
@@ -88,7 +79,6 @@ class UserContext() : Serializable {
      */
     fun logout(): UserContext {
         user = null
-        currentTenant = null
         isStayLoggedIn = false
         return this
     }
@@ -100,7 +90,7 @@ class UserContext() : Serializable {
      * @return this for chaining.
      */
     fun refreshUser(): UserContext {
-        val updatedUser = userGroupCache.getUser(user!!.id)
+        val updatedUser = UserGroupCache.getInstance().getUser(user!!.id)
         if (updatedUser == null) {
             log.warn("Couldn't update user from UserCache, should only occur in maintenance mode!")
             return this
@@ -125,13 +115,13 @@ class UserContext() : Serializable {
          * @return The created UserContext.
          */
         @JvmStatic
-        fun __internalCreateWithSpecialUser(user: PFUserDO, userGroupCache: UserGroupCache): UserContext {
-            return UserContext(user, userGroupCache)
+        fun __internalCreateWithSpecialUser(user: PFUserDO): UserContext {
+            return UserContext(user)
         }
 
         @JvmStatic
         fun createTestInstance(user: PFUserDO): UserContext {
-            val ctx = UserContext() // Can't user UserContext(PFUserDO) constructor: UserGroupCache of tenant not yet initialized.
+            val ctx = UserContext()
             ctx.user = user
             return ctx
         }

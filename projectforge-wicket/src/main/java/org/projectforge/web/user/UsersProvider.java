@@ -24,7 +24,6 @@
 package org.projectforge.web.user;
 
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UsersComparator;
@@ -65,7 +64,7 @@ public class UsersProvider extends ChoiceProvider<PFUserDO>
   {
     if (sortedUsers == null) {
       sortedUsers = new TreeSet<PFUserDO>(usersComparator);
-      final Collection<PFUserDO> allusers = getUserGroupCache().getAllUsers();
+      final Collection<PFUserDO> allusers = UserGroupCache.getInstance().getAllUsers();
       final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
       for (final PFUserDO user : allusers) {
         if (user.isDeleted() == false && user.getDeactivated() == false
@@ -89,7 +88,7 @@ public class UsersProvider extends ChoiceProvider<PFUserDO>
     sortedUsers = new TreeSet<PFUserDO>(usersComparator);
     final int[] ids = StringHelper.splitToInts(userIds, ",", false);
     for (final int id : ids) {
-      final PFUserDO user = getUserGroupCache().getUser(id);
+      final PFUserDO user = UserGroupCache.getInstance().getUser(id);
       if (user != null) {
         sortedUsers.add(user);
       } else {
@@ -173,22 +172,11 @@ public class UsersProvider extends ChoiceProvider<PFUserDO>
       if (userId == null) {
         continue;
       }
-      final PFUserDO user = getUserGroupCache().getUser(userId);
+      final PFUserDO user = UserGroupCache.getInstance().getUser(userId);
       if (user != null) {
         list.add(user);
       }
     }
     return list;
-  }
-
-  /**
-   * @return the useruserCache
-   */
-  private UserGroupCache getUserGroupCache()
-  {
-    if (userGroupCache == null) {
-      userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
-    }
-    return userGroupCache;
   }
 }

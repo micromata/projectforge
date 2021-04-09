@@ -26,8 +26,6 @@ package org.projectforge.web.wicket;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.access.AccessChecker;
@@ -54,8 +52,6 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
 
   @SpringBean
   private UserXmlPreferencesService userPreferencesService;
-
-  private transient TenantRegistry tenantRegistry;
 
   public AbstractSecuredBasePage(final PageParameters parameters) {
     super(parameters);
@@ -203,17 +199,5 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
    */
   public boolean isAccess4restrictedUsersAllowed() {
     return false;
-  }
-
-  /**
-   * For getting caches etc.
-   *
-   * @return The current tenantRegistry also for systems without tenants configured.
-   */
-  protected TenantRegistry getTenantRegistry() {
-    if (tenantRegistry == null) {
-      tenantRegistry = TenantRegistryMap.getInstance().getTenantRegistry();
-    }
-    return tenantRegistry;
   }
 }

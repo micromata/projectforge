@@ -28,8 +28,6 @@ import org.projectforge.business.ldap.LdapSlaveLoginHandler;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.LoginDefaultHandler;
 import org.projectforge.business.login.LoginHandler;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,14 +62,6 @@ public class LoginHandlerService {
     }
     Login.getInstance().setLoginHandler(loginHandler);
     loginHandler.initialize();
-  }
-
-  public TenantRegistry getTenantRegistry() {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  public UserGroupCache getUserGroupCache() {
-    return getTenantRegistry().getUserGroupCache();
   }
 
   /**

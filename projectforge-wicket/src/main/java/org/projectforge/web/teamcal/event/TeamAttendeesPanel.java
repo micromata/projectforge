@@ -35,7 +35,6 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.user.UserGroupCache;
@@ -112,8 +111,7 @@ public class TeamAttendeesPanel extends Panel
           }
           final TeamEventAttendeeDO attendee = attendeeModel.getObject();
           if (attendee.getAddressId() != null) {
-            final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry()
-                .getUserGroupCache();
+            final UserGroupCache userGroupCache = UserGroupCache.getInstance();
             final PFUserDO user = userGroupCache.getUser(attendee.getAddressId());
             return user != null ? user.getFullname() : attendee.getUrl();
           }
@@ -132,7 +130,6 @@ public class TeamAttendeesPanel extends Panel
             attendee.setAddress(null);
             return;
           }
-          final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
           //          final AddressDO address = userGroupCache.getUserByFullname(object);
           //          if (user != null) {
           //            attendee.setAddress(address);

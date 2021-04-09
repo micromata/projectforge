@@ -151,9 +151,6 @@ public abstract class AbstractConfiguration extends AbstractCache
       list = new ArrayList<>();
     }
     for (final ConfigurationParam param : ConfigurationParam.values()) {
-      if (param.isGlobal() != global) {
-        continue;
-      }
       ConfigurationDO configuration = null;
       for (final ConfigurationDO entry : list) {
         if (StringUtils.equals(param.getKey(), entry.getParameter())) {

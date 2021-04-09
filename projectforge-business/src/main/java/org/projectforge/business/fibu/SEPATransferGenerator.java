@@ -24,9 +24,13 @@
 package org.projectforge.business.fibu;
 
 import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.common.i18n.UserException;
+import org.projectforge.framework.configuration.ConfigurationParam;
+import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.generated.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
@@ -122,7 +126,7 @@ public class SEPATransferGenerator
   {
     final SEPATransferResult result = new SEPATransferResult();
 
-    if (this.jaxbContext == null || invoices == null || invoices.isEmpty() || invoices.get(0).getTenant() == null) {
+    if (this.jaxbContext == null || invoices == null || invoices.isEmpty()) {
       String errorPrefix = "A problem accured while exporting invoices: ";
       String error = "";
       // if jaxb context is missing, generation is not possible
@@ -134,12 +138,6 @@ public class SEPATransferGenerator
         error = "Invoices are null or empty";
         log.warn(errorPrefix + error);
       }
-      if (invoices.get(0).getTenant() == null) {
-        error = "No debitor could be determined of the first invoice [" + (invoices.get(0).getBetreff() != null ?
-            invoices.get(0).getBetreff() :
-            "empty") + "]. Maybe it's not saved?";
-        log.warn(errorPrefix + error);
-      }
       throw new UserException("error", errorPrefix + error);
     }
 
@@ -147,7 +145,7 @@ public class SEPATransferGenerator
     GregorianCalendar gc = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     ObjectFactory factory = new ObjectFactory();
     String msgID = String.format("transfer-%s", this.formatter.format(new Date()));
-    String debitor = invoices.get(0).getTenant().getName(); // use tenant of first invoice
+    String debitor = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.ORGANIZATION);
 
     // create document
     final Document document = factory.createDocument();

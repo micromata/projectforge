@@ -25,17 +25,13 @@ package org.projectforge.framework.access;
 
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.*;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -60,6 +56,12 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
   @Autowired
   private FallbackBaseDaoService fallbackBaseDaoService;
 
+  @Autowired
+  private TaskTree taskTree;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
+
   /**
    * Tests for every group the user is assigned to, if the given permission is given.
    *
@@ -81,7 +83,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
                                final OperationType operationType,
                                final boolean throwException) {
     Validate.notNull(user);
-    final TaskNode node = getTaskTree().getTaskNodeById(taskId);
+    final TaskNode node = taskTree.getTaskNodeById(taskId);
     if (node == null) {
       log.error("Task with " + taskId + " not found.");
       if (throwException) {
@@ -89,8 +91,6 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
       }
       return false;
     }
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry(node.getTask())
-            .getUserGroupCache();
     if (userGroupCache.isUserMemberOfAdminGroup(user.getId())) {
       // A user group "Admin" has always access.
       return true;
@@ -112,10 +112,6 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
       throw new AccessException(taskId, accessType, operationType);
     }
     return false;
-  }
-
-  private TaskTree getTaskTree() {
-    return TaskTreeHelper.getTaskTree();
   }
 
   /**
@@ -145,14 +141,6 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
   /**
    * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Integer)
    */
-  @Override
-  public boolean isUserMemberOfAdminGroup(final TenantDO tenant, final PFUserDO user) {
-    return isUserMemberOfGroup(tenant, user, ProjectForgeGroup.ADMIN_GROUP);
-  }
-
-  /**
-   * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Integer)
-   */
   public boolean isLoggedInUserMemberOfAdminGroup(final boolean throwException) {
     return isLoggedInUserMemberOfGroup(throwException, ProjectForgeGroup.ADMIN_GROUP);
   }
@@ -163,13 +151,6 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
   @Override
   public boolean isUserMemberOfAdminGroup(final PFUserDO user, final boolean throwException) {
     return isUserMemberOfGroup(user, throwException, ProjectForgeGroup.ADMIN_GROUP);
-  }
-
-  /**
-   * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Integer)
-   */
-  public boolean isUserMemberOfAdminGroup(final TenantDO tenant, final PFUserDO user, final boolean throwException) {
-    return isUserMemberOfGroup(tenant, user, throwException, ProjectForgeGroup.ADMIN_GROUP);
   }
 
   /**
@@ -237,34 +218,6 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     }
   }
 
-  /**
-   * Checks if the user of the ThreadLocalUserContext (logged in user) is member at least of one of the given groups.
-   *
-   * @param tenant
-   * @param user
-   * @param throwException default false.
-   * @param groups
-   * @see #isUserMemberOfGroup(PFUserDO, ProjectForgeGroup...)
-   */
-  public boolean isUserMemberOfGroup(final TenantDO tenant, final PFUserDO user, final boolean throwException,
-                                     final ProjectForgeGroup... groups) {
-    Validate.notNull(groups);
-    if (user == null) {
-      // Before user is logged in.
-      if (throwException) {
-        throw getLoggedInUserNotMemberOfException(groups);
-      }
-      return false;
-    }
-    if (!throwException) {
-      return isUserMemberOfGroup(tenant, user, groups);
-    } else if (isUserMemberOfGroup(tenant, user, groups)) {
-      return true;
-    } else {
-      throw getLoggedInUserNotMemberOfException(groups);
-    }
-  }
-
   private AccessException getLoggedInUserNotMemberOfException(final ProjectForgeGroup... groups) {
     final StringBuilder buf = new StringBuilder();
     for (int i = 0; i < groups.length; i++) {
@@ -286,19 +239,6 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
    */
   @Override
   public boolean isUserMemberOfGroup(final PFUserDO user, final ProjectForgeGroup... groups) {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
-    return userGroupCache.isUserMemberOfGroup(user, groups);
-  }
-
-  /**
-   * Checks if the given user is at least member of one of the given groups.
-   *
-   * @param tenant
-   * @param user
-   * @param groups
-   */
-  public boolean isUserMemberOfGroup(final TenantDO tenant, final PFUserDO user, final ProjectForgeGroup... groups) {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry(tenant).getUserGroupCache();
     return userGroupCache.isUserMemberOfGroup(user, groups);
   }
 
@@ -348,7 +288,6 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
    */
   @Override
   public boolean areUsersInSameGroup(final PFUserDO user1, final PFUserDO user2) {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final Collection<Integer> userGroups = userGroupCache.getUserGroups(user2);
     // No groups found.
     if (userGroups == null) {
@@ -597,7 +536,6 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
                           final UserRightValue... values) {
     Validate.notNull(origUser);
     Validate.notNull(values);
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final PFUserDO user = userGroupCache.getUser(origUser.getId());
     if (user == null) {
       if (throwException) {
@@ -693,7 +631,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     Validate.notNull(right);
     if (right instanceof UserRightAccessCheck<?>) {
       Validate.notNull(origUser);
-      final PFUserDO user = getUserGroupCache().getUser(origUser.getId());
+      final PFUserDO user = userGroupCache.getUser(origUser.getId());
       if (((UserRightAccessCheck) right).hasHistoryAccess(user, obj)) {
         return true;
       } else if (throwException) {
@@ -704,14 +642,6 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     } else {
       return hasRight(origUser, rightId, throwException, UserRightValue.READONLY, UserRightValue.READWRITE);
     }
-  }
-
-  public TenantRegistry getTenantRegistry() {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  public UserGroupCache getUserGroupCache() {
-    return getTenantRegistry().getUserGroupCache();
   }
 
   /**
@@ -756,7 +686,6 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
    */
   @Override
   public boolean isAvailable(final PFUserDO user, final IUserRightId rightId) {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final UserRight right = userRights.getRight(rightId);
     return right != null && right.isAvailable(userGroupCache, user);
   }
@@ -772,7 +701,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
 
   @Override
   public boolean isDemoUser(final Integer userId) {
-    final PFUserDO user = getUserGroupCache().getUser(userId);
+    final PFUserDO user = userGroupCache.getUser(userId);
     return AccessChecker.isDemoUser(user);
   }
 
@@ -790,7 +719,6 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     if (userId < 0) {
       return false; // Internal system user (e. g. init-db-pseudo user on test cases.
     }
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final PFUserDO user = userGroupCache.getUser(userId);
     return isRestrictedUser(user);
   }
@@ -823,7 +751,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
   }
 
   public boolean isRestrictedOrDemoUser(final Integer userId) {
-    final PFUserDO user = getUserGroupCache().getUser(userId);
+    final PFUserDO user = userGroupCache.getUser(userId);
     return isRestrictedOrDemoUser(user);
   }
 
@@ -876,7 +804,6 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     if (user == null) {
       return null;
     }
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final PFUserDO result = userGroupCache.getUser(user.getId());
     return result;
   }

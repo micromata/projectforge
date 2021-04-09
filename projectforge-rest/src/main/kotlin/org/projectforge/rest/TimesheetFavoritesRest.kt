@@ -24,7 +24,7 @@
 package org.projectforge.rest
 
 import org.projectforge.business.fibu.kost.Kost2Dao
-import org.projectforge.business.tasktree.TaskTreeHelper
+import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetFavorite
 import org.projectforge.business.timesheet.TimesheetFavoritesService
@@ -59,6 +59,9 @@ class TimesheetFavoritesRest {
     @Autowired
     private lateinit var kost2Dao: Kost2Dao
 
+    @Autowired
+    private lateinit var taskTree: TaskTree
+
     @GetMapping("list")
     fun getList(): List<TimesheetFavorite> {
         return timsheetFavoritesService.getList()
@@ -87,7 +90,7 @@ class TimesheetFavoritesRest {
         fav.copyToTimesheet(timesheet)
         val result = mutableMapOf<String, Any>("data" to timesheet)
         if (timesheet.taskId != null) {
-            val task = TaskTreeHelper.getTaskTree().getTaskById(timesheet.taskId)
+            val task = taskTree.getTaskById(timesheet.taskId)
             timesheet.task = task
             result["variables"] = mapOf("task" to TaskServicesRest.createTask(timesheet.taskId))
         }

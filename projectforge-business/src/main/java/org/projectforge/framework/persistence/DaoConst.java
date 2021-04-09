@@ -83,8 +83,6 @@ public class DaoConst
 
   public static final String TASK = "task";
 
-  public static final String TENANT = "tenant";
-
   public static final String TIMESHEET = "timesheet";
 
   public static final String USER = "user";

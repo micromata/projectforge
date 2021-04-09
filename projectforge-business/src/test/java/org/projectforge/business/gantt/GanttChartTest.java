@@ -47,11 +47,13 @@ public class GanttChartTest extends AbstractTestBase {
   @Autowired
   private TaskDao taskDao;
 
+  @Autowired
+  private TaskTree taskTree;
+
   @Test
   public void testReadWriteGanttObjects() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     final String prefix = "GantChartTest";
-    final TaskTree taskTree = taskDao.getTaskTree();
     final TaskDO rootTask = initTestDB.addTask(prefix, "root");
     final PFDateTime dt = PFDateTime.withDate(2010, Month.AUGUST, 3);
 
@@ -160,7 +162,6 @@ public class GanttChartTest extends AbstractTestBase {
   public void testIgnoringOfNumberFields() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     final String prefix = "GanttTest3";
-    final TaskTree taskTree = taskDao.getTaskTree();
     final TaskDO rootTask = initTestDB.addTask(prefix, "root");
     final Integer id1 = addTask(prefix + "1", null, null);
     final Integer id2 = addTask(prefix + "2", null, null);

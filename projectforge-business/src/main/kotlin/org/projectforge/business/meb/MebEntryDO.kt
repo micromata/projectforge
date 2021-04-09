@@ -35,7 +35,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_MEB_ENTRY", indexes = [javax.persistence.Index(name = "idx_fk_t_meb_entry_owner_fk", columnList = "owner_fk"), javax.persistence.Index(name = "idx_fk_t_meb_entry_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_MEB_ENTRY", indexes = [javax.persistence.Index(name = "idx_fk_t_meb_entry_owner_fk", columnList = "owner_fk")])
 class MebEntryDO : AbstractBaseDO<Int>() {
 
     private var id: Int? = null

@@ -57,8 +57,8 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_USER_PREF",
-        uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "area", "name", "tenant_id"])],
-        indexes = [Index(name = "idx_fk_t_user_pref_user_fk", columnList = "user_fk"), Index(name = "idx_fk_t_user_pref_tenant_id", columnList = "tenant_id")])
+        uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "area", "name"])],
+        indexes = [Index(name = "idx_fk_t_user_pref_user_fk", columnList = "user_fk")])
 @JpaXmlPersist(beforePersistListener = [UserPrefXmlBeforePersistListener::class])
 @NamedQueries(
         NamedQuery(name = FIND_BY_USER_ID_AND_AREA, query = "from UserPrefDO where user.id=:userId and area=:area"),

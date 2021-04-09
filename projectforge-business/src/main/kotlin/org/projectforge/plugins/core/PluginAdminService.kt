@@ -106,7 +106,6 @@ open class PluginAdminService {
             val param = ConfigurationParam.PLUGIN_ACTIVATED
             configuration.parameter = param.key
             configuration.configurationType = param.type
-            configuration.global = param.isGlobal
         }
         configuration.stringValue = sval
         configurationDao.saveOrUpdate(configuration)

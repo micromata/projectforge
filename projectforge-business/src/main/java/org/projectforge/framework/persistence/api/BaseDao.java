@@ -31,10 +31,6 @@ import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.search.jpa.Search;
-import org.projectforge.business.multitenancy.TenantChecker;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRight;
 import org.projectforge.framework.access.AccessChecker;
@@ -52,7 +48,6 @@ import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.slf4j.Logger;
@@ -120,14 +115,11 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Autowired
   protected DatabaseDao databaseDao;
 
+  @Autowired
+  private UserGroupCache userGroupCache;
+
   @PersistenceContext
   protected EntityManager em;
-
-  @Autowired
-  protected TenantChecker tenantChecker;
-
-  @Autowired
-  protected TenantService tenantService;
 
   private String[] searchFields;
 
@@ -210,8 +202,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       log.error("Can't load object of type " + getDOClass().getName() + ". Object with given id #" + id + " not found.");
       return null;
     }
-    if (tenantChecker.isPartOfCurrentTenant(obj)
-            && hasLoggedInUserSelectAccess(obj, false)) {
+    if (hasLoggedInUserSelectAccess(obj, false)) {
       return obj;
     }
     return em.getReference(clazz, id);
@@ -225,25 +216,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     CriteriaBuilder cb = em.getCriteriaBuilder();
     CriteriaQuery<O> cq = cb.createQuery(clazz);
     CriteriaQuery<O> query = cq.select(cq.from(clazz));
-    return em.createQuery(query).getResultList();
-  }
-
-  public List<O> internalLoadAll(final TenantDO tenant) {
-    CriteriaBuilder cb = em.getCriteriaBuilder();
-    CriteriaQuery<O> cq = em.getCriteriaBuilder().createQuery(clazz);
-    Root<O> root = cq.from(clazz);
-    CriteriaQuery<O> query;
-    if (tenant == null) {
-      query = cq.where(cb.isNull(root.get("tenant").get("id")));
-    } else if (tenant.isDefault()) {
-      query = cq.where(cb.or(
-              cb.equal(root.get("tenant").get("id"), tenant.getId()),
-              cb.isNull(root.get("tenant").get("id"))));
-      // FROM clazz WHERE tenant.id=:tid or tenant.id is null
-    } else {
-      query = cq.where(cb.equal(root.get("tenant").get("id"), tenant.getId()));
-      // FROM clazz WHERE tenant.id=:tid
-    }
     return em.createQuery(query).getResultList();
   }
 
@@ -292,7 +264,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   public QueryFilter createQueryFilter(final BaseSearchFilter filter) {
-    return new QueryFilter(filter, false);
+    return new QueryFilter(filter);
   }
 
   /**
@@ -308,7 +280,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public List<O> getList(final QueryFilter filter, List<CustomResultFilter<O>> customResultFilters) throws AccessException {
-    return dbQuery.getList(this, filter, customResultFilters, true, filter.getIgnoreTenant());
+    return dbQuery.getList(this, filter, customResultFilters, true);
   }
 
   /**
@@ -316,7 +288,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public List<O> internalGetList(final QueryFilter filter) throws AccessException {
-    return dbQuery.getList(this, filter, null, false, filter.getIgnoreTenant());
+    return dbQuery.getList(this, filter, null, false);
   }
 
   /**
@@ -346,10 +318,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   List<O> extractEntriesWithSelectAccess(final List<O> origList) {
     final List<O> result = new ArrayList<>();
-    final boolean superAdmin = TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser());
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     for (final O obj : origList) {
-      if (hasSelectAccess(obj, loggedInUser, superAdmin)) {
+      if (hasSelectAccess(obj, loggedInUser)) {
         result.add(obj);
         afterLoad(obj);
       }
@@ -360,14 +331,11 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * @param obj          The object to check.
    * @param loggedInUser The currend logged in user.
-   * @param superAdmin   Super admin has access to entries of all tenants
    * @return true if loggedInUser has select access.
-   * @see TenantChecker#isPartOfCurrentTenant(BaseDO)
    * @see #hasUserSelectAccess(PFUserDO, ExtendedBaseDO, boolean)
    */
-  public boolean hasSelectAccess(O obj, PFUserDO loggedInUser, boolean superAdmin) {
-    return (superAdmin || tenantChecker.isPartOfCurrentTenant(obj))
-            && hasUserSelectAccess(loggedInUser, obj, false);
+  public boolean hasSelectAccess(O obj, PFUserDO loggedInUser) {
+    return hasUserSelectAccess(loggedInUser, obj, false);
   }
 
   /**
@@ -388,7 +356,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     if (obj == null) {
       return null;
     }
-    checkPartOfCurrentTenant(obj, OperationType.SELECT);
     checkLoggedInUserSelectAccess(obj);
     return obj;
   }
@@ -413,7 +380,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @SuppressWarnings("rawtypes")
   public HistoryEntry[] getHistoryEntries(final O obj) {
     accessChecker.checkRestrictedUser();
-    checkPartOfCurrentTenant(obj, OperationType.SELECT);
     checkLoggedInUserHistoryAccess(obj);
     return internalGetHistoryEntries(obj);
   }
@@ -521,7 +487,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     }
     accessChecker.checkRestrictedOrDemoUser();
     beforeSaveOrModify(obj);
-    checkPartOfCurrentTenant(obj, OperationType.INSERT);
     checkLoggedInUserInsertAccess(obj);
     Integer result = internalSave(obj);
     //long end = System.currentTimeMillis();
@@ -653,10 +618,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public Integer internalSave(final O obj) {
     return BaseDaoSupport.internalSave(this, obj);
-  }
-
-  TenantDO getDefaultTenant() {
-    return em.find(TenantDO.class, 1);
   }
 
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -804,7 +765,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     }
     accessChecker.checkRestrictedOrDemoUser();
     final O dbObj = em.find(clazz, obj.getId());
-    checkPartOfCurrentTenant(obj, OperationType.DELETE);
     checkLoggedInUserDeleteAccess(obj, dbObj);
     internalMarkAsDeleted(obj);
   }
@@ -833,7 +793,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   public void delete(final O obj) throws AccessException {
     Validate.notNull(obj);
     accessChecker.checkRestrictedOrDemoUser();
-    checkPartOfCurrentTenant(obj, OperationType.DELETE);
     internalDelete(obj);
   }
 
@@ -881,7 +840,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       throw new RuntimeException(msg);
     }
     accessChecker.checkRestrictedOrDemoUser();
-    checkPartOfCurrentTenant(obj, OperationType.INSERT);
     checkLoggedInUserInsertAccess(obj);
     internalUndelete(obj);
   }
@@ -889,10 +847,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void internalUndelete(final O obj) {
     BaseDaoSupport.internalUndelete(this, obj);
-  }
-
-  void checkPartOfCurrentTenant(final O obj, final OperationType operationType) {
-    tenantChecker.checkPartOfCurrentTenant(obj);
   }
 
   /**
@@ -1191,6 +1145,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   protected void createHistoryEntry(final Object entity, final Number id, final String property,
                                     final Class<?> valueClass,
                                     final Object oldValue, final Object newValue) {
+
     accessChecker.checkRestrictedOrDemoUser();
     final PFUserDO contextUser = ThreadLocalUserContext.getUser();
     final String userPk = contextUser != null ? contextUser.getId().toString() : null;
@@ -1324,15 +1279,11 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     return null;
   }
 
-  public TenantRegistry getTenantRegistry() {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
   /**
-   * @return the UserGroupCache with groups and rights (tenant specific).
+   * @return the UserGroupCache with groups and rights .
    */
   public UserGroupCache getUserGroupCache() {
-    return getTenantRegistry().getUserGroupCache();
+    return this.userGroupCache;
   }
 
   /**

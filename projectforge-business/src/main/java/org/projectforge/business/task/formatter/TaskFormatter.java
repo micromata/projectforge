@@ -29,7 +29,6 @@ import org.projectforge.business.common.OutputType;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.task.TaskStatus;
 import org.projectforge.framework.i18n.AbstractFormatter;
@@ -65,7 +64,7 @@ public class TaskFormatter extends AbstractFormatter
     if (taskId == null) {
       return null;
     }
-    final TaskTree taskTree = TaskTreeHelper.getTaskTree();
+    final TaskTree taskTree = TaskTree.getInstance();
     TaskNode n = taskTree.getTaskNodeById(taskId);
     if (n == null) {
       return null;

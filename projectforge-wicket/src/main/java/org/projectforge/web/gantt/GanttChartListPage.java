@@ -34,7 +34,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.gantt.GanttChartDO;
 import org.projectforge.business.gantt.GanttChartDao;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.web.task.TaskPropertyColumn;
 import org.projectforge.web.user.UserPropertyColumn;
@@ -54,6 +53,9 @@ public class GanttChartListPage extends AbstractListPage<GanttChartListForm, Gan
   @SpringBean
   private UserFormatter userFormatter;
 
+  @SpringBean
+  private TaskTree taskTree;
+
   public GanttChartListPage(final PageParameters parameters)
   {
     super(parameters, "gantt");
@@ -64,7 +66,6 @@ public class GanttChartListPage extends AbstractListPage<GanttChartListForm, Gan
   protected void init()
   {
     final List<IColumn<GanttChartDO, String>> columns = new ArrayList<IColumn<GanttChartDO, String>>();
-    final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     final CellItemListener<GanttChartDO> cellItemListener = new CellItemListener<GanttChartDO>()
     {
       @Override

@@ -36,8 +36,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_ORGA_POSTAUSGANG",
-        indexes = [javax.persistence.Index(name = "idx_fk_t_orga_postausgang_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_ORGA_POSTAUSGANG")
 @NamedQueries(
         NamedQuery(name = PostausgangDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from PostausgangDO"))
 open class PostausgangDO : DefaultBaseDO() {

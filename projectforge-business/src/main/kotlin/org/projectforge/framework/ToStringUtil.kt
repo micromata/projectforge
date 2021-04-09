@@ -45,14 +45,13 @@ import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
-import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.business.task.TaskDO
-import org.projectforge.business.tasktree.TaskTreeHelper
+import org.projectforge.business.task.TaskTree
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.json.*
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.sql.Timestamp
@@ -170,7 +169,6 @@ class ToStringUtil {
             module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
             module.addSerializer(LocalDate::class.java, LocalDateSerializer())
             module.addSerializer(LocalTime::class.java, LocalTimeSerializer())
-            module.addSerializer(TenantDO::class.java, TenantSerializer())
             module.addSerializer(AddressbookDO::class.java, AddressbookSerializer())
             module.addSerializer(AbstractLazyInitializer::class.java, HibernateProxySerializer())
 
@@ -211,7 +209,7 @@ class ToStringUtil {
 
     class UserSerializer : EmbeddedDOSerializer<PFUserDO>(PFUserDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: PFUserDO, initialized: Boolean) {
-            val username = if (initialized) value.username else TenantRegistryMap.getInstance().tenantRegistry.userGroupCache.getUsername(value.id)
+            val username = if (initialized) value.username else UserGroupCache.getInstance().getUsername(value.id)
             writeFields(jgen, value.id, "username", username)
         }
     }
@@ -230,7 +228,7 @@ class ToStringUtil {
 
     class TaskSerializer : EmbeddedDOSerializer<TaskDO>(TaskDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: TaskDO, initialized: Boolean) {
-            writeFields(jgen, value.id, "path", TaskTreeHelper.getTaskTree().getTaskNodeById(value.id)?.pathAsString)
+            writeFields(jgen, value.id, "path", TaskTree.getInstance().getTaskNodeById(value.id)?.pathAsString)
         }
     }
 
@@ -261,12 +259,6 @@ class ToStringUtil {
     class KundeSerializer : EmbeddedDOSerializer<KundeDO>(KundeDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: KundeDO, initialized: Boolean) {
             writeFields(jgen, value.nummer, "name", if (initialized) value.name else null)
-        }
-    }
-
-    class TenantSerializer : EmbeddedDOSerializer<TenantDO>(TenantDO::class.java) {
-        override fun writeFields(jgen: JsonGenerator, value: TenantDO, initialized: Boolean) {
-            writeFields(jgen, value.id, "name", if (initialized) value.name else null)
         }
     }
 

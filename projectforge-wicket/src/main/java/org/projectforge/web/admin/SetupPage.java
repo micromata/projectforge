@@ -30,7 +30,6 @@ import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.common.DatabaseDialect;
 import org.projectforge.framework.configuration.Configuration;
@@ -76,6 +75,9 @@ public class SetupPage extends AbstractUnsecureBasePage
   @SpringBean
   private PluginAdminService pluginAdminService;
 
+  @SpringBean
+  private TaskTree taskTree;
+
   private final SetupForm setupForm;
 
   private final SetupImportForm importForm;
@@ -100,8 +102,6 @@ public class SetupPage extends AbstractUnsecureBasePage
     PFUserDO adminUser = setupForm.getAdminUser();
     final String message;
 
-    //Init default tenant
-    databaseService.insertDefaultTenant();
     //Init global addressbook
     databaseService.insertGlobalAddressbook();
 
@@ -159,7 +159,7 @@ public class SetupPage extends AbstractUnsecureBasePage
   private void loginAdminUser(PFUserDO adminUser)
   {
     //Login admin user
-    final UserContext userContext = new UserContext(adminUser, getUserGroupCache());
+    final UserContext userContext = new UserContext(adminUser);
     ((MySession) getSession()).login(userContext, getRequest());
     UserFilter.login(WicketUtils.getHttpServletRequest(getRequest()), userContext);
   }
@@ -214,7 +214,6 @@ public class SetupPage extends AbstractUnsecureBasePage
 
       int counter = jpaXmlDumpService.restoreDb(PfEmgrFactory.get(), is, RestoreMode.InsertAll);
       Configuration.getInstance().setExpired();
-      final TaskTree taskTree = TaskTreeHelper.getTaskTree();
       taskTree.setExpired();
       getUserGroupCache().setExpired();
       new Thread()

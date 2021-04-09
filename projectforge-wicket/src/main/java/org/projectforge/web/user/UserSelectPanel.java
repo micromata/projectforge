@@ -33,8 +33,8 @@ import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -168,8 +168,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
             // ### FORMAT ###
             final int ind = value.indexOf(" (");
             final String username = ind >= 0 ? value.substring(0, ind) : value;
-            final PFUserDO user = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
-                .getUser(username);
+            final PFUserDO user = UserGroupCache.getInstance().getUser(username);
             if (user == null) {
               userTextField.error(getString("user.panel.error.usernameNotFound"));
             }

@@ -44,8 +44,7 @@ import javax.persistence.*
 @Indexed
 @Table(name = "t_employee_vacation",
         indexes = [javax.persistence.Index(name = "idx_fk_t_vacation_employee_id", columnList = "employee_id"),
-            javax.persistence.Index(name = "idx_fk_t_vacation_manager_id", columnList = "manager_id"),
-            javax.persistence.Index(name = "idx_fk_t_vacation_tenant_id", columnList = "tenant_id")])
+            javax.persistence.Index(name = "idx_fk_t_vacation_manager_id", columnList = "manager_id")])
 @AUserRightId(value = "EMPLOYEE_VACATION", checkAccess = false)
 open class VacationDO : DefaultBaseDO() {
 

@@ -38,7 +38,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_MARKETING_ADDRESS_CAMPAIGN_VALUE", uniqueConstraints = [UniqueConstraint(columnNames = ["address_fk", "address_campaign_fk"])], indexes = [Index(name = "idx_fk_t_plugin_marketing_address_campaign_value_address_campai", columnList = "address_campaign_fk"), Index(name = "idx_fk_t_plugin_marketing_address_campaign_value_address_fk", columnList = "address_fk"), Index(name = "idx_fk_t_plugin_marketing_address_campaign_value_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_MARKETING_ADDRESS_CAMPAIGN_VALUE", uniqueConstraints = [UniqueConstraint(columnNames = ["address_fk", "address_campaign_fk"])], indexes = [Index(name = "idx_fk_t_plugin_marketing_address_campaign_value_address_campai", columnList = "address_campaign_fk"), Index(name = "idx_fk_t_plugin_marketing_address_campaign_value_address_fk", columnList = "address_fk")])
 @NamedQueries(
         NamedQuery(name = AddressCampaignValueDO.FIND_BY_ADDRESS_AND_CAMPAIGN,
                 query = "from AddressCampaignValueDO where address.id=:addressId and addressCampaign.id=:addressCampaignId"),

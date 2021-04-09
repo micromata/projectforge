@@ -36,10 +36,8 @@ import org.projectforge.business.book.BookStatus;
 import org.projectforge.business.meb.MebMailClient;
 import org.projectforge.business.systeminfo.SystemService;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.UserXmlPreferencesMigrationDao;
-import org.projectforge.framework.ToStringUtil;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.GlobalConfiguration;
@@ -101,6 +99,9 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 
   @SpringBean
   private PfEmgrFactory emf;
+
+  @SpringBean
+  private TaskTree taskTree;
 
   @SpringBean
   PluginAdminService pluginAdminService;
@@ -607,7 +608,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   public void createTestBooks() {
     accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
     accessChecker.checkRestrictedOrDemoUser();
-    final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     final List<BookDO> list = new ArrayList<BookDO>();
     int number = 1;
     while (databaseService

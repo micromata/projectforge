@@ -31,10 +31,10 @@ import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.fibu.kost.KostCache;
 import org.projectforge.business.jsonRest.RestCallService;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
+import org.projectforge.business.task.TaskTree;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.database.SchemaExport;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.model.rest.VersionCheck;
@@ -58,7 +58,16 @@ public class SystemService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SystemService.class);
 
   @Autowired
+  private BirthdayCache birthdayCache;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
+
+  @Autowired
   private TaskDao taskDao;
+
+  @Autowired
+  private TaskTree taskTree;
 
   @Autowired
   private SystemInfoCache systemInfoCache;
@@ -87,11 +96,11 @@ public class SystemService {
 
   public VersionCheck getVersionCheckInformations() {
     Locale locale = ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getLocale() != null ?
-            ThreadLocalUserContext.getUser().getLocale() :
-            ThreadLocalUserContext.getLocale();
+        ThreadLocalUserContext.getUser().getLocale() :
+        ThreadLocalUserContext.getLocale();
     TimeZone timeZone = ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getTimeZone() != null ?
-            TimeZone.getTimeZone(ThreadLocalUserContext.getUser().getTimeZoneString()) :
-            ThreadLocalUserContext.getTimeZone();
+        TimeZone.getTimeZone(ThreadLocalUserContext.getUser().getTimeZoneString()) :
+        ThreadLocalUserContext.getTimeZone();
     VersionCheck versionCheck = new VersionCheck(ProjectForgeVersion.VERSION.toString(), locale, timeZone);
     try {
       versionCheck = restCallService.callRestInterfaceForUrl(versionCheckUrl, HttpMethod.POST, VersionCheck.class, versionCheck);
@@ -112,7 +121,7 @@ public class SystemService {
       try {
         VersionCheck versionCheckInformations = getVersionCheckInformations();
         if (versionCheckInformations != null && StringUtils.isNotEmpty(versionCheckInformations.getSourceVersion()) && StringUtils
-                .isNotEmpty(versionCheckInformations.getTargetVersion())) {
+            .isNotEmpty(versionCheckInformations.getTargetVersion())) {
           String[] sourceVersionPartsWithoutMinus = versionCheckInformations.getSourceVersion().split("-");
           String[] targetVersionPartsWithoutMinus = versionCheckInformations.getTargetVersion().split("-");
           if (sourceVersionPartsWithoutMinus.length > 0 && targetVersionPartsWithoutMinus.length > 0) {
@@ -244,14 +253,13 @@ public class SystemService {
    * @return the name of the refreshed caches.
    */
   public String refreshCaches() {
-    final TenantRegistry tenantRegistry = TenantRegistryMap.getInstance().getTenantRegistry();
-    tenantRegistry.getUserGroupCache().forceReload();
-    tenantRegistry.getTaskTree().forceReload();
+    userGroupCache.forceReload();
+    taskTree.forceReload();
     kontoCache.forceReload();
     kostCache.forceReload();
     rechnungCache.forceReload();
     systemInfoCache.forceReload();
-    TenantRegistryMap.getCache(BirthdayCache.class).forceReload();
+    birthdayCache.forceReload();
     return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, SystemInfoCache, BirthdayCache";
   }
 

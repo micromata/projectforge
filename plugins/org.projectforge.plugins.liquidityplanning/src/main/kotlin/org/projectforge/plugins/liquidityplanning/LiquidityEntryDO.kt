@@ -42,7 +42,7 @@ import javax.persistence.Table
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_LIQUI_ENTRY", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_liqui_entry_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_LIQUI_ENTRY")
 open class LiquidityEntryDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.liquidityplanning.entry.dateOfPayment")

@@ -43,7 +43,6 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.HtmlHelper;
@@ -79,6 +78,9 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
 
   @SpringBean
   private TaskDao taskDao;
+
+  @SpringBean
+  private TaskTree taskTree;
 
   @SpringBean
   private UserFormatter userFormatter;
@@ -211,7 +213,6 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
   @SuppressWarnings("serial")
   public List<IColumn<TaskDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     final CellItemListener<TaskDO> cellItemListener = new CellItemListener<TaskDO>()
     {
       public void populateItem(final Item<ICellPopulator<TaskDO>> item, final String componentId,

@@ -46,6 +46,7 @@ import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -534,7 +535,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
       } else {
         id = (Integer) selectedValue;
       }
-      form.filter.setUser(getTenantRegistry().getUserGroupCache().getUser(id));
+      form.filter.setUser(UserGroupCache.getInstance().getUser(id));
     } else if ("quickSelect".equals(property)) {
       final LocalDate date = (LocalDate) selectedValue;
       form.setDate(date);

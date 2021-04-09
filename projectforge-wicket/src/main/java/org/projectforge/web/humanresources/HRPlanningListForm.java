@@ -33,6 +33,7 @@ import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
 import org.projectforge.business.humanresources.HRPlanningEntryDao;
 import org.projectforge.business.humanresources.HRPlanningFilter;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.CSSColor;
 import org.projectforge.web.calendar.QuickSelectPanel;
@@ -163,7 +164,7 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
       final UserSelectPanel userSelectPanel = new UserSelectPanel(fs.newChildId(), new Model<PFUserDO>() {
         @Override
         public PFUserDO getObject() {
-          return getTenantRegistry().getUserGroupCache().getUser(filter.getUserId());
+          return UserGroupCache.getInstance().getUser(filter.getUserId());
         }
 
         @Override

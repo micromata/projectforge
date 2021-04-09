@@ -35,7 +35,7 @@ import javax.persistence.*
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
-@Table(name = "T_IMPORTED_MEB_ENTRY", uniqueConstraints = [UniqueConstraint(columnNames = ["sender", "date", "check_sum"])], indexes = [javax.persistence.Index(name = "idx_fk_t_imported_meb_entry_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_IMPORTED_MEB_ENTRY", uniqueConstraints = [UniqueConstraint(columnNames = ["sender", "date", "check_sum"])])
 @NamedQueries(
         NamedQuery(name = ImportedMebEntryDO.FIND_BY_SENDER_AND_DATE_AND_CHECKSUM,
                 query = "from ImportedMebEntryDO where sender=:sender and date=:date and checkSum=:checkSum"))

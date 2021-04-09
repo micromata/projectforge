@@ -27,8 +27,8 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.hibernate.search.annotations.*;
 import org.hibernate.search.annotations.Index;
+import org.hibernate.search.annotations.*;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.DisplayNameCapable;
@@ -42,15 +42,10 @@ import java.util.Objects;
 @Entity
 @Indexed
 @Table(name = "T_USER_RIGHT",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"user_fk", "right_id", "tenant_id"})
-        },
-        indexes = {
-                @javax.persistence.Index(name = "idx_fk_t_user_right_user_fk", columnList = "user_fk"),
-                @javax.persistence.Index(name = "idx_fk_t_user_right_tenant_id", columnList = "tenant_id")
-        })
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"user_fk", "right_id"})},
+    indexes = {@javax.persistence.Index(name = "idx_fk_t_user_right_user_fk", columnList = "user_fk")})
 @NamedQueries(
-        @NamedQuery(name = UserRightDO.FIND_ALL_ORDERED, query = "from UserRightDO order by user.id, rightIdString"))
+    @NamedQuery(name = UserRightDO.FIND_ALL_ORDERED, query = "from UserRightDO order by user.id, rightIdString"))
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO>, Serializable, DisplayNameCapable {
   private static final long serialVersionUID = 6703048743393453733L;

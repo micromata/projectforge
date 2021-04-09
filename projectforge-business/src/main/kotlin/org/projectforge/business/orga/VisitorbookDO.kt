@@ -50,7 +50,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "visitorbook")
-@Table(name = "t_orga_visitorbook", indexes = [javax.persistence.Index(name = "idx_fk_t_orga_visitorbook_tenant_id", columnList = "tenant_id")])
+@Table(name = "t_orga_visitorbook")
 @AUserRightId("ORGA_VISITORBOOK")
 class VisitorbookDO : DefaultBaseDO(), EntityWithTimeableAttr<Int, VisitorbookTimedDO>, ComplexEntity, EntityWithConfigurableAttr {
 

@@ -43,7 +43,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_GROUP", uniqueConstraints = [UniqueConstraint(columnNames = ["name", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_group_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_GROUP", uniqueConstraints = [UniqueConstraint(columnNames = ["name"])])
 @AUserRightId("ADMIN_CORE")
 @NamedQueries(
         NamedQuery(name = GroupDO.FIND_BY_NAME, query = "from GroupDO where name=:name"),

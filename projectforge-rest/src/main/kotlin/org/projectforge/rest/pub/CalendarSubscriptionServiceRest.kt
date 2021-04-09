@@ -30,8 +30,6 @@ import net.fortuna.ical4j.model.property.Description
 import net.fortuna.ical4j.model.property.Location
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.apache.commons.lang3.StringUtils
-import org.projectforge.business.multitenancy.TenantRegistry
-import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.business.teamcal.TeamCalConfig
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
@@ -64,9 +62,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -90,6 +86,9 @@ class CalendarSubscriptionServiceRest {
 
   @Autowired
   private lateinit var teamCalDao: TeamCalDao
+
+  @Autowired
+  private lateinit var userGroupCache: UserGroupCache
 
   @Autowired
   private lateinit var vacationCache: VacationCache
@@ -147,7 +146,7 @@ class CalendarSubscriptionServiceRest {
       return RestUtils.downloadFile(safeFilename, resource)
     } finally {
       log.info("Finished request: $logMessage")
-      ThreadLocalUserContext.setUser(getUserGroupCache(), null)
+      ThreadLocalUserContext.setUser(null)
       MDC.remove("ip")
       MDC.remove("session")
       MDC.remove("user")
@@ -163,7 +162,7 @@ class CalendarSubscriptionServiceRest {
           log.error("Not yet allowed: all users are only allowed to download their own time-sheets.")
           return null
         }
-        timesheetUser = TenantRegistryMap.getInstance().tenantRegistry.userGroupCache.getUser(timesheetUserId)
+        timesheetUser = userGroupCache.getUser(timesheetUserId)
         if (timesheetUser == null) {
           log.error("Time-sheet user with id '$timesheetUserParam' not found.")
           return null
@@ -324,14 +323,6 @@ class CalendarSubscriptionServiceRest {
       }
     } while (to.isBefore(to))
     return true
-  }
-
-  private fun getTenantRegistry(): TenantRegistry {
-    return TenantRegistryMap.getInstance().tenantRegistry
-  }
-
-  private fun getUserGroupCache(): UserGroupCache? {
-    return getTenantRegistry().userGroupCache
   }
 
   companion object {

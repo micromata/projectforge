@@ -28,8 +28,6 @@ import org.apache.commons.lang3.Validate;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.PasswordCheckResult;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.password.PasswordQualityService;
 import org.projectforge.business.user.*;
 import org.projectforge.common.StringHelper;
@@ -40,7 +38,6 @@ import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.utils.Crypt;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +60,6 @@ public class UserService {
   private UserDao userDao;
   private AccessChecker accessChecker;
   private UserAuthenticationsService userAuthenticationsService;
-  private TenantService tenantService;
   private PasswordQualityService passwordQualityService;
 
   /**
@@ -76,14 +72,14 @@ public class UserService {
   public UserService(AccessChecker accessChecker,
                      ConfigurationService configurationService,
                      PasswordQualityService passwordQualityService,
-                     TenantService tenantService,
                      UserDao userDao,
+                     UserGroupCache userGroupCache,
                      UserAuthenticationsService userAuthenticationsService) {
     this.accessChecker = accessChecker;
     this.configurationService = configurationService;
     this.passwordQualityService = passwordQualityService;
-    this.tenantService = tenantService;
     this.userDao = userDao;
+    this.userGroupCache = userGroupCache;
     this.userAuthenticationsService = userAuthenticationsService;
   }
 
@@ -98,7 +94,7 @@ public class UserService {
     final int[] ids = StringHelper.splitToInts(userIds, ",", false);
     final List<String> list = new ArrayList<>();
     for (final int id : ids) {
-      final PFUserDO user = getUserGroupCache().getUser(id);
+      final PFUserDO user = userGroupCache.getUser(id);
       if (user != null) {
         list.add(user.getFullname());
       } else {
@@ -110,7 +106,7 @@ public class UserService {
 
   public Collection<PFUserDO> getSortedUsers() {
     TreeSet<PFUserDO> sortedUsers = new TreeSet<>(usersComparator);
-    final Collection<PFUserDO> allusers = getUserGroupCache().getAllUsers();
+    final Collection<PFUserDO> allusers = userGroupCache.getAllUsers();
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     for (final PFUserDO user : allusers) {
       if (!user.isDeleted() && !user.getDeactivated()
@@ -132,7 +128,7 @@ public class UserService {
     TreeSet<PFUserDO> sortedUsers = new TreeSet<>(usersComparator);
     final int[] ids = StringHelper.splitToInts(userIds, ",", false);
     for (final int id : ids) {
-      final PFUserDO user = getUserGroupCache().getUser(id);
+      final PFUserDO user = userGroupCache.getUser(id);
       if (user != null) {
         sortedUsers.add(user);
       } else {
@@ -153,20 +149,9 @@ public class UserService {
     return buf.toString();
   }
 
-  /**
-   * @return the useruserCache
-   */
-  private UserGroupCache getUserGroupCache() {
-    if (userGroupCache == null) {
-      userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
-    }
-    return userGroupCache;
-  }
-
   public List<PFUserDO> getAllUsers() {
     try {
-      TenantDO tenant = ThreadLocalUserContext.getUser().getTenant() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant();
-      return userDao.internalLoadAll(tenant);
+      return userDao.internalLoadAll();
     } catch (final Exception ex) {
       log.error(
               "******* Exception while getting users from data-base (OK only in case of migration from older versions): "
@@ -185,12 +170,7 @@ public class UserService {
    * @return The user from UserGroupCache.
    */
   public PFUserDO getUser(Integer userId) {
-    return getUserGroupCache().getUser(userId);
-  }
-
-  public Collection<Integer> getAssignedTenants(final PFUserDO user) {
-    final PFUserDO u = getUserGroupCache().getUser(user.getId());
-    return userDao.getAssignedTenants(u);
+    return userGroupCache.getUser(userId);
   }
 
   /**
@@ -522,7 +502,7 @@ public class UserService {
 
   public List<PFUserDO> findUserByMail(String email) {
     List<PFUserDO> userList = new ArrayList<>();
-    for (PFUserDO user : getUserGroupCache().getAllUsers()) {
+    for (PFUserDO user : userGroupCache.getAllUsers()) {
       if (user.getEmail() != null && user.getEmail().toLowerCase().equals(email.toLowerCase())) {
         userList.add(user);
       }

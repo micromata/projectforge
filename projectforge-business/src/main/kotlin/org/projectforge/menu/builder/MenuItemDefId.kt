@@ -102,9 +102,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     LUCENE_CONSOLE("menu.luceneConsole", "wa/wicket/bookmarkable/org.projectforge.web.admin.LuceneConsolePage"), //
     PLUGIN_ADMIN("menu.pluginAdmin", "wa/wicket/bookmarkable/org.projectforge.web.admin.PluginListPage"), //
     SYSTEM("menu.system", "wa/admin"), //
-    SYSTEM_STATISTICS("menu.systemStatistics", getReactDynamicPageUrl("systemStatistics")), //
-    TENANT_LIST("menu.multiTenancy");
-
+    SYSTEM_STATISTICS("menu.systemStatistics", getReactDynamicPageUrl("systemStatistics"));
 
     /**
      * @return name().

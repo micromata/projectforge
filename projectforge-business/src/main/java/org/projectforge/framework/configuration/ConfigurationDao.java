@@ -24,18 +24,13 @@
 package org.projectforge.framework.configuration;
 
 import org.apache.commons.lang3.Validate;
-import org.projectforge.business.multitenancy.TenantDao;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -74,23 +69,7 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO> {
    */
   @Override
   protected void afterSaveOrModify(final ConfigurationDO obj) {
-    if (obj.getParameter().equals(ConfigurationParam.MULTI_TENANCY_ENABLED.getKey())
-            && obj.getBooleanValue()) {
-      // Enable current logged in user as super admin user.
-      final Integer adminUserId = ThreadLocalUserContext.getUserId();
-      final PFUserDO adminUser = userDao.getById(adminUserId);
-      log.info("Enabling current user as super admin (for administer tenants) because he has enabled multi-tenancy: "
-              + adminUser.getUserDisplayName());
-      adminUser.setSuperAdmin(true);
-      userDao.update(adminUser);
-    }
-    if (obj.getGlobal()) {
-      GlobalConfiguration.getInstance().setExpired();
-    } else {
-      final TenantDO tenant = obj.getTenant();
-      final TenantRegistry tenantRegistry = TenantRegistryMap.getInstance().getTenantRegistry(tenant);
-      tenantRegistry.getConfiguration().setExpired();
-    }
+    GlobalConfiguration.getInstance().setExpired();
   }
 
   /**
@@ -113,8 +92,8 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO> {
   public ConfigurationDO getEntry(final IConfigurationParam param) {
     Validate.notNull(param);
     return SQLHelper.ensureUniqueResult(em
-            .createNamedQuery(ConfigurationDO.FIND_BY_PARAMETER, ConfigurationDO.class)
-            .setParameter("parameter", param.getKey()));
+        .createNamedQuery(ConfigurationDO.FIND_BY_PARAMETER, ConfigurationDO.class)
+        .setParameter("parameter", param.getKey()));
   }
 
   public Object getValue(final IConfigurationParam parameter) {
@@ -200,11 +179,6 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO> {
           configuration.internalSetConfigurationType(param.getType());
           modified = true;
         }
-        if (configuration.getGlobal() != param.isGlobal()) {
-          log.info("Updating configuration flag 'global' of configuration entry: " + param);
-          configuration.setGlobal(param.isGlobal());
-          modified = true;
-        }
         if (configuration.isDeleted()) {
           log.info("Restore deleted configuration entry: " + param);
           configuration.setDeleted(false);
@@ -222,7 +196,6 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO> {
     final ConfigurationDO configuration = new ConfigurationDO();
     configuration.setParameter(param.getKey());
     configuration.setConfigurationType(param.getType());
-    configuration.setGlobal(param.isGlobal());
     if (param.getType().isIn(ConfigurationType.STRING, ConfigurationType.TEXT)) {
       configuration.setValue(param.getDefaultStringValue());
     }
@@ -233,29 +206,6 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO> {
       configuration.setStringValue(String.valueOf(param.getDefaultBooleanValue()));
     }
     internalSave(configuration);
-  }
-
-  @Override
-  public List<ConfigurationDO> internalLoadAll() {
-    TenantDao tenantDao = applicationContext.getBean(TenantDao.class);
-    if (tenantDao.tenantTableExists()) {
-      return super.internalLoadAll();
-    } else {
-      return emf.runInTrans((emgr) -> {
-        return emgr.select(ConfigurationDO.class,
-                "SELECT new org.projectforge.framework.configuration.entities.ConfigurationDO(c.id, c.created, c.deleted, c.lastUpdate, c.configurationType, c.floatValue, c.intValue, c.parameter, c.stringValue) FROM ConfigurationDO c");
-      });
-    }
-  }
-
-  @Override
-  public List<ConfigurationDO> internalLoadAll(TenantDO tenant) {
-    TenantDao tenantDao = applicationContext.getBean(TenantDao.class);
-    if (tenantDao.tenantTableExists()) {
-      return super.internalLoadAll(tenant);
-    } else {
-      return internalLoadAll();
-    }
   }
 
   public ApplicationContext getApplicationContext() {
