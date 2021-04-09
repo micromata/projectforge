@@ -25,9 +25,9 @@ package org.projectforge.plugins.core
 
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationParam
-import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.springframework.beans.factory.annotation.Autowired
@@ -109,7 +109,7 @@ open class PluginAdminService {
         }
         configuration.stringValue = sval
         configurationDao.saveOrUpdate(configuration)
-        GlobalConfiguration.getInstance().forceReload()
+        Configuration.instance.forceReload()
         return false
     }
 
@@ -121,7 +121,7 @@ open class PluginAdminService {
      */
     open val activatedPluginsFromConfiguration: MutableList<String>
         get() {
-            val plugins = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.PLUGIN_ACTIVATED)
+            val plugins = Configuration.instance.getStringValue(ConfigurationParam.PLUGIN_ACTIVATED)
             if (plugins.isNullOrBlank()) {
                 return mutableListOf()
             }

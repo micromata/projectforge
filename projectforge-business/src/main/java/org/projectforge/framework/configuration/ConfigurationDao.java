@@ -24,12 +24,10 @@
 package org.projectforge.framework.configuration;
 
 import org.apache.commons.lang3.Validate;
-import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +42,7 @@ import java.util.TimeZone;
 
 /**
  * Configuration values persistet in the data base. Please access the configuration parameters via
- * {@link AbstractConfiguration}.
+ * {@link Configuration}.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -55,21 +53,15 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO> {
   @Autowired
   private ApplicationContext applicationContext;
 
-  @Autowired
-  private UserDao userDao;
-
-  @Autowired
-  private PfEmgrFactory emf;
-
   /**
    * Force reload of the Configuration cache.
    *
    * @see org.projectforge.framework.persistence.api.BaseDao#afterSaveOrModify(ExtendedBaseDO)
-   * @see AbstractConfiguration#setExpired()
+   * @see Configuration#setExpired()
    */
   @Override
   protected void afterSaveOrModify(final ConfigurationDO obj) {
-    GlobalConfiguration.getInstance().setExpired();
+    Configuration.getInstance().setExpired();
   }
 
   /**
@@ -126,12 +118,6 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO> {
         return null;
       }
       return configurationDO.getBooleanValue();
-    } else if (parameter.getType() == ConfigurationType.TASK) {
-      if (configurationDO == null) {
-        return null;
-      }
-      final Integer taskId = configurationDO.getTaskId();
-      return taskId;
     } else if (parameter.getType() == ConfigurationType.CALENDAR) {
       if (configurationDO == null) {
         return null;

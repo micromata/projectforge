@@ -24,8 +24,8 @@
 package org.projectforge.rest.pub
 
 import mu.KotlinLogging
+import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
-import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.FormLayoutData
@@ -47,25 +47,33 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/setup")
 open class SetupPageRest {
-    data class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
+  data class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
 
-    @Autowired
-    private lateinit var applicationContext: ApplicationContext
+  @Autowired
+  private lateinit var applicationContext: ApplicationContext
 
-    @Autowired
-    private lateinit var databaseService: DatabaseService
+  @Autowired
+  private lateinit var databaseService: DatabaseService
 
-    @GetMapping("dynamic")
-    fun getForm(): FormLayoutData {
-        val layout = UILayout("administration.setup.title")
-        if (databaseService.databaseTablesWithEntriesExists()) {
-            log.error("Data-base isn't empty: SetupPage shouldn't be used...")
-            //throw IllegalArgumentException("Can't setup system, it's not empty.")
-        }
-        layout
-                .addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
-        //.addTranslation("messageOfTheDay")
-        layout.add(UINamedContainer("messageOfTheDay").add(UILabel(label = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY))))
-        return FormLayoutData(null, layout, null)
+  @GetMapping("dynamic")
+  fun getForm(): FormLayoutData {
+    val layout = UILayout("administration.setup.title")
+    if (databaseService.databaseTablesWithEntriesExists()) {
+      log.error("Data-base isn't empty: SetupPage shouldn't be used...")
+      //throw IllegalArgumentException("Can't setup system, it's not empty.")
     }
+    layout
+      .addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
+    //.addTranslation("messageOfTheDay")
+    layout.add(
+      UINamedContainer("messageOfTheDay").add(
+        UILabel(
+          label = Configuration.instance.getStringValue(
+            ConfigurationParam.MESSAGE_OF_THE_DAY
+          )
+        )
+      )
+    )
+    return FormLayoutData(null, layout, null)
+  }
 }

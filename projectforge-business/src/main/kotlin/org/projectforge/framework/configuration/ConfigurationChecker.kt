@@ -34,7 +34,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Configuration values persistet in the data base. Please access the configuration parameters via
- * [AbstractConfiguration].
+ * [Configuration].
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */

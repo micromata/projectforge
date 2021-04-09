@@ -33,8 +33,8 @@ import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
-import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -110,7 +110,7 @@ open class LoginPageRest {
   }
 
   private fun getLoginLayout(loginResultStatus: LoginResultStatus? = null): UILayout {
-    val motd = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
+    val motd = Configuration.instance.getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
     val responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST)
 
     val formCol = UICol(

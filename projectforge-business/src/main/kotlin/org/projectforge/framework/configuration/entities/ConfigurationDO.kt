@@ -116,8 +116,6 @@ open class ConfigurationDO : DefaultBaseDO {
             } else if (type == ConfigurationType.STRING && field!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
                             ConfigurationType.TIME_ZONE)) {
                 // Do nothing.
-            } else if (type == ConfigurationType.INTEGER && field == ConfigurationType.TASK) {
-                // Do nothing.
             } else if (type == ConfigurationType.INTEGER && field == ConfigurationType.CALENDAR) {
                 // Do nothing.
             } else if (type == ConfigurationType.FLOAT && field == ConfigurationType.PERCENT) {
@@ -180,21 +178,6 @@ open class ConfigurationDO : DefaultBaseDO {
             this.stringValue = timeZone.id
         }
 
-    open var taskId: Int?
-        @Transient
-        get() {
-            if (intValue != null) {
-                checkType(ConfigurationType.TASK)
-            }
-            return intValue
-        }
-        set(taskId) {
-            if (taskId != null) {
-                checkType(ConfigurationType.TASK)
-            }
-            intValue = taskId
-        }
-
     open var calendarId: Int?
         @Transient
         get() {
@@ -226,7 +209,6 @@ open class ConfigurationDO : DefaultBaseDO {
         get() = if (this.configurationType!!.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.TIME_ZONE)) {
             this.stringValue
         } else if (this.configurationType == ConfigurationType.INTEGER
-                || this.configurationType == ConfigurationType.TASK
                 || this.configurationType == ConfigurationType.CALENDAR) {
             this.intValue
         } else if (this.configurationType == ConfigurationType.FLOAT || this.configurationType == ConfigurationType.PERCENT) {
@@ -288,10 +270,6 @@ open class ConfigurationDO : DefaultBaseDO {
                 this.intValue = null
                 this.floatValue = null
             }
-            this.configurationType!!.isIn(ConfigurationType.INTEGER, ConfigurationType.TASK) -> {
-                this.stringValue = null
-                this.floatValue = null
-            }
             this.configurationType!!.isIn(ConfigurationType.INTEGER, ConfigurationType.CALENDAR) -> {
                 this.stringValue = null
                 this.floatValue = null
@@ -310,8 +288,6 @@ open class ConfigurationDO : DefaultBaseDO {
                 return
             } else if (type == ConfigurationType.STRING && this.configurationType!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
                             ConfigurationType.TIME_ZONE)) {
-                return
-            } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.TASK) {
                 return
             } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.CALENDAR) {
                 return
@@ -333,8 +309,6 @@ open class ConfigurationDO : DefaultBaseDO {
             // Do nothing.
         } else if (type == ConfigurationType.STRING && this.configurationType!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
                         ConfigurationType.TIME_ZONE)) {
-            // Do nothing.
-        } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.TASK) {
             // Do nothing.
         } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.CALENDAR) {
             // Do nothing.

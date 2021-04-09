@@ -72,7 +72,7 @@ class MessagingServiceRest {
                     .body("Service not available.") // Return same state (for less information for potential hackers.
         }
         val number = extractPhonenumber(phoneNumber,
-                Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX))
+                Configuration.instance.getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX))
 
         val result =
                 try {

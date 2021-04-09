@@ -309,7 +309,7 @@ object NumberHelper {
   @JvmStatic
   fun extractPhonenumber(str: String?): String? {
     val defaultCountryPhonePrefix =
-      Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX)
+      Configuration.instance.getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX)
     return extractPhonenumber(str, defaultCountryPhonePrefix)
   }
 

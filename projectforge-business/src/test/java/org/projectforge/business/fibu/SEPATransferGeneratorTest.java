@@ -24,29 +24,32 @@
 package org.projectforge.business.fibu;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.time.PFDateTimeUtils;
+import org.projectforge.framework.configuration.ConfigurationDao;
+import org.projectforge.framework.configuration.ConfigurationParam;
+import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.generated.CreditTransferTransactionInformationSCT;
 import org.projectforge.generated.Document;
 import org.projectforge.generated.PaymentInstructionInformationSCT;
-import org.projectforge.test.TestSetup;
+import org.projectforge.test.AbstractTestBase;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
-public class SEPATransferGeneratorTest {
+public class SEPATransferGeneratorTest extends AbstractTestBase {
   private SEPATransferGenerator SEPATransferGenerator = new SEPATransferGenerator();
 
-  @BeforeAll
-  static void beforeAll() {
-    TestSetup.init().setTimeZone(PFDateTimeUtils.TIMEZONE_EUROPE_BERLIN);
-  }
+  @Autowired
+  private ConfigurationDao configurationDao;
 
   @Test
   public void generateTransfer() throws UnsupportedEncodingException {
+    ConfigurationDO param = configurationDao.getEntry(ConfigurationParam.ORGANIZATION);
+    param.setStringValue("Test debitor");
+    configurationDao.internalUpdate(param);
     // Test error cases
     this.testInvoice("Test debitor", null, "DE12341234123412341234", "abcdefg1234", "Do stuff", new BigDecimal(100.0), false);
     this.testInvoice("Test debitor", "Test creditor", null, "abcdefg1234", "Do stuff", new BigDecimal(100.0), false);
@@ -64,6 +67,9 @@ public class SEPATransferGeneratorTest {
 
   @Test
   public void testIban() {
+    ConfigurationDO param = configurationDao.getEntry(ConfigurationParam.ORGANIZATION);
+    param.setStringValue("ACME INC.");
+    configurationDao.internalUpdate(param);
     String iban = "DE12 3456 7890 1234 5678 90";
     String bic = null;
     String xml = testIban(iban, null);
@@ -84,7 +90,7 @@ public class SEPATransferGeneratorTest {
 
   private void testInvoice(final String debitor, final String creditor, final String iban, final String bic, final String purpose, final BigDecimal amount,
                            boolean ok)
-          throws UnsupportedEncodingException {
+      throws UnsupportedEncodingException {
     EingangsrechnungDO invoice = new EingangsrechnungDO();
 
     // set values

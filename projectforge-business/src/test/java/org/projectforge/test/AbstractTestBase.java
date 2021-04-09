@@ -44,7 +44,7 @@ import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.configuration.ConfigXmlTest;
-import org.projectforge.framework.configuration.GlobalConfiguration;
+import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner;
@@ -271,7 +271,7 @@ public abstract class AbstractTestBase {
 
     clearDatabase();
 
-    GlobalConfiguration.createConfiguration(configurationService);
+    new Configuration(configurationService);
     ConfigXmlTest.createTestConfiguration();
 
     Registry.getInstance().init(applicationContext);

@@ -32,8 +32,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.ConfigurationDao;
@@ -54,9 +52,6 @@ public class ConfigurationListPage extends AbstractListPage<ConfigurationListFor
 
   @SpringBean
   private TeamCalCache teamCalCache;
-
-  @SpringBean
-  private TaskTree taskTree;
 
   public ConfigurationListPage(final PageParameters parameters)
   {
@@ -106,13 +101,6 @@ public class ConfigurationListPage extends AbstractListPage<ConfigurationListFor
         final String value;
         if (configuration.getValue() == null) {
           value = "";
-        } else if (configuration.getConfigurationType() == ConfigurationType.TASK) {
-          final TaskDO task = taskTree.getTaskById(configuration.getTaskId());
-          if (task != null) {
-            value = task.getId() + ": " + task.getTitle();
-          } else {
-            value = "???";
-          }
         } else if (configuration.getConfigurationType() == ConfigurationType.CALENDAR) {
           final TeamCalDO calendar = teamCalCache.getCalendar(configuration.getCalendarId());
           if (calendar != null) {

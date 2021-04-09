@@ -24,13 +24,11 @@
 package org.projectforge.business.fibu;
 
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.common.i18n.UserException;
+import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
-import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.generated.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
@@ -145,7 +143,7 @@ public class SEPATransferGenerator
     GregorianCalendar gc = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     ObjectFactory factory = new ObjectFactory();
     String msgID = String.format("transfer-%s", this.formatter.format(new Date()));
-    String debitor = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.ORGANIZATION);
+    String debitor = Configuration.getInstance().getStringValue(ConfigurationParam.ORGANIZATION);
 
     // create document
     final Document document = factory.createDocument();
@@ -167,7 +165,7 @@ public class SEPATransferGenerator
     grpHdr.setNbOfTxs(String.valueOf(invoices.size()));
     final PartyIdentificationSEPA1 partyIdentificationSEPA1 = factory.createPartyIdentificationSEPA1();
     grpHdr.setInitgPty(partyIdentificationSEPA1);
-    partyIdentificationSEPA1.setNm(debitor);
+    partyIdentificationSEPA1.setNm(SEPATransferGeneratorUtils.eraseUnsuportedChars(debitor));
 
     // create payment information
     PaymentInstructionInformationSCT pmtInf = factory.createPaymentInstructionInformationSCT();
@@ -195,21 +193,21 @@ public class SEPATransferGenerator
 
     // set debitor
     PartyIdentificationSEPA2 dbtr = factory.createPartyIdentificationSEPA2();
-    dbtr.setNm(debitor); // other fields should not be used
+    dbtr.setNm(SEPATransferGeneratorUtils.eraseUnsuportedChars(debitor)); // other fields should not be used
     pmtInf.setDbtr(dbtr);
 
     // set debitor iban
     CashAccountSEPA1 dbtrAcct = factory.createCashAccountSEPA1();
     AccountIdentificationSEPA id = factory.createAccountIdentificationSEPA();
     dbtrAcct.setId(id);
-    id.setIBAN(defaultIBAN);
+    id.setIBAN(SEPATransferGeneratorUtils.eraseUnsuportedChars(defaultIBAN));
     pmtInf.setDbtrAcct(dbtrAcct);
 
     // set debitor bic
     BranchAndFinancialInstitutionIdentificationSEPA3 dbtrAgt = factory.createBranchAndFinancialInstitutionIdentificationSEPA3();
     FinancialInstitutionIdentificationSEPA3 finInstnId = factory.createFinancialInstitutionIdentificationSEPA3();
     dbtrAgt.setFinInstnId(finInstnId);
-    finInstnId.setBIC(defaultBIC);
+    finInstnId.setBIC(SEPATransferGeneratorUtils.eraseUnsuportedChars(defaultBIC));
     pmtInf.setDbtrAgt(dbtrAgt);
 
     // create transaction
@@ -305,13 +303,13 @@ public class SEPATransferGenerator
 
     // set creditor
     PartyIdentificationSEPA2 cdtr = factory.createPartyIdentificationSEPA2();
-    cdtr.setNm(invoice.getReceiver());
+    cdtr.setNm(SEPATransferGeneratorUtils.eraseUnsuportedChars(invoice.getReceiver()));
     cdtTrfTxInf.setCdtr(cdtr);
 
     // set creditor iban
     CashAccountSEPA2 cdtrAcct = factory.createCashAccountSEPA2();
     AccountIdentificationSEPA cdtrAcctId = factory.createAccountIdentificationSEPA();
-    cdtrAcctId.setIBAN(iban);
+    cdtrAcctId.setIBAN(SEPATransferGeneratorUtils.eraseUnsuportedChars(iban));
     cdtrAcct.setId(cdtrAcctId);
     cdtTrfTxInf.setCdtrAcct(cdtrAcct);
 
@@ -321,13 +319,13 @@ public class SEPATransferGenerator
         .createBranchAndFinancialInstitutionIdentificationSEPA1();
       FinancialInstitutionIdentificationSEPA1 finInstId = factory.createFinancialInstitutionIdentificationSEPA1();
       cdtrAgt.setFinInstnId(finInstId);
-      finInstId.setBIC(invoice.getBic().toUpperCase());
+      finInstId.setBIC(SEPATransferGeneratorUtils.eraseUnsuportedChars(invoice.getBic().toUpperCase()));
       cdtTrfTxInf.setCdtrAgt(cdtrAgt);
     }
 
     // set remittance information (bemerkung/purpose)
     RemittanceInformationSEPA1Choice rmtInf = factory.createRemittanceInformationSEPA1Choice();
-    rmtInf.setUstrd(invoice.getReferenz());
+    rmtInf.setUstrd(SEPATransferGeneratorUtils.eraseUnsuportedChars(invoice.getReferenz()));
     cdtTrfTxInf.setRmtInf(rmtInf);
   }
 

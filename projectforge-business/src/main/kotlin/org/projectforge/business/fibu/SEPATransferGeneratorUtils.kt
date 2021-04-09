@@ -21,29 +21,18 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.configuration;
+package org.projectforge.business.fibu
 
-import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.user.UserXmlPreferencesDao;
-import org.projectforge.framework.configuration.entities.ConfigurationDO;
-import org.projectforge.framework.persistence.database.XmlDumpHook;
-import org.projectforge.framework.persistence.xstream.XStreamSavingConverter;
+object SEPATransferGeneratorUtils {
+  @JvmStatic
+  fun eraseUnsuportedChars(orig: String?): String {
+    orig ?: return ""
+    // erases all the ASCII control characters
+    var text = orig.replace("[\\p{Cntrl}&&[^\r\n\t]]".toRegex(), "")
 
-/**
- *
- * @author Kai Reinhard (k.reinhard@micromata.de)
- * @deprecated see ConfigurationXmlBeforePersistListener
- */
-@Deprecated
-public class ConfigurationDOXmlDumpHook implements XmlDumpHook
-{
-  /**
-   * @see org.projectforge.framework.persistence.database.XmlDumpHook#onBeforeRestore(org.projectforge.framework.persistence.xstream.XStreamSavingConverter,
-   *      java.lang.Object)
-   */
-  @Override
-  public void onBeforeRestore(UserXmlPreferencesDao userXmlPreferencesDao,
-      final XStreamSavingConverter xstreamSavingConverter, final Object obj)
-  {
+    // removes non-printable characters from Unicode
+    text = text.replace("[\\p{C}&&[^\r\n\t]]".toRegex(), "")
+
+    return text.trim { it <= ' ' }
   }
 }
