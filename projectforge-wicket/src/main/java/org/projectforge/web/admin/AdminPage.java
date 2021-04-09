@@ -40,7 +40,6 @@ import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.UserXmlPreferencesMigrationDao;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
-import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseService;
@@ -399,8 +398,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void rereadConfiguration() {
     log.info("Administration: Reload all configurations (DB, XML)");
     checkAccess();
-    log.info("Administration: reload global configuration.");
-    GlobalConfiguration.getInstance().forceReload();
     log.info("Administration: reload configuration.");
     Configuration.getInstance().forceReload();
     log.info("Administration: reread configuration file config.xml.");

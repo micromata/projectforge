@@ -226,7 +226,7 @@ class MenuCreator {
       commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL))
     if (smsSenderConfig.isSmsConfigured())
       commonMenu.add(MenuItemDef(MenuItemDefId.SEND_SMS))
-    if (Configuration.getInstance().isMebConfigured)
+    if (Configuration.instance.isMebConfigured)
       commonMenu.add(
         MenuItemDef(MenuItemDefId.MEB,
           badgeCounter = { mebDao.getRecentMEBEntries(null) })
@@ -315,7 +315,7 @@ class MenuCreator {
                 isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
           })
       )
-    if (Configuration.getInstance().isCostConfigured) {
+    if (Configuration.instance.isCostConfigured) {
       fibuMenu.add(
         MenuItemDef(MenuItemDefId.CUSTOMER_LIST,
           checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) })
@@ -343,7 +343,7 @@ class MenuCreator {
     menuItemDefHolder.add(
       MenuItemDef(MenuItemDefId.COST, requiredGroups = *FIBU_ORGA_HR_GROUPS,
         checkAccess =
-        { Configuration.getInstance().isCostConfigured })
+        { Configuration.instance.isCostConfigured })
     )
       .add(
         MenuItemDef(MenuItemDefId.ACCOUNT_LIST,
@@ -411,13 +411,13 @@ class MenuCreator {
       MenuItemDef(MenuItemDefId.ACCOUNTING_RECORD_LIST,
         requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP),
         checkAccess =
-        { Configuration.getInstance().isCostConfigured })
+        { Configuration.instance.isCostConfigured })
     )
       .add(
         MenuItemDef(MenuItemDefId.DATEV_IMPORT,
           requiredUserRightId = DatevImportDao.USER_RIGHT_ID, requiredUserRightValues = arrayOf(UserRightValue.TRUE),
           checkAccess =
-          { Configuration.getInstance().isCostConfigured })
+          { Configuration.instance.isCostConfigured })
       )
 
     //////////////////////////////////////

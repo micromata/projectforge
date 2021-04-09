@@ -27,8 +27,8 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.*;
-import org.projectforge.common.props.PropUtils;
 import org.projectforge.common.i18n.UserException;
+import org.projectforge.common.props.PropUtils;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.wicket.AbstractEditPage;
@@ -44,8 +44,7 @@ import java.util.List;
 @EditPage(defaultReturnPage = EingangsrechnungListPage.class)
 public class EingangsrechnungEditPage
     extends AbstractEditPage<EingangsrechnungDO, EingangsrechnungEditForm, EingangsrechnungDao> implements
-    ISelectCallerPage
-{
+    ISelectCallerPage {
   private static final long serialVersionUID = 6847624027377867591L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EingangsrechnungEditPage.class);
@@ -56,23 +55,19 @@ public class EingangsrechnungEditPage
   @SpringBean
   private SEPATransferGenerator SEPATransferGenerator;
 
-  public EingangsrechnungEditPage(final PageParameters parameters)
-  {
+  public EingangsrechnungEditPage(final PageParameters parameters) {
     super(parameters, "fibu.eingangsrechnung");
     init();
   }
 
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
 
     final ContentMenuEntryPanel exportInvoiceButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-        new Link<Object>("link")
-        {
+        new Link<Object>("link") {
           @Override
-          public void onClick()
-          {
+          public void onClick() {
             EingangsrechnungEditPage.this.exportInvoiceAsXML();
           }
         }, getString("fibu.rechnung.transferExport")).setTooltip(getString("fibu.rechnung.transferExport.tootlip"));
@@ -82,8 +77,7 @@ public class EingangsrechnungEditPage
     addContentMenuEntry(exportInvoiceButton);
   }
 
-  private void exportInvoiceAsXML()
-  {
+  private void exportInvoiceAsXML() {
     this.form.getFeedbackMessages().clear();
     final EingangsrechnungDO invoice = this.getData();
 
@@ -138,21 +132,18 @@ public class EingangsrechnungEditPage
   }
 
   @Override
-  protected EingangsrechnungDao getBaseDao()
-  {
+  protected EingangsrechnungDao getBaseDao() {
     return eingangsrechnungDao;
   }
 
   @Override
   protected EingangsrechnungEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage,
-      final EingangsrechnungDO data)
-  {
+                                                 final EingangsrechnungDO data) {
     return new EingangsrechnungEditForm(this, data);
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 
@@ -160,8 +151,7 @@ public class EingangsrechnungEditPage
    * @see org.projectforge.web.wicket.AbstractEditPage#cloneData()
    */
   @Override
-  protected void cloneData()
-  {
+  protected void cloneData() {
     super.cloneData();
     final EingangsrechnungDO rechnung = getData();
     final int zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
@@ -183,20 +173,17 @@ public class EingangsrechnungEditPage
   }
 
   @Override
-  public void cancelSelection(final String property)
-  {
+  public void cancelSelection(final String property) {
     // Do nothing.
   }
 
   @Override
-  public void select(final String property, final Object selectedValue)
-  {
+  public void select(final String property, final Object selectedValue) {
     log.error("Property '" + property + "' not supported for selection.");
   }
 
   @Override
-  public void unselect(final String property)
-  {
+  public void unselect(final String property) {
     log.error("Property '" + property + "' not supported for selection.");
   }
 }

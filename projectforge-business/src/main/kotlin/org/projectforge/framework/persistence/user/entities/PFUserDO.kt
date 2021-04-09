@@ -188,7 +188,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     @get:PropertyInfo(i18nKey = "timezone")
     @get:Transient
     var timeZone: TimeZone
-        get() = _timeZone ?: Configuration.getInstance().defaultTimeZone
+        get() = _timeZone ?: Configuration.instance.defaultTimeZone
         set(value) {
             _timeZone = value
         }

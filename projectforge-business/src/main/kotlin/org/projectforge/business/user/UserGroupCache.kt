@@ -205,6 +205,7 @@ open class UserGroupCache() : AbstractCache() {
 
   fun isUserMemberOfAdminGroup(userId: Int?): Boolean {
     checkRefresh()
+    // adminUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return adminUsers != null && adminUsers!!.contains(userId)
   }
 
@@ -213,6 +214,7 @@ open class UserGroupCache() : AbstractCache() {
 
   fun isUserMemberOfFinanceGroup(userId: Int?): Boolean {
     checkRefresh()
+    // financeUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return financeUsers != null && financeUsers!!.contains(userId)
   }
 
@@ -221,6 +223,7 @@ open class UserGroupCache() : AbstractCache() {
 
   fun isUserMemberOfProjectManagers(userId: Int?): Boolean {
     checkRefresh()
+    // projectManagers should only be null in maintenance mode (e. g. if user table isn't readable).
     return projectManagers != null && projectManagers!!.contains(userId)
   }
 
@@ -229,6 +232,7 @@ open class UserGroupCache() : AbstractCache() {
 
   fun isUserMemberOfProjectAssistant(userId: Int?): Boolean {
     checkRefresh()
+    // projectAssistants should only be null in maintenance mode (e. g. if user table isn't readable).
     return projectAssistants != null && projectAssistants!!.contains(userId)
   }
 
@@ -247,6 +251,7 @@ open class UserGroupCache() : AbstractCache() {
 
   fun isUserMemberOfControllingGroup(userId: Int?): Boolean {
     checkRefresh()
+    // controllingUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return controllingUsers != null && controllingUsers!!.contains(userId)
   }
 
@@ -255,6 +260,7 @@ open class UserGroupCache() : AbstractCache() {
 
   fun isUserMemberOfMarketingGroup(userId: Int?): Boolean {
     checkRefresh()
+    // marketingUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return marketingUsers!!.contains(userId)
   }
 
@@ -263,11 +269,13 @@ open class UserGroupCache() : AbstractCache() {
 
   fun isUserMemberOfOrgaGroup(userId: Int?): Boolean {
     checkRefresh()
+    // orgaUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return orgaUsers != null && orgaUsers!!.contains(userId)
   }
 
   fun isUserMemberOfHRGroup(userId: Int?): Boolean {
     checkRefresh()
+    // hrUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return hrUsers != null && hrUsers!!.contains(userId)
   }
 

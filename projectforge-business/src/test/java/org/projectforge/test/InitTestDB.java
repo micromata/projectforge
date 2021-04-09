@@ -241,14 +241,19 @@ public class InitTestDB {
     initUser.setUsername("Init-database-pseudo-user");
     initUser.setId(-1);
     initUser.addRight(new UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE));
-    initConfiguration();
-    initUsers();
-    databaseService.insertGlobalAddressbook(AbstractTestBase.ADMIN_USER);
-    initGroups();
-    initTaskTree();
-    initAccess();
-    initKost2Arts();
-    initEmployees();
+    try {
+      ThreadLocalUserContext.setUser(initUser);
+      initConfiguration();
+      initUsers();
+      databaseService.insertGlobalAddressbook(AbstractTestBase.ADMIN_USER);
+      initGroups();
+      initTaskTree();
+      initAccess();
+      initKost2Arts();
+      initEmployees();
+    } finally {
+      ThreadLocalUserContext.setUser(origUser);
+    }
   }
 
   private void initEmployees() {

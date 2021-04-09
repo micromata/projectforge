@@ -31,7 +31,6 @@ import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.Configuration;
@@ -39,7 +38,6 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.ConfigurationType;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.teamcal.admin.TeamCalsProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
@@ -69,9 +67,6 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
   private TaskDO task;
 
   private TeamCalDO calendar;
-
-  @SpringBean
-  private TaskDao taskDao;
 
   @SpringBean
   private TeamCalCache teamCalCache;
@@ -144,14 +139,6 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
             new PropertyModel<TimeZone>(data, "timeZone"));
         fs.add(timeZonePanel);
         valueField = timeZonePanel.getTextField();
-      } else if (data.getConfigurationType() == ConfigurationType.TASK) {
-        if (data.getTaskId() != null) {
-          this.task = taskDao.getById(data.getTaskId());
-        }
-        final TaskSelectPanel taskSelectPanel = new TaskSelectPanel(fs, new PropertyModel<TaskDO>(this, "task"),
-            parentPage, "taskId");
-        fs.add(taskSelectPanel);
-        taskSelectPanel.init();
       } else if (data.getConfigurationType() == ConfigurationType.CALENDAR) {
         if (data.getCalendarId() != null) {
           this.calendar = teamCalCache.getCalendar(data.getCalendarId());
@@ -174,30 +161,6 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("description")).suppressLabelForWarning();
       fs.add(new DivTextPanel(fs.newChildId(),
           getString("administration.configuration.param." + data.getParameter() + ".description")));
-    }
-  }
-
-  public TaskDO getTask()
-  {
-    return task;
-  }
-
-  public void setTask(final TaskDO task)
-  {
-    this.task = task;
-    if (task != null) {
-      data.setTaskId(task.getId());
-    } else {
-      data.setTaskId(null);
-    }
-  }
-
-  public void setTask(final Integer taskId)
-  {
-    if (taskId != null) {
-      setTask(taskDao.getById(taskId));
-    } else {
-      setTask((TaskDO) null);
     }
   }
 

@@ -47,7 +47,9 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_ADDRESS", uniqueConstraints = [UniqueConstraint(name = "unique_t_address_uid", columnNames = ["uid"])])
+@Table(name = "T_ADDRESS",
+    uniqueConstraints = [UniqueConstraint(name = "unique_t_address_uid", columnNames = ["uid"])],
+    indexes = [javax.persistence.Index(name = "idx_fk_t_address_uid", columnList = "uid")])
 open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     override val displayName: String
         @Transient

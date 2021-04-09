@@ -26,7 +26,7 @@ package org.projectforge.flyway.dbmigration;
 import org.apache.commons.io.FileUtils;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
-import org.projectforge.business.configuration.ConfigurationServiceImpl;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ public class V7_0_0_2__DropLuceneIndex extends BaseJavaMigration {
 
   @Override
   public void migrate(Context context) throws Exception {
-    File file = new File(ConfigurationServiceImpl.getStaticApplicationHomeDir(), "hibernateSearch");
+    File file = new File(ConfigurationService.getStaticApplicationHomeDir(), "hibernateSearch");
     log.info("Deleting database index (from former Lucene index). The index has to be rebuilt. Removing lucene index directory: " + file.getAbsolutePath());
     FileUtils.deleteDirectory(file);
   }

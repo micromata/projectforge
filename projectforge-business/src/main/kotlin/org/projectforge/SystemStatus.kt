@@ -24,8 +24,8 @@
 package org.projectforge
 
 import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
-import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -68,7 +68,7 @@ class SystemStatus {
 
     @PostConstruct
     private fun postConstruct() {
-        messageOfTheDay = GlobalConfiguration.getInstance()
+        messageOfTheDay = Configuration.instance
                 .getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
         logoFile = configurationService.syntheticLogoName
         if (!databaseService.databaseTablesWithEntriesExists())

@@ -32,33 +32,27 @@ import java.util.Map;
  *
  * @author Stefan Niemczyk (s.niemczyk@micromata.de)
  */
-public class SEPATransferResult
-{
+public class SEPATransferResult {
   private byte[] xml;
   private Map<EingangsrechnungDO, List<SEPATransferGenerator.SEPATransferError>> errors;
 
-  protected SEPATransferResult()
-  {
+  protected SEPATransferResult() {
     errors = new HashMap<>();
   }
 
-  public boolean isSuccessful()
-  {
+  public boolean isSuccessful() {
     return xml != null;
   }
 
-  public byte[] getXml()
-  {
+  public byte[] getXml() {
     return xml;
   }
 
-  public void setXml(final byte[] xml)
-  {
+  public void setXml(final byte[] xml) {
     this.xml = xml;
   }
 
-  public Map<EingangsrechnungDO, List<SEPATransferGenerator.SEPATransferError>> getErrors()
-  {
+  public Map<EingangsrechnungDO, List<SEPATransferGenerator.SEPATransferError>> getErrors() {
     return errors;
   }
 }

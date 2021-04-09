@@ -25,8 +25,8 @@ package org.projectforge.framework.persistence.history;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.StringHelper;
+import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
-import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseDao;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
@@ -78,7 +78,7 @@ public class HibernateSearchReindexer {
     final String result = rebuildDatabaseSearchIndices();
     if (result.contains("*")) {
       log.error(ERROR_MSG);
-      final String recipients = GlobalConfiguration.getInstance()
+      final String recipients = Configuration.getInstance()
               .getStringValue(ConfigurationParam.SYSTEM_ADMIN_E_MAIL);
       if (StringUtils.isNotBlank(recipients)) {
         log.info("Try to inform administrator about re-indexing error.");

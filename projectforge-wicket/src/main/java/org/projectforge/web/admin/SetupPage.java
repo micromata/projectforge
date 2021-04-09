@@ -35,7 +35,6 @@ import org.projectforge.common.DatabaseDialect;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
-import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.database.PfJpaXmlDumpService;
@@ -120,7 +119,7 @@ public class SetupPage extends AbstractUnsecureBasePage
       } catch (Exception e) {
         log.error("Exception occured while running test data insert script. Message: " + e.getMessage());
       }
-      GlobalConfiguration.getInstance().forceReload();
+      Configuration.getInstance().forceReload();
       adminUser = databaseService.updateAdminUser(adminUser, setupForm.getTimeZone());
       databaseService.afterCreatedTestDb(false);
       message = "administration.setup.message.testdata";

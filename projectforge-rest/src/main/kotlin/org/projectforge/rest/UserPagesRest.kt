@@ -126,7 +126,7 @@ class UserPagesRest
             locales.add(0, UISelectValue(Locale("DEFAULT"), translate("user.defaultLocale")))
 
             val today = LocalDate.now()
-            val formats = Configuration.getInstance().dateFormats
+            val formats = Configuration.instance.dateFormats
             val dateFormats = formats.map { createUISelectValue(it, today) }.toMutableList()
             val excelDateFormats = formats.map { createUISelectValue(it, today, true) }.toMutableList()
 
