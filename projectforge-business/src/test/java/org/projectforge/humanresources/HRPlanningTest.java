@@ -28,7 +28,6 @@ import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeDao;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.humanresources.*;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.*;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
@@ -64,6 +63,9 @@ public class HRPlanningTest extends AbstractTestBase {
   private KundeDao kundeDao;
 
   @Autowired
+  private UserGroupCache userGroupCache;
+
+  @Autowired
   private UserRightDao userRightDao;
 
   @Autowired
@@ -82,7 +84,6 @@ public class HRPlanningTest extends AbstractTestBase {
 
   @Test
   public void testUserRights() {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     PFUserDO user1 = initTestDB.addUser("HRPlanningTestUser1");
     final HRPlanningRight right = (HRPlanningRight) userRights.getRight(UserRightId.PM_HR_PLANNING);
     assertFalse(right.isAvailable(userGroupCache, user1));

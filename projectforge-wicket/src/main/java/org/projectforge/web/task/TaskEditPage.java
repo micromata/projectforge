@@ -33,7 +33,6 @@ import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskHelper;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -58,14 +57,15 @@ public class TaskEditPage extends AbstractEditPage<TaskDO, TaskEditForm, TaskDao
   @SpringBean
   private TaskDao taskDao;
 
-  private transient TaskTree taskTree;
+  @SpringBean
+  private TaskTree taskTree;
 
   @SpringBean
   private Kost2Dao kost2Dao;
 
   /**
    * Used by the TutorialPage.
-   * 
+   *
    * @param task
    */
   public TaskEditPage(final TaskDO task)
@@ -114,7 +114,7 @@ public class TaskEditPage extends AbstractEditPage<TaskDO, TaskEditForm, TaskDao
       if (kost2Id != null) {
         final Kost2DO kost2 = kost2Dao.getById(kost2Id);
         if (kost2 != null) {
-          final String newKost2String = TaskHelper.addKost2(getTaskTree(), getData(), kost2);
+          final String newKost2String = TaskHelper.addKost2(taskTree, getData(), kost2);
           getData().setKost2BlackWhiteList(newKost2String);
           form.kost2BlackWhiteTextField.modelChanged();
         }
@@ -213,14 +213,6 @@ public class TaskEditPage extends AbstractEditPage<TaskDO, TaskEditForm, TaskDao
           getString("task.menu.showAccessRights"));
       extendedMenu.addSubMenuEntry(menu);
     }
-  }
-
-  private TaskTree getTaskTree()
-  {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
   }
 
   @Override

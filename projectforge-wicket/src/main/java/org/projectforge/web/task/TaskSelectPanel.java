@@ -37,7 +37,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.Hibernate;
 import org.projectforge.business.task.*;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.web.CSSColor;
 import org.projectforge.web.fibu.ISelectCallerPage;

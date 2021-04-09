@@ -45,7 +45,7 @@ import javax.persistence.Table
  */
 @Entity
 @Indexed
-@Table(name = "T_FIBU_KOST2ART", indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_kost2art_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_FIBU_KOST2ART")
 @Analyzer(impl = ClassicAnalyzer::class)
 class Kost2ArtDO : AbstractHistorizableBaseDO<Int>(), Comparable<Kost2ArtDO>, IManualIndex {
 

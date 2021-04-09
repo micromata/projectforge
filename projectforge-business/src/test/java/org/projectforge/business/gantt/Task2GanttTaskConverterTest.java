@@ -26,6 +26,7 @@ package org.projectforge.business.gantt;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
+import org.projectforge.business.task.TaskTree;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,9 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
 
   @Autowired
   private TaskDao taskDao;
+
+  @Autowired
+  private TaskTree taskTree;
 
   @Test
   public void testConvertingTaskTree() {
@@ -94,7 +98,7 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
     task.setDuration(BigDecimal.TEN);
     taskDao.update(task);
 
-    final GanttChartData ganttChartData = Task2GanttTaskConverter.convertToGanttObjectTree(taskDao.getTaskTree(),
+    final GanttChartData ganttChartData = Task2GanttTaskConverter.convertToGanttObjectTree(taskTree,
             getTask(prefix + "1"));
     assertEquals(2, ganttChartData.getExternalObjects().size(),
             "Two external objects (2.1 and 2.2) exptected.");

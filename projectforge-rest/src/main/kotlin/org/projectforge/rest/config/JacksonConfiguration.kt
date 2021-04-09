@@ -44,11 +44,9 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.json.*
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.calendar.ICalendarEventDeserializer
 import org.projectforge.rest.calendar.TeamCalDOSerializer
@@ -269,7 +267,6 @@ open class JacksonConfiguration {
 
     module.addSerializer(GroupDO::class.java, GroupDOSerializer())
     module.addSerializer(TaskDO::class.java, TaskDOSerializer())
-    module.addSerializer(TenantDO::class.java, TenantDOSerializer())
     module.addSerializer(AddressbookDO::class.java, AddressbookDOSerializer())
     module.addSerializer(EmployeeDO::class.java, EmployeeDOSerializer())
 

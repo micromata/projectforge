@@ -76,12 +76,12 @@ public class ThreadLocalUserContext {
    * @param user
    * @return UserContext registered or null, if no user given.
    */
-  public static UserContext setUser(UserGroupCache userGroupCache, final PFUserDO user) {
+  public static UserContext setUser(final PFUserDO user) {
     if (user == null) {
       clear();
       return null;
     }
-    final UserContext userContext = new UserContext(user, userGroupCache);
+    final UserContext userContext = new UserContext(user);
     setUserContext(userContext);
     return userContext;
   }

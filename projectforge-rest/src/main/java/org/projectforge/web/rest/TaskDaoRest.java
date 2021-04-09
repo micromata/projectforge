@@ -59,6 +59,9 @@ public class TaskDaoRest
   private TaskDao taskDao;
 
   @Autowired
+  private TaskTree taskTree;
+
+  @Autowired
   private TaskDOConverter taskDOConverter;
 
   /**
@@ -88,7 +91,7 @@ public class TaskDaoRest
   }
 
   /**
-   * Rest-Call für: {@link TaskDao#getList(org.projectforge.core.BaseSearchFilter)}
+   * Rest-Call für: {@link TaskDao#getList(BaseSearchFilter)}
    *
    * @param searchTerm
    */
@@ -142,7 +145,6 @@ public class TaskDaoRest
     if (tasks == null || tasks.isEmpty()) {
       return topLevelTasks;
     }
-    final TaskTree taskTree = taskDao.getTaskTree();
     final Map<Integer, TaskObject> rtaskMap = new HashMap<>();
     for (final TaskDO task : tasks) {
       final TaskObject rtask = createRTask(task);
@@ -194,7 +196,7 @@ public class TaskDaoRest
       log.error("Oups, task is null.");
       return task;
     }
-    final TaskNode taskNode = taskDao.getTaskTree().getTaskNodeById(taskDO.getId());
+    final TaskNode taskNode = taskTree.getTaskNodeById(taskDO.getId());
     if (taskNode == null) {
       log.error("Oups, task node with id '" + taskDO.getId() + "' not found in taskTree.");
       return task;

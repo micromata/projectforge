@@ -33,7 +33,6 @@ import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
-import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserDao
 import org.projectforge.common.task.TaskStatus
@@ -81,6 +80,9 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
   @Autowired
   private lateinit var kost2Dao: Kost2Dao
 
+  @Autowired
+  private lateinit var taskTree: TaskTree
+
   open fun showTimesheetsOfOtherUsers(): Boolean {
     return accessChecker.isLoggedInUserMemberOfGroup(
       ProjectForgeGroup.CONTROLLING_GROUP,
@@ -122,7 +124,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
    * @see TaskTree.getTaskById
    */
   open fun setTask(sheet: TimesheetDO, taskId: Int?) {
-    val task = TaskTreeHelper.getTaskTree(sheet).getTaskById(taskId)
+    val task = taskTree.getTaskById(taskId)
     sheet.task = task
   }
 
@@ -143,7 +145,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
   open fun getKost2List(timesheet: TimesheetDO?): List<Kost2DO>? {
     return if (timesheet?.taskId == null) {
       null
-    } else TaskTreeHelper.getTaskTree(timesheet).getKost2List(timesheet.taskId)
+    } else taskTree.getKost2List(timesheet.taskId)
   }
 
   private fun buildQueryFilter(filter: TimesheetFilter): QueryFilter {
@@ -165,7 +167,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     }
     if (filter.taskId != null) {
       if (filter.isRecursive) {
-        val node = TaskTreeHelper.getTaskTree().getTaskNodeById(filter.taskId)
+        val node = taskTree.getTaskNodeById(filter.taskId)
         val taskIds = node.descendantIds
         taskIds.add(node.id)
         queryFilter.add(isIn<Any>("task.id", taskIds))
@@ -250,7 +252,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
    */
   override fun afterSaveOrModify(obj: TimesheetDO) {
     super.afterSaveOrModify(obj)
-    TaskTreeHelper.getTaskTree(obj).resetTotalDuration(obj.taskId)
+    taskTree.resetTotalDuration(obj.taskId)
   }
 
   /**
@@ -267,11 +269,10 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     }
     Validate.isTrue(obj.startTime!!.before(obj.stopTime), "Stop time of time sheet is before start time!")
     if (Configuration.getInstance().isCostConfigured) {
-      val kost2List = TaskTreeHelper.getTaskTree(obj).getKost2List(obj.taskId)
+      val kost2List = taskTree.getKost2List(obj.taskId)
       val kost2Id = obj.kost2Id
       if (kost2Id == null) {
         // Check, if there is any cost definition in any descendant task:
-        val taskTree = TaskTreeHelper.getTaskTree(obj)
         val taskNode = taskTree.getTaskNodeById(obj.taskId)
         if (taskNode != null) {
           val descendents = taskNode.descendantIds
@@ -308,7 +309,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
 
   override fun onChange(obj: TimesheetDO, dbObj: TimesheetDO) {
     if (compareValues(obj.taskId, dbObj.taskId) != 0) {
-      TaskTreeHelper.getTaskTree(obj).resetTotalDuration(dbObj.taskId)
+      taskTree.resetTotalDuration(dbObj.taskId)
     }
   }
 
@@ -319,7 +320,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     }
     val task = obj.task
     if (task != null && !Hibernate.isInitialized(task)) {
-      obj.task = TaskTreeHelper.getTaskTree(obj).getTaskById(task.id)
+      obj.task = taskTree.getTaskById(task.id)
     }
   }
 
@@ -430,7 +431,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
       ) {
         if (!accessChecker.userEquals(user, obj.user)) {
           // Check protection of privacy for foreign time sheets:
-          val pathToRoot = TaskTreeHelper.getTaskTree(obj).getPathToRoot(obj.taskId)
+          val pathToRoot = taskTree.getPathToRoot(obj.taskId)
           for (node in pathToRoot) {
             if (node.task.protectionOfPrivacy) {
               return false
@@ -535,7 +536,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         return true
       }
     }
-    val taskNode = TaskTreeHelper.getTaskTree(timesheet).getTaskNodeById(timesheet.taskId)
+    val taskNode = taskTree.getTaskNodeById(timesheet.taskId)
     // 1. Is the task or any of the ancestor tasks closed, deleted or has the booking status TREE_CLOSED?
     var node: TaskNode? = taskNode
     do {
@@ -596,7 +597,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
       } while (node != null)
       // 4. Does any of the descendant task node has an assigned order position?
       for (child in taskNode.children) {
-        if (TaskTreeHelper.getTaskTree(timesheet).hasOrderPositions(child.id, true)) {
+        if (taskTree.hasOrderPositions(child.id, true)) {
           if (throwException) {
             throw AccessException(
               "timesheet.error.taskNotBookable.orderPositionsFoundInSubTasks",
@@ -641,7 +642,6 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         return true
       }
     }
-    val taskTree = TaskTreeHelper.getTaskTree(timesheet)
     val taskNode = taskTree.getTaskNodeById(timesheet.taskId)
     Validate.notNull(taskNode)
     val list = taskNode.pathToRoot
@@ -687,7 +687,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
   open fun getUsedReferences(taskId: Int): List<String> {
     checkLoggedInUserSelectAccess()
     return em.createNamedQuery(TimesheetDO.SELECT_REFERENCES_BY_TASK_ID, String::class.java)
-      .setParameter("taskIds", TaskTreeHelper.getTaskTree().getAncestorAndDescendantTaskIs(taskId, true))
+      .setParameter("taskIds", taskTree.getAncestorAndDescendantTaskIs(taskId, true))
       .resultList
   }
 

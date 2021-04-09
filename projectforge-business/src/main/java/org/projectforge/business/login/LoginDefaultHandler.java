@@ -26,8 +26,8 @@ package org.projectforge.business.login;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.projectforge.business.group.service.GroupService;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.ProjectForgeGroup;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
@@ -52,6 +52,9 @@ public class LoginDefaultHandler implements LoginHandler
 
   @Autowired
   private UserService userService;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   /**
    * Only needed if the data-base needs an update first (may-be the PFUserDO can't be read because of unmatching
@@ -93,7 +96,7 @@ public class LoginDefaultHandler implements LoginHandler
         if (!isAdminUser(resUser)) {
           return loginResult.setLoginResultStatus(LoginResultStatus.ADMIN_LOGIN_REQUIRED);
         }
-        TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().internalSetAdminUser(resUser); // User is now marked as admin user.
+        userGroupCache.internalSetAdminUser(resUser); // User is now marked as admin user.
         return loginResult.setLoginResultStatus(LoginResultStatus.SUCCESS).setUser(resUser);
       } catch (final Exception ex) {
         log.error(ex.getMessage(), ex);
@@ -237,7 +240,6 @@ public class LoginDefaultHandler implements LoginHandler
       }
       return list;
     } catch (final Exception ex) {
-      //Needed for migration, when tenant table not available.
       log.error(
           "******* Exception while getting groups from data-base (OK only in case of migration from older versions): "
               + ex.getMessage(),
@@ -255,7 +257,6 @@ public class LoginDefaultHandler implements LoginHandler
     try {
       return userService.internalLoadAll();
     } catch (final Exception ex) {
-      //Needed for migration, when tenant table not available.
       log.error(
           "******* Exception while getting users from data-base (OK only in case of migration from older versions): "
               + ex.getMessage(),

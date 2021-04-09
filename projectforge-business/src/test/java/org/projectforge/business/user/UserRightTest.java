@@ -24,15 +24,12 @@
 package org.projectforge.business.user;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.multitenancy.TenantDao;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,13 +47,13 @@ public class UserRightTest extends AbstractTestBase
   private GroupDao groupDao;
 
   @Autowired
+  private UserGroupCache userGroupCache;
+
+  @Autowired
   private UserRightService userRights;
 
   @Autowired
   private UserRightDao userRightDao;
-
-  @Autowired
-  private TenantDao tenantDao;
 
   @Test
   public void testUserDO()
@@ -75,7 +72,6 @@ public class UserRightTest extends AbstractTestBase
     userRightDao.save(userRights);
     user = userService.internalGetById(userId);
 
-    assignToDefaultTenant(user);
     Set<UserRightDO> rights = user.getRights();
     assertEquals( 3, rights.size(),"3 rights added to user");
     logon(user.getUsername());
@@ -118,14 +114,6 @@ public class UserRightTest extends AbstractTestBase
     }
   }
 
-  private void assignToDefaultTenant(PFUserDO user)
-  {
-    Set<TenantDO> tenantsToAssign = new HashSet<>();
-    tenantsToAssign.add(tenantDao.getDefaultTenant());
-    tenantDao.internalAssignTenants(user, tenantsToAssign, null, false, false);
-    TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().forceReload();
-  }
-
   @Test
   public void testControllingUserDO()
   {
@@ -145,8 +133,6 @@ public class UserRightTest extends AbstractTestBase
 
     final GroupDO group = getGroup(ProjectForgeGroup.CONTROLLING_GROUP.toString());
     groupDao.assignGroups(user, Collections.singleton(group), null, false);
-
-    assignToDefaultTenant(user);
 
     logon(user.getUsername());
     user = userService.internalGetById(user.getId());
@@ -174,7 +160,6 @@ public class UserRightTest extends AbstractTestBase
   @Test
   public void testConfigurable()
   {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final UserRight right = userRights.getRight(UserRightId.PM_HR_PLANNING);
     logon(AbstractTestBase.TEST_PROJECT_MANAGER_USER);
     assertFalse(right.isConfigurable(userGroupCache, ThreadLocalUserContext.getUser()),
@@ -203,7 +188,6 @@ public class UserRightTest extends AbstractTestBase
   @Test
   public void testHRPlanningRight()
   {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final UserRight right = userRights.getRight(UserRightId.PM_HR_PLANNING);
     logon(AbstractTestBase.TEST_PROJECT_MANAGER_USER);
     assertTrue(accessChecker.hasLoggedInUserRight(UserRightId.PM_HR_PLANNING, false, UserRightValue.READWRITE),
@@ -216,7 +200,6 @@ public class UserRightTest extends AbstractTestBase
     PFUserDO user = new PFUserDO();
     user.setUsername("testHRPlanningRight");
     user = userService.internalGetById(userService.save(user));
-    assignToDefaultTenant(user);
     GroupDO group = getGroup(ProjectForgeGroup.CONTROLLING_GROUP.toString());
     group.getAssignedUsers().add(user);
     groupDao.update(group);

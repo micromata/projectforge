@@ -97,7 +97,7 @@ public class TimesheetUtilsTest extends AbstractTestBase {
     PFUserDO user = new PFUserDO();
     user.setTimeZone(timeZone);
     user.setLocale(locale);
-    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
+    ThreadLocalUserContext.setUser(user);
   }
 
   private void add(final List<TimesheetDO> list, final PFUserDO user, final String start, final String stop) {

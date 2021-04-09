@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.login.LoginDefaultHandler;
 import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.login.LoginResultStatus;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -72,6 +72,9 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
 
   @Autowired
   PFUserDOConverter pfUserDOConverter;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   enum Mode
   {
@@ -251,7 +254,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
           try {
             refreshInProgress = true;
             updateLdap(users, groups);
-            TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().internalGetNumberOfUsers(); // Force refresh of UserGroupCache.
+            userGroupCache.internalGetNumberOfUsers(); // Force refresh of UserGroupCache.
           } finally {
             refreshInProgress = false;
           }

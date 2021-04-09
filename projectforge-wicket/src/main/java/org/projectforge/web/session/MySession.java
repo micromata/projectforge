@@ -33,7 +33,6 @@ import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.projectforge.Version;
-import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.user.service.UserPreferencesHelper;
 import org.projectforge.framework.ToStringUtil;
@@ -42,7 +41,6 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.utils.NumberHelper;
 
 import javax.servlet.http.HttpServletRequest;
@@ -55,8 +53,6 @@ public class MySession extends WebSession {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MySession.class);
 
   private static final long serialVersionUID = -1783696379234637066L;
-
-  private static final String USER_PREF_KEY_CURRENT_TENANT = UserContext.class.getName() + ":currentTenantId";
 
   private UserContext userContext;
 
@@ -101,29 +97,7 @@ public class MySession extends WebSession {
       log.error("Oups, ClientInfo is not from type WebClientInfo: " + info);
     }
     setUserContext(ThreadLocalUserContext.getUserContext());
-    initActualTenant();
     this.csrfToken = NumberHelper.getSecureRandomAlphanumeric(20);
-  }
-
-  private void initActualTenant() {
-    if (ThreadLocalUserContext.getUserContext() == null) {
-      return;
-    }
-    UserContext userContext = ThreadLocalUserContext.getUserContext();
-    TenantService tenantService = ApplicationContextProvider.getApplicationContext().getBean(TenantService.class);
-    PFUserDO user = userContext.getUser();
-    if (user.getId() != null && tenantService.isMultiTenancyAvailable() == true) {
-      // Try to find the last used tenant of the user:
-      final Integer currentTenantId = (Integer) UserPreferencesHelper.getEntry(USER_PREF_KEY_CURRENT_TENANT);
-      if (currentTenantId != null) {
-        setCurrentTenant(tenantService.getTenant(currentTenantId));
-      } else {
-        final Collection<TenantDO> tenants = tenantService.getTenantsOfUser(user.getId());
-        if (CollectionUtils.isNotEmpty(tenants) == true) {
-          setCurrentTenant(tenants.iterator().next());
-        }
-      }
-    }
   }
 
   public static MySession get() {
@@ -195,29 +169,6 @@ public class MySession extends WebSession {
 
   public String getUserAgent() {
     return userAgent;
-  }
-
-  /**
-   * @param tenant the currentTenant to set
-   * @return this for chaining.
-   */
-  public MySession setCurrentTenant(final TenantDO tenant) {
-    if (tenant == null) {
-      log.warn("Can't switch to current tenant=null!");
-      return this;
-    }
-    if (tenant.getId() == null) {
-      log.warn("Can't switch to current tenant with id=null!");
-      return this;
-    }
-    if (this.userContext.getCurrentTenant() != null
-            && tenant.getId().equals(this.userContext.getCurrentTenant().getId()) == false) {
-      log.info("User switched the tenant: [" + tenant.getName() + "] (was ["
-              + this.userContext.getCurrentTenant().getName() + "]).");
-      this.userContext.setCurrentTenant(tenant);
-      UserPreferencesHelper.putEntry(USER_PREF_KEY_CURRENT_TENANT, tenant.getId(), true);
-    }
-    return this;
   }
 
   /**

@@ -30,23 +30,18 @@ import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskFilter
 import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
-import org.projectforge.business.tasktree.TaskTreeHelper
-import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.addTranslations
-import org.projectforge.framework.persistence.DaoConst
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDay
-import org.projectforge.registry.Registry
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ListFilterService
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.dao.support.DaoSupport
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -117,7 +112,7 @@ class TaskServicesRest {
     fun createTask(id: Int?): Task? {
       if (id == null)
         return null
-      val taskTree = TaskTreeHelper.getTaskTree()
+      val taskTree = TaskTree.getInstance()
       val taskNode = taskTree.getTaskNodeById(id) ?: return null
       val task = Task(taskNode)
       addKost2List(task)
@@ -134,7 +129,7 @@ class TaskServicesRest {
     }
 
     fun addKost2List(task: Task) {
-      val kost2DOList = TaskTreeHelper.getTaskTree().getKost2List(task.id)
+      val kost2DOList = TaskTree.getInstance().getKost2List(task.id)
       if (!kost2DOList.isNullOrEmpty()) {
         val kost2List: List<Kost2> = kost2DOList.map {
           Kost2((it as Kost2DO).id, KostFormatter.format(it, 80))
@@ -169,11 +164,10 @@ class TaskServicesRest {
   private lateinit var taskDao: TaskDao
 
   @Autowired
-  private lateinit var userPrefService: UserPrefService
+  private lateinit var taskTree: TaskTree
 
-  private val taskTree: TaskTree
-    /** Lazy init, because test cases failed due to NPE in TenantRegistryMap. */
-    get() = TaskTreeHelper.getTaskTree()
+  @Autowired
+  private lateinit var userPrefService: UserPrefService
 
   /**
    * Gets the user's task tree as tree matching the filter. The open task nodes will be restored from the user's prefs.

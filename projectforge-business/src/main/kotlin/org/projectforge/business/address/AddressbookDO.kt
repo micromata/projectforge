@@ -43,7 +43,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @ClassBridge(name = "usersgroups", impl = HibernateSearchUsersGroupsBridge::class)
-@Table(name = "T_ADDRESSBOOK", indexes = [Index(name = "idx_fk_t_addressbook_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_ADDRESSBOOK")
 open class AddressbookDO : BaseUserGroupRightsDO(), DisplayNameCapable {
 
     override val displayName: String

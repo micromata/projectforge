@@ -190,7 +190,7 @@ public class PersonalAddressDao {
       Validate.isTrue(Objects.equals(dbObj.getAddressId(), obj.getAddressId()));
       obj.setId(dbObj.getId());
       // Copy all values of modified user to database object.
-      final ModificationStatus modified = dbObj.copyValuesFrom(obj, "owner", "address", "id", "tenant");
+      final ModificationStatus modified = dbObj.copyValuesFrom(obj, "owner", "address", "id");
       if (modified == ModificationStatus.MAJOR) {
         dbObj.setLastUpdate();
         em.merge(dbObj);

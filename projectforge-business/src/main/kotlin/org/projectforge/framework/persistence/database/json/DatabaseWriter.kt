@@ -42,7 +42,6 @@ import org.projectforge.framework.json.UtilDateSerializer
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.framework.time.PFDateTime
 import org.slf4j.LoggerFactory
 import java.io.InputStream
@@ -76,7 +75,6 @@ class DatabaseWriter(val emf: PfEmgrFactory,
         jgen.writeArrayFieldStart("database")
         val session = sessionFactory.openSession()
         session.use {
-            dump(TenantDO::class.java, session, jgen)
             dump(PFUserDO::class.java, session, jgen)
             val entities = emf.metadataRepository.tableEntities
             for (entity in entities) {
@@ -126,9 +124,6 @@ class DatabaseWriter(val emf: PfEmgrFactory,
         list.forEach {
             var obj = it!!
             //var type = it::class.java
-            //if (it is TenantDO) {
-            //    obj = Tenant(it.pk, it.created, it.lastUpdate, it.shortName, it.name, it.description, it.defaultTenant)
-            //}
             jgen.writeObject(obj)
         }
         jgen.writeEndArray()

@@ -30,10 +30,11 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.access.AccessDao;
 import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.persistence.api.BaseDO;
@@ -170,7 +171,7 @@ public class TutorialPage extends AbstractSecuredPage {
 
   private List<Integer> addGroups(final PFUserDO user, final ProjectForgeGroup... groups) {
     final List<Integer> groupsToAssign = new ArrayList<Integer>();
-    final GroupDO group = getTenantRegistry().getUserGroupCache().getGroup(ProjectForgeGroup.PROJECT_MANAGER);
+    final GroupDO group = UserGroupCache.getInstance().getGroup(ProjectForgeGroup.PROJECT_MANAGER);
     groupsToAssign.add(group.getId());
     return groupsToAssign;
   }

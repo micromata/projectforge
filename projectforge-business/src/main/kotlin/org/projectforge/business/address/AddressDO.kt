@@ -24,7 +24,6 @@
 package org.projectforge.business.address
 
 import de.micromata.genome.db.jpa.history.api.HistoryProperty
-import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.db.jpa.history.impl.TabAttrHistoryPropertyConverter
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
@@ -48,12 +47,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_ADDRESS",
-        uniqueConstraints = [UniqueConstraint(name = "unique_t_address_uid_tenant",
-                columnNames = ["uid", "tenant_id"])],
-        indexes = [javax.persistence.Index(name = "idx_fk_t_address_tenant_id",
-                columnList = "tenant_id"), javax.persistence.Index(name = "idx_fk_t_address_uid_tenant_id",
-                columnList = "uid, tenant_id")])
+@Table(name = "T_ADDRESS", uniqueConstraints = [UniqueConstraint(name = "unique_t_address_uid", columnNames = ["uid"])])
 open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     override val displayName: String
         @Transient

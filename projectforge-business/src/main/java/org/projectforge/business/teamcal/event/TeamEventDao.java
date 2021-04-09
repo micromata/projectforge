@@ -33,7 +33,6 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.calendar.event.model.SeriesModificationMode;
-import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
@@ -89,7 +88,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"calendar.id", "calendar.title"};
 
-  private final static String META_SQL_WITH_SPECIAL = " AND e.deleted = :deleted AND e.tenant = :tenant";
+  private final static String META_SQL_WITH_SPECIAL = " AND e.deleted = :deleted";
 
   @Autowired
   private TeamCalDao teamCalDao;
@@ -102,9 +101,6 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
 
   @Autowired
   private PfEmgrFactory emgrFac;
-
-  @Autowired
-  private TenantService tenantService;
 
   public TeamEventDao() {
     super(TeamEventDO.class);
@@ -196,12 +192,10 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     final StringBuilder sqlQuery = new StringBuilder();
     final List<Object> params = new ArrayList<>();
 
-    sqlQuery.append("select e from TeamEventDO e where e.uid = :uid AND e.tenant = :tenant");
+    sqlQuery.append("select e from TeamEventDO e where e.uid = :uid");
 
     params.add("uid");
     params.add(uid);
-    params.add("tenant");
-    params.add(ThreadLocalUserContext.getUser() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant());
 
     if (excludeDeleted) {
       sqlQuery.append(" AND e.deleted = :deleted");

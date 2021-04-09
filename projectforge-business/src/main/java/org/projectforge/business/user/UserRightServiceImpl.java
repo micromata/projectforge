@@ -31,8 +31,6 @@ import org.projectforge.business.fibu.ProjektRight;
 import org.projectforge.business.gantt.GanttChartRight;
 import org.projectforge.business.humanresources.HRPlanningRight;
 import org.projectforge.business.meb.MebRight;
-import org.projectforge.business.multitenancy.TenantChecker;
-import org.projectforge.business.multitenancy.TenantRight;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.teamcal.event.right.CalEventRight;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
@@ -56,9 +54,6 @@ public class UserRightServiceImpl implements UserRightService, Serializable
 
   @Autowired
   AccessChecker accessChecker;
-
-  @Autowired
-  TenantChecker tenantChecker;
 
   private final Map<IUserRightId, UserRight> rights = new HashMap<>();
 
@@ -133,7 +128,6 @@ public class UserRightServiceImpl implements UserRightService, Serializable
     addRight(UserRightCategory.ORGA, UserRightId.ORGA_OUTGOING_MAIL, FALSE_READONLY_READWRITE, FIBU_ORGA_GROUPS)
         .setReadOnlyForControlling();
     addRight(UserRightCategory.ORGA, UserRightId.ORGA_VISITORBOOK, FALSE_READONLY_READWRITE, ProjectForgeGroup.ORGA_TEAM);
-    addRight(new TenantRight(accessChecker, tenantChecker));
     addRight(new ProjektRight(accessChecker));
     addRight(new AuftragRight(accessChecker));
     addRight(new MebRight(accessChecker));

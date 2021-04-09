@@ -25,7 +25,7 @@ package org.projectforge.rest.task
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.task.TaskNode
-import org.projectforge.business.tasktree.TaskTreeHelper
+import org.projectforge.business.task.TaskTree
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
@@ -34,88 +34,90 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 class Consumption(
-        /**
-         * 350PT/188PT
-         */
-        val title: String,
-        val status: Status,
-        val percentage: Int?,
-        val width: String,
-        val id: Int?) {
+  /**
+   * 350PT/188PT
+   */
+  val title: String,
+  val status: Status,
+  val percentage: Int?,
+  val width: String,
+  val id: Int?
+) {
 
-    enum class Status {
-        @JsonProperty("progress-done")
-        DONE,
+  enum class Status {
+    @JsonProperty("progress-done")
+    DONE,
 
-        @JsonProperty("progress-none")
-        NONE,
+    @JsonProperty("progress-none")
+    NONE,
 
-        @JsonProperty("progress-80")
-        PROGRESS_80,
+    @JsonProperty("progress-80")
+    PROGRESS_80,
 
-        @JsonProperty("progress-90")
-        PROGRESS_90,
+    @JsonProperty("progress-90")
+    PROGRESS_90,
 
-        @JsonProperty("progress-overbooked")
-        OVERBOOKED,
+    @JsonProperty("progress-overbooked")
+    OVERBOOKED,
 
-        @JsonProperty("progress-overbooked-min")
-        OVERBOOKED_MIN
-    }
+    @JsonProperty("progress-overbooked-min")
+    OVERBOOKED_MIN
+  }
 
-    companion object {
-        fun create(node: TaskNode): Consumption? {
-            val maxHours = node.task.maxHours
-            val finished = node.isFinished
-            val taskTree = TaskTreeHelper.getTaskTree()
-            val maxDays: BigDecimal?
-            if (maxHours != null && maxHours.toInt() == 0) {
-                maxDays = null
-            } else {
-                maxDays = NumberHelper.setDefaultScale(taskTree.getPersonDays(node))
-            }
-            var usage = BigDecimal(node.getDuration(taskTree, true)).divide(DateHelper.SECONDS_PER_WORKING_DAY, 2,
-                    RoundingMode.HALF_UP)
-            usage = NumberHelper.setDefaultScale(usage)
+  companion object {
+    fun create(node: TaskNode): Consumption? {
+      val maxHours = node.task.maxHours
+      val finished = node.isFinished
+      val taskTree = TaskTree.getInstance()
+      val maxDays = if (maxHours != null && maxHours.toInt() == 0) {
+        null
+      } else {
+        NumberHelper.setDefaultScale(taskTree.getPersonDays(node))
+      }
+      var usage = BigDecimal(node.getDuration(taskTree, true)).divide(
+        DateHelper.SECONDS_PER_WORKING_DAY, 2,
+        RoundingMode.HALF_UP
+      )
+      usage = NumberHelper.setDefaultScale(usage)
 
-            val percentage = if (maxDays != null && maxDays.toDouble() > 0)
-                usage.divide(maxDays, 2, RoundingMode.HALF_UP).multiply(NumberHelper.HUNDRED).toInt()
-            else
-                0
-            // TODO: What does 10000 / percentage mean?
-            val width = if (percentage <= 100) percentage else 10000 / percentage
-            //bar.add(AttributeModifier.replace("class", "progress"))
-            val status =
-                    if (percentage <= 80 || finished && percentage <= 100) {
-                        if (percentage > 0) {
-                            Status.DONE
-                        } else {
-                            Status.NONE
-                            //progressLabel.setVisible(false)
-                        }
-                    } else if (percentage <= 90) {
-                        Status.PROGRESS_80
-                    } else if (percentage <= 100) {
-                        Status.PROGRESS_90
-                    } else if (finished && percentage <= 110) {
-                        Status.OVERBOOKED_MIN
-                    } else {
-                        Status.OVERBOOKED
-                    }
-            if (maxDays == null && (usage == null || usage.compareTo(BigDecimal.ZERO) == 0)) {
-                return null
-            }
-            val locale = ThreadLocalUserContext.getLocale()
-            val usageStr = NumberHelper.getNumberFractionFormat(locale, usage.scale()).format(usage)
-            val unitStr = translate("projectmanagement.personDays.short")
-            val maxValueStr =
-                    if (maxDays != null) {
-                        "/${NumberHelper.getNumberFractionFormat(locale, maxDays.scale()).format(maxDays)}$unitStr ($percentage%)"
-                    } else {
-                        ""
-                    }
-            val title = "$usageStr$unitStr$maxValueStr"
-            return Consumption(title, status, percentage = percentage, width = "$width%", id = node.taskId)
+      val percentage = if (maxDays != null && maxDays.toDouble() > 0)
+        usage.divide(maxDays, 2, RoundingMode.HALF_UP).multiply(NumberHelper.HUNDRED).toInt()
+      else
+        0
+      // TODO: What does 10000 / percentage mean?
+      val width = if (percentage <= 100) percentage else 10000 / percentage
+      //bar.add(AttributeModifier.replace("class", "progress"))
+      val status =
+        if (percentage <= 80 || finished && percentage <= 100) {
+          if (percentage > 0) {
+            Status.DONE
+          } else {
+            Status.NONE
+            //progressLabel.setVisible(false)
+          }
+        } else if (percentage <= 90) {
+          Status.PROGRESS_80
+        } else if (percentage <= 100) {
+          Status.PROGRESS_90
+        } else if (finished && percentage <= 110) {
+          Status.OVERBOOKED_MIN
+        } else {
+          Status.OVERBOOKED
         }
+      if (maxDays == null && usage.compareTo(BigDecimal.ZERO) == 0) {
+        return null
+      }
+      val locale = ThreadLocalUserContext.getLocale()
+      val usageStr = NumberHelper.getNumberFractionFormat(locale, usage.scale()).format(usage)
+      val unitStr = translate("projectmanagement.personDays.short")
+      val maxValueStr =
+        if (maxDays != null) {
+          "/${NumberHelper.getNumberFractionFormat(locale, maxDays.scale()).format(maxDays)}$unitStr ($percentage%)"
+        } else {
+          ""
+        }
+      val title = "$usageStr$unitStr$maxValueStr"
+      return Consumption(title, status, percentage = percentage, width = "$width%", id = node.taskId)
     }
+  }
 }

@@ -44,8 +44,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.template.PackageTextTemplate;
 import org.projectforge.ProjectForgeVersion;
 import org.projectforge.business.configuration.DomainService;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.systeminfo.SystemService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -313,11 +311,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage {
     response.render(OnDomReadyHeaderItem.forScript(getJstemplate().asString(i18nKeyMap)));
   }
 
-  protected TenantRegistry getTenantRegistry() {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
   protected UserGroupCache getUserGroupCache() {
-    return getTenantRegistry().getUserGroupCache();
+    return UserGroupCache.getInstance();
   }
 }

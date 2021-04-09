@@ -25,11 +25,9 @@ package org.projectforge.business.configuration;
 
 import de.micromata.genome.util.runtime.config.MailSessionLocalSettingsConfigModel;
 import org.projectforge.business.orga.ContractType;
-import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.IConfigurationParam;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.mail.SendMailConfig;
 
@@ -79,13 +77,9 @@ public interface ConfigurationService {
 
     boolean isMebMailAccountConfigured();
 
-    boolean isMultiTenancyConfigured();
-
     Object getDaoValue(final IConfigurationParam parameter, final ConfigurationDO configurationDO);
 
     List<ConfigurationDO> daoInternalLoadAll();
-
-    List<ConfigurationDO> daoInternalLoadAll(TenantDO tenant);
 
     TimeZone getTimezone();
 

@@ -45,13 +45,15 @@ import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.cache.AbstractCache;
 import org.projectforge.framework.i18n.InternalErrorException;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.StackTraceHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringWriter;
@@ -64,26 +66,47 @@ import java.util.*;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+@Service
 public class TaskTree extends AbstractCache implements Serializable {
   private static final long serialVersionUID = 3748005966442878168L;
 
   public static final String USER_PREFS_KEY_OPEN_TASKS = "openTasks";
 
+  @Autowired
   private TaskDao taskDao;
 
+  @Autowired
   private AccessDao accessDao;
 
+  @Autowired
   private ProjektDao projektDao;
 
+  @Autowired
   private KostCache kostCache;
 
+  @Autowired
   private AuftragDao auftragDao;
 
+  @Autowired
   private TimesheetDao timesheetDao;
 
-  private TenantDO tenant;
-
   private static final List<TaskNode> EMPTY_LIST = new ArrayList<>();
+
+  private static TaskTree INSTANCE;
+
+  public static TaskTree getInstance() {
+    return INSTANCE;
+  }
+
+  @PostConstruct
+  private void postConstruct() {
+    if (INSTANCE != null) {
+      log.warn("Oups, shouldn't instantiate TaskTree twice");
+      return;
+    }
+    INSTANCE = this;
+    auftragDao.registerTaskTree(this);
+  }
 
   /**
    * For log messages.
@@ -494,52 +517,10 @@ public class TaskTree extends AbstractCache implements Serializable {
     return result;
   }
 
-  public TaskTree() {
+  private TaskTree() {
     super(AbstractCache.TICKS_PER_HOUR);
   }
 
-  public void setTaskDao(final TaskDao taskDao) {
-    this.taskDao = taskDao;
-  }
-
-  TaskDao getTaskDao() {
-    return taskDao;
-  }
-
-  public void setAccessDao(final AccessDao accessDao) {
-    this.accessDao = accessDao;
-  }
-
-  public void setProjektDao(final ProjektDao projektDao) {
-    this.projektDao = projektDao;
-  }
-
-  public void setKostCache(final KostCache kostCache) {
-    this.kostCache = kostCache;
-  }
-
-  public void setTimesheetDao(TimesheetDao timesheetDao) {
-    this.timesheetDao = timesheetDao;
-  }
-
-  public void setAuftragDao(final AuftragDao auftragDao) {
-    this.auftragDao = auftragDao;
-    auftragDao.registerTaskTree(this);
-  }
-
-  /**
-   * @return the tenant
-   */
-  public TenantDO getTenant() {
-    return tenant;
-  }
-
-  /**
-   * @param tenant the tenant to set
-   */
-  public void setTenant(final TenantDO tenant) {
-    this.tenant = tenant;
-  }
 
   /**
    * Has the current logged in user select access to the given task?
@@ -845,11 +826,7 @@ public class TaskTree extends AbstractCache implements Serializable {
     TaskNode newRoot = null;
     taskMap = new HashMap<>();
     final List<TaskDO> taskList;
-    if (tenant != null) {
-      taskList = taskDao.internalLoadAll(tenant);
-    } else {
-      taskList = taskDao.internalLoadAll();
-    }
+    taskList = taskDao.internalLoadAll();
     TaskNode node;
     log.debug("Loading list of tasks ...");
     for (final TaskDO task : taskList) {
@@ -871,16 +848,8 @@ public class TaskTree extends AbstractCache implements Serializable {
 
     if (newRoot == null) {
       final TaskDO rootTask = new TaskDO();
-      if (tenant == null) {
-        log.error("OUPS, no task found (ProjectForge database not initialized?) OK, initialize it ...");
-        rootTask.setShortDescription("ProjectForge root task");
-      } else {
-        log.info("No task yet given for tenant: " + tenant.getId() + ". Creating root task.");
-        rootTask.setTenant(tenant);
-        rootTask.setShortDescription("ProjectForge root task of tenant #" + tenant.getId());
-      }
+      rootTask.setShortDescription("ProjectForge root task");
       rootTask.setTitle("root");
-      rootTask.setTenant(tenant);
       taskDao.internalSave(rootTask);
       newRoot = new TaskNode();
       newRoot.setTask(rootTask);

@@ -25,8 +25,6 @@ package org.projectforge.framework.persistence.jpa.listener;
 
 import de.micromata.genome.jpa.DbRecord;
 import de.micromata.genome.jpa.events.*;
-import org.projectforge.business.multitenancy.TenantChecker;
-import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.AUserRightId;
@@ -54,12 +52,6 @@ public class BeforeModifyEventHandler implements EmgrEventHandler<EmgrInitForMod
   @Autowired
   private JpaPfGenericPersistenceService genericPersistenceService;
 
-  @Autowired
-  private TenantChecker tenantChecker;
-
-  @Autowired
-  private TenantService tenantService;
-
   /**
    * {@inheritDoc}
    */
@@ -71,7 +63,6 @@ public class BeforeModifyEventHandler implements EmgrEventHandler<EmgrInitForMod
       return;
     }
     BaseDO baseDo = (BaseDO) rec;
-    tenantChecker.isTenantSet(baseDo, true);
     PfEmgr emgr = (PfEmgr) event.getEmgr();
     if (!emgr.isCheckAccess()) {
       return;
@@ -92,7 +83,6 @@ public class BeforeModifyEventHandler implements EmgrEventHandler<EmgrInitForMod
       throw new IllegalArgumentException("Unsuported event to BeforeModifyEventHandler:" + event.getClass().getName());
     }
     accessChecker.checkRestrictedOrDemoUser();
-    tenantChecker.checkPartOfCurrentTenant(baseDo);
     IUserRightId rightId = genericPersistenceService.getUserRight(baseDo);
     accessChecker.hasLoggedInUserAccess(rightId, baseDo, null, operationType, true);
   }

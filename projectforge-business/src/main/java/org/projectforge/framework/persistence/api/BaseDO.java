@@ -27,7 +27,6 @@ import de.micromata.genome.jpa.CustomEntityCopier;
 import de.micromata.genome.jpa.DbRecord;
 import de.micromata.genome.jpa.EntityCopyStatus;
 import de.micromata.genome.jpa.IEmgr;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 
 import java.io.Serializable;
 
@@ -40,20 +39,6 @@ import java.io.Serializable;
 public interface BaseDO<I extends Serializable>
     extends IdObject<I>, DbRecord<I>, CustomEntityCopier<BaseDO<I>>
 {
-  /**
-   * @return The tenant for multi-tenancy.
-   */
-  public TenantDO getTenant();
-
-  public Integer getTenantId();
-
-  /**
-   * Sets the tenant for multi-tenancy.
-   *
-   * @return this for chaining.
-   */
-  public BaseDO<I> setTenant(TenantDO client);
-
   @Override
   public I getId();
 

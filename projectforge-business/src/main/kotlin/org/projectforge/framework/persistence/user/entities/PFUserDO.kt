@@ -52,8 +52,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PF_USER", uniqueConstraints = [UniqueConstraint(columnNames = ["username"])], indexes = [Index(name = "idx_fk_t_pf_user_tenant_id", columnList = "tenant_id")])
-@EntityDependencies(referencedBy = [TenantDO::class])
+@Table(name = "T_PF_USER", uniqueConstraints = [UniqueConstraint(columnNames = ["username"])])
 @NamedQueries(
         NamedQuery(name = PFUserDO.FIND_BY_USERNAME,
                 query = "from PFUserDO where username=:username"),
@@ -126,13 +125,6 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     @PropertyInfo(i18nKey = "user.activated")
     @get:Column(nullable = false)
     open var deactivated: Boolean = false
-
-    /**
-     * A super admin is able to administer tenants. For tenants the user must be assigned to PF_Admin if he should be an
-     * administrator of the tenant's objects. This flag is therefore independent of the right to administer objects of tenants itself.
-     */
-    @get:Column(name = "super_admin", nullable = false, columnDefinition = "boolean DEFAULT false")
-    open var superAdmin: Boolean = false
 
     @PropertyInfo(i18nKey = "firstName")
     @Field

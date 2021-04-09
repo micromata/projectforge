@@ -29,8 +29,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.login.Login;
-import org.projectforge.business.multitenancy.TenantChecker;
-import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.AccessType;
@@ -40,7 +38,6 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +74,7 @@ public class UserDao extends BaseDao<PFUserDO> {
   }
 
   public QueryFilter getDefaultFilter() {
-    final QueryFilter queryFilter = new QueryFilter(null, false);
+    final QueryFilter queryFilter = new QueryFilter(null);
     queryFilter.add(QueryFilter.eq("deleted", false));
     return queryFilter;
   }
@@ -87,11 +84,7 @@ public class UserDao extends BaseDao<PFUserDO> {
    */
   @Override
   public QueryFilter createQueryFilter(final BaseSearchFilter filter) {
-    final boolean superAdmin = TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser());
-    if (!superAdmin) {
-      return super.createQueryFilter(filter);
-    }
-    return new QueryFilter(filter, true);
+    return new QueryFilter(filter);
   }
 
   @Override
@@ -134,16 +127,6 @@ public class UserDao extends BaseDao<PFUserDO> {
         }
       }
     }
-    if (applicationContext.getBean(TenantService.class).isMultiTenancyAvailable()
-            && !TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser())) {
-      final List<PFUserDO> origList = list;
-      list = new LinkedList<>();
-      for (final PFUserDO user : origList) {
-        if (tenantChecker.isPartOfTenant(ThreadLocalUserContext.getUserContext().getCurrentTenant(), user)) {
-          list.add(user);
-        }
-      }
-    }
     return list;
   }
 
@@ -168,17 +151,6 @@ public class UserDao extends BaseDao<PFUserDO> {
   @Override
   public List<PFUserDO> internalLoadAll() {
     return copyUsersWithoutSecrectFields(super.internalLoadAll());
-  }
-
-  /**
-   * Removes secret fields for security reasons by copying all users without secret fields.
-   * Result elements are evicted.
-   *
-   * @see BaseDao#internalLoadAll(TenantDO)
-   */
-  @Override
-  public List<PFUserDO> internalLoadAll(TenantDO tenant) {
-    return copyUsersWithoutSecrectFields(super.internalLoadAll(tenant));
   }
 
   /**
@@ -224,21 +196,6 @@ public class UserDao extends BaseDao<PFUserDO> {
 
   public Collection<Integer> getAssignedGroups(final PFUserDO user) {
     return getUserGroupCache().getUserGroups(user);
-  }
-
-  public Collection<Integer> getAssignedTenants(final PFUserDO user) {
-    final List<TenantDO> list = em
-            .createNamedQuery(TenantDO.FIND_ASSIGNED_TENANTS, TenantDO.class)
-            .setParameter("user", user)
-            .getResultList();
-
-    final Set<Integer> result = new HashSet<>();
-    if (list != null) {
-      for (final TenantDO tenant : list) {
-        result.add(tenant.getId());
-      }
-    }
-    return result;
   }
 
   public List<UserRightDO> getUserRights(final Integer userId) {

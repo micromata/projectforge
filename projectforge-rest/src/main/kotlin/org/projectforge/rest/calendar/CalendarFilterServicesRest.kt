@@ -108,9 +108,11 @@ class CalendarFilterServicesRest {
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
 
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
+
     @GetMapping("initial")
     fun getInitialCalendar(): CalendarInit {
-        val userGroupCache = UserGroupCache.tenantInstance
         val initial = CalendarInit()
         val calendars = getCalendars()
         val currentFilter = getCurrentFilter()

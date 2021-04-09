@@ -34,11 +34,12 @@ import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.KostCache;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetRecentEntry;
 import org.projectforge.business.timesheet.TimesheetRecentService;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
@@ -273,7 +274,7 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
     sheet.setKost2(kost2);
     sheet.setDescription(entry.getDescription());
     sheet.setLocation(entry.getLocation());
-    final PFUserDO user = getTenantRegistry().getUserGroupCache().getUser(entry.getUserId());
+    final PFUserDO user = UserGroupCache.getInstance().getUser(entry.getUserId());
     sheet.setUser(user);
     return sheet;
   }

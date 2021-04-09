@@ -27,10 +27,7 @@ import net.fortuna.ical4j.util.CompatibilityHints;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.projectforge.business.configuration.DomainService;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.systeminfo.SystemInfoCache;
-import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.common.CanonicalFileUtils;
 import org.projectforge.common.EmphasizedLogSupport;
@@ -192,21 +189,12 @@ public class ProjectForgeApp {
     SystemInfoCache.internalInitialize(systemInfoCache);
   }
 
-  private TenantRegistry getTenantRegistry() {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  private UserGroupCache getUserGroupCache() {
-    return getTenantRegistry().getUserGroupCache();
-  }
-
   private void internalShutdown() {
     log.info("Shutdown...");
     upAndRunning = false;
     try {
       final UserContext internalSystemAdminUserContext = UserContext
-          .__internalCreateWithSpecialUser(DatabaseService
-              .__internalGetSystemAdminPseudoUser(), getUserGroupCache());
+          .__internalCreateWithSpecialUser(DatabaseService.__internalGetSystemAdminPseudoUser());
       ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
       databaseService.shutdownDatabase();
     } finally {

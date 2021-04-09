@@ -42,7 +42,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_MEMO", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_memo_owner_fk", columnList = "owner_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_memo_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_MEMO", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_memo_owner_fk", columnList = "owner_fk")])
 open class MemoDO : AbstractBaseDO<Int>() {
 
     @PropertyInfo(i18nKey = "id")

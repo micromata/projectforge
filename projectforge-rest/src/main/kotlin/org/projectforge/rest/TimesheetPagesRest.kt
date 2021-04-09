@@ -29,7 +29,6 @@ import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.systeminfo.SystemInfoCache
 import org.projectforge.business.task.TaskTree
-import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFavoritesService
@@ -93,6 +92,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   private lateinit var calendarEventRest: CalEventPagesRest
 
   @Autowired
+  private lateinit var taskTree: TaskTree
+
+  @Autowired
   private lateinit var timesheetFavoritesService: TimesheetFavoritesService
 
   @Autowired
@@ -100,10 +102,6 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
 
   @Autowired
   private lateinit var timesheetDao: TimesheetDao
-
-  private val taskTree: TaskTree
-    /** Lazy init, because test cases failed due to NPE in TenantRegistryMap. */
-    get() = TaskTreeHelper.getTaskTree()
 
   /**
    * For exporting list of timesheets.
@@ -167,7 +165,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     val recentEntry = timesheetRecentService.getRecentTimesheet();
     if (recentEntry != null) {
       if (recentEntry.taskId != null) {
-        sheet.task = Task.getTask(recentEntry.taskId, ThreadLocalUserContext.getUser())
+        sheet.task = Task.getTask(recentEntry.taskId)
         if (recentEntry.kost2Id != null) {
           sheet.kost2 = Kost2.getkost2(recentEntry.kost2Id)
         }

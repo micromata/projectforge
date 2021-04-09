@@ -37,7 +37,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_CALENDAR_EVENT_ATTENDEE", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_team_event_fk", columnList = "team_event_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_address_id", columnList = "address_id"), javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_user_id", columnList = "user_id"), javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_CALENDAR_EVENT_ATTENDEE", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_team_event_fk", columnList = "team_event_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_address_id", columnList = "address_id"), javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_user_id", columnList = "user_id")])
 @WithHistory(noHistoryProperties = ["loginToken"])
 open class TeamEventAttendeeDO : DefaultBaseDO(), Comparable<TeamEventAttendeeDO> {
 

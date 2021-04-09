@@ -24,7 +24,6 @@
 package org.projectforge.business.user;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
@@ -41,6 +40,9 @@ public class UserGroupCacheTest extends AbstractTestBase
 {
   @Autowired
   private GroupDao groupDao;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   @Test
   public void testUserMemberOfAtLeastOneGroup()
@@ -62,7 +64,6 @@ public class UserGroupCacheTest extends AbstractTestBase
     id = groupDao.save(group2);
     group2 = groupDao.getById(id);
 
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     assertFalse(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId()));
     assertFalse(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), group1.getId()));
     assertTrue(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), group2.getId()));

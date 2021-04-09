@@ -40,18 +40,18 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.hibernate.Hibernate;
-import org.hibernate.cfg.NotYetImplementedException;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.systeminfo.SystemInfoCache;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetRecentService;
 import org.projectforge.business.user.UserFormatter;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserPrefDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
@@ -73,7 +73,6 @@ import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -307,7 +306,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("user"));
       PFUserDO user = data.getUser();
       if (!Hibernate.isInitialized(user)) {
-        user = getTenantRegistry().getUserGroupCache().getUser(user.getId());
+        user = UserGroupCache.getInstance().getUser(user.getId());
         data.setUser(user);
       }
       userSelectPanel = new UserSelectPanel(fs.newChildId(), new PropertyModel<PFUserDO>(data, "user"), parentPage,

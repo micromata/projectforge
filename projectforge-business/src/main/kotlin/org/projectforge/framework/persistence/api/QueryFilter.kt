@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.api
 
-import org.projectforge.business.tasktree.TaskTreeHelper
+import org.projectforge.business.task.TaskTree
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.impl.DBFilter
 import org.projectforge.framework.persistence.api.impl.DBHistorySearchParams
@@ -50,8 +50,7 @@ const val QUERY_FILTER_MAX_ROWS: Int = 10000
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
-                                            val ignoreTenant: Boolean = false) {
+class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
     private val predicates = mutableListOf<DBPredicate>()
 
     val joinList = mutableListOf<DBJoin>()
@@ -326,7 +325,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null,
             if (taskId == null) {
                 return DBPredicate.IsNull(field)
             }
-            val node = TaskTreeHelper.getTaskTree().getTaskNodeById(taskId)
+            val node = TaskTree.getInstance().getTaskNodeById(taskId)
             return if (node == null) {
                 log.warn("Can't query for given task id #$taskId, no such task node found.")
                 DBPredicate.IsNull(field)

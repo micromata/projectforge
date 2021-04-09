@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.group.service.GroupService;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.password.PasswordQualityService;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
@@ -68,12 +67,14 @@ public class UserTest extends AbstractTestBase {
   @Autowired
   private PasswordQualityService passwordQualityService;
 
+  @Autowired
+  private UserGroupCache userGroupCache;
+
   @Test
   public void testUserDO() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     final PFUserDO user = userService.getInternalByUsername(AbstractTestBase.TEST_ADMIN_USER);
     assertEquals(user.getUsername(), AbstractTestBase.TEST_ADMIN_USER);
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final PFUserDO user1 = getUser("user1");
     final String groupnames = groupService.getGroupnames(user1.getId());
     assertEquals("group1; group2", groupnames, "Groupnames");
@@ -111,19 +112,16 @@ public class UserTest extends AbstractTestBase {
     assertEquals("UserTest", user.getUsername());
     assertNull(user.getPassword()); // Not SHA, should be ignored.
     assertEquals("Description", user.getDescription());
-    assertEquals(Integer.valueOf(1), user.getTenant() != null ? user.getTenant().getPk() : Integer.valueOf(-1));
     user.setDescription("Description\ntest");
     user.setPassword("secret");
     userService.update(user);
     user = userService.internalGetById(id);
     assertEquals("Description\ntest", user.getDescription());
-    assertEquals(Integer.valueOf(1), user.getTenant() != null ? user.getTenant().getPk() : Integer.valueOf(-1));
     assertNull(user.getPassword()); // Not SHA, should be ignored.
     user.setPassword("SHA{...}");
     userService.update(user);
     user = userService.internalGetById(id);
     assertEquals("SHA{...}", user.getPassword());
-    assertEquals(Integer.valueOf(1), user.getTenant() != null ? user.getTenant().getPk() : Integer.valueOf(-1));
   }
 
   @Test

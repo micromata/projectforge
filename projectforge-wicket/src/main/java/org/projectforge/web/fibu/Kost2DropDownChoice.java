@@ -30,7 +30,7 @@ import org.apache.wicket.validation.INullAcceptingValidator;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 

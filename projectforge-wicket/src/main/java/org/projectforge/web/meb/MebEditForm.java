@@ -35,6 +35,7 @@ import org.hibernate.Hibernate;
 import org.projectforge.business.meb.MebEntryDO;
 import org.projectforge.business.meb.MebEntryStatus;
 import org.projectforge.business.orga.PostType;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -97,7 +98,7 @@ public class MebEditForm extends AbstractEditForm<MebEntryDO, MebEditPage>
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("meb.owner"));
       PFUserDO owner = data.getOwner();
       if (Hibernate.isInitialized(owner) == false) {
-        owner = getTenantRegistry().getUserGroupCache().getUser(owner.getId());
+        owner = UserGroupCache.getInstance().getUser(owner.getId());
         data.setOwner(owner);
       }
       final UserSelectPanel userSelectPanel = new UserSelectPanel(fs.newChildId(), new PropertyModel<PFUserDO>(data, "owner"), parentPage,

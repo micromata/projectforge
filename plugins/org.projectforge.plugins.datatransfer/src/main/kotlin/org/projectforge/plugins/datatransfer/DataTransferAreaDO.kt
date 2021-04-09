@@ -38,13 +38,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(
-  name = "t_plugin_datatransfer_area",
-  indexes = [javax.persistence.Index(
-    name = "idx_fk_t_plugin_datatransfer_area_tenant_id",
-    columnList = "tenant_id"
-  )]
-)
+@Table(name = "t_plugin_datatransfer_area")
 @NamedQueries(
   NamedQuery(
     name = DataTransferAreaDO.FIND_BY_EXTERNAL_ACCESS_TOKEN,

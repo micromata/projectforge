@@ -37,7 +37,7 @@ import javax.persistence.*
  * @author Werner Feder (werner.feder@t-online.de)
  */
 @Entity
-@Table(name = "T_FIBU_PAYMENT_SCHEDULE", uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_id", "number"])], indexes = [Index(name = "idx_fk_t_fibu_payment_schedule_auftrag_id", columnList = "auftrag_id"), Index(name = "idx_fk_t_fibu_payment_schedule_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_FIBU_PAYMENT_SCHEDULE", uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_id", "number"])], indexes = [Index(name = "idx_fk_t_fibu_payment_schedule_auftrag_id", columnList = "auftrag_id")])
 open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
 
     override val displayName: String

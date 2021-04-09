@@ -47,7 +47,6 @@ import javax.persistence.*
   indexes = [javax.persistence.Index(name = "idx_fk_t_timesheet_kost2_id", columnList = "kost2_id"),
     javax.persistence.Index(name = "idx_fk_t_timesheet_task_id", columnList = "task_id"),
     javax.persistence.Index(name = "idx_fk_t_timesheet_user_id", columnList = "user_id"),
-    javax.persistence.Index(name = "idx_fk_t_timesheet_tenant_id", columnList = "tenant_id"),
     javax.persistence.Index(name = "idx_timesheet_user_time", columnList = "user_id, start_time")]
 )
 @NamedQueries(

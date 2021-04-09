@@ -69,10 +69,6 @@ object BaseDaoSupport {
 
     private fun <O : ExtendedBaseDO<Int>> preInternalSave(baseDao: BaseDao<O>, obj: O) {
         Validate.notNull<O>(obj)
-        //TODO: Muss der richtige Tenant gesetzt werden. Ist nur Workaround.
-        if (obj.getTenant() == null) {
-            obj.setTenant(baseDao.getDefaultTenant())
-        }
         obj.setCreated()
         obj.setLastUpdate()
         baseDao.onSave(obj)
@@ -97,7 +93,6 @@ object BaseDaoSupport {
 
     private fun <O : ExtendedBaseDO<Int>> preInternalUpdate(baseDao: BaseDao<O>, obj: O, checkAccess: Boolean) {
         baseDao.beforeSaveOrModify(obj)
-        baseDao.tenantChecker.isTenantSet(obj, true)
         baseDao.onSaveOrModify(obj)
         if (checkAccess) {
             baseDao.accessChecker.checkRestrictedOrDemoUser()
@@ -108,7 +103,6 @@ object BaseDaoSupport {
         val em = emgr.entityManager
         val dbObj = em.find(baseDao.clazz, obj.id)
         if (checkAccess) {
-            baseDao.checkPartOfCurrentTenant(obj, OperationType.UPDATE)
             baseDao.checkLoggedInUserUpdateAccess(obj, dbObj)
         }
         baseDao.onChange(obj, dbObj)

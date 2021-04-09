@@ -36,8 +36,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.ldap.LdapUserDao;
-import org.projectforge.business.multitenancy.TenantChecker;
-import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
@@ -45,7 +43,6 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.*;
@@ -77,9 +74,6 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
   @SpringBean
   private GroupService groupService;
 
-  @SpringBean
-  private TenantService tenantService;
-
   public UserListPage(final PageParameters parameters)
   {
     super(parameters, "user");
@@ -104,9 +98,6 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
       {
         final PFUserDO user = rowModel.getObject();
         appendCssClasses(item, user.getId(), user.hasSystemAccess() == false);
-        if (TenantChecker.isSuperAdmin(user) == true) {
-          appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
-        }
       }
     };
     columns.add(new CellItemListenerPropertyColumn<PFUserDO>(getString("user.username"),
@@ -215,22 +206,6 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
           cellItemListener.populateItem(cellItem, componentId, rowModel);
         }
       });
-      if (TenantChecker.isSuperAdmin(getUser()) == true) {
-        columns.add(new AbstractColumn<PFUserDO, String>(new Model<String>(getString("multitenancy.assignedTenants")))
-        {
-          @Override
-          public void populateItem(final Item<ICellPopulator<PFUserDO>> cellItem, final String componentId,
-              final IModel<PFUserDO> rowModel)
-          {
-            final PFUserDO user = rowModel.getObject();
-            final Collection<TenantDO> tenants = tenantService.getTenantsOfUser(user.getId());
-            final String tenantNames = tenantService.getTenantShortNames(tenants);
-            final Label label = new Label(componentId, new Model<String>(tenantNames));
-            cellItem.add(label);
-            cellItemListener.populateItem(cellItem, componentId, rowModel);
-          }
-        });
-      }
       if (ldapUserDao.isPosixAccountsConfigured() == true) {
         columns
             .add(new CellItemListenerPropertyColumn<PFUserDO>(getString("user.ldapValues"), "ldapValues", "ldapValues",

@@ -28,17 +28,16 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.registry.Registry
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import java.util.*
 
-class BirthdayCache() : AbstractCache() {
-    private var addressDao: AddressDao
+@Component
+open class BirthdayCache() : AbstractCache() {
+    @Autowired
+    private lateinit var addressDao: AddressDao
 
     private var cacheList = mutableListOf<BirthdayAddress>()
-
-    init {
-        val registryEntry = Registry.instance.getEntry(AddressDao::class.java)
-        addressDao = registryEntry.dao as AddressDao
-    }
 
     /**
      * Get the birthdays of address entries.

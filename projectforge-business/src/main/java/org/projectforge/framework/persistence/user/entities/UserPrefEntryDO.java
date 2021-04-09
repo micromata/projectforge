@@ -43,19 +43,16 @@ import java.util.Objects;
 @Entity
 @Table(name = "T_USER_PREF_ENTRY",
     uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "user_pref_fk", "parameter", "tenant_id" })
+        @UniqueConstraint(columnNames = { "user_pref_fk", "parameter" })
     },
     indexes = {
-        @javax.persistence.Index(name = "idx_fk_t_user_pref_entry_user_pref_fk", columnList = "user_pref_fk"),
-        @javax.persistence.Index(name = "idx_fk_t_user_pref_entry_tenant_id", columnList = "tenant_id")
+        @javax.persistence.Index(name = "idx_fk_t_user_pref_entry_user_pref_fk", columnList = "user_pref_fk")
     })
 public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
 {
   private static final long serialVersionUID = 7163902159871289059L;
 
   public static final int MAX_STRING_VALUE_LENGTH = 10000;
-
-  private TenantDO tenant;
 
   private String parameter; // 255 not null
 
@@ -94,37 +91,6 @@ public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
   public void setId(final Integer id)
   {
     this.id = id;
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDO#getTenant()
-   */
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "tenant_id")
-  @Override
-  public TenantDO getTenant()
-  {
-    return this.tenant;
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDO#getTenantId()
-   */
-  @Override
-  @Transient
-  public Integer getTenantId()
-  {
-    return tenant != null ? tenant.getId() : null;
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDO#setTenant(TenantDO)
-   */
-  @Override
-  public UserPrefEntryDO setTenant(final TenantDO tenant)
-  {
-    this.tenant = tenant;
-    return this;
   }
 
   @Column(length = 255)

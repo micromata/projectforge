@@ -36,7 +36,6 @@ import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 
@@ -232,7 +231,7 @@ public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoComplete
   private TaskTree getTaskTree()
   {
     if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
+      taskTree = TaskTree.getInstance();
     }
     return taskTree;
   }

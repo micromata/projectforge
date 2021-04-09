@@ -54,8 +54,7 @@ import javax.persistence.Index
         indexes = [
             Index(name = "idx_fk_t_task_gantt_predecessor_fk", columnList = "gantt_predecessor_fk"),
             Index(name = "idx_fk_t_task_parent_task_id", columnList = "parent_task_id"),
-            Index(name = "idx_fk_t_task_responsible_user_id", columnList = "responsible_user_id"),
-            Index(name = "idx_fk_t_task_tenant_id", columnList = "tenant_id")])
+            Index(name = "idx_fk_t_task_responsible_user_id", columnList = "responsible_user_id")])
 @JpaXmlPersist(beforePersistListener = [TaskXmlBeforePersistListener::class])
 @NamedQueries(
         NamedQuery(name = TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE,

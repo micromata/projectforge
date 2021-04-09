@@ -42,19 +42,12 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_CONFIGURATION", uniqueConstraints = [UniqueConstraint(columnNames = ["parameter", "tenant_id"])], indexes = [Index(name = "idx_fk_t_configuration_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_CONFIGURATION", uniqueConstraints = [UniqueConstraint(columnNames = ["parameter"])])
 @JpaXmlPersist(beforePersistListener = [ConfigurationXmlBeforePersistListener::class])
 @AUserRightId("ADMIN_CORE")
 @NamedQueries(
         NamedQuery(name = ConfigurationDO.FIND_BY_PARAMETER, query = "from ConfigurationDO where parameter = :parameter"))
 open class ConfigurationDO : DefaultBaseDO {
-
-    /**
-     * If true this parameter is valid for all tenants (in multi-tenancy environments), otherwise this parameter is valid
-     * only for the tenant this parameter is assigned to.
-     */
-    @get:Column(name = "is_global", columnDefinition = "boolean default false")
-    open var global: Boolean = false
 
     /**
      * Key under which the configuration value is stored in the database.
@@ -263,8 +256,6 @@ open class ConfigurationDO : DefaultBaseDO {
     constructor()
 
     /**
-     * Is used for versions without tenant column
-     *
      * @param id
      * @param created
      * @param deleted

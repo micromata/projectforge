@@ -26,7 +26,6 @@ package org.projectforge.business.user;
 import com.thoughtworks.xstream.XStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.refactoring.RefactoringService;
 import org.projectforge.business.scripting.xstream.RecentScriptCalls;
 import org.projectforge.business.scripting.xstream.ScriptCallData;
@@ -70,8 +69,6 @@ public class UserXmlPreferencesDao {
   private ApplicationContext applicationContext;
   @Autowired
   private RefactoringService refService;
-  @Autowired
-  private TenantDao tenantDao;
   @Autowired
   private PfEmgrFactory emgrFactory;
 
@@ -272,7 +269,6 @@ public class UserXmlPreferencesDao {
     if (userPrefs == null) {
       isNew = true;
       userPrefs = new UserXmlPreferencesDO();
-      userPrefs.setTenant(tenantDao.getDefaultTenant());
       userPrefs.setCreated(date);
       userPrefs.setUser(userDao.internalGetById(userId));
       userPrefs.setKey(key);

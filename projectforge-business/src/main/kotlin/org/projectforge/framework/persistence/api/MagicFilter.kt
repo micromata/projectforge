@@ -23,8 +23,6 @@
 
 package org.projectforge.framework.persistence.api
 
-import org.projectforge.business.multitenancy.TenantRegistry
-import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserPrefDao
 import org.projectforge.favorites.AbstractFavorite
@@ -69,7 +67,7 @@ class MagicFilter(
     fun init() {
         entries.forEach {
             if (it.field == MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName) {
-                it.value.label = getUserGroupCache().getUser(it.value.value?.toInt())?.username
+                it.value.label = UserGroupCache.getInstance().getUser(it.value.value?.toInt())?.username
             }
         }
         entries.removeIf { it.field.isNullOrBlank() } // Former filter versions (7.0-SNAPSHOT in 2019 supported entries with no values. This is now replaced by searchString.
@@ -112,15 +110,5 @@ class MagicFilter(
         val mapper = UserPrefDao.getObjectMapper()
         val json = mapper.writeValueAsString(this)
         return mapper.readValue(json, MagicFilter::class.java)
-    }
-
-    companion object {
-        private fun getTenantRegistry(): TenantRegistry {
-            return TenantRegistryMap.getInstance().tenantRegistry
-        }
-
-        private fun getUserGroupCache(): UserGroupCache {
-            return getTenantRegistry().userGroupCache
-        }
     }
 }

@@ -34,7 +34,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.ConfigurationDao;
@@ -56,7 +55,8 @@ public class ConfigurationListPage extends AbstractListPage<ConfigurationListFor
   @SpringBean
   private TeamCalCache teamCalCache;
 
-  private transient TaskTree taskTree;
+  @SpringBean
+  private TaskTree taskTree;
 
   public ConfigurationListPage(final PageParameters parameters)
   {
@@ -107,7 +107,7 @@ public class ConfigurationListPage extends AbstractListPage<ConfigurationListFor
         if (configuration.getValue() == null) {
           value = "";
         } else if (configuration.getConfigurationType() == ConfigurationType.TASK) {
-          final TaskDO task = getTaskTree().getTaskById(configuration.getTaskId());
+          final TaskDO task = taskTree.getTaskById(configuration.getTaskId());
           if (task != null) {
             value = task.getId() + ": " + task.getTitle();
           } else {
@@ -141,14 +141,6 @@ public class ConfigurationListPage extends AbstractListPage<ConfigurationListFor
     });
     dataTable = createDataTable(columns, null, SortOrder.ASCENDING);
     form.add(dataTable);
-  }
-
-  private TaskTree getTaskTree()
-  {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
   }
 
   @Override

@@ -264,7 +264,6 @@ public class TeamCalCalendarForm extends CalendarForm
             if (ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getPk()) || dbEvent.isDeleted()) {
               event.setId(dbEvent.getPk());
               event.setCreated(dbEvent.getCreated());
-              event.setTenant(dbEvent.getTenant());
               event.setCreator(dbEvent.getCreator());
               event.setDeleted(dbEvent.isDeleted());
             } else {

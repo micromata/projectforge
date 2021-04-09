@@ -31,6 +31,7 @@ import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.registry.WebRegistry;
@@ -82,7 +83,7 @@ public class SearchPage extends AbstractStandardFormPage implements ISelectCalle
   public void select(final String property, final Object selectedValue)
   {
     if ("userId".equals(property) == true) {
-      final PFUserDO user = getTenantRegistry().getUserGroupCache().getUser((Integer) selectedValue);
+      final PFUserDO user = UserGroupCache.getInstance().getUser((Integer) selectedValue);
       form.filter.setModifiedByUser(user);
     } else {
       log.error("Property '" + property + "' not supported for selection.");

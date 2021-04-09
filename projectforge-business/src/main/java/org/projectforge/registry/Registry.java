@@ -34,7 +34,6 @@ import org.projectforge.business.gantt.GanttChartDao;
 import org.projectforge.business.humanresources.HRPlanningDao;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
 import org.projectforge.business.meb.MebDao;
-import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.orga.ContractDao;
 import org.projectforge.business.orga.PostausgangDao;
 import org.projectforge.business.orga.PosteingangDao;
@@ -92,7 +91,6 @@ public class Registry
     register(DaoConst.CONFIGURATION, ConfigurationDao.class, applicationContext.getBean(ConfigurationDao.class),
         "administration.configuration")
             .setSearchable(false);
-    register(DaoConst.TENANT, TenantDao.class, applicationContext.getBean(TenantDao.class), "tenant");
     register(DaoConst.USER, UserDao.class, applicationContext.getBean(UserDao.class), "user");
     register(DaoConst.GROUP, GroupDao.class, applicationContext.getBean(GroupDao.class), "group");
     register(DaoConst.TASK, TaskDao.class, applicationContext.getBean(TaskDao.class), "task"); // needs PFUserDO

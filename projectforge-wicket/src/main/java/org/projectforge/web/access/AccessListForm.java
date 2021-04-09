@@ -29,7 +29,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.access.AccessFilter;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -48,12 +48,16 @@ public class AccessListForm extends AbstractListForm<AccessFilter, AccessListPag
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccessListForm.class);
 
-  private transient TaskTree taskTree;
-
   protected NewGroupSelectPanel groupSelectPanel;
 
   @SpringBean
   private GroupService groupService;
+
+  @SpringBean
+  private TaskTree taskTree;
+
+  @SpringBean
+  private UserGroupCache userGroupCache;
 
   @SuppressWarnings("serial")
   @Override
@@ -95,7 +99,7 @@ public class AccessListForm extends AbstractListForm<AccessFilter, AccessListPag
         @Override
         public PFUserDO getObject()
         {
-          return getTenantRegistry().getUserGroupCache().getUser(getSearchFilter().getUserId());
+          return userGroupCache.getUser(getSearchFilter().getUserId());
         }
 
         @Override
@@ -121,7 +125,7 @@ public class AccessListForm extends AbstractListForm<AccessFilter, AccessListPag
         @Override
         public TaskDO getObject()
         {
-          return getTaskTree().getTaskById(getSearchFilter().getTaskId());
+          return taskTree.getTaskById(getSearchFilter().getTaskId());
         }
 
         @Override
@@ -163,14 +167,6 @@ public class AccessListForm extends AbstractListForm<AccessFilter, AccessListPag
         new PropertyModel<Boolean>(getSearchFilter(), "includeDescendentTasks"),
         getString("access.filter.includeDescendentTasks"))
             .setTooltip(getString("access.tooltip.filter.includeDescendentTasks")));
-  }
-
-  private TaskTree getTaskTree()
-  {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
   }
 
   @Override

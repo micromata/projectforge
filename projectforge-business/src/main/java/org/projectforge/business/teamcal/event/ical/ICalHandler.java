@@ -259,7 +259,6 @@ public class ICalHandler
       event.setId(eventInDB.getPk());
       event.setCreated(eventInDB.getCreated());
       event.setLastUpdate();
-      event.setTenant(eventInDB.getTenant());
       event.setCreator(eventInDB.getCreator());
 
       final boolean isDeleted = eventInDB.isDeleted();

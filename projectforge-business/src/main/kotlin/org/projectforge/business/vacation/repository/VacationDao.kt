@@ -45,7 +45,6 @@ import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -332,8 +331,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         return emgrFactory.runRoTrans { emgr ->
             val baseSQL = "SELECT v FROM VacationDO v WHERE v.employee.id = :employeeId AND v.endDate >= :startDate AND v.startDate <= :endDate"
             val dbResultList = emgr.selectDetached(VacationDO::class.java, baseSQL + if (withSpecial) META_SQL_WITH_SPECIAL else META_SQL, "employeeId", employeeId,
-                    "startDate", startVacationDate, "endDate", endVacationDate, "deleted", false, "tenant",
-                    tenant)
+                    "startDate", startVacationDate, "endDate", endVacationDate, "deleted", false)
             dbResultList
         }
     }
@@ -378,28 +376,24 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
             val baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.endDate >= :startDate AND v.startDate <= :endDate"
             val dbResultList = emgr.selectDetached(VacationDO::class.java, baseSQL + if (withSpecial) META_SQL_WITH_SPECIAL else META_SQL, "employee", employee,
                     "startDate", startYear, "endDate", endYear,
-                    "deleted", false, "tenant", tenant)
+                    "deleted", false)
             dbResultList
         }
     }
-
-    private val tenant: TenantDO
-        get() = if (ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().tenant != null) ThreadLocalUserContext.getUser().tenant else tenantService.defaultTenant
 
     open fun getOpenLeaveApplicationsForEmployee(employee: EmployeeDO?): Int {
         val resultList: List<VacationDO> = emgrFactory.runRoTrans { emgr ->
             val baseSQL = "SELECT v FROM VacationDO v WHERE v.manager = :employee AND v.status = :status"
             val dbResultList = emgr
-                    .selectDetached(VacationDO::class.java, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "status", VacationStatus.IN_PROGRESS, "deleted", false,
-                            "tenant", tenant)
+                    .selectDetached(VacationDO::class.java, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "status", VacationStatus.IN_PROGRESS, "deleted", false)
             dbResultList
         }
         return resultList.size
     }
 
     companion object {
-        private const val META_SQL = " AND v.special = false AND v.deleted = :deleted AND v.tenant = :tenant order by startDate desc"
-        private const val META_SQL_WITH_SPECIAL = " AND v.deleted = :deleted AND v.tenant = :tenant order by startDate desc"
+        private const val META_SQL = " AND v.special = false AND v.deleted = :deleted order by startDate desc"
+        private const val META_SQL_WITH_SPECIAL = " AND v.deleted = :deleted order by startDate desc"
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf("employee.user.firstname", "employee.user.lastname")
         private val log = LoggerFactory.getLogger(VacationDao::class.java)
         private val DEFAULT_SORT_PROPERTIES = arrayOf(

@@ -27,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.projectforge.business.user.UserAuthenticationsService;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserTokenType;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -45,10 +46,10 @@ import static org.mockito.Mockito.*;
 
 public class RestUserFilterTest extends AbstractTestBase {
   @Autowired
-  private RestAuthenticationUtils restAuthenticationUtils;
+  private UserAuthenticationsService userAuthenticationsService;
 
   @Autowired
-  private UserAuthenticationsService userAuthenticationsService;
+  private UserGroupCache userGroupCache;
 
   final RestUserFilter filter = new RestUserFilter();
 
@@ -63,7 +64,7 @@ public class RestUserFilterTest extends AbstractTestBase {
     if (initialized)
       return;
     initialized = true;
-    PFUserDO user = getUserGroupCache().getUser(AbstractTestBase.TEST_USER);
+    PFUserDO user = userGroupCache.getUser(AbstractTestBase.TEST_USER);
     this.userId = user.getId();
     ApplicationContextProvider.getApplicationContext().getAutowireCapableBeanFactory().autowireBean(this.filter);
     logon(AbstractTestBase.TEST_ADMIN_USER);

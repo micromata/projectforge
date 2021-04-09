@@ -31,19 +31,19 @@ import java.util.*
  * BaseHistorizableDTO is a DTO representation of a AbstractHistorizableBaseDO<Int>. It copies most fields automatically by name and type from
  * DTO to  AbstractHistorizableBaseDO<Int> and vice versa.
  */
-open class BaseDTODisplayObject<T : ExtendedBaseDO<Int>>(id: Int? = null,
-                                                         /**
-                                                          * Only for displaying purposes. Will be ignored on save or update.
-                                                          */
-                                                         override var displayName: String? = null,
-                                                         deleted: Boolean = false,
-                                                         created: Date? = null,
-                                                         lastUpdate: Date? = null,
-                                                         tenant: Tenant? = null)
-    : BaseDTO<T>(id, deleted, created, lastUpdate, tenant), DisplayNameCapable {
-    override fun copyFromMinimal(src: T) {
-        super.copyFromMinimal(src)
-        if (src is DisplayNameCapable)
-            this.displayName = src.displayName
-    }
+open class BaseDTODisplayObject<T : ExtendedBaseDO<Int>>(
+  id: Int? = null,
+  /**
+   * Only for displaying purposes. Will be ignored on save or update.
+   */
+  override var displayName: String? = null,
+  deleted: Boolean = false,
+  created: Date? = null,
+  lastUpdate: Date? = null
+) : BaseDTO<T>(id, deleted, created, lastUpdate), DisplayNameCapable {
+  override fun copyFromMinimal(src: T) {
+    super.copyFromMinimal(src)
+    if (src is DisplayNameCapable)
+      this.displayName = src.displayName
+  }
 }

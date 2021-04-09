@@ -38,7 +38,7 @@ import javax.persistence.*
 
 @Entity
 @Indexed
-@Table(name = "T_FIBU_KONTO", uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_konto_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_FIBU_KONTO", uniqueConstraints = [UniqueConstraint(columnNames = ["nummer"])])
 @WithHistory
 @NamedQueries(
         NamedQuery(name = KontoDO.FIND_BY_NUMMER, query = "from KontoDO where nummer=:nummer"))

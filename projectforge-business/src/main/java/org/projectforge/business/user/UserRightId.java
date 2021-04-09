@@ -44,9 +44,6 @@ public enum UserRightId implements IUserRightId
   //For test fix. Has to be removed.
   TEST("", "", ""),
 
-  ADMIN_TENANT("ADMIN_TENANT", "admin",
-      "access.right.admin.multitenancy"),
-
   ADMIN_CORE("ADMIN_CORE", "admin",
       "access.right.admin.core"),
 

@@ -24,8 +24,6 @@
 package org.projectforge.framework.access;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
@@ -34,7 +32,6 @@ import org.projectforge.common.i18n.MessageParamType;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 
 import java.util.ResourceBundle;
 
@@ -114,7 +111,7 @@ public class AccessException extends UserException {
   public Object[] getMessageArgs(final ResourceBundle bundle) {
     final Object[] result = new Object[3];
     if (taskTree != null && this.taskId != null) {
-      final TaskDO task = getTaskTree().getTaskById(taskId);
+      final TaskDO task = TaskTree.getInstance().getTaskById(taskId);
       if (task != null) {
         result[0] = task.getTitle();
       } else {
@@ -135,7 +132,7 @@ public class AccessException extends UserException {
   public MessageParam[] getMessageArgs() {
     final MessageParam[] result = new MessageParam[3];
     if (taskTree != null && this.taskId != null) {
-      final TaskDO task = getTaskTree().getTaskById(taskId);
+      final TaskDO task = TaskTree.getInstance().getTaskById(taskId);
       if (task != null) {
         result[0] = new MessageParam(task.getTitle());
       } else {
@@ -170,7 +167,7 @@ public class AccessException extends UserException {
   }
 
   public TaskNode getTaskNode() {
-    return getTaskTree().getTaskNodeById(this.taskId);
+    return TaskTree.getInstance().getTaskNodeById(this.taskId);
   }
 
   /**
@@ -224,7 +221,7 @@ public class AccessException extends UserException {
       builder.append("user", String.valueOf(user.getId()) + ":" + user.getUsername());
     }
     if (taskId != null) {
-      final TaskDO task = taskTree != null ? getTaskTree().getTaskById(taskId) : null;
+      final TaskDO task = taskTree != null ? TaskTree.getInstance().getTaskById(taskId) : null;
       final String ts = task != null ? ":" + task.getDisplayName() : "";
       builder.append("task", String.valueOf(taskId) + ts);
     }
@@ -245,14 +242,5 @@ public class AccessException extends UserException {
       builder.append("params", getParams());
     }
     return builder.toString();
-  }
-
-  private TaskTree getTaskTree() {
-    return getTaskTree(null);
-  }
-
-  private TaskTree getTaskTree(final TenantDO tenant) {
-    final TenantRegistry tenantRegistry = TenantRegistryMap.getInstance().getTenantRegistry(tenant);
-    return tenantRegistry.getTaskTree();
   }
 }

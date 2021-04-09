@@ -41,7 +41,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_TODO", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_todo_assignee_fk", columnList = "assignee_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_reporter_fk", columnList = "reporter_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_task_id", columnList = "task_id"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_TODO", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_todo_assignee_fk", columnList = "assignee_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_reporter_fk", columnList = "reporter_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_task_id", columnList = "task_id")])
 open class ToDoDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.todo.subject")

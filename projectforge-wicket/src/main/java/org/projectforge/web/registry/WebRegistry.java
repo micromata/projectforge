@@ -47,8 +47,6 @@ import org.projectforge.web.humanresources.HRPlanningEditPage;
 import org.projectforge.web.humanresources.HRPlanningListPage;
 import org.projectforge.web.meb.MebEditPage;
 import org.projectforge.web.meb.MebListPage;
-import org.projectforge.web.multitenancy.TenantEditPage;
-import org.projectforge.web.multitenancy.TenantListPage;
 import org.projectforge.web.orga.*;
 import org.projectforge.web.scripting.ScriptEditPage;
 import org.projectforge.web.scripting.ScriptExecutePage;
@@ -259,9 +257,6 @@ public class WebRegistry
 
     register(DaoConst.TIMESHEET, TimesheetListPage.class);
     addMountPages(DaoConst.TIMESHEET, TimesheetListPage.class, TimesheetEditPage.class);
-
-    register(DaoConst.TENANT, TenantListPage.class);
-    addMountPages(DaoConst.TENANT, TenantListPage.class, TenantEditPage.class);
 
     register(DaoConst.USER, UserListPage.class);
     addMountPages(DaoConst.USER, UserListPage.class, UserEditPage.class);

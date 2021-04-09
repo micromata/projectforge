@@ -25,11 +25,10 @@ package org.projectforge.rest.pub
 
 import mu.KotlinLogging
 import org.projectforge.Const
-import org.projectforge.business.login.*
-import org.projectforge.business.multitenancy.TenantRegistry
-import org.projectforge.business.multitenancy.TenantRegistryMap
+import org.projectforge.business.login.LoginProtection
+import org.projectforge.business.login.LoginResult
+import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.business.user.UserAuthenticationsService
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
@@ -51,9 +50,7 @@ import org.projectforge.web.rest.AbstractRestUserFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.web.bind.annotation.*
-import java.net.InetAddress
 import java.net.URLDecoder
-import java.net.UnknownHostException
 import javax.servlet.ServletRequest
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
@@ -67,152 +64,176 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/login")
 open class LoginPageRest {
-    class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
+  class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
 
-    @Autowired
-    private lateinit var applicationContext: ApplicationContext
+  @Autowired
+  private lateinit var userService: UserService
 
-    @Autowired
-    private lateinit var userService: UserService
+  @Autowired
+  private lateinit var userAuthenticationsService: UserAuthenticationsService
 
-    @Autowired
-    private lateinit var userAuthenticationsService: UserAuthenticationsService
+  @Autowired
+  private lateinit var cookieService: CookieService
 
-    @Autowired
-    private lateinit var cookieService: CookieService
+  @Autowired
+  private lateinit var loginHandlerService: LoginHandlerService
 
-    @Autowired
-    private lateinit var loginHandlerService: LoginHandlerService
+  @GetMapping("dynamic")
+  fun getForm(@RequestParam url: String? = null): FormLayoutData {
+    return FormLayoutData(null, this.getLoginLayout(), ServerData(returnToCaller = url))
+  }
 
-    @GetMapping("dynamic")
-    fun getForm(@RequestParam url: String? = null): FormLayoutData {
-        return FormLayoutData(null, this.getLoginLayout(), ServerData(returnToCaller = url))
+  @PostMapping
+  fun login(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    @RequestBody postData: PostData<LoginData>
+  )
+      : ResponseAction {
+    val loginResultStatus = _login(request, response, postData.data)
+
+    if (loginResultStatus == LoginResultStatus.SUCCESS) {
+      var redirectUrl: String? = null
+      val returnToCaller = postData.serverData?.returnToCaller
+      if (!returnToCaller.isNullOrBlank()) {
+        redirectUrl = URLDecoder.decode(returnToCaller, "UTF-8")
+      } else if (request.getHeader("Referer").contains("/public/login")) {
+        redirectUrl = "/${Const.REACT_APP_PATH}calendar"
+      }
+
+      return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl)
     }
 
-    @PostMapping
-    fun login(request: HttpServletRequest,
-              response: HttpServletResponse,
-              @RequestBody postData: PostData<LoginData>)
-            : ResponseAction {
-        val loginResultStatus = _login(request, response, postData.data)
+    response.status = 400
+    return ResponseAction(targetType = TargetType.UPDATE)
+      .addVariable("ui", getLoginLayout(loginResultStatus))
+  }
 
-        if (loginResultStatus == LoginResultStatus.SUCCESS) {
-            var redirectUrl: String? = null
-            val returnToCaller = postData.serverData?.returnToCaller
-            if (!returnToCaller.isNullOrBlank()) {
-                redirectUrl = URLDecoder.decode(returnToCaller, "UTF-8")
-            } else if (request.getHeader("Referer").contains("/public/login")) {
-                redirectUrl = "/${Const.REACT_APP_PATH}calendar"
-            }
+  private fun getLoginLayout(loginResultStatus: LoginResultStatus? = null): UILayout {
+    val motd = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
+    val responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST)
 
-            return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl)
-        }
+    val formCol = UICol(
+      length = UILength(12, md = 6, lg = 4),
+      offset = UILength(0, md = 3, lg = 4)
+    )
+      .add(UIAlert("'$motd", color = UIColor.INFO, icon = UIIconType.INFO))
 
-        response.status = 400
-        return ResponseAction(targetType = TargetType.UPDATE)
-                .addVariable("ui", getLoginLayout(loginResultStatus))
+    if (loginResultStatus != null) {
+      formCol.add(
+        UIAlert(
+          "'${loginResultStatus.localizedMessage}",
+          color = UIColor.DANGER,
+          icon = UIIconType.USER_LOCK
+        )
+      )
     }
 
-    private fun getLoginLayout(loginResultStatus: LoginResultStatus? = null): UILayout {
-        val motd = GlobalConfiguration.getInstance().getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
-        val responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST)
+    formCol
+      .add(
+        UIInput(
+          "username",
+          required = true,
+          label = "username",
+          focus = true,
+          autoComplete = UIInput.AutoCompleteType.USERNAME
+        )
+      )
+      .add(
+        UIInput(
+          "password",
+          required = true,
+          label = "password",
+          dataType = UIDataType.PASSWORD,
+          autoComplete = UIInput.AutoCompleteType.CURRENT_PASSWORD
+        )
+      )
+      .add(
+        UICheckbox(
+          "stayLoggedIn",
+          label = "login.stayLoggedIn",
+          tooltip = "login.stayLoggedIn.tooltip"
+        )
+      )
+      .add(
+        UIButton(
+          "login",
+          translate("login"),
+          UIColor.SUCCESS,
+          responseAction = responseAction,
+          default = true
+        )
+      )
 
-        val formCol = UICol(length = UILength(12, md = 6, lg = 4),
-                offset = UILength(0, md = 3, lg = 4))
-                .add(UIAlert("'$motd", color = UIColor.INFO, icon = UIIconType.INFO))
 
-        if (loginResultStatus != null) {
-            formCol.add(UIAlert("'${loginResultStatus.localizedMessage}",
-                    color = UIColor.DANGER,
-                    icon = UIIconType.USER_LOCK))
-        }
+    val layout = UILayout("login.title")
+      .add(
+        UIRow()
+          .add(formCol)
+      )
 
-        formCol
-                .add(UIInput("username",
-                        required = true,
-                        label = "username",
-                        focus = true,
-                        autoComplete = UIInput.AutoCompleteType.USERNAME))
-                .add(UIInput("password",
-                        required = true,
-                        label = "password",
-                        dataType = UIDataType.PASSWORD,
-                        autoComplete = UIInput.AutoCompleteType.CURRENT_PASSWORD))
-                .add(UICheckbox("stayLoggedIn",
-                        label = "login.stayLoggedIn",
-                        tooltip = "login.stayLoggedIn.tooltip"))
-                .add(UIButton("login",
-                        translate("login"),
-                        UIColor.SUCCESS,
-                        responseAction = responseAction,
-                        default = true))
+    LayoutUtils.process(layout)
 
+    return layout
+  }
 
-        val layout = UILayout("login.title")
-                .add(UIRow()
-                        .add(formCol))
-
-        LayoutUtils.process(layout)
-
-        return layout
+  private fun _login(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    loginData: LoginData
+  ): LoginResultStatus {
+    val loginResult = checkLogin(request, loginData)
+    val user = loginResult.user
+    if (user == null || loginResult.loginResultStatus != LoginResultStatus.SUCCESS) {
+      return loginResult.loginResultStatus
     }
-
-    private fun _login(request: HttpServletRequest, response: HttpServletResponse, loginData: LoginData): LoginResultStatus {
-        val loginResult = checkLogin(request, loginData)
-        val user = loginResult.user
-        if (user == null || loginResult.loginResultStatus != LoginResultStatus.SUCCESS) {
-            return loginResult.loginResultStatus
-        }
-        if (UserFilter.isUpdateRequiredFirst()) {
-            log.warn("******* Update of ProjectForge required first. Please login via old login page. LoginService should be used instead.")
-            return LoginResultStatus.FAILED
-        }
-        log.info("User successfully logged in: " + user.userDisplayName)
-        if (loginData.stayLoggedIn == true) {
-            val loggedInUser = userService.internalGetById(user.id)
-            val stayLoggedInKey = userAuthenticationsService.internalGetToken(user.id, UserTokenType.STAY_LOGGED_IN_KEY)
-            val cookie = Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, "${loggedInUser.getId()}:${loggedInUser.username}:$stayLoggedInKey")
-            cookieService.addStayLoggedInCookie(request, response, cookie)
-        }
-        // Execute login:
-        val userContext = UserContext(PFUserDO.createCopyWithoutSecretFields(user)!!, getUserGroupCache())
-        AbstractRestUserFilter.executeLogin(request, userContext)
-        return LoginResultStatus.SUCCESS
+    if (UserFilter.isUpdateRequiredFirst()) {
+      log.warn("******* Update of ProjectForge required first. Please login via old login page. LoginService should be used instead.")
+      return LoginResultStatus.FAILED
     }
-
-    private fun checkLogin(request: HttpServletRequest, loginData: LoginData): LoginResult {
-        if (loginData.username == null || loginData.password == null) {
-            return LoginResult().setLoginResultStatus(LoginResultStatus.FAILED)
-        }
-        val loginProtection = LoginProtection.instance()
-        val clientIpAddress = getClientIp(request)
-        val offset = loginProtection.getFailedLoginTimeOffsetIfExists(loginData.username, clientIpAddress)
-        if (offset > 0) {
-            val seconds = (offset / 1000).toString()
-            log.warn("The account for '${loginData.username}' is locked for $seconds seconds due to failed login attempts. Please try again later.")
-
-            val numberOfFailedAttempts = loginProtection.getNumberOfFailedLoginAttempts(loginData.username, clientIpAddress)
-            return LoginResult().setLoginResultStatus(LoginResultStatus.LOGIN_TIME_OFFSET).setMsgParams(seconds,
-                    numberOfFailedAttempts.toString())
-        }
-        val result = loginHandlerService.loginHandler.checkLogin(loginData.username, loginData.password)
-        if (result.getLoginResultStatus() == LoginResultStatus.SUCCESS) {
-            loginProtection.clearLoginTimeOffset(result.user?.username, result.user?.id, clientIpAddress)
-        } else if (result.getLoginResultStatus() == LoginResultStatus.FAILED) {
-            loginProtection.incrementFailedLoginTimeOffset(loginData.username, clientIpAddress)
-        }
-        return result
+    log.info("User successfully logged in: " + user.userDisplayName)
+    if (loginData.stayLoggedIn == true) {
+      val loggedInUser = userService.internalGetById(user.id)
+      val stayLoggedInKey = userAuthenticationsService.internalGetToken(user.id, UserTokenType.STAY_LOGGED_IN_KEY)
+      val cookie = Cookie(
+        Const.COOKIE_NAME_FOR_STAY_LOGGED_IN,
+        "${loggedInUser.getId()}:${loggedInUser.username}:$stayLoggedInKey"
+      )
+      cookieService.addStayLoggedInCookie(request, response, cookie)
     }
+    // Execute login:
+    val userContext = UserContext(PFUserDO.createCopyWithoutSecretFields(user)!!)
+    AbstractRestUserFilter.executeLogin(request, userContext)
+    return LoginResultStatus.SUCCESS
+  }
 
-    private fun getClientIp(request: ServletRequest): String? {
-      return RestUtils.getClientIp(request)
+  private fun checkLogin(request: HttpServletRequest, loginData: LoginData): LoginResult {
+    if (loginData.username == null || loginData.password == null) {
+      return LoginResult().setLoginResultStatus(LoginResultStatus.FAILED)
     }
+    val loginProtection = LoginProtection.instance()
+    val clientIpAddress = getClientIp(request)
+    val offset = loginProtection.getFailedLoginTimeOffsetIfExists(loginData.username, clientIpAddress)
+    if (offset > 0) {
+      val seconds = (offset / 1000).toString()
+      log.warn("The account for '${loginData.username}' is locked for $seconds seconds due to failed login attempts. Please try again later.")
 
-    private fun getTenantRegistry(): TenantRegistry {
-        return TenantRegistryMap.getInstance().tenantRegistry
+      val numberOfFailedAttempts = loginProtection.getNumberOfFailedLoginAttempts(loginData.username, clientIpAddress)
+      return LoginResult().setLoginResultStatus(LoginResultStatus.LOGIN_TIME_OFFSET).setMsgParams(
+        seconds,
+        numberOfFailedAttempts.toString()
+      )
     }
+    val result = loginHandlerService.loginHandler.checkLogin(loginData.username, loginData.password)
+    if (result.getLoginResultStatus() == LoginResultStatus.SUCCESS) {
+      loginProtection.clearLoginTimeOffset(result.user?.username, result.user?.id, clientIpAddress)
+    } else if (result.getLoginResultStatus() == LoginResultStatus.FAILED) {
+      loginProtection.incrementFailedLoginTimeOffset(loginData.username, clientIpAddress)
+    }
+    return result
+  }
 
-    private fun getUserGroupCache(): UserGroupCache {
-        return getTenantRegistry().userGroupCache
-    }
+  private fun getClientIp(request: ServletRequest): String? {
+    return RestUtils.getClientIp(request)
+  }
 }

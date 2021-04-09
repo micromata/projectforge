@@ -48,7 +48,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_GROUP_TASK_ACCESS", uniqueConstraints = [UniqueConstraint(columnNames = ["group_id", "task_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_group_task_access_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_group_task_access_task_id", columnList = "task_id"), javax.persistence.Index(name = "idx_fk_t_group_task_access_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_GROUP_TASK_ACCESS", uniqueConstraints = [UniqueConstraint(columnNames = ["group_id", "task_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_group_task_access_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_group_task_access_task_id", columnList = "task_id")])
 @NamedQueries(
         NamedQuery(name = GroupTaskAccessDO.FIND_BY_TASK_AND_GROUP,
                 query = "from GroupTaskAccessDO a where a.task.id=:taskId and a.group.id=:groupId"))

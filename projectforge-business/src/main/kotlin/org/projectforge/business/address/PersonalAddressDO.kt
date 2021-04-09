@@ -44,8 +44,7 @@ import javax.persistence.*
 @Table(name = "T_PERSONAL_ADDRESS",
         uniqueConstraints = [UniqueConstraint(columnNames = ["owner_id", "address_id"])],
         indexes = [Index(name = "idx_fk_t_personal_address_address_id", columnList = "address_id"),
-            Index(name = "idx_fk_t_personal_address_owner_id", columnList = "owner_id"),
-            Index(name = "idx_fk_t_personal_address_tenant_id", columnList = "tenant_id")])
+            Index(name = "idx_fk_t_personal_address_owner_id", columnList = "owner_id")])
 @NamedQueries(
         NamedQuery(name = FIND_FAVORITE_ADDRESS_IDS_BY_OWNER,
                 query = "select pa.address.id from PersonalAddressDO pa where pa.owner.id=:ownerId and pa.favoriteCard=true and deleted=false and pa.address.deleted=false"),

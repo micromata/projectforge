@@ -50,13 +50,11 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.projectforge.business.fibu.AuftragsPositionVO;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskFilter;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.user.UserGroupCache;
@@ -101,6 +99,9 @@ public class TaskTreeBuilder implements Serializable
 
   @Autowired
   private UserFormatter userFormatter;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   @Autowired
   private DateTimeFormatter dateTimeFormatter;
@@ -293,21 +294,11 @@ public class TaskTreeBuilder implements Serializable
             cellItemListener.populateItem(item, componentId, rowModel);
           }
         });
-    final UserPropertyColumn<TaskNode> userPropertyColumn = new UserPropertyColumn<TaskNode>(getUserGroupCache(),
+    final UserPropertyColumn<TaskNode> userPropertyColumn = new UserPropertyColumn<TaskNode>(userGroupCache,
         parentPage.getString("task.assignedUser"),
         null, "task.responsibleUserId", cellItemListener).withUserFormatter(userFormatter);
     columns.add(userPropertyColumn);
     return columns;
-  }
-
-  private TenantRegistry getTenantRegistry()
-  {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  private UserGroupCache getUserGroupCache()
-  {
-    return getTenantRegistry().getUserGroupCache();
   }
 
   protected void addColumn(final WebMarkupContainer parent, final Component component, final String cssStyle)

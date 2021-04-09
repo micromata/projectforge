@@ -52,8 +52,6 @@ public interface IConfigurationParam
    */
   String getDescriptionI18nKey();
 
-  boolean isGlobal();
-
   String getDefaultStringValue();
 
   int getDefaultIntValue();

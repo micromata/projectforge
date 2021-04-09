@@ -27,7 +27,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserDao;
@@ -40,7 +39,6 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -64,6 +62,9 @@ public class TaskDao extends BaseDao<TaskDO> {
   @Autowired
   private UserDao userDao;
 
+  @Autowired
+  private TaskTree taskTree;
+
   public TaskDao() {
     super(TaskDO.class);
   }
@@ -71,6 +72,10 @@ public class TaskDao extends BaseDao<TaskDO> {
   @Override
   public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
+  }
+
+  public TaskTree getTaskTree() {
+    return TaskTreeHelper.getTaskTree();
   }
 
   /**
@@ -241,7 +246,6 @@ public class TaskDao extends BaseDao<TaskDO> {
   public void checkConstraintVioloation(final TaskDO task) throws UserException {
     if (task.getParentTaskId() == null) {
       // Root task or task without parent task.
-      final TaskTree taskTree = getTaskTree(task);
       if (!taskTree.isRootNode(task)) {
         // Task is not root task!
         throw new UserException(I18N_KEY_ERROR_PARENT_TASK_NOT_GIVEN);
@@ -268,7 +272,6 @@ public class TaskDao extends BaseDao<TaskDO> {
 
   @Override
   protected void afterSaveOrModify(final TaskDO obj) {
-    final TaskTree taskTree = getTaskTree(obj);
     taskTree.addOrUpdateTaskNode(obj);
   }
 
@@ -301,7 +304,6 @@ public class TaskDao extends BaseDao<TaskDO> {
                                  final boolean throwException) {
     Validate.notNull(dbObj);
     Validate.notNull(obj);
-    final TaskTree taskTree = getTaskTree(obj);
     if (taskTree.isRootNode(obj)) {
       if (obj.getParentTaskId() != null) {
         throw new UserException(TaskDao.I18N_KEY_ERROR_CYCLIC_REFERENCE);
@@ -348,7 +350,6 @@ public class TaskDao extends BaseDao<TaskDO> {
       return false;
     }
     final Integer taskId = obj.getId() != null ? obj.getId() : obj.getParentTaskId();
-    final TaskTree taskTree = getTaskTree(obj);
     final ProjektDO projekt = taskTree.getProjekt(taskId);
     // Parent task because id of current task is null and project can't be found.
     return projekt != null && getUserGroupCache().isUserProjectManagerOrAssistantForProject(projekt);
@@ -410,7 +411,6 @@ public class TaskDao extends BaseDao<TaskDO> {
   public boolean hasInsertAccess(final PFUserDO user, final TaskDO obj, final boolean throwException) {
     Validate.notNull(obj);
     // Checks if the task is orphan.
-    final TaskTree taskTree = getTaskTree(obj);
     final TaskNode parent = taskTree.getTaskNodeById(obj.getParentTaskId());
     if (parent == null) {
       if (taskTree.isRootNode(obj) && obj.isDeleted()) {
@@ -465,7 +465,6 @@ public class TaskDao extends BaseDao<TaskDO> {
       // Self reference
       throw new UserException(I18N_KEY_ERROR_CYCLIC_REFERENCE);
     }
-    final TaskTree taskTree = getTaskTree(obj);
     final TaskNode parent = taskTree.getTaskNodeById(obj.getParentTaskId());
     if (parent == null) {
       // Task is orphan because it has no parent task.
@@ -483,19 +482,9 @@ public class TaskDao extends BaseDao<TaskDO> {
    */
   @Override
   protected void onDelete(final TaskDO obj) {
-    final TaskTree taskTree = getTaskTree(obj);
     if (taskTree.isRootNode(obj)) {
       throw new UserException("task.error.couldNotDeleteRootTask");
     }
-  }
-
-  public TaskTree getTaskTree() {
-    return TaskTreeHelper.getTaskTree();
-  }
-
-  public TaskTree getTaskTree(final TaskDO task) {
-    final TenantDO tenant = task.getTenant();
-    return TaskTreeHelper.getTaskTree(tenant);
   }
 
   /**

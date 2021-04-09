@@ -48,10 +48,6 @@ import org.projectforge.Const;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.multitenancy.TenantsCache;
-import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.database.DatabaseService;
@@ -242,7 +238,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
         new SpringComponentInjector(this, applicationContext));
     // Wicket workaround for not be able to proxy Kotlin base SpringBeans:
     WicketSupport.register(applicationContext);
-    applicationContext.getBean(TenantsCache.class);
     WebRegistry.getInstance().init();
     pluginAdminService.initializeActivePlugins();
     setDefaultPage(TeamCalCalendarPage.class);
@@ -352,8 +347,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     }
     try {
       final UserContext internalSystemAdminUserContext = UserContext
-          .__internalCreateWithSpecialUser(DatabaseService.__internalGetSystemAdminPseudoUser(),
-              getUserGroupCache());
+          .__internalCreateWithSpecialUser(DatabaseService.__internalGetSystemAdminPseudoUser());
       ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
       if (databaseService.getSystemUpdater().isUpdated() == false) {
         // Force redirection to update page:
@@ -374,16 +368,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
 
     getPageSettings().setRecreateBookmarkablePagesAfterExpiry(false);
     initPageStore();
-  }
-
-  private TenantRegistry getTenantRegistry()
-  {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  private UserGroupCache getUserGroupCache()
-  {
-    return getTenantRegistry().getUserGroupCache();
   }
 
   /**

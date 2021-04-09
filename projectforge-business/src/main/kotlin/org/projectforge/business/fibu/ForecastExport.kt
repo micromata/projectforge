@@ -30,7 +30,7 @@ import de.micromata.merlin.excel.ExcelWriterContext
 import org.projectforge.Const
 import org.projectforge.business.excel.ExcelDateFormats
 import org.projectforge.business.excel.XlsContentProvider
-import org.projectforge.business.multitenancy.TenantRegistryMap
+import org.projectforge.business.task.TaskTree
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
@@ -320,7 +320,7 @@ open class ForecastExport { // open needed by Wicket.
         sheet.setBigDecimalValue(row, ForecastCol.PROBABILITY_NETSUM.header, probabilityNetSum).cellStyle = ctx.currencyCellStyle
 
         sheet.setStringValue(row, ForecastCol.ANSPRECHPARTNER.header, order.contactPerson?.getFullname())
-        val node = TenantRegistryMap.getInstance().tenantRegistry.taskTree.getTaskNodeById(pos.taskId)
+        val node = TaskTree.getInstance().getTaskNodeById(pos.taskId)
         sheet.setStringValue(row, ForecastCol.STRUKTUR_ELEMENT.header, node?.task?.title ?: "")
         sheet.setStringValue(row, ForecastCol.BEMERKUNG.header, pos.bemerkung)
 

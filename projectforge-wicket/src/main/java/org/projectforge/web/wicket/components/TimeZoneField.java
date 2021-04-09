@@ -25,7 +25,7 @@ package org.projectforge.web.wicket.components;
 
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.wicket.WicketUtils;
@@ -69,7 +69,7 @@ public class TimeZoneField extends PFAutoCompleteTextField<TimeZone>
     Arrays.sort(availableTimeZones);
     timeZones = getAsTimeZoneObjects(availableTimeZones);
     final List<String> favoritesIds = new ArrayList<String>();
-    for (final PFUserDO user : TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().getAllUsers()) {
+    for (final PFUserDO user : UserGroupCache.getInstance().getAllUsers()) {
       final String timeZone = user.getTimeZoneString();
       if (timeZone == null) {
         continue;

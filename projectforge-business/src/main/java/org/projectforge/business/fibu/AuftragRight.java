@@ -24,7 +24,6 @@
 package org.projectforge.business.fibu;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.*;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
@@ -93,7 +92,7 @@ public class AuftragRight extends UserRightAccessCheck<AuftragDO>
   public boolean hasAccess(final PFUserDO user, final AuftragDO obj, final AuftragDO oldObj,
       final OperationType operationType)
   {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
+    final UserGroupCache userGroupCache = UserGroupCache.getInstance();
     if (operationType == OperationType.SELECT) {
       if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP)) {
         return true;

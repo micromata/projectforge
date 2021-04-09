@@ -26,14 +26,12 @@ package org.projectforge.framework.configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.xstream.XmlObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.TimeZone;
@@ -41,34 +39,38 @@ import java.util.TimeZone;
 /**
  * This class also provides the configuration of the parameters which are stored via ConfigurationDao. Those parameters
  * are cached. <br/>
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @XmlObject(alias = "config")
+@Service
 public class Configuration extends AbstractConfiguration
 {
   private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(Configuration.class);
 
-  private final TenantDO tenant;
+  private static Configuration INSTANCE;
 
-  /**
-   * @return The instance of the current tenant or if no tenant does exist the default instance.
-   */
   public static Configuration getInstance()
   {
-    final TenantRegistryMap tenantRegistryMap = TenantRegistryMap.getInstance();
-    final TenantRegistry tenantRegistry = tenantRegistryMap.getTenantRegistry();
-    Validate.notNull(tenantRegistry);
-    return tenantRegistry.getConfiguration();
+    return INSTANCE;
   }
 
-  public Configuration(ConfigurationService configurationService, final TenantDO tenant)
+  @Autowired
+  private ConfigurationService configurationService;
+
+  @Autowired
+  private TaskTree taskTree;
+
+  private Configuration()
   {
     super(false);
-    this.tenant = tenant;
-    this.configurationService = configurationService;
+    if (INSTANCE != null) {
+      log.warn("Oups, shouldn't instantiate Configuration twice.");
+      return;
+    }
+    INSTANCE = this;
   }
 
   public boolean isMebConfigured()
@@ -103,7 +105,7 @@ public class Configuration extends AbstractConfiguration
 
   /**
    * Return the configured time zone. If not found the default time zone of the system is returned.
-   * 
+   *
    * @param parameter
    * @see ConfigurationDao#getTimeZoneValue(ConfigurationParam)
    */
@@ -119,7 +121,7 @@ public class Configuration extends AbstractConfiguration
 
   /**
    * Available date formats (configurable as parameter, see web dialogue with system parameters).
-   * 
+   *
    * @return
    */
   public String[] getDateFormats()
@@ -144,7 +146,7 @@ public class Configuration extends AbstractConfiguration
 
   /**
    * Available excel date formats (configurable as parameter, see web dialogue with system parameters).
-   * 
+   *
    * @return
    */
   public String[] getExcelDateFormats()
@@ -175,7 +177,6 @@ public class Configuration extends AbstractConfiguration
   {
     final Object obj = super.getValue(parameter);
     if (parameter.getType() == ConfigurationType.TASK) {
-      final TaskTree taskTree = TaskTreeHelper.getTaskTree();
       final Integer taskId = (Integer) obj;
       if (taskId != null) {
         return taskTree.getTaskById(taskId);
@@ -192,13 +193,13 @@ public class Configuration extends AbstractConfiguration
   @Override
   protected String getIdentifier4LogMessage()
   {
-    return "Configuration[tenant=" + (tenant != null ? tenant.getId() : null) + "]";
+    return "Configuration";
   }
 
   @Override
   protected List<ConfigurationDO> loadParameters()
   {
-    return configurationService.daoInternalLoadAll(tenant);
+    return configurationService.daoInternalLoadAll();
   }
 
 }

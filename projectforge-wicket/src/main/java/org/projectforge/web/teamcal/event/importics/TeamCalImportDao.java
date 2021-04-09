@@ -150,7 +150,6 @@ public class TeamCalImportDao {
       final TeamEventDO dbEvent = teamEventDao.getByUid(teamCalId, event.getUid());
       if (dbEvent != null) {
         event.setId(dbEvent.getId());
-        event.setTenant(dbEvent.getTenant());
         if (el.getSelected() == true) {
           col.add(event);
         }

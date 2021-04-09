@@ -25,9 +25,7 @@ package org.projectforge.business.humanresources;
 
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
@@ -56,13 +54,19 @@ public class HRViewDao implements IDao<HRViewData> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRViewDao.class);
 
   @Autowired
-  private TimesheetDao timesheetDao;
-
-  @Autowired
   private HRPlanningDao hrPlanningDao;
 
   @Autowired
+  private TaskTree taskTree;
+
+  @Autowired
+  private TimesheetDao timesheetDao;
+
+  @Autowired
   private UserDao userDao;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   /**
    * Rows contains the users and the last row contains the total sums. Columns of each rows are the man days of the
@@ -81,14 +85,12 @@ public class HRViewDao implements IDao<HRViewData> {
       tsFilter.setStartTime(PFDateTime.fromOrNull(filter.getStartDay()).getBeginOfDay().getUtilDate());
       tsFilter.setStopTime(PFDateTime.fromOrNull(filter.getStopDay()).getEndOfDay().getUtilDate());
       final List<TimesheetDO> sheets = timesheetDao.getList(tsFilter);
-      final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
       for (final TimesheetDO sheet : sheets) {
         final PFUserDO user = userGroupCache.getUser(sheet.getUserId());
         if (user == null) {
           log.error("Oups, user of time sheet is null or unknown? Ignoring entry: " + sheet);
           continue;
         }
-        final TaskTree taskTree = TaskTreeHelper.getTaskTree();
         final ProjektDO projekt = taskTree.getProjekt(sheet.getTaskId());
         final Object targetObject = getTargetObject(userGroupCache, filter, projekt);
         if (targetObject == null) {
@@ -110,7 +112,6 @@ public class HRViewDao implements IDao<HRViewData> {
       day = PFDay.fromOrNow(filter.getStopDay());
       hrFilter.setStopDay(day.getLocalDate());
       final List<HRPlanningDO> plannings = hrPlanningDao.getList(hrFilter);
-      final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
       for (final HRPlanningDO planning : plannings) {
         if (planning.getEntries() == null) {
           continue;

@@ -39,7 +39,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @ClassBridge(name = "owners", impl = HibernateSearchUsersBridge::class)
-@Table(name = "T_PLUGIN_LM_LICENSE", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_lm_license_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_LM_LICENSE")
 open class LicenseDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "organization")

@@ -37,6 +37,7 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -368,7 +369,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
       final UserSelectPanel userSelectPanel = new UserSelectPanel(fs.newChildId(), new Model<PFUserDO>() {
         @Override
         public PFUserDO getObject() {
-          return getTenantRegistry().getUserGroupCache().getUser(searchFilter.getModifiedByUserId());
+          return UserGroupCache.getInstance().getUser(searchFilter.getModifiedByUserId());
         }
 
         @Override

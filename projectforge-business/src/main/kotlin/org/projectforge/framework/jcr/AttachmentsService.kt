@@ -69,6 +69,9 @@ open class AttachmentsService {
   @Autowired
   private lateinit var repoService: RepoService
 
+  @Autowired
+  private lateinit var userGroupCache: UserGroupCache
+
   /**
    * @param path Unique path of data object.
    * @param id Id of data object.
@@ -535,10 +538,10 @@ open class AttachmentsService {
   private fun createAttachment(fileObject: FileObject): Attachment {
     val attachment = Attachment(fileObject)
     NumberHelper.parseInteger(fileObject.createdByUser, false)?.let {
-      attachment.createdByUser = UserGroupCache.tenantInstance.getUser(it)?.getFullname()
+      attachment.createdByUser = userGroupCache.getUser(it)?.getFullname()
     }
     NumberHelper.parseInteger(fileObject.lastUpdateByUser, false)?.let {
-      attachment.lastUpdateByUser = UserGroupCache.tenantInstance.getUser(it)?.getFullname()
+      attachment.lastUpdateByUser = userGroupCache.getUser(it)?.getFullname()
     }
     return attachment
   }

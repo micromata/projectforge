@@ -41,9 +41,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_CONTRACT",
-        uniqueConstraints = [UniqueConstraint(columnNames = ["number", "tenant_id"])],
-        indexes = [javax.persistence.Index(name = "idx_fk_t_contract_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_CONTRACT")
 @NamedQueries(
         NamedQuery(name = ContractDO.FIND_OTHER_BY_NUMBER, query = "from ContractDO where number=:number and id<>:id"),
         NamedQuery(name = ContractDO.SELECT_MIN_MAX_DATE, query = "select min(date), max(date) from ContractDO"))

@@ -29,13 +29,8 @@ import org.apache.commons.lang3.Validate;
 import org.projectforge.business.address.AddressbookDO;
 import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.login.Login;
-import org.projectforge.business.multitenancy.TenantDao;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.*;
 import org.projectforge.common.DatabaseDialect;
 import org.projectforge.common.StringHelper;
@@ -53,7 +48,6 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -102,13 +96,16 @@ public class DatabaseService {
   private UserDao userDao;
 
   @Autowired
+  private UserGroupCache userGroupCache;
+
+  @Autowired
   private UserRightDao userRightDao;
 
   @Autowired
-  private JdbcTemplate jdbcTemplate;
+  private TaskTree taskTree;
 
   @Autowired
-  private TenantService tenantService;
+  private JdbcTemplate jdbcTemplate;
 
   @Autowired
   private AddressbookDao addressbookDao;
@@ -155,15 +152,12 @@ public class DatabaseService {
       databaseNotEmpty();
     }
 
-    TenantDO defaultTenant = tenantService.getDefaultTenant();
-
     final TaskDO task = new TaskDO();
     task.setTitle("Root");
     task.setStatus(TaskStatus.N);
     task.setShortDescription("ProjectForge root task");
     task.setCreated();
     task.setLastUpdate();
-    task.setTenant(defaultTenant);
     entityManager.persist(task);
     log.info("New object added (" + task.getId() + "): " + task.toString());
     // Use of taskDao does not work with maven test case: Could not synchronize database state with session?
@@ -173,8 +167,6 @@ public class DatabaseService {
     adminUser.setLastname("Administrator");
     adminUser.setDescription("ProjectForge administrator");
     adminUser.setTimeZone(adminUserTimezone);
-    adminUser.setTenant(defaultTenant);
-    adminUser.setSuperAdmin(true);
     userDao.internalSave(adminUser);
     adminUser.addRight(new UserRightDO(UserRightId.FIBU_AUSGANGSRECHNUNGEN, UserRightValue.READWRITE));
     adminUser.addRight(new UserRightDO(UserRightId.FIBU_COST_UNIT, UserRightValue.READWRITE));
@@ -191,50 +183,14 @@ public class DatabaseService {
     adminUser.addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE));
     adminUser.getRights().forEach(userRightDao::internalSave);
 
-    ThreadLocalUserContext.setUser(getUserGroupCache(), adminUser); // Need to login the admin user for avoiding following access exceptions.
-    TenantRegistryMap.getInstance().clear();
-    TenantRegistryMap.getInstance().getTenantRegistry();
+    ThreadLocalUserContext.setUser(adminUser); // Need to login the admin user for avoiding following access exceptions.
 
-    TenantDao tenantDao = applicationContext.getBean(TenantDao.class);
-    Set<TenantDO> tenantsToAssign = new HashSet<>();
-    tenantsToAssign.add(defaultTenant);
-    tenantDao.internalAssignTenants(adminUser, tenantsToAssign, null, false, false);
+    internalCreateProjectForgeGroups(adminUser);
 
-    internalCreateProjectForgeGroups(defaultTenant, adminUser);
-
-    TaskTreeHelper.getTaskTree().setExpired();
-    getUserGroupCache().setExpired();
-    TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired();
+    taskTree.setExpired();
+    userGroupCache.setExpired();
 
     log.info("Default data successfully initialized in database.");
-  }
-
-  public TenantRegistry getTenantRegistry() {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  public UserGroupCache getUserGroupCache() {
-    return getTenantRegistry().getUserGroupCache();
-  }
-
-  public TenantDO insertDefaultTenant() {
-    log.info("Checking if default tenant exists.");
-    try {
-      String selectDefaultTenant = "SELECT * FROM t_tenant WHERE pk = 1";
-      SqlRowSet selectResult = jdbcTemplate.queryForRowSet(selectDefaultTenant);
-      if (selectResult != null && selectResult.getRow() > 0) {
-        return tenantService.getDefaultTenant();
-      }
-    } catch (Exception e) {
-      log.warn("Something went wrong while checking for default tenant: " + e.getMessage());
-    }
-    String insertDefaultTenant = "INSERT INTO t_tenant(PK, CREATED, DELETED, LAST_UPDATE, DEFAULT_TENANT, NAME, SHORTNAME, DESCRIPTION, TENANT_ID) "
-            + "VALUES (1,'2016-03-17 14:00:00',FALSE,'2016-03-17 14:00:00',TRUE,'Default tenant','Default tenant','defaultTenant',1)";
-    log.info("Adding default tenant: " + insertDefaultTenant);
-    jdbcTemplate.execute(insertDefaultTenant);
-    log.info("Adding default tenant finished.");
-    tenantService.resetTenantTableStatus();
-    return tenantService.getDefaultTenant();
   }
 
   public AddressbookDO insertGlobalAddressbook() {
@@ -254,63 +210,43 @@ public class DatabaseService {
     }
     log.info("Adding global addressbook.");
     String insertGlobal =
-            "INSERT INTO t_addressbook(pk, created, deleted, last_update, description, title, tenant_id, owner_fk) "
-                    + "VALUES (1, CURRENT_TIMESTAMP, false, CURRENT_TIMESTAMP, 'The global addressbook', 'Global', 1, "
+            "INSERT INTO t_addressbook(pk, created, deleted, last_update, description, title, owner_fk) "
+                    + "VALUES (1, CURRENT_TIMESTAMP, false, CURRENT_TIMESTAMP, 'The global addressbook', 'Global', "
                     + (user != null && user.getId() != null ? user.getId() : ThreadLocalUserContext.getUserId()) + ")";
     jdbcTemplate.execute(insertGlobal);
     log.info("Adding global addressbook finished: " + insertGlobal);
     return addressbookDao.getGlobalAddressbook();
   }
 
-  /**
-   * Only for internal usage by {@link TenantDao} or {@link InitDatabaseDao}!
-   *
-   * @param tenant
-   * @param adminUser
-   */
-  public void internalCreateProjectForgeGroups(final TenantDO tenant, final PFUserDO adminUser) {
+  private void internalCreateProjectForgeGroups( final PFUserDO adminUser) {
     final Set<PFUserDO> adminUsers = new HashSet<>();
     adminUsers.add(adminUser);
-    Set<PFUserDO> adminUsersForNewTenants = null;
-    if (tenant.isDefault()) {
-      // Assign admin user for almost all groups only for initialization of a new ProjectForge installation. For new tenants the admin user
-      // is only assigned to the admin group for the new tenant.
-      adminUsersForNewTenants = adminUsers;
-    }
 
-    addGroup(ProjectForgeGroup.ADMIN_GROUP, "Administrators of ProjectForge", tenant, adminUsers);
-    addGroup(ProjectForgeGroup.CONTROLLING_GROUP, "Users for having read access to the company's finances.", tenant,
-            adminUsersForNewTenants);
-    addGroup(ProjectForgeGroup.FINANCE_GROUP, "Finance and Accounting", tenant, adminUsersForNewTenants);
-    addGroup(ProjectForgeGroup.MARKETING_GROUP, "Marketing users can download all addresses in excel format.", tenant,
-            null);
-    addGroup(ProjectForgeGroup.ORGA_TEAM, "The organization team has access to post in- and outbound, contracts etc..",
-            tenant,
-            adminUsersForNewTenants);
-    addGroup(ProjectForgeGroup.HR_GROUP, "Users for having full access to the companies hr.",
-            tenant,
-            adminUsersForNewTenants);
+    addGroup(ProjectForgeGroup.ADMIN_GROUP, "Administrators of ProjectForge", adminUsers);
+    addGroup(ProjectForgeGroup.CONTROLLING_GROUP, "Users for having read access to the company's finances.", adminUsers);
+    addGroup(ProjectForgeGroup.FINANCE_GROUP, "Finance and Accounting", adminUsers);
+    addGroup(ProjectForgeGroup.MARKETING_GROUP, "Marketing users can download all addresses in excel format.", adminUsers);
+    addGroup(ProjectForgeGroup.ORGA_TEAM, "The organization team has access to post in- and outbound, contracts etc..", adminUsers);
+    addGroup(ProjectForgeGroup.HR_GROUP, "Users for having full access to the companies hr.", adminUsers);
     addGroup(ProjectForgeGroup.PROJECT_MANAGER,
-            "Project managers have access to assigned orders and resource planning.", tenant, null);
-    addGroup(ProjectForgeGroup.PROJECT_ASSISTANT, "Project assistants have access to assigned orders.", tenant, null);
+            "Project managers have access to assigned orders and resource planning.", null);
+    addGroup(ProjectForgeGroup.PROJECT_ASSISTANT, "Project assistants have access to assigned orders.", null);
   }
 
-  private void addGroup(final ProjectForgeGroup projectForgeGroup, final String description, final TenantDO tenant,
-                        final Set<PFUserDO> users) {
+  private void addGroup(final ProjectForgeGroup projectForgeGroup, final String description, final Set<PFUserDO> users) {
     final GroupDO group = new GroupDO();
     group.setName(projectForgeGroup.toString());
     group.setDescription(description);
     if (users != null) {
       group.setAssignedUsers(users);
     }
-    group.setTenant(tenant);
     // group.setNestedGroupsAllowed(false);
     group.setLocalGroup(true); // Do not synchronize group with external user management system by default.
     groupDao.internalSave(group);
   }
 
   /**
-   * @param adminUser         The admin user with the desired username and the salted password (salt string included).
+   * @param user         The admin user with the desired username and the salted password (salt string included).
    * @param adminUserTimezone
    */
   public PFUserDO updateAdminUser(PFUserDO user, final TimeZone adminUserTimezone) {
@@ -321,12 +257,8 @@ public class DatabaseService {
     adminUser.setPasswordSalt(user.getPasswordSalt());
     adminUser.setLocalUser(true);
     adminUser.setTimeZone(adminUserTimezone);
-    adminUser.setTenant(tenantService.getDefaultTenant());
-    adminUser.setSuperAdmin(true);
     userDao.internalUpdate(adminUser);
-    ThreadLocalUserContext.setUser(getUserGroupCache(), adminUser);
-    TenantRegistryMap.getInstance().clear();
-    UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
+    ThreadLocalUserContext.setUser(adminUser);
     userGroupCache.forceReload();
     return adminUser;
   }
@@ -341,9 +273,8 @@ public class DatabaseService {
         log.warn("reindex thread was interrupted: " + e.getMessage(), e);
       }
     }
-    final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     taskTree.setExpired();
-    TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired();
+    userGroupCache.setExpired();
     log.info("Database successfully initialized with test data.");
   }
 
@@ -999,8 +930,7 @@ public class DatabaseService {
       entry.setRegionId((String) map.get("region_id"));
       entry.setVersionString((String) map.get("version"));
       entry.setExecutionResult((String) map.get("execution_result"));
-      final PFUserDO executedByUser = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
-              .getUser((Integer) map.get("executed_by_user_fk"));
+      final PFUserDO executedByUser = userGroupCache.getUser((Integer) map.get("executed_by_user_fk"));
       entry.setExecutedBy(executedByUser);
       entry.setDescription((String) map.get("description"));
       result.add(entry);

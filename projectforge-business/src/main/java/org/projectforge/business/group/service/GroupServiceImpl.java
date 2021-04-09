@@ -24,7 +24,6 @@
 package org.projectforge.business.group.service;
 
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.GroupsComparator;
 import org.projectforge.business.user.UserGroupCache;
@@ -42,10 +41,11 @@ import java.util.*;
 public class GroupServiceImpl implements GroupService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroupServiceImpl.class);
 
-  private UserGroupCache userGroupCache;
-
   @Autowired
   private GroupDao groupDao;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   private final GroupsComparator groupsComparator = new GroupsComparator();
 
@@ -71,7 +71,7 @@ public class GroupServiceImpl implements GroupService {
 
   @Override
   public String getGroupnames(final Integer userId) {
-    final Set<Integer> groupSet = getUserGroupCache().getUserGroupIdMap().get(userId);
+    final Set<Integer> groupSet = userGroupCache.getUserGroupIdMap().get(userId);
     if (groupSet == null) {
       return "";
     }
@@ -146,7 +146,7 @@ public class GroupServiceImpl implements GroupService {
   @Override
   public Collection<GroupDO> getSortedGroups() {
 
-    final Collection<GroupDO> allGroups = getUserGroupCache().getAllGroups();
+    final Collection<GroupDO> allGroups = userGroupCache.getAllGroups();
     TreeSet<GroupDO> sortedGroups = new TreeSet<>(groupsComparator);
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     for (final GroupDO group : allGroups) {
@@ -173,16 +173,6 @@ public class GroupServiceImpl implements GroupService {
       }
     }
     return sortedUsers;
-  }
-
-  /**
-   * @return the userGroupCache
-   */
-  private UserGroupCache getUserGroupCache() {
-    if (userGroupCache == null) {
-      userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
-    }
-    return userGroupCache;
   }
 
   /**

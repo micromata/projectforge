@@ -37,6 +37,7 @@ import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 import org.hibernate.Hibernate;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserPrefDao;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -199,7 +200,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "assignee");
       PFUserDO assignee = data.getAssignee();
       if (!Hibernate.isInitialized(assignee)) {
-        assignee = getTenantRegistry().getUserGroupCache().getUser(assignee.getId());
+        assignee = UserGroupCache.getInstance().getUser(assignee.getId());
         data.setAssignee(assignee);
       }
       final UserSelectPanel assigneeUserSelectPanel = new UserSelectPanel(fs.newChildId(),
@@ -214,7 +215,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "reporter");
       PFUserDO reporter = data.getReporter();
       if (!Hibernate.isInitialized(reporter)) {
-        reporter = getTenantRegistry().getUserGroupCache().getUser(reporter.getId());
+        reporter = UserGroupCache.getInstance().getUser(reporter.getId());
         data.setReporter(reporter);
       }
       final UserSelectPanel reporterUserSelectPanel = new UserSelectPanel(fs.newChildId(),

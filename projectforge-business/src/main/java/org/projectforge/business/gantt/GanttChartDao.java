@@ -68,6 +68,9 @@ public class GanttChartDao extends BaseDao<GanttChartDO> {
   private TaskDao taskDao;
 
   @Autowired
+  private TaskTree taskTree;
+
+  @Autowired
   private UserDao userDao;
 
   private Field[] taskFields = BeanHelper.getDeclaredPropertyFields(TaskDO.class);
@@ -211,7 +214,6 @@ public class GanttChartDao extends BaseDao<GanttChartDO> {
    * @return The root object of the read xml data.
    */
   public GanttChartData readGanttObjects(final GanttChartDO obj) {
-    final TaskTree taskTree = taskDao.getTaskTree();
     final GanttChartData ganttChartData = Task2GanttTaskConverter.convertToGanttObjectTree(taskTree, obj.getTask());
     final XmlObjectReader reader = new XmlObjectReader() {
       @Override
@@ -325,7 +327,6 @@ public class GanttChartDao extends BaseDao<GanttChartDO> {
           return true;
         }
         if (obj instanceof GanttTask) {
-          final TaskTree taskTree = taskDao.getTaskTree();
           final String fieldName = field.getName();
           if ("id".equals(fieldName)) {
             // Id should always be equals and needed in output for the identification of the gantt object.
@@ -367,7 +368,6 @@ public class GanttChartDao extends BaseDao<GanttChartDO> {
         if (GanttTask.class.isAssignableFrom(field.getDeclaringClass())) {
           final String fieldName = field.getName();
           if (!"id".equals(fieldName)) {
-            final TaskTree taskTree = taskDao.getTaskTree();
             final GanttTask ganttObject = (GanttTask) obj;
             final TaskDO task = taskTree.getTaskById((Integer) ganttObject.getId());
             if (task != null) {
