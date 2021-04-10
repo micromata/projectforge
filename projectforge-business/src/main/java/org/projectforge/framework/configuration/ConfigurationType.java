@@ -25,7 +25,10 @@ package org.projectforge.framework.configuration;
 
 public enum ConfigurationType
 {
-  STRING, TEXT, INTEGER, FLOAT, BOOLEAN, PERCENT, TIME_ZONE, CALENDAR;
+  STRING, TEXT, INTEGER, FLOAT, BOOLEAN, PERCENT,
+  /** TASK only for backward compability. Isn't in use anymore. */
+  TASK,
+  TIME_ZONE, CALENDAR;
 
   public boolean isIn(final ConfigurationType... configurationTypes)
   {

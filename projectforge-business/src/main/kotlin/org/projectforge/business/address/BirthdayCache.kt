@@ -23,76 +23,97 @@
 
 package org.projectforge.business.address
 
+import mu.KotlinLogging
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.registry.Registry
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 import java.util.*
 
-@Component
-open class BirthdayCache() : AbstractCache() {
-    @Autowired
-    private lateinit var addressDao: AddressDao
+private val log = KotlinLogging.logger {}
 
-    private var cacheList = mutableListOf<BirthdayAddress>()
+class BirthdayCache(private val addressDao: AddressDao) : AbstractCache() {
 
-    /**
-     * Get the birthdays of address entries.
-     *
-     * @param fromDate Search for birthdays from given date (ignoring the year).
-     * @param toDate   Search for birthdays until given date (ignoring the year).
-     * @param all      If false, only the birthdays of favorites will be returned.
-     * @return The entries are ordered by date of year and name.
-     */
-    fun getBirthdays(fromDate: Date, toDate: Date, all: Boolean, favorites: List<Int>)
-            : Set<BirthdayAddress> {
-        checkRefresh()
-        // Uses not Collections.sort because every comparison needs Calendar.getDayOfYear().
-        val set = TreeSet<BirthdayAddress>()
-        val from = PFDateTime.from(fromDate) // not null
-        val to = PFDateTime.from(toDate) // not null
-        var dh: PFDateTime
-        val fromMonth = from.month
-        val fromDayOfMonth = from.dayOfMonth
-        val toMonth = to.month
-        val toDayOfMonth = to.dayOfMonth
-        for (birthdayAddress in cacheList) {
-            val address = birthdayAddress.address
-            if (!addressDao.hasLoggedInUserSelectAccess(address,false)) {
-                // User has no access to the given address.
-                continue
-            }
-            if (!all && !favorites.contains(address.id)) {
-                // Address is not a favorite address, so ignore it.
-                continue
-            }
-            dh = PFDateTime.fromOrNull(address.birthday) ?: continue
-            val month = dh.month
-            val dayOfMonth = dh.dayOfMonth
-            if (!DateHelper.dateOfYearBetween(month.value, dayOfMonth, fromMonth.value, fromDayOfMonth, toMonth.value, toDayOfMonth)) {
-                continue
-            }
-            val ba = BirthdayAddress(address)
-            ba.isFavorite = favorites.contains(address.getId())
-            set.add(ba)
-        }
-        return set
+  init {
+    if (_instance != null) {
+      throw IllegalArgumentException("Oups, shouldn't instantiate AddressCache twice. Ignoring ")
     }
+    _instance = this
+  }
 
-    override fun refresh() {
-        val filter = QueryFilter()
-        filter.add(QueryFilter.isNotNull("birthday"))
-        filter.deleted = false
-        val addressList = addressDao.internalGetList(filter)
-        val newList = mutableListOf<BirthdayAddress>()
-        addressList.forEach {
-            if (!it.isDeleted) { // deleted shouldn't occur, already filtered above.
-                newList.add(BirthdayAddress(it))
-            }
-        }
-        cacheList = newList
+  private var cacheList = mutableListOf<BirthdayAddress>()
+
+  /**
+   * Get the birthdays of address entries.
+   *
+   * @param fromDate Search for birthdays from given date (ignoring the year).
+   * @param toDate   Search for birthdays until given date (ignoring the year).
+   * @param all      If false, only the birthdays of favorites will be returned.
+   * @return The entries are ordered by date of year and name.
+   */
+  fun getBirthdays(fromDate: Date, toDate: Date, all: Boolean, favorites: List<Int>)
+      : Set<BirthdayAddress> {
+    checkRefresh()
+    // Uses not Collections.sort because every comparison needs Calendar.getDayOfYear().
+    val set = TreeSet<BirthdayAddress>()
+    val from = PFDateTime.from(fromDate) // not null
+    val to = PFDateTime.from(toDate) // not null
+    var dh: PFDateTime
+    val fromMonth = from.month
+    val fromDayOfMonth = from.dayOfMonth
+    val toMonth = to.month
+    val toDayOfMonth = to.dayOfMonth
+    for (birthdayAddress in cacheList) {
+      val address = birthdayAddress.address
+      if (!addressDao.hasLoggedInUserSelectAccess(address, false)) {
+        // User has no access to the given address.
+        continue
+      }
+      if (!all && !favorites.contains(address.id)) {
+        // Address is not a favorite address, so ignore it.
+        continue
+      }
+      dh = PFDateTime.fromOrNull(address.birthday) ?: continue
+      val month = dh.month
+      val dayOfMonth = dh.dayOfMonth
+      if (!DateHelper.dateOfYearBetween(
+          month.value,
+          dayOfMonth,
+          fromMonth.value,
+          fromDayOfMonth,
+          toMonth.value,
+          toDayOfMonth
+        )
+      ) {
+        continue
+      }
+      val ba = BirthdayAddress(address)
+      ba.isFavorite = favorites.contains(address.getId())
+      set.add(ba)
     }
+    return set
+  }
+
+  override fun refresh() {
+    log.info("Refreshing BirthdayCache...")
+    val filter = QueryFilter()
+    filter.add(QueryFilter.isNotNull("birthday"))
+    filter.deleted = false
+    val addressList = addressDao.internalGetList(filter)
+    val newList = mutableListOf<BirthdayAddress>()
+    addressList.forEach {
+      if (!it.isDeleted) { // deleted shouldn't occur, already filtered above.
+        newList.add(BirthdayAddress(it))
+      }
+    }
+    cacheList = newList
+  }
+
+  companion object {
+    private var _instance: BirthdayCache? = null
+
+    @JvmStatic
+    val instance: BirthdayCache
+      get() = _instance!!
+  }
 }

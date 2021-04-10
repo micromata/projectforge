@@ -24,7 +24,6 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.address.*
-import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.utils.LabelValueBean
 import java.time.LocalDate
 import java.util.*
@@ -91,7 +90,7 @@ class Address(var contactStatus: ContactStatus? = null,
             imageData = byteArrayOf(1) // Marker for frontend for an available image.
         }
         val srcAddressbookList = if (src.id != null) {
-            addressCache.getAddressbooks(src)
+            AddressCache.instance.getAddressbooks(src)
         } else {
             // For new addresses now caches exist.
             src.addressbookList
@@ -117,17 +116,6 @@ class Address(var contactStatus: ContactStatus? = null,
                 srcAddressbook.copyTo(addressbook)
                 dest.addressbookList!!.add(addressbook)
             }
-        }
-    }
-
-    companion object {
-        private var _addressCache: AddressCache? = null
-        private val addressCache: AddressCache
-        get() {
-            if (_addressCache == null) {
-                _addressCache = ApplicationContextProvider.getApplicationContext().getBean(AddressCache::class.java)
-            }
-            return _addressCache!!
         }
     }
 }

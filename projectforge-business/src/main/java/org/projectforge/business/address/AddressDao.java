@@ -42,6 +42,7 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -75,16 +76,10 @@ public class AddressDao extends BaseDao<AddressDO> {
   }
 
   @Autowired
-  private AddressCache addressCache;
-
-  @Autowired
   private AddressbookDao addressbookDao;
 
   @Autowired
   private AddressbookCache addressbookCache;
-
-  @Autowired
-  private BirthdayCache birthdayCache;
 
   @Autowired
   private UserRightService userRights;
@@ -94,8 +89,18 @@ public class AddressDao extends BaseDao<AddressDO> {
   @Autowired
   private PersonalAddressDao personalAddressDao;
 
+  private AddressCache addressCache;
+
+  private BirthdayCache birthdayCache;
+
   public AddressDao() {
     super(AddressDO.class);
+  }
+
+  @PostConstruct
+  private void postConstruct() {
+    addressCache = new AddressCache(this);
+    birthdayCache = new BirthdayCache(this);
   }
 
   public List<Locale> getUsedCommunicationLanguages() {

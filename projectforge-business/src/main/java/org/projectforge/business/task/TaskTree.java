@@ -517,7 +517,7 @@ public class TaskTree extends AbstractCache implements Serializable {
     return result;
   }
 
-  private TaskTree() {
+  public TaskTree() {
     super(AbstractCache.TICKS_PER_HOUR);
   }
 
