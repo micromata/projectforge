@@ -45,19 +45,9 @@ public class ProjectForgeRestConfiguration {
   public static final String REST_WEB_APP_PUBLIC_URL = Rest.PUBLIC_URL + "/";
 
   @Bean
-  public ServletRegistrationBean publicJersey() {
-    ServletRegistrationBean publicJersey
-            = new ServletRegistrationBean(new ServletContainer(new RestPublicConfiguration()));
-    publicJersey.addUrlMappings("/" + RestPaths.OLD_PUBLIC_REST + "/*");
-    publicJersey.setName("RestPublic");
-    publicJersey.setLoadOnStartup(0);
-    return publicJersey;
-  }
-
-  @Bean
   public ServletRegistrationBean privateJersey() {
     ServletRegistrationBean privateJersey
-            = new ServletRegistrationBean(new ServletContainer(new RestPrivateConfiguration()));
+        = new ServletRegistrationBean(new ServletContainer(new RestPrivateConfiguration()));
     privateJersey.addUrlMappings("/" + RestPaths.OLD_REST + "/*");
     privateJersey.setName("RestPrivate");
     privateJersey.setLoadOnStartup(0);
@@ -67,7 +57,7 @@ public class ProjectForgeRestConfiguration {
   @Bean
   public FilterRegistrationBean<RestUserFilter> webAppJersey() {
     FilterRegistrationBean<RestUserFilter> registrationBean
-            = new FilterRegistrationBean<>();
+        = new FilterRegistrationBean<>();
     registrationBean.setFilter(new RestUserFilter());
     registrationBean.addUrlPatterns(Rest.URL + "*");
     return registrationBean;
