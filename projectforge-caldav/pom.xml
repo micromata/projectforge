@@ -9,7 +9,7 @@
         <version>7.0.1-SNAPSHOT</version><!-- projectforge.version -->
     </parent>
     <properties>
-        <milton.version>2.7.5.0</milton.version>
+        <milton.version>3.0.0.180</milton.version>
         <ez-vcard.version>0.10.5</ez-vcard.version>
     </properties>
     <licenses>
@@ -145,23 +145,4 @@
             <version>${slf4j.version}</version>
         </dependency>
     </dependencies>
-    <repositories>
-        <repository>
-            <id>central</id>
-            <name>Maven Repository Switchboard</name>
-            <layout>default</layout>
-            <url>https://repo1.maven.org/maven2</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>milton-repo</id>
-            <url>http://dl.bintray.com/milton/Milton</url>
-        </repository>
-        <repository>
-            <id>milton-repo-old</id>
-            <url>http://milton.io/maven</url>
-        </repository>
-    </repositories>
 </project>
