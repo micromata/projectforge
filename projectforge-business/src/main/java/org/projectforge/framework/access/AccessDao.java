@@ -139,7 +139,6 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
       myFilter = new AccessFilter(filter);
     }
     final QueryFilter queryFilter = new QueryFilter(myFilter);
-    TaskTree taskTree = null;
     if (myFilter.getTaskId() != null) {
       List<Integer> descendants = null;
       List<Integer> ancestors = null;

@@ -53,9 +53,6 @@ public class SystemService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SystemService.class);
 
   @Autowired
-  private BirthdayCache birthdayCache;
-
-  @Autowired
   private UserGroupCache userGroupCache;
 
   @Autowired
@@ -172,7 +169,7 @@ public class SystemService {
     kostCache.forceReload();
     rechnungCache.forceReload();
     systemInfoCache.forceReload();
-    birthdayCache.forceReload();
+    BirthdayCache.getInstance().forceReload();
     return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, SystemInfoCache, BirthdayCache";
   }
 }

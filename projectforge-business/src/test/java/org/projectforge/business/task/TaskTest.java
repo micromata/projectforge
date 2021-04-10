@@ -113,9 +113,9 @@ public class TaskTest extends AbstractTestBase {
   @Test
   public void testTraversingTaskTree() {
     final TaskNode root = taskTree.getRootTaskNode();
-    logStart("Traversing TaskTree");
+    //logStart("Traversing TaskTree");
     traverseTaskTree(root);
-    logEnd();
+    //logEnd();
   }
 
   @Test
@@ -515,7 +515,7 @@ public class TaskTest extends AbstractTestBase {
   }
 
   private void traverseTaskTree(final TaskNode node) {
-    logDot();
+    //logDot();
     final List<TaskNode> children = node.getChildren();
     if (children != null) {
       for (final TaskNode child : children) {

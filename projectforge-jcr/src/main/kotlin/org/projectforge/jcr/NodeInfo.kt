@@ -70,7 +70,7 @@ class NodeInfo() {
   lateinit var path: String
 
   fun getProperty(propertyName: String): PropertyInfo? {
-    return properties?.first { it.name == propertyName }
+    return properties?.firstOrNull { it.name == propertyName }
   }
 
   fun hasProperty(propertyName: String): Boolean {

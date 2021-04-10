@@ -135,7 +135,6 @@ public class GanttUtilsTest extends AbstractTestBase {
     final GanttTaskImpl a1_1 = createActivity(10).setTitle("a1_1");
     a1_1.setPredecessor(a1);
     a1.addChild(a1_1);
-    log.error("The two following error messages about circular reference detection are OK and part of this test.");
     assertNull(GanttUtils.getCalculatedStartDate(a1));
     assertNull(GanttUtils.getCalculatedEndDate(a1));
     assertNull(GanttUtils.getCalculatedStartDate(a1_1));

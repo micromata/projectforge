@@ -24,6 +24,7 @@
 package org.projectforge.framework.configuration.entities
 
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
+import mu.KotlinLogging
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.framework.configuration.Configuration
@@ -292,6 +293,9 @@ open class ConfigurationDO : DefaultBaseDO {
             } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.CALENDAR) {
                 return
             } else if (type == ConfigurationType.FLOAT && this.configurationType == ConfigurationType.PERCENT) {
+                return
+            } else if (this.configurationType == ConfigurationType.TASK) {
+                // Only for backward compability.
                 return
             }
         }
