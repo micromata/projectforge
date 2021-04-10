@@ -377,7 +377,8 @@ open class AttachmentsService {
     fileId: String,
     baseDao: BaseDao<out ExtendedBaseDO<Int>>,
     obj: ExtendedBaseDO<Int>,
-    subPath: String? = null
+    subPath: String? = null,
+    userString: String? = null
   )
       : Boolean {
     val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId)
@@ -390,7 +391,8 @@ open class AttachmentsService {
         AttachmentsEventType.DELETE,
         fileObject,
         subPath = subPath,
-        lastUserAction = "Attachment '${fileObject.fileName}' deleted."
+        lastUserAction = "Attachment '${fileObject.fileName}' deleted.",
+        userString = userString
       )
     }
     return result

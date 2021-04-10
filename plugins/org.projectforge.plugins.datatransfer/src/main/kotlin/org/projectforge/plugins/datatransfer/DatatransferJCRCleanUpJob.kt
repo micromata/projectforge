@@ -90,7 +90,8 @@ class DataTransferJCRCleanUpJob {
                 dataTransferAreaPagesRest.jcrPath!!,
                 fileId,
                 dataTransferAreaDao,
-                dbo
+                dbo,
+                userString = SYSTEM_USER
               )
             }
             ++deletedCounter
@@ -143,5 +144,7 @@ class DataTransferJCRCleanUpJob {
 
   companion object {
     internal const val MILLIS_PER_DAY = 1000L * 60 * 60 * 24
+
+    internal const val SYSTEM_USER = "<ProjectForge>"
   }
 }
