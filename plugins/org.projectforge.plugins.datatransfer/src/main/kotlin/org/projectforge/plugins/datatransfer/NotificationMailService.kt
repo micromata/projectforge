@@ -68,7 +68,7 @@ open class NotificationMailService {
     if (event == AttachmentsEventType.DELETE) {
       val createdByUserId = file.createdByUser?.toIntOrNull()
       if (createdByUserId != null && createdByUserId != ThreadLocalUserContext.getUserId()) {
-        // File object created by another user was deleted, so notifiy createdBy user:
+        // File object created by another user was deleted, so notify createdBy user:
         recipients.add(createdByUserId)
       }
     }
@@ -113,10 +113,10 @@ open class NotificationMailService {
     val titleKey: String
     val messageKey: String
     val byUserString: String
-    if (byUser != null) {
+    if (byUser != null || byExternalUser == DataTransferJCRCleanUpJob.SYSTEM_USER) {
       titleKey = "plugins.datatransfer.mail.subject.$event.title"
       messageKey = "plugins.datatransfer.mail.subject.$event.msg"
-      byUserString = byUser.getFullname()
+      byUserString = byUser?.getFullname() ?: DataTransferJCRCleanUpJob.SYSTEM_USER
     } else {
       titleKey = "plugins.datatransfer.mail.subject.external.$event.title"
       messageKey = "plugins.datatransfer.mail.subject.external.$event.msg"
