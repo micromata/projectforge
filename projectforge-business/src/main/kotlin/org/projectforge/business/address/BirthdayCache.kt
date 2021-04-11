@@ -36,7 +36,7 @@ class BirthdayCache(private val addressDao: AddressDao) : AbstractCache() {
 
   init {
     if (_instance != null) {
-      throw IllegalArgumentException("Oups, shouldn't instantiate AddressCache twice. Ignoring ")
+      log.warn { "Oups, shouldn't instantiate BirthdayCache twice. Ignoring " }
     }
     _instance = this
   }

@@ -7,10 +7,6 @@
         <artifactId>projectforge-parent</artifactId>
         <version>7.0.1-SNAPSHOT</version><!-- projectforge.version -->
     </parent>
-    <properties>
-        <joda-time.version>2.0</joda-time.version>
-    </properties>
-
     <licenses>
         <license>
             <name>Dual license</name>
@@ -106,12 +102,12 @@
         <dependency>
             <groupId>org.wicketstuff</groupId>
             <artifactId>wicketstuff-html5</artifactId>
-            <version>${wicket.version}</version>
+            <version>${wicket-stuff.version}</version>
         </dependency>
         <dependency>
             <groupId>org.wicketstuff</groupId>
             <artifactId>wicketstuff-select2</artifactId>
-            <version>${wicket.version}</version>
+            <version>${wicket-stuff.version}</version>
             <exclusions>
                 <exclusion>
                     <!-- Incompatible with older version 15 of jackrabbit. -->

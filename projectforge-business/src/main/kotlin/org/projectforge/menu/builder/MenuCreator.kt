@@ -331,7 +331,7 @@ class MenuCreator {
     // MenuNewCounterOrder, tooltip = "menu.fibu.orderbook.htmlSuffixTooltip"
     fibuMenu.add(
       MenuItemDef(MenuItemDefId.ORDER_LIST,
-        requiredGroups = *FIBU_ORGA_GROUPS,
+        requiredGroups = FIBU_ORGA_GROUPS,
         badgeCounter =
         { auftragDao.toBeInvoicedCounter })
     )
@@ -341,7 +341,7 @@ class MenuCreator {
     // COST
     //
     menuItemDefHolder.add(
-      MenuItemDef(MenuItemDefId.COST, requiredGroups = *FIBU_ORGA_HR_GROUPS,
+      MenuItemDef(MenuItemDefId.COST, requiredGroups = FIBU_ORGA_HR_GROUPS,
         checkAccess =
         { Configuration.instance.isCostConfigured })
     )
@@ -391,25 +391,25 @@ class MenuCreator {
       .add(
         MenuItemDef(
           MenuItemDefId.SCRIPT_LIST,
-          requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
+          requiredGroups = arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
         )
       )
       .add(
         MenuItemDef(
           MenuItemDefId.SCRIPTING,
-          requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
+          requiredGroups = arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
         )
       )
       .add(
         MenuItemDef(
           MenuItemDefId.REPORT_OBJECTIVES,
-          requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
+          requiredGroups = arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
         )
       )
     // Only visible if cost is configured:
     reportingMenu.add(
       MenuItemDef(MenuItemDefId.ACCOUNTING_RECORD_LIST,
-        requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP),
+        requiredGroups = arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP),
         checkAccess =
         { Configuration.instance.isCostConfigured })
     )
@@ -427,7 +427,7 @@ class MenuCreator {
     menuItemDefHolder.add(
       MenuItemDef(
         MenuItemDefId.ORGA,
-        requiredGroups = *FIBU_ORGA_HR_GROUPS
+        requiredGroups = FIBU_ORGA_HR_GROUPS
       )
     )
       .add(
@@ -489,35 +489,35 @@ class MenuCreator {
       .add(MenuItemDef(MenuItemDefId.USER_LIST)) // Visible for all.
       .add(MenuItemDef(MenuItemDefId.GROUP_LIST)) // Visible for all.
       .add(MenuItemDef(MenuItemDefId.ACCESS_LIST)) // Visible for all.
-      .add(MenuItemDef(MenuItemDefId.SYSTEM, requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+      .add(MenuItemDef(MenuItemDefId.SYSTEM, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
 
     if (configurationService.securityConfig?.isSqlConsoleAvailable == true) {
       // Only available in development mode or if SQL console is configured in SecurityConfig.
       adminMenu.add(
         MenuItemDef(
           MenuItemDefId.SQL_CONSOLE,
-          requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)
+          requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)
         )
       )
         .add(
           MenuItemDef(
             MenuItemDefId.GROOVY_CONSOLE,
-            requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)
+            requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)
           )
         )
         .add(
           MenuItemDef(
             MenuItemDefId.LUCENE_CONSOLE,
-            requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)
+            requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)
           )
         )
     }
     adminMenu.add(MenuItemDef(MenuItemDefId.SYSTEM_STATISTICS)) // Visible for all.
-      .add(MenuItemDef(MenuItemDefId.CONFIGURATION, requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+      .add(MenuItemDef(MenuItemDefId.CONFIGURATION, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
       .add(
         MenuItemDef(
           MenuItemDefId.PLUGIN_ADMIN,
-          requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)
+          requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)
         )
       )
 
