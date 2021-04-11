@@ -3,6 +3,10 @@
 ProjectForge is a web-based solution for project management including time tracking, team calendar, gantt-charting, financial administration, issue management,
 controlling and managing work-break-down-structures (e. g. together with JIRA as issue management system).
 
+== Fast installation
+
+For a fast installation via docker or executable jar, please refer https://github.com/micromata/projectforge/blob/master/doc/installation.adoc[Installation].
+
 == Documentation
 
 === projectforge.org
@@ -38,7 +42,7 @@ Or simply use the fastest way: https://github.com/micromata/projectforge/blob/ma
 
 1. Checkout:
    https://github.com/micromata/projectforge.git
-2. Ensure running *Java 1.8* or higher (OpenJDK 11 tested): `java -version`.
+2. For developing try OpenJDK 11 (tested): `java -version`.
 3. Build ProjectForge:
    `mvn -DskipTests clean install`
 4. Run ProjectForge:
