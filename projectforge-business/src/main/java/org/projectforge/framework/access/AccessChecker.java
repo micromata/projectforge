@@ -265,15 +265,11 @@ public interface AccessChecker
    *
    * @param user2
    * @return
-   * @deprecated wrong place.
    */
-  @Deprecated
   boolean areUsersInSameGroup(final PFUserDO user1, final PFUserDO user2);
 
   /**
    * @return
-   * @deprecated wrong place.
    */
-  @Deprecated
   boolean hasLoggedInUserAccessToTimesheetsOfOtherUsers();
 }

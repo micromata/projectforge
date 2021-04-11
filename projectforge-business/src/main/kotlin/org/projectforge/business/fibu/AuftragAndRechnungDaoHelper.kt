@@ -66,10 +66,8 @@ object AuftragAndRechnungDaoHelper {
     @JvmStatic
     fun createQueryFilterWithDateRestriction(myFilter: RechnungFilter): QueryFilter {
         val dateName = "datum"
-        val from = myFilter.getFromDate()
-        val to = myFilter.getToDate()
-        val fromDate = if (from == null || from is LocalDate) from else PFDay.from(from).localDate
-        val toDate = if (to == null || to is LocalDate) to else PFDay.from(to).localDate
+        val fromDate = myFilter.getFromDate()
+        val toDate = myFilter.getToDate()
         val queryFilter = QueryFilter(myFilter)
         if (fromDate != null && toDate != null) {
             queryFilter.add(between(dateName, fromDate, toDate))
