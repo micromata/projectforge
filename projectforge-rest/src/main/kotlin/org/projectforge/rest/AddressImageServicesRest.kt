@@ -31,7 +31,6 @@ import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.ExpiringSessionAttributes
-import org.projectforge.ui.UIToast
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.ByteArrayResource
@@ -56,9 +55,9 @@ private val log = KotlinLogging.logger {}
 class AddressImageServicesRest {
 
   @Value("\${${MAX_IMAGE_SIZE_SPRING_PROPERTY}:500KB}")
-  internal open lateinit var maxImageSizeConfig: String
+  internal lateinit var maxImageSizeConfig: String
 
-  open lateinit var maxImageSize: DataSize
+  lateinit var maxImageSize: DataSize
     internal set
 
   private lateinit var fileSizeStandardChecker: FileSizeStandardChecker

@@ -25,9 +25,6 @@ package org.projectforge.business.timesheet
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.business.fibu.kost.Kost2DO
-import org.projectforge.business.task.TaskDao
-import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTime.Companion.withDate
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,20 +35,17 @@ class TimesheetReferenceListTest : AbstractTestBase() {
   @Autowired
   private lateinit var timesheetDao: TimesheetDao
 
-  @Autowired
-  private lateinit var taskDao: TaskDao
-
   @Test
   fun testTimesheetReferenceLists() {
     logon(ADMIN)
     initTestDB.addUser(user)
     initTestDB.addTask(prefix, "root")
-    initTestDB.addTask("$prefix.1", "$prefix")
+    initTestDB.addTask("$prefix.1", prefix)
     initTestDB.addTask("$prefix.1.1", "$prefix.1")
     initTestDB.addTask("$prefix.1.1.1", "$prefix.1.1")
     initTestDB.addTask("$prefix.1.1.2", "$prefix.1.1")
     initTestDB.addTask("$prefix.1.2", "$prefix.1")
-    initTestDB.addTask("$prefix.2", "$prefix")
+    initTestDB.addTask("$prefix.2", prefix)
 
     Assertions.assertEquals(0, timesheetDao.getUsedReferences(getTaskId("1")).size)
 
@@ -66,7 +60,7 @@ class TimesheetReferenceListTest : AbstractTestBase() {
     createTimesheet("1.1", day++, "Reference 1.1a")
     createTimesheet("1.1", day++, "Reference 1.1b")
     createTimesheet("1.2", day++, "Reference 1.2a")
-    createTimesheet("1.2", day++, "Reference 1.2b")
+    createTimesheet("1.2", day, "Reference 1.2b")
 
     //println(timesheetDao.getUsedReferences(getTaskId("1.1")).joinToString { it })
     Assertions.assertEquals(7, timesheetDao.getUsedReferences(getTaskId("1")).size)
@@ -90,7 +84,7 @@ class TimesheetReferenceListTest : AbstractTestBase() {
     Assertions.assertNotNull(ts.task, "Task $prefix.$taskName not found.")
     ts.user = getUser(user)
     ts.reference = reference
-    val id: Serializable = timesheetDao.internalSave(ts)
+    timesheetDao.internalSave(ts)
   }
 
   companion object {

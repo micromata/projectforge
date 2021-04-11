@@ -115,9 +115,9 @@ class InvoiceServiceTest : AbstractTestBase() {
         Assertions.assertEquals(BigDecimal.TEN, invoiceService.extractSharedVat(createInvoice(BigDecimal.TEN, BigDecimal.TEN, BigDecimal.TEN)))
     }
 
-    private fun createInvoice(vararg vat: BigDecimal?): RechnungDO {
+    private fun createInvoice(vararg vats: BigDecimal?): RechnungDO {
         val invoice = RechnungDO()
-        vat.forEach { vat ->
+        vats.forEach { vat ->
             val pos = RechnungsPositionDO()
             pos.vat = vat
             invoice.addPosition(pos)
