@@ -56,7 +56,7 @@ class ForecastExportTest : AbstractTestBase() {
                 baseDate.plusMonths(2), baseDate.plusMonths(3), baseDate.plusMonths(4))
         //order1.addPaymentSchedule()
 
-        val order2 = createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsPositionsStatus.BEAUFTRAGT,
+        createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsPositionsStatus.BEAUFTRAGT,
                 1000.0, baseDate,
                 baseDate.plusMonths(1), baseDate.plusMonths(4),
                 baseDate.plusMonths(2), baseDate.plusMonths(3))
@@ -64,7 +64,7 @@ class ForecastExportTest : AbstractTestBase() {
         val order3 = createOrder(today, AuftragsStatus.IN_ERSTELLUNG,
                 today.plusMonths(1), today.plusMonths(5))
         //order1.addPaymentSchedule()
-        val pos3_1 = addPosition(order3, 1, AuftragsPositionsStatus.IN_ERSTELLUNG, 4000.00, AuftragsPositionsPaymentType.FESTPREISPAKET)
+        addPosition(order3, 1, AuftragsPositionsStatus.IN_ERSTELLUNG, 4000.00, AuftragsPositionsPaymentType.FESTPREISPAKET)
         auftragDao.save(order3)
 
         val filter = AuftragFilter()

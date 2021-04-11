@@ -106,6 +106,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   /**
    * For exporting list of timesheets.
    */
+  @Suppress("unused")
   private class Timesheet4ListExport(
     val timesheet: Timesheet,
     val id: Int, // Needed for history Service
@@ -118,6 +119,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   /**
    * For exporting recent timesheets for copying for new time sheets.
    */
+  @Suppress("unused")
   class RecentTimesheets(
     val timesheets: List<Timesheet>,
     val cost2Visible: Boolean
@@ -162,7 +164,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     }
     val userId = RestHelper.parseInt(request, "userId") // Optional parameter given to edit page
     sheet.user = User.getUser(userId)
-    val recentEntry = timesheetRecentService.getRecentTimesheet();
+    val recentEntry = timesheetRecentService.getRecentTimesheet()
     if (recentEntry != null) {
       if (recentEntry.taskId != null) {
         sheet.task = Task.getTask(recentEntry.taskId)
@@ -463,10 +465,5 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       )
     )
     elements.add(element)
-  }
-
-  companion object {
-    private const val PREF_AREA = "timesheet"
-    private const val PREF_EDIT_NAME = "edit.recent"
   }
 }
