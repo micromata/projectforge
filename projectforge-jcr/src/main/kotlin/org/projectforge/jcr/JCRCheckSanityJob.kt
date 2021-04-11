@@ -45,13 +45,13 @@ open class JCRCheckSanityJob {
   ) {
     fun toText(): String {
       val sb = StringBuilder()
-      sb.appendln("Errors").appendln("------")
-      errors.forEach { sb.appendln("  *** $it") }
-      sb.appendln("Warnings").appendln("--------")
-      warnings.forEach { sb.appendln("  $it") }
-      sb.appendln()
-      sb.appendln("Number of visited nodes: ${FormatterUtils.format(numberOfVisitedNodes)}")
-      sb.appendln("Number of visited files: ${FormatterUtils.format(numberOfVisitedFiles)}")
+      sb.appendLine("Errors").appendLine("------")
+      errors.forEach { sb.appendLine("  *** $it") }
+      sb.appendLine("Warnings").appendLine("--------")
+      warnings.forEach { sb.appendLine("  $it") }
+      sb.appendLine()
+      sb.appendLine("Number of visited nodes: ${FormatterUtils.format(numberOfVisitedNodes)}")
+      sb.appendLine("Number of visited files: ${FormatterUtils.format(numberOfVisitedFiles)}")
       return sb.toString()
     }
   }

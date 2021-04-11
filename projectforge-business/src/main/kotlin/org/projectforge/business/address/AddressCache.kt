@@ -40,7 +40,7 @@ class AddressCache(private val addressDao: AddressDao) : AbstractCache(), BaseDO
 
   init {
     if (_instance != null) {
-      throw IllegalArgumentException("Oups, shouldn't instantiate AddressCache twice. Ignoring ")
+      log.warn { "Oups, shouldn't instantiate AddressCache twice. Ignoring " }
     }
     _instance = this
   }
