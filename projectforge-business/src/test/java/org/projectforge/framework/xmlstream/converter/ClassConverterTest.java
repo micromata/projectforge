@@ -41,7 +41,7 @@ public class ClassConverterTest
     assertNull(converter.fromString(""));
     assertNull(converter.fromString("\t \n"));
     assertEquals(ClassConverterTest.class,
-        converter.fromString("org.projectforge.framework.xstream.converter.ClassConverterTest"));
+        converter.fromString("org.projectforge.framework.xmlstream.converter.ClassConverterTest"));
     assertEquals(null, converter.fromString("org.projectforge.xml.stream.converter.NotFound"));
   }
 }
