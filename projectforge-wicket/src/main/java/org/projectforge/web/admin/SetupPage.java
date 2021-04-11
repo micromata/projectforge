@@ -36,6 +36,7 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
+import org.projectforge.framework.persistence.database.DatabaseInitTestDataService;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.database.PfJpaXmlDumpService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
@@ -67,6 +68,9 @@ public class SetupPage extends AbstractUnsecureBasePage
 
   @SpringBean
   private DatabaseService databaseService;
+
+  @SpringBean
+  private DatabaseInitTestDataService databaseInitTestDataService;
 
   @SpringBean
   private PfJpaXmlDumpService jpaXmlDumpService;
@@ -121,6 +125,7 @@ public class SetupPage extends AbstractUnsecureBasePage
       }
       Configuration.getInstance().forceReload();
       adminUser = databaseService.updateAdminUser(adminUser, setupForm.getTimeZone());
+      databaseInitTestDataService.initAdditionalTestData();
       databaseService.afterCreatedTestDb(false);
       message = "administration.setup.message.testdata";
       // refreshes the visibility of the costConfigured dependent menu items:
