@@ -105,7 +105,7 @@ class VacationSendMailServiceTest : AbstractTestBase() {
             Assertions.assertEquals(0, mail.cc.size)
         }
 
-        val vacationInfo = VacationSendMailService.VacationInfo(sendMail, employeeDao, vacation)
+        val vacationInfo = VacationSendMailService.VacationInfo(employeeDao, vacation)
         val i18nArgs = arrayOf(vacationer.getFullname(),
                 vacationInfo.periodText,
                 i18n("vacation.mail.modType.${operationType.name.toLowerCase()}"))

@@ -59,7 +59,6 @@ class UserContext() : Serializable {
      *
      * @param user
      */
-    @JvmOverloads
     constructor(user: PFUserDO): this() {
         Validate.notNull(user)
         this.user = user
@@ -95,12 +94,12 @@ class UserContext() : Serializable {
             log.warn("Couldn't update user from UserCache, should only occur in maintenance mode!")
             return this
         }
-        if (user!!.hasSecretFieldValues()) {
+        user = if (user!!.hasSecretFieldValues()) {
             log.warn(
                     "Oups, userCache contains user (id=" + user!!.id + ") with secret values, please contact developers.")
-            user = createCopyWithoutSecretFields(updatedUser)
+            createCopyWithoutSecretFields(updatedUser)
         } else {
-            user = updatedUser
+            updatedUser
         }
         return this
     }

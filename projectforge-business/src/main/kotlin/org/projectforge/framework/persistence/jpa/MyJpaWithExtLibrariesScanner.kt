@@ -317,7 +317,7 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
       rootUrl
     }
     log.debug { "Root dir: $rootDir" }
-    rootDir.listFiles { dir: File?, name: String? -> name?.startsWith("org.projectforge.plugins.") == true }
+    rootDir.listFiles { _: File?, name: String? -> name?.startsWith("org.projectforge.plugins.") == true }
       ?.forEach { jarFile ->
         scanPlugin(environment, collector, jarFile, loadedUrls)
       }
@@ -331,7 +331,7 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
       return
     }
     pluginsDir.listFiles { dir: File?, name: String? -> name?.endsWith(".jar") == true }
-      .forEach { jarFile ->
+      ?.forEach { jarFile ->
         scanPlugin(environment, collector, jarFile, loadedUrls)
       }
   }
@@ -424,7 +424,7 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
 
     @JvmStatic
     fun setInternalSetUnitTestMode() {
-      INTERNAL_TEST_MODE = true;
+      INTERNAL_TEST_MODE = true
     }
 
     private var pluginEntitiesForTestCases: Array<out String>? = null

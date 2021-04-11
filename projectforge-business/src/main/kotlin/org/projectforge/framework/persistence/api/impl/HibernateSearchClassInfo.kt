@@ -234,7 +234,7 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
                 return
             }
             value as Array<ClassBridge>
-            jgen.writeString(value.map { it.name }.joinToString(", "))
+            jgen.writeString(value.joinToString(", ") { it.name })
         }
     }
 }
