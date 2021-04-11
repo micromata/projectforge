@@ -69,7 +69,7 @@ object KotlinScriptExecutor {
             bindings["filename"] = filename
         }
         val sb = StringBuilder()
-        sb.appendln(autoImports.joinToString("\n"))
+        sb.appendLine(autoImports.joinToString("\n"))
         sb.append(script)
         val effectiveScript = sb.toString()
         try {

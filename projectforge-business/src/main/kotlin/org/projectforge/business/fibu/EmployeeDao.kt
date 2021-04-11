@@ -33,11 +33,9 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants
 import org.projectforge.framework.persistence.jpa.PfEmgr
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
 import java.util.*
@@ -50,9 +48,6 @@ import javax.persistence.NoResultException
  */
 @Repository
 open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
-  @Autowired
-  private lateinit var applicationContext: ApplicationContext
-
   @Autowired
   private lateinit var userDao: UserDao
 
@@ -146,7 +141,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     return employees
   }
 
-  open override fun getList(filter: BaseSearchFilter): List<EmployeeDO> {
+  override fun getList(filter: BaseSearchFilter): List<EmployeeDO> {
     val myFilter = if (filter is EmployeeFilter) filter else EmployeeFilter(filter)
     val queryFilter = QueryFilter(myFilter)
     var list = getList(queryFilter)

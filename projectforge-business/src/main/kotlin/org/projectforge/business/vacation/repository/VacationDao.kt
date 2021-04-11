@@ -45,7 +45,6 @@ import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Repository
@@ -395,7 +394,6 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         private const val META_SQL = " AND v.special = false AND v.deleted = :deleted order by startDate desc"
         private const val META_SQL_WITH_SPECIAL = " AND v.deleted = :deleted order by startDate desc"
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf("employee.user.firstname", "employee.user.lastname")
-        private val log = LoggerFactory.getLogger(VacationDao::class.java)
         private val DEFAULT_SORT_PROPERTIES = arrayOf(
                 SortProperty("employee.user.firstname"),
                 SortProperty("employee.user.lastname"),
