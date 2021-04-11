@@ -39,8 +39,8 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.framework.xstream.*;
-import org.projectforge.framework.xstream.converter.ISOLocalDateConverter;
+import org.projectforge.framework.xmlstream.*;
+import org.projectforge.framework.xmlstream.converter.ISOLocalDateConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 

@@ -36,7 +36,7 @@ import org.projectforge.business.orga.ContractType;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.calendar.ConfigureHoliday;
 import org.projectforge.framework.utils.FileHelper;
-import org.projectforge.framework.xstream.*;
+import org.projectforge.framework.xmlstream.*;
 import org.projectforge.jira.JiraConfig;
 import org.projectforge.jira.JiraIssueType;
 import org.projectforge.storage.StorageConfig;
@@ -243,8 +243,8 @@ public class ConfigXml {
       }
 
       /**
-       * @see org.projectforge.framework.xstream.XmlObjectWriter#writeField(java.lang.reflect.Field, java.lang.Object,
-       *      java.lang.Object, org.projectforge.framework.xstream.XmlField, org.dom4j.Element)
+       * @see org.projectforge.framework.xmlstream.XmlObjectWriter#writeField(java.lang.reflect.Field, java.lang.Object,
+       *      java.lang.Object, org.projectforge.framework.xmlstream.XmlField, org.dom4j.Element)
        */
       @Override
       protected void writeField(final Field field, final Object obj, final Object fieldValue, final XmlField annotation,

@@ -28,8 +28,8 @@ import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.ListHelper;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.framework.xstream.XmlObjectReader;
-import org.projectforge.framework.xstream.XmlObjectWriter;
+import org.projectforge.framework.xmlstream.XmlObjectReader;
+import org.projectforge.framework.xmlstream.XmlObjectWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

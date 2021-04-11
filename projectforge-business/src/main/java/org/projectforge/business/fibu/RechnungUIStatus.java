@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu;
 
-import org.projectforge.framework.xstream.XmlObject;
+import org.projectforge.framework.xmlstream.XmlObject;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -33,7 +33,7 @@ import java.util.Set;
  * Stores the user interface status of an invoice (such as opened/closed invoice positions). This class will be marshalled and unmarshalled
  * as XML.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @XmlObject(alias = "rechnungUIStatus")
 public class RechnungUIStatus implements Serializable

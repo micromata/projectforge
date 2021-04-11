@@ -26,8 +26,8 @@ package org.projectforge.business.ldap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.kost.AccountingConfig;
-import org.projectforge.framework.xstream.AliasMap;
-import org.projectforge.framework.xstream.XmlObjectReader;
+import org.projectforge.framework.xmlstream.AliasMap;
+import org.projectforge.framework.xmlstream.XmlObjectReader;
 import org.projectforge.test.JUnitLDAPTestWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 

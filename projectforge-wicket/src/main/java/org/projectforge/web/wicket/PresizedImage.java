@@ -27,8 +27,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.image.ContextImage;
 import org.projectforge.framework.configuration.Configuration;
-import org.projectforge.framework.xstream.AliasMap;
-import org.projectforge.framework.xstream.XmlObjectReader;
+import org.projectforge.framework.xmlstream.AliasMap;
+import org.projectforge.framework.xmlstream.XmlObjectReader;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.core.ImageDimension;
 

@@ -24,8 +24,8 @@
 package org.projectforge.business.fibu.kost;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlObject;
+import org.projectforge.framework.xmlstream.XmlField;
+import org.projectforge.framework.xmlstream.XmlObject;
 
 import java.io.Serializable;
 import java.util.List;
@@ -33,9 +33,9 @@ import java.util.List;
 /**
  * Used in config.xml for the definition of the used business assessment schema. The business assessment is displayed in different
  * accounting areas, such as for DATEV accounting records.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @XmlObject(alias = "businessAssessment")
 public class BusinessAssessmentConfig implements Serializable

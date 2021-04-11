@@ -24,7 +24,7 @@
 package org.projectforge.web.core;
 
 import org.projectforge.framework.persistence.api.SearchFilter;
-import org.projectforge.framework.xstream.XmlObject;
+import org.projectforge.framework.xmlstream.XmlObject;
 
 @XmlObject(alias = "searchPageFilter")
 public class SearchPageFilter extends SearchFilter

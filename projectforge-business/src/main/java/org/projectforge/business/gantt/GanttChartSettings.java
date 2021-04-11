@@ -23,8 +23,8 @@
 
 package org.projectforge.business.gantt;
 
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlObject;
+import org.projectforge.framework.xmlstream.XmlField;
+import org.projectforge.framework.xmlstream.XmlObject;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -41,9 +41,9 @@ public class GanttChartSettings implements Serializable
   private LocalDate fromDate;
 
   private LocalDate toDate;
-  
+
   private boolean showOnlyVisibles;
-  
+
   private Set<Serializable> openNodes;
 
   /**
@@ -87,18 +87,18 @@ public class GanttChartSettings implements Serializable
     this.toDate = toDate;
     return this;
   }
-  
+
   public boolean isShowOnlyVisibles()
   {
     return showOnlyVisibles;
   }
-  
+
   public GanttChartSettings setShowOnlyVisibles(boolean showOnlyVisibles)
   {
     this.showOnlyVisibles = showOnlyVisibles;
     return this;
   }
-  
+
   /**
    * Persist the tree status (which tree nodes are open?).
    * @return
@@ -107,7 +107,7 @@ public class GanttChartSettings implements Serializable
   {
     return openNodes;
   }
-  
+
   public void setOpenNodes(Set<Serializable> openNodes)
   {
     this.openNodes = openNodes;

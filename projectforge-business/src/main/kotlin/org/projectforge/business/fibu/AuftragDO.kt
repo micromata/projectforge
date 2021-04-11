@@ -35,7 +35,7 @@ import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.framework.xstream.XmlObjectReader
+import org.projectforge.framework.xmlstream.XmlObjectReader
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*

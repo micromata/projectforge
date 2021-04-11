@@ -30,7 +30,7 @@ import org.projectforge.export.SVGHelper;
 import org.projectforge.export.SVGHelper.ArrowDirection;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.PFDayUtils;
-import org.projectforge.framework.xstream.XmlObject;
+import org.projectforge.framework.xmlstream.XmlObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

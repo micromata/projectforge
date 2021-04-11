@@ -24,8 +24,8 @@
 package org.projectforge.jira;
 
 import org.projectforge.framework.utils.ILabelValueBean;
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlObject;
+import org.projectforge.framework.xmlstream.XmlField;
+import org.projectforge.framework.xmlstream.XmlObject;
 
 import java.io.Serializable;
 
