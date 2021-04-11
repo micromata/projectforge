@@ -64,7 +64,7 @@ public class CurrencyConverter extends BigDecimalConverter
 
   /**
    * If total amount is given also a percentage value is supported.
-   * @see org.projectforge.framework.xstream.converter.converters.BigDecimalConverter#convertToObject(java.lang.String, java.util.Locale)
+   * @see org.projectforge.framework.xmlstream.converter.converters.BigDecimalConverter#convertToObject(java.lang.String, java.util.Locale)
    */
   @Override
   public BigDecimal convertToObject(String value, final Locale locale)

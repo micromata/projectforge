@@ -55,7 +55,7 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.*;
 import org.projectforge.framework.persistence.xstream.HibernateXmlConverter;
 import org.projectforge.framework.persistence.xstream.XStreamSavingConverter;
-import org.projectforge.framework.xstream.XStreamHelper;
+import org.projectforge.framework.xmlstream.XStreamHelper;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.slf4j.Logger;

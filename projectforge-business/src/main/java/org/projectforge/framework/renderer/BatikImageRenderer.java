@@ -30,7 +30,7 @@ import org.apache.batik.transcoder.image.ImageTranscoder;
 import org.apache.batik.transcoder.image.JPEGTranscoder;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.fop.svg.PDFTranscoder;
-import org.projectforge.framework.xstream.XmlHelper;
+import org.projectforge.framework.xmlstream.XmlHelper;
 import org.w3c.dom.Document;
 
 import java.io.ByteArrayOutputStream;

@@ -24,15 +24,15 @@
 package org.projectforge.web.core;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlObject;
+import org.projectforge.framework.xmlstream.XmlField;
+import org.projectforge.framework.xmlstream.XmlObject;
 
 import java.awt.*;
 
 /**
  * For (de-)serializing web app's image dimensions. Used by PresizedImage and GetImageDimensionsTest.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @XmlObject(alias = "image")
 public class ImageDimension

@@ -129,7 +129,7 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
             + "</ganttObject>"
             + "<ganttObject id='{1.2}'><predecessor id='{2.3}'/>"
             + "<children>"
-            + "<ganttObject id='{1.2.1}'><predecessor id='{2.1}'/></ganttObject>" // Write external Gantt object only with id
+            + "<ganttObject id='{1.2.1}'><predecessor id='{2.1}'><endDate>2010-08-30</endDate></predecessor></ganttObject>" // Write external Gantt object only with id
             + "<ganttObject ref-id='0'/>"
             + "</children>"
             + "</ganttObject>"

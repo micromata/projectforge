@@ -32,7 +32,7 @@ import org.projectforge.framework.calendar.ConfigureHoliday;
 import org.projectforge.framework.calendar.HolidayDefinition;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.framework.xstream.XmlHelper;
+import org.projectforge.framework.xmlstream.XmlHelper;
 import org.projectforge.test.TestSetup;
 
 import java.time.Month;

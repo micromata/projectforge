@@ -24,7 +24,7 @@
 package org.projectforge.business.ldap;
 
 import org.projectforge.framework.persistence.user.entities.GroupDO;
-import org.projectforge.framework.xstream.XmlObject;
+import org.projectforge.framework.xmlstream.XmlObject;
 
 import java.io.Serializable;
 

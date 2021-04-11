@@ -32,7 +32,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.xstream.XmlObjectReader
+import org.projectforge.framework.xmlstream.XmlObjectReader
 import java.math.BigDecimal
 import java.time.LocalDate
 import javax.persistence.*

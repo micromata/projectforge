@@ -28,9 +28,9 @@ import org.projectforge.business.fibu.kost.BusinessAssessmentConfig;
 import org.projectforge.business.fibu.kost.BusinessAssessmentRowConfig;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.utils.Range;
-import org.projectforge.framework.xstream.AliasMap;
-import org.projectforge.framework.xstream.XmlHelper;
-import org.projectforge.framework.xstream.XmlObjectReader;
+import org.projectforge.framework.xmlstream.AliasMap;
+import org.projectforge.framework.xmlstream.XmlHelper;
+import org.projectforge.framework.xmlstream.XmlObjectReader;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
