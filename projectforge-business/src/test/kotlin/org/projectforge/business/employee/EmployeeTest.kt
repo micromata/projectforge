@@ -50,22 +50,22 @@ class EmployeeTest : AbstractTestBase() {
     @Autowired
     private lateinit var employeeDao: EmployeeDao
 
-    private var employeeList: List<EmployeeDO>? = null
+    private lateinit var employeeList: List<EmployeeDO>
 
     @BeforeEach
     fun init() {
         logon(TEST_FULL_ACCESS_USER)
         employeeList = employeeDao.internalLoadAll()
-        Assertions.assertTrue(employeeList!!.size > 0, "Keine Mitarbeiter in der Test DB!")
+        Assertions.assertTrue(employeeList.isNotEmpty(), "Keine Mitarbeiter in der Test DB!")
     }
 
     @AfterEach
     fun clean() {
         //Get initial infos
         log.info("Cleanup deleted employess -> undelete")
-        log.info("Count employees: " + employeeList!!.size)
-        Assertions.assertTrue(employeeList!!.size > 0)
-        for (e in employeeList!!) {
+        log.info("Count employees: " + employeeList.size)
+        Assertions.assertTrue(employeeList.isNotEmpty())
+        for (e in employeeList) {
             log.info("Employee: $e")
             if (e.isDeleted) {
                 //Undelete
@@ -77,9 +77,9 @@ class EmployeeTest : AbstractTestBase() {
     @Test
     fun testBirthday() {
         //Get initial infos
-        log.info("Count employees: " + employeeList!!.size)
-        Assertions.assertTrue(employeeList!!.size > 0)
-        val e = employeeList!![0]
+        log.info("Count employees: " + employeeList.size)
+        Assertions.assertTrue(employeeList.isNotEmpty())
+        val e = employeeList[0]
         log.info("Employee: $e")
         val historyEntries = employeeDao.getDisplayHistoryEntries(e)
         log.info("Employee history entry size: " + historyEntries.size)
@@ -113,13 +113,13 @@ class EmployeeTest : AbstractTestBase() {
     @Test
     fun testMarkAsDeleted() {
         //Get initial infos
-        log.info("Count employees: " + employeeList!!.size)
-        Assertions.assertTrue(employeeList!!.size > 0)
-        val e = employeeList!![0]
+        log.info("Count employees: " + employeeList.size)
+        Assertions.assertTrue(employeeList.isNotEmpty())
+        val e = employeeList[0]
         log.info("Employee: $e")
 
         //Mark as deleted
-        employeeDao!!.markAsDeleted(e)
+        employeeDao.markAsDeleted(e)
 
         //Check updates
         val updatdEmployee = employeeDao.getById(e.id)
@@ -130,9 +130,9 @@ class EmployeeTest : AbstractTestBase() {
     @Test
     fun testGender() {
         //Get initial infos
-        log.info("Count employees: " + employeeList!!.size)
-        Assertions.assertTrue(employeeList!!.size > 0)
-        val e = employeeList!![0]
+        log.info("Count employees: " + employeeList.size)
+        Assertions.assertTrue(employeeList.isNotEmpty())
+        val e = employeeList[0]
         log.info("Employee: $e")
         val historyEntriesBefore = employeeDao.getDisplayHistoryEntries(e)
         e.gender = Gender.valueOf("NOT_KNOWN")
@@ -184,9 +184,9 @@ class EmployeeTest : AbstractTestBase() {
 
     @Test
     fun testBanking() {
-        log.info("Count employees: " + employeeList!!.size)
-        Assertions.assertTrue(employeeList!!.size > 0)
-        val e = employeeList!![0]
+        log.info("Count employees: " + employeeList.size)
+        Assertions.assertTrue(employeeList.isNotEmpty())
+        val e = employeeList[0]
         log.info("Employee: $e")
         val historyEntriesBefore = employeeDao.getDisplayHistoryEntries(e)
         val iban = "/*/*/*/*/*///*/*//*//*/*/*/*/*/*/*/*/*/*/*/*/*////"
@@ -212,8 +212,8 @@ class EmployeeTest : AbstractTestBase() {
 
     @Test
     fun testAddress() {
-        Assertions.assertTrue(employeeList!!.size > 0)
-        val e = employeeList!![0]
+        Assertions.assertTrue(employeeList.isNotEmpty())
+        val e = employeeList[0]
         val historyEntriesBefore = employeeDao.getDisplayHistoryEntries(e)
         val street = "Some street"
         e.street = street
@@ -248,8 +248,8 @@ class EmployeeTest : AbstractTestBase() {
 
     @Test
     fun testStaffNumber() {
-        Assertions.assertTrue(employeeList!!.size > 0)
-        val e = employeeList!![0]
+        Assertions.assertTrue(employeeList.isNotEmpty())
+        val e = employeeList[0]
         val historyEntriesBefore = employeeDao.getDisplayHistoryEntries(e)
         val staffNumber = "123abc456def"
         e.staffNumber = staffNumber
@@ -269,7 +269,7 @@ class EmployeeTest : AbstractTestBase() {
 
     companion object {
         /**
-         * @param mail: Optional mail address of the user.
+         * @param email: Optional mail address of the user.
          */
         fun createEmployee(employeeService: EmployeeService, employeeDao: EmployeeDao, test: AbstractTestBase, name: String,
                            hrAccess: Boolean = false,
@@ -286,7 +286,7 @@ class EmployeeTest : AbstractTestBase() {
             if (hrAccess) {
                 user.addRight(UserRightDO(UserRightId.HR_VACATION, UserRightValue.READWRITE))
             }
-            test.initTestDB.addUser(user);
+            test.initTestDB.addUser(user)
             if (hrAccess) {
                 val group = test.getGroup(ProjectForgeGroup.HR_GROUP.toString())
                 group.assignedUsers!!.add(user)
@@ -294,7 +294,7 @@ class EmployeeTest : AbstractTestBase() {
             }
             val employee = EmployeeDO()
             employee.user = user
-            employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(2), BigDecimal(30));
+            employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(2), BigDecimal(30))
             employeeDao.internalSave(employee)
             test.logon(loggedInUser)
             return employee

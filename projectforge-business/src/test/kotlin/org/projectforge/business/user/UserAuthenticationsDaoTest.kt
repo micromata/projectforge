@@ -82,7 +82,7 @@ class UserAuthenticationsDaoTest : AbstractTestBase() {
     fun getUserByTokenTest() {
         logon(TEST_USER)
         val loggedInUser = ThreadLocalUserContext.getUser()
-        val authentications = userAuthenticationsDao.getByUserId(loggedInUser.id)
+        userAuthenticationsDao.getByUserId(loggedInUser.id)
         userAuthenticationsDao.renewToken(loggedInUser.id, UserTokenType.STAY_LOGGED_IN_KEY)
         val stayLoggedInKey = userAuthenticationsDao.getToken(loggedInUser.id, UserTokenType.STAY_LOGGED_IN_KEY)!!
         logoff()

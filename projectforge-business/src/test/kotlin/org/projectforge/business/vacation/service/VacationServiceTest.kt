@@ -394,9 +394,9 @@ class VacationServiceTest : AbstractTestBase() {
         employee.user = user
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
-        employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(annualLeaveDays));
+        employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(annualLeaveDays))
         annualLeaveDayEntries?.forEach {
-            employeeService.addNewAnnualLeaveDays(employee, LocalDate.of(it.year, Month.JUNE, 1), BigDecimal(it.value));
+            employeeService.addNewAnnualLeaveDays(employee, LocalDate.of(it.year, Month.JUNE, 1), BigDecimal(it.value))
         }
         employeeDao.internalSave(employee)
         return employee
@@ -414,7 +414,7 @@ class VacationServiceTest : AbstractTestBase() {
                              */
                             baseMonth: Month = Month.JANUARY,
                             baseDate: LocalDate? = null): VacationStats {
-        val base = if (baseDate != null) baseDate else LocalDate.of(2020, baseMonth, 15)
+        val base = baseDate ?: LocalDate.of(2020, baseMonth, 15)
         val stats = vacationService.getVacationStats(employee, year, true, base)
         assertNumbers(stats, remainingLeaveFromPreviousYear, stats.remainingLeaveFromPreviousYear, "remainingLeaveFromPreviousYear")
         assertNumbers(stats, remainingLeaveFromPreviousYearUnused, stats.remainingLeaveFromPreviousYearUnused, "remainingLeaveFromPreviousYearUnused")
@@ -426,7 +426,7 @@ class VacationServiceTest : AbstractTestBase() {
             else
                 assertNumbers(stats, vacationDaysInYearFromContract - vacationDaysAllocatedInYear, stats.vacationDaysLeftInYear, "vacationDaysLeftInYear")
         }
-        if (remainingLeaveFromPreviousYear != null && remainingLeaveFromPreviousYear > 0) {
+        if (remainingLeaveFromPreviousYear > 0) {
             assertNumbers(stats,
                     remainingLeaveFromPreviousYear,
                     remainingLeaveDao.internalGet(stats.employee.id, stats.year)?.remainingFromPreviousYear,

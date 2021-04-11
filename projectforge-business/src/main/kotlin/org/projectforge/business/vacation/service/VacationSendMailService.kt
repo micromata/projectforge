@@ -59,9 +59,6 @@ open class VacationSendMailService {
     private lateinit var employeeDao: EmployeeDao
 
     @Autowired
-    private lateinit var vacationService: VacationService
-
-    @Autowired
     private lateinit var sendMail: SendMail
 
     /**
@@ -76,7 +73,7 @@ open class VacationSendMailService {
             log.info { "Mail server is not configured. No e-mail notification is sent." }
             return
         }
-        val vacationInfo = VacationInfo(sendMail, employeeDao, obj)
+        val vacationInfo = VacationInfo(employeeDao, obj)
         if (!vacationInfo.valid) {
             return
         }
@@ -86,26 +83,26 @@ open class VacationSendMailService {
                 log.warn { "E-Mail configuration of HR staff isn't configured. Can't notificate HR team for special vacation entries. You may configure the e-mail address under ProjectForge's menu Administration->Configuration." }
             } else {
                 // Send to HR
-                sendMail(vacationInfo, operationType, VacationMode.HR, null, dbObj, hrEmailAddress)
+                sendMail(vacationInfo, operationType, VacationMode.HR, null, hrEmailAddress)
             }
         }
         val vacationer = vacationInfo.employeeUser!!
         if (vacationer.id != ThreadLocalUserContext.getUserId()) {
-            sendMail(vacationInfo, operationType, VacationMode.OWN, vacationer, dbObj)
+            sendMail(vacationInfo, operationType, VacationMode.OWN, vacationer)
         }
         val manager = vacationInfo.managerUser!!
         if (manager.id != ThreadLocalUserContext.getUserId()) {
-            sendMail(vacationInfo, operationType, VacationMode.MANAGER, manager, dbObj)
+            sendMail(vacationInfo, operationType, VacationMode.MANAGER, manager)
         }
         val replacement = vacationInfo.replacementUser
         if (replacement != null) {
-            sendMail(vacationInfo, operationType, VacationMode.REPLACEMENT, replacement, dbObj)
+            sendMail(vacationInfo, operationType, VacationMode.REPLACEMENT, replacement)
         }
     }
 
-    private fun sendMail(vacationInfo: VacationInfo, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?, dbObj: VacationDO? = null,
+    private fun sendMail(vacationInfo: VacationInfo, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?,
                          mailTo: String? = null) {
-        val mail = prepareMail(vacationInfo, operationType, vacationMode, recipient, dbObj, mailTo) ?: return
+        val mail = prepareMail(vacationInfo, operationType, vacationMode, recipient, mailTo) ?: return
         sendMail.send(mail)
     }
 
@@ -114,13 +111,11 @@ open class VacationSendMailService {
      *
      * Analyzes the changes of the given vacation. If necessary, e-mails will be send to the involved
      * employees (replacement and management).
-     * @param obj The object to save.
-     * @param dbObj The already existing object in the data base (if updated). For new objects dbObj is null.
      */
-    internal fun prepareMail(obj: VacationDO, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?, dbObj: VacationDO? = null,
+    internal fun prepareMail(obj: VacationDO, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?,
                              mailTo: String? = null): Mail? {
-        val vacationInfo = VacationInfo(sendMail, employeeDao, obj)
-        return prepareMail(vacationInfo, operationType, vacationMode, recipient, dbObj, mailTo)
+        val vacationInfo = VacationInfo(employeeDao, obj)
+        return prepareMail(vacationInfo, operationType, vacationMode, recipient, mailTo)
     }
 
     /**
@@ -128,10 +123,8 @@ open class VacationSendMailService {
      *
      * Analyzes the changes of the given vacation. If necessary, e-mails will be send to the involved
      * employees (replacement and management).
-     * @param obj The object to save.
-     * @param dbObj The already existing object in the data base (if updated). For new objects dbObj is null.
      */
-    private fun prepareMail(vacationInfo: VacationInfo, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?, dbObj: VacationDO? = null,
+    private fun prepareMail(vacationInfo: VacationInfo, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?,
                             mailTo: String? = null): Mail? {
         if (!vacationInfo.valid) {
             return null
@@ -173,7 +166,9 @@ open class VacationSendMailService {
         return mail
     }
 
-    internal class VacationInfo(sendMail: SendMail, employeeDao: EmployeeDao, val vacation: VacationDO) {
+    // Used by template.
+    @Suppress("HasPlatformType", "MemberVisibilityCanBePrivate", "unused")
+    internal class VacationInfo(employeeDao: EmployeeDao, val vacation: VacationDO) {
         val link = getLinkToVacationEntry(vacation.id)
         val modifiedByUser = ThreadLocalUserContext.getUser()
         val modifiedByUserFullname = modifiedByUser.getFullname()
@@ -211,11 +206,11 @@ open class VacationSendMailService {
 
         init {
             if (employeeUser == null) {
-                log.warn { "Oups, employee not given. Will not send an e-mail for vacation changes: ${vacation}" }
+                log.warn { "Oups, employee not given. Will not send an e-mail for vacation changes: $vacation" }
                 valid = false
             }
             if (managerUser == null) {
-                log.warn { "Oups, manager not given. Will not send an e-mail for vacation changes: ${vacation}" }
+                log.warn { "Oups, manager not given. Will not send an e-mail for vacation changes: $vacation" }
                 valid = false
             }
         }
@@ -241,6 +236,7 @@ open class VacationSendMailService {
         }
     }
 
+    @Suppress("unused")
     private class MailInfo(val subject: String, val operation: String, val mode: String)
 
     companion object {
