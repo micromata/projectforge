@@ -31,7 +31,7 @@ For test or small installations you may use the built-in data base (embedded).
 
 You may monitor the log file: `tail -f ~/ProjectForge/logs/ProjectForge.log`
 
-==== Running as stack
+==== Running as stack (docker-compose)
 
 In this docker-compose case ProjectForge is composed with a PostgreSQL docker container (for productive and larger installations).
 
@@ -45,14 +45,14 @@ In this docker-compose case ProjectForge is composed with a PostgreSQL docker co
 
 You may monitor the log file: `tail -f ~/ProjectForge/logs/ProjectForge.log`
 
-==== Java-Installation
+==== Java-Installation (without docker)
 If you don't want to use Docker, you're able to install ProjectForge from the executable jar file.
 
 1. Install openjdk-11
 2. Get projectForge-application_version.jar
 3. First start: java -jar projectForge-application_version.jar
 
-=== The installation setup wizard
+=== The installation setup wizard (for all installations)
 After first start, you'll be asked for entering the setup wizard. Go for it.
 There is an console setup wizard available as well as a graphical wizard as desktop application, depending on your environment. You may choose
 the version if your system supports both (graphical output and terminal output).
@@ -169,11 +169,18 @@ You'll find further configuration params through the web application under the m
 
 A minimal set of `config.xml` will be installed automatically by the setup wizard. Here you may define your specific holidays.
 
-== Reverse Proxy Setup (https)
+== Secure http connection (SSL/https)
 
-The recommended way of setting up ProjectForge is to use a reverse proxy to do the SSL termination. This document focueses on using the NGINX web server software to  accomplish this.
+The recommended way of setting up ProjectForge is to use a reverse proxy to do the SSL termination.
+
+There are different ways to do so.
+
+=== Using built-in functionality
+
+Without nginx, Apache etc. you may use the ProjectForge's built-in functionalities, see e. g. https://www.baeldung.com/spring-boot-https-self-signed-certificate
 
 === Nginx
+
 ==== Prepare
 
 All of the commands below should be run with `root` privileges.
