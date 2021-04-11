@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>org.projectforge.plugins</artifactId>
-    <version>7.0.1</version><!-- projectforge.version -->
+    <version>7.1.0</version><!-- projectforge.version -->
   </parent>
   <artifactId>org.projectforge.plugins.datatransfer</artifactId>
   <packaging>jar</packaging>
