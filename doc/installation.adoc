@@ -11,7 +11,7 @@ link:index{outfilesuffix}[Top]
 
 :sectnums:
 
-== Basic installation
+== Express installation
 You may choose now between Docker based installation or normal installation.
 
 === Docker

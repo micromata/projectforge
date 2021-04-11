@@ -3,7 +3,7 @@
 ProjectForge is a web-based solution for project management including time tracking, team calendar, gantt-charting, financial administration, issue management,
 controlling and managing work-break-down-structures (e. g. together with JIRA as issue management system).
 
-== Fast installation
+== Express installation
 
 For a fast installation via docker or executable jar, please refer https://github.com/micromata/projectforge/blob/master/doc/installation.adoc[Installation].
 
