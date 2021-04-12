@@ -1,3 +1,10 @@
+-- We should increment the start values of the sequences, otherwise unique constraint violations will occur
+-- after starting new data bases pre-filled with test data.
+ALTER SEQUENCE hibernate_sequence RESTART WITH 10000;
+ALTER SEQUENCE sq_base_ghistory_attr_data_pk RESTART WITH 10000;
+ALTER SEQUENCE sq_base_ghistory_attr_pk RESTART WITH 10000;
+ALTER SEQUENCE sq_base_ghistory_pk RESTART WITH 10000;
+
 INSERT INTO t_address (pk, created, deleted, last_update, address_status, addresstext, birthday, business_phone, city,
                        comment, communication_language, contact_status, country, division, email, fax, fingerprint,
                        first_name, form, mobile_phone, name, organization, positiontext, postal_addresstext,
