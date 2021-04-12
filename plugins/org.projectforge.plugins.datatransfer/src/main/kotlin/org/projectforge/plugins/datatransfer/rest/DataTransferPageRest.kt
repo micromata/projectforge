@@ -121,7 +121,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       .add(
         UIRow().add(
           UICol(UILength(md = 8))
-            .add(UIReadOnlyField("internalLink", label = "plugins.datatransfer.internal.link"))
+            .add(UIReadOnlyField("internalLink", label = "plugins.datatransfer.internal.link", canCopy = true))
         )
           .add(
             UICol(UILength(md = 4))

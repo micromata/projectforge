@@ -67,6 +67,7 @@ open class JCRCheckSanityJob {
       override fun visitFile(fileNode: Node, fileObject: FileObject) {
         fileObject.checksum.let { repoChecksum ->
           if (repoChecksum != null && repoChecksum.length > 10) {
+            log.info { "Checking checksum of file '${fileObject.fileName}' (${FormatterUtils.formatBytes(fileObject.size)})..." }
             val checksum =
               repoService.getFileInputStream(fileNode, fileObject, true)
                 .use { istream -> RepoService.checksum(istream) }
