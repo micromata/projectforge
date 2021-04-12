@@ -252,11 +252,11 @@
     <fop.version>2.3</fop.version>
     <xmlgraphics-commons.version>2.3</xmlgraphics-commons.version>
     <xmlgraphics-batik-codec.version>1.11</xmlgraphics-batik-codec.version>
-    <!-- HIBERNATE5 -->
+    <!-- HIBERNATE 5 -->
     <postgresql.version>42.2.10</postgresql.version>
     <hsqldb.version>2.5.0</hsqldb.version> <!-- Since 2.6.0 no support of Java 8 anymore. -->
     <jackson.version>2.11.4</jackson.version>
-    <powermock.version>2.0.4</powermock.version>
+    <powermock.version>2.0.9</powermock.version>
     <apacheds.version>1.5.7</apacheds.version>
   </properties>
 
