@@ -24,7 +24,6 @@
 package org.projectforge.jcr
 
 import mu.KotlinLogging
-import org.apache.jackrabbit.oak.plugins.document.DocumentNodeStore
 import javax.jcr.Node
 import javax.jcr.Session
 import javax.jcr.SimpleCredentials
