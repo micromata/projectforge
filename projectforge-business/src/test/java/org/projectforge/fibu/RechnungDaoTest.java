@@ -78,7 +78,7 @@ public class RechnungDaoTest extends AbstractTestBase {
       rechnungDao.save(rechnung2);
       fail("Exception with wrong number should be thrown (not continuously).");
     } catch (UserException ex) {
-      ex.printStackTrace();
+      // OK
     }
     rechnung2.setNummer(number);
     rechnung2.addPosition(createPosition(1, "50.00", "0", "test"));
