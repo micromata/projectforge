@@ -1,4 +1,4 @@
-FROM openjdk:11
+FROM openjdk:16-buster
 
 # See: https://spring.io/guides/gs/spring-boot-docker/
 
