@@ -48,35 +48,11 @@ You may monitor the log file: `tail -f ~/ProjectForge/logs/ProjectForge.log`
 ==== Java-Installation (without docker)
 If you don't want to use Docker, you're able to install ProjectForge from the executable jar file.
 
-1. Install openjdk-11 (java 8 should also work, if needed).
+1. Install openjdk (java 8 should also work, if needed, 11+ recommended).
 2. Get projectForge-application_version.jar
 3. First start: java -jar projectForge-application_version.jar
 
-===== Supported java versions
-
-.Java Compability (2021/04/12)
-[cols="1,1,1,1,3"]
-|===
-|Java version | V6* | V7.0* | V7.1+ | Comments
-
-|Oracle 1.8 | \+++ | + | + | Oracle 1.8 was in production for years up to version 7.0.0.
-|OpenJDK 11 | - | \+++ | \+++ | OpenJDK 11 is used in development (MacOS) and in heavy production since version 7.0.0. (Linux)
-|OpenJDK 12 | - | + | ? | Should run since version V7.0
-|OpenJDK 13 | - | + | ? | Should run since version V7.0
-|OpenJDK 14 | - | - | ? | Should run since version V7.1
-|OpenJDK 15 | - | - | + | Should run since version V7.1
-|OpenJDK 16 | - | - | + | Should run since version V7.1
-|===
-
-.Legend
-|===
-| - | ? | + | \+++
-
-|doesn't run | not tested | should run, shortly tested | recommended, tested in production
-|===
-
-
-We're working on supporting OpenJDK 14+.
+Here you will find the supported versions of Java: <<Supported Java versions>>
 
 === The installation setup wizard (for all installations)
 After first start, you'll be asked for entering the setup wizard. Go for it.
@@ -273,14 +249,40 @@ purged after 30 days keeping each first monthly backup.
 
 === DB backup
 You may configure a purge job in `projectforge.properties`:
-```
+
+[source]
+----
 ### If purgeBackupDir is given and exists, ProjectForge will purge daily backups older than 30 days keeping each first monthly backup.
 ### The filenames must contain the date in ISO format (...yyyy-MM-dd....).
 # This is the backup dir to look for:
 projectforge.cron.purgeBackupDir=/home/projectforge/backup
 # You may optional specify the prefix of the backup files (if not given, all files containing a date in its filename will be processed):
 projectforge.cron.purgeBackupFilesPrefix=projectforge_
-```
+----
 Your daily data base backups should contain the date of backup in ISO format in its file name.
 Daily backups (not monthly) will be deleted after 30 days.
 Refer config file for all options: [https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties]
+
+== Supported Java versions
+
+.Java Compability (2021/04/12)
+[cols="1,1,1,1,3"]
+|===
+|Java version | V6* | V7.0* | V7.1+ | Comments
+
+|Oracle 1.8 | \+++ | + | + | Oracle 1.8 was in production for years up to version 7.0.0.
+|OpenJDK 11 | - | \+++ | \+++ | OpenJDK 11 is used in development (MacOS) and in heavy production since version 7.0.0. (Linux)
+|OpenJDK 12 | - | + | ? | Should run since version V7.0
+|OpenJDK 13 | - | + | ? | Should run since version V7.0
+|OpenJDK 14 | - | - | ? | Should run since version V7.1
+|OpenJDK 15 | - | - | + | Should run since version V7.1
+|OpenJDK 16 | - | - | + | Should run since version V7.1
+|===
+
+.Legend
+|===
+| - | ? | + | \+++
+
+|doesn't run | not tested | should run, shortly tested | recommended, tested in production
+|===
+
