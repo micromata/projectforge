@@ -243,7 +243,11 @@ public class HistoryBaseDaoAdapter {
     props.forEach(
             (pk, p) -> {
               if (p.oldProps != null && p.newProps != null) {
-                historyService.internalOnUpdate(emgr, p.entClassName, pk, p.oldProps, p.newProps);
+                try {
+                  historyService.internalOnUpdate(emgr, p.entClassName, pk, p.oldProps, p.newProps);
+                } catch (Exception ex) {
+                  log.error("Error while writing history entry (" + p.entClassName + ":" + pk + ", '" + p.oldProps + "'->'" + p.newProps + "': " + ex.getMessage(), ex);
+                }
               }
             }
     );
