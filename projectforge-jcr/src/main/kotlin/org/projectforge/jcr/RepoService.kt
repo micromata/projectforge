@@ -27,7 +27,6 @@ import mu.KotlinLogging
 import org.apache.commons.codec.digest.DigestUtils
 import org.apache.jackrabbit.oak.Oak
 import org.apache.jackrabbit.oak.jcr.Jcr
-import org.apache.jackrabbit.oak.plugins.document.DocumentNodeStore
 import org.apache.jackrabbit.oak.segment.SegmentNodeStoreBuilders
 import org.apache.jackrabbit.oak.segment.file.FileStore
 import org.apache.jackrabbit.oak.segment.file.FileStoreBuilder
@@ -66,15 +65,16 @@ open class RepoService {
     log.info { "Shutting down jcr repository..." }
     fileStore?.let {
       it.flush()
-      it.compact()
+      it.compactFull()
       it.cleanup()
       log.info { "Jcr stats: ${FileStoreInfo(this)}" }
       it.close()
     }
     nodeStore?.let {
-      if (it is DocumentNodeStore) {
+      log.warn { "Method not yet implemented: ${it.javaClass}.dispose()" }
+      /*if (it is DocumentNodeStore) {
         it.dispose()
-      }
+      }*/
     }
   }
 
@@ -534,7 +534,7 @@ open class RepoService {
     log.info { "Cleaning JCR repository up..." }
     fileStore?.let {
       it.flush()
-      it.compact()
+      it.compactFull()
       it.cleanup()
     }
   }
