@@ -61,6 +61,7 @@ private val embeddedPlugins4IDEStart = arrayOf(
   "liquidityplanning",
   "marketing",
   "memo",
+  "merlin",
   "skillmatrix",
   "todo"
 )

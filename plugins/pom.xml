@@ -11,6 +11,7 @@
   <modules>
     <module>org.projectforge.plugins.datatransfer</module>
     <module>org.projectforge.plugins.memo</module>
+    <module>org.projectforge.plugins.merlin</module>
     <module>org.projectforge.plugins.todo</module>
     <module>org.projectforge.plugins.marketing</module>
     <module>org.projectforge.plugins.skillmatrix</module>
