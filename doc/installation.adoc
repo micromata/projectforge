@@ -208,9 +208,10 @@ If you want to use HSTS (which makes browsers show an error page when the SSL ce
 
 To activate the NGINX configuration, you'll need to symlink the configuration file we just created to `/etc/nginx/sites-enabled`. This can be done by using the following command:
 
-```bash
+[source,bash]
+----
 $ ln -sv /etc/nginx/sites-available/projectforge /etc/nginx/sites-enabled/projectforge
-```
+----
 
 === Apache httpd
 to be defined.
@@ -218,9 +219,11 @@ to be defined.
 == Using CardDAV and WebDAV with Milton
 Place files `milton.license.properties` and `milton.license.sig` to directory `~/ProjectForge/resources/milton/` and start ProjectForge with
 loader path:
-```bash
+
+[source,bash]
+----
 ${JAVA} ... -Dloader.path=${HOME}/ProjectForge/resources/milton ${DEBUGOPTS} -jar projectforge-application.jar &
-```
+----
 
 == Start ProjectForge (without docker)
 1. Start ProjectForge server (e.g. on `http://localhost:8080`, update the NGINX config if you use another port).
@@ -264,7 +267,6 @@ Daily backups (not monthly) will be deleted after 30 days.
 Refer config file for all options: [https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties]
 
 == Supported Java versions
-
 .Java Compability (2021/04/12)
 [cols="1,1,1,1,3"]
 |===
