@@ -150,6 +150,7 @@ public class SetupPage extends AbstractUnsecureBasePage
     pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_LICENSE_MANAGEMENT_ID, true);
     pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_LIQUIDITY_PLANNING_ID, true);
     pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_MEMO_ID, true);
+    pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_MERLIN_ID, true);
     pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_SKILL_MATRIX_ID, true);
     pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_TODO_ID, true);
     if (databaseService.getSystemUpdater().isUpdated() == true) {

@@ -44,7 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class DataTransferPlugin :
-  AbstractPlugin(ID, "datatransfer", "Data transfer tool for sharing files with other users or customers.") {
+  AbstractPlugin(ID, PluginAdminService.PLUGIN_DATA_TRANSFER_ID, "Data transfer tool for sharing files with other users or customers.") {
 
   @Autowired
   private lateinit var dataTransferAreaDao: DataTransferAreaDao
