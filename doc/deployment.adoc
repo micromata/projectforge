@@ -1,5 +1,4 @@
-ProjectForge development documentation
-=======================================
+= ProjectForge development documentation
 Micromata GmbH, Version {version}
 :toc:
 :toclevels: 4
@@ -23,7 +22,12 @@ link:index{outfilesuffix}[Top]
 6. `mvn clean install`
 7. If all tests are finished successfully and the test of the ProjectForge-Application works for new and existing databases), proceeed:
 8. Copy executable jar file from projectforge-application/target to SourceForge and tag this file as default for all platforms
-9. `cd projectforge-docker`, `./buildDocker.sh`, `docker tag bc0459ed7d01 kreinhard/projectforge:7.0.0 kreinhard/projectforge:latest`, `docker push kreinhard/projectforge:latest`
+9. Building and pushing docker
+    a. cd projectforge-docker`
+    b. `./buildDocker.sh`
+    c. `docker tag bc0459ed7d01 kreinhard/projectforge:7.0.0` (use image id for tagging)
+    d. `docker push kreinhard/projectforge:7.0.0`
+    e. `docker push kreinhard/projectforge:latest`
 10. Merge the release branch into the master and develop branch (Git Flow: Finish release)
 11. Tag master branch with version number
 12. Change to develop branch
