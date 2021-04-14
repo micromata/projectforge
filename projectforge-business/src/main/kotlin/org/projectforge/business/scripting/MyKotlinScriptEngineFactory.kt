@@ -36,72 +36,82 @@ import javax.script.ScriptContext
 import javax.script.ScriptEngine
 import javax.script.ScriptEngineManager
 
-private val whiteListJars = listOf("merlin-core", "org.projectforge", "projectforge", "kotlin-stdlib", "kotlin-script-runtime", "kotlin-script-util", "poi")
+private val whiteListJars = listOf(
+  "de.micromata.mgc.jpa.emgr",
+  "merlin-core",
+  "org.projectforge",
+  "projectforge",
+  "kotlin-stdlib",
+  "kotlin-script-runtime",
+  "kotlin-script-util",
+  "poi"
+)
 
 /**
  * Kotlin scripts don't run out of the box with spring boot. This workarround is needed.
  */
 // https://stackoverflow.com/questions/44781462/kotlin-jsr-223-scriptenginefactory-within-the-fat-jar-cannot-find-kotlin-compi
 class MyKotlinScriptEngineFactory : KotlinJsr223JvmScriptEngineFactoryBase() {
-    override fun getScriptEngine(): ScriptEngine {
-        if (jarFile == null) {
-            // We're not running in a jar file:
-            val engineManager = ScriptEngineManager()
-            return engineManager.getEngineByExtension("kts")
-        }
-        return KotlinJsr223JvmLocalScriptEngine(
-                //Disposer.newDisposable(),
-                this,
-                classPath,
-                KotlinStandardJsr223ScriptTemplate::class.qualifiedName!!,
-                { ctx, types ->
-                    ScriptArgsWithTypes(arrayOf(ctx.getBindings(ScriptContext.ENGINE_SCOPE)), types ?: emptyArray())
-                },
-                arrayOf(Bindings::class))
+  override fun getScriptEngine(): ScriptEngine {
+    if (jarFile == null) {
+      // We're not running in a jar file:
+      val engineManager = ScriptEngineManager()
+      return engineManager.getEngineByExtension("kts")
     }
+    return KotlinJsr223JvmLocalScriptEngine(
+      //Disposer.newDisposable(),
+      this,
+      classPath,
+      KotlinStandardJsr223ScriptTemplate::class.qualifiedName!!,
+      { ctx, types ->
+        ScriptArgsWithTypes(arrayOf(ctx.getBindings(ScriptContext.ENGINE_SCOPE)), types ?: emptyArray())
+      },
+      arrayOf(Bindings::class)
+    )
+  }
 
-    companion object {
-        private val log = LoggerFactory.getLogger(MyKotlinScriptEngineFactory::class.java)
-        private var jarFile: File? = null
-        private val libDir = File(ConfigXml.getInstance().tempDirectory, "scriptClassPath")
-        private val classPath = mutableListOf<File>()
+  companion object {
+    private val log = LoggerFactory.getLogger(MyKotlinScriptEngineFactory::class.java)
+    private var jarFile: File? = null
+    private val libDir = File(ConfigXml.getInstance().tempDirectory, "scriptClassPath")
+    private val classPath = mutableListOf<File>()
 
-        init {
-            val uriString = MyKotlinScriptEngineFactory::class.java.protectionDomain.codeSource.location.toString()
-            if (uriString.startsWith("file:")) {
-                // We're not running in a jar file.
-            } else {
-                if (libDir.exists()) {
-                    log.info("Deleting existing tmp dir '$libDir'.")
-                    libDir.deleteRecursively()
+    init {
+      val uriString = MyKotlinScriptEngineFactory::class.java.protectionDomain.codeSource.location.toString()
+      if (uriString.startsWith("file:")) {
+        // We're not running in a jar file.
+      } else {
+        if (libDir.exists()) {
+          log.info("Deleting existing tmp dir '$libDir'.")
+          libDir.deleteRecursively()
+        }
+        val filename = uriString.substring(0, uriString.indexOf('!')).removePrefix("jar:file:")
+        jarFile = File(filename)
+        log.info("Detecting jar file: ${jarFile!!.absolutePath}")
+        log.info("Creating new tmp dir '$libDir'.")
+        libDir.mkdirs()
+        JarFile(jarFile).use { zip ->
+          zip.entries().asSequence().forEach { entry ->
+            zip.getInputStream(entry).use { input ->
+              if (entry.isDirectory) {
+                // Do nothing (only jars required)
+                // file.mkdirs()
+              } else {
+                val origFile = File(entry.name)
+                if (origFile.extension == "jar" && whiteListJars.any { origFile.name.startsWith(it) }) {
+                  val file = File(libDir, origFile.name)
+                  classPath.add(file)
+                  file.outputStream().use { output ->
+                    input.copyTo(output)
+                  }
                 }
-                val filename = uriString.substring(0, uriString.indexOf('!')).removePrefix("jar:file:")
-                jarFile = File(filename)
-                log.info("Detecting jar file: ${jarFile!!.absolutePath}")
-                log.info("Creating new tmp dir '$libDir'.")
-                libDir.mkdirs()
-                JarFile(jarFile).use { zip ->
-                    zip.entries().asSequence().forEach { entry ->
-                        zip.getInputStream(entry).use { input ->
-                            if (entry.isDirectory) {
-                                // Do nothing (only jars required)
-                                // file.mkdirs()
-                            } else {
-                                val origFile = File(entry.name)
-                                if (origFile.extension == "jar" && whiteListJars.any { origFile.name.startsWith(it) }) {
-                                    val file = File(libDir, origFile.name)
-                                    classPath.add(file)
-                                    file.outputStream().use { output ->
-                                        input.copyTo(output)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                //classPath.add(jarFile)
-                log.info("Setting script classPath: ${classPath.joinToString(";") { it.absolutePath }}")
+              }
             }
+          }
         }
+        //classPath.add(jarFile)
+        log.info("Setting script classPath: ${classPath.joinToString(";") { it.absolutePath }}")
+      }
     }
+  }
 }
