@@ -147,8 +147,7 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
           .add(lc, "areaName", "description")
           .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
           .add(UITableColumn("maxUploadSizeFormatted", "plugins.datatransfer.maxUploadSize"))
-          .add(
-            UITableColumn(
+          .add(UITableColumn(
               "externalAccessEnabled",
               "plugins.datatransfer.external.access.title"
             ).setStandardBoolean()

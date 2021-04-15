@@ -75,8 +75,15 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
       : ResponseAction {
     val externalAccessToken = postData.data.externalAccessToken
     val externalPassword = postData.data.externalPassword
+    val userInfo = postData.data.userInfo
     val checkAccess =
-      attachmentsAccessChecker.checkExternalAccess(dataTransferAreaDao, request, externalAccessToken, externalPassword)
+      attachmentsAccessChecker.checkExternalAccess(
+        dataTransferAreaDao,
+        request,
+        externalAccessToken,
+        externalPassword,
+        userInfo
+      )
     checkAccess.second?.let {
       return getLoginFailed(response, it)
     }
@@ -90,6 +97,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
         attachmentsAccessChecker
       )
     )
+    data.userInfo = userInfo
 
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("ui", getAttachmentLayout(data))
@@ -116,6 +124,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
             //serviceBaseUrl = "/${RestResolver.REACT_PUBLIC_PATH}/datatransferattachment/dynamic",
             restBaseUrl = "/${RestPaths.REST_PUBLIC}/datatransfer",
             accessString = "${dataTransfer.externalAccessToken}|${dataTransfer.externalPassword}",
+            userInfo = "${dataTransfer.userInfo}",
             downloadOnRowClick = true,
             uploadDisabled = dataTransfer.externalUploadEnabled != true
           )
@@ -162,6 +171,14 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
           focus = true,
           dataType = UIDataType.PASSWORD,
           autoComplete = UIInput.AutoCompleteType.CURRENT_PASSWORD
+        )
+      )
+      .add(
+        UIInput(
+          "userInfo",
+          label = "plugins.datatransfer.external.userInfo",
+          tooltip = "plugins.datatransfer.external.userInfo.info",
+          maxLength = 255
         )
       )
       .add(

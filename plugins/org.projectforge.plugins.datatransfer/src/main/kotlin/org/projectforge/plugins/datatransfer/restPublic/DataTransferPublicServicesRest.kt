@@ -68,6 +68,9 @@ class DataTransferPublicServicesRest {
     attachmentsAccessChecker = DataTransferPublicAccessChecker(dataTransferAreaDao)
   }
 
+  /**
+   * @param userInfo See [org.projectorge.plugins.DataTransferPubli
+   */
   @GetMapping("download/{category}/{id}")
   fun download(
     request: HttpServletRequest,
@@ -75,11 +78,19 @@ class DataTransferPublicServicesRest {
     @PathVariable("id", required = true) id: Int,
     @RequestParam("fileId", required = true) fileId: String,
     @RequestParam("listId") listId: String?,
-    @RequestParam("accessString") accessString: String?
+    @RequestParam("accessString") accessString: String?,
+    @RequestParam("userInfo") userInfo: String?
   )
       : ResponseEntity<*> {
-    log.info { "User tries to download attachment: category=$category, id=$id, fileId=$fileId, listId=$listId)}." }
-    val checkResult = checkAccess(request, category, accessString)
+    log.info {
+      "User tries to download attachment: category=$category, id=$id, fileId=$fileId, listId=$listId)}, user='${
+        getExternalUserString(
+          request,
+          userInfo
+        )
+      }'."
+    }
+    val checkResult = checkAccess(request, category, accessString, userInfo)
     checkResult.second?.let { return it }
     val result =
       attachmentsService.getAttachmentInputStream(
@@ -89,7 +100,7 @@ class DataTransferPublicServicesRest {
         attachmentsAccessChecker,
         data = checkResult.first,
         attachmentsEventListener = dataTransferAreaDao,
-        userString = getExternalUserString(request)
+        userString = getExternalUserString(request, userInfo)
       )
         ?: throw TechnicalException(
           "File to download not accessible for user or not found: category=$category, id=$id, fileId=$fileId, listId=$listId)}."
@@ -112,15 +123,23 @@ class DataTransferPublicServicesRest {
     @PathVariable("id", required = true) id: Int,
     @PathVariable("listId") listId: String?,
     @RequestParam("file") file: MultipartFile,
-    @RequestParam("accessString") accessString: String?
+    @RequestParam("accessString") accessString: String?,
+    @RequestParam("userInfo") userInfo: String?
   )
   //@RequestParam("files") files: Array<MultipartFile>)
       : ResponseEntity<*>? {
     //files.forEach { file ->
     val filename = file.originalFilename
-    log.info { "User tries to upload attachment: id='$id', listId='$listId', filename='$filename', page='${this::class.java.name}'." }
+    log.info {
+      "User tries to upload attachment: id='$id', listId='$listId', filename='$filename', page='${this::class.java.name}', user='${
+        getExternalUserString(
+          request,
+          userInfo
+        )
+      }'."
+    }
 
-    checkAccess(request, category, accessString).second?.let { return it }
+    checkAccess(request, category, accessString, userInfo).second?.let { return it }
 
     val obj = dataTransferAreaDao.internalGetById(id)
       ?: throw TechnicalException(
@@ -139,7 +158,7 @@ class DataTransferPublicServicesRest {
       baseDao = dataTransferAreaDao,
       obj = obj,
       accessChecker = attachmentsAccessChecker,
-      userString = getExternalUserString(request)
+      userString = getExternalUserString(request, userInfo)
     )
     //}
     val list =
@@ -158,7 +177,8 @@ class DataTransferPublicServicesRest {
   private fun checkAccess(
     request: HttpServletRequest,
     category: String,
-    accessString: String?
+    accessString: String?,
+    userInfo: String?
   ): Pair<DataTransferAreaDO?, ResponseEntity<String>?> {
     check(category == "datatransfer")
     check(accessString?.contains('|') == true)
@@ -167,7 +187,13 @@ class DataTransferPublicServicesRest {
     val externalAccessToken = credentials[0]
     val externalPassword = credentials[1]
     val checkAccess =
-      attachmentsAccessChecker.checkExternalAccess(dataTransferAreaDao, request, externalAccessToken, externalPassword)
+      attachmentsAccessChecker.checkExternalAccess(
+        dataTransferAreaDao,
+        request,
+        externalAccessToken,
+        externalPassword,
+        userInfo
+      )
     checkAccess.second?.let {
       return Pair(
         null, ResponseEntity.badRequest()
@@ -178,7 +204,7 @@ class DataTransferPublicServicesRest {
     return Pair(checkAccess.first, null)
   }
 
-  private fun getExternalUserString(request: HttpServletRequest): String {
-    return "external: ${RestUtils.getClientIp(request)}"
+  private fun getExternalUserString(request: HttpServletRequest, userString: String?): String {
+    return "external: ${RestUtils.getClientIp(request)} ('${userString?.take(255)}')"
   }
 }
