@@ -2,7 +2,7 @@ import {faDownload} from '@fortawesome/free-solid-svg-icons';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {getServiceURL, handleHTTPErrors} from '../../../../../utilities/rest';
+import {evalServiceURL, getServiceURL, handleHTTPErrors} from '../../../../../utilities/rest';
 import {Table} from '../../../../design';
 import DropArea from '../../../../design/droparea';
 import LoadingContainer from '../../../../design/loading-container';
@@ -16,6 +16,7 @@ function DynamicAttachmentList(
         serviceBaseUrl,
         restBaseUrl,
         accessString,
+        userInfo,
         downloadOnRowClick,
         uploadDisabled,
     },
@@ -35,10 +36,12 @@ function DynamicAttachmentList(
         setLoading(true);
         const formData = new FormData();
         formData.append('file', files[0]);
-        const params = accessString ? `?accessString=${encodeURIComponent(accessString)}` : ''
         fetch(
             // Set the image with id -1, so the image will be set in the session.
-            getServiceURL(`${restBaseUrl}/upload/${category}/${id}/${listId}${params}`),
+            getServiceURL(`${restBaseUrl}/upload/${category}/${id}/${listId}`, {
+                accessString,
+                userInfo,
+            }),
             {
                 credentials: 'include',
                 method: 'POST',
@@ -65,7 +68,13 @@ function DynamicAttachmentList(
             callAction({
                 responseAction: {
                     targetType: 'MODAL',
-                    url: `${serviceBaseUrl}/${id}?category=${category}&fileId=${entry.fileId}&listId=${listId}${accessString}`,
+                    url: evalServiceURL(`${serviceBaseUrl}/${id}`, {
+                        category,
+                        fileId: entry.fileId,
+                        listId,
+                        accessString,
+                        userInfo,
+                    }),
                 },
             });
         }
@@ -84,6 +93,7 @@ function DynamicAttachmentList(
                     fileId: entryId,
                     listId,
                     accessString,
+                    userInfo,
                 }),
                 absolute: true,
             },
@@ -162,6 +172,7 @@ DynamicAttachmentList.propTypes = {
     serviceBaseUrl: PropTypes.string,
     restBaseUrl: PropTypes.string,
     accessString: PropTypes.string,
+    userInfo: PropTypes.string,
     downloadOnRowClick: PropTypes.bool,
     uploadDisabled: PropTypes.bool,
 };
@@ -172,6 +183,7 @@ DynamicAttachmentList.defaultProps = {
     serviceBaseUrl: '/react/attachment/dynamic',
     restBaseUrl: '/rs/attachments',
     accessString: '',
+    useInfo: null,
     downloadOnRowClick: false,
     uploadDisabled: false,
 };

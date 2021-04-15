@@ -134,10 +134,11 @@ open class NotificationMailService {
       dataTransfer.areaName ?: "???",
       byUserString
     )
+    // EventInfo is given to mail renderer.
     val eventInfo = EventInfo(link = link, user = byUserString, message = message)
 
     val mail = Mail()
-    mail.subject = message
+    mail.subject = message // Subject equals to message
     mail.contentType = Mail.CONTENTTYPE_HTML
     mail.setTo(recipient.email, recipient.getFullname())
     if (mail.to.isEmpty()) {

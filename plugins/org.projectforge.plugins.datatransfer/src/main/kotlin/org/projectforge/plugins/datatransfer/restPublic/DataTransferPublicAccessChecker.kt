@@ -48,7 +48,8 @@ open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferArea
   fun checkExternalAccess(
     dataTransferAreaDao: DataTransferAreaDao,
     request: HttpServletRequest,
-    externalAccessToken: String?, externalPassword: String?
+    externalAccessToken: String?, externalPassword: String?,
+    userInfo: String?
   ): Pair<DataTransferAreaDO?, String?> {
     if (externalAccessToken == null || externalPassword == null) {
       return Pair(null, LoginResultStatus.FAILED.localizedMessage)
@@ -59,7 +60,7 @@ open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferArea
     if (offset > 0) {
       // Time offset still exists. Ignore login try.
       val seconds = (offset / 1000).toString()
-      log.warn("The account for '${externalAccessToken}', ip=$clientIpAddress is locked for $seconds seconds due to failed login attempts. Please try again later.")
+      log.warn("The account for '${externalAccessToken}', ip=$clientIpAddress, userInfo='$userInfo' is locked for $seconds seconds due to failed login attempts. Please try again later.")
       val numberOfFailedAttempts = loginProtection.getNumberOfFailedLoginAttempts(externalAccessToken, clientIpAddress)
       val loginResultStatus = LoginResultStatus.LOGIN_TIME_OFFSET
       loginResultStatus.setMsgParams(
@@ -71,12 +72,12 @@ open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferArea
 
     val dbo = dataTransferAreaDao.getAnonymousArea(externalAccessToken)
     if (dbo == null) {
-      log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' not found. Requested by ip=$clientIpAddress." }
+      log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' not found. Requested by ip=$clientIpAddress, userInfo='$userInfo'." }
       loginProtection.incrementFailedLoginTimeOffset(externalAccessToken, clientIpAddress)
       return Pair(null, LoginResultStatus.FAILED.localizedMessage)
     }
     if (dbo.externalPassword != externalPassword) {
-      log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' doesn't match given password. Requested by ip=$clientIpAddress." }
+      log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' doesn't match given password. Requested by ip=$clientIpAddress, userInfo='$userInfo'." }
       loginProtection.incrementFailedLoginTimeOffset(externalAccessToken, clientIpAddress)
       return Pair(null, LoginResultStatus.FAILED.localizedMessage)
     }
@@ -86,6 +87,7 @@ open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferArea
 
     // Successfully logged in:
     loginProtection.clearLoginTimeOffset(externalAccessToken, null, clientIpAddress)
+    log.info { "Data transfer area with externalAccessToken '$externalAccessToken': login successful by ip=$clientIpAddress, userInfo='$userInfo'." }
 
     return Pair(dbo, null)
   }

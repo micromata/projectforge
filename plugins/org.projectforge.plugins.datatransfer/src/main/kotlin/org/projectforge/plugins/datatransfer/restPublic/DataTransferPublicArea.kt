@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.datatransfer.restPublic
 
-import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.rest.dto.AttachmentsSupport
@@ -36,7 +35,12 @@ class DataTransferPublicArea(
   var externalAccessToken: String? = null,
   var externalPassword: String? = null,
   var externalDownloadEnabled: Boolean? = null,
-  var externalUploadEnabled: Boolean? = null
+  var externalUploadEnabled: Boolean? = null,
+  /**
+   * This field is an optional field for logging purposes, where the anonymous user
+   * may enter his name or e-mail. If blank, only the IP address of the anonymous user is known.
+   */
+  var userInfo: String? = null
 ) : BaseDTO<DataTransferAreaDO>(id), AttachmentsSupport {
   override var attachments: List<Attachment>? = null
   override var attachmentsCounter: Int? = null
