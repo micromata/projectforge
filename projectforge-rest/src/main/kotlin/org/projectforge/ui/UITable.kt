@@ -46,6 +46,9 @@ data class UITable(val id: String, val columns: MutableList<UITableColumn> = mut
             if (elementInfo != null) {
                 col.title = elementInfo.i18nKey
                 col.dataType = UIDataTypeUtils.ensureDataType(elementInfo)
+                if (col.dataType == UIDataType.BOOLEAN) {
+                    col.setStandardBoolean()
+                }
             }
             if (!lc.idPrefix.isNullOrBlank())
                 col.id = "${lc.idPrefix}${col.id}"
