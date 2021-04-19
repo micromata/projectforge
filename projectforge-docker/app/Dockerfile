@@ -21,14 +21,9 @@ COPY ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY ${DEPENDENCY}/META-INF /app/META-INF
 COPY ${DEPENDENCY}/BOOT-INF/classes /app
 
-#ARG JAVA_OPTS="-Xms1g -Xmx1g"
-#ENV JAVA_OPTS_VAR=$JAVA_OPTS
+COPY --chown=borgbutler:borgbutler entrypoint.sh /app
+RUN chmod 755 /app/entrypoint.sh
 
-# -Dloader.path=${HOME}/ProjectForge/resources/milton ${DEBUGOPTS}
-
-# Variable expansion doesn't work for ENTRYPOINT definition as array, but array is required, because graceful shutdown of
-# container isn't given if java is started via 'sh -c' as it will be done by ENTRYPOINT java .....
-# Java options are modifiable by user through own ENTRYPOINT definition on docker run or in docker-compose.yml.
-ENTRYPOINT ["java", "-Xms1g", "-Xmx1g", "-cp", "app:app/lib/*:/ProjectForge/plugins/*", "-Dprojectforge.setup=docker", "-Dprojectforge.plugins.dir=/ProjectForge/plugins", "org.projectforge.start.ProjectForgeApplication"]
+ENTRYPOINT ["/app/entrypoint.sh"]
 
 MAINTAINER Micromata
