@@ -46,7 +46,7 @@ open class PFMiltonInit {
      * You may call this method on start-up. It will do nothing, if no milton license files are available.
      */
     fun init(sc: ServletContext) {
-        val miltonDir = File(configurationService.resourceDir, "milton")
+        val miltonDir = File(configurationService.resourceDirName, "milton")
         val licenseFile = File(miltonDir, "milton.license.properties")
         if (!licenseFile.exists()) {
             log.info("Don't start webdav (CalDAV and CardDAV) server, OK. No license files given: ${licenseFile.absolutePath}")
