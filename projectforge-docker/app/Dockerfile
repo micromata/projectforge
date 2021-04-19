@@ -21,7 +21,7 @@ COPY ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY ${DEPENDENCY}/META-INF /app/META-INF
 COPY ${DEPENDENCY}/BOOT-INF/classes /app
 
-COPY --chown=borgbutler:borgbutler entrypoint.sh /app
+COPY --chown=projectforge:projectforge entrypoint.sh /app
 RUN chmod 755 /app/entrypoint.sh
 
 ENTRYPOINT ["/app/entrypoint.sh"]
