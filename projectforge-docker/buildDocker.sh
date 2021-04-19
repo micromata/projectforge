@@ -9,8 +9,11 @@ mkdir -p app/target/dependency && (cd app/target/dependency; jar -xf ../../../..
 echo "Building docker file..."
 (cd app; docker build -t kreinhard/projectforge .)
 
-echo "Push: docker push kreinhard/projectforge:tagname"
+echo "docker tag ..... version"
+echo "docker push kreinhard/projectforge:version"
+echo "docker push kreinhard/projectforge:latest"
+echo
+echo
 echo "Run with 'docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge kreinhard/projectforge'"
-
 
 # docker run --name projectforge-postgres -t -i -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:11.2
