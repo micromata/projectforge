@@ -222,8 +222,10 @@ class MenuCreator {
       .add(MenuItemDef(MenuItemDefId.BOOK_LIST))
       .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST))
       .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST))
-    if (configurationService.telephoneSystemUrl.isNotEmpty())
-      commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL))
+    configurationService.telephoneSystemUrl?.let {
+      if (it.isNotEmpty())
+        commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL))
+    }
     if (smsSenderConfig.isSmsConfigured())
       commonMenu.add(MenuItemDef(MenuItemDefId.SEND_SMS))
     if (Configuration.instance.isMebConfigured)
