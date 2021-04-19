@@ -332,7 +332,7 @@ open class ConfigurationService {
   val isSendMailConfigured: Boolean
     get() = sendMailConfiguration.isMailSendConfigOk
 
-  fun getSendMailConfiguration(): SendMailConfig? {
+  open fun getSendMailConfiguration(): SendMailConfig? {
     return if (isSendMailConfigured) {
       sendMailConfiguration
     } else null
@@ -416,7 +416,7 @@ open class ConfigurationService {
       }
     }
 
-  fun createMailSessionLocalSettingsConfigModel(): MailSessionLocalSettingsConfigModel {
+  open fun createMailSessionLocalSettingsConfigModel(): MailSessionLocalSettingsConfigModel {
     return MailSessionLocalSettingsConfigModel()
       .setEmailEnabled(pfmailsessionEmailEnabled)
       .setName(pfmailsessionName)
@@ -576,7 +576,7 @@ open class ConfigurationService {
         "export JAVA_OPTS=\n\n" +
         "# For license file of Milton (CardDAV/CalDAV):\n" +
         "#export JAVA_OPTS=\"\$JAVA_OPTS -Dloader.path=\${HOME}/ProjectForge/resources/milton\"\n\n" +
-        "# Set your options here (will be used for starting\n" +
+        "# Define your optional program arguments here\n" +
         "export JAVA_ARGS=\n"
   }
 }
