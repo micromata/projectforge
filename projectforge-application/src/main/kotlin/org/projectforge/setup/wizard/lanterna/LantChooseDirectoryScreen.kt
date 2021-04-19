@@ -37,8 +37,6 @@ import org.projectforge.start.ProjectForgeHomeFinder
 import java.io.File
 
 class LantChooseDirectoryScreen(context: LantGUIContext) : LantAbstractWizardWindow(context, Texts.CD_SCREEN_TITLE) {
-    private val log = org.slf4j.LoggerFactory.getLogger(LantChooseDirectoryScreen::class.java)
-
     private lateinit var actionListBox: ActionListBox
 
     override fun getContentPanel(): Panel {

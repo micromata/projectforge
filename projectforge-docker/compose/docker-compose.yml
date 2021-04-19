@@ -8,7 +8,8 @@ services:
       - "127.0.0.1:8080:8080"
     volumes:
       - ${HOME}/ProjectForge:/ProjectForge
-    entrypoint: ["java", "-Xms1g", "-Xmx1g", "-cp", "app:app/lib/*:/ProjectForge/plugins/*", "-Dprojectforge.setup=postgres", "-Dprojectforge.plugins.dir=/ProjectForge/plugins", "org.projectforge.start.ProjectForgeApplication"]
+    environment:
+      - DOCKER_OPTS="-Ddocker=stack"
   depends_on:
       - projectforge-db
   projectforge-db:
