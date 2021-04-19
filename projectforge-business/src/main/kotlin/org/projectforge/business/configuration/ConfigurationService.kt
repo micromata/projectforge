@@ -24,17 +24,17 @@
 package org.projectforge.business.configuration
 
 import de.micromata.genome.util.runtime.config.MailSessionLocalSettingsConfigModel
+import mu.KotlinLogging
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.ProjectForgeApp
 import org.projectforge.business.meb.MebMailClient
 import org.projectforge.business.orga.ContractType
-import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.framework.configuration.*
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.framework.utils.FileHelper
 import org.projectforge.mail.SendMailConfig
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -48,15 +48,17 @@ import java.util.*
 import javax.annotation.PostConstruct
 import javax.net.ssl.*
 
+private val log = KotlinLogging.logger {}
+
 @Service
-class ConfigurationService {
-  private var configXml: ConfigXml? = null
+open class ConfigurationService {
+  private lateinit var configXml: ConfigXml
 
   @Autowired
-  private val configDao: ConfigurationDao? = null
+  private lateinit var configDao: ConfigurationDao
 
   @Value("\${projectforge.base.dir}")
-  val applicationHomeDir: String? = null
+  open var applicationHomeDir: String? = null
 
   /**
    * Resource directory relative to application's home (default 'resources').
@@ -73,19 +75,16 @@ class ConfigurationService {
    * If given then the key-store file is used.
    */
   @Value("\${projectforge.keystoreFile}")
-  private val keystoreFileName: String? = null
+  private var keystoreFileName: String? = null
 
   @Value("\${projectforge.keystorePassphrase}")
-  private val keystorePassphrase: String? = null
+  private var keystorePassphrase: String? = null
 
   @Autowired
-  private val sendMailConfiguration: SendMailConfig? = null
+  private lateinit var sendMailConfiguration: SendMailConfig
 
   @Autowired
-  private val mebMailClient: MebMailClient? = null
-
-  @Autowired
-  private val teamCalCache: TeamCalCache? = null
+  private lateinit var mebMailClient: MebMailClient
 
   /**
    * Default value: "resources/fonts" (absolute path).
@@ -101,21 +100,25 @@ class ConfigurationService {
    * #source will be replaced by the current user's phone and #target by the chosen phone number to call.
    */
   @Value("\${projectforge.telephoneSystemUrl}")
-  val telephoneSystemUrl: String? = null
+  var telephoneSystemUrl: String? = null
+    private set
+
 
   /**
    * For direct calls all numbers beginning with the this number will be stripped, e. g. for 0561316793: 056131679323 ->
    * 23. So internal calls are supported.
    */
   @Value("\${projectforge.telephoneSystemNumber}")
-  val telephoneSystemNumber: String? = null
+  var telephoneSystemNumber: String? = null
+    private set
 
   /**
    * The SMS receiver verifies this key given as get parameter to the servlet call. <br></br>
    * The key should be an alpha numeric random value with at least 6 characters for security reasons.
    */
   @Value("\${projectforge.receiveSmsKey}")
-  val receiveSmsKey: String? = null
+  var receiveSmsKey: String? = null
+    private set
 
   /**
    * The reverse phone lookup service verifies the key given as parameter to the servlet call against this key. The key
@@ -124,13 +127,15 @@ class ConfigurationService {
    * @return the receivePhoneLookupKey
    */
   @Value("\${projectforge.phoneLookupKey}")
-  val phoneLookupKey: String? = null
+  var phoneLookupKey: String? = null
+    private set
 
   /**
    * @return the securityConfig
    */
   @Autowired
-  val securityConfig: SecurityConfig? = null
+  lateinit var securityConfig: SecurityConfig
+    private set
 
   /**
    * If configured then this logo file is used for displaying at the top of the navigation menu.
@@ -139,7 +144,8 @@ class ConfigurationService {
    * '&lt;app-home&gt;/resources/images').
    */
   @Value("\${projectforge.logoFile}")
-  val logoFileName: String? = null
+  var logoFileName: String? = null
+    private set
 
   /**
    * Default is €
@@ -151,7 +157,8 @@ class ConfigurationService {
   var defaultLocale: Locale? = null
 
   @Value("\${projectforge.defaultTimeNotation}")
-  val defaultTimeNotation: TimeNotation? = null
+  var defaultTimeNotation: TimeNotation? = null
+    private set
 
   @Value("\${projectforge.defaultFirstDayOfWeek}")
   var defaultFirstDayOfWeek: DayOfWeek? = null
@@ -160,58 +167,66 @@ class ConfigurationService {
   var minimalDaysInFirstWeek: Int? = null
 
   @Value("\${projectforge.excelPaperSize}")
-  val excelPaperSize: String? = null
+  var excelPaperSize: String? = null
+    private set
 
   @Value("\${projectforge.wicket.developmentMode}")
-  private val developmentMode = false
+  private var developmentMode = false
 
   @Value("\${projectforge.support.mail}")
-  val pfSupportMailAddress: String? = null
+  var pfSupportMailAddress: String? = null
+    private set
 
   @Value("\${mail.session.pfmailsession.emailEnabled}")
-  private val pfmailsessionEmailEnabled: String? = null
+  private var pfmailsessionEmailEnabled: String? = null
 
   @Value("\${mail.session.pfmailsession.name}")
-  private val pfmailsessionName: String? = null
+  private var pfmailsessionName: String? = null
 
   @Value("\${mail.session.pfmailsession.standardEmailSender}")
-  private val pfmailsessionStandardEmailSender: String? = null
+  private var pfmailsessionStandardEmailSender: String? = null
 
   @Value("\${mail.session.pfmailsession.encryption}")
-  private val pfmailsessionEncryption: String? = null
+  private var pfmailsessionEncryption: String? = null
 
   @Value("\${mail.session.pfmailsession.smtp.host}")
-  private val pfmailsessionHost: String? = null
+  private var pfmailsessionHost: String? = null
 
   @Value("\${mail.session.pfmailsession.smtp.port}")
-  private val pfmailsessionPort: String? = null
+  private var pfmailsessionPort: String? = null
 
   @Value("\${mail.session.pfmailsession.smtp.auth}")
-  private val pfmailsessionAuth = false
+  private var pfmailsessionAuth = false
 
   @Value("¢{mail.session.pfmailsession.smtp.user}")
-  private val pfmailsessionUser: String? = null
+  private var pfmailsessionUser: String? = null
 
   @Value("¢{mail.session.pfmailsession.smtp.password}")
-  private val pfmailsessionPassword: String? = null
+  private var pfmailsessionPassword: String? = null
 
   @Value("\${pf.config.security.sqlConsoleAvailable:false}")
-  val isSqlConsoleAvailable = false
+  var isSqlConsoleAvailable = false
+    private set
 
   @Value("\${pf.config.security.teamCalCryptPassword}")
-  val teamCalCryptPassword: String? = null
+  var teamCalCryptPassword: String? = null
+    private set
 
   @Value("\${pf.config.compileCss:true}")
-  val compileCss = false
+  var compileCss = false
+    private set
 
   @Value("\${projectforge.login.handlerClass}")
-  val loginHandlerClass: String? = null
+  var loginHandlerClass: String? = null
+    private set
 
   @Value("\${projectforge.max-file-size.datev}")
-  val maxFileSizeDatev: String? = null
+  var maxFileSizeDatev: String? = null
+    private set
 
   @Value("\${projectforge.max-file-size.xml-dump-import}")
-  val maxFileSizeXmlDumpImport: String? = null
+  open var maxFileSizeXmlDumpImport: String? = null
+
   var isDAVServicesAvailable = false
 
   @PostConstruct
@@ -221,6 +236,15 @@ class ConfigurationService {
     configXml = ConfigXml(applicationHomeDir)
     if (StringUtils.isBlank(resourceDirName)) {
       resourceDirName = DEFAULT_RESOURCES_DIR
+    }
+    if (System.getProperty(ProjectForgeApp.PROJECTFORGE_SETUP) == "docker") {
+      // Check environment.sh script
+      val workingDir = File(applicationHomeDir)
+      val environmentFile = File(workingDir, ENVIRONMENT_FILE)
+      if (!environmentFile.exists()) {
+        log.info { "Creating environment file for java options (docker): ${environmentFile.absolutePath}" }
+        environmentFile.writeText(ENVIRONMENT_FILE_INITIAL_CONTENT)
+      }
     }
     resourceDirName = FileHelper.getAbsolutePath(applicationHomeDir, resourceDirName)
     ensureDir(File(resourceDirName))
@@ -306,7 +330,7 @@ class ConfigurationService {
    * @return true if at least a send mail host is given, otherwise false.
    */
   val isSendMailConfigured: Boolean
-    get() = sendMailConfiguration != null && sendMailConfiguration.isMailSendConfigOk
+    get() = sendMailConfiguration.isMailSendConfigOk
 
   fun getSendMailConfiguration(): SendMailConfig? {
     return if (isSendMailConfigured) {
@@ -317,15 +341,15 @@ class ConfigurationService {
   val isTelephoneSystemUrlConfigured: Boolean
     get() = StringUtils.isNotEmpty(telephoneSystemUrl)
   val contractTypes: List<ContractType>
-    get() = configXml!!.contractTypes
+    get() = configXml.contractTypes
   val isSecurityConfigured: Boolean
-    get() = securityConfig != null && StringUtils.isNotBlank(securityConfig.passwordPepper)
+    get() = StringUtils.isNotBlank(securityConfig.passwordPepper)
 
   /**
    * @return true if meb mail account with hostname is configured, otherwise false.
    */
   val isMebMailAccountConfigured: Boolean
-    get() = mebMailClient!!.isMailAccountAvailable
+    get() = mebMailClient.isMailAccountAvailable
 
   private fun setupKeyStores() {
     if (!StringUtils.isBlank(keystoreFileName)) {
@@ -338,8 +362,8 @@ class ConfigurationService {
           log.warn("Can't read keystore file: $keystoreFile")
           return
         }
-        val `is`: InputStream = FileInputStream(keystoreFile)
-        usersSSLSocketFactory = createSSLSocketFactory(`is`, keystorePassphrase)
+        val inputStream: InputStream = FileInputStream(keystoreFile)
+        usersSSLSocketFactory = createSSLSocketFactory(inputStream, keystorePassphrase ?: "")
         log.info("Keystore successfully read from file: " + keystoreFile.absolutePath)
       } catch (ex: Throwable) {
         log.error("Could not initialize your key store (see error message below)!")
@@ -349,10 +373,10 @@ class ConfigurationService {
   }
 
   @Throws(Exception::class)
-  private fun createSSLSocketFactory(`is`: InputStream, passphrase: String?): SSLSocketFactory {
+  private fun createSSLSocketFactory(inputStream: InputStream, passphrase: String): SSLSocketFactory {
     val ks = KeyStore.getInstance(KeyStore.getDefaultType())
-    ks.load(`is`, passphrase!!.toCharArray())
-    `is`.close()
+    ks.load(inputStream, passphrase.toCharArray())
+    inputStream.close()
     val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
     tmf.init(ks)
     val defaultTrustManager = tmf.trustManagers[0] as X509TrustManager
@@ -373,17 +397,17 @@ class ConfigurationService {
     return true
   }
 
-  fun getDaoValue(parameter: IConfigurationParam?, configurationDO: ConfigurationDO?): Any {
-    return configDao!!.getValue(parameter, configurationDO)
+  fun getDaoValue(parameter: IConfigurationParam?, configurationDO: ConfigurationDO?): Any? {
+    return configDao.getValue(parameter, configurationDO)
   }
 
   fun daoInternalLoadAll(): List<ConfigurationDO> {
-    return configDao!!.internalLoadAll()
+    return configDao.internalLoadAll()
   }
 
   val timezone: TimeZone?
     get() {
-      val configurationDO = configDao!!.getEntry(ConfigurationParam.DEFAULT_TIMEZONE)
+      val configurationDO = configDao.getEntry(ConfigurationParam.DEFAULT_TIMEZONE)
       return if (configurationDO != null) {
         configurationDO.timeZone
       } else {
@@ -412,7 +436,7 @@ class ConfigurationService {
   fun getEndOfCarryVacationOfPreviousYear(year: Int): LocalDate {
     var day = 31
     var month = 3 // March, 1 based, 1-January, ..., 12-December.
-    val configDO = configDao!!.getEntry(ConfigurationParam.END_DATE_VACATION_LAST_YEAR)
+    val configDO = configDao.getEntry(ConfigurationParam.END_DATE_VACATION_LAST_YEAR)
     if (configDO != null) {
       val dayMonthString = configDO.stringValue
       val dayMonthParts = dayMonthString!!.split("\\.".toRegex()).toTypedArray()
@@ -430,7 +454,7 @@ class ConfigurationService {
 
   val hREmailadress: String?
     get() {
-      val hrMailaddress = configDao!!.getEntry(ConfigurationParam.HR_MAILADDRESS)
+      val hrMailaddress = configDao.getEntry(ConfigurationParam.HR_MAILADDRESS)
       return hrMailaddress?.stringValue
     }
 
@@ -438,7 +462,7 @@ class ConfigurationService {
   val minPasswordLength: Int
     get() {
       try {
-        val minPwLenEntry = configDao!!.getEntry(ConfigurationParam.MIN_PASSWORD_LENGTH)
+        val minPwLenEntry = configDao.getEntry(ConfigurationParam.MIN_PASSWORD_LENGTH)
         if (minPwLenEntry != null) {
           val minPwLenValue = minPwLenEntry.intValue
           if (minPwLenValue != null) {
@@ -456,7 +480,7 @@ class ConfigurationService {
   val flagCheckPasswordChange: Boolean
     get() {
       try {
-        val flagCheckPwChangeConf = configDao!!.getEntry(ConfigurationParam.PASSWORD_FLAG_CHECK_CHANGE)
+        val flagCheckPwChangeConf = configDao.getEntry(ConfigurationParam.PASSWORD_FLAG_CHECK_CHANGE)
         if (flagCheckPwChangeConf != null) {
           val flagCheckPwChange = flagCheckPwChangeConf.booleanValue
           if (flagCheckPwChange != null) {
@@ -493,10 +517,10 @@ class ConfigurationService {
         return field
       }
       logoFileName?.let {
-        if (logoFileName.isNotBlank()) {
-          var file = File(logoFileName)
+        if (it.isNotBlank()) {
+          var file = File(it)
           if (!file.isAbsolute) {
-            file = Paths.get(resourceDirName, "images", logoFileName).toFile()
+            file = Paths.get(resourceDirName, "images", it).toFile()
           }
           field = file
           return file
@@ -507,10 +531,6 @@ class ConfigurationService {
     private set
 
   companion object {
-    @Transient
-    private val log = LoggerFactory
-      .getLogger(ConfigurationService::class.java)
-
     @Transient
     private val nonExistingResources: MutableSet<String> = HashSet()
 
@@ -547,5 +567,16 @@ class ConfigurationService {
         log.info("Using existing " + type + ":" + file.absolutePath)
       }
     }
+
+    private const val ENVIRONMENT_FILE = "environment.sh"
+    private const val ENVIRONMENT_FILE_INITIAL_CONTENT = "#!/bin/bash\n\n" +
+        "# Set the java options and arguments here for Your docker installation only.\n\n" +
+        "# Increase ProjectForge's memory setting:\n" +
+        "#export JAVA_OPTS=\"-DXmx4g\"\n" +
+        "export JAVA_OPTS=\n\n" +
+        "# For license file of Milton (CardDAV/CalDAV):\n" +
+        "#export JAVA_OPTS=\"\$JAVA_OPTS -Dloader.path=\${HOME}/ProjectForge/resources/milton\"\n\n" +
+        "# Set your options here (will be used for starting\n" +
+        "export JAVA_ARGS=\n"
   }
 }
