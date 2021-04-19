@@ -237,7 +237,7 @@ open class ConfigurationService {
     if (StringUtils.isBlank(resourceDirName)) {
       resourceDirName = DEFAULT_RESOURCES_DIR
     }
-    if (System.getProperty(ProjectForgeApp.PROJECTFORGE_SETUP) == "docker") {
+    if (!System.getProperty(ProjectForgeApp.DOCKER_MODE).isNullOrBlank()) {
       // Check environment.sh script
       val workingDir = File(applicationHomeDir)
       val environmentFile = File(workingDir, ENVIRONMENT_FILE)

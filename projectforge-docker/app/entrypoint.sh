@@ -61,7 +61,11 @@ fi
 #Trap SIGTERM
 trap cleanup INT SIGTERM
 
-START="${JAVA_OPTS} -cp app:app/lib/*:/ProjectForge/plugins/* -Dprojectforge.setup=docker -Dprojectforge.plugins.dir=/ProjectForge/plugins ${JAVA_MAIN} ${JAVA_ARGS}"
+if [ -z "$DOCKER_OPTS" ]; then
+  DOCKER_OPTS="-Ddocker=single"
+fi
+
+START="${JAVA_OPTS} -cp app:app/lib/*:/ProjectForge/plugins/* -Dprojectforge.plugins.dir=/ProjectForge/plugins ${DOCKER_OPTS} ${JAVA_MAIN} ${JAVA_ARGS}"
 # (projectforge.setup is defined in ProjectForgeApp.)
 
 echo "Starting: java ${START}"

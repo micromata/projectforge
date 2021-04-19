@@ -67,7 +67,15 @@ public class ProjectForgeApp {
 
   public static final String CONFIG_PARAM_BASE_DIR = "projectforge.base.dir";
 
+  /**
+   * "postgres" for setup wizard without embedded db option (useful for docker-compose with PostgreSQL) or null.
+   */
   public static final String PROJECTFORGE_SETUP = "projectforge.setup";
+
+  /**
+   * If given, ProjectForge runs in docker. Values are: stack (for docker compose or single).
+   */
+  public static final String DOCKER_MODE = "docker";
 
   public static final String CONFIG_PLUGINS_DIR = "projectforge.plugins.dir";
 
