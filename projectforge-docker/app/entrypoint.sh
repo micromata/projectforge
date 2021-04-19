@@ -18,8 +18,8 @@ cleanup() {
     kill $pid
   fi
 
-  echo "waiting 5 sec for termination of pid $pid..."
-  sleep 5
+  echo "waiting 10 sec for termination of pid $pid..."
+  sleep 10
 
   pid=$(pgrep -f $JAVA_MAIN)
   if [[ -z $pid ]]; then
@@ -61,10 +61,21 @@ fi
 #Trap SIGTERM
 trap cleanup INT SIGTERM
 
-echo "Starting java ${JAVA_OPTS} -cp app:app/lib/*:/ProjectForge/plugins/* -Dprojectforge.setup=docker -Dprojectforge.plugins.dir=/ProjectForge/plugins ${JAVA_MAIN} ${JAVA_ARGS}"
-
-java $JAVA_OPTS -cp app:app/lib/*:/ProjectForge/plugins/* -Dprojectforge.setup=docker -Dprojectforge.plugins.dir=/ProjectForge/plugins $JAVA_MAIN $JAVA_ARGS &
+START="${JAVA_OPTS} -cp app:app/lib/*:/ProjectForge/plugins/* -Dprojectforge.setup=docker -Dprojectforge.plugins.dir=/ProjectForge/plugins ${JAVA_MAIN} ${JAVA_ARGS}"
 # (projectforge.setup is defined in ProjectForgeApp.)
+
+echo "Starting: java ${START}"
+
+CONFIG_FILE=/ProjectForge/projectforge.properties
+if [ -f "$CONFIG_FILE" ]; then
+  # Initial start: java must run in background for getting the SIGTERM signal on stop (wait $CHILD).
+  echo "Normal start"
+  java $START &
+else
+  # Initial start: java must run in foreground for using the console setup wizard.
+  echo "Initial start"
+  java $START
+fi
 
 CHILD=$!
 wait $CHILD
