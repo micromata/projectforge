@@ -40,9 +40,9 @@ import java.io.IOException;
 
 /**
  * Servlet for displaying a customizable logo image (see config.xml).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @WebServlet({ "/secure/Logo.png", "/secure/Logo.jpg", "/secure/Logo.gif" })
 public class LogoServlet extends HttpServlet implements ConfigurationListener
@@ -62,12 +62,12 @@ public class LogoServlet extends HttpServlet implements ConfigurationListener
   /**
    * Extracts the servlet name Logo.png, Logo.jpg or Logo.gif. The extension is only needed for some browsers for
    * detecting the correct logo file format.
-   * 
+   *
    * @return The servlet path or null, if no logo file is given.
    */
   public static String getBaseUrl()
   {
-    final String filename = getConfigService().getLogoFile();
+    final String filename = getConfigService().getLogoFileName();
     if (StringUtils.isEmpty(filename)) {
       return null;
     } else if (filename.endsWith(".png")) {
@@ -87,13 +87,13 @@ public class LogoServlet extends HttpServlet implements ConfigurationListener
     if (!initialized) {
       configService = getConfigService();
       // Synchronization not really needed, multiple initialization works.
-      final String logo = configService.getLogoFile();
+      final String logo = configService.getLogoFileName();
       if (logo != null) {
         final String logoPath;
         if (new File(logo).isAbsolute()) {
           logoPath = logo;
         } else {
-          logoPath = configService.getResourceDir() + "/images/" + logo;
+          logoPath = configService.getResourceDirName() + "/images/" + logo;
         }
         final File file = new File(logoPath);
         if (file.canRead()) {
