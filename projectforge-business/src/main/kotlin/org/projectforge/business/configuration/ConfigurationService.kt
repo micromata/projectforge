@@ -64,10 +64,11 @@ open class ConfigurationService {
    * Resource directory relative to application's home (default 'resources').
    */
   @Value("\${projectforge.resourcesDirectory}")
-  var resourceDirName: String? = null
-    private set
-  var usersSSLSocketFactory: SSLSocketFactory? = null
-    private set
+  open var resourceDirName: String? = null
+    protected set
+
+  open var usersSSLSocketFactory: SSLSocketFactory? = null
+    protected set
 
   /**
    * For additional certificates you can set the file name of the jssecert file in your ProjectForge home (config)
@@ -92,16 +93,16 @@ open class ConfigurationService {
    * @return the fontsDirectory
    */
   @Value("\${projectforge.fontsDirectory}")
-  var fontsDir: String? = null
-    private set
+  open var fontsDir: String? = null
+    protected set
 
   /**
    * Format http://asterisk.acme.com/originatecall.php?source=#source&amp;target=#target<br></br>
    * #source will be replaced by the current user's phone and #target by the chosen phone number to call.
    */
   @Value("\${projectforge.telephoneSystemUrl}")
-  var telephoneSystemUrl: String? = null
-    private set
+  open var telephoneSystemUrl: String? = null
+    protected set
 
 
   /**
@@ -109,16 +110,16 @@ open class ConfigurationService {
    * 23. So internal calls are supported.
    */
   @Value("\${projectforge.telephoneSystemNumber}")
-  var telephoneSystemNumber: String? = null
-    private set
+  open var telephoneSystemNumber: String? = null
+    protected set
 
   /**
    * The SMS receiver verifies this key given as get parameter to the servlet call. <br></br>
    * The key should be an alpha numeric random value with at least 6 characters for security reasons.
    */
   @Value("\${projectforge.receiveSmsKey}")
-  var receiveSmsKey: String? = null
-    private set
+  open var receiveSmsKey: String? = null
+    protected set
 
   /**
    * The reverse phone lookup service verifies the key given as parameter to the servlet call against this key. The key
@@ -127,15 +128,15 @@ open class ConfigurationService {
    * @return the receivePhoneLookupKey
    */
   @Value("\${projectforge.phoneLookupKey}")
-  var phoneLookupKey: String? = null
-    private set
+  open var phoneLookupKey: String? = null
+    protected set
 
   /**
    * @return the securityConfig
    */
   @Autowired
-  lateinit var securityConfig: SecurityConfig
-    private set
+  open lateinit var securityConfig: SecurityConfig
+    protected set
 
   /**
    * If configured then this logo file is used for displaying at the top of the navigation menu.
@@ -144,38 +145,38 @@ open class ConfigurationService {
    * '&lt;app-home&gt;/resources/images').
    */
   @Value("\${projectforge.logoFile}")
-  var logoFileName: String? = null
-    private set
+  open var logoFileName: String? = null
+    protected set
 
   /**
    * Default is €
    */
   @Value("\${projectforge.currencySymbol}")
-  var currencySymbol: String? = null
+  open var currencySymbol: String? = null
 
   @Value("\${projectforge.defaultLocale}")
-  var defaultLocale: Locale? = null
+  open var defaultLocale: Locale? = null
 
   @Value("\${projectforge.defaultTimeNotation}")
-  var defaultTimeNotation: TimeNotation? = null
-    private set
+  open var defaultTimeNotation: TimeNotation? = null
+    protected set
 
   @Value("\${projectforge.defaultFirstDayOfWeek}")
-  var defaultFirstDayOfWeek: DayOfWeek? = null
+  open var defaultFirstDayOfWeek: DayOfWeek? = null
 
   @Value("\${projectforge.minimalDaysInFirstWeek}")
-  var minimalDaysInFirstWeek: Int? = null
+  open var minimalDaysInFirstWeek: Int? = null
 
   @Value("\${projectforge.excelPaperSize}")
-  var excelPaperSize: String? = null
-    private set
+  open var excelPaperSize: String? = null
+    protected set
 
   @Value("\${projectforge.wicket.developmentMode}")
   private var developmentMode = false
 
   @Value("\${projectforge.support.mail}")
-  var pfSupportMailAddress: String? = null
-    private set
+  open var pfSupportMailAddress: String? = null
+    protected set
 
   @Value("\${mail.session.pfmailsession.emailEnabled}")
   private var pfmailsessionEmailEnabled: String? = null
@@ -205,32 +206,32 @@ open class ConfigurationService {
   private var pfmailsessionPassword: String? = null
 
   @Value("\${pf.config.security.sqlConsoleAvailable:false}")
-  var isSqlConsoleAvailable = false
-    private set
+  open var isSqlConsoleAvailable = false
+    protected set
 
   @Value("\${pf.config.security.teamCalCryptPassword}")
-  var teamCalCryptPassword: String? = null
-    private set
+  open var teamCalCryptPassword: String? = null
+    protected set
 
   @Value("\${pf.config.compileCss:true}")
-  var compileCss = false
-    private set
+  open var compileCss = false
+    protected set
 
   @Value("\${projectforge.login.handlerClass}")
-  var loginHandlerClass: String? = null
-    private set
+  open var loginHandlerClass: String? = null
+    protected set
 
   @Value("\${projectforge.max-file-size.datev}")
-  var maxFileSizeDatev: String? = null
-    private set
+  open var maxFileSizeDatev: String? = null
+    protected set
 
   @Value("\${projectforge.max-file-size.xml-dump-import}")
   open var maxFileSizeXmlDumpImport: String? = null
 
-  var isDAVServicesAvailable = false
+  open var isDAVServicesAvailable = false
 
   @PostConstruct
-  fun init() {
+  private fun init() {
     ConfigurationServiceAccessor.setConfigurationService(this)
     staticApplicationHomeDir = applicationHomeDir
     configXml = ConfigXml(applicationHomeDir)
@@ -267,7 +268,7 @@ open class ConfigurationService {
    * @return Object[2]: First value is the content as string and second value is the url in external form.
    * @see .getResourceAsInputStream
    */
-  fun getResourceContentAsString(filename: String): Array<Any?> {
+  open fun getResourceContentAsString(filename: String): Array<Any?> {
     val result = getResourceAsInputStream(filename)
     (result[0] as InputStream?).use {
       try {
@@ -287,7 +288,7 @@ open class ConfigurationService {
    * @param filename Filename (can include relative path settings): "test.xsl", "fo-styles/doit.xsl".
    * @return Object[2]: First value is the InputStream and second value is the url in external form.
    */
-  fun getResourceAsInputStream(filename: String): Array<Any?> {
+  open fun getResourceAsInputStream(filename: String): Array<Any?> {
     var inputStream: InputStream? = null
     var path: String? = null
     val base = File(resourceDirName)
@@ -329,7 +330,7 @@ open class ConfigurationService {
   /**
    * @return true if at least a send mail host is given, otherwise false.
    */
-  val isSendMailConfigured: Boolean
+  open val isSendMailConfigured: Boolean
     get() = sendMailConfiguration.isMailSendConfigOk
 
   open fun getSendMailConfiguration(): SendMailConfig? {
@@ -338,17 +339,17 @@ open class ConfigurationService {
     } else null
   }
 
-  val isTelephoneSystemUrlConfigured: Boolean
+  open val isTelephoneSystemUrlConfigured: Boolean
     get() = StringUtils.isNotEmpty(telephoneSystemUrl)
-  val contractTypes: List<ContractType>
+  open val contractTypes: List<ContractType>
     get() = configXml.contractTypes
-  val isSecurityConfigured: Boolean
+  open val isSecurityConfigured: Boolean
     get() = StringUtils.isNotBlank(securityConfig.passwordPepper)
 
   /**
    * @return true if meb mail account with hostname is configured, otherwise false.
    */
-  val isMebMailAccountConfigured: Boolean
+  open val isMebMailAccountConfigured: Boolean
     get() = mebMailClient.isMailAccountAvailable
 
   private fun setupKeyStores() {
@@ -397,15 +398,15 @@ open class ConfigurationService {
     return true
   }
 
-  fun getDaoValue(parameter: IConfigurationParam?, configurationDO: ConfigurationDO?): Any? {
+  open fun getDaoValue(parameter: IConfigurationParam?, configurationDO: ConfigurationDO?): Any? {
     return configDao.getValue(parameter, configurationDO)
   }
 
-  fun daoInternalLoadAll(): List<ConfigurationDO> {
+  open fun daoInternalLoadAll(): List<ConfigurationDO> {
     return configDao.internalLoadAll()
   }
 
-  val timezone: TimeZone?
+  open val timezone: TimeZone?
     get() {
       val configurationDO = configDao.getEntry(ConfigurationParam.DEFAULT_TIMEZONE)
       return if (configurationDO != null) {
@@ -433,7 +434,7 @@ open class ConfigurationService {
    * 31.03. of the given year, if not configured different. This date determine when vacation days of an employee
    * from the last year will be invalid, if not used.
    */
-  fun getEndOfCarryVacationOfPreviousYear(year: Int): LocalDate {
+  open fun getEndOfCarryVacationOfPreviousYear(year: Int): LocalDate {
     var day = 31
     var month = 3 // March, 1 based, 1-January, ..., 12-December.
     val configDO = configDao.getEntry(ConfigurationParam.END_DATE_VACATION_LAST_YEAR)
@@ -452,14 +453,14 @@ open class ConfigurationService {
     return LocalDate.of(year, Month.JANUARY, 1).withMonth(month).withDayOfMonth(day)
   }
 
-  val hREmailadress: String?
+  open val hREmailadress: String?
     get() {
       val hrMailaddress = configDao.getEntry(ConfigurationParam.HR_MAILADDRESS)
       return hrMailaddress?.stringValue
     }
 
   // this could happen if the database is not initialized (during projectforge initial setup)
-  val minPasswordLength: Int
+  open val minPasswordLength: Int
     get() {
       try {
         val minPwLenEntry = configDao.getEntry(ConfigurationParam.MIN_PASSWORD_LENGTH)
@@ -477,7 +478,7 @@ open class ConfigurationService {
     }
 
   // this could happen if the database is not initialized (during projectforge initial setup)
-  val flagCheckPasswordChange: Boolean
+  open val flagCheckPasswordChange: Boolean
     get() {
       try {
         val flagCheckPwChangeConf = configDao.getEntry(ConfigurationParam.PASSWORD_FLAG_CHECK_CHANGE)
@@ -493,12 +494,12 @@ open class ConfigurationService {
       }
       return ConfigurationParam.PASSWORD_FLAG_CHECK_CHANGE.defaultBooleanValue
     }
-  val isLogoFileValid: Boolean
+  open val isLogoFileValid: Boolean
     get() {
       val logoFile = logoFileObject
       return logoFile != null && logoFile.canRead() && logoFile.isFile
     }
-  val syntheticLogoName: String?
+  open val syntheticLogoName: String?
     get() {
       val logoFile = logoFileName
       if (StringUtils.isBlank(logoFile)) {
@@ -511,7 +512,7 @@ open class ConfigurationService {
         "logo.jpg"
       } else "logo.gif"
     }
-  var logoFileObject: File? = null
+  open var logoFileObject: File? = null
     get() {
       if (field != null) {
         return field
@@ -528,7 +529,7 @@ open class ConfigurationService {
       }
       return null
     }
-    private set
+    protected set
 
   companion object {
     @Transient
