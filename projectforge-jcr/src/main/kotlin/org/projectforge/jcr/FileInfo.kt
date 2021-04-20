@@ -23,7 +23,6 @@
 
 package org.projectforge.jcr
 
-import mu.KotlinLogging
 import java.util.*
 
 /**

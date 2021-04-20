@@ -513,6 +513,10 @@ open class AttachmentsService {
         dbObj.attachmentsIds = attachments.joinToString(separator = " ") { "${it.fileId}" }
         dbObj.attachmentsCounter = attachments.size
         dbObj.attachmentsSize = attachments.sumByLong { it.size ?: 0 }
+        if (fileInfo.fileName.isNullOrBlank() && fileInfo is FileObject) {
+          // Try to get filename from attachments
+          fileInfo.fileName = attachments.find { it.fileId == fileInfo.fileId }?.name
+        }
       } else {
         dbObj.attachmentsNames = null
         dbObj.attachmentsIds = null
