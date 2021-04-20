@@ -25,7 +25,6 @@ package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
 import org.projectforge.business.configuration.DomainService
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.DataSizeConfig
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
@@ -159,8 +158,8 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     check(data != null)
     try {
       if (byUser != null && event == AttachmentsEventType.DOWNLOAD) {
-          // Do not notify on downloads and deletions of internal users.
-          return
+        // Do not notify on downloads and deletions of internal users.
+        return
       }
       // log download access of external users.
       if (!byExternalUser.isNullOrBlank() && event == AttachmentsEventType.DOWNLOAD) {
