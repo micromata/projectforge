@@ -128,7 +128,8 @@ open class NotificationMailService {
     val title = myTranslate(
       recipient,
       titleKey,
-      dataTransfer.areaName ?: "???"
+      dataTransfer.areaName ?: "???",
+      translate("plugins.datatransfer.mail.action.$event")
     )
     val message = myTranslate(
       recipient,
