@@ -9,6 +9,7 @@ services:
     volumes:
       - ${HOME}/ProjectForge:/ProjectForge
     environment:
+      # DOCKER_OPTS: so don't offer embedded data-base in setup wizard:
       - DOCKER_OPTS="-Ddocker=stack"
   depends_on:
       - projectforge-db
