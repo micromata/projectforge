@@ -202,7 +202,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     request: HttpServletRequest,
     @Valid @RequestBody postData: PostData<DataTransferArea>
   ): ResponseEntity<ResponseAction> {
-    val id = postData.data.id ?: throw IllegalAccessException("Parameter id not an int.")
+    val id = postData.data.id ?: throw IllegalAccessException("Parameter id not given.")
     val userWantsToOserveArea =
       postData.data.userWantsToObserve ?: return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
 

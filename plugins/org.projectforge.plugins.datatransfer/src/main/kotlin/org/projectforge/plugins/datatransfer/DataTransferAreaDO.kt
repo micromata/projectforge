@@ -43,6 +43,10 @@ import javax.persistence.*
   NamedQuery(
     name = DataTransferAreaDO.FIND_BY_EXTERNAL_ACCESS_TOKEN,
     query = "from DataTransferAreaDO where externalAccessToken=:externalAccessToken"
+  ),
+  NamedQuery(
+    name = DataTransferAreaDO.FIND_PERSONAL_BOX,
+    query = "from DataTransferAreaDO where areaName=:areaName and adminIds=:adminIds"
   )
 )
 open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
@@ -170,6 +174,13 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
   @get:Column(length = 10000, name = "external_access_logs")
   open var externalAccessLogs: String? = null
 
+  /**
+   * Only used for marking objects as modifiable internal objects.
+   */
+  @JsonIgnore
+  @get:Transient
+  internal var modifyPersonalBox: Boolean? = null
+
   @Id
   @GeneratedValue
   @Column(name = "pk")
@@ -183,5 +194,7 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
 
   companion object {
     internal const val FIND_BY_EXTERNAL_ACCESS_TOKEN = "DataTransferAreaDO_FindByExternalAccessToken"
+    internal const val FIND_PERSONAL_BOX = "DataTransferAreaDO_FindPersonalBox"
+    const val PERSONAL_BOX_AREA_NAME = "<PERSONAL_BOX>"
   }
 }

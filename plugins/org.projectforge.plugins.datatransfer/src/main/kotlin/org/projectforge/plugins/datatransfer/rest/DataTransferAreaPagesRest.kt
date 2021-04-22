@@ -33,6 +33,7 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.menu.MenuItem
 import org.projectforge.plugins.datatransfer.DataTransferAccessChecker
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
@@ -141,6 +142,14 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
           .add(UITableColumn("accessGroupsAsString", "plugins.datatransfer.accessGroups"))
           .add(UITableColumn("accessUsersAsString", "plugins.datatransfer.accessUsers"))
       )
+    layout.add(
+      MenuItem(
+        "personalBox",
+        i18nKey = "plugins.datatransfer.personalBox",
+        tooltip = "plugins.datatransfer.personalBox.info",
+        url = PagesResolver.getDynamicPageUrl(DataTransferPersonalBoxPageRest::class.java)
+      )
+    )
     return LayoutUtils.processListPage(layout, this)
   }
 
