@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.apache.commons.codec.digest.DigestUtils
 import org.apache.jackrabbit.oak.Oak
 import org.apache.jackrabbit.oak.jcr.Jcr
+import org.apache.jackrabbit.oak.segment.SegmentNodeStore
 import org.apache.jackrabbit.oak.segment.SegmentNodeStoreBuilders
 import org.apache.jackrabbit.oak.segment.file.FileStore
 import org.apache.jackrabbit.oak.segment.file.FileStoreBuilder
@@ -71,7 +72,7 @@ open class RepoService {
       it.close()
     }
     nodeStore?.let {
-      log.warn { "Method not yet implemented: ${it.javaClass}.dispose()" }
+      //log.warn { "Method not yet implemented: ${it.javaClass}.dispose()" }
       /*if (it is DocumentNodeStore) {
         it.dispose()
       }*/
