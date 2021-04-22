@@ -51,10 +51,12 @@ if [ -f "$ENVIRONMENT_FILE" ]; then
 fi
 
 if [ -n "$JAVA_OPTS" ]; then
+  # Print JAVA_OPTS if given:
   echo "JAVA_OPTS=${JAVA_OPTS}"
 fi
 
 if [ -n "$JAVA_ARGS" ]; then
+  # Print JAVA_ARGS if given:
   echo "JAVA_ARGS=${JAVA_ARGS}"
 fi
 
@@ -62,6 +64,7 @@ fi
 trap cleanup INT SIGTERM
 
 if [ -z "$DOCKER_OPTS" ]; then
+  # If no DOCKER_OPTS given, use this as default:
   DOCKER_OPTS="-Ddocker=single"
 fi
 
@@ -72,11 +75,13 @@ echo "Starting: java ${START}"
 
 CONFIG_FILE=/ProjectForge/projectforge.properties
 if [ -f "$CONFIG_FILE" ]; then
-  # Initial start: java must run in background for getting the SIGTERM signal on stop (wait $CHILD).
+  # CONFIG_FILE does exist, so assume normal start:
+  # java must run in background for getting the SIGTERM signal on stop (wait $CHILD).
   echo "Normal start"
   java $START &
 else
-  # Initial start: java must run in foreground for using the console setup wizard.
+  # CONFIG_FILE doesn't exist, so assume intial start:
+  # java must run in foreground for using the console setup wizard.
   echo "Initial start"
   java $START
 fi
@@ -85,7 +90,6 @@ CHILD=$!
 wait $CHILD
 
 echo "$APP_NAME terminated."
-#wait $!
 
 #Cleanup
 #cleanup Not needed, Java process already terminated.
