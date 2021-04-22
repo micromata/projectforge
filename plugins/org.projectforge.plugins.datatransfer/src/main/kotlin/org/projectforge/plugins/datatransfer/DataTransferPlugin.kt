@@ -35,6 +35,7 @@ import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.datatransfer.rest.DataTransferArea
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
+import org.projectforge.plugins.datatransfer.rest.DataTransferPersonalBox
 import org.projectforge.rest.config.JacksonConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -88,6 +89,10 @@ class DataTransferPlugin :
       "externalAccessEnabled",
       "lastUpdateTimeAgo",
       "maxUploadSizeFormatted"
+    )
+    JacksonConfiguration.registerAllowedUnknownProperties(
+      DataTransferPersonalBox::class.java,
+      "lastUpdateTimeAgo"
     )
 
     systemStatistics.registerStatisticsBuilder(

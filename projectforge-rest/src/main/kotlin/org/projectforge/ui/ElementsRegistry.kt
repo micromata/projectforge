@@ -127,7 +127,8 @@ object ElementsRegistry {
         return UIDataTypeUtils.getDataType(elementInfo)
     }
 
-    internal fun getElementInfo(lc: LayoutContext, property: String): ElementInfo? {
+    internal fun getElementInfo(lc: LayoutContext?, property: String): ElementInfo? {
+        lc ?: return null
         val parts = property.split('.')
         if (!parts.isNullOrEmpty()) {
             val listElementInfo = lc.getListElementInfo(parts[0])

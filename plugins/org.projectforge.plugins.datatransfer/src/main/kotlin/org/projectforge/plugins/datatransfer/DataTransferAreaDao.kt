@@ -85,9 +85,41 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     return file
   }
 
+  override fun onSaveOrModify(obj: DataTransferAreaDO) {
+    if (obj.areaName == DataTransferAreaDO.PERSONAL_BOX_AREA_NAME && obj.modifyPersonalBox != true) {
+      // Prevent from saving or changing personal boxes.
+      throw IllegalArgumentException("Can't save or update personal boxes.")
+    }
+  }
+
   override fun afterLoad(obj: DataTransferAreaDO) {
     if (obj.maxUploadSizeKB == null)
       obj.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE
+  }
+
+  open fun ensurePersonalBox(userId: Int): DataTransferAreaDO? {
+    userGroupCache.getUser(userId) ?: return null
+    var dbo = SQLHelper.ensureUniqueResult(
+      em.createNamedQuery(DataTransferAreaDO.FIND_PERSONAL_BOX, DataTransferAreaDO::class.java)
+        .setParameter("areaName", DataTransferAreaDO.PERSONAL_BOX_AREA_NAME)
+        .setParameter("adminIds", "$userId")
+    )
+    if (dbo != null) {
+      if (dbo.observerIds != "$userId") {
+        // Oups, observerIds was changed. Fix it:
+        dbo.observerIds = "$userId"
+        dbo.modifyPersonalBox = true
+        internalUpdate(dbo)
+      }
+      return dbo
+    }
+    dbo = DataTransferAreaDO()
+    dbo.areaName = DataTransferAreaDO.PERSONAL_BOX_AREA_NAME
+    dbo.adminIds = "$userId"
+    dbo.observerIds = "$userId"
+    dbo.modifyPersonalBox = true
+    internalSave(dbo)
+    return dbo
   }
 
   open fun getAnonymousArea(externalAccessToken: String?): DataTransferAreaDO? {
