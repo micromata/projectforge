@@ -24,6 +24,7 @@ function DynamicReadonlyField(
                 id={`${ui.uid}-${id}`}
                 {...props}
                 value={value}
+                dataType={dataType}
             />
         </DynamicValidationManager>
     ), [value, setData, id, dataType, props]);
