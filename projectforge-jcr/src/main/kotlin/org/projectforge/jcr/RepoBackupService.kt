@@ -128,7 +128,7 @@ open class RepoBackupService {
 
         if (PFJcrUtils.matchAnyPath(node, listOfIgnoredNodePaths)) {
           // Ignore node.
-          log.warn { "Ignore path=${node.path} as configured." }
+          log.debug { "Ignore path=${node.path} as configured." }
           return
         }
         val fileList = repoService.getFileInfos(node)
@@ -152,6 +152,11 @@ open class RepoBackupService {
       }
 
       override fun visitFile(fileNode: Node, fileObject: FileObject) {
+        if (PFJcrUtils.matchAnyPath(fileNode, listOfIgnoredNodePaths)) {
+          // Ignore node.
+          log.info { "Ignore path=${fileNode.path} as configured." }
+          return
+        }
         val content = repoService.getFileContent(fileNode, fileObject)
         if (content != null) {
           val fileName = PFJcrUtils.createSafeFilename(fileObject)
