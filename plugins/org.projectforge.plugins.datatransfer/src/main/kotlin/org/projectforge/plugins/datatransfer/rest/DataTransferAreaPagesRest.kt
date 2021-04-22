@@ -85,24 +85,7 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
   }
 
   override fun transformFromDB(obj: DataTransferAreaDO, editMode: Boolean): DataTransferArea {
-    val dto = DataTransferArea()
-    dto.copyFrom(obj)
-    dto.externalLinkBaseUrl = baseDao.getExternalBaseLinkUrl()
-
-    // Group names needed by React client (for ReactSelect):
-    Group.restoreDisplayNames(dto.accessGroups, groupService)
-
-    // Usernames needed by React client (for ReactSelect):
-    User.restoreDisplayNames(dto.admins, userService)
-    User.restoreDisplayNames(dto.observers, userService)
-    User.restoreDisplayNames(dto.accessUsers, userService)
-
-    dto.adminsAsString = dto.admins?.joinToString { it.displayName ?: "???" } ?: ""
-    dto.observersAsString = dto.observers?.joinToString { it.displayName ?: "???" } ?: ""
-    dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
-    dto.accessUsersAsString = dto.accessUsers?.joinToString { it.displayName ?: "???" } ?: ""
-
-    return dto
+    return DataTransferArea.transformFromDB(obj, baseDao, groupService, userService)
   }
 
   /**

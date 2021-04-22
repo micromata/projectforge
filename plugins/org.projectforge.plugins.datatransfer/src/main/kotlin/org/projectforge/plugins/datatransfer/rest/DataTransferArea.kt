@@ -24,10 +24,14 @@
 package org.projectforge.plugins.datatransfer.rest
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.user.service.UserService
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.dto.Group
@@ -42,6 +46,10 @@ class DataTransferArea(
   var adminsAsString: String? = null,
   var observers: List<User>? = null,
   var observersAsString: String? = null,
+  /**
+   * Checked, if the logged-in-user observes this area. Used by [DataTransferRest].
+   */
+  var userWantsToObserve: Boolean? = null,
   var accessGroups: List<Group>? = null,
   var accessGroupsAsString: String? = null,
   var accessGroupsUsesAsString: String? = null,
@@ -114,5 +122,32 @@ class DataTransferArea(
     dest.observerIds = User.toIntList(observers)
     dest.accessGroupIds = Group.toIntList(accessGroups)
     dest.accessUserIds = User.toIntList(accessUsers)
+  }
+
+  companion object {
+    fun transformFromDB(
+      obj: DataTransferAreaDO,
+      dataTransferAreaDao: DataTransferAreaDao,
+      groupService: GroupService,
+      userService: UserService,
+    ): DataTransferArea {
+      val dto = DataTransferArea()
+      dto.copyFrom(obj)
+      dto.externalLinkBaseUrl = dataTransferAreaDao.getExternalBaseLinkUrl()
+
+      // Group names needed by React client (for ReactSelect):
+      Group.restoreDisplayNames(dto.accessGroups, groupService)
+
+      // Usernames needed by React client (for ReactSelect):
+      User.restoreDisplayNames(dto.admins, userService)
+      User.restoreDisplayNames(dto.observers, userService)
+      User.restoreDisplayNames(dto.accessUsers, userService)
+
+      dto.adminsAsString = dto.admins?.joinToString { it.displayName ?: "???" } ?: ""
+      dto.observersAsString = dto.observers?.joinToString { it.displayName ?: "???" } ?: ""
+      dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
+      dto.accessUsersAsString = dto.accessUsers?.joinToString { it.displayName ?: "???" } ?: ""
+      return dto
+    }
   }
 }
