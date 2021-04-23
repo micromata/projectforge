@@ -43,6 +43,9 @@ class JCRBackupJob {
   @Value("\${projectforge.jcr.cron.purgeBackupKeepDailyBackups}")
   private val keepDailyBackups: Long? = null
 
+  @Value("\${projectforge.jcr.cron.purgeBackupKeepWeeklyBackups}")
+  private val keepWeeklyBackups: Long? = null
+
   // projectforge.jcr.cron.backup=0 30 0 * * *
   @Scheduled(cron = "\${projectforge.jcr.cron.backup}")
   fun execute() {
@@ -58,7 +61,8 @@ class JCRBackupJob {
     BackupFilesPurging.purgeDirectory(
       backupDirectory,
       filePrefix = RepoBackupService.backupFilenamePrefix,
-      keepDailyBackups = keepDailyBackups ?: 30
+      keepDailyBackups = keepDailyBackups ?: 8,
+      keepWeeklyBackups = keepWeeklyBackups ?: 4,
     )
   }
 }

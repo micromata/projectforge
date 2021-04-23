@@ -46,6 +46,9 @@ class DatabaseBackupPurgeJob {
     @Value("\${projectforge.cron.purgeBackupKeepDailyBackups}")
     private val dbBackupKeepDailyBackups: Long? = null
 
+    @Value("\${projectforge.cron.purgeBackupKeepWeeklyBackups}")
+    private val dbBackupKeepWeeklyBackups: Long? = null
+
     // projectforge.cron.dbBackupCleanup=0 40 0 * * *
     @Scheduled(cron = "\${projectforge.cron.purgeBackup}")
     fun execute() {
@@ -59,6 +62,9 @@ class DatabaseBackupPurgeJob {
             return
         }
         log.info { "Starting job for cleaning daily backup files older than 30 days, but monthly backups will be kept." }
-        BackupFilesPurging.purgeDirectory(backupDir, filePrefix = dbBackupFilesPrefix, keepDailyBackups = dbBackupKeepDailyBackups ?: 30)
+        BackupFilesPurging.purgeDirectory(backupDir,
+            filePrefix = dbBackupFilesPrefix,
+            keepDailyBackups = dbBackupKeepDailyBackups ?: 8,
+            keepWeeklyBackups = dbBackupKeepWeeklyBackups ?: 4)
     }
 }
