@@ -461,6 +461,20 @@ button.dropdown-item a.nav-link {
 	}
 }
 
+// Highlight Button in List Page Navigation (e. g. personal box of data transfer).
+#HIGHLIGHT {
+	$color: #eb8f34;
+
+	border: 1px solid $color;
+	color: $color !important;
+	line-height: 17px;
+
+	&:hover {
+		background-color: $color;
+		color: #fff !important;
+	}
+}
+
 span.mm-select {
 	margin-left: 18px;
 	font-size: 11px;

@@ -129,23 +129,23 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
             )
         )
     )
-    if (dto.personalBox != true) {
-      fieldSet.add(
-        UIRow().add(
-          UICol(UILength(md = 8))
-            .add(UIReadOnlyField("adminsAsString", label = "plugins.datatransfer.admins"))
-        )
-          .add(
-            UICol(UILength(md = 4))
-              .add(
-                UIReadOnlyField(
-                  "maxUploadSizeFormatted",
-                  label = "plugins.datatransfer.maxUploadSize",
-                  tooltip = "plugins.datatransfer.maxUploadSize.info"
-                )
-              )
-          )
+    fieldSet.add(
+      UIRow().add(
+        UICol(UILength(md = 8))
+          .add(UIReadOnlyField("adminsAsString", label = "plugins.datatransfer.admins"))
       )
+        .add(
+          UICol(UILength(md = 4))
+            .add(
+              UIReadOnlyField(
+                "maxUploadSizeFormatted",
+                label = "plugins.datatransfer.maxUploadSize",
+                tooltip = "plugins.datatransfer.maxUploadSize.info"
+              )
+            )
+        )
+    )
+    if (dto.personalBox != true) {
       if (!dto.accessGroupsAsString.isNullOrBlank()) {
         fieldSet.add(UIReadOnlyField("accessGroupsAsString", label = "plugins.datatransfer.accessGroups"))
       }

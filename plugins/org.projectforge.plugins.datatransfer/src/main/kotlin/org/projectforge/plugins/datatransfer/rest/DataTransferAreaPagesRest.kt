@@ -144,7 +144,7 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
       )
     layout.add(
       MenuItem(
-        "personalBox",
+        "HIGHLIGHT",
         i18nKey = "plugins.datatransfer.personalBox",
         tooltip = "plugins.datatransfer.personalBox.info",
         url = PagesResolver.getDynamicPageUrl(DataTransferPersonalBoxPageRest::class.java)
