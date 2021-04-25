@@ -32,7 +32,9 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.jcr.AttachmentsEventListener
 import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper
@@ -85,11 +87,50 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     return file
   }
 
-  override fun onSaveOrModify(obj: DataTransferAreaDO) {
-    if (obj.areaName == DataTransferAreaDO.PERSONAL_BOX_AREA_NAME && obj.modifyPersonalBox != true) {
-      // Prevent from saving or changing personal boxes.
-      throw IllegalArgumentException("Can't save or update personal boxes.")
+  override fun onChange(obj: DataTransferAreaDO, dbObj: DataTransferAreaDO) {
+    if (dbObj.isPersonalBox()) {
+      if (obj.adminIds != dbObj.adminIds || obj.areaName != dbObj.areaName) {
+        throw IllegalArgumentException("Can't modify personal boxes: $obj")
+      }
     }
+    securePersonalBox(obj)
+  }
+
+  override fun onSave(obj: DataTransferAreaDO) {
+    if (obj.isPersonalBox()) {
+      if (obj.modifyPersonalBox != true) {
+        // Prevent from saving or changing personal boxes.
+        throw IllegalArgumentException("Can't save or update personal boxes.")
+      }
+      securePersonalBox(obj)
+    }
+  }
+
+  /**
+   * Removes personal boxes of other users in result list.
+   */
+  override fun getList(
+    filter: QueryFilter?,
+    customResultFilters: MutableList<CustomResultFilter<DataTransferAreaDO>>?
+  ): List<DataTransferAreaDO> {
+    val loggedInUserId = ThreadLocalUserContext.getUserId()
+    return super.getList(filter, customResultFilters)
+      .filter { !it.isPersonalBox() || it.getPersonalBoxUserId() == loggedInUserId }
+  }
+
+  /**
+   * Prevents changing some base values due to security reasons (such as don't allow external access and access to
+   * other users/groups).
+   */
+  private fun securePersonalBox(obj: DataTransferAreaDO) {
+    // No external access to personal boxed (due to security reasons)
+    obj.observerIds = obj.adminIds // Owner is always observer
+    obj.accessGroupIds = null
+    obj.accessUserIds = null
+    obj.externalDownloadEnabled = false
+    obj.externalUploadEnabled = false
+    obj.externalPassword = null
+    obj.externalAccessToken = null
   }
 
   override fun afterLoad(obj: DataTransferAreaDO) {
@@ -145,6 +186,14 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     operationType: OperationType,
     throwException: Boolean
   ): Boolean {
+    if (obj.isPersonalBox()) {
+      if (operationType != OperationType.SELECT && throwException) {
+        // Select only on inboxes:
+        throw AccessException(user, "access.exception.userHasNotRight")
+      }
+      // Select only on inboxes:
+      return operationType == OperationType.SELECT
+    }
     val adminIds = StringHelper.splitToIntegers(obj.adminIds, ",")
     if (adminIds.contains(user.id)) {
       return true

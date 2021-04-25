@@ -25,11 +25,12 @@ package org.projectforge.plugins.datatransfer.rest
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.TimeAgo
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.rest.dto.AttachmentsSupport
@@ -62,6 +63,7 @@ class DataTransferArea(
   var expiryDays: Int? = null,
   var maxUploadSizeKB: Int? = null,
   var internalLink: String? = null,
+  var personalBox: Boolean? = null,
   override var attachmentsCounter: Int? = null,
   override var attachmentsSize: Long? = null,
   /**
@@ -109,6 +111,12 @@ class DataTransferArea(
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyFrom(src: DataTransferAreaDO) {
     super.copyFrom(src)
+    src.getPersonalBoxUserId()?.let {
+      // This data transfer area is a personal box.
+      val user = UserGroupCache.getInstance().getUser(it)
+      areaName = translateMsg("plugins.datatransfer.personalBox.title", "${user?.displayName}")
+      personalBox = true
+    }
     admins = User.toUserList(src.adminIds)
     observers = User.toUserList(src.observerIds)
     accessGroups = Group.toGroupList(src.accessGroupIds)
@@ -118,10 +126,14 @@ class DataTransferArea(
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyTo(dest: DataTransferAreaDO) {
     super.copyTo(dest)
-    dest.adminIds = User.toIntList(admins)
-    dest.observerIds = User.toIntList(observers)
-    dest.accessGroupIds = Group.toIntList(accessGroups)
-    dest.accessUserIds = User.toIntList(accessUsers)
+    if (personalBox == true) {
+      dest.areaName = DataTransferAreaDO.PERSONAL_BOX_AREA_NAME // Restore db specific name.
+    } else {
+      dest.adminIds = User.toIntList(admins)
+      dest.observerIds = User.toIntList(observers)
+      dest.accessGroupIds = Group.toIntList(accessGroups)
+      dest.accessUserIds = User.toIntList(accessUsers)
+    }
   }
 
   companion object {

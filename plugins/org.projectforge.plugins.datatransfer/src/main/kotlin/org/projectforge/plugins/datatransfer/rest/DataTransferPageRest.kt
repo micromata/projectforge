@@ -77,7 +77,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     val dto = pair.second
     val layout = UILayout("plugins.datatransfer.title.heading")
       .add(
-        UIFieldset(title = "'${dbObj.areaName}")
+        UIFieldset(title = "'${dto.areaName}")
           .add(UIAttachmentList("datatransfer", id))
       )
     layout.add(
@@ -95,7 +95,8 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       )
     )
     val fieldSet = UIFieldset()
-      .add(
+    if (dto.personalBox != true) {
+      fieldSet.add(
         UIRow().add(
           UICol(UILength(md = 8))
             .add(UIReadOnlyField("observersAsString", label = "plugins.datatransfer.observers"))
@@ -111,73 +112,76 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
               )
           )
       )
-      .add(
-        UIRow().add(
-          UICol(UILength(md = 8))
-            .add(UIReadOnlyField("internalLink", label = "plugins.datatransfer.internal.link", canCopy = true))
-        )
-          .add(
-            UICol(UILength(md = 4))
-              .add(
-                UIReadOnlyField(
-                  "expiryDays",
-                  label = "plugins.datatransfer.expiryDays",
-                  tooltip = "plugins.datatransfer.expiryDays.info"
-                )
-              )
-          )
-      )
+    }
     fieldSet.add(
       UIRow().add(
         UICol(UILength(md = 8))
-          .add(UIReadOnlyField("adminsAsString", label = "plugins.datatransfer.admins"))
+          .add(UIReadOnlyField("internalLink", label = "plugins.datatransfer.internal.link", canCopy = true))
       )
         .add(
           UICol(UILength(md = 4))
             .add(
               UIReadOnlyField(
-                "maxUploadSizeFormatted",
-                label = "plugins.datatransfer.maxUploadSize",
-                tooltip = "plugins.datatransfer.maxUploadSize.info"
+                "expiryDays",
+                label = "plugins.datatransfer.expiryDays",
+                tooltip = "plugins.datatransfer.expiryDays.info"
               )
             )
         )
     )
-    if (!dto.accessGroupsAsString.isNullOrBlank()) {
-      fieldSet.add(UIReadOnlyField("accessGroupsAsString", label = "plugins.datatransfer.accessGroups"))
-    }
-    if (!dto.accessUsersAsString.isNullOrBlank()) {
-      fieldSet.add(UIReadOnlyField("accessUsersAsString", label = "plugins.datatransfer.accessUsers"))
-    }
-    if (dto.externalAccessEnabled) {
+    if (dto.personalBox != true) {
       fieldSet.add(
         UIRow().add(
-          UICol(UILength(md = 6))
-            .add(
-              UIReadOnlyField(
-                "externalDownloadEnabled",
-                label = "plugins.datatransfer.external.download.enabled",
-                tooltip = "plugins.datatransfer.external.download.enabled",
-                dataType = UIDataType.BOOLEAN,
-              )
-            )
-        ).add(
-          UICol(UILength(md = 6))
-            .add(
-              UIReadOnlyField(
-                "externalUploadEnabled",
-                label = "plugins.datatransfer.external.upload.enabled",
-                tooltip = "plugins.datatransfer.external.upload.enabled",
-                dataType = UIDataType.BOOLEAN,
-              )
-            )
+          UICol(UILength(md = 8))
+            .add(UIReadOnlyField("adminsAsString", label = "plugins.datatransfer.admins"))
         )
+          .add(
+            UICol(UILength(md = 4))
+              .add(
+                UIReadOnlyField(
+                  "maxUploadSizeFormatted",
+                  label = "plugins.datatransfer.maxUploadSize",
+                  tooltip = "plugins.datatransfer.maxUploadSize.info"
+                )
+              )
+          )
       )
+      if (!dto.accessGroupsAsString.isNullOrBlank()) {
+        fieldSet.add(UIReadOnlyField("accessGroupsAsString", label = "plugins.datatransfer.accessGroups"))
+      }
+      if (!dto.accessUsersAsString.isNullOrBlank()) {
+        fieldSet.add(UIReadOnlyField("accessUsersAsString", label = "plugins.datatransfer.accessUsers"))
+      }
+      if (dto.externalAccessEnabled) {
+        fieldSet.add(
+          UIRow().add(
+            UICol(UILength(md = 6))
+              .add(
+                UIReadOnlyField(
+                  "externalDownloadEnabled",
+                  label = "plugins.datatransfer.external.download.enabled",
+                  tooltip = "plugins.datatransfer.external.download.enabled",
+                  dataType = UIDataType.BOOLEAN,
+                )
+              )
+          ).add(
+            UICol(UILength(md = 6))
+              .add(
+                UIReadOnlyField(
+                  "externalUploadEnabled",
+                  label = "plugins.datatransfer.external.upload.enabled",
+                  tooltip = "plugins.datatransfer.external.upload.enabled",
+                  dataType = UIDataType.BOOLEAN,
+                )
+              )
+          )
+        )
+      }
     }
 
     layout.add(fieldSet)
 
-    if (dataTransferAreaDao.hasLoggedInUserUpdateAccess(dbObj, dbObj, false)) {
+    if (dto.personalBox != true && dataTransferAreaDao.hasLoggedInUserUpdateAccess(dbObj, dbObj, false)) {
       layout.add(
         MenuItem(
           "EDIT",
@@ -186,8 +190,8 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
           type = MenuItemTargetType.REDIRECT
         )
       )
+      layout.watchFields.addAll(arrayOf("userWantsToObserve"))
     }
-    layout.watchFields.addAll(arrayOf("userWantsToObserve"))
 
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()

@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.jcr
 
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.jcr.FileSizeChecker
 
@@ -60,4 +61,23 @@ interface AttachmentsAccessChecker {
    * user may null for external access (if allowed). see DataTransfer tool.
    */
   fun checkDeleteAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?)
+
+  /**
+   * Implement this method to have control the access dependent of every attachment (e. g. personal box of data transfer tool).
+   * @param user Checks the access for the given user, if any.
+   * @param path JCR path
+   * @param id Id of the area or database object, where the attachments belong to.
+   * @param subPath JCR sub path (optional)
+   * @param operationType Type of access (CRUD)
+   * @param attachment The attachment to check.
+   * @return access?
+   */
+  fun hasAccess(
+    user: PFUserDO?,
+    path: String,
+    id: Any,
+    subPath: String?,
+    operationType: OperationType,
+    attachment: Attachment
+  ): Boolean
 }

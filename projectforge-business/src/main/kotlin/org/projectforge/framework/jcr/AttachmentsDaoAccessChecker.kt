@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.jcr
 
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -114,6 +115,17 @@ open class AttachmentsDaoAccessChecker<O : ExtendedBaseDO<Int>>(
     checkNotNull(user)
     checkJcrActivity(subPath)
     checkUploadAccess(user, path, id, subPath)
+  }
+
+  override fun hasAccess(
+    user: PFUserDO?,
+    path: String,
+    id: Any,
+    subPath: String?,
+    operationType: OperationType,
+    attachment: Attachment
+  ): Boolean {
+    return true
   }
 
   /**

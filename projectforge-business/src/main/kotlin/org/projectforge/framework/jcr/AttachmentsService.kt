@@ -30,6 +30,7 @@ import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.DataSizeConfig
 import org.projectforge.common.FormatterUtils
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.IdObject
@@ -83,8 +84,18 @@ open class AttachmentsService {
     accessChecker: AttachmentsAccessChecker?,
     subPath: String? = null
   ): List<Attachment>? {
-    accessChecker?.checkSelectAccess(ThreadLocalUserContext.getUser(), path = path, id = id, subPath = subPath)
-    return internalGetAttachments(path, id, subPath)
+    val loggedInUser = ThreadLocalUserContext.getUser()
+    accessChecker?.checkSelectAccess(loggedInUser, path = path, id = id, subPath = subPath)
+    return internalGetAttachments(path, id, subPath)?.filter {
+      accessChecker?.hasAccess(
+        loggedInUser,
+        path,
+        id,
+        subPath,
+        OperationType.SELECT,
+        it
+      ) != false
+    }
   }
 
   /**
@@ -97,7 +108,7 @@ open class AttachmentsService {
     id: Any,
     subPath: String? = null
   ): List<Attachment>? {
-    return repoService.getFileInfos(getPath(path, id), subPath ?: DEFAULT_NODE)?.map { createAttachment(it) }
+    return repoService.getFileInfos(getPath(path, id), subPath ?: DEFAULT_NODE)?.map { asAttachment(it) }
   }
 
   /**
@@ -119,7 +130,7 @@ open class AttachmentsService {
       fileId = fileId
     )
       ?: return null
-    return createAttachment(fileObject)
+    return asAttachment(fileObject)
   }
 
   /**
@@ -204,7 +215,13 @@ open class AttachmentsService {
       }
       return null
     }
-    attachmentsEventListener?.onAttachmentEvent(AttachmentsEventType.DOWNLOAD, fileObject, data, ThreadLocalUserContext.getUser(), userString)
+    attachmentsEventListener?.onAttachmentEvent(
+      AttachmentsEventType.DOWNLOAD,
+      fileObject,
+      data,
+      ThreadLocalUserContext.getUser(),
+      userString
+    )
     return Pair(fileObject, inputStream)
   }
 
@@ -275,7 +292,7 @@ open class AttachmentsService {
       userString ?: ThreadLocalUserContext.getUserId()!!.toString(),
       data
     )
-    return createAttachment(fileObject)
+    return asAttachment(fileObject)
   }
 
   /**
@@ -541,10 +558,12 @@ open class AttachmentsService {
     }
   }
 
-  private fun createAttachment(fileObject: FileObject): Attachment {
+  private fun asAttachment(fileObject: FileObject): Attachment {
     val attachment = Attachment(fileObject)
     NumberHelper.parseInteger(fileObject.createdByUser, false)?.let {
-      attachment.createdByUser = userGroupCache.getUser(it)?.getFullname()
+      val user = userGroupCache.getUser(it)
+      attachment.createdByUser = user?.getFullname()
+      attachment.createdByUserId = user?.id
     }
     NumberHelper.parseInteger(fileObject.lastUpdateByUser, false)?.let {
       attachment.lastUpdateByUser = userGroupCache.getUser(it)?.getFullname()

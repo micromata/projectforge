@@ -23,12 +23,10 @@
 
 package org.projectforge.plugins.datatransfer
 
-import mu.KotlinLogging
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-
-private val log = KotlinLogging.logger {}
 
 /**
  * Checks access to attachments by external anonymous users.
@@ -83,5 +81,25 @@ open class DataTransferAccessChecker(
    */
   override fun checkDeleteAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?) {
     checkUpdateAccess(user, path, id, fileId, subPath)
+  }
+
+  override fun hasAccess(
+    user: PFUserDO?,
+    path: String,
+    id: Any,
+    subPath: String?,
+    operationType: OperationType,
+    attachment: Attachment
+  ): Boolean {
+    val dbo = dataTransferAreaDao.internalGetById(id as Int)
+    if (!dbo.isPersonalBox()) {
+      return true
+    }
+    user ?: return false // User must be given.
+    if (user.id == dbo.getPersonalBoxUserId()) {
+      // User is allowed to see all the attachments of his own personal box.
+      return true
+    }
+    return user.id == attachment.createdByUserId // User can see only attachments of other personal boxes if they have uploaded them.
   }
 }

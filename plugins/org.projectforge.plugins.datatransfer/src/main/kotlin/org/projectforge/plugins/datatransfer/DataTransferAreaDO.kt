@@ -31,6 +31,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
+import org.projectforge.framework.utils.NumberHelper
 import javax.persistence.*
 
 /**
@@ -190,6 +191,21 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
 
   override fun setId(id: Int?) {
     this.id = id
+  }
+
+  @JsonIgnore
+  @Transient
+  fun isPersonalBox(): Boolean {
+    return getPersonalBoxUserId() != null
+  }
+
+  @JsonIgnore
+  @Transient
+  fun getPersonalBoxUserId(): Int? {
+    if (areaName != PERSONAL_BOX_AREA_NAME) {
+      return null
+    }
+    return adminIds?.toIntOrNull()
   }
 
   companion object {

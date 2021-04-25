@@ -26,6 +26,7 @@ package org.projectforge.plugins.datatransfer.restPublic
 import mu.KotlinLogging
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.login.LoginResultStatus
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
@@ -136,5 +137,16 @@ open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferArea
    * @param subPath Equals to listId.
    */
   override fun checkDeleteAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?) {
+  }
+
+  override fun hasAccess(
+    user: PFUserDO?,
+    path: String,
+    id: Any,
+    subPath: String?,
+    operationType: OperationType,
+    attachment: Attachment
+  ): Boolean {
+    return true
   }
 }
