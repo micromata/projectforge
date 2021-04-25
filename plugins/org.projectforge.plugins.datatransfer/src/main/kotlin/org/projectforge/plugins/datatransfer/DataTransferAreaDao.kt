@@ -154,12 +154,8 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         .setParameter("adminIds", "$userId")
     )
     if (dbo != null) {
-      if (dbo.observerIds != "$userId") {
-        // Oups, observerIds was changed. Fix it:
-        dbo.observerIds = "$userId"
-        dbo.modifyPersonalBox = true
-        internalUpdate(dbo)
-      }
+      securePersonalBox(dbo)
+      internalUpdate(dbo)
       return dbo
     }
     dbo = DataTransferAreaDO()
