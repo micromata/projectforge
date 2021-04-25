@@ -65,7 +65,16 @@ class Attachment() {
     @get:JsonProperty
     val createdFormatted: String
         get() = PFDateTime.fromOrNull(created)?.format(DateFormatType.DATE_TIME_MINUTES) ?: ""
+
+    /**
+     * Id or full name or external user info.
+     */
     var createdByUser: String? = null
+
+    /**
+     * Id of internal user or null, if no internal user.
+     */
+    var createdByUserId: Int? = null
 
     var lastUpdate: Date? = null
     /**
