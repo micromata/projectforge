@@ -54,7 +54,11 @@ internal class GlobalDefaultExceptionHandler {
     }
     if (ex is MaxUploadSizeExceededException) {
       val userEx =
-        MaxFileSizeExceeded(ex.maxUploadSize, -1, maxFileSizeSpringProperty = "spring.servlet.multipart.max-file-size|spring.servlet.multipart.max-request-size")
+        MaxFileSizeExceeded(
+          ex.maxUploadSize,
+          -1,
+          maxFileSizeSpringProperty = "spring.servlet.multipart.max-file-size|spring.servlet.multipart.max-request-size"
+        )
       log.error("${translateMsg(userEx)} ${userEx.logHintMessage}")
       return ResponseEntity.badRequest().body(UIToast.createExceptionToast(userEx))
     }
@@ -77,7 +81,9 @@ internal class GlobalDefaultExceptionHandler {
       "Exception while processing request: ${ex.message} Request: ${RequestLog.asJson(request)},\nexception=$exceptionMessage\n${
         ExceptionStackTracePrinter.toString(
           ex,
-          false
+          showExceptionMessage = false,
+          stopBeforeForeignPackages = false,
+          depth = 15
         )
       }"
     )
