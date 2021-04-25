@@ -90,7 +90,7 @@ class DataTransferPersonalBoxPageRest : AbstractDynamicPageRest() {
     val layout = UILayout("plugins.datatransfer.title.heading")
     layout.add(
       UIFieldset(title = "plugins.datatransfer.personalBox")
-        .add(UISelect.createUserSelect(id = "user"))
+        .add(UIInput("user",label = "user", dataType = UIDataType.USER))
     )
     layout.add(
       UIButton(
@@ -126,6 +126,7 @@ class DataTransferPersonalBoxPageRest : AbstractDynamicPageRest() {
 
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
+    layout.addTranslations("tooltip.selectMe", "user")
     return layout
   }
 
