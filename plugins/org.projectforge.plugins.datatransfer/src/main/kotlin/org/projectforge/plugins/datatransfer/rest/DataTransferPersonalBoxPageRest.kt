@@ -25,6 +25,7 @@ package org.projectforge.plugins.datatransfer.rest
 
 import mu.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
@@ -53,10 +54,16 @@ class DataTransferPersonalBoxPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
+  @Autowired
+  private lateinit var userPrefService: UserPrefService
+
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("userId") userIdString: String?): FormLayoutData {
-    val userId = NumberHelper.parseInteger(userIdString)
+    val userId = NumberHelper.parseInteger(userIdString) ?: getUserPref().userId
     val dto = DataTransferPersonalBox()
+    userId?.let {
+      dto.user = User.getUser(userId)
+    }
     val id = ensurePersonalBox(dto)
     return FormLayoutData(dto, getLayout(id, userId), createServerData(request))
   }
@@ -72,6 +79,7 @@ class DataTransferPersonalBoxPageRest : AbstractDynamicPageRest() {
     val id =
       ensurePersonalBox(postData.data) ?: return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     val userId = postData.data.user?.id
+    getUserPref().userId = userId
     return ResponseEntity.ok(
       ResponseAction(targetType = TargetType.UPDATE).addVariable("data", postData.data)
         .addVariable("ui", getLayout(id, userId))
@@ -130,5 +138,11 @@ class DataTransferPersonalBoxPageRest : AbstractDynamicPageRest() {
     user.copyFromMinimal(pfUser)
     dto.user = user
     return dbo.id
+  }
+
+  class PersonalBoxUserPref(var userId: Int? = null)
+
+  private fun getUserPref(): PersonalBoxUserPref {
+    return userPrefService.ensureEntry("datatransfer", "personalbox", PersonalBoxUserPref())
   }
 }

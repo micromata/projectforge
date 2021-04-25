@@ -29,6 +29,7 @@ import org.projectforge.common.DataSizeConfig
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.configuration.ConfigurationChecker
 import org.projectforge.framework.jcr.AttachmentsEventListener
 import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.api.BaseDao
@@ -60,6 +61,9 @@ private val log = KotlinLogging.logger {}
 open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO::class.java), AttachmentsEventListener {
   @Autowired
   private lateinit var notificationMailService: NotificationMailService
+
+  @Autowired
+  private lateinit var configurationChecker: ConfigurationChecker
 
   @Value("\${${MAX_FILE_SIZE_SPRING_PROPERTY}:100MB}")
   internal open lateinit var maxFileSizeConfig: String
@@ -121,6 +125,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
   /**
    * Prevents changing some base values due to security reasons (such as don't allow external access and access to
    * other users/groups).
+   * Sets also default values (expiry days to 30, and max upload size to max value).
    */
   private fun securePersonalBox(obj: DataTransferAreaDO) {
     // No external access to personal boxed (due to security reasons)
@@ -131,6 +136,9 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     obj.externalUploadEnabled = false
     obj.externalPassword = null
     obj.externalAccessToken = null
+    obj.expiryDays = 30
+    val springServletMultipartMaxFileSize = configurationChecker.springServletMultipartMaxFileSize.toBytes()
+    obj.maxUploadSizeKB = (springServletMultipartMaxFileSize / 1024).toInt()
   }
 
   override fun afterLoad(obj: DataTransferAreaDO) {
