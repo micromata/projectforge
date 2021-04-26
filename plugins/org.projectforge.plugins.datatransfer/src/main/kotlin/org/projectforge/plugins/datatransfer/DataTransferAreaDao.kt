@@ -41,6 +41,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileInfo
+import org.projectforge.plugins.datatransfer.rest.DataTransferArea
 import org.projectforge.rest.core.RestResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -96,8 +97,8 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
       if (obj.adminIds != dbObj.adminIds || obj.areaName != dbObj.areaName) {
         throw IllegalArgumentException("Can't modify personal boxes: $obj")
       }
+      securePersonalBox(obj)
     }
-    securePersonalBox(obj)
   }
 
   override fun onSave(obj: DataTransferAreaDO) {
@@ -107,6 +108,17 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         throw IllegalArgumentException("Can't save or update personal boxes.")
       }
       securePersonalBox(obj)
+    }
+  }
+
+  fun ensureExternalAccess(dto: DataTransferArea) {
+    if (dto.externalAccessEnabled) {
+      if (dto.externalAccessToken.isNullOrBlank()) {
+        dto.externalAccessToken = generateExternalAccessToken()
+      }
+      if (dto.externalPassword.isNullOrBlank()) {
+        dto.externalPassword = generateExternalPassword()
+      }
     }
   }
 

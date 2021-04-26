@@ -410,6 +410,7 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
     preserveLayoutUid?.let {
       layout.uid = it
     }
+    baseDao.ensureExternalAccess(dto)
     return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE).addVariable("ui", layout))
   }
 }
