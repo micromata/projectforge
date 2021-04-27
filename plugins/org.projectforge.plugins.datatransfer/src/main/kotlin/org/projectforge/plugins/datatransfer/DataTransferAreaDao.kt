@@ -41,7 +41,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileInfo
-import org.projectforge.plugins.datatransfer.rest.DataTransferArea
 import org.projectforge.rest.core.RestResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -99,6 +98,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
       }
       securePersonalBox(obj)
     }
+    ensureSecureExternalAccess(obj)
   }
 
   override fun onSave(obj: DataTransferAreaDO) {
@@ -109,17 +109,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
       }
       securePersonalBox(obj)
     }
-  }
-
-  fun ensureExternalAccess(dto: DataTransferArea) {
-    if (dto.externalAccessEnabled) {
-      if (dto.externalAccessToken.isNullOrBlank()) {
-        dto.externalAccessToken = generateExternalAccessToken()
-      }
-      if (dto.externalPassword.isNullOrBlank()) {
-        dto.externalPassword = generateExternalPassword()
-      }
-    }
+    ensureSecureExternalAccess(obj)
   }
 
   /**
@@ -180,6 +170,9 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
   }
 
   open fun getAnonymousArea(externalAccessToken: String?): DataTransferAreaDO? {
+    if (externalAccessToken?.length ?: 0 < ACCESS_TOKEN_LENGTH) {
+      throw IllegalArgumentException("externalAccessToken to short.")
+    }
     val dbo = SQLHelper.ensureUniqueResult(
       em.createNamedQuery(DataTransferAreaDO.FIND_BY_EXTERNAL_ACCESS_TOKEN, DataTransferAreaDO::class.java)
         .setParameter("externalAccessToken", externalAccessToken)
@@ -276,6 +269,17 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
     fun generateExternalPassword(): String {
       return NumberHelper.getSecureRandomReducedAlphanumeric(PASSWORD_LENGTH)
+    }
+
+    fun ensureSecureExternalAccess(obj: IDataTransferArea) {
+      if (obj.externalDownloadEnabled == true || obj.externalUploadEnabled == true) {
+        if (obj.externalAccessToken?.length ?: 0 < ACCESS_TOKEN_LENGTH) {
+          obj.externalAccessToken = generateExternalAccessToken()
+        }
+        if (obj.externalPassword.isNullOrBlank()) {
+          obj.externalPassword = generateExternalPassword()
+        }
+      }
     }
 
     const val MAX_FILE_SIZE_SPRING_PROPERTY = "projectforge.plugin.datatransfer.maxFileSize"

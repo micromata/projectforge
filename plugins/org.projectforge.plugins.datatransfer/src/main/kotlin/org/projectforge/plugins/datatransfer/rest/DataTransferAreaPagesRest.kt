@@ -42,9 +42,7 @@ import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.core.RestResolver
-import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -409,8 +407,11 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
       createEditLayout(dto, UILayout.UserAccess(history = false, insert = true, update = true, delete = true))
     preserveLayoutUid?.let {
       layout.uid = it
+      dto.layoutUid = it
     }
-    baseDao.ensureExternalAccess(dto)
-    return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE).addVariable("ui", layout))
+    DataTransferAreaDao.ensureSecureExternalAccess(dto)
+    return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE)
+      .addVariable("ui", layout)
+      .addVariable("data", dto))
   }
 }
