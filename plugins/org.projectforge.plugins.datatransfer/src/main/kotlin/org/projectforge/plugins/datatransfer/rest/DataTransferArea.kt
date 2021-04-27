@@ -33,6 +33,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.IDataTransferArea
 import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.dto.Group
@@ -56,10 +57,10 @@ class DataTransferArea(
   var accessGroupsUsesAsString: String? = null,
   var accessUsers: List<User>? = null,
   var accessUsersAsString: String? = null,
-  var externalDownloadEnabled: Boolean? = null,
-  var externalUploadEnabled: Boolean? = null,
-  var externalAccessToken: String? = null,
-  var externalPassword: String? = null,
+  override var externalDownloadEnabled: Boolean? = null,
+  override var externalUploadEnabled: Boolean? = null,
+  override var externalAccessToken: String? = null,
+  override var externalPassword: String? = null,
   var expiryDays: Int? = null,
   var maxUploadSizeKB: Int? = null,
   var internalLink: String? = null,
@@ -70,7 +71,7 @@ class DataTransferArea(
    * Needed for updating UILayout for watchfields.
    */
   var layoutUid: String? = null
-) : BaseDTO<DataTransferAreaDO>(id), AttachmentsSupport {
+) : BaseDTO<DataTransferAreaDO>(id), AttachmentsSupport, IDataTransferArea {
   override var attachments: List<Attachment>? = null
 
   /**

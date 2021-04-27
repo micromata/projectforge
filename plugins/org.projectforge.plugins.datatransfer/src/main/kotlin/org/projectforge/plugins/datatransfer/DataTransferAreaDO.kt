@@ -31,7 +31,6 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
-import org.projectforge.framework.utils.NumberHelper
 import javax.persistence.*
 
 /**
@@ -50,7 +49,7 @@ import javax.persistence.*
     query = "from DataTransferAreaDO where areaName=:areaName and adminIds=:adminIds"
   )
 )
-open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
+open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTransferArea {
 
   @PropertyInfo(i18nKey = "id")
   private var id: Int? = null
@@ -97,7 +96,7 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
     tooltip = "plugins.datatransfer.external.download.enabled.info"
   )
   @get:Column(length = 100, name = "external_download_enabled")
-  open var externalDownloadEnabled: Boolean? = null
+  override var externalDownloadEnabled: Boolean? = null
 
   /**
    * Optional password for external access.
@@ -107,7 +106,7 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
     tooltip = "plugins.datatransfer.external.upload.enabled.info"
   )
   @get:Column(length = 100, name = "external_upload_enabled")
-  open var externalUploadEnabled: Boolean? = null
+  override var externalUploadEnabled: Boolean? = null
 
   /**
    * Optional password for external access.
@@ -117,7 +116,7 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
     tooltip = "plugins.datatransfer.external.accessToken.info"
   )
   @get:Column(length = 100, name = "external_access_token")
-  open var externalAccessToken: String? = null
+  override var externalAccessToken: String? = null
 
   /**
    * Optional password for external access.
@@ -127,7 +126,7 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
     tooltip = "plugins.datatransfer.external.password.info"
   )
   @get:Column(length = 100, name = "external_password")
-  open var externalPassword: String? = null
+  override var externalPassword: String? = null
 
   /**
    * All attachments will be deleted automatically after the given days.
