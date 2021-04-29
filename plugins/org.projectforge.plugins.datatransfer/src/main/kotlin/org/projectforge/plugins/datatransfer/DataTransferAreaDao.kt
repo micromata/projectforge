@@ -297,9 +297,10 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
       )
     }
     private const val MB = 1024
+    private const val GB = 1024 * MB
 
     val MAX_UPLOAD_SIZE_VALUES =
-      arrayOf(20 * MB, 50 * MB, 100 * MB, 200 * MB, 500 * MB, 1024 * MB, 1536 * MB, 2048 * MB, 3072 * MB)
+      arrayOf(20 * MB, 50 * MB, 100 * MB, 200 * MB, 500 * MB, GB, 1536 * MB, 2 * GB, 3 * GB, 5 * GB)
 
     private const val MAX_UPLOAD_SIZE_DEFAULT_VALUE = 100 * MB
 
