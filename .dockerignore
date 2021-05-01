@@ -1,0 +1,16 @@
+dist
+doc
+misc
+tools
+docker
+target
+*/target
+*/*/target
+build
+*/build
+*/*/build
+dist
+*/dist
+*/*/dist
+projectforge-webapp/node_modules
+projectforge-webapp/package-lock.json
