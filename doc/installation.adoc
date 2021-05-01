@@ -1,5 +1,4 @@
-ProjectForge installation documentation
-=======================================
+= ProjectForge installation documentation
 Micromata GmbH, Version {version}
 :toc:
 :toclevels: 4
@@ -35,7 +34,7 @@ You may monitor the log file: `tail -f ~/ProjectForge/logs/ProjectForge.log`
 
 In this docker-compose case ProjectForge is composed with a PostgreSQL docker container (for productive and larger installations).
 
-1. Copy and modify https://github.com/micromata/projectforge/blob/master/projectforge-docker/compose/docker-compose.yml[docker-compose.yml] (change data base password).
+1. Copy and modify https://github.com/micromata/projectforge/blob/master/docker/compose/docker-compose.yml[docker-compose.yml] (change data base password).
 2. First start: `docker-compose run projectforge-app`
 3. Follow setup wizard below (choose PostgreSQL connection settings).
 4. ProjectForge stops automatically after setting up your ProjectForge directory. Restart `docker-compose up`
