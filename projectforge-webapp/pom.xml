@@ -29,7 +29,7 @@
     </properties>
 
     <build>
-        <finalName>projectforge-webapp</finalName>
+        <finalName>projectforge-webapp-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>com.github.eirslett</groupId>
