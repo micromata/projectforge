@@ -44,6 +44,12 @@ In this docker-compose case ProjectForge is composed with a PostgreSQL docker co
 
 You may monitor the log file: `tail -f ~/ProjectForge/logs/ProjectForge.log`
 
+==== Building docker container from source
+
+1. `git clone git@github.com:micromata/projectforge.git`
+2. `cd projectforge`
+3. `docker build -t micromata/projectforge:latest .`
+
 ==== Java-Installation (without docker)
 If you don't want to use Docker, you're able to install ProjectForge from the executable jar file.
 
