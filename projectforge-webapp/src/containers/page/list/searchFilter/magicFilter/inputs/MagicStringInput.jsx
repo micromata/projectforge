@@ -45,7 +45,9 @@ MagicStringInput.propTypes = {
     translations: PropTypes.shape({
         search: PropTypes.string,
     }).isRequired,
-    value: PropTypes.shape({}).isRequired,
+    value: PropTypes.shape({
+        value: PropTypes.shape({}),
+    }).isRequired,
 };
 
 MagicStringInput.defaultProps = {};

@@ -11,7 +11,7 @@ function CalendarEditExternalSubscription({ values }) {
 
     const { intervals } = values;
 
-    const defaultInterval = intervals.find(element => element.id
+    const defaultInterval = intervals.find((element) => element.id
         === data.externalSubscriptionUpdateInterval) || values.intervals[0];
 
     const handleInputChange = (event) => {
@@ -28,7 +28,7 @@ function CalendarEditExternalSubscription({ values }) {
 
     return React.useMemo(
         () => (
-            <React.Fragment>
+            <>
                 <Row>
                     <Col sm={3}>
                         <CheckBox
@@ -69,8 +69,9 @@ function CalendarEditExternalSubscription({ values }) {
                                     />
                                 </Col>
                             </Row>
-                        ) : undefined}
-            </React.Fragment>
+                        ) : undefined
+                }
+            </>
         ),
         [data.externalSubscription,
             data.externalSubscriptionUrl,

@@ -42,9 +42,9 @@ function DynamicTaskSelect(
         },
     )
         .then(handleHTTPErrors)
-        .then(response => response.json())
+        .then((response) => response.json())
         .then(callback)
-        .catch(error => alert(`Internal error: ${error}`));
+        .catch((error) => alert(`Internal error: ${error}`));
 
     // Initial Fetch
     React.useEffect(() => {
@@ -88,7 +88,7 @@ function DynamicTaskSelect(
                 },
             )
                 .then(handleHTTPErrors)
-                .then(response => response.json())
+                .then((response) => response.json())
                 .then((json) => {
                     setStateTask(json);
 
@@ -112,8 +112,8 @@ function DynamicTaskSelect(
                 });
             }
         };
-        const handleFavoriteDelete = favoriteId => fetchFavorites('delete', { id: favoriteId });
-        const handleFavoriteSelect = favoriteId => fetchFavorites('select', { id: favoriteId }, setTask);
+        const handleFavoriteDelete = (favoriteId) => fetchFavorites('delete', { id: favoriteId });
+        const handleFavoriteSelect = (favoriteId) => fetchFavorites('select', { id: favoriteId }, setTask);
         const handleFavoriteRename = (favoriteId, newName) => fetchFavorites('rename', {
             id: favoriteId,
             newName,

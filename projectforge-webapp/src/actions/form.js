@@ -12,12 +12,12 @@ export const FORM_CHANGE_DATA = 'FORM_CHANGE_DATA';
 export const FORM_CHANGE_VARIABLES = 'FORM_CHANGE_VARIABLES';
 export const FORM_SWITCH_CATEGORY = 'FORM_SWITCH_CATEGORY';
 
-const callActionBegin = category => ({
+const callActionBegin = (category) => ({
     type: FORM_CALL_ACTION_BEGIN,
     payload: { category },
 });
 
-const callActionSuccess = category => ({
+const callActionSuccess = (category) => ({
     type: FORM_CALL_ACTION_SUCCESS,
     payload: { category },
 });
@@ -100,9 +100,9 @@ export const loadFormPage = (category, id, url, params = {}) => (dispatch, getSt
         },
     )
         .then(handleHTTPErrors)
-        .then(response => response.json())
-        .then(json => dispatch(callSuccess(category, Object.combine(params, json))))
-        .catch(error => callFailure(category, error));
+        .then((response) => response.json())
+        .then((json) => dispatch(callSuccess(category, Object.combine(params, json))))
+        .catch((error) => callFailure(category, error));
 };
 
 export const callAction = (
@@ -237,7 +237,7 @@ export const callAction = (
 
                     return callAction({ responseAction: json })(dispatch, getState);
                 })
-                .catch(error => dispatch(callFailure(category, error)));
+                .catch((error) => dispatch(callFailure(category, error)));
         }
         default:
             return Promise.reject(Error(`TargetType ${action.targetType} not implemented.`));
@@ -245,7 +245,7 @@ export const callAction = (
     return Promise.resolve();
 };
 
-export const setCurrentData = newData => (dispatch, getState) => {
+export const setCurrentData = (newData) => (dispatch, getState) => {
     const { form } = getState();
     const { categories, currentCategory } = form;
     const { ui } = categories[currentCategory];
@@ -256,7 +256,7 @@ export const setCurrentData = newData => (dispatch, getState) => {
     // Check for triggered watch fields
     if (ui.watchFields) {
         const watchFieldsTriggered = Object.keys(newData)
-            .filter(key => ui.watchFields.includes(key));
+            .filter((key) => ui.watchFields.includes(key));
 
         if (watchFieldsTriggered.length > 0) {
             callAction({
@@ -270,7 +270,7 @@ export const setCurrentData = newData => (dispatch, getState) => {
     }
 };
 
-export const setCurrentVariables = newVariables => (dispatch, getState) => dispatch(
+export const setCurrentVariables = (newVariables) => (dispatch, getState) => dispatch(
     changeVariables(getState().form.currentCategory, newVariables),
 );
 

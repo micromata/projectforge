@@ -47,7 +47,7 @@ function DateTimeInput(
     };
 
     return (
-        <React.Fragment>
+        <>
             {showDate && (
                 <DateInput
                     hideDayPicker={hideDayPicker}
@@ -63,7 +63,7 @@ function DateTimeInput(
                     precision={precision}
                 />
             )}
-        </React.Fragment>
+        </>
     );
 }
 

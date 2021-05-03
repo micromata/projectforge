@@ -20,10 +20,10 @@ function DynamicAlert(props) {
                 </h4>
             )}
             {icon && (
-                <React.Fragment>
+                <>
                     <FontAwesomeIcon icon={icon} />
                     &nbsp;&nbsp;
-                </React.Fragment>
+                </>
             )}
             {message}
         </Alert>

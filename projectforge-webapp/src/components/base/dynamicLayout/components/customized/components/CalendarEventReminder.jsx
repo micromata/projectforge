@@ -59,9 +59,9 @@ function CalendarEventReminder() {
         setData({ reminderDuration: '15' });
     }
 
-    const defaultReminder = options.find(element => element.value
+    const defaultReminder = options.find((element) => element.value
         === data.reminderActionType) || options[0];
-    const defaultUnit = units.find(element => element.value
+    const defaultUnit = units.find((element) => element.value
         === data.reminderDurationUnit) || units[0];
     return React.useMemo(
         () => (
@@ -78,7 +78,7 @@ function CalendarEventReminder() {
                 </Col>
                 {data.reminderActionType
                     ? (
-                        <React.Fragment>
+                        <>
                             <Col sm={1}>
                                 <Input
                                     label=""
@@ -97,7 +97,7 @@ function CalendarEventReminder() {
                                     required
                                 />
                             </Col>
-                        </React.Fragment>
+                        </>
                     ) : undefined}
             </Row>
         ),

@@ -75,13 +75,13 @@ function CustomizedAddressImage() {
                 )
                     .then(handleHTTPErrors)
                     .then(() => setData({ imageData: undefined }))
-                    .catch(fetchError => setError(fetchError))
+                    .catch((fetchError) => setError(fetchError))
                     .finally(() => setLoading(false));
             };
 
             if (data.imageData) {
                 image = (
-                    <React.Fragment>
+                    <>
                         <img
                             className={style.addressImage}
                             src={src}
@@ -94,7 +94,7 @@ function CustomizedAddressImage() {
                             <FontAwesomeIcon icon={faTrash} />
                             {` ${ui.translations.delete}`}
                         </Button>
-                    </React.Fragment>
+                    </>
                 );
             }
 

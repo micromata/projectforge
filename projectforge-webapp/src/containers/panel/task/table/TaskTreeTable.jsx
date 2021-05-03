@@ -5,7 +5,6 @@ import TaskTreeContext from '../TaskTreeContext';
 import styles from '../TaskTreePanel.module.scss';
 import TaskTreeTableEntry from './TaskTreeTableEntry';
 
-
 function TaskTreeTable({ nodes, consumptionBarClickable }) {
     const {
         columnsVisibility,
@@ -14,7 +13,7 @@ function TaskTreeTable({ nodes, consumptionBarClickable }) {
     } = React.useContext(TaskTreeContext);
 
     return (
-        <React.Fragment>
+        <>
             <Table striped hover responsive className={styles.tasks}>
                 <thead>
                     <tr>
@@ -29,8 +28,7 @@ function TaskTreeTable({ nodes, consumptionBarClickable }) {
                         <th>{translations.shortDescription}</th>
 
                         {!shortForm && (
-                            <React.Fragment>
-
+                            <>
                                 {columnsVisibility.protectionUntil
                                 && <th>{translations['task.protectTimesheetsUntil.short']}</th>}
 
@@ -45,12 +43,12 @@ function TaskTreeTable({ nodes, consumptionBarClickable }) {
                                 {columnsVisibility.assignedUser
                                 && <th>{translations['task.assignedUser']}</th>}
 
-                            </React.Fragment>
+                            </>
                         )}
                     </tr>
                 </thead>
                 <tbody>
-                    {nodes.map(task => (
+                    {nodes.map((task) => (
                         <TaskTreeTableEntry
                             key={`task-tree-table-body-row-${task.id}`}
                             task={task}
@@ -61,7 +59,7 @@ function TaskTreeTable({ nodes, consumptionBarClickable }) {
             </Table>
             {/* TODO TRANSLATION */}
             {nodes.length === 0 && <span>[Keine Tasks gefunden]</span>}
-        </React.Fragment>
+        </>
     );
 }
 

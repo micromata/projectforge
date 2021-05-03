@@ -25,10 +25,9 @@ function CostNumberComponent() {
         setData({ endziffer: event.target.value });
     };
 
-
     return React.useMemo(
         () => (
-            <React.Fragment>
+            <>
                 <input
                     id="nummernkreis"
                     type="number"
@@ -69,7 +68,7 @@ function CostNumberComponent() {
                     value={data.endziffer.toString()}
                     onChange={handleEndzifferChange}
                 />
-            </React.Fragment>
+            </>
         ),
     );
 }
@@ -78,6 +77,5 @@ const mapStateToProps = ({ authentication }) => ({
     user: authentication.user,
     jsTimestampFormatMinutes: authentication.user.jsTimestampFormatMinutes,
 });
-
 
 export default connect(mapStateToProps)(CostNumberComponent);

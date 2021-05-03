@@ -1,12 +1,12 @@
-import {faDownload} from '@fortawesome/free-solid-svg-icons';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {evalServiceURL, getServiceURL, handleHTTPErrors} from '../../../../../utilities/rest';
-import {Table} from '../../../../design';
+import { evalServiceURL, getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
+import { Table } from '../../../../design';
 import DropArea from '../../../../design/droparea';
 import LoadingContainer from '../../../../design/loading-container';
-import {DynamicLayoutContext} from '../../context';
+import { DynamicLayoutContext } from '../../context';
 
 function DynamicAttachmentList(
     {
@@ -30,7 +30,7 @@ function DynamicAttachmentList(
 
     const [loading, setLoading] = React.useState(false);
 
-    const {attachments} = data;
+    const { attachments } = data;
 
     const uploadFile = (files) => {
         setLoading(true);
@@ -49,9 +49,9 @@ function DynamicAttachmentList(
             },
         )
             .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(json => {
-                callAction({responseAction: json})
+            .then((response) => response.json())
+            .then((json) => {
+                callAction({ responseAction: json });
                 setLoading(false);
             })
             .catch((catchError) => {
@@ -60,10 +60,25 @@ function DynamicAttachmentList(
             });
     };
 
-    const handleRowClick = entry => (event) => {
+    const download = (entryId) => {
+        callAction({
+            responseAction: {
+                targetType: 'DOWNLOAD',
+                url: getServiceURL(`${restBaseUrl}/download/${category}/${id}`, {
+                    fileId: entryId,
+                    listId,
+                    accessString,
+                    userInfo,
+                }),
+                absolute: true,
+            },
+        });
+    };
+
+    const handleRowClick = (entry) => (event) => {
         event.stopPropagation();
         if (downloadOnRowClick) {
-            download(entry.fileId)
+            download(entry.fileId);
         } else {
             callAction({
                 responseAction: {
@@ -80,69 +95,54 @@ function DynamicAttachmentList(
         }
     };
 
-    const handleDownload = entryId => (event) => {
+    const handleDownload = (entryId) => (event) => {
         event.stopPropagation();
-        download(entryId)
+        download(entryId);
     };
-
-    const download = (entryId) => {
-        callAction({
-            responseAction: {
-                targetType: 'DOWNLOAD',
-                url: getServiceURL(`${restBaseUrl}/download/${category}/${id}`, {
-                    fileId: entryId,
-                    listId,
-                    accessString,
-                    userInfo,
-                }),
-                absolute: true,
-            },
-        });
-    }
 
     const table = attachments && attachments.length > 0 && (
         <Table striped hover>
             <thead>
-            <tr>
-                <th>{ui.translations['attachment.fileName']}</th>
-                <th>{ui.translations['attachment.size']}</th>
-                <th>{ui.translations.description}</th>
-                <th>{ui.translations.created}</th>
-                <th>{ui.translations.createdBy}</th>
-                <th>{ui.translations.modified}</th>
-                <th>{ui.translations.modifiededBy}</th>
-            </tr>
+                <tr>
+                    <th>{ui.translations['attachment.fileName']}</th>
+                    <th>{ui.translations['attachment.size']}</th>
+                    <th>{ui.translations.description}</th>
+                    <th>{ui.translations.created}</th>
+                    <th>{ui.translations.createdBy}</th>
+                    <th>{ui.translations.modified}</th>
+                    <th>{ui.translations.modifiededBy}</th>
+                </tr>
             </thead>
             <tbody>
-            {attachments.map(entry => (
-                <tr key={entry.fileId} onClick={handleRowClick(entry)}>
-                    <td>
-                                            <span
-                                                role="presentation"
-                                                onKeyDown={() => {
-                                                }}
-                                                onClick={handleDownload(entry.fileId)}
-                                            >
-                                                {`${entry.name} `}
-                                                <FontAwesomeIcon icon={faDownload}/>
-                                            </span>
-                    </td>
-                    <td>{entry.sizeHumanReadable}</td>
-                    <td>{entry.description}</td>
-                    <td>{entry.createdFormatted}</td>
-                    <td>{entry.createdByUser}</td>
-                    <td>{entry.lastUpdateTimeAgo}</td>
-                    <td>{entry.lastUpdateByUser}</td>
-                </tr>
-            ))}
+                { attachments.map((entry) => (
+                    <tr key={entry.fileId} onClick={handleRowClick(entry)}>
+                        <td>
+                            <span
+                                role="presentation"
+                                onKeyDown={() => {
+                                }}
+                                onClick={handleDownload(entry.fileId)}
+                            >
+                                {`${entry.name} `}
+                                <FontAwesomeIcon icon={faDownload} />
+                            </span>
+                        </td>
+                        <td>{entry.sizeHumanReadable}</td>
+                        <td>{entry.description}</td>
+                        <td>{entry.createdFormatted}</td>
+                        <td>{entry.createdByUser}</td>
+                        <td>{entry.lastUpdateTimeAgo}</td>
+                        <td>{entry.lastUpdateByUser}</td>
+                    </tr>
+                ))}
             </tbody>
         </Table>
-    )
+    );
 
     return React.useMemo(() => {
         if (id && id > 0) {
             if (uploadDisabled) {
-                return (<React.Fragment>{table}</React.Fragment>)
+                return (<>{table}</>);
             }
             return (
                 <LoadingContainer loading={loading}>
@@ -157,9 +157,9 @@ function DynamicAttachmentList(
             );
         }
         return (
-            <React.Fragment>
+            <>
                 {ui.translations['attachment.onlyAvailableAfterSave']}
-            </React.Fragment>
+            </>
         );
     }, [setData, loading, id, attachments]);
 }

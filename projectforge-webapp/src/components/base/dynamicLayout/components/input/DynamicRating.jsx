@@ -10,7 +10,7 @@ function DynamicRating({ id, label, values }) {
     const value = Object.getByString(data, id);
 
     return React.useMemo(() => {
-        const handleChange = rating => setData({ [id]: rating });
+        const handleChange = (rating) => setData({ [id]: rating });
 
         return (
             <DynamicValidationManager id={id}>

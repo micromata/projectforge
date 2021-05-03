@@ -16,10 +16,10 @@ function JiraIssuesLinks(
         jiraIssues = Object.keys(jiraIssuesMap);
     }
     return (
-        <React.Fragment>
+        <>
             {jiraIssues && jiraIssues.length > 0
                 ? (
-                    jiraIssues.map(issue => (
+                    jiraIssues.map((issue) => (
                         <a
                             key={issue}
                             href={jiraIssuesMap[issue]}
@@ -29,9 +29,8 @@ function JiraIssuesLinks(
                             {`${issue} `}
                         </a>
                     ))
-                ) : undefined
-            }
-        </React.Fragment>
+                ) : undefined}
+        </>
     );
 }
 

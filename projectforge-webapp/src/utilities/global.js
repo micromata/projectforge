@@ -42,7 +42,7 @@ Object.convertPathKeys = (object) => {
     return newObject;
 };
 
-Object.convertToSubObjects = object => Object.keys(object)
+Object.convertToSubObjects = (object) => Object.keys(object)
     .reduce((previousValue, key) => {
         if (key.includes('.')) {
             const path = key.split('.');
@@ -62,9 +62,9 @@ Object.convertToSubObjects = object => Object.keys(object)
         };
     }, {});
 
-Object.isEmpty = object => Object.keys(object).length === 0;
+Object.isEmpty = (object) => Object.keys(object).length === 0;
 
-Object.isObject = object => typeof object === 'object'
+Object.isObject = (object) => typeof object === 'object'
     && !Array.isArray(object)
     && !(object instanceof Date);
 
@@ -73,7 +73,7 @@ Object.combine = (o1, o2) => ({
     ...o1,
     ...o2,
     ...Object.keys(o1)
-        .map(key => ({
+        .map((key) => ({
             key,
             v1: o1[key],
             v2: o2[key],
@@ -97,4 +97,4 @@ Array.findByField = (array, field, value) => array.reduce((accumulator, currentV
 }, undefined);
 
 // Replace all selector characters to prevent that they appear in an id.
-String.idify = string => string.replace(/[.#*, >+~/[\]=|^$:()]/g, '-');
+String.idify = (string) => string.replace(/[.#*, >+~/[\]=|^$:()]/g, '-');
