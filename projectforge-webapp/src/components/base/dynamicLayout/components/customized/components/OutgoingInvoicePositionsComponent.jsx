@@ -3,6 +3,8 @@ import { connect } from 'react-redux';
 import { Button, UncontrolledCollapse } from 'reactstrap';
 import { DynamicLayoutContext } from '../../../context';
 
+/* eslint-disable */
+
 function OutgoingInvoicePositionsComponent() {
     const { data, callAction } = React.useContext(DynamicLayoutContext);
 
