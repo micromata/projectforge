@@ -406,7 +406,7 @@ class CalendarPanel extends React.Component {
 
 CalendarPanel.propTypes = {
     activeCalendars: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.string,
+        id: PropTypes.number,
         visible: PropTypes.bool,
         style: PropTypes.shape({
             bgColor: PropTypes.string,

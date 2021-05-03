@@ -120,11 +120,14 @@ class Category extends React.Component {
 Category.propTypes = {
     category: PropTypes.shape({
         title: PropTypes.string,
-        badge: PropTypes.string,
-        key: PropTypes.string,
-        subMenu: PropTypes.shape({
-            map: PropTypes.shape({}),
+        badge: PropTypes.shape({
+            counter: PropTypes.number,
+            style: PropTypes.string,
         }),
+        key: PropTypes.string,
+        subMenu: PropTypes.arrayOf(PropTypes.shape({
+            map: PropTypes.shape({}),
+        })),
     }).isRequired,
     className: PropTypes.string,
     closeMenu: PropTypes.func,
