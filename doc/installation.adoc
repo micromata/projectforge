@@ -22,7 +22,7 @@ For test or small installations you may use the built-in data base (embedded).
 
 ==== Running single docker container
 
-1. First start `docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge --name projectforge kreinhard/projectforge`
+1. First start `docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge --name projectforge micromata/projectforge`
 2. Follow setup wizard below.
 3. After finalization of setup page in browser, press `CTRL-C` for stopping container.
 4. Restart  `docker start projectforge`
