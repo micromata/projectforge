@@ -21,7 +21,6 @@ function DynamicObjectSelect(
                 onSelect={handleSelect}
                 translations={ui.translations}
                 value={data[id] || {}}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
         </DynamicValidationManager>

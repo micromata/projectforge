@@ -36,7 +36,6 @@ function DynamicTimeInput(
                     style={{ display: 'flex' }}
                     withMargin
                     id={`${ui.uid}-${id}`}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 >
                     <TimeInput

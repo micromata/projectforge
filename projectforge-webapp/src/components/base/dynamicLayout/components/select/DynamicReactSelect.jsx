@@ -115,7 +115,6 @@ function DynamicReactSelect(props) {
                         className="invalid"
                         onChange={onChange}
                         translations={ui.translations}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                         value={value}
                         loadOptions={(url && url.length > 0) ? loadOptions : undefined}

@@ -14,8 +14,6 @@ import IndexPage from './page/IndexPage';
 import ListPage from './page/list/ListPage';
 import TaskTreePage from './page/TaskTreePage';
 
-/* eslint-disable react/jsx-props-no-spreading */
-
 export const wicketRoute = (
     <Route
         path="/wa"

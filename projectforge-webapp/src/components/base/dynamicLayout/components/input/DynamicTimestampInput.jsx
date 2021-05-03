@@ -32,7 +32,6 @@ function DynamicTimestampInput(
                     isActive
                     style={{ display: 'flex' }}
                     withMargin
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 >
                     <DateTimeInput

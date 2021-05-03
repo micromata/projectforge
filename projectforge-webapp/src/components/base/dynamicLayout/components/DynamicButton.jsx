@@ -81,7 +81,6 @@ function DynamicButton(props) {
                 </Modal>
             )}
             <Button
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...stylingProps}
                 onClick={handleClick}
                 type={type}

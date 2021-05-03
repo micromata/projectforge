@@ -35,7 +35,6 @@ function DynamicAutoCompletion(
                 onChange={(completion) => setData({ [id]: completion })}
                 url={nUrl} // urlParams (Fin)
                 value={data[id]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
         </DynamicValidationManager>

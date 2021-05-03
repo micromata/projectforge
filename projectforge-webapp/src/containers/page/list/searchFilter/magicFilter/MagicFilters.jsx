@@ -122,9 +122,7 @@ function MagicFilters(
                 .map((filter) => (
                     <MagicFilterPill
                         key={`magic-filter-default-${filter.id}`}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...Array.findByField(filterEntries, 'field', filter.id)}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...filter}
                     />
                 ))}
@@ -137,7 +135,6 @@ function MagicFilters(
                 .map((entry) => (
                     <MagicFilterPill
                         key={`magic-filter-${entry.id}`}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...entry}
                         isRemovable
                     />

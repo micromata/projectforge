@@ -16,8 +16,6 @@ import DynamicTextArea from './input/DynamicTextArea';
 import DynamicReactSelect from './select/DynamicReactSelect';
 import DynamicTable from './table/DynamicTable';
 
-/* eslint-disable react/jsx-props-no-spreading, react/destructuring-assignment */
-
 const components = {};
 
 export const registerComponent = (type, tag) => {
@@ -32,6 +30,7 @@ export default (content) => {
 
     return (
         <>
+            {/* eslint-disable-next-line react/destructuring-assignment */}
             {content.map(({ type, key, ...props }) => {
                 const Tag = components[type];
                 const componentKey = `dynamic-layout-${key}`;

@@ -41,7 +41,6 @@ function NavigationDropdown(
                         <NavigationAction
                             badgeIsFlying={false}
                             entryKey={item.key}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
                             {...item}
                         />
                     </DropdownItem>

@@ -73,7 +73,6 @@ function ReadonlyField(
                 onClick={handleContainerClick}
                 readOnly
                 withMargin
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
                 {value && (

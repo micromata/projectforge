@@ -27,7 +27,6 @@ function DynamicActionGroup({ actions }) {
                     {actions.map((action) => (
                         <DynamicButton
                             key={`dynamic-action-button-${action.id}-${action.key}`}
-                            /* eslint-disable-next-line react/jsx-props-no-spreading */
                             {...action}
                         />
                     ))}

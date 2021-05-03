@@ -33,7 +33,6 @@ function TimeInputUnit(
             style={style}
             onClick={handleClick}
             role="presentation"
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             {formatTimeUnit(children)}

@@ -40,7 +40,6 @@ function CustomizedAddressPhoneNumbers({ data }) {
                             addressId={address.id}
                             phoneCallEnabled={phoneCallEnabled}
                             smsEnabled={smsEnabled}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
                             {...value}
                         />
                     ))}

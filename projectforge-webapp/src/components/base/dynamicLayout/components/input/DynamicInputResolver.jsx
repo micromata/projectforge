@@ -66,7 +66,6 @@ function DynamicInputResolver(
     }
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <Tag {...props} {...additionalProps} />
     );
 }

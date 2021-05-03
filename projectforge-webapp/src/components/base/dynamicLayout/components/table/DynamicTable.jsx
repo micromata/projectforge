@@ -23,7 +23,6 @@ function DynamicTable({ columns, id }) {
                         {columns.map((column) => (
                             <DynamicTableHead
                                 key={`table-head-column-${column.id}`}
-                                // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...column}
                             />
                         ))}

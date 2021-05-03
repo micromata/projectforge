@@ -16,7 +16,6 @@ function Navigation({ entries, className }) {
                 } else {
                     Tag = NavigationEntry;
                 }
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 return <Tag key={entry.key || entry.id} {...entry} entryKey={entry.key} />;
             })}
         </Nav>

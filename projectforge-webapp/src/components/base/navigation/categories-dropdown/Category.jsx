@@ -75,7 +75,6 @@ class Category extends React.Component {
         const { collapse } = this.state;
 
         return (
-            // eslint-disable-next-line react/jsx-props-no-spreading
             <div className={classNames(style.categoryContainer, className)} {...props}>
                 <div
                     className={style.categoryTitle}

@@ -65,7 +65,6 @@ function ObjectSelect(
                 onSelect={onSelect}
                 url={url || `${type.toLowerCase()}/autosearch?search=:search`}
                 value={value}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
             {hasSelectMe && translations['tooltip.selectMe'] && (

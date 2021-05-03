@@ -118,7 +118,6 @@ class DropArea extends React.Component {
                         type="file"
                         className={style.file}
                         ref={this.input}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...inputProps}
                     />
                     <span className={style.info}>

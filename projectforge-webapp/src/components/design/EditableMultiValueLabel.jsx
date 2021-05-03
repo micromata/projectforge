@@ -61,7 +61,6 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
         // Case for plain searchString without filterType
         case undefined:
             return (
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 <components.MultiValueLabel data={data} selectProps={selectProps} {...props} />
             );
         // Fallback for not implemented filterType
@@ -91,7 +90,6 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
         <Popper
             direction="right"
             isOpen={isOpen}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...selectHandler}
             target={(
                 <div
@@ -104,7 +102,6 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                     <components.MultiValueLabel
                         data={data}
                         selectProps={selectProps}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     >
                         {label}

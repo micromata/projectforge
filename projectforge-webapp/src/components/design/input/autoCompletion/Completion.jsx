@@ -11,7 +11,6 @@ function Completion({ displayName, selected, ...props }) {
             className={classNames(styles.entry, { [styles.selected]: selected })}
             role="option"
             aria-selected="false"
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             {displayName}

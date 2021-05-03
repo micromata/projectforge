@@ -22,7 +22,6 @@ function RatingStars(
 
     return (
         <InputContainer
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             additionalLabel={values[hoverIdx] || values[value] || '-'}
             isActive

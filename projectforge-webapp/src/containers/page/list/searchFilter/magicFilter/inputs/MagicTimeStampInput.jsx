@@ -49,7 +49,6 @@ function MagicTimeStampInput(
                 hideTimeInput={filterType === 'DATE'}
                 id={id}
                 onChange={onChange}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...value}
                 setFrom={setFrom}
                 setTo={setTo}
