@@ -25,7 +25,7 @@ function CustomizedAddressPhoneNumbers({ data }) {
     return React.useMemo(
         () => {
             if (!address) {
-                return <React.Fragment />;
+                return <></>;
             }
 
             add(address.businessPhone, 'BUSINESS', false, 0);
@@ -34,16 +34,17 @@ function CustomizedAddressPhoneNumbers({ data }) {
             add(address.privateMobilePhone, 'PRIVATE_MOBILE', true, 3);
 
             return (
-                <React.Fragment>
-                    {phoneNumbers.map(value => (
+                <>
+                    {phoneNumbers.map((value) => (
                         <PhoneNumber
                             addressId={address.id}
                             phoneCallEnabled={phoneCallEnabled}
                             smsEnabled={smsEnabled}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
                             {...value}
                         />
                     ))}
-                </React.Fragment>
+                </>
             );
         },
         [address],

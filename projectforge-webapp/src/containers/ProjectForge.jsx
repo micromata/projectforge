@@ -10,7 +10,7 @@ import LoadingContainer from '../components/design/loading-container';
 import history from '../utilities/history';
 import prefix from '../utilities/prefix';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
-import AuthorizedRoutes, {publicRoute, wicketRoute} from './AuthorizedRoutes';
+import AuthorizedRoutes, { publicRoute, wicketRoute } from './AuthorizedRoutes';
 import FormPage from './page/form/FormPage';
 import { SystemStatusContext, systemStatusContextDefaultValues } from './SystemStatusContext';
 
@@ -28,7 +28,7 @@ function ProjectForge(
 
         fetch(getServiceURL('/rsPublic/systemStatus'))
             .then(handleHTTPErrors)
-            .then(response => response.json())
+            .then((response) => response.json())
             .then((json) => {
                 const { setupRedirectUrl } = json;
                 setSystemStatus(json);
@@ -57,6 +57,7 @@ function ProjectForge(
                     path={prefix}
                     render={({ match, location, ...props }) => (
                         <FormPage
+                            // eslint-disable-next-line react/jsx-props-no-spreading
                             {...props}
                             location={location}
                             isPublic
@@ -103,7 +104,7 @@ ProjectForge.defaultProps = {
     user: undefined,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
     loginInProgress: state.authentication.loading,
     user: state.authentication.user,
 });

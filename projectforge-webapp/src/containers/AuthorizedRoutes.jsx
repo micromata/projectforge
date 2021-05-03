@@ -14,6 +14,8 @@ import IndexPage from './page/IndexPage';
 import ListPage from './page/list/ListPage';
 import TaskTreePage from './page/TaskTreePage';
 
+/* eslint-disable react/jsx-props-no-spreading */
+
 export const wicketRoute = (
     <Route
         path="/wa"
@@ -34,7 +36,7 @@ export const wicketRoute = (
 export const publicRoute = (
     <Route
         path={`${prefix}public/:category/:type?/:id?`}
-        render={props => <FormPage {...props} isPublic />}
+        render={(props) => <FormPage {...props} isPublic />}
     />
 );
 
@@ -48,7 +50,7 @@ function AuthorizedRoutes(
 
     const { background } = location.state || {};
 
-    const routes = switchLocation => (
+    const routes = (switchLocation) => (
         <Switch location={switchLocation}>
             {wicketRoute}
             {publicRoute}
@@ -77,7 +79,7 @@ function AuthorizedRoutes(
     );
 
     return (
-        <React.Fragment>
+        <>
             <Helmet>
                 <html lang={locale} />
             </Helmet>
@@ -101,7 +103,7 @@ function AuthorizedRoutes(
                     </ModalBody>
                 </Modal>
             )}
-        </React.Fragment>
+        </>
     );
 }
 

@@ -42,9 +42,9 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                 credentials: 'include',
             })
                 .then(handleHTTPErrors)
-                .then(response => response.json())
+                .then((response) => response.json())
                 .then(saveUpdateResponseInState)
-                .catch(error => alert(`Internal error: ${error}`));
+                .catch((error) => alert(`Internal error: ${error}`));
         }
 
         setIsOpen(false);
@@ -61,6 +61,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
         // Case for plain searchString without filterType
         case undefined:
             return (
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 <components.MultiValueLabel data={data} selectProps={selectProps} {...props} />
             );
         // Fallback for not implemented filterType
@@ -69,8 +70,8 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
     }
 
     const selectHandler = {
-        onClick: event => event.stopPropagation(),
-        onMouseDown: event => event.stopPropagation(),
+        onClick: (event) => event.stopPropagation(),
+        onMouseDown: (event) => event.stopPropagation(),
         onKeyDown: (event) => {
             event.stopPropagation();
 
@@ -90,6 +91,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
         <Popper
             direction="right"
             isOpen={isOpen}
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...selectHandler}
             target={(
                 <div
@@ -102,6 +104,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                     <components.MultiValueLabel
                         data={data}
                         selectProps={selectProps}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     >
                         {label}
@@ -129,9 +132,14 @@ EditableMultiValueLabel.propTypes = {
     data: PropTypes.shape({
         id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
         filterType: PropTypes.string,
+        label: PropTypes.string,
+        bgColor: PropTypes.string,
+        isNew: PropTypes.bool,
+        __isNew__: PropTypes.bool,
     }).isRequired,
     selectProps: PropTypes.shape({
         setMultiValue: PropTypes.func,
+        values: PropTypes.shape({ }),
     }).isRequired,
 };
 

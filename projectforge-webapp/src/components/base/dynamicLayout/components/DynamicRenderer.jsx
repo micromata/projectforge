@@ -16,6 +16,8 @@ import DynamicTextArea from './input/DynamicTextArea';
 import DynamicReactSelect from './select/DynamicReactSelect';
 import DynamicTable from './table/DynamicTable';
 
+/* eslint-disable react/jsx-props-no-spreading, react/destructuring-assignment */
+
 const components = {};
 
 export const registerComponent = (type, tag) => {
@@ -25,11 +27,11 @@ export const registerComponent = (type, tag) => {
 // Renders the components out of a content array.
 export default (content) => {
     if (!content) {
-        return <React.Fragment />;
+        return <></>;
     }
 
     return (
-        <React.Fragment>
+        <>
             {content.map(({ type, key, ...props }) => {
                 const Tag = components[type];
                 const componentKey = `dynamic-layout-${key}`;
@@ -50,7 +52,7 @@ export default (content) => {
                     />
                 );
             })}
-        </React.Fragment>
+        </>
     );
 };
 

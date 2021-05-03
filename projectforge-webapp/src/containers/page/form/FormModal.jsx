@@ -4,6 +4,8 @@ import { Modal, ModalBody } from '../../../components/design';
 import history from '../../../utilities/history';
 import FormPage from './FormPage';
 
+/* eslint-disable react/jsx-props-no-spreading */
+
 function FormModal(props) {
     const { baseUrl } = props;
 

@@ -1,7 +1,6 @@
-import { faCopy, faEye, faEyeSlash} from '@fortawesome/free-regular-svg-icons';
-import { faBan, faCheck } from '@fortawesome/free-solid-svg-icons';
-import {faClipboardCheck} from '@fortawesome/free-solid-svg-icons';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import { faCopy, faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
+import { faBan, faCheck, faClipboardCheck } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import copy from 'clipboard-copy';
 import PropTypes from 'prop-types';
@@ -37,14 +36,12 @@ function ReadonlyField(
         .then(() => setIsCopied(1))
         .catch(() => setIsCopied(-1));
 
-    const getValue = (value) => {
-        if (dataType == 'BOOLEAN') {
-            return <FontAwesomeIcon
-                icon={value ? faCheck : faBan}
-            />
+    const getValue = (v) => {
+        if (dataType === 'BOOLEAN') {
+            return <FontAwesomeIcon icon={v ? faCheck : faBan} />;
         }
-        return value;
-    }
+        return v;
+    };
 
     React.useEffect(() => setIsCopied(0), [value]);
 
@@ -55,31 +52,32 @@ function ReadonlyField(
     };
 
     return (
-        <React.Fragment>
+        <>
             <InputContainer
                 className={styles.readOnly}
                 label={(
-                    <React.Fragment>
+                    <>
                         {label}
                         {tooltip && (
-                            <React.Fragment>
-                                <TooltipIcon/>
+                            <>
+                                <TooltipIcon />
                                 <UncontrolledTooltip placement="auto" target={id}>
                                     {tooltip}
                                 </UncontrolledTooltip>
-                            </React.Fragment>
+                            </>
                         )}
-                    </React.Fragment>
+                    </>
                 )}
                 id={id}
                 isActive
                 onClick={handleContainerClick}
                 readOnly
                 withMargin
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
                 {value && (
-                    <React.Fragment>
+                    <>
                         <div className={styles.icons}>
                             {coverUp && (
                                 <FontAwesomeIcon
@@ -101,10 +99,10 @@ function ReadonlyField(
                         {coverUp && showCover && (
                             <div
                                 className={styles.coverUp}
-                                style={{width: `${value.length + 1}ch`}}
+                                style={{ width: `${value.length + 1}ch` }}
                             />
                         )}
-                    </React.Fragment>
+                    </>
                 )}
                 <p className={styles.value}>
                     <span ref={valueRef}>
@@ -115,8 +113,8 @@ function ReadonlyField(
                     &nbsp;
                 </p>
             </InputContainer>
-            <AdditionalLabel title={additionalLabel}/>
-        </React.Fragment>
+            <AdditionalLabel title={additionalLabel} />
+        </>
     );
 }
 

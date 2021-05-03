@@ -19,6 +19,7 @@ function DynamicCheckbox({ id, label, ...props }) {
                     label={label}
                     checked={value}
                     onChange={handleCheckboxChange}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             </DynamicValidationManager>

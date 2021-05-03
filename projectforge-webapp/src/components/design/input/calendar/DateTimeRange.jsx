@@ -29,7 +29,7 @@ function DateTimeRange(
 ) {
     const [quickSelector, setQuickSelector] = React.useState(undefined);
 
-    const handleQuickSelectorClick = interval => () => {
+    const handleQuickSelectorClick = (interval) => () => {
         setQuickSelector(interval);
 
         const newFrom = new Date();
@@ -195,7 +195,7 @@ function DateTimeRange(
             {selectors && selectors.includes('UNTIL_NOW') && (
                 <Col sm={3}>
                     <ul className={style.quickSelectors}>
-                        {quickSelectors.map(selector => (
+                        {quickSelectors.map((selector) => (
                             <li
                                 className={classNames(
                                     style.quickSelector,
@@ -248,6 +248,7 @@ function DateTimeRange(
                         from,
                         to,
                     }]}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             </Col>

@@ -91,6 +91,7 @@ const Input = React.forwardRef((
                 {icon && (
                     <FontAwesomeIcon
                         icon={icon}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...iconProps}
                         className={classNames(styles.icon, iconProps && iconProps.className)}
                     />
@@ -98,6 +99,7 @@ const Input = React.forwardRef((
                 <input
                     ref={inputRef}
                     id={id}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     onBlur={handleBlur}
                     onFocus={handleFocus}
@@ -131,7 +133,9 @@ Input.propTypes = {
     className: PropTypes.string,
     color: colorPropType,
     icon: PropTypes.shape({}),
-    iconProps: PropTypes.shape({}),
+    iconProps: PropTypes.shape({
+        className: PropTypes.string,
+    }),
     label: PropTypes.string,
     onBlur: PropTypes.func,
     onFocus: PropTypes.func,

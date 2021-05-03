@@ -18,6 +18,7 @@ function DynamicTextArea({ id, focus, ...props }) {
                     id={`${ui.uid}-${id}`}
                     onChange={handleTextAreaChange}
                     autoFocus={focus}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     value={value}
                 />

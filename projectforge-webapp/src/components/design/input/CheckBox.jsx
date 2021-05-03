@@ -19,7 +19,7 @@ function CheckBox(
     },
 ) {
     return (
-        <React.Fragment>
+        <>
             <div className={classNames(style.formGroup, className, style.checkboxGroup)}>
                 <label
                     className={style.checkboxLabel}
@@ -29,6 +29,7 @@ function CheckBox(
                         type="checkbox"
                         className={style.checkbox}
                         id={id}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     />
                     <span
@@ -46,7 +47,7 @@ function CheckBox(
                     {tooltip}
                 </UncontrolledTooltip>
             )}
-        </React.Fragment>
+        </>
     );
 }
 

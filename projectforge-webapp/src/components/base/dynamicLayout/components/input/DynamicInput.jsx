@@ -20,6 +20,7 @@ function DynamicInput({ id, focus, ...props }) {
                     onChange={handleInputChange}
                     autoFocus={focus}
                     type="text"
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     value={value}
                 />

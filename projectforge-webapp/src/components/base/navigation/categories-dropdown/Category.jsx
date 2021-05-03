@@ -32,7 +32,6 @@ class Category extends React.Component {
     handleWindowResize() {
         const { innerWidth: viewportWidth } = window;
 
-
         let collapse = true;
 
         if (viewportWidth < 735) {
@@ -45,6 +44,12 @@ class Category extends React.Component {
         });
     }
 
+    handleLinkClick() {
+        const { closeMenu } = this.props;
+
+        closeMenu();
+    }
+
     toggle(event) {
         event.preventDefault();
 
@@ -54,15 +59,9 @@ class Category extends React.Component {
             return;
         }
 
-        this.setState(state => ({
+        this.setState((state) => ({
             collapse: !state.collapse,
         }));
-    }
-
-    handleLinkClick() {
-        const { closeMenu } = this.props;
-
-        closeMenu();
     }
 
     render() {
@@ -76,6 +75,7 @@ class Category extends React.Component {
         const { collapse } = this.state;
 
         return (
+            // eslint-disable-next-line react/jsx-props-no-spreading
             <div className={classNames(style.categoryContainer, className)} {...props}>
                 <div
                     className={style.categoryTitle}
@@ -89,7 +89,7 @@ class Category extends React.Component {
                 </div>
                 <Collapse isOpen={collapse}>
                     <ul className={style.categoryLinks}>
-                        {category.subMenu.map(item => (
+                        {category.subMenu.map((item) => (
                             <li
                                 className={style.categoryLink}
                                 key={`category-link-${item.key}`}
@@ -118,7 +118,14 @@ class Category extends React.Component {
 }
 
 Category.propTypes = {
-    category: PropTypes.shape({}).isRequired,
+    category: PropTypes.shape({
+        title: PropTypes.string,
+        badge: PropTypes.string,
+        key: PropTypes.string,
+        subMenu: PropTypes.shape({
+            map: PropTypes.shape({}),
+        }),
+    }).isRequired,
     className: PropTypes.string,
     closeMenu: PropTypes.func,
 };

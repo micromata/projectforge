@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import TextAutoCompletion from '../../../../design/input/autoCompletion/TextAutoCompletion';
-import {DynamicLayoutContext} from '../../context';
+import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from './DynamicValidationManager';
-import {evalServiceURL} from "../../../../../utilities/rest";
+import { evalServiceURL } from '../../../../../utilities/rest';
 
 function DynamicAutoCompletion(
     {
@@ -14,27 +14,28 @@ function DynamicAutoCompletion(
         ...props
     },
 ) {
-    const {data, setData, ui} = React.useContext(DynamicLayoutContext);
+    const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
     const autoCompletionData = {};
 
-    var nUrl = url
+    let nUrl = url;
 
     if (urlParams) {
         Object.keys(urlParams).forEach((key) => {
             autoCompletionData[key] = Object.getByString(data, urlParams[key]);
         });
-        nUrl = evalServiceURL(url, autoCompletionData)
+        nUrl = evalServiceURL(url, autoCompletionData);
     }
 
     return React.useMemo(() => (
         <DynamicValidationManager id={id}>
             <TextAutoCompletion
                 inputId={`${ui.uid}-${id}`}
-                inputProps={{label}}
-                onChange={completion => setData({[id]: completion})}
+                inputProps={{ label }}
+                onChange={(completion) => setData({ [id]: completion })}
                 url={nUrl} // urlParams (Fin)
                 value={data[id]}
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
         </DynamicValidationManager>
